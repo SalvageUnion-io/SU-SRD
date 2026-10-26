@@ -412,6 +412,39 @@ describe('what goes wrong', () => {
     }
   })
 
+  it("logs Convex's reason when it refuses the link token", async () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => undefined)
+    ;(
+      globalThis.fetch as unknown as { mockImplementation: (f: unknown) => void }
+    ).mockImplementation(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = new Request(input, init).url
+      if (url === `${CONVEX}/api/mutation`)
+        return Response.json(
+          { code: 'InvalidAuthHeader', message: 'Could not verify token' },
+          { status: 401 }
+        )
+      if (url === 'https://discord.com/api/oauth2/token')
+        return Response.json({ access_token: 'discord-token', token_type: 'Bearer' })
+      return Response.json(discordUser)
+    })
+    try {
+      const d = deps()
+      const start = await answer(new Request(`${ORIGIN}${AUTH_PATHS.signIn}`), d)
+      const state = new URL(start.headers.get('location') ?? '').searchParams.get('state')
+      await answer(
+        new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${state}`, {
+          headers: { cookie: cookieOf(start) },
+        }),
+        d
+      )
+      expect(String(errors.mock.calls[0]?.[1])).toContain(
+        'accountLink.link failed: 401 InvalidAuthHeader Could not verify token'
+      )
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
   it("logs Discord's reason when it refuses the code", async () => {
     const errors = spyOn(console, 'error').mockImplementation(() => undefined)
     ;(

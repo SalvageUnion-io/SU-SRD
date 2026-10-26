@@ -265,9 +265,13 @@ async function linkToConvex(deps: AuthDeps, account: SignIn, now: number): Promi
     status?: string
     value?: unknown
     errorMessage?: string
+    code?: string
+    message?: string
   }
+  // A refused token answers `{ code, message }`, not a function's error.
+  const why = body.errorMessage ?? [res.status, body.code, body.message].filter(Boolean).join(' ')
   if (body.status !== 'success' || typeof body.value !== 'string')
-    throw new Error(`accountLink.link failed: ${body.errorMessage ?? res.status}`)
+    throw new Error(`accountLink.link failed: ${why}`)
   return body.value
 }
 
