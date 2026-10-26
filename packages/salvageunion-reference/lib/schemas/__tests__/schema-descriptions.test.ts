@@ -6,6 +6,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { defined } from '../../testing'
 import { z } from '../../zod'
 import {
   ActivationCostSchema,
@@ -65,14 +66,6 @@ type JsonSchemaObject = {
   anyOf?: JsonSchemaObject[]
   allOf?: JsonSchemaObject[]
   oneOf?: JsonSchemaObject[]
-}
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
 }
 
 /**

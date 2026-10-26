@@ -1,14 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { findEntityBySlug, getDataMaps, nameToSlug } from '../index'
+import { defined } from '../testing'
 import { parseTraitReferences, plainTraitText, replaceTraitReferences } from '../traitText'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
 
 describe('parseTraitReferences', () => {
   test('should parse simple trait references', () => {

@@ -1,12 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { must } from '../../components/__tests__/must'
 import { appPath } from '../appBase'
 import { buildLinkFor, guideExitsFor, patternBuildLinkFor, STARTER_SET_HREF } from '../buildLink'
-
-function must<T>(value: T | undefined): T {
-  if (value === undefined) throw new Error('fixture not found')
-  return value
-}
 
 describe('buildLinkFor', () => {
   test('a Tech 1 chassis opens the mech wizard on it, by slug, under the app base', () => {

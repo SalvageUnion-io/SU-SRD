@@ -1,17 +1,13 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { color } from '../../../design/tokens'
+import { must } from '../../__tests__/must'
 import { VitalGauge } from '../VitalGauge'
 
 /** Narrow a possibly-null query result, failing the test loudly if absent. */
 function mustInput(el: HTMLElement | null | undefined): HTMLInputElement {
   if (!(el instanceof HTMLInputElement)) throw new Error('expected an <input> element')
   return el
-}
-
-function must<T>(value: T | null | undefined): T {
-  if (value == null) throw new Error('Expected element to be present')
-  return value
 }
 
 /** The editable track's segment at 0-based `index` — pointer-only, so no role. */

@@ -6,15 +6,11 @@
 import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import { must } from '../../components/__tests__/must'
 import { resolveEntityPageMeta } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { buildLinkFor, guideExitsFor, STARTER_SET_HREF } from '../../lib/buildLink'
 import { EntityPageFrame } from '../EntityPageFrame'
-
-function must<T>(value: T | undefined | null): T {
-  if (value === undefined || value === null) throw new Error('fixture not found')
-  return value
-}
 
 const guide = (name: string) => must(SalvageUnionReference.Guides.getByName(name))
 

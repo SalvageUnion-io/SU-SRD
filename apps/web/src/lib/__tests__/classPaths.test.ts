@@ -1,11 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { must } from '../../components/__tests__/must'
 import { resolveClassPlan } from '../classPaths'
-
-function must<T>(value: T | undefined): T {
-  if (value === undefined) throw new Error('fixture not found')
-  return value
-}
 
 const classNamed = (name: string) => must(SalvageUnionReference.Classes.getByName(name))
 

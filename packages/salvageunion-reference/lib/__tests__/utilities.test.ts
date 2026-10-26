@@ -21,8 +21,7 @@ import {
   getUpgradeCost,
   getUpkeepCost,
 } from '../entityFields'
-// Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as RefType } from '../index'
+import { SalvageUnionReference } from '../index'
 import { SRD_SITE_URL } from '../origin'
 import {
   getBookPatterns,
@@ -33,29 +32,12 @@ import {
   visiblePatterns,
 } from '../patterns'
 import { getEntitySlug } from '../slug'
-
-let SalvageUnionReference: typeof RefType
-
-function getReference() {
-  if (!SalvageUnionReference) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('../index').SalvageUnionReference
-  }
-  return SalvageUnionReference
-}
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
+import { defined } from '../testing'
 
 describe('Property Extractors', () => {
   describe('getTechLevel', () => {
     it('should extract techLevel from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const techLevel = getTechLevel(system)
       expect(techLevel).toBeDefined()
       // Should return actual value (number, 'B', or 'N')
@@ -65,7 +47,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract techLevel from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
+      const module = defined(SalvageUnionReference.Modules.all()[0])
       const techLevel = getTechLevel(module)
       expect(techLevel).toBeDefined()
       // Should return actual value (number, 'B', or 'N')
@@ -75,7 +57,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract techLevel from chassis stats', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const techLevel = getTechLevel(chassis)
       expect(techLevel).toBeDefined()
       // Should return actual value (number, 'B', or 'N')
@@ -85,7 +67,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without techLevel', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const techLevel = getTechLevel(ability)
       expect(techLevel).toBeUndefined()
     })
@@ -93,7 +75,7 @@ describe('Property Extractors', () => {
 
   describe('getTechLevelNumber', () => {
     it('should extract techLevel as number from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const techLevel = getTechLevelNumber(system)
       expect(techLevel).toBeDefined()
       expect(typeof techLevel).toBe('number')
@@ -103,7 +85,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract techLevel as number from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
+      const module = defined(SalvageUnionReference.Modules.all()[0])
       const techLevel = getTechLevelNumber(module)
       expect(techLevel).toBeDefined()
       expect(typeof techLevel).toBe('number')
@@ -113,7 +95,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract techLevel as number from chassis stats', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const techLevel = getTechLevelNumber(chassis)
       expect(techLevel).toBeDefined()
       expect(typeof techLevel).toBe('number')
@@ -123,7 +105,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without techLevel', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const techLevel = getTechLevelNumber(ability)
       expect(techLevel).toBeUndefined()
     })
@@ -131,21 +113,21 @@ describe('Property Extractors', () => {
 
   describe('getSalvageValue', () => {
     it('should extract salvageValue from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const salvageValue = getSalvageValue(system)
       expect(salvageValue).toBeDefined()
       expect(typeof salvageValue).toBe('number')
     })
 
     it('should extract salvageValue from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
+      const module = defined(SalvageUnionReference.Modules.all()[0])
       const salvageValue = getSalvageValue(module)
       expect(salvageValue).toBeDefined()
       expect(typeof salvageValue).toBe('number')
     })
 
     it('should extract salvageValue from chassis stats', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const salvageValue = getSalvageValue(chassis)
       expect(salvageValue).toBeDefined()
       expect(typeof salvageValue).toBe('number')
@@ -154,7 +136,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without salvageValue', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const salvageValue = getSalvageValue(ability)
       expect(salvageValue).toBeUndefined()
     })
@@ -162,21 +144,21 @@ describe('Property Extractors', () => {
 
   describe('getSlotsRequired', () => {
     it('should extract slotsRequired from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const slotsRequired = getSlotsRequired(system)
       expect(slotsRequired).toBeDefined()
       expect(typeof slotsRequired).toBe('number')
     })
 
     it('should extract slotsRequired from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
+      const module = defined(SalvageUnionReference.Modules.all()[0])
       const slotsRequired = getSlotsRequired(module)
       expect(slotsRequired).toBeDefined()
       expect(typeof slotsRequired).toBe('number')
     })
 
     it('should return undefined for entities without slotsRequired', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const slotsRequired = getSlotsRequired(chassis)
       expect(slotsRequired).toBeUndefined()
     })
@@ -184,14 +166,14 @@ describe('Property Extractors', () => {
 
   describe('getPageReference', () => {
     it('should extract page from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const page = getPageReference(system)
       expect(page).toBeDefined()
       expect(typeof page).toBe('number')
     })
 
     it('should extract page from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const page = getPageReference(chassis)
       expect(page).toBeDefined()
       expect(typeof page).toBe('number')
@@ -224,7 +206,7 @@ describe('Property Extractors', () => {
 
     for (const schemaName of schemasWithPages) {
       it(`every ${schemaName} entity should have a valid page number`, () => {
-        const ref = getReference()
+        const ref = SalvageUnionReference
         const model = ref[schemaName]
         const entities = model.all()
         expect(entities.length).toBeGreaterThan(0)
@@ -241,27 +223,27 @@ describe('Property Extractors', () => {
 
   describe('extractActions', () => {
     it('should return undefined for chassis (chassis use chassisAbilities)', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const actions = extractActions(chassis)
       expect(actions).toBeUndefined()
     })
 
     it('should extract actions from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const actions = extractActions(system)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
     })
 
     it('should extract actions from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
+      const module = defined(SalvageUnionReference.Modules.all()[0])
       const actions = extractActions(module)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
     })
 
     it('should extract actions from NPCs', () => {
-      const npc = defined(getReference().NPCs.all()[0])
+      const npc = defined(SalvageUnionReference.NPCs.all()[0])
       const actions = extractActions(npc)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -269,7 +251,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from creatures', () => {
-      const creature = defined(getReference().Creatures.all()[0])
+      const creature = defined(SalvageUnionReference.Creatures.all()[0])
       const actions = extractActions(creature)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -277,7 +259,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from squads', () => {
-      const squad = defined(getReference().Squads.all()[0])
+      const squad = defined(SalvageUnionReference.Squads.all()[0])
       const actions = extractActions(squad)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -285,7 +267,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from bio-titans', () => {
-      const titan = defined(getReference().BioTitans.all()[0])
+      const titan = defined(SalvageUnionReference.BioTitans.all()[0])
       const actions = extractActions(titan)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -293,7 +275,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from meld', () => {
-      const meld = defined(getReference().Meld.all()[0])
+      const meld = defined(SalvageUnionReference.Meld.all()[0])
       const actions = extractActions(meld)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -301,27 +283,27 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from crawlers', () => {
-      const crawler = defined(getReference().Crawlers.all()[0])
+      const crawler = defined(SalvageUnionReference.Crawlers.all()[0])
       const actions = extractActions(crawler)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
     })
 
     it('should extract actions from crawler bays', () => {
-      const crawlerBay = defined(getReference().CrawlerBays.all()[0])
+      const crawlerBay = defined(SalvageUnionReference.CrawlerBays.all()[0])
       const actions = extractActions(crawlerBay)
       // Crawler bays no longer have actions property
       expect(actions).toBeUndefined()
     })
 
     it('should return undefined for entities without actions', () => {
-      const trait = defined(getReference().Traits.all()[0])
+      const trait = defined(SalvageUnionReference.Traits.all()[0])
       const actions = extractActions(trait)
       expect(actions).toBeUndefined()
     })
 
     it('should extract actions from abilities', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const actions = extractActions(ability)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -329,7 +311,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract actions from equipment', () => {
-      const equipment = defined(getReference().Equipment.all()[0])
+      const equipment = defined(SalvageUnionReference.Equipment.all()[0])
       const actions = extractActions(equipment)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
@@ -339,7 +321,7 @@ describe('Property Extractors', () => {
 
   describe('getChassisAbilities', () => {
     it('should extract chassis abilities from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const chassisAbilities = getChassisAbilities(chassis)
       expect(chassisAbilities).toBeDefined()
       expect(Array.isArray(chassisAbilities)).toBe(true)
@@ -347,13 +329,13 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for non-chassis entities', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const chassisAbilities = getChassisAbilities(system)
       expect(chassisAbilities).toBeUndefined()
     })
 
     it('should return undefined for abilities', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const chassisAbilities = getChassisAbilities(ability)
       expect(chassisAbilities).toBeUndefined()
     })
@@ -361,7 +343,7 @@ describe('Property Extractors', () => {
 
   describe('getStructurePoints', () => {
     it('should extract structurePoints from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const structurePoints = getStructurePoints(chassis)
       expect(structurePoints).toBeDefined()
       expect(typeof structurePoints).toBe('number')
@@ -369,21 +351,21 @@ describe('Property Extractors', () => {
     })
 
     it('should extract structurePoints from drones', () => {
-      const drone = defined(getReference().Drones.all()[0])
+      const drone = defined(SalvageUnionReference.Drones.all()[0])
       const structurePoints = getStructurePoints(drone)
       expect(structurePoints).toBeDefined()
       expect(typeof structurePoints).toBe('number')
     })
 
     it('should extract structurePoints from vehicles', () => {
-      const vehicle = defined(getReference().Vehicles.all()[0])
+      const vehicle = defined(SalvageUnionReference.Vehicles.all()[0])
       const structurePoints = getStructurePoints(vehicle)
       expect(structurePoints).toBeDefined()
       expect(typeof structurePoints).toBe('number')
     })
 
     it('should return undefined for entities without structure points', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const structurePoints = getStructurePoints(system)
       expect(structurePoints).toBeUndefined()
     })
@@ -391,7 +373,7 @@ describe('Property Extractors', () => {
 
   describe('getEnergyPoints', () => {
     it('should extract energyPoints from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const energyPoints = getEnergyPoints(chassis)
       expect(energyPoints).toBeDefined()
       expect(typeof energyPoints).toBe('number')
@@ -399,7 +381,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without energy points', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const energyPoints = getEnergyPoints(system)
       expect(energyPoints).toBeUndefined()
     })
@@ -407,7 +389,7 @@ describe('Property Extractors', () => {
 
   describe('getHeatCapacity', () => {
     it('should extract heatCapacity from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const heatCapacity = getHeatCapacity(chassis)
       expect(heatCapacity).toBeDefined()
       expect(typeof heatCapacity).toBe('number')
@@ -415,7 +397,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without heat capacity', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const heatCapacity = getHeatCapacity(system)
       expect(heatCapacity).toBeUndefined()
     })
@@ -423,7 +405,7 @@ describe('Property Extractors', () => {
 
   describe('getSystemSlots', () => {
     it('should extract systemSlots from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const systemSlots = getSystemSlots(chassis)
       expect(systemSlots).toBeDefined()
       expect(typeof systemSlots).toBe('number')
@@ -431,7 +413,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without system slots', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const systemSlots = getSystemSlots(system)
       expect(systemSlots).toBeUndefined()
     })
@@ -439,7 +421,7 @@ describe('Property Extractors', () => {
 
   describe('getModuleSlots', () => {
     it('should extract moduleSlots from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const moduleSlots = getModuleSlots(chassis)
       expect(moduleSlots).toBeDefined()
       expect(typeof moduleSlots).toBe('number')
@@ -447,7 +429,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without module slots', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const moduleSlots = getModuleSlots(system)
       expect(moduleSlots).toBeUndefined()
     })
@@ -455,7 +437,7 @@ describe('Property Extractors', () => {
 
   describe('getCargoCapacity', () => {
     it('should extract cargoCapacity from chassis', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const cargoCapacity = getCargoCapacity(chassis)
       expect(cargoCapacity).toBeDefined()
       expect(typeof cargoCapacity).toBe('number')
@@ -463,7 +445,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without cargo capacity', () => {
-      const system = defined(getReference().Systems.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
       const cargoCapacity = getCargoCapacity(system)
       expect(cargoCapacity).toBeUndefined()
     })
@@ -471,21 +453,21 @@ describe('Property Extractors', () => {
 
   describe('getHitPoints', () => {
     it('should extract hitPoints from NPCs', () => {
-      const npc = defined(getReference().NPCs.all()[0])
+      const npc = defined(SalvageUnionReference.NPCs.all()[0])
       const hitPoints = getHitPoints(npc)
       expect(hitPoints).toBeDefined()
       expect(typeof hitPoints).toBe('number')
     })
 
     it('should extract hitPoints from creatures', () => {
-      const creature = defined(getReference().Creatures.all()[0])
+      const creature = defined(SalvageUnionReference.Creatures.all()[0])
       const hitPoints = getHitPoints(creature)
       expect(hitPoints).toBeDefined()
       expect(typeof hitPoints).toBe('number')
     })
 
     it('should return undefined for entities without hit points', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       const hitPoints = getHitPoints(chassis)
       expect(hitPoints).toBeUndefined()
     })
@@ -493,7 +475,7 @@ describe('Property Extractors', () => {
 
   describe('getUpkeepCost / getUpgradeCost', () => {
     const tier = (techLevel: number) =>
-      defined(getReference().CrawlerTechLevels.find((t) => t.techLevel === techLevel))
+      defined(SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === techLevel))
 
     it('should extract both costs from a crawler tech level', () => {
       const hamlet = tier(1)
@@ -512,7 +494,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities that carry neither cost', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
       expect(getUpkeepCost(chassis)).toBeUndefined()
       expect(getUpgradeCost(chassis)).toBeUndefined()
     })
@@ -520,7 +502,7 @@ describe('Property Extractors', () => {
 
   describe('getAssetUrl', () => {
     it('should extract asset_url from chassis', () => {
-      const chassis = getReference().Chassis.getByName('Mule')
+      const chassis = SalvageUnionReference.Chassis.getByName('Mule')
       const assetUrl = getAssetUrl(defined(chassis))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -528,7 +510,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from bio-titans', () => {
-      const titan = getReference().BioTitans.getByName('Typhon')
+      const titan = SalvageUnionReference.BioTitans.getByName('Typhon')
       const assetUrl = getAssetUrl(defined(titan))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -536,7 +518,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from creatures', () => {
-      const creature = getReference().Creatures.getByName('Artl')
+      const creature = SalvageUnionReference.Creatures.getByName('Artl')
       const assetUrl = getAssetUrl(defined(creature))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -544,7 +526,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from NPCs', () => {
-      const npc = getReference().NPCs.getByName('Wastelander')
+      const npc = SalvageUnionReference.NPCs.getByName('Wastelander')
       const assetUrl = getAssetUrl(defined(npc))
       expect(assetUrl).toBeDefined()
       expect(typeof assetUrl).toBe('string')
@@ -552,7 +534,7 @@ describe('Property Extractors', () => {
     })
 
     it('should extract asset_url from core classes', () => {
-      const coreClass = getReference().Classes.find(
+      const coreClass = SalvageUnionReference.Classes.find(
         (c) => c.name === 'Engineer' && 'coreTrees' in c && Array.isArray(c.coreTrees)
       )
       const assetUrl = getAssetUrl(defined(coreClass))
@@ -563,7 +545,7 @@ describe('Property Extractors', () => {
 
     it('should extract asset_url from hybrid classes', () => {
       // Hybrid classes have hybrid: true
-      const hybridClass = getReference().Classes.find(
+      const hybridClass = SalvageUnionReference.Classes.find(
         (c) => c.name === 'Cyborg' && 'hybrid' in c && c.hybrid === true
       )
       const assetUrl = getAssetUrl(defined(hybridClass))
@@ -573,7 +555,7 @@ describe('Property Extractors', () => {
     })
 
     it('should return undefined for entities without asset_url', () => {
-      const ability = defined(getReference().Abilities.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
       const assetUrl = getAssetUrl(ability)
       expect(assetUrl).toBeUndefined()
     })
@@ -591,7 +573,7 @@ describe('normalizePatternName', () => {
   /** Every pattern name carried by real chassis data. */
   function realPatternNames(): string[] {
     const names: string[] = []
-    for (const chassis of getReference().Chassis.all()) {
+    for (const chassis of SalvageUnionReference.Chassis.all()) {
       for (const pattern of getPatterns(chassis) ?? []) {
         names.push(pattern.name)
       }
@@ -613,13 +595,13 @@ describe('normalizePatternName', () => {
     // the consumers (the app's MechChassisStep / partnerGrants) find it with
     // exactly this comparison. Every declared pattern must resolve.
     let checked = 0
-    for (const faction of getReference().Factions.all()) {
+    for (const faction of SalvageUnionReference.Factions.all()) {
       const formation = faction.formation
       if (!Array.isArray(formation)) continue
       for (const member of formation) {
         if (!member || typeof member !== 'object' || typeof member.pattern !== 'string') continue
         if ((member.schema ?? 'chassis') !== 'chassis') continue
-        const chassis = getReference().getByNameIn('chassis', member.chassis)
+        const chassis = SalvageUnionReference.getByNameIn('chassis', member.chassis)
         if (!chassis) continue
         const wanted = normalizePatternName(member.pattern)
         const pattern = getPatterns(chassis)?.find((p) => normalizePatternName(p.name) === wanted)
@@ -702,7 +684,7 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
   })
 
   it('withholds the tagged patterns from the real catalog', () => {
-    const chassis = getReference().Chassis.all()
+    const chassis = SalvageUnionReference.Chassis.all()
     const all = chassis.flatMap((c) => c.patterns)
     const hidden = all.filter((p) => p.hidden)
     // The tag is a strict subset — the catalog keeps the records, hides some.
@@ -712,13 +694,13 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
   })
 
   it('getPatterns never returns a hidden pattern', () => {
-    for (const chassis of getReference().Chassis.all()) {
+    for (const chassis of SalvageUnionReference.Chassis.all()) {
       expect((getPatterns(chassis) ?? []).some((p) => p.hidden)).toBe(false)
     }
   })
 
   it('every visible pattern carries its own source and page, or a homebrew credit', () => {
-    for (const chassis of getReference().Chassis.all()) {
+    for (const chassis of SalvageUnionReference.Chassis.all()) {
       for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
         expect(pattern.source).toBeTruthy()
         if (pattern.homebrew) {
@@ -737,8 +719,7 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
   // One-way: Mech Monday is homebrew, but a homebrew pattern may come from
   // another community source, so the tag is not just a copy of `source`.
   it('tags every Mech Monday pattern as homebrew', () => {
-    const mechMonday = getReference()
-      .Chassis.all()
+    const mechMonday = SalvageUnionReference.Chassis.all()
       .flatMap((c) => c.patterns)
       .filter((p) => p.source === 'Mech Monday')
     expect(mechMonday.length).toBeGreaterThan(0)
@@ -746,7 +727,7 @@ describe('homebrew patterns (stored data tag — never computed)', () => {
   })
 
   it('splits a chassis’s visible patterns into the book’s and the built-in homebrew', () => {
-    const gatecrasher = defined(getReference().Chassis.getByName('Gatecrasher'))
+    const gatecrasher = defined(SalvageUnionReference.Chassis.getByName('Gatecrasher'))
     expect((getBookPatterns(gatecrasher) ?? []).map((p) => p.name)).toEqual([
       'Moth',
       'Grond',
@@ -778,7 +759,7 @@ describe('SRD site URLs', () => {
   })
 
   it('links a real entity at the slug its own page uses', () => {
-    const mule = defined(getReference().Chassis.getByName('Mule'))
+    const mule = defined(SalvageUnionReference.Chassis.getByName('Mule'))
     expect(srdEntityUrl('chassis', getEntitySlug(mule))).toBe(
       'https://salvageunion.io/chassis/mule/'
     )
