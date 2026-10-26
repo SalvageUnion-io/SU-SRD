@@ -43,10 +43,14 @@ import { migrate } from '../rooms/migrate'
 import type { PresenceMessage } from '../rooms/presence'
 import { presentMembers, ROOM_PROTOCOL, SEAT_TAG, WATCH_TAG } from '../rooms/presence'
 import type { ServerMessage } from '../rooms/protocol'
+import { gamePublished, shelfPublished } from '../rooms/publish'
 import { RoomRefusal } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { unitVitals } from '../rooms/vitals'
+import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
+import type { SharedDb } from './shared/db'
+import { RoomPublisher } from './shared/roomRows'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
 
@@ -91,6 +95,25 @@ abstract class Room extends DurableObject<RoomEnv> {
     return { schema: this.schema }
   }
 
+  protected abstract readonly publisher: RoomPublisher
+
+  /** Write every row this room publishes to the shared database now: the cutover's, after import. */
+  republish(): Promise<{ sheets: number; homebrew: number }> {
+    return this.publisher.republish()
+  }
+
+  /**
+   * After a change: the room's shared rows follow it, without holding up the
+   * answer. A Durable Object stays up while the write is out, so no `waitUntil`.
+   */
+  protected published(): void {
+    void this.publisher.changed()
+  }
+
+  protected get shared(): SharedDb | undefined {
+    return (this.env as { SHARED?: SharedDb }).SHARED
+  }
+
   /** Wipe the room, leaving it as a new one: what is left of a Game that ended. */
   protected async wipe(): Promise<void> {
     await this.ctx.storage.deleteAlarm()
@@ -106,10 +129,15 @@ abstract class Room extends DurableObject<RoomEnv> {
  */
 export class AccountRoom extends Room implements UnitHome {
   private readonly logic: AccountRoomLogic
+  protected readonly publisher: RoomPublisher
 
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
+    const owner = ctx.id.name ?? null
+    this.publisher = new RoomPublisher(this.shared, `account:${owner}`, owner, () =>
+      shelfPublished(this.logic.shelf.store)
+    )
     // The room is named by its player, so it is theirs before they first open
     // it: a Game that ends can hand them their units (after the migration above).
     void ctx.blockConcurrencyWhile(async () => {
@@ -219,6 +247,7 @@ export class AccountRoom extends Room implements UnitHome {
     if (result.ok) {
       const ids = result.applied.map((op) => op.id)
       sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
+      this.published()
     }
     ws.send(JSON.stringify(batchAnswer(opIds, result)))
   }
@@ -244,6 +273,7 @@ export class AccountRoom extends Room implements UnitHome {
 
   private broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => shelfSnapshot(this.logic, member))
+    this.published()
   }
 }
 
@@ -284,10 +314,14 @@ type AccountHome = UnitHome & {
  */
 export class GameRoom extends Room implements UnitHome {
   private readonly logic: GameRoomLogic
+  protected readonly publisher: RoomPublisher
 
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, GAME_ROOM)
     this.logic = new GameRoomLogic(this.sql, { applyOp })
+    this.publisher = new RoomPublisher(this.shared, `game:${ctx.id.name}`, null, () =>
+      gamePublished(this.logic.store)
+    )
   }
 
   private get gameId(): string {
@@ -319,6 +353,7 @@ export class GameRoom extends Room implements UnitHome {
       else if (result.ok) {
         const ids = result.applied.map((op) => op.id)
         this.broadcast(appliedMessages(this.logic.store, ids, this.gameId))
+        this.published()
       }
     }
     return answer
@@ -392,12 +427,14 @@ export class GameRoom extends Room implements UnitHome {
     }
     await accountHome(ended.tray.to).fileTray(`disband-tray:${this.gameId}`, ended.tray.npcs, at)
     await this.wipe()
+    this.published()
     return { ok: true, value: null }
   }
 
   /** A member deleted their account; a Game left with nobody is wiped. */
   async forget(userId: string): Promise<void> {
     if (this.logic.roster.forgetMember(userId).empty) await this.wipe()
+    this.published()
   }
 
   /** The cutover: copy one Game's bundle in, once (ADR-064 §7). */
@@ -471,6 +508,7 @@ export class GameRoom extends Room implements UnitHome {
 
   private broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => gameSnapshot(this.logic, member, this.gameId))
+    this.published()
   }
 
   private broadcast(messages: readonly ServerMessage[]): void {
@@ -513,36 +551,6 @@ const READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'safety.stopSign',
 ])
 
-/** Each open socket's own snapshot, after a change that may touch several things. */
-function snapshotEach(ctx: RoomState, snapshotOf: (member: string) => ServerMessage): void {
-  const byMember = new Map<string, string>()
-  for (const ws of ctx.getWebSockets()) {
-    const [member] = ctx.getTags(ws)
-    if (member === undefined) continue
-    let text = byMember.get(member)
-    if (text === undefined) {
-      text = JSON.stringify(snapshotOf(member))
-      byMember.set(member, text)
-    }
-    sendQuietly(ws as RoomSocket, text)
-  }
-}
-
-/** The same messages to every open socket. */
-function sendEach(ctx: RoomState, messages: readonly ServerMessage[]): void {
-  const texts = messages.map((message) => JSON.stringify(message))
-  for (const ws of ctx.getWebSockets())
-    for (const text of texts) sendQuietly(ws as RoomSocket, text)
-}
-
-function sendQuietly(ws: RoomSocket, text: string): void {
-  try {
-    ws.send(text)
-  } catch {
-    // Closing as we sent; its own close handler answers the rest.
-  }
-}
-
 /** The room namespaces, as `wrangler.jsonc` declares them. */
 export function rooms() {
   return exports as unknown as {
@@ -557,7 +565,7 @@ export function rooms() {
  * plain JSON, so each method answers its own result.
  */
 export type GameRoomStub = {
-  [K in 'unitsFor' | 'unit' | 'disband' | 'forget' | 'importGame' | 'diffImport']: (
+  [K in 'unitsFor' | 'unit' | 'disband' | 'forget' | 'importGame' | 'diffImport' | 'republish']: (
     ...args: Parameters<GameRoom[K]>
   ) => Promise<Awaited<ReturnType<GameRoom[K]>>>
 } & {

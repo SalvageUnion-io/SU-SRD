@@ -4,7 +4,7 @@
  *
  * - **Shared is a row.** The room writes the row when its owner shares the
  *   thing and on every change after; unsharing deletes it at once
- *   (`dropPublicSheet`). Private and missing are the same absent row.
+ *   (`roomRows.ts`). Private and missing are the same absent row.
  * - **What a stranger may see, decided by the writer.** `page` and `preview`
  *   are worked out by the room that holds the thing, with its links and
  *   assignments in reach, so this module serves them as written and decides
