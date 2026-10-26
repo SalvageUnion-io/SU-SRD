@@ -66,7 +66,7 @@ export function EntityPageStamps({
     // Its fill, gap and alignment are `.su-entity-stamps`'.
     <Chips
       className="su-entity-stamps"
-      size="full"
+      size="compact"
       linkable
       chips={{
         durations: meta.actionTypes,
@@ -84,11 +84,11 @@ export function EntityPageStamps({
                 href: parent.href,
               })}
               linkable
-              size="full"
+              size="compact"
               wrap
             />
           ),
-          ...relationChips(meta.relations, 'full'),
+          ...relationChips(meta.relations, 'compact'),
         ],
       }}
       marks={
@@ -96,9 +96,9 @@ export function EntityPageStamps({
           ? [
               ...labelChips(
                 { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-                'full'
+                'compact'
               ),
-              credit && <HomebrewCreditChip key="credit" credit={credit} size="full" linkable />,
+              credit && <HomebrewCreditChip key="credit" credit={credit} size="compact" linkable />,
             ]
           : undefined
       }

@@ -64,6 +64,8 @@ export type TrayNpc = {
   reactor: { ep: number; maxEp: number; heat: number; heatCap: number } | null
   /** Its last Critical roll or Heat Check. */
   lastImportantRoll: ImportantRoll | null
+  /** The encounter group it fights in (ADR-059 §5), or null when it fights alone. */
+  group: { id: string; name: string } | null
   /** The schema it came from, for the picker's counts. */
   refSchema: EncounterRefSchema | null
   refSlug: string | null
@@ -118,9 +120,56 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
         : null,
     lastImportantRoll:
       important && isImportantRoll(body.lastImportantRoll) ? body.lastImportantRoll : null,
+    group: readGroup(body.group),
     refSchema,
     refSlug,
   }
+}
+
+function readGroup(value: unknown): TrayNpc['group'] {
+  if (typeof value !== 'object' || value === null) return null
+  const { id, name } = value as Record<string, unknown>
+  return typeof id === 'string' && typeof name === 'string' && name !== '' ? { id, name } : null
+}
+
+/** One entry in the tray's list: an NPC alone, or a group with its members. */
+export type TrayEntry =
+  | { kind: 'alone'; npc: TrayNpc }
+  | { kind: 'group'; id: string; name: string; members: TrayNpc[] }
+
+/**
+ * The tray as its list draws it: each group where its first member stands,
+ * holding its members in tray order; everyone else alone.
+ */
+export function trayEntries(npcs: readonly TrayNpc[]): TrayEntry[] {
+  const entries: TrayEntry[] = []
+  const groups = new Map<string, Extract<TrayEntry, { kind: 'group' }>>()
+  for (const npc of npcs) {
+    if (npc.group === null) {
+      entries.push({ kind: 'alone', npc })
+      continue
+    }
+    const known = groups.get(npc.group.id)
+    if (known) {
+      known.members.push(npc)
+      continue
+    }
+    const entry = { kind: 'group' as const, ...npc.group, members: [npc] }
+    groups.set(npc.group.id, entry)
+    entries.push(entry)
+  }
+  return entries
+}
+
+/** A group's last roll: the newest of its members', as a group roll writes each one's. */
+export function groupRoll(members: readonly TrayNpc[]): MoraleRoll | null {
+  return members.reduce<MoraleRoll | null>(
+    (newest, m) =>
+      m.lastRoll !== null && (newest === null || m.lastRoll.rolledAt > newest.rolledAt)
+        ? m.lastRoll
+        : newest,
+    null
+  )
 }
 
 /** A saved mech pattern the Mediator may field: theirs, or shared with the Game. */

@@ -28,11 +28,11 @@ describe('BonusPerTechLevel', () => {
     }
   })
 
-  test('a compact card sets every chip at the compact rung', () => {
+  test('a compact card sets every chip at the Mini Size', () => {
     const { container } = render(<BonusPerTechLevel cells={cells} compact />)
     const labels = [...container.querySelectorAll('.su-stat-plate--label')]
     expect(labels).toHaveLength(3)
-    for (const plate of labels) expect(plate.className).toContain('su-stat-plate--compact')
+    for (const plate of labels) expect(plate.className).toContain('su-stat-plate--mini')
   })
 
   test('a Damage cell carries its unit in the value', () => {

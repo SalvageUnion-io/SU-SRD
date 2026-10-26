@@ -18,7 +18,7 @@ import { expect, test } from './fixtures'
  * controls whose heights differ. A failure names the page, the line and every
  * control on it with its height; give the odd one the line's Size
  * (`styles/sizing.ts`), never a height of its own. Every signed-in context
- * (`designRoutes`, R12's whole-page pass and the touch floor) is
+ * (`designRoutes`, R12's whole-page pass and touch menus) is
  * `design-walk.e2e.ts`'s.
  */
 
@@ -109,9 +109,8 @@ test.describe('signed out', { tag: '@pr' }, () => {
  * Play's own lines: the Play bar, each unit box and each action row, open and
  * closed. On the columns a unit box is scanned whole (its head and every body
  * row: the vitals, the pilot's class / TP / injuries, the mech's range;
- * Sheet and Board are chips on the head); on a phone only its head, since the touch floor lifts every
- * button there to 44px beside chips that keep their drawn Size (`design-walk.e2e.ts`
- * scans each phone tab whole, against its baseline). Play needs an account,
+ * Sheet and Board are chips on the head); on a phone only its head
+ * (`design-walk.e2e.ts` scans each phone tab whole, against its baseline). Play needs an account,
  * so this signs in, sets up the Starter Set table (`setUpTable`) and opens
  * Bonesaw's screen, on foot, then Boarded with an action open, in a wide
  * window and as a phone. Only those lines are scanned (`EXPECTED`); the rest of the page is

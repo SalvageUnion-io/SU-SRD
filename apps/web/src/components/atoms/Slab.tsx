@@ -179,11 +179,14 @@ const RULE = {
   minWidth: space[12],
 } satisfies CSSProperties
 
+/** Its actions wrap onto lines of their own before the row runs off a phone. */
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
-  flexShrink: 0,
+  flexWrap: 'wrap',
   gap: space[6],
+  justifyContent: 'flex-end',
+  minWidth: 0,
 } satisfies CSSProperties
 
 /**
@@ -218,7 +221,11 @@ export function Slab({
   const titles = chips?.flatMap((chip) => (chip.title ? [chip.title] : [])) ?? []
   const countNode = chips ? (
     <span style={COUNT_STAT} title={titles.length ? titles.join('; ') : undefined}>
-      <Chips as="span" size="compact" chips={{ ...NO_CHIPS, facts: summaryFacts(chips) }} />
+      <Chips
+        as="span"
+        size={size === 'mini' ? 'mini' : 'compact'}
+        chips={{ ...NO_CHIPS, facts: summaryFacts(chips) }}
+      />
       {chips.map((chip) =>
         chip.note != null ? (
           <span key={chip.label} style={countInkStyle}>

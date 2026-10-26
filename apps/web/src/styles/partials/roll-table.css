@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 16 of 21: the roll-table instrument
+ * The package stylesheet, part 15 of 20: the roll-table instrument
  * (Compositions). `../index.css` imports the parts in cascade order.
  */
 
@@ -102,15 +102,9 @@
 }
 
 /* The bar's buttons share one height: the Roll and a card's Table / Hide
-   toggle, at the 44px tap floor on a coarse pointer (§4.6). */
+   toggle, the Compact Size on every pointer (R12). */
 .su-roll__control {
   min-height: var(--size-compact);
-}
-
-@media (pointer: coarse) {
-  .su-roll__control {
-    min-height: var(--size-full);
-  }
 }
 
 .su-roll__cols {

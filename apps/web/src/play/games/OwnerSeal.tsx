@@ -51,7 +51,7 @@ export function OwnerSeal({
   onAssign: () => void
 }) {
   // The label-only chip, at the Compact's chip rung.
-  const stamp = <Stat label={owner.label} size="compact" />
+  const stamp = <Stat label={owner.label} size="mini" />
 
   if (!assignable) {
     // Inert: a fact about the row, not a control.

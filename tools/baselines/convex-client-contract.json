@@ -1604,6 +1604,24 @@
         }
       }
     },
+    "mediator:bringInWave": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "wave": {
+          "fieldType": {
+            "type": "number"
+          },
+          "optional": false
+        }
+      }
+    },
     "mediator:endEncounter": {
       "type": "object",
       "value": {
@@ -1635,6 +1653,30 @@
           "fieldType": {
             "type": "id",
             "tableName": "games"
+          },
+          "optional": false
+        }
+      }
+    },
+    "mediator:recordGroupRoll": {
+      "type": "object",
+      "value": {
+        "gameId": {
+          "fieldType": {
+            "type": "id",
+            "tableName": "games"
+          },
+          "optional": false
+        },
+        "groupId": {
+          "fieldType": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "roll": {
+          "fieldType": {
+            "type": "any"
           },
           "optional": false
         }
@@ -1673,6 +1715,12 @@
             "type": "boolean"
           },
           "optional": false
+        },
+        "waves": {
+          "fieldType": {
+            "type": "boolean"
+          },
+          "optional": true
         }
       }
     },

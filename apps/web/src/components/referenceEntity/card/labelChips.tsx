@@ -6,6 +6,9 @@ import type { AxisMarker } from './entityCardTone'
 import { HomebrewStamp } from './HomebrewStamp'
 import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 
+/** A stamp's rung among chips of a Size: its type as a chip's, a rung up. */
+const STAMP_RUNG: Record<Size, Size> = { mini: 'compact', compact: 'full', full: 'full' }
+
 /** An entity's head labels (`CardLabels`, `labelChips`). */
 export type LabelsProps = {
   /** A parent-provided seal (GRANTS, CHASSIS ABILITY). */
@@ -25,6 +28,8 @@ export type LabelsProps = {
  * Compact's note). The seal keeps its stamp and tone, and
  * HOMEBREW its stamp; every other label is a `Stat` cell, the Legal
  * Starting Pattern a label-only one that says the book's words on hover.
+ * A stamp's type is a rung up from its chips' (`STAMP_RUNG`); the strip draws
+ * it at their height (`.su-chip-lane > .su-badge-stamp`).
  */
 export function labelChips(
   { seal, note, axisMarkers, legalStartingPattern, userMade = false }: LabelsProps,
@@ -35,7 +40,7 @@ export function labelChips(
       <Badge
         key="seal"
         shape="stamp"
-        size={size}
+        size={STAMP_RUNG[size]}
         style={seal.tone === 'var(--color-ink)' ? undefined : { backgroundColor: seal.tone }}
       >
         {seal.label}
@@ -53,6 +58,6 @@ export function labelChips(
         size={size}
       />
     ),
-    userMade && <HomebrewStamp key="homebrew" size={size} />,
+    userMade && <HomebrewStamp key="homebrew" size={STAMP_RUNG[size]} />,
   ].filter(Boolean)
 }

@@ -65,8 +65,8 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    4. **§4.4 Radius and spacing** — entity frames and stamps are square; all else that frames or floats is 3px, `calc(3px − frame)` inside; only the ink-banner tail is rounder.
       Spacing inside a block is `{2, 4, 6, 8, 12}px`, 12px the card gutter; between blocks, 16 or 24px. No literal where a token exists.
    5. **§4.5 The pip-row split** — at most 6 a row, bottom-heavy (7 → 3/4, 13 → 4/4/5); the redline pip at 70%.
-   6. **§4.6 The floors: type and touch** — nothing under 11px as seen (a 1200px link preview: 34px). Coarse-pointer targets are 44px, menu items too; nothing floats over content.
-   7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`; touch lifts Compact to Full, Mini a 44px hit area).
+   6. **§4.6 The floors: type and touch** — nothing under 11px as seen (a 1200px link preview: 34px). Touch takes a bigger Size, never a hidden hit area; nothing floats over content.
+   7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`), every button and chip, every screen.
       A line's controls share one Size; chip values match labels, one gap apart, filled as C2b. A Button beside Tabs is their Size.
 5. **§5 The irreducible set** — 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.

@@ -77,8 +77,6 @@ describe('EntityPageFrame', () => {
     )
     const link = screen.getByRole('link', { name: 'Build With This: a mech' })
     expect(link.getAttribute('href')).toBe(`${appPath('/mechs/new?mode=guided&chassis=mule')}`)
-    // Chip-sized on a phone, it reaches 44px under a coarse pointer by its hit area.
-    expect(link.className).toContain('su-hit-area')
   })
 
   test('every show page carries Share, before "Build With This" where it has one', () => {

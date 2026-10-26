@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 17 of 21: the shell's flat leaves
+ * The package stylesheet, part 16 of 20: the shell's flat leaves
  * (Compositions). `../index.css` imports the parts in cascade order.
  */
 
@@ -48,14 +48,6 @@
 }
 
 /* ── shell and flat leaves ── */
-
-/* A folded card's chevron (`ReferenceEntityCard` `collapsible`): the card's ONE
-   fold control, so it takes the WCAG 2.2 minimum target (24px) a stamp's 24×20
-   misses. A coarse pointer lifts it to 44px through the shared touch floor. */
-.su-card-fold {
-  min-height: var(--space-24);
-  min-width: var(--space-24);
-}
 
 /* NavDrawer (`compositions/NavDrawer.tsx`). The trigger's padding and ink are a
    class because the Union bar's phone cluster resizes it (`shell.css`). */

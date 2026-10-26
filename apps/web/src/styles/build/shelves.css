@@ -25,14 +25,3 @@
    what does not fit there wraps up over it
    (`.su-chapter-band[data-aside='controls']` in shell.css), so they need
    nothing of their own here. */
-
-/* Under a coarse pointer every control on the page is at least 44px tall
-   (ruleset §4.6). The band's buttons are Compact, which theme.css lifts to
-   Full there; the menu rows (the Starter Set's entries are Minis) are named
-   here. The action chips (a shelf's "+ New…", a Compact's "⋯") reach 44px through
-   the Mini button's hit area (`pointer-motion.css`). */
-@media (pointer: coarse) {
-  .su-header-menu-item {
-    min-height: var(--size-full);
-  }
-}

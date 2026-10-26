@@ -117,7 +117,7 @@ export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: Units
         </Eyebrow>
         <span style={QTY}>
           <Stat
-            size="compact"
+            size="mini"
             label={buildSheetCopy('qty')}
             value={count}
             min={1}

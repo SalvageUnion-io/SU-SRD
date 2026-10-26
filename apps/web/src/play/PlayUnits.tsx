@@ -100,7 +100,7 @@ function Relations({ items }: { items: readonly TagItem[] }) {
   return (
     <Chips
       chips={{ durations: [], facts: [], tags: [], relations: [...items] }}
-      size="compact"
+      size="mini"
       linkable
     />
   )
@@ -156,7 +156,7 @@ export function PlayPilotUnit({
       tone="pilot"
       className="su-play-unit"
       reference={!live}
-      chips={<Stat label={playCopy('pilot2')} size="compact" />}
+      chips={<Stat label={playCopy('pilot2')} size="mini" />}
       controls={
         <>
           {stamp(live ? 'Live' : 'Read only')}
@@ -183,12 +183,12 @@ export function PlayPilotUnit({
         />
       ) : null}
       <div style={CHIPS}>
-        {pilot.classRef ? <Stat label={resolveClassName(pilot.classRef)} size="compact" /> : null}
-        <Stat label={playCopy('tp')} value={pilot.trainingPoints ?? 0} size="compact" />
+        {pilot.classRef ? <Stat label={resolveClassName(pilot.classRef)} size="mini" /> : null}
+        <Stat label={playCopy('tp')} value={pilot.trainingPoints ?? 0} size="mini" />
         {injuries.length === 0 ? (
-          <Stat label={playCopy('noInjuries')} size="compact" />
+          <Stat label={playCopy('noInjuries')} size="mini" />
         ) : (
-          injuries.map((line) => <Stat key={line} label={line} size="compact" state="critical" />)
+          injuries.map((line) => <Stat key={line} label={line} size="mini" state="critical" />)
         )}
       </div>
     </TitledBox>
@@ -398,13 +398,13 @@ export function PlayCrawlerUnit({
       tone="crawler"
       className="su-play-unit"
       reference={!solid}
-      chips={<Stat label={playCopy('crawler2')} size="compact" />}
+      chips={<Stat label={playCopy('crawler2')} size="mini" />}
       controls={
         <>
           {downtime ? (
             stamp('Downtime')
           ) : tl === undefined ? null : (
-            <Stat label={playCopy('tl')} value={tl} size="compact" />
+            <Stat label={playCopy('tl')} value={tl} size="mini" />
           )}
           {onOpenSheet ? <SheetButton name={crawler.name} onOpen={onOpenSheet} /> : null}
         </>
@@ -422,7 +422,7 @@ export function PlayCrawlerUnit({
           <Stat
             label={playCopy('upkeep')}
             value={`${DOWNTIME_UPKEEP_SCRAP} Scrap · T${tl}`}
-            size="compact"
+            size="mini"
           />
         </div>
       ) : null}
@@ -433,7 +433,7 @@ export function PlayCrawlerUnit({
             <li key={`${bay.name}-${i}`}>
               <Stat
                 label={bay.damaged ? playCopy('damaged2', { name: bay.name }) : bay.name}
-                size="compact"
+                size="mini"
                 state={bay.damaged ? 'critical' : undefined}
               />
             </li>

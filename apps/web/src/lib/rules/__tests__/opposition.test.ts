@@ -6,12 +6,15 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
+  groupMoraleDue,
   importantTrackOf,
   isDown,
   isImportantRoll,
+  moraleDue,
   npcHeatCheck,
   rollMorale,
   rollNpcCritical,
+  rollReaction,
   trackOf,
 } from '../opposition'
 
@@ -53,6 +56,45 @@ describe('rollMorale', () => {
       rolledAt: NOW,
     })
     expect(rollMorale(() => 20, NOW)?.label).toBe('Fight to the Death')
+  })
+})
+
+describe('rollReaction', () => {
+  test('Reaction is a d20 on the Reaction Roll table (p.267-268)', () => {
+    expect(rollReaction(() => 4, NOW)).toMatchObject({
+      table: 'reaction',
+      roll: 4,
+      label: 'Hostile',
+    })
+  })
+})
+
+describe('Morale due (Core Book p.268)', () => {
+  const mech = { refSchema: 'chassis', currentHp: 6, maxHp: 12, lastRoll: null }
+  const rolled = (table: 'morale' | 'reaction' | 'retreat') => ({ table })
+
+  test('a Mech or Creature at half or less, standing, with no Morale roll since', () => {
+    expect(moraleDue(mech)).toBe(true)
+    expect(moraleDue({ ...mech, refSchema: 'creatures', currentHp: 1 })).toBe(true)
+    expect(moraleDue({ ...mech, currentHp: 7 })).toBe(false)
+    expect(moraleDue({ ...mech, currentHp: 0 })).toBe(false)
+    expect(moraleDue({ ...mech, lastRoll: rolled('morale') })).toBe(false)
+    expect(moraleDue({ ...mech, lastRoll: rolled('retreat') })).toBe(false)
+    expect(moraleDue({ ...mech, lastRoll: rolled('reaction') })).toBe(true)
+  })
+
+  test('an NPC checks with its group, not alone', () => {
+    expect(moraleDue({ ...mech, refSchema: 'npcs' })).toBe(false)
+    expect(moraleDue({ ...mech, refSchema: null })).toBe(false)
+  })
+
+  test('a group at half or more down, someone standing, unchecked', () => {
+    const up = { refSchema: 'npcs', currentHp: 3, maxHp: 3, lastRoll: null }
+    const down = { ...up, currentHp: 0 }
+    expect(groupMoraleDue([down, up])).toBe(true)
+    expect(groupMoraleDue([down, up, up])).toBe(false)
+    expect(groupMoraleDue([down, down])).toBe(false)
+    expect(groupMoraleDue([down, { ...up, lastRoll: rolled('morale') }])).toBe(false)
   })
 })
 

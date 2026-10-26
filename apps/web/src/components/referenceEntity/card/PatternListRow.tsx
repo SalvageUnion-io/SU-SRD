@@ -226,7 +226,7 @@ export function PatternListing({
       ? [
           ...labelChips(
             { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-            'compact'
+            'mini'
           ),
           credit,
         ]

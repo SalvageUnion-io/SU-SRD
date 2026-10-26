@@ -179,8 +179,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const patterns = usePatterns((s) => s.mechPatterns)
   const trayNpcs = useTray((s) => s.encounterNpcs)
 
-  // Names for the chips, from the WHOLE pile, so a link names its other end
-  // whichever way the toggle is set.
+  // Chip names from the WHOLE pile: a link names its other end either way.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
   // A linked unit's Mini carries its own stat chips.
@@ -355,7 +354,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const newLink = (href: string, label: string) =>
     canWrite ? (
-      <Button href={href} size="mini">
+      <Button href={href} size="compact">
         {label}
       </Button>
     ) : undefined
@@ -551,6 +550,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 canWrite ? (
                   <HeaderMenu
                     variant="button"
+                    size="compact"
                     trigger="+ From a mech"
                     label="+ From a mech"
                     chevron={false}

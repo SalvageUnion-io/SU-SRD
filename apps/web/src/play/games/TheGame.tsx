@@ -139,9 +139,7 @@ export function TheGame({
         ) : undefined
       }
     >
-      {appointing && (
-        <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="compact" wrap />
-      )}
+      {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
       <ul aria-label={playGamesCopy('members')} className="su-game-members" style={LINES}>
         {members?.map((m) => (
           <li key={m.userId}>
@@ -153,8 +151,8 @@ export function TheGame({
               labels={
                 m.mediator || m.organizer ? (
                   <>
-                    {m.mediator && <Stat label={playGamesCopy('mediator')} size="compact" />}
-                    {m.organizer && <Stat label={playGamesCopy('organiser')} size="compact" />}
+                    {m.mediator && <Stat label={playGamesCopy('mediator')} size="mini" />}
+                    {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
                   </>
                 ) : undefined
               }

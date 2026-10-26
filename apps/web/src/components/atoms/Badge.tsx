@@ -235,9 +235,7 @@ export function Badge(props: BadgeProps) {
         capsLabel({ size: 'badge', weight: 'semibold' }),
         'su-badge',
         swatch != null && 'su-badge--swatch',
-        // `su-hit-area`: an interactive chip stays 22px and reaches the 44px
-        // coarse-pointer floor through a pseudo-element (ruleset §4.6).
-        interactive && cn('su-hit-area su-badge--interactive', FOCUS_RING),
+        interactive && cn('su-badge--interactive', FOCUS_RING),
         BADGE_SURFACE[surface],
         surface === 'tone' && tone && BADGE_TONES[tone],
         className

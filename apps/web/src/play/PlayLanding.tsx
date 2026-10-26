@@ -294,7 +294,7 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="mini" onClick={() => setOpen(true)}>
+      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
       <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
@@ -363,7 +363,7 @@ function PlayGameItem({
         titleAs="h3"
         mode={{ kind: 'link', href: gamePath(game._id) }}
         labels={chips.map((chip) => (
-          <Stat key={chip.key} label={chip.label} value={chip.value} size="compact" />
+          <Stat key={chip.key} label={chip.label} value={chip.value} size="mini" />
         ))}
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={

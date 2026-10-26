@@ -78,7 +78,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§4.3': ['tokens/raw-border-width', 'R38'],
   '§4.4': ['R13', 'R26'],
   '§4.5': ['pipRows.test.ts'],
-  '§4.6': ['R12', 'tokens/type-floor', 'touchFloor.test.ts'],
+  '§4.6': ['R12', 'tokens/type-floor', 'sizeHeights.test.ts'],
   '§4.7': ['R12', 'R41'],
   '§5': ['roster.test.ts'],
   '§5.1': ['roster.test.ts'],
@@ -176,7 +176,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R9: ['Btn.test.tsx'],
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts'],
-  R12: ['_siblingHeights.ts', '_typeFloor.ts', 'touchFloor.test.ts', 'biome.jsonc#R12'],
+  R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
   R13: [
     'tokens/raw-tracking',
     'tokens/size-literal',

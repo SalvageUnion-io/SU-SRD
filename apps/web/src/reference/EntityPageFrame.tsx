@@ -121,7 +121,7 @@ export function EntityPageFrame({
                 aria-label={build.ariaLabel}
                 variant="primary"
                 size="compact"
-                className="su-page-action su-hit-area"
+                className="su-page-action"
               >
                 {build.label}
               </Button>

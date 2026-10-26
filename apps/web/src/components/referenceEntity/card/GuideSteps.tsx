@@ -25,7 +25,7 @@ import type { CardTitleTag, NestedCard, ReferenceCardEntity } from './referenceE
 import type { ResolvedGuideStep } from './resolveGuideSteps'
 
 const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
-const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section su-hit-area', capsLabel())
+const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section', capsLabel())
 
 /**
  * A step's aside — a tip or a worked example — is the note every rules block
@@ -304,16 +304,15 @@ function guideAnchors(groups: StepGroup[]): Map<string, string> {
 }
 
 /**
- * The rail's list: each section, then its numbered steps. Each link takes the
- * 44px coarse-pointer floor through the shared hit area (ruleset §4.6), so the
- * list keeps its reading rhythm.
+ * The rail's list: each section, then its numbered steps, in its reading
+ * rhythm.
  */
 function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<string, string> }) {
   const stepLinks = (group: StepGroup) => (
     <ol className="su-guide__toc-steps">
       {group.steps.map(({ step, number }) => (
         <li key={step.id}>
-          <a className="su-guide__toc-link su-hit-area" href={`#${anchors.get(step.id)}`}>
+          <a className="su-guide__toc-link" href={`#${anchors.get(step.id)}`}>
             <span className="su-guide__toc-num">{number}</span>
             {step.name}
           </a>

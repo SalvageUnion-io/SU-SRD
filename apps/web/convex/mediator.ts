@@ -1,5 +1,5 @@
 import { ConvexError, v } from 'convex/values'
-import { runningFrom, trayNpcsFor } from 'game-domain/games/encounters'
+import { runningFrom, splitWaves, trayNpcsFor, waveOf } from 'game-domain/games/encounters'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
 import type { Doc, Id } from './_generated/dataModel'
@@ -252,9 +252,19 @@ export const running = query({
  *
  * `clear` empties the tray first. It is the Mediator's own choice, made in
  * the dialog that names what it removes (ADR-007); nothing is cleared for them.
+ *
+ * `waves` (ADR-059 §5, sent while the `encounterSheet` flag is on) fields only
+ * the first wave, each opponent with its group; the groups held back wait on
+ * the running encounter for `bringInWave`. Without it the whole opposition
+ * joins the tray, ungrouped.
  */
 export const runEncounter = mutation({
-  args: { gameId: v.id('games'), encounterId: v.string(), clear: v.boolean() },
+  args: {
+    gameId: v.id('games'),
+    encounterId: v.string(),
+    clear: v.boolean(),
+    waves: v.optional(v.boolean()),
+  },
   handler: async (ctx, args): Promise<{ added: number }> => {
     const { userId } = await requireMediator(ctx, args.gameId)
     const row = await ctx.db
@@ -272,24 +282,104 @@ export const runEncounter = mutation({
     const taken = args.clear ? [] : tray.map((npc) => nameOf(npc.body))
 
     const now = new Date().toISOString()
-    const fielded = trayNpcsFor(encounter.opposition, taken, now)
-    for (const npc of fielded) {
-      const appId = crypto.randomUUID()
-      await ctx.db.insert('encounterNpcs', {
-        gameId: args.gameId,
-        ownerId: null,
-        appId,
-        body: parseBody('encounterNpcs', { ...npc, id: appId }),
-      })
-    }
+    const waves = args.waves === true ? splitWaves(encounter) : null
+    const fielded = waves
+      ? trayNpcsFor(waves.first, taken, now, encounter.groups ?? [])
+      : trayNpcsFor(encounter.opposition, taken, now)
+    await field(ctx, args.gameId, fielded)
 
-    const body = RunningEncounterSchema.parse(runningFrom(encounter, now))
+    const body = RunningEncounterSchema.parse(
+      runningFrom(encounter, now, waves ? { held: waves.held } : undefined)
+    )
     const current = await runningRow(ctx, args.gameId)
     if (current === null) await ctx.db.insert('runningEncounters', { gameId: args.gameId, body })
     else await ctx.db.patch(current._id, { body })
     return { added: fielded.length }
   },
 })
+
+/**
+ * Bring a held-back wave of the running encounter onto the tray (ADR-059 §5):
+ * its opponents join at full HP or SP, each with its group, named apart from
+ * those already there. The Mediator's tap, never the server's: nothing
+ * arrives on its own.
+ */
+export const bringInWave = mutation({
+  args: { gameId: v.id('games'), wave: v.number() },
+  handler: async (ctx, args): Promise<{ added: number }> => {
+    await requireMediator(ctx, args.gameId)
+    const current = await runningRow(ctx, args.gameId)
+    if (current === null) throw new ConvexError('No encounter is running')
+    const running = RunningEncounterSchema.parse(current.body)
+    const groups = running.groups ?? []
+    const held = running.held ?? []
+    const arriving = held.filter((o) => waveOf(o, groups) === args.wave)
+    if (arriving.length === 0) throw new ConvexError('That wave is already in')
+
+    const tray = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    const fielded = trayNpcsFor(
+      arriving,
+      tray.map((npc) => nameOf(npc.body)),
+      new Date().toISOString(),
+      groups
+    )
+    await field(ctx, args.gameId, fielded)
+
+    const { held: _held, ...rest } = running
+    const left = held.filter((o) => waveOf(o, groups) !== args.wave)
+    const body = RunningEncounterSchema.parse(left.length === 0 ? rest : { ...rest, held: left })
+    await ctx.db.patch(current._id, { body })
+    return { added: fielded.length }
+  },
+})
+
+/**
+ * Record one roll for a whole group on the tray (Core Book p.267-268): the
+ * book rolls Reaction when the Pilots meet a group, and checks a group's
+ * Morale when half of it falls. The same result is kept on each of its
+ * members still standing, as each NPC keeps its own last roll.
+ */
+export const recordGroupRoll = mutation({
+  args: { gameId: v.id('games'), groupId: v.string(), roll: v.any() },
+  handler: async (ctx, args): Promise<void> => {
+    await requireMediator(ctx, args.gameId)
+    const roll = MediatorRollResultSchema.parse(args.roll)
+    const tray = await ctx.db
+      .query('encounterNpcs')
+      .withIndex('by_game', (q) => q.eq('gameId', args.gameId))
+      .collect()
+    const now = new Date().toISOString()
+    for (const npc of tray) {
+      const body = npc.body as Record<string, unknown>
+      const group = body.group as { id?: unknown } | undefined
+      const hp = body.currentHp
+      if (group?.id !== args.groupId || (typeof hp === 'number' && hp <= 0)) continue
+      const next: Record<string, unknown> = { ...body, lastMediatorRoll: roll }
+      if (typeof body.updatedAt === 'string') next.updatedAt = now
+      await ctx.db.patch(npc._id, { body: parseBody('encounterNpcs', next) })
+    }
+  },
+})
+
+/** Put fresh NPCs on a Game's tray, each its own row with a minted id. */
+async function field(
+  ctx: MutationCtx,
+  gameId: Id<'games'>,
+  npcs: ReturnType<typeof trayNpcsFor>
+): Promise<void> {
+  for (const npc of npcs) {
+    const appId = crypto.randomUUID()
+    await ctx.db.insert('encounterNpcs', {
+      gameId,
+      ownerId: null,
+      appId,
+      body: parseBody('encounterNpcs', { ...npc, id: appId }),
+    })
+  }
+}
 
 /**
  * Stop running the Game's encounter: its notes and tables leave Play. The

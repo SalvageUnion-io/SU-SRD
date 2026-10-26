@@ -76,7 +76,7 @@
 /* ── The Training Bay's Showing select, MoveToContainerControl ── */
 
 /* The Showing select sits on a band beside its Compact buttons, so it is
-   Compact too (theme.css lifts Compact to Full under a coarse pointer). */
+   Compact too. */
 select.su-container-select {
   height: var(--size-compact);
 }

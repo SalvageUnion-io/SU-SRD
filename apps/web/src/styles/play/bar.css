@@ -16,15 +16,14 @@
 
 /*
  * A stamp on the bar (role, LIVE, read-only) stands as tall as the buttons
- * beside it (ruleset §4.7): below `lg` the touch floor's 44px (`touch.css`);
- * from it the Compact Size, which a coarse pointer lifts to the touch floor.
+ * beside it (ruleset §4.7): the Compact Size, on every pointer and width.
  * Its text keeps the Compact rung, centred.
  */
 .su-play-bar__stamp {
   align-items: center;
   box-sizing: border-box;
   display: inline-flex;
-  height: var(--size-full);
+  height: var(--size-compact);
 }
 
 /*
@@ -65,10 +64,6 @@
     flex-wrap: nowrap;
     gap: var(--space-12);
     padding: var(--space-12) var(--space-12) 0;
-  }
-
-  .su-play-bar__stamp {
-    height: var(--size-compact);
   }
 
   .su-play-bar > :not(.su-play-bar__notch, .su-grain-layer) {

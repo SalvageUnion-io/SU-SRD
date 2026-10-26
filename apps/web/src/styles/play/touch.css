@@ -2,59 +2,12 @@
  * touch.css — Play below `lg` (`PlayFrame`, play.md §11): a phone's sizes.
  *
  * Only what a style object cannot say lives here (ADR-046): rules over
- * descendants, under the `play` container's narrow width. The touch floor
- * comes first, then what fits the panes, which are laid out for a column, to
- * a phone's width.
+ * descendants, under the `play` container's narrow width: what fits the
+ * panes, which are laid out for a column, to a phone's width. Every control
+ * keeps its Size's one height (R12).
  */
 
 @container play not (width >= 64rem) {
-  /*
-   * The touch floor (ruleset §4.6, R12): every control below `lg` is at
-   * least 44×44, whichever component drew it, under any pointer: a narrow
-   * Play is a phone's, and a phone is where a column's sizes stop being
-   * enough.
-   *
-   * A control in a chip group (a Mini's Use, a "⋯", a linked chip) keeps the
-   * strip's Size (C1a: one height, one centre line) and takes a centred 44px
-   * hit area instead, as a Mini control does under a coarse pointer
-   * (`partials/pointer-motion.css`).
-   */
-  .su-play-root
-  :is(button, a[href], [role='button'], [role='tab'], summary):not(
-    [data-chip-group] *,
-    .su-mini-grid[data-play-list] :is(.su-entity-mini, .su-hit-area)
-  ) {
-    min-height: var(--size-full);
-    min-width: var(--size-full);
-  }
-
-  /*
-   * A Mini in one of Play's lists (a `MiniGrid` marked `data-play-list`: the
-   * Actions, the Crew, the Tables) keeps a Mini's height, its chips Mini
-   * (ruleset §4.7), so the list reads as the sheet's do. Its surface, when it
-   * is the control (a crewmate's sheet, a table's toggle), takes the same
-   * centred 44px hit area as its chip group's controls.
-   */
-  .su-play-root [data-chip-group] :is(button, a[href], [role='button']),
-  .su-play-root
-    .su-mini-grid[data-play-list]
-    :is(.su-entity-mini, .su-hit-area):is(button, a[href], [role='button']) {
-    position: relative;
-  }
-
-  .su-play-root [data-chip-group] :is(button, a[href], [role='button'])::after,
-  .su-play-root
-    .su-mini-grid[data-play-list]
-    :is(.su-entity-mini, .su-hit-area):is(button, a[href], [role='button'])::after {
-    content: '';
-    height: max(100%, var(--size-full));
-    left: 50%;
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: max(100%, var(--size-full));
-  }
-
   /*
    * The Situation switch shares the screen's width (`Segmented`'s `fill`),
    * but by what each option says, not in equal thirds: "Downtime 🔒" needs
@@ -66,8 +19,8 @@
   }
 
   /*
-   * The Downtime track: ten steps at the touch floor do not fit one phone
-   * row (10 × 44px), so they take two rows of five.
+   * The Downtime track: ten steps do not fit one phone row, so they take
+   * two rows of five.
    */
   .su-play-root .su-play-dt-track {
     grid-template-columns: repeat(5, minmax(0, 1fr));

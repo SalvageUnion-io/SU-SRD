@@ -22,7 +22,7 @@ export function WizardGameChip({ gameId }: { gameId: string }) {
     <Tags
       tags={[relation('game', 'Game', game.name, { href: gamePath(gameId) })]}
       linkable
-      size="compact"
+      size="mini"
     />
   )
 }

@@ -25,7 +25,7 @@ import { paintFor } from '../parts/paint'
 import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
-import { PEEK_ATTRIBUTE, useInsidePeek, usePeekAttrs } from '../peekContext'
+import { useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 /** The pill sets its name and chips in the caps recipe. */
@@ -298,13 +298,8 @@ export function Mini({
     </span>
   )
   const dimClass = dim ? SELECT_DIM : undefined
-  // Header-only, the surface is the Mini; contentful, it is the head. A head
-  // that acts (a link, a toggle, or a Peek's long press) takes the coarse
-  // pointer's 44px hit area, as the header-only Mini does (ruleset §4.6).
-  const headActs = !!target.href || !!toggle || PEEK_ATTRIBUTE in peek
-  const surfaceClass = body
-    ? cn('su-entity-mini__head', headActs && !acts && 'su-hit-area')
-    : cn('su-entity-mini', dimClass)
+  // Header-only, the surface is the Mini; contentful, it is the head.
+  const surfaceClass = body ? 'su-entity-mini__head' : cn('su-entity-mini', dimClass)
   // A Mini with controls: a plain frame, its name the link (above).
   if (acts && !body) {
     return (

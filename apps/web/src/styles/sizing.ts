@@ -25,10 +25,10 @@
  *
  * Each Size is also a HEIGHT for a control (a button, field, switch, search
  * box, chip): `--size-full` 44px, `--size-compact` 32px, `--size-mini` 18px in
- * `theme.css` (`size` in `design/tokens.ts`). Under a coarse pointer Compact
- * lifts to Full, so a line of controls stays even on touch; a Mini control keeps
- * its drawn height and takes a 44px hit area (`.su-hit-area`). Controls side by
- * side on one line share one Size (ruleset §4.7); `e2e/sibling-heights.e2e.ts`
+ * `theme.css` (`size` in `design/tokens.ts`), whatever the component, on every
+ * pointer and screen (hard rule R12): no invisible hit area, no touch lift; a
+ * phone that needs a bigger target takes a bigger Size. Controls side by side
+ * on one line share one Size (ruleset §4.7); `e2e/sibling-heights.e2e.ts`
  * fails any line whose heights differ.
  *
  * A component does NOT have to offer all three. It should offer the Sizes it

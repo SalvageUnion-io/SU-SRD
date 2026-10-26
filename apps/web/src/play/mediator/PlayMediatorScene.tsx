@@ -149,7 +149,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
         actions={
           <Button
             variant="default"
-            size="mini"
+            size="compact"
             disabled={!canWrite || !hourly}
             title={hourly ? undefined : mediatorCopy('nothingHourly')}
             onClick={() => {

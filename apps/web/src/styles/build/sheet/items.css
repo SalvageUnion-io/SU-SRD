@@ -15,18 +15,13 @@
   justify-content: center;
 }
 
-/* A condition that steps is a 24px target (WCAG 2.2, 2.5.8) drawn at the
-   chip's 18px, as a strip's Mini button is (`entity-forms.css`): a
-   transparent border takes the difference. Under a coarse pointer its hit
-   area is 44px (`pointer-motion.css`). */
+/* A condition that steps is a button exactly its chip's Mini height (R12). */
 .su-sheet-item__condition > button {
   align-items: center;
   background: none;
-  background-clip: padding-box;
-  border: calc((var(--space-24) - var(--size-mini)) / 2) solid transparent;
+  border: 0;
   box-sizing: border-box;
-  height: var(--space-24);
-  margin-block: calc((var(--size-mini) - var(--space-24)) / 2);
+  height: var(--size-mini);
   padding: 0;
 }
 

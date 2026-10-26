@@ -96,8 +96,7 @@ function readDeclarations(): Map<string, string> {
     const [, name, value] = m
     if (!name || !value || name.includes('--')) continue
     if (!PREFIXES.some((p) => name.startsWith(`${p}-`)) && !(name in SINGLES)) continue
-    // A token's value is its base declaration; a later one is a media override
-    // (`--size-compact` under a coarse pointer).
+    // A token's value is its base declaration; a later one is a media override.
     if (out.has(name)) continue
     out.set(name, value.trim().replace(/\s+/g, ' '))
   }

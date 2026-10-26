@@ -198,12 +198,8 @@ describe('controlChips', () => {
       </>
     )
     const button = screen.getByLabelText('Remove')
-    // The touch floor is `theme.css`'s `@media (pointer: coarse)` rule, which
-    // applies to every button and cannot be overridden from here anyway (it is
-    // unlayered, so it beats `@layer utilities`). A `min-h-11 sm:min-h-0` on
-    // this element was therefore redundant wherever there IS a touch pointer,
-    // and active harm wherever there is not: it grew the strip's Mini plate
-    // from a chip's height to 44px on a fine pointer.
+    // A control is its strip's Size on every pointer (R12): a 44px floor here
+    // would grow the strip's Mini plate from a chip's height.
     expect(button.className).not.toContain('min-h-11')
     expect(button.className).not.toContain('min-w-11')
   })

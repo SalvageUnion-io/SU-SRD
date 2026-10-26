@@ -142,7 +142,7 @@ function AdminMetrics() {
             <>
               <Cluster gap={8}>
                 {TOTALS.map(([key, label]) => (
-                  <Stat key={key} label={label} value={snapshot.counts[key]} size="compact" />
+                  <Stat key={key} label={label} value={snapshot.counts[key]} size="mini" />
                 ))}
               </Cluster>
               <Text variant="hint" style={NOTE}>

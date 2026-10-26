@@ -413,7 +413,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 {buildSheetCopy('contributeScrapTech', { tl })}
               </span>
               <Stat
-                size="compact"
+                size="mini"
                 label={buildSheetCopy('scrap')}
                 value={contribution}
                 min={1}
@@ -565,7 +565,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                 </Eyebrow>
                 <span style={QTY}>
                   <Stat
-                    size="compact"
+                    size="mini"
                     label={buildSheetCopy('qty')}
                     value={count}
                     min={step}

@@ -15,7 +15,7 @@ import { ToneStrip } from '../atoms/ToneStrip'
  * while a middle- or modified click still follows the link.
  *
  * Compacts are 36px for a fine pointer and 44px under `(pointer: coarse)` or on a
- * phone width (the touch floor, ruleset §4.6): `shared.css`'s
+ * phone width (a thumb's row, ruleset §4.6): `shared.css`'s
  * `.su-contents__row`, which both apps load.
  */
 

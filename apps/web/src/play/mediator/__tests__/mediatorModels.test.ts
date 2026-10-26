@@ -16,7 +16,13 @@ import {
 } from 'game-domain/games/proposals'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { mediatorSeats } from '../mediatorTable.model'
-import { newTrayNpc, readSavedPattern, readTrayNpc } from '../opposition.model'
+import {
+  groupRoll,
+  newTrayNpc,
+  readSavedPattern,
+  readTrayNpc,
+  trayEntries,
+} from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalLine } from '../proposalLine.model'
 import { setbackDraft } from '../setbacks.model'
@@ -313,5 +319,44 @@ describe('a Setback in the Propose dock (Workshop Manual pp.253-254)', () => {
 
   test('with no target there is nothing to fill', () => {
     expect(setbackDraft('damage', null)).toBeNull()
+  })
+})
+
+describe('groups on the tray (ADR-059 §5)', () => {
+  const row = (id: string, group?: { id: string; name: string }, rolledAt?: string) =>
+    readTrayNpc({
+      _id: id,
+      body: {
+        name: id,
+        refSchema: 'npcs',
+        refSlug: 'raider',
+        currentHp: 3,
+        maxHp: 3,
+        ...(group ? { group } : {}),
+        ...(rolledAt
+          ? { lastMediatorRoll: { table: 'reaction', roll: 4, value: rolledAt, rolledAt } }
+          : {}),
+      },
+    })
+  const band = { id: 'band', name: 'Raider Band' }
+
+  test('a group sits where its first member stands, holding its members in order', () => {
+    const entries = trayEntries([row('a'), row('b', band), row('c'), row('d', band)])
+    expect(
+      entries.map((e) => (e.kind === 'alone' ? e.npc.id : e.members.map((m) => m.id)))
+    ).toEqual(['a', ['b', 'd'], 'c'])
+  })
+
+  test('a malformed group reads as none', () => {
+    expect(readTrayNpc({ _id: 'x', body: { name: 'x', group: { id: 'band' } } }).group).toBeNull()
+  })
+
+  test("a group's last roll is the newest of its members'", () => {
+    const members = [
+      row('a', band, '2026-10-26T00:00:00.000Z'),
+      row('b', band, '2026-10-26T01:00:00.000Z'),
+    ]
+    expect(groupRoll(members)?.value).toBe('2026-10-26T01:00:00.000Z')
+    expect(groupRoll([row('c', band)])).toBeNull()
   })
 })

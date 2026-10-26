@@ -127,6 +127,13 @@ export const RunningEncounterSchema = z
     notes: NotesSchema,
     /** Copied when run; absent or blank, there is nothing to tell the table. */
     briefing: BriefingSchema.optional(),
+    /** Its groups, copied when run, so a held-back wave can be named and brought in. */
+    groups: z.array(EncounterGroupSchema).max(ENCOUNTER_MAX_GROUPS).optional(),
+    /**
+     * The opposition held back to a later wave, not yet on the tray: each
+     * joins it when the Mediator brings its wave in (`mediator.bringInWave`).
+     */
+    held: z.array(EncounterOpponentSchema).max(ENCOUNTER_MAX_OPPOSITION).optional(),
     startedAt: z.string().datetime(),
   })
   .strict()

@@ -85,7 +85,7 @@ export function abilityTreeNeighbours(
  */
 export function relationChips(
   relations: readonly EntityRelation[],
-  size: Size = 'full'
+  size: Size = 'compact'
 ): ReactNode[] {
   return relations.map(({ label, value, ref }) =>
     ref ? (
@@ -105,5 +105,5 @@ export function relationChips(
 /** A card head's `Chips` nodes: its tree relations (C3: a Card's and a Peek's budget carries them). */
 export function treeRelationNodes(entity: RefMetaEntity): { relation: ReactNode[] } | undefined {
   const relations = abilityTreeRelations(entity)
-  return relations.length > 0 ? { relation: relationChips(relations, 'compact') } : undefined
+  return relations.length > 0 ? { relation: relationChips(relations, 'mini') } : undefined
 }

@@ -45,7 +45,7 @@ const CODE = inlineCode()
 const CODE_ON_GROUND = inlineCode(true)
 
 /** An endpoint's method, its one stamp beside its name, as an action's type is. */
-const GET = <Chips chips={{ durations: ['GET'], facts: [], tags: [] }} size="compact" />
+const GET = <Chips chips={{ durations: ['GET'], facts: [], tags: [] }} size="mini" />
 
 /** A `<pre>` code sample; the padding is per sample. */
 const CODE_SAMPLE = {

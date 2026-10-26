@@ -256,8 +256,8 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* The touch floor (ruleset §4.6), as theme.css's coarse-pointer rule. A phone
-   width takes it too: the pointer query alone flips during a full-page
+/* A Contents row is a thumb's height on touch (ruleset §4.6): a row, drawn
+   that tall, not a control's Size. A phone width takes it too: the pointer query alone flips during a full-page
    capture, so the page was laid out at 44px rows and painted at 36px. */
 @media (pointer: coarse), not (width >= 40rem) {
   .su-contents__row {
@@ -267,7 +267,7 @@
 
 /* The Contents in the Union bar's phone drawer (`compositions/NavDrawer.tsx`):
    the chapters, then the site's pages as rows of the same index. The drawer
-   is a phone's nav, so its rows sit on the touch floor at every pointer. The
+   is a phone's nav, so its rows are a thumb's height at every pointer. The
    page you are on is ruled under in ink, as the bar's nav link is (ruleset
    §3.11), never rust (§3.1). */
 .su-nav-drawer__panel .su-contents__row {

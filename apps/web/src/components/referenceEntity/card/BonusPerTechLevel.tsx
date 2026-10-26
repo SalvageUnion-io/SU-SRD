@@ -23,7 +23,7 @@ const SHORT_LABEL: Record<string, string> = {
  * unit in the value (`DMG | +1 SP`).
  */
 export function BonusPerTechLevel({ cells, compact }: { cells: BonusCell[]; compact: boolean }) {
-  const size = compact ? 'compact' : 'full'
+  const size = compact ? 'mini' : 'compact'
   return (
     <div className={cn('su-ec-block', 'su-bonus-strip')} data-bonus-per-tech-level="">
       <Stat label={referenceEntityCopy('perTechLevel')} hollow size={size} />

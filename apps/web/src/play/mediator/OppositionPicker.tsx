@@ -41,6 +41,8 @@ export type TrayWrites = {
   add: (schema: EncounterRefSchema, entity: RefEntity, draw?: TrayDraw) => Promise<unknown>
   setHp: (npc: TrayNpc, next: number) => Promise<unknown>
   morale: (npc: TrayNpc) => Promise<unknown>
+  /** One Reaction or Morale roll for a whole group, kept on each member standing (p.267-268). */
+  groupRoll: (group: { id: string; name: string }, table: 'reaction' | 'morale') => Promise<unknown>
   /** Mark it important or not (Workshop Manual p.255). */
   setImportant: (npc: TrayNpc, important: boolean) => Promise<unknown>
   /** An important mech's EP or Heat. */
