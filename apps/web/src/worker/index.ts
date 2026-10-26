@@ -66,6 +66,7 @@ import type { D1Like } from './auth/store'
 import { d1Sql } from './auth/store'
 import type { CronEnv } from './crons'
 import { runCron } from './crons'
+import { CUTOVER_PREFIX, handleCutover } from './cutover'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -97,6 +98,8 @@ export type Env = AppEnv &
     AUTH_SIGNING_KEY?: string
     /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
     TEST_AUTH?: string
+    /** The cutover runner's bearer secret ; unset, its door is a 404. */
+    CUTOVER_SECRET?: string
   }
 
 /**
@@ -179,6 +182,9 @@ export default {
       const res = await serveApp(request, env)
       if (res !== null) return res
     }
+
+    // C. The cutover's door, for `tools/cutover-run.ts` alone.
+    if (url.pathname.startsWith(CUTOVER_PREFIX)) return handleCutover(request, env)
 
     // R. The rooms answer for themselves.
     if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {
