@@ -89,9 +89,11 @@ abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
   ) {
     super(ctx, env)
     this.sql = storageSql(ctx.storage)
-    // Before the first request is delivered: no request sees an old schema.
+    // Before the first request is delivered: no request sees an old schema,
+    // and every snapshot's vitals and Downtime steps find the reference data.
     void ctx.blockConcurrencyWhile(async () => {
       this.schema = migrate(this.sql, migrations)
+      await loadCrewReference()
     })
   }
 
@@ -361,8 +363,6 @@ export class GameRoom extends Room {
     this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
       gamePublished(this.logic.store, this.gameId)
     )
-    // Every snapshot carries the crew's vitals, which read the reference data.
-    void ctx.blockConcurrencyWhile(loadCrewReference)
   }
 
   private get gameId(): string {

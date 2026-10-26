@@ -6,9 +6,13 @@ import type { GameStore, UnitRow } from './game/store'
 import { unitName } from './game/units'
 import { seatOf } from './seats'
 
-/** The reference data the crew's derivation reads; a room loads it before its first answer. */
+/**
+ * The reference data the rooms' rules read: the crew's derivation, and the
+ * Downtime guide's steps (`game-domain/rules/downtime`). A room loads it
+ * before its first answer.
+ */
 export function loadCrewReference(): Promise<void> {
-  return SalvageUnionReference.preload(['abilities', 'chassis', 'modules', 'systems'])
+  return SalvageUnionReference.preload(['abilities', 'chassis', 'guides', 'modules', 'systems'])
 }
 
 /** The derivation over the room's pilots, crawlers, links and seats (a Game's, or a Shelf's solo ones). */
