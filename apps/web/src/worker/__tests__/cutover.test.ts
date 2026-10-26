@@ -19,11 +19,11 @@ function fakeRooms() {
       seen.push(`account ${b.discordId}`)
       const imported = !took.has(b.discordId)
       took.add(b.discordId)
-      return { imported, diff: [] }
+      return { imported, diff: [], published: { sheets: 1, homebrew: 0 } }
     },
     async importGame(b: GameBundle) {
       seen.push(`game ${b.gameId}`)
-      return { imported: true, diff: ['links: 1 ≠ 0'] }
+      return { imported: true, diff: ['links: 1 ≠ 0'], published: { sheets: 0, homebrew: 0 } }
     },
   }
   return { rooms, seen }
@@ -58,9 +58,13 @@ describe('the cutover door', () => {
     const { rooms } = fakeRooms()
     const env = { SHARED: db, CUTOVER_SECRET: SECRET }
     const first = await handleCutover(post('account', ACCOUNT), env, rooms, 10)
-    expect(await first.json()).toEqual({ imported: true, diff: [] })
+    expect(await first.json()).toEqual({
+      imported: true,
+      diff: [],
+      published: { sheets: 1, homebrew: 0 },
+    })
     const again = await handleCutover(post('account', ACCOUNT), env, rooms, 11)
-    expect(await again.json()).toEqual({ imported: false, diff: [] })
+    expect(await again.json()).toMatchObject({ imported: false, diff: [] })
     expect(db.sqlite.query('select discord_id from account_totals').all()).toEqual([
       { discord_id: 'd1' },
     ])
@@ -71,7 +75,7 @@ describe('the cutover door', () => {
     const { rooms } = fakeRooms()
     const env = { SHARED: db, CUTOVER_SECRET: SECRET }
     const res = await handleCutover(post('game', { bundle: GAME, mediatedBy: 'Jrvs' }), env, rooms)
-    expect(await res.json()).toEqual({ imported: true, diff: ['links: 1 ≠ 0'] })
+    expect(await res.json()).toMatchObject({ imported: true, diff: ['links: 1 ≠ 0'] })
     expect(db.sqlite.query('select name, mediated_by from games').all()).toEqual([
       { name: 'Reclamation', mediated_by: 'Jrvs' },
     ])

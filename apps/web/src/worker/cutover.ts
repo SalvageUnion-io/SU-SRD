@@ -22,8 +22,18 @@ import { markFilled } from './shared/db'
 
 export const CUTOVER_PREFIX = '/admin/cutover/'
 
-/** What a room answers for its import: whether it took the bundle, and where it differs. */
-type Imported = { imported: boolean; diff: string[] }
+/**
+ * What a room answers for its import: whether it took the bundle, where it
+ * differs, and the shared-sheet and Homebrew rows it then wrote to D1.
+ */
+type Imported = {
+  imported: boolean
+  diff: string[]
+  published: { sheets: number; homebrew: number }
+}
+
+/** The calls the door makes on a room once its bundle is in. */
+type Published = { republish(): Promise<Imported['published']> }
 
 /** The rooms the door reaches; the Worker's own by default, a fake in a test. */
 export type CutoverRooms = {
@@ -36,17 +46,17 @@ const workerRooms: CutoverRooms = {
     const room = rooms().AccountRoom.getByName(bundle.discordId) as unknown as {
       importAccount(b: AccountBundle): Promise<{ imported: boolean }>
       diffImport(b: AccountBundle): Promise<string[]>
-    }
+    } & Published
     const { imported } = await room.importAccount(bundle)
-    return { imported, diff: await room.diffImport(bundle) }
+    return { imported, diff: await room.diffImport(bundle), published: await room.republish() }
   },
   async importGame(bundle) {
     const room = rooms().GameRoom.getByName(bundle.gameId) as unknown as {
       importGame(b: GameBundle): Promise<{ imported: boolean }>
       diffImport(b: GameBundle): Promise<string[]>
-    }
+    } & Published
     const { imported } = await room.importGame(bundle)
-    return { imported, diff: await room.diffImport(bundle) }
+    return { imported, diff: await room.diffImport(bundle), published: await room.republish() }
   },
 }
 
