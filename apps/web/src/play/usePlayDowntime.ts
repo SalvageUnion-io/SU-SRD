@@ -22,12 +22,13 @@
  * §1), and a server refusal is said in its own words.
  */
 
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { PLAY_TXN } from '../replica/provenance'
+import { useGamesQuery } from '../replica/roomCalls'
 import { ROOM_FEED, roomOf } from '../replica/roomSocket'
 import { isSignedIn, WritesBlockedOffline } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
@@ -57,7 +58,10 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     api.downtime.state,
     readable ? { ...place, pilotId: pilotId ?? undefined } : 'skip'
   )
-  const members = useQuery(api.games.members, signedIn && gameId !== null ? { gameId } : 'skip')
+  const members = useGamesQuery(
+    api.games.members,
+    signedIn && gameId !== null ? { gameId } : 'skip'
+  )
   const begin = useTableAct(api.downtime.begin, gameId)
   const advance = useTableAct(api.downtime.advance, gameId)
   const setStep = useTableAct(api.downtime.setStep, gameId)

@@ -33,6 +33,7 @@ import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/se
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { useGamesMutation } from '../replica/roomCalls'
 import { ROOM_FEED } from '../replica/roomSocket'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
@@ -161,7 +162,7 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
       remount(seat, { kind: 'boarded', mechId: args.mechId })
     )
   })
-  const assign = useMutation(api.ownership.assign)
+  const assign = useGamesMutation(api.ownership.assign, { gameId })
   const dismount = useSeatAct(api.seats.dismount, gameId, (store, args) => {
     patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
   })

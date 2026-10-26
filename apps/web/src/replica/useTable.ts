@@ -17,7 +17,6 @@ import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs, FunctionReference, FunctionReturnType } from 'convex/server'
 import { getFunctionName } from 'convex/server'
 import { useCallback, useSyncExternalStore } from 'react'
-import { useMyPerson } from '../lib/auth/session'
 import type { Scope } from './replica'
 import { gameScope } from './replica'
 import { ROOM_FEED, roomOf } from './roomSocket'
@@ -171,11 +170,3 @@ export const useTableRead: Read = ROOM_FEED ? useRoomRead : useConvexRead
 
 /** `useMutation` on a table's state, sent to `gameId`'s room as an act while the rooms feed the replica. */
 export const useTableAct: Act = ROOM_FEED ? useRoomAct : useConvexAct
-
-/**
- * The signed-in player, as the table-in-play records name them: their Discord
- * id while the rooms feed the replica, else their Convex user id (`convexId`).
- */
-export const useViewerId: (convexId: string | null) => string | null = ROOM_FEED
-  ? () => useMyPerson()
-  : (convexId) => convexId

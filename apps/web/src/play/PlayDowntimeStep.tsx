@@ -43,12 +43,11 @@ import {
   Stat,
   TitledBox,
 } from '../components/index'
-import { useMe } from '../lib/account/accountApi'
 import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
-import { useViewerId } from '../replica/useTable'
+import { useViewerId } from '../replica/roomCalls'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
@@ -78,8 +77,7 @@ export function PlayDowntimeStep({
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
-  const me = useMe(inGame)
-  const viewer = useViewerId(me?._id ?? null)
+  const viewer = useViewerId(inGame)
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
