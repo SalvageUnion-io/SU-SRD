@@ -357,6 +357,48 @@ describe("Discord's round trip", () => {
   })
 })
 
+describe('a Preview signing in through the callback origin', () => {
+  const PREVIEW = 'https://pr-7-su-srd.alxjrvs.workers.dev'
+
+  it("goes to Discord with the callback origin's redirect, its own host in the state", async () => {
+    const d = deps({ callbackOrigin: ORIGIN })
+    const start = await answer(new Request(`${PREVIEW}${AUTH_PATHS.signIn}`), d)
+    const to = new URL(start.headers.get('location') ?? '')
+    expect(to.searchParams.get('redirect_uri')).toBe(`${ORIGIN}${AUTH_PATHS.callback}`)
+    expect(to.searchParams.get('state')).toStartWith('pr-7-su-srd.alxjrvs.workers.dev~')
+  })
+
+  it('is handed back to the Preview, which signs in there', async () => {
+    const preview = deps({ callbackOrigin: ORIGIN })
+    const start = await answer(new Request(`${PREVIEW}${AUTH_PATHS.signIn}`), preview)
+    const state = new URL(start.headers.get('location') ?? '').searchParams.get('state') ?? ''
+    const query = `?code=c&state=${encodeURIComponent(state)}`
+    const handed = await answer(new Request(`${ORIGIN}${AUTH_PATHS.callback}${query}`), deps())
+    expect(handed.status).toBe(302)
+    expect(handed.headers.get('location')).toBe(`${PREVIEW}${AUTH_PATHS.callback}${query}`)
+    expect(calls).toHaveLength(0)
+    const back = await answer(
+      new Request(handed.headers.get('location') ?? '', { headers: { cookie: cookieOf(start) } }),
+      preview
+    )
+    expect(back.headers.getSetCookie().some((c) => c.startsWith('su_session='))).toBe(true)
+    const exchange = calls.find((c) => c.url === 'https://discord.com/api/oauth2/token')
+    expect(String(exchange?.body)).toContain(
+      `redirect_uri=${encodeURIComponent(`${ORIGIN}${AUTH_PATHS.callback}`)}`
+    )
+  })
+
+  it('hands a code on to no host but a Preview', async () => {
+    for (const host of ['evil.example', 'pr-7-su-srd.alxjrvs.workers.dev.evil.example']) {
+      const res = await answer(
+        new Request(`${ORIGIN}${AUTH_PATHS.callback}?code=c&state=${host}~s`),
+        deps()
+      )
+      expect(res.headers.get('location')).toBe('/build/')
+    }
+  })
+})
+
 describe('discordAvatar', () => {
   it("draws Discord's CDN avatar, animated or not, or its default", () => {
     const id = '80351110224678912'

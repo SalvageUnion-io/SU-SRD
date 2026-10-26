@@ -66,6 +66,7 @@ import type { D1Like } from './auth/store'
 import { d1Sql } from './auth/store'
 import type { CronEnv } from './crons'
 import { runCron } from './crons'
+import { CUTOVER_PREFIX, handleCutover } from './cutover'
 import type { RateLimiter } from './errorReports'
 import {
   CONVEX_LOG_STREAM_PATH,
@@ -93,10 +94,18 @@ export type Env = AppEnv &
     /** The Discord application's OAuth client, secrets both. Unset, sign-in answers 503. */
     DISCORD_CLIENT_ID?: string
     DISCORD_CLIENT_SECRET?: string
+    /**
+     * The origin whose `/auth/callback` Discord returns to, for a Worker
+     * Preview: production's, which hands the code back (`./auth/index.ts`).
+     * Unset, each origin is its own and Discord must list it.
+     */
+    AUTH_CALLBACK_ORIGIN?: string
     /** The private JWK the session's Convex token is signed with (`scripts/authKeys.ts`). */
     AUTH_SIGNING_KEY?: string
     /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
     TEST_AUTH?: string
+    /** The cutover runner's bearer secret ; unset, its door is a 404. */
+    CUTOVER_SECRET?: string
   }
 
 /**
@@ -168,6 +177,7 @@ export default {
           env.DISCORD_CLIENT_ID && env.DISCORD_CLIENT_SECRET
             ? { clientId: env.DISCORD_CLIENT_ID, clientSecret: env.DISCORD_CLIENT_SECRET }
             : undefined,
+        callbackOrigin: env.AUTH_CALLBACK_ORIGIN,
         signingKey: env.AUTH_SIGNING_KEY,
         testAuth: env.TEST_AUTH === 'true',
       })
@@ -179,6 +189,9 @@ export default {
       const res = await serveApp(request, env)
       if (res !== null) return res
     }
+
+    // C. The cutover's door, for `tools/cutover-run.ts` alone.
+    if (url.pathname.startsWith(CUTOVER_PREFIX)) return handleCutover(request, env)
 
     // R. The rooms answer for themselves.
     if (url.pathname === ROOMS_HEALTH_PATH && request.method === 'GET') {

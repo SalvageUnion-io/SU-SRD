@@ -74,6 +74,9 @@
   // bindings above: the staging deployment the app is built against, and its
   // own shared database, so a Preview never reads or writes production's.
   // Its error endpoints run without the rate limits, which the Worker allows.
+  // AUTH_CALLBACK_ORIGIN "https://salvageunion.io" joins its vars once
+  // production serves this Worker's sign-in (the 4.5 cutover): every Preview
+  // then signs in through production's one Discord redirect.
   "previews": {
     "vars": {
       "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"

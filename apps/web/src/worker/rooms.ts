@@ -172,6 +172,11 @@ export class AccountRoom extends Room implements UnitHome {
     return answer
   }
 
+  /** What differs between this room and the bundle it was imported from; empty when they agree. */
+  diffImport(bundle: Parameters<AccountRoomLogic['transit']['diffImport']>[0]): string[] {
+    return this.logic.transit.diffImport(bundle)
+  }
+
   offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
     const parcel = this.logic.transit.offer(args)
     void this.ctx.storage.setAlarm(Date.now() + LEASE_SETTLE_MS)
