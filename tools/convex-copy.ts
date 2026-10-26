@@ -332,7 +332,12 @@ export function buildBundles(t: Tables): CopyResult {
       lastSeenAt: num(g.lastSeenAt),
     })),
     metricsSnapshots: rows('metricsSnapshots').map(strip),
-    feedback: rows('feedback').map(strip),
+    // A note's sender as D1 counts it: an app note's `user:<id>` becomes its Discord id.
+    feedback: rows('feedback').map((f) => {
+      const sender = String(f.sender)
+      const discordId = sender.startsWith('user:') ? who(sender.slice(5)) : null
+      return { ...strip(f), sender: discordId ? `discord:${discordId}` : sender }
+    }),
     photos: rows('photos').flatMap((p) => {
       const owner = who(p.ownerId)
       return owner ? [{ storageId: String(p.storageId), owner }] : []

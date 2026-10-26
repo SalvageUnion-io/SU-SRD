@@ -220,7 +220,10 @@ describe('the tables around the units', () => {
     usageCounts: [row('uc1', { key: 'build', weekStart: 7, count: 3 })],
     botGuilds: [row('bg1', { guildId: 'G', firstSeenAt: 1, lastSeenAt: 2 })],
     metricsSnapshots: [row('ms1', { at: 5 })],
-    feedback: [row('f1', { text: 'hi' })],
+    feedback: [
+      row('f1', { text: 'hi', sender: 'user:u1' }),
+      row('f2', { text: 'yo', sender: 'discord:9' }),
+    ],
     photos: [
       row('ph1', { storageId: 'st1', ownerId: 'u1' }),
       row('ph2', { storageId: 'st2', ownerId: 'u9' }),
@@ -274,7 +277,10 @@ describe('the tables around the units', () => {
     expect(r.site.usageCounts).toEqual([{ key: 'build', weekStart: 7, count: 3 }])
     expect(r.site.botGuilds).toEqual([{ guildId: 'G', firstSeenAt: 1, lastSeenAt: 2 }])
     expect(r.site.metricsSnapshots).toEqual([{ at: 5 }])
-    expect(r.site.feedback).toEqual([{ text: 'hi' }])
+    expect(r.site.feedback).toEqual([
+      { text: 'hi', sender: 'discord:d1' },
+      { text: 'yo', sender: 'discord:9' },
+    ])
     expect(r.site.photos).toEqual([{ storageId: 'st1', owner: 'd1' }])
   })
 })
