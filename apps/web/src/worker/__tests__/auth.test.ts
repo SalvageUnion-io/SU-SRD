@@ -4,6 +4,7 @@ import { LINK_ISSUER, SESSION_ISSUER, TOKEN_AUDIENCE } from 'game-domain/authWir
 import { bunAuthSql } from '../../../astro/build/devAuth'
 import { generateAuthKey, jwksDataUri } from '../../../scripts/authKeys'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
+import type { TokenAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { AuthDeps } from '../auth/index'
 import { discordAvatar, handleAuth, identityOf } from '../auth/index'
@@ -183,8 +184,10 @@ describe('the session', () => {
       d
     )
     expect(res.status).toBe(200)
-    const { token, account } = (await res.json()) as { token: string; account: string }
+    const { token, account, person } = (await res.json()) as TokenAnswer
     expect(account).toBe('user1')
+    // The rooms' name for a test account: the stand-in `identityOf` gives.
+    expect(person).toMatch(/^test:[0-9a-f]{64}$/)
     const claims = claimsOf(token)
     expect(claims).toMatchObject({ iss: SESSION_ISSUER, aud: TOKEN_AUDIENCE })
     expect(String(claims.sub)).toMatch(/^user1\|[0-9a-f]{16}$/)

@@ -15,7 +15,7 @@ import { SESSION_KEY } from '../storedSession'
 // A copy of its own: the session is the page's, and another file in the run
 // may have started the shared one already.
 const FRESH = '../session.ts?fresh'
-const { deleteAccount, signIn, signOut, testSignIn, useSessionToken, useWorkerAuth } =
+const { deleteAccount, signIn, signOut, testSignIn, useMyPerson, useSessionToken, useWorkerAuth } =
   (await import(FRESH)) as typeof import('../session')
 
 const tokenExpiring = (exp: number) => `h.${btoa(JSON.stringify({ exp })).replace(/=+$/, '')}.s`
@@ -76,7 +76,7 @@ describe('useWorkerAuth', () => {
 
   test('the test seam signs in, and the token is served from cache until near expiry', async () => {
     const token = tokenExpiring(later)
-    answers = [new Response(null, { status: 204 }), json({ token, account: 'user1' })]
+    answers = [new Response(null, { status: 204 }), json({ token, account: 'user1', person: 'd1' })]
     const { result } = renderHook(() => useWorkerAuth())
     await act(() => testSignIn('a@example.com', 'password1', 'signUp'))
     const seam = calls.at(-2)
@@ -89,6 +89,7 @@ describe('useWorkerAuth', () => {
     await waitFor(() => expect(result.current.isAuthenticated).toBe(true))
     expect(localStore()?.getItem(SESSION_KEY)).toBe('user1')
     expect(renderHook(() => useSessionToken()).result.current).toBe(token)
+    expect(renderHook(() => useMyPerson()).result.current).toBe('d1')
 
     const before = calls.length
     expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe(token)
@@ -98,7 +99,7 @@ describe('useWorkerAuth', () => {
   test('a forced refresh asks again; a failed answer leaves the session as it was', async () => {
     const { result } = renderHook(() => useWorkerAuth())
     const fresh = tokenExpiring(later + 60)
-    answers = [json({ token: fresh, account: 'user1' })]
+    answers = [json({ token: fresh, account: 'user1', person: 'd1' })]
     expect(await result.current.fetchAccessToken({ forceRefreshToken: true })).toBe(fresh)
 
     answers = [new Response('down', { status: 502 }), new TypeError('offline')]
@@ -109,11 +110,11 @@ describe('useWorkerAuth', () => {
 
   test('a token without a readable expiry is never served from cache', async () => {
     const { result } = renderHook(() => useWorkerAuth())
-    answers = [json({ token: 'not-a-jwt', account: 'user1' })]
+    answers = [json({ token: 'not-a-jwt', account: 'user1', person: 'd1' })]
     await result.current.fetchAccessToken({ forceRefreshToken: true })
-    answers = [json({ token: 'not.%%%.jwt', account: 'user1' })]
+    answers = [json({ token: 'not.%%%.jwt', account: 'user1', person: 'd1' })]
     expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe('not.%%%.jwt')
-    answers = [json({ token: 'again', account: 'user1' })]
+    answers = [json({ token: 'again', account: 'user1', person: 'd1' })]
     expect(await result.current.fetchAccessToken({ forceRefreshToken: false })).toBe('again')
   })
 })
@@ -130,6 +131,7 @@ describe('signOut', () => {
     expect(calls.at(-1)).toMatchObject({ url: AUTH_PATHS.signOut, init: { method: 'POST' } })
     expect(result.current).toMatchObject({ isLoading: false, isAuthenticated: false })
     expect(renderHook(() => useSessionToken()).result.current).toBeNull()
+    expect(renderHook(() => useMyPerson()).result.current).toBeNull()
     expect(localStore()?.getItem(SESSION_KEY)).toBeNull()
   })
 })

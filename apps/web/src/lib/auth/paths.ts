@@ -21,4 +21,6 @@ export type TokenAnswer = {
   token: string
   /** The Convex account id, the subject's first half. */
   account: string
+  /** Who the rooms and the shared database name this player as: their Discord id (`identityOf`). */
+  person: string
 }

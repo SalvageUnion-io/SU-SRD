@@ -21,13 +21,17 @@ import { writeStoredSession } from './storedSession'
 type AuthState = { isLoading: boolean; isAuthenticated: boolean }
 
 let state: AuthState = { isLoading: true, isAuthenticated: false }
-let cached: { token: string; expiresAt: number } | null = null
+let cached: { token: string; expiresAt: number; person: string } | null = null
 let started = false
 const listeners = new Set<() => void>()
 
 function settle(answer: TokenAnswer | null): void {
   const before = cached?.token ?? null
-  cached = answer && { token: answer.token, expiresAt: expiryOf(answer.token) }
+  cached = answer && {
+    token: answer.token,
+    expiresAt: expiryOf(answer.token),
+    person: answer.person,
+  }
   writeStoredSession(localStore(), answer?.account ?? null)
   const next = { isLoading: false, isAuthenticated: answer !== null }
   const same = next.isLoading === state.isLoading && next.isAuthenticated === state.isAuthenticated
@@ -115,6 +119,19 @@ export function useSessionToken(): string | null {
   return useSyncExternalStore(
     subscribe,
     () => cached?.token ?? null,
+    () => null
+  )
+}
+
+/**
+ * Who the rooms name the signed-in player as (their Discord id), `null`
+ * until the session is answered or once signed out. Under the rooms it is
+ * the id a member, a seat or a unit's owner is compared with.
+ */
+export function useMyPerson(): string | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => cached?.person ?? null,
     () => null
   )
 }

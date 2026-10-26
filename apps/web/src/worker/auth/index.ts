@@ -37,7 +37,7 @@ import type { TokenAnswer } from '../../lib/auth/paths'
 import { AUTH_PATHS } from '../../lib/auth/paths'
 import type { SigningKey } from './crypto'
 import { base64urlJson, passwordHash, sha256Hex, signingKey, signToken } from './crypto'
-import type { AuthSql, D1Like, SignIn } from './store'
+import type { Account, AuthSql, D1Like, SignIn } from './store'
 import {
   authStore,
   closeSession,
@@ -337,14 +337,16 @@ export async function identityOf(
   if (!raw) return null
   const session = await readSession(await authStore(d1Sql(env.SHARED)), raw, now)
   if (session === null) return null
-  const { accountId, discordId, testEmail } = session.account
+  const { accountId, discordId } = session.account
   const admins = (env.ADMIN_DISCORD_IDS ?? '').split(',').map((id) => id.trim())
-  if (discordId !== null) return { accountId, discordId, admin: admins.includes(discordId) }
-  return {
-    accountId,
-    discordId: `${TEST_SUBJECT}${await sha256Hex(testEmail ?? accountId)}`,
-    admin: false,
-  }
+  const admin = discordId !== null && admins.includes(discordId)
+  return { accountId, discordId: await personOf(session.account), admin }
+}
+
+/** The rooms' name for an account: its Discord id, or a test account's stand-in (`Identity`). */
+async function personOf(account: Account): Promise<string> {
+  if (account.discordId !== null) return account.discordId
+  return `${TEST_SUBJECT}${await sha256Hex(account.testEmail ?? account.accountId)}`
 }
 
 /** The session token's claims for Convex: its subject is `<userId>|<sessionId>`. */
@@ -407,7 +409,11 @@ async function token(request: Request, url: URL, deps: AuthDeps): Promise<Respon
   if (session === null) return signedOut()
   const userId = session.account.accountId
   const signed = await sessionToken(deps, userId, session.sessionId, now)
-  const answer: TokenAnswer = { token: signed, account: userId }
+  const answer: TokenAnswer = {
+    token: signed,
+    account: userId,
+    person: await personOf(session.account),
+  }
   return json(
     answer,
     200,
