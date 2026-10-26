@@ -7,11 +7,11 @@
  * (Pilot Bay, Trading Bay), no patched rows.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
@@ -33,16 +33,7 @@ const crawler: Crawler = {
   updatedAt: FIXTURE_NOW,
 }
 
-function store() {
-  return makeEntityStoreMock({
-    crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [crawler]),
-    get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
-    update: mock(async () => crawler),
-  })
-}
+const store = () => makeSingleUnitStore('crawler', crawler)
 
 /** A section's fold, named for its bay ("Expand Pilot Bay Bay Info"). */
 const fold = (bay: string, section: string) =>

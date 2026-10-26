@@ -1,4 +1,3 @@
-import type { UnitsStore } from '../../../replica/units'
 /**
  * Condition tracking tests
  *
@@ -19,7 +18,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { MechSheet } from '../MechSheet'
@@ -31,31 +30,11 @@ beforeAll(hydrateStores)
 // Stub factories
 // ---------------------------------------------------------------------------
 
-function makeMechStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): UnitsStore {
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
-    create: mock(async () => mech),
-    update: updateSpy ?? mock(async () => mech),
-    delete: mock(async () => {}),
-  })
-}
+const makeMechStubStore = (mech: Mech, update?: ReturnType<typeof mock>) =>
+  makeSingleUnitStore('mech', mech, { update })
 
-function makePilotStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): UnitsStore {
-  return makeEntityStoreMock({
-    pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [pilot]),
-    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
-    create: mock(async () => pilot),
-    update: updateSpy ?? mock(async () => pilot),
-    delete: mock(async () => {}),
-  })
-}
+const makePilotStubStore = (pilot: Pilot, update?: ReturnType<typeof mock>) =>
+  makeSingleUnitStore('pilot', pilot, { update })
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -269,23 +248,8 @@ describe('MechSheet — condition merge reads live store, not stale prop (#240 r
       ...fakeMech,
       systemConditions: { 'prior-system': 'destroyed' },
     }
-    const store = makeEntityStoreMock({
-      mechs: [freshMech],
-      hydrated: {
-        pilots: false,
-        mechs: true,
-        crawlers: false,
-        npcs: false,
-        softLinks: false,
-      },
-      hydrate: mock(async () => {}),
-      list: mock(() => [freshMech]),
-      // get returns the FRESH mech (with the prior condition), unlike the prop
-      get: mock((_type: string, id: string) => (id === fakeMech.id ? freshMech : null)),
-      create: mock(async () => fakeMech),
-      update: updateSpy,
-      delete: mock(async () => {}),
-    })
+    // The store holds the FRESH mech (with the prior condition), unlike the prop.
+    const store = makeSingleUnitStore('mech', freshMech, { update: updateSpy })
 
     render(<MechSheet mech={propMech} chassis={fakeChassis} store={store} />)
 

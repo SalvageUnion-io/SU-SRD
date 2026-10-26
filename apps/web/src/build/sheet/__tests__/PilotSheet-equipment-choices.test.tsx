@@ -20,7 +20,7 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
@@ -64,16 +64,7 @@ function makePilotStubStore(initial: Pilot, updateSpy?: ReturnType<typeof mock>)
       return current
     })
 
-  const store = makeEntityStoreMock({
-    pilots: [current],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [current]),
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
-    create: mock(async () => current),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
+  const store = makeSingleUnitStore('pilot', () => current, { update: updateMock })
   return { store, updateMock }
 }
 

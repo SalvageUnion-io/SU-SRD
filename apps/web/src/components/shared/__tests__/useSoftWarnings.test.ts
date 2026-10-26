@@ -16,7 +16,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { pilotFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../__tests__/mockEntityStore'
 import { must } from '../../__tests__/must'
 import { useSoftWarnings } from '../useSoftWarnings'
 
@@ -43,13 +43,7 @@ function makeStore(opts: { entity?: Pilot | null; updateResult?: Pilot }) {
   const updateResult = opts.updateResult ?? { ...fakePilot, name: 'Updated' }
   const updateFn = mock(async (_type: string, _id: string, _patch: Partial<Pilot>) => updateResult)
 
-  const storeHook = makeEntityStoreMock({
-    get: mock(() => entity),
-    update: updateFn,
-    hydrate: mock(async () => {}),
-    list: mock(() => []),
-    delete: mock(async () => {}),
-  })
+  const storeHook = makeSingleUnitStore('pilot', entity, { update: updateFn })
 
   return { storeHook, updateFn }
 }

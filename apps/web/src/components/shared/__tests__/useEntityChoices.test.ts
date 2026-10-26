@@ -17,7 +17,7 @@ import { act, renderHook } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { pilotFixture } from '../../__tests__/fixtures'
-import { makeEntityStoreMock } from '../../__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../__tests__/mockEntityStore'
 import { useEntityChoices } from '../useEntityChoices'
 
 // ---------------------------------------------------------------------------
@@ -49,16 +49,7 @@ function makeStore(initial: Pilot) {
     return current
   })
 
-  const store = makeEntityStoreMock({
-    pilots: [current],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [current]),
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
-    create: mock(async () => current),
-    update: updateFn,
-    delete: mock(async () => {}),
-  })
+  const store = makeSingleUnitStore('pilot', () => current, { update: updateFn })
   return { store, updateFn, getCurrent: () => current }
 }
 

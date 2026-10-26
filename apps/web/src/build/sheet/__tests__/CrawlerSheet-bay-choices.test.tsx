@@ -30,7 +30,10 @@ import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import {
+  makeEntityStoreMock,
+  makeSingleUnitStore,
+} from '../../../components/__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
@@ -86,16 +89,7 @@ function makeCrawlerStubStore(initial: Crawler, updateSpy?: ReturnType<typeof mo
       return current
     })
 
-  const store = makeEntityStoreMock({
-    crawlers: [current],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [current]),
-    get: mock((_type: string, id: string) => (id === current.id ? current : null)),
-    create: mock(async () => current),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
+  const store = makeSingleUnitStore('crawler', () => current, { update: updateMock })
   return { store, updateMock }
 }
 

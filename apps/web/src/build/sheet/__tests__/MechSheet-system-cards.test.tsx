@@ -1,4 +1,3 @@
-import type { UnitsStore } from '../../../replica/units'
 /**
  * MechSheet — system/module entity cards on the LiveSheet body.
  *
@@ -21,7 +20,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { WritesBlockedOffline } from '../../../replica/sync'
 import { MechSheet } from '../MechSheet'
@@ -56,19 +55,8 @@ function makeMech(overrides: Partial<Mech>): Mech {
   }
 }
 
-function makeStubStore(mech: Mech, updateSpy?: ReturnType<typeof mock>): UnitsStore {
-  const updateMock = updateSpy ?? mock(async () => mech)
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
-    create: mock(async () => mech),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
+function makeStubStore(mech: Mech, update?: ReturnType<typeof mock>) {
+  return makeSingleUnitStore('mech', mech, { update })
 }
 
 describe('MechSheet — system/module entity cards', () => {

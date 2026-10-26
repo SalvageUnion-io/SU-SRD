@@ -16,11 +16,11 @@
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { mechFixture } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { mechPartnerSeeds, syncPartners } from '../../../lib/rules/partnerGrants'
 import { MechSheet } from '../MechSheet'
@@ -40,19 +40,6 @@ function seededMech(chassisRef: string, patternName: string, overrides: Partial<
   })
 }
 
-function makeStore(mech: Mech) {
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-    get: mock((type: string, id: string) => (type === 'mech' && id === mech.id ? mech : null)),
-    create: mock(async () => mech),
-    update: mock(async () => mech),
-    delete: mock(async () => {}),
-  })
-}
-
 /** The Partners section slab, which must exist for any of this to mean anything. */
 function partnersRegion(): HTMLElement {
   const heading = screen.getByText(/^Partners$/i)
@@ -63,7 +50,7 @@ describe('MechSheet — Partners', () => {
   test('a Little Sestra fields its Sestra Drone as a live entity', () => {
     const mech = seededMech('little-sestra', 'Surveyor')
     expect(mech.partners).toHaveLength(1)
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
 
     const region = partnersRegion()
     // getAllByText: a card spells its name in more than one place (title plus
@@ -79,7 +66,7 @@ describe('MechSheet — Partners', () => {
 
   test('the drone carries its OWN structure, not the mech chassis stats', () => {
     const mech = seededMech('little-sestra', 'Surveyor')
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
 
     // Sestra Drone: SP 7 / EP 8 / Heat 6 — none of which are the Little
     // Sestra's own numbers. A gauge showing the mech's would mean the card is
@@ -92,7 +79,7 @@ describe('MechSheet — Partners', () => {
   test('Big Brother fields FOUR drones, each under its own instance name', () => {
     const mech = seededMech('big-brother', 'DronTek', { name: 'Panopticon' })
     expect(mech.partners).toHaveLength(4)
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
 
     const region = partnersRegion()
     for (const name of [
@@ -109,13 +96,13 @@ describe('MechSheet — Partners', () => {
     // partnerCap knew only Mecha Packmaster, so every one of these would have
     // read "4 of 1" the moment seeding started working.
     const mech = seededMech('big-brother', 'DronTek', { name: 'Panopticon' })
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
     expect(within(partnersRegion()).getAllByText(/4 of 4/i).length).toBe(4)
   })
 
   test('offers no standalone remove — a drone dies with the chassis that grants it', () => {
     const mech = seededMech('little-sestra', 'Surveyor')
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
     expect(within(partnersRegion()).queryByRole('button', { name: /remove sestra drone/i })).toBe(
       null
     )
@@ -124,7 +111,7 @@ describe('MechSheet — Partners', () => {
   test('a chassis that grants no drone renders no Partners region at all', () => {
     const mech = seededMech('bad-penny', 'Hauler')
     expect(mech.partners).toBeUndefined()
-    render(<MechSheet mech={mech} store={makeStore(mech)} />)
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
     expect(screen.queryByText(/^Partners$/i)).toBe(null)
   })
 })

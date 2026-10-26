@@ -22,7 +22,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { LIVE_SHEET_TXN } from '../../../replica/provenance'
 import type { ChangeMeta } from '../../../replica/units'
 import { CrawlerEconomyControl } from '../CrawlerEconomyControl'
@@ -58,22 +58,8 @@ function makeStubStore(crawler: Crawler) {
       meta?: ChangeMeta
     ) => Promise<Crawler>
   >(async () => crawler)
-  const store = makeEntityStoreMock({
-    crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [crawler]),
-    get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
-    create: mock(async () => crawler),
-    update,
-    updateCrawlerBay,
-    delete: mock(async () => {}),
-  })
-  return {
-    store,
-    update,
-    updateCrawlerBay,
-  }
+  const store = makeSingleUnitStore('crawler', crawler, { update, updateCrawlerBay })
+  return { store, update, updateCrawlerBay }
 }
 
 /** Returns a Roll that yields the given values in order, ignoring `sides`. */

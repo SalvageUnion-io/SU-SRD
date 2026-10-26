@@ -7,12 +7,12 @@
  * whose NPC this view cannot read shows the inline crew with a badge.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import type { CrewAssignment } from '../../../lib/npcs/npcModel'
 import { CrawlerSheet } from '../CrawlerSheet'
 
@@ -42,13 +42,7 @@ const DOC = npcFixture({
 
 const MED_BAY_LINK = softLinkFixture('npc-to-crawler', 'n1', 'c1')
 
-function store() {
-  return makeEntityStoreMock({
-    crawlers: [crawler],
-    update: mock(async () => crawler),
-    updateCrawlerBay: mock(async () => crawler),
-  })
-}
+const store = () => makeSingleUnitStore('crawler', crawler)
 
 /** The name a crew lead's Mini head wears. */
 function headName(crewLead: HTMLElement): string {

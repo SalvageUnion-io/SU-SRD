@@ -7,11 +7,11 @@
  * from `chassisRef`.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
 import { slabChip } from '../../../components/__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
@@ -43,11 +43,7 @@ function makeMech(systems: string[]): Mech {
 }
 
 function renderSheet(mech: Mech) {
-  const store = makeEntityStoreMock({
-    mechs: [mech],
-    get: mock(() => mech),
-    list: mock(() => [mech]),
-  })
+  const store = makeSingleUnitStore('mech', mech)
   render(<MechSheet mech={mech} store={store} readOnly />)
 }
 

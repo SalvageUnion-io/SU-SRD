@@ -1,3 +1,4 @@
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import type { UnitsStore } from '../../../replica/units'
 /**
  * Crawler type card + special NPC tests (the type card
@@ -22,7 +23,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
@@ -94,18 +94,7 @@ async function patchCrawlers(): Promise<() => void> {
 // ---------------------------------------------------------------------------
 
 function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): UnitsStore {
-  const updateMock = update ?? mock(async () => crawler)
-  return makeEntityStoreMock({
-    crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [crawler]),
-    get: mock((_t: string, id: string) => (id === crawler.id ? crawler : null)),
-    create: mock(async () => crawler),
-    update: updateMock,
-    updateCrawlerBay: mock(async () => crawler),
-    delete: mock(async () => {}),
-  })
+  return makeSingleUnitStore('crawler', crawler, { update })
 }
 
 function makeCrawler(overrides?: Partial<Crawler>): Crawler {

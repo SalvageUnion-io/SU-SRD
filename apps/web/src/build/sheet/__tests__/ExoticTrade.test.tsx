@@ -8,7 +8,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import type { ChangeMeta } from '../../../replica/provenance'
 import { LIVE_SHEET_TXN } from '../../../replica/provenance'
 import { ExoticTrade } from '../ExoticTrade'
@@ -18,11 +18,7 @@ function setup(scrapPool: Crawler['scrapPool']) {
   const update = mock<
     (type: string, id: string, patch: Partial<Crawler>, meta?: ChangeMeta) => Promise<Crawler>
   >(async () => crawler)
-  const store = makeEntityStoreMock({
-    crawlers: [crawler],
-    get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
-    update,
-  })
+  const store = makeSingleUnitStore('crawler', crawler, { update })
   render(<ExoticTrade crawler={crawler} store={store} />)
   return { update }
 }

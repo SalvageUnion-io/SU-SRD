@@ -130,6 +130,39 @@ export function makeEntityStoreMock(overrides: EntityStoreMockOverrides = {}): U
   return create<UnitsState>(() => state)
 }
 
+type Unit = Pilot | Mech | Crawler
+
+/**
+ * The one-unit store most sheet tests want: `entity` seeded under its kind,
+ * that kind hydrated (a crawler's NPCs too), and `get`/`list` serving it.
+ * Writes resolve to the entity, so a test stubs `update` only to capture it.
+ * Pass a getter as `entity` when the test's writes replace the unit. A defined
+ * override wins over these defaults; an undefined one keeps the default.
+ */
+export function makeSingleUnitStore(
+  kind: 'pilot' | 'mech' | 'crawler',
+  entity: Unit | (() => Unit),
+  overrides: EntityStoreMockOverrides = {}
+): UnitsStore {
+  const current = typeof entity === 'function' ? entity : () => entity
+  return makeEntityStoreMock({
+    [KEY[kind]]: [current()],
+    hydrated: {
+      pilots: kind === 'pilot',
+      mechs: kind === 'mech',
+      crawlers: kind === 'crawler',
+      npcs: kind === 'crawler',
+      softLinks: false,
+    },
+    list: () => [current()],
+    get: (_type, id) => (id === current().id ? current() : null),
+    create: async () => current(),
+    update: async () => current(),
+    updateCrawlerBay: async () => current() as Crawler,
+    ...Object.fromEntries(Object.entries(overrides).filter(([, v]) => v !== undefined)),
+  })
+}
+
 /**
  * EntityLookup for fixture arrays: matches by id alone (fixture ids are
  * unique across types, mirroring the previous untyped test stubs).

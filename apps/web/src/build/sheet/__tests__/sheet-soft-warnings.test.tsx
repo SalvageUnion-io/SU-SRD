@@ -1,4 +1,3 @@
-import type { UnitsStore } from '../../../replica/units'
 /**
  * Live Sheet soft warnings (ADR-021) — the wired-in behaviour of
  * `useSoftWarnings` + `SoftWarningDialog`.
@@ -17,12 +16,12 @@ import type { UnitsStore } from '../../../replica/units'
  * (L3), so dropping L1 while L2 is held trips ABILITY_TREE_ORDER.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
 
@@ -55,23 +54,15 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   }
 }
 
-function makePilotStore(pilot: Pilot, captured: CapturedUpdate[]): UnitsStore {
-  let current = pilot
-  return makeEntityStoreMock({
-    pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [current]),
-    get: mock((type: string, id: string) =>
-      type === 'pilot' && id === current.id ? current : null
-    ),
-    create: mock(async () => current),
-    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
+/** A one-unit store whose writes are captured and land on the unit. */
+function makeCaptureStore(kind: 'pilot' | 'mech', unit: Pilot | Mech, captured: CapturedUpdate[]) {
+  let current = unit
+  return makeSingleUnitStore(kind, () => current, {
+    update: async (type, id, patch) => {
       captured.push({ type, id, patch })
-      current = { ...current, ...patch } as Pilot
+      current = { ...current, ...patch } as Pilot | Mech
       return current
-    }),
-    delete: mock(async () => {}),
+    },
   })
 }
 
@@ -100,26 +91,6 @@ function makeMech(overrides: Partial<Mech> = {}): Mech {
     updatedAt: FIXTURE_NOW,
     ...overrides,
   } as Mech
-}
-
-function makeMechStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
-  let current = mech
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [current]),
-    get: mock((type: string, id: string) =>
-      type === 'mech' && id === current.id ? current : null
-    ),
-    create: mock(async () => current),
-    update: mock(async (type: string, id: string, patch: Record<string, unknown>) => {
-      captured.push({ type, id, patch })
-      current = { ...current, ...patch } as Mech
-      return current
-    }),
-    delete: mock(async () => {}),
-  })
 }
 
 async function click(name: RegExp) {
@@ -154,7 +125,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
   test('a tree-order-breaking removal opens the dialog; cancel persists nothing', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
 
@@ -173,7 +144,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
   test('"Save anyway" persists the previewed patch — warnings never block', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     await removeViaPicker(/^Manage abilities$/i, ABILITY_L1)
     await click(/save anyway/i)
@@ -185,7 +156,7 @@ describe('PilotSheet — soft warnings on ability edits', () => {
   test('a clean removal persists immediately with no dialog', async () => {
     const captured: CapturedUpdate[] = []
     const pilot = makePilot()
-    render(<PilotSheet pilot={pilot} store={makePilotStore(pilot, captured)} />)
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
 
     // Dropping the L2 leaves a well-ordered tree — nothing to warn about.
     await removeViaPicker(/^Manage abilities$/i, ABILITY_L2)
@@ -200,7 +171,13 @@ describe('MechSheet — soft warnings on system removal', () => {
   test('removing a system persists immediately (no dependency data to flag)', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech()
-    render(<MechSheet mech={mech} chassis={fakeChassis} store={makeMechStore(mech, captured)} />)
+    render(
+      <MechSheet
+        mech={mech}
+        chassis={fakeChassis}
+        store={makeCaptureStore('mech', mech, captured)}
+      />
+    )
 
     await click(/^Manage systems$/i)
     // Removing is the rail's ✕.
