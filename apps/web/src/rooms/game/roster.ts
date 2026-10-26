@@ -9,8 +9,7 @@ import { unitName } from './units'
 /**
  * A Game's roster, roles and invite URL (ADR-030 §3 and its invite
  * amendment), and the two ways a Game ends: its Organizer ending it, and its
- * last member deleting their account. The rules are `convex/games.ts`,
- * `invites.ts` and `account.deleteAccount`'s, unchanged.
+ * last member deleting their account.
  */
 
 /** A Game as its members read it: its name, their role, and what the table holds. */

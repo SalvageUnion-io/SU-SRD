@@ -8,8 +8,7 @@ import type { GameUnits } from './units'
 
 /**
  * Play at a Game's table: each pilot's seat (ADR-038 §2, `../seats.ts`) and
- * the Game's Downtime (`../downtime.ts`), with `convex/seats.ts` and
- * `downtime.ts`'s rules. A seat is written by whoever may write its pilot;
+ * the Game's Downtime (`../downtime.ts`). A seat is written by whoever may write its pilot;
  * the Mediator runs the Downtime.
  */
 

@@ -5,8 +5,8 @@ import { bit, fromJson, fromJsonOrNull } from './game/store'
 import { RoomRefusal } from './refusal'
 
 /**
- * Each pilot's seat (ADR-038 §2), with `convex/seats.ts`'s rules: a Game
- * room's for its crew (`game/play.ts`), an account room's for its player's
+ * Each pilot's seat (ADR-038 §2): a Game room's for its crew
+ * (`game/play.ts`), an account room's for its player's
  * solo table (`account/soloPlay.ts`). Only who may write a unit, and what a
  * unit that is not here is called, differ (`writable`).
  */

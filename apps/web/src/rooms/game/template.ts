@@ -14,8 +14,7 @@ import { parseUnitBody } from './units'
 /**
  * Starting a Game from a template (ADR-030): a pre-built crew whose units
  * **arrive unassigned**, for the table runner to hand out as players join.
- * The rule is `convex/templates.ts`'s; the one difference is that each unit
- * takes a fresh id here, so two Games started from one template never share
+ * Each unit takes a fresh id, so two Games started from one template never share
  * a unit's id when they end and hand their units to the same Training Bay.
  */
 

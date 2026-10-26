@@ -8,9 +8,9 @@ import { fromJson } from './store'
 import type { GameUnits } from './units'
 
 /**
- * What the table plays under, with `convex/scenes.ts` and `salvageAreas.ts`'s
- * rules: the Scene's conditions (play.md §10), which the Mediator switches and
- * every seat reads, and the area being salvaged (Core Book p.245).
+ * What the table plays under: the Scene's conditions (play.md §10), which
+ * the Mediator switches and every seat reads, and the area being salvaged
+ * (Core Book p.245).
  *
  * Passing an hour only counts it: what an hour costs each unit reaches a
  * player's sheet as the Mediator's proposals (ADR-030 §4, ADR-007). Supply is

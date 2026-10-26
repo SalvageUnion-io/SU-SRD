@@ -1,6 +1,5 @@
 /**
- * Account deletion on the rooms, in place of Convex's `account.deleteAccount`:
- * the same rule, that **a campaign never dies because one person quit**.
+ * Account deletion on the rooms, by one rule: that **a campaign never dies because one person quit**.
  *
  *  1. Each Game they are in forgets them: their units go, the Organizer flag
  *     passes on, and a Game left with nobody ends (its channel binding too).

@@ -21,8 +21,7 @@
  * only itself, as `linkPreview.ts` does.
  *
  * The picture is the site's own `/og-image.png`: the render surfaces
- * (`/og/:kind/:id`) read Convex's public answer, which a Starter Set template
- * never has.
+ * (`/og/:kind/:id`) read a shared row, which a Starter Set template never has.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

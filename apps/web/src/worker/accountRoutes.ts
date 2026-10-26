@@ -1,7 +1,6 @@
 /**
- * The account's routes on the Worker (`ACCOUNT_PATHS`), in place of Convex's
- * `account.me`, `updateProfile`, `exportMine`, `feedback.submit`,
- * `metrics.forAdmin`, `metrics.refresh` and `build.floor`. Who is asking is
+ * The account's routes on the Worker (`ACCOUNT_PATHS`): the player, their
+ * profile, export and feedback, and the admin metrics and build floor. Who is asking is
  * the session cookie's (`identityOf`); the player's own things are their
  * account room's, and what crosses accounts is the shared database's.
  *

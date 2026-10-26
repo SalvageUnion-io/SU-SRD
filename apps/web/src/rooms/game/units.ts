@@ -14,9 +14,7 @@ import type { GameStore, Member, StoredOp, UnitRow } from './store'
 /**
  * A Game's units and their op logs (ADR-063): creating one, writing it by
  * ops, proposals, assignment, scrapping, and the links between units
- * (ADR-037, ADR-044). Each rule is the one `convex/entities.ts`,
- * `ownership.ts` and `proposals.ts` enforce, so a Game behaves the same once
- * it lives in its room.
+ * (ADR-037, ADR-044).
  *
  * In a room every unit has one id, the one its body carries: a Game is its
  * own namespace, so a template pre-gen whose id repeats in every Game made

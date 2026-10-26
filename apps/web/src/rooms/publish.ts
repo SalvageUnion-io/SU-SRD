@@ -9,8 +9,7 @@ import { unitName } from './game/units'
  * per thing its owner shared by link, and one per pattern also shared on the
  * Reference. Worked out here, with the room's links and names in reach, so
  * the Worker serves the rows as written (`../worker/shared/publicSheets.ts`)
- * and decides nothing. The rules are Convex's `publicSheet.get`, `.pattern`
- * and `.preview`, and `homebrew.patterns`.
+ * and decides nothing.
  *
  * - **One container.** A room's units are one Shelf or one Game, so every
  *   link end found in it is in the same container (ADR-037).

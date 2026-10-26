@@ -15,8 +15,7 @@ import type { GameUnits } from './units'
  * (`../handoff.ts`), and the cutover's one-off import of a Game from Convex
  * with the check that the copy matches what it was copied from.
  *
- * A move keeps the rules `convex/model/ownableWrites.ts` and
- * `crawlerWrites.ts` enforced: a pilot, mech or NPC is moved by its holder,
+ * A move's rules: a pilot, mech or NPC is moved by its holder,
  * into a Game they are a member of; a crawler only by the table runner,
  * between the Game and their own Training Bay, never Game to Game. A link
  * whose other end is not where the unit lands is dropped (ADR-037).

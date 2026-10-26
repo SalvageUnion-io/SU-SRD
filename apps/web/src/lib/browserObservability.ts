@@ -31,10 +31,8 @@ export { ERROR_REPORT_PATH }
 /**
  * Grouping and labelling for a captured event.
  *
- * Convex's redacted errors are the reason `fingerprint` exists: the message is
- * `"[CONVEX M(fn)] [Request ID: 1b66…] Server Error"`, so the request id makes
- * every event's message unique and the rest of it says nothing. Grouped by
- * message, one condition became one issue per event.
+ * `fingerprint` groups events whose message varies per event (a request id,
+ * an entity id): grouped by message, one condition becomes one issue per event.
  */
 type CaptureOptions = {
   /**

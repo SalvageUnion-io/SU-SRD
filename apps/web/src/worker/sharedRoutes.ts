@@ -1,7 +1,7 @@
 /**
  * What crosses rooms, answered from the shared database (`./shared/`) for
- * the app's screens: Convex's `publicSheet`, `homebrew` and
- * `shelf.crewPatterns` reads, and Homebrew's reports and takedowns. The rooms
+ * the app's screens: shared sheets, Homebrew and crew patterns, and
+ * Homebrew's reports and takedowns. The rooms
  * write the rows; this decides only who may read or act (`../lib/sharing/paths.ts`).
  *
  *   - `GET  sheets/:kind/:segment`, `previews/:kind/:segment`, `invites/:code`:

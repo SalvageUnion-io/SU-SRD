@@ -105,9 +105,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       confirmLabel={playGamesCopy('deleteGame')}
       pendingLabel={playGamesCopy('deleting')}
       onConfirm={handleConfirm}
-      // A refusal carries wording the server chose for the player —
-      // `NotAuthorized` extends `ConvexError` precisely so it survives the wire
-      // intact rather than arriving as "Server Error". Anything else does not,
+      // A refusal (`RoomDeclined`) carries wording the server chose for the
+      // player. Anything else does not,
       // and rendering `String(err)` would show a redacted stack, so it gets a
       // generic line and an operator report instead. Either way the dialog
       // stays open with the reason on it; closing silently would look like the
