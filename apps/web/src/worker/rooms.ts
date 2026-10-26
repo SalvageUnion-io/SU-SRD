@@ -47,7 +47,7 @@ import type { PresenceMessage } from '../rooms/presence'
 import { presentMembers, ROOM_PROTOCOL, SEAT_TAG, WATCH_TAG } from '../rooms/presence'
 import type { ServerMessage } from '../rooms/protocol'
 import { gamePublished, shelfPublished } from '../rooms/publish'
-import { RoomRefusal } from '../rooms/refusal'
+import { answerOrRefuse } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { loadCrewReference, unitVitals } from '../rooms/vitals'
@@ -73,7 +73,12 @@ export const SEAT_HEADER = 'x-su-seat'
 type RoomState = ConstructorParameters<typeof DurableObject>[0]
 type RoomEnv = ConstructorParameters<typeof DurableObject>[1]
 
-abstract class Room extends DurableObject<RoomEnv> {
+/** A room's half of the handoff, as its logic keeps it. */
+type RoomTransit = {
+  [K in keyof UnitHome]: (...args: Parameters<UnitHome[K]>) => Awaited<ReturnType<UnitHome[K]>>
+} & Parameters<typeof settleStaleOffers>[1]
+
+abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
   protected readonly sql: RoomSql
   private schema = 0
 
@@ -106,6 +111,60 @@ abstract class Room extends DurableObject<RoomEnv> {
     void this.publisher.changed()
   }
 
+  protected abstract readonly transit: RoomTransit
+
+  /** Every open socket hears the room afresh; the shared rows follow. */
+  protected abstract broadcastSnapshots(): void
+
+  offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
+    const parcel = this.transit.offer(args)
+    void this.ctx.storage.setAlarm(Date.now() + LEASE_SETTLE_MS)
+    return parcel
+  }
+
+  accept(parcel: UnitParcel, actor: string, at: number): void {
+    this.transit.accept(parcel, actor, at)
+    this.broadcastSnapshots()
+  }
+
+  release(leaseId: string): void {
+    this.transit.release(leaseId)
+    this.broadcastSnapshots()
+  }
+
+  cancel(leaseId: string): void {
+    this.transit.cancel(leaseId)
+  }
+
+  refuseLease(leaseId: string, at: number): LeaseOutcome {
+    return this.transit.refuseLease(leaseId, at)
+  }
+
+  override alarm(): Promise<void> {
+    return settleStaleOffers(this, this.transit, this.ctx.storage, homeOf)
+  }
+
+  /**
+   * The member's socket, which the Worker let through (`MEMBER_HEADER`), or
+   * null for a request that is not one.
+   */
+  protected socketMember(request: Request): string | null {
+    const member = request.headers.get(MEMBER_HEADER)
+    return request.headers.get('upgrade') === 'websocket' ? member : null
+  }
+
+  /** Accept a hibernatable socket tagged `tags`, its first message `first`. */
+  protected openSocket(tags: string[], first: unknown): Response {
+    const pair = new WebSocketPair()
+    this.ctx.acceptWebSocket(pair[1], tags)
+    pair[1].send(JSON.stringify(first))
+    return new Response(null, {
+      status: 101,
+      headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
+      webSocket: pair[0],
+    } as ResponseInit)
+  }
+
   /** Wipe the room, leaving it as a new one: what is left of a Game that ended. */
   protected async wipe(): Promise<void> {
     await this.ctx.storage.deleteAlarm()
@@ -119,14 +178,16 @@ abstract class Room extends DurableObject<RoomEnv> {
  * (`wrangler.jsonc` `exports`). Its RPC is the player's units, the handoff
  * (`UnitHome`) and the cutover's import; the Worker names the actor.
  */
-export class AccountRoom extends Room implements UnitHome {
+export class AccountRoom extends Room {
   private readonly logic: AccountRoomLogic
   protected readonly publisher: RoomPublisher
+  protected readonly transit: RoomTransit
   private readonly totals: AccountTotalsWriter
 
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
+    this.transit = this.logic.transit
     this.totals = new AccountTotalsWriter(sharedDb(env), () => {
       const discordId = this.logic.shelf.owner()
       return discordId === null ? null : { discordId, ...this.logic.shelf.totals() }
@@ -180,51 +241,15 @@ export class AccountRoom extends Room implements UnitHome {
     return this.logic.transit.diffImport(bundle)
   }
 
-  offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
-    const parcel = this.logic.transit.offer(args)
-    void this.ctx.storage.setAlarm(Date.now() + LEASE_SETTLE_MS)
-    return parcel
-  }
-
-  accept(parcel: UnitParcel, actor: string, at: number): void {
-    this.logic.transit.accept(parcel, actor, at)
-    this.broadcastSnapshots()
-  }
-
-  release(leaseId: string): void {
-    this.logic.transit.release(leaseId)
-    this.broadcastSnapshots()
-  }
-
-  cancel(leaseId: string): void {
-    this.logic.transit.cancel(leaseId)
-  }
-
-  refuseLease(leaseId: string, at: number): LeaseOutcome {
-    return this.logic.transit.refuseLease(leaseId, at)
-  }
-
-  override alarm(): Promise<void> {
-    return settleStaleOffers(this, this.logic.transit, this.ctx.storage, homeOf)
-  }
-
   /** The player's socket, which the Worker let through: their Shelf, then its changes. */
   override async fetch(request: Request): Promise<Response> {
-    const member = request.headers.get(MEMBER_HEADER)
-    if (member === null || request.headers.get('upgrade') !== 'websocket') {
-      return new Response(null, { status: 400 })
-    }
+    const member = this.socketMember(request)
+    if (member === null) return new Response(null, { status: 400 })
     if (member !== this.logic.shelf.owner()) return new Response(null, { status: 403 })
-    const pair = new WebSocketPair()
-    this.ctx.acceptWebSocket(pair[1], [member])
-    pair[1].send(JSON.stringify(shelfSnapshot(this.logic, member)))
+    const socket = this.openSocket([member], shelfSnapshot(this.logic, member))
     // A player who has never changed a thing still counts as an account.
     void this.totals.write()
-    return new Response(null, {
-      status: 101,
-      headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
-      webSocket: pair[0],
-    } as ResponseInit)
+    return socket
   }
 
   /**
@@ -256,14 +281,12 @@ export class AccountRoom extends Room implements UnitHome {
       return
     }
     const opIds = batch.map((op) => op.id)
-    let result: ReturnType<AccountRoomLogic['shelf']['submit']>
-    try {
-      result = this.logic.shelf.submit(member, batch)
-    } catch (error) {
-      if (!(error instanceof RoomRefusal)) throw error
-      ws.send(JSON.stringify(refusedBatch(opIds, error.message)))
+    const submitted = answerOrRefuse(() => this.logic.shelf.submit(member, batch))
+    if (!submitted.ok) {
+      ws.send(JSON.stringify(refusedBatch(opIds, submitted.refusal)))
       return
     }
+    const result = submitted.value
     if (result.ok) {
       const ids = result.applied.map((op) => op.id)
       sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
@@ -281,14 +304,11 @@ export class AccountRoom extends Room implements UnitHome {
   ): GameActAnswer<unknown> {
     const name = act.name as keyof typeof ACCOUNT_ACTS
     const run = ACCOUNT_ACTS[name] as (c: unknown, a: unknown) => unknown
-    try {
-      const value = run({ room: this.logic, actor: member, at: Date.now() }, act.args)
-      if (!ACCOUNT_READ_ACTS.has(name)) this.broadcastSnapshots()
-      return { ok: true, value }
-    } catch (error) {
-      if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
-      throw error
-    }
+    const answer = answerOrRefuse(() =>
+      run({ room: this.logic, actor: member, at: Date.now() }, act.args)
+    )
+    if (answer.ok && !ACCOUNT_READ_ACTS.has(name)) this.broadcastSnapshots()
+    return answer
   }
 
   /** The player's own name and avatar overrides; anyone else, null. */
@@ -313,7 +333,7 @@ export class AccountRoom extends Room implements UnitHome {
     this.published()
   }
 
-  private broadcastSnapshots(): void {
+  protected broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => shelfSnapshot(this.logic, member))
     this.published()
   }
@@ -329,13 +349,15 @@ type AccountHome = UnitHome & {
  * its Game id. The Worker and the bot name the player (`actor`, a Discord id,
  * ADR-064 §5); the room enforces their role and takes the time itself.
  */
-export class GameRoom extends Room implements UnitHome {
+export class GameRoom extends Room {
   private readonly logic: GameRoomLogic
   protected readonly publisher: RoomPublisher
+  protected readonly transit: RoomTransit
 
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, GAME_ROOM)
     this.logic = new GameRoomLogic(this.sql, { applyOp })
+    this.transit = this.logic.transit
     this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
       gamePublished(this.logic.store, this.gameId)
     )
@@ -404,34 +426,6 @@ export class GameRoom extends Room implements UnitHome {
     return { ...answer.value, vitals: await unitVitals(new GameStore(this.sql), unitId) }
   }
 
-  offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
-    const parcel = this.logic.transit.offer(args)
-    void this.ctx.storage.setAlarm(Date.now() + LEASE_SETTLE_MS)
-    return parcel
-  }
-
-  accept(parcel: UnitParcel, actor: string, at: number): void {
-    this.logic.transit.accept(parcel, actor, at)
-    this.broadcastSnapshots()
-  }
-
-  release(leaseId: string): void {
-    this.logic.transit.release(leaseId)
-    this.broadcastSnapshots()
-  }
-
-  cancel(leaseId: string): void {
-    this.logic.transit.cancel(leaseId)
-  }
-
-  refuseLease(leaseId: string, at: number): LeaseOutcome {
-    return this.logic.transit.refuseLease(leaseId, at)
-  }
-
-  override alarm(): Promise<void> {
-    return settleStaleOffers(this, this.logic.transit, this.ctx.storage, homeOf)
-  }
-
   /**
    * End the Game (Organizer only): every unit goes to its holder's Training
    * Bay, the rest and the tray to the Organizer's, then the room is wiped.
@@ -439,13 +433,9 @@ export class GameRoom extends Room implements UnitHome {
    */
   async disband(actor: string): Promise<GameActAnswer<null>> {
     const at = Date.now()
-    let ended: ReturnType<GameRoomLogic['roster']['disband']>
-    try {
-      ended = this.logic.roster.disband(actor, at)
-    } catch (error) {
-      if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
-      throw error
-    }
+    const disbanded = answerOrRefuse(() => this.logic.roster.disband(actor, at))
+    if (!disbanded.ok) return disbanded
+    const ended = disbanded.value
     for (const { to, parcel } of ended.deliveries) {
       await accountHome(to).accept(parcel, to, at)
     }
@@ -476,20 +466,12 @@ export class GameRoom extends Room implements UnitHome {
    * who and whether it is a seat (here) or a watcher.
    */
   override async fetch(request: Request): Promise<Response> {
-    const member = request.headers.get(MEMBER_HEADER)
-    if (member === null || request.headers.get('upgrade') !== 'websocket') {
-      return new Response(null, { status: 400 })
-    }
+    const member = this.socketMember(request)
+    if (member === null) return new Response(null, { status: 400 })
     const role = request.headers.get(SEAT_HEADER) === '1' ? SEAT_TAG : WATCH_TAG
-    const pair = new WebSocketPair()
-    this.ctx.acceptWebSocket(pair[1], [member, role])
-    pair[1].send(JSON.stringify(gameSnapshot(this.logic, member, this.gameId)))
+    const socket = this.openSocket([member, role], gameSnapshot(this.logic, member, this.gameId))
     this.broadcastPresence()
-    return new Response(null, {
-      status: 101,
-      headers: { 'sec-websocket-protocol': ROOM_PROTOCOL },
-      webSocket: pair[0],
-    } as ResponseInit)
+    return socket
   }
 
   /**
@@ -530,7 +512,7 @@ export class GameRoom extends Room implements UnitHome {
     this.broadcastPresence(ws)
   }
 
-  private broadcastSnapshots(): void {
+  protected broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => gameSnapshot(this.logic, member, this.gameId))
     this.published()
   }

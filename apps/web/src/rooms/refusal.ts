@@ -9,3 +9,15 @@ export class RoomRefusal extends Error {
     this.name = 'RoomRefusal'
   }
 }
+
+/** `run`'s value, or the refusal it threw; anything else it throws is a defect and throws on. */
+export function answerOrRefuse<T>(
+  run: () => T
+): { ok: true; value: T } | { ok: false; refusal: string } {
+  try {
+    return { ok: true, value: run() }
+  } catch (error) {
+    if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
+    throw error
+  }
+}

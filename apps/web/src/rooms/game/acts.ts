@@ -6,7 +6,7 @@ import type { Faction } from 'game-domain/schemas/ledger'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
 import { entityLog } from '../ops'
-import { RoomRefusal } from '../refusal'
+import { answerOrRefuse, RoomRefusal } from '../refusal'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { LogEntry } from './log'
 import type { TrayPatch } from './opposition'
@@ -247,10 +247,5 @@ export function runAct<N extends GameActName>(
 ): GameActAnswer<GameActResult<N>> {
   if (!Object.hasOwn(GAME_ACTS, name)) throw new Error(`No Game act named ${String(name)}`)
   const act = GAME_ACTS[name] as (c: ActContext, a: GameActArgs<N>) => GameActResult<N>
-  try {
-    return { ok: true, value: act(context, args) }
-  } catch (error) {
-    if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
-    throw error
-  }
+  return answerOrRefuse(() => act(context, args))
 }

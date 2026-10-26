@@ -59,13 +59,8 @@ export async function serveGameSocket(
   if (crossOrigin(request)) return new Response(null, { status: 403 })
   const member = await signedInMember(request, env, gameId, identify)
   if (member === null) return new Response(null, { status: 403 })
-  const headers = new Headers(request.headers)
-  headers.set(MEMBER_HEADER, member)
-  headers.set(SEAT_HEADER, new URL(request.url).searchParams.get('seat') === '1' ? '1' : '0')
-  const room = rooms().GameRoom.getByName(gameId)
-  // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
-  const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
-  return forward(new Request(request, { headers }))
+  const seat = new URL(request.url).searchParams.get('seat') === '1' ? '1' : '0'
+  return forwardTo(rooms().GameRoom.getByName(gameId), request, member, { [SEAT_HEADER]: seat })
 }
 
 /** The signed-in player's socket to their own account room; signed out or another site's page, a 403. */
@@ -78,9 +73,19 @@ export async function serveAccountSocket(
   if (crossOrigin(request)) return new Response(null, { status: 403 })
   const who = await identify(request, env)
   if (who === null) return new Response(null, { status: 403 })
+  return forwardTo(rooms().AccountRoom.getByName(who.discordId), request, who.discordId)
+}
+
+/** The socket request on to `room`, as `member`'s (`MEMBER_HEADER`), with `more` headers set. */
+function forwardTo(
+  room: { fetch: (...args: never) => unknown },
+  request: Request,
+  member: string,
+  more: Record<string, string> = {}
+): Promise<Response> {
   const headers = new Headers(request.headers)
-  headers.set(MEMBER_HEADER, who.discordId)
-  const room = rooms().AccountRoom.getByName(who.discordId)
+  headers.set(MEMBER_HEADER, member)
+  for (const [name, value] of Object.entries(more)) headers.set(name, value)
   // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
   const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
   return forward(new Request(request, { headers }))
