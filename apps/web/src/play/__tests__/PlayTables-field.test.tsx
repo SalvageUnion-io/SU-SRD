@@ -3,7 +3,7 @@
  * roster (Workshop Manual p.270), and one press fields it on the Opposition
  * (`onField`). A player's Tables (no `onField`) list no roster.
  *
- * **The die.** `rollTableDice` is replaced with the real module plus a
+ * **The die.** `lib/dice` is replaced with the real module plus a
  * `dieForTable` serving a chosen d20, as `PlayRollTable.test.tsx` does;
  * `mock.module` is process-global, hence the capture-before-mock and the
  * `afterAll` restore.
@@ -15,9 +15,9 @@ import type { RosterLine } from '../mediator/encounterRoster.model'
 /** The d20 every roll lands on: Arid Steppes Encounters 16-19, the traders. */
 const TRADERS = 17
 
-const realDice = { ...(await import('../../lib/rollTableDice')) }
+const realDice = { ...(await import('../../lib/dice')) }
 
-mock.module('../../lib/rollTableDice', () => ({
+mock.module('../../lib/dice', () => ({
   ...realDice,
   rollD20: () => TRADERS,
   dieForTable: async () => () => TRADERS,
@@ -26,11 +26,11 @@ mock.module('../../lib/rollTableDice', () => ({
 const { PlayTables } = await import('../PlayTables')
 
 afterAll(async () => {
-  mock.module('../../lib/rollTableDice', () => realDice)
-  const { rollD20 } = await import('../../lib/rollTableDice')
+  mock.module('../../lib/dice', () => realDice)
+  const { rollD20 } = await import('../../lib/dice')
   const total = rollD20()
   if (!Number.isInteger(total) || total < 1 || total > 20) {
-    throw new Error(`rollTableDice was not restored: rollD20() gave ${total}`)
+    throw new Error(`lib/dice was not restored: rollD20() gave ${total}`)
   }
 })
 

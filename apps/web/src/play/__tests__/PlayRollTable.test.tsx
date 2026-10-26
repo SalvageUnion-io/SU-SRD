@@ -5,7 +5,7 @@
  * roll and follows the result path: the mark, the toast, the hand-off to the
  * Game log, Copy, the picker trigger, and the two-roll columns variant.
  *
- * **The die.** The host takes its dice from `rollTableDice`, so that module is
+ * **The die.** The host takes its dice from `lib/dice`, so that module is
  * replaced here with the real one plus a `rollD20` and a `dieForTable` that
  * serve a queue of chosen d20 values. `mock.module` is process-global (see
  * `.claude/rules/testing-patterns.md`), hence the capture-before-mock and the
@@ -31,12 +31,12 @@ function nextRoll(): number {
 
 // Capture before mocking: a module namespace is a live view, so the spread has
 // to happen while it still reads as the real module.
-const realDice = { ...(await import('../../lib/rollTableDice')) }
+const realDice = { ...(await import('../../lib/dice')) }
 
 /** The table names the component asked a die for, in order. */
 const asked: string[] = []
 
-mock.module('../../lib/rollTableDice', () => ({
+mock.module('../../lib/dice', () => ({
   ...realDice,
   rollD20: () => nextRoll(),
   dieForTable: async (tableName: string) => {
@@ -48,14 +48,14 @@ mock.module('../../lib/rollTableDice', () => ({
 const { PlayRollTable } = await import('../PlayRollTable')
 
 afterAll(async () => {
-  mock.module('../../lib/rollTableDice', () => realDice)
+  mock.module('../../lib/dice', () => realDice)
 
   // Prove the restore took: a leaked mock would surface as "roll queue
   // exhausted" thrown from some unrelated file.
-  const { rollD20 } = await import('../../lib/rollTableDice')
+  const { rollD20 } = await import('../../lib/dice')
   const total = rollD20()
   if (!Number.isInteger(total) || total < 1 || total > 20) {
-    throw new Error(`rollTableDice was not restored: rollD20() gave ${total}`)
+    throw new Error(`lib/dice was not restored: rollD20() gave ${total}`)
   }
 })
 
