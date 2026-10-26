@@ -1,6 +1,7 @@
-import { runDurableObjectAlarm } from 'cloudflare:test'
-import { exports as workerExports } from 'cloudflare:workers'
-import { describe, expect, it } from 'vitest'
+import type { D1Migration } from 'cloudflare:test'
+import { applyD1Migrations, runDurableObjectAlarm } from 'cloudflare:test'
+import { env, exports as workerExports } from 'cloudflare:workers'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { pilotFixture } from '../src/components/__tests__/fixtures'
 import { handOff } from '../src/rooms/handoff'
 import type { GameRoomStub } from '../src/worker/rooms'
@@ -8,6 +9,14 @@ import type { GameRoomStub } from '../src/worker/rooms'
 const exports = workerExports as unknown as {
   GameRoom: { getByName(name: string): GameRoomStub }
 }
+
+const { SHARED, TEST_MIGRATIONS } = env as unknown as {
+  SHARED: D1Database
+  TEST_MIGRATIONS: D1Migration[]
+}
+
+// Every room publishes after a change: give it the shared database's tables.
+beforeAll(() => applyD1Migrations(SHARED, TEST_MIGRATIONS))
 
 const ORGANIZER = 'd-org'
 const PLAYER = 'd-player'
@@ -136,6 +145,53 @@ describe('ending a Game', () => {
     ).AccountRoom.getByName(PLAYER)
     expect((await shelf.unitsFor(PLAYER)).map((u) => u.id)).toEqual(['p1'])
     expect(await room.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+  })
+})
+
+describe('what the Game room publishes', () => {
+  it('writes its shared units to the shared database, and drops them once it is wiped', async () => {
+    const room = exports.GameRoom.getByName('g-publish')
+    const pilot = pilotFixture({ id: 'p9', name: 'Rosa', callsign: 'Rosa', classRef: 'salvager' })
+    await room.importGame({
+      gameId: 'g-publish',
+      name: 'Tenacity',
+      members: [{ discordId: PLAYER, mediator: false, organizer: true, joinedAt: 1 }],
+      inviteCode: null,
+      primaryCrawler: null,
+      units: [
+        {
+          kind: 'pilot',
+          appId: 'p9',
+          owner: PLAYER,
+          publicRead: true,
+          body: pilot,
+          headSeq: 0,
+          fieldSeqs: {},
+          updatedAt: 1,
+          ops: [],
+        },
+      ],
+      opposition: [],
+      links: [],
+      seats: [],
+      downtime: null,
+      runningEncounter: null,
+      channelBindings: [],
+      crewPatterns: [],
+    })
+    expect(await room.republish()).toEqual({ sheets: 1, homebrew: 0 })
+    const row = await SHARED.prepare(
+      "select room, preview from public_sheets where kind = 'pilot' and app_id = 'p9'"
+    ).first<{ room: string; preview: string }>()
+    expect(row?.room).toBe('game:g-publish')
+    expect(JSON.parse(row?.preview ?? '{}')).toMatchObject({ gameName: 'Tenacity' })
+    expect(await room.disband(PLAYER)).toEqual({ ok: true, value: null })
+    expect(await room.republish()).toEqual({ sheets: 0, homebrew: 0 })
+    const after = await SHARED.prepare("select room from public_sheets where app_id = 'p9'").first<{
+      room: string
+    }>()
+    // Back on its player's Shelf, whose room now writes its row.
+    expect(after?.room).toBe(`account:${PLAYER}`)
   })
 })
 

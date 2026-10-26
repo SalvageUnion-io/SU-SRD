@@ -4,7 +4,7 @@
  *
  * - **Listed is a row.** A pattern's account room writes it while the
  *   pattern is shared by link AND on the Reference, and drops it when either
- *   opt-in goes (`putHomebrew`, `dropHomebrew`).
+ *   opt-in goes (`roomRows.ts`).
  * - **Hidden outlives sharing.** A takedown is its own row
  *   (`homebrew_moderation`), so unsharing and sharing again does not undo it.
  * - **Who may** report or moderate is the caller's to check (a signed-in

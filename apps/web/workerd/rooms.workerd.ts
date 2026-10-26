@@ -1,6 +1,6 @@
 import { evictDurableObject, runInDurableObject } from 'cloudflare:test'
 import { exports as workerExports } from 'cloudflare:workers'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../src/rooms/schemas'
 import type { AccountRoom, GameRoom } from '../src/worker/rooms'
 
@@ -57,17 +57,18 @@ describe('rooms', () => {
       ws.accept()
       return { ws, heard }
     }
-    const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
+    // Until each socket has heard it: a close reaches the room on its own time.
+    const until = (check: () => void) => vi.waitFor(check, { timeout: 2000, interval: 20 })
 
     const watcher = await open('mediator', '0')
     const player = await open('player', '1')
-    await settle()
-    expect(watcher.heard.at(-1)).toEqual(['player'])
-    expect(player.heard.at(-1)).toEqual(['player'])
+    await until(() => {
+      expect(watcher.heard.at(-1)).toEqual(['player'])
+      expect(player.heard.at(-1)).toEqual(['player'])
+    })
 
     player.ws.close(1000)
-    await settle()
-    expect(watcher.heard.at(-1)).toEqual([])
+    await until(() => expect(watcher.heard.at(-1)).toEqual([]))
   })
 
   it('opens its player’s account socket on their Shelf, and no one else’s', async () => {
