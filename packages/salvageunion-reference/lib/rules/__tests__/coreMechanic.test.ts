@@ -16,9 +16,7 @@ import {
   performCoreRoll,
 } from '../coreMechanic'
 import { performHeatCheck, performPush } from '../heatCheck'
-import type { Roll } from '../types'
 
-/** Returns a Roll that yields the given values in order, ignoring `sides`. */
 describe('coreRollBand', () => {
   test('20 is Nailed It', () => {
     expect(coreRollBand(20)).toBe('nailed')

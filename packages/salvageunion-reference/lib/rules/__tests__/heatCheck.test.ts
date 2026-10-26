@@ -22,9 +22,7 @@ import {
   performPush,
   reactorOverloadOutcome,
 } from '../heatCheck'
-import type { Roll } from '../types'
 
-/** Returns a Roll that yields the given values in order, ignoring `sides`. */
 const fixedNow = () => new Date('2026-06-03T00:00:00.000Z')
 
 // ---------------------------------------------------------------------------
