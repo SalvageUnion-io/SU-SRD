@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 13 of 21: Badge, SmallButtons,
+ * The package stylesheet, part 12 of 20: Badge, SmallButtons,
  * the stamps on a stamp. `../index.css` imports the parts in
  * cascade order.
  */
@@ -199,18 +199,25 @@
 }
 
 .su-stat-plate--full {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   font-weight: var(--font-weight-semibold);
 }
 
 .su-stat-plate--compact {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-stat-plate--mini {
   font-size: var(--text-xs);
   font-weight: var(--font-weight-normal);
 }
 
-.su-stat-plate--mini {
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
+/* The plates fill their cell's Size height (`.su-stat-cell--<size>`), their
+   text centred in it, so neither pads the cell taller. */
+.su-stat-plate--value {
+  align-items: center;
+  display: flex;
 }
 
 /* The label: its text centred, even when the row stretches the cell, and one
@@ -319,8 +326,7 @@
 }
 
 /* A Stat's +/- stepper (`fit="cell"`, which also carries `.su-stat-step`)
- * draws at its chip's height on every pointer; a coarse pointer reaches 44px
- * through the hit area in partials/pointer-motion.css instead. */
+ * draws at its chip's height on every pointer (R12). */
 .su-step-btn--cell {
   min-height: 0;
   min-width: 0;

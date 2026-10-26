@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 11 of 21: the Atoms group's class strings,
+ * The package stylesheet, part 10 of 20: the Atoms group's class strings,
  * Stat and VitalGauge. `../index.css` imports the parts in cascade order.
  */
 
@@ -140,6 +140,30 @@
   width: fit-content;
 }
 
+/* A chip is its Size's height, as a button at that Size is (ruleset §4.7,
+   hard rule R12): one height per Size whatever the component, on every
+   screen. A cell whose value wraps, or whose label stacks, grows from it.
+   No control carries an invisible tap area: a phone takes a bigger Size. */
+.su-stat-cell--mini {
+  height: var(--size-mini);
+  min-height: var(--size-mini);
+}
+
+.su-stat-cell--compact {
+  height: var(--size-compact);
+  min-height: var(--size-compact);
+}
+
+.su-stat-cell--full {
+  height: var(--size-full);
+  min-height: var(--size-full);
+}
+
+.su-stat-cell--wrap,
+.su-stat-cell:has(> .su-stat-plate--stack) {
+  height: auto;
+}
+
 .su-stat-cell--good {
   border-color: var(--color-mech);
 }
@@ -217,8 +241,7 @@
 }
 
 /* The max's controls (the override, the ⓘ, the revert) share the numeral's
- * line, so they share one Size (§4.7): each a Mini box, its glyph centred,
- * its 44px touch target the hit area's (`.su-hit-area`), never a taller box. */
+ * line, so they share one Size (§4.7): each a Mini box, its glyph centred. */
 .su-vital-gauge__mini {
   align-items: center;
   box-sizing: border-box;

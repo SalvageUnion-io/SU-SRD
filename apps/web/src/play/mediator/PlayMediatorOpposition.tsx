@@ -102,7 +102,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
           <>
             <Button
               variant="default"
-              size="mini"
+              size="compact"
               disabled={!canWrite}
               onClick={() => setRunning(true)}
             >
@@ -110,7 +110,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             </Button>
             <Button
               variant="default"
-              size="mini"
+              size="compact"
               disabled={!canWrite}
               aria-label={mediatorCopy('setArea')}
               onClick={() => setSettingArea(true)}
@@ -119,7 +119,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             </Button>
             <Button
               variant="default"
-              size="mini"
+              size="compact"
               disabled={!canWrite}
               aria-label={mediatorCopy('addOppositionFromTheReference')}
               onClick={() => setPicking(true)}
@@ -131,7 +131,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
       />
       {prep.running !== null && (
         <div style={RUNNING} role="status">
-          <Stat label={mediatorCopy('running')} value={prep.running.name} size="compact" />
+          <Stat label={mediatorCopy('running')} value={prep.running.name} size="mini" />
           <Button
             variant="ghost"
             size="mini"
@@ -151,7 +151,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               value={mediatorCopy('waveHeld', {
                 groups: heldGroups(prep.running, wave).join(', '),
               })}
-              size="compact"
+              size="mini"
             />
             <Button
               variant="default"
@@ -173,7 +173,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
               tl: area.area.techLevel,
               supply: area.area.supply,
             })}
-            size="compact"
+            size="mini"
           />
           <Button
             variant="ghost"

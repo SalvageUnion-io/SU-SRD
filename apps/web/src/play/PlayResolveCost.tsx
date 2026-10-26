@@ -42,9 +42,9 @@ export function ResolveSpend({
   }
   return (
     <span style={SPEND}>
-      {cost.heat > 0 && <Stat size="compact" label={playCopy('heat')} value={`+${cost.heat}`} />}
-      {cost.uses > 0 && <Stat size="compact" label={playCopy('uses')} value={cost.uses} />}
-      {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} size="compact" />}
+      {cost.heat > 0 && <Stat size="mini" label={playCopy('heat')} value={`+${cost.heat}`} />}
+      {cost.uses > 0 && <Stat size="mini" label={playCopy('uses')} value={cost.uses} />}
+      {cost.amount > 0 && <ActivationCost cost={cost.amount} currency={currency} size="mini" />}
     </span>
   )
 }
@@ -89,7 +89,7 @@ export function ResolveCost({
           <Stat
             label={playCopy('hot')}
             value={variableHot.hotX}
-            size="compact"
+            size="mini"
             min={1}
             mode={variableHot.activated ? 'read' : 'edit'}
             onChange={(next) => (next > variableHot.hotX ? variableHot.onInc : variableHot.onDec)()}

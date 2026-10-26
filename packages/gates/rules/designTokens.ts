@@ -273,11 +273,10 @@ const TOKEN_RULES: TokenRule[] = [
     mode: 'zero',
     rule: 'ruleset §4.7 — a control height is a Size token (R13)',
     // 44, 32 and 18px (2.75, 2 and 1.125rem) are the Full, Compact and Mini
-    // Sizes. Spelled as a literal, a height stops following the Size: under a
-    // coarse pointer `--size-compact` lifts to 44px, and a literal 32px stays
-    // behind.
-    fix: 'Use the Size: `size.full` / `var(--size-full)` (44px, the touch floor), `size.compact` / `var(--size-compact)` (32px), `size.mini` / `var(--size-mini)` (18px). An icon takes `iconSize`, not a height.',
-    // Heights, and `min-width` (the touch floor's other half); a plain width
+    // Sizes. Spelled as a literal, a height stops following the Size: the
+    // control drifts from its siblings when the token moves.
+    fix: 'Use the Size: `size.full` / `var(--size-full)` (44px), `size.compact` / `var(--size-compact)` (32px), `size.mini` / `var(--size-mini)` (18px). An icon takes `iconSize`, not a height.',
+    // Heights, and `min-width` (a square control's other half); a plain width
     // is a column or a box, not a Size.
     pattern: declaration(
       '(?:min-|max-)?(?:height|block-size)|min-width',

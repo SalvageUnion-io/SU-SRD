@@ -129,7 +129,7 @@ function PageSubLine({
       {extra}
       <Chips
         chips={NO_CHIPS}
-        size="full"
+        size="compact"
         marks={children}
         align="end"
         className="su-entity-page__tags"
@@ -392,8 +392,8 @@ function ReferenceEntityCardInner({
       chips={
         <Chips
           chips={chips}
-          size="compact"
-          marks={[...labelChips(labelProps, 'compact'), suggestedNode]}
+          size="mini"
+          marks={[...labelChips(labelProps, 'mini'), suggestedNode]}
           nodes={tree}
           state={slots.state.length > 0 ? slots.state : undefined}
         />

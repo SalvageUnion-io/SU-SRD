@@ -209,7 +209,7 @@ function ChoiceOption({
         chosen ? (
           <SelectedSeal word="Chosen" />
         ) : (
-          <Stat label={referenceEntityCopy('choice')} size="compact" hollow />
+          <Stat label={referenceEntityCopy('choice')} size="mini" hollow />
         )
       }
     >

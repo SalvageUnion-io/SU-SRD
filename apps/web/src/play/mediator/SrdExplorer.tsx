@@ -222,7 +222,7 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
   const chip =
     view.kind === 'category' ? (
       <ChipButton aria-label={mediatorCopy('close', { label: view.label })} onClick={home}>
-        <Stat label={view.label} value="✕" size="compact" />
+        <Stat label={view.label} value="✕" size="mini" />
       </ChipButton>
     ) : undefined
 

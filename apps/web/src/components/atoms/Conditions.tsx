@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { borderWidth, font, iconSize, radius, space } from '../../design/tokens'
+import { borderWidth, font, iconSize, radius, size, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
 import { Badge } from './Badge'
@@ -28,20 +28,18 @@ type ConditionChipProps = {
   className?: string
 }
 
-/** 24px hit area (WCAG 2.5.8). Its opacity is `.su-condition-chip__remove`,
- * which brightens it on hover. */
+/** A Mini square inside the chip, no taller than it (R12). Its opacity is
+ * `.su-condition-chip__remove`, which brightens it on hover. */
 const REMOVE_BUTTON = {
   alignItems: 'center',
   cursor: 'pointer',
   display: 'inline-flex',
   flexShrink: 0,
   fontFamily: font.body,
-  height: space[24],
+  height: size.mini,
   justifyContent: 'center',
   lineHeight: 1,
-  marginBlock: `-${space[4]}`,
-  marginRight: `-${space[6]}`,
-  width: space[24],
+  width: size.mini,
 } satisfies CSSProperties
 
 const ROW = {
@@ -93,8 +91,6 @@ function ConditionChip({
     >
       <span>{label}</span>
       {onRemove && (
-        // 24px hit area (WCAG 2.5.8) — negative margins keep the chip visually
-        // compact (22px Badge) while the target stays tappable.
         <button
           type="button"
           aria-label={removeLabel ?? atomsCopy('removeCondition', { label })}

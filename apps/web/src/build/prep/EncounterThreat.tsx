@@ -78,7 +78,7 @@ export function ThreatReadLine({
       <Stack gap={8}>
         <Cluster gap={8}>
           <Stat
-            size="compact"
+            size="mini"
             label={buildPrepCopy('crew')}
             value={crew.size}
             mode={editing ? 'edit' : 'read'}
@@ -88,7 +88,7 @@ export function ThreatReadLine({
             onChange={(size) => step({ size })}
           />
           <Stat
-            size="compact"
+            size="mini"
             label={buildPrepCopy('crewTech')}
             value={crew.techLevel}
             mode={editing ? 'edit' : 'read'}
@@ -99,30 +99,26 @@ export function ThreatReadLine({
           />
         </Cluster>
         <Cluster gap={8}>
-          <Stat size="compact" label={buildPrepCopy('meetThem')} value={read.first} />
+          <Stat size="mini" label={buildPrepCopy('meetThem')} value={read.first} />
           {read.heldBack > 0 && (
-            <Stat size="compact" label={buildPrepCopy('heldBack')} value={read.heldBack} />
+            <Stat size="mini" label={buildPrepCopy('heldBack')} value={read.heldBack} />
           )}
           {read.techLevels && (
-            <Stat
-              size="compact"
-              label={buildPrepCopy('tech')}
-              value={techSpread(read.techLevels)}
-            />
+            <Stat size="mini" label={buildPrepCopy('tech')} value={techSpread(read.techLevels)} />
           )}
-          {read.sp > 0 && <Stat size="compact" label={buildPrepCopy('sp')} value={read.sp} />}
-          {read.hp > 0 && <Stat size="compact" label={buildPrepCopy('hp')} value={read.hp} />}
+          {read.sp > 0 && <Stat size="mini" label={buildPrepCopy('sp')} value={read.sp} />}
+          {read.hp > 0 && <Stat size="mini" label={buildPrepCopy('hp')} value={read.hp} />}
           {read.outnumbered === 'crew' && (
-            <Stat size="compact" label={buildPrepCopy('crewOutnumbered')} state="caution" />
+            <Stat size="mini" label={buildPrepCopy('crewOutnumbered')} state="caution" />
           )}
           {read.outnumbered === 'opposition' && (
-            <Stat size="compact" label={buildPrepCopy('oppositionOutnumbered')} state="good" />
+            <Stat size="mini" label={buildPrepCopy('oppositionOutnumbered')} state="good" />
           )}
           {read.tech === 'higher' && (
-            <Stat size="compact" label={buildPrepCopy('higherTech')} state="caution" />
+            <Stat size="mini" label={buildPrepCopy('higherTech')} state="caution" />
           )}
           {read.tech === 'lower' && (
-            <Stat size="compact" label={buildPrepCopy('lowerTech')} state="good" />
+            <Stat size="mini" label={buildPrepCopy('lowerTech')} state="good" />
           )}
         </Cluster>
         <Text variant="note">{buildPrepCopy('threatNote')}</Text>

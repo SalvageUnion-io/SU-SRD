@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 15 of 21: the Containers group. `../index.css`
+ * The package stylesheet, part 14 of 20: the Containers group. `../index.css`
  * imports the parts in cascade order.
  */
 
@@ -314,6 +314,14 @@
   cursor: pointer;
   outline: none;
 }
+/* Under a coarse pointer a menu's rows are a thumb's height (ruleset §4.6):
+   rows, drawn that tall, not a button's Size (R12). */
+@media (pointer: coarse) {
+  .su-header-menu-item {
+    min-height: var(--size-full);
+  }
+}
+
 .su-header-menu-item[data-highlighted]:not([data-disabled]) {
   background-color: var(--color-ink);
   color: var(--color-paper);
@@ -332,16 +340,12 @@
 }
 
 /* The overflow trigger (a listed unit's "⋯") is an action chip, the
-   last of its Compact's chips, so it is exactly a compact chip's height: the 14px
-   glyph, 1px of padding and the 1px rule each side make 18px, as the plate's
-   16px and its rule do (`.su-stat-cell`). Under a coarse pointer the `mini`
-   rung's hit area makes it 44px to touch without drawing it bigger. While its
-   menu is open it takes the inverse plate. At `size="compact"` (a bar's "⋯",
+   last of its Compact's chips, so it is exactly a Mini chip's height, its
+   14px glyph centred. While its menu is open it takes the inverse plate. At `size="compact"` (a bar's "⋯",
    Play's) it keeps the Compact rung's height beside the bar's buttons (§4.7). */
 .su-header-menu-trigger--overflow.su-btn--mini {
   line-height: 1;
-  min-height: 0;
-  padding: 1px var(--space-6); /* design-tokens-ignore: a fit, the 14px glyph and 1px each side make the mini 18px */
+  padding: 0 var(--space-6);
 }
 .su-header-menu-trigger--overflow[data-popup-open] {
   background-color: var(--color-ink);

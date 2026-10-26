@@ -47,9 +47,9 @@ export const space = {
 
 /**
  * The app's three Sizes (`styles/sizing.ts`): the one height of every control
- * drawn at that Size. Mini is a chip and the controls riding a chip line, Compact
- * a button, switch or bar control, Full a page field or primary action. Under a
- * coarse pointer theme.css lifts Compact to Full, the 44px touch floor.
+ * drawn at that Size, on every pointer and screen (hard rule R12). Mini is a
+ * chip and the controls riding a chip line, Compact a button, switch or bar
+ * control, Full a page field or primary action.
  */
 export const size = {
   mini: '18px',

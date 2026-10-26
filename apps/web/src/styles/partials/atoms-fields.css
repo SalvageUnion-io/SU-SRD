@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 12 of 21: Field (its edit state too), the
+ * The package stylesheet, part 11 of 20: Field (its edit state too), the
  * inputs and Radio. `../index.css` imports the parts in cascade order.
  */
 
@@ -42,8 +42,7 @@ select.su-text-input--compact {
   padding-inline: var(--space-8);
 }
 
-/* On touch a Compact field is Full (the touch floor lifts `--size-compact`), and
-   it types at 16px: iOS zooms the page into any focused control under 16px
+/* On touch a Compact field keeps its height and types at 16px: iOS zooms the page into any focused control under 16px
    (`atoms/inputs.tsx`). */
 @media (pointer: coarse) {
   input.su-text-input--compact,

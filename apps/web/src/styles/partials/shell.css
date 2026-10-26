@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 6 of 21: the Union bar, breadcrumbs, the page
+ * The package stylesheet, part 6 of 20: the Union bar, breadcrumbs, the page
  * shell, the chapter band and the foot band.
  * `../index.css` imports the parts in cascade order.
  */
@@ -22,7 +22,7 @@
  * is ruled under in paper (on ink) or ink (on paper).
  */
 .su-union-bar {
-  /* The Compact Size (`--size-compact`): 44px under a coarse pointer. */
+  /* The Compact Size (`--size-compact`). */
   --su-union-bar-control: var(--size-compact);
   /* Its colours: ink, paper on it, ruled off in ink; in the reference, until a page leads with
      a chapter band, whose rule (`atoms/unionBarMatch.ts`) sets these to the
@@ -312,8 +312,7 @@
 }
 
 /* A phone (under `sm`) has to fit the mark, the switcher and a
-   three-control cluster (The app signed in: search, avatar, menu, each on the
-   44px coarse floor) in one row. The default spacing ran the hamburger off a
+   three-control cluster (The app signed in: search, avatar, menu) in one row. The default spacing ran the hamburger off a
    375px screen; this tightening, with the tabs' above, keeps it inside a
    360px phone without dropping a control. */
 @media not (width >= 40rem) {
@@ -671,7 +670,7 @@
 
 /* The corner's controls (an app sheet's Read | Edit, "Make a copy", Share,
    "⋯") sit a row under the Union bar's buttons, so they are those buttons: the
-   bar's control height (the Compact Size, 44px under a coarse pointer), its
+   bar's control height (the Compact Size), its
    caps type, and its right edge, the bar row's own padding
    (12px under 400px, 16px on a phone, 32px from `sm`), so the two right
    edges line up at every width. It narrows the
@@ -1041,12 +1040,9 @@
 
 /* `action`, a show page's Share and "Build With This": the Union bar's
    buttons, their height (the Compact Size, as the chips beside them) and
-   type, a chip's gap apart. They draw at the chips' own 32px at every
-   pointer: a coarse one lifts `--size-compact` to 44px but not the chips, so
-   the buttons keep their drawn height and reach 44px by their hit area
-   (`.su-hit-area`), one height on the line (C1a). */
+   type, a chip's gap apart: one height on the line (R12). */
 .su-chapter-band__action {
-  --su-band-action: var(--space-32);
+  --su-band-action: var(--size-compact);
   column-gap: var(--space-8);
   display: flex;
   flex: none;
@@ -1067,40 +1063,19 @@
   padding-inline: var(--space-14);
 }
 
-/* On a phone the action is chip-sized (badge type), a 24px target drawn at
-   the stamps' height beside it (a stamp cell: the Mini plate in its hairline
-   rule), as a strip's Mini button is: a transparent border takes the
-   difference and its fill is clipped inside it. The border is all on top, so
-   the drawn button stands on the stamps' foot, level with them, its target
-   rising above it, as a linked chip's does. Under a coarse pointer it keeps
-   that drawn size and a 44px hit area (`.su-hit-area`, `pointer-motion.css`). */
+/* On a phone Share is its glyph alone, a square at the action's height
+   (its name stays its `aria-label`), so the title's line keeps its room for
+   the stamps. */
 @media not (width >= 40rem) {
   .su-chapter-band__action {
-    --su-band-action: var(--space-24);
     column-gap: var(--space-4);
   }
 
   .su-chapter-band__action .su-page-action {
-    --su-band-inset: calc((var(--space-24) - var(--size-mini)) / 2 - var(--bw-hairline));
-
-    background-clip: padding-box;
-    border-color: transparent;
-    border-block-width: calc(2 * var(--su-band-inset)) 0;
-    box-sizing: border-box;
-    font-size: var(--text-badge);
-    min-height: 0;
     padding-inline: var(--space-8);
   }
-}
 
-/* On a phone Share is its glyph alone, a chip-high square (its name stays
-   its `aria-label`), so the title's line keeps its room for the stamps: its
-   sides take the same transparent inset, and the outline its border can no
-   longer draw is a hairline inside its fill, as a stamp's rule. */
-@media not (width >= 40rem) {
   .su-chapter-band__action .su-share-page {
-    border-inline-width: var(--su-band-inset);
-    box-shadow: inset 0 0 0 var(--bw-hairline) currentColor;
     justify-content: center;
     padding-inline: 0;
     width: var(--su-band-action);

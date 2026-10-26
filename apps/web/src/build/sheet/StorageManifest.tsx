@@ -155,7 +155,7 @@ export function StorageManifest({
         {side === 'mech' ? (
           <>
             <Stat
-              size="compact"
+              size="mini"
               label={buildSheetCopy('units')}
               value={used}
               max={cap}
@@ -175,8 +175,8 @@ export function StorageManifest({
           </>
         ) : (
           <>
-            <Stat size="compact" label={buildSheetCopy('units')} value={totalLotUnits(lots)} />
-            <Stat size="compact" label={buildSheetCopy('lots')} value={lots.length} />
+            <Stat size="mini" label={buildSheetCopy('units')} value={totalLotUnits(lots)} />
+            <Stat size="mini" label={buildSheetCopy('lots')} value={lots.length} />
             <span style={MUTED_TEXT}>{buildSheetCopy('unlimited')}</span>
           </>
         )}
@@ -247,7 +247,7 @@ export function StorageManifest({
                   facts: [{ key: 'mech', label: mechName, value: undefined }],
                   tags: [],
                 }}
-                size="compact"
+                size="mini"
               />
             ) : undefined
           }

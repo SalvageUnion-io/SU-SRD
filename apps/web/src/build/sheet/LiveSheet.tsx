@@ -457,7 +457,7 @@ export function LiveSheet({
                 relations), then the unit-out state. Nothing to stamp, none. */}
             <Chips
               className="su-entity-stamps su-sheet-band-stamps"
-              size="full"
+              size="compact"
               chips={NO_CHIPS}
               marks={
                 <>

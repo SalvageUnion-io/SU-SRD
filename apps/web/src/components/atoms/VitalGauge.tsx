@@ -476,7 +476,7 @@ export function VitalGauge({
               type="button"
               onClick={beginEditMax}
               aria-label={atomsCopy('overrideMaxCurrently', { label, max })}
-              className="su-vital-gauge__mini su-hit-area"
+              className="su-vital-gauge__mini"
               style={{ ...MAX_BUTTON, color: isOverridden ? 'var(--tone-deep)' : color.ink75 }}
             >
               {max}
@@ -505,7 +505,7 @@ export function VitalGauge({
               statLabel={atomsCopy('max', { label })}
               lines={provenance}
               total={max}
-              className="su-vital-gauge__prov-info su-vital-gauge__mini su-hit-area"
+              className="su-vital-gauge__prov-info su-vital-gauge__mini"
             >
               ⓘ
             </StatProvenance>
@@ -516,7 +516,7 @@ export function VitalGauge({
               onClick={onRevertOverride}
               aria-label={atomsCopy('revertMaxToDerived', { label, overriddenFrom })}
               title={atomsCopy('revertToDerived', { overriddenFrom })}
-              className="su-vital-gauge__revert su-vital-gauge__mini su-hit-area"
+              className="su-vital-gauge__revert su-vital-gauge__mini"
               style={REVERT}
             >
               ↺

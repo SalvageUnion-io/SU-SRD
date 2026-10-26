@@ -53,7 +53,7 @@ export function PlayNpcGroup({ id, name, members, canWrite, onRoll, children }: 
     const label = mediatorCopy(table === 'reaction' ? 'reactionTable' : 'moraleTable')
     return (
       <Button
-        size="mini"
+        size="compact"
         disabled={!live}
         aria-label={mediatorCopy('rollTableFor', { table: label, name })}
         onClick={() => onRoll(table)}
@@ -76,8 +76,8 @@ export function PlayNpcGroup({ id, name, members, canWrite, onRoll, children }: 
         }
       />
       <span style={CONTROLS}>
-        <Stat size="compact" label={mediatorCopy('groupDown', { down, size: members.length })} />
-        {due ? <Stat size="compact" label={mediatorCopy('moraleDue')} state="caution" /> : null}
+        <Stat size="mini" label={mediatorCopy('groupDown', { down, size: members.length })} />
+        {due ? <Stat size="mini" label={mediatorCopy('moraleDue')} state="caution" /> : null}
       </span>
       <p role="status" aria-live="polite" style={last ? LINE : MUTED}>
         {last ? (

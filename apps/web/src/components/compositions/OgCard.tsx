@@ -236,7 +236,7 @@ function Chips({
           key={`${stat.label}-${stat.value ?? ''}`}
           label={stat.label}
           value={stat.value}
-          size="full"
+          size="compact"
         />
       ))}
       {cost && <ActivationCost cost={cost} currency="" size="og" />}

@@ -31,7 +31,7 @@ import type { SheetPatch } from './sheetViewProps.model'
 const KIND: StatItem[] = [{ key: 'kind', label: buildSheetCopy('chassis'), value: undefined }]
 
 /** Its band: the one label-only cell, at the Compact Size of a Compact's head. */
-const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="compact" />
+const KIND_CHIPS = <Chips chips={{ durations: [], facts: KIND, tags: [] }} size="mini" />
 
 /** The body's block: its prose wraps the art floated at its left. */
 const BODY = { display: 'flow-root' } satisfies CSSProperties

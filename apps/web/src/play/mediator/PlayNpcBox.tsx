@@ -129,7 +129,7 @@ export function PlayNpcBox({
             ]
               .filter((part) => part !== null)
               .join(' · ')}
-            size="compact"
+            size="mini"
           />
         }
         controls={
@@ -273,7 +273,7 @@ export function PlayNpcBox({
         ) : null}
         {moraleDue ? (
           <span style={CONTROLS}>
-            <Stat size="compact" label={mediatorCopy('moraleDue')} state="caution" />
+            <Stat size="mini" label={mediatorCopy('moraleDue')} state="caution" />
             <Button
               size="mini"
               disabled={!canWrite || onMorale === undefined}

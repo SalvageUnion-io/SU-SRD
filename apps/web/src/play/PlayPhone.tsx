@@ -86,13 +86,14 @@ const TAB_LIST = {
 /**
  * A tab: a quarter of the row, its label whole (EDL E18, hard rule R29). A
  * label too long for its quarter widens its tab (no `minWidth: 0`) or wraps
- * between its words, never "…".
+ * between its words, never "…". The Full Size, as a phone's other thumb
+ * controls are (R12).
  */
 const TAB = {
   border: 0,
   borderRadius: 0,
   flex: '1 1 0%',
-  minHeight: '52px',
+  minHeight: tokens.size.full,
   padding: `0 ${tokens.space[4]}`,
   whiteSpace: 'normal',
 } satisfies CSSProperties

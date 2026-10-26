@@ -33,7 +33,7 @@ export function ChipOverflowRow({
  * did not fit beside the name (`chipFill.ts`), the cost right before it. A
  * chip, not a control: the head itself opens its entity, where the rest is.
  */
-export function MoreChip({ size = 'compact' }: { size?: Size }) {
+export function MoreChip({ size = 'mini' }: { size?: Size }) {
   return (
     <span className="su-chip-more" data-chip-more="" hidden>
       <Stat label="+MORE" size={size} />

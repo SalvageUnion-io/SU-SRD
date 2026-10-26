@@ -83,7 +83,7 @@ export function ShelfItem({
         labels={
           chips.length > 0
             ? chips.map((chip) => (
-                <Stat key={chip.key} label={chip.label} value={chip.value} size="compact" />
+                <Stat key={chip.key} label={chip.label} value={chip.value} size="mini" />
               ))
             : undefined
         }

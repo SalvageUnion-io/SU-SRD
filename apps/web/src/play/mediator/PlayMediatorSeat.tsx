@@ -129,7 +129,7 @@ export function PlayMediatorSeat({
                 {seat.vitals.map((v) => (
                   <Stat
                     key={v.label}
-                    size="compact"
+                    size="mini"
                     label={v.attention ? `▲ ${v.label}` : v.label}
                     value={v.value ?? undefined}
                     state={v.attention ? 'critical' : undefined}

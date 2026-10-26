@@ -169,7 +169,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
           <Stat
             label={componentsCopy('abilities')}
             value={`Up to ${plan.classEntity.maxAbilities}`}
-            size="compact"
+            size="mini"
           />
         }
       />
@@ -182,7 +182,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
               chips={
                 card.cost && (
                   <Chips
-                    size="compact"
+                    size="mini"
                     chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
                   />
                 )
@@ -226,7 +226,7 @@ function PathRequirement({ path }: { path: ClassPath }) {
           key={tree}
           label={index === 0 ? componentsCopy('req') : 'or'}
           value={tree}
-          size="compact"
+          size="mini"
           className="su-class-path__req-cell"
         />
       ))}
@@ -265,13 +265,13 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
         // The paths are one list of Compacts (Compact frames, one width): its lines
         // share every class's lane (C6, R2).
         <Chips
-          size="compact"
+          size="mini"
           chips={{ durations: [], facts: [], tags: [] }}
           marks={[
-            <Stat key="kind" label={kind} size="compact" />,
+            <Stat key="kind" label={kind} size="mini" />,
             ...(path.hybrid && path.via
               ? []
-              : [<Stat key="only" label={`${classEntity.name} only`} size="compact" />]),
+              : [<Stat key="only" label={`${classEntity.name} only`} size="mini" />]),
           ]}
           nodes={{ relation: <PathRequirement path={path} /> }}
         />
