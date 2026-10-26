@@ -198,7 +198,7 @@ function PickerList({ choices, onPick, actions = [], label, loading, empty }: Li
             size="compact"
             model={c.container.kind === 'game' ? gameRowModel(c.label) : hangarRowModel(c.label)}
             mode={{ kind: 'link', onOpen: () => onPick(c) }}
-            labels={c.hint ? <Stat label={c.hint} size="compact" /> : undefined}
+            labels={c.hint ? <Stat label={c.hint} size="mini" /> : undefined}
           />
         </li>
       ))}

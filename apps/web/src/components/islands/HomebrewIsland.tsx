@@ -92,10 +92,10 @@ function HomebrewListing({ entry }: { entry: HomebrewEntry }) {
           <HomebrewCreditChip
             key="credit"
             credit={{ source: entry.source, author: entry.madeBy }}
-            size="compact"
+            size="mini"
           />
         ) : (
-          <Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="compact" />
+          <Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="mini" />
         )
       }
     />

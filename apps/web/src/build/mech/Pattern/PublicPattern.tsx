@@ -195,7 +195,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
               <Button
                 variant="primary"
                 size="compact"
-                className="su-page-action su-hit-area"
+                className="su-page-action"
                 onClick={() => void build()}
                 disabled={busy !== null}
                 aria-label={mechCopy('buildWithThisAMech', { name: pattern.name })}
@@ -203,7 +203,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 {busy === 'build' ? mechCopy('building') : mechCopy('buildWithThis')}
               </Button>
             ) : signedOut ? (
-              <SignInControl className="su-page-action su-hit-area" />
+              <SignInControl className="su-page-action" />
             ) : undefined
           }
           corner={

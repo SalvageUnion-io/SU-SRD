@@ -52,3 +52,13 @@
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
 }
+
+/* An encounter group (ADR-059 §5): the whole row, its Slab, its roll and its
+   members' own two-a-row list. */
+.su-play-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  grid-column: 1 / -1;
+  min-width: 0;
+}

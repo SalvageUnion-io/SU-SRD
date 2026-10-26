@@ -23,7 +23,7 @@ import type { TagItem } from './tagItems'
 export function Tag({
   tag,
   linkable = false,
-  size = 'full',
+  size = 'compact',
   wrap = false,
 }: {
   tag: TagItem
@@ -66,12 +66,7 @@ export function Tag({
     // A root-relative path goes through the app's router link, as a link-mode form's does.
     const Anchor = linkAs && href.startsWith('/') ? linkAs : 'a'
     return (
-      <Anchor
-        href={href}
-        className={cn('su-chip-link su-hit-area', FOCUS_RING)}
-        {...shared}
-        {...named}
-      >
+      <Anchor href={href} className={cn('su-chip-link', FOCUS_RING)} {...shared} {...named}>
         {cell}
       </Anchor>
     )

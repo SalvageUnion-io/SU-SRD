@@ -10,10 +10,7 @@ import { fromFaults } from './_findings'
  * same as data).
  *
  * - A control is the outermost element matching `CONTROL`, so a chip's two
- *   plates count once, as their cell. A linked chip counts as its cell too:
- *   its button is a 24px target (WCAG 2.5.8) around the drawn 18px chip. A
- *   strip's Mini button is that target itself, its plate drawn on its padding
- *   box between transparent borders: it counts at the plate's height.
+ *   plates count once, as their cell. A linked chip counts as its cell too.
  * - Its line is its nearest flex or grid ancestor (four levels up at most)
  *   holding another control beside it: overlapping vertically by at least half
  *   the shorter one's height, and no more than `MAX_GAP` from its neighbour, so
@@ -21,6 +18,8 @@ import { fromFaults } from './_findings'
  *   never crosses a labelled section's edge: Play's columns (`PlayFrame`)
  *   stand a gutter apart, so an action Mini is never one line with the
  *   Units column's steppers or the Tables column's Minis.
+ * - A section head (`Slab`) is a line of its own: its name stamp, its count
+ *   and its actions share one height.
  */
 export type SiblingMismatch = {
   /** The line's element, as `tag.class.class`. */
@@ -81,26 +80,9 @@ function scan({
     // not a control on a line: Minis side by side in a masonry grid
     // (`MiniGrid`) differ in height by their text.
     .filter((el) => !el.matches('.su-entity-mini[data-contentful]'))
-  // A control drawn on its padding box (a strip's Mini button: a 24px target,
-  // its plate the chip's 18px inside a transparent border) measures as drawn.
   const box = (el: Element): Box => {
     const r = el.getBoundingClientRect()
-    const s = getComputedStyle(el)
-    const clear = (side: 'top' | 'bottom') =>
-      /rgba\(.*,\s*0\)$|transparent/.test(s.getPropertyValue(`border-${side}-color`))
-        ? Number.parseFloat(s.getPropertyValue(`border-${side}-width`)) || 0
-        : 0
-    const drawn =
-      s.backgroundClip === 'padding-box'
-        ? { top: clear('top'), bottom: clear('bottom') }
-        : { top: 0, bottom: 0 }
-    return {
-      el,
-      x: r.left,
-      y: r.top + drawn.top,
-      w: r.width,
-      h: r.height - drawn.top - drawn.bottom,
-    }
+    return { el, x: r.left, y: r.top, w: r.width, h: r.height }
   }
   const column = (el: Element) => el.closest('section[aria-label]')
   const sameLine = (a: Box, b: Box) => {
@@ -152,6 +134,22 @@ function scan({
         })
       }
       break
+    }
+  }
+  // A section head (`Slab`): its name stamp and every control in its row,
+  // its count and actions, are one line.
+  for (const row of document.querySelectorAll('[data-slab]')) {
+    const name = row.firstElementChild
+    if (!name || !visible(name)) continue
+    if (within !== null && row.closest(within) === null) continue
+    const group = [name, ...controls.filter((o) => row.contains(o))].map(box)
+    if (group.length < 2) continue
+    const heights = group.map((g) => Math.round(g.h))
+    if (Math.max(...heights) - Math.min(...heights) >= 1) {
+      found.push({
+        line: `div[data-slab] "${describe(name)}"`,
+        controls: group.map((g, k) => ({ height: heights[k] ?? 0, what: describe(g.el) })),
+      })
     }
   }
   for (const c of controls) c.removeAttribute('data-sibling-scan')

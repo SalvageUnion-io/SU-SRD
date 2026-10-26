@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 2 of 21: Button: its variants and size ladder.
+ * The package stylesheet, part 2 of 20: Button: its variants and size ladder.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -177,19 +177,19 @@
   background-color: var(--color-paper-15);
 }
 
-/* ── The Sizes (styles/sizing.ts). Each Size's height is its token
-      (`--size-*`, theme.css), so a button is exactly as tall as the chip,
-      field or switch beside it at the same Size; padding is inline only,
-      on §4.4's scale. ── */
+/* ── The Sizes (styles/sizing.ts). Each Size's height is exactly its
+      token (`--size-*`, theme.css) on every pointer and screen, so a button
+      is as tall as the chip, field or switch beside it at the same Size
+      (R12); padding is inline only, on §4.4's scale. ── */
 .su-btn--full {
   font-size: var(--text-lede);
-  min-height: var(--size-full);
+  height: var(--size-full);
   padding: 0 var(--space-24);
 }
 
 .su-btn--compact {
   font-size: var(--text-xs);
-  min-height: var(--size-compact);
+  height: var(--size-compact);
   padding: 0 var(--space-12);
 }
 
@@ -199,7 +199,7 @@
 .su-btn--mini {
   border-radius: var(--radius-badge);
   gap: var(--space-4);
-  min-height: var(--size-mini);
+  height: var(--size-mini);
   padding: 0 var(--space-8);
 }
 
@@ -227,8 +227,7 @@
  * A show page's head controls, one height in both apps: the reference entity page's
  * "Build with this", the app sheet bar's back, and beside the sheet's name
  * Read | Edit, "Make a copy", Share, "⋯" and the phone switch, so a row of them
- * never steps. Height only: each keeps its own padding and type. Under a coarse
- * pointer the 44px floor lifts them all alike.
+ * never steps. Height only: each keeps its own padding and type.
  */
 .su-page-action {
   height: var(--size-compact);

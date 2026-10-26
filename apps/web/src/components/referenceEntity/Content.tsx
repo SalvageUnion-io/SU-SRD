@@ -82,7 +82,7 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
         currency = last
       }
     }
-    return <ActivationCost cost={cost} currency={currency} size={compact ? 'compact' : 'full'} />
+    return <ActivationCost cost={cost} currency={currency} size={compact ? 'mini' : 'compact'} />
   }
   const value = item.value != null && item.unit ? `${item.value} ${item.unit}` : item.value
   if (item.type === 'trait' || (item.type === 'keyword' && value == null)) {
@@ -111,7 +111,7 @@ function DataValueChip({ item, compact }: { item: RefObjectDataValue; compact?: 
           (item.type === 'keyword' && MEASURED_KEYWORD_SHORT[String(item.label)]) || item.label
         }
         value={value}
-        size={compact ? 'compact' : 'full'}
+        size={compact ? 'mini' : 'compact'}
         inline={false}
       />
     </PeekCell>

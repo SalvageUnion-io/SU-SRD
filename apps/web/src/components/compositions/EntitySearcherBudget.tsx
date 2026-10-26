@@ -11,7 +11,7 @@ export function BudgetChips({ budgets }: { budgets: BudgetConfig[] }) {
   return budgets.map((b) => (
     <Stat
       key={b.label}
-      size="compact"
+      size="mini"
       label={b.label}
       value={b.used}
       max={b.max}

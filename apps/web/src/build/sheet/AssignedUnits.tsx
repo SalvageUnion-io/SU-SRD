@@ -79,7 +79,7 @@ export function AssignedUnits({
                           key={String(reading.label)}
                           label={reading.label}
                           value={reading.value}
-                          size="compact"
+                          size="mini"
                         />
                       ))}
                     </Cluster>

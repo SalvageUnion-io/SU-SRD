@@ -83,9 +83,8 @@ function controlChip(control: ReferenceEntityControl): ReactNode {
 
   // Icon-only control (design-spec `.ctl`) — the live-sheet per-card
   // remove/swap/fold cluster: the glyph sized to the label line it replaces,
-  // so an icon button and a worded one are interchangeable in the strip. It
-  // carries no tap-target floor of its own: `theme.css`'s pointer-keyed 44px
-  // floor and the strip's Mini plate (hard rule R6) give it its hit area.
+  // so an icon button and a worded one are interchangeable in the strip, at
+  // the strip's Size on every pointer (R12).
   //
   // A `danger` icon (the ✕ remove) is Button's rust `primary` — filled, not
   // outlined — because it is the one control in the strip that destroys

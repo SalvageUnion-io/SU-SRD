@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 20 of 21: the Footer. `../index.css` imports
+ * The package stylesheet, part 19 of 20: the Footer. `../index.css` imports
  * the parts in cascade order.
  */
 
@@ -9,9 +9,6 @@
  * row is one slim row — the licence in one small paragraph at the start, the
  * tool's pages and the mark at the end. The row wraps (`.su-chapter-foot__row`), so a phone
  * stacks the licence over the links.
-*
- * Last in the file: `touchFloor.test.ts` reads the first coarse-pointer block
- * as the shared touch floor, and this one floors only the footer's links.
  */
 .su-footer {
   display: block;

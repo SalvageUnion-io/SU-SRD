@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 3 of 21: the entity forms: Compact and Mini.
+ * The package stylesheet, part 3 of 20: the entity forms: Compact and Mini.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -541,6 +541,23 @@
   --su-fill: calc(var(--su-lane-end, 0) + 24);
 }
 
+/* A stamp among a strip's chips (`labelChips`: a seal, HOMEBREW) keeps the
+   type a rung up from theirs, at their height (R12): a Compact stamp at the
+   Mini height, a Full one at the Compact. */
+.su-chip-lane > .su-badge-stamp {
+  align-items: center;
+  box-sizing: border-box;
+  display: inline-flex;
+}
+
+.su-chip-lane > .su-badge-stamp:is(.su-rung-pad--mini, .su-rung-pad--compact) {
+  height: var(--size-mini);
+}
+
+.su-chip-lane > .su-badge-stamp.su-rung-pad--full {
+  height: var(--size-compact);
+}
+
 /* A label among the chips (a Compact's labels lead its chip group; a Card's
    type stamp shares `Head`'s chip group): its labels and chips one group,
    the chips rising above the stamp when the group wraps, the stamp drawn as
@@ -618,19 +635,17 @@
   cursor: pointer;
 }
 
-/* A linked chip is a Mini (18px) cell, under WCAG 2.2's 24px target (2.5.8):
-   its button is 24px tall, the cell centred in it, so the chip still draws at
-   its siblings' height (ruleset §4.7 measures the cell). Under a coarse
-   pointer `.su-hit-area` carries it to 44px. */
+/* A linked chip draws at its siblings' height, its cell centred in WCAG
+   2.2's 24px minimum target (2.5.8) on every pointer: the one target floor,
+   since a chip on a Compact's own link has no room around it to spare.
+   The chip still measures as its cell (ruleset §4.7). */
 :is(a, button, [role='button']).su-chip-link {
   align-items: center;
   min-block-size: var(--space-24);
 }
 
-/* On a Page band's title line the chips stand on one foot (the fill's
-   bottom), so a linked chip's cell stands on its target's foot too, level
-   with its unlinked siblings (Hill Worm: "Misalignment
-   in the chips"); its 24px target rises above it. */
+/* On a Page band's title line the chips stand on one foot, so a linked
+   chip's cell stands on its target's foot too, level with its siblings. */
 .su-chapter-band :is(a, button, [role='button']).su-chip-link[data-fill-line] {
   align-items: flex-end;
 }
@@ -1041,14 +1056,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: none;
 }
 
-/* A Mini with controls (`data-acts`): its name is the link (C8). Its line
-   is shorter than WCAG 2.2's 24px target (2.5.8), so its box reaches 24px
-   in padding the same negative margin takes back: the Mini draws at its
-   height and the name's target is 24px tall. */
+/* A Mini with controls (`data-acts`): its name is the link (C8). */
 .su-entity-mini__link {
   color: inherit;
-  margin-block: calc((1lh - var(--space-24)) / 2);
-  padding-block: calc((var(--space-24) - 1lh) / 2);
   text-decoration: none;
 }
 
@@ -1294,10 +1304,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 /* A TOKEN LIST (`.su-entity-mini-list`: a pattern's Systems and Modules,
    Play's lists): one Mini a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
-   down the list. Under a coarse pointer, and in Play's phone form (its touch
-   floor, `.su-play-root--phone`, ADR-045), each line is a 44px target (ruleset
-   §4.6, R12): the pill is the whole line's height, so a Mini whose surface
-   is a control never sits short inside the floor's taller box. */
+   down the list. Under a coarse pointer, and in Play's phone form
+   (`.su-play-root--phone`, ADR-045), each line is a thumb's height (ruleset
+   §4.6): a row, not a control, so its pill is drawn that tall. */
 .su-entity-mini-list {
   display: flex;
   flex-direction: column;
@@ -1371,36 +1380,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   }
 }
 
-/* An action in a chip group (C8: a Compact's Use, a "⋯", a host's group of
-   them) at the strip's Size is a Mini button DRAWN exactly a chip's height
-   (C1a: one height, one centre line) in a 24px target (WCAG 2.2, 2.5.8), as
-   a linked chip is (`.su-chip-link`): a transparent border round it takes the
-   difference, its fill is clipped to the 18px plate inside, and an outlined
-   button's 1px frame is an outline drawn on that plate's edge. Its hit area
-   grows under a coarse pointer, never its box. Last in the file, so it beats
-   the grounds' border colours above (an ink band's, the strip under a name). */
-.su-chips > .su-chip-lane > .su-btn.su-btn--mini,
-.su-chips > .su-chip-lane > * > .su-btn.su-btn--mini {
-  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
-
-  background-clip: padding-box;
-  border-color: transparent;
-  border-width: var(--su-mini-inset);
-  box-sizing: border-box;
-  height: var(--space-24);
-  min-height: 0;
-}
-
-.su-chips > .su-chip-lane > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini,
-.su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
-  outline: var(--bw-hairline) solid currentcolor;
-  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-hairline)));
-}
-
-/* A Mini's strip is one Mini line (ruleset §4.7: one height on a line): a
-   stamp chip, the cost and a Use draw the same 18px plate on one centre. The
-   cost would otherwise stretch to the line's 24px (a Mini button's target),
-   and a stamp chip, a trait's linked one too, stops a pixel short of it. */
+/* A Mini's strip is one Mini line (ruleset §4.7: one height per Size): a
+   stamp chip, the cost and a Use draw the same 18px plate on one centre;
+   the cost would otherwise stretch to the line's height. */
 .su-entity-mini
   .su-chips.su-entity-mini__chips
   > .su-chip-lane
@@ -1502,12 +1484,6 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-entity-compact[data-covered] .su-entity-linked {
   position: relative;
   z-index: 1;
-}
-
-/* A linked Mini sits on its Compact's own link, so nothing spaces it from a
-   neighbouring target: it is a 24px target itself (WCAG 2.2, 2.5.8). */
-.su-entity-linked > a.su-entity-mini {
-  min-block-size: var(--space-24);
 }
 
 /* A crawler tech level's block reads a size up from a Compact's, the Page's

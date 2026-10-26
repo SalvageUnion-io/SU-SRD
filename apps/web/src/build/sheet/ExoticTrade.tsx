@@ -123,7 +123,7 @@ export function ExoticTrade({
         </Eyebrow>
         <span style={QTY}>
           <Stat
-            size="compact"
+            size="mini"
             label={buildSheetCopy('qty')}
             value={count}
             min={1}

@@ -54,6 +54,13 @@ const STATE_BORDER_CLASS: Record<StatBorderState, string | undefined> = {
   critical: 'su-stat-cell--critical',
 }
 
+/** The cell's height, its Size's (`.su-stat-cell--<size>`), as a button's at that Size. */
+const CELL_SIZE: Record<Size, string> = {
+  full: 'su-stat-cell--full',
+  compact: 'su-stat-cell--compact',
+  mini: 'su-stat-cell--mini',
+}
+
 /** The plate halves' type, by rung (`.su-stat-plate--<rung>`). */
 const PLATE_SIZE: Record<Size, string> = {
   full: 'su-stat-plate--full',
@@ -111,10 +118,11 @@ type HorizontalValueProps = {
    */
   shortLabel?: string
   /**
-   * Ladder rung (styles/sizing.ts). This anatomy's resting state is a reading
-   * cell, so it defaults to `full`; `compact` is the listing-row scale and
-   * `mini` the seam-tag size (text-badge / 11px). One axis: a pair of booleans
-   * could be combined into a rung that doesn't exist; a single `size` cannot.
+   * Ladder rung (styles/sizing.ts): the cell's height is its Size's, as a
+   * button's at that Size is (hard rule R12). It defaults to `compact`, a
+   * body's reading cell; `mini` is a head strip's and a listing row's. One
+   * axis: a pair of booleans could be combined into a rung that doesn't
+   * exist; a single `size` cannot.
    */
   size?: Size
   /** inline-flex (default) vs flex. */
@@ -188,7 +196,7 @@ function HorizontalValue({
   bottomLabel,
   shortLabel,
   surface = 'plate',
-  size = 'full',
+  size = 'compact',
   inline = true,
   hollow = false,
   state = 'default',
@@ -245,6 +253,7 @@ function HorizontalValue({
     <span
       className={cn(
         'su-stat-cell',
+        CELL_SIZE[size],
         STATE_BORDER_CLASS[state],
         !inline && 'su-stat-cell--block',
         hollow && 'su-stat-cell--hollow',
@@ -337,9 +346,9 @@ function HorizontalValue({
   // the stepper adds no vertical height to the row: the shared `StepButton` at
   // its `cell` fit, its plate set in CSS by the ground the Stat is printed on.
   const stepStyle = {
-    fontSize: size === 'compact' ? fontSize.xs : fontSize.sm,
-    lineHeight: size === 'compact' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
-    width: size === 'compact' ? space[16] : space[20],
+    fontSize: size === 'mini' ? fontSize.xs : fontSize.sm,
+    lineHeight: size === 'mini' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
+    width: size === 'mini' ? space[16] : space[20],
   } satisfies CSSProperties
 
   const stepName = stepperLabel ?? label

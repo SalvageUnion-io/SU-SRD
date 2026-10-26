@@ -218,7 +218,7 @@ function asStrip(chips: ReactNode, controls: ReactNode, more: boolean): ReactNod
   return (
     <Chips
       chips={NO_CHIPS}
-      size="compact"
+      size="mini"
       marks={none(chips) ? undefined : chips}
       menu={last([controls, tail])}
     />

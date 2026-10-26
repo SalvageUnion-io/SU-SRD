@@ -10,7 +10,7 @@ import type { StatItem } from '../../containers/statsBarTypes'
  * hybrid class's requirements in an index Compact) wraps onto more lines instead of
  * being clipped by the frame (`wrap`).
  */
-export function Facts({ cells, size = 'full' }: { cells: StatItem[]; size?: Size }) {
+export function Facts({ cells, size = 'compact' }: { cells: StatItem[]; size?: Size }) {
   return (
     <>
       {cells.map((stat) => (

@@ -11,7 +11,7 @@ type ActivationCostProps = {
   cost: string | number
   currency?: string | undefined | number
   /**
-   * The chips' Size it sits beside: `mini` takes their type size, so it is no
+   * The chips' Size it sits beside: it takes their type size, so it is no
    * taller than they are. `og`: the fixed 1200 × 630 link preview's scale
    * (`OgCard`), beside its chips drawn at their 36px plate, nothing under the
    * 34px source floor (ruleset §4.6).
@@ -40,21 +40,27 @@ const BOX = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-// The chips' weight, bold at every size.
-const BOX_COMPACT = {
+// The chips' weight, bold at every size; each Size's type and inset are its
+// chips' (a Mini strip's 12px caps, a Compact strip's 14px).
+const BOX_MINI = {
   fontSize: fontSize.xs,
   fontWeight: weight.bold,
   paddingInlineStart: space[4],
   paddingInlineEnd: `calc(${space[4]} + ${TIP})`,
 } satisfies CSSProperties
 
-const BOX_MINI = { ...BOX_COMPACT, fontSize: fontSize.badge } satisfies CSSProperties
-
-const BOX_FULL = {
+const BOX_COMPACT = {
   fontSize: fontSize.sm,
   fontWeight: weight.bold,
   paddingInlineStart: space[6],
   paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
+} satisfies CSSProperties
+
+const BOX_FULL = {
+  ...BOX_COMPACT,
+  fontSize: fontSize.base,
+  paddingInlineStart: space[8],
+  paddingInlineEnd: `calc(${space[8]} + ${TIP})`,
 } satisfies CSSProperties
 
 /** The link preview's box: its chips' plate height, its weight their caps'. */
@@ -73,7 +79,7 @@ const BOX_FOR = {
   og: BOX_OG,
 } satisfies Record<Size | 'og', CSSProperties>
 
-export function ActivationCost({ cost, currency = 'AP', size = 'full' }: ActivationCostProps) {
+export function ActivationCost({ cost, currency = 'AP', size = 'compact' }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 

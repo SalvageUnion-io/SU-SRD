@@ -2,9 +2,9 @@
  * Mobile-responsive regression tests for sheet components.
  *
  * Sheet renders without horizontal overflow at 320px viewport width.
- * The top-bar Share control and a Field's edit-state readout have ≥44px touch targets
- *       (verified via the coarse-pointer floor every `.su-btn` gets, the Share control
- *       included, and the inline `min-height` (`size.full`, 44px) on the readout).
+ * The top-bar Share control is a Compact button (one height per Size, R12), and a
+ *       Field's edit-state readout has a 44px target (its inline `min-height`,
+ *       `size.full`).
  *
  * Design choices:
  * - 320px overflow check: happy-dom does not implement a full layout engine, so
@@ -13,10 +13,9 @@
  *   (entity content appears without throwing). Real 320px overflow verification
  *   requires a browser engine — this is tracked in the M3 a11y/perf work and
  *   should be covered by a Playwright / puppeteer visual regression test.
- * - Touch target: we assert the Share button is a `.su-btn` at the page-top
- *   height (`.su-page-action`), and that `theme.css`'s coarse-pointer floor
- *   lifts every `.su-btn` to 44px; and a Field's edit-state readout its inline
- *   `minHeight` (a style object). Both are the most
+ * - Touch target: we assert the Share button is a Compact `.su-btn` at the
+ *   page-top height (`.su-page-action`), and a Field's edit-state readout its
+ *   inline `minHeight` (a style object). Both are the most
  *   reliable assertions in happy-dom (no computed styles).
  *
  * Conventions:
@@ -26,7 +25,6 @@
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { readFileSync } from 'node:fs'
 import { render, screen } from '@testing-library/react'
 import {
   crawlerFixture,
@@ -163,7 +161,7 @@ describe('Mobile responsive — renders without error at 320px container', () =>
 // Touch targets ≥44px on mobile
 // ---------------------------------------------------------------------------
 
-describe('Mobile responsive — 44px touch targets', () => {
+describe('Mobile responsive — touch targets', () => {
   test("a Field's edit-state readout carries a 44px min-height", () => {
     render(<Field label="Callsign" value="Ghost" onSave={() => Promise.resolve()} />)
     // The edit state's readout is a span with role=button.
@@ -171,7 +169,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     expect((displayEl as HTMLElement).style.minHeight).toBe('44px')
   })
 
-  test('the top-bar Share control carries the 44px touch-target floor', () => {
+  test('the top-bar Share control is a Compact button, its Size on every pointer (R12)', () => {
     render(
       <Sheet
         kind="pilot"
@@ -185,11 +183,7 @@ describe('Mobile responsive — 44px touch targets', () => {
     const className = (share as HTMLElement).className
     expect(className).toContain('su-btn')
     expect(className).toContain('su-page-action')
-    // …and a touch screen lifts every `.su-btn` to the 44px floor.
-    const css = readFileSync(new URL(import.meta.resolve('../../../styles/theme.css')), 'utf8')
-    expect(css).toMatch(
-      /@media \(pointer: coarse\) \{[\s\S]*?\.su-btn:not\(\.su-btn--mini, \.su-hit-area\)[^}]*min-height: var\(--size-full\);/
-    )
+    expect(className).toContain('su-btn--compact')
   })
 })
 

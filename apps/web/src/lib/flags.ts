@@ -11,7 +11,7 @@ import { originOf } from './site'
  */
 export const FLAGS = {
   encounterSheet:
-    "An encounter's groups, waves and briefing in the Training Bay, and the briefing in Play",
+    "An encounter's groups, waves and briefing in the Training Bay, and in Play its briefing, groups, Morale due and waves",
 } as const satisfies Record<string, string>
 
 export type Flag = keyof typeof FLAGS

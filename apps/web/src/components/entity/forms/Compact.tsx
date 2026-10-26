@@ -180,7 +180,7 @@ export function Compact({
   const marks = labelsAsChips
     ? [
         slots.extraLabels,
-        note && <Stat key="note" label={note} size="compact" />,
+        note && <Stat key="note" label={note} size="mini" />,
         userMade && <HomebrewStamp key="homebrew" size="compact" />,
       ]
     : undefined
@@ -220,7 +220,7 @@ export function Compact({
           slots.controls ? (
             <Chips
               chips={chips}
-              size="compact"
+              size="mini"
               linkable={mode.kind === 'read'}
               relationsLinkable={mode.kind === 'read' || covered}
               marks={marks}

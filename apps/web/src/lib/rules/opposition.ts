@@ -46,19 +46,79 @@ export function isDown(currentHp: number, maxHp: number): boolean {
  * result; a roll that lands on no row reads `NO_EFFECT`, as everywhere else.
  */
 export function rollMorale(rollD20: () => number, now: string): MoraleRoll | null {
-  const table = SalvageUnionReference.RollTables.getByName('Morale')
+  return rollMediatorTable('morale', rollD20, now)
+}
+
+/** Roll Reaction: a d20 on the "Reaction Roll" table (Core Book p.267-268), as `rollMorale`. */
+export function rollReaction(rollD20: () => number, now: string): MoraleRoll | null {
+  return rollMediatorTable('reaction', rollD20, now)
+}
+
+/** The reference roll table each group roll reads, by its slug. */
+const GROUP_TABLES = { morale: 'morale', reaction: 'reaction-roll' } as const
+
+/** The book's name for a group roll's table ("Reaction Roll", "Morale"). */
+export function groupTableName(id: keyof typeof GROUP_TABLES): string {
+  return SalvageUnionReference.RollTables.getBySlug(GROUP_TABLES[id])?.name ?? id
+}
+
+function rollMediatorTable(
+  id: keyof typeof GROUP_TABLES,
+  rollD20: () => number,
+  now: string
+): MoraleRoll | null {
+  const table = SalvageUnionReference.RollTables.getBySlug(GROUP_TABLES[id])
   const outcome = rollOnTable(table?.table, rollD20)
   if (!outcome.success || outcome.kind === 'columns') return null
   if (outcome.kind === 'no-effect') {
-    return { table: 'morale', roll: outcome.roll, value: NO_EFFECT, rolledAt: now }
+    return { table: id, roll: outcome.roll, value: NO_EFFECT, rolledAt: now }
   }
   return {
-    table: 'morale',
+    table: id,
     roll: outcome.roll,
     ...(outcome.label === undefined ? {} : { label: outcome.label }),
     value: outcome.value,
     rolledAt: now,
   }
+}
+
+/** What an NPC's Morale check reads (Core Book p.268). */
+type MoraleRead = {
+  refSchema: string | null
+  currentHp: number
+  maxHp: number
+  lastRoll: Pick<MoraleRoll, 'table'> | null
+}
+
+/** A Morale check or the Retreat it led to has been rolled since. */
+const checked = (npc: Pick<MoraleRead, 'lastRoll'>) =>
+  npc.lastRoll?.table === 'morale' || npc.lastRoll?.table === 'retreat'
+
+/** The book checks a Mech's and a Creature's own Morale; others check as a group. */
+const CHECKS_ALONE = new Set(['chassis', 'creatures', 'bio-titans'])
+
+/**
+ * Whether one NPC's Morale check is due (Core Book p.268): a Mech at 50% or
+ * less of its SP, a Creature at 50% or less of its HP, still standing, with
+ * no Morale roll made for it since. Due is a prompt; the Mediator rolls it
+ * (ADR-007), and nothing retreats on its own.
+ */
+export function moraleDue(npc: MoraleRead): boolean {
+  if (npc.refSchema === null || !CHECKS_ALONE.has(npc.refSchema)) return false
+  if (npc.maxHp <= 0 || npc.currentHp <= 0 || checked(npc)) return false
+  return npc.currentHp * 2 <= npc.maxHp
+}
+
+/**
+ * Whether a group's Morale check is due (Core Book p.268): half or more of
+ * it down, someone still standing, and no Morale roll made for those standing
+ * since.
+ */
+export function groupMoraleDue(members: readonly MoraleRead[]): boolean {
+  const down = members.filter((m) => m.maxHp > 0 && m.currentHp <= 0)
+  const standing = members.filter((m) => !down.includes(m))
+  if (down.length === 0 || standing.length === 0) return false
+  return down.length * 2 >= members.length && !standing.every(checked)
 }
 
 /**

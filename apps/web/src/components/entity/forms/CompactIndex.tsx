@@ -211,9 +211,9 @@ export function CompactIndex({
             <Chips
               as="span"
               className="su-entity-index__chips"
-              size="compact"
+              size="mini"
               // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
-              marks={model.userMade ? <HomebrewStamp size="compact" /> : undefined}
+              marks={model.userMade ? <HomebrewStamp size="mini" /> : undefined}
               chips={{
                 durations: [],
                 facts,
@@ -232,7 +232,7 @@ export function CompactIndex({
         )}
         {spare.length > 0 && (
           <div className="su-entity-index__cells">
-            <Chips as="span" size="compact" chips={{ durations: [], facts: spare, tags: [] }} />
+            <Chips as="span" size="mini" chips={{ durations: [], facts: spare, tags: [] }} />
           </div>
         )}
       </div>

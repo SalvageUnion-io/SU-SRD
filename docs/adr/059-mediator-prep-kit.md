@@ -49,8 +49,15 @@ Mediator to be upfront about the situation (p.252).
   groups; an opponent is in one group or fights alone. Removing a group keeps
   its opponents.
 - **Waves.** Each group arrives in wave 1 (with the encounter) or is held back
-  to wave 2 or 3. Running fields the whole opposition until Play brings waves
-  in on their own.
+  to wave 2 or 3. Running fields the first wave; the rest wait on the running
+  encounter, and each held-back wave has Bring in on the Opposition, which
+  fields it named apart. Nothing arrives on its own.
+- **Groups on the tray.** A fielded opponent carries its group's id and name,
+  so the group sits together on the Opposition after End too. Its Slab has one
+  Reaction and one Morale roll, kept on each member still standing.
+- **Morale due.** A chip, with Roll, when the book calls for a check (p.268):
+  a Mech or Creature at half its SP or HP, or a group half down, with no
+  Morale roll since. Never rolled for the Mediator (ADR-007).
 - **Briefing.** Up to 1,000 characters of what the Pilots see, apart from the
   private notes. Running copies it to the Game's running encounter, where the
   Mediator's side column shows it with Tell the table, which sends it as an
@@ -67,6 +74,7 @@ Mediator to be upfront about the situation (p.252).
   Only what the reference data states; nothing pays out from it.
 - **Additive.** `groups`, `groupId` and `briefing` are optional on
   `schemaVersion` 1, so an encounter built before them reads as ungrouped with
-  no briefing. A tray NPC never carries a group.
+  no briefing. A tray NPC's `group` and the running encounter's `groups` and
+  `held` are optional too; a run without waves fields everyone, ungrouped.
 - **Offline.** `shelf.encounters` is saved to the device copy (ADR-058), so an
   offline reload still has the Mediator's prep, read-only.

@@ -2,7 +2,8 @@
  * PlayNpcBox — one of the Opposition on the Mediator's screen (play.md §10): a unit box in the adversary tone, level 1 in the centre
  * column, as the Units column draws a pilot or a mech. Inside it (level 2,
  * plain content): its HP or SP as a live vital (`PlayVital`, − / +, through
- * `mediator.updateNpc`), and its last Morale roll.
+ * `mediator.updateNpc`), Morale due with Roll when the book calls for its
+ * check (Core Book p.268; never rolled for you), and its last roll.
  *
  * Its band carries what it is (NPC, Mech, Bio-Titan, …), **Actions**, which
  * lists its actions under the Opposition (pressed while they are the ones
@@ -80,6 +81,10 @@ type PlayNpcBoxProps = {
   onReactor: (patch: { currentEp?: number; currentHeat?: number }) => void
   onCritical: () => void
   onHeatCheck: () => void
+  /** Its Morale check is due (Core Book p.268): the chip and Roll show. */
+  moraleDue?: boolean
+  /** Roll its Morale check: the tray's write. */
+  onMorale?: () => void
 }
 
 export function PlayNpcBox({
@@ -97,6 +102,8 @@ export function PlayNpcBox({
   onReactor,
   onCritical,
   onHeatCheck,
+  moraleDue = false,
+  onMorale,
 }: PlayNpcBoxProps) {
   const detail = useDetailModal(npc.entity ?? undefined, { pattern: npc.pattern ?? undefined })
   const stat = npc.statKind === 'sp' ? 'SP' : 'HP'
@@ -122,7 +129,7 @@ export function PlayNpcBox({
             ]
               .filter((part) => part !== null)
               .join(' · ')}
-            size="compact"
+            size="mini"
           />
         }
         controls={
@@ -264,11 +271,24 @@ export function PlayNpcBox({
             {` — ${lastImportant.value}`}
           </p>
         ) : null}
+        {moraleDue ? (
+          <span style={CONTROLS}>
+            <Stat size="mini" label={mediatorCopy('moraleDue')} state="caution" />
+            <Button
+              size="mini"
+              disabled={!canWrite || onMorale === undefined}
+              aria-label={mediatorCopy('rollMoraleFor', { name: npc.name })}
+              onClick={onMorale}
+            >
+              {mediatorCopy('rollMorale')}
+            </Button>
+          </span>
+        ) : null}
         <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
           {npc.lastRoll ? (
             <>
               <span style={STRONG}>
-                {mediatorCopy('morale', {
+                {mediatorCopy(npc.lastRoll.table === 'reaction' ? 'reaction' : 'morale', {
                   roll: npc.lastRoll.roll,
                   value: npc.lastRoll.label ? ` · ${npc.lastRoll.label}` : '',
                 })}
