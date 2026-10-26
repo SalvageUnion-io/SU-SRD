@@ -1,26 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import type { PhotoUploader } from '../uploadPhoto'
 import { fitWithin, MAX_PHOTO_EDGE, uploadPhoto } from '../uploadPhoto'
 
-const PHOTO = {
-  kind: 'upload',
-  storageId: 's1',
-  url: 'https://x.convex.cloud/api/storage/1',
-} as const
-
-function uploader(over: Partial<PhotoUploader> = {}): PhotoUploader & { posted: string[] } {
-  const posted: string[] = []
-  return {
-    posted,
-    generateUploadUrl: async () => 'https://x.convex.cloud/upload',
-    post: async (url) => {
-      posted.push(url)
-      return Response.json({ storageId: 's1' })
-    },
-    claim: async () => PHOTO,
-    ...over,
-  }
-}
+const ORIGIN = 'https://salvageunion.io'
+const BLOB = new Blob(['x'], { type: 'image/webp' })
 
 describe('fitWithin', () => {
   test('scales the longest edge down to the cap, keeping the aspect', () => {
@@ -34,22 +16,28 @@ describe('fitWithin', () => {
 })
 
 describe('uploadPhoto', () => {
-  test('posts to the upload url and returns the claimed photo', async () => {
-    const u = uploader()
-    expect(await uploadPhoto(new Blob(['x'], { type: 'image/webp' }), u)).toEqual(PHOTO)
-    expect(u.posted).toEqual(['https://x.convex.cloud/upload'])
+  test("posts to the Worker's photo route and returns the photo it stored", async () => {
+    const posted: string[] = []
+    const post = async (url: string) => {
+      posted.push(url)
+      return Response.json({ storageId: 's1.webp' })
+    }
+    expect(await uploadPhoto(BLOB, post, ORIGIN)).toEqual({
+      kind: 'upload',
+      storageId: 's1.webp',
+      url: `${ORIGIN}/__photos/s1.webp`,
+    })
+    expect(posted).toEqual(['/__photos'])
   })
 
-  test('says so when the upload fails, the answer has no id, or the server refuses the file', async () => {
-    const blob = new Blob(['x'], { type: 'image/webp' })
+  test('says so when the Worker refuses the file, the upload fails, or the answer has no id', async () => {
+    const answer = (response: Response) => async () => response
     await expect(
-      uploadPhoto(blob, uploader({ post: async () => new Response('', { status: 500 }) }))
+      uploadPhoto(BLOB, answer(new Response('', { status: 415 })), ORIGIN)
+    ).rejects.toThrow('under 4 MB')
+    await expect(
+      uploadPhoto(BLOB, answer(new Response('', { status: 500 })), ORIGIN)
     ).rejects.toThrow('(500)')
-    await expect(
-      uploadPhoto(blob, uploader({ post: async () => Response.json({}) }))
-    ).rejects.toThrow('no file id')
-    await expect(uploadPhoto(blob, uploader({ claim: async () => null }))).rejects.toThrow(
-      'under 4 MB'
-    )
+    await expect(uploadPhoto(BLOB, answer(Response.json({})), ORIGIN)).rejects.toThrow('no file id')
   })
 })

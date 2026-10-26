@@ -109,7 +109,7 @@ function opened(): PlayTarget | null {
 }
 
 describe('refusals', () => {
-  test('an anonymous session is asked to sign in, and asks Convex nothing', async () => {
+  test('an anonymous session is asked to sign in, and asks the server nothing', async () => {
     setQueryAnswers({})
     await renderGate('play-rook', 'signedOut')
     expect(heading('Sign in to play')).toBeTruthy()
@@ -139,7 +139,7 @@ describe('refusals', () => {
 })
 
 describe('Play opens', () => {
-  test('solo for a pilot on the shelf, asking Convex nothing', async () => {
+  test('solo for a pilot on the shelf, asking the server nothing', async () => {
     setQueryAnswers({})
     await renderGate('play-wren')
     expect(opened()).toEqual({

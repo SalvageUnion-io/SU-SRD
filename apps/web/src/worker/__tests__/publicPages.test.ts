@@ -16,7 +16,7 @@ import { worker } from './worker'
  * page's own title, description, canonical and `og:*`, named for the
  * deployment's origin, and `sitemap.xml` with exactly those pages. The front
  * door is the shell itself: a crawler's request for it gets its canonical from
- * the Worker. Nothing here asks Convex.
+ * the Worker.
  */
 
 /** The real shell, so a test fails if it loses its markers. */

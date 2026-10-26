@@ -12,7 +12,7 @@ import {
 /**
  * The Game roster's rules, tested against the same cases as the server.
  *
- * These assertions intentionally read like `convex/__tests__/tableSetup.test.ts`
+ * These assertions intentionally read like `rooms/game/__tests__/gameRoster.test.ts`
  * — that is the point. This module exists so the surface can hide what the
  * server would refuse, and the only way that stays true is for both to be
  * pinned to the same table of cases. If one of these ever has to change without

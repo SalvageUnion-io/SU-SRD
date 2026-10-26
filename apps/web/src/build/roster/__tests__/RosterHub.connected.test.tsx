@@ -105,7 +105,7 @@ beforeEach(async () => {
   serverWrites.length = 0
   resetStores()
   forgetTableState()
-  // The server's first answer is in, as `ConvexFeed` marks it.
+  // The server's first answer is in.
   useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   usePatterns.getState().markArrived()
   // In the Training Bay: a pilot and a crawler, adopted as the server sends them.

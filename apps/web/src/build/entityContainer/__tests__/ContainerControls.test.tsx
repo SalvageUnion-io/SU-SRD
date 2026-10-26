@@ -64,7 +64,7 @@ beforeEach(() => {
   failWrites = false
   serverWrites.length = 0
   resetStores()
-  // The server's first answer is in, as `ConvexFeed` marks it.
+  // The server's first answer is in.
   useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   setQueryAnswers({ 'games.listMine': GAMES })
 })

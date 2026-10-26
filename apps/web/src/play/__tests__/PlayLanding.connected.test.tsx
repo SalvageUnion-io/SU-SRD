@@ -124,7 +124,7 @@ const card = (name: string) => {
 }
 
 describe('the Play landing', () => {
-  test('signed out, asks you to sign in and asks Convex nothing', async () => {
+  test('signed out, asks you to sign in and asks the server nothing', async () => {
     answerReads({})
     await renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
@@ -409,7 +409,7 @@ describe('the Play landing', () => {
   })
 })
 
-/** Answer the Convex reads, and serve the Game room's records from the table reads among them. */
+/** Answer the Games reads, and serve the Game room's records from the table reads among them. */
 function answerReads(answers: Record<string, unknown>): void {
   setQueryAnswers(answers)
   serveReads('land-g1', answers)

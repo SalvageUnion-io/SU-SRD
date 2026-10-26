@@ -123,10 +123,10 @@ describe('postPhoto', () => {
       return Response.json({ storageId: 's1' })
     }) as typeof fetch
     const blob = new Blob(['w'], { type: 'image/webp' })
-    const response = await postPhoto('https://x.convex.cloud/upload', blob)
+    const response = await postPhoto('/__photos', blob)
     expect(await response.json()).toEqual({ storageId: 's1' })
     expect(sent).toHaveLength(1)
-    expect(sent[0]?.url).toBe('https://x.convex.cloud/upload')
+    expect(sent[0]?.url).toBe('/__photos')
     expect(sent[0]?.init?.method).toBe('POST')
     expect(sent[0]?.init?.headers).toEqual({ 'Content-Type': 'image/webp' })
     expect(sent[0]?.init?.body).toBe(blob)

@@ -69,7 +69,7 @@ function drive(answers: boolean[]) {
 
 describe('reloadOnceServed', () => {
   it('does not reload while the Worker still serves this build', async () => {
-    // The Convex push lands before the Worker deploy: the floor has moved but
+    // A floor read mid-deploy comes from the new Worker: the floor has moved but
     // the shell is still this page's. Reloading now would boot the same build,
     // find it outdated again, and reload again — a loop.
     const h = drive([false, false, false])

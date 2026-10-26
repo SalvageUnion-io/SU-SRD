@@ -25,7 +25,7 @@ import type { Play } from '../situation.model'
  * The rooms are fakes (`fakeRooms.ts`) holding a solo seat and its Downtime
  * (the account room's) and a Game's seats and Downtime, served again
  * whenever an act or a step's op changes them, as a live room would. The
- * Games reads stay a Convex stand-in. The columns are probes that keep the
+ * Games reads stay a `serverMock.ts` stand-in. The columns are probes that keep the
  * `play` they were handed.
  */
 

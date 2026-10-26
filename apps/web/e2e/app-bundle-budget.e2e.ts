@@ -42,13 +42,11 @@ test.use({ account: 'anonymous' })
  *
  * ## How the ceilings were set
  *
- * From the bundle CI's `build-web` job builds and serves: `bunx convex deploy
- * --cmd "bun run build"`, which compiles the client against a Convex URL — the
- * variant production ships, Convex client included. Every ceiling sits ~20%
- * above its measured value (the table below). A budget pinned at today's size
- * is a tripwire, not a budget; 20% absorbs dependency churn while still
- * failing on a real regression (a newly-eager heavy import, or a jump in the
- * data corpus).
+ * From the build CI's `build-web` job serves, each ceiling ~20% above the
+ * route's measured value when it was set. A budget pinned at today's size is a
+ * tripwire, not a budget; 20% absorbs dependency churn while still failing on
+ * a real regression (a newly-eager heavy import, or a jump in the data
+ * corpus).
  *
  * ## What keeps the routes small
  *
@@ -58,32 +56,24 @@ test.use({ account: 'anonymous' })
  * graph; and the reference package's trusted load path keeps Zod's entity
  * schemas and locales out of the app's client.
  *
- * ## Current baseline: the Convex-backed build
+ * ## Current baseline
  *
- * Measured by this suite against that build (the `[bundle-budget]` lines it
- * prints), each ceiling ≈ measured × 1.2:
+ * The `[bundle-budget]` lines of the 4.5.0 CI run (the Worker-backed build):
  *
- *   route      measured      ceiling
- *   roster     2,033,583 B   2,440,000 B
- *   wizard     1,991,671 B   2,390,000 B
- *   sheet      2,161,232 B   2,590,000 B
+ *   route                          measured      ceiling
+ *   roster                         2,211,380 B   2,440,000 B
+ *   wizard                         2,198,339 B   2,390,000 B
+ *   sheet                          2,397,687 B   2,590,000 B
+ *   /play/pilots/:pilotId          2,515,698 B   2,920,000 B
+ *   /play/games/:gameId/mediate    2,541,798 B   2,920,000 B
  *
- * ## Play (ADR-051)
+ * The largest chunk measures 511,029 B against the 530 KB tripwire. The
+ * ceilings were set on the older build and were not raised with it, so the
+ * margins are now 8% to 16%: re-take them from a CI run before loosening one.
  *
- * Both Play routes measure ~2.43 MB (`/play/pilots/:pilotId` 2,429,094 B,
- * `/play/games/:gameId/mediate` 2,431,749 B) on a local production build, beside a
- * roster of 2,178,292 B on the same build, and their ceilings sit ~20% above
- * that: 2,920,000 B. Re-take them from a CI run's `[bundle-budget]` lines when
- * the table is next re-based.
- *
- * A route file that exports its page body pins ~200 KB back into the entry
- * (roster → ~2.23 MB), which still fits under 20%, so this margin does not
- * catch it — `routeExports.test.ts` and the `Sheet-` forbidden-chunk check
- * below do.
- * What the margin catches is growth beyond ~400 KB. The biggest single chunk
- * is `vendor` (439,550 B, the Convex client included), ahead of the `actions`
- * data chunk (~363 KB); the largest-chunk tripwire sits at 530 KB, ~20% above
- * it.
+ * A route file that exports its page body pins ~200 KB back into the entry,
+ * which the route margins may not catch; `routeExports.test.ts` and the
+ * `Sheet-` forbidden-chunk check below do.
  */
 
 /** `path` under the app's base, ready, with its JS totalled. */
@@ -116,15 +106,11 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     const totals = await captureRouteJs(page, '/')
     report('/ (roster)', totals, CEILING)
 
-    // The single-largest-chunk tripwire. With autoCodeSplitting and the
-    // `codeSplitting` groups, the biggest chunk of all is `vendor` (~440 KB,
-    // the Convex client included), then the `actions` data chunk (~363 KB);
-    // the entry is ~29 KB. The ceiling is ~20% over `vendor`, like the route
-    // budgets. Turning either splitting mechanism off re-forms a chunk well
-    // past it (a ~615 KB shared chunk before the groups, one ~1.24 MB entry
-    // before autoCodeSplitting, both before the Convex client joined the
-    // graph), so it asserts against the app bundle without classifying
-    // chunks by name.
+    // The single-largest-chunk tripwire (~511 KB measured, see the table
+    // above). Turning either splitting mechanism off re-forms a chunk well
+    // past it (a ~615 KB shared chunk before the `codeSplitting` groups, one
+    // ~1.24 MB entry before autoCodeSplitting), so it asserts against the app
+    // bundle without classifying chunks by name.
     expect(totals.largest).toBeLessThan(530_000)
 
     // Other routes' component chunks must not ride along on the roster.

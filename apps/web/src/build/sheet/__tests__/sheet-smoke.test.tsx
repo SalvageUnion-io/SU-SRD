@@ -12,7 +12,7 @@
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
- *   - The only module mocks are Convex's (`installServerMocks`): the signed-out
+ *   - The only module mocks are the server's (`installServerMocks`): the signed-out
  *     Share dialog mounts `SignInControl`
  *   - afterEach cleanup()
  */
