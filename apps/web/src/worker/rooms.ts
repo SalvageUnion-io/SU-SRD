@@ -49,8 +49,7 @@ import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { unitVitals } from '../rooms/vitals'
 import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
-import type { SharedDb } from './shared/db'
-import { RoomPublisher } from './shared/roomRows'
+import { RoomPublisher, sharedDb } from './shared/roomRows'
 import type { StopSignEnv } from './shared/stopSign'
 import { postStopSign } from './shared/stopSign'
 
@@ -102,16 +101,9 @@ abstract class Room extends DurableObject<RoomEnv> {
     return this.publisher.republish()
   }
 
-  /**
-   * After a change: the room's shared rows follow it, without holding up the
-   * answer. A Durable Object stays up while the write is out, so no `waitUntil`.
-   */
+  /** After a change: the shared rows follow, not holding up the answer (no `waitUntil` in a Durable Object). */
   protected published(): void {
     void this.publisher.changed()
-  }
-
-  protected get shared(): SharedDb | undefined {
-    return (this.env as { SHARED?: SharedDb }).SHARED
   }
 
   /** Wipe the room, leaving it as a new one: what is left of a Game that ended. */
@@ -135,7 +127,7 @@ export class AccountRoom extends Room implements UnitHome {
     super(ctx, env, ACCOUNT_ROOM)
     this.logic = new AccountRoomLogic(this.sql, { applyOp })
     const owner = ctx.id.name ?? null
-    this.publisher = new RoomPublisher(this.shared, `account:${owner}`, owner, () =>
+    this.publisher = new RoomPublisher(sharedDb(env), `account:${owner}`, owner, () =>
       shelfPublished(this.logic.shelf.store)
     )
     // The room is named by its player, so it is theirs before they first open
@@ -324,7 +316,7 @@ export class GameRoom extends Room implements UnitHome {
   constructor(ctx: RoomState, env: RoomEnv) {
     super(ctx, env, GAME_ROOM)
     this.logic = new GameRoomLogic(this.sql, { applyOp })
-    this.publisher = new RoomPublisher(this.shared, `game:${ctx.id.name}`, null, () =>
+    this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
       gamePublished(this.logic.store)
     )
   }

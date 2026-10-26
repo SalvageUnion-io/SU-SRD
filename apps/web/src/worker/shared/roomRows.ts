@@ -1,6 +1,11 @@
 import type { Published, PublishedPattern, PublishedSheet } from '../../rooms/publish'
 import type { SharedDb, SharedStatement } from './db'
 
+/** The shared database a Worker's or room's `env` binds as `SHARED`, if it does. */
+export function sharedDb(env: unknown): SharedDb | undefined {
+  return (env as { SHARED?: SharedDb }).SHARED
+}
+
 /**
  * A room's rows in the shared database, kept in step with the room
  * (`../../rooms/publish.ts`): after every change the room asks again, and its
