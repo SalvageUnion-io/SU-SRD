@@ -15,7 +15,6 @@
  * still `row.can` (`lib/games/gameRoster.ts`); this only does it.
  */
 
-import { useMutation } from 'convex/react'
 import { moveTo, SHELF } from 'game-domain/container'
 import type { OwnableTable } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
@@ -24,6 +23,7 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useGamesMutation } from '../../replica/roomCalls'
 import { useUnits } from '../../replica/units'
 
 /** The table a pilot or mech row's ownership mutations address. */
@@ -52,11 +52,12 @@ export type RowActions = {
   scrap: (row: RosterRow) => void
 }
 
-export function useRowActions(confirm: Confirm): RowActions {
-  const assign = useMutation(api.ownership.assign)
-  const unassign = useMutation(api.ownership.unassign)
-  const scrapCrawler = useMutation(api.entities.removeCrawler)
-  const removeEntity = useMutation(api.entities.remove)
+export function useRowActions(confirm: Confirm, gameId: string): RowActions {
+  // The rooms need the Game a row is in, which Convex found from the row itself.
+  const assign = useGamesMutation(api.ownership.assign, { gameId })
+  const unassign = useGamesMutation(api.ownership.unassign, { gameId })
+  const scrapCrawler = useGamesMutation(api.entities.removeCrawler, { gameId })
+  const removeEntity = useGamesMutation(api.entities.remove, { gameId })
 
   /** Drop this browser's cached copy once the server no longer lets us hold it. */
   async function forgetLocal(row: RosterRow): Promise<void> {

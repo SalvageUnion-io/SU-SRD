@@ -32,17 +32,16 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, PickDialog } from '../../components/index'
-import { useMe } from '../../lib/account/accountApi'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { OwnerSeal } from './OwnerSeal'
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
@@ -62,9 +61,9 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
 
   // The same three questions `GameRoster` asks, so Convex answers both from
   // one subscription each.
-  const me = useMe()
-  const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const viewerId = useViewerId()
+  const members = useGamesQuery(api.games.members, { gameId: gameId as Id<'games'> })
+  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // What this browser holds decides what may be offered: see the header.
   useHydrateEntities(['pilot'])
   const localPilots = usePilots()
@@ -77,7 +76,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
     ownableRows({
       kind: 'pilot',
       rows: listing?.pilots ?? [],
-      viewerId: me?._id ?? null,
+      viewerId,
       members,
       localIds: new Set(localPilots.map((p) => p.id)),
     }).filter((row) => row.localId !== null)

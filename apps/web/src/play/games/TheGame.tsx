@@ -17,7 +17,6 @@
  * not built yet, and what archiving a Game should mean is the owner's decision.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -37,6 +36,7 @@ import {
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesMutation, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useTableRead } from '../../replica/useTable'
 import { pairedCrew } from '../playHub.model'
@@ -80,9 +80,9 @@ export function TheGame({
   onDelete: () => void
 }) {
   const id = useId()
-  const members = useQuery(api.games.members, { gameId })
+  const members = useGamesQuery(api.games.members, { gameId })
   const vitals = useTableRead(api.crew.vitals, { gameId })
-  const setMediator = useMutation(api.games.setMediator)
+  const setMediator = useGamesMutation(api.games.setMediator)
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
   const [chosen, setChosen] = useState<string>('')

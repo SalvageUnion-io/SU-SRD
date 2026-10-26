@@ -17,7 +17,6 @@
  * Mediator's stay private; solo posts to my own channel.
  */
 
-import { useAction, useQuery } from 'convex/react'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { postsByDefault } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -25,6 +24,7 @@ import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { failureMessage } from '../lib/connection/useServerAction'
 import { sendChangeLog } from '../replica/outbox'
+import { useGamesAction, useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
@@ -39,7 +39,7 @@ export function usePlayChannelBinding(
   target: Pick<PlayTarget, 'gameId'>
 ): PlayBinding | null | undefined {
   const { status } = useSync()
-  return useQuery(
+  return useGamesQuery(
     api.channelBindings.current,
     status !== 'live'
       ? 'skip'
@@ -85,7 +85,7 @@ export function usePlayRollDispatch({
   log = true,
 }: DispatchArgs): PlayRollDispatch {
   const { canWrite } = useSync()
-  const postRoll = useAction(api.channelBindings.postRoll)
+  const postRoll = useGamesAction(api.channelBindings.postRoll)
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
   // The listener reads the latest of these, so it subscribes once.

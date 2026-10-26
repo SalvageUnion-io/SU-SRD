@@ -1,8 +1,8 @@
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
 import { relation, Tags } from '../../components/index'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 /**
@@ -13,7 +13,7 @@ import { useSync } from '../../replica/syncContext'
  */
 export function WizardGameChip({ gameId }: { gameId: string }) {
   const { status } = useSync()
-  const game = useQuery(
+  const game = useGamesQuery(
     api.games.get,
     status === 'live' ? { gameId: gameId as Id<'games'> } : 'skip'
   )

@@ -48,6 +48,7 @@ import type { ShareKind, Visibility } from '../../lib/sharing/visibility'
 import { patternChoices, sheetChoices, sheetVisibility } from '../../lib/sharing/visibility'
 import { appUrl } from '../../lib/site'
 import { buildSharingCopy } from '../../messages/build-sharing'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { LinkQr } from './LinkQr'
 import { WhoCanSee } from './WhoCanSee'
 
@@ -116,7 +117,7 @@ function SheetShareSettings({
 }: ShareSettingsProps & { kind: Exclude<ShareKind, 'pattern'> }) {
   const setPublic = useMutation(api.publicSheet.setPublic)
   const published = useQuery(api.publicSheet.get, { kind, appId })
-  const games = useQuery(api.games.listMine, gameId === null ? 'skip' : {})
+  const games = useGamesQuery(api.games.listMine, gameId === null ? 'skip' : {})
   const share = useServerAction(
     (next: Visibility) => setPublic({ kind, appId, isPublic: next === 'link' }),
     SHARE_FAILURE
@@ -162,7 +163,7 @@ function SheetShareSettings({
 function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsProps) {
   const setVisibility = useMutation(api.shelf.setPatternVisibility)
   const sharing = useQuery(api.shelf.patternSharing, {})
-  const games = useQuery(api.games.listMine, {})
+  const games = useGamesQuery(api.games.listMine, {})
   const [pickedGame, setPickedGame] = useState<string | null>(null)
   const share = useServerAction(
     (next: Visibility, nextGame: string | null) =>

@@ -95,6 +95,7 @@ import {
   shownUnder,
 } from '../../lib/shelves/shelfItems'
 import { usePatterns, useTray } from '../../replica/collections'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { ExportAllButton } from '../export/ExportAllButton'
@@ -133,7 +134,7 @@ type ServerFacts = {
 }
 
 function ConnectedShelves() {
-  const games = useQuery(api.games.listMine, {})
+  const games = useGamesQuery(api.games.listMine, {})
   const sharing = useQuery(api.shelf.patternSharing, {})
   const sharedByLink = useQuery(api.shelf.sharedByLink, {})
   return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />

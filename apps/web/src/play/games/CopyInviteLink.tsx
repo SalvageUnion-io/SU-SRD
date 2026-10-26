@@ -10,7 +10,6 @@
  * offline viewer has nothing to copy and sees no button.
  */
 
-import { useMutation } from 'convex/react'
 import { Link2 } from 'lucide-react'
 import { useState } from 'react'
 import { api } from '../../../convex/_generated/api'
@@ -27,6 +26,7 @@ import {
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { inviteUrl } from '../../lib/games/inviteLink'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesMutation } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 type CopyInviteLinkProps = {
@@ -54,7 +54,7 @@ function ConnectedCopyInviteLink({
   gameId,
   clipboardWriter = writeClipboardPromise,
 }: CopyInviteLinkProps) {
-  const link = useMutation(api.invites.link)
+  const link = useGamesMutation(api.invites.link)
   // Both calls start inside the press: the action runs synchronously up to its
   // first await, which is what keeps WebKit's gesture alive for the clipboard.
   const copyLink = useServerAction(
@@ -93,7 +93,7 @@ export function CopyInviteLink(props: CopyInviteLinkProps) {
 }
 
 function ConnectedResetInviteLink({ gameId }: { gameId: Id<'games'> }) {
-  const reset = useMutation(api.invites.reset)
+  const reset = useGamesMutation(api.invites.reset)
   const [confirming, setConfirming] = useState(false)
 
   async function run(): Promise<void> {

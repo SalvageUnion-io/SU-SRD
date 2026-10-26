@@ -21,7 +21,6 @@
  * full-height modal (§5).
  */
 
-import { useQuery } from 'convex/react'
 import { containerOf, sameContainer } from 'game-domain/container'
 import { slotKey } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -71,6 +70,7 @@ import {
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
 import { npcCopy } from '../../messages/build-npc'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { npcStats } from '../roster/rowStats.model'
@@ -118,7 +118,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
   const { status, canWrite } = useSync()
   const connected = status === 'live'
   const crawlers = useCrawlers()
-  const games = useQuery(api.games.listMine, connected ? {} : 'skip')
+  const games = useGamesQuery(api.games.listMine, connected ? {} : 'skip')
 
   /** Whether the viewer may write this crawler: its owner on a shelf, the table runner in a Game. */
   const mayWrite = (c: Crawler) => {
@@ -197,8 +197,8 @@ function CrewSlots({
   const links = useSoftLinkList()
   const where = containerOf(crawler)
   const gameId = where.kind === 'game' ? (where.gameId as Id<'games'>) : null
-  const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const listing = useGamesQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery(api.games.members, gameId === null ? 'skip' : { gameId })
 
   /** Other members' NPCs in this Game, read live and never cached (ADR-037). */
   const theirs = useMemo<Npc[]>(() => {

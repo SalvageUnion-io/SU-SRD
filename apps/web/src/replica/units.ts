@@ -55,6 +55,7 @@ import {
   TABLE_OF_NAME,
   untilArrived,
 } from './replica'
+import { ROOM_FEED } from './roomSocket'
 import { requireWritable, StaleWriteRefused } from './sync'
 import type { CreateInput, EntityForType, EntityType } from './types'
 
@@ -175,7 +176,7 @@ async function sendCreate(
  * The op that takes a unit from the copy held to `updated` (ADR-063): only the
  * fields that moved, made against the copy's `headSeq`, tagged with the
  * surface's provenance. `move` is a crawler's new container, which
- * `moveCrawler` writes rather than the op.
+ * `moveCrawler` writes rather than the op; under the rooms, any unit's.
  */
 function opOf(
   type: EntityType,
@@ -199,7 +200,8 @@ function opOf(
     patch: changed,
     ...(unset.length === 0 ? {} : { unset }),
   }
-  if (type !== 'crawler' || !('gameId' in patch)) return { op }
+  // Under the rooms every container change is a handoff between rooms (`sendOp`).
+  if (!('gameId' in patch) || (type !== 'crawler' && !ROOM_FEED)) return { op }
   delete changed.gameId
   return { op, move: (patch as { gameId?: string | null }).gameId ?? null }
 }

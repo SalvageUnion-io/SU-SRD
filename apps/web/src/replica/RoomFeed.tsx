@@ -8,12 +8,12 @@
  * (`worker/roomAuth.ts`), and the player's Games are Convex's `games.listMine`.
  */
 
-import { useQuery } from 'convex/react'
 import { useEffect, useRef } from 'react'
 import { api } from '../../convex/_generated/api'
 import { useSessionToken } from '../lib/auth/session'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, setRoomScopes, TABLES } from './replica'
+import { useGamesQuery } from './roomCalls'
 import { openRoom } from './roomSocket'
 import { forgetTableState } from './tableState'
 
@@ -27,7 +27,7 @@ function GameFeed({ gameId, token }: { gameId: string; token: string }) {
 
 export function RoomFeed() {
   const token = useSessionToken()
-  const games = useQuery(api.games.listMine, {})
+  const games = useGamesQuery(api.games.listMine, {})
   useEffect(() => {
     setRoomScopes(true)
     return () => setRoomScopes(false)

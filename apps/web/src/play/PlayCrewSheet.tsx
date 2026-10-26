@@ -11,7 +11,6 @@
  * The overlay is level 0 (play.md §12); the note is an unlabelled Callout.
  */
 
-import { useQuery } from 'convex/react'
 import { useMemo } from 'react'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
@@ -22,6 +21,7 @@ import {
 import { Sheet } from '../build/sheet/Sheet'
 import { Callout, ModalShell, Pending } from '../components/index'
 import { playCopy } from '../messages/play'
+import { useGamesQuery } from '../replica/roomCalls'
 
 type PlayCrewSheetProps = {
   gameId: string
@@ -46,7 +46,7 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
 }
 
 function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string }) {
-  const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   const store = useMemo(
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
     [listing]

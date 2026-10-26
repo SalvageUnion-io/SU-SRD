@@ -16,13 +16,13 @@
  * refuses every write a non-Mediator might try (`requireMediator`).
  */
 
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { api } from '../../convex/_generated/api'
 import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
+import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
 import { PlayMediatorCockpit } from './PlayMediatorCockpit'
@@ -46,7 +46,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
 
 function SignedInPlayMediatorGate({ gameId }: { gameId: string }) {
   const id = gameId as Id<'games'>
-  const game = useQuery(api.games.get, { gameId: id })
+  const game = useGamesQuery(api.games.get, { gameId: id })
   // Asked only of a member: a stranger's `games.get` is already `null`.
   const mediates = useTableRead(api.mediator.amMediator, game ? { gameId: id } : 'skip')
 

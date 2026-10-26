@@ -23,6 +23,7 @@ import type { RecordTable, RoomUnit, ServerMessage } from '../rooms/protocol'
 import { ServerMessageSchema } from '../rooms/protocol'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
+import { noteRoomChange } from './roomChanges'
 import { WritesBlockedOffline } from './sync'
 import { dropTableState, isStateTable, putTableState, serveTableState } from './tableState'
 
@@ -236,7 +237,11 @@ export function openRoom(
         acting.delete(reply.id as string)
         if (reply.type === 'answered') pending.resolve(reply.value)
         else pending.reject(new RoomDeclined(reply.reason ?? ''))
-      } else foldRoomMessage(scope, data)
+      } else {
+        foldRoomMessage(scope, data)
+        // What a Game holds changed: its Games reads go again (`roomCalls.ts`).
+        if (reply?.type !== 'presence') noteRoomChange()
+      }
     }
     socket.onclose = () => {
       if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)

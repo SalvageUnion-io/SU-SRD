@@ -30,7 +30,6 @@
 
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
-import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
@@ -63,6 +62,7 @@ import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
+import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
@@ -138,8 +138,8 @@ export function PlayLanding() {
 }
 
 function ConnectedPlayLanding() {
-  const games = useQuery(api.games.listMine, {})
-  const channels = useQuery(api.channelBindings.mine, {}) as MyChannels | undefined
+  const games = useGamesQuery(api.games.listMine, {})
+  const channels = useGamesQuery(api.channelBindings.mine, {}) as MyChannels | undefined
   return <PlayLandingView games={games} channels={channels} connected />
 }
 
@@ -341,7 +341,7 @@ function PlayGameItem({
 }) {
   const gameId = game._id as Id<'games'>
   const downtime = useTableRead(api.downtime.state, { gameId }) ?? undefined
-  const listing = useQuery(api.entities.listForGame, { gameId })
+  const listing = useGamesQuery(api.entities.listForGame, { gameId })
   const vitals = useTableRead(api.crew.vitals, { gameId })
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)

@@ -1,5 +1,4 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
 import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
@@ -17,6 +16,7 @@ import {
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesMutation, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 /**
@@ -127,8 +127,8 @@ type InviteProps = {
 }
 
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
-  const preview = useQuery(api.invites.preview, { code: token })
-  const redeem = useMutation(api.invites.redeem)
+  const preview = useGamesQuery(api.invites.preview, { code: token })
+  const redeem = useGamesMutation(api.invites.redeem)
   const navigate = useNavigate()
 
   const join = useServerAction(() => redeem({ code: token }), {
@@ -181,7 +181,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
  * unauthenticated for exactly this.
  */
 function SignedOutInvite({ token }: { token: string }) {
-  const preview = useQuery(api.invites.preview, { code: token })
+  const preview = useGamesQuery(api.invites.preview, { code: token })
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />

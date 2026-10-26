@@ -262,6 +262,22 @@ const CALLS = {
     return null
   },
 
+  'entities.remove': async (
+    who: Caller,
+    a: { gameId: string; entityId: string },
+    deps: CallDeps
+  ) => {
+    await act(deps.game(a.gameId), who.discordId, 'removeUnit', { unitId: a.entityId })
+    return null
+  },
+  'entities.removeCrawler': async (
+    who: Caller,
+    a: { gameId: string; crawlerId: string },
+    deps: CallDeps
+  ) => {
+    await act(deps.game(a.gameId), who.discordId, 'removeUnit', { unitId: a.crawlerId })
+    return null
+  },
   'entities.listForGame': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const room = deps.game(a.gameId)
     const read = await act(room, who.discordId, 'read', undefined as never)

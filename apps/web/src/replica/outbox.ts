@@ -24,6 +24,8 @@ import { convexClient } from '../lib/connection/convexClient'
 import { captureException } from '../lib/observability'
 import { keepOutbox, readOutbox } from './persist'
 import { row } from './replica'
+import { roomCall } from './roomCalls'
+import { noteRoomChange } from './roomChanges'
 import { ROOM_FEED, RoomDeclined, roomOf } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
@@ -119,7 +121,16 @@ export async function sendOp(
   }
   // Fed by the rooms (`RoomFeed`), an op on a unit in an open room goes there; its
   // new headSeq comes back as the room's `applied`. A move is a handoff
-  // between rooms, still Convex's until the cutover.
+  // between rooms (`entities.move`), then the rest of the op in its new one.
+  if (ROOM_FEED && move !== undefined) {
+    await roomCall('entities.move', { kind: unit, appId: op.unitId, gameId: move })
+    noteRoomChange()
+    if (isEmptyOp(op)) return
+    const target = roomOf(move)
+    if (target === null) throw new WritesBlockedOffline()
+    await target.submit([op])
+    return
+  }
   const room = move === undefined ? roomOf(gameId) : null
   if (room !== null) {
     if (!isEmptyOp(op)) await room.submit([op])

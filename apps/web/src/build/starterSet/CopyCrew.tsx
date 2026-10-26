@@ -16,7 +16,6 @@
  * signing in. Offline it is absent, as every write is.
  */
 
-import { useQuery } from 'convex/react'
 import { SHELF } from 'game-domain/container'
 import { api } from '../../../convex/_generated/api'
 import { HeaderMenu } from '../../components/index'
@@ -25,6 +24,7 @@ import { moveDestinations } from '../../lib/games/gameRoster'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import { starterRoster } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { serializeContainer } from '../entityContainer/containerKey.model'
@@ -36,7 +36,7 @@ const copyCrewReturn = (roster: StarterRosterId) => `/starter?copy=${copyCrewSea
 type CopyCrewProps = { confirm: Confirm; roster?: StarterRosterId }
 
 function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
-  const games = useQuery(api.games.listMine)
+  const games = useGamesQuery(api.games.listMine)
   const kind = starterRoster(roster).crawlers.length > 0 ? 'crawler' : 'pilot'
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
   return (

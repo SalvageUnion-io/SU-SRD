@@ -17,7 +17,6 @@
  * hub has no game UI at all.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import type { FunctionArgs } from 'convex/server'
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
@@ -37,6 +36,7 @@ import {
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildGamesCopy } from '../../messages/build-games'
+import { useGamesMutation, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 type TemplateId = FunctionArgs<typeof api.templates.createGame>['templateId']
@@ -76,9 +76,9 @@ type NewGameDialogProps = {
 function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   // Read only while the dialog is open: the list is for choosing from, and a
   // subscription held for every visit to the hub would serve nobody.
-  const templates = useQuery(api.templates.list, open ? {} : 'skip')
-  const create = useMutation(api.games.create)
-  const createFromTemplate = useMutation(api.templates.createGame)
+  const templates = useGamesQuery(api.templates.list, open ? {} : 'skip')
+  const create = useGamesMutation(api.games.create)
+  const createFromTemplate = useGamesMutation(api.templates.createGame)
   const go = useGo()
 
   const [name, setName] = useState('')

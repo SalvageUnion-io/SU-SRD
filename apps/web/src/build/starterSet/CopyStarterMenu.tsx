@@ -13,7 +13,6 @@
  * in: a copy is a write, and building needs an account (ADR-034 as amended).
  */
 
-import { useQuery } from 'convex/react'
 import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { api } from '../../../convex/_generated/api'
@@ -27,6 +26,7 @@ import {
   starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 
@@ -41,7 +41,7 @@ type CopyStarterMenuProps = {
 type Destination = ReturnType<typeof moveDestinations>[number]
 
 function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStarterMenuProps) {
-  const games = useQuery(api.games.listMine)
+  const games = useGamesQuery(api.games.listMine)
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
 
   function copyTo(target: Destination) {

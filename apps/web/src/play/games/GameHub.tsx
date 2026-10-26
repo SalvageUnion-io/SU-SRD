@@ -32,7 +32,6 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
@@ -48,9 +47,9 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useMe } from '../../lib/account/accountApi'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { StopSignBanner } from '../StopSign'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
@@ -108,8 +107,7 @@ function GameSections({ game }: { game: Game }) {
   // Probed rather than required: component tests render the page without a
   // RouterProvider, and `AppLink` degrades the same way.
   const router = useRouter({ warn: false })
-  const me = useMe()
-  const viewerId = me?._id ?? null
+  const viewerId = useViewerId()
   const sign = useStopSign(gameId)
 
   return (
@@ -173,7 +171,7 @@ function GameSections({ game }: { game: Game }) {
 export function GameHub({ gameId }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
-  const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
+  const game = useGamesQuery(api.games.get, { gameId: gameId as Id<'games'> })
 
   return (
     <PageShell

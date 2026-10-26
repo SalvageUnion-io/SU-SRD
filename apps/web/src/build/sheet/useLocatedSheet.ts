@@ -28,7 +28,6 @@
 
 import type { LinkProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
@@ -37,6 +36,7 @@ import { api } from '../../../convex/_generated/api'
 import { useMe } from '../../lib/account/accountApi'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import type { GameListing } from './readOnlySheetStore.model'
@@ -69,11 +69,12 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const held = useUnits((s) => s.get(kind, id))
 
   const online = sync === 'live'
-  const located = useQuery(api.entities.locate, online ? { kind, id } : 'skip')
+  const located = useGamesQuery(api.entities.locate, online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
-  const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const listing = useGamesQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery(api.games.members, gameId === null ? 'skip' : { gameId })
   const me = useMe(online)
+  const viewerId = useViewerId(online)
 
   // Names the tab after the entity, and follows a rename. The route's `head`
   // can only say "Sheet": it runs once per navigation, and a loader may not
@@ -122,6 +123,8 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
     listedRow,
     members,
     me,
+    /** Who the listing names as the viewer: their id as its holders are named. */
+    viewerId,
     sheetMode,
     /** The way back from a crewmate's sheet: that Game's own page, in Play. */
     crew: gameId === null ? undefined : { href: gamePath(gameId), label: 'the crew' },

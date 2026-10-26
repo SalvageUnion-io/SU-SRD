@@ -23,12 +23,12 @@
 
 import type { LinkProps } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { api } from '../../../convex/_generated/api'
 import { Badge, tokens } from '../../components/index'
 import { entityContainerCopy } from '../../messages/build-entity-container'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
@@ -41,7 +41,7 @@ import { ContainerPicker } from './ContainerPicker'
  * whole membership.
  */
 function useGameEntries(): ContainerChoice[] | undefined {
-  const games = useQuery(api.games.listMine, {})
+  const games = useGamesQuery(api.games.listMine, {})
   return games?.map((game) => ({
     label: game.name,
     hint: game.mediator ? entityContainerCopy('mediator') : entityContainerCopy('player'),

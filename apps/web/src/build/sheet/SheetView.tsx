@@ -30,12 +30,12 @@
  * `Route` (`routes/__tests__/routeExports.test.ts`).
  */
 
-import { useQuery } from 'convex/react'
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { useMemo } from 'react'
 import { api } from '../../../convex/_generated/api'
 import type { Id } from '../../../convex/_generated/dataModel'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CrewSheetBanner } from './CrewSheetBanner'
 import type { EntityLookup } from './composition.model'
@@ -51,14 +51,17 @@ type SheetViewProps = { kind: SheetKind; id: string }
 
 export function SheetView({ kind, id }: SheetViewProps) {
   const { status: sync } = useSync()
-  const { status, held, gameId, listing, members, me, sheetMode, crew } = useLocatedSheet(kind, id)
+  const { status, held, gameId, listing, members, viewerId, sheetMode, crew } = useLocatedSheet(
+    kind,
+    id
+  )
 
   // The Game whose crawler this sheet's cargo reaches: the server's answer once
   // it has one, the local copy's until then (a linked crawler shares its
   // container, ADR-037). Closed until the server says the viewer runs it.
   const heldIn = held === null ? null : containerOf(held)
   const tableId = gameId ?? (heldIn?.kind === 'game' ? (heldIn.gameId as Id<'games'>) : null)
-  const table = useQuery(
+  const table = useGamesQuery(
     api.games.get,
     sync === 'live' && tableId !== null ? { gameId: tableId } : 'skip'
   )
@@ -66,8 +69,8 @@ export function SheetView({ kind, id }: SheetViewProps) {
 
   // Who holds each listed pilot and mech: the owner chips on Assigned units.
   const ownerOf = useMemo<OwnerOf | undefined>(
-    () => (listing && members ? ownersFromListing(listing, members, me?._id ?? null) : undefined),
-    [listing, members, me]
+    () => (listing && members ? ownersFromListing(listing, members, viewerId) : undefined),
+    [listing, members, viewerId]
   )
 
   const store = useMemo(

@@ -56,7 +56,6 @@
  * and the Convex read would have no provider.
  */
 
-import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
@@ -67,6 +66,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { entityContainerCopy } from '../../messages/build-entity-container'
 import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { ContainerPicker } from './ContainerPicker'
@@ -101,7 +101,7 @@ function ConnectedMoveToContainerControl({
   onChanged,
   className,
 }: MoveToContainerControlProps) {
-  const games = useQuery(api.games.listMine)
+  const games = useGamesQuery(api.games.listMine)
 
   const current = containerOf(entity)
   const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })

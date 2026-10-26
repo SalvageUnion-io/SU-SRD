@@ -29,7 +29,6 @@
  * in `useRowActions` and `lib/games/rowActionCopy.ts`.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -50,7 +49,6 @@ import {
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { useMe } from '../../lib/account/accountApi'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -65,6 +63,7 @@ import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesMutation, useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
@@ -100,16 +99,15 @@ const BODY = {
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
-  const rowActions = useRowActions(confirm)
+  const rowActions = useRowActions(confirm, gameId)
   const go = useGo()
 
-  const me = useMe()
-  const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const members = useGamesQuery(api.games.members, { gameId: gameId as Id<'games'> })
+  const listing = useGamesQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
   const vitals = useTableRead(api.crew.vitals, { gameId: gameId as Id<'games'> })
 
-  const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
+  const makePrimary = useServerAction(useGamesMutation(api.games.setPrimaryCrawler), {
     failure: 'That crawler could not be made primary. Try again.',
   })
   const busy = makePrimary.pending
@@ -122,7 +120,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const localMechs: Mech[] = useMechs()
   const localCrawlers: Crawler[] = useCrawlers()
 
-  const viewerId = me?._id ?? null
+  const viewerId = useViewerId()
   const roster = members ?? []
   const caps = tableCapabilities({
     viewerId,

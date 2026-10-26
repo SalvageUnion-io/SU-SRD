@@ -51,6 +51,7 @@ import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useEncounters, usePatterns } from '../../replica/collections'
 import { PLAY_TXN } from '../../replica/provenance'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { ROOM_FEED } from '../../replica/roomSocket'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -194,10 +195,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
-  const members = useQuery(api.games.members, { gameId: id })
+  const members = useGamesQuery(api.games.members, { gameId: id })
   const crew = useTableRead(api.crew.vitals, { gameId: id })
   const seats = useTableRead(api.seats.forGame, { gameId: id })
-  const listing = useQuery(api.entities.listForGame, { gameId: id })
+  const listing = useGamesQuery(api.entities.listForGame, { gameId: id })
   const npcs = useTableRead(api.mediator.npcs, { gameId: id })
   const running = useTableRead(api.mediator.running, { gameId: id })
   const encounters = useEncounters((s) => s.encounters)
