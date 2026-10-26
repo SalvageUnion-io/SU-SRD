@@ -169,7 +169,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
           <Stat
             label={componentsCopy('abilities')}
             value={`Up to ${plan.classEntity.maxAbilities}`}
-            size="mini"
+            size="compact"
           />
         }
       />

@@ -782,10 +782,23 @@
   margin-block: var(--space-4);
 }
 
-/* The cost box is its chips' height on the band, never stretched to a line. */
-/* (The fill's item is the edge on an ink ground, the box itself on a colour.) */
+/* The cost box is its chips' height on the band (R12), never stretched to a
+   line: Compact, Mini on a phone as the band's chips are (`reference-card.css`).
+   (The fill's item is the edge on an ink ground, the box itself on a colour.) */
 .su-chapter-band__row[data-chip-fill] :is(.su-cost-edge, .su-cost)[data-fill-item] {
   align-self: flex-start;
+  box-sizing: border-box;
+  height: var(--size-compact);
+}
+
+.su-chapter-band__row[data-chip-fill] .su-cost-edge[data-fill-item] > .su-cost {
+  height: 100%;
+}
+
+@media not (width >= 40rem) {
+  .su-chapter-band__row[data-chip-fill] :is(.su-cost-edge, .su-cost)[data-fill-item] {
+    height: var(--size-mini);
+  }
 }
 
 .su-chapter-band[data-aside='notch']
@@ -1063,15 +1076,17 @@
   padding-inline: var(--space-14);
 }
 
-/* On a phone Share is its glyph alone, a square at the action's height
-   (its name stays its `aria-label`), so the title's line keeps its room for
-   the stamps. */
+/* On a phone the action is Mini, as the band's chips are (`reference-card.css`),
+   and Share is its glyph alone, a square at that height (its name stays its
+   `aria-label`), so the title's line keeps its room for the stamps. */
 @media not (width >= 40rem) {
   .su-chapter-band__action {
+    --su-band-action: var(--size-mini);
     column-gap: var(--space-4);
   }
 
   .su-chapter-band__action .su-page-action {
+    font-size: var(--text-badge);
     padding-inline: var(--space-8);
   }
 

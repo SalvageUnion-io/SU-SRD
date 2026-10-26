@@ -90,6 +90,37 @@
   min-width: 0;
 }
 
+/* On a phone a Page's band chips are Mini, as its action is (`shell.css`):
+   the title's line keeps room for them, so the band never grows once they
+   are laid out (R12: one Size on the line, Compact again from `sm`). */
+@media not (width >= 40rem) {
+  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
+    .su-stat-cell--compact {
+    height: var(--size-mini);
+    min-height: var(--size-mini);
+  }
+
+  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
+    .su-stat-plate--compact {
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-normal);
+  }
+
+  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
+    .su-chip-lane
+    > .su-badge-stamp.su-rung-pad--full {
+    height: var(--size-mini);
+  }
+
+  /* The cost box's rung is its inline style (`ActivationCost`), so only
+     `!important` reaches its type size from here. */
+  .su-entity-stamps .su-cost,
+  .su-chapter-band__overflow .su-cost {
+    font-size: var(--text-xs) !important;
+    padding-block: 0;
+  }
+}
+
 /* From `sm` a Page's chips take a larger type, at their Compact height still,
    beside its Compact "Build With This" (R12), wherever the strip lands: the
    band, or the page's first row it overflows into; a sheet's band chips
