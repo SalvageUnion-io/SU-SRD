@@ -21,12 +21,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-  softLinkFixture,
-} from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
@@ -35,6 +29,14 @@ import {
 } from '../../../components/__tests__/mockEntityStore'
 import { useUnits } from '../../../replica/units'
 import { Sheet } from '../Sheet'
+import {
+  fakeCrawler,
+  fakeMech,
+  fakePilot,
+  mechToCrawler,
+  mechToPilot,
+  pilotToCrawler,
+} from './sheetFixtures'
 
 // Each, not All: the afterEach below un-hydrates the live store.
 beforeEach(hydrateStores)
@@ -51,31 +53,6 @@ afterEach(() => {
     hydrated: { pilots: false, mechs: false, crawlers: false, npcs: false, softLinks: false },
   })
 })
-
-const fakePilot = pilotFixture({
-  id: 'pilot-1',
-  name: 'Yara Voss',
-  callsign: 'Ghost',
-  motto: 'Waste not.',
-  keepsake: 'A bent coin.',
-  appearance: 'Tall, weathered.',
-})
-
-const fakeMech = mechFixture({
-  id: 'mech-1',
-  name: 'Iron Fist',
-  chassisRef: 'iron-mongrel',
-})
-
-const fakeCrawler = crawlerFixture({
-  id: 'crawler-1',
-  name: 'Iron Tortoise',
-  techLevel: 'tech-2',
-})
-
-const mechToPilot = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-const pilotToCrawler = softLinkFixture('pilot-to-crawler', 'pilot-1', 'crawler-1')
-const mechToCrawler = softLinkFixture('mech-to-crawler', 'mech-1', 'crawler-1')
 
 // ---------------------------------------------------------------------------
 // 1. Cross-links on the rail

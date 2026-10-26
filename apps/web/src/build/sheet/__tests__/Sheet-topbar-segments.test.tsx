@@ -15,12 +15,6 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-  softLinkFixture,
-} from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
@@ -28,32 +22,9 @@ import {
 } from '../../../components/__tests__/mockEntityStore'
 import { buttonVariants } from '../../../components/index'
 import { Sheet } from '../Sheet'
+import { fakeCrawler, fakeMech, fakePilot, mechToPilot, pilotToCrawler } from './sheetFixtures'
 
 beforeAll(hydrateStores)
-
-const fakePilot = pilotFixture({
-  id: 'pilot-1',
-  name: 'Yara Voss',
-  callsign: 'Ghost',
-  motto: 'Waste not.',
-  keepsake: 'A bent coin.',
-  appearance: 'Tall, weathered.',
-})
-
-const fakeMech = mechFixture({
-  id: 'mech-1',
-  name: 'Iron Fist',
-  chassisRef: 'iron-mongrel',
-})
-
-const fakeCrawler = crawlerFixture({
-  id: 'crawler-1',
-  name: 'Iron Tortoise',
-  techLevel: 'tech-2',
-})
-
-const mechToPilot = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-const pilotToCrawler = softLinkFixture('pilot-to-crawler', 'pilot-1', 'crawler-1')
 
 // ---------------------------------------------------------------------------
 // Top-bar Edit action
