@@ -99,11 +99,10 @@ export const pagesCopy = messages({
   rollsFromPlay: 'Rolls from Play:',
   errorDiagnostics: 'Error diagnostics',
   toKeepTheBotReliable:
-    'To keep the Bot reliable, unexpected errors are logged by our hosting provider (Cloudflare). These logs can include technical details about the error and the interaction that triggered it. They are used only to diagnose and fix bugs and are retained per that provider’s standard retention. Errors in the salvageunion.io backend are logged by Convex the same way.',
+    'To keep the Bot and salvageunion.io reliable, unexpected errors are logged by our hosting provider (Cloudflare). These logs can include technical details about the error and the interaction that triggered it. They are used only to diagnose and fix bugs and are retained per that provider’s standard retention.',
   thirdParties: 'Third parties',
   discord: 'Discord',
   cloudflare: 'Cloudflare',
-  convex: 'Convex',
   github: 'GitHub',
   hostsThePublicIssues: '— hosts the public issues your feedback becomes.',
   yourData: 'Your data',
