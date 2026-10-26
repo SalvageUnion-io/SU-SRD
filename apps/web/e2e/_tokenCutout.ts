@@ -3,16 +3,21 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * The cut-out head on a CONTENTFUL Mini (N3), as the rendered page draws it.
- * Every Mini, Compact and index Compact sets its name on a tab of the paper notched into
- * its band's foot; a contentful Mini's tab opens into its body's paper, as a
- * Compact's opens into its body, so no rule runs between head and body.
+ * The cut-out head on every Mini (R45), as the rendered page draws it.
+ * Every Mini, Compact and index Compact sets its name on a tab notched into
+ * its band's foot, no edge under it. A header-only Mini's tab is its ground
+ * (`--su-ground`), standing on the pill's foot; a contentful Mini's (N3) is
+ * the paper and opens into its body's paper, as a Compact's opens into its
+ * body, so no rule runs between head and body.
  * `findTokenCutouts` returns one finding per fault:
  *
  * - **tab** the name is not on the cut-out (`.su-entity-mini__notch`).
- * - **paper** the tab is not the paper.
+ * - **paper** a contentful Mini's tab is not the paper.
+ * - **cut** a header-only Mini's tab is not its ground.
  * - **strip** less than `MIN_STRIP` of the paint shows above the tab: the
  *   head reads as a flat bar with the name on it.
+ * - **foot** a header-only Mini's tab stops above the pill's foot: its edge
+ *   or paint runs under the name.
  * - **open** the tab does not meet the body: a rule (the pill's edge) or a
  *   gap runs between them.
  * - **ground** the body is not the paper, so the tab stands on it as a box
@@ -25,13 +30,16 @@ import { fromFaults } from './_findings'
  */
 export type MiniCutoutSelectors = {
   token: string
+  /** The contentful Minis among `token`. */
+  contentful: string
   pill: string
   notch: string
   body: string
 }
 
 export const TOKEN_CUTOUT_SELECTORS: MiniCutoutSelectors = {
-  token: '.su-entity-mini[data-contentful]',
+  token: '.su-entity-mini',
+  contentful: '.su-entity-mini[data-contentful]',
   pill: '.su-entity-mini__pill',
   notch: '.su-entity-mini__notch',
   body: ':scope > .su-entity-mini__body',
@@ -54,6 +62,15 @@ export function scanMiniCutouts({
   document.body.append(probe)
   const paper = getComputedStyle(probe).backgroundColor
   probe.remove()
+  /** The ground a header-only Mini stands on, resolved where it stands. */
+  const groundOf = (token: HTMLElement) => {
+    const here = document.createElement('span')
+    here.style.backgroundColor = 'var(--su-ground)'
+    token.append(here)
+    const color = getComputedStyle(here).backgroundColor
+    here.remove()
+    return color
+  }
   const faults: string[] = []
   for (const token of document.querySelectorAll<HTMLElement>(a.token)) {
     const pill = token.querySelector<HTMLElement>(a.pill)
@@ -68,15 +85,30 @@ export function scanMiniCutouts({
       faults.push(`tab: ${name}'s name is not on the cut-out`)
       continue
     }
+    const contentful = token.matches(a.contentful)
     const ns = getComputedStyle(notch)
-    if (ns.backgroundColor !== paper) {
+    if (contentful && ns.backgroundColor !== paper) {
       faults.push(`paper: ${name}'s tab is ${ns.backgroundColor}, not the paper`)
+    }
+    if (!contentful) {
+      const ground = groundOf(token)
+      if (ns.backgroundColor !== ground) {
+        faults.push(`cut: ${name}'s tab is ${ns.backgroundColor}, not its ground ${ground}`)
+      }
     }
     const ps = getComputedStyle(pill)
     const nr = notch.getBoundingClientRect()
     const strip = nr.top - (pr.top + Number.parseFloat(ps.borderTopWidth || '0'))
     if (strip < minStrip - 0.25) {
       faults.push(`strip: ${name} shows ${strip.toFixed(1)}px of paint over its tab`)
+    }
+    if (!contentful) {
+      if (Math.abs(pr.bottom - nr.bottom) > 0.5) {
+        faults.push(
+          `foot: ${name}'s tab stops ${(pr.bottom - nr.bottom).toFixed(1)}px above its foot`
+        )
+      }
+      continue
     }
     const body = token.querySelector<HTMLElement>(a.body)
     const br = body?.getBoundingClientRect()
@@ -92,7 +124,7 @@ export function scanMiniCutouts({
   return faults
 }
 
-/** Every contentful Mini's cut-out fault on the page. */
+/** Every Mini's cut-out fault on the page. */
 export async function findTokenCutouts(page: Page): Promise<Finding[]> {
   const faults = await page.evaluate(scanMiniCutouts, {
     a: TOKEN_CUTOUT_SELECTORS,

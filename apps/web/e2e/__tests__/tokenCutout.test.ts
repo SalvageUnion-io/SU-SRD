@@ -1,5 +1,5 @@
 /**
- * The contentful Mini cut-out scan (`_tokenCutout.ts`) on hand-written markup
+ * The Mini cut-out scan (`_tokenCutout.ts`) on hand-written markup
  * in the Mini's class names: a tab of paper with the paint over it, opening
  * into a paper body, passes; each way the head
  * goes flat is its own fault.
@@ -67,6 +67,12 @@ const token = ({
   return `<div class="su-entity-mini" data-contentful><span class="su-entity-mini__head"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px">${head}</span></span><div class="su-entity-mini__body" data-box="${bodyTop} 80" style="background-color: ${bodyBg}">Text</div></div>`
 }
 
+const GROUND = 'rgb(239, 235, 228)'
+
+/** A header-only Mini: the tab is its ground, on the pill's foot (no edge under it). */
+const headerToken = ({ notchBg = GROUND, tab = [5, 24] }: Parts = {}) =>
+  `<style>:root { --su-ground: ${GROUND} }</style><a class="su-entity-mini"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: ${BAND}; border-top-width: 1.5px"><span class="su-entity-mini__notch" data-box="${tab.join(' ')}" style="background-color: ${notchBg}"><span class="su-entity-mini__name">Mule</span></span></span></a>`
+
 const scan = () => scanMiniCutouts({ a: TOKEN_CUTOUT_SELECTORS, minStrip: MIN_STRIP })
 
 describe('token cut-out scan', () => {
@@ -107,5 +113,20 @@ describe('token cut-out scan', () => {
       token({ notch: false }).replace('data-box="0 24"', 'data-box="0 0"')
     )
     expect(scan()).toEqual([])
+  })
+
+  test('a header-only tab of its ground, on the foot, passes', () => {
+    document.body.innerHTML = withPaper(headerToken())
+    expect(scan()).toEqual([])
+  })
+
+  test("a header-only tab over the pill's edge, short of its foot, is found", () => {
+    document.body.innerHTML = withPaper(headerToken({ tab: [5, 22.5] }))
+    expect(scan()).toEqual(["foot: Mule's tab stops 1.5px above its foot"])
+  })
+
+  test('a header-only tab that is not its ground is found', () => {
+    document.body.innerHTML = withPaper(headerToken({ notchBg: PAPER }))
+    expect(scan()).toEqual([`cut: Mule's tab is ${PAPER}, not its ground ${GROUND}`])
   })
 })

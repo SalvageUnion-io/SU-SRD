@@ -994,10 +994,12 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   align-items: stretch;
   align-self: flex-start;
   /* No ink edge on a head alone; its width stays,
-     so nothing moves. A contentful Mini's pill is inked (below). */
+     so nothing moves. A contentful Mini's pill is inked (below). No edge
+     at its foot (R45): the name's tab stands on it, as a Compact's does,
+     the edge's width added over the tab so the pill keeps its height. */
   border-color: transparent;
   border-style: solid;
-  border-width: var(--bw-chrome);
+  border-width: var(--bw-chrome) var(--bw-chrome) 0;
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -1007,7 +1009,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: var(--space-2) var(--space-6) 0 var(--space-4);
+  padding: calc(var(--space-2) + var(--bw-chrome)) var(--space-6) 0 var(--space-4);
   position: relative;
   white-space: nowrap;
 }
@@ -1031,12 +1033,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
    (R38) round its paint but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is
    the header-only Mini's strip (its clear edge and its padding), so the head
-   never reads as a flat bar. The pill's height is unchanged. Gated by
-   `e2e/token-cutout.e2e.ts`. */
+   never reads as a flat bar. Gated by `e2e/token-cutout.e2e.ts`. */
 .su-entity-mini[data-contentful] .su-entity-mini__pill {
-  border-bottom-width: 0;
   border-color: var(--su-compact-frame, var(--color-ink-40));
-  padding-top: calc(var(--space-2) + var(--bw-chrome));
 }
 
 /* The note stamp is the mini ink stamp (`Badge shape="stamp"`); in the pill's

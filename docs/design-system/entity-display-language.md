@@ -15,7 +15,7 @@ Code: `apps/web/src/components/entity/`.
 Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in +MORE, C5) or **contentful** (overflow opens the content, C2b).
 
 1. **Mention** — an entity named in prose, in its type; links where a route exists, Peeks on hover or long-press.
-2. **Mini** (`<Entity size="mini">`) — `name [chips] [actions]`, one row filling its line, name cut out; links and Peeks as a Mention. Contentful (N3): then its text in the subtle frame (E21).
+2. **Mini** (`<Entity size="mini">`) — `name [chips] [actions]`, one row filling its line, name cut out on its foot; links and Peeks as a Mention. Contentful (N3): then its text in the subtle frame (E21).
 3. **Compact** (`<Entity size="compact">`) — every list: head (art window at the band's left, ≥ 18rem with art; tier, name cut out, chips beside it, mode slot), a body only for a lead, stamp or linked units.
    In a `data-entity-grid` every Compact is one height and each name line reserves two.
    **Index layout** (`layout="index"`) — the SRD index's: 3:4 art if any, name notched in the band, facts, lead; link only.
