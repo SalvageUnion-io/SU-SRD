@@ -15,7 +15,6 @@ import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
-import '../../styles/build/wizard.css'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 

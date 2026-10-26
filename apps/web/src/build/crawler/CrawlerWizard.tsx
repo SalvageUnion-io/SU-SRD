@@ -43,7 +43,6 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
-import '../../styles/build/wizard.css'
 
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties

@@ -11,7 +11,6 @@ import {
   Slab,
   tokens,
 } from '../../components/index'
-import '../../styles/build/wizard.css'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
 

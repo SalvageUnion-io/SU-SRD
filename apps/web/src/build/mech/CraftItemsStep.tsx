@@ -3,7 +3,6 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationModule, isLegalCreationSystem } from 'salvageunion-reference/rules'
 import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { maxAddableCopies } from '../../lib/rules/creation'
-import '../../styles/build/wizard.css'
 import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 

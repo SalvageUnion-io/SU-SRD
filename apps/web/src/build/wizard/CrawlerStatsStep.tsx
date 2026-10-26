@@ -4,7 +4,6 @@ import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import { Pending, Stat, tokens } from '../../components/index'
-import '../../styles/build/wizard.css'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { fullWidthStyle } from './wizardStyles.model'
 

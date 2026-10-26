@@ -8,9 +8,8 @@ import {
   ReferenceEntityCard,
   tokens,
 } from '../../components/index'
-import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
-import '../../styles/build/wizard.css'
 import { readReference } from '../../lib/readReference'
+import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { mechCopy } from '../../messages/build-mech'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 import { SavePatternButton } from './Pattern/SavePatternButton'

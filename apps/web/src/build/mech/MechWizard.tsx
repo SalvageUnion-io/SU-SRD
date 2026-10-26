@@ -16,7 +16,6 @@ import {
   withPatternPrefill,
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
-import '../../styles/build/wizard.css'
 import { mechCopy } from '../../messages/build-mech'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'

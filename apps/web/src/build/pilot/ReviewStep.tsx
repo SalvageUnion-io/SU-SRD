@@ -3,7 +3,6 @@ import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Box, EmptyState, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
-import '../../styles/build/wizard.css'
 import { pilotCopy } from '../../messages/build-pilot'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 

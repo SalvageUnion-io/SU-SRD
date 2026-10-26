@@ -4,7 +4,6 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { EmptyState, Slab, Stat, tokens } from '../../components/index'
 import { ActionMinis } from '../../components/referenceEntity/card/NestedCards'
-import '../../styles/build/wizard.css'
 import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle } from '../wizard/wizardStyles.model'
 

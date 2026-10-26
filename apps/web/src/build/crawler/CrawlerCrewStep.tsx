@@ -7,7 +7,6 @@ import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
-import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties

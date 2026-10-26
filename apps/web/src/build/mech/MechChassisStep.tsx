@@ -20,7 +20,6 @@ import {
   tokens,
 } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
-import '../../styles/build/wizard.css'
 import { mechCopy } from '../../messages/build-mech'
 import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
 
