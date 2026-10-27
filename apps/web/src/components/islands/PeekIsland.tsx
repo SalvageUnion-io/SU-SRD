@@ -1,5 +1,6 @@
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
+import { clientSwap } from '../../runtime/clientSwap'
 import type { PeekLoader } from '../index'
 import { PeekHost } from '../index'
 import { ReferenceSurface } from '../ReferenceSurface'
@@ -29,3 +30,6 @@ export function PeekIsland() {
     </ReferenceSurface>
   )
 }
+
+/** The island as Astro hydrates it: `PeekIsland` swapped in over its stand-in (`clientSwap`). */
+export const PeekIslandClient = clientSwap('PeekIsland', PeekIsland)

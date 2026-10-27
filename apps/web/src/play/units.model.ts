@@ -19,7 +19,7 @@ import {
 } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { BoardOption } from './boardMenu.model'
 import type { Situation } from './situation.model'
 import { bayConditions } from './unitStats.model'
@@ -77,7 +77,7 @@ export function mechRestorePreview(
   if (downtimeGuideSteps()[stepIndex]?.name !== RESTORE_STEP_NAME) return {}
   const patch = downtimeMechPatch(
     mech,
-    crawler === null ? 1 : (crawlerTechLevelOf(crawler) ?? 1),
+    crawler === null ? 1 : (parseCrawlerTechLevel(crawler.techLevel) ?? 1),
     allDowntimeSteps(),
     crawler === null ? undefined : mechBayStatus(crawler)
   )

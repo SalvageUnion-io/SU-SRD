@@ -1,79 +1,80 @@
 /**
- * The Cockpit's frame (Play, Direction A): the Play bar, the three columns as
- * named regions with Slab headings, and the foot, on the fixed canvas. Who
+ * The Cockpit's frame (Play, Direction A): the Play bar, then from `lg` the
+ * three columns as named regions with Slab headings and the foot, and below
+ * it the same panes as tabs under the pinned row (play.md §11). Who
  * may open it is `PlayGate`'s, tested in `PlayGate.connected.test.tsx`; the
  * columns' content arrives with their own issues.
  *
  * Without a router, so the bar's "‹ Play" is a plain anchor.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
-import { phoneViewport } from './phoneViewport'
+import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
+import type { SyncStatus } from '../../replica/sync'
+import { narrowViewport } from './narrowViewport'
 
-// Module scope, before the imports below — see `convexMock.ts`. The frame
+// Module scope, before the imports below — see `serverMock.ts`. The frame
 // reads the seat and the Downtime (`usePlaySituation`): an empty seat, with
 // no Downtime running. The Situation itself is `PlaySituation.connected.test.tsx`'s.
-const convexMocks = await installConvexMocks()
+const serverMocks = await installServerMocks()
 const NOT_RUNNING = { running: false, stepIndex: null, completedBy: [], upkeepSpent: false }
 const ANSWERS = {
-  'seats:solo': null,
-  'seats:forGame': [],
-  'scenes:current': { conditions: [], hours: 0 },
-  'downtime:state': NOT_RUNNING,
+  'seats.solo': null,
+  'seats.forGame': [],
+  'scenes.current': { conditions: [], hours: 0 },
+  'downtime.state': NOT_RUNNING,
   // No area named to Area Salvage.
-  'salvageAreas:here': null,
-  'games:members': [],
-  'entities:listForGame': null,
-  'account:me': null,
-  // The channel button, the Crew, Tables and Feed (`PlaySideColumn`): no
+  'salvageAreas.here': null,
+  'games.members': [],
+  'entities.listForGame': null,
+  'account.me': null,
+  // The channel button, the Crew, Tables and Feed panes: no
   // channel bound, no crew read yet, nothing on the Game's log.
-  'channelBindings:current': null,
-  'safety:stopSign': null,
-  'games:get': null,
-  'changeLog:rolls': [],
-  'proposals:alerts': [],
-  'proposals:pending': [],
-  'crew:vitals': null,
+  'channelBindings.current': null,
+  'safety.stopSign': null,
+  'games.get': null,
+  'changeLog.rolls': [],
+  'changeLog.alerts': [],
+  'ops.pending': [],
+  'crew.vitals': null,
 }
-setQueryAnswers(ANSWERS)
+answerReads(ANSWERS)
 
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
-const { useEntityStore } = await import('../../stores/entityStore')
+const { resetSync } = await import('../../replica/sync')
+const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { PlayCockpit } = await import('../PlayCockpit')
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  await useEntityStore.getState().adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren' }))
+  resetSync()
+  await useUnits.getState().adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren' }))
 })
 
 afterAll(async () => {
-  await useEntityStore.getState().forget('pilot', 'cockpit-wren')
-  convexMocks.restore()
+  await useUnits.getState().forget('pilot', 'cockpit-wren')
+  serverMocks.restore()
 })
 
 async function renderCockpit(
   target: { gameId: string | null; gameName: string | null },
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
   const state = {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={state}>
+      <SyncContext.Provider value={state}>
         <PlayCockpit target={{ pilotId: 'cockpit-wren', mediator: false, ...target }} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -124,9 +125,9 @@ describe('the Cockpit frame', () => {
   })
 
   test('in a Game, the bar has Stop; up, the Stop Sign pauses the screen under the bar', async () => {
-    setQueryAnswers({
+    answerReads({
       ...ANSWERS,
-      'safety:stopSign': {
+      'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
         mayManage: false,
@@ -142,7 +143,7 @@ describe('the Cockpit frame', () => {
       expect(screen.getByText('Stop Sign: the game is paused')).toBeTruthy()
       expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
     } finally {
-      setQueryAnswers(ANSWERS)
+      answerReads(ANSWERS)
     }
   })
 
@@ -152,9 +153,9 @@ describe('the Cockpit frame', () => {
   })
 
   test('a bound channel: the button names it, as it was when bound', async () => {
-    setQueryAnswers({
+    answerReads({
       ...ANSWERS,
-      'channelBindings:current': { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 },
+      'channelBindings.current': { channelId: 'c-1', channelName: 'salvage-run', boundAt: 1 },
     })
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
@@ -163,7 +164,7 @@ describe('the Cockpit frame', () => {
         '#salvage-run'
       )
     } finally {
-      setQueryAnswers(ANSWERS)
+      answerReads(ANSWERS)
     }
   })
 
@@ -181,22 +182,20 @@ describe('the Cockpit frame', () => {
     ).toEqual(['Crew', 'Tables', 'Feed'])
   })
 
-  test('the foot says play is saved and who it reaches; on the fixed canvas', async () => {
+  test('the foot says who play reaches; no tabs from `lg`', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const foot = within(screen.getByRole('contentinfo'))
-    expect(foot.getByRole('status').textContent).toBe('● Saved')
     expect(foot.getByText('Solo · nothing is shared')).toBeTruthy()
-    expect(document.querySelector('.su-play-canvas')).not.toBeNull()
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.queryByRole('tabpanel')).toBeNull()
   })
 
-  test('offline, Play is read-only and says so: the bar’s stamp and the foot', async () => {
-    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'disconnected')
+  test('offline, Play is read-only and says so once, in the bar’s stamp', async () => {
+    await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
     expect(screen.queryByText(/● Live/)).toBeNull()
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('status').textContent).toBe('Read-only · disconnected')
-    expect(within(screen.getByRole('contentinfo')).getByRole('status').textContent).toBe(
-      '○ Offline · read-only'
-    )
+    expect(bar.getByRole('status').textContent).toBe('Offline · read-only')
+    expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()
   })
 
   test('solo has no Crew section: Tables and Feed only', async () => {
@@ -206,13 +205,14 @@ describe('the Cockpit frame', () => {
   })
 })
 
-describe('below the canvas’s floor: the phone form (play.md §11)', () => {
-  test('a 390×844 phone gets the tabs, not the canvas; the bar on top, the switch pinned', async () => {
-    const restore = phoneViewport()
+describe('below `lg`: the same panes as tabs (play.md §11)', () => {
+  test('a 390px phone gets the tabs, not the columns; the bar on top, the switch pinned', async () => {
+    const restore = narrowViewport()
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
-      expect(document.querySelector('.su-play-canvas')).toBeNull()
-      expect(document.querySelector('.su-play-root--phone .su-play-phone')).not.toBeNull()
+      expect(screen.queryByRole('region', { name: 'Units' })).toBeNull()
+      // No foot: the tabs take the screen's foot.
+      expect(screen.queryByRole('contentinfo')).toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
       expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
       const bar = within(screen.getByRole('banner'))
@@ -221,11 +221,16 @@ describe('below the canvas’s floor: the phone form (play.md §11)', () => {
       expect(bar.getByRole('link', { name: 'Back to Game' }).textContent).toBe('Back to Game')
       expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
       expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
-      // The page never scrolls: the host fits the screen and hides overflow.
-      const host = document.querySelector('.su-play-root--phone') as HTMLElement
-      expect(host.style.overflow).toBe('hidden')
     } finally {
       restore()
     }
   })
 })
+
+/** Answer the Games reads, and serve the Game room's records from the table reads among them. */
+function answerReads(answers: Record<string, unknown>): void {
+  setQueryAnswers(answers)
+  serveReads('g1', answers)
+}
+
+afterEach(closeRooms)

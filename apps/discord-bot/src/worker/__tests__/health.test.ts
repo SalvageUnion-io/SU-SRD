@@ -1,5 +1,6 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import worker from '../index'
+import { withFetchStub } from './stubFetch'
 
 /**
  * The `/health` endpoint.
@@ -21,32 +22,14 @@ import worker from '../index'
  *      answer.
  */
 
-const realFetch = globalThis.fetch
-
-afterEach(() => {
-  globalThis.fetch = realFetch
-})
-
-/**
- * Replace `fetch` for the duration of one test. Restored in `afterEach`.
- *
- * The input is spelled out rather than using `RequestInfo`: this app has no DOM
- * lib, so that name does not exist here — the same reason `verify.ts` declares
- * its own WebCrypto slice.
- */
-function stubFetch(
-  handler: (input: string | URL | Request, init?: RequestInit) => Promise<Response>
-) {
-  globalThis.fetch = handler as typeof fetch
-}
+const stubFetch = withFetchStub()
 
 function envWith(overrides: Partial<Env> = {}): Env {
   return {
     DISCORD_PUBLIC_KEY: 'ab'.repeat(32),
     DISCORD_APPLICATION_ID: '111111111111111111',
     DISCORD_TOKEN: 'a-token',
-    BACKEND_SITE_URL: 'https://x.convex.site',
-    BOT_SECRET: 'a-secret',
+    SITE: { answer: async () => null },
     ...overrides,
   } as Env
 }
@@ -84,7 +67,6 @@ describe('/health', () => {
     // Nothing about the token itself, and not Discord's response body — which
     // can echo request details.
     expect(JSON.stringify(body)).not.toContain('a-token')
-    expect(JSON.stringify(body)).not.toContain('a-secret')
     expect(JSON.stringify(body)).not.toContain('Unauthorized')
   })
 
@@ -138,21 +120,17 @@ describe('/health', () => {
     expect(body.reason).toContain('reach Discord')
   })
 
-  test.each([
-    ['neither app value', { BACKEND_SITE_URL: '', BOT_SECRET: '' }],
-    ['no BOT_SECRET', { BOT_SECRET: '' }],
-    ['no BACKEND_SITE_URL', { BACKEND_SITE_URL: '' }],
-  ])('503s with %s, without calling Discord', async (_label, overrides) => {
-    // Either alone is as broken as neither: every Game command would answer
-    // that the app cannot be reached. The post-deploy smoke reads this
-    // status, so a deploy missing a secret fails there.
+  test('503s without the SITE binding, without calling Discord', async () => {
+    // Every Game command would answer that the app cannot be reached. The
+    // post-deploy smoke reads this status, so a deploy missing the binding
+    // fails there.
     let called = false
     stubFetch(async () => {
       called = true
       return Response.json({ username: 'bot' }, { status: 200 })
     })
 
-    const res = await worker.fetch(healthRequest(), envWith(overrides), ctx)
+    const res = await worker.fetch(healthRequest(), envWith({ SITE: undefined }), ctx)
     const body = (await res.json()) as {
       ok: boolean
       reason: string
@@ -161,7 +139,7 @@ describe('/health', () => {
 
     expect(res.status).toBe(503)
     expect(body.ok).toBe(false)
-    expect(body.reason).toContain('BACKEND_SITE_URL and BOT_SECRET')
+    expect(body.reason).toContain('site service binding')
     expect(body.configured.site).toBe(false)
     expect(called).toBe(false)
   })

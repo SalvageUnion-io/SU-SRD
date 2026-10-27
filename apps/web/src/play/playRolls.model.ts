@@ -23,7 +23,7 @@
 import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
 
 /** One roll as Play records it. */
 export type PlayRoll = {
@@ -174,7 +174,7 @@ export type LoggedRoll = {
  * `entityType 'game'`, `field 'roll'`, Play's tag (`PLAY_TXN`), the shape
  * Discord rolls were logged in, so `changeLog.rolls` reads every roll back
  * whichever surface made it. Pure, for the round-trip test; generic so a
- * Convex `Id<'games'>` passes through as itself.
+ * Game id passes through as itself.
  */
 export function rollLogEntry<GameId extends string>(gameId: GameId, roll: LoggedRoll, ts: number) {
   return {

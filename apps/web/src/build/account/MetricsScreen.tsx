@@ -1,7 +1,4 @@
-import { useMutation, useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   Button,
   ChapterBand,
@@ -15,10 +12,12 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
+import type { AdminMetrics as AdminMetricsRead } from '../../lib/account/accountApi'
+import { useAdminMetrics, useRefreshMetrics } from '../../lib/account/accountApi'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 
 /**
  * The admin metrics page (ADR-057), at `/admin/metrics`: aggregate counts
@@ -29,7 +28,7 @@ import { buildAccountCopy } from '../../messages/build-account'
  * take one now; the weekly table is the live tallies, newest week first.
  */
 
-type Metrics = NonNullable<FunctionReturnType<typeof api.metrics.forAdmin>>
+type Metrics = NonNullable<AdminMetricsRead>
 type Counts = NonNullable<Metrics['snapshot']>['counts']
 
 /** The totals, in reading order, with the words each wears. */
@@ -122,8 +121,8 @@ function WeeklyTable({ weeks }: { weeks: Metrics['weeks'] }) {
 }
 
 function AdminMetrics() {
-  const metrics = useQuery(api.metrics.forAdmin, {})
-  const refresh = useServerAction(useMutation(api.metrics.refresh), {
+  const metrics = useAdminMetrics()
+  const refresh = useServerAction(useRefreshMetrics(), {
     failure: buildAccountCopy('aFreshSnapshotCouldNot'),
   })
 
@@ -155,7 +154,7 @@ function AdminMetrics() {
               variant="primary"
               size="compact"
               disabled={refresh.pending}
-              onClick={() => void refresh.run({})}
+              onClick={() => void refresh.run()}
             >
               {buildAccountCopy('takeASnapshotNow')}
             </Button>
@@ -170,8 +169,8 @@ function AdminMetrics() {
 }
 
 function MetricsBody() {
-  const { mode } = useConnection()
-  if (mode === 'connected') return <AdminMetrics />
+  const { status } = useSync()
+  if (status === 'live') return <AdminMetrics />
   return <EmptyState variant="quiet" body={buildAccountCopy('thereIsNothingHereFor')} />
 }
 

@@ -9,11 +9,10 @@
 :root {
   /* === Typography === */
   /* TWO faces, no aliases: Barlow for body/values, Barlow Semi Condensed for
-     all-caps chrome. */
-  --font-body: 'Barlow', 'Barlow Fallback', system-ui, -apple-system, sans-serif;
-  --font-cond:
-    'Barlow Semi Condensed', 'Barlow Semi Condensed Fallback', 'Barlow', system-ui, -apple-system,
-    sans-serif;
+     all-caps chrome. Each stack, metric-matched fallbacks included, is Astro's
+     (`astro/build/fonts.ts`). */
+  --font-body: var(--font-barlow);
+  --font-cond: var(--font-barlow-cond);
 
   /* === Caps tracking steps (canonical primitive language §3) ===
      BOTH apps (and the shared components they render) resolve the same

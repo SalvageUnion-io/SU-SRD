@@ -11,7 +11,7 @@ describe('readWorkspaces, against this repo', () => {
     expect(graph.map((ws) => ws.dir)).toContain('tools')
     expect(graph.map((ws) => ws.dir)).toContain('packages/gates')
     expect(graph.map((ws) => ws.dir)).toContain('packages/salvageunion-reference')
-    expect(graph.length).toBeGreaterThanOrEqual(7)
+    expect(graph.length).toBeGreaterThanOrEqual(6)
   })
 
   test('reads the workspace: edges', () => {

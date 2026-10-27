@@ -1,19 +1,26 @@
 /**
  * PlayCockpit — the player's Play screen for one pilot, in a Game or solo
- * (Direction A, the Cockpit): the Play bar, then the Units | Actions | Crew,
- * Tables, Feed columns, then the foot, on `PlayFrame`'s fixed canvas. Who may
- * open it is `PlayGate`'s question, asked before this renders.
+ * (Direction A, the Cockpit), on `PlayFrame`'s one layout: the Play bar,
+ * then the panes, Act, Units, Tables and Crew as tabs on a phone and Units |
+ * Actions | Crew, Tables and Feed from `lg`, then the foot. Who may open it
+ * is `PlayGate`'s question, asked before this renders.
  *
- * Each column is its own component (`PlayUnitsColumn`, `PlayActionsColumn`,
- * `PlaySideColumn`), so a column's work happens in its own file. Each is
- * handed the `PlayTarget` and the one `Play` object `usePlaySituation`
- * returns here (the seat, the Downtime and the Situation they make), so the
- * three read the same thing. The Situation switch (`PlaySituationSwitch`)
- * fills the bar's `situation` slot, and while the screen is open it beats
- * for the seat's presence (`usePlayPresence`).
+ * Each pane is its own component (`PlayUnitsColumn`, `PlayActionsColumn`,
+ * `PlayCrewSection`, `PlayerTablesAndFeed`), so a pane's work happens in its
+ * own file. Each is handed the `PlayTarget` and the one `Play` object
+ * `usePlaySituation` returns here (the seat, the Downtime and the Situation
+ * they make), so all of them read the same thing. The side's shared state
+ * (`usePlaySide`: the roll dispatch, the Post toggle) is read here once too,
+ * so every roll made in any pane is dispatched whichever pane is open.
+ *
+ * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
+ * `situation` slot; below it, it is pinned under the live vitals for the
+ * Situation (`pinnedUnits`), TABLE beside it. In table mode (`useTableMode`)
+ * the panes give way to `PlayTableMode`, which draws those vitals itself at
+ * the Full Size, and the screen stays awake (`useWakeLock`).
  *
  * The bar's LIVE stamp counts who is here in a Game ("● Live · 4 here",
- * `hereCount` over the seats' `lastSeenAt` from `seats.forGame`, play.md §7);
+ * `hereCount` over the Game's room, `useGamePresence`, play.md §7);
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
@@ -22,97 +29,157 @@
  * The channel button shows where rolls post, or Connect (`PlayChannelButton`,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
  * §5–§6); solo, "‹ Play" goes back to the Play hub and ⋯ is inert.
- *
- * Below the canvas's floor the same columns go on tabs (`PlayCockpitPhone`,
- * play.md §11): Act, Units, Tables, Crew under the pinned vitals and the
- * Situation switch. Only one form is mounted at a time, so the side's roll
- * dispatch is too.
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import { Ellipsis } from 'lucide-react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
+import type { CSSProperties, ReactNode } from 'react'
+import { useState } from 'react'
 import { Button, HeaderMenu, tokens } from '../components/index'
-import { useConnection } from '../lib/connection/connectionContext'
+import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
+import { PLAY_TXN } from '../replica/provenance'
+import { useSync } from '../replica/syncContext'
+import { useUnits } from '../replica/units'
+import { useTableRead } from '../replica/useTable'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
 import { PlayChannelButton } from './PlayChannel'
-import { PlayCockpitPhone } from './PlayCockpitPhone'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
-import { PlaySideColumn } from './PlaySideColumn'
+import { PlayPinnedVitals } from './PlayPinnedVitals'
+import { PlayCrewSection, PlayerTablesAndFeed } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
+import { PlayTableMode, TableModeToggle } from './PlayTableMode'
 import { PlayUnitsColumn } from './PlayUnitsColumn'
 import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
+import type { PlayerPane } from './playPanes.model'
+import { PLAYER_TABS, pinnedUnits, playerPanes } from './playPanes.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
+import { tableUnits } from './tableMode.model'
+import { useGamePresence } from './useGamePresence'
+import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
-import { usePlayPresence } from './usePlayPresence'
+import { usePlaySide } from './usePlaySide'
 import { usePlaySituation } from './usePlaySituation'
-import { usePresenceClock } from './usePresenceClock'
+import { usePlayUnits } from './usePlayUnits'
+import { usePlayWide } from './usePlayWide'
 import { useStopSign } from './useStopSign'
+import { useTableMode } from './useTableMode'
+import { useWakeLock } from './useWakeLock'
+
+/** The Situation switch and TABLE on one line, the switch taking the room. */
+const SWITCH_ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: tokens.space[8],
+  minWidth: 0,
+} satisfies CSSProperties
+
+const SWITCH = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
 type PlayCockpitProps = {
   target: PlayTarget
+  /** The Act pane's store and dice (a test injects its own). */
+  actions?: PlayActionsDeps
 }
 
-export function PlayCockpit({ target }: PlayCockpitProps) {
-  const { mode } = useConnection()
+export function PlayCockpit({ target, actions }: PlayCockpitProps) {
+  const { status } = useSync()
   const play = usePlaySituation(target)
-  usePlayPresence(target)
   const binding = usePlayChannelBinding(target)
-  const seats = useQuery(
-    api.seats.forGame,
-    target.gameId !== null && mode === 'connected'
-      ? { gameId: target.gameId as Id<'games'> }
-      : 'skip'
+  const crew = useTableRead(
+    'crew.vitals',
+    target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
   )
-  const now = usePresenceClock()
   const sign = useStopSign(target.gameId)
-  const bar = (phone: boolean) => (
-    <>
-      <PlayBar
-        phone={phone}
-        title={playTitle(target, play.pilot?.name ?? 'Pilot')}
-        stamp={playStamp(target)}
-        tone={PHASE_TONE[play.situation]}
-        backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
-        backLabel={target.gameId === null ? playCopy('play') : playCopy('game')}
-        live={mode === 'connected' && target.gameId !== null}
-        here={seats === undefined ? null : hereCount(seats, now)}
-        readOnly={play.readOnly}
-        situation={phone ? undefined : <PlaySituationSwitch play={play} />}
-        stop={<StopSignButton sign={sign} compact={phone} />}
-        channel={
-          <PlayChannelButton
-            owner={
-              target.gameId === null
-                ? { kind: 'solo' }
-                : { kind: 'game', gameName: target.gameName }
-            }
-            binding={binding}
-            compact={phone}
-          />
-        }
-        menu={<CockpitMenu target={target} />}
-      />
-      <StopSignBanner sign={sign} play={phone ? 'phone' : 'canvas'} />
-    </>
-  )
+  const here = useGamePresence(target.gameId, 'seat')
+  const wide = usePlayWide()
+  const [tab, setTab] = useState<PlayerPane>('act')
+  const side = usePlaySide({ target, play })
+  const units = usePlayUnits(play)
+  const solo = target.gameId === null
+  const [tableOn] = useTableMode()
+  const table = tableOn && !wide
+  useWakeLock(table)
+  const pinned = pinnedUnits({
+    situation: play.situation,
+    pilot: play.pilot,
+    crawler: units.crawler?.crawler ?? null,
+    boardedMech: play.boardedMech,
+    activeEffects: play.seat.seat.activeEffects,
+  })
+  const pilotId = play.pilot?.id ?? null
+  const mechId = play.boardedMech?.id ?? null
+  const writeVital = (kind: 'pilot' | 'mech', field: string, next: number) => {
+    const id = kind === 'pilot' ? pilotId : mechId
+    if (id === null) return
+    runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
+  }
+  const nodes: Record<PlayerPane, ReactNode> = {
+    act: <PlayActionsColumn target={target} play={play} {...actions} />,
+    units: <PlayUnitsColumn target={target} play={play} />,
+    crew: <PlayCrewSection target={target} play={play} side={side} />,
+    tables: <PlayerTablesAndFeed target={target} play={play} side={side} />,
+  }
+
   return (
     <PlayFrame
+      wide={wide}
       labels={['Units', 'Actions', 'Crew, Tables and Feed']}
-      bar={bar(false)}
-      start={<PlayUnitsColumn target={target} play={play} />}
-      centre={<PlayActionsColumn target={target} play={play} />}
-      end={<PlaySideColumn target={target} play={play} />}
-      foot={<PlayFoot solo={target.gameId === null} tone={PHASE_TONE[play.situation]} />}
-      phone={<PlayCockpitPhone target={target} play={play} bar={bar(true)} />}
+      bar={
+        <>
+          <PlayBar
+            title={playTitle(target, play.pilot?.name ?? 'Pilot')}
+            stamp={playStamp(target)}
+            tone={PHASE_TONE[play.situation]}
+            backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
+            backLabel={solo ? playCopy('play') : playCopy('game')}
+            live={status === 'live' && !solo}
+            here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
+            readOnly={play.readOnly}
+            situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
+            channel={
+              <PlayChannelButton
+                owner={solo ? { kind: 'solo' } : { kind: 'game', gameName: target.gameName }}
+                binding={binding}
+                compact={!wide}
+              />
+            }
+            stop={<StopSignButton sign={sign} compact={!wide} />}
+            menu={<CockpitMenu target={target} />}
+          />
+          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
+        </>
+      }
+      pinned={
+        <>
+          {table ? null : <PlayPinnedVitals units={pinned} />}
+          <div style={SWITCH_ROW}>
+            <div style={SWITCH}>
+              <PlaySituationSwitch play={play} fill />
+            </div>
+            <TableModeToggle />
+          </div>
+        </>
+      }
+      panes={playerPanes(solo).map((p) => ({ ...p, node: nodes[p.value] }))}
+      tabs={PLAYER_TABS}
+      tab={tab}
+      onTab={setTab}
+      focus={
+        table ? (
+          <PlayTableMode
+            units={tableUnits(pinned)}
+            live={{ pilot: units.live.pilot, mech: units.live.mech }}
+            onWrite={writeVital}
+          />
+        ) : undefined
+      }
+      foot={<PlayFoot solo={solo} tone={PHASE_TONE[play.situation]} />}
     />
   )
 }

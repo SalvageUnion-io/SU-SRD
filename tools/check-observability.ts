@@ -20,8 +20,7 @@
  *      setup injects the beacon at the edge, so nothing in the source names
  *      it, and a CSP without the two origins records nothing: from the site's
  *      creation until 3.0.0 the dashboard counted one page load in six weeks.
- *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport` and
- *      `CONVEX_LOG_STREAM_PATH` to `handleConvexLogStream`.
+ *   4. its Worker routes `ERROR_REPORT_PATH` to `handleErrorReport`.
  *
  * Every TypeScript assertion reads PARSED source, never raw text, through
  * `Bun.Transpiler` (which drops comments). These files are heavily commented,
@@ -42,11 +41,11 @@ const ENTRY_PATHS = ['apps/web/src/runtime/islands.client.ts', 'apps/web/src/mai
 /** The CSP source: the `_headers` Workers Static Assets reads. */
 const HEADERS_PATH = 'apps/web/public/_headers'
 
-/** The Worker that answers the error reports. */
-const WORKER_PATH = 'apps/web/src/worker/index.ts'
+/** The Worker's routes, one of which answers the error reports. */
+const WORKER_PATH = 'apps/web/src/worker/routes.ts'
 
 /** The handlers the Worker must call. */
-const WORKER_HANDLERS = ['handleErrorReport', 'handleConvexLogStream']
+const WORKER_HANDLERS = ['handleErrorReport']
 
 const failures: string[] = []
 
@@ -115,7 +114,7 @@ function checkWiring(): void {
   // A report posted to a Worker that does not route it is a 404 nobody sees.
   const worker = code(WORKER_PATH)
   if (worker === null) {
-    fail(`no Worker entry at ${WORKER_PATH}`)
+    fail(`no Worker routes at ${WORKER_PATH}`)
   } else {
     for (const handler of WORKER_HANDLERS) {
       if (!new RegExp(`\\b${handler}\\(`).test(worker)) {

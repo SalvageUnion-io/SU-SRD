@@ -7,7 +7,6 @@ import {
   checkPathFilters,
   checkPinning,
   checkSecretsEnv,
-  GUARD_STEP,
   loadContext,
   main,
   runnerCalls,
@@ -55,7 +54,6 @@ jobs:
               - 'SPECIAL_THANKS.md'
             workers:
               - *shared
-              - 'apps/su-assets/**'
               - 'apps/discord-bot/**'
             web:
               - *shared
@@ -93,13 +91,6 @@ jobs:
       - name: Decide which surfaces to deploy
         id: surfaces
         run: bun tools/deploy-surfaces.ts
-      - name: ${GUARD_STEP}
-        env:
-          CONVEX_DEPLOY_KEY: x
-        run: |
-          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
-            exit 1
-          fi
   build-srd:
     needs: plan
     if: contains(fromJSON(needs.plan.outputs.deploy), 'srd')
@@ -128,15 +119,8 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: app-dist
-  push-convex:
-    needs: [plan, build-srd, build-app]
-    if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'app') }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Push
-        run: bunx convex deploy --cmd "true"
   deploy:
-    needs: [plan, build-srd, og-srd, build-app, push-convex]
+    needs: [plan, build-srd, og-srd, build-app]
     if: \${{ !cancelled() && !failure() && needs.plan.outputs.deploy != '[]' }}
     strategy:
       fail-fast: false
@@ -207,17 +191,13 @@ function ctx(overrides: {
     Object.entries(
       overrides.manifests ?? {
         'package.json': { devDependencies: { convex: '1.0.0' } },
-        'apps/su-assets/package.json': {
-          name: 'su-assets',
-          dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
-        },
         'apps/web/package.json': {
           name: 'srd',
           dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
         'apps/discord-bot/package.json': {
           name: 'discord-bot',
-          dependencies: { ref: 'workspace:*' },
+          dependencies: { ref: 'workspace:*', lib: 'workspace:*' },
         },
         'packages/ref/package.json': { name: 'ref' },
         'packages/lib/package.json': { name: 'lib' },
@@ -306,20 +286,19 @@ describe('aggregator', () => {
 describe('path-filters', () => {
   test('passes when every workspace dependency is covered, expanding the *shared alias', () => {
     const c = ctx({})
-    for (const app of ['su-assets', 'web']) {
+    for (const app of ['discord-bot', 'web']) {
       c.manifests.set(`apps/${app}/package.json`, {
         name: app,
         dependencies: { ref: 'workspace:*' },
       })
     }
     const r = checkPathFilters(c)
-    // The fixture is deliberately small, so only the scan floor may complain.
-    expect(r.failures).toEqual(['checked 3 workspace dependency edge(s); expected at least 5.'])
+    expect(r.failures).toEqual([])
   })
 
   test('an app depending on a workspace its group does not cover fails', () => {
     const failures = checkPathFilters(ctx({})).failures.join('\n')
-    expect(failures).toContain('apps/su-assets depends on `lib` (packages/lib)')
+    expect(failures).toContain('apps/discord-bot depends on `lib` (packages/lib)')
     expect(failures).toContain('apps/web depends on `lib`')
   })
 
@@ -344,16 +323,16 @@ describe('path-filters', () => {
   test('an app mapped to a group ci.yml does not define fails, naming the group', () => {
     const c = ctx({
       ci: CI_TEXT.replace(
-        "            workers:\n              - *shared\n              - 'apps/su-assets/**'\n              - 'apps/discord-bot/**'\n",
+        "            workers:\n              - *shared\n              - 'apps/discord-bot/**'\n",
         ''
       ),
     })
-    c.manifests.set('apps/su-assets/package.json', {
-      name: 'su-assets',
+    c.manifests.set('apps/discord-bot/package.json', {
+      name: 'discord-bot',
       dependencies: { ref: 'workspace:*' },
     })
     expect(checkPathFilters(c).failures).toContain(
-      'apps/su-assets maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
+      'apps/discord-bot maps to filter group `workers`, which .github/workflows/ci.yml does not define.'
     )
   })
 
@@ -418,8 +397,8 @@ describe('pinning', () => {
 
   test('a bare name that is only the suffix of a scoped dependency is NOT exempt', () => {
     const c = ctx({})
-    c.manifests.set('apps/su-assets/package.json', {
-      name: 'su-assets',
+    c.manifests.set('apps/discord-bot/package.json', {
+      name: 'discord-bot',
       dependencies: { '@convex-dev/auth': '1.0.0' },
     })
     c.files.push(
@@ -450,7 +429,7 @@ describe('pinning', () => {
 const jobIf = (expr: string) => `    if: \${{ ${expr} }}`
 
 /** The matrix deploy job's header and `needs:`, as the fixture writes them. */
-const NEEDS = '  deploy:\n    needs: [plan, build-srd, og-srd, build-app, push-convex]'
+const NEEDS = '  deploy:\n    needs: [plan, build-srd, og-srd, build-app]'
 
 describe('deploy-order', () => {
   test('passes when builds precede deploys, deploys precede smoke, smoke precedes record', () => {
@@ -461,7 +440,6 @@ describe('deploy-order', () => {
     const deploy = DEPLOY_TEXT.replace(NEEDS, '  deploy:\n    needs: [plan, build-srd, og-srd]')
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy` does not need `build-app` — every build must finish'),
-      expect.stringContaining('`deploy` does not need `push-convex`'),
       expect.stringContaining('`deploy` does not need `build-app` — it downloads `app-dist`'),
     ])
   })
@@ -491,57 +469,12 @@ describe('deploy-order', () => {
     )
   })
 
-  test('deleting the deploy-key guard STEP fails, wherever its tokens survive', () => {
-    const deploy = DEPLOY_TEXT.replace(`name: ${GUARD_STEP}`, 'name: Some other guard')
-    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining(`no \`${GUARD_STEP}\` step`),
-    ])
-  })
-
-  test('a guard that can no longer exit, or no longer names the key, fails', () => {
-    const noExit = DEPLOY_TEXT.replace('exit 1', 'true')
-    expect(checkDeployOrder(ctx({ deploy: noExit })).failures).toEqual([
-      expect.stringContaining('no longer fails when CONVEX_DEPLOY_KEY is absent'),
-    ])
-    const renamed = DEPLOY_TEXT.replace('$CONVEX_DEPLOY_KEY', '$OTHER')
-    expect(checkDeployOrder(ctx({ deploy: renamed })).failures).toEqual([
-      expect.stringContaining('no longer fails when CONVEX_DEPLOY_KEY is absent'),
-    ])
-  })
-
-  test('a Convex push in a job that does not need the guard job fails', () => {
-    const guarded = DEPLOY_TEXT.replace(
-      `      - name: ${GUARD_STEP}\n`,
-      `  guard:\n    runs-on: ubuntu-latest\n    steps:\n      - name: ${GUARD_STEP}\n`
-    )
-    expect(checkDeployOrder(ctx({ deploy: guarded })).failures).toEqual([
-      expect.stringContaining('`push-convex` does not need `guard` — the deploy-key guard'),
-    ])
-  })
-
-  test('`convex deploy` mentioned only in a shell comment is no push', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      'run: bunx convex deploy --cmd "true"',
-      'run: |\n          # bunx convex deploy used to run here\n          true'
-    )
-    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('has no job that runs `convex deploy`'),
-    ])
-  })
-
   test('a step inside a local composite action counts as the calling job’s', () => {
     const deploy = DEPLOY_TEXT.replace(
-      '      - name: Push\n        run: bunx convex deploy --cmd "true"\n',
-      '      - name: Push\n        uses: ./.github/actions/push\n'
-    ).replace(
       '      - run: bun run build\n      - uses: actions/upload-artifact@v7\n        with:\n          name: app-dist\n',
       '      - uses: ./.github/actions/build/\n'
     )
     const actions = [
-      yaml(
-        '.github/actions/push/action.yml',
-        'runs:\n  using: composite\n  steps:\n    - run: bunx convex deploy\n      shell: bash\n'
-      ),
       yaml(
         '.github/actions/build/action.yml',
         'runs:\n  using: composite\n  steps:\n    - run: bun run build\n      shell: bash\n' +
@@ -549,51 +482,20 @@ describe('deploy-order', () => {
       ),
     ]
     expect(checkDeployOrder(ctx({ deploy, extra: actions })).failures).toEqual([])
-    // The action read through, not merely named: without it there is no push or build.
+    // The action read through, not merely named: without it there is no build.
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('has no job that runs `convex deploy`'),
       expect.stringContaining('downloads `app-dist`, which no job uploads'),
     ])
   })
 
-  test('a Convex push that does not wait for EVERY build fails', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      '  push-convex:\n    needs: [plan, build-srd, build-app]',
-      '  push-convex:\n    needs: [plan, build-app]'
-    )
-    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`push-convex` does not need `build-srd`'),
-    ])
-  })
-
-  test('a Convex push inside a build job fails — a sibling build failure would not stop it', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      '      - run: bun run build\n',
-      '      - run: bunx convex deploy --cmd "bun run build"\n'
-    )
-    expect(checkDeployOrder(ctx({ deploy })).failures).toContainEqual(
-      expect.stringContaining('`build-app` does not need `build-srd`')
-    )
-  })
-
-  test('a deploy job that can ship before the backend push fails', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      NEEDS,
-      '  deploy:\n    needs: [plan, build-srd, og-srd, build-app]'
-    )
-    expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
-      expect.stringContaining('`deploy` does not need `push-convex`'),
-    ])
-  })
-
   test('a post-build pass is not a build: only the job shipping its output waits for it', () => {
-    expect(DEPLOY_TEXT).toContain('  push-convex:\n    needs: [plan, build-srd, build-app]\n')
+    expect(DEPLOY_TEXT).toContain('  deploy:\n    needs: [plan, build-srd, og-srd, build-app]\n')
     expect(checkDeployOrder(ctx({})).failures).toEqual([])
   })
 
   test('split deploy jobs: only the one shipping the post-build output waits for it', () => {
     const srdLeg = `  deploy-web:
-    needs: [plan, build-srd, og-srd, build-app, push-convex]
+    needs: [plan, build-srd, og-srd, build-app]
     if: \${{ !cancelled() && !failure() && contains(fromJSON(needs.plan.outputs.deploy), 'srd') }}
     runs-on: ubuntu-latest
     steps:
@@ -604,7 +506,7 @@ describe('deploy-order', () => {
 `
     const split = DEPLOY_TEXT.replace(
       `${NEEDS}\n`,
-      `${srdLeg}  deploy:\n    needs: [plan, build-srd, build-app, push-convex]\n`
+      `${srdLeg}  deploy:\n    needs: [plan, build-srd, build-app]\n`
     )
       .replace(
         "      - uses: actions/download-artifact@v8\n        if: matrix.app == 'srd'\n        with:\n          name: srd-dist\n",
@@ -614,7 +516,7 @@ describe('deploy-order', () => {
     expect(checkDeployOrder(ctx({ deploy: split })).failures).toEqual([])
 
     const early = split.replace(
-      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-app, push-convex]',
+      '  deploy-web:\n    needs: [plan, build-srd, og-srd, build-app]',
       '  deploy-web:\n    needs: [plan, og-srd]'
     )
     expect(checkDeployOrder(ctx({ deploy: early })).failures).toContainEqual(
@@ -630,10 +532,7 @@ describe('deploy-order', () => {
   })
 
   test('a deploy that does not wait for the job uploading what it ships fails', () => {
-    const deploy = DEPLOY_TEXT.replace(
-      NEEDS,
-      '  deploy:\n    needs: [plan, build-srd, build-app, push-convex]'
-    )
+    const deploy = DEPLOY_TEXT.replace(NEEDS, '  deploy:\n    needs: [plan, build-srd, build-app]')
     expect(checkDeployOrder(ctx({ deploy })).failures).toEqual([
       expect.stringContaining('`deploy` does not need `og-srd` — it downloads `srd-dist`'),
     ])
@@ -669,9 +568,9 @@ describe('deploy-order', () => {
     ])
   })
 
-  test('a workflow with no guard, push, builds, deploys, smoke or record fails rather than passing empty', () => {
+  test('a workflow with no builds, deploys, smoke or record fails rather than passing empty', () => {
     const deploy = 'on: workflow_dispatch\njobs:\n  a:\n    steps:\n      - run: echo hi\n'
-    expect(checkDeployOrder(ctx({ deploy })).failures).toHaveLength(6)
+    expect(checkDeployOrder(ctx({ deploy })).failures).toHaveLength(4)
     expect(checkDeployOrder(ctx({ deploy: null })).failures[0]).toContain('is missing')
   })
 })
@@ -855,6 +754,6 @@ describe('main', () => {
     expect(r.out).toHaveLength(1)
     expect(r.err[0]).toMatch(/^✗ .*:$/)
     expect(r.err.slice(1).every((l) => l.startsWith('    • '))).toBe(true)
-    expect(r.err.join('\n')).toContain('apps/su-assets depends on `lib`')
+    expect(r.err.join('\n')).toContain('apps/discord-bot depends on `lib`')
   })
 })

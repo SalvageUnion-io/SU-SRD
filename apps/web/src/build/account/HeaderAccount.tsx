@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react'
+import { SyncBadge } from '../../components/shared/SyncBadge'
 import { unionHere } from '../../lib/barLinks'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { useSync } from '../../replica/syncContext'
 import { GamesDrawerList, GamesMenu } from '../entityContainer/GamesMenu'
 import { AppAccountMenu } from './AppAccountMenu'
 import { SignInControl } from './SignInControl'
@@ -7,7 +9,7 @@ import { SignInControl } from './SignInControl'
 /**
  * What the app puts in the masthead's app slots (`UnionBarSlots`' `games`,
  * `actions`, `mobileActions` and `drawerExtra`) — the account and the Games,
- * wired to Convex here so `src/components` stays persistence-agnostic.
+ * wired to the Worker here so `src/components` stays persistence-agnostic.
  *
  * There is no sub-header: Games sits in Play's nav (Games · Solo; Build's,
  * Training Bay · Patterns · Starter Set, has none), and the account is the menu at
@@ -27,22 +29,39 @@ import { SignInControl } from './SignInControl'
  * goes into the drawer.
  */
 
+/** The avatar, the sync badge's dot pinned to its corner. */
+const AVATAR = { display: 'inline-flex', position: 'relative' } satisfies CSSProperties
+
 /** Play's desktop nav: the Games menu (renders nothing unless Connected), current on the hub and a Game's routes. */
 export function HeaderGames({ pathname = '' }: { pathname?: string }) {
   return <GamesMenu active={unionHere(pathname).nav === 'games'} />
 }
 
-/** Desktop, at the bar's end: the account menu (or sign-in). */
+/** Desktop, at the bar's end: the sync badge and the account menu (or sign-in). */
 export function HeaderActions() {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'connected' || mode === 'disconnected') return <AppAccountMenu />
+  if (status === 'live' || status === 'offline') {
+    return (
+      <>
+        <SyncBadge />
+        <AppAccountMenu />
+      </>
+    )
+  }
   return <SignInControl inBar />
 }
 
-/** Mobile header row: the avatar-only account menu. Nothing when signed out. */
+/** Mobile header row: the avatar-only account menu, the sync badge a dot on it. Nothing when signed out. */
 export function HeaderMobileActions() {
-  return <AppAccountMenu compact />
+  const { status } = useSync()
+  if (status !== 'live' && status !== 'offline') return null
+  return (
+    <span style={AVATAR}>
+      <AppAccountMenu compact />
+      <SyncBadge dot />
+    </span>
+  )
 }
 
 /**
@@ -56,12 +75,12 @@ export function HeaderDrawerAccount({
   close: () => void
   pathname?: string
 }) {
-  const { mode } = useConnection()
-  if (mode === 'connected') {
+  const { status } = useSync()
+  if (status === 'live') {
     return unionHere(pathname).mode === 'play' ? <GamesDrawerList onPick={close} /> : null
   }
   // Offline: the avatar menu in the header row already offers Sign out, and
   // there is nothing to list.
-  if (mode === 'disconnected') return null
+  if (status === 'offline') return null
   return <SignInControl />
 }

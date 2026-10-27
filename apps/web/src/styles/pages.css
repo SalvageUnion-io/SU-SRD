@@ -288,9 +288,10 @@ a.su-home__discord:hover {
   min-height: 100%;
 }
 
-/* The island draws the band and the listing under it, so its placeholder is
-   no box of its own: the band and the page body are the shell's rows. */
-.su-listing-shell > [data-island] {
+/* The island draws the band and the listing under it, so its element is no
+   box of its own (Astro's `astro-island` is none either): the band and the
+   page body are the shell's rows. */
+.su-listing-shell > astro-island > [data-island] {
   display: contents;
 }
 

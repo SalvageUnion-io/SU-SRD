@@ -9,28 +9,31 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import {
-  installConvexMocks,
-  queryCalls,
-  setQueryAnswers,
-} from '../../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountReads,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
+import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks({
+  also: { '../../lib/account/accountApi': accountApiStub },
+})
+afterAll(() => serverMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { NpcDesignerPage } = await import('../NpcDesignerPage')
 
-function connection(mode: ConnectionState['mode']): ConnectionState {
+function connection(status: SyncState['status']): SyncState {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: false,
-    settling: false,
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
@@ -44,7 +47,7 @@ const TENACITY = crawlerFixture({
 
 type Props = Parameters<typeof NpcDesignerPage>[0]
 
-async function renderPage(props: Partial<Props> = {}, mode: ConnectionState['mode'] = 'connected') {
+async function renderPage(props: Partial<Props> = {}, status: SyncState['status'] = 'live') {
   const handlers = {
     onViewChange: mock((_view: string) => {}),
     onCrewSelect: mock(() => {}),
@@ -53,7 +56,7 @@ async function renderPage(props: Partial<Props> = {}, mode: ConnectionState['mod
   }
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <NpcDesignerPage
           view="any"
           crawlerId={undefined}
@@ -61,20 +64,22 @@ async function renderPage(props: Partial<Props> = {}, mode: ConnectionState['mod
           {...handlers}
           {...props}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   return handlers
 }
 
 beforeEach(() => {
-  useEntityStore.setState({
+  useUnits.setState({
     crawlers: [TENACITY],
     npcs: [],
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  setQueryAnswers({ 'account:me': { displayName: 'alxjrvs' }, 'games:listMine': [] })
+  resetAccountApi()
+  setQueryAnswers({ 'games.listMine': [] })
+  accountAnswers.me = { displayName: 'alxjrvs' }
 })
 
 describe('Any NPC', () => {
@@ -95,9 +100,9 @@ describe('Any NPC', () => {
   })
 
   test('signed out, nobody is asked who you are', async () => {
-    setQueryAnswers({ 'games:listMine': [] })
-    await renderPage({}, 'solo')
-    expect(queryCalls().some((c) => c.name === 'account:me')).toBe(false)
+    setQueryAnswers({ 'games.listMine': [] })
+    await renderPage({}, 'signedOut')
+    expect(accountReads.me).toBe(0)
     expect(screen.getAllByText('Made by you').length).toBeGreaterThan(0)
   })
 })

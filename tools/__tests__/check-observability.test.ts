@@ -40,7 +40,7 @@ const CHECKED_FILES = [
   'apps/web/src/lib/observability.ts',
   'apps/web/src/runtime/islands.client.ts',
   HEADERS,
-  'apps/web/src/worker/index.ts',
+  'apps/web/src/worker/routes.ts',
   'apps/web/src/main.tsx',
 ]
 
@@ -174,16 +174,16 @@ describe('check-observability reads parsed source, not prose', () => {
 
   test('an error report route that is commented out fails', async () => {
     await withFileContents(
-      'apps/web/src/worker/index.ts',
+      'apps/web/src/worker/routes.ts',
       (s) =>
         s.replace(
-          'return handleConvexLogStream(',
-          'return null as never // handleConvexLogStream('
+          "handleErrorReport(request, { app: 'web', limiter: env.ERROR_REPORT_LIMIT }),",
+          'null as never, // handleErrorReport(request),'
         ),
       async () => {
         const { exitCode, stderr } = await runCheck()
         expect(exitCode).toBe(1)
-        expect(stderr).toContain('apps/web/src/worker/index.ts never calls handleConvexLogStream()')
+        expect(stderr).toContain('apps/web/src/worker/routes.ts never calls handleErrorReport()')
       }
     )
   })

@@ -437,7 +437,7 @@ describe('SchemaViewerIsland', () => {
       expect(tiles.length).toBe(chassisEntities().length)
       expect(container.querySelector('.su-rail__view')).toBeNull()
       expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
-      // Art from the su-assets 440 derivative, its box sized before it loads.
+      // Art from the CDN's 440 derivative, its box sized before it loads.
       // The opening row's art loads at once and first (it is the page's
       // largest paint); every tile after it, lazily.
       const imgs = [...container.querySelectorAll('.su-entity-index__art img')]

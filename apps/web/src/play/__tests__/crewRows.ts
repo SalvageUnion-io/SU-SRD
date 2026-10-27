@@ -4,7 +4,6 @@
  * with nothing broken, each fixture keeping only its own crew.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 
 type Pilot = CrewVitals['pilots'][number]
@@ -30,10 +29,10 @@ export function crewPilot(
   over: Partial<Pilot> = {}
 ): Pilot {
   return {
-    _id: `row-${id}` as Id<'pilots'>,
+    _id: `row-${id}`,
     appId: id,
     linkId: id,
-    ownerId: owner as Id<'users'> | null,
+    ownerId: owner,
     ownerName: owner,
     name,
     currentHP: 10,
@@ -44,7 +43,6 @@ export function crewPilot(
     mechId: null,
     status: calm,
     attention: false,
-    lastSeenAt: null,
     ...over,
   }
 }
@@ -57,10 +55,10 @@ export function crewMech(
   over: Partial<Mech> = {}
 ): Mech {
   return {
-    _id: `row-${id}` as Id<'mechs'>,
+    _id: `row-${id}`,
     appId: id,
     linkId: id,
-    ownerId: owner as Id<'users'> | null,
+    ownerId: owner,
     ownerName: owner,
     name,
     currentSP: 20,

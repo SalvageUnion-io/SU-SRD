@@ -1,0 +1,6 @@
+---
+import { discordPage as module } from '../../src/reference/pages/discord.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />

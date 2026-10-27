@@ -7,7 +7,7 @@
  * the entity store's create() directly — the same persistence path
  * InstantiateFromPattern and merge-import already use. No WizShell, no rule
  * gates, no validation beyond the strict Zod parse in
- * stores/records.ts (prepareCreate / parseServed).
+ * replica/records.ts (prepareCreate).
  *
  * Seeds collect ONLY the Zod-required fields plus the optional escape-valve
  * picks (class / chassis / tech level) that would otherwise strand the user
@@ -17,7 +17,7 @@
 import { moveTo } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 import {
   crawlerFormToCreateInput,
   EMPTY_CRAWLER_FORM_STATE,
@@ -62,7 +62,7 @@ function inGame<I>(input: I, gameId: string | undefined): I {
 /**
  * Creates a blank entity of the given kind and returns its id.
  *
- * stores/records.ts (prepareCreate / parseServed) still strict-parses the record (Zod is the source of truth) —
+ * replica/records.ts (prepareCreate) still strict-parses the record (Zod is the source of truth) —
  * but no creation-rule budget, tech-level filter, or scrap cost applies.
  */
 export async function createBlank(
@@ -85,7 +85,7 @@ export async function createBlank(
   seed: BlankSeed,
   where: BlankWhere = {}
 ): Promise<string> {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
 
   if (kind === 'pilot') {
     const { name, callsign, classRef } = seed as BlankPilotSeed

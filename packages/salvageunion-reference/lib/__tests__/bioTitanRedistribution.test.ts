@@ -6,49 +6,30 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as RefType } from '../index'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
-
-let SalvageUnionReference: typeof RefType
-
-function getReference() {
-  if (!SalvageUnionReference) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('../index').SalvageUnionReference
-  }
-  return SalvageUnionReference
-}
+import { SalvageUnionReference } from '../index'
+import { defined } from '../testing'
 
 describe('Bio-Titan / Iron Lady redistribution', () => {
   it('exposes the BioTitans model (renamed from Titans)', () => {
-    const bioTitans = getReference().BioTitans.all()
+    const bioTitans = SalvageUnionReference.BioTitans.all()
     expect(bioTitans.length).toBe(11)
     expect(bioTitans.some((t) => t.name === 'Scylla')).toBe(true)
   })
 
   it('no Bio-Titan carries a `kind` field (discriminator dropped)', () => {
-    for (const titan of getReference().BioTitans.all()) {
+    for (const titan of SalvageUnionReference.BioTitans.all()) {
       expect('kind' in titan).toBe(false)
     }
   })
 
   it('does not contain the Iron Lady among Bio-Titans', () => {
-    expect(
-      getReference()
-        .BioTitans.all()
-        .some((t) => t.name === 'The Iron Lady')
-    ).toBe(false)
+    expect(SalvageUnionReference.BioTitans.all().some((t) => t.name === 'The Iron Lady')).toBe(
+      false
+    )
   })
 
   it('places the Iron Lady in Drones with her actions and modules', () => {
-    const ironLady = getReference().Drones.getByName('The Iron Lady')
+    const ironLady = SalvageUnionReference.Drones.getByName('The Iron Lady')
     expect(ironLady).toBeDefined()
     expect(defined(ironLady).structurePoints).toBe(87)
     // Thatcher's Mech Base p.2: "87 STRUCTURE PTS.", "Can be salvaged for T6 15".
@@ -63,8 +44,8 @@ describe('Bio-Titan / Iron Lady redistribution', () => {
   })
 
   it('resolves the Iron Lady actions (including Titanic Actions) from her drone home', () => {
-    const ironLady = defined(getReference().Drones.getByName('The Iron Lady'))
-    const actions = getReference().resolveActions(ironLady)
+    const ironLady = defined(SalvageUnionReference.Drones.getByName('The Iron Lady'))
+    const actions = SalvageUnionReference.resolveActions(ironLady)
     expect(Array.isArray(actions)).toBe(true)
     expect(defined(actions).some((a) => a.name === 'Titanic Actions (The Iron Lady)')).toBe(true)
   })

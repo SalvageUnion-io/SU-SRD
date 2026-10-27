@@ -14,23 +14,23 @@ import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { downtimeGuideSteps, RESTORE_STEP_NAME } from 'game-domain/rules/downtime'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   mechFixture,
   pilotFixture,
   softLinkFixture,
 } from '../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
 import { fakeSeat } from './seatFixture'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks()
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
 
-const { useEntityStore } = await import('../../stores/entityStore')
+const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { PlayUnitsColumn } = await import('../PlayUnitsColumn')
 
 const PILOT = 'units-bonesaw'
@@ -44,7 +44,7 @@ const pilot = pilotFixture({ id: PILOT, name: 'Bonesaw', currentHP: 7, currentAP
 
 beforeAll(async () => {
   await hydrateStores()
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilot)
   await store.adopt(
     'mech',
@@ -78,14 +78,14 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'units-l1')
   await store.forget('softLink', 'units-l2')
   await store.forget('crawler', CRAWLER)
   await store.forget('mech', SPARE)
   await store.forget('mech', MECH)
   await store.forget('pilot', PILOT)
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const yours = (mechId: string, name: string): BoardOption => ({
@@ -113,7 +113,7 @@ function playFor({
   const boarded = situation === 'boarded'
   const seat = fakeSeat(boarded ? { mount: { kind: 'boarded', mechId: MECH } } : {})
   const boards: string[] = []
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   const play: Play = {
     target: {
       pilotId: pilotRecord.id,
@@ -159,18 +159,17 @@ function playFor({
 }
 
 const CONNECTED = {
-  mode: 'connected',
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 } as const
 
 async function renderColumn(play: Play) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <PlayUnitsColumn target={play.target} play={play} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -328,7 +327,7 @@ describe('in a Game', () => {
   const rook = pilotFixture({ id: 'units-rook', name: 'Rook' })
 
   test('a player’s Game crawler comes from the listing, and is never theirs to write', async () => {
-    setQueryAnswers({ 'entities:listForGame': listing })
+    setQueryAnswers({ 'entities.listForGame': listing })
     await renderColumn(
       playFor({ situation: 'downtime', gameId: GAME, stepIndex: 0, pilotRecord: rook }).play
     )
@@ -340,7 +339,7 @@ describe('in a Game', () => {
   })
 
   test('for the Mediator, the crawler the store holds is live', async () => {
-    setQueryAnswers({ 'entities:listForGame': listing })
+    setQueryAnswers({ 'entities.listForGame': listing })
     await renderColumn(playFor({ situation: 'onFoot', gameId: GAME, mediator: true }).play)
     expect(
       within(box('Crawler: Tenacity')).getByRole('button', { name: 'Increase SP' })

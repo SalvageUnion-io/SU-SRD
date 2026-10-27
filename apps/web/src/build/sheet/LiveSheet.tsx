@@ -412,7 +412,7 @@ export function LiveSheet({
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
-            {condensed && segments && segments.some((segment) => !segment.active) && (
+            {condensed && segments?.some((segment) => !segment.active) && (
               <LinkedUnits
                 linked={segments
                   .filter((segment) => !segment.active)

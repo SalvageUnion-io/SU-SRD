@@ -16,12 +16,6 @@
       // root script, the check registry or a workflow; review-deck/ by hand.
       "entry": ["*.ts", "review-deck/*.ts"]
     },
-    "packages/gates": {
-      // `rules/*.ts` is listed because knip reads `.gitignore`'s `rules/*`
-      // (the local rules extract) as matching `packages/gates/rules/` too, and
-      // would not otherwise follow it.
-      "entry": ["rules/*.ts"]
-    },
     "packages/salvageunion-reference": {
       "entry": ["tools/**/*.ts"],
       "project": ["lib/**/*.ts", "tools/**/*.ts"]
@@ -32,57 +26,43 @@
       "project": ["src/**/*.ts"]
     },
     "apps/web": {
-      // `ssg/build.ts` is the in-house static-site generator's entry (it reaches
-      // routes -> pages -> layouts). `src/runtime/*.entry`-style files are
-      // *client bundle* entries, named in vite.config.ts rather than
-      // imported by anything, so knip cannot infer them.
+      // Astro routes `astro/pages/` from `srcDir: './astro'`, which knip's astro
+      // plugin does not read, so the pages are named here.
       "entry": [
         // build/dev/preview are matched by knip's own bin/script detection from
         // package.json, so they are deliberately not listed here.
+        "astro/pages/**/*.{astro,ts}",
+        // Imported by `astro/layouts/Page.astro`'s `<script>`, which knip does not parse.
         "src/runtime/islands.client.ts",
-        "src/runtime/styles.entry.ts",
-        "src/runtime/assets.entry.ts",
-        // The dev server: `dev` starts it inside `convex dev --start '…'`, out of knip's sight.
-        "ssg/dev.ts",
-        // The render pass: the Vite pass spawns it (`prerender` in ssg/appPlugins.ts).
-        "ssg/prerender.ts",
+        // Astro's client directives, registered by path (`astro/build/islandDirectives.ts`).
+        "src/runtime/directives/*.ts",
         "src/routes/**/*.tsx",
         // The app's entry: its shell (`src/shell/shell.ts`) is rendered, not a file knip reads.
         "src/main.tsx",
         // The Playwright specs.
         "e2e/**/*.e2e.ts"
       ],
-      // `test/**` covers the Convex test suite, which lives OUTSIDE `convex/`
-      // so that codegen does not register the harness as a deployable module.
-      // Without it knip cannot see the harness and reports `convex-test` — its
-      // only importer — as an unused devDependency.
-      // `convex/**` (not `convex/*`) so `convex/model/*` is covered too.
       "project": [
         "src/**/*.{ts,tsx}",
-        "ssg/**/*.{ts,tsx}",
-        "convex/**/*.ts",
+        "astro/**/*.{ts,tsx,astro}",
         "test/**/*.ts",
         "e2e/**/*.ts"
       ],
-      // Off: vite.config.ts loads the app's own TSX through Vite's module
+      // Off: astro.config.ts loads the app's own TSX through Vite's module
       // runner, which knip's loader cannot parse; its entries are listed above.
       "vite": false,
-      // Imported only by CSS (`src/styles/base.css`), which knip does not read.
+      // Imported only by CSS (`src/styles/base.css`), which knip does not read;
+      // `cloudflare` is workerd's built-in `cloudflare:workers`, no package.
       "ignoreDependencies": [
         "@fontsource/barlow",
         "@fontsource/barlow-semi-condensed",
-        "@fontsource/caveat"
+        "@fontsource/caveat",
+        "cloudflare"
       ],
       // The router plugin's default is `src/routeTree.gen.ts`; the app's is a level down.
       "tanstack-router": {
         "entry": ["src/routeTree.gen.ts"]
       }
-    },
-    "apps/su-assets": {
-      // The Worker entry (`src/worker/index.ts`) comes from wrangler.jsonc's `main`
-      // via knip's wrangler plugin. `project` must still cover `src/**`, or the
-      // Worker and its test sit outside knip's scope.
-      "project": ["src/**/*.ts"]
     },
     "apps/discord-bot": {
       // `src/worker/index.ts` (the Worker) comes from wrangler.jsonc's `main`
@@ -91,7 +71,9 @@
       // ever stops applying (wrangler removed from the root manifest), knip will
       // report the whole HTTP-interactions transport as dead code; restore the
       // entry then.
-      "project": ["src/**/*.ts"]
+      "project": ["src/**/*.ts"],
+      // workerd's built-in `cloudflare:workers` (the relay's entrypoint), no package.
+      "ignoreDependencies": ["cloudflare"]
     }
   }
 }

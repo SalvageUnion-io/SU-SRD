@@ -8,12 +8,12 @@
  *     a header button of the sheets' own.
  */
 
-import { beforeAll, describe, expect, mock, test } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { Slab } from '../../../components/index'
 import { PilotSheet } from '../PilotSheet'
 
@@ -52,17 +52,7 @@ const PILOT: Pilot = {
   updatedAt: FIXTURE_NOW,
 }
 
-const store = () =>
-  makeEntityStoreMock({
-    pilots: [PILOT],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [PILOT]),
-    get: mock(() => PILOT),
-    create: mock(async () => PILOT),
-    update: mock(async () => PILOT),
-    delete: mock(async () => {}),
-  })
+const store = () => makeSingleUnitStore('pilot', PILOT)
 
 describe("a collection section's Manage control", () => {
   test("is a Compact Button in its SlabSection's actions, and opens the picker", () => {

@@ -1,18 +1,11 @@
-/**
- * HomebrewModerationScreen — `/admin/homebrew` (ADR-061): the site admin's
- * queue under a hatched band. Anyone else is told the page is not theirs;
- * the queue itself is never sent to them (`homebrew.moderation`).
- */
-
-import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
 import { ChapterBand, PageShell, Text } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { useHomebrewModeration } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 import { HomebrewModeration } from './HomebrewModeration'
 
 export function HomebrewModerationScreen() {
-  const queue = useQuery(api.homebrew.moderation)
+  const queue = useHomebrewModeration()
   return (
     <PageShell
       measure={PAGE_MEASURE}

@@ -24,9 +24,8 @@ import { portFor } from 'gates/ports'
  *   (`failOnFlakyTests`). Retries stay, so a flake still records its trace,
  *   but they never hide it.
  * - The page's CSP is bypassed (`bypassCSP`). The specs test behaviour and
- *   accessibility, not the policy, and two things they need sit outside the
- *   production CSP: the app's throwaway Convex backend on `127.0.0.1`, and
- *   the axe script the a11y spec injects. `tools/smoke-production.sh` asserts
+ *   accessibility, not the policy, and the axe script the a11y spec injects
+ *   sits outside the production CSP. `tools/smoke-production.sh` asserts
  *   the CSP that reaches the browser in production.
  * - Service workers are blocked: activating one mid-navigation can abort
  *   `page.goto` with `net::ERR_ABORTED`. A spec about offline opts back in with
@@ -44,10 +43,10 @@ import { portFor } from 'gates/ports'
  * Signed out, the app is read-only, so every spec that builds something
  * signs in through `e2e/fixtures.ts`. Both CI builds that run them, ci.yml's
  * `build-web` (the PR tier, its `@pr` tests) and the nightly `e2e` job (the
- * whole suite), carry the seam against a throwaway Convex backend; a build
- * without it SKIPS those specs. Locally, `bun run dev` always carries the seam on a local Convex
- * deployment, so those specs need the one-time "Local backend" setup in
- * .claude/skills/convex-ops/SKILL.md and FAIL without it.
+ * whole suite), carry the seam, its server half the Worker's `.dev.vars`
+ * (`.github/actions/test-build`); a build without it SKIPS those specs.
+ * Locally, `bun run dev` always carries the seam, on the Worker that
+ * `wrangler dev` runs beside it.
  */
 
 const ci = Boolean(process.env.CI)

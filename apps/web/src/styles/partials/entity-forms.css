@@ -994,10 +994,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   align-items: stretch;
   align-self: flex-start;
   /* No ink edge on a head alone; its width stays,
-     so nothing moves. A contentful Mini's pill is inked (below). */
+     so nothing moves. A contentful Mini's pill is inked (below). No edge
+     at its foot (R45): the name's tab stands on it, as a Compact's does,
+     the edge's width added over the tab so the pill keeps its height: as
+     the browser draws it, a whole pixel (an edge snaps down, padding never). */
   border-color: transparent;
   border-style: solid;
-  border-width: var(--bw-chrome);
+  border-width: var(--bw-chrome) var(--bw-chrome) 0;
   display: flex;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -1007,7 +1010,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: var(--space-2) var(--space-6) 0 var(--space-4);
+  padding: calc(var(--space-2) + round(down, var(--bw-chrome), 1px)) var(--space-6) 0 var(--space-4); /* design-tokens-ignore: the edge snapped to a whole pixel, not spacing */
   position: relative;
   white-space: nowrap;
 }
@@ -1031,10 +1034,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
    (R38) round its paint but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is
    the header-only Mini's strip (its clear edge and its padding), so the head
-   never reads as a flat bar. The pill's height is unchanged. Gated by
-   `e2e/token-cutout.e2e.ts`. */
+   never reads as a flat bar. Its height is as before R45 covered every Mini.
+   Gated by `e2e/token-cutout.e2e.ts`. */
 .su-entity-mini[data-contentful] .su-entity-mini__pill {
-  border-bottom-width: 0;
   border-color: var(--su-compact-frame, var(--color-ink-40));
   padding-top: calc(var(--space-2) + var(--bw-chrome));
 }
@@ -1304,9 +1306,9 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 /* A TOKEN LIST (`.su-entity-mini-list`: a pattern's Systems and Modules,
    Play's lists): one Mini a line, each running the list's full width, its
    name taking the room and its fact at the right edge, where the facts scan
-   down the list. Under a coarse pointer, and in Play's phone form
-   (`.su-play-root--phone`, ADR-045), each line is a thumb's height (ruleset
-   §4.6): a row, not a control, so its pill is drawn that tall. */
+   down the list. Under a coarse pointer, and in a narrow Play (below `lg`,
+   a phone's), each line is a thumb's height (ruleset §4.6): a row, not a
+   control, so its pill is drawn that tall. */
 .su-entity-mini-list {
   display: flex;
   flex-direction: column;
@@ -1349,8 +1351,10 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   }
 }
 
-.su-play-root--phone .su-entity-mini-list .su-entity-mini__pill {
-  min-height: var(--size-full);
+@container play not (width >= 64rem) {
+  .su-play-root .su-entity-mini-list .su-entity-mini__pill {
+    min-height: var(--size-full);
+  }
 }
 
 /* A Mini with controls on its line (`.su-entity-mini-line`: the app's installed
@@ -1491,4 +1495,29 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
    name at the Full title size (`CrawlerTechLevelPage`). */
 .su-tech-level__block .su-entity-compact__title {
   font-size: var(--text-display-lg);
+}
+
+/* A Mini control in a chip strip (C8: a "⋯", a Use, a row's door) draws at
+   its chips' 18px in WCAG 2.2's 24px target (2.5.8), as a linked chip does
+   (`.su-chip-link`, R12): a transparent border takes the difference, its
+   fill is clipped to the plate inside, an outlined button's frame is an
+   outline on that plate's edge, and a negative margin of the same keeps its
+   line and its neighbours where they were. Last in the file, so it beats the
+   grounds' border colours above. */
+.su-chips > .su-chip-lane > .su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > .su-btn.su-btn--mini {
+  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
+
+  background-clip: padding-box;
+  border-color: transparent;
+  border-width: var(--su-mini-inset);
+  box-sizing: border-box;
+  height: var(--space-24);
+  margin: calc(-1 * var(--su-mini-inset));
+}
+
+.su-chips > .su-chip-lane > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
+  outline: var(--bw-chrome) solid currentcolor;
+  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
 }

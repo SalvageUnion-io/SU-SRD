@@ -17,44 +17,53 @@ import type { ReactNode } from 'react'
  *   the mobile drawer; the mobile header row stays empty.
  */
 
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 
 let authed = true
-const signIn = mock(async (_provider: string) => undefined)
+const signIn = mock((_route?: string) => undefined)
 const signOut = mock(async () => undefined)
 
-// Module scope, before the imports below — see `convexMock.ts`. The auth
+// Module scope, before the imports below — see `serverMock.ts`. The session
 // module is mocked through `also` rather than `authReact` so the two actions
-// are spies this file can read.
-const convexMocks = await installConvexMocks({
+// are spies this file can read. `also` resolves from `serverMock.ts`.
+const serverMocks = await installServerMocks({
   router: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
   also: {
-    '@convex-dev/auth/react': () => ({
-      useAuthActions: () => ({ signIn, signOut }),
-      ConvexAuthProvider: ({ children }: { children: ReactNode }) => children,
-    }),
+    '../../lib/auth/session': () => ({ signIn, signOut }),
+    '../../lib/account/accountApi': accountApiStub,
   },
 })
 
 const { HeaderActions, HeaderDrawerAccount, HeaderGames, HeaderMobileActions } = await import(
   '../HeaderAccount'
 )
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const ME = { _id: 'u1', displayName: 'Beefcake', avatarUrl: null, email: null }
 const GAMES = [{ _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true }]
 
-const QUERIES: QueryAnswers = { 'account:me': ME, 'games:listMine': GAMES }
+const QUERIES: QueryAnswers = { 'games.listMine': GAMES }
+
+/** The Games list from the server, and the player from the account route. */
+function serve(queries: QueryAnswers): void {
+  setQueryAnswers(queries)
+  accountAnswers.me = ME
+}
 
 /** Force the browser's online flag, which is what picks Connected vs Disconnected. */
 function setOnline(value: boolean): void {
   Object.defineProperty(navigator, 'onLine', { value, configurable: true })
 }
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 /** Open a `HeaderMenu` from its trigger and hand back the menu. */
 async function openMenu(trigger: HTMLElement): Promise<HTMLElement> {
@@ -69,16 +78,17 @@ afterEach(() => {
   setOnline(true)
   signIn.mockClear()
   signOut.mockClear()
-  convexMocks.navigations.length = 0
+  serverMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
+  resetAccountApi()
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 
 describe('signed in and connected', () => {
   test('the trigger is a menu button showing the display name and avatar initials', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu for Beefcake' })
@@ -90,7 +100,7 @@ describe('signed in and connected', () => {
   })
 
   test('its menu holds Settings and Sign out, then About, Changelog and Suggest or report', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
@@ -102,19 +112,19 @@ describe('signed in and connected', () => {
   })
 
   test('Settings goes to /settings', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Settings' }))
     })
-    expect(convexMocks.navigations).toEqual([{ to: '/settings' }])
+    expect(serverMocks.navigations).toEqual([{ to: '/settings' }])
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
   test('Sign out signs out', async () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
@@ -125,7 +135,7 @@ describe('signed in and connected', () => {
   })
 
   test('the Games menu is a nav control, not part of the account slot', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderActions />)
 
     expect(screen.getByRole('button', { name: 'Account menu for Beefcake' })).toBeTruthy()
@@ -136,14 +146,14 @@ describe('signed in and connected', () => {
   })
 
   test('the nav Games control is a menu button', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderGames />)
 
     expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
   })
 
   test('mobile: the header row shows the avatar alone, still naming the account', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderMobileActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu for Beefcake' })
@@ -151,7 +161,7 @@ describe('signed in and connected', () => {
   })
 
   test('mobile: in Play the drawer lists the Games rather than offering sign-in', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(<HeaderDrawerAccount close={() => {}} pathname="/play/" />)
 
     expect(screen.getByRole('navigation', { name: 'Games' })).toBeTruthy()
@@ -159,13 +169,13 @@ describe('signed in and connected', () => {
   })
 
   test('mobile: in Build the drawer has no Games, which left Build', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const { container } = wrap(<HeaderDrawerAccount close={() => {}} pathname="/" />)
     expect(container.innerHTML).toBe('')
   })
 
   test('the nav Games control is current on the hub and a Game’s routes, nowhere else', () => {
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const current = (pathname: string) => {
       const { unmount } = wrap(<HeaderGames pathname={pathname} />)
       const here = screen.getByRole('button', { name: 'Games' }).getAttribute('aria-current')
@@ -178,7 +188,8 @@ describe('signed in and connected', () => {
   })
 
   test('before the profile arrives it reads "Account" rather than guessing a name', () => {
-    setQueryAnswers({ ...QUERIES, 'account:me': undefined })
+    serve(QUERIES)
+    delete accountAnswers.me
     wrap(<HeaderActions />)
 
     const trigger = screen.getByRole('button', { name: 'Account menu' })
@@ -189,7 +200,7 @@ describe('signed in and connected', () => {
 describe('signed in but offline', () => {
   test('keeps the identity and a working Sign out, with no Games menu', async () => {
     setOnline(false)
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     wrap(
       <>
         <HeaderGames />
@@ -207,7 +218,7 @@ describe('signed in but offline', () => {
 
   test('the drawer has nothing to add', () => {
     setOnline(false)
-    setQueryAnswers(QUERIES)
+    serve(QUERIES)
     const { container } = wrap(<HeaderDrawerAccount close={() => {}} />)
     expect(container.innerHTML).toBe('')
   })
@@ -222,7 +233,7 @@ describe('signed out', () => {
     expect(screen.queryByRole('button', { name: /account menu/i })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Games' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
-    expect(signIn).toHaveBeenCalledWith('discord')
+    expect(signIn).toHaveBeenCalledTimes(1)
   })
 
   test('mobile: the header row stays empty and the drawer offers sign-in', () => {

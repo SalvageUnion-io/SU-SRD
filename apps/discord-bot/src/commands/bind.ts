@@ -12,7 +12,7 @@ import { respondWithSite, site } from './siteReply'
  * (its Mediator or Organiser only); `/su bind` with no Game binds it to your
  * solo play. A Game posts to one channel and so does a person, so binding
  * again moves it. `/su unbind` releases the channel, and rolls stop posting
- * there. The server decides who may do what (`convex/model/channelBindings.ts`);
+ * there. The site decides who may do what (`worker/shared/channelBindings.ts`);
  * the bot only says what it decided.
  *
  * Both replies are ephemeral, like every app reply that is about a person's

@@ -15,24 +15,16 @@
  * still `row.can` (`lib/games/gameRoster.ts`); this only does it.
  */
 
-import { useMutation } from 'convex/react'
 import { moveTo, SHELF } from 'game-domain/container'
-import type { OwnableTable } from 'game-domain/entityKinds'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { Confirm } from '../../components/shared/useConfirm'
 import type { GameMember, RosterRow } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
-import { useEntityStore } from '../../stores/entityStore'
-import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
-
-/** The table a pilot or mech row's ownership mutations address. */
-function ownableTable(row: RosterRow): OwnableTable {
-  return row.kind === 'pilot' ? 'pilots' : 'mechs'
-}
+import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useGamesCall } from '../../replica/roomCalls'
+import { useUnits } from '../../replica/units'
 
 export type RowActions = {
-  /** Assign an unassigned character to yourself; `ShelfSync` brings it into this browser. */
+  /** Assign an unassigned character to yourself; `RoomFeed` brings it into this browser. */
   assignSelf: (row: RosterRow) => void
   /**
    * The table runner's: assign a character to `member`, whoever holds it now.
@@ -52,15 +44,16 @@ export type RowActions = {
   scrap: (row: RosterRow) => void
 }
 
-export function useRowActions(confirm: Confirm): RowActions {
-  const assign = useMutation(api.ownership.assign)
-  const unassign = useMutation(api.ownership.unassign)
-  const scrapCrawler = useMutation(api.entities.removeCrawler)
-  const removeEntity = useMutation(api.entities.remove)
+export function useRowActions(confirm: Confirm, gameId: string): RowActions {
+  // The rooms need the Game a row is in, which the row itself does not name.
+  const assign = useGamesCall('ownership.assign', { gameId })
+  const unassign = useGamesCall('ownership.unassign', { gameId })
+  const scrapCrawler = useGamesCall('entities.removeCrawler', { gameId })
+  const removeEntity = useGamesCall('entities.remove', { gameId })
 
   /** Drop this browser's cached copy once the server no longer lets us hold it. */
   async function forgetLocal(row: RosterRow): Promise<void> {
-    if (row.localId !== null) await useEntityStore.getState().forget(row.kind, row.localId)
+    if (row.localId !== null) await useUnits.getState().forget(row.kind, row.localId)
   }
 
   return {
@@ -69,9 +62,9 @@ export function useRowActions(confirm: Confirm): RowActions {
         ...ROW_ACTION_COPY.assignSelf(row.name),
         onConfirm: async () => {
           // Nothing to pull down by hand: it is yours now, so it is in
-          // `listMine`, and `ShelfSync` caches it from there — the row's View
+          // `listMine`, and `RoomFeed` caches it from there — the row's View
           // opens it editable as soon as it lands.
-          await assign({ table: ownableTable(row), entityId: row.serverId })
+          await assign({ entityId: row.serverId })
         },
       }),
 
@@ -89,9 +82,8 @@ export function useRowActions(confirm: Confirm): RowActions {
         ),
         onConfirm: async () => {
           await assign({
-            table: ownableTable(row),
             entityId: row.serverId,
-            userId: member.userId as Id<'users'>,
+            userId: member.userId,
           })
           // Handed to somebody else, it is no longer this browser's to edit.
           if (row.owner?.mine === true) await forgetLocal(row)
@@ -102,7 +94,7 @@ export function useRowActions(confirm: Confirm): RowActions {
       confirm({
         ...ROW_ACTION_COPY.unassign(row.name, row.kind, row.owner?.mine === true),
         onConfirm: async () => {
-          await unassign({ table: ownableTable(row), entityId: row.serverId })
+          await unassign({ entityId: row.serverId })
           // It belongs to the table now, not to this browser: keeping a local
           // copy would leave an editor whose writes the server refuses.
           await forgetLocal(row)
@@ -129,9 +121,7 @@ export function useRowActions(confirm: Confirm): RowActions {
           // arrived — so reaching it is a defect, and the confirm reports it.
           if (row.localId === null)
             throw new Error('Move to your Training Bay offered with no local copy')
-          await useEntityStore
-            .getState()
-            .update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)
+          await useUnits.getState().update(row.kind, row.localId, moveTo(SHELF), CONTAINER_MOVE)
         },
       }),
 
@@ -141,8 +131,8 @@ export function useRowActions(confirm: Confirm): RowActions {
         onConfirm: async () => {
           // Server first, addressed by server id: the row may never have been
           // in this browser, and a template pre-gen has no appId for
-          // `commitEntityWrite` to address it by.
-          await removeEntity({ table: ownableTable(row), entityId: row.serverId })
+          // `sendRow` to address it by.
+          await removeEntity({ entityId: row.serverId })
           // Then drop the cached copy, exactly as release and scrap do.
           // `forget`, not `delete`: the server row is already gone, so a second
           // server delete would be a no-op at best.
@@ -154,7 +144,7 @@ export function useRowActions(confirm: Confirm): RowActions {
       confirm({
         ...ROW_ACTION_COPY.scrap(row.name),
         onConfirm: async () => {
-          await scrapCrawler({ crawlerId: row.serverId as Id<'crawlers'> })
+          await scrapCrawler({ crawlerId: row.serverId })
           await forgetLocal(row)
         },
       }),

@@ -1,0 +1,18 @@
+---
+/**
+ * The three faces' `@font-face` rules and fallbacks, and the preloads every
+ * page paints above the fold (`astro/build/fonts.ts`): Barlow 400 and 500
+ * for body text, Barlow Semi Condensed 600 and 700 for the bar, the trail and
+ * headings. Without them the first paint was in the fallback and the swap
+ * re-wrapped the breadcrumb row on a phone. Caveat is preloaded only by a
+ * page that sets the tagline above the fold (`DocumentMeta.preloadScriptFont`):
+ * the SRD's home, where it otherwise landed after the first paint (CLS 0.035).
+ */
+import { Font } from 'astro:assets'
+
+type Props = { scriptFont?: boolean }
+const { scriptFont = false } = Astro.props
+---
+<Font cssVariable="--font-barlow" preload={[{ weight: 400 }, { weight: 500 }]} />
+<Font cssVariable="--font-barlow-cond" preload={[{ weight: 600 }, { weight: 700 }]} />
+<Font cssVariable="--font-caveat" preload={scriptFont} />

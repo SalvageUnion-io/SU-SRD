@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * MechConditionsEditor — the mech's unified conditions editor.
  *
@@ -12,19 +13,19 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import { unifiedMechConditions } from 'salvageunion-reference/rules'
 import { mechConditionsPatch } from '../../lib/rules/mechItems'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useUnits } from '../../replica/units'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
 import { freshEntity } from './freshEntity.model'
 
 type MechConditionsEditorProps = {
   mech: Mech
-  /** Injectable store — defaults to useEntityStore. */
-  store?: typeof useEntityStore
+  /** Injectable store — defaults to useUnits. */
+  store?: UnitsStore
 }
 
-export function MechConditionsEditor({ mech, store = useEntityStore }: MechConditionsEditorProps) {
+export function MechConditionsEditor({ mech, store = useUnits }: MechConditionsEditorProps) {
   const storeState = store()
 
   async function handleChange(next: string[]) {

@@ -2,17 +2,14 @@ import { describe, expect, test } from 'bun:test'
 import { buildBaseStylesheet, emitBaseStylesheet } from '../baseStylesheet'
 
 describe('the base stylesheet', () => {
-  test('builds one hashed stylesheet under /assets/, with the fonts it names', async () => {
+  test('builds one hashed stylesheet under /assets/, naming no font file', async () => {
     const base = await buildBaseStylesheet()
     expect(base.href).toMatch(/^\/assets\/base-[\w-]+\.css$/)
     const css = String(base.files.find((file) => `/${file.fileName}` === base.href)?.source)
-    // The package entry's layers, and the faces the pages preload.
+    // The package entry's layers; the faces are each document's (`Fonts.astro`).
     expect(css).toContain('@layer su-reset')
-    expect(css).toContain('font-family:Barlow Semi Condensed')
-    for (const { fileName } of base.files) {
-      expect(fileName).toMatch(/^assets\//)
-      if (fileName.endsWith('.woff2')) expect(css).toContain(`/${fileName}`)
-    }
+    expect(css).not.toContain('@font-face')
+    expect(base.files.map((file) => file.fileName)).toEqual([base.href.slice(1)])
   }, 30_000)
 
   test('is built once per process', () => {

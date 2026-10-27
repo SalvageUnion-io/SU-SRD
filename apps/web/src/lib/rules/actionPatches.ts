@@ -214,9 +214,9 @@ export function describeHeatCheck(
 // Action activation (play.md §14.2)
 // ---------------------------------------------------------------------------
 
-export type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
+type PlayActionKind = 'chassis' | 'system' | 'module' | 'ability' | 'equipment'
 /** Compact source stamp shown on each action card. */
-export type PlayActionStamp = 'CHS' | 'SYS' | 'MOD' | 'ABL' | 'EQP'
+type PlayActionStamp = 'CHS' | 'SYS' | 'MOD' | 'ABL' | 'EQP'
 /** Which resource one activation of this action spends. */
 export type PlayActionCurrency = 'EP' | 'AP'
 

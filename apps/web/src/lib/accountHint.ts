@@ -2,7 +2,7 @@
  * The account hint: who is signed in, as the Union bar shows them, left in the
  * browser by the app for the SRD to read.
  *
- * The SRD has no backend and opens no Convex connection, yet its bar shows the
+ * The SRD has no backend and opens no room connection, yet its bar shows the
  * same account menu as the app's. Both sites share one origin
  * (salvageunion.io, the app at `/build`, ADR-048), so they share
  * `localStorage`: the app writes the display name and avatar here whenever
@@ -10,10 +10,10 @@
  * account value the SRD reads from the device: a name and a picture URL, never
  * a record (the app's records are the device copy's, ADR-058).
  *
- * A hint alone is not trusted. Convex Auth keeps its refresh token in the same
- * storage and removes it on sign-out and on a refresh the server refuses, so
- * the hint counts only while such a token is present: a session that ended
- * anywhere shows signed out here too.
+ * A hint alone is not trusted. The app keeps the device's stored session in the
+ * same storage and removes it on sign-out and whenever the Worker answers
+ * signed out (`auth/storedSession.ts`), so the hint counts only while it
+ * is present: a session that ended anywhere shows signed out here too.
  *
  * The library holds the contract, not the storage (ADR-010): each app passes
  * its own `localStorage`, or null where there is none. Dependency-free on
@@ -24,20 +24,16 @@
 /** The `localStorage` key. */
 export const ACCOUNT_HINT_KEY = 'su:account'
 
-/** Convex Auth's refresh-token key, before its `_<deployment>` suffix. */
-const REFRESH_TOKEN_PREFIX = '__convexAuthRefreshToken_'
+/**
+ * The stored session's key (`auth/storedSession.ts`'s `SESSION_KEY`), spelt
+ * here rather than imported: an import gives every SRD page a chunk of its
+ * own to load. A test holds the two together.
+ */
+export const STORED_SESSION_KEY = 'su:session'
 
 export type AccountHint = {
   name: string | null
   avatarUrl: string | null
-}
-
-function hasSession(storage: Storage): boolean {
-  for (let i = 0; i < storage.length; i += 1) {
-    const key = storage.key(i)
-    if (key?.startsWith(REFRESH_TOKEN_PREFIX) && storage.getItem(key)) return true
-  }
-  return false
 }
 
 function textOrNull(value: unknown): string | null {
@@ -49,7 +45,7 @@ export function readAccountHint(storage: Storage | null): AccountHint | null {
   if (!storage) return null
   try {
     const raw = storage.getItem(ACCOUNT_HINT_KEY)
-    if (raw === null || !hasSession(storage)) return null
+    if (raw === null || !storage.getItem(STORED_SESSION_KEY)) return null
     const parsed: unknown = JSON.parse(raw)
     if (typeof parsed !== 'object' || parsed === null) return null
     const { name, avatarUrl } = parsed as Record<string, unknown>

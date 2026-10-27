@@ -1,136 +1,216 @@
 /**
- * PlayFrame — the Cockpit's one screen (Play, Direction A): the Play bar on
- * top, three columns under it, a foot along the bottom, laid on the fixed
- * 1280×800 `PlayCanvas`, which scales it, widens it to fill, and never
- * scrolls (ADR-038 §9, ADR-045's floor). Below that floor it draws the
- * screen's `phone` form instead (`PlayPhone`: tabs under pinned vitals,
- * play.md §11), which fits the screen too.
+ * PlayFrame — every Play screen's one layout (play.md §2, ADR-063): the Play
+ * bar on top, the screen's panes under it, phone first. It never scrolls as
+ * a page: its host fills the window below its own top, and a pane scrolls
+ * inside itself.
  *
- * A pure slotted layout, shared by both Play screens: the player's
- * (`PlayCockpit`: Units | Actions | Crew, Tables, Feed) and the Mediator's
- * (`PlayMediatorCockpit`: the table's seats | the Opposition | Tables, Feed,
- * Propose). The side columns are ~300px and ~320px; the centre takes the
- * rest. A column scrolls inside itself when its content outgrows it; the
- * canvas never does.
+ *  - **Below `lg`** (64rem, container queries on `.su-play-root`): one pane
+ *    at a time under the pinned row (the live vitals and the Situation
+ *    switch), and the tabs along the foot at thumb height, in the order the
+ *    screen gives them. Closed panes stay mounted, `hidden`, so a
+ *    half-typed Find, an open filter or a resolve in hand survives a switch.
+ *    Table mode's `focus` takes the panes' place, the panes kept under it.
+ *  - **From `lg`**: the same panes as three columns, start | centre | end
+ *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
+ *    table | Opposition | Tables, Feed and Propose), then the foot. The end
+ *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
+ *
+ * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
+ * the same rung) decides only what a reader is told, so crossing it re-lays
+ * the panes without remounting them: a pane is a column's region from `lg`,
+ * a tab's panel below it. The screen reads `wide` once and hands it here and
+ * to its bar, which holds the Situation switch from `lg`.
  *
  * ## Nesting (the Nested Frames Audit)
  *
- * The canvas is level 0. A column is a plain region on it, not a frame: its
- * heading is a Slab (`PlayColumn`), never a `TitledBox`, so what a column
- * lists — Compacts, Cards, a unit's `TitledBox` — stays at level 1, and
- * anything inside one of those is a Mini (level 2).
+ * The frame is level 0. A pane is a plain region on it, not a frame: its
+ * heading is a Slab, never a `TitledBox`, so what a pane lists — Compacts,
+ * Cards, a unit's `TitledBox` — stays at level 1, and anything inside one of
+ * those is a Mini (level 2).
  *
- * The Cockpit is a page like the sheets: the page
- * ground, the Play bar and foot in the Cantina's band, and each column a paper
- * panel on a hairline. Its ground is flat, its brand-colour bands speckled as the
- * sheet's (ruleset §1.3, §3.5.1; R10): the frame sets the texture once for
- * every entity form on the canvas and the phone form alike.
+ * The screen is a page like the sheets: the page ground, the Play bar and
+ * foot in the Cantina's band, and each pane on paper. Its ground is flat, its
+ * brand-colour bands speckled as the sheet's (ruleset §1.3, §3.5.1; R10):
+ * the frame sets the texture once for every entity form inside.
  *
- * Play's stylesheet bundle (`styles/play/play.css`: the canvas, then Units,
- * Actions, side and the phone form) rides in with this module: the canvas's
- * size and ground are its rules, and the Play route's chunk is where it belongs.
+ * Play's stylesheet bundle (`styles/play/play.css`) rides in with this
+ * module, so the Play route's chunk is where it belongs. The host is the
+ * page's one `<main>` landmark: no Play route wraps one (`__root.tsx` leaves
+ * it to each route), and everything on a Play screen, the bar included, is
+ * the screen's content.
  */
 
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
-import { EntitySurfaceProvider, tokens } from '../components/index'
-import { PlayCanvas } from './PlayCanvas'
-
-/** The two side columns' widths: the Units (or the table's seats) and the side stack. */
-const PLAY_COLUMNS = { start: 300, end: 320 } as const
-
-const FRAME = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: `${PLAY_COLUMNS.start}px minmax(0, 1fr) ${PLAY_COLUMNS.end}px`,
-  gridTemplateRows: 'auto minmax(0, 1fr) auto',
-  gridTemplateAreas: "'bar bar bar' 'start centre end' 'foot foot foot'",
-  height: '100%',
-  padding: `${tokens.space[8]} ${tokens.space[12]}`,
-  width: '100%',
-} satisfies CSSProperties
+import { useEffect, useId, useRef, useState } from 'react'
+import { EntitySurfaceProvider, Tab, TabList, Tabs, tokens } from '../components/index'
+import { playCopy } from '../messages/play'
+import type { PaneSpec, PlayColumn } from './playPanes.model'
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
  * §3.5.1, R10): set once, for every form inside. The page ground, the paper
- * columns, buttons and fields stay clean, since only a band (the Play bar, a
+ * panes, buttons and fields stay clean, since only a band (the Play bar, a
  * head, a unit box's band) carries it.
  */
 const SPECKLED = { texture: true } as const
 
-/** The bar and foot bleed to the canvas's edges, out of the frame's padding. */
-const BAR = {
-  gridArea: 'bar',
-  margin: `-${tokens.space[8]} -${tokens.space[12]} 0`,
-  minWidth: 0,
-} satisfies CSSProperties
-const FOOT = {
-  gridArea: 'foot',
-  margin: `0 -${tokens.space[12]} -${tokens.space[8]}`,
-  minWidth: 0,
+/** The Tabs root: the frame's grid fills it. */
+const ROOT = { height: '100%' } satisfies CSSProperties
+
+/** The tab row at the foot: the tabs share it, each a thumb's width. */
+const TAB_LIST = {
+  borderTop: `${tokens.borderWidth.chrome} solid var(--color-ink)`,
+  flexWrap: 'nowrap',
+  gap: 0,
 } satisfies CSSProperties
 
 /**
- * A column: a paper panel on the page ground, framed in the 1px ink-40
- * hairline a sheet's opening panels wear (ruleset §4.3, R49), its own scroll.
+ * A tab: an equal share of the row, its label whole (EDL E18, hard rule
+ * R29). A label too long for its share widens its tab (no `minWidth: 0`) or
+ * wraps between its words, never "…". The Full Size, as a phone's other thumb
+ * controls are (R12).
  */
-const COLUMN = {
-  background: 'var(--color-paper)',
-  border: `${tokens.borderWidth.hairline} solid var(--color-ink-40)`,
-  borderRadius: tokens.radius.card,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-  minHeight: 0,
-  minWidth: 0,
-  overflowY: 'auto',
-  padding: tokens.space[12],
+const TAB = {
+  border: 0,
+  borderRadius: 0,
+  flex: '1 1 0%',
+  minHeight: tokens.size.full,
+  padding: `0 ${tokens.space[4]}`,
+  whiteSpace: 'normal',
 } satisfies CSSProperties
 
-const AREA: Record<'start' | 'centre' | 'end', CSSProperties> = {
-  start: { ...COLUMN, gridArea: 'start' },
-  centre: { ...COLUMN, gridArea: 'centre' },
-  end: { ...COLUMN, gridArea: 'end' },
-}
+/** A pane and what it holds. */
+export type PlayPane<Value extends string> = PaneSpec<Value> & { node: ReactNode }
 
-type PlayFrameProps = {
+type PlayFrameProps<Value extends string> = {
+  /** From `lg` (`usePlayWide`), read once by the screen. */
+  wide: boolean
   /** The Play bar (`PlayBar`). */
   bar: ReactNode
-  /** The left column: the Units, or the Mediator's table seats. */
-  start: ReactNode
-  /** The centre column: the flattened Actions, or the Opposition. */
-  centre: ReactNode
-  /** The right column: Crew, Tables and Feed, or the Mediator's Tables, Feed and Propose. */
-  end: ReactNode
-  /** The foot (`PlayFoot`). */
-  foot: ReactNode
-  /** Names for the three columns' regions, in order: "Units", "Actions", … */
+  /** Below `lg`, pinned above every pane: the live vitals and the Situation switch. */
+  pinned?: ReactNode
+  /** The panes, in reading order: each column's from the start. */
+  panes: readonly PlayPane<Value>[]
+  /** The tabs' order below `lg`, when it is not the reading order. */
+  tabs?: readonly Value[]
+  /** Names for the three columns' regions from `lg`, in order: "Units", "Actions", … */
   labels: readonly [string, string, string]
-  /**
-   * The phone form (`PlayPhone`, play.md §11), drawn instead below the
-   * canvas's floor; it fits the screen and scrolls inside itself.
-   */
-  phone: ReactNode
+  /** The open pane below `lg`. */
+  tab: Value
+  onTab: (tab: Value) => void
+  /** Below `lg`, table mode's screen, shown in the panes' place while set. */
+  focus?: ReactNode
+  /** The foot (`PlayFoot`), from `lg`. */
+  foot: ReactNode
 }
 
-export function PlayFrame({ bar, start, centre, end, foot, labels, phone }: PlayFrameProps) {
+export function PlayFrame<Value extends string>({
+  wide,
+  bar,
+  pinned,
+  panes,
+  tabs,
+  labels,
+  tab,
+  onTab,
+  focus,
+  foot,
+}: PlayFrameProps<Value>) {
+  const id = useId()
+  const hostRef = useRef<HTMLElement>(null)
+  const hostH = useHostHeight(hostRef)
+  const focused = !wide && focus !== undefined && focus !== null
+  const tabbed = tabs ? tabs.flatMap((value) => panes.filter((p) => p.value === value)) : panes
+  const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
+  const tabId = (value: string) => `${id}-tab-${value}`
+  const paneId = (value: string) => `${id}-pane-${value}`
+
+  const pane = (p: PlayPane<Value>, region: string | null) => (
+    // From `lg` a start or centre pane is its column's named region; below
+    // it, a tab's panel.
+    <section
+      key={p.value}
+      id={paneId(p.value)}
+      className="su-play-pane"
+      data-column={p.column}
+      data-dock={p.dock ? '' : undefined}
+      hidden={!wide && (focused || p.value !== open)}
+      role={wide ? undefined : 'tabpanel'}
+      aria-label={wide ? (region ?? undefined) : undefined}
+      aria-labelledby={wide ? undefined : tabId(p.value)}
+    >
+      {p.node}
+    </section>
+  )
+  const inColumn = (column: PlayColumn) => panes.filter((p) => p.column === column)
+
   return (
     <EntitySurfaceProvider value={SPECKLED}>
-      <PlayCanvas phone={phone}>
-        <div style={FRAME}>
-          <div style={BAR}>{bar}</div>
-          <section aria-label={labels[0]} style={AREA.start}>
-            {start}
-          </section>
-          <section aria-label={labels[1]} style={AREA.centre}>
-            {centre}
-          </section>
-          <section aria-label={labels[2]} style={AREA.end}>
-            {end}
-          </section>
-          <div style={FOOT}>{foot}</div>
-        </div>
-      </PlayCanvas>
+      <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
+        <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
+          <div className="su-play-frame">
+            <div className="su-play-frame__bar">{bar}</div>
+            {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
+            {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
+            {inColumn('start').map((p) => pane(p, labels[0]))}
+            {inColumn('centre').map((p) => pane(p, labels[1]))}
+            <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
+              {inColumn('end').map((p) => pane(p, null))}
+            </section>
+            {wide ? (
+              <div className="su-play-frame__foot">{foot}</div>
+            ) : (
+              <div className="su-play-frame__tabs" hidden={focused}>
+                <TabList label={playCopy('play')} style={TAB_LIST}>
+                  {tabbed.map((p) => (
+                    <Tab
+                      key={p.value}
+                      value={p.value}
+                      id={tabId(p.value)}
+                      controls={paneId(p.value)}
+                      style={TAB}
+                    >
+                      {p.label}
+                    </Tab>
+                  ))}
+                </TabList>
+              </div>
+            )}
+          </div>
+        </Tabs>
+      </main>
     </EntitySurfaceProvider>
   )
+}
+
+/**
+ * The host's height: the window's below the host's own top, so the frame
+ * fills the screen under whatever sits above it (the offline banner) and the
+ * page never scrolls. Nothing on the ancestor chain establishes a height, so
+ * `height: 100%` alone would collapse to the content.
+ */
+function useHostHeight(hostRef: { current: HTMLElement | null }): number | undefined {
+  const [height, setHeight] = useState<number | undefined>(undefined)
+  useEffect(() => {
+    const host = hostRef.current
+    if (!host) return
+    const compute = () => {
+      // The host's offset from the top of the PAGE, not the viewport, so a
+      // host scrolled up never reads as a taller window.
+      const top = host.getBoundingClientRect().top + window.scrollY
+      setHeight(Math.max(0, window.innerHeight - top))
+    }
+    compute()
+    // The window's resize catches its height; the observer, what moves the
+    // host's top (a banner arriving). Absent in some test environments.
+    window.addEventListener('resize', compute)
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(compute)
+    ro?.observe(document.body)
+    return () => {
+      window.removeEventListener('resize', compute)
+      ro?.disconnect()
+    }
+  }, [hostRef])
+  return height
 }

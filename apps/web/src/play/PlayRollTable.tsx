@@ -15,7 +15,7 @@ import {
   tokens,
   useCopied,
 } from '../components/index'
-import { dieForTable, rollD20 } from '../lib/rollTableDice'
+import { dieForTable, rollD20 } from '../lib/dice'
 import { playCopy } from '../messages/play'
 
 /** Where a roll landed, and the words it reads as (the toast, the log, Copy). */

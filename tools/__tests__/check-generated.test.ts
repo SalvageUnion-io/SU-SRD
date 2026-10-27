@@ -72,10 +72,8 @@ describe('the cache key', () => {
     'apps/web/routeTree.config.ts',
     'apps/web/scripts/generate-route-tree.ts',
     'apps/web/src/routeTree.gen.ts',
-    'apps/su-assets/wrangler.jsonc',
-    'apps/su-assets/src/worker/index.ts',
-    'apps/su-assets/worker-configuration.d.ts',
     'apps/discord-bot/wrangler.jsonc',
+    'apps/discord-bot/src/worker/index.ts',
     'apps/discord-bot/worker-configuration.d.ts',
     'apps/web/wrangler.jsonc',
     'apps/web/worker-configuration.d.ts',
@@ -91,7 +89,6 @@ describe('the cache key', () => {
   }
   const ref = gen('salvageunion-reference build')
   const routes = gen('apps/web route tree')
-  const assets = gen('apps/su-assets worker types')
   const bot = gen('apps/discord-bot worker types')
   const web = gen('apps/web worker types')
 
@@ -121,16 +118,14 @@ describe('the cache key', () => {
     ['apps/web/scripts/generate-route-tree.ts', [routes.label]],
     ['apps/web/src/routeTree.gen.ts', [routes.label]],
     ['node_modules/@tanstack/router-plugin/package.json', [routes.label]],
-    ['apps/su-assets/wrangler.jsonc', [assets.label]],
-    ['apps/su-assets/.dev.vars', [assets.label]],
-    ['apps/su-assets/src/worker/index.ts', [assets.label]],
-    ['apps/su-assets/worker-configuration.d.ts', [assets.label]],
     ['apps/discord-bot/wrangler.jsonc', [bot.label]],
+    ['apps/discord-bot/.dev.vars', [bot.label]],
+    ['apps/discord-bot/src/worker/index.ts', [bot.label]],
     ['apps/discord-bot/worker-configuration.d.ts', [bot.label]],
     ['apps/web/wrangler.jsonc', [web.label]],
     ['apps/web/worker-configuration.d.ts', [web.label]],
     ['apps/web/src/main.tsx', []],
-    ['node_modules/wrangler/package.json', [assets.label, web.label, bot.label]],
+    ['node_modules/wrangler/package.json', [web.label, bot.label]],
     ['bun.lock', ALL],
     ['package.json', ALL],
     ['biome.jsonc', ALL],
@@ -140,7 +135,7 @@ describe('the cache key', () => {
   })
 
   test('a workspace’s own node_modules is not an input', () => {
-    expect(moved('apps/su-assets/node_modules/some-dep/index.js')).toEqual([])
+    expect(moved('apps/discord-bot/node_modules/some-dep/index.js')).toEqual([])
   })
 
   test('without outputs, a rewritten output does not move the key', () => {

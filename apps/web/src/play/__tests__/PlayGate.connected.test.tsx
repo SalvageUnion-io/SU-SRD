@@ -15,21 +15,21 @@ import { createElement } from 'react'
  * with which `PlayTarget`. Its own test is `PlayCockpit.test.tsx`.
  */
 
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import {
-  installConvexMocks,
+  installServerMocks,
   queryCalls,
   setQueryAnswers,
-} from '../../components/__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+} from '../../components/__tests__/serverMock'
+import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts`.
-const convexMocks = await installConvexMocks({
+// that resolve after it runs. See `serverMock.ts`.
+const serverMocks = await installServerMocks({
   router: true,
   also: {
-    // Relative to `convexMock.ts`, not this file.
+    // Relative to `serverMock.ts`, not this file.
     '../../play/PlayCockpit': () => ({
       PlayCockpit: ({ target }: { target: PlayTarget }) =>
         createElement('p', null, `Cockpit for ${JSON.stringify(target)}`),
@@ -38,10 +38,10 @@ const convexMocks = await installConvexMocks({
 })
 
 const { PlayGate } = await import('../PlayGate')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const GAME_ID = 'g-play'
 const GAME = { _id: GAME_ID, name: 'Tenacity', mediator: false, organizer: false }
@@ -49,8 +49,8 @@ const GAME = { _id: GAME_ID, name: 'Tenacity', mediator: false, organizer: false
 beforeAll(async () => {
   await hydrateStores()
   // Filling the cache only: `adopt` is not a user write, so it needs no account.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilotFixture({ id: 'play-rook', name: 'Rook', gameId: GAME_ID }))
   await store.adopt('pilot', pilotFixture({ id: 'play-wren', name: 'Wren', gameId: null }))
   await store.adopt('mech', mechFixture({ id: 'play-mech', name: 'Thresher', gameId: GAME_ID }))
@@ -66,36 +66,35 @@ beforeAll(async () => {
 
 afterAll(async () => {
   // Leave the shared stores as this file found them.
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'play-link')
   await store.forget('mech', 'play-mech')
   await store.forget('mech', 'play-spare')
   await store.forget('pilot', 'play-rook')
   await store.forget('pilot', 'play-wren')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
-function connection(mode: ConnectionMode) {
+function connection(status: SyncStatus) {
   return {
-    mode,
-    canWrite: mode === 'connected' || mode === 'solo',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live' || status === 'signedOut',
+    outdated: false,
   }
 }
 
-function gate(id: string, mode: ConnectionMode): ReactNode {
+function gate(id: string, status: SyncStatus): ReactNode {
   return (
-    <ConnectionContext.Provider value={connection(mode)}>
+    <SyncContext.Provider value={connection(status)}>
       <PlayGate id={id} />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
-async function renderGate(id: string, mode: ConnectionMode = 'connected') {
+async function renderGate(id: string, status: SyncStatus = 'live') {
   let result: ReturnType<typeof render> | undefined
   await act(async () => {
-    result = render(gate(id, mode))
+    result = render(gate(id, status))
   })
   if (result === undefined) throw new Error('render did not run')
   return result
@@ -110,16 +109,16 @@ function opened(): PlayTarget | null {
 }
 
 describe('refusals', () => {
-  test('an anonymous session is asked to sign in, and asks Convex nothing', async () => {
+  test('an anonymous session is asked to sign in, and asks the server nothing', async () => {
     setQueryAnswers({})
-    await renderGate('play-rook', 'solo')
+    await renderGate('play-rook', 'signedOut')
     expect(heading('Sign in to play')).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
     expect(opened()).toBeNull()
   })
 
   test('a viewer who is not a member is refused', async () => {
-    setQueryAnswers({ 'games:get': null })
+    setQueryAnswers({ 'games.get': null })
     await renderGate('play-rook')
     expect(heading(/not in this Pilot's Game/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
@@ -134,13 +133,13 @@ describe('refusals', () => {
 
   test('the session still settling waits', async () => {
     setQueryAnswers({})
-    await renderGate('play-rook', 'connecting')
+    await renderGate('play-rook', 'syncing')
     expect(screen.getByText('Loading your session…')).toBeTruthy()
   })
 })
 
 describe('Play opens', () => {
-  test('solo for a pilot on the shelf, asking Convex nothing', async () => {
+  test('solo for a pilot on the shelf, asking the server nothing', async () => {
     setQueryAnswers({})
     await renderGate('play-wren')
     expect(opened()).toEqual({
@@ -153,7 +152,7 @@ describe('Play opens', () => {
   })
 
   test('for a pilot in a Game, with or without a Mediator, under the Game’s name', async () => {
-    setQueryAnswers({ 'games:get': GAME })
+    setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-rook')
     expect(opened()).toEqual({
       pilotId: 'play-rook',
@@ -162,18 +161,18 @@ describe('Play opens', () => {
       mediator: false,
     })
     // No roster is asked for: Play does not wait on a Mediator.
-    expect(queryCalls().map((c) => c.name)).toEqual(['games:get'])
+    expect(queryCalls().map((c) => c.name)).toEqual(['games.get'])
   })
 
   test('as the Game’s Mediator, which the target says', async () => {
-    setQueryAnswers({ 'games:get': { ...GAME, mediator: true } })
+    setQueryAnswers({ 'games.get': { ...GAME, mediator: true } })
     await renderGate('play-rook')
     expect(opened()?.mediator).toBe(true)
   })
 
   test('read-only while Disconnected, even before the Game has answered', async () => {
-    setQueryAnswers({ 'games:get': undefined })
-    await renderGate('play-rook', 'disconnected')
+    setQueryAnswers({ 'games.get': undefined })
+    await renderGate('play-rook', 'offline')
     expect(opened()).toEqual({
       pilotId: 'play-rook',
       gameId: GAME_ID,
@@ -183,7 +182,7 @@ describe('Play opens', () => {
   })
 
   test('but waits for the Game while connected', async () => {
-    setQueryAnswers({ 'games:get': undefined })
+    setQueryAnswers({ 'games.get': undefined })
     await renderGate('play-rook')
     expect(screen.getByText('Loading the Game…')).toBeTruthy()
     expect(opened()).toBeNull()
@@ -192,20 +191,20 @@ describe('Play opens', () => {
 
 describe('old mech-keyed URLs', () => {
   test("redirect to the mech's pilot", async () => {
-    convexMocks.navigations.length = 0
-    setQueryAnswers({ 'games:get': GAME })
+    serverMocks.navigations.length = 0
+    setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-mech')
-    expect(convexMocks.navigations).toEqual([
+    expect(serverMocks.navigations).toEqual([
       { to: '/play/pilots/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
     ])
     expect(opened()?.pilotId).toBe('play-rook')
   })
 
   test('a mech with no pilot says so, and goes nowhere', async () => {
-    convexMocks.navigations.length = 0
+    serverMocks.navigations.length = 0
     setQueryAnswers({})
     await renderGate('play-spare')
     expect(heading('Spare has no Pilot')).toBeTruthy()
-    expect(convexMocks.navigations).toHaveLength(0)
+    expect(serverMocks.navigations).toHaveLength(0)
   })
 })

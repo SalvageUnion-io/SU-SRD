@@ -1,6 +1,7 @@
 /**
- * The Cockpit's right column (`PlaySideColumn`, play.md §7–§9) against
- * answered queries: the Crew's presence and attention lines and the sheet
+ * The Cockpit's end column (`PlayCrewSection`, `PlayerTablesAndFeed` over one
+ * `usePlaySide`, as `PlayCockpit` stacks them; play.md §7–§9) against
+ * its Game room's records: the Crew's presence and attention lines and the sheet
  * they open, the Feed's order and Accept, the Tables' pinned rolls, and every
  * roll's Discord post (`channelBindings.postRoll`, mocked), its failure shown
  * on the Feed. Offline, nothing is offered and a roll says it was not posted.
@@ -9,42 +10,55 @@
  * the seats, the binding) are what is under test.
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, jest, mock, test } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  jest,
+  mock,
+  test,
+} from 'bun:test'
 import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
 import type { PostRollResult } from 'game-domain/games/discord'
-import { PRESENCE_HEARTBEAT_MS, PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
 import { pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
+import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__/fakeRooms'
+import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
-import { crewAt } from './crewFixture'
+import { CREW_HERE, crewAt } from './crewFixture'
 
-const mutations: { name: string; args: unknown }[] = []
 let postResult: () => Promise<PostRollResult> = async () => ({
   kind: 'posted',
   channelId: 'c-1',
   messageId: 'm-1',
 })
 const postRoll = mock((_args: unknown) => postResult())
+const presence: { here: ReadonlySet<string> | null } = { here: CREW_HERE }
 
-const convexMocks = await installConvexMocks({
-  convexReact: {
-    useMutation: (ref: unknown) => {
-      const name = getFunctionName(ref as FunctionReference<'mutation'>)
-      const send = async (args: unknown) => {
-        mutations.push({ name, args })
-      }
-      return Object.assign(send, { withOptimisticUpdate: () => send })
-    },
-    useAction: () => postRoll,
-  },
+const serverMocks = await installServerMocks({
+  call: (name, args) => (name === 'channelBindings.postRoll' ? postRoll(args) : undefined),
+  // Who the Game's room says is here (`useGamePresence`); a test changes it and rerenders.
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
 })
 
-const { PlaySideColumn } = await import('../PlaySideColumn')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { PlayCrewSection, PlayerTablesAndFeed } = await import('../PlaySideColumn')
+const { usePlaySide } = await import('../usePlaySide')
+
+/** The end column as the Cockpit stacks it: the Crew, then the Tables and Feed. */
+function SideColumn({ target, play }: { target: PlayTarget; play: Play }) {
+  const side = usePlaySide({ target, play })
+  return (
+    <>
+      <PlayCrewSection target={target} play={play} side={side} />
+      <PlayerTablesAndFeed target={target} play={play} side={side} />
+    </>
+  )
+}
+const { SyncContext } = await import('../../replica/syncContext')
 const { recordPlayRoll, recordPlayChange, clearPlayRolls, reportingRoll } = await import(
   '../playRolls.model'
 )
@@ -65,10 +79,11 @@ const PROPOSAL = {
   ts: NOW - 60_000,
 }
 
+/** The Games reads answered, and the Game room's records served, as these reads answer. */
 function answers(over: Record<string, unknown> = {}) {
-  setQueryAnswers({
-    'games:get': { name: 'Rust Belt Run', organizer: false },
-    'changeLog:rolls': [
+  const all = {
+    'games.get': { name: 'Rust Belt Run', organizer: false },
+    'changeLog.rolls': [
       {
         _id: 'r-1',
         ts: NOW - 30_000,
@@ -77,16 +92,18 @@ function answers(over: Record<string, unknown> = {}) {
         source: 'play',
       },
     ],
-    'proposals:alerts': [],
-    'proposals:pending': [PROPOSAL],
-    'crew:vitals': crewAt(NOW),
-    'account:me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
-    'entities:listForGame': null,
-    'seats:forGame': [],
-    'channelBindings:current': BOUND,
-    'safety:stopSign': null,
+    'changeLog.alerts': [],
+    'ops.pending': [PROPOSAL],
+    'crew.vitals': crewAt(),
+    'account.me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
+    'entities.listForGame': null,
+    'seats.forGame': [],
+    'channelBindings.current': BOUND,
+    'safety.stopSign': null,
     ...over,
-  })
+  }
+  setQueryAnswers(all)
+  serveReads(GAME, all)
 }
 
 function playFor(target: PlayTarget, canWrite: boolean): Play {
@@ -101,15 +118,15 @@ function playFor(target: PlayTarget, canWrite: boolean): Play {
     pilot,
     situation: 'onFoot',
     canWrite,
-    readOnly: canWrite ? null : { stamp: 'Read-only · disconnected', says: 'offline' },
+    readOnly: canWrite ? null : { stamp: 'Offline · read-only', says: 'offline' },
   } as unknown as Play
 }
 
 async function renderSide(
   { gameId = GAME, mediator = false }: { gameId?: string | null; mediator?: boolean } = {},
-  mode: ConnectionMode = 'connected'
+  status: SyncStatus = 'live'
 ) {
-  const canWrite = mode === 'connected'
+  const canWrite = status === 'live'
   const target: PlayTarget = {
     pilotId: 'bonesaw',
     gameId,
@@ -117,16 +134,15 @@ async function renderSide(
     mediator,
   }
   const tree = () => (
-    <ConnectionContext.Provider
+    <SyncContext.Provider
       value={{
-        mode,
+        status,
         canWrite,
-        showDisconnectedWarning: mode === 'disconnected',
-        settling: false,
+        outdated: false,
       }}
     >
-      <PlaySideColumn target={target} play={playFor(target, canWrite)} />
-    </ConnectionContext.Provider>
+      <SideColumn target={target} play={playFor(target, canWrite)} />
+    </SyncContext.Provider>
   )
   let view: ReturnType<typeof render> | null = null
   await act(async () => {
@@ -162,15 +178,17 @@ beforeAll(async () => {
   await hydrateStores()
 })
 
+beforeEach(() => openRooms(GAME))
+
 afterEach(() => {
   cleanup()
+  closeRooms()
   clearPlayRolls()
-  mutations.length = 0
   postRoll.mockClear()
   postResult = async () => ({ kind: 'posted', channelId: 'c-1', messageId: 'm-1' })
 })
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 describe('the Crew (play.md §7)', () => {
   test('one line per other seat: presence, mount, and the vital that needs looking at', async () => {
@@ -205,7 +223,7 @@ describe('the Crew (play.md §7)', () => {
       expect(label('Rook')).toBe('Rook, here, On foot, Injured. Open their sheet')
 
       // Rook climbs into Mule, healed; Mags takes a hit. The crew read answers anew.
-      const crew = crewAt(NOW)
+      const crew = crewAt()
       crew.pilots = crew.pilots.map((p) => {
         if (p.linkId === 'rook') {
           return {
@@ -222,31 +240,19 @@ describe('the Crew (play.md §7)', () => {
         }
         return p
       })
-      answers({ 'crew:vitals': crew })
+      answers({ 'crew.vitals': crew })
       await rerender()
       expect(label('Rook')).toBe('Rook, here, Boarded · Mule, SP 26, fine. Open their sheet')
       expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
       expect(screen.getByText('▲ HP')).toBeTruthy()
 
-      // Rook closes the tab: Mags keeps beating (a fresh seat heartbeat),
-      // Rook does not, and the presence clock turns Rook away.
-      const later = NOW + PRESENCE_STALE_MS
-      answers({
-        'crew:vitals': {
-          ...crew,
-          pilots: crew.pilots.map((p) => (p.linkId === 'rook' ? p : { ...p, lastSeenAt: later })),
-        },
-      })
+      // Rook closes the tab: the room says so, and Rook turns away.
+      presence.here = new Set(['u-bonesaw', 'u-mags'])
       await rerender()
-      expect(label('Rook')).toMatch(/^Rook, here,/)
-      await act(async () => {
-        jest.advanceTimersByTime(
-          Math.ceil(PRESENCE_STALE_MS / PRESENCE_HEARTBEAT_MS) * PRESENCE_HEARTBEAT_MS
-        )
-      })
       expect(label('Rook')).toBe('Rook, away, Boarded · Mule, SP 26, fine. Open their sheet')
       expect(label('Mags')).toMatch(/^Mags, here,/)
     } finally {
+      presence.here = CREW_HERE
       jest.useRealTimers()
     }
   })
@@ -285,7 +291,7 @@ describe('the Feed (play.md §8)', () => {
       feed().getByRole('button', { name: 'Accept: Mediator proposes Bonesaw HP → 5' }).click()
     })
     await waitFor(() =>
-      expect(mutations).toEqual([{ name: 'proposals:apply', args: { proposalId: 'p-1' } }])
+      expect(acts).toEqual([{ gameId: GAME, name: 'ops.accept', args: { opId: 'p-1' } }])
     )
     await waitFor(() => expect(feed().getByText('You · Applied · Bonesaw HP → 5')).toBeTruthy())
   })
@@ -409,7 +415,7 @@ describe('Discord (play.md §9)', () => {
   })
 
   test('nothing bound: the toggle is off and says rolls stay in Play; nothing is sent', async () => {
-    answers({ 'channelBindings:current': null })
+    answers({ 'channelBindings.current': null })
     await renderSide()
     const toggle = screen.getByRole('checkbox', { name: 'Post rolls to the Game’s channel' })
     expect((toggle as HTMLInputElement).disabled).toBe(true)
@@ -462,7 +468,7 @@ describe('the Tables (play.md §8)', () => {
 describe('read-only (play.md §7)', () => {
   test('offline: Accept is withdrawn and a roll says it was not posted', async () => {
     answers()
-    await renderSide({}, 'disconnected')
+    await renderSide({}, 'offline')
     expect(
       (
         feed().getByRole('button', {

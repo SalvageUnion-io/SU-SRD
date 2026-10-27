@@ -1,3 +1,5 @@
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
+import type { UnitsStore } from '../../../replica/units'
 /**
  * MechConditionsEditor — unified conditions vocabulary.
  *
@@ -7,13 +9,11 @@
  * conditions[].
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
 import { MechConditionsEditor } from '../MechConditionsEditor'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -34,20 +34,12 @@ function makeMech(overrides: Partial<Mech>): Mech {
 
 type CapturedUpdate = { patch: Partial<Mech> }
 
-function makeStore(mech: Mech, captured: CapturedUpdate[]): typeof useEntityStore {
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
-    create: mock(async () => mech),
-    update: mock(async (_type: string, _id: string, patch: Partial<Mech>) => {
-      captured.push({ patch })
+function makeStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
+  return makeSingleUnitStore('mech', mech, {
+    update: async (_type, _id, patch) => {
+      captured.push({ patch: patch as Partial<Mech> })
       return mech
-    }),
-    delete: mock(async () => {}),
+    },
   })
 }
 

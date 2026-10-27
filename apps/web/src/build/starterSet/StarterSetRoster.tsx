@@ -26,7 +26,6 @@ import { useState } from 'react'
 import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useConfirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import {
   QUICKSTART_BOOK,
@@ -35,6 +34,7 @@ import {
   starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import type { SegmentKind } from '../roster/RosterColumn'
 import { RosterColumn, RosterGrid, RosterList, SegmentSwitch } from '../roster/RosterColumn'
 import { CopyCrew } from './CopyCrew'
@@ -64,7 +64,7 @@ type StarterSetRosterProps = {
 }
 
 export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRosterProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const { confirm, dialog } = useConfirm()
   useCopyCrewOnArrival(copy, confirm)
 
@@ -83,7 +83,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
           <Text variant="body">
             The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
             Read-only reference: open any sheet to read it.{' '}
-            {mode === 'connected'
+            {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}
           </Text>
@@ -101,7 +101,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
             />
             <Text variant="body">
               {buildStarterSetCopy('quickstartCrewIntro', { book: QUICKSTART_BOOK })}{' '}
-              {mode === 'connected'
+              {status === 'live'
                 ? buildStarterSetCopy('copyOneIntoYourTraining')
                 : buildStarterSetCopy('signInToCopyOne')}
             </Text>
@@ -116,7 +116,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
 
 /** One crew's columns, a card per build; signed in, each card's last chip copies it. */
 function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Confirm }) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const [activeSegment, setActiveSegment] = useState<SegmentKind>('pilot')
   const shelves = starterShelves(roster)
   return (
@@ -144,7 +144,7 @@ function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Co
                     kind={kind}
                     build={build}
                     controls={
-                      mode === 'connected' ? (
+                      status === 'live' ? (
                         <CopyStarterMenu
                           kind={kind}
                           templateId={build.id}

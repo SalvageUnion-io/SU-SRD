@@ -9,12 +9,12 @@
  *  - **Solo** the player runs it ("You run it"): Apply & mark done, then Next
  *    step (the last step ends Downtime).
  *
- * Either way the step is claimed for this pilot (`markStepDone`,
- * `downtime.claimStep`) before anything is applied, and
- * Apply goes only when that claim answers true. A claimed step never offers
- * Apply or Skip again, so a reload, an Undo or the Mediator's Back never
- * applies a step twice (Train's +1 TP). A Game's "done" is per member, the
- * claim per pilot: a member running two pilots applies the step for each.
+ * Either way the step is one op on the pilot with a stable id
+ * (`markStepDone`, ADR-063 §6) carrying what it applies to the pilot, and the
+ * mech's share goes only when that op answers it was taken now. A taken step
+ * never offers Apply or Skip again, so a reload, an Undo or the Mediator's
+ * Back never applies a step twice (Train's +1 TP). A Game's "done" is per
+ * member, the step per pilot: a member running two pilots applies it for each.
  *
  * Upkeep is spent once per Downtime: the claim (`spendUpkeep`) answers false
  * when it is already paid, and the Scrap is drawn only when it answers true.
@@ -29,11 +29,9 @@
  * a box of their own (play.md §12).
  */
 
-import { useQuery } from 'convex/react'
 import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
-import { api } from '../../convex/_generated/api'
 import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
@@ -48,7 +46,8 @@ import {
 import { rollD20 } from '../lib/dice'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
+import { useViewerId } from '../replica/roomCalls'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
@@ -78,7 +77,7 @@ export function PlayDowntimeStep({
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
-  const me = useQuery(api.account.me, inGame ? {} : 'skip')
+  const viewer = useViewerId()
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
@@ -100,7 +99,7 @@ export function PlayDowntimeStep({
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
   // In a Game, whether this member has said they are done (`completedBy`).
   const markedDone = inGame
-    ? me != null && downtime.downtime.completedBy.some((m) => m.userId === me._id)
+    ? viewer !== null && downtime.downtime.completedBy.some((m) => m.userId === viewer)
     : claimed
   const off = !play.canWrite
 
@@ -116,20 +115,20 @@ export function PlayDowntimeStep({
   }
 
   /**
-   * Claim the step for this pilot first. False when it was already done
-   * (another tab, before a reload, before an Undo or a Back) or the claim was
-   * refused: apply nothing.
+   * Take the step for this pilot, with what it applies to them. False when it
+   * was already done (another tab, before a reload, before an Undo or a Back)
+   * or the write was refused: apply nothing more.
    */
-  async function claim(): Promise<boolean> {
+  async function take(pilotPatch: Record<string, unknown>): Promise<boolean> {
     if (downtime.markStepDone === null) return false
-    const ok = await downtime.markStepDone(stepIndex)
+    const ok = await downtime.markStepDone(stepIndex, pilotPatch)
     if (ok) setClaimedHere(true)
     else setNote('This step is already done this Downtime.')
     return ok
   }
 
   async function skip() {
-    if (!(await claim())) return
+    if (!(await take({}))) return
     markDone()
   }
 
@@ -139,9 +138,13 @@ export function PlayDowntimeStep({
   }
 
   async function apply() {
-    if (!(await claim())) return
     const steps = stepsFor(plan, unticked)
     const applied: string[] = []
+    const freshPilot = pilot ? (store.get('pilot', pilot.id) ?? pilot) : null
+    const pilotPatch = freshPilot
+      ? downtimePilotPatch(freshPilot, medBayOf(crawler), steps, actions.crawlerTechLevel)
+      : {}
+    if (!(await take(pilotPatch))) return
     if (mech) {
       const fresh = store.get('mech', mech.id) ?? mech
       const patch = downtimeMechPatch(fresh, crawlerTl(crawler), steps, mechBayOf(crawler))
@@ -150,14 +153,7 @@ export function PlayDowntimeStep({
         applied.push(fresh.name)
       }
     }
-    if (pilot) {
-      const fresh = store.get('pilot', pilot.id) ?? pilot
-      const patch = downtimePilotPatch(fresh, medBayOf(crawler), steps, actions.crawlerTechLevel)
-      if (Object.keys(patch).length > 0) {
-        runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN))
-        applied.push(fresh.name)
-      }
-    }
+    if (freshPilot && Object.keys(pilotPatch).length > 0) applied.push(freshPilot.name)
     // What was applied lands on the Feed as a change (play.md §8).
     if (applied.length > 0) recordPlayChange(`${step.name} · ${applied.join(', ')}`)
     const upkeep = plan.find((l) => l.key === 'upkeep' && l.skippable && !unticked.has(l.key))

@@ -6,7 +6,6 @@ import { crawlerCopy } from '../../messages/build-crawler'
 import { RollTableButton } from '../wizard/RollTableButton'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
 import { CRAWLER_NAME_TABLE } from '../wizard/rollTableHelpers.model'
-import '../../styles/build/wizard.css'
 
 /** The step's column, capped at 48rem. */
 const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties

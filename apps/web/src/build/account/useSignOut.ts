@@ -1,6 +1,6 @@
-import { useAuthActions } from '@convex-dev/auth/react'
 import { useCallback } from 'react'
 import { clearAccountHint } from '../../lib/accountHint'
+import { signOut } from '../../lib/auth/session'
 import { captureException } from '../../lib/observability'
 import { localStore } from '../../lib/safeLocalStorage'
 
@@ -11,11 +11,10 @@ import { localStore } from '../../lib/safeLocalStorage'
  * The one account value on the device is the account hint the SRD's bar reads
  * (`src/lib/accountHint`); it goes first, so no bar shows the player
  * signed in once they asked to leave. When the session ends,
- * `AccountReconciler` drops the rows this tab loaded (`stores/sessionRows.ts`).
+ * `ReplicaSync` drops the rows this tab held (`replica.clear`).
  * Resolves once the session is over, or the attempt failed and was reported.
  */
 export function useSignOut(): () => Promise<void> {
-  const { signOut } = useAuthActions()
   return useCallback(async () => {
     clearAccountHint(localStore())
     try {
@@ -25,5 +24,5 @@ export function useSignOut(): () => Promise<void> {
       // worth a dialog.
       captureException(err)
     }
-  }, [signOut])
+  }, [])
 }

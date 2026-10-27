@@ -19,7 +19,6 @@
  * row reads under the Morale line.
  */
 
-import type { CSSProperties } from 'react'
 import type { rollForTable } from '../../components/index'
 import {
   Button,
@@ -28,40 +27,24 @@ import {
   Stat,
   TitledBox,
   Toggle,
-  tokens,
   useDetailModal,
 } from '../../components/index'
 import type { ImportantTable } from '../../lib/rules/opposition'
 import { criticalTable } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayVital } from '../PlayVital'
+import { CONTROLS, NOTE_MUTED } from './mediatorStyles.model'
 import { npcKind } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
 import { PlayWreckSalvage } from './PlayWreckSalvage'
+import { RollResultLine } from './RollResultLine'
 import type { PlayMediator } from './usePlayMediator'
 import { wreckOf } from './wreck.model'
-
-const LINE = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  margin: 0,
-} satisfies CSSProperties
-
-const MUTED = { ...LINE, color: tokens.color.ink75 } satisfies CSSProperties
-
-const STRONG = { fontWeight: tokens.weight.bold } satisfies CSSProperties
 
 /** What a table an important NPC rolls is called: the book's, or Heat Check. */
 function tableName(table: ImportantTable): string {
   return table === 'heat-check' ? mediatorCopy('heatCheck') : (criticalTable(table)?.name ?? '')
 }
-
-const CONTROLS = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[4],
-} satisfies CSSProperties
 
 type PlayNpcBoxProps = {
   npc: TrayNpc
@@ -222,7 +205,7 @@ export function PlayNpcBox({
             />
           </>
         ) : null}
-        {npc.down ? <p style={MUTED}>{mediatorCopy('at0Down')}</p> : null}
+        {npc.down ? <p style={NOTE_MUTED}>{mediatorCopy('at0Down')}</p> : null}
         {wreck !== null ? (
           <PlayWreckSalvage
             npc={npc}
@@ -260,16 +243,7 @@ export function PlayNpcBox({
           </span>
         ) : null}
         {lastImportant !== null ? (
-          <p role="status" aria-live="polite" style={LINE}>
-            <span style={STRONG}>
-              {mediatorCopy('importantRoll', {
-                table: tableName(lastImportant.table),
-                roll: lastImportant.roll,
-                value: lastImportant.label ? ` · ${lastImportant.label}` : '',
-              })}
-            </span>
-            {` — ${lastImportant.value}`}
-          </p>
+          <RollResultLine roll={lastImportant} tableName={tableName(lastImportant.table)} />
         ) : null}
         {moraleDue ? (
           <span style={CONTROLS}>
@@ -284,21 +258,7 @@ export function PlayNpcBox({
             </Button>
           </span>
         ) : null}
-        <p role="status" aria-live="polite" style={npc.lastRoll ? LINE : MUTED}>
-          {npc.lastRoll ? (
-            <>
-              <span style={STRONG}>
-                {mediatorCopy(npc.lastRoll.table === 'reaction' ? 'reaction' : 'morale', {
-                  roll: npc.lastRoll.roll,
-                  value: npc.lastRoll.label ? ` · ${npc.lastRoll.label}` : '',
-                })}
-              </span>
-              {` — ${npc.lastRoll.value}`}
-            </>
-          ) : (
-            'No Morale roll yet'
-          )}
-        </p>
+        <RollResultLine roll={npc.lastRoll} empty={mediatorCopy('noMoraleRoll')} />
       </TitledBox>
       {detail.modal}
     </li>

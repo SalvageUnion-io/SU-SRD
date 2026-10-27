@@ -4,12 +4,10 @@
  * it, or the table runner). Drawn by `StopSign.tsx`.
  */
 
-import { useMutation, useQuery } from 'convex/react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playSafetyCopy } from '../messages/play-safety'
+import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 
 export type StopSign = {
   /** True while the game is paused. */
@@ -30,21 +28,20 @@ export type StopSign = {
 
 /** The Game's Stop Sign, or null solo, signed out or while it loads. */
 export function useStopSign(gameId: string | null): StopSign | null {
-  const { mode, canWrite } = useConnection()
-  const read = useQuery(
-    api.safety.stopSign,
-    gameId !== null && mode === 'connected' ? { gameId: gameId as Id<'games'> } : 'skip'
+  const { status, canWrite } = useSync()
+  const read = useTableRead(
+    'safety.stopSign',
+    gameId !== null && status === 'live' ? { gameId } : 'skip'
   )
-  const showStop = useServerAction(useMutation(api.safety.showStop), {
+  const showStop = useServerAction(useTableAct('safety.showStop', gameId), {
     failure: playSafetyCopy('couldNotShow'),
     toastId: 'stop-sign',
   })
-  const liftStop = useServerAction(useMutation(api.safety.liftStop), {
+  const liftStop = useServerAction(useTableAct('safety.liftStop', gameId), {
     failure: playSafetyCopy('couldNotResume'),
     toastId: 'stop-sign',
   })
   if (gameId === null || read === undefined || read === null) return null
-  const id = gameId as Id<'games'>
   return {
     shown: read.stop !== null,
     mine: read.stop?.mine === true,
@@ -52,8 +49,8 @@ export function useStopSign(gameId: string | null): StopSign | null {
     mayManage: read.mayManage,
     postToChannel: read.postToChannel,
     canWrite,
-    show: () => void showStop.run({ gameId: id }),
-    lift: () => void liftStop.run({ gameId: id }),
+    show: () => void showStop.run({}),
+    lift: () => void liftStop.run({}),
     pending: showStop.pending || liftStop.pending,
   }
 }

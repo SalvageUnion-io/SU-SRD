@@ -17,14 +17,13 @@
  * the URL. Signed out, `NewEntityScreen` shows the sign-in panel instead.
  */
 
-import { useQuery } from 'convex/react'
-import { api } from '../../../convex/_generated/api'
 import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
-import { isSignedIn } from '../../lib/connection/connectionMode'
+import { useMe } from '../../lib/account/accountApi'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { npcCopy } from '../../messages/build-npc'
-import { useEntityStore } from '../../stores/entityStore'
+import { isSignedIn } from '../../replica/sync'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { AnyNpcDesigner } from './AnyNpcDesigner'
 import { CrewBoard } from './CrewBoard'
 import { EYEBROW, EYEBROW_LABEL, PAGE } from './npcStyles.model'
@@ -53,11 +52,11 @@ export function NpcDesignerPage({
   onCreated,
   onCancel,
 }: NpcDesignerPageProps) {
-  const { mode } = useConnection()
-  const signedIn = isSignedIn(mode)
-  const me = useQuery(api.account.me, signedIn ? {} : 'skip')
+  const { status } = useSync()
+  const signedIn = isSignedIn(status)
+  const me = useMe(signedIn)
   const madeBy = me?.displayName ?? 'you'
-  const crawler = useEntityStore((s) => (crawlerId ? s.get('crawler', crawlerId) : null))
+  const crawler = useUnits((s) => (crawlerId ? s.get('crawler', crawlerId) : null))
   const typeName = crawler?.type ? resolveCrawlerType(crawler.type)?.name : undefined
 
   const crew = view === 'crew'

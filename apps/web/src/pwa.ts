@@ -4,7 +4,7 @@
  * salvageunion.io installs as one app, from one manifest
  * (`public/site.webmanifest`: id, scope and start URL `/`), and one worker at
  * `/sw.js` serves all of it: the reference's pages and the builder under
- * `/build/`. `vite.config.ts` hands `WORKBOX_OPTIONS` to `VitePWA`; they live
+ * `/build/`. `astro.config.ts` hands `WORKBOX_OPTIONS` to `VitePWA`; they live
  * here so `__tests__/pwa.test.ts` can assert the real values.
  *
  * ## What it precaches: both halves, so either opens offline
@@ -39,7 +39,7 @@
  *
  * ## Updates: wait while the builder is open, take over otherwise
  *
- * `registerType: 'prompt'` in `vite.config.ts`: the plugin then leaves
+ * `registerType: 'prompt'` in `astro.config.ts`: the plugin then leaves
  * `skipWaiting` and `clientsClaim` off, and `public/sw-lifecycle.js` decides
  * at install time. A builder tab is a long session, and activating drops every
  * precache entry the new build does not list, the chunks it is still reading
@@ -51,8 +51,7 @@
  *
  * ## Deliberate non-defaults
  *
- * - `globIgnores` drops the `latin-ext` and `vietnamese` font subsets
- *   (`UNFETCHED_FONT_SUBSETS`), the list projection of `actions` that nothing
+ * - `globIgnores` drops the list projection of `actions` that nothing
  *   loads, the builder's pre-rendered Starter Set pages (the shell with other
  *   words for crawlers; offline, the shell answers them), and the retired
  *   builder worker.
@@ -69,23 +68,11 @@ export const SITE_MANIFEST = '/site.webmanifest'
 
 /**
  * The one service worker: where it is served and what it controls, the whole
- * origin. `vite.config.ts` builds it here, so the app's
+ * origin. `astro.config.ts` builds it here, so the app's
  * `virtual:pwa-register` registers it here, and the reference pages'
  * `registerSiteWorker` (`lib/sw/siteWorker.ts`) does the same.
  */
 export const SITE_WORKER = { url: '/sw.js', scope: '/' } as const
-
-/**
- * The font subsets left out of the precache. Each `@fontsource` face ships
- * `latin`, `latin-ext` and `vietnamese` subsets split by `unicode-range`, and
- * the browser fetches a subset only when the page draws a glyph in its range;
- * nothing the site ships does, so precaching the last two cost every first
- * visit about 157 KB of fonts it never loads. Their `@font-face` rules stay,
- * so a name typed with, say, a Polish letter still fetches its subset online.
- * Vite keeps the file name ahead of its hash
- * (`barlow-latin-ext-400-normal-<hash>.woff2`).
- */
-export const UNFETCHED_FONT_SUBSETS = '**/*-{latin-ext,vietnamese}-*.woff2'
 
 /**
  * The runtime cache visited pages land in, and the one the installed app's
@@ -156,7 +143,7 @@ export const RUNTIME_CACHING = [
   },
 ]
 
-/** What `vite.config.ts` hands `VitePWA({ workbox })`. */
+/** What `astro.config.ts` hands `VitePWA({ workbox })`. */
 export const WORKBOX_OPTIONS = {
   mode: 'production',
   sourcemap: false,
@@ -171,7 +158,6 @@ export const WORKBOX_OPTIONS = {
   globIgnores: [
     // workbox-build's default, which setting `globIgnores` replaces.
     '**/node_modules/**/*',
-    UNFETCHED_FONT_SUBSETS,
     '**/actions.list.generated-*.js',
     `${APP_DIR}/starter.html`,
     `${APP_DIR}/starter/**`,

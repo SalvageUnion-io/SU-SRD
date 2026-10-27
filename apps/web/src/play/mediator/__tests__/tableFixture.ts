@@ -5,7 +5,6 @@
  * is an open seat, not a card.
  */
 
-import type { Id } from '../../../../convex/_generated/dataModel'
 import { calm, crewMech, crewPilot, sound } from '../../__tests__/crewRows'
 import type { BoardSources } from '../../boardMenu.model'
 import type { CrewVitals } from '../../useGameFeed'
@@ -20,7 +19,6 @@ function mech(id: string, name: string, owner: string | null, over: Partial<Mech
 }
 
 export const TABLE_CREW: CrewVitals = {
-  viewerId: 'u-gm' as Id<'users'>,
   pilots: [
     pilot('driftwood', 'Driftwood', 'u-ivo', { boarded: true, mechId: 'mazona' }),
     pilot('pickle', 'Pickle', 'u-teo', { boarded: true, mechId: 'spectrum', attention: true }),

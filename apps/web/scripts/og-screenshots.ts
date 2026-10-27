@@ -73,7 +73,7 @@ const RELOAD_EVERY = Number(process.env.OG_SCREENSHOTS_RELOAD_EVERY ?? 200)
 // keeps the site-wide default og:image — a partial run is always preferable to
 // a failed deploy (see the header note).
 const BUDGET_MS = Number(process.env.OG_SCREENSHOTS_BUDGET_MS ?? 10 * 60_000)
-// The island mounts inside its `[data-island]` placeholder, so the card is a
+// The island mounts inside Astro's `astro-island` element, so the card is a
 // descendant of #og-card rather than a child — match it by its own marker.
 const CARD_SELECTOR = '[data-og-card]'
 // The frame IS the card: 1200×630 at the page's top-left (og-card.page.tsx).
@@ -89,7 +89,7 @@ const LAUNCH_ARGS = [
 ]
 
 const APP_ROOT = fileURLToPath(new URL('..', import.meta.url))
-const DIST_DIR = join(APP_ROOT, 'dist')
+const DIST_DIR = join(APP_ROOT, 'dist/client')
 
 // ---------------------------------------------------------------------------
 // Incremental cache.

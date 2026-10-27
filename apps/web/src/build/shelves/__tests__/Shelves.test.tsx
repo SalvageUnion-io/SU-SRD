@@ -14,38 +14,37 @@ import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from '
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { holdSharedByLink } from '../../../replica/sharedByLink'
+import type { SyncState } from '../../../replica/syncContext'
+import { serveTableState } from '../../../replica/tableState'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { useEncounterStore } = await import('../../../stores/encounterStore')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { useTray } = await import('../../../replica/collections')
+const { useUnits } = await import('../../../replica/units')
+const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
 
 withSignedInBackend()
 
-function connection(mode: ConnectionState['mode']): ConnectionState {
+function connection(status: SyncState['status']): SyncState {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: false,
-    settling: false,
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
@@ -116,19 +115,18 @@ beforeEach(async () => {
 
   toast.dismiss()
   resetStores()
-  setQueryAnswers({
-    'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-    'shelf:patternSharing': [],
-    'shelf:sharedByLink': [],
-  })
-  const store = useEntityStore.getState()
+  setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }] })
+  // The account room's snapshot: nothing shared yet.
+  serveTableState('account', { sharing: [] })
+  holdSharedByLink('account', [])
+  const store = useUnits.getState()
   await store.adopt('pilot', NIA)
   await store.adopt('pilot', ROOK)
   await store.adopt('mech', IRON_JAW)
   await store.adopt('crawler', BULWARK)
   await store.adopt('crawler', TABLE_CRAWLER)
-  usePatternStore.setState({ mechPatterns: [PATTERN], hydrated: true })
-  useEncounterStore.setState({ encounterNpcs: [GRUNT], hydrated: true })
+  usePatterns.setState({ mechPatterns: [PATTERN], hydrated: true })
+  useTray.setState({ encounterNpcs: [GRUNT], hydrated: true })
 })
 
 afterEach(() => {
@@ -150,13 +148,13 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-async function renderShelves(mode: ConnectionState['mode'] = 'connected') {
+async function renderShelves(status: SyncState['status'] = 'live') {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <ToasterMount />
         <Shelves />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
@@ -212,7 +210,7 @@ describe('Showing', () => {
   })
 
   test('a Training Bay whose every unit is in a Game says so', async () => {
-    await useEntityStore.getState().forget('pilot', 'p-nia')
+    await useUnits.getState().forget('pilot', 'p-nia')
     await renderShelves()
     await show('not-in-game')
     expect(screen.getByText('Every pilot is in a Game.')).toBeTruthy()
@@ -227,7 +225,7 @@ describe('Showing', () => {
   })
 
   test('Disconnected, with no Games to name, it offers Everything and Not in a Game', async () => {
-    await renderShelves('disconnected')
+    await renderShelves('offline')
     const select = screen.getByLabelText('Showing') as HTMLSelectElement
     expect([...select.options].map((o) => o.textContent)).toEqual(['Everything', 'Not in a Game'])
   })
@@ -254,11 +252,7 @@ describe('Crawlers', () => {
   })
 
   test('as the table runner, the Game’s crawler is yours to keep', async () => {
-    setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
-      'shelf:patternSharing': [],
-      'shelf:sharedByLink': [],
-    })
+    setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }] })
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
     expect(within(crawlers).getByText('Table Crawler')).toBeTruthy()
@@ -267,7 +261,7 @@ describe('Crawlers', () => {
 
 describe('Disconnected', () => {
   test('shows what it holds, and offers nothing that writes', async () => {
-    await renderShelves('disconnected')
+    await renderShelves('offline')
     expect(screen.getByText('Nia Vale')).toBeTruthy()
     expect(screen.queryByRole('link', { name: '+ New pilot' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ From a mech' })).toBeNull()
@@ -332,7 +326,7 @@ describe('Patterns', () => {
   })
 
   test('with no mechs, + From a mech says to build one first', async () => {
-    await useEntityStore.getState().forget('mech', 'm-jaw')
+    await useUnits.getState().forget('mech', 'm-jaw')
     await renderShelves()
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
@@ -353,9 +347,9 @@ describe('Patterns', () => {
     await choose(await openMenu('Brawler'), 'Make a copy')
     expect(screen.getByRole('alertdialog').textContent).toContain('Make a copy of Brawler?')
     await confirmDialog('Make a copy')
-    await settle(() => usePatternStore.getState().mechPatterns.length === 2)
+    await settle(() => usePatterns.getState().mechPatterns.length === 2)
     expect(
-      usePatternStore
+      usePatterns
         .getState()
         .mechPatterns.map((p) => p.name)
         .sort()
@@ -375,8 +369,8 @@ describe('Patterns', () => {
     await renderShelves()
     await choose(await openMenu('Brawler'), 'Delete…')
     await confirmDialog('Delete')
-    await settle(() => usePatternStore.getState().mechPatterns.length === 0)
-    expect(usePatternStore.getState().mechPatterns).toHaveLength(0)
+    await settle(() => usePatterns.getState().mechPatterns.length === 0)
+    expect(usePatterns.getState().mechPatterns).toHaveLength(0)
   })
 })
 
@@ -389,7 +383,7 @@ describe('the encounter tray on the NPC shelf', () => {
 
     await choose(await openMenu('Tray Grunt'), 'Delete…')
     await confirmDialog('Delete')
-    await settle(() => useEncounterStore.getState().encounterNpcs.length === 0)
-    expect(useEncounterStore.getState().encounterNpcs).toHaveLength(0)
+    await settle(() => useTray.getState().encounterNpcs.length === 0)
+    expect(useTray.getState().encounterNpcs).toHaveLength(0)
   })
 })

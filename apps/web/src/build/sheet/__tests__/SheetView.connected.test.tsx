@@ -19,26 +19,26 @@ import { createElement } from 'react'
  *    redirected crew-view links arrive with — is replaced by the canonical
  *    app id.
  *
- * Queries are answered by name (`convexMock.ts`): `entities:locate`,
+ * Queries are answered by name (`serverMock.ts`): `entities:locate`,
  * `entities:listForGame` and `games:get`.
  */
 
 import { makeUnitLot } from 'game-domain/schemas/cargoLot'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 /** Every `router.navigate` the view made. */
 const navigations: unknown[] = []
 
-// Module scope, before the imports below (see `convexMock.ts`). The router is
+// Module scope, before the imports below (see `serverMock.ts`). The router is
 // replaced with one whose `navigate` records, so the canonical-id redirect can
 // be observed without mounting a RouterProvider.
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   also: {
     '@tanstack/react-router': () => ({
       Link: ({ children, to, ...rest }: { children: ReactNode; to: string }) =>
@@ -56,14 +56,14 @@ const convexMocks = await installConvexMocks({
 })
 
 const { SheetView } = await import('../SheetView')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { useUnits } = await import('../../../replica/units')
 const { useSheetModeStore } = await import('../sheetMode.model')
 
 afterAll(() => {
   useSheetModeStore.setState({ editing: false })
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 beforeEach(async () => {
@@ -74,14 +74,13 @@ beforeEach(async () => {
 
 afterEach(() => {
   cleanup()
-  useEntityStore.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
+  useUnits.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
 })
 
 const CONNECTED = {
-  mode: 'connected' as const,
+  status: 'live' as const,
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const GAME = 'g1'
@@ -139,9 +138,9 @@ function runsTable(tableRunner: boolean) {
 async function view(kind: 'pilot' | 'mech' | 'crawler', id: string) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <SheetView kind={kind} id={id} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -149,11 +148,11 @@ async function view(kind: 'pilot' | 'mech' | 'crawler', id: string) {
 describe("a crewmate's sheet", () => {
   test('shows its mech and crawler, read live from the Game', async () => {
     setQueryAnswers({
-      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -168,11 +167,11 @@ describe("a crewmate's sheet", () => {
 
   test('is read-only: the banner says why, and no edit control renders', async () => {
     setQueryAnswers({
-      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -183,19 +182,19 @@ describe("a crewmate's sheet", () => {
     // No unassign on a sheet that is not yours.
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
     // Nothing was cached: reading is not owning.
-    expect(useEntityStore.getState().get('pilot', THEIR_PILOT.id)).toBeNull()
+    expect(useUnits.getState().get('pilot', THEIR_PILOT.id)).toBeNull()
   })
 
   test('a local copy the server says is not yours opens read-only too', async () => {
     // A copy can outlive its ownership — offered to the crew, released by a
     // sweep. "Held here" is not "yours".
-    useEntityStore.setState({ pilots: [THEIR_PILOT] })
+    useUnits.setState({ pilots: [THEIR_PILOT] })
     setQueryAnswers({
-      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -206,13 +205,13 @@ describe("a crewmate's sheet", () => {
 
 describe('your own sheet', () => {
   test('opens in Read from the local store, with Edit one press away', async () => {
-    useEntityStore.setState({ pilots: [MY_PILOT] })
+    useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
-      'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -233,9 +232,9 @@ describe('your own sheet', () => {
   })
 
   test("shows the crewmate's mech flying it — but leaves its unassign to them", async () => {
-    useEntityStore.setState({
+    useUnits.setState({
       pilots: [MY_PILOT],
-      // WiringSync caches every link in your Games.
+      // The wiring feed holds every link in your Games.
       softLinks: [
         {
           id: 'l3',
@@ -247,11 +246,11 @@ describe('your own sheet', () => {
       ],
     })
     setQueryAnswers({
-      'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing({ softLinks: [] }),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing({ softLinks: [] }),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -262,7 +261,7 @@ describe('your own sheet', () => {
 
   test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
     useSheetModeStore.setState({ editing: true })
-    useEntityStore.setState({
+    useUnits.setState({
       crawlers: [CRAWLER],
       pilots: [MY_PILOT],
       softLinks: [
@@ -290,11 +289,11 @@ describe('your own sheet', () => {
       ],
     })
     setQueryAnswers({
-      'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: true },
-      'games:get': runsTable(true),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: CRAWLER.id, gameId: GAME, mayEdit: true },
+      'games.get': runsTable(true),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -326,14 +325,14 @@ describe('your own sheet', () => {
 
 describe("a player's view of the Game's crawler", () => {
   test('is read-only even when this browser holds it, and says whose it is', async () => {
-    // WiringSync caches every crawler in your Games, so a player holds it.
-    useEntityStore.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
+    // The wiring feed holds every crawler in your Games, so a player holds it.
+    useUnits.setState({ crawlers: [CRAWLER], pilots: [MY_PILOT] })
     setQueryAnswers({
-      'entities:locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -356,8 +355,8 @@ describe("your own mech's hold, against the Game's crawler", () => {
   async function viewMyMech(tableRunner: boolean) {
     // Stowing is a write: the sheet is in Edit.
     useSheetModeStore.setState({ editing: true })
-    // WiringSync caches the crawler and the link docking your mech in it.
-    useEntityStore.setState({
+    // The wiring feed holds the crawler and the link docking your mech in it.
+    useUnits.setState({
       mechs: [MY_MECH],
       crawlers: [CRAWLER],
       softLinks: [
@@ -371,11 +370,11 @@ describe("your own mech's hold, against the Game's crawler", () => {
       ],
     })
     setQueryAnswers({
-      'entities:locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
-      'games:get': runsTable(tableRunner),
+      'entities.locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
+      'games.get': runsTable(tableRunner),
     })
     await view('mech', MY_MECH.id)
     return screen.getByRole('button', { name: /^Stow Sealed Crate$/ }) as HTMLButtonElement
@@ -395,30 +394,30 @@ describe("your own mech's hold, against the Game's crawler", () => {
 
 describe('the tab title', () => {
   test('names your entity and follows a rename', async () => {
-    useEntityStore.setState({ pilots: [MY_PILOT] })
+    useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
-      'entities:locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
     expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
 
     await act(async () => {
-      useEntityStore.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
+      useUnits.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
     })
     expect(document.title).toBe('Roach-Man · Training Bay · SalvageUnion.io')
   })
 
   test("a crewmate's sheet, not held here, keeps the generic title", async () => {
     setQueryAnswers({
-      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
     expect(document.title).toBe('Sheet · Training Bay · SalvageUnion.io')
@@ -428,11 +427,11 @@ describe('the tab title', () => {
 describe('addresses', () => {
   test("a row id (the bot's sheet links, redirected crew-view links) is replaced by the canonical app id", async () => {
     setQueryAnswers({
-      'entities:locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
-      'games:get': runsTable(false),
-      'entities:listForGame': listing(),
-      'account:me': ME,
-      'games:members': MEMBERS,
+      'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
+      'games.get': runsTable(false),
+      'entities.listForGame': listing(),
+      'account.me': ME,
+      'games.members': MEMBERS,
     })
     await view('pilot', 'row-theirs')
 
@@ -440,7 +439,7 @@ describe('addresses', () => {
   })
 
   test('something you cannot see is simply not found', async () => {
-    setQueryAnswers({ 'entities:locate': null, 'account:me': null })
+    setQueryAnswers({ 'entities.locate': null, 'account.me': null })
     await view('pilot', 'stranger')
 
     expect(screen.getByText(/pilot not found/i)).toBeTruthy()

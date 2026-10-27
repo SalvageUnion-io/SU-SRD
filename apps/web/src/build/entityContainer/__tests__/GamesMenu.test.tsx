@@ -11,25 +11,25 @@ import type { ReactNode } from 'react'
  * all.
  */
 
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 let authed = true
 
-const convexMocks = await installConvexMocks({
+const serverMocks = await installServerMocks({
   router: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
 })
 
 const { GamesDrawerList, GamesMenu } = await import('../GamesMenu')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const GAMES = [
   { _id: 'g1', name: 'Union Crawler #430', mediator: true, organizer: true },
   { _id: 'g2', name: 'The Long Haul', mediator: false, organizer: false },
 ]
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 async function openGames(): Promise<HTMLElement> {
   await act(async () => {
@@ -45,16 +45,16 @@ function setOnline(value: boolean): void {
 afterEach(() => {
   authed = true
   setOnline(true)
-  convexMocks.navigations.length = 0
+  serverMocks.navigations.length = 0
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)
 
 describe('GamesMenu', () => {
   test('is a menu button listing each Game with its role, and no Training Bay', async () => {
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     wrap(<GamesMenu />)
 
     expect(screen.getByRole('button', { name: 'Games' }).getAttribute('aria-haspopup')).toBe('menu')
@@ -67,19 +67,19 @@ describe('GamesMenu', () => {
   })
 
   test('picking a Game opens its page in Play', async () => {
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     wrap(<GamesMenu />)
 
     const menu = await openGames()
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: /The Long Haul/ }))
     })
-    expect(convexMocks.navigations).toEqual([{ to: '/play/games/g2' }])
+    expect(serverMocks.navigations).toEqual([{ to: '/play/games/g2' }])
     expect(screen.queryByRole('menu')).toBeNull()
   })
 
   test('with no Games it says so, as an inert row', async () => {
-    setQueryAnswers({ 'games:listMine': [] })
+    setQueryAnswers({ 'games.listMine': [] })
     wrap(<GamesMenu />)
 
     const empty = within(await openGames()).getByRole('menuitem', { name: 'No Games yet.' })
@@ -87,11 +87,11 @@ describe('GamesMenu', () => {
     await act(async () => {
       fireEvent.click(empty)
     })
-    expect(convexMocks.navigations).toEqual([])
+    expect(serverMocks.navigations).toEqual([])
   })
 
   test('renders nothing signed out, or signed in but offline', () => {
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     authed = false
     const signedOut = wrap(<GamesMenu />)
     expect(signedOut.container.innerHTML).toBe('')
@@ -106,7 +106,7 @@ describe('GamesMenu', () => {
 
 describe('GamesDrawerList', () => {
   test('picking a row opens that Game’s page in Play and closes the drawer', () => {
-    setQueryAnswers({ 'games:listMine': GAMES })
+    setQueryAnswers({ 'games.listMine': GAMES })
     let closed = 0
     wrap(<GamesDrawerList onPick={() => closed++} />)
 
@@ -115,12 +115,12 @@ describe('GamesDrawerList', () => {
     const game = within(list).getByRole('button', { name: 'Union Crawler #430' })
     expect(within(list).getByText('Mediator')).toBeTruthy()
     fireEvent.click(game)
-    expect(convexMocks.navigations).toEqual([{ to: '/play/games/g1' }])
+    expect(serverMocks.navigations).toEqual([{ to: '/play/games/g1' }])
     expect(closed).toBe(1)
   })
 
   test('with no Games it says there are none, and offers no Training Bay row', () => {
-    setQueryAnswers({ 'games:listMine': [] })
+    setQueryAnswers({ 'games.listMine': [] })
     wrap(<GamesDrawerList onPick={() => {}} />)
 
     expect(screen.queryByRole('button', { name: 'Training Bay' })).toBeNull()

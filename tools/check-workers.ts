@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * check-workers — the three Cloudflare Workers keep one shape (`bun run check workers`),
+ * check-workers — the Cloudflare Workers keep one shape (`bun run check workers`),
  * and `WORKERS` is the one list of them.
  *
  * The Workers grew apart one at a time: three entry layouts (`src/worker.ts`,
@@ -20,7 +20,7 @@
  *      `SAME_SCRIPTS` read the same in every app;
  *   5. `worker-configuration.d.ts` is committed (the `generated` check keeps it
  *      current);
- *   6. the keys in `SHARED_KEYS` are equal across all three, printed as a diff;
+ *   6. the keys in `SHARED_KEYS` are equal across them, printed as a diff;
  *   7. every config turns on Workers Logs, Workers Issues and
  *      `upload_source_maps`. Workers Issues is the error tracker
  *      (apps/web/src/worker/errorReports.ts) and needs nothing in a
@@ -44,7 +44,6 @@ import { join } from 'node:path'
  * path-filter check derive theirs from it. In the deploy's order.
  */
 export const WORKERS = [
-  { app: 'su-assets', ciFilter: 'workers' },
   { app: 'web', ciFilter: 'web' },
   { app: 'discord-bot', ciFilter: 'workers' },
 ] as const

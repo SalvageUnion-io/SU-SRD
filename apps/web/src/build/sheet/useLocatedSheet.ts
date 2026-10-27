@@ -18,26 +18,26 @@
  *  - **offline** — a Game is shared state, and it cannot be read without a
  *    connection.
  *  - **loading** — mid-handshake, still locating, yours on its way into this
- *    browser (`ShelfSync`), the listing on its way, or a Convex row id being
+ *    browser (`RoomFeed`), the listing on its way, or a row id being
  *    swapped for the canonical app id.
  *
- * A Convex row id is what the Discord bot's sheet links carry, and what links
+ * A row id is what the Discord bot's sheet links carry, and what links
  * already posted to the retired crew-view URL redirect with. Once located, it
  * is replaced by the canonical app id every other link uses.
  */
 
 import type { LinkProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
-import { api } from '../../../convex/_generated/api'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { useMe } from '../../lib/account/accountApi'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
-import { useEntityStore } from '../../stores/entityStore'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import type { GameListing } from './readOnlySheetStore.model'
 import { rowAppId } from './readOnlySheetStore.model'
 import { useSheetModeStore } from './sheetMode.model'
@@ -59,20 +59,21 @@ function rowsOf<K extends EntityKind>(listing: GameListing, kind: K): readonly L
 }
 
 export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
-  const { mode } = useConnection()
+  const { status: sync } = useSync()
   const router = useRouter({ warn: false })
   // Read | Edit, held for the visit as on every sheet (`sheetMode.model.ts`).
   const editing = useSheetModeStore((s) => s.editing)
   const setEditing = useSheetModeStore((s) => s.setEditing)
   const sheetMode = useMemo(() => ({ editing, setEditing }), [editing, setEditing])
-  const held = useEntityStore((s) => s.get(kind, id))
+  const held = useUnits((s) => s.get(kind, id))
 
-  const online = mode === 'connected'
-  const located = useQuery(api.entities.locate, online ? { kind, id } : 'skip')
+  const online = sync === 'live'
+  const located = useGamesQuery('entities.locate', online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
-  const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
-  const me = useQuery(api.account.me, online ? {} : 'skip')
+  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
+  const me = useMe(online)
+  const viewerId = useViewerId()
 
   // Names the tab after the entity, and follows a rename. The route's `head`
   // can only say "Sheet": it runs once per navigation, and a loader may not
@@ -96,9 +97,9 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
     held !== null && (located == null || located.mayEdit)
       ? 'yours'
       : !online
-        ? mode === 'connecting'
+        ? sync === 'syncing'
           ? 'loading'
-          : mode === 'solo'
+          : sync === 'signedOut'
             ? 'missing'
             : 'offline'
         : located === undefined || canonical !== id
@@ -121,6 +122,8 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
     listedRow,
     members,
     me,
+    /** Who the listing names as the viewer: their id as its holders are named. */
+    viewerId,
     sheetMode,
     /** The way back from a crewmate's sheet: that Game's own page, in Play. */
     crew: gameId === null ? undefined : { href: gamePath(gameId), label: 'the crew' },

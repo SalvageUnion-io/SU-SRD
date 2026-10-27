@@ -12,7 +12,6 @@ import { SalvageUnionReference } from '../../index'
 import { resultForTable } from '../../utils/resultForTable'
 import { coreRollBand } from '../coreMechanic'
 import { reactorOverloadOutcome } from '../heatCheck'
-import { criticalDamageOutcome, criticalInjuryOutcome } from '../takeDamage'
 
 const FACES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -33,8 +32,6 @@ describe('every rules band maps to one roll-table row', () => {
   const cases: [string, (roll: number) => string][] = [
     ['Core Mechanic', coreRollBand],
     ['Reactor Overload', reactorOverloadOutcome],
-    ['Critical Damage', criticalDamageOutcome],
-    ['Critical Injury', criticalInjuryOutcome],
   ]
 
   for (const [tableName, band] of cases) {

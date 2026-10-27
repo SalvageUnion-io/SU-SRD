@@ -8,7 +8,6 @@
 [![Bun](https://img.shields.io/badge/Bun-runtime-f9f1e1?logo=bun&logoColor=000)](https://bun.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
 [![React 19](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=fff)](https://react.dev)
-[![Convex](https://img.shields.io/badge/Convex-backend-ee342f)](https://convex.dev)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare&logoColor=fff)](https://workers.cloudflare.com)
 [![Biome](https://img.shields.io/badge/lint%20%26%20format-Biome-60a5fa?logo=biome&logoColor=fff)](https://biomejs.dev)
 
@@ -23,18 +22,17 @@ A Bun monorepo of tools for **Salvage Union**, the tabletop RPG by
 
 | Workspace | What it is |
 | --- | --- |
-| [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (an in-house Vite SSG with React islands, and a public [JSON API](https://salvageunion.io/api/)), and the app, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router, Convex in `convex/`). One source tree, one component library (`src/components/`), one build. |
+| [`apps/web`](apps/web) | The app at [salvageunion.io](https://salvageunion.io): the SRD's pre-rendered reference pages (built by Astro with React islands, and a public [JSON API](https://salvageunion.io/api/)), and the app, the character builder and game manager at [salvageunion.io/build](https://salvageunion.io/build) (React, TanStack Router; Durable Object rooms and D1 on the Worker). One source tree, one component library (`src/components/`), one build. |
 | [`apps/discord-bot`](apps/discord-bot) | The Discord bot: roll on tables, look up entities, play in an app Game. |
-| [`apps/su-assets`](apps/su-assets) | The Worker serving licensed entity artwork from R2. |
 | [`packages/salvageunion-reference`](packages/salvageunion-reference) | The schema-validated game dataset and its TypeScript ORM. |
-| [`packages/game-domain`](packages/game-domain) | The schemas and rules the app, its Convex backend and the bot share. |
+| [`packages/game-domain`](packages/game-domain) | The schemas and rules the app, its rooms and the bot share. |
 | [`packages/gates`](packages/gates) | The library behind the repo's gates, run from [`tools/`](tools). |
 
 ## Getting started
 
 ```bash
 bun install        # Bun at the version package.json pins; also installs the git hooks
-bun run dev        # the SRD, and the app at /build on a local Convex backend
+bun run dev        # the SRD, and the app at /build on a local Worker
 bun run check      # every gate, ending in a pass/fail table
 ```
 

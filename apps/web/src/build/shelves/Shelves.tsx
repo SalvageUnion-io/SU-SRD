@@ -37,13 +37,11 @@
  * NPCs are not yours to keep and do not belong here.
  */
 
-import { useQuery } from 'convex/react'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -57,7 +55,6 @@ import {
 } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import {
@@ -75,6 +72,7 @@ import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { patternCopy, patternHref } from '../../lib/patterns/patterns'
+import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
@@ -95,9 +93,10 @@ import {
   shelfFilters,
   shownUnder,
 } from '../../lib/shelves/shelfItems'
-import { useEncounterStore } from '../../stores/encounterStore'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePatternStore } from '../../stores/patternStore'
+import { usePatterns, useTray } from '../../replica/collections'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
@@ -130,20 +129,20 @@ type ServerFacts = {
   /** Who can see each of your patterns; undefined likewise. */
   sharing: PatternSharing[] | undefined
   /** The ids of your sheets anyone with the link may read; undefined likewise. */
-  sharedByLink: string[] | undefined
+  sharedByLink: readonly string[] | undefined
 }
 
 function ConnectedShelves() {
-  const games = useQuery(api.games.listMine, {})
-  const sharing = useQuery(api.shelf.patternSharing, {})
-  const sharedByLink = useQuery(api.shelf.sharedByLink, {})
+  const games = useGamesQuery('games.listMine', {})
+  const sharing = usePatternSharing()
+  const sharedByLink = useSharedByLink()
   return <ShelvesPage games={games} sharing={sharing} sharedByLink={sharedByLink} />
 }
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
 export function Shelves() {
-  const { mode } = useConnection()
-  if (mode === 'connected') return <ConnectedShelves />
+  const { status } = useSync()
+  if (status === 'live') return <ConnectedShelves />
   return <ShelvesPage games={undefined} sharing={undefined} sharedByLink={undefined} />
 }
 
@@ -152,7 +151,7 @@ export function Shelves() {
 // ---------------------------------------------------------------------------
 
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
-  const { mode, canWrite } = useConnection()
+  const { status, canWrite } = useSync()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
   const [filter, setFilter] = useState<ShelfFilter>('everything')
@@ -163,22 +162,22 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
     async (type: EntityKind, id: string, name: string) => {
-      const bundle = await buildEntityExport(type, id, useEntityStore.getState())
+      const bundle = await buildEntityExport(type, id, useUnits.getState())
       downloadJson(exportFileName(type, name), bundle)
     },
     { failure: 'That export did not download. Try again.', toastId: 'shelf-export' }
   )
 
   const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-  const hydratedPatterns = useHydrateOnMount(() => usePatternStore.getState().hydrate())
-  const hydratedTray = useHydrateOnMount(() => useEncounterStore.getState().hydrate())
+  const hydratedPatterns = useHydrateOnMount(() => usePatterns.getState().hydrate())
+  const hydratedTray = useHydrateOnMount(() => useTray.getState().hydrate())
   const allPilots = usePilots()
   const allMechs = useMechs()
   const allCrawlers = useCrawlers()
   const allNpcs = useNpcs()
   const softLinks = useSoftLinkList()
-  const patterns = usePatternStore((s) => s.mechPatterns)
-  const trayNpcs = useEncounterStore((s) => s.encounterNpcs)
+  const patterns = usePatterns((s) => s.mechPatterns)
+  const trayNpcs = useTray((s) => s.encounterNpcs)
 
   // Chip names from the WHOLE pile: a link names its other end either way.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
@@ -237,7 +236,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           label: 'Move to a Game…',
           // Moves need the server's list of Games.
           onSelect:
-            canWrite && mode === 'connected'
+            canWrite && status === 'live'
               ? () => setMoving({ type, id: unit.id, entity: unit })
               : undefined,
         },
@@ -248,7 +247,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(unit.name),
               onConfirm: async () => {
-                const created = await useEntityStore
+                const created = await useUnits
                   .getState()
                   .create(type, copyForShelf(copyBody, unit.name) as never)
                 toast.success(`Made ${created.name}.`)
@@ -281,7 +280,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               ...(inGame
                 ? ROW_ACTION_COPY.deleteFromGame(unit.name)
                 : ROW_ACTION_COPY.deleteBuild(unit.name)),
-              onConfirm: () => useEntityStore.getState().delete(type, unit.id),
+              onConfirm: () => useUnits.getState().delete(type, unit.id),
             })
           ),
         },
@@ -299,7 +298,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(npc.name),
-              onConfirm: () => useEncounterStore.getState().delete(npc.id),
+              onConfirm: () => useTray.getState().delete(npc.id),
             })
           ),
         },
@@ -318,7 +317,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             confirm({
               ...ROW_ACTION_COPY.copyOnShelf(pattern.name),
               onConfirm: async () => {
-                const created = await usePatternStore
+                const created = await usePatterns
                   .getState()
                   .create({ ...patternCopy(pattern), name: copyName(pattern.name) })
                 toast.success(`Made ${created.name}.`)
@@ -343,7 +342,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           onSelect: writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(pattern.name),
-              onConfirm: () => usePatternStore.getState().delete(pattern.id),
+              onConfirm: () => usePatterns.getState().delete(pattern.id),
             })
           ),
         },

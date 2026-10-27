@@ -1,0 +1,235 @@
+/**
+ * The one build (ADR-065): Astro renders the reference site's pages and
+ * endpoints (`astro/pages/`) and, in the same client pass, bundles the app
+ * (its shell at `build/index.html`, ADR-050) into one `dist/`. One dev server
+ * (`astro dev`) serves both.
+ */
+
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import cloudflare from '@astrojs/cloudflare'
+import react from '@astrojs/react'
+import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
+import { defineConfig } from 'astro/config'
+import { CHECKOUT_HEADER, CHECKOUT_ROOT, portFor } from 'gates/ports'
+import type { Plugin } from 'vite'
+import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
+import { VitePWA } from 'vite-plugin-pwa'
+import { appGraph } from './astro/build/appGraph'
+import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
+import { DEV_STATE, devWorker } from './astro/build/devWorker'
+import { FONTS } from './astro/build/fonts'
+import { islandDirectives } from './astro/build/islandDirectives'
+import { referenceStamp } from './astro/build/referenceStamp'
+import { site } from './astro/build/site'
+import { siteSitemap } from './astro/build/sitemap'
+import { workerRoutes } from './astro/build/workerRoutes'
+import { ROUTER_PLUGIN_OPTIONS } from './routeTree.config'
+import { SITE_URL } from './src/lib/constants'
+import { SITE_WORKER, WORKBOX_OPTIONS } from './src/pwa'
+import { emitBaseStylesheet } from './src/styles/baseStylesheet'
+
+const HERE = import.meta.dirname
+const PORT = Number(process.env.PORT ?? portFor())
+
+// Absolute addresses follow the env they are served from
+// (`src/lib/constants.ts`): the dev server names itself, for both apps.
+if (process.argv.includes('dev')) process.env.VITE_SITE_ORIGIN ||= `http://localhost:${PORT}`
+
+/** The page script and the islands, which Astro loads: what `appGraph` keeps off the app's groups. */
+const ISLANDS = join(HERE, 'src/components/islands')
+const graph = appGraph({
+  pageEntries: [
+    join(HERE, 'src/runtime/islands.client.ts'),
+    ...readdirSync(ISLANDS)
+      .filter((file) => file.endsWith('Island.tsx'))
+      .map((file) => join(ISLANDS, file)),
+  ],
+})
+
+/** An app chunk group: never a module a reference page reaches (`astro/build/appGraph.ts`). */
+const notOnPages =
+  (pattern: RegExp) =>
+  (id: string): boolean =>
+    pattern.test(id) && !graph.pageReaches(id)
+
+/** Plugins for the client pass alone: the app and its worker are browser code. */
+const clientOnly = (plugins: Plugin | Plugin[]): Plugin[] =>
+  [plugins].flat().map((plugin) => ({
+    ...plugin,
+    applyToEnvironment: (environment) => environment.name === 'client',
+  }))
+
+/**
+ * The site's one service worker, at `/sw.js` (options and reasons:
+ * `src/pwa.ts`). 'prompt', NOT 'autoUpdate': under 'autoUpdate' the plugin
+ * force-assigns `skipWaiting` and `clientsClaim`, so a new worker would take
+ * over an open builder tab and drop the precache entries it still reads from.
+ * `public/sw-lifecycle.js` decides instead. Generated again over the finished
+ * site (`site`), since the client pass ends before the pages are written.
+ */
+const pwa = VitePWA({
+  // The client's half of the output, where the site is (the adapter puts the
+  // Worker in `dist/server`, which Vite would default to).
+  outDir: join(HERE, 'dist/client'),
+  registerType: 'prompt',
+  injectRegister: false,
+  filename: SITE_WORKER.url.slice(1),
+  scope: SITE_WORKER.scope,
+  manifest: false,
+  workbox: WORKBOX_OPTIONS,
+})
+const pwaApi = (): VitePluginPWAAPI | undefined =>
+  pwa.find((plugin) => plugin.name === 'vite-plugin-pwa')?.api as VitePluginPWAAPI | undefined
+
+/** `name-hash`, as the bundle-budget specs match chunks by prefix (`e2e/_bundle.ts`). */
+const HASHED_NAMES = {
+  entryFileNames: 'assets/[name]-[hash].js',
+  chunkFileNames: 'assets/[name]-[hash].js',
+  assetFileNames: 'assets/[name]-[hash][extname]',
+}
+
+/**
+ * Entries keep their exports but may gain more (`allow-extension`): Astro's
+ * `exports-only` refuses the chunk groups' `includeDependenciesRecursively:
+ * false`, which keeps an app group from pulling in the reference site's
+ * shared modules.
+ */
+const entrySignatures = clientOnly({
+  name: 'entry-signatures',
+  apply: 'build',
+  options(options) {
+    options.preserveEntrySignatures = 'allow-extension'
+  },
+})
+
+export default defineConfig({
+  site: SITE_URL,
+  srcDir: './astro',
+  publicDir: './public',
+  outDir: './dist',
+  trailingSlash: 'ignore',
+  build: { format: 'directory', inlineStylesheets: 'never', assets: 'assets' },
+  server: { port: PORT, headers: { [CHECKOUT_HEADER]: CHECKOUT_ROOT } },
+  // The site Worker (`wrangler.jsonc`'s `main`), whose routes are endpoints
+  // (`workerRoutes`). Pages stay pre-rendered, in Node; no sessions, no
+  // image service, no inspector.
+  adapter: cloudflare({
+    prerenderEnvironment: 'node',
+    imageService: 'passthrough',
+    inspectorPort: false,
+    persistState: { path: DEV_STATE },
+  }),
+  session: false,
+  fonts: FONTS,
+  // React renders the pages and hydrates their islands (`client:*`).
+  integrations: [
+    react(),
+    islandDirectives(),
+    workerRoutes(),
+    devWorker(),
+    siteSitemap(),
+    site({ pwa: pwaApi }),
+  ],
+  devToolbar: { enabled: false },
+  vite: {
+    // The app reads `VITE_` variables (`src/env.d.ts`); Astro's default is `PUBLIC_` alone.
+    envPrefix: ['VITE_', 'PUBLIC_'],
+    plugins: [
+      baseStylesheetModule(),
+      appShellInDev(),
+      // The router's code splitter runs before the JSX transform (the React
+      // integration's, which Astro appends after these), or refuses to start.
+      ...clientOnly(TanStackRouterVite(ROUTER_PLUGIN_OPTIONS) as Plugin | Plugin[]),
+      // The UI library's stylesheet, shared by both apps.
+      ...clientOnly(emitBaseStylesheet()),
+      ...clientOnly(graph.plugin),
+      ...entrySignatures,
+      ...clientOnly(pwa),
+    ],
+    // Dev only: pre-bundle every entry point of salvageunion-reference in one
+    // pass. Its ORM singletons (the per-schema LazyModels `preload` fills)
+    // live in lib/index.ts; served raw beside a pre-bundled '.', the './rules'
+    // and './zod' subpaths loaded a SECOND copy that was never preloaded
+    // (`Schema "chassis" not loaded`). The package's stamp rides the bundle's
+    // intro so a change to its sources re-bundles it (`referenceStamp`).
+    optimizeDeps: {
+      include: [
+        'salvageunion-reference',
+        'salvageunion-reference/rules',
+        'salvageunion-reference/zod',
+      ],
+      rolldownOptions: {
+        output: {
+          intro: `/* salvageunion-reference ${referenceStamp(join(HERE, '../../packages/salvageunion-reference'))} */`,
+        },
+      },
+      entries: [
+        'src/main.tsx',
+        'src/routes/**/*.{ts,tsx}',
+        'src/components/islands/**/*.{ts,tsx}',
+        '!**/__tests__/**',
+      ],
+    },
+    // A busy port is an error, not the next one: `tools/shot.ts` and the browser
+    // preview wait on the port they asked for.
+    server: { strictPort: true, watch: { ignored: ['**/routeTree.gen.ts'] } },
+    environments: {
+      client: {
+        build: {
+          rolldownOptions: {
+            output: {
+              ...HASHED_NAMES,
+              // React, ReactDOM and the scheduler change only on a dependency
+              // bump: one long-cached chunk both apps share. The rest are the
+              // app's, split by how often each part changes; no group takes a
+              // module a reference page reaches (`notOnPages`), or the page
+              // would download the whole group. There is deliberately no group
+              // for the reference package's data: its JSON is dynamically
+              // imported per schema.
+              codeSplitting: {
+                includeDependenciesRecursively: false,
+                groups: [
+                  {
+                    name: 'zod',
+                    test: notOnPages(/[\\/]node_modules[\\/].*[\\/]zod[\\/]/),
+                    priority: 40,
+                  },
+                  {
+                    name: 'react',
+                    test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+                    priority: 35,
+                  },
+                  {
+                    name: 'vendor',
+                    test: notOnPages(/[\\/]node_modules[\\/]/),
+                    tags: ['$initial'],
+                    priority: 30,
+                  },
+                  {
+                    name: 'reference',
+                    test: notOnPages(/[\\/]packages[\\/]salvageunion-reference[\\/]lib[\\/]/),
+                    tags: ['$initial'],
+                    priority: 20,
+                  },
+                  {
+                    name: 'app',
+                    test: notOnPages(
+                      /[\\/]apps[\\/]web[\\/]src[\\/](?!main\.tsx$)|[\\/]packages[\\/]game-domain[\\/]/
+                    ),
+                    tags: ['$initial'],
+                    priority: 10,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      // The stylesheet the pages import is emitted by the render pass.
+      prerender: {
+        build: { rolldownOptions: { output: { assetFileNames: HASHED_NAMES.assetFileNames } } },
+      },
+    },
+  },
+})

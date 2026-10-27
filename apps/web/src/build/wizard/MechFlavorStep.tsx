@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { Field, tokens } from '../../components/index'
-import '../../styles/build/wizard.css'
 import { RollTableButton } from './RollTableButton'
 import type { MechRollField, RollTableDeps } from './rollTableHelpers.model'
 import { MECH_ROLL_TABLE_NAMES } from './rollTableHelpers.model'

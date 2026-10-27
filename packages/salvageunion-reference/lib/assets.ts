@@ -17,8 +17,8 @@ import type { RefMetaEntity } from './schemas/index'
 import { getEntitySlug } from './slug'
 
 /**
- * Base URL of the artwork CDN — the `su-assets` Cloudflare Worker, backed by the
- * `su-lp-assets` R2 bucket. Asset URLs are derived from this base plus the
+ * Base URL of the artwork CDN — the `su-lp-assets` R2 bucket's custom domain,
+ * whose zone rules render the derivatives (`assetDerivatives.ts`). Asset URLs are derived from this base plus the
  * entity's schema name and slug; see getAssetUrl().
  */
 

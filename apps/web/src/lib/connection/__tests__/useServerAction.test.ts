@@ -3,16 +3,16 @@
  *
  * What is pinned is what a hand-rolled call site gets wrong: the press is pending until the write settles, a refusal says the
  * server's words, a blocked write says the store's, and a defect says the
- * caller's line — never the text it was thrown with, which for a Convex write
- * is the redacted `[CONVEX M(fn)] … Server Error`. And `run` never rejects, so
+ * caller's line — never the text it was thrown with, such as a redacted
+ * `… Server Error`. And `run` never rejects, so
  * nothing escapes as an unhandled rejection.
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { toast } from '../../../components/index'
+import { RoomDeclined } from '../../../replica/roomSocket'
 import type { ServerActionResult } from '../useServerAction'
 
 /** Every `captureException` the hook made — what gets reported. */
@@ -22,8 +22,8 @@ const captured: unknown[] = []
 const realObservability = { ...(await import('../../observability')) }
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. `also` specifiers resolve from convexMock.ts.
-const convexMocks = await installConvexMocks({
+// that resolve after it runs. `also` specifiers resolve from serverMock.ts.
+const serverMocks = await installServerMocks({
   also: {
     '../../lib/observability': () => ({
       ...realObservability,
@@ -34,7 +34,7 @@ const convexMocks = await installConvexMocks({
   },
 })
 
-const { WritesBlockedOffline } = await import('../../../stores/entityBackend')
+const { WritesBlockedOffline } = await import('../../../replica/sync')
 const { LinkRefused } = await import('../../links/linkRefused')
 const { failureMessage, useServerAction } = await import('../useServerAction')
 
@@ -53,12 +53,12 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 describe('failureMessage', () => {
   test("a refusal says the server's words", () => {
-    expect(failureMessage(new ConvexError('Only the Organiser can do that.'), FAILURE)).toBe(
+    expect(failureMessage(new RoomDeclined('Only the Organiser can do that.'), FAILURE)).toBe(
       'Only the Organiser can do that.'
     )
   })
@@ -96,7 +96,7 @@ describe('what gets reported', () => {
   })
 
   test('a refusal, a blocked or refused write, and a named player error are not', () => {
-    failureMessage(new ConvexError('Only the Organiser can do that.'), FAILURE)
+    failureMessage(new RoomDeclined('Only the Organiser can do that.'), FAILURE)
     failureMessage(new WritesBlockedOffline(), FAILURE)
     failureMessage(new LinkRefused('That NPC is in another Game.'), FAILURE)
     failureMessage(new FileRefused('Not a backup.'), FAILURE, [FileRefused])
@@ -111,7 +111,7 @@ describe('what gets reported', () => {
 
   test('a refusal through run is not', async () => {
     await runOnce(async () => {
-      throw new ConvexError('That invite has expired.')
+      throw new RoomDeclined('That invite has expired.')
     })
     expect(captured).toEqual([])
   })
@@ -156,7 +156,7 @@ describe('useServerAction', () => {
 
   test("a refusal is held as the server's words", async () => {
     const { hook, result } = await runOnce(async () => {
-      throw new ConvexError('That invite has expired.')
+      throw new RoomDeclined('That invite has expired.')
     })
     expect(result).toEqual({ ok: false, error: 'That invite has expired.' })
     expect(hook.result.current.error).toBe('That invite has expired.')

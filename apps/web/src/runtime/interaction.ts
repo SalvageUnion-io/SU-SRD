@@ -19,13 +19,14 @@
  * - **Hover and focus on a `trigger`** are announced again, so a host that
  *   reacts to `pointerover` or `focusin` (the Peek) sees the one that woke it.
  *
- * Controls are found again by their position under the placeholder: the
+ * Controls are found again by their position under the stand-in: the
  * island's first commit draws the markup the server drew, so the same path
- * names the same control (`mountIsland`). Text a reader typed is carried by
- * `mountIsland`'s own form-state carry, by `name`.
+ * names the same control (`clientSwap`). Text a reader typed is carried by
+ * `clientSwap`'s own form-state carry, by `name`.
  *
- * Its own module, free of React, because the client entry imports it on every
- * page and the point is that a page nobody touches never loads React.
+ * Its own module, free of React, because Astro inlines its directive
+ * (`directives/interaction.ts`) into every page, and the point is that a page
+ * nobody touches never loads React.
  */
 
 /** Gestures that mean a reader is reaching for the island. */
@@ -64,11 +65,11 @@ export function elementAt(root: Element, path: ElementPath): Element | null {
 export type PendingInteraction = {
   /** The control they pressed, under the placeholder. */
   press: ElementPath | null
-  /** The control that had focus when the island was asked for, under the placeholder. */
+  /** The control that had focus when the island was asked for, under the stand-in. */
   focus: ElementPath | null
   /**
    * Menus the reader changed, by position: a `<select>` has no `name` for
-   * `mountIsland`'s form carry, and the island's first commit resets it.
+   * `clientSwap`'s form carry, and the island's first commit resets it.
    */
   changes: { path: ElementPath; value: string }[]
   /** The page-wide trigger (`trigger` islands) whose hover or focus woke the island. */

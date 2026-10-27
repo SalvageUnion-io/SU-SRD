@@ -1,12 +1,12 @@
 [test]
 preload = [
-  # First: `convex/auth.ts` reads the Discord client env at import, and
-  # `NATIVE_FETCH_GLOBALS` must be captured before happy-dom replaces them.
+  # First: `NATIVE_FETCH_GLOBALS` must be captured before happy-dom replaces them.
   "./test/env.ts",
   "./test/happydom.ts",
   "./test/testing-library.ts",
   "../../packages/salvageunion-reference/tools/testPreload.ts",
-  "./test/convexClientStub.ts",
+  "./test/roomsStub.ts",
+  "./test/cloudflareWorkers.ts",
 ]
 
 # Coverage counts this workspace's own files, not the other workspaces'

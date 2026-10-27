@@ -196,7 +196,13 @@ function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
     const pad = getComputedStyle(body)
     const boxTop = box.top + Number.parseFloat(pad.paddingTop)
     const boxBottom = box.bottom - Number.parseFloat(pad.paddingBottom)
-    const content = [...body.children].filter(visible).map((c) => c.getBoundingClientRect())
+    // An island's wrapper (`astro-island`) draws no box: its children are the body's.
+    const drawn = (el: Element): Element[] =>
+      getComputedStyle(el).display === 'contents' ? [...el.children].flatMap(drawn) : [el]
+    const content = [...body.children]
+      .flatMap(drawn)
+      .filter(visible)
+      .map((c) => c.getBoundingClientRect())
     const contentTop = Math.min(...content.map((r) => r.top))
     const contentBottom = Math.max(...content.map((r) => r.bottom))
     const short =

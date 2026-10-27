@@ -4,8 +4,8 @@
  * then the crew's rolls, the Mediator's alerts and my own rolls and applied
  * changes, newest first. Solo it is only my own.
  *
- * A proposal answers inline: Accept writes it (`proposals.apply`, the owner's
- * own write) and Decline records the answer (`proposals.decline`); Decline is
+ * A proposal answers inline: Accept writes it (`ops.accept`, the owner's
+ * own write) and Decline records the answer (`ops.decline`); Decline is
  * a peer of Accept, as on the Game page's inbox (`ProposalInbox`). An accepted
  * one lands on the Feed as an applied change.
  *
@@ -17,13 +17,11 @@
  * frame inside a frame.
  */
 
-import { useMutation } from 'convex/react'
 import type { CSSProperties } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { Button, EmptyState, FeedLine, FeedList, Message, tokens } from '../components/index'
+import { Button, EmptyState, FeedLine, FeedList, FieldError, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
+import { useTableAct } from '../replica/useTable'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
@@ -43,6 +41,8 @@ const STATE = {
 } satisfies CSSProperties
 
 type PlayFeedProps = {
+  /** The Game a proposal is answered in; null at the solo table. */
+  gameId: string | null
   entries: readonly FeedEntry[]
   /** My rolls' Discord posts, by roll id (`usePlayRollDispatch`). */
   posts: ReadonlyMap<string, PlayPostState>
@@ -52,9 +52,9 @@ type PlayFeedProps = {
   canWrite: boolean
 }
 
-export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
-  const apply = useMutation(api.proposals.apply)
-  const decline = useMutation(api.proposals.decline)
+export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeedProps) {
+  const apply = useTableAct('ops.accept', gameId)
+  const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
     failure: 'Your answer did not land. Try again.',
     toastId: 'play-proposal-answer',
@@ -66,7 +66,7 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
 
   const accept = (entry: Extract<FeedEntry, { kind: 'proposal' }>) => {
     void reply
-      .run(() => apply({ proposalId: entry.proposalId as Id<'changeLog'> }))
+      .run(() => apply({ opId: entry.proposalId }))
       .then((result) => {
         if (result.ok) recordPlayChange(`Applied · ${entry.change}`)
       })
@@ -96,11 +96,7 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
                       size="mini"
                       disabled={!canWrite}
                       aria-label={playCopy('decline2', { text: entry.text })}
-                      onClick={() =>
-                        void reply.run(() =>
-                          decline({ proposalId: entry.proposalId as Id<'changeLog'> })
-                        )
-                      }
+                      onClick={() => void reply.run(() => decline({ opId: entry.proposalId }))}
                     >
                       {playCopy('decline')}
                     </Button>
@@ -122,9 +118,9 @@ export function PlayFeed({ entries, posts, postNow, canWrite }: PlayFeedProps) {
               >
                 {entry.text}
                 {post?.kind === 'failed' && (
-                  <Message tone="bad">
+                  <FieldError>
                     {playCopy('notPostedToDiscord', { message: post.message })}
-                  </Message>
+                  </FieldError>
                 )}
               </FeedLine>
             )

@@ -7,12 +7,11 @@
  * installed item slugs keep their cards/fallbacks.
  */
 
-import { describe, expect, mock, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { MechSheet } from '../MechSheet'
 
 const fakeMech: Mech = {
@@ -31,30 +30,20 @@ const fakeMech: Mech = {
   updatedAt: FIXTURE_NOW,
 }
 
-function makeStubStore(mech: Mech): typeof useEntityStore {
-  return makeEntityStoreMock({
-    mechs: [mech],
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [mech]),
-
-    get: mock((_type: string, id: string) => (id === mech.id ? mech : null)),
-    create: mock(async () => mech),
-    update: mock(async () => mech),
-    delete: mock(async () => {}),
-  })
-}
-
 describe('MechSheet — unresolved chassis (chassis=null)', () => {
   test('shows accessible notice referencing the unresolvable chassisRef', () => {
-    render(<MechSheet mech={fakeMech} chassis={null} store={makeStubStore(fakeMech)} />)
+    render(
+      <MechSheet mech={fakeMech} chassis={null} store={makeSingleUnitStore('mech', fakeMech)} />
+    )
 
     expect(screen.getByRole('alert')).toBeTruthy()
     expect(screen.getByRole('alert').textContent).toContain('nonexistent-chassis-xyz')
   })
 
   test('the body still renders: Identity/Vitals regions, item fallback, hold', () => {
-    render(<MechSheet mech={fakeMech} chassis={null} store={makeStubStore(fakeMech)} />)
+    render(
+      <MechSheet mech={fakeMech} chassis={null} store={makeSingleUnitStore('mech', fakeMech)} />
+    )
 
     // The identity band stays available (maxima derive to 0, never crash): its
     // fields and the SP vitals gauge render even with no chassis resolved.
@@ -68,7 +57,9 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
   })
 
   test('no chassis-ability slab renders for an unknown chassis', () => {
-    render(<MechSheet mech={fakeMech} chassis={null} store={makeStubStore(fakeMech)} />)
+    render(
+      <MechSheet mech={fakeMech} chassis={null} store={makeSingleUnitStore('mech', fakeMech)} />
+    )
 
     expect(screen.queryByText(/chassis ability/i)).toBeNull()
   })

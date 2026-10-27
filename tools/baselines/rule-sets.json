@@ -1,9 +1,9 @@
 {
   "copy": {
-    "lowercase-term": 187,
+    "lowercase-term": 174,
     "banned-variant": 1
   },
   "ui-strings": {
-    "hard-coded": 997
+    "hard-coded": 980
   }
 }

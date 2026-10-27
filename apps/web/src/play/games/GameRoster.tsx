@@ -29,14 +29,11 @@
  * in `useRowActions` and `lib/games/rowActionCopy.ts`.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -64,6 +61,8 @@ import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesCall, useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useTableRead } from '../../replica/useTable'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -98,16 +97,15 @@ const BODY = {
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
-  const rowActions = useRowActions(confirm)
+  const rowActions = useRowActions(confirm, gameId)
   const go = useGo()
 
-  const me = useQuery(api.account.me, {})
-  const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const members = useGamesQuery('games.members', { gameId: gameId })
+  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
-  const vitals = useQuery(api.crew.vitals, { gameId: gameId as Id<'games'> })
+  const vitals = useTableRead('crew.vitals', { gameId })
 
-  const makePrimary = useServerAction(useMutation(api.games.setPrimaryCrawler), {
+  const makePrimary = useServerAction(useGamesCall('games.setPrimaryCrawler'), {
     failure: 'That crawler could not be made primary. Try again.',
   })
   const busy = makePrimary.pending
@@ -120,7 +118,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const localMechs: Mech[] = useMechs()
   const localCrawlers: Crawler[] = useCrawlers()
 
-  const viewerId = me?._id ?? null
+  const viewerId = useViewerId()
   const roster = members ?? []
   const caps = tableCapabilities({
     viewerId,
@@ -226,8 +224,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         onSelect: act(
           () =>
             void makePrimary.run({
-              gameId: gameId as Id<'games'>,
-              crawlerId: row.serverId as Id<'crawlers'>,
+              gameId: gameId,
+              crawlerId: row.serverId,
             })
         ),
       })

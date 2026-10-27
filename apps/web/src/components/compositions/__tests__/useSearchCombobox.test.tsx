@@ -6,16 +6,11 @@
 import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { act, renderHook } from '@testing-library/react'
 import { schemaPluralLabel } from '../../../lib/schemaLabels'
+import { must } from '../../__tests__/must'
 import { useSearchCombobox } from '../useSearchCombobox'
 
 /** The hook's own `debounceMs` default (see `useSearchCombobox.ts`). */
 const DEBOUNCE_MS = 150
-
-/** Narrow a possibly-null query result, failing the test loudly if absent. */
-function must<T>(value: T | null | undefined): T {
-  if (value == null) throw new Error('Expected element to be present')
-  return value
-}
 
 // The debounce is driven, not slept through: a fixed real-time margin over a
 // real timer is a latent flake on a loaded runner and pure dead wall-clock

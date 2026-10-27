@@ -55,7 +55,6 @@ const SCAN_DIRS = [
   // takes; those two files are exempt below, so a new literal anywhere else in
   // the bot still fails.
   'apps/discord-bot/src',
-  'apps/su-assets/src',
   'packages/game-domain/src',
 ]
 

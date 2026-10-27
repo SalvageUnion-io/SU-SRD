@@ -13,7 +13,7 @@
  * `linkedUnits`. Owns the economy-dialog state.
  */
 
-import { containerOf } from 'game-domain/container'
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
@@ -26,10 +26,8 @@ import { linesFromBreakdown, Stat } from '../../components/index'
 import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { LIVE_SHEET_OVERRIDE } from '../../stores/surfaceProvenance'
-import { AssignPicker } from '../wiring/AssignPicker'
-import { AssignedUnits } from './AssignedUnits'
-import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
+import { LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
+import { assignedRail } from './assignedRail'
 import { crawlerStamp } from './bandStamps.model'
 import type { EconLozItem } from './CrawlerEcon'
 import { CrawlerEconActions, CrawlerEconFrame } from './CrawlerEcon'
@@ -78,7 +76,7 @@ export function CrawlerLiveSheet({
   const spParts = crawlerMaxSPParts(crawler)
   const maxSP = spParts.total
   const spLines = linesFromBreakdown(spParts, {
-    base: `Tech ${crawler.techLevel?.replace(/\D/g, '') || '?'} Crawler`,
+    base: `Tech ${parseCrawlerTechLevel(crawler.techLevel) ?? '?'} Crawler`,
     baseDetail: 'base',
     installed: 'Crawler type bonus',
   })
@@ -181,25 +179,10 @@ export function CrawlerLiveSheet({
   // keeps its Assign after the first. A mech is assigned independently of its
   // pilot, so a crew pilot's mech docked elsewhere is not in this bay, and a
   // docked mech with no pilot still is.
-  const self = { type: 'crawler', id: crawler.id } as const
-  const container = containerOf(crawler)
-  const assigned = assignedUnitsFor({
-    subject: { kind: 'crawler', entity: crawler },
-    composition,
-    withheld,
-    softLinks: storeState.softLinks,
-    holds,
-    hrefFor,
-    ownerOf,
-    editable,
-    unassign: (linkId) => runWrite(() => storeState.delete('softLink', linkId)),
-    picker: (pick, options) => (
-      <AssignPicker subject={self} container={container} pick={pick} {...options} />
-    ),
-  })
-  const rail = hasAssignedUnits(assigned.units, editable) ? (
-    <AssignedUnits {...assigned} editable={editable} />
-  ) : undefined
+  const rail = assignedRail(
+    { kind: 'crawler', entity: crawler },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+  )
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
@@ -264,7 +247,7 @@ export function CrawlerLiveSheet({
             onChange={
               readOnly || tl === undefined
                 ? undefined
-                : (next) => patch({ techLevel: `tech-${next}` })
+                : (next) => patch({ techLevel: crawlerTechLevelSlug(next) })
             }
             min={SCRAP_TLS[0]}
             ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}

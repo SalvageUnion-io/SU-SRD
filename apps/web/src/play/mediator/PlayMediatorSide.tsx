@@ -1,5 +1,5 @@
 /**
- * PlayMediatorSide — the Mediator's right column (play.md §10): the running encounter's Notes, the player's Tables and Feed sections, then the Propose dock.
+ * PlayMediatorSide — the Mediator's end column's panes (play.md §10): the running encounter's Notes, the player's Tables and Feed sections (the Tables pane), then the Propose dock (the Propose pane).
  *
  *  - **Briefing** (ADR-059 §5): the running encounter's, what the Pilots
  *    see, and Tell the table, which sends it as an alert. Shown only while
@@ -18,8 +18,7 @@
  *    sent is a press away (All proposals, `ProposalsList`, twenty at a time).
  *
  * What the sections share is `usePlayMediatorSide`, called once per screen
- * (here, or by the phone form, `PlayMediatorPhone`, which puts the sections
- * on its own tabs). The roll dispatch lives there (`usePlayRollDispatch`),
+ * by `PlayMediatorCockpit`. The roll dispatch lives there (`usePlayRollDispatch`),
  * with the Game's log left out: the log is the crew's, and the Opposition
  * reaches them only through what is posted. Headings are Slabs; the dock is a
  * level-1 box.
@@ -31,21 +30,12 @@ import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { mediatorCopy } from '../../messages/play-mediator'
-import type { PlayBinding } from '../channels.model'
 import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
 import { RunningBriefing } from './RunningBriefing'
 import type { PlayMediator } from './usePlayMediator'
-import { usePlayMediatorSide } from './usePlayMediatorSide'
-
-const STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[16],
-  minHeight: '100%',
-} satisfies CSSProperties
 
 const SECTION = {
   display: 'flex',
@@ -65,10 +55,7 @@ const NOTES = {
   whiteSpace: 'pre-line',
 } satisfies CSSProperties
 
-/** The dock sits at the column's foot. */
-const DOCK = { ...SECTION, marginTop: 'auto' } satisfies CSSProperties
-
-/** The Mediator's Tables and Feed sections, as the canvas and the phone's Tables tab stack them. */
+/** The Mediator's Tables and Feed sections: the Tables pane. */
 export function MediatorTablesAndFeed({
   mediator,
   side,
@@ -117,21 +104,13 @@ type ProposeProps = {
   onTarget: (id: string | null) => void
   /** Propose's To field, which picking a seat focuses. */
   toRef: RefObject<HTMLInputElement | null>
-  /** Sits at the foot of its column. */
-  docked?: boolean
 }
 
 /** The Propose dock, and every proposal sent a press away. */
-export function PlayMediatorProposeSection({
-  mediator,
-  targetId,
-  onTarget,
-  toRef,
-  docked = false,
-}: ProposeProps) {
+export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef }: ProposeProps) {
   const [allOpen, setAllOpen] = useState(false)
   return (
-    <section aria-label={mediatorCopy('propose')} style={docked ? DOCK : SECTION}>
+    <section aria-label={mediatorCopy('propose')} style={SECTION}>
       <ProposeDock
         targets={proposalTargets(mediator.crew)}
         targetId={targetId}
@@ -162,31 +141,5 @@ export function PlayMediatorProposeSection({
         />
       </ModalShell>
     </section>
-  )
-}
-
-type PlayMediatorSideProps = Omit<ProposeProps, 'docked'> & {
-  binding: PlayBinding | null | undefined
-}
-
-export function PlayMediatorSide({
-  mediator,
-  binding,
-  targetId,
-  onTarget,
-  toRef,
-}: PlayMediatorSideProps) {
-  const side = usePlayMediatorSide(mediator, binding)
-  return (
-    <div style={STACK}>
-      <MediatorTablesAndFeed mediator={mediator} side={side} />
-      <PlayMediatorProposeSection
-        mediator={mediator}
-        targetId={targetId}
-        onTarget={onTarget}
-        toRef={toRef}
-        docked
-      />
-    </div>
   )
 }

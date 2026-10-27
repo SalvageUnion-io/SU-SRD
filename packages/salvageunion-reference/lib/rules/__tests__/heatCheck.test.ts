@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { seqRoll } from '../../testing'
 import {
   bioOverloadOutcome,
   canActivateAction,
@@ -21,17 +22,6 @@ import {
   performPush,
   reactorOverloadOutcome,
 } from '../heatCheck'
-import type { Roll } from '../types'
-
-/** Returns a Roll that yields the given values in order, ignoring `sides`. */
-function seqRoll(...values: number[]): Roll {
-  let i = 0
-  return () => {
-    const v = values[i] ?? values[values.length - 1] ?? 1
-    i++
-    return v
-  }
-}
 
 const fixedNow = () => new Date('2026-06-03T00:00:00.000Z')
 

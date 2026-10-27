@@ -1,0 +1,442 @@
+import type { LinkShape } from 'game-domain/links/linkRules'
+import type { BundleOp, GameBundle } from 'game-domain/migration/bundle'
+import { GameBundleSchema } from 'game-domain/migration/bundle'
+import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
+import { Leases, MOVED_OFF } from '../leases'
+import { RoomRefusal } from '../refusal'
+import type { GamePlay } from './play'
+import type { GameStore, StoredOp, UnitRow } from './store'
+import { fromJson } from './store'
+import type { GameUnits } from './units'
+
+/**
+ * Units crossing this Game's walls: both halves of the two-room handoff
+ * (`../handoff.ts`), and the cutover's one-off import of a Game from Convex
+ * with the check that the copy matches what it was copied from.
+ *
+ * A move's rules: a pilot, mech or NPC is moved by its holder,
+ * into a Game they are a member of; a crawler only by the table runner,
+ * between the Game and their own Training Bay, never Game to Game. A link
+ * whose other end is not where the unit lands is dropped (ADR-037).
+ */
+
+const ALREADY_HERE = 'That is already in this Game'
+
+export class GameTransit {
+  private readonly leases: Leases
+
+  constructor(
+    private readonly store: GameStore,
+    private readonly units: GameUnits,
+    private readonly play: GamePlay
+  ) {
+    this.leases = new Leases(store)
+  }
+
+  // ------------------------------------------------------------- outbound
+
+  /**
+   * Offer a unit to another home, marking it leaving. Offering the same lease
+   * again answers the same parcel.
+   */
+  offer(args: {
+    leaseId: string
+    unitId: string
+    actor: string
+    to: HomeAddress
+    at: number
+  }): UnitParcel {
+    return this.store.sql.transaction(() => {
+      const game = this.store.requireGame()
+      const unit = this.store.requireUnit(args.unitId)
+      if (unit.leaseId === args.leaseId) return this.parcelOf(unit, game.gameId)
+      this.units.assertMayWrite(args.actor, unit)
+      if (unit.kind === 'crawler') {
+        if (args.to.kind !== 'account' || args.to.userId !== args.actor) {
+          throw new RoomRefusal(
+            'A crawler moves between a Game and its table runner’s Training Bay: move it out first'
+          )
+        }
+      } else if (args.to.kind === 'account' && args.to.userId !== args.actor) {
+        throw new RoomRefusal('You can only move your own build to your own Training Bay')
+      }
+      this.store.putUnit({ ...unit, leaseId: args.leaseId })
+      this.leases.put(args.leaseId, unit.id, 'out', 'offered', args.to, args.at)
+      return this.parcelOf({ ...unit, leaseId: args.leaseId }, game.gameId)
+    })
+  }
+
+  /**
+   * The target has the unit: drop it here, with its links and seat; a mech
+   * leaves whoever was aboard on foot, and a primary crawler hands over to
+   * the oldest left. Releasing twice is a no-op.
+   */
+  release(leaseId: string): void {
+    this.leases.close(leaseId, (unit) => this.units.drop(unit))
+  }
+
+  /** The target refused it: the unit stays, writable again. */
+  cancel(leaseId: string): void {
+    this.leases.close(leaseId)
+  }
+
+  /** Offers older than `before`, for the alarm that settles them (`settleLease`). */
+  staleOffers(before: number): { leaseId: string; to: HomeAddress }[] {
+    return this.leases.staleOffers(before)
+  }
+
+  private parcelOf(unit: UnitRow, gameId: string): UnitParcel {
+    // A pilot's seat at this table stays here: it describes play here.
+    return this.leases.parcelOf(unit, { kind: 'game', gameId }, null)
+  }
+
+  // -------------------------------------------------------------- inbound
+
+  /**
+   * Take a unit in. A pilot, mech or NPC comes in its holder's hands, and
+   * only a member brings one; a crawler comes from the table runner and
+   * becomes the crew's. The unit keeps its op log, the links whose other end
+   * is here, and (a pilot) its seat, still aboard a mech that is here, its
+   * holder's, intact and free. Accepting the same lease twice is a no-op;
+   * a lease refused before it arrived is refused.
+   */
+  accept(parcel: UnitParcel, actor: string, at: number): void {
+    this.store.sql.transaction(() => {
+      const lease = this.leases.get(parcel.leaseId)
+      if (lease?.state === 'accepted') return
+      if (lease?.state === 'refused') throw new RoomRefusal(MOVED_OFF)
+      const { unit } = parcel
+      if (unit.kind === 'crawler') this.store.requireTableRunner(actor)
+      else {
+        this.store.requireMember(actor)
+        if (unit.ownerId !== actor) throw new RoomRefusal('You can only move your own build')
+      }
+      if (this.store.unit(unit.id) !== null) throw new RoomRefusal(ALREADY_HERE)
+
+      const row: UnitRow = {
+        ...unit,
+        ownerId: unit.kind === 'crawler' ? null : actor,
+        createdAt: at,
+        updatedAt: at,
+        leaseId: null,
+      }
+      this.store.putUnit(row)
+      for (const op of parcel.ops) this.store.putOp({ supersededBy: null, ...op })
+      for (const link of parcel.links) {
+        const other = link.from.id === unit.id ? link.to.id : link.from.id
+        if (this.store.unit(other) !== null) this.units.writeLink(link)
+      }
+      if (unit.kind === 'pilot' && parcel.seat !== null) this.seatPilot(unit.id, parcel.seat, at)
+      this.units.arrived(row)
+      this.leases.put(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
+    })
+  }
+
+  /** Refuse a lease from now on, unless it was already accepted (`settleLease`). */
+  refuseLease(leaseId: string, at: number): LeaseOutcome {
+    return this.leases.refuse(leaseId, at)
+  }
+
+  /** The seat a pilot brings: range, effects and ejection carry, the mount only to a free mech of theirs here. */
+  private seatPilot(pilotId: string, seat: ParcelSeat, at: number): void {
+    let mount = seat.mount
+    if (mount.kind === 'boarded') {
+      const mechId = mount.mechId
+      const mech = this.store.unit(mechId)
+      const pilot = this.store.unit(pilotId)
+      const aboard = this.store
+        .rows('select mount from seats where pilot_id != ?', pilotId)
+        .some((row) => {
+          const other = fromJson<ParcelSeat['mount']>(row.mount)
+          return other.kind === 'boarded' && other.mechId === mechId
+        })
+      const ok =
+        mech?.kind === 'mech' &&
+        mech.ownerId === pilot?.ownerId &&
+        mech.body.destroyed !== true &&
+        !aboard
+      if (!ok) mount = { kind: 'foot' }
+    }
+    this.play.putSeat({
+      pilotId,
+      mount,
+      range: seat.range as never,
+      activeEffects: seat.activeEffects,
+      resolving: null,
+      ejected: mount.kind === 'foot' && seat.ejected,
+      updatedAt: at,
+    })
+  }
+
+  // ------------------------------------------------------------ the import
+
+  /**
+   * Copy a Game in from the cutover's bundle. Idempotent by the
+   * bundle's Game id: a second import of the same Game takes nothing, so the
+   * copy can be rerun until its sweep is clean. Refuses a room that already
+   * holds some other Game. Its channel bindings and crew patterns are not
+   * kept here: the bot's and shared reads' steps take them.
+   */
+  importGame(raw: unknown, at: number): { imported: boolean } {
+    const bundle = GameBundleSchema.parse(raw)
+    return this.store.sql.transaction(() => {
+      const source = `game:${bundle.gameId}`
+      if (this.store.rows('select 1 from imports where source = ?', source).length > 0) {
+        return { imported: false }
+      }
+      if (this.store.game() !== null) {
+        throw new Error(`This room already holds a Game; ${bundle.gameId} cannot be imported here`)
+      }
+      const createdAt = Math.min(at, ...bundle.members.map((m) => m.joinedAt))
+      this.store.rows(
+        'insert into game (id, game_id, name, primary_crawler_id, created_at) values (1, ?, ?, ?, ?)',
+        bundle.gameId,
+        bundle.name,
+        bundle.primaryCrawler,
+        createdAt
+      )
+      for (const m of bundle.members) {
+        this.store.putMember({
+          userId: m.discordId,
+          mediator: m.mediator,
+          organizer: m.organizer,
+          joinedAt: m.joinedAt,
+          displayName: null,
+          avatarUrl: null,
+        })
+      }
+      const organizer = bundle.members.find((m) => m.organizer)?.discordId ?? null
+      if (bundle.inviteCode !== null && organizer !== null) {
+        this.store.rows(
+          'insert into invites (code, created_by, created_at) values (?, ?, ?)',
+          bundle.inviteCode.trim().toUpperCase(),
+          organizer,
+          createdAt
+        )
+      }
+      for (const unit of bundle.units) {
+        this.store.putUnit({
+          id: unit.appId,
+          kind: unit.kind,
+          ownerId: unit.kind === 'crawler' ? null : unit.owner,
+          body: unit.body,
+          headSeq: unit.headSeq,
+          fieldSeqs: unit.fieldSeqs,
+          publicRead: unit.publicRead,
+          createdAt: unit.updatedAt,
+          updatedAt: unit.updatedAt,
+          leaseId: null,
+        })
+        for (const op of unit.ops) this.store.putOp(importedOp(op))
+      }
+      for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
+      for (const seat of bundle.seats) this.importSeat(seat, at)
+      this.importDowntime(bundle, at)
+      this.importTableState(bundle, at)
+      for (const npc of bundle.opposition) {
+        this.store.rows(
+          'insert into tray (id, body, added_at, updated_at) values (?, ?, ?, ?)',
+          npc.appId,
+          JSON.stringify({ ...npc.body, id: npc.appId }),
+          at,
+          at
+        )
+      }
+      if (bundle.runningEncounter !== null) {
+        this.store.rows(
+          'insert into running_encounter (id, body) values (1, ?)',
+          JSON.stringify(bundle.runningEncounter)
+        )
+      }
+      this.store.rows('insert into imports (source, imported_at) values (?, ?)', source, at)
+      return { imported: true }
+    })
+  }
+
+  /**
+   * How the room differs from the bundle it was copied from: one line per
+   * difference, none when the copy is whole. The cutover's sweep runs it on
+   * every Game before Convex goes read-only.
+   */
+  diffImport(bundle: GameBundle): string[] {
+    const out: string[] = []
+    const game = this.store.game()
+    if (game === null) return [`${bundle.gameId}: not imported`]
+    if (game.name !== bundle.name) out.push(`name: ${game.name} ≠ ${bundle.name}`)
+    const members = new Map(this.store.members().map((m) => [m.userId, m]))
+    for (const m of bundle.members) {
+      const here = members.get(m.discordId)
+      if (here === undefined) out.push(`member ${m.discordId}: missing`)
+      else if (here.mediator !== m.mediator || here.organizer !== m.organizer) {
+        out.push(`member ${m.discordId}: roles differ`)
+      }
+      members.delete(m.discordId)
+    }
+    for (const extra of members.keys()) out.push(`member ${extra}: not in the bundle`)
+    const units = new Map(this.store.units().map((u) => [u.id, u]))
+    for (const unit of bundle.units) {
+      const here = units.get(unit.appId)
+      units.delete(unit.appId)
+      if (here === undefined) {
+        out.push(`${unit.kind} ${unit.appId}: missing`)
+        continue
+      }
+      if (here.kind !== unit.kind) out.push(`${unit.appId}: a ${here.kind}, not a ${unit.kind}`)
+      if (here.headSeq !== unit.headSeq)
+        out.push(`${unit.appId}: head ${here.headSeq} ≠ ${unit.headSeq}`)
+      if (stable(here.body) !== stable(unit.body)) out.push(`${unit.appId}: body differs`)
+      const owner = unit.kind === 'crawler' ? null : unit.owner
+      if (here.ownerId !== owner) out.push(`${unit.appId}: holder differs`)
+      const missing = unit.ops.filter((o) => this.store.op(o.id)?.unitId !== unit.appId)
+      if (missing.length > 0) out.push(`${unit.appId}: ${missing.length} ops missing`)
+    }
+    for (const [id, extra] of units) out.push(`${extra.kind} ${id}: not in the bundle`)
+    const links = this.store.links().length
+    if (links !== bundle.links.length) out.push(`links: ${links} ≠ ${bundle.links.length}`)
+    const tray = this.store.rows('select count(*) as n from tray')[0]?.n
+    if (tray !== bundle.opposition.length) out.push(`tray: ${tray} ≠ ${bundle.opposition.length}`)
+    const boundaries = this.store.rows('select count(*) as n from boundaries')[0]?.n
+    if (boundaries !== bundle.boundaries.length) {
+      out.push(`boundaries: ${boundaries} ≠ ${bundle.boundaries.length}`)
+    }
+    for (const [table, want] of [
+      ['scene', bundle.scene],
+      ['salvage_area', bundle.salvageArea],
+      ['ledger', bundle.ledger],
+      ['stop_sign', bundle.stopSign],
+    ] as const) {
+      const has = this.store.rows(`select 1 from ${table}`).length > 0
+      if (has !== (want !== null)) out.push(`${table}: ${has ? 'not in the bundle' : 'missing'}`)
+    }
+    return out
+  }
+
+  /**
+   * What the table plays under (4.3's Scene, salvage area, ledger and Safety
+   * Protocols), copied as Convex held it: the room's own writes check a
+   * Mediator, and an import has none to check.
+   */
+  private importTableState(bundle: GameBundle, at: number): void {
+    const { scene, salvageArea, ledger, stopSign } = bundle
+    if (scene !== null) {
+      this.store.rows(
+        'insert into scene (id, conditions, hours, updated_at) values (1, ?, ?, ?)',
+        JSON.stringify(scene.conditions),
+        scene.hours,
+        scene.updatedAt
+      )
+    }
+    if (salvageArea !== null) {
+      this.store.rows(
+        `insert into salvage_area (id, name, tech_level, supply, updated_at)
+         values (1, ?, ?, ?, ?)`,
+        salvageArea.name,
+        salvageArea.techLevel,
+        salvageArea.supply,
+        salvageArea.updatedAt
+      )
+    }
+    if (ledger !== null) {
+      this.store.rows(
+        'insert into ledger (id, body, updated_at) values (1, ?, ?)',
+        JSON.stringify(ledger),
+        at
+      )
+    }
+    for (const b of bundle.boundaries) {
+      this.store.rows(
+        'insert into boundaries (id, kind, text, added_by, added_at) values (?, ?, ?, ?, ?)',
+        b.id,
+        b.kind,
+        b.text,
+        b.addedBy,
+        b.addedAt
+      )
+    }
+    if (stopSign !== null) {
+      this.store.rows(
+        `insert into stop_sign (id, shown_by, shown_at, post_to_channel, posted_at, updated_at)
+         values (1, ?, ?, ?, ?, ?)`,
+        stopSign.shownBy,
+        stopSign.shownAt,
+        stopSign.postToChannel ? 1 : 0,
+        stopSign.postedAt,
+        at
+      )
+    }
+  }
+
+  private importSeat(seat: Record<string, unknown>, at: number): void {
+    const pilotId = seat.pilotId
+    if (typeof pilotId !== 'string') return
+    const mount = seat.mount as ParcelSeat['mount'] | undefined
+    this.play.putSeat({
+      pilotId,
+      mount: mount ?? { kind: 'foot' },
+      range: (typeof seat.range === 'string' ? seat.range : 'Close') as never,
+      activeEffects: Array.isArray(seat.activeEffects) ? (seat.activeEffects as string[]) : [],
+      resolving: (seat.resolving as never) ?? null,
+      ejected: seat.ejected === true,
+      updatedAt: typeof seat.updatedAt === 'number' ? seat.updatedAt : at,
+    })
+  }
+
+  /**
+   * A Downtime running at the cutover carries on. Each step a pilot claimed
+   * on Convex is written as its step op, so applying it again here is the
+   * no-op ADR-063 §6 promises.
+   */
+  private importDowntime(bundle: GameBundle, at: number): void {
+    const downtime = bundle.downtime
+    if (downtime === null || typeof downtime.stepIndex !== 'number') return
+    const runId = `import:${bundle.gameId}`
+    this.store.rows(
+      `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent)
+       values (1, ?, ?, ?, ?, ?)`,
+      runId,
+      downtime.stepIndex,
+      typeof downtime.startedAt === 'number' ? downtime.startedAt : at,
+      JSON.stringify(Array.isArray(downtime.completedBy) ? downtime.completedBy : []),
+      downtime.upkeepSpent === true ? 1 : 0
+    )
+    const claimed = Array.isArray(downtime.claimed) ? downtime.claimed : []
+    for (const claim of claimed as { pilotId?: unknown; stepIndex?: unknown }[]) {
+      if (typeof claim.pilotId !== 'string' || typeof claim.stepIndex !== 'number') continue
+      this.store.putOp({
+        id: downtimeStepOpId(runId, claim.pilotId, claim.stepIndex),
+        unitId: claim.pilotId,
+        baseSeq: null,
+        at,
+        kind: 'transaction',
+        source: 'downtime',
+        patch: {},
+        author: claim.pilotId,
+        state: 'applied',
+        seq: null,
+        before: null,
+        supersededBy: null,
+      })
+    }
+  }
+}
+
+/** A bundle op as the room keeps it: a superseded proposal is a declined one that names its successor. */
+export function importedOp(op: BundleOp): StoredOp {
+  const { state, author, ...rest } = op
+  return {
+    ...rest,
+    author: author ?? '',
+    state: state === 'superseded' ? 'declined' : state,
+    supersededBy: state === 'superseded' ? 'superseded' : null,
+  }
+}
+
+/** JSON with sorted keys, so two bodies compare by content. */
+export function stable(value: unknown): string {
+  return JSON.stringify(value, (_key, v) =>
+    v !== null && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)))
+      : v
+  )
+}

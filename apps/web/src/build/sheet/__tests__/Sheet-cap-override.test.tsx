@@ -1,38 +1,33 @@
 /**
  * Cap-override integration (P2.2 / ADR-022): a Live-Sheet stat gauge with a
  * hand-pinned maximum shows an "overridden from N" indicator + a one-click
- * revert, and reverting clears the max*Modifier delta while logging an
- * `override` Change Log entry. Exercises the real in-memory store, signed in,
- * with the Convex client a recorder of the Change Log batches the store sends.
+ * revert, and reverting clears the pin with an `override` op (ADR-063).
+ * Exercises the real in-memory store, signed in, with the stand-in rooms
+ * recording the ops the store sends.
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { acceptingRooms, roomOps } from '../../../../test/roomsStub'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-const logged: { kind: string; field: string }[] = []
+const serverMocks = await installServerMocks()
 
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (ref: unknown, args: { entries?: { kind: string; field: string }[] }) => {
-      if (getFunctionName(ref as FunctionReference<'mutation'>) === 'changeLog:appendChangeLog') {
-        logged.push(...(args.entries ?? []))
-        return null
-      }
-      return { updatedAt: 1 }
-    },
-  },
-})
+/** Every field the ops the rooms took changed, with its op's kind. */
+const logged = () =>
+  roomOps.flatMap(({ ops }) =>
+    ops.flatMap(({ kind, patch, unset = [] }) =>
+      [...Object.keys(patch), ...unset].map((field) => ({ kind, field }))
+    )
+  )
 
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { withSignedInBackend } = await import('../../../stores/__tests__/signedInBackend')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
+const { useUnits } = await import('../../../replica/units')
 const { Sheet } = await import('../Sheet')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -53,13 +48,13 @@ const basePilotInput = {
 }
 
 beforeEach(() => {
-  logged.length = 0
+  acceptingRooms()
   resetStores()
 })
 
 describe('Live Sheet — cap override (P2.2)', () => {
   test('a pinned HP max shows the indicator; revert clears it and logs an override', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     // maxHpOverride is an ABSOLUTE pin (ADR-022 amendment) — base 10, pinned 14.
     const pilot = await store.create('pilot', { ...basePilotInput, maxHpOverride: 14 })
 
@@ -75,19 +70,19 @@ describe('Live Sheet — cap override (P2.2)', () => {
 
     // The pin is cleared…
     await waitFor(() => {
-      const fresh = useEntityStore.getState().get('pilot', pilot.id)
+      const fresh = useUnits.getState().get('pilot', pilot.id)
       expect(fresh?.maxHpOverride).toBeUndefined()
     })
 
-    // …and the revert is recorded as an `override` Change Log entry.
-    expect(logged.some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
+    // …and the revert is an `override` op.
+    expect(logged().some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
   })
 
   test('a manual adjustment is NOT an override — it contributes to the derivation', async () => {
     // Before the ADR-022 amendment maxHpModifier carried both meanings at once,
     // so a rules-sourced bonus would have rendered as a hand override with a
     // revert button. It is now a contribution: the max rises, no indicator.
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     const pilot = await store.create('pilot', { ...basePilotInput, maxHpModifier: 2 })
 
     render(<Sheet kind="pilot" id={pilot.id} />)

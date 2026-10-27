@@ -1,38 +1,32 @@
 /**
  * useSeatAt — a pilot's seat: mount, range band, activated effects and the
- * action being resolved, read from and written to Convex
+ * action being resolved
  * ([ADR-038](../../../../../docs/adr/038-dashboard-game-surface.md) §2;
- * `convex/seats.ts`).
+ * `rooms/seats.ts`).
  *
- * Every member reads the whole crew's seats through one `seats.forGame`
- * subscription, so the crew sees a pilot board, switch an effect on or roll
- * as it happens. Each write is a mutation with an optimistic update on that query, so
- * a toggle lands on screen at once rather than after the round trip; if the
- * server refuses it, Convex drops the optimistic value and the refusal is
- * shown.
+ * Every member reads the whole crew's seats from their Game room's `seats`
+ * record, so the crew sees a pilot board, switch an effect on or roll as it
+ * happens. Each write is an act on that room, shown once the room answers;
+ * a refusal is shown in its own words.
  *
- * A pilot on the shelf has a solo seat (`seats.solo`, writes with `gameId`
- * null): `useSeatAt` reads it when `gameId` is null.
+ * A pilot on the shelf has a solo seat (`seats.solo`), kept by the player's
+ * account room: `useSeatAt` reads it when `gameId` is null.
  *
  * ## When there is no seat to read
  *
  * Before the first answer arrives, or for a pilot no longer on the shelf,
  * the seat reads as the default: on foot, at Close, with nothing switched on.
  *
- * Offline the subscription keeps the last answer it had, and writes are
- * refused here rather than handed to the Convex client, which would queue them
- * until the connection returns. Disconnected is read-only, not a write queue
- * (ADR-030 §1).
+ * Offline the room keeps the last seat it served, and writes are refused
+ * here: Disconnected is read-only, not a write queue (ADR-030 §1).
  */
 
-import type { OptimisticLocalStore } from 'convex/browser'
-import { useMutation, useQuery } from 'convex/react'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { useGamesCall } from '../replica/roomCalls'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
+import { useTableAct, useTableRead } from '../replica/useTable'
 
 /** What Play reads off a seat. */
 export type SeatView = {
@@ -48,7 +42,7 @@ export type SeatHandle = {
   seat: SeatView
   board: (mechId: string) => void
   /**
-   * Assign an unassigned spare to the player (`ownership.assign`, by its Convex
+   * Assign an unassigned spare to the player (`ownership.assign`, by its
    * row id), then board it. The seat is written only once the assignment has
    * landed, so a refused one leaves it as it was. It draws no `mech-to-pilot` link (ADR-038 §5).
    * The caller confirms first.
@@ -73,100 +67,39 @@ export const DEFAULT_SEAT: SeatView = {
   resolving: null,
 }
 
-type SeatRow = SeatView & { pilotId: string }
-
-/**
- * Apply a change to one pilot's seat in its cached answer: the Game's
- * `forGame` list, or (`gameId` null) the pilot's `solo` seat.
- */
-function patchCachedSeat(
-  store: OptimisticLocalStore,
-  gameId: Id<'games'> | null,
-  pilotId: string,
-  change: (seat: SeatRow) => Partial<SeatView>
-): void {
-  if (gameId === null) {
-    const solo = store.getQuery(api.seats.solo, { pilotId })
-    if (solo === undefined || solo === null) return
-    store.setQuery(api.seats.solo, { pilotId }, { ...solo, ...change(solo) })
-    return
-  }
-  const seats = store.getQuery(api.seats.forGame, { gameId })
-  if (seats === undefined) return
-  store.setQuery(
-    api.seats.forGame,
-    { gameId },
-    seats.map((seat) => (seat.pilotId === pilotId ? { ...seat, ...change(seat) } : seat))
-  )
-}
-
-/**
- * A move to `mount`, as `seats.ts` makes it: a change of mount ends the resolve
- * in progress, and re-boarding the same mech does not.
- */
-function remount(seat: SeatView, mount: SeatMount): Partial<SeatView> {
-  const same =
-    seat.mount.kind === mount.kind &&
-    (mount.kind === 'foot' || (seat.mount.kind === 'boarded' && seat.mount.mechId === mount.mechId))
-  return same ? { mount } : { mount, resolving: null }
-}
-
 /** Which seat `useSeatAt` reads and writes. */
 export type SeatAddress = {
   /**
    * The Game whose seat it is; null for the pilot's solo seat (`seats.solo`,
-   * writes with `gameId` null).
+   * written through the account room).
    */
-  gameId: Id<'games'> | null
+  gameId: string | null
   pilotId: string | null
 }
 
 /**
  * The seat Play runs (play.md §3): a Game's, or with no Game the pilot's solo
- * seat, and the writes that change it, each with the same optimistic update
- * on whichever answer holds it (`forGame` or `solo`).
+ * seat, and the writes that change it, each an act on the seat's room.
  */
 export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
-  const signedIn = isSignedIn(useConnection().mode)
+  const signedIn = isSignedIn(useSync().status)
   const guarded = useGuardedWrite()
   const soloSeat = gameId === null
 
-  const seats = useQuery(api.seats.forGame, signedIn && gameId !== null ? { gameId } : 'skip')
-  const soloRow = useQuery(
-    api.seats.solo,
-    signedIn && soloSeat && pilotId !== null ? { pilotId } : 'skip'
+  const seats = useTableRead('seats.forGame', signedIn && gameId !== null ? { gameId } : 'skip')
+  const soloRow = useTableRead(
+    'seats.solo',
+    signedIn && soloSeat && pilotId !== null ? { gameId: null, pilotId } : 'skip'
   )
 
-  const board = useMutation(api.seats.board).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, (seat) =>
-      remount(seat, { kind: 'boarded', mechId: args.mechId })
-    )
-  })
-  const assign = useMutation(api.ownership.assign)
-  const dismount = useMutation(api.seats.dismount).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
-  })
-  const eject = useMutation(api.seats.eject).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, (seat) => remount(seat, { kind: 'foot' }))
-  })
-  const setRange = useMutation(api.seats.setRange).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ range: args.range }))
-  })
-  const toggleEffect = useMutation(api.seats.toggleEffect).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, (seat) => ({
-      activeEffects: seat.activeEffects.includes(args.ref)
-        ? seat.activeEffects.filter((ref) => ref !== args.ref)
-        : [...seat.activeEffects, args.ref],
-    }))
-  })
-  const setResolving = useMutation(api.seats.setResolving).withOptimisticUpdate((store, args) => {
-    patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: args.resolving }))
-  })
-  const clearResolving = useMutation(api.seats.clearResolving).withOptimisticUpdate(
-    (store, args) => {
-      patchCachedSeat(store, args.gameId, args.pilotId, () => ({ resolving: null }))
-    }
-  )
+  const board = useTableAct('seats.board', gameId)
+  const assign = useGamesCall('ownership.assign', { gameId: gameId ?? undefined })
+  const dismount = useTableAct('seats.dismount', gameId)
+  const eject = useTableAct('seats.eject', gameId)
+  const setRange = useTableAct('seats.setRange', gameId)
+  const toggleEffect = useTableAct('seats.toggleEffect', gameId)
+  const setResolving = useTableAct('seats.setResolving', gameId)
+  const clearResolving = useTableAct('seats.clearResolving', gameId)
 
   // `solo` answers null for a pilot no longer on the shelf: the default seat.
   const row = soloSeat
@@ -177,11 +110,9 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
   const seat: SeatView = row ?? DEFAULT_SEAT
 
   /** Send one write, or say why it cannot be sent. */
-  function send(
-    write: (args: { gameId: Id<'games'> | null; pilotId: string }) => Promise<unknown>
-  ) {
+  function send(write: (args: { pilotId: string }) => Promise<unknown>) {
     if (pilotId === null) return
-    guarded.send(() => write({ gameId, pilotId }))
+    guarded.send(() => write({ pilotId }))
   }
 
   return {
@@ -189,7 +120,7 @@ export function useSeatAt({ gameId, pilotId }: SeatAddress): SeatHandle {
     board: (mechId) => send((args) => board({ ...args, mechId })),
     assignAndBoard: ({ mechId, serverId }) =>
       send(async (args) => {
-        await assign({ table: 'mechs', entityId: serverId })
+        await assign({ entityId: serverId })
         await board({ ...args, mechId })
       }),
     dismount: () => send((args) => dismount(args)),

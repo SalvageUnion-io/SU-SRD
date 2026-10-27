@@ -31,6 +31,7 @@ import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
 import { islandsCopy } from '../../messages/components-islands'
+import { clientSwap } from '../../runtime/clientSwap'
 import { GameDataGate } from '../GameDataGate'
 import {
   Button,
@@ -151,13 +152,13 @@ export function SchemaViewerIsland({
 }
 
 /**
- * The schemas the island reads, loaded before its first render
- * (`islandRegistry`): the island mounts with `createRoot`, so a first commit
- * of the skeleton would replace the server's finished listing with
- * placeholders, and the listing would paint a second time when the data came.
- * With the data in hand the first commit draws the same listing over it.
+ * The schemas the island reads, loaded before it swaps in (`clientSwap`'s
+ * `prepare`): a first commit of the skeleton would replace the server's
+ * finished listing with placeholders, and the listing would paint a second
+ * time when the data came. With the data in hand the first commit draws the
+ * same listing over it.
  */
-export function prepareSchemaViewerIsland(props: Record<string, unknown>): Promise<void> {
+function prepareSchemaViewerIsland(props: Record<string, unknown>): Promise<void> {
   const schemas = Array.isArray(props.preloadSchemas)
     ? props.preloadSchemas.filter((schema): schema is string => typeof schema === 'string')
     : 'all'
@@ -575,3 +576,8 @@ function FilterToken({
     </Button>
   )
 }
+
+/** The island as Astro hydrates it: swapped in over `SchemaViewerListing` once its schemas are in (`clientSwap`). */
+export const SchemaViewerIslandClient = clientSwap('SchemaViewerIsland', SchemaViewerIsland, {
+  prepare: prepareSchemaViewerIsland,
+})

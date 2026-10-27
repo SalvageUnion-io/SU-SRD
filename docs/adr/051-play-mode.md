@@ -11,10 +11,11 @@ Built: the `dashboard-cockpit` milestone (tracker #1633); Play as built is
   Downtime, and every seat carries a presence heartbeat (§4, §7). ADR-038's
   seat (§2), boarding menu (§3), server-derived crew data (§4), crawler and
   boarding rules (§5), one store and rules engine under the ADR-007 boundary
-  (§6), reused SRD display (§7), materials (§8) and fixed scaled canvas (§9)
-  stand.
-- **Supersedes** [ADR-045](045-dashboard-phone-form.md)'s decisions 3, 4 and 5
-  (§10's tabs replace them); decisions 1, 2, 6 and 7 stand.
+  (§6), reused SRD display (§7) and materials (§8) stand. Its fixed scaled
+  canvas (§9) stood until 4.5.0, when §2 and §10 replaced it.
+- **Supersedes** ADR-045 (the phone form; retired, text in git): §10 replaced
+  its decisions 3, 4 and 5, and in 4.5.0 (#1792) §2 and §10 its floor (1) and
+  zoom (7). Its decision 2 is §10's last sentence; its 6 (no masthead) is §2's.
 - **Amends** [ADR-030](030-accounts-games-server-of-record.md) (§4, §7, §8 below).
 - **Amended by** [ADR-052](052-build-assets-play-games.md): the landing is the
   hub for Games (§1).
@@ -31,10 +32,15 @@ band, or, with none, its area's (Build pilot orange, Play the deep crawler pink)
 
 ### 2. The Cockpit frame
 
-One frame on the fixed, scaled canvas, never scrolling as a page: a Play bar
-(back, the Game or "Solo", connection, the Situation switch, the channel), then
-three columns: Units, Actions, and Crew, Tables and Feed. The Situation changes
-what the middle column holds, never the frame.
+One layout at every width, phone first (4.5.0, #1792: phone page views are
+about equal to desktop's), filling the window and never scrolling as a page; a
+pane scrolls inside itself. A Play bar (back, the Game or "Solo", connection,
+the Situation switch, the channel) in place of the site's masthead, then the
+panes: from the `lg` rung three columns, Units, Actions, and Crew, Tables and
+Feed; below it the same panes as tabs (§10). Container queries arrange them,
+never a second component tree, so crossing the rung re-lays the panes without
+remounting them. The Situation changes what the Actions pane holds, never the
+frame.
 
 ### 3. Situation
 
@@ -66,10 +72,9 @@ own abilities and equipment on hand. An action resolves inline in its Mini
 ### 7. Crew and presence
 
 In a Game the right column lists the other seats: presence, mount and the vital
-needing attention, each opening its sheet read-only. Presence is a heartbeat on
-the seat (`lastSeenAt`); each beat re-runs the Game's seat queries
-(`seats.forGame`, `crew.vitals`), so the server takes one write per 20 s per
-player. Disconnected and Outdated stay read-only.
+needing attention, each opening its sheet read-only. Presence was a heartbeat on
+the seat (`lastSeenAt`); from 4.5.0 it is who holds a socket open to the Game
+room (ADR-064), and nothing is written. Disconnected and Outdated stay read-only.
 
 ### 8. Tables post to Discord
 
@@ -86,11 +91,12 @@ switch in the Play bar.
 
 ### 10. Phones get tabs, not a second layout
 
-Below the canvas's floor, its 1280 × 800 design size on either axis (the
-canvas never scales down, so no text draws under 11px: ADR-045 decision 1 as
-tracker #1700 decision 6 amends it), Play is four tabs (Act, Units, Tables,
-Crew; the Mediator's Table, Opposition, Tables, Propose) under pinned live
-vitals and the Situation switch. Only the open tab's list scrolls.
+Below `lg` the panes are four tabs at the foot (Act, Units, Tables, Crew; the
+Mediator's Table, Opposition, Tables, Propose) under pinned live vitals and
+the Situation switch, every control on the 44px touch floor. Only the open
+pane scrolls; the closed ones stay mounted. Text is drawn at its own size at
+every width, so browser zoom simply narrows the window. Every control at every
+width calls the same handler under the same rules.
 
 ### 11. Play follows the nesting rules
 

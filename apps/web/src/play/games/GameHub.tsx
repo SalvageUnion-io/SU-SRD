@@ -32,12 +32,8 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Button,
   Callout,
@@ -50,6 +46,8 @@ import {
 } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playGamesCopy } from '../../messages/play-games'
+import type { GameCallResult } from '../../replica/roomCalls'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { StopSignBanner } from '../StopSign'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
@@ -64,7 +62,7 @@ import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { TheGame } from './TheGame'
 
-type Game = NonNullable<FunctionReturnType<typeof api.games.get>>
+type Game = NonNullable<GameCallResult<'games.get'>>
 
 type GameHubProps = {
   gameId: string
@@ -102,13 +100,12 @@ function NotInGame() {
 
 /** The page's sections, in two columns: the crew's, then the table's. */
 function GameSections({ game }: { game: Game }) {
-  const gameId = game._id as Id<'games'>
+  const gameId = game._id
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   // Probed rather than required: component tests render the page without a
   // RouterProvider, and `AppLink` degrades the same way.
   const router = useRouter({ warn: false })
-  const me = useQuery(api.account.me, {})
-  const viewerId = me?._id ?? null
+  const viewerId = useViewerId()
   const sign = useStopSign(gameId)
 
   return (
@@ -124,7 +121,7 @@ function GameSections({ game }: { game: Game }) {
           <GameRoster gameId={gameId} gameName={game.name} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
-          {/* `proposals.sent` is the Mediator's alone (`requireMediator`). */}
+          {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
           <GameLedger gameId={gameId} mediator={game.mediator} />
         </div>
@@ -172,7 +169,7 @@ function GameSections({ game }: { game: Game }) {
 export function GameHub({ gameId }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
-  const game = useQuery(api.games.get, { gameId: gameId as Id<'games'> })
+  const game = useGamesQuery('games.get', { gameId: gameId })
 
   return (
     <PageShell

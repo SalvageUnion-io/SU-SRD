@@ -25,7 +25,7 @@ export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'
  * `slotCost` may be explicitly overridden (e.g. by a chassis ability). When
  * absent the utility looks up the canonical `slotsRequired` from the dataset.
  */
-export type MechSystemSlot = {
+type MechSystemSlot = {
   /** Name reference — must match a system name in salvageunion-reference */
   ref: string
   /** Override for slot cost; defaults to the reference data's slotsRequired */
@@ -36,7 +36,7 @@ export type MechSystemSlot = {
  * A module installed on a mech, identified by a name reference into the
  * `salvageunion-reference` Modules dataset.
  */
-export type MechModuleSlot = {
+type MechModuleSlot = {
   /** Name reference — must match a module name in salvageunion-reference */
   ref: string
   /** Override for slot cost; defaults to the reference data's slotsRequired */
@@ -102,7 +102,7 @@ export type ScrapableItem = {
 /**
  * Severity of a soft warning.
  */
-export type SoftWarningSeverity = 'info' | 'warn'
+type SoftWarningSeverity = 'info' | 'warn'
 
 /**
  * A non-blocking rule violation surfaced at save time.
@@ -173,7 +173,7 @@ export type PilotSnapshot = {
 /**
  * Minimal system shape for soft-warning dependency checks.
  */
-export type SystemSnapshot = {
+type SystemSnapshot = {
   ref: string
   /** Other system refs this system depends on (if known) */
   requires?: string[]
@@ -252,7 +252,7 @@ export type ReactorOverloadOutcome =
  *   11-19 → bio-overload          (Vulnerable, cannot act for a Turn; the
  *                                  Pilot takes HP damage equal to current Heat)
  */
-export type BioOverloadOutcome =
+type BioOverloadOutcome =
   | 'death-throes'
   | 'severe-pilot-overload'
   | 'pilot-overload'
@@ -266,7 +266,7 @@ export type OverloadTable = 'reactor' | 'bio'
  * Snapshot-safe plain data a consumer stores on the mech so the sheet can
  * render the last outcome.
  */
-export type HeatCheckResult = {
+type HeatCheckResult = {
   heatCheckRoll: number
   heatAtCheck: number
   overloaded: boolean
@@ -306,55 +306,4 @@ export type PushResult = {
   nextHeat: number
   /** The Heat Check performed at the new heat. */
   effect: HeatCheckEffect
-}
-
-// ---------------------------------------------------------------------------
-// Take Damage / Critical Damage / Critical Injury structural types (moved
-// with takeDamage.ts). Same discipline as HeatCheckResult above.
-// ---------------------------------------------------------------------------
-
-/**
- * Critical Damage Table outcome bands (Core Book p.239-240).
- *   1     → catastrophic
- *   2-5   → system-destruction
- *   6-10  → module-destruction
- *   11-19 → core-damage
- *   20    → miraculous-survival
- */
-export type CriticalDamageOutcome =
-  | 'catastrophic'
-  | 'system-destruction'
-  | 'module-destruction'
-  | 'core-damage'
-  | 'miraculous-survival'
-
-/** Recorded result of a Critical Damage Table roll. */
-export type CriticalDamageResult = {
-  roll: number
-  outcome: CriticalDamageOutcome
-  /** ISO timestamp of when this result was rolled. */
-  rolledAt: string
-}
-
-/**
- * Critical Injury Table outcome bands (Core Book p.241).
- *   1     → fatal
- *   2-5   → major-injury
- *   6-10  → minor-injury
- *   11-19 → unconscious
- *   20    → miraculous-survival
- */
-export type CriticalInjuryOutcome =
-  | 'fatal'
-  | 'major-injury'
-  | 'minor-injury'
-  | 'unconscious'
-  | 'miraculous-survival'
-
-/** Recorded result of a Critical Injury Table roll. */
-export type CriticalInjuryResult = {
-  roll: number
-  outcome: CriticalInjuryOutcome
-  /** ISO timestamp of when this result was rolled. */
-  rolledAt: string
 }

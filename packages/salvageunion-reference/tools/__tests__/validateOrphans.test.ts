@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { defined } from '../../lib/testing'
 import type { AllowlistEntry, OrphanResult } from '../validateOrphansLogic'
 import {
   collectReferencedActionNames,
@@ -10,14 +11,6 @@ import {
   partitionOrphansByAllowlist,
   runOrphanCheck,
 } from '../validateOrphansLogic'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
 
 // ─── Fixtures ───────────────────────────────────────────────────────────────
 

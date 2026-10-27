@@ -123,6 +123,7 @@
      `!important` reaches its type size from here. */
   .su-entity-stamps .su-cost,
   .su-chapter-band__overflow .su-cost {
+    /* biome-ignore lint/complexity/noImportantStyles: the cost box's type size is its inline style */
     font-size: var(--text-xs) !important;
     padding-block: 0;
   }
@@ -147,6 +148,7 @@
   .su-entity-stamps .su-cost,
   .su-chapter-band__overflow .su-cost-edge,
   .su-chapter-band__overflow .su-cost {
+    /* biome-ignore lint/complexity/noImportantStyles: the cost box's type size is its inline style */
     font-size: var(--text-base) !important;
   }
 }

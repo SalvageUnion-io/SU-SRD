@@ -31,7 +31,6 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
-import '../../styles/build/wizard.css'
 
 /** Book-order steps (Pilot Bay pp.18–19 + Review). */
 const STEPS: readonly PilotWizardStepId[] = [

@@ -3,7 +3,7 @@
  * player's Roster and the Starter Set, so the two read identically.
  */
 
-import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
@@ -40,8 +40,8 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
  * the crew roster reads the same.
  */
 export function crawlerStats(techLevel: string): UnitReading[] {
-  const tl = techLevel.replace(/[^0-9]/g, '')
-  return tl ? [{ label: 'TL', value: tl, chip: 'rank' }] : []
+  const tl = parseCrawlerTechLevel(techLevel)
+  return tl === undefined ? [] : [{ label: 'TL', value: String(tl), chip: 'rank' }]
 }
 
 /**

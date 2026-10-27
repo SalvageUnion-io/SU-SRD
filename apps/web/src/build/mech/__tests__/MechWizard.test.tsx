@@ -11,40 +11,23 @@
  * SalvageUnionReference is preloaded via bunfig.toml.
  */
 
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, mock } from 'bun:test'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { legalStartingPatterns, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { useUnits } from '../../../replica/units'
+import {
+  clickButton,
+  clickNext,
+  fillIdentity,
+  getNextButton,
+  pickRadio,
+  withWizardStore,
+} from '../../__tests__/wizardHarness'
 import { MechWizard } from '../MechWizard'
 
-// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
-withSignedInBackend()
-
-// ---------------------------------------------------------------------------
-// Pre-load reference data
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Store reset
-// ---------------------------------------------------------------------------
-
-beforeEach(async () => {
-  sessionStorage.clear()
-  resetStores()
-  await useEntityStore.getState().hydrate('mech')
-})
-
-afterEach(async () => {
-  await act(async () => {
-    cleanup()
-  })
-  sessionStorage.clear()
-  resetStores()
-})
+withWizardStore('mech')
 
 // ---------------------------------------------------------------------------
 // Fixture lookups (real catalog)
@@ -72,13 +55,6 @@ function moduleByName(name: string) {
 // Interaction helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
-/** Chassis / pattern picks are radios named by the entity. */
-async function pickRadio(name: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('radio', { name }))
-  })
-}
-
 /** A craft card's Qty stepper reading: the value of the `Stat` its `−` follows. */
 function qtyOf(name: string): string | undefined {
   const minus = screen.getByRole('button', { name: `Decrease ${name} count` })
@@ -89,38 +65,19 @@ function qtyOf(name: string): string | undefined {
 
 /** Craft-step Qty stepper: one click of a card's `+`. */
 async function addOne(name: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: `Increase ${name} count` }))
-  })
+  await clickButton(`Increase ${name} count`)
 }
 
-/** IdentityField click-to-edit write (quirk / pattern-name steps). */
-async function typeIdentity(editLabel: string, value: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: editLabel }))
-  })
-  const input = screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
-  await act(async () => {
-    fireEvent.change(input, { target: { value } })
-    fireEvent.blur(input, { target: { value } })
-  })
+function renderWizard() {
+  return render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
 }
 
-/** The primary CTA is labeled from the steps array: 'Next: {step}' (`NextLabel`). */
-function getNextButton(): HTMLButtonElement {
-  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next: / })
-}
-
-async function clickNext(): Promise<void> {
-  await act(async () => {
-    fireEvent.click(getNextButton())
-  })
-}
-
-async function submit(label: RegExp): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: label }))
-  })
+/** Gain Scrap → Chassis (the Mule) → Statistics → Systems. */
+async function walkToSystems(): Promise<void> {
+  await clickNext() // → Chassis
+  await pickRadio('Mule')
+  await clickNext() // → Stats
+  await clickNext() // → Systems
 }
 
 // ---------------------------------------------------------------------------
@@ -164,14 +121,14 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await clickNext()
 
     // --- Steps 6–7: Quirk + Appearance (flavor — never gate) ---
-    await typeIdentity('Edit quirk', 'Rattles at speed')
+    await fillIdentity('Edit quirk', 'Rattles at speed')
     await clickNext()
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
     // --- Step 8: Pattern Name (required; name IS pattern) ---
     expect(getNextButton().disabled).toBe(true)
-    await typeIdentity('Edit name / pattern', 'Iron Fist')
+    await fillIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
@@ -179,10 +136,10 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     expect(screen.getByRole('note').textContent).toContain(
       `${afterChassis - cargoPod.salvageValue - moduleByName('Comms Module').salvageValue} Tech 1 Scrap banks`
     )
-    await submit(/Create Mech/i)
+    await clickButton(/Create Mech/i)
 
     await waitFor(() => {
-      const mechs = useEntityStore.getState().list('mech')
+      const mechs = useUnits.getState().list('mech')
       expect(mechs.length).toBe(1)
       const m = must(mechs[0])
       expect(m.name).toBe('Iron Fist')
@@ -206,7 +163,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
 
 describe('MechWizard — hard creation enforcement', () => {
   it('offers only Tech 1 chassis and only Tech 1 systems', async () => {
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
     await clickNext() // → Chassis
 
     const higherTlChassis = SalvageUnionReference.Chassis.find((c) => c.techLevel === 2)
@@ -225,7 +182,7 @@ describe('MechWizard — hard creation enforcement', () => {
   })
 
   it('gates the chassis and the pattern name; systems/modules stay optional', async () => {
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
     await clickNext() // → Chassis
 
     // Chassis required.
@@ -248,24 +205,19 @@ describe('MechWizard — hard creation enforcement', () => {
     // Name required — nothing persisted while blocked.
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
-    expect(useEntityStore.getState().list('mech').length).toBe(0)
-    await typeIdentity('Edit name / pattern', 'Iron Fist')
+    expect(useUnits.getState().list('mech').length).toBe(0)
+    await fillIdentity('Edit name / pattern', 'Iron Fist')
     expect(getNextButton().disabled).toBe(false)
   })
 
   it('changing the chassis refunds its scrap and wipes the loadout with a toast', async () => {
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext() // → Chassis
-    await pickRadio('Mule')
-    await clickNext() // → Stats
-    await clickNext() // → Systems
+    renderWizard()
+    await walkToSystems()
     await addOne('Cargo Pod')
     expect(screen.getByTestId('system-slot-count').textContent).toContain('1/')
 
     // Back to the chassis step, swap to another Tech 1 chassis.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Craft your Chassis/i }))
-    })
+    await clickButton(/Craft your Chassis/i)
     await pickRadio('Scrapper')
     const scrapper = SalvageUnionReference.Chassis.getByName('Scrapper')
     expect(screen.getByTestId('scrap-remaining').textContent).toContain(
@@ -292,7 +244,7 @@ describe('MechWizard — legalStarting pattern strip', () => {
     const unflagged = chassis.patterns.find((p) => p.legalStarting !== true)
     expect(unflagged).toBeDefined()
 
-    render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
     await clickNext() // → Chassis
     await pickRadio('Mule')
 
@@ -322,10 +274,10 @@ describe('MechWizard — legalStarting pattern strip', () => {
     await clickNext() // → Pattern Name (prefilled from the pattern pick)
     expect(getNextButton().disabled).toBe(false)
     await clickNext() // → Review
-    await submit(/Create Mech/i)
+    await clickButton(/Create Mech/i)
 
     await waitFor(() => {
-      const m = must(useEntityStore.getState().list('mech')[0])
+      const m = must(useUnits.getState().list('mech')[0])
       expect(m.name).toBe(pattern.name)
       expect(m.systems).toEqual(expectedSystems)
       expect(m.modules).toEqual(expectedModules)
@@ -350,9 +302,7 @@ describe('MechWizard — preselected chassis', () => {
     expect(getNextButton().disabled).toBe(false)
 
     // The preselection is the baseline: cancelling asks nothing.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    })
+    await clickButton('Cancel')
     expect(onCancel).toHaveBeenCalledTimes(1)
   }, 30000)
 
@@ -376,14 +326,12 @@ describe('MechWizard — preselected chassis', () => {
       screen.getByRole('radio', { name: `${hauler.name} pattern` }).getAttribute('aria-checked')
     ).toBe('true')
     // The preselection is the baseline: cancelling asks nothing.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-    })
+    await clickButton('Cancel')
     expect(onCancel).toHaveBeenCalledTimes(1)
   }, 30000)
 
   it('never overrides the chassis of a build in progress', async () => {
-    const { unmount } = render(<MechWizard onComplete={() => {}} onCancel={() => {}} />)
+    const { unmount } = renderWizard()
     await clickNext()
     await pickRadio('Mule')
     await act(async () => {

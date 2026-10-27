@@ -15,51 +15,41 @@ import type { ComponentProps, ReactNode } from 'react'
  * and a record in a container the account cannot reach says so instead of
  * reading as "in your shelves".
  *
- * Signed in here means a real `ConnectionProvider` over a mocked Convex client,
- * whose `mutation` records the server commit a move makes.
+ * Signed in here means a real `SyncProvider` over a stubbed session, with the
+ * Worker's calls recorded: a move is `entities.move`.
  */
 
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import {
   crawlerFixture,
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 let authed = true
 const serverWrites: { name: string; args: Record<string, unknown> }[] = []
 /** Set to make the next server commit fail, as an offline or refused write would. */
 let failWrites = false
 
-const convexMocks = await installConvexMocks({
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }) },
-  also: {
-    '../../lib/connection/convexClient': () => ({
-      convexClient: {
-        mutation: async (ref: unknown, args: Record<string, unknown>) => {
-          if (failWrites) throw new Error('[CONVEX M(entities:upsertByAppId)] Server Error')
-          serverWrites.push({ name: getFunctionName(ref as FunctionReference<'mutation'>), args })
-          // `upsertByAppId` answers with the row's new version.
-          return { updatedAt: 1 }
-        },
-      },
-    }),
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
+  call: (name, args) => {
+    if (failWrites) throw new Error('entities.move answered 500')
+    serverWrites.push({ name, args: args as Record<string, unknown> })
   },
 })
 
 const { MoveToContainerControl } = await import('../MoveToContainerControl')
 const { MoveToGameDialog } = await import('../../shelves/MoveToGameDialog')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { useUnits } = await import('../../../replica/units')
+const { resetSync, setSyncStatus } = await import('../../../replica/sync')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const GAMES = [
@@ -67,21 +57,21 @@ const GAMES = [
   { _id: 'g2', name: 'The Long Haul' },
 ]
 
-const wrap = (ui: ReactNode) => render(<ConnectionProvider>{ui}</ConnectionProvider>)
+const wrap = (ui: ReactNode) => render(<SyncProvider>{ui}</SyncProvider>)
 
 beforeEach(() => {
   authed = true
   failWrites = false
   serverWrites.length = 0
   resetStores()
-  // The server's first answer is in, as `ShelfSync` marks it.
-  useEntityStore.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
-  setQueryAnswers({ 'games:listMine': GAMES })
+  // The server's first answer is in.
+  useUnits.getState().markArrived(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
+  setQueryAnswers({ 'games.listMine': GAMES })
 })
 
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 type MoveProps = Omit<ComponentProps<typeof MoveToContainerControl>, 'confirm'>
@@ -101,21 +91,19 @@ function MoveHarness(props: MoveProps) {
 async function heldPilot(gameId: string | null) {
   const pilot = pilotFixture({ id: 'p1', name: 'Mira Cole', gameId })
   // Held the way a signed-in player's roster is: adopted as the server sent it.
-  // `ConnectionProvider` pushes this same signed-in state on mount; pushing it
+  // `SyncProvider` pushes this same signed-in state on mount; pushing it
   // first lets the move commit.
-  setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-  await useEntityStore.getState().adopt('pilot', pilot)
+  setSyncStatus('live')
+  await useUnits.getState().adopt('pilot', pilot)
   return pilot
 }
 
-const gameIdOf = () => useEntityStore.getState().list('pilot')[0]?.gameId
+const gameIdOf = () => useUnits.getState().list('pilot')[0]?.gameId
 
 /** Thresher, a mech on the shelf, flying Mira Cole (who must be held first). */
 async function pairedWithShelfMech() {
-  await useEntityStore
-    .getState()
-    .adopt('mech', mechFixture({ id: 'm1', name: 'Thresher', gameId: null }))
-  await useEntityStore.getState().adopt('softLink', {
+  await useUnits.getState().adopt('mech', mechFixture({ id: 'm1', name: 'Thresher', gameId: null }))
+  await useUnits.getState().adopt('softLink', {
     id: 'link-pairing',
     type: 'mech-to-pilot',
     from: { type: 'mech', id: 'm1' },
@@ -126,10 +114,10 @@ async function pairedWithShelfMech() {
 
 /** Big Sal, a crawler on the shelf, crewed by Mira Cole (who must be held first). */
 async function crewingShelfCrawler() {
-  await useEntityStore
+  await useUnits
     .getState()
     .adopt('crawler', crawlerFixture({ id: 'c1', name: 'Big Sal', gameId: null }))
-  await useEntityStore.getState().adopt('softLink', {
+  await useUnits.getState().adopt('softLink', {
     id: 'link-crew',
     type: 'pilot-to-crawler',
     from: { type: 'pilot', id: 'p1' },
@@ -138,7 +126,7 @@ async function crewingShelfCrawler() {
   })
 }
 
-const linkIds = () => useEntityStore.getState().softLinks.map((l) => l.id)
+const linkIds = () => useUnits.getState().softLinks.map((l) => l.id)
 
 describe('MoveToContainerControl', () => {
   test('renders nothing for somebody who is not signed in', () => {
@@ -163,27 +151,28 @@ describe('MoveToContainerControl', () => {
     await waitFor(() => expect(changed).toBe(1))
     // Into a Game from the Shelf, with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    const pilots = useEntityStore.getState().list('pilot')
+    const pilots = useUnits.getState().list('pilot')
     // One entity, moved — never a copy. A copy would leave two of the same
     // character with no way to tell which one the table can see.
     expect(pilots.map((p) => [p.id, p.gameId])).toEqual([['p1', 'g1']])
-    // The entity commit, not the Change Log row that follows it.
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+    // A move is a handoff between rooms (`entities.move`).
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'pilot',
       appId: 'p1',
       gameId: 'g1',
     })
   })
 
-  test('a crawler moves through its own mutation, which files it in every place at once', async () => {
+  test('a crawler moves as any unit does, by a handoff between rooms', async () => {
     setQueryAnswers({
-      'games:listMine': [
+      'games.listMine': [
         { _id: 'g1', name: 'Run by me', tableRunner: true },
         { _id: 'g2', name: 'Not mine to run', tableRunner: false },
       ],
     })
     const crawler = crawlerFixture({ id: 'c1', gameId: null })
-    setEntityBackendAuthState({ signedIn: true, online: true, authSettled: true })
-    await useEntityStore.getState().adopt('crawler', crawler)
+    setSyncStatus('live')
+    await useUnits.getState().adopt('crawler', crawler)
     let changed = 0
     wrap(
       <MoveHarness
@@ -201,16 +190,15 @@ describe('MoveToContainerControl', () => {
     fireEvent.change(select, { target: { value: 'game:g1' } })
 
     await waitFor(() => expect(changed).toBe(1))
-    expect(serverWrites.find((w) => w.name === 'entities:moveCrawler')?.args).toEqual({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'crawler',
       appId: 'c1',
       gameId: 'g1',
     })
-    // Never as a body patch: a "moved" crawler stays put that way.
-    expect(serverWrites.some((w) => w.name === 'entities:patchCrawlerByAppId')).toBe(false)
   })
 
   test('a crawler in a Game somebody else runs offers nowhere to go', () => {
-    setQueryAnswers({ 'games:listMine': [{ _id: 'g2', name: 'Not mine', tableRunner: false }] })
+    setQueryAnswers({ 'games.listMine': [{ _id: 'g2', name: 'Not mine', tableRunner: false }] })
     wrap(
       <MoveHarness
         entityType="crawler"
@@ -289,7 +277,8 @@ describe('MoveToContainerControl — moving into a Game clears an assignment', (
     await waitFor(() => expect(changed).toBe(1))
     expect(gameIdOf()).toBe('g1')
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'pilot',
       appId: 'p1',
       gameId: 'g1',
     })
@@ -347,7 +336,8 @@ describe('MoveToContainerControl — taking a build out of a Game', () => {
 
     await waitFor(() => expect(gameIdOf()).toBeNull())
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'pilot',
       appId: 'p1',
       gameId: null,
     })
@@ -450,12 +440,13 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     // Into a Game with nothing to clear: no confirm.
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(
-      useEntityStore
+      useUnits
         .getState()
         .list('pilot')
         .map((p) => p.id)
     ).toEqual(['p1'])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'pilot',
       appId: 'p1',
       gameId: 'g2',
     })
@@ -489,7 +480,8 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     await waitFor(() => expect(gameIdOf()).toBe('g2'))
     expect(screen.queryByRole('alertdialog')).toBeNull()
     expect(linkIds()).toEqual([])
-    expect(serverWrites.find((w) => w.args.appId === 'p1')?.args).toMatchObject({
+    expect(serverWrites.find((w) => w.name === 'entities.move')?.args).toEqual({
+      kind: 'pilot',
       appId: 'p1',
       gameId: 'g2',
     })

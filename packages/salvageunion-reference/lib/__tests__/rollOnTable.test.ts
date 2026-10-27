@@ -1,15 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
-
 import { SalvageUnionReference } from '../index'
 import { d20ForTable, rollOnTable } from '../rollOnTable'
+import { defined } from '../testing'
 import { isColumnsTable } from '../utils/resultForTable'
 
 function fixedRoller(...rolls: number[]) {

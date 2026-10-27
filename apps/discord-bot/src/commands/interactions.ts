@@ -35,7 +35,7 @@ export type CommandChoice = { name: string; value: string }
  * What `execute` handlers read off a chat-input interaction.
  *
  * For `/su sheet` (ADR-030): the Discord user id (`user`) IS the account key,
- * and a round trip to Convex does not reliably fit inside Discord's 3-second
+ * and a round trip to the site does not reliably fit inside Discord's 3-second
  * acknowledgement window, so it defers first (the defer/edit pair).
  */
 export type CommandExecuteInteraction = {

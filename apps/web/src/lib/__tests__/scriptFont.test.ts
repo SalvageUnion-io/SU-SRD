@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test'
-import { isFrontDoor, preloadScriptFont, SCRIPT_FACE } from '../scriptFont'
+import { isFrontDoor, preloadScriptFont, scriptFace } from '../scriptFont'
+
+const STACK = "'Caveat-1a2b', cursive"
 
 function fakeFonts(result: Promise<FontFace[]> = Promise.resolve([])) {
   const asked: string[] = []
@@ -35,23 +37,29 @@ describe('isFrontDoor', () => {
 describe('preloadScriptFont', () => {
   test("asks for the quote's face on the front door", () => {
     const { asked, fonts } = fakeFonts()
-    preloadScriptFont('/build/', '/build', fonts)
-    expect(asked).toEqual([SCRIPT_FACE])
+    preloadScriptFont('/build/', '/build', fonts, STACK)
+    expect(asked).toEqual([scriptFace(STACK)])
   })
 
   test('asks for nothing on any other page', () => {
     const { asked, fonts } = fakeFonts()
-    preloadScriptFont('/build/starter', '/build', fonts)
+    preloadScriptFont('/build/starter', '/build', fonts, STACK)
+    expect(asked).toEqual([])
+  })
+
+  test('asks for nothing before the stack is declared', () => {
+    const { asked, fonts } = fakeFonts()
+    preloadScriptFont('/build/', '/build', fonts, '')
     expect(asked).toEqual([])
   })
 
   test('does nothing without a font set', () => {
-    expect(() => preloadScriptFont('/build/', '/build', undefined)).not.toThrow()
+    expect(() => preloadScriptFont('/build/', '/build', undefined, STACK)).not.toThrow()
   })
 
   test('swallows a failed load', async () => {
     const { fonts } = fakeFonts(Promise.reject(new Error('offline')))
-    preloadScriptFont('/build/', '/build', fonts)
+    preloadScriptFont('/build/', '/build', fonts, STACK)
     // An unhandled rejection would fail the test run.
     await Bun.sleep(0)
   })

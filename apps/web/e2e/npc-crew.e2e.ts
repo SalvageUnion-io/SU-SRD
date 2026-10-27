@@ -9,7 +9,7 @@ import { expect, test } from './fixtures'
  *
  * Signed in (the default `test` from `fixtures.ts`), so it SKIPS with a stated
  * reason in a build with no test sign-in seam and runs for real in the nightly
- * `e2e` job: the NPC and its crew link are Convex writes.
+ * `e2e` job: the NPC and its crew link are room writes.
  */
 
 /** The Med Bay's crew inset on the crawler sheet that is showing (never folded away). */

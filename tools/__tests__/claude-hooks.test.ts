@@ -51,7 +51,6 @@ describe('guard-generated.sh', () => {
     ['generated lib code', 'packages/salvageunion-reference/lib/generated/registry.generated.ts'],
     ['the router tree', 'apps/web/src/routeTree.gen.ts'],
     ['anything under dist', 'apps/web/dist/index.html'],
-    ['Convex codegen', 'apps/web/convex/_generated/api.d.ts'],
     ['the lockfile', 'bun.lock'],
     ['the schema catalog', 'packages/salvageunion-reference/schemas/index.json'],
     ['a build-info file', 'apps/web/tsconfig.tsbuildinfo'],
@@ -116,10 +115,6 @@ describe('guard-generated.sh', () => {
     },
     'apps/web/worker-configuration.d.ts': {
       file: 'apps/web/worker-configuration.d.ts',
-      denied: true,
-    },
-    'apps/su-assets/worker-configuration.d.ts': {
-      file: 'apps/su-assets/worker-configuration.d.ts',
       denied: true,
     },
     'apps/discord-bot/worker-configuration.d.ts': {
@@ -265,7 +260,6 @@ describe('typecheck hooks against a stub workspace', () => {
   const WORKSPACES = [
     'apps/discord-bot',
     'apps/web',
-    'apps/su-assets',
     'packages/gates',
     'packages/game-domain',
     'packages/salvageunion-reference',

@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * useSoftWarnings — wraps an entityStore.update call with before/after
  * snapshotting and soft-warning evaluation.
@@ -28,10 +29,10 @@ import type {
   SoftWarningContext,
 } from 'salvageunion-reference/rules'
 import { evaluateSoftWarnings as defaultEvaluate } from 'salvageunion-reference/rules'
-import type { ChangeMeta } from '../../stores/entityStore'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
-import type { EntityForType } from '../../stores/types'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { EntityForType } from '../../replica/types'
+import type { ChangeMeta } from '../../replica/units'
+import { useUnits } from '../../replica/units'
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -69,10 +70,10 @@ type UseSoftWarningsOptions<T extends Exclude<EntityKind, 'npc'>> = {
    */
   evaluate?: typeof defaultEvaluate
   /**
-   * Injectable store hook — defaults to useEntityStore.
+   * Injectable store hook — defaults to useUnits.
    * Pass a stub in tests to avoid Zustand side effects.
    */
-  store?: typeof useEntityStore
+  store?: UnitsStore
 }
 
 type UseSoftWarningsResult<T extends Exclude<EntityKind, 'npc'>> = {
@@ -110,7 +111,7 @@ export function useSoftWarnings<T extends Exclude<EntityKind, 'npc'>>(
     toSnapshot,
     meta = LIVE_SHEET_MANUAL,
     evaluate = defaultEvaluate,
-    store = useEntityStore,
+    store = useUnits,
   } = opts
 
   const storeState = store()

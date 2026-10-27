@@ -9,7 +9,6 @@
 
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import type { PageModule, PageResult } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
 import { Chips, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
@@ -33,6 +32,7 @@ import { pagesCopy } from '../../messages/reference-pages'
 import { DocPage } from '../DocPage'
 import { DocPanel } from '../DocPanel'
 import { apiV1Manifest } from '../endpoints/apiV1'
+import type { PageModule, PageResult } from '../types'
 
 const TITLE = pageTitle('Dataset API')
 const DESCRIPTION =

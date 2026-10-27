@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
+import { RoomDeclined } from '../../../replica/roomSocket'
 
 /**
  * "+ New Game" — starting a Game, from the Play hub.
@@ -10,11 +10,10 @@ import { ConvexError } from 'convex/values'
  * (`/play/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
  * is no code to type — a Game is joined from an invite link.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  */
 
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []
@@ -22,21 +21,18 @@ const mutations: { name: string; args: unknown }[] = []
 let results: Record<string, unknown> = {}
 let mutationError: unknown = null
 
-const convexMocks = await installConvexMocks({
-  convexReact: {
-    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      if (mutationError !== null) throw mutationError
-      const name = getFunctionName(ref as never)
-      mutations.push({ name, args })
-      return results[name]
-    },
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
+  call: (name, args) => {
+    if (mutationError !== null) throw mutationError
+    mutations.push({ name, args })
+    return results[name]
   },
 })
 
 const { NewGameControl } = await import('../NewGameControl')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const TEMPLATES = [
   { id: 'starter-set', name: 'Reclamation of the Wastes', description: 'Six pre-gens.' },
@@ -54,28 +50,28 @@ beforeEach(() => {
   assigned = []
   mutationError = null
   results = {
-    'games:create': 'g-new',
-    'templates:createGame': 'g-template',
+    'games.create': 'g-new',
+    'templates.createGame': 'g-template',
   }
-  setQueryAnswers({ 'templates:list': TEMPLATES })
+  setQueryAnswers({ 'templates.list': TEMPLATES })
 })
 
 afterEach(() => {
   // Process-global: a leaked signed-in state changes what later files exercise.
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
+  resetSync()
 })
 
 afterAll(() => {
   assignSpy.mockRestore()
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 async function renderOpen(): Promise<void> {
   await act(async () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <NewGameControl />
-      </ConnectionProvider>
+      </SyncProvider>
     )
   })
   fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
@@ -93,9 +89,9 @@ describe('who gets it', () => {
     let container: HTMLElement | undefined
     await act(async () => {
       container = render(
-        <ConnectionProvider>
+        <SyncProvider>
           <NewGameControl />
-        </ConnectionProvider>
+        </SyncProvider>
       ).container
     })
     expect(container?.textContent).toBe('')
@@ -124,7 +120,7 @@ describe('starting a game', () => {
     })
     await press('Create')
 
-    expect(mutations).toEqual([{ name: 'games:create', args: { name: 'Union Crawler #430' } }])
+    expect(mutations).toEqual([{ name: 'games.create', args: { name: 'Union Crawler #430' } }])
     expect(assigned).toEqual(['/play/games/g-new'])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
@@ -134,14 +130,14 @@ describe('starting a game', () => {
     await press('Start this Game')
 
     expect(mutations).toEqual([
-      { name: 'templates:createGame', args: { templateId: 'starter-set' } },
+      { name: 'templates.createGame', args: { templateId: 'starter-set' } },
     ])
     expect(assigned).toEqual(['/play/games/g-template'])
   })
 
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {
     await renderOpen()
-    mutationError = new ConvexError('You have too many games')
+    mutationError = new RoomDeclined('You have too many games')
     await press('Start this Game')
 
     expect(screen.getByRole('alert').textContent).toBe('You have too many games')

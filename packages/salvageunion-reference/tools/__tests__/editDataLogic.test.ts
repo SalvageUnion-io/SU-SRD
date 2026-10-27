@@ -1,14 +1,7 @@
 import { describe, expect, it } from 'bun:test'
 import { parseTree } from 'jsonc-parser'
+import { defined } from '../../lib/testing'
 import { addEntity, setField, withId } from '../editDataLogic'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
 
 /**
  * In-memory fixture (NOT a committed .json file). This is deliberate: the

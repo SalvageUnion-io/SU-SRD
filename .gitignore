@@ -59,7 +59,7 @@ apps/web/src/.routeTree.gen.*.ts
 # working state, not project docs. Durable rules go in .claude/rules.
 .claude/agent-memory/
 # .mcp.json IS tracked: it is the shared, secret-free project MCP config
-# (Cloudflare, Convex, Context7). Every server authenticates by OAuth on
+# (Cloudflare, Context7). Every server authenticates by OAuth on
 # first connect — never put tokens in it.
 
 # Editor directories and files
@@ -75,7 +75,7 @@ apps/web/src/.routeTree.gen.*.ts
 # their source of record is the private repo SalvageUnion-io/su-rules (a cloud
 # session attaches it as a second repository). Locally, produce the extract with
 # `bun run rules:extract`. Only the tooling (tools/extract-rules.ts) lives here.
-rules/*
+/rules/*
 
 # wrangler's local state and build scratch. `wrangler dev` writes its bundled
 # Worker (plus the miniflare middleware it injects) into `.wrangler/tmp/`, which
@@ -86,7 +86,10 @@ rules/*
 
 # `bun run shot`'s screenshots (tools/shot.ts)
 /.shots/
-# `bun run dev:backend`'s local Convex backend: database, keys, seed (tools/dev-backend.ts)
+# `bun run dev:backend`'s local state: the Worker's rooms, shared database and seed (tools/dev-backend.ts)
 /.dev-backend/
 # chrome-headless-shell for a sandbox the full Chromium cannot start in (packages/gates/lib/chromium.ts)
 /.pw-browsers/
+
+# Astro (ADR-065 spike): its generated types and its build
+apps/web/.astro/

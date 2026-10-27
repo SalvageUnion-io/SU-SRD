@@ -1,9 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useMutation, useQuery } from 'convex/react'
 import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { SignInControl } from '../../build/account/SignInControl'
 import {
   Button,
@@ -15,9 +13,10 @@ import {
   TitledBox,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
 
 /**
  * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4): Play's band
@@ -127,8 +126,8 @@ type InviteProps = {
 }
 
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
-  const preview = useQuery(api.invites.preview, { code: token })
-  const redeem = useMutation(api.invites.redeem)
+  const preview = useGamesQuery('invites.preview', { code: token })
+  const redeem = useGamesCall('invites.redeem')
   const navigate = useNavigate()
 
   const join = useServerAction(() => redeem({ code: token }), {
@@ -181,7 +180,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
  * unauthenticated for exactly this.
  */
 function SignedOutInvite({ token }: { token: string }) {
-  const preview = useQuery(api.invites.preview, { code: token })
+  const preview = useGamesQuery('invites.preview', { code: token })
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />
@@ -207,11 +206,11 @@ function SignedOutInvite({ token }: { token: string }) {
 }
 
 export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
   const body = () => {
-    if (mode === 'connected') return <ConnectedInvite token={token} joinOnArrival={joinOnArrival} />
-    if (mode === 'disconnected') {
+    if (status === 'live') return <ConnectedInvite token={token} joinOnArrival={joinOnArrival} />
+    if (status === 'offline') {
       return (
         // What being offline means here (chrome K5): an unlabelled note.
         <Callout role="note">

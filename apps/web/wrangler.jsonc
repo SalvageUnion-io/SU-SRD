@@ -4,6 +4,12 @@
   // `/build` and `/play`, the app's (src/worker/index.ts, src/worker/app.ts);
   // every header on a real file is public/_headers. Built in GitHub Actions, not Workers Builds
   // (ADR-033 §4).
+  //
+  // Astro builds `main` through the Cloudflare adapter (its routes are Astro
+  // endpoints, src/worker/routes.ts) into `dist/server`, beside the site in
+  // `dist/client`, and writes this config there as `dist/server/wrangler.json`;
+  // `.wrangler/deploy/config.json` points `wrangler deploy`, `wrangler dev`
+  // and `wrangler preview` at it, so they ship the build, never this source.
   "name": "su-srd",
   "main": "src/worker/index.ts",
   // At or below the workerd the wrangler devDependency bundles (deploy-cloudflare.yml).
@@ -32,23 +38,67 @@
   //   Rendering edit permission). With both, a shared thing's link preview
   //   carries its rendered card (apps/web/src/worker/linkPreview.ts);
   //   without them it unfurls as text.
-  // - CONVEX_LOG_STREAM_SECRET, the production Convex log stream's webhook
-  //   secret. Without it POST /__convex-logs answers 503.
+  // - DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET, the Discord application's
+  //   OAuth client (its redirect: <origin>/auth/callback). Without them
+  //   /auth/sign-in answers 503 and nobody signs in (src/worker/auth/).
+  //   TEST_AUTH=true belongs only in a test build's `.dev.vars`.
+  // - GITHUB_FEEDBACK_TOKEN, a GitHub token that may open issues on SU-SRD.
+  //   Without it feedback waits in the shared database and is never filed.
+  // - ADMIN_DISCORD_IDS, the site admins' Discord ids, comma-separated.
+  //   Without it nobody can moderate Homebrew (src/worker/sharedRoutes.ts).
 
-  // CONVEX_URL: the Convex deployment a link preview reads what a stranger
-  // may see from: the URL the app is built against, `PRODUCTION_CONVEX_URL`
-  // in deploy-cloudflare.yml.
-  "vars": {
-    "CONVEX_URL": "https://exuberant-porpoise-183.convex.cloud"
+  // SHARED: the shared database (D1), what crosses rooms: public sheets,
+  // Homebrew, Games, memberships and invites (src/worker/shared/). Its tables
+  // are migrations/*.sql, applied by the deploy before the Worker ships;
+  // sign-in's accounts and sessions make theirs on first use
+  // (src/worker/auth/store.ts). The ids are pinned because a Preview cannot provision a database by name.
+  "d1_databases": [
+    {
+      "binding": "SHARED",
+      "database_name": "su-shared",
+      "database_id": "10bc74c2-6953-42f3-875b-71dd62f54856"
+    }
+  ],
+
+  // PHOTOS: entity photos (src/worker/photos.ts); `su-photos-preview` in `previews`.
+  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos" }],
+
+  // BOT: the Discord bot's relay (`su-discord-bot`'s `Relay` entrypoint), which
+  // posts a Play roll or a Stop Sign to a bound channel
+  // (src/worker/shared/gameCalls.ts, stopSign.ts). Not on a Preview, so a
+  // Preview never posts to a real channel. The bot must ship its `Relay`
+  // before this binding deploys.
+  "services": [{ "binding": "BOT", "service": "su-discord-bot", "entrypoint": "Relay" }],
+
+  // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
+  // which names each schedule).
+  "triggers": { "crons": ["13 5 * * *", "23 * * * *"] },
+
+  // A Worker Preview (deploy-preview.yml) inherits none of the vars and
+  // bindings above: its own shared database and photos, so a Preview never
+  // reads or writes production's.
+  // Its error endpoints run without the rate limits, which the Worker allows.
+  // Every Preview signs in through production's one Discord redirect
+  // (AUTH_CALLBACK_ORIGIN, src/worker/auth/index.ts).
+  "previews": {
+    "vars": { "AUTH_CALLBACK_ORIGIN": "https://salvageunion.io" },
+    "d1_databases": [
+      {
+        "binding": "SHARED",
+        "database_name": "su-shared-preview",
+        "database_id": "732d672a-81b8-4c5e-acaa-bab54b2e874c"
+      }
+    ],
+    "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos-preview" }]
   },
 
-  // A Worker Preview (deploy-preview.yml) inherits none of the vars above:
-  // the staging deployment the app is built against.
-  // Its error endpoints run without the rate limits, which the Worker allows.
-  "previews": {
-    "vars": {
-      "CONVEX_URL": "https://perfect-donkey-72.convex.cloud"
-    }
+  // The rooms (ADR-064, src/worker/rooms.ts), SQLite Durable Objects reached
+  // through `exports` from `cloudflare:workers`, so each Preview gets its own namespaces and no
+  // `durable_objects` binding is needed. A class is retired with a `deleted`
+  // tombstone, which drops its data: never without Jrvs's go.
+  "exports": {
+    "AccountRoom": { "type": "durable-object", "storage": "sqlite" },
+    "GameRoom": { "type": "durable-object", "storage": "sqlite" }
   },
 
   // ERROR_REPORT_LIMIT caps browser error reports (POST /__errors) per
@@ -65,9 +115,9 @@
   ],
 
   "assets": {
-    "directory": "./dist",
+    "directory": "./dist/client",
     "binding": "ASSETS",
-    // A miss runs the Worker, which answers dist/404.html (or a bare 404 under
+    // A miss runs the Worker, which answers 404.html (or a bare 404 under
     // `/assets/`) with `no-store`. Not `404-page`: Static Assets applies
     // `_headers` to that response by path, so a missing chunk's 404 took the
     // `/assets/*` rule's year of `immutable`. Not SPA mode either: the reference site is
@@ -81,7 +131,7 @@
     "run_worker_first": ["/build", "/build/*", "/play", "/play/*"]
   },
 
-  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
+  // Traces: a span per binding call and outbound fetch (D1, R2, Images,
   // Browser Rendering), in the dashboard next to the logs. Issues is the error
   // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
   // (`reportError`, `src/worker/errorReports.ts`) into issues, alerted on by the
@@ -95,7 +145,7 @@
   // Issues' stacks point at the source, not the bundle.
   "upload_source_maps": true,
 
-  // `bun run preview` (`wrangler dev`) serves the built `dist/` exactly as
+  // `bun run preview` (`wrangler dev`) serves the build exactly as
   // above on the dev server's port: the e2e suite's CI server, and the one
   // `scripts/og-screenshots.ts` renders through.
   "dev": { "port": 4321 }

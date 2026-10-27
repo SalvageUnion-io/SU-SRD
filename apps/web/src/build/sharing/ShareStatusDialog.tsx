@@ -23,7 +23,7 @@
  *
  * ## The settings only mount Connected
  *
- * `ShareSettings` calls Convex hooks unconditionally, so it must not MOUNT
+ * `ShareSettings` calls Games reads unconditionally, so it must not MOUNT
  * outside Connected — see its own header. Everywhere else the dialog says what
  * sharing needs instead of offering a control that cannot work: an anonymous
  * visitor is told it needs an account (with the sign-in control), and a
@@ -32,9 +32,9 @@
 
 import type { CSSProperties } from 'react'
 import { ModalShell, Text, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { ShareKind } from '../../lib/sharing/visibility'
 import { buildSharingCopy } from '../../messages/build-sharing'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { ShareSettings } from './ShareSettings'
 
@@ -75,10 +75,10 @@ export function ShareStatusDialog({
   onOpenChange,
   clipboardWriter,
 }: ShareStatusDialogProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
   /** Whether `ShareSettings` MOUNTS: only Connected (see its own header). */
-  const showLive = mode === 'connected'
+  const showLive = status === 'live'
 
   return (
     <ModalShell
@@ -106,7 +106,7 @@ export function ShareStatusDialog({
             gameId={gameId}
             clipboardWriter={clipboardWriter}
           />
-        ) : mode === 'solo' ? (
+        ) : status === 'signedOut' ? (
           <section style={SIGN_IN}>
             <Text variant="note">{buildSharingCopy('sharingNeedsAnAccountThe')}</Text>
             <SignInControl />

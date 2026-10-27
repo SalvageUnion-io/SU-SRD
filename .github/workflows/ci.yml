@@ -65,15 +65,14 @@ jobs:
             web:
               - *shared
               - 'apps/web/**'
-              # schemas, link rules and wire types Convex and the client share
+              # schemas, link rules and wire types the Worker and the client share
               - 'packages/game-domain/**'
               # the build jobs' Playwright configs and axe scan
               - 'packages/gates/**'
-            # The two Worker-only apps, bundled together by bundle-workers.
+            # The Worker-only app (the bot), bundled by bundle-workers.
             workers:
               - *shared
               - 'apps/discord-bot/**'
-              - 'apps/su-assets/**'
               # the bot's wire types (`game-domain/botWire`, `import type`)
               - 'packages/game-domain/**'
               # the theme the bot's colours mirror (themeLockstep.test.ts)
@@ -160,20 +159,23 @@ jobs:
       - name: Tests with coverage floors
         run: bun run test:coverage
 
+      # The rooms' Durable Object wiring, inside workerd (apps/web/vitest.config.ts);
+      # their logic is covered above, under bun test.
+      - name: Room wiring in workerd
+        run: bun --filter web test:workerd
+
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.
   # The site's one build (`bun run build`: the reference pages, then the app into
   # `dist/build/`, ADR-050), then both apps' PR-blocking browser tiers against
-  # it. The app is compiled against a Convex URL, as production's is. The
-  # URL is a throwaway backend carrying this PR's own functions, not
-  # production: a PR's client must run against the backend it ships with, and
-  # a PR gate makes no production calls.
+  # it, served by this PR's own Worker under `wrangler dev`, its rooms and
+  # shared database local to the runner: a PR gate makes no production calls.
   #
   # The build carries the test sign-in seam (`test-auth`), so Play's signed-in
   # flows gate merges (#1632). That ships nothing: deploy-cloudflare.yml builds
   # its own artifact against production ("ARTIFACTS ARE BUILT HERE, NOT TAKEN
-  # FROM CI"), never this `dist`, and the seam's server half lives only on this
-  # backend, which dies with the runner. The seam renders nothing, so the
+  # FROM CI"), never this `dist`, and the seam's server half is only this
+  # runner's `.dev.vars`. The seam renders nothing, so the
   # signed-out scans see the UI players get; the bundle budgets carry its few
   # hundred bytes inside their ~20% headroom.
   build-web:
@@ -191,8 +193,8 @@ jobs:
         uses: ./.github/actions/setup-bun
 
       # `build` does not typecheck: static-checks typechecks every workspace.
-      - name: Start a throwaway Convex backend and build the site against it
-        uses: ./.github/actions/convex-backend
+      - name: Build the site with the test sign-in
+        uses: ./.github/actions/test-build
         with:
           test-auth: 'true'
 
@@ -240,10 +242,6 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-      - name: Backend logs on failure
-        if: failure()
-        run: cat "$RUNNER_TEMP/convex-backend.log" || true
-
   # The site's performance budget (`e2e/perf-budget.e2e.ts`): LCP, TBT and CLS on
   # a few pages under Lighthouse's mobile throttling. Its own job, beside
   # build-web rather than after it, so it adds its run time to CI's wall time
@@ -269,9 +267,9 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # The one build, as build-web makes it: the app in it needs a backend.
-      - name: Start a throwaway Convex backend and build the site against it
-        uses: ./.github/actions/convex-backend
+      # The one build, as build-web makes it, signed out.
+      - name: Build the site
+        uses: ./.github/actions/test-build
 
       - name: Set up Playwright
         uses: ./.github/actions/playwright
@@ -290,8 +288,8 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
-  # The Worker-only apps have no build but wrangler's bundle, which is what
-  # deploys; their typecheck already runs in static-checks. One leg each.
+  # The Worker-only app has no build but wrangler's bundle, which is what
+  # deploys; its typecheck already runs in static-checks.
   bundle-workers:
     needs: [changes]
     if: needs.changes.outputs.workers == 'true'
@@ -300,7 +298,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [discord-bot, su-assets]
+        app: [discord-bot]
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

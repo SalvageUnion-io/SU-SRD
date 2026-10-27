@@ -15,34 +15,28 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
 // Signed in: building needs an account (ADR-034 as amended), so the roster a
 // player builds into is a Connected one. Module scope, before the imports
 // below — `mock.module` only affects imports that resolve after it runs.
-const convexMocks = await installConvexMocks({
-  // `upsertByAppId` answers with the row's new version.
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  // The signed-out panel's "Sign in with Discord".
-  authReact: true,
-})
+const serverMocks = await installServerMocks()
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { useUnits } = await import('../../../replica/units')
 const { Roster } = await import('../Roster')
 
 withSignedInBackend()
 
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 // ---------------------------------------------------------------------------
@@ -90,9 +84,9 @@ async function settle(done: () => boolean): Promise<void> {
 async function renderShelves() {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <Roster />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
@@ -100,7 +94,7 @@ async function renderShelves() {
 
 /** Seed one entity the way a signed-in player builds it: a store create. */
 async function seedEntity(type: 'pilot' | 'mech', name: string): Promise<string> {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.hydrate(type)
   const created = await store.create(
     type,
@@ -124,9 +118,9 @@ async function openMenu(name: string): Promise<HTMLElement> {
 beforeEach(async () => {
   // Shelves, with no Games and no shared patterns.
   setQueryAnswers({
-    'games:listMine': [],
-    'shelf:patternSharing': [],
-    'shelf:sharedByLink': [],
+    'games.listMine': [],
+    'shelf.patternSharing': [],
+    'shelf.sharedByLink': [],
   })
   // The NPC shelf also lists encounter NPCs; an earlier file in the same
   // process can leave some in memory, so every store starts empty.
@@ -269,7 +263,7 @@ describe('Training Bay — one shelf per kind', () => {
   })
 
   test('a designed NPC is a dashed line with who can see it, in a Training Bay marked yours', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
       schemaVersion: 1,
@@ -344,7 +338,7 @@ describe('Training Bay — items', () => {
   })
 
   test('linked units are each other’s header-only Minis, never chips', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
     const mech = await store.create('mech', { ...baseMechInput, name: 'Iron Fist' })
@@ -408,7 +402,7 @@ describe('Training Bay — Make a copy', () => {
 
     expect(screen.getByText('COPY OF Fen Oya')).toBeTruthy()
     expect(screen.getByText('Fen Oya')).toBeTruthy()
-    const names = useEntityStore
+    const names = useUnits
       .getState()
       .list('pilot')
       .map((p) => p.name)

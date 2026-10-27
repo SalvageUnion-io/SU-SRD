@@ -3,39 +3,22 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import type { SalvageUnionReference as RefType } from '../index'
-
-let SalvageUnionReference: typeof RefType
-
-function getReference() {
-  if (!SalvageUnionReference) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('../index').SalvageUnionReference
-  }
-  return SalvageUnionReference
-}
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
+import { SalvageUnionReference } from '../index'
+import { defined } from '../testing'
 
 describe('SalvageUnionReference.resolveActions', () => {
   describe('chassis actions (via chassisAbilities)', () => {
     it('should resolve chassis abilities from a chassis entity', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
-      const actions = getReference().resolveActions(chassis)
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
+      const actions = SalvageUnionReference.resolveActions(chassis)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should return resolved RefMetaAction objects', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
-      const actions = getReference().resolveActions(chassis)
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
+      const actions = SalvageUnionReference.resolveActions(chassis)
       if (actions && actions.length > 0) {
         const firstAction = defined(actions[0])
         expect(firstAction).toHaveProperty('id')
@@ -44,11 +27,11 @@ describe('SalvageUnionReference.resolveActions', () => {
     })
 
     it('should handle chassis with empty chassisAbilities', () => {
-      const chassis = getReference().Chassis.find(
+      const chassis = SalvageUnionReference.Chassis.find(
         (c) => !c.chassisAbilities || c.chassisAbilities.length === 0
       )
       if (chassis) {
-        const actions = getReference().resolveActions(chassis)
+        const actions = SalvageUnionReference.resolveActions(chassis)
         expect(actions).toBeUndefined()
       }
     })
@@ -56,16 +39,16 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('system actions (via actions array)', () => {
     it('should resolve actions from a system entity', () => {
-      const system = defined(getReference().Systems.all()[0])
-      const actions = getReference().resolveActions(system)
+      const system = defined(SalvageUnionReference.Systems.all()[0])
+      const actions = SalvageUnionReference.resolveActions(system)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should return resolved RefMetaAction objects from systems', () => {
-      const system = defined(getReference().Systems.all()[0])
-      const actions = getReference().resolveActions(system)
+      const system = defined(SalvageUnionReference.Systems.all()[0])
+      const actions = SalvageUnionReference.resolveActions(system)
       if (actions && actions.length > 0) {
         const firstAction = defined(actions[0])
         expect(firstAction).toHaveProperty('id')
@@ -76,16 +59,16 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('module actions (via actions array)', () => {
     it('should resolve actions from a module entity', () => {
-      const module = defined(getReference().Modules.all()[0])
-      const actions = getReference().resolveActions(module)
+      const module = defined(SalvageUnionReference.Modules.all()[0])
+      const actions = SalvageUnionReference.resolveActions(module)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should return resolved RefMetaAction objects from modules', () => {
-      const module = defined(getReference().Modules.all()[0])
-      const actions = getReference().resolveActions(module)
+      const module = defined(SalvageUnionReference.Modules.all()[0])
+      const actions = SalvageUnionReference.resolveActions(module)
       if (actions && actions.length > 0) {
         const firstAction = defined(actions[0])
         expect(firstAction).toHaveProperty('id')
@@ -96,16 +79,16 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('ability actions (via actions array)', () => {
     it('should resolve actions from an ability entity', () => {
-      const ability = defined(getReference().Abilities.all()[0])
-      const actions = getReference().resolveActions(ability)
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
+      const actions = SalvageUnionReference.resolveActions(ability)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should return resolved RefMetaAction objects from abilities', () => {
-      const ability = defined(getReference().Abilities.all()[0])
-      const actions = getReference().resolveActions(ability)
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
+      const actions = SalvageUnionReference.resolveActions(ability)
       if (actions && actions.length > 0) {
         const firstAction = defined(actions[0])
         expect(firstAction).toHaveProperty('id')
@@ -116,16 +99,16 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('equipment actions (via actions array)', () => {
     it('should resolve actions from an equipment entity', () => {
-      const equipment = defined(getReference().Equipment.all()[0])
-      const actions = getReference().resolveActions(equipment)
+      const equipment = defined(SalvageUnionReference.Equipment.all()[0])
+      const actions = SalvageUnionReference.resolveActions(equipment)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should return resolved RefMetaAction objects from equipment', () => {
-      const equipment = defined(getReference().Equipment.all()[0])
-      const actions = getReference().resolveActions(equipment)
+      const equipment = defined(SalvageUnionReference.Equipment.all()[0])
+      const actions = SalvageUnionReference.resolveActions(equipment)
       if (actions && actions.length > 0) {
         const firstAction = defined(actions[0])
         expect(firstAction).toHaveProperty('id')
@@ -136,48 +119,48 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('other entity types', () => {
     it('should handle NPCs with actions', () => {
-      const npc = defined(getReference().NPCs.all()[0])
-      const actions = getReference().resolveActions(npc)
+      const npc = defined(SalvageUnionReference.NPCs.all()[0])
+      const actions = SalvageUnionReference.resolveActions(npc)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should handle creatures with actions', () => {
-      const creature = defined(getReference().Creatures.all()[0])
-      const actions = getReference().resolveActions(creature)
+      const creature = defined(SalvageUnionReference.Creatures.all()[0])
+      const actions = SalvageUnionReference.resolveActions(creature)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should handle squads with actions', () => {
-      const squad = defined(getReference().Squads.all()[0])
-      const actions = getReference().resolveActions(squad)
+      const squad = defined(SalvageUnionReference.Squads.all()[0])
+      const actions = SalvageUnionReference.resolveActions(squad)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should handle bio-titans with actions', () => {
-      const titan = defined(getReference().BioTitans.all()[0])
-      const actions = getReference().resolveActions(titan)
+      const titan = defined(SalvageUnionReference.BioTitans.all()[0])
+      const actions = SalvageUnionReference.resolveActions(titan)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should handle meld with actions', () => {
-      const meld = defined(getReference().Meld.all()[0])
-      const actions = getReference().resolveActions(meld)
+      const meld = defined(SalvageUnionReference.Meld.all()[0])
+      const actions = SalvageUnionReference.resolveActions(meld)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
       expect(defined(actions).length).toBeGreaterThan(0)
     })
 
     it('should handle crawlers with actions', () => {
-      const crawler = defined(getReference().Crawlers.all()[0])
-      const actions = getReference().resolveActions(crawler)
+      const crawler = defined(SalvageUnionReference.Crawlers.all()[0])
+      const actions = SalvageUnionReference.resolveActions(crawler)
       expect(actions).toBeDefined()
       expect(Array.isArray(actions)).toBe(true)
     })
@@ -185,25 +168,25 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('entities without actions', () => {
     it('should return undefined for entities with no actions or chassisAbilities', () => {
-      const trait = defined(getReference().Traits.all()[0])
-      const actions = getReference().resolveActions(trait)
+      const trait = defined(SalvageUnionReference.Traits.all()[0])
+      const actions = SalvageUnionReference.resolveActions(trait)
       expect(actions).toBeUndefined()
     })
 
     it('should return undefined for crawler bays without actions', () => {
-      const crawlerBay = defined(getReference().CrawlerBays.all()[0])
-      const actions = getReference().resolveActions(crawlerBay)
+      const crawlerBay = defined(SalvageUnionReference.CrawlerBays.all()[0])
+      const actions = SalvageUnionReference.resolveActions(crawlerBay)
       expect(actions).toBeUndefined()
     })
   })
 
   describe('caching behavior', () => {
     it('should use cached action map for multiple calls', () => {
-      const system1 = defined(getReference().Systems.all()[0])
-      const system2 = defined(getReference().Systems.all()[1])
+      const system1 = defined(SalvageUnionReference.Systems.all()[0])
+      const system2 = defined(SalvageUnionReference.Systems.all()[1])
 
-      const actions1 = getReference().resolveActions(system1)
-      const actions2 = getReference().resolveActions(system2)
+      const actions1 = SalvageUnionReference.resolveActions(system1)
+      const actions2 = SalvageUnionReference.resolveActions(system2)
 
       expect(actions1).toBeDefined()
       expect(actions2).toBeDefined()
@@ -215,14 +198,14 @@ describe('SalvageUnionReference.resolveActions', () => {
 
   describe('type coverage', () => {
     it('should accept any entity type that might have actions', () => {
-      const chassis = defined(getReference().Chassis.all()[0])
-      const system = defined(getReference().Systems.all()[0])
-      const ability = defined(getReference().Abilities.all()[0])
+      const chassis = defined(SalvageUnionReference.Chassis.all()[0])
+      const system = defined(SalvageUnionReference.Systems.all()[0])
+      const ability = defined(SalvageUnionReference.Abilities.all()[0])
 
       // All should work without type errors
-      const chassisActions = getReference().resolveActions(chassis)
-      const systemActions = getReference().resolveActions(system)
-      const abilityActions = getReference().resolveActions(ability)
+      const chassisActions = SalvageUnionReference.resolveActions(chassis)
+      const systemActions = SalvageUnionReference.resolveActions(system)
+      const abilityActions = SalvageUnionReference.resolveActions(ability)
 
       expect(chassisActions).toBeDefined()
       expect(systemActions).toBeDefined()

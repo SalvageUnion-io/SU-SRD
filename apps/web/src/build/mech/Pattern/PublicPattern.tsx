@@ -41,8 +41,7 @@ import {
 } from '../../../components/index'
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
-import { useConnection } from '../../../lib/connection/connectionContext'
-import { serverMessage } from '../../../lib/connection/serverError'
+import { playerMessage } from '../../../lib/connection/useServerAction'
 import { itemHref } from '../../../lib/entityHref'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
@@ -53,9 +52,10 @@ import {
   patternCopy,
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
-import { useEntityStore } from '../../../stores/entityStore'
+import { usePatterns } from '../../../replica/collections'
+import { useSync } from '../../../replica/syncContext'
+import { useUnits } from '../../../replica/units'
 import { useCitePageCredit } from '../../../stores/pageCredit'
-import { usePatternStore } from '../../../stores/patternStore'
 import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
@@ -117,15 +117,15 @@ function pagePattern(pattern: MechPattern): RefObjectPattern {
  * for it before the store patches it, and the query hears the write back.
  */
 async function setPatternPhoto(patternId: string, photo: Photo | undefined): Promise<void> {
-  const store = usePatternStore.getState()
+  const store = usePatterns.getState()
   await store.hydrate()
-  await usePatternStore.getState().update(patternId, { photo })
+  await usePatterns.getState().update(patternId, { photo })
 }
 
 export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const { pattern, madeBy, builtCount, mine, visibility } = answer
   const navigate = useNavigate()
-  const { mode, canWrite } = useConnection()
+  const { status, canWrite } = useSync()
   const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
 
@@ -137,18 +137,18 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const meta = chassis ? resolveEntityPageMeta(chassis, refPattern) : undefined
   const art = chassis ? getAssetUrl(chassis) : undefined
   const editable = mine && canWrite
-  const writable = canWrite && mode === 'connected'
+  const writable = canWrite && status === 'live'
   // Neither connected nor reconnecting: the page offers Sign in instead.
-  const signedOut = !writable && mode !== 'connected' && mode !== 'disconnected'
+  const signedOut = !writable && status !== 'live' && status !== 'offline'
 
   async function build() {
     setBusy('build')
     try {
-      const mech = await useEntityStore.getState().create('mech', mechFromPattern(pattern))
+      const mech = await useUnits.getState().create('mech', mechFromPattern(pattern))
       toast.success(mechCopy('builtFromThePattern', { name: mech.name }))
       void navigate({ to: '/mechs/$id', params: { id: mech.id } })
     } catch (err) {
-      toast.error(serverMessage(err) ?? mechCopy('theMechCouldNotBe2'))
+      toast.error(playerMessage(err) ?? mechCopy('theMechCouldNotBe2'))
       setBusy(null)
     }
   }
@@ -156,10 +156,10 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   async function copy() {
     setBusy('copy')
     try {
-      await usePatternStore.getState().create(patternCopy(pattern))
+      await usePatterns.getState().create(patternCopy(pattern))
       toast.success(mechCopy('copiedToYourTrainingBay', { name: pattern.name }))
     } catch (err) {
-      toast.error(serverMessage(err) ?? mechCopy('thePatternCouldNotBe'))
+      toast.error(playerMessage(err) ?? mechCopy('thePatternCouldNotBe'))
     } finally {
       setBusy(null)
     }

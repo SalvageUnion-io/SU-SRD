@@ -6,34 +6,25 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
-const writes: unknown[] = []
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (_ref: unknown, args: unknown) => {
-      writes.push(args)
-      return { updatedAt: 1 }
-    },
-  },
-})
-afterAll(() => convexMocks.restore())
-
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { AnyNpcDesigner } = await import('../AnyNpcDesigner')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 let created: string[] = []
@@ -41,13 +32,13 @@ let created: string[] = []
 async function renderDesigner() {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <AnyNpcDesigner
           madeBy="alxjrvs"
           onCreated={(id) => created.push(id)}
           onCancel={() => undefined}
         />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -67,8 +58,8 @@ async function pick(name: string) {
 
 beforeEach(() => {
   created = []
-  writes.length = 0
-  useEntityStore.setState({
+  acceptingRooms()
+  useUnits.setState({
     npcs: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
@@ -198,9 +189,9 @@ describe('saving', () => {
     })
     await click('Next: Review')
     await click('Save NPC')
-    await waitFor(() => expect(useEntityStore.getState().npcs).toHaveLength(1))
+    await waitFor(() => expect(useUnits.getState().npcs).toHaveLength(1))
 
-    const [npc] = useEntityStore.getState().npcs
+    const [npc] = useUnits.getState().npcs
     expect(npc).toMatchObject({
       name: 'Sergeant Kessler',
       hitPoints: 9,
@@ -212,6 +203,10 @@ describe('saving', () => {
     expect(npc?.description).toContain('seasoned soldier')
     expect(created).toEqual([npc?.id ?? ''])
     // Server first: the body went up before it landed here.
-    expect(writes).toContainEqual(expect.objectContaining({ table: 'npcs', appId: npc?.id }))
+    expect(roomActs).toContainEqual({
+      gameId: null,
+      name: 'createUnit',
+      args: expect.objectContaining({ id: npc?.id, kind: 'npc' }),
+    })
   })
 })

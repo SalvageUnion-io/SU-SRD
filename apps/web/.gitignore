@@ -1,2 +1,2 @@
-# `convex dev` writes this file when it is missing; keeping it stops the CLI recreating it.
+# A machine's own env overrides: never committed.
 .env.local

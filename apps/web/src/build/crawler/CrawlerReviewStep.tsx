@@ -1,3 +1,4 @@
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
@@ -14,7 +15,6 @@ import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
-import '../../styles/build/wizard.css'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
@@ -75,7 +75,10 @@ export function CrawlerReviewStep({
 
   // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
   const sp = techLevel
-    ? crawlerMaxSPParts({ techLevel: `tech-${techLevel.techLevel}`, type: form.type ?? undefined })
+    ? crawlerMaxSPParts({
+        techLevel: crawlerTechLevelSlug(techLevel.techLevel),
+        type: form.type ?? undefined,
+      })
     : undefined
   const spChip = sp ? (
     <Stat

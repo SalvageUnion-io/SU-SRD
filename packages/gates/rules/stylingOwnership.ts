@@ -31,9 +31,7 @@ import { scanEntityMarkupIn, stripCssComments, stripTsComments } from './entityM
 const APP_DIRS = ['apps/web/src'] as const
 /** The component library's own stylesheet (`entry.css` and what it imports): the owner, not an app. */
 const LIB_CSS = new Set(
-  ['entry.css', 'index.css', 'reset.css', 'theme.css', 'fallback-fonts.css'].map(
-    (f) => `apps/web/src/styles/${f}`
-  )
+  ['entry.css', 'index.css', 'reset.css', 'theme.css'].map((f) => `apps/web/src/styles/${f}`)
 )
 const notLib = (rel: string) =>
   !LIB_CSS.has(rel) && !rel.startsWith('apps/web/src/styles/partials/')
@@ -590,9 +588,8 @@ function preflight(root: string): void {
   assertCoversWorkspaces('styling ownership', APP_DIRS, {
     'apps/discord-bot':
       'ships no stylesheet — it renders Discord Components V2 containers, not DOM.',
-    'apps/su-assets': 'a Worker that serves image bytes and short error strings; no CSS, no DOM.',
     'packages/game-domain':
-      'schemas and rules shared with Convex and the bot; no components and no stylesheet.',
+      'schemas and rules shared with the Worker and the bot; no components and no stylesheet.',
     'packages/salvageunion-reference': 'data and ORM; no components and no stylesheet.',
     'packages/gates': 'the gates themselves; no components and no stylesheet.',
   })

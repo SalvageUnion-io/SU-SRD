@@ -10,8 +10,8 @@
  */
 
 import type { RefEntity } from 'salvageunion-reference'
-import type { EndpointModule, StaticPath } from '../../../ssg/types'
 import { getItemStaticPaths } from '../../lib/staticPaths'
+import type { EndpointModule, StaticPath } from '../types'
 
 type Params = { schemaId: string; itemId: string }
 type Props = ReturnType<typeof getItemStaticPaths>[number]['props']

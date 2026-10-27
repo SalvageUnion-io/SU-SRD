@@ -54,7 +54,7 @@ export type CrawlerCapacityInput = {
   isBattleCrawler?: boolean
 }
 
-export type CrawlerCapacityViolation =
+type CrawlerCapacityViolation =
   | {
       kind: 'bays-over-capacity'
       message: string

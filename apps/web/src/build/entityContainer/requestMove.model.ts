@@ -20,7 +20,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 
 export function requestMove(args: {
   entityType: EntityKind
@@ -51,11 +51,7 @@ export function requestMove(args: {
   }
   const cleared =
     next.kind === 'game'
-      ? assignmentsClearedByMove(
-          useEntityStore.getState(),
-          { type: entityType, id: entityId },
-          next
-        )
+      ? assignmentsClearedByMove(useUnits.getState(), { type: entityType, id: entityId }, next)
       : []
   if (next.kind === 'shelf' || cleared.length === 0) {
     args.moveNow(next)

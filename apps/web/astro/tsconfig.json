@@ -1,0 +1,6 @@
+{
+  // `astro check` (tools/astro-check): the `.astro` shells only. `tsc` 7
+  // checks every `.ts` and `.tsx` they import.
+  "extends": "../tsconfig.json",
+  "include": ["**/*.astro", "../.astro/types.d.ts"]
+}

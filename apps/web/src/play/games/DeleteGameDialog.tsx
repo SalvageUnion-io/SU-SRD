@@ -28,19 +28,17 @@
  * file owns only the words.
  */
 
-import { useMutation } from 'convex/react'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { ConfirmDialog, Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesCall } from '../../replica/roomCalls'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {
-  _id: Id<'games'>
+  _id: string
   name: string
   crawlerName: string | null
   pilotCount: number
@@ -80,7 +78,7 @@ function countPhrase(n: number, singular: string): string | null {
 }
 
 export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
-  const destroy = useMutation(api.games.destroy)
+  const destroy = useGamesCall('games.destroy')
 
   async function handleConfirm() {
     if (game === null) return
@@ -107,9 +105,8 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       confirmLabel={playGamesCopy('deleteGame')}
       pendingLabel={playGamesCopy('deleting')}
       onConfirm={handleConfirm}
-      // A refusal carries wording the server chose for the player —
-      // `NotAuthorized` extends `ConvexError` precisely so it survives the wire
-      // intact rather than arriving as "Server Error". Anything else does not,
+      // A refusal (`RoomDeclined`) carries wording the server chose for the
+      // player. Anything else does not,
       // and rendering `String(err)` would show a redacted stack, so it gets a
       // generic line and an operator report instead. Either way the dialog
       // stays open with the reason on it; closing silently would look like the

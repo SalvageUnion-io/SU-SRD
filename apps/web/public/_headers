@@ -18,20 +18,16 @@
   X-DNS-Prefetch-Control: on
   # connect-src MUST keep 'self', or the browser blocks every error report
   # before it leaves the page — silent, and it looks healthy (zero errors).
-  # script-src carries NO 'unsafe-inline' and NO hashes. With 'unsafe-inline',
-  # an injected <script> executes and CSP's primary XSS control is gone. The reference site
-  # emits no executable inline script at all — the /about and /greembeem
-  # scripts load by URL from public/ — so this list is literal and cannot
-  # drift. An inline <script> added later is BLOCKED by this policy: load it
-  # by URL.
+  # script-src carries NO 'unsafe-inline'. With it, an injected <script>
+  # executes and CSP's primary XSS control is gone. The inline scripts the
+  # site does run (Astro's island runtime and directives, and the speculation
+  # rules) are named by hash: the build adds every one it wrote to this line in
+  # dist/_headers (astro/build/inlineScripts.ts), so an inline <script> the
+  # build did not write is BLOCKED. A page's own script loads by URL, as the
+  # /about and /greembeem scripts do from public/.
   #
-  # 'inline-speculation-rules' covers <script type="speculationrules">, which is
-  # gated by script-src but cannot be hashed. Browsers that don't know the
-  # keyword ignore it, and those are the ones with no speculation rules anyway.
-  #
-  # JSON-LD and the island props are type="application/ld+json" and
-  # type="application/json" — DATA BLOCKS, which the browser never executes and
-  # script-src does not gate. They need no hash.
+  # JSON-LD is type="application/ld+json", a DATA BLOCK the browser never
+  # executes and script-src does not gate. It needs no hash.
   #
   # 'unsafe-inline' stays in style-src deliberately: React's inline `style=`
   # attributes need it, and style injection is not script execution.
@@ -41,10 +37,7 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  #
-  # The Convex origins are the app's accounts client and live queries
-  # (ADR-030), under `/build`: one policy for the one app.
-  Content-Security-Policy: default-src 'self'; script-src 'inline-speculation-rules' 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://*.convex.cloud wss://*.convex.cloud https://*.convex.site;
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name
@@ -53,7 +46,7 @@
 https://su-srd.alxjrvs.workers.dev/*
   X-Robots-Tag: noindex
 
-# Content-hashed bundle output (`vite.config.ts` uses Vite's default
+# Content-hashed bundle output (`astro.config.ts` uses Vite's default
 # assetsDir). If it ever sets a different build.assetsDir, change this with it,
 # and the Worker's `/assets/` prefix too. A MISS here never sees this rule: the
 # Worker answers it with `no-store` (src/worker/index.ts).
@@ -77,7 +70,7 @@ https://su-srd.alxjrvs.workers.dev/*
 #   cache-control: public, max-age=31536000, immutable, public, max-age=31536000, immutable
 # Harmless while both halves agreed, contradictory once they don't. An image
 # this list misses gets the platform default, `max-age=0, must-revalidate`:
-# always fresh, never stuck. `ssg/__tests__/headers.test.ts` holds all of this.
+# always fresh, never stuck. `astro/build/__tests__/headers.test.ts` holds all of this.
 /og-image.png
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 

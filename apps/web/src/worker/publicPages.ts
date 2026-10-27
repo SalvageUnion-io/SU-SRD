@@ -2,9 +2,9 @@
  * The public pages search may list: the front door, the Starter Set and each
  * of its builds. Every one is the same for every visitor and needs no account
  * (ADR-021: signed-out surfaces), and none is a player's own thing, so what
- * each says is known without asking Convex.
+ * each says is known without asking a room.
  *
- * So the build pre-renders them (`publicShells`, from `vite.config.ts`):
+ * So the build pre-renders them (`publicShells`, from `astro/build/appPlugins.ts`):
  * the Starter Set and each build get a copy of the shell whose `app:meta`
  * block carries the page's own title, description, canonical and `og:*`,
  * written beside it as `starter.html` and `starter/<kind>/<id>.html`, which the
@@ -21,8 +21,7 @@
  * only itself, as `linkPreview.ts` does.
  *
  * The picture is the site's own `/og-image.png`: the render surfaces
- * (`/og/:kind/:id`) read Convex's public answer, which a Starter Set template
- * never has.
+ * (`/og/:kind/:id`) read a shared row, which a Starter Set template never has.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

@@ -24,7 +24,7 @@ import { SiteLink } from './AppLink'
  * The shell arrives already marked for the route it was served on.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
- * Convex or Games; `routes/__root.tsx` fills them
+ * the Worker or Games; `routes/__root.tsx` fills them
  * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
@@ -50,9 +50,7 @@ type UnionBarSlotsProps = {
   drawerSearch?: ReactNode
   /** Controls at the top of the mobile drawer, handed `close` to dismiss it. */
   drawerExtra?: (close: () => void) => ReactNode
-  /** Above the bar: the not-connected banner, filled even while the bar is hidden. */
-  banner?: ReactNode
-  /** The route draws no bar (`hidesUnionBar`): only the banner is filled. */
+  /** The route draws no bar (`hidesUnionBar`): no slot is filled. */
   barHidden?: boolean
 }
 
@@ -79,7 +77,6 @@ export function UnionBarSlots({
   mobileActions,
   drawerSearch,
   drawerExtra,
-  banner,
   barHidden = false,
 }: UnionBarSlotsProps) {
   // No router in a component test: the bar's links then stay plain anchors.
@@ -127,9 +124,8 @@ export function UnionBarSlots({
     </>
   )
 
-  const fill: Record<UnionSlot, ReactNode> = barHidden
-    ? { banner, games: null, search: null, actions: null, mobile: null }
-    : { banner, games, search, actions, mobile }
+  if (barHidden) return null
+  const fill: Record<UnionSlot, ReactNode> = { games, search, actions, mobile }
   return (
     <>
       {UNION_SLOTS.map((name) => {

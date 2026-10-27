@@ -6,46 +6,33 @@
  * exercises the Sheet → sub-component → store integration as a whole, rather
  * than testing a single sub-component in isolation.
  *
- * Scenarios:
- *   1.  Pilot-only sheet renders (no links → PilotSheet visible)
- *   2.  Mech-only sheet renders (no links → MechSheet visible)
- *   3.  Crawler-only sheet renders (no links → CrawlerSheet visible)
- *   4.  Wired composition: mech-to-pilot link → both PilotSheet + MechSheet
- *   5.  Empty-rail case: mech with no link → pilot RailEmpty visible
- *   6.  Stat-edit round-trip via the Sheet hero trackers (StatBlock steppers)
- *   7.  Top-bar Share entry: the Share button opens ShareStatusDialog in place
- *   8.  (SnapshotPageInner 404 — retired with snapshots, ADR-036)
- *   9.  Read-only mode: Sheet readOnly=true → Share control NOT rendered
+ * Scenarios (the per-kind renders and the rail live in Sheet.test.tsx):
+ *   1.  Stat-edit round-trip via the Sheet hero trackers (VitalGauge)
+ *   2.  Top-bar Share entry: the Share button opens ShareStatusDialog in place
  *
  * Conventions:
  *   - toBeTruthy() not toBeInTheDocument() (happy-dom workaround)
- *   - The only module mocks are Convex's (`installConvexMocks`): the signed-out
+ *   - The only module mocks are the server's (`installServerMocks`): the signed-out
  *     Share dialog mounts `SignInControl`
  *   - afterEach cleanup()
  */
 
-import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-  softLinkFixture,
-} from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
-  makeEntityStoreMock,
+  makeSingleUnitStore,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { fakeMech, fakePilot } from './sheetFixtures'
 
-// Module scope, before the import below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({ authReact: true })
-afterAll(() => convexMocks.restore())
+// Module scope, before the import below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { Sheet } = await import('../Sheet')
 
@@ -56,231 +43,7 @@ const { Sheet } = await import('../Sheet')
 beforeAll(hydrateStores)
 
 // ---------------------------------------------------------------------------
-// Shared fake entities
-// ---------------------------------------------------------------------------
-
-const fakePilot = pilotFixture({
-  id: 'pilot-smoke-1',
-  name: 'Riko Vane',
-  callsign: 'Spark',
-  classRef: 'mechanic',
-  abilities: ['fast-repair'],
-  equipment: ['wrench'],
-  motto: 'Fix it fast.',
-  keepsake: 'Worn goggles.',
-  appearance: 'Compact, oil-stained.',
-})
-
-const fakeMech = mechFixture({
-  id: 'mech-smoke-1',
-  name: 'Steel Coffin',
-  chassisRef: 'iron-mongrel',
-  systems: ['rail-gun'],
-  modules: ['shield-cell'],
-  currentHP: 8,
-})
-
-const fakeCrawler = crawlerFixture({
-  id: 'crawler-smoke-1',
-  name: 'Rust Colossus',
-  techLevel: 'tech-2',
-  crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
-  systems: ['hull-repair'],
-})
-
-// ---------------------------------------------------------------------------
-// Store factory (reused across tests)
-// ---------------------------------------------------------------------------
-
-/**
- * Build a minimal Zustand-shaped store stub for MechSheet's `store` prop.
- * Only `get` and `update` are exercised by the click-to-edit path.
- */
-function makeZustandLikeStore(
-  mechs: Mech[],
-  onUpdate?: (id: string, patch: Partial<Mech>) => void
-): typeof useEntityStore {
-  const updateMock = mock(async (_type: string, id: string, patch: Partial<Mech>) => {
-    onUpdate?.(id, patch)
-    const entity = mechs.find((e) => e.id === id)
-    return { ...entity, ...patch } as Mech
-  })
-
-  return makeEntityStoreMock({
-    mechs,
-    hydrated: { pilots: false, mechs: true, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => mechs),
-    get: mock((_type: string, id: string) => mechs.find((e) => e.id === id) ?? null),
-    create: mock(async () => mechs[0] ?? null),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
-}
-
-// ---------------------------------------------------------------------------
-// Scenario 1 — Pilot-only sheet renders
-// ---------------------------------------------------------------------------
-
-describe('Smoke — pilot-only sheet', () => {
-  test('PilotSheet section is visible: pilot name rendered', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-smoke-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getAllByText(/Riko Vane/).length).toBeGreaterThan(0)
-  })
-
-  test('pilot class ref appears in the sheet section', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-smoke-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getAllByText(/mechanic/i).length).toBeGreaterThan(0)
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 2 — Mech-only sheet renders
-// ---------------------------------------------------------------------------
-
-describe('Smoke — mech-only sheet', () => {
-  test('MechSheet section is visible: mech name rendered', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getAllByText(/Steel Coffin/).length).toBeGreaterThan(0)
-  })
-
-  test('mech system slug appears in the sheet', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getByText('rail-gun')).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 3 — Crawler-only sheet renders
-// ---------------------------------------------------------------------------
-
-describe('Smoke — crawler-only sheet', () => {
-  test('CrawlerSheet section is visible: crawler name rendered', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-smoke-1"
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getAllByText(/Rust Colossus/).length).toBeGreaterThan(0)
-  })
-
-  test("crawler tech level is the band's TL chip, not identity's", () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-smoke-1"
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Tech Level is the chapter band's `TL | n` chip, ahead of its type, and
-    // nowhere in the body.
-    const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
-    expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
-    const identity = screen.getByRole('region', { name: 'Crawler identity' })
-    expect(within(identity).queryByText('TL')).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 4 — Wired composition: mech + pilot link → both sheets visible
-// ---------------------------------------------------------------------------
-
-describe('Smoke — wired composition (mech→pilot)', () => {
-  const link = softLinkFixture('mech-to-pilot', 'mech-smoke-1', 'pilot-smoke-1')
-
-  test('both PilotSheet and MechSheet content visible', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([link])}
-      />
-    )
-    // Pilot name — PilotSheet renders it
-    expect(screen.getAllByText(/Riko Vane/).length).toBeGreaterThan(0)
-    // Mech name — rendered by the LiveSheet hero (and condensed strip)
-    expect(screen.getAllByText(/Steel Coffin/).length).toBeGreaterThan(0)
-  })
-
-  test('no pilot RailEmpty when pilot is wired', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([link])}
-      />
-    )
-    expect(screen.queryByLabelText('No pilot assigned')).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 5 — Empty-rail case: mech with no link → pilot RailEmpty visible
-// ---------------------------------------------------------------------------
-
-describe('Smoke — mech stand-in (no pilot link)', () => {
-  test('pilot RailEmpty renders when mech has no wired pilot', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
-  })
-
-  test('PilotSheet NOT rendered when mech has no wired pilot', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-smoke-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Pilot name should not appear
-    expect(screen.queryByText(/Riko Vane/)).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 6 — Stat-edit round-trip via the Sheet hero trackers
+// Scenario 1 — Stat-edit round-trip via the Sheet hero trackers
 //
 // Stat editing lives in the hero VitalGauges now (Sheet.tsx): clicking a
 // track segment patches current* fields through the injected store. This
@@ -297,7 +60,12 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
       currentSP: 5,
     }
     const captured: Array<{ id: string; patch: Partial<Mech> }> = []
-    const store = makeZustandLikeStore([statMech], (id, patch) => captured.push({ id, patch }))
+    const store = makeSingleUnitStore('mech', statMech, {
+      update: async (_type, id, patch) => {
+        captured.push({ id, patch: patch as Partial<Mech> })
+        return { ...statMech, ...patch } as Mech
+      },
+    })
 
     render(
       <Sheet
@@ -323,7 +91,7 @@ describe('Smoke — stat-edit round-trip (Sheet hero trackers)', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Scenario 7 — top-bar Share entry point
+// Scenario 2 — top-bar Share entry point
 //
 // Share is a BUTTON that opens ShareStatusDialog over this sheet, not a link to
 // a share screen. That screen was deleted: its left half previewed the very
@@ -337,7 +105,7 @@ describe('Smoke — the top-bar Share control opens the share dialog', () => {
     render(
       <Sheet
         kind="pilot"
-        id="pilot-smoke-1"
+        id="pilot-1"
         entityStore={makeEntityLookupMock([fakePilot])}
         softLinkStore={makeSoftLinkStoreMock([])}
       />
@@ -352,36 +120,5 @@ describe('Smoke — the top-bar Share control opens the share dialog', () => {
     })
     // Solo here (no provider), so the dialog says what sharing needs.
     expect(await screen.findByText(/sharing needs an account/i)).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Scenario 9 — Read-only mode: Sheet readOnly=true → no Share control
-// ---------------------------------------------------------------------------
-
-describe('Smoke — readOnly mode', () => {
-  test('Sheet with readOnly=true does NOT render the Share control', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-smoke-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-        readOnly={true}
-      />
-    )
-    expect(screen.queryByRole('button', { name: /share this pilot/i })).toBeNull()
-  })
-
-  test('Sheet with readOnly=false (default) renders the Share control', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-smoke-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getByRole('button', { name: /share this pilot/i })).toBeTruthy()
   })
 })

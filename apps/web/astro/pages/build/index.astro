@@ -1,0 +1,18 @@
+---
+/**
+ * The app's shell, `build/index.html` (ADR-050): the one document the Worker
+ * serves for every `/build/*` and `/play/*` navigation. Astro bundles the
+ * app's entry into it, after React's Fast Refresh preamble (empty in a build).
+ */
+import { appShell } from '../../build/appShell'
+import Fonts from '../../components/Fonts.astro'
+
+const { head, body } = appShell(import.meta.env.VITE_SITE_ORIGIN)
+---
+<html lang="en">
+  <head><Fragment set:html={head} /><Fonts /></head>
+  <body><Fragment set:html={body} /><script>
+    import '@vitejs/plugin-react/preamble'
+    import '../../../src/main'
+  </script></body>
+</html>

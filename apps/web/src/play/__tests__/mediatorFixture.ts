@@ -5,40 +5,37 @@
  * Hotdog, an unassigned pre-gen, who is no seat.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, crewMech, crewPilot } from './crewRows'
 
 const pilot = crewPilot
 const mech = crewMech
 
-/** The table at `now`: three beat a moment ago, Wren an hour ago. */
-export function mediatorCrewAt(now: number): CrewVitals {
-  const here = now - 1_000
+/** Who has the Game open: everyone but Wren's player. */
+export const TABLE_HERE: ReadonlySet<string> = new Set(['u-bonesaw', 'u-mags', 'u-rook'])
+
+/** The table. */
+export function mediatorCrewAt(): CrewVitals {
   return {
-    viewerId: 'u-gm' as Id<'users'>,
     pilots: [
       pilot('bonesaw', 'Bonesaw', 'u-bonesaw', {
         currentHP: 7,
         currentAP: 3,
         boarded: true,
         mechId: 'buzzard',
-        lastSeenAt: here,
       }),
       pilot('mags', 'Mags', 'u-mags', {
         currentHP: 9,
         boarded: true,
         mechId: 'atlas',
-        lastSeenAt: here,
       }),
       pilot('rook', 'Rook', 'u-rook', {
         currentHP: 4,
         currentAP: 1,
         status: { ...calm, injured: true },
         attention: true,
-        lastSeenAt: here,
       }),
-      pilot('wren', 'Wren', 'u-wren', { boarded: true, mechId: 'mule', lastSeenAt: now - 3.6e6 }),
+      pilot('wren', 'Wren', 'u-wren', { boarded: true, mechId: 'mule' }),
       pilot('hotdog', 'Hotdog', null, {}),
     ],
     mechs: [

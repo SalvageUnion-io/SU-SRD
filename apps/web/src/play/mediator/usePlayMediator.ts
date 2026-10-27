@@ -6,7 +6,8 @@
  * It reads the table live — the seats (`crew.vitals`, `seats.forGame`, in
  * `games.members` join order), the primary crawler (`entities.listForGame`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
- * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`), the saved
+ * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`, through
+ * `useTableRead`, so the Game room serves it once it feeds the replica), the saved
  * patterns the picker may field, the proposals sent, the alerts, the
  * Game's rolls, its Scene's conditions (`useScene`) and the area being
  * salvaged — and makes the writes the Mediator holds: the Opposition, a
@@ -20,8 +21,6 @@
  * the roll's own Post says so.
  */
 
-import { useMutation, useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import { dealCount } from 'game-domain/games/ledger'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -30,11 +29,9 @@ import { RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import type { SceneConditionId } from 'game-domain/schemas/scene'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { dieForTable, rollD20, rollForTable, toast } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { useWorkerRead } from '../../lib/connection/workerRead'
 import { flagOn } from '../../lib/flags'
 import type { ImportantRoll } from '../../lib/rules/opposition'
 import {
@@ -48,17 +45,23 @@ import {
 } from '../../lib/rules/opposition'
 import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
+import { sharedPaths } from '../../lib/sharing/paths'
 import { mediatorCopy } from '../../messages/play-mediator'
-import { useEntityStore } from '../../stores/entityStore'
-import { usePrepStore } from '../../stores/prepStore'
-import { PLAY_TXN } from '../../stores/surfaceProvenance'
+import { useEncounters, usePatterns } from '../../replica/collections'
+import { PLAY_TXN } from '../../replica/provenance'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
+import { useTableAct, useTableRead } from '../../replica/useTable'
+import type { GameActResult } from '../../rooms/game/acts'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
 import type { PlayDowntime } from '../situation.model'
+import { useClock } from '../useClock'
 import type { AlertLine, CrewVitals, RollLine } from '../useGameFeed'
+import { useGamePresence } from '../useGamePresence'
 import { usePlayDowntime } from '../usePlayDowntime'
-import { usePresenceClock } from '../usePresenceClock'
 import type { SalvageAreaView } from '../useSalvageArea'
 import { useSalvageArea } from '../useSalvageArea'
 import type { SceneState } from '../useScene'
@@ -139,7 +142,7 @@ type DealIncome = {
   /** This Downtime's is collected. */
   collected: boolean
   /** Collect it into the crawler: what it paid, or null when it already was. */
-  collect: () => Promise<FunctionReturnType<typeof api.ledger.collectIncome>>
+  collect: () => Promise<GameActResult<'ledger.collectIncome'>>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -182,41 +185,51 @@ function primaryCrawler(
 }
 
 export function usePlayMediator(gameId: string, gameName: string): PlayMediator {
-  const id = gameId as Id<'games'>
-  const connection = useConnection()
+  const id = gameId
+  const connection = useSync()
   const { canWrite } = connection
-  const now = usePresenceClock()
-  const store = useEntityStore()
+  const here = useGamePresence(gameId, 'seat')
+  const now = useClock()
+  const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
-  const members = useQuery(api.games.members, { gameId: id })
-  const crew = useQuery(api.crew.vitals, { gameId: id })
-  const seats = useQuery(api.seats.forGame, { gameId: id })
-  const listing = useQuery(api.entities.listForGame, { gameId: id })
-  const npcs = useQuery(api.mediator.npcs, { gameId: id })
-  const running = useQuery(api.mediator.running, { gameId: id })
-  const encounters = usePrepStore((s) => s.encounters)
-  const patterns = useQuery(api.mediator.patterns, { gameId: id })
-  const sent = useQuery(api.proposals.sent, { gameId: id, limit: sentLimit })
-  const alerts = useQuery(api.proposals.alerts, { gameId: id, limit: FEED_ALERTS })
-  const rolls = useQuery(api.changeLog.rolls, { gameId: id, limit: FEED_ROLLS })
+  const members = useGamesQuery('games.members', { gameId: id })
+  const crew = useTableRead('crew.vitals', { gameId })
+  const seats = useTableRead('seats.forGame', { gameId })
+  const listing = useGamesQuery('entities.listForGame', { gameId: id })
+  const npcs = useTableRead('mediator.npcs', { gameId })
+  const running = useTableRead('mediator.running', { gameId })
+  const encounters = useEncounters((s) => s.encounters)
+  // The Mediator's own patterns, from their replica, then those crewmates
+  // shared with this Game, from the shared database.
+  const ownPatterns = usePatterns((s) => s.mechPatterns)
+  const gamePatterns = useWorkerRead<{ appId: string; body: unknown; madeBy: string }[]>(
+    sharedPaths.gamePatterns(gameId)
+  )
+  const patterns = [
+    ...ownPatterns.map((p) => ({ appId: p.id, body: p, madeBy: mediatorCopy('you') })),
+    ...(gamePatterns ?? []),
+  ]
+  const sent = useTableRead('ops.sent', { gameId, limit: sentLimit })
+  const alerts = useTableRead('changeLog.alerts', { gameId, limit: FEED_ALERTS })
+  const rolls = useTableRead('changeLog.rolls', { gameId, limit: FEED_ROLLS })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
-  const ledger = useQuery(api.ledger.get, { gameId: id })
-  const collectIncome = useMutation(api.ledger.collectIncome)
+  const ledger = useTableRead('ledger.get', { gameId })
+  const collectIncome = useTableAct('ledger.collectIncome', gameId)
 
-  const addNpc = useMutation(api.mediator.addNpc)
-  const updateNpc = useMutation(api.mediator.updateNpc)
-  const removeNpc = useMutation(api.mediator.removeNpc)
-  const runEncounter = useMutation(api.mediator.runEncounter)
-  const endEncounter = useMutation(api.mediator.endEncounter)
-  const bringInWave = useMutation(api.mediator.bringInWave)
-  const recordGroupRoll = useMutation(api.mediator.recordGroupRoll)
-  const proposeMutation = useMutation(api.proposals.propose)
-  const broadcastMutation = useMutation(api.proposals.broadcast)
-  const setConditions = useMutation(api.scenes.setConditions)
-  const passHour = useMutation(api.scenes.passHour)
+  const addNpc = useTableAct('mediator.addNpc', gameId)
+  const updateNpc = useTableAct('mediator.updateNpc', gameId)
+  const removeNpc = useTableAct('mediator.removeNpc', gameId)
+  const runEncounter = useTableAct('mediator.runEncounter', gameId)
+  const endEncounter = useTableAct('mediator.endEncounter', gameId)
+  const bringInWave = useTableAct('mediator.bringInWave', gameId)
+  const recordGroupRoll = useTableAct('mediator.recordGroupRoll', gameId)
+  const proposeMutation = useTableAct('ops.propose', gameId)
+  const broadcastMutation = useTableAct('changeLog.broadcast', gameId)
+  const setConditions = useTableAct('scenes.setConditions', gameId)
+  const passHour = useTableAct('scenes.passHour', gameId)
 
   const tray = npcs?.map(readTrayNpc) ?? null
 
@@ -239,12 +252,11 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       }
     }
 
-  const npcId = (npc: TrayNpc) => npc.id as Id<'encounterNpcs'>
+  const npcId = (npc: TrayNpc) => npc.id
 
   const trayWrites: TrayWrites = {
     add: (schema, entity, draw) =>
       addNpc({
-        gameId: id,
         body: newTrayNpc(
           schema,
           entity,
@@ -272,7 +284,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       const roll = table === 'reaction' ? rollReaction : rollMorale
       const result = roll(await dieForTable(tableName), new Date().toISOString())
       if (result === null) throw new Error(`The ${tableName} table could not be read`)
-      await recordGroupRoll({ gameId: id, groupId: group.id, roll: result })
+      await recordGroupRoll({ groupId: group.id, roll: result })
       recordPlayRoll({
         tableName,
         rolls: [result.roll],
@@ -388,7 +400,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             new Date().toISOString(),
             pattern ? { pattern } : {}
           )
-          await addNpc({ gameId: id, body })
+          await addNpc({ body })
           taken.push(body.name)
           added += 1
         }
@@ -403,18 +415,18 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   return {
     gameId,
     gameName,
-    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], now),
+    seats: mediatorSeats(crew ?? null, seats ?? [], members ?? [], here),
     crew: crew ?? null,
     crawler,
     downtime,
     scene: {
       ...sceneState,
       set: said(async (conditions: readonly SceneConditionId[]) => {
-        await setConditions({ gameId: id, conditions: [...conditions] })
+        await setConditions({ conditions: [...conditions] })
       }),
       passHour: async () => {
         try {
-          return await passHour({ gameId: id })
+          return await passHour({})
         } catch (err) {
           onFailure(err)
           throw err
@@ -424,7 +436,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     income: {
       deals: ledger ? dealCount(ledger) : 0,
       collected: ledger?.incomeCollected ?? false,
-      collect: () => collectIncome({ gameId: id }),
+      collect: () => collectIncome({}),
     },
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),
@@ -446,14 +458,14 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       running: running == null ? null : readRunning(running),
       run: (encounterId, clear) =>
         runEncounter({
-          gameId: id,
-          encounterId,
+          // A Game room cannot read the Mediator's shelf: their own copy rides along.
+          encounter: encounters.find((e) => e.id === encounterId),
           clear,
           ...(flagOn('encounterSheet') ? { waves: true } : {}),
         }),
-      bringIn: (wave) => bringInWave({ gameId: id, wave }),
+      bringIn: (wave) => bringInWave({ wave }),
       end: async () => {
-        await endEncounter({ gameId: id })
+        await endEncounter({})
       },
     },
     sent: sent ?? null,
@@ -463,7 +475,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       await proposeMutation(args)
     }),
     broadcast: said(async (message: string) => {
-      await broadcastMutation({ gameId: id, message })
+      await broadcastMutation({ message })
     }),
     alerts: alerts ?? [],
     rolls: rolls ?? null,

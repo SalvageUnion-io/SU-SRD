@@ -103,6 +103,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ALL,
   },
   {
+    id: 'astro-check',
+    guards:
+      "the `.astro` shells' types (`astro check` on TypeScript 6's API until 7.1 ships one, #1795)",
+    fix: 'fix the type error it prints in apps/web/astro/',
+    cmd: ['bun', '--filter', 'astro-check', 'check'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
     id: 'knip',
     guards: 'no unused files, exports or dependencies',
     fix: 'delete what it lists; docs/ARCHITECTURE.md#dead-code covers the two exceptions',
@@ -166,35 +175,17 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'workers',
     guards:
-      'the three Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys, Workers Logs + Issues + source maps on',
+      'the Workers share one shape: src/worker/index.ts, one script set, Env types, equal shared wrangler keys, Workers Logs + Issues + source maps on',
     fix: 'make the app match the others (tools/check-workers.ts names each rule); a new Worker joins WORKERS there',
     cmd: ['bun', 'tools/check-workers.ts'],
     areas: ['code'],
     profiles: ALL,
   },
   {
-    id: 'convex-callers',
-    guards:
-      'every public Convex function has a shipped caller, every internal one a caller; api.d.ts registers the modules on disk',
-    fix: 'delete the function (or make a public one `internal*`, tag a hand-run one `@operator`); for api.d.ts drift, regenerate with `bunx convex dev`',
-    cmd: ['bun', 'tools/check-convex-callers.ts'],
-    areas: REPO_INVARIANT,
-    profiles: ALL,
-  },
-  {
-    id: 'client-contract',
-    guards:
-      'a Convex argument change that refuses calls an open app tab still makes raises the build floor',
-    fix: 'keep it compatible (optional argument, keep the old function) or raise BUILD_FLOOR in apps/web/convex/buildFloor.ts to `date +%s`; then `bun tools/check-client-contract.ts --write` records tools/baselines/convex-client-contract.json',
-    cmd: ['bun', 'tools/check-client-contract.ts'],
-    areas: ['code'],
-    profiles: ALL,
-  },
-  {
     id: 'rules-home',
     guards:
-      'Convex imports nothing from apps/web/src/; no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
-    fix: 'move shared logic to game-domain or salvageunion-reference; move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
+      'no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
+    fix: 'move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -218,8 +209,7 @@ export const CHECKS: readonly CheckSpec[] = [
   },
   {
     id: 'workflows',
-    guards:
-      'CI aggregate gate, path filters, bunx pinning, deploy order (incl. Convex deploy-key guard), production-secret env',
+    guards: 'CI aggregate gate, path filters, bunx pinning, deploy order, production-secret env',
     fix: 'each message names the file and the fix; `bun tools/check-workflows.ts --only=<id>` reruns one',
     cmd: ['bun', 'tools/check-workflows.ts'],
     // Reads only .github/ and the manifests, all of them `code`.

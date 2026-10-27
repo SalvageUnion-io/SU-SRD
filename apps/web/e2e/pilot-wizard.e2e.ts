@@ -46,7 +46,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // trees that class reveals. Both halves gate Next.
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')
-  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
+  await expect(page.getByTestId('ability-count')).toContainText('1/1')
   await clickNext(page)
 
   // Step 3: Equipment — exactly two Tech 1 picks.
@@ -54,7 +54,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(equipmentOptions.first()).toBeVisible()
   await equipmentOptions.first().click()
   await equipmentOptions.first().click()
-  await expect(page.getByTestId('equipment-count')).toHaveText('2 / 2')
+  await expect(page.getByTestId('equipment-count')).toContainText('2/2')
   await clickNext(page)
 
   // Step 4: identity — name + callsign both required before Next opens.
@@ -106,40 +106,6 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // One sheet link on the roster, matched by href: this asserts a COUNT across
   // all rows, so it must not depend on any single entity's name.
   await expect(page.locator(sheetHref())).toHaveCount(1)
-})
-
-/**
- * Regression guard: the Class step's Next CTA must open once — and only once —
- * the step is actually satisfied.
- *
- * The step is a master-detail: selectable class entity cards first, then the
- * chosen class's first-Ability pool. A render-time failure inside the detail
- * listing could leave the wizard stuck here with no way to advance.
- *
- * The gate is BOTH halves — "Step 2 of 9 · Choose your Pilot and your first
- * Ability". Asserting the two-part gate fails if EITHER half stops
- * registering.
- */
-test('Next opens only once both class and first ability are picked', async ({ page }) => {
-  await openWizard(page, 'pilots')
-  // "Your Stats" precedes the Class step, so walk to the class cards first.
-  await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
-
-  const next = page.getByRole('button', { name: /^Next: / })
-  await expect(next).toBeDisabled()
-
-  // Half one: the class. Not enough on its own.
-  await pickByName(page, 'Engineer')
-  await expect(next, 'a class alone must not satisfy the class+ability step').toBeDisabled()
-
-  // Half two: a first Ability from the pool the class just revealed
-  // (Engineer / Mechanical Knowledge L1).
-  await pickByName(page, 'Engineering Expertise')
-  await expect(next).toBeEnabled()
-
-  // And clicking Next actually advances to Equipment (step 3 of 9).
-  await next.click()
-  await expect(page.getByRole('heading', { name: /Choose your Equipment/i })).toBeVisible()
 })
 
 test('every base class renders a selectable row', async ({ page }) => {
@@ -218,20 +184,9 @@ test('switching class moves the selection', async ({ page }) => {
 })
 
 /**
- * Pilot wizard corner cases that the happy-path test doesn't cover:
- *  - Cancelling mid-wizard does not leave a pilot in the store.
- *  - Switching class after picking an ability clears the previous pick
- *    (different class trees → different ability set) — create mode only.
- *  - The identity step gates Next until both name and callsign are present.
- *  - Picking past the ability budget is a no-op.
- *  - Picking past the equipment budget is a no-op.
- *
- * The budgets are the rulebook's: exactly 1 Ability (Core Book p.18) and 2
- * Tech 1 Equipment (p.19) — `PILOT_CREATION_ABILITY_PICKS` /
- * `PILOT_CREATION_EQUIPMENT_PICKS`. If they disagree with the app, check the
- * book before touching the app.
+ * The gates (class + ability, the 1/2 budgets, the callsign) are unit-tested
+ * in PilotWizard.test.tsx; here a cancel mid-wizard leaves no pilot behind.
  */
-
 test('cancel mid-wizard leaves the Training Bay with no new pilot', async ({ page }) => {
   await openTrainingBay(page)
   // Count pilots already in the Training Bay (0 for the fresh account, but count
@@ -254,88 +209,4 @@ test('cancel mid-wizard leaves the Training Bay with no new pilot', async ({ pag
   await waitForReady(page)
 
   await expect(sheets).toHaveCount(initialCount)
-})
-
-test('switching class after picking an ability resets the ability list', async ({ page }) => {
-  await openWizard(page, 'pilots')
-
-  // Class and first Ability share one step, so switching class needs no trip
-  // Back — the ability pool re-renders underneath the new class.
-  await pickByName(page, 'Engineer')
-  await pickByName(page, 'Engineering Expertise')
-  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
-
-  // Switch to Scout: its trees do not include Engineering Expertise, so the
-  // pick cannot carry over and the counter falls back to empty.
-  await pickByName(page, 'Scout')
-  await expect(page.getByTestId('ability-count')).toHaveText('0 / 1')
-})
-
-test('identity step gates Next until name + callsign are present', async ({ page }) => {
-  await openWizard(page, 'pilots')
-
-  // Satisfy the gated steps ahead of identity, then walk to it by content
-  // rather than by counting Next clicks.
-  await pickByName(page, 'Engineer')
-  await pickByName(page, 'Engineering Expertise')
-  await clickNext(page)
-  const equipmentOptions = unselectedOptions(page)
-  await expect(equipmentOptions.first()).toBeVisible()
-  await equipmentOptions.first().click()
-  await equipmentOptions.first().click()
-
-  const nameField = page.getByLabel(/^Name/)
-  await advanceUntilVisible(page, nameField)
-
-  // Identity step — both fields required. Without them, Next is disabled.
-  const next = page.getByRole('button', { name: /^Next: / })
-  await expect(next).toBeDisabled()
-
-  // Fill only the name, leave callsign blank.
-  await nameField.fill('Only Name')
-  await expect(next).toBeDisabled()
-
-  // Add callsign — Next enables.
-  await page.getByLabel(/Callsign/).fill('Cs')
-  await expect(next).toBeEnabled()
-})
-
-test('a further ability pick is blocked once the budget is reached', async ({ page }) => {
-  await openWizard(page, 'pilots')
-  await pickByName(page, 'Engineer')
-  await pickByName(page, 'Engineering Expertise')
-  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
-
-  // Other level-1 abilities stay on screen and stay clickable; the budget is
-  // what holds. The old "Max Abilities selected (3 / 3)" footer notice no
-  // longer exists anywhere in the app, so assert the invariant that matters —
-  // the count cannot be pushed past the rulebook's single pick.
-  for (const other of ['Jury Rig', 'Mass Field Maintenance']) {
-    const card = choiceCardByName(page, other)
-    if (!(await card.isVisible().catch(() => false))) continue
-    await card.click().catch(() => {})
-    await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
-  }
-})
-
-test('a further equipment pick is blocked once the budget is reached', async ({ page }) => {
-  await openWizard(page, 'pilots')
-  await pickByName(page, 'Engineer')
-  await pickByName(page, 'Engineering Expertise')
-  await clickNext(page)
-
-  // Equipment step — the budget is two Tech 1 picks (p.19).
-  const unpicked = unselectedOptions(page)
-  await expect(unpicked.first()).toBeVisible()
-  await unpicked.first().click()
-  await unpicked.first().click()
-  await expect(page.getByTestId('equipment-count')).toHaveText('2 / 2')
-
-  // A third pick cannot exceed the budget. As with abilities, the footer
-  // notice is gone; the count holding at the budget is the real contract.
-  await unpicked
-    .first()
-    .click()
-    .catch(() => {})
-  await expect(page.getByTestId('equipment-count')).toHaveText('2 / 2')
 })

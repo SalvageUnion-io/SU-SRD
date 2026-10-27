@@ -4,30 +4,31 @@
  * Three build details worth knowing:
  *
  * 1. The shared markdown files are read from disk **at build time**.
- *    This module only ever runs in the build (and in `ssg/dev.ts`, which is the
+ *    This module only ever runs in the build (and in `astro dev`, which is the
  *    same render path), so a `node:fs` read here costs the browser nothing.
- *    The path is resolved from `import.meta.url` rather than `process.cwd()`
- *    so it does not depend on where the build was invoked from.
+ *    Each is found by walking up from this module rather than from
+ *    `process.cwd()`, so it does not depend on where the build was invoked
+ *    from, nor on where the bundler put this module.
  * 2. The lightbox is a plain script, `public/about-lightbox.js`, loaded by
  *    URL: the reference site emits no executable inline script, so its CSP `script-src`
  *    stays a literal (`public/_headers`). Every navigation is a real document
  *    load, so it runs on every visit.
  * 3. The Eldridge Coast map is a build-emitted, content-hashed asset rather
- *    than an unhashed file in `public/`. The emit and the address are split — `src/runtime/assets.entry.ts` makes
- *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of the
- *    build manifest. See `BuiltAssets` in `ssg/types.ts`.
+ *    than an unhashed file in `public/`. The emit and the address are split — `astro/lib/assets.ts` makes
+ *    Vite emit it, and `builtAssetUrl` reads the hashed url back out of
+ *    `RouteContext.builtAssets`. See `BuiltAssets` in `src/reference/types.ts`.
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { PRODUCT } from 'game-domain/product'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
-import type { PageModule, PageResult, RouteContext } from '../../../ssg/types'
 import { capsLabel } from '../../components/atoms/capsLabel'
+import { Colophon } from '../../components/Colophon'
 import { Button, cn, InlineRef, SlabSection } from '../../components/index'
-import { ColophonIsland } from '../../components/islands/ColophonIsland'
+import { KofiIsland } from '../../components/islands/KofiIsland'
 import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { builtAssetUrl, ELDRIDGE_COAST_MAP } from '../../lib/builtAssets'
@@ -37,16 +38,25 @@ import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
 import { DocPage } from '../DocPage'
+import type { PageModule, PageResult, RouteContext } from '../types'
 
-/** Repo root, relative to this module — `apps/web/src/reference/pages` -> five levels up. */
-const repoRootFile = (name: string): string =>
-  fileURLToPath(new URL(`../../../../../${name}`, import.meta.url))
+/** A file at the repo root: the nearest `name` above this module. */
+function repoRootFile(name: string): string {
+  for (let dir = new URL('.', import.meta.url); ; dir = new URL('..', dir)) {
+    const file = fileURLToPath(new URL(name, dir))
+    if (existsSync(file)) return file
+    if (dir.pathname === '/') throw new Error(`[build] no ${name} above ${import.meta.url}`)
+  }
+}
 
 // The shared colophon prose, read at build time from the repo root. This page
 // is the About page of both tools: the app links here and keeps no copy.
 const aboutJrvsMd = readFileSync(repoRootFile('ABOUT_JRVS.md'), 'utf8')
 const llmStatementMd = readFileSync(repoRootFile('LLM_STATEMENT.md'), 'utf8')
 const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
+
+/** The `<code>` in `ko-fi.com/<code>`. */
+const KOFI_CODE = 'C3Z82382ZC'
 
 const TITLE = pageTitle('About')
 const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
@@ -377,23 +387,17 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
           </SlabSection>
 
           {/* Colophon: About the Dev + support + Special Thanks | LLM Statement.
-                `ssr` per DESIGN.md's per-island table — the prose is worth indexing. */}
-          <Island
-            name="ColophonIsland"
-            client="visible"
-            ssr
-            props={{
-              aboutMarkdown: aboutJrvsMd,
-              llmMarkdown: llmStatementMd,
-              specialThanksMarkdown: specialThanksMd,
-            }}
-          >
-            <ColophonIsland
-              aboutMarkdown={aboutJrvsMd}
-              llmMarkdown={llmStatementMd}
-              specialThanksMarkdown={specialThanksMd}
-            />
-          </Island>
+                Static prose; the Ko-fi button is the island (DESIGN.md's table). */}
+          <Colophon
+            aboutMarkdown={aboutJrvsMd}
+            llmMarkdown={llmStatementMd}
+            specialThanksMarkdown={specialThanksMd}
+            support={
+              <Island name="KofiIsland" client="visible" ssr props={{ code: KOFI_CODE }}>
+                <KofiIsland code={KOFI_CODE} />
+              </Island>
+            }
+          />
         </DocPage>
 
         {/* The junk slab's SVG filters (global.css names them) */}
@@ -497,8 +501,8 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
             <div style={LIGHTBOX_BODY}>
               {/* Vite does not transcode images, so the webp is pre-encoded
                   once at 1800px and checked in beside the PNG; Vite still
-                  hashes and emits it, and the url comes from the build
-                  manifest (see `BuiltAssets`). One size: the image only ever
+                  hashes and emits it, and the url comes from
+                  `builtAssets` (see `BuiltAssets`). One size: the image only ever
                   appears in a full-viewport lightbox. */}
               <img
                 src={eldridgeCoastMapUrl}

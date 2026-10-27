@@ -1,9 +1,10 @@
 /**
  * Island directives — the guard on the in-house island protocol.
  *
- * A page renders `<Island name=… client=… ssr=…>` and the placeholder it emits
- * is the contract (see `ssg/DESIGN.md`, "The island protocol"). Every assertion
- * below renders the real component and reads the real placeholder, rather than
+ * A page renders `<Island name=… client=… ssr=…>`, and the marker it emits and
+ * the island it collects are the contract (see `astro/DESIGN.md`, "The island
+ * protocol"). Every assertion below renders the real component and reads the
+ * real marker, rather than
  * matching source text. The one exception is `Toaster`, an assertion about
  * ABSENCE that the module graph is the honest place to check — and even that is
  * backed by a rendered-markup check beside it.
@@ -15,37 +16,23 @@ import { resolve } from 'node:path'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { RefEntity } from 'salvageunion-reference'
 import { getModel } from 'salvageunion-reference'
+import { islandParts } from '../../../../astro/lib/islandParts'
 import { cardNeedsHydration } from '../../../lib/cardNeedsHydration'
 import { EntityView } from '../../../reference/EntityView'
 import { BaseLayout } from '../../../reference/layouts/BaseLayout'
 import { schemaListingPage } from '../../../reference/pages/[schemaId]/index.page'
 import { TopNavigation } from '../../../reference/TopNavigation'
-import type { CollectedIslandProps } from '../../../runtime/Island'
+import type { IslandName } from '../../../runtime/Island'
 import { beginIslandCollection, endIslandCollection } from '../../../runtime/Island'
-import { islandRegistry } from '../../../runtime/islandRegistry'
 
 const appRoot = resolve(import.meta.dir, '../../../..')
 
-/** One island placeholder as the client mounter sees it. */
-type Placeholder = { name: string; client: string; id: string; inner: string }
-
-/**
- * Every `<Island>` in `markup`, read the way `islands.client.ts` reads them:
- * `querySelectorAll('[data-island]')`, then the three data attributes.
- *
- * Parsed rather than regexed, because `inner` has to be exact — an `ssr={true}`
- * island holds a whole component tree, and a string-slicing version would call
- * the markup that FOLLOWS an empty placeholder its content.
- */
-function placeholders(markup: string): Placeholder[] {
-  const template = document.createElement('template')
-  template.innerHTML = markup
-  return [...template.content.querySelectorAll('[data-island]')].map((el) => ({
-    name: el.getAttribute('data-island') ?? '',
-    client: el.getAttribute('data-client') ?? '',
-    id: el.getAttribute('data-island-id') ?? '',
-    inner: el.innerHTML,
-  }))
+/** One island as `Page.astro` renders it: its marker's stand-in is `inner`. */
+type Placeholder = {
+  name: string
+  client: string
+  props: Record<string, unknown>
+  inner: string
 }
 
 /** The single island a render was expected to produce. */
@@ -59,21 +46,29 @@ function onlyIsland(islands: Placeholder[]): Placeholder {
   return island
 }
 
-/** Render inside a collection window, the way `ssg/document.tsx` does. */
-function renderIslands(node: React.ReactNode): {
-  markup: string
-  islands: Placeholder[]
-  props: CollectedIslandProps
-} {
+/** Render inside a collection window, the way `astro/lib/document.tsx` does. */
+function renderIslands(node: React.ReactNode): { markup: string; islands: Placeholder[] } {
   beginIslandCollection()
   let markup: string
-  let props: CollectedIslandProps
+  let collected: ReturnType<typeof endIslandCollection>
   try {
     markup = renderToStaticMarkup(node)
   } finally {
-    props = endIslandCollection()
+    collected = endIslandCollection()
   }
-  return { markup, islands: placeholders(markup), props }
+  const islands = islandParts(markup, collected).flatMap((part) =>
+    'island' in part
+      ? [
+          {
+            name: part.island.name,
+            client: part.island.client,
+            props: part.island.props,
+            inner: part.island.standIn,
+          },
+        ]
+      : []
+  )
+  return { markup, islands }
 }
 
 /**
@@ -146,32 +141,29 @@ describe('hydration directives', () => {
     })
 
     it('the static path carries no island at all', () => {
-      const { markup, islands, props } = renderIslands(
+      const { markup, islands } = renderIslands(
         <EntityView item={firstEntity('keywords', false)} schemaId="keywords" />
       )
       expect(islands).toEqual([])
       expect(markup).not.toContain('data-island')
-      // No placeholder means no props: an inert page must ship no island JSON.
-      expect(props).toEqual({})
     })
 
     it('the interactive path keeps client="visible" and its no-JS fallback', () => {
-      const { markup, islands, props } = renderIslands(
+      const { markup, islands } = renderIslands(
         <EntityView item={firstEntity('roll-tables', true)} schemaId="roll-tables" />
       )
 
       const island = onlyIsland(islands)
       expect(island.name).toBe('ReferenceEntityIsland')
       expect(island.client).toBe('visible')
-      // The placeholder must stay EMPTY. Server-rendering this island would
+      // The marker must stay EMPTY. Server-rendering this island would
       // emit `useGameData`'s hardcoded-false skeleton rather than the entity,
       // which is why `StaticEntityContent` — not the island — is the SEO / no-JS
       // path, and why it must be there beside it.
       expect(island.inner).toBe('')
       expect(markup).toContain('data-static-fallback')
 
-      expect(Object.keys(props)).toEqual([island.id])
-      expect(Object.keys(props[island.id] ?? {})).toEqual([
+      expect(Object.keys(island.props)).toEqual([
         'item',
         'pattern',
         'preloadSchemas',
@@ -200,14 +192,14 @@ describe('hydration directives', () => {
       expect(island.name).toBe('SchemaViewerIsland')
       expect(island.client).toBe('interaction')
       // `ssr` is true here — the entity grid is this page's SEO content — so the
-      // placeholder must NOT be empty.
+      // marker must NOT be empty.
       expect(island.inner.length).toBeGreaterThan(0)
     })
   })
 
   describe('the chrome islands wait for the reader', () => {
     it('the chrome islands in TopNavigation are server-rendered and client="interaction"', () => {
-      const { islands, props } = renderIslands(<TopNavigation />)
+      const { islands } = renderIslands(<TopNavigation />)
 
       // The account islands are not reached for: they mount on idle, and only
       // while somebody is signed in (`lib/accountBar.ts`), over no server markup.
@@ -226,8 +218,8 @@ describe('hydration directives', () => {
       for (const island of chrome) expect(island.inner.length).toBeGreaterThan(0)
       // Chrome takes no props at all. `MobileNavIsland` computing its own
       // catalog instead of receiving one is what keeps 17.3 MB of duplicated
-      // props out of the build (ssg/DESIGN.md, "props designed out").
-      expect(props).toEqual({})
+      // props out of the build (astro/DESIGN.md, "props designed out").
+      for (const island of islands) expect(island.props).toEqual({})
     })
 
     it('Toaster is not imported or rendered in BaseLayout', () => {
@@ -248,10 +240,11 @@ describe('hydration directives', () => {
     })
   })
 
-  describe('the placeholder contract binds to the client mounter', () => {
-    it('every island a page emits is resolvable in islandRegistry', () => {
-      // `name` is a string the mounter looks up at runtime, so a typo is
-      // silently dead UI rather than a broken import.
+  describe('the marker contract binds to Islands.astro', () => {
+    it('every island a page emits is one Islands.astro renders', () => {
+      // `name` is matched at build time in `astro/components/Islands.astro`,
+      // so an island it has no branch for would render nothing.
+      const source = readFileSync(resolve(appRoot, 'astro/components/Islands.astro'), 'utf-8')
       const emitted = [
         ...renderIslands(<TopNavigation />).islands,
         ...renderIslands(
@@ -260,7 +253,7 @@ describe('hydration directives', () => {
       ]
       expect(emitted.length).toBeGreaterThan(0)
       for (const island of emitted) {
-        expect(Object.keys(islandRegistry)).toContain(island.name)
+        expect(source).toContain(`name === '${island.name as IslandName}'`)
       }
     })
   })

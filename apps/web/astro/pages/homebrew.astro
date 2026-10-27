@@ -1,0 +1,6 @@
+---
+import { homebrewPage as module } from '../../src/reference/pages/homebrew.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />

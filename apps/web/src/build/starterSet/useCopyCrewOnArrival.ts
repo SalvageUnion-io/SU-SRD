@@ -8,12 +8,12 @@ import { PRODUCT } from 'game-domain/product'
 import { useEffect, useRef } from 'react'
 import { toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { moveDestinations } from '../../lib/games/gameRoster'
 import { copyStarterCrew } from '../../lib/starterSet/copyStarter'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import { STARTER_SET_PUBLISHER, starterRoster } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 
 /** The search that asks the page to offer the Starter Set crew's copy on arrival. */
 const COPY_CREW_SEARCH = 'crew'
@@ -63,12 +63,12 @@ export function confirmCopyCrew(
  * has. Signed out a crew's control signs in and comes back here.
  */
 export function useCopyCrewOnArrival(copy: string | undefined, confirm: Confirm) {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const offered = useRef(false)
   useEffect(() => {
     const roster = rosterOfSearch(copy)
-    if (offered.current || roster === null || mode !== 'connected') return
+    if (offered.current || roster === null || status !== 'live') return
     offered.current = true
     confirmCopyCrew(confirm, { container: SHELF, label: PRODUCT.build }, roster)
-  }, [copy, mode, confirm])
+  }, [copy, status, confirm])
 }

@@ -10,14 +10,12 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
 
 // Capture before mocking: a module namespace is a live view.
 const realFlags = { ...(await import('../../../lib/flags')) }
@@ -25,16 +23,15 @@ mock.module('../../../lib/flags', () => ({ ...realFlags, flagOn: () => true }))
 
 afterAll(async () => {
   mock.module('../../../lib/flags', () => realFlags)
-  convexMocks.restore()
+  serverMocks.restore()
   const { flagOn } = await import('../../../lib/flags')
   if (flagOn('encounterSheet')) throw new Error('flags were not restored')
 })
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { usePrepStore } = await import('../../../stores/prepStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { useEncounters, usePatterns } = await import('../../../replica/collections')
 const { EncounterPage } = await import('../EncounterPage')
 const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
@@ -65,19 +62,14 @@ const AMBUSH: Encounter = {
   updatedAt: NOW,
 }
 
-const connection: ConnectionState = {
-  mode: 'connected',
-  canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
-}
+const connection: SyncState = { status: 'live', canWrite: true, outdated: false }
 
 beforeEach(() => {
   useSheetModeStore.setState({ editing: true })
   toast.dismiss()
   resetStores()
-  usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  useEncounters.setState({ encounters: [AMBUSH], hydrated: true } as never)
+  usePatterns.setState({ mechPatterns: [], hydrated: true })
 })
 
 async function settle(done: () => boolean = () => false): Promise<void> {
@@ -88,15 +80,15 @@ async function settle(done: () => boolean = () => false): Promise<void> {
   }
 }
 
-const current = () => usePrepStore.getState().get('enc-1')
+const current = () => useEncounters.getState().get('enc-1')
 
 async function renderPage() {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection}>
+      <SyncContext.Provider value={connection}>
         <ToasterMount />
         <EncounterPage id="enc-1" />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -204,7 +196,7 @@ describe("an encounter's threat read and spoils", () => {
     await renderPage()
     expect(screen.getByText(/Nothing here leaves salvage in the book/)).toBeTruthy()
     act(() => {
-      usePrepStore.setState({
+      useEncounters.setState({
         encounters: [
           {
             ...AMBUSH,

@@ -16,7 +16,7 @@
  * clipping the art that fills its canvas; the page needs each image's own
  * content box.
  *
- * The bytes are licensed and never live in git (`apps/su-assets`), so the box
+ * The bytes are licensed and never live in git (they are in R2), so the box
  * is measured here and only the numbers are committed. Re-run it when artwork
  * is added or replaced in R2; an image with no entry renders uncropped.
  *

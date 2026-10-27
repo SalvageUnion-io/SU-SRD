@@ -1,18 +1,14 @@
 /**
  * Mobile-responsive regression tests for sheet components.
  *
- * Sheet renders without horizontal overflow at 320px viewport width.
  * The top-bar Share control is a Compact button (one height per Size, R12), and a
  *       Field's edit-state readout has a 44px target (its inline `min-height`,
  *       `size.full`).
  *
  * Design choices:
- * - 320px overflow check: happy-dom does not implement a full layout engine, so
- *   scrollWidth and clientWidth are both 0 regardless of CSS. The overflow
- *   assertion below is therefore replaced with a render-completeness check
- *   (entity content appears without throwing). Real 320px overflow verification
- *   requires a browser engine — this is tracked in the M3 a11y/perf work and
- *   should be covered by a Playwright / puppeteer visual regression test.
+ * - No 320px overflow check: happy-dom has no layout engine (scrollWidth and
+ *   clientWidth are always 0), so overflow needs a browser: `bun run shot
+ *   … --width phone`.
  * - Touch target: we assert the Share button is a Compact `.su-btn` at the
  *   page-top height (`.su-page-action`), and a Field's edit-state readout its
  *   inline `minHeight` (a style object). Both are the most
@@ -26,12 +22,6 @@
 
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-  softLinkFixture,
-} from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
@@ -39,123 +29,9 @@ import {
 } from '../../../components/__tests__/mockEntityStore'
 import { Field } from '../../../components/index'
 import { Sheet } from '../Sheet'
+import { fakeMech, fakePilot, mechToPilot } from './sheetFixtures'
 
 beforeAll(hydrateStores)
-
-// ---------------------------------------------------------------------------
-// Shared fixtures (mirrors Sheet.test.tsx)
-// ---------------------------------------------------------------------------
-
-const fakePilot = pilotFixture({
-  id: 'pilot-1',
-  name: 'Yara Voss',
-  callsign: 'Ghost',
-  abilities: ['scavenge'],
-  equipment: ['pistol'],
-  motto: 'Waste not.',
-  keepsake: 'A bent coin.',
-  appearance: 'Tall, weathered.',
-})
-
-const fakeMech = mechFixture({
-  id: 'mech-1',
-  name: 'Iron Fist',
-  chassisRef: 'iron-mongrel',
-  systems: ['heavy-blaster'],
-  modules: ['shield-cell'],
-  cargoLots: [
-    {
-      id: 'lot-medkit',
-      kind: 'unit' as const,
-      name: 'med-kit',
-      cat: 'SEALED' as const,
-      units: 1,
-      code: 'MED',
-    },
-  ],
-})
-
-const fakeCrawler = crawlerFixture({
-  id: 'crawler-1',
-  name: 'Iron Tortoise',
-  techLevel: 'tech-2',
-  crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
-  systems: ['hull-repair'],
-})
-
-// ---------------------------------------------------------------------------
-// No horizontal overflow at 320px
-// ---------------------------------------------------------------------------
-
-describe('Mobile responsive — renders without error at 320px container', () => {
-  // NOTE: happy-dom does not implement a real layout engine — scrollWidth and
-  // clientWidth are both 0 regardless of CSS, making overflow assertions vacuous.
-  // These tests assert instead that each Sheet variant renders its core entity
-  // content correctly inside a 320px container (render-completeness check).
-  // Real 320px horizontal-overflow verification is deferred to M3 a11y/perf work
-  // and should be covered by a Playwright / puppeteer browser-engine test.
-
-  test('pilot-only Sheet renders entity name inside 320px container', () => {
-    const wrapper = document.createElement('div')
-    wrapper.style.width = '320px'
-    document.body.appendChild(wrapper)
-
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />,
-      { container: wrapper }
-    )
-
-    // Render-completeness: pilot name visible (would throw if render crashes)
-    expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
-
-    document.body.removeChild(wrapper)
-  })
-
-  test('mech-only Sheet renders entity name inside 320px container', () => {
-    const wrapper = document.createElement('div')
-    wrapper.style.width = '320px'
-    document.body.appendChild(wrapper)
-
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />,
-      { container: wrapper }
-    )
-
-    expect(screen.getAllByText(/Iron Fist/).length).toBeGreaterThan(0)
-
-    document.body.removeChild(wrapper)
-  })
-
-  test('crawler-only Sheet renders entity name inside 320px container', () => {
-    const wrapper = document.createElement('div')
-    wrapper.style.width = '320px'
-    document.body.appendChild(wrapper)
-
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-1"
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />,
-      { container: wrapper }
-    )
-
-    expect(screen.getAllByText(/Iron Tortoise/).length).toBeGreaterThan(0)
-
-    document.body.removeChild(wrapper)
-  })
-})
 
 // ---------------------------------------------------------------------------
 // Touch targets ≥44px on mobile
@@ -194,34 +70,14 @@ describe('Mobile responsive — touch targets', () => {
 
 describe('LiveSheet rail replaces the segment switcher', () => {
   test('no tablist renders on any sheet', () => {
-    const link = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
     render(
       <Sheet
         kind="mech"
         id="mech-1"
         entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([link])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot])}
       />
     )
     expect(screen.queryByRole('tablist')).toBeNull()
-  })
-
-  test('wired (mech+pilot) Sheet shows the pilot as a navigating linked row', () => {
-    const link = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([link])}
-      />
-    )
-    // Assigned units render the library Compact (`UnitRow`), whose View link is labelled
-    // "View" on every row — so the row is targeted by its DESTINATION, which is
-    // what this test was ever asserting.
-    const viewLink = screen
-      .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === '/pilots/pilot-1')
-    expect(viewLink).toBeTruthy()
   })
 })

@@ -136,6 +136,8 @@ export const designRoutes: readonly DesignRoute[] = [
  *   draws: a crawler's type ability, bays and crew, a pilot's abilities and
  *   equipment, a mech's chassis ability, systems and modules, a pattern's
  *   loadout, a class's ability track (`token-cutout.e2e.ts`).
+ * - `header-mini`: a header-only Mini: a pattern's loadout, a guide step's
+ *   gear, a bio-titan's part, a crawler sheet's crew (`token-cutout.e2e.ts`).
  * - `stat-column`: a `StatColumn` grid: two chassis and a pattern (`CardPage`'s
  *   column) and the mech sheet's hero, its compact column (`stat-fill.e2e.ts`).
  * - `search`: a search field on its own line: an SRD listing's rail
@@ -151,6 +153,7 @@ export const designRoutes: readonly DesignRoute[] = [
  */
 export type CorpusTrait =
   | 'contentful-mini'
+  | 'header-mini'
   | 'stat-column'
   | 'search'
   | 'rhythm'
@@ -191,7 +194,7 @@ const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly C
   'pilot/starter-pilot-razor': ['ability-trees'],
   'mech/starter-mech-mazona': ['stat-column'],
   'mech/starter-mech-mule': ['contentful-mini'],
-  'crawler/starter-crawler-tenacity': ['contentful-mini'],
+  'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
 }
 
 const page = (path: string, ...traits: CorpusTrait[]): CorpusPage => ({
@@ -224,7 +227,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/chassis/mazona/', 'stat-column', 'rhythm'),
   page('/chassis/mazona/pattern/buzzard/', 'stat-column', 'rhythm'),
   page('/chassis/big-brother/', 'stat-column', 'rhythm'),
-  page('/chassis/big-brother/pattern/drontek/'),
+  page('/chassis/big-brother/pattern/drontek/', 'header-mini'),
   page('/chassis/mule/', 'contentful-mini'),
   page('/chassis/mule/pattern/crusher/', 'contentful-mini'),
   page('/systems/salvaging-drill/', 'rhythm'),
@@ -234,7 +237,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/classes/hacker/', 'contentful-mini', 'rhythm', 'ability-trees'),
   page('/classes/engineer/'),
   page('/classes/fabricator/', 'ability-trees'),
-  page('/bio-titans/tyrant/', 'rhythm'),
+  page('/bio-titans/tyrant/', 'rhythm', 'header-mini'),
   page('/npcs/saboteur/', 'rhythm'),
   page('/drones/pest-drone/', 'rhythm'),
   page('/vehicles/fighting-box-wheel/'),
@@ -242,7 +245,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/creatures/irradiated-scorpion/'),
   page('/roll-tables/core-mechanic/'),
   page('/roll-tables/mechapult/'),
-  page('/guides/create-a-pilot/', 'rhythm'),
+  page('/guides/create-a-pilot/', 'rhythm', 'header-mini'),
   page('/guides/crawler-downtime/', 'seam'),
   { family: 'training-bay', path: at('/') },
   { family: 'starter-set', path: at('/starter') },

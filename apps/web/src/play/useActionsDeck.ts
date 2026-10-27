@@ -81,8 +81,8 @@ import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEcon
 import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { useEntityStore } from '../stores/entityStore'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
+import { PLAY_TXN } from '../replica/provenance'
+import { useUnits } from '../replica/units'
 import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
 import type { PlayStore } from './play.model'
 import type { Situation } from './situation.model'
@@ -223,7 +223,7 @@ export function useActionsDeck({
   heatScale = 1,
   salvageArea,
 }: ActionsDeckProps): ActionsDeck {
-  const liveStore = useEntityStore()
+  const liveStore = useUnits()
   const s: PlayStore = store ?? liveStore
 
   // On foot the mech's actions are unreachable; boarded, the pilot's own actions

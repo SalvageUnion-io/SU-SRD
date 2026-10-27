@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * The read-only sheet store: render entities this browser does not hold — live,
  * through the same `<Sheet>` every editable surface uses — without writing them
@@ -6,7 +7,7 @@
  * ## What feeds it
  *
  * A store built from whatever the server says right now, rebuilt each time it
- * says something new. Both sources are reactive Convex queries, so a sheet
+ * says something new. Both sources are live room reads, so a sheet
  * rendered from one is current, not frozen:
  *
  *  - **A Game's listing** (`entities.listForGame`, via `sheetDataFromListing`):
@@ -48,7 +49,7 @@ import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import type { ServedLink } from '../../lib/links/linkSync'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
-import type { EntityState, EntityType, useEntityStore } from '../../stores/entityStore'
+import type { EntityType, UnitsState } from '../../replica/units'
 import type { WithheldUnit } from './sheetViewProps.model'
 
 /** Everything a read-only sheet can resolve: bodies by kind, and the links between them. */
@@ -191,7 +192,7 @@ export function sheetDataFromPublic(
  * affordance on the sheet — and that is exactly why they throw rather than
  * no-op: a silent no-op would let a future editing control look like it saved.
  */
-export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntityStore {
+export function makeReadOnlySheetStore(data: ReadOnlySheetData): UnitsStore {
   const readOnlyWrite = async (): Promise<never> => {
     throw new Error('This sheet is read-only.')
   }
@@ -207,7 +208,7 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntit
             ? data.npcs
             : data.softLinks
 
-  const state: EntityState = {
+  const state: UnitsState = {
     pilots: data.pilots,
     mechs: data.mechs,
     crawlers: data.crawlers,
@@ -217,9 +218,9 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntit
     // Already fully in memory: there is nothing to load.
     hydrate: async () => undefined,
     markArrived: () => undefined,
-    list: ((type: EntityType) => [...byType(type)]) as EntityState['list'],
+    list: ((type: EntityType) => [...byType(type)]) as UnitsState['list'],
     get: ((type: EntityType, id: string) =>
-      byType(type).find((e) => e.id === id) ?? null) as EntityState['get'],
+      byType(type).find((e) => e.id === id) ?? null) as UnitsState['get'],
     create: readOnlyWrite,
     // Adoption is a write like any other: this store exists precisely so that
     // reading somebody else's build does not put a copy of it anywhere.
@@ -231,5 +232,5 @@ export function makeReadOnlySheetStore(data: ReadOnlySheetData): typeof useEntit
     transfer: readOnlyWrite,
   }
 
-  return create<EntityState>(() => state)
+  return create<UnitsState>(() => state)
 }

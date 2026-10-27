@@ -8,8 +8,8 @@
  * run `search()`.
  */
 
-import type { EndpointModule } from '../../../ssg/types'
 import { buildSearchIndexEntries } from '../../lib/searchIndexBuild'
+import type { EndpointModule } from '../types'
 
 export const searchIndexJsonEndpoint: EndpointModule = {
   pattern: 'search-index.json',

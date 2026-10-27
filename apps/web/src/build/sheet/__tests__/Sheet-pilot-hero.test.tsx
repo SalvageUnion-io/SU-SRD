@@ -23,12 +23,11 @@ import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
-  makeEntityStoreMock,
+  makeSingleUnitStore,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { pilotStamp } from '../bandStamps.model'
 import { Sheet } from '../Sheet'
 
@@ -52,20 +51,6 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   })
 }
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
-  const updateMock = updateSpy ?? mock(async () => pilot)
-  return makeEntityStoreMock({
-    pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [pilot]),
-    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
-    create: mock(async () => pilot),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
-}
-
 function renderHero(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly = false) {
   return render(
     <Sheet
@@ -73,7 +58,7 @@ function renderHero(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly 
       id={pilot.id}
       entityStore={makeEntityLookupMock([pilot])}
       softLinkStore={makeSoftLinkStoreMock()}
-      store={makeStubStore(pilot, updateSpy)}
+      store={makeSingleUnitStore('pilot', pilot, { update: updateSpy })}
       readOnly={readOnly}
     />
   )

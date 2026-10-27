@@ -16,20 +16,18 @@
  * ## Connected only
  *
  * Games need the server of record: a Solo user has no Games, and a
- * Disconnected one cannot list theirs. The Convex
- * read lives in a child that is only mounted once the mode is Connected, so its
- * hook always has a provider.
+ * Disconnected one cannot list theirs. The Games
+ * read lives in a child that is only mounted once the mode is Connected.
  */
 
 import type { LinkProps } from '@tanstack/react-router'
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { Badge, tokens } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { entityContainerCopy } from '../../messages/build-entity-container'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
 import type { ContainerChoice } from './ContainerPicker'
 import { ContainerPicker } from './ContainerPicker'
 
@@ -41,7 +39,7 @@ import { ContainerPicker } from './ContainerPicker'
  * whole membership.
  */
 function useGameEntries(): ContainerChoice[] | undefined {
-  const games = useQuery(api.games.listMine, {})
+  const games = useGamesQuery('games.listMine', {})
   return games?.map((game) => ({
     label: game.name,
     hint: game.mediator ? entityContainerCopy('mediator') : entityContainerCopy('player'),
@@ -77,8 +75,8 @@ function ConnectedGamesMenu({ active }: { active: boolean }) {
 
 /** `active`: the page is Play's hub or a Game's (`unionHere`), so the menu is where you are. */
 export function GamesMenu({ active = false }: { active?: boolean }) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedGamesMenu active={active} />
 }
 
@@ -114,7 +112,7 @@ function ConnectedGamesDrawerList({ onPick }: { onPick: () => void }) {
 
 /** The Games list for the mobile nav drawer; `onPick` closes the drawer. */
 export function GamesDrawerList({ onPick }: { onPick: () => void }) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedGamesDrawerList onPick={onPick} />
 }

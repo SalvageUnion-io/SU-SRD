@@ -11,7 +11,6 @@
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { getBookPatterns, getHomebrewPatterns, truncate } from 'salvageunion-reference'
-import type { PageModule, PageResult, RouteContext } from '../../../../ssg/types'
 import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
@@ -30,6 +29,7 @@ import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
+import type { PageModule, PageResult, RouteContext } from '../../types'
 
 /** The stats a crawler tech level's band keeps; the rest are its body's text. */
 const BAND_STATS: ReadonlySet<string> = new Set(['Tech Level', 'Structure Points'])

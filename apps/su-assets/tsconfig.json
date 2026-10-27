@@ -1,8 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  // The workerd runtime globals: see apps/discord-bot/tsconfig.json.
-  "compilerOptions": {
-    "types": ["@cloudflare/workers-types", "node", "bun-types"]
-  },
-  "include": ["src/**/*.ts", "worker-configuration.d.ts"]
-}

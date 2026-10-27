@@ -4,15 +4,15 @@
  * and `games.members`. Pure, so the order and the open seats are testable.
  */
 
-import type { FunctionReturnType } from 'convex/server'
 import { sheetPath } from 'game-domain/entityKinds'
 import { resolvePool } from 'salvageunion-reference/rules'
-import type { api } from '../../../convex/_generated/api'
+import type { GameCallResult } from '../../replica/roomCalls'
+import type { CrewVitals } from '../../rooms/vitals'
 
-type Listing = NonNullable<FunctionReturnType<typeof api.entities.listForGame>>
-type Members = FunctionReturnType<typeof api.games.members>
+type Listing = NonNullable<GameCallResult<'entities.listForGame'>>
+type Members = GameCallResult<'games.members'>
 /** `crew.vitals`: the server's derived maxima, which the seats' HP reads. */
-type Vitals = FunctionReturnType<typeof api.crew.vitals>
+type Vitals = CrewVitals | null
 
 /** One row of the seat list. */
 export type SeatRow = {

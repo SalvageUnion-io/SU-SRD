@@ -9,12 +9,11 @@ import { PRODUCT } from 'game-domain/product'
 import { EncounterPage } from '../../build/prep/EncounterPage'
 import { RosterSkeleton } from '../../components/index'
 import { areaTitle } from '../../lib/pageTitle'
-import { usePatternStore } from '../../stores/patternStore'
-import { usePrepStore } from '../../stores/prepStore'
+import { useEncounters, usePatterns } from '../../replica/collections'
 
 export const Route = createFileRoute('/encounters/$id')({
   loader: async () => {
-    await Promise.all([usePrepStore.getState().hydrate(), usePatternStore.getState().hydrate()])
+    await Promise.all([useEncounters.getState().hydrate(), usePatterns.getState().hydrate()])
   },
   head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Encounter') }] }),
   component: EncounterRoute,

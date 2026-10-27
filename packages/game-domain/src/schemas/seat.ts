@@ -10,10 +10,6 @@ import { z } from 'salvageunion-reference/zod'
  * soft-link ends do, and is never a field on either record. That keeps mount
  * state out of sheets and public sheets.
  *
- * This is the source of truth for `seats` in `apps/web/convex/schema.ts`: its
- * range, mount and resolve validators are built from the schemas below
- * (`zodToConvex`), and the row is checked against `Seat` when it compiles.
- *
  * A Game seat carries `gameId`; a solo seat carries `ownerId` instead (the
  * shelf it sits on, as a shelf row is `gameId` null + `ownerId`), so it is one
  * per pilot. A Game seat has no "in Downtime": that is the Game's `downtime`
@@ -64,12 +60,10 @@ export type SeatResolving = z.infer<typeof SeatResolvingSchema>
 
 /**
  * A solo seat's Downtime, absent while none is running: the step it is on,
- * when it began, whether its crawler upkeep is paid, and which steps are done.
- * Upkeep is paid once per Downtime: only a fresh Downtime clears the flag,
- * never a step change. `doneSteps` holds the index of each step marked done
- * (applied or skipped, `downtime.claimStep`), so a step applies once
- * however often the screen reloads; absent on a Downtime begun before it
- * existed, which reads as none done.
+ * when it began, and whether its crawler upkeep is paid. Upkeep is paid once
+ * per Downtime: only a fresh Downtime clears the flag, never a step change.
+ * Which steps are done is read off their step ops (ADR-063 §6); `doneSteps`
+ * is no longer written, kept so seats written before still parse.
  */
 const SoloDowntimeSchema = z.object({
   stepIndex: z.number().int().min(0),
@@ -79,7 +73,7 @@ const SoloDowntimeSchema = z.object({
 })
 
 export const SeatSchema = z.object({
-  /** The Game's Convex id; absent on a solo seat. */
+  /** The Game's id; absent on a solo seat. */
   gameId: z.string().min(1).optional(),
   /** A solo seat's owner (whose shelf it is on); absent on a Game seat. */
   ownerId: z.string().min(1).optional(),
@@ -96,26 +90,9 @@ export const SeatSchema = z.object({
   /** A solo seat's Downtime; absent on a Game seat and while none runs. */
   downtime: SoloDowntimeSchema.optional(),
   /**
-   * The seat owner's last presence heartbeat (`seats.heartbeat`), absent until
-   * the first. Not play state: it never moves `updatedAt`.
+   * A retired presence stamp, kept so stored rows still parse; presence is
+   * the Game room's now. Not play state: it never moves `updatedAt`.
    */
   lastSeenAt: z.number().optional(),
   updatedAt: z.number(),
 })
-export type Seat = z.infer<typeof SeatSchema>
-
-/**
- * Presence (`seats.heartbeat`). A screen showing a seat beats every
- * `PRESENCE_HEARTBEAT_MS`; the server writes at most one beat per
- * `PRESENCE_WRITE_MIN_MS`, so a second tab or a fast timer costs no writes and
- * wakes no subscriber; a seat is present while its last beat is younger than
- * `PRESENCE_STALE_MS` (two missed beats and some slack).
- */
-export const PRESENCE_HEARTBEAT_MS = 30_000
-export const PRESENCE_WRITE_MIN_MS = 20_000
-export const PRESENCE_STALE_MS = 75_000
-
-/** Whether a seat whose last beat was `lastSeenAt` is present at `now`. */
-export function isPresent(lastSeenAt: number | null | undefined, now: number): boolean {
-  return typeof lastSeenAt === 'number' && now - lastSeenAt < PRESENCE_STALE_MS
-}

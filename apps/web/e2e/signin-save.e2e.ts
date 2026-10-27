@@ -29,15 +29,14 @@ test.use({ account: 'anonymous' })
  * deleted the first time it annoyed somebody.
  *
  * **It runs nightly.** `e2e` in `.github/workflows/e2e-nightly.yml`
- * provides both against a throwaway self-hosted Convex backend — a
- * container destroyed with the runner, so it needs no credentials and never
+ * provides both against a local Worker — state
+ * destroyed with the runner, so it needs no credentials and never
  * puts a password provider on production. The same seam signs in every other
  * spec that builds something (`fixtures.ts`): signed out, the app is read-only.
  *
  * That job sets `E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
  *
- * Run it for real against the local backend (one-time setup: "Local backend"
- * in `.claude/skills/convex-ops/SKILL.md`; without it this fails locally). Playwright starts
+ * Run it for real against the local Worker (no setup). Playwright starts
  * `bun run dev`, or reuses a running one, which carries all three:
  *
  *   cd apps/web && bunx playwright test --project=desktop signin-save.e2e.ts
@@ -64,7 +63,7 @@ test('a signed-out visitor is asked to sign in, and what they build then is save
   await expect(page.getByText('Saved By Signing In').first()).toBeVisible({ timeout: 30_000 })
 
   // Reload to prove it is DURABLE — on the server, not merely in this tab:
-  // nothing is kept on the device, so what shows after a reload came from Convex.
+  // nothing is kept on the device, so what shows after a reload came from the rooms.
   await page.reload()
   await waitForReady(page)
   await openTrainingBay(page)

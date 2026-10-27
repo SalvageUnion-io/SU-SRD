@@ -74,9 +74,6 @@
       "Bash(gh run delete*)",
       "Bash(gh repo archive*)",
       "Bash(gh repo rename*)",
-      "mcp__convex__envSet",
-      "mcp__convex__envRemove",
-      "mcp__convex__run",
       "Bash(gh workflow run*)",
       "Bash(git switch --discard-changes*)",
       "Bash(git switch * --discard-changes*)",
@@ -123,7 +120,7 @@
       "Bash(rm -rf *)"
     ]
   },
-  "enabledMcpjsonServers": ["context7", "convex"],
+  "enabledMcpjsonServers": ["context7"],
   "hooks": {
     "PreToolUse": [
       {

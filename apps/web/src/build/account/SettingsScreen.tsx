@@ -1,7 +1,5 @@
-import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import {
   Button,
   ChapterBand,
@@ -17,11 +15,14 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
+import { useAccountExport, useMe, useUpdateProfile } from '../../lib/account/accountApi'
+import { deleteAccount } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from './SignInControl'
+import { useSignOut } from './useSignOut'
 
 /**
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
@@ -78,12 +79,12 @@ function Section({ id, title, children }: SectionProps) {
 }
 
 function SignedInAccount() {
-  const me = useQuery(api.account.me, {})
-  const exported = useQuery(api.account.exportMine, {})
-  const save = useServerAction(useMutation(api.account.updateProfile), {
+  const me = useMe()
+  const exported = useAccountExport()
+  const save = useServerAction(useUpdateProfile(), {
     failure: 'Your display name could not be saved. Try again.',
   })
-  const erase = useServerAction(useMutation(api.account.deleteAccount), {
+  const erase = useServerAction(deleteAccount, {
     failure: 'Your account could not be deleted. Try again.',
   })
 
@@ -93,6 +94,7 @@ function SignedInAccount() {
   // which holds the failure on itself (ruleset §3.1: destruction behind
   // `ConfirmDialog`).
   const eraseFailure = useRef('')
+  const signOut = useSignOut()
 
   if (me === undefined) return <Pending label={buildAccountCopy('yourAccount')} />
   if (me === null)
@@ -162,11 +164,14 @@ function SignedInAccount() {
           confirmLabel={buildAccountCopy('permanentlyDelete')}
           pendingLabel={buildAccountCopy('deleting')}
           onConfirm={async () => {
-            const result = await erase.run({})
+            const result = await erase.run()
             if (!result.ok) {
               eraseFailure.current = result.error
               throw new Error('The account was not deleted')
             }
+            // The Worker ended every session with the account; this clears the
+            // device's hint as any sign-out does.
+            await signOut()
           }}
           describeError={() => eraseFailure.current}
         />
@@ -176,11 +181,11 @@ function SignedInAccount() {
 }
 
 function SettingsBody() {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'connected') return <SignedInAccount />
+  if (status === 'live') return <SignedInAccount />
 
-  if (mode === 'disconnected') {
+  if (status === 'offline') {
     return <EmptyState variant="quiet" body={buildAccountCopy('yourAccountIsUnreachableRight')} />
   }
 

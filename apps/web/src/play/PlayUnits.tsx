@@ -1,3 +1,5 @@
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import type { UnitsStore } from '../replica/units'
 /**
  * The Units column's unit boxes (play.md §4): the pilot,
  * the mech and the crawler, each one `TitledBox` in its tone, and the mechs
@@ -49,20 +51,19 @@ import {
 } from '../components/index'
 import { resolveClassName } from '../lib/classRef'
 import { activatableEffects } from '../lib/rules/activatableEffects'
-import { crawlerTechLevelOf } from '../lib/rules/downtimeEconomy'
 import { runWrite } from '../lib/runWrite'
 import { unitRowModel } from '../lib/units/unitModel'
 import { playCopy } from '../messages/play'
-import { useEntityStore } from '../stores/entityStore'
-import { PLAY_TXN } from '../stores/surfaceProvenance'
-import type { EntityForType } from '../stores/types'
+import { PLAY_TXN } from '../replica/provenance'
+import type { EntityForType } from '../replica/types'
+import { useUnits } from '../replica/units'
 import { PlayVital } from './PlayVital'
 import { hullGauge, injuryLines, mechStats, pilotVitals } from './unitStats.model'
 import type { MechRestore } from './units.model'
 import { bayChips } from './units.model'
 
 /** The store a box writes through; the app's own unless a test hands one in. */
-type UnitStore = typeof useEntityStore
+type UnitStore = UnitsStore
 
 /** A row of level-2 chips under the vitals, wrapping as a whole. */
 const CHIPS = {
@@ -142,7 +143,7 @@ export function PlayPilotUnit({
   crawler,
   live,
   onOpenSheet,
-  store = useEntityStore,
+  store = useUnits,
 }: PlayPilotUnitProps) {
   const [hp, ap] = pilotVitals(pilot, crawler).gauges
   const write = writer(store, 'pilot', pilot.id)
@@ -246,7 +247,7 @@ export function PlayMechUnit({
   restore = {},
   onBoard,
   onOpenSheet,
-  store = useEntityStore,
+  store = useUnits,
 }: PlayMechUnitProps) {
   const s = mechStats(mech, pilotAbilities, activeEffects)
   const write = writer(store, 'mech', mech.id)
@@ -381,10 +382,10 @@ export function PlayCrawlerUnit({
   live,
   downtime,
   onOpenSheet,
-  store = useEntityStore,
+  store = useUnits,
 }: PlayCrawlerUnitProps) {
   const sp = hullGauge(crawler)
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = parseCrawlerTechLevel(crawler.techLevel)
   const chips = bayChips(crawler)
   const write = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.

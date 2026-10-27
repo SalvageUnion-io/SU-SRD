@@ -1,4 +1,3 @@
-import type { Roll } from './types'
 /**
  * Area Salvage rules.
  *
@@ -24,8 +23,8 @@ import type { Roll } from './types'
  *     11-19 → the Chassis, or a System, or a Module
  *     20    → the Chassis, a System and a Module
  *
- * This module is PURE: no React, no store, no real randomness — the d20
- * is injected via the shared `Roll` type (same seam as heatCheck.ts). WHICH
+ * This module is PURE: no React, no store, no randomness — callers pass the
+ * d20 they rolled. WHICH
  * item a jackpot yields, and which parts a Mech Salvage takes, is the table's
  * call; this module never auto-picks one (ADR-007).
  */
@@ -78,24 +77,6 @@ export type AreaSalvageResult = {
   requiresPlayerChoice: boolean
   /** How many Damaged items a 20 finds: 1, or 2 for an Expert Salvager; else 0. */
   itemCount: number
-}
-
-type AreaSalvageInput = {
-  /** The area's Tech Level (set by the Mediator, p.245). */
-  areaTl: number
-  /** Injectable d20 roller. */
-  roll: Roll
-  /** The salvager has Expert Salvager (Salvaging tree, p.40). */
-  expert?: boolean
-}
-
-/** Performs one Area Salvage roll. Supply accounting is the caller's job. */
-export function performAreaSalvage({
-  areaTl,
-  roll,
-  expert = false,
-}: AreaSalvageInput): AreaSalvageResult {
-  return areaSalvageResult({ areaTl, d20: roll(20), expert })
 }
 
 /** An Area Salvage d20 already rolled, read as its result. */

@@ -14,10 +14,9 @@
  * - A target starting with `/` is a path on the site. `app:/route` is an app
  *   route (under its `/build` base, so `app:/starter` is `/build/starter`).
  *   One dev server answers both: a running `bun run dev`, or else the dev server
- *   alone (`ssg/dev.ts`, no `convex dev`) booted signed out with no backend:
- *   `VITE_CONVEX_URL` points at a closed local port, so the app's pages that
- *   need no account (the front door, the Starter Set, a sign-in prompt) render,
- *   and anything that waits on Convex shows its loading or offline state.
+ *   (`astro dev`, which runs the Worker beside it) booted signed out, so the
+ *   app's pages that need no account (the front door, the Starter Set, a
+ *   sign-in prompt) render as a visitor sees them.
  * - The server listens on this checkout's port (`packages/gates/lib/ports.ts`:
  *   4321 in the primary checkout, offset in a linked worktree). One
  *   already answering there is reused only when its `x-su-checkout` header
@@ -85,23 +84,14 @@ const APP_PREFIX = 'app:'
 /** The app's base path (ADR-048), from its one home; re-exported for the tests. */
 export { APP_BASE }
 
-/**
- * Where the signed-out boot's Convex client points: a closed port on this
- * machine, so it fails fast and nothing leaves the machine. Any URL will do
- * (`vite.config.ts` refuses only a missing one); it beats a `.convex.cloud`
- * name, which would be looked up and might be someone's deployment.
- */
-export const NO_BACKEND = 'http://127.0.0.1:9'
-
 const DEV: Server = {
   name: 'dev',
   port: portFor(),
-  // The dev server itself, not `bun run dev`, which starts a Convex backend.
-  cmd: ['bun', 'ssg/dev.ts'],
+  // The dev server itself, not `bun run dev`, which turns the test sign-in on.
+  // `--ignore-lock`: in the foreground, where Astro would background itself for an agent.
+  // Under Node, not `bun --bun`: Miniflare, which runs the Worker in dev, needs it.
+  cmd: ['bunx', 'astro', 'dev', '--ignore-lock'],
   cwd: join(REPO, 'apps/web'),
-  // Over any `apps/web/.env.local` a `bun run dev` run wrote: Vite lets the
-  // environment win.
-  env: { VITE_CONVEX_URL: NO_BACKEND },
 }
 
 const USAGE =
@@ -360,7 +350,7 @@ export async function main(
       const url = `http://localhost:${server.port}${path}`
       const response = await page.goto(url, { waitUntil: 'networkidle', timeout: 60_000 })
       if (response && !response.ok()) error(`[shot] warning: ${url} answered ${response.status()}`)
-      // Convex answers over its websocket, which `networkidle` does not wait for.
+      // The rooms answer over their sockets, which `networkidle` does not wait for.
       if (seeded) await page.waitForTimeout(1500)
       await page.evaluate('document.fonts.ready')
       await page.evaluate(SCROLL_THROUGH)

@@ -1,0 +1,6 @@
+---
+import { notFoundPage as module } from '../../src/reference/pages/404.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />

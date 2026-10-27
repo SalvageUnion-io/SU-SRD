@@ -1,63 +1,48 @@
 ---
 paths:
-  - 'apps/web/src/stores/**'
+  - 'apps/web/src/replica/**'
   - 'apps/web/src/lib/entities/**'
   - 'apps/web/src/lib/connection/**'
   - 'apps/web/src/lib/export/**'
   - 'apps/web/src/build/**'
   - 'apps/web/src/play/**'
   - 'apps/web/src/components/shared/**'
-  - 'apps/web/convex/**'
+  - 'apps/web/src/rooms/**'
   - 'apps/web/e2e/**'
   - 'packages/game-domain/**'
 ---
 
-# App data access — modes, stores, Convex
+# App data access: the replica, the sync status, the rooms
 
-| Mode | When | Source of truth |
-| --- | --- | --- |
-| **Solo** | not signed in | nothing: **read-only**, writes refused (`signedOut`); no Play |
-| **Connected** | signed in, online | Convex; the stores hold its rows in memory |
-| **Disconnected** | signed in, offline | read-only: what is on screen stays; no write queue |
-| **Outdated** | bundle below `build.floor` | read-only until it reloads |
+Player units (pilots, mechs, crawlers, NPCs, links, patterns, tray NPCs,
+encounters) live in the **replica** (`src/replica/`): rows the server sent,
+kept in IndexedDB, read through hooks. Accounts, Games, invites and crew are
+the Worker's Games calls (`useGamesQuery`, `src/replica/roomCalls.ts`;
+**loading is `undefined`**).
 
-Resolve the mode with `useConnection()` or `resolveConnectionMode()` /
-`writesAllowed()` from `src/lib/connection/`, never `navigator.onLine` or an
-auth flag. Two persistence domains:
-
-| Domain | Path | Truth |
-| --- | --- | --- |
-| **Player entities**: pilots, mechs, crawlers, NPCs, soft links, patterns, encounter NPCs | Zustand stores in `src/stores/`, in memory | Convex when signed in; nothing signed out |
-| **Accounts, Games, invites, ownership, proposals, crew** | `useQuery` / `useMutation` from `convex/react` | Convex, always |
-
-## Player entities go through the store
+One **sync status**, `useSync()` (`syncContext.ts`): `signedOut` (read-only,
+no Play), `syncing`, `live`, `offline`, plus `outdated`. Writes go
+`live` (own sheets queue offline); offer edits on `canWrite`, not
+`navigator.onLine` or an auth flag.
 
 ```typescript
-const pilots = useEntityStore((s) => s.list('pilots')) // sync; rows arrive via ShelfSync
-await useEntityStore.getState().update('pilots', id, { hp: next }) // server-first
+const pilots = useUnits((s) => s.pilots) // the replica's view
+await units.update('pilot', id, { hp: next }, meta) // an op, server-first
 ```
 
-- `selectBackend()` is `signedOut | remote | blocked`; check `canWrite` before
-  offering an edit. A unit test that writes calls `withSignedInBackend()`.
-- **Device copy:** only `deviceCopy.ts` (ADR-058) and `accountHint` keep
-  player data on a device.
+- Reads: `useUnits`, `usePatterns`, `useTray`, `useEncounters`, or the hooks in
+  `src/lib/entities/`. Writes: their API, which sends through `outbox.ts`
+  and holds the server's answer. Nothing else holds a server row.
+- A unit test that writes calls `withSignedInBackend()`; seed with `adopt` or
+  `useUnits.setState`. A Games-call consumer's test calls `installServerMocks()`.
 - A container written twice (the row's `gameId` column and the body's) is
   written together; the column wins.
 - e2e durability specs need `VITE_TEST_AUTH` and `TEST_AUTH`, else they skip.
 
-## Accounts, Games, ownership: Convex hooks
-
-`useQuery(api.games.members, { gameId })`; **loading is `undefined`**, not a
-flag. A unit test rendering a Convex consumer calls `installConvexMocks()`
-(`src/components/__tests__/convexMock.ts`).
-
 ## Do not
 
-- Add a record kind without a Convex table and commit seam
-  (`containerParity.test.ts` fails); if the schema cannot say where a record
-  lives, the schema moves.
-- Add a Convex-backed collection by hand: copy the `commit` seam of
-  `makeHydratedCollectionSlice` (`mechPatterns`, `encounterNpcs`).
-- Duplicate what Convex owns (membership, ownership, invites, proposals, crew
-  vitals): check `apps/web/convex/` first.
-- Add a query cache: entity reads are the hooks in `src/lib/entities/`.
+- Add a table to the replica without a `RECORD_KINDS` entry and an `outbox`
+  send.
+- Keep server rows anywhere but the replica: `src/stores/` is UI state only.
+- Duplicate what the rooms own (membership, ownership, invites, proposals, crew
+  vitals): check `apps/web/src/rooms/` first.

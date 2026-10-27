@@ -10,26 +10,23 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * a signed-out viewer, who has no link to copy, sees nothing.
  */
 
-import { getFunctionName } from 'convex/server'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { pageOrigin } from '../../../lib/site'
 
 let authed = true
 const mutations: { name: string; args: unknown }[] = []
 
-const convexMocks = await installConvexMocks({
-  convexReact: {
-    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      mutations.push({ name: getFunctionName(ref as never), args })
-      return 'TOKEN0123456789A'
-    },
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: authed, isLoading: false }) },
+  call: (name, args) => {
+    mutations.push({ name, args })
+    return 'TOKEN0123456789A'
   },
 })
 
 const { CopyInviteLink, ResetInviteLink } = await import('../CopyInviteLink')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
+const { resetSync } = await import('../../../replica/sync')
 
 const copied: string[] = []
 
@@ -41,22 +38,22 @@ beforeEach(() => {
 })
 
 afterAll(() => {
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  convexMocks.restore()
+  resetSync()
+  serverMocks.restore()
 })
 
 async function renderButton(): Promise<HTMLElement> {
   let container: HTMLElement | undefined
   await act(async () => {
     container = render(
-      <ConnectionProvider>
+      <SyncProvider>
         <CopyInviteLink
           gameId={'g1' as never}
           clipboardWriter={async (text) => {
             copied.push(await text)
           }}
         />
-      </ConnectionProvider>
+      </SyncProvider>
     ).container
   })
   if (container === undefined) throw new Error('nothing rendered')
@@ -70,7 +67,7 @@ describe('Copy invite link', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Copy invite link' }))
     })
 
-    expect(mutations).toEqual([{ name: 'invites:link', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'invites.link', args: { gameId: 'g1' } }])
     expect(copied).toEqual([`${pageOrigin()}/play/invite/TOKEN0123456789A`])
   })
 
@@ -85,9 +82,9 @@ describe('Reset link', () => {
   async function openConfirm(): Promise<void> {
     await act(async () => {
       render(
-        <ConnectionProvider>
+        <SyncProvider>
           <ResetInviteLink gameId={'g1' as never} />
-        </ConnectionProvider>
+        </SyncProvider>
       )
     })
     await act(async () => {
@@ -112,6 +109,6 @@ describe('Reset link', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Reset link' }))
     })
 
-    expect(mutations).toEqual([{ name: 'invites:reset', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'invites.reset', args: { gameId: 'g1' } }])
   })
 })

@@ -1,11 +1,11 @@
 /**
- * The app's entity kinds, the Convex table each lives in, and the app
- * addresses that name them.
+ * The app's entity kinds, the table each lives in, and the app addresses
+ * that name them.
  *
- * Routes and bodies speak the singular kind (`pilot`); Convex tables speak the
+ * Routes and bodies speak the singular kind (`pilot`); tables speak the
  * plural (`pilots`). This module is the one map between them, read by the
- * client, `apps/web/convex/` and the Discord bot. It imports nothing but its sibling
- * `shareAddress`, so the bot can read it without pulling in Convex or React.
+ * client, the Worker and the Discord bot. It imports nothing but its sibling
+ * `shareAddress`, so the bot can read it without pulling in React.
  */
 
 import { shareSegment } from './shareAddress'
@@ -38,9 +38,6 @@ export type SheetTable = (typeof TABLE_OF_KIND)[SheetKind]
 
 /** The two kinds that carry an owner. Crawlers are communal by design. */
 export type OwnableKind = Exclude<SheetKind, 'crawler'>
-
-/** The table an {@link OwnableKind}'s rows live in. */
-export type OwnableTable = (typeof TABLE_OF_KIND)[OwnableKind]
 
 /** What a public page addresses: any sheet, or a saved mech pattern. */
 export type PublicKind = EntityKind | 'pattern'

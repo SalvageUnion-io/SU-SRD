@@ -20,7 +20,7 @@ import { copyName } from '../../lib/copyEntity'
 import { buildPrepCopy } from '../../messages/build-prep'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
 import { readTrayNpc } from '../../play/mediator/opposition.model'
-import type { EncounterCreateInput } from '../../stores/prepStore'
+import type { EncounterCreateInput } from '../../replica/collections'
 
 /** An encounter's page, in the Training Bay. */
 export function encounterHref(encounterId: string): string {

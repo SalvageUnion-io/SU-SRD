@@ -1,219 +1,38 @@
-/**
- * `WiringSync`'s reconcile plans (ADR-037): links and Game crawlers down from
- * `entities.listWiring`, server wins, pruning only where the server spoke.
- */
+/** A served link as the local record it becomes (ADR-037). */
 
 import { describe, expect, test } from 'bun:test'
-import type { Container } from 'game-domain/container'
-import { SHELF } from 'game-domain/container'
-import type { SoftLink } from 'game-domain/schemas/softLink'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import type { ServedCrawler, ServedLink } from '../linkSync'
-import {
-  planCrawlerSync,
-  planLinkSync,
-  planRowSync,
-  rowVersion,
-  softLinkFromServer,
-} from '../linkSync'
+import type { ServedLink } from '../linkSync'
+import { softLinkFromServer } from '../linkSync'
 
 const T0 = Date.parse(FIXTURE_NOW)
 
-function served(id: string, from: string, to: string, gameId: string | null = 'g1'): ServedLink {
+function served(slot?: ServedLink['slot']): ServedLink {
   return {
-    _id: id,
+    _id: 'srv-1',
     _creationTime: T0,
-    gameId,
-    from: { type: 'pilot', id: from },
-    to: { type: 'crawler', id: to },
+    gameId: 'g1',
+    from: { type: 'pilot', id: 'p1' },
+    to: { type: 'crawler', id: 'c1' },
     type: 'pilot-to-crawler',
+    ...(slot === undefined ? {} : { slot }),
   }
 }
 
-function local(id: string, from: string, to: string): SoftLink {
-  return {
-    id,
-    from: { type: 'pilot', id: from },
-    to: { type: 'crawler', id: to },
-    type: 'pilot-to-crawler',
-    createdAt: FIXTURE_NOW,
-  }
-}
-
-const game = (gameId: string): Container => ({ kind: 'game', gameId })
-
-describe('planLinkSync', () => {
-  const where: Record<string, Container> = {
-    p1: game('g1'),
-    p2: game('g1'),
-    ps: SHELF,
-    px: game('gx'),
-  }
-  const containerOfEnd = (ref: { id: string }) => where[ref.id] ?? null
-  const gameIds = new Set(['g1'])
-
-  test('adopts a served link this browser lacks, under the server row id', () => {
-    const plan = planLinkSync({
-      local: [],
-      served: [served('srv-1', 'p1', 'c1')],
-      gameIds,
-      containerOfEnd,
+describe('softLinkFromServer', () => {
+  test('keeps the server row id and its ends, created when the row was', () => {
+    expect(softLinkFromServer(served())).toEqual({
+      id: 'srv-1',
+      from: { type: 'pilot', id: 'p1' },
+      to: { type: 'crawler', id: 'c1' },
+      type: 'pilot-to-crawler',
+      createdAt: new Date(T0).toISOString(),
     })
-    expect(plan.adopt).toEqual([softLinkFromServer(served('srv-1', 'p1', 'c1'))])
-    expect(plan.adopt[0]?.id).toBe('srv-1')
-    expect(plan.prune).toEqual([])
   })
 
-  test('a link already held under a local id is matched by endpoints, not adopted twice', () => {
-    const plan = planLinkSync({
-      local: [local('mine', 'p1', 'c1')],
-      served: [served('srv-1', 'p1', 'c1')],
-      gameIds,
-      containerOfEnd,
-    })
-    expect(plan).toEqual({ adopt: [], prune: [] })
-  })
-
-  test('prunes a covered link the server no longer has — reassigned elsewhere', () => {
-    const plan = planLinkSync({
-      local: [local('old', 'p1', 'c1')],
-      served: [served('srv-2', 'p1', 'c2')],
-      gameIds,
-      containerOfEnd,
-    })
-    expect(plan.adopt.map((l) => l.to.id)).toEqual(['c2'])
-    expect(plan.prune).toEqual(['old'])
-  })
-
-  test('a Training Bay link is covered: every one is drawn from an entity the caller owns', () => {
-    const plan = planLinkSync({
-      local: [local('old', 'ps', 'cs')],
-      served: [],
-      gameIds,
-      containerOfEnd,
-    })
-    expect(plan.prune).toEqual(['old'])
-  })
-
-  test("never prunes a link in a Game the answer did not cover, or whose ends aren't cached", () => {
-    const plan = planLinkSync({
-      local: [local('other-game', 'px', 'cx'), local('unknown', 'nobody', 'nothing')],
-      served: [],
-      gameIds,
-      containerOfEnd,
-    })
-    expect(plan.prune).toEqual([])
-  })
-
-  test('drops a second local copy of a link the server holds once', () => {
-    const plan = planLinkSync({
-      local: [local('a', 'p1', 'c1'), local('b', 'p1', 'c1')],
-      served: [served('srv-1', 'p1', 'c1')],
-      gameIds,
-      containerOfEnd,
-    })
-    expect(plan.prune).toEqual(['b'])
-  })
-})
-
-describe('planCrawlerSync', () => {
-  function row(id: string, gameId: string, updatedAt = 1, extra: object = {}): ServedCrawler {
-    return {
-      appId: id,
-      gameId,
-      updatedAt,
-      body: { id, name: `Crawler ${id}`, gameId: null, ...extra },
-    }
-  }
-  const gameIds = new Set(['g1'])
-
-  test('adopts a Game crawler, filed under the ROW container even when the body says shelf', () => {
-    const plan = planCrawlerSync({
-      local: [],
-      served: [row('c1', 'g1')],
-      gameIds,
-      adoptedAt: new Map(),
-    })
-    expect(plan.adopt).toHaveLength(1)
-    expect(plan.adopt[0]?.body.gameId).toBe('g1')
-  })
-
-  test("re-adopts when the row moved on — the Mediator's edit reaches this cache", () => {
-    const local = [{ id: 'c1', gameId: 'g1' }]
-    const unchanged = planCrawlerSync({
-      local,
-      served: [row('c1', 'g1', 5)],
-      gameIds,
-      adoptedAt: new Map([['c1', 5]]),
-    })
-    expect(unchanged.adopt).toEqual([])
-
-    const edited = planCrawlerSync({
-      local,
-      served: [row('c1', 'g1', 6)],
-      gameIds,
-      adoptedAt: new Map([['c1', 5]]),
-    })
-    expect(edited.adopt.map((c) => c.id)).toEqual(['c1'])
-  })
-
-  test('forgets a cached crawler a covered Game no longer has — scrapped or moved out', () => {
-    const plan = planCrawlerSync({
-      local: [
-        { id: 'gone', gameId: 'g1' },
-        { id: 'elsewhere', gameId: 'g2' },
-        { id: 'mine', gameId: null },
-      ],
-      served: [],
-      gameIds,
-      adoptedAt: new Map(),
-    })
-    expect(plan.prune).toEqual(['gone'])
-  })
-})
-
-describe('planRowSync', () => {
-  const row = (id: string, updatedAt: number) => ({ updatedAt, body: { id } })
-
-  test('adopts a row this browser lacks, and one it never recorded a version for', () => {
-    const plan = planRowSync({
-      local: [{ id: 'cached' }],
-      served: [row('new', 1), row('cached', 1)],
-      adoptedAt: new Map(),
-    })
-    expect(plan.map((p) => p.id)).toEqual(['new', 'cached'])
-  })
-
-  test('same id with a newer version is adopted — an edit on another device comes down', () => {
-    // Keyed on ids, this emission changed nothing and was skipped; the next
-    // whole-body write from here then sent the old body back over the edit.
-    const plan = planRowSync({
-      local: [{ id: 'p1' }],
-      served: [row('p1', 6)],
-      adoptedAt: new Map([['p1', 5]]),
-    })
-    expect(plan.map((p) => [p.id, p.updatedAt])).toEqual([['p1', 6]])
-  })
-
-  test('an unchanged or older version is not adopted over what this browser holds', () => {
-    // Older: an emission that predates a write this browser already made.
-    const plan = planRowSync({
-      local: [{ id: 'same' }, { id: 'older' }],
-      served: [row('same', 5), row('older', 4)],
-      adoptedAt: new Map([
-        ['same', 5],
-        ['older', 5],
-      ]),
-    })
-    expect(plan).toEqual([])
-  })
-
-  test('a pattern or tray row with no version column is versioned by its own stamp', () => {
-    expect(rowVersion({ body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(
-      Date.parse('2026-01-01T00:00:01.000Z')
-    )
-    expect(rowVersion({ body: { createdAt: FIXTURE_NOW } })).toBe(Date.parse(FIXTURE_NOW))
-    expect(rowVersion({ updatedAt: 7, body: { updatedAt: '2026-01-01T00:00:01.000Z' } })).toBe(7)
-    expect(rowVersion({ body: {} })).toBe(0)
+  test('carries a crew slot only when the row has one', () => {
+    const slot = { kind: 'bay' as const, bayRef: 'command' }
+    expect(softLinkFromServer(served(slot)).slot).toEqual(slot)
+    expect('slot' in softLinkFromServer(served())).toBe(false)
   })
 })

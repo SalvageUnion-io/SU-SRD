@@ -1,3 +1,4 @@
+import type { UnitsState } from '../../../replica/units'
 /**
  * Crawler crew, the paths `CrewBoard.test.tsx` leaves open:
  * choosing which crawler to crew, the name the form insists on, assigning an
@@ -9,41 +10,32 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { ConvexError } from 'convex/values'
 import { useState } from 'react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { acceptingRooms, roomAnswer } from '../../../../test/roomsStub'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { RoomDeclined } from '../../../replica/roomSocket'
+import type { SyncState } from '../../../replica/syncContext'
 
-/** How the stub server answers a link write this test. */
+/** How the stand-in room answers a link drawn this test. */
 let linkWrite: 'ok' | 'defect' | 'refused' = 'ok'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (_ref: unknown, args: unknown) => {
-      const isLink = typeof args === 'object' && args !== null && 'from' in args
-      if (isLink && linkWrite === 'defect') throw new Error('socket closed')
-      if (isLink && linkWrite === 'refused') throw new ConvexError('That NPC is crewing elsewhere.')
-      return { updatedAt: 1 }
-    },
-  },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { CrewBoard } = await import('../CrewBoard')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 const TENACITY = crawlerFixture({
@@ -89,10 +81,10 @@ async function renderBoard(crawlerId?: string, initialSlot?: string) {
   const log: Selection[] = []
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <ToasterMount />
         <Board crawlerId={crawlerId} initialSlot={initialSlot} log={log} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   return log
@@ -104,8 +96,8 @@ async function click(el: HTMLElement) {
   })
 }
 
-function seed(state: Partial<ReturnType<typeof useEntityStore.getState>>) {
-  useEntityStore.setState({
+function seed(state: Partial<UnitsState>) {
+  useUnits.setState({
     crawlers: [TENACITY],
     npcs: [],
     softLinks: [],
@@ -135,12 +127,19 @@ function gameListing() {
 
 beforeEach(() => {
   linkWrite = 'ok'
+  roomAnswer.act = async (name) => {
+    if (name !== 'drawLink') return undefined
+    if (linkWrite === 'defect') throw new Error('socket closed')
+    if (linkWrite === 'refused') throw new RoomDeclined('That NPC is crewing elsewhere.')
+    return undefined
+  }
   toast.dismiss()
   seed({})
-  setQueryAnswers({ 'games:listMine': [] })
+  setQueryAnswers({ 'games.listMine': [] })
 })
 afterEach(() => {
   toast.dismiss()
+  acceptingRooms()
 })
 
 describe('which crawler', () => {
@@ -175,7 +174,7 @@ describe('designing a slot', () => {
   test('a nameless NPC is not saved', async () => {
     await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Save and assign to Med Bay' }))
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
     expect(screen.getByText('Give the NPC a name.')).toBeTruthy()
   })
 
@@ -195,7 +194,7 @@ describe('designing a slot', () => {
     const log = await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Keep the book’s line' }))
     expect(log).toEqual([{ crawler: 'c1', slot: undefined }])
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(0)
   })
 
   test('a saved NPC whose assignment fails is said to be saved, not assigned', async () => {
@@ -210,8 +209,8 @@ describe('designing a slot', () => {
         'Doc Ambrose is saved, but not assigned: That NPC could not be assigned to the Med Bay. Try again.'
       )
     ).toBeTruthy()
-    expect(useEntityStore.getState().npcs).toHaveLength(1)
-    expect(useEntityStore.getState().softLinks).toHaveLength(0)
+    expect(useUnits.getState().npcs).toHaveLength(1)
+    expect(useUnits.getState().softLinks).toHaveLength(0)
   })
 })
 
@@ -223,8 +222,8 @@ describe('assigning an NPC already here', () => {
     const log = await renderBoard('c1', 'med-bay')
     const list = screen.getByRole('list', { name: 'NPCs that can crew the Med Bay' })
     await click(within(list).getByRole('button', { name: 'Assign Mags to Med Bay' }))
-    await waitFor(() => expect(useEntityStore.getState().softLinks).toHaveLength(1))
-    expect(useEntityStore.getState().softLinks[0]).toMatchObject({
+    await waitFor(() => expect(useUnits.getState().softLinks).toHaveLength(1))
+    expect(useUnits.getState().softLinks[0]).toMatchObject({
       from: { type: 'npc', id: 'n-mags' },
       to: { type: 'crawler', id: 'c1' },
       slot: { kind: 'bay', bayRef: 'med-bay' },
@@ -239,7 +238,7 @@ describe('assigning an NPC already here', () => {
     await renderBoard('c1', 'med-bay')
     await click(screen.getByRole('button', { name: 'Assign Mags to Med Bay' }))
     expect(await screen.findByText('That NPC is crewing elsewhere.')).toBeTruthy()
-    expect(useEntityStore.getState().softLinks).toHaveLength(0)
+    expect(useUnits.getState().softLinks).toHaveLength(0)
   })
 })
 
@@ -248,9 +247,9 @@ describe('a Game crawler, crewed by its table runner', () => {
 
   beforeEach(() => {
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
-      'entities:listForGame': gameListing(),
-      'games:members': [{ userId: 'u-sam', displayName: 'Sam' }],
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
+      'entities.listForGame': gameListing(),
+      'games.members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
   })
 
@@ -298,9 +297,9 @@ describe('a player in someone else’s Game', () => {
   test('an open slot reads the book’s line and the Game rule, offering nothing', async () => {
     seed({ crawlers: [{ ...TENACITY, gameId: 'g1' }] })
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities:listForGame': gameListing(),
-      'games:members': [],
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
+      'entities.listForGame': gameListing(),
+      'games.members': [],
     })
     await renderBoard('c1', 'med-bay')
     expect(screen.getByText(/Old Mags, the Doc holds/)).toBeTruthy()

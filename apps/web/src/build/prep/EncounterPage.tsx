@@ -57,7 +57,6 @@ import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { reportWriteFailure } from '../../lib/runWrite'
@@ -67,8 +66,8 @@ import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model
 import { newTrayNpc } from '../../play/mediator/opposition.model'
 import { PlayRollTable } from '../../play/PlayRollTable'
 import { findTables } from '../../play/tables.model'
-import { usePatternStore } from '../../stores/patternStore'
-import { usePrepStore } from '../../stores/prepStore'
+import { useEncounters, usePatterns } from '../../replica/collections'
+import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
 import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
@@ -117,7 +116,7 @@ const TABLE_LIST = { padding: tokens.space[4] } satisfies CSSProperties
 
 /** The page, or why there is none: the encounter is the owner's alone, so absent is not found. */
 export function EncounterPage({ id }: { id: string }) {
-  const encounter = usePrepStore((s) => s.encounters.find((e) => e.id === id) ?? null)
+  const encounter = useEncounters((s) => s.encounters.find((e) => e.id === id) ?? null)
   if (encounter === null) {
     return (
       <NotFoundPanel
@@ -131,13 +130,13 @@ export function EncounterPage({ id }: { id: string }) {
 }
 
 function EncounterBody({ encounter }: { encounter: Encounter }) {
-  const { canWrite: connected } = useConnection()
+  const { canWrite: connected } = useSync()
   // Read until Edit is pressed, as on every sheet (R11); nothing writes in Read.
   const mode = useSheetModeStore()
   const canWrite = connected && mode.editing
   const go = useGo()
   const { confirm, dialog } = useConfirm()
-  const patterns = usePatternStore((s) => s.mechPatterns)
+  const patterns = usePatterns((s) => s.mechPatterns)
   const [picking, setPicking] = useState(false)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
   // The group being named: `null` for a new one, absent when the dialog is shut.
@@ -150,9 +149,9 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
 
   const write = (change: (current: Encounter) => Partial<Encounter>) => {
     const next = queue.current.then(async () => {
-      const current = usePrepStore.getState().get(encounter.id)
+      const current = useEncounters.getState().get(encounter.id)
       if (current === null) return
-      await usePrepStore.getState().update(encounter.id, change(current))
+      await useEncounters.getState().update(encounter.id, change(current))
     })
     queue.current = next.catch(reportWriteFailure)
     return next
@@ -228,7 +227,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     confirm({
       ...ROW_ACTION_COPY.deleteBuild(encounter.name),
       onConfirm: async () => {
-        await usePrepStore.getState().delete(encounter.id)
+        await useEncounters.getState().delete(encounter.id)
         go('/')
       },
     })

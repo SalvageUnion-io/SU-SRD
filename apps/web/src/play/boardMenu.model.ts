@@ -41,7 +41,7 @@ export type CrewLink = {
   to: { type: string; id: string }
 }
 
-/** What the menu reads from the Game, all of it from Convex. */
+/** What the menu reads from the Game, all of it from its room. */
 export type BoardSources = {
   /** `entities.listForGame`, or null before it arrives. */
   listing: {
@@ -63,7 +63,7 @@ type BoardState = 'yours' | 'spare' | 'others' | 'destroyed' | 'aboard'
 export type BoardOption = {
   /** The mech's app id: what a seat and a link end address it by. */
   mechId: string
-  /** The Convex row id `ownership.assign` takes, or null when known only locally. */
+  /** The row id `ownership.assign` takes, or null when known only locally. */
   serverId: string | null
   name: string
   state: BoardState

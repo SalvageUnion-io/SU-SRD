@@ -4,7 +4,6 @@
  * A plain static document: no islands, no data, no structured data.
  */
 
-import type { PageModule, PageResult } from '../../../../ssg/types'
 import { InlineRef, Slab } from '../../../components/index'
 import { space } from '../../../design/tokens'
 import { appPath } from '../../../lib/appBase'
@@ -12,12 +11,13 @@ import { BOLD, bulletList, proseColumn, SMALL_PRINT } from '../../../lib/docPage
 import { pageTitle } from '../../../lib/pageTitle'
 import { pagesCopy } from '../../../messages/reference-pages'
 import { DocPage } from '../../DocPage'
+import type { PageModule, PageResult } from '../../types'
 
 const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
 const AFTER_LIST = { marginTop: space[8] }
 
-const LAST_UPDATED = '22 October 2026'
+const LAST_UPDATED = '26 October 2026'
 
 function page(): PageResult {
   return {
@@ -86,12 +86,9 @@ function page(): PageResult {
                 Discord’s Privacy Policy.
               </li>
               <li>
-                <strong>{pagesCopy('cloudflare')}</strong> — hosts the Bot and salvageunion.io, and
-                logs their errors.
-              </li>
-              <li>
-                <strong>{pagesCopy('convex')}</strong> — stores salvageunion.io accounts, Games and
-                bound channels.
+                <strong>{pagesCopy('cloudflare')}</strong> — hosts the Bot and salvageunion.io, logs
+                their errors, and stores salvageunion.io accounts, Games, sheets, bound channels and
+                feedback (in Durable Objects and D1) and the photos you upload (in R2).
               </li>
               <li>
                 <strong>{pagesCopy('github')}</strong> {pagesCopy('hostsThePublicIssues')}

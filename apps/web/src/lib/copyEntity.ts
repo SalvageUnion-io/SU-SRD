@@ -36,7 +36,7 @@
  * So a copy is `gameId: null` with the copier as owner. It cannot be
  * "unassigned" in the `ownerId: null` sense — that is the invalid row. No one
  * mutation refuses it; the server simply never writes one. Every shelf insert
- * in `convex/entities.ts` and `convex/shelf.ts` sets
+ * in the account room (`rooms/account/shelf.ts`) sets
  * `ownerId` to the caller, `games.destroy` gives
  * an unassigned row the Organizer as it shelves it, an unassigned row cannot be
  * written (so cannot be moved out of its Game), and `ownership.release`
@@ -52,7 +52,7 @@ export type CopyableBody = Record<string, unknown>
  * Fields the copy must not inherit.
  *
  * `id`/`createdAt`/`updatedAt` are minted on create
- * (stores/records.ts (prepareCreate / parseServed)), so
+ * (replica/records.ts (prepareCreate)), so
  * carrying them through would either be overwritten or — worse for `id` —
  * produce a second record claiming to be the original, which is the exact
  * duplicate-`appId` condition that took a play session down.

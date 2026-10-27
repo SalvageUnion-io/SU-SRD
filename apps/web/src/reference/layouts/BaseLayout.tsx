@@ -2,17 +2,15 @@
  * BaseLayout — the page document every reference route renders into.
  *
  * Renders the whole `<html>` document except for the built asset tags and the
- * island-props script, which `ssg/document.tsx` injects into the rendered
- * string (it is the only thing that knows the Vite manifest).
+ * island-props script, which `astro/lib/document.tsx` adds to the rendered
+ * string (it is the only thing that knows the built assets).
  *
- * **This file must never import `.css`.** All stylesheets are imported from
- * `src/runtime/styles.entry.ts`, a client-bundle entry — see `ssg/DESIGN.md`,
- * hard rule 1. The `import type` below is erased at runtime, so it does not
- * make `ssg/` a runtime dependency of the app.
+ * **This file must never import `.css`.** A page's stylesheet is imported by
+ * `astro/layouts/Page.astro`, the one document shell: see `astro/DESIGN.md`,
+ * hard rule 1.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import type { DocumentMeta } from '../../../ssg/types'
 import { SkipLink } from '../../components/atoms/SkipLink'
 import type { FooterFoot } from '../../components/index'
 import { BreadcrumbTrail, ChapterBandTrail, Footer } from '../../components/index'
@@ -26,6 +24,7 @@ import { pageTitle } from '../../lib/pageTitle'
 import { SITE_MANIFEST } from '../../pwa'
 import { Island } from '../../runtime/Island'
 import { TopNavigation } from '../TopNavigation'
+import type { DocumentMeta } from '../types'
 
 /** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
 const SPECULATION_RULES = JSON.stringify({

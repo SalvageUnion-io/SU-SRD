@@ -5,8 +5,8 @@ name: Deploy preview (Cloudflare)
 # production is one su-srd Worker.
 #
 #   site     https://pr-<n>-su-srd.alxjrvs.workers.dev
-#   App  https://pr-<n>-su-srd.alxjrvs.workers.dev/build, against the
-#            staging Convex deployment perfect-donkey-72
+#   App      https://pr-<n>-su-srd.alxjrvs.workers.dev/build, its rooms its
+#            own and its shared database the Previews' (su-shared-preview)
 #
 # Adding the label builds and ships the PR; each later push to it ships again;
 # closing it deletes the Preview. The run's summary and one PR comment carry
@@ -15,10 +15,7 @@ name: Deploy preview (Cloudflare)
 # IT CANNOT MOVE PRODUCTION. `wrangler preview` makes a Preview, which is
 # neither a version nor a deployment of the production Worker: its traffic,
 # vars and secrets are its own (each wrangler.jsonc's `previews` block), and
-# plain `wrangler secret put` on the production Worker keeps working. The
-# Convex push takes a deploy key that the `ship` job refuses unless it is the
-# dev key for perfect-donkey-72, so a production key stored here by mistake
-# fails the run before anything is pushed.
+# plain `wrangler secret put` on the production Worker keeps working.
 #
 # THE GATE IS THE LABEL. Only a labelled PR from this repository ships (a
 # fork's run gets no secrets and is skipped), so the `preview` Environment
@@ -28,15 +25,12 @@ name: Deploy preview (Cloudflare)
 # can deploy any Worker on the account (ADR-033 §Credentials). Only `ship` and
 # `teardown` name the Environment, and `ship` only after every build is green.
 #
-# ONE STAGING BACKEND. Every Preview's app talks to perfect-donkey-72, and each
-# run pushes its PR's Convex functions and schema there and points its
-# SITE_URL (the sign-in callback) at its own Preview: the last PR shipped wins
-# both, so two labelled PRs with different schemas, or a sign-in on an older
-# one, collide.
+# ONE SHARED DATABASE. Every Preview reads and writes su-shared-preview, and
+# each run applies its PR's migrations there: two labelled PRs with different
+# migrations collide. Each Preview's rooms are its own.
 #
 # THE BUILD HOLDS NO SECRET. It is deploy-cloudflare.yml's build
-# (.github/actions/build-site); the push is its push
-# (.github/actions/convex-push). A
+# (.github/actions/build-site). A
 # Preview's browser posts its errors to its own Preview Worker, and its Workers
 # log them for Workers Issues like production's, under the Preview's version.
 
@@ -56,10 +50,6 @@ permissions:
 
 env:
   PREVIEW_NAME: pr-${{ github.event.pull_request.number }}
-  # The staging backend: the project's cloud dev deployment. Public, like
-  # production's (docs/ARCHITECTURE.md#previews).
-  STAGING_CONVEX_DEPLOYMENT: perfect-donkey-72
-  STAGING_CONVEX_URL: https://perfect-donkey-72.convex.cloud
   # The Preview's address, known before it exists: `<name>-<worker>.<account
   # subdomain>`. The build takes it as the site's origin, so every absolute
   # address a Preview prints names this PR's Preview, never production:
@@ -70,9 +60,7 @@ env:
   PREVIEW_ORIGIN: https://pr-${{ github.event.pull_request.number }}-su-srd.alxjrvs.workers.dev
 
 jobs:
-  # The site's one build, against the staging URL as a constant, as
-  # production builds against PRODUCTION_CONVEX_URL: `ship` checks the deploy key
-  # resolves to it before it pushes anything.
+  # The site's one build, as production builds it, for the Preview's origin.
   build-web:
     # A labelled PR from this repository, on the push or the label that asks
     # for it; a fork's run gets no secrets, and another label is no request.
@@ -97,13 +85,12 @@ jobs:
       - name: Build the site, render its OG images and upload it
         uses: ./.github/actions/build-site
         with:
-          convex-url: ${{ env.STAGING_CONVEX_URL }}
           commit-ref: ${{ github.event.pull_request.head.sha }}
           site-origin: ${{ env.PREVIEW_ORIGIN }}
           retention-days: '1'
 
-  # Push the staging backend, then ship su-srd, with the app in its
-  # `dist/build/`, as a Preview, only after the build is green.
+  # Ship su-srd, with the app in its `dist/build/`, as a Preview, only after
+  # the build is green.
   ship:
     needs: [build-web]
     runs-on: ubuntu-latest
@@ -120,53 +107,51 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
-      # A dev deploy key reads `dev:<deployment>|<token>`. Matched by prefix,
-      # never printed. A production or preview key, or one for another
-      # deployment, stops the run here.
-      - name: Refuse any key but perfect-donkey-72's dev key
+      - name: Refuse to ship without a Cloudflare token
         env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          case "$CONVEX_DEPLOY_KEY" in
-            "dev:$STAGING_CONVEX_DEPLOYMENT|"?*) ;;
-            "")
-              echo "FATAL: no CONVEX_PREVIEW_DEPLOY_KEY in the preview Environment." >&2
-              exit 1 ;;
-            *)
-              echo "FATAL: CONVEX_PREVIEW_DEPLOY_KEY is not the dev deploy key for $STAGING_CONVEX_DEPLOYMENT." >&2
-              echo "Refusing to push: it could name production." >&2
-              exit 1 ;;
-          esac
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "FATAL: no CLOUDFLARE_API_TOKEN in the preview Environment." >&2
             exit 1
           fi
 
-      # Previews are public. With TEST_AUTH on, anyone could sign up a
-      # password account against it (convex/auth.ts); production never has it.
-      - name: Refuse a staging backend with the test sign-in on
-        working-directory: apps/web
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-        run: |
-          if [ "$(bunx convex env get TEST_AUTH | tr -d '[:space:]')" = "true" ]; then
-            echo "FATAL: TEST_AUTH=true on $STAGING_CONVEX_DEPLOYMENT, which the preview serves publicly." >&2
-            echo "Unset it: bunx convex env remove TEST_AUTH --deployment $STAGING_CONVEX_DEPLOYMENT" >&2
-            exit 1
-          fi
-
-      - name: Push Convex
-        uses: ./.github/actions/convex-push
-        with:
-          deploy-key: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-          expected-url: ${{ env.STAGING_CONVEX_URL }}
-
       - name: Download the site artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: web-dist
-          path: apps/web/dist
+          path: apps/web
+
+      # The Previews' own shared database before the Preview that reads it
+      # (tools/d1-migrate.ts); production's is never touched from here.
+      - name: Migrate the Previews' shared database
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: bun tools/d1-migrate.ts su-shared-preview
+
+      # A Preview takes the base config's secrets only when it is created, so
+      # one the base config has gained since goes, and the next step makes it
+      # again with every secret. Its rooms start empty; the shared database
+      # is the Previews' and stays.
+      - name: Recreate the Preview when the base config has a secret it lacks
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          names() { jq -r '.[].name' | sort; }
+          if ! own=$(bunx wrangler preview secret list --name "$PREVIEW_NAME" --json 2>/dev/null); then
+            echo "No $PREVIEW_NAME Preview yet: the next step makes it."
+            exit 0
+          fi
+          base=$(bunx wrangler preview base-config secret list --json)
+          missing=$(comm -13 <(printf '%s' "$own" | names) <(printf '%s' "$base" | names))
+          if [ -z "$missing" ]; then
+            echo "$PREVIEW_NAME has every base config secret."
+            exit 0
+          fi
+          echo "::notice::$PREVIEW_NAME lacks ${missing//$'\n'/ }: recreating it."
+          bunx wrangler preview delete --name "$PREVIEW_NAME" -y
 
       # A Preview, never a version or a deployment of the production Worker.
       # Its vars are wrangler.jsonc's `previews` block. Its URL is read back
@@ -198,15 +183,6 @@ jobs:
           fi
           echo "url=${url%/}" >> "$GITHUB_OUTPUT"
 
-      # Every run: the OAuth callback redirects to SITE_URL, which must be the
-      # Preview's address, base included. Not a secret.
-      - name: Point the staging backend's SITE_URL at this Preview
-        working-directory: apps/web
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_DEPLOY_KEY }}
-          PREVIEW_URL: ${{ steps.preview.outputs.url }}
-        run: bunx convex env set SITE_URL "$PREVIEW_URL/build"
-
       - name: Summary
         env:
           SHA: ${{ github.event.pull_request.head.sha }}
@@ -216,7 +192,7 @@ jobs:
             echo "### \`$PREVIEW_NAME\` now serves \`$SHA\`"
             echo
             echo "- site: $PREVIEW_URL"
-            echo "- the app: $PREVIEW_URL/build (Convex \`$STAGING_CONVEX_DEPLOYMENT\`)"
+            echo "- the app: $PREVIEW_URL/build"
           } >> "$GITHUB_STEP_SUMMARY"
 
   # One comment per PR carrying the URLs, edited in place on every ship. Its own
@@ -238,7 +214,7 @@ jobs:
         run: |
           set -euo pipefail
           marker='<!-- deploy-preview -->'
-          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- the app: %s/build (staging Convex, shared by every Preview)\n' \
+          body=$(printf '%s\n**Preview** of %s\n\n- site: %s\n- the app: %s/build (the shared Preview database)\n' \
             "$marker" "${SHA:0:12}" "$PREVIEW_URL" "$PREVIEW_URL")
           id=$(gh api "repos/$REPO/issues/$PR/comments" --paginate \
             --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty")
@@ -273,6 +249,6 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -uo pipefail
-          mkdir -p apps/web/dist
+          mkdir -p apps/web/dist/client
           (cd apps/web && bunx wrangler preview delete --name "$PREVIEW_NAME" -y) ||
             echo "::warning::no $PREVIEW_NAME Preview to delete"

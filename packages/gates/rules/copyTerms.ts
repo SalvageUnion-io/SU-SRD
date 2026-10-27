@@ -53,16 +53,15 @@ import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
 /** The source trees whose strings reach a reader. */
 const COPY_DIRS = [
-  'apps/web/convex',
   'apps/web/src',
   'apps/discord-bot/src',
   'packages/game-domain/src',
   'packages/salvageunion-reference/lib',
 ] as const
 
-/** Files in those trees that are not shipped copy. */
+/** Files in those trees that are not shipped copy; the shared database's strings are SQL. */
 const SKIP_FILE =
-  /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$|\/proseDeviations\.ts$/
+  /(^|\/)(__tests__|_generated|generated)\/|\.(test|d)\.tsx?$|\/proseDeviations\.ts$|(^|\/)src\/worker\/shared\//
 
 /**
  * JSX attributes whose value is markup, not words: a class list, an SVG path,
@@ -583,7 +582,6 @@ export const copyTerms: RuleSet = {
       TERM_FLOOR
     )
     assertCoversWorkspaces('copy', COPY_DIRS, {
-      'apps/su-assets': 'a Worker that serves image bytes and short error strings; no copy.',
       'packages/gates': 'the gates themselves; their fixtures spell the variants they catch.',
     })
   },

@@ -20,11 +20,10 @@ import { pilotFixture } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
-  makeEntityStoreMock,
+  makeSingleUnitStore,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { Sheet } from '../Sheet'
 
 beforeAll(hydrateStores)
@@ -41,17 +40,8 @@ const basePilot = pilotFixture({
   currentAP: 4,
 })
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
-  return makeEntityStoreMock({
-    pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [pilot]),
-    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
-    create: mock(async () => pilot),
-    update: updateSpy ?? mock(async () => pilot),
-    delete: mock(async () => {}),
-  })
+function makeStubStore(pilot: Pilot, update?: ReturnType<typeof mock>) {
+  return makeSingleUnitStore('pilot', pilot, { update })
 }
 
 function renderPilotSheet(pilot: Pilot, updateSpy?: ReturnType<typeof mock>, readOnly = false) {

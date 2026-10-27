@@ -11,17 +11,15 @@
  * carries is never live.
  */
 
-import { useQuery } from 'convex/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { readReference } from '../lib/readReference'
 import { parseFrozenEntity } from '../lib/schemas/frozenEntity'
-import { useEntityStore } from '../stores/entityStore'
+import { useGamesQuery } from '../replica/roomCalls'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
+import { useUnits } from '../replica/units'
 import type { BoardOption } from './boardMenu.model'
 import { boardable } from './boardMenu.model'
 import type { MechPlace } from './PlayUnits'
@@ -75,12 +73,12 @@ function chassisName(mech: Mech): string | null {
 
 export function usePlayUnits(play: Play): PlayUnits {
   const { target, situation, canWrite } = play
-  const store = useEntityStore()
-  const { mode } = useConnection()
-  const signedIn = isSignedIn(mode)
-  const listing = useQuery(
-    api.entities.listForGame,
-    signedIn && target.gameId !== null ? { gameId: target.gameId as Id<'games'> } : 'skip'
+  const store = useUnits()
+  const { status } = useSync()
+  const signedIn = isSignedIn(status)
+  const listing = useGamesQuery(
+    'entities.listForGame',
+    signedIn && target.gameId !== null ? { gameId: target.gameId } : 'skip'
   )
   const links: readonly ListedLink[] = [...store.softLinks, ...(listing?.softLinks ?? [])]
   const linked = (type: string, match: (l: ListedLink) => boolean) =>

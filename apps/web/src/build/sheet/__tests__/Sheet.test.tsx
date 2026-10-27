@@ -4,165 +4,90 @@
  * Uses dep-injection (no mock.module()) to supply fake entity stores and
  * softLink snapshots. All four composition modes + stand-in cases are covered.
  *
- * Pattern:
- *   1. Build a minimal entityStore snapshot via makeEntityLookupMock()
- *   2. Build a softLink snapshot via makeSoftLinkStoreMock()
- *   3. Render <Sheet kind={...} id={...} entityStore={...} softLinkStore={...} />
- *   4. Assert on text + aria labels
- *
  * Uses toBeTruthy() not toBeInTheDocument() (Wave 4 workaround).
  */
 
 import { beforeAll, describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
-import {
-  crawlerFixture,
-  mechFixture,
-  pilotFixture,
-  softLinkFixture,
-} from '../../../components/__tests__/fixtures'
+import { render, screen, within } from '@testing-library/react'
+import type { Crawler } from 'game-domain/schemas/crawler'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
   makeEntityLookupMock,
   makeSoftLinkStoreMock,
 } from '../../../components/__tests__/mockEntityStore'
 import { Sheet } from '../Sheet'
+import { fakeCrawler, fakeMech, fakePilot, mechToPilot, pilotToCrawler } from './sheetFixtures'
 
 beforeAll(hydrateStores)
 
-// ---------------------------------------------------------------------------
-// Shared fake data
-// ---------------------------------------------------------------------------
+const ENTITY = { pilot: fakePilot, mech: fakeMech, crawler: fakeCrawler }
+type Kind = keyof typeof ENTITY
 
-const fakePilot = pilotFixture({
-  id: 'pilot-1',
-  name: 'Yara Voss',
-  callsign: 'Ghost',
-  abilities: ['scavenge'],
-  equipment: ['pistol'],
-  motto: 'Waste not.',
-  keepsake: 'A bent coin.',
-  appearance: 'Tall, weathered.',
-})
+/** The sheet of `kind`'s fixture, over `others` and the links among them. */
+function renderSheet(
+  kind: Kind,
+  { others = [], links = [], readOnly = false } = {} as {
+    others?: Array<Pilot | Mech | Crawler>
+    links?: SoftLink[]
+    readOnly?: boolean
+  }
+) {
+  return render(
+    <Sheet
+      kind={kind}
+      id={ENTITY[kind].id}
+      readOnly={readOnly}
+      entityStore={makeEntityLookupMock([ENTITY[kind], ...others])}
+      softLinkStore={makeSoftLinkStoreMock(links)}
+    />
+  )
+}
 
-const fakeMech = mechFixture({
-  id: 'mech-1',
-  name: 'Iron Fist',
-  chassisRef: 'iron-mongrel',
-  systems: ['heavy-blaster'],
-  modules: ['shield-cell'],
-  cargoLots: [
-    {
-      id: 'lot-medkit',
-      kind: 'unit' as const,
-      name: 'med-kit',
-      cat: 'SEALED' as const,
-      units: 1,
-      code: 'MED',
-    },
-  ],
-})
-
-const fakeCrawler = crawlerFixture({
-  id: 'crawler-1',
-  name: 'Iron Tortoise',
-  techLevel: 'tech-2',
-  crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
-  systems: ['hull-repair'],
-})
+/** Field edit states: a "Edit …" role=button only where the sheet can write. */
+const editButtons = () =>
+  screen
+    .queryAllByRole('button')
+    .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
 
 // ---------------------------------------------------------------------------
-// pilot-only mode
+// Unwired: each kind alone
 // ---------------------------------------------------------------------------
 
-describe('Sheet — pilot-only (no links)', () => {
-  test('renders PilotSheet content', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Pilot name appears in PilotSheet h2 alongside callsign — use partial match
-    expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
+describe('Sheet — one unit, no links', () => {
+  // Each sheet prints its name, and an unresolved ref (class, system) as its slug.
+  test.each([
+    ['pilot', /Yara Voss/, /scavenger/i],
+    ['mech', 'Iron Fist', 'heavy-blaster'],
+    ['crawler', 'Iron Tortoise', null],
+  ] as const)('the %s sheet renders its name', (kind, name, ref) => {
+    renderSheet(kind)
+    expect(screen.getAllByText(name).length).toBeGreaterThan(0)
+    if (ref) expect(screen.getAllByText(ref).length).toBeGreaterThan(0)
   })
 
-  test('no stand-in rendered (pilot-only)', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// mech-only mode
-// ---------------------------------------------------------------------------
-
-describe('Sheet — mech-only (no links)', () => {
-  test('renders MechSheet content', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Name appears in the hero chip and condensed strip — use getAllByText
-    expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
-  })
-
-  test('pilot RailEmpty appears in the "assigned pilot" slot', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // An empty place is its Assign control, never a role stamp (R5).
+  test('a mech with no pilot offers its Assign control (R5), not a role stamp', () => {
+    renderSheet('mech')
     expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// crawler-only mode
-// ---------------------------------------------------------------------------
-
-describe('Sheet — crawler-only (no links)', () => {
-  test('renders CrawlerSheet content', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-1"
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Name appears in the hero chip and condensed strip — use getAllByText
-    expect(screen.getAllByText('Iron Tortoise').length).toBeGreaterThan(0)
+    expect(screen.queryByText(/Yara Voss/)).toBeNull()
   })
 
   test('the Pilots slot renders empty when no pilots are wired', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-1"
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
+    renderSheet('crawler')
     // The slot is "Pilots" now, not a single lead.
     expect(screen.getByRole('button', { name: /add crew/i })).toBeTruthy()
+  })
+
+  test("crawler tech level is the band's TL chip, not identity's", () => {
+    renderSheet('crawler')
+    // Tech Level is the chapter band's `TL | n` chip, ahead of its type, and
+    // nowhere in the body.
+    const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
+    expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
+    const identity = screen.getByRole('region', { name: 'Crawler identity' })
+    expect(within(identity).queryByText('TL')).toBeNull()
   })
 })
 
@@ -171,97 +96,35 @@ describe('Sheet — crawler-only (no links)', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — wired (mech WITH pilot link)', () => {
-  const mechToPilotLink = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-
-  test('renders both PilotSheet and MechSheet', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([mechToPilotLink])}
-      />
-    )
+  test('renders both units, and no Assign pilot control', () => {
+    renderSheet('mech', { others: [fakePilot], links: [mechToPilot] })
     // Pilot name — PilotSheet h2 also includes callsign, use partial match
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
     // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
-  })
-
-  test('pilot RailEmpty NOT rendered when pilot is wired', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        entityStore={makeEntityLookupMock([fakeMech, fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([mechToPilotLink])}
-      />
-    )
-    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign pilot to mech' })).toBeNull()
   })
 })
 
 // ---------------------------------------------------------------------------
-// Mech RailEmpty: pilot-only mode
+// Mech RailEmpty on the pilot sheet
 // ---------------------------------------------------------------------------
 
-describe('Sheet — mech RailEmpty in pilot-only mode', () => {
-  test('mech RailEmpty renders when pilot has no mech wired', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
-  })
-
-  test('mech RailEmpty is ABSENT when a mech is wired', () => {
-    const mechToPilotLink = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot, fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([mechToPilotLink])}
-      />
-    )
-    expect(screen.queryByRole('button', { name: 'Assign mech to pilot' })).toBeNull()
-  })
-})
-
-// ---------------------------------------------------------------------------
-// Mech RailEmpty: wired pilot+crawler (no mech)
-// ---------------------------------------------------------------------------
-
-describe('Sheet — mech RailEmpty in wired pilot+crawler (no mech)', () => {
-  const pilotToCrawlerLink = softLinkFixture('pilot-to-crawler', 'pilot-1', 'crawler-1')
-
-  test('mech RailEmpty renders when wired pilot+crawler but no mech', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot, fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([pilotToCrawlerLink])}
-      />
-    )
-    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
-  })
-
-  test('mech RailEmpty is ABSENT when mech is also wired (full wired)', () => {
-    const mechToPilotLink = softLinkFixture('mech-to-pilot', 'mech-1', 'pilot-1')
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([mechToPilotLink, pilotToCrawlerLink])}
-      />
-    )
-    expect(screen.queryByRole('button', { name: 'Assign mech to pilot' })).toBeNull()
+describe('Sheet — mech RailEmpty on the pilot sheet', () => {
+  test.each([
+    ['no links', [], [], true],
+    ['a mech wired', [fakeMech], [mechToPilot], false],
+    ['a crawler but no mech', [fakeCrawler], [pilotToCrawler], true],
+    [
+      'mech and crawler (full wired)',
+      [fakeMech, fakeCrawler],
+      [mechToPilot, pilotToCrawler],
+      false,
+    ],
+  ] as const)('with %s, Assign mech shows: %p', (_case, others, links, shown) => {
+    renderSheet('pilot', { others: [...others], links: [...links] })
+    const assign = screen.queryByRole('button', { name: 'Assign mech to pilot' })
+    expect(assign !== null).toBe(shown)
   })
 })
 
@@ -269,35 +132,12 @@ describe('Sheet — mech RailEmpty in wired pilot+crawler (no mech)', () => {
 // ConditionToggle renders in editable sheet context
 // ---------------------------------------------------------------------------
 
-describe('Sheet — ConditionToggle renders in editable sheet context', () => {
-  test('ConditionToggle renders in PilotSheet equipment list', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // fakePilot has equipment: ['pistol'] — its condition cycles via the card
-    // status badge
-    const toggle = screen.getByRole('button', { name: /status: intact/i })
-    expect(toggle).toBeTruthy()
-  })
-
-  test('ConditionToggle renders in initial Intact state by default', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Equipment starts in Intact condition; ConditionToggle is interactive and persists to the store on change
-    const toggles = screen.getAllByText('Intact')
-    expect(toggles.length).toBeTruthy()
-  })
+test('Sheet — the pilot sheet equipment carries its ConditionToggle, Intact', () => {
+  renderSheet('pilot')
+  // fakePilot has equipment: ['pistol'] — its condition cycles via the card
+  // status badge, which starts Intact and persists to the store on change
+  expect(screen.getByRole('button', { name: /status: intact/i })).toBeTruthy()
+  expect(screen.getAllByText('Intact').length).toBeTruthy()
 })
 
 // ---------------------------------------------------------------------------
@@ -305,71 +145,16 @@ describe('Sheet — ConditionToggle renders in editable sheet context', () => {
 // ---------------------------------------------------------------------------
 
 describe('Sheet — readOnly propagates to sub-sheets', () => {
-  test('PilotSheet stat cells have no role=button when Sheet readOnly=true', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        readOnly
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // A Field's edit state renders role="button" only when it can write.
-    // In a readOnly Sheet, stat cells should be plain spans with no button role.
-    // ariaLabel for stat cells starts with "Edit " (Field's edit state).
-    const statButtons = screen
-      .queryAllByRole('button')
-      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
-    expect(statButtons.length).toBe(0)
-  })
-
-  test('MechSheet stat cells have no role=button when Sheet readOnly=true', () => {
-    render(
-      <Sheet
-        kind="mech"
-        id="mech-1"
-        readOnly
-        entityStore={makeEntityLookupMock([fakeMech])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    const statButtons = screen
-      .queryAllByRole('button')
-      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
-    expect(statButtons.length).toBe(0)
-  })
-
-  test('CrawlerSheet stat cells have no role=button when Sheet readOnly=true', () => {
-    render(
-      <Sheet
-        kind="crawler"
-        id="crawler-1"
-        readOnly
-        entityStore={makeEntityLookupMock([fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    const statButtons = screen
-      .queryAllByRole('button')
-      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
-    expect(statButtons.length).toBe(0)
-  })
+  test.each(['pilot', 'mech', 'crawler'] as const)(
+    'the %s sheet has no Field edit buttons when readOnly',
+    (kind) => {
+      renderSheet(kind, { readOnly: true })
+      expect(editButtons().length).toBe(0)
+    }
+  )
 
   test('stat cells ARE interactive (role=button) when Sheet is NOT readOnly', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-1"
-        entityStore={makeEntityLookupMock([fakePilot])}
-        softLinkStore={makeSoftLinkStoreMock([])}
-      />
-    )
-    // Without readOnly, a Field's edit state renders role="button" on the value
-    // span; its ariaLabel starts with "Edit "
-    const statButtons = screen
-      .queryAllByRole('button')
-      .filter((el) => (el.getAttribute('aria-label') ?? '').startsWith('Edit '))
-    expect(statButtons.length).toBeGreaterThan(0)
+    renderSheet('pilot')
+    expect(editButtons().length).toBeGreaterThan(0)
   })
 })

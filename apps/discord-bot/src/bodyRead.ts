@@ -8,7 +8,7 @@ import type { EntityBody } from './play/types'
 /**
  * A field name off one of the entity schemas.
  *
- * Convex stores the body as `v.any()`, so the bot reads it by name, and the
+ * The rooms store the body as free JSON, so the bot reads it by name, and the
  * names are the Zod schemas' in `game-domain/schemas/`. Typing the key against
  * them (types only: the bot bundles no Zod) makes a misspelling a compile
  * error rather than a field that silently reads as absent.

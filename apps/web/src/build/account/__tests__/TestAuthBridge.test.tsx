@@ -1,14 +1,14 @@
 /**
  * The gate on the test sign-in seam.
  *
- * `TestAuthBridge` puts a function on `window` that signs in with the password
- * provider. That is only acceptable because it cannot reach production, and
+ * `TestAuthBridge` puts a function on `window` that signs in through the
+ * Worker's test route. That is only acceptable because it cannot reach production, and
  * "cannot" has to be an assertion rather than a comment — comments do not fail.
  *
- * Two independent flags have to be wrong at once for the seam to be reachable:
- * `VITE_TEST_AUTH` in the build (this file) and `TEST_AUTH` on the
- * deployment (`test/convex/__tests__/authProviders.test.ts`). Each is pinned separately so
- * neither can drift into the other's blind spot.
+ * Independent flags have to be wrong at once for the seam to be reachable:
+ * `VITE_TEST_AUTH` in the build (this file) and `TEST_AUTH` on the Worker
+ * (`src/worker/__tests__/auth.test.ts`). Each is pinned separately so neither
+ * can drift into the other's blind spot.
  */
 
 import { describe, expect, test } from 'bun:test'

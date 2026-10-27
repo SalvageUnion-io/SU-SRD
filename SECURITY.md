@@ -15,9 +15,8 @@ Only what is deployed from `main`: older commits and releases are not
 patched.
 
 - The app at salvageunion.io (`apps/web`): the reference pages, the character
-  builder and game manager, and its Convex backend (`apps/web/convex`).
-- The Discord bot (`apps/discord-bot`) and the artwork Worker
-  (`apps/su-assets`).
+  builder and game manager, and its Worker and rooms (`apps/web/src/worker`, `apps/web/src/rooms`).
+- The Discord bot (`apps/discord-bot`).
 - The CI and deploy workflows in `.github/`, which hold production
   credentials.
 

@@ -4,7 +4,6 @@
  * in Mule and away, and Bonesaw, the pilot the screen plays.
  */
 
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { CrewVitals } from '../useGameFeed'
 import { calm, sound } from './crewRows'
 
@@ -31,34 +30,36 @@ const mech = {
   attention: false,
 }
 
-/** The crew at `now`: who beat a moment ago, and who an hour ago. */
-export function crewAt(now: number): CrewVitals {
+/** Who has the Game open: everyone but Wren's player. */
+export const CREW_HERE: ReadonlySet<string> = new Set(['u-bonesaw', 'u-mags', 'u-rook'])
+
+/** The crew, each pilot assigned to their own player. */
+export function crewAt(): CrewVitals {
   return {
-    viewerId: 'u-me' as Id<'users'>,
     pilots: [
       {
         ...pilot,
-        _id: 'r-bonesaw' as Id<'pilots'>,
+        _id: 'r-bonesaw',
         appId: 'bonesaw',
         linkId: 'bonesaw',
         name: 'Bonesaw',
         boarded: false,
         mechId: null,
-        lastSeenAt: now - 1_000,
+        ownerId: 'u-bonesaw',
       },
       {
         ...pilot,
-        _id: 'r-mags' as Id<'pilots'>,
+        _id: 'r-mags',
         appId: 'mags',
         linkId: 'mags',
         name: 'Mags',
         boarded: true,
         mechId: 'atlas',
-        lastSeenAt: now - 2_000,
+        ownerId: 'u-mags',
       },
       {
         ...pilot,
-        _id: 'r-rook' as Id<'pilots'>,
+        _id: 'r-rook',
         appId: 'rook',
         linkId: 'rook',
         name: 'Rook',
@@ -67,29 +68,29 @@ export function crewAt(now: number): CrewVitals {
         mechId: null,
         status: { ...calm, injured: true },
         attention: true,
-        lastSeenAt: now - 3_000,
+        ownerId: 'u-rook',
       },
       {
         ...pilot,
-        _id: 'r-wren' as Id<'pilots'>,
+        _id: 'r-wren',
         appId: 'wren',
         linkId: 'wren',
         name: 'Wren',
         boarded: true,
         mechId: 'mule',
-        lastSeenAt: now - 3_600_000,
+        ownerId: 'u-wren',
       },
     ],
     mechs: [
       {
         ...mech,
-        _id: 'r-atlas' as Id<'mechs'>,
+        _id: 'r-atlas',
         appId: 'atlas',
         linkId: 'atlas',
         name: 'Atlas',
         currentSP: 22,
       },
-      { ...mech, _id: 'r-mule' as Id<'mechs'>, appId: 'mule', linkId: 'mule', name: 'Mule' },
+      { ...mech, _id: 'r-mule', appId: 'mule', linkId: 'mule', name: 'Mule' },
     ],
   }
 }

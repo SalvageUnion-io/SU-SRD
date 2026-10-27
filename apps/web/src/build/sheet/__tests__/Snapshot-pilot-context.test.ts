@@ -3,7 +3,7 @@
  * that instance's numbers depend on (ADR-029). It began as the snapshot
  * payload's `context.pilotAbilities`; snapshots are retired (ADR-036), and the
  * public sheet now has the same refs resolved server-side
- * (`convex/publicSheet.ts`).
+ * (`rooms/publish.ts`).
  *
  * Beefcake is a pilot ability that raises the piloted mech's Max SP and Cargo.
  * A mech shown without the pilot's ability refs would read LOWER for a viewer

@@ -15,8 +15,8 @@ import {
   pilotFixture,
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { useEntityStore } from '../../../stores/entityStore'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { useUnits } from '../../../replica/units'
 import { buildEntityExport } from '../buildExportBundle'
 
 const mech = mechFixture({ id: 'm1', name: 'Iron Mongrel' })
@@ -31,7 +31,7 @@ const npcToCrawler = softLinkFixture('npc-to-crawler', 'n1', 'c1')
 
 beforeEach(async () => {
   resetStores()
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   for (const m of [mech, otherMech]) await store.adopt('mech', m)
   await store.adopt('pilot', pilot)
   await store.adopt('crawler', crawler)
@@ -45,7 +45,7 @@ const ids = (rows: readonly { id: string }[]) => rows.map((r) => r.id)
 
 describe('buildEntityExport', () => {
   test('a mech: only that mech, and only the links that touch it', async () => {
-    const bundle = await buildEntityExport('mech', 'm1', useEntityStore.getState())
+    const bundle = await buildEntityExport('mech', 'm1', useUnits.getState())
     expect(bundle.schemaVersion).toBe(2)
     expect(ids(bundle.entities.mechs)).toEqual(['m1'])
     expect(bundle.entities.pilots).toEqual([])
@@ -57,7 +57,7 @@ describe('buildEntityExport', () => {
   })
 
   test('a crawler: its crew links come with it, the crew does not', async () => {
-    const bundle = await buildEntityExport('crawler', 'c1', useEntityStore.getState())
+    const bundle = await buildEntityExport('crawler', 'c1', useUnits.getState())
     expect(ids(bundle.entities.crawlers)).toEqual(['c1'])
     expect(bundle.entities.pilots).toEqual([])
     expect(bundle.entities.npcs).toEqual([])
@@ -65,14 +65,14 @@ describe('buildEntityExport', () => {
   })
 
   test('a built NPC: itself and its crew link', async () => {
-    const bundle = await buildEntityExport('npc', 'n1', useEntityStore.getState())
+    const bundle = await buildEntityExport('npc', 'n1', useUnits.getState())
     expect(ids(bundle.entities.npcs)).toEqual(['n1'])
     expect(bundle.entities.npcs[0]?.name).toBe('Old Mags')
     expect(ids(bundle.softLinks)).toEqual([npcToCrawler.id])
   })
 
   test('an id that is not there exports an empty bundle', async () => {
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     for (const kind of ['mech', 'crawler', 'npc'] as const) {
       const bundle = await buildEntityExport(kind, 'missing', store)
       expect(bundle.entities).toEqual({ pilots: [], mechs: [], crawlers: [], npcs: [] })

@@ -32,16 +32,14 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { Button, PickDialog } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { OwnerSeal } from './OwnerSeal'
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
@@ -59,11 +57,11 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
   // arrives with their pilot chosen.
   const [picked, setPicked] = useState<string | null>(null)
 
-  // The same three questions `GameRoster` asks, so Convex answers both from
+  // The same three questions `GameRoster` asks, so the Worker answers both from
   // one subscription each.
-  const me = useQuery(api.account.me, {})
-  const members = useQuery(api.games.members, { gameId: gameId as Id<'games'> })
-  const listing = useQuery(api.entities.listForGame, { gameId: gameId as Id<'games'> })
+  const viewerId = useViewerId()
+  const members = useGamesQuery('games.members', { gameId: gameId })
+  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // What this browser holds decides what may be offered: see the header.
   useHydrateEntities(['pilot'])
   const localPilots = usePilots()
@@ -76,7 +74,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
     ownableRows({
       kind: 'pilot',
       rows: listing?.pilots ?? [],
-      viewerId: me?._id ?? null,
+      viewerId,
       members,
       localIds: new Set(localPilots.map((p) => p.id)),
     }).filter((row) => row.localId !== null)

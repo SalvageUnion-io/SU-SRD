@@ -47,13 +47,13 @@
  * ## A notice has one job (hard rule R20, chrome K5)
  *
  * A toast reports an act, from the one toaster per document; a `Banner` holds
- * a lasting condition, and offline is one notice in one wording; no notice
- * wears a roll-tier colour (ruleset §3.4).
+ * a lasting condition, and offline is one notice in one wording (the bar's
+ * sync badge); no notice wears a roll-tier colour (ruleset §3.4).
  *
  * - `one-toaster`: exactly one `<Toaster` element in the app's source, the
  *   one `ToasterMount` draws (tests may render their own).
  * - `offline-copy`: the offline wording ("not connected", "read-only until
- *   the connection returns") only in `NotConnectedBanner`.
+ *   the connection returns") only in `SyncBadge`.
  * - `roll-tier`: no roll-tier token (`rollFailure`, `--color-roll-*`, …)
  *   anywhere in the app: the tiers are the Discord bot's (`DISCORD_ROLL_ACCENT`).
  *
@@ -326,7 +326,7 @@ function scanOneToaster(root: string): Finding[] {
 }
 
 /** The one offline notice. */
-const OFFLINE_HOME = 'apps/web/src/components/shared/NotConnectedBanner.tsx'
+const OFFLINE_HOME = 'apps/web/src/components/shared/SyncBadge.tsx'
 /** …and its words, in the message catalogue (ADR-054). */
 const OFFLINE_WORDS = 'apps/web/src/messages/components-shared.ts'
 const OFFLINE_COPY = /\bnot connected\b|read-only until the connection returns/i
@@ -495,8 +495,8 @@ const RULES: ChromeRule[] = [
   {
     id: 'offline-copy',
     mode: 'zero',
-    rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `NotConnectedBanner`',
-    fix: 'Say the consequence here ("Read Only", "That change was not saved") and leave the condition to `NotConnectedBanner`, which is up whenever the app is offline.',
+    rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `SyncBadge` in the bar',
+    fix: 'Withdraw the control or say the consequence here ("That change was not saved") and leave the condition to `SyncBadge`, which is in the bar whenever the app is offline.',
     scan: scanOfflineCopy,
   },
   {

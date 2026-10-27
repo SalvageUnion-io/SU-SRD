@@ -1,3 +1,5 @@
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
+import type { UnitsStore } from '../../../replica/units'
 /**
  * Crawler type card + special NPC tests (the type card
  * lives in the hero's CrawlerIdentityPanel now, not a body slab).
@@ -21,9 +23,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawler } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerIdentityPanel } from '../CrawlerIdentity'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
@@ -93,19 +93,8 @@ async function patchCrawlers(): Promise<() => void> {
 // Store stub
 // ---------------------------------------------------------------------------
 
-function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): typeof useEntityStore {
-  const updateMock = update ?? mock(async () => crawler)
-  return makeEntityStoreMock({
-    crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [crawler]),
-    get: mock((_t: string, id: string) => (id === crawler.id ? crawler : null)),
-    create: mock(async () => crawler),
-    update: updateMock,
-    updateCrawlerBay: mock(async () => crawler),
-    delete: mock(async () => {}),
-  })
+function makeStubStore(crawler: Crawler, update?: ReturnType<typeof mock>): UnitsStore {
+  return makeSingleUnitStore('crawler', crawler, { update })
 }
 
 function makeCrawler(overrides?: Partial<Crawler>): Crawler {
@@ -128,7 +117,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
 // ---------------------------------------------------------------------------
 
 /** Render the identity panel the way CrawlerLiveSheet does (store + storeState). */
-function renderIdentity(crawler: Crawler, store: typeof useEntityStore) {
+function renderIdentity(crawler: Crawler, store: UnitsStore) {
   return render(
     <CrawlerIdentityPanel
       crawler={crawler}

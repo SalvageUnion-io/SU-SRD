@@ -13,6 +13,7 @@
  * exception is `seedDefaultCrawlerBays`, which reads the SRD bay catalog.
  */
 
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler, CrawlerNpcState, ScrapPool } from 'game-domain/schemas/crawler'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
@@ -104,7 +105,7 @@ export function crawlerFormToUpdatePatch(form: CrawlerWizardFormState): CrawlerW
   return {
     name: form.name.trim(),
     description: form.description.trim() || undefined,
-    techLevel: `tech-${form.techLevel}`,
+    techLevel: crawlerTechLevelSlug(form.techLevel),
     // Crew/NPC details are not record fields: the create input folds them into
     // the seeded bays and `typeNpc`.
     ...(form.type !== null ? { type: form.type } : {}),

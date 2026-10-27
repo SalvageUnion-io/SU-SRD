@@ -32,7 +32,7 @@ artifact's `verdicts` collection. Runs in the cloud environment.
 ## Run it
 
 ```bash
-bun run dev:backend &                                   # local Convex + seeded account + dev server
+bun run dev:backend &                                   # local Worker + seeded account + dev server
 bun run gallery:deck .shots/runs/<name> [/chassis/,/classes/]   # ~1h for the whole site
 # Baseline: read the live deck's manifest.json and shots/sheet-*.jpg with the
 # Artifact tool (action read, paths, out_dir .shots/published), then:

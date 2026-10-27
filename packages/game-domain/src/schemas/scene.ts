@@ -1,8 +1,6 @@
 /**
- * The environmental conditions a Game's Scene can be under, by id: the source
- * of truth for `scenes.conditions` in `apps/web/convex/model/playTables.ts`.
- * What each one does is `rules/sceneConditions.ts`; this file imports nothing,
- * so the Convex schema can read it.
+ * The environmental conditions a Game's Scene can be under, by id. What each
+ * one does is `rules/sceneConditions.ts`; this file imports nothing.
  */
 export const SCENE_CONDITION_IDS = [
   'radiation-storm',

@@ -31,7 +31,6 @@ import { ActionMinis, Button, SlabSection, Tags, tokens, traitTags } from '../..
 import { AppLink } from '../../components/shared/AppLink'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
@@ -43,8 +42,9 @@ import {
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
-import { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
 import { npcStamp } from '../sheet/bandStamps.model'
@@ -116,17 +116,17 @@ export function NpcSheet({
   readOnlyNote,
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)
-  const { canWrite, settling } = useConnection()
+  const { canWrite, status } = useSync()
   const sheetMode = useSheetMode()
   const view: NpcView = npc
   // As on every sheet (`Sheet.tsx`): Read until Edit is pressed, and nothing
   // writes while the server of record cannot be reached.
-  const writesBlocked = !canWrite && !settling
+  const writesBlocked = !canWrite && status !== 'syncing'
   const editing = sheetMode === null || sheetMode.editing
   const editable = !readOnlyProp && !writesBlocked && editing
 
   function patch(fields: Partial<Npc>) {
-    runWrite(() => useEntityStore.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
+    runWrite(() => useUnits.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
   }
 
   function remove() {
@@ -140,7 +140,7 @@ export function NpcSheet({
       tone: 'danger',
       failure: `${npc.name} could not be deleted. Try again.`,
       onConfirm: async () => {
-        await useEntityStore.getState().delete('npc', npc.id)
+        await useUnits.getState().delete('npc', npc.id)
         onDeleted?.()
       },
     })
@@ -231,7 +231,7 @@ export function NpcSheet({
                           onChange={
                             editable
                               ? (photo) =>
-                                  useEntityStore
+                                  useUnits
                                     .getState()
                                     .update('npc', npc.id, { photo }, LIVE_SHEET_MANUAL)
                               : undefined

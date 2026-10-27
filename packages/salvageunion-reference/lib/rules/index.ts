@@ -9,8 +9,6 @@
  * Prerequisites: the salvageunion-reference schemas used by these utilities
  * must be preloaded before the first call:
  *   SalvageUnionReference.preload(['chassis', 'systems', 'modules', 'equipment', 'crawler-tech-levels'])
- * or, where dynamic `import()` is unavailable (Convex), installed from the
- * imported files with `SalvageUnionReference.install({ chassis, … })`.
  *
  * Every name is re-exported explicitly, and only names with a consumer outside
  * the package are listed; add a name when something imports it.
@@ -84,12 +82,10 @@ export {
   unifiedMechConditions,
 } from './derivedStats'
 export {
-  bioOverloadOutcome,
   canActivateAction,
   canPush,
   clampHeat,
   damageTableName,
-  isBioChassis,
   overloadTableName,
   overloadTableOf,
   PUSH_HEAT,
@@ -109,7 +105,6 @@ export { statesMechanicalChange } from './rulesBearing'
 export type {
   AreaSalvageResult,
   MechSalvageBand,
-  MechSalvagePick,
   MechSalvageResult,
 } from './salvage'
 export {
@@ -119,22 +114,9 @@ export {
   mechSalvageAllows,
   mechSalvageResult,
   mechSalvageScrap,
-  performAreaSalvage,
 } from './salvage'
-export { scrapCostFor, tierUpgradeCost } from './scrap'
+export { tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
-export type {
-  CriticalDamageEffect,
-  CriticalInjuryEffect,
-  MechDamageEffect,
-  PilotDamageEffect,
-} from './takeDamage'
-export {
-  applyMechDamage,
-  applyPilotDamage,
-  performCriticalDamage,
-  performCriticalInjury,
-} from './takeDamage'
 export type {
   HeatCheckEffect,
   MechSnapshot,

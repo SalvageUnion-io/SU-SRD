@@ -2,7 +2,6 @@ import { createRootRoute, HeadContent, Outlet, useRouterState } from '@tanstack/
 import { PRODUCT } from 'game-domain/product'
 import { useLayoutEffect } from 'react'
 import { AccountHintSync } from '../build/account/AccountHintSync'
-import { AccountReconciler } from '../build/account/AccountReconciler'
 import {
   HeaderActions,
   HeaderDrawerAccount,
@@ -14,15 +13,15 @@ import type { EntitySurfaceValue } from '../components/index'
 import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
-import { AppConvexProvider } from '../components/shared/AppConvexProvider'
 import { AppLink } from '../components/shared/AppLink'
 import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
-import { NotConnectedBanner } from '../components/shared/NotConnectedBanner'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
+import { ReplicaSync } from '../replica/ReplicaSync'
+import { SyncProvider } from '../replica/SyncProvider'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
 import '../styles/app.css'
 
@@ -47,14 +46,13 @@ export const Route = createRootRoute({
 /**
  * The Union bar's slots, filled (`UnionBarSlots`; the bar is the shell's). Its
  * own component because its account slots read the connection, which only
- * exists inside `AppConvexProvider`.
+ * exists inside `SyncProvider`.
  */
 function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: boolean }) {
   return (
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
-      banner={<NotConnectedBanner />}
       games={<HeaderGames pathname={pathname} />}
       search={<SearchIsland />}
       mobileSearch={<MobileSearchIsland />}
@@ -69,7 +67,7 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
 function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   // A Play screen draws its own bar at every width, so it has no masthead
-  // (ADR-045 §6): the Play bar, on the canvas and the phone form alike. Nor
+  // (ADR-051 §2): the Play bar, at every width. Nor
   // does a link preview's render surface. The shell's bar is hidden there.
   const barHidden = hidesUnionBar(pathname)
   useLayoutEffect(() => {
@@ -77,26 +75,25 @@ function RootComponent() {
   }, [barHidden])
 
   // A link preview's render surface (`/og/*`) is a picture, not a
-  // page: the card alone, with Convex and the reference data and none of the
+  // page: the card alone, with the Worker and the reference data and none of the
   // chrome, banners or account flow a screenshot must not catch.
   if (pathname.startsWith('/og/')) {
     return (
-      <AppConvexProvider>
+      <SyncProvider>
         <GameDataReady>
           <Outlet />
         </GameDataReady>
-      </AppConvexProvider>
+      </SyncProvider>
     )
   }
 
   return (
-    <AppConvexProvider>
+    <SyncProvider>
       <HeadContent />
       <EntitySurfaceProvider value={ENTITY_SURFACE}>
         {/* The Union bar is the shell's, above this root, with the skip
-            link (WCAG 2.4.1) ahead of it. `RootHeader` fills the not-connected
-            banner above it on every route, and its slots on every route that
-            shows it. */}
+            link (WCAG 2.4.1) ahead of it. `RootHeader` fills its slots on every
+            route that shows it. */}
         {/* The account gate (ADR-034 decision 1) and the migration off
             device-only storage (ADR-035), as one surface: says what is at
             stake while signed out, moves it into the account on sign-in, and
@@ -104,7 +101,7 @@ function RootComponent() {
             gate because it is a fact about the SESSION and the BROWSER, not
             about any route — and it must stay mounted across the sign-in flip,
             which is exactly when its work runs. */}
-        <AccountReconciler />
+        <ReplicaSync />
         {/* Who is signed in, left for the SRD's bar to show. */}
         <AccountHintSync />
         {/* A test seam, compiled out of production builds — see its header. */}
@@ -129,6 +126,6 @@ function RootComponent() {
         </EntityPageHost>
         <ToasterMount />
       </EntitySurfaceProvider>
-    </AppConvexProvider>
+    </SyncProvider>
   )
 }

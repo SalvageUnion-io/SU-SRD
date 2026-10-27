@@ -5,32 +5,37 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../../lib/account/__tests__/accountApiStub'
+import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../../replica/syncContext'
 
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+const serverMocks = await installServerMocks({
   router: true,
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
-const { ConnectionContext } = await import('../../../../lib/connection/connectionContext')
-const { usePatternStore } = await import('../../../../stores/patternStore')
+const { SyncContext } = await import('../../../../replica/syncContext')
+const { usePatterns } = await import('../../../../replica/collections')
 const { PatternList } = await import('../PatternList')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 beforeEach(() => {
-  usePatternStore.setState({
+  resetAccountApi()
+  usePatterns.setState({
     mechPatterns: [
       {
         id: 'pat-tow-rig',
@@ -49,11 +54,12 @@ beforeEach(() => {
 
 describe('PatternList', () => {
   test('a pattern row is a dashed, Homebrew, credited reference card', () => {
-    setQueryAnswers({ 'account:me': { displayName: 'alxjrvs' } })
+    setQueryAnswers({})
+    accountAnswers.me = { displayName: 'alxjrvs' }
     const { container } = render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <PatternList onInstantiated={() => undefined} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
 
     expect(screen.getByText('Homebrew')).toBeTruthy()

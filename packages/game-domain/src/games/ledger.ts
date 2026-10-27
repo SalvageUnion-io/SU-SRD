@@ -1,5 +1,5 @@
 /**
- * A Game's ledger (`schemas/ledger`), pure: the edits `convex/ledger.ts`
+ * A Game's ledger (`schemas/ledger`), pure: the edits the Game room
  * writes and what they pay. Each answers the next ledger, or null when the
  * edit does not apply (no such row, or a job already done).
  */

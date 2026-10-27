@@ -31,7 +31,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { crewAssignmentsOf } from '../../lib/npcs/npcModel'
-import type { EntityForType } from '../../stores/types'
+import type { EntityForType } from '../../replica/types'
 
 type CompositionMode = 'wired' | 'pilot-only' | 'mech-only' | 'crawler-only'
 
@@ -67,7 +67,7 @@ export type SheetComposition = {
 type ResolveArgs = {
   kind: SheetKind
   id: string
-  links: SoftLink[]
+  links: readonly SoftLink[]
   store: EntityLookup
 }
 

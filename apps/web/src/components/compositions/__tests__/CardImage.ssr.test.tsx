@@ -14,7 +14,7 @@ import { describe, expect, test } from 'bun:test'
  * happy-dom, so `window` is defined in-process and the server branch is
  * unreachable from an ordinary test — the bug would stay green. A bare `bun -e`
  * child has no preload and therefore no DOM, which is exactly the environment
- * `apps/web/ssg` renders under (Bun directly, never through Vite).
+ * a page renders under at build time (no DOM).
  */
 describe('CardImage server rendering', () => {
   test('emits visible artwork when rendered without a DOM', () => {

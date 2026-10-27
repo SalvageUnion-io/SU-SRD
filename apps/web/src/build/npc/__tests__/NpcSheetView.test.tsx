@@ -11,30 +11,34 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks({
   router: true,
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { NpcSheetView } = await import('../NpcSheetView')
 
 withSignedInBackend()
 
-function connection(mode: ConnectionState['mode']): ConnectionState {
+function connection(status: SyncState['status']): SyncState {
   return {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: false,
-    settling: false,
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
 }
 
@@ -75,30 +79,32 @@ async function openMenu() {
   })
 }
 
-async function renderView(id: string, mode: ConnectionState['mode'] = 'connected') {
+async function renderView(id: string, status: SyncState['status'] = 'live') {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(mode)}>
+      <SyncContext.Provider value={connection(status)}>
         <NpcSheetView id={id} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
 
 beforeEach(async () => {
-  convexMocks.navigations.length = 0
-  useEntityStore.setState({
+  serverMocks.navigations.length = 0
+  useUnits.setState({
     npcs: [],
     crawlers: [TENACITY],
     softLinks: [softLinkFixture('npc-to-crawler', 'n-mine', 'c1')],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  await useEntityStore.getState().adopt('npc', MINE)
+  await useUnits.getState().adopt('npc', MINE)
   setQueryAnswers({
-    'games:listMine': [],
-    'account:me': { displayName: 'alxjrvs' },
-    'entities:locate': { id: 'n-mine', gameId: null, mayEdit: true },
+    'games.listMine': [],
+    'account.me': { displayName: 'alxjrvs' },
+    'entities.locate': { id: 'n-mine', gameId: null, mayEdit: true },
   })
+  resetAccountApi()
+  accountAnswers.me = { displayName: 'alxjrvs' }
 })
 
 describe('yours', () => {
@@ -113,7 +119,7 @@ describe('yours', () => {
   })
 
   test('held but offline, it is still yours to read', async () => {
-    await renderView('n-mine', 'disconnected')
+    await renderView('n-mine', 'offline')
     expect(madeBy('you')).toBeTruthy()
   })
 
@@ -127,19 +133,19 @@ describe('yours', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
     })
-    await waitFor(() => expect(convexMocks.navigations).toEqual([{ to: '/' }]))
-    expect(useEntityStore.getState().npcs).toHaveLength(0)
+    await waitFor(() => expect(serverMocks.navigations).toEqual([{ to: '/' }]))
+    expect(useUnits.getState().npcs).toHaveLength(0)
   })
 })
 
 describe('a crewmate’s, in a Game you belong to', () => {
   test('read-only, credited to its maker, crewing the Game crawler', async () => {
     setQueryAnswers({
-      'games:listMine': [],
-      'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities:listForGame': gameListing(),
-      'games:members': [{ userId: 'u-sam', displayName: 'Sam' }],
+      'games.listMine': [],
+      'account.me': { displayName: 'alxjrvs' },
+      'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
+      'entities.listForGame': gameListing(),
+      'games.members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
     await renderView('n-theirs')
     expect(madeBy('Sam')).toBeTruthy()
@@ -155,11 +161,11 @@ describe('a crewmate’s, in a Game you belong to', () => {
 
   test('a maker who is no longer a member is "a player"', async () => {
     setQueryAnswers({
-      'games:listMine': [],
-      'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities:listForGame': gameListing(),
-      'games:members': [],
+      'games.listMine': [],
+      'account.me': { displayName: 'alxjrvs' },
+      'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
+      'entities.listForGame': gameListing(),
+      'games.members': [],
     })
     await renderView('n-theirs')
     expect(madeBy('a player')).toBeTruthy()
@@ -167,10 +173,10 @@ describe('a crewmate’s, in a Game you belong to', () => {
 
   test('a row this app cannot read says so', async () => {
     setQueryAnswers({
-      'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities:listForGame': gameListing({ name: 42 }),
-      'games:members': [],
+      'account.me': { displayName: 'alxjrvs' },
+      'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
+      'entities.listForGame': gameListing({ name: 42 }),
+      'games.members': [],
     })
     await renderView('n-theirs')
     expect(screen.getByText('Could not show this NPC')).toBeTruthy()
@@ -178,10 +184,10 @@ describe('a crewmate’s, in a Game you belong to', () => {
 
   test('while the listing loads, a skeleton', async () => {
     setQueryAnswers({
-      'account:me': { displayName: 'alxjrvs' },
-      'entities:locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities:listForGame': undefined,
-      'games:members': undefined,
+      'account.me': { displayName: 'alxjrvs' },
+      'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
+      'entities.listForGame': undefined,
+      'games.members': undefined,
     })
     await renderView('n-theirs')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
@@ -190,7 +196,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
 
 describe('neither', () => {
   test('the server knows no such NPC', async () => {
-    setQueryAnswers({ 'account:me': null, 'entities:locate': null })
+    setQueryAnswers({ 'account.me': null, 'entities.locate': null })
     await renderView('n-missing')
     // The words every sheet's not-found uses (`SheetFallback`).
     expect(screen.getByText('NPC not found')).toBeTruthy()
@@ -198,28 +204,28 @@ describe('neither', () => {
   })
 
   test('still locating: a skeleton', async () => {
-    setQueryAnswers({ 'account:me': undefined, 'entities:locate': undefined })
+    setQueryAnswers({ 'account.me': undefined, 'entities.locate': undefined })
     await renderView('n-missing')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 
   test('yours on the server but not here yet: a skeleton while it arrives', async () => {
     setQueryAnswers({
-      'account:me': null,
-      'entities:locate': { id: 'n-missing', gameId: null, mayEdit: true },
+      'account.me': null,
+      'entities.locate': { id: 'n-missing', gameId: null, mayEdit: true },
     })
     await renderView('n-missing')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 
   test('offline and not held: loading it needs a connection', async () => {
-    await renderView('n-missing', 'disconnected')
+    await renderView('n-missing', 'offline')
     expect(screen.getByText('NPC unavailable offline')).toBeTruthy()
     expect(screen.getByText(/loading it needs a connection/)).toBeTruthy()
   })
 
   test('still connecting: a skeleton', async () => {
-    await renderView('n-missing', 'connecting')
+    await renderView('n-missing', 'syncing')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()
   })
 })

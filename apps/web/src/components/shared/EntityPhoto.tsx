@@ -6,9 +6,9 @@
  *
  * With `onChange`, the frame carries Upload / Replace / Remove. Upload scales
  * and re-encodes the picked file (`lib/photos/uploadPhoto.ts`), stores it
- * through `convex/photos.ts`, and hands the resulting photo to `onChange`, which
- * writes it like any other field. Remove hands `undefined`; the server deletes
- * the file once no entity holds it. Without `onChange` (Read, a crewmate's
+ * through the Worker's R2 route (`worker/photos.ts`), and hands the resulting
+ * photo to `onChange`, which writes it like any other field. Remove hands
+ * `undefined`. Without `onChange` (Read, a crewmate's
  * view, the public sheet) it is the picture alone, and nothing at all when
  * there is no picture.
  */
@@ -17,11 +17,8 @@ import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import type { PhotoUploader } from '../../lib/photos/uploadPhoto'
-import { PhotoRefused, postPhoto, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
+import { PhotoRefused, shrinkPhoto, uploadPhoto } from '../../lib/photos/uploadPhoto'
 import { sharedCopy } from '../../messages/components-shared'
 import { assetSrcSetFor, Button, EmptyState, tokens } from '../index'
 
@@ -81,21 +78,6 @@ const CONTROLS = {
 
 const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
-/** The app's Convex client, loaded on the first upload rather than with the sheet. */
-const client = async () => (await import('../../lib/connection/convexClient')).convexClient
-
-/**
- * The upload steps against the app's Convex client, called imperatively (as the
- * stores' writes are) so a sheet renders without a Convex provider in reach, and
- * a test without a deployment URL.
- */
-const UPLOADER: PhotoUploader = {
-  generateUploadUrl: async () => (await client()).mutation(api.photos.generateUploadUrl, {}),
-  claim: async ({ storageId }) =>
-    (await client()).mutation(api.photos.claim, { storageId: storageId as Id<'_storage'> }),
-  post: postPhoto,
-}
-
 /** A photo the player can fix says why; see `PhotoRefused`. */
 const PHOTO_PLAYER_ERRORS = [PhotoRefused]
 
@@ -111,7 +93,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
   const upload = useServerAction(
     async (file: File) => {
       if (!onChange) return
-      await onChange(await uploadPhoto(await shrinkPhoto(file), UPLOADER))
+      await onChange(await uploadPhoto(await shrinkPhoto(file)))
       setFailed(null)
     },
     {

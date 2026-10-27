@@ -7,7 +7,6 @@ import { Button } from '../Button'
 import { Conditions } from '../Conditions'
 import { capsLabel } from '../capsLabel'
 import { Field, Select } from '../Field'
-import { Glyph } from '../glyphs'
 import { Input, Textarea } from '../inputs'
 import { INPUT_FOCUS } from '../interaction'
 import { POSTER_STAMP } from '../posterStamp'
@@ -290,16 +289,6 @@ describe('Stamp', () => {
     expect(stamp.className).toContain('su-badge--inverse')
     // StampSeam: self-height-centred over the top border.
     expect(stamp.className).toContain('su-stamp-seam')
-  })
-})
-
-describe('Glyph', () => {
-  test('is a decorative (aria-hidden) currentColor stroke', () => {
-    const { container } = render(<Glyph name="plus" />)
-    const svg = container.querySelector('svg')
-    expect(svg?.getAttribute('aria-hidden')).toBe('true')
-    expect(svg?.getAttribute('stroke')).toBe('currentColor')
-    expect(svg?.querySelector('path')).toBeTruthy()
   })
 })
 

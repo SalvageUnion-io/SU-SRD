@@ -1,3 +1,4 @@
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerIdentityPanel — the crawler poster's IDENTITY card body (the crawler
  * sibling of PilotIdentityPanel / MechIdentityPanel).
@@ -27,7 +28,7 @@ import { Entity, Field, tokens } from '../../components/index'
 import { resolveCrawlerType, resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { EntityState, useEntityStore } from '../../stores/entityStore'
+import type { UnitsState } from '../../replica/units'
 import { CrawlerTypeEditModal } from '../crawler/CrawlerTypeEditModal'
 import { CrawlerTypeCard } from './CrawlerTypeCard'
 import { PhotoBeside } from './PhotoBeside'
@@ -51,9 +52,9 @@ const STACK = {
 type CrawlerIdentityPanelProps = {
   crawler: Crawler
   /** Injectable store hook — CrawlerTypeCard's choice/NPC persistence. */
-  store: typeof useEntityStore
+  store: UnitsStore
   /** Live write surface for the type modal's multi-write. */
-  storeState: EntityState
+  storeState: UnitsState
   /** Partial merge on this crawler; omit on read-only sheets (no edit affordance). */
   patch?: SheetPatch
   /**

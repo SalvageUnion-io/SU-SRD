@@ -6,27 +6,29 @@
  * spare), which never reach this browser's entity store, so it reads the Game
  * the way the roster does: `entities.listForGame` for every mech, its owner
  * and the crawler links, `seats.forGame` for who is aboard what (the same
- * subscription `useSeat` holds), and `account.me` for who "yours" is.
+ * subscription `useSeat` holds), and `useViewerId` for who "yours" is.
  *
  * Until the answers arrive, the menu knows only the assigned mech.
  */
 
-import { useQuery } from 'convex/react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
+import { useGamesQuery, useViewerId } from '../replica/roomCalls'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import type { BoardSources } from './boardMenu.model'
 
 /** One Game's board sources; with no Game, nothing is read. */
-export function useGameBoardSources(gameId: Id<'games'> | null): BoardSources {
-  const { mode } = useConnection()
-  const signedIn = isSignedIn(mode)
+export function useGameBoardSources(gameId: string | null): BoardSources {
+  const { status } = useSync()
+  const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null ? { gameId } : 'skip'
 
-  const me = useQuery(api.account.me, inGame === 'skip' ? 'skip' : {})
-  const listing = useQuery(api.entities.listForGame, inGame)
-  const seats = useQuery(api.seats.forGame, inGame)
+  const viewerId = useViewerId()
+  const listing = useGamesQuery(
+    'entities.listForGame',
+    inGame === 'skip' ? 'skip' : { gameId: inGame.gameId }
+  )
+  const seats = useTableRead('seats.forGame', inGame)
 
-  return { listing: listing ?? null, seats: seats ?? [], viewerId: me?._id ?? null }
+  return { listing: listing ?? null, seats: seats ?? [], viewerId }
 }

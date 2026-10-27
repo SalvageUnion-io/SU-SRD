@@ -17,11 +17,8 @@
  * not built yet, and what archiving a Game should mean is the owner's decision.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { EntityFormModel, LinkedUnit } from '../../components/index'
 import {
   Button,
@@ -34,10 +31,12 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useTableRead } from '../../replica/useTable'
 import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -72,17 +71,17 @@ export function TheGame({
   organizer,
   onDelete,
 }: {
-  gameId: Id<'games'>
+  gameId: string
   viewerId: string | null
   /** The viewer organises this Game: Hand over and Delete are theirs. */
   organizer: boolean
   onDelete: () => void
 }) {
   const id = useId()
-  const members = useQuery(api.games.members, { gameId })
-  const vitals = useQuery(api.crew.vitals, { gameId })
-  const setMediator = useMutation(api.games.setMediator)
-  const { canWrite } = useConnection()
+  const members = useGamesQuery('games.members', { gameId })
+  const vitals = useTableRead('crew.vitals', { gameId })
+  const setMediator = useGamesCall('games.setMediator')
+  const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
   const [chosen, setChosen] = useState<string>('')
 
@@ -191,7 +190,7 @@ export function TheGame({
         onConfirm={async () => {
           if (chosen === '') return
           // Appoint first, so the table is never left without a Mediator.
-          await setMediator({ gameId, userId: chosen as Id<'users'>, mediator: true })
+          await setMediator({ gameId, userId: chosen, mediator: true })
           for (const m of mediators) {
             if (m.userId !== chosen)
               await setMediator({ gameId, userId: m.userId, mediator: false })

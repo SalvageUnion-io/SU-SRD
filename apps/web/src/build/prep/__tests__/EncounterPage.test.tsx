@@ -10,21 +10,19 @@
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-})
-afterAll(() => convexMocks.restore())
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
 const { ToasterMount, toast } = await import('../../../components/index')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { resetStores } = await import('../../../stores/__tests__/resetStores')
-const { usePrepStore } = await import('../../../stores/prepStore')
-const { usePatternStore } = await import('../../../stores/patternStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { resetStores } = await import('../../../replica/__tests__/resetStores')
+const { useEncounters } = await import('../../../replica/collections')
+const { usePatterns } = await import('../../../replica/collections')
 const { EncounterPage } = await import('../EncounterPage')
 const { EncounterShelf } = await import('../../shelves/EncounterShelf')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
@@ -55,12 +53,11 @@ const AMBUSH: Encounter = {
   updatedAt: NOW,
 }
 
-function connection(canWrite = true): ConnectionState {
+function connection(canWrite = true): SyncState {
   return {
-    mode: canWrite ? 'connected' : 'disconnected',
+    status: canWrite ? 'live' : 'offline',
     canWrite,
-    showDisconnectedWarning: false,
-    settling: false,
+    outdated: false,
   }
 }
 
@@ -76,8 +73,8 @@ beforeEach(() => {
   })
   toast.dismiss()
   resetStores()
-  usePrepStore.setState({ encounters: [AMBUSH], hydrated: true } as never)
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
+  useEncounters.setState({ encounters: [AMBUSH], hydrated: true } as never)
+  usePatterns.setState({ mechPatterns: [], hydrated: true })
 })
 
 afterEach(() => {
@@ -94,15 +91,15 @@ async function settle(done: () => boolean = () => false): Promise<void> {
   }
 }
 
-const current = () => usePrepStore.getState().get('enc-1')
+const current = () => useEncounters.getState().get('enc-1')
 
 async function renderPage(id = 'enc-1', canWrite = true) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection(canWrite)}>
+      <SyncContext.Provider value={connection(canWrite)}>
         <ToasterMount />
         <EncounterPage id={id} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -220,7 +217,7 @@ describe('an encounter page', () => {
 
   test('Read prints the encounter: no edits, its empty sections left out', async () => {
     useSheetModeStore.setState({ editing: false })
-    usePrepStore.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
+    useEncounters.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
     await renderPage()
     expect(screen.getByRole('button', { name: 'Read', pressed: true })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Add opposition from the reference' })).toBeNull()
@@ -259,10 +256,10 @@ function ShelfHarness() {
 async function renderShelf() {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={connection()}>
+      <SyncContext.Provider value={connection()}>
         <ToasterMount />
         <ShelfHarness />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
   await settle()
@@ -274,7 +271,7 @@ describe('the Encounters shelf', () => {
     await renderShelf()
     await click(screen.getByRole('button', { name: '+ New encounter' }))
     await settle(() => assigned.length > 0)
-    const made = usePrepStore.getState().encounters.find((e) => e.id !== 'enc-1')
+    const made = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
     expect(made?.name).toBe('New encounter')
     expect(assigned).toEqual([`/encounters/${made?.id}`])
     expect(useSheetModeStore.getState().editing).toBe(true)
@@ -286,8 +283,8 @@ describe('the Encounters shelf', () => {
     await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Make a copy' }))
     const dialog = screen.getByRole('alertdialog')
     await click(within(dialog).getAllByRole('button').at(-1) as HTMLElement)
-    await settle(() => usePrepStore.getState().encounters.length === 2)
-    expect(usePrepStore.getState().encounters).toHaveLength(2)
+    await settle(() => useEncounters.getState().encounters.length === 2)
+    expect(useEncounters.getState().encounters).toHaveLength(2)
   })
 
   test('Delete asks, then takes it off the shelf', async () => {
@@ -295,8 +292,8 @@ describe('the Encounters shelf', () => {
     await click(screen.getByRole('button', { name: 'More for Ambush' }))
     await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Delete…' }))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
-    await settle(() => usePrepStore.getState().encounters.length === 0)
-    expect(usePrepStore.getState().encounters).toEqual([])
+    await settle(() => useEncounters.getState().encounters.length === 0)
+    expect(useEncounters.getState().encounters).toEqual([])
     expect(screen.getByText('No encounters yet. Prep one before the session.')).toBeTruthy()
   })
 

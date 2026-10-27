@@ -15,7 +15,6 @@ import {
   PAGES_CACHE,
   RUNTIME_CACHING,
   SITE_MANIFEST,
-  UNFETCHED_FONT_SUBSETS,
   WORKBOX_OPTIONS,
 } from '../pwa'
 
@@ -127,13 +126,8 @@ describe('the precache', () => {
     expect(matches('og-image.png')).toBe(false)
   })
 
-  test('leaves out the font subsets no rendered text fetches', () => {
-    const emitted = (subset: string) =>
-      `assets/barlow-semi-condensed-${subset}-500-normal-G0uxJNrM.woff2`
-    expect(new Glob(UNFETCHED_FONT_SUBSETS).match(emitted('latin-ext'))).toBe(true)
-    expect(matches(emitted('latin-ext'))).toBe(false)
-    expect(matches(emitted('vietnamese'))).toBe(false)
-    expect(matches(emitted('latin'))).toBe(true)
+  test('holds the faces Astro emits', () => {
+    expect(matches('assets/fonts/1a2b3c4d5e6f.woff2')).toBe(true)
   })
 
   test("keeps workbox-build's default ignore, which setting globIgnores replaces", () => {

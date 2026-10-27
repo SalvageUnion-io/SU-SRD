@@ -24,6 +24,7 @@ import { Button, Entity, Stat, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { NOTE, NOTE_MUTED } from './mediatorStyles.model'
 import type { MediatorSeat } from './mediatorTable.model'
 
 const CHIPS = {
@@ -33,16 +34,7 @@ const CHIPS = {
   gap: tokens.space[4],
 } satisfies CSSProperties
 
-const LINE = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
-  margin: 0,
-} satisfies CSSProperties
-
-const MUTED = { ...LINE, color: tokens.color.ink75 } satisfies CSSProperties
-
-const PROBLEM = { ...LINE, fontWeight: tokens.weight.bold } satisfies CSSProperties
+const PROBLEM = { ...NOTE, fontWeight: tokens.weight.bold } satisfies CSSProperties
 
 /** The ▲ is the one mark in the bad hue; the words stay ink. */
 const MARK = { color: tokens.color.statusBad } satisfies CSSProperties
@@ -147,13 +139,13 @@ export function PlayMediatorSeat({
 
 /** The mount in words ("Boarded · Buzzard", "On foot"); the mech itself is the head's relation chip. */
 function SeatMount({ seat }: { seat: MediatorSeat }) {
-  return <p style={MUTED}>{seat.mount}</p>
+  return <p style={NOTE_MUTED}>{seat.mount}</p>
 }
 
 /** What they are doing now: the step, the roll, the problem, or where they were last seen. */
 function SeatLine({ seat, stepLine }: { seat: MediatorSeat; stepLine: string | null }) {
   if (!seat.present) {
-    return <p style={MUTED}>{mediatorCopy('lastSeen', { mount: seat.mount })}</p>
+    return <p style={NOTE_MUTED}>{mediatorCopy('lastSeen', { mount: seat.mount })}</p>
   }
   return (
     <>
@@ -165,7 +157,7 @@ function SeatLine({ seat, stepLine }: { seat: MediatorSeat; stepLine: string | n
           {seat.problem}
         </p>
       )}
-      <p role="status" style={stepLine === null ? LINE : MUTED}>
+      <p role="status" style={stepLine === null ? NOTE : NOTE_MUTED}>
         {stepLine ?? seat.resolving ?? ''}
       </p>
     </>

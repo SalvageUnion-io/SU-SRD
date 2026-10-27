@@ -8,7 +8,7 @@ import { expect, test } from './fixtures'
  *
  * Signed in (the default `test` from `fixtures.ts`), so each spec SKIPS with a
  * stated reason in a build with no test sign-in seam and runs for real in the
- * nightly `e2e` job: moving, copying, deleting and importing are all Convex
+ * nightly `e2e` job: moving, copying, deleting and importing are all room
  * writes.
  */
 
@@ -107,7 +107,7 @@ test('delete a pilot from the Training Bay, and cancel a delete', async ({ page 
   await buildPilot(page, 'Keep Me', 'OK')
   await openTrainingBay(page)
   const pilots = shelf(page)
-  // The account's rows arrive from Convex after the game data is ready.
+  // The account's rows arrive from the rooms after the game data is ready.
   await expect(page.getByLabel('Loading saved builds')).not.toBeVisible({ timeout: 20_000 })
   await expect(pilots.getByText('Delete Me')).toBeVisible({ timeout: 15_000 })
   await expect(pilots.getByText('Keep Me')).toBeVisible()

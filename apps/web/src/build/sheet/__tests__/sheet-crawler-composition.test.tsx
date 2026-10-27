@@ -155,19 +155,6 @@ describe('Sheet — full wired (mech+pilot+crawler)', () => {
     )
     expect(screen.getAllByText(/The Hive/).length).toBeGreaterThan(0)
   })
-
-  test('no stand-ins rendered (all three entities are wired)', () => {
-    render(
-      <Sheet
-        kind="pilot"
-        id="pilot-comp-1"
-        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
-        softLinkStore={makeSoftLinkStoreMock([mechToPilotLink, pilotToCrawlerLink])}
-      />
-    )
-    expect(screen.queryByText(/No mech assigned/)).toBeNull()
-    expect(screen.queryByText(/No pilot assigned/)).toBeNull()
-  })
 })
 
 // ---------------------------------------------------------------------------

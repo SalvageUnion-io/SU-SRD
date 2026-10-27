@@ -29,26 +29,24 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from 'convex/react'
 import { containerOf } from 'game-domain/container'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { RoutePending } from '../components/shared/RouteFallbacks'
-import { useConnection } from '../lib/connection/connectionContext'
 import { playCopy } from '../messages/play'
-import { useEntityStore } from '../stores/entityStore'
+import { useGamesQuery } from '../replica/roomCalls'
+import { useSync } from '../replica/syncContext'
+import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
 const TO_PLAY = { href: '/play/', label: playCopy('play') }
 
 export function PlayGate({ id }: { id: string }) {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  // Checked before any Convex hook: signed out, there is nothing to read.
-  if (mode === 'solo') {
+  // Checked before any Games read: signed out, there is nothing to read.
+  if (status === 'signedOut') {
     return (
       <PlayRefusal
         title={playCopy('signInToPlay')}
@@ -57,12 +55,12 @@ export function PlayGate({ id }: { id: string }) {
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
-  return <SignedInPlayGate id={id} offline={mode === 'disconnected'} />
+  if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
+  return <SignedInPlayGate id={id} offline={status === 'offline'} />
 }
 
 function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
-  const storeState = useEntityStore()
+  const storeState = useUnits()
   const navigate = useNavigate()
 
   // `id` is a pilot's, or — from an old link — a mech's, resolved to the pilot
@@ -77,8 +75,8 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   const pilot = pilotById ?? (flownBy === null ? null : storeState.get('pilot', flownBy))
 
   const container = pilot === null ? null : containerOf(pilot)
-  const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
-  const game = useQuery(api.games.get, gameId === null ? 'skip' : { gameId })
+  const gameId = container?.kind === 'game' ? container.gameId : null
+  const game = useGamesQuery('games.get', gameId === null ? 'skip' : { gameId })
 
   useEffect(() => {
     if (flownBy !== null) {

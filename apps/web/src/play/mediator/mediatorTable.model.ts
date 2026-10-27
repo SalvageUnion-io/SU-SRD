@@ -32,12 +32,12 @@ type SeatVital = {
 export type MediatorSeat = {
   /** The pilot's link id (`/pilots/<id>`). */
   pilotId: string
-  /** The pilot's Convex row id: what a tap aims Propose at. */
+  /** The pilot's row id: what a tap aims Propose at. */
   rowId: string
   /** The player's account: whether they are done with the Downtime step. */
   ownerId: string | null
   name: string
-  /** Their seat beat within `PRESENCE_STALE_MS`. */
+  /** Their player has the Game open. */
   present: boolean
   /** "Boarded · Buzzard", or "On foot". */
   mount: string
@@ -96,7 +96,7 @@ export function mediatorSeats(
   crew: CrewVitals | null,
   seats: BoardSources['seats'],
   members: readonly Member[],
-  now: number
+  here: ReadonlySet<string> | null
 ): MediatorSeat[] {
   if (crew === null) return []
   const joined = new Map(members.map((m) => [m.userId, m.joinedAt]))
@@ -106,7 +106,7 @@ export function mediatorSeats(
   for (const m of crew.mechs) if (m.linkId !== null) mechs.set(m.linkId, m)
 
   // No pilot is "self" here: the Mediator reads the whole table alike.
-  const seated = crewSeatLines(crew, seats, null, now).flatMap((line) => {
+  const seated = crewSeatLines(crew, seats, null, here).flatMap((line) => {
     const pilot = pilots.get(line.pilotId)
     if (pilot === undefined || pilot.ownerId === null) return []
     const mech = pilot.mechId === null ? undefined : mechs.get(pilot.mechId)

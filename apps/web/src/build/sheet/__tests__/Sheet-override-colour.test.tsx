@@ -31,10 +31,10 @@ import {
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { resetStores } from '../../../replica/__tests__/resetStores'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { useUnits } from '../../../replica/units'
 import { Sheet } from '../Sheet'
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -79,7 +79,7 @@ function abilitySlug(name: string): string {
 
 /** A base-10 pilot whose home crawler is Tech 1 (no Stat Training yet). */
 async function seedPilot(): Promise<{ pilot: Pilot; crawler: Crawler }> {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   const pilot = await store.create('pilot', basePilotInput)
   const crawler = await store.create('crawler', {
     schemaVersion: 1,
@@ -108,7 +108,7 @@ function hpGauge(): HTMLElement {
 }
 
 function storedPin(pilotId: string): number | undefined {
-  return useEntityStore.getState().get('pilot', pilotId)?.maxHpOverride
+  return useUnits.getState().get('pilot', pilotId)?.maxHpOverride
 }
 
 async function typeMax(next: number): Promise<void> {
@@ -200,7 +200,7 @@ async function revert(from: number): Promise<void> {
 describe('Pilot HP — the override colour tracks a real modification (ADR-022)', () => {
   test('pin, upgrades catch up, the player re-types the derived value: never rust again', async () => {
     const { pilot, crawler } = await seedPilot()
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
 
     // 1. The player pins a max above the derivation.
     await typeMax(14)
@@ -243,9 +243,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
 
     await typeMax(20)
     await upgrade(() =>
-      useEntityStore
-        .getState()
-        .update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
+      useUnits.getState().update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
     )
     await expectOverridden(20, 14)
 
@@ -259,9 +257,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
 
     await typeMax(20)
     await upgrade(() =>
-      useEntityStore
-        .getState()
-        .update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
+      useUnits.getState().update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
     )
     await expectOverridden(20, 14)
 
@@ -277,7 +273,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
     // moves past it, the pin IS a modification again, so it flags and the
     // revert is right there.
     const { pilot, crawler } = await seedPilot()
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
 
     await typeMax(14)
     await upgrade(() =>

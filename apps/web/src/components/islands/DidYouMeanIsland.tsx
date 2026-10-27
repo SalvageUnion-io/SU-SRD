@@ -6,6 +6,7 @@ import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
+import { clientSwap } from '../../runtime/clientSwap'
 import { Entity, SlabSection } from '../index'
 import { DocumentLinks } from './DocumentLinks'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -132,3 +133,6 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `DidYouMeanIsland` swapped in over its stand-in (`clientSwap`). */
+export const DidYouMeanIslandClient = clientSwap('DidYouMeanIsland', DidYouMeanIsland)

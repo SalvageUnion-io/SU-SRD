@@ -8,7 +8,7 @@ import { areaTitle } from '../../../lib/pageTitle'
  * `/p/$kind/$appId` — one published sheet, readable with no account
  * ([ADR-032](../../../../docs/adr/032-public-read-only-sheets.md)).
  *
- * Addressed by the **app id**, not the Convex row id, so the owner can build
+ * Addressed by the **app id**, not the row id, so the owner can build
  * this URL with no round trip and the Discord bot can build it from the `appId`
  * it is already sent. The segment is its short form, `<name>-<short id>`
  * (`game-domain/shareAddress`), or a full app id from an older link; the page

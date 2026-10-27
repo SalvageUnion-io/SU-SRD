@@ -7,7 +7,7 @@ import { describe, expect, test } from 'bun:test'
 import { mediatorCrewAt } from '../../__tests__/mediatorFixture'
 import { hourProposals, hourSteps } from '../sceneHour.model'
 
-const crew = mediatorCrewAt(Date.now())
+const crew = mediatorCrewAt()
 
 describe('hourSteps', () => {
   test('in a Radiation Storm each boarded seat’s Mech is exposed, and a Pilot on foot', () => {

@@ -14,6 +14,7 @@ import {
   isBioTitanPattern,
   isTitanicAction,
   resolveGrantedEntities,
+  resolveProvenance,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { Badge } from '../../atoms/Badge'
@@ -68,7 +69,6 @@ import { CardLead, CardStack } from './NestedCards'
 import { PatternList } from './PatternListRow'
 import { PatternLoadoutRows } from './PatternLoadout'
 import { PickSurface } from './PickSurface'
-import { resolveFooterProvenance } from './provenance'
 import type {
   ActionFields,
   ReferenceCardEntity,
@@ -260,7 +260,7 @@ function ReferenceEntityCardInner({
   // ("From Veteran") is a label. Nor is it on the foot: only a Page's foot
   // stamps the kind (E9; the app's detail dialog draws its own).
   const kind = isPattern ? 'Pattern' : resolveSeamLabel(schemaName, entity)
-  const provenance = resolveFooterProvenance(entity, pattern)
+  const provenance = resolveProvenance(entity, pattern)
   const chassisMarker = resolvedChassisName
     ? [{ label: 'Chassis', value: resolvedChassisName }]
     : []

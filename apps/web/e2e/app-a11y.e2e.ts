@@ -10,7 +10,7 @@ import { test } from './fixtures'
  */
 
 /**
- * The anonymous routes (app paths; `at` puts them on the site) a build with no Convex backend can render — the same
+ * The anonymous routes (app paths; `at` puts them on the site) a build with no Worker backend can render — the same
  * build the PR-blocking smoke specs run against.
  */
 const PAGES = [

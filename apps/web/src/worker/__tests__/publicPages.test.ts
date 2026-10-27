@@ -5,10 +5,10 @@ import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { color } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { renderShell } from '../../shell/shell'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import { publicShells, sitemapXml } from '../publicPages'
 import { markUnionRoute } from '../shellMeta'
+import { worker } from './worker'
 
 /**
  * The public pages (the front door, the Starter Set and each of its builds).
@@ -16,7 +16,7 @@ import { markUnionRoute } from '../shellMeta'
  * page's own title, description, canonical and `og:*`, named for the
  * deployment's origin, and `sitemap.xml` with exactly those pages. The front
  * door is the shell itself: a crawler's request for it gets its canonical from
- * the Worker. Nothing here asks Convex.
+ * the Worker.
  */
 
 /** The real shell, so a test fails if it loses its markers. */
@@ -50,7 +50,6 @@ function env(): Env & { asked: string[] } {
         return new Response(SHELL, { headers: { 'content-type': 'text/html', etag: '"shell"' } })
       },
     },
-    CONVEX_URL: 'https://convex.example',
   } as Env & { asked: string[] }
 }
 

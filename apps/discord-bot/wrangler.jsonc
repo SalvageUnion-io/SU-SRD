@@ -19,19 +19,22 @@
   },
 
   // A deploy fails while one is unset; set with `wrangler secret put`.
-  // BACKEND_SITE_URL is the `.convex.site` origin.
   "secrets": {
-    "required": ["DISCORD_TOKEN", "BACKEND_SITE_URL", "BOT_SECRET"]
+    "required": ["DISCORD_TOKEN"]
   },
+
+  // The site Worker's BotGateway (apps/web/src/worker/botGateway.ts): every
+  // Game command's answer. The site reaches back through its own BOT binding
+  // to this Worker's Relay (src/worker/relay.ts).
+  "services": [{ "binding": "SITE", "service": "su-srd", "entrypoint": "BotGateway" }],
 
   // Per-command usage, one data point per interaction (src/worker/index.ts),
   // queryable with SQL for months; Workers Logs keep the same line for days.
   // The dataset is created on the first write.
   "analytics_engine_datasets": [{ "binding": "USAGE", "dataset": "su_discord_bot_usage" }],
 
-  // Traces: a span per binding call and outbound fetch (Convex, R2, Images,
-  // Browser Rendering), in the dashboard next to the logs. Issues is the error
-  // tracker: it groups uncaught exceptions, 5xx answers and `console.error`
+  // Traces: a span per binding call and outbound fetch, in the dashboard next
+  // to the logs. Issues is the error tracker: it groups uncaught exceptions, 5xx answers and `console.error`
   // (`reportError`, `src/reportError.ts`) into issues, alerted on by the
   // dashboard's Issues automations. tools/check-observability.ts requires all three.
   "observability": {

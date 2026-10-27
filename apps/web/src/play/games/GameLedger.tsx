@@ -1,7 +1,7 @@
 /**
  * GameLedger — **Factions** and **Jobs** on a Game's own page
  * (docs/architecture/play.md §16): who the crew deals with and the work they
- * have taken, from the Game's ledger (`convex/ledger.ts`).
+ * have taken, from the Game's ledger (`rooms/game/ledger.ts`).
  *
  * Every member reads both lists, header-only Minis one a line; only the
  * Mediator writes them. A faction's chips are its standing and, once signed,
@@ -13,14 +13,11 @@
  * its ⋯ drops, reopens or removes it. Each list's `AdderBox` adds a row.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { factionOf } from 'game-domain/games/ledger'
 import type { Faction, FactionStanding, Job } from 'game-domain/schemas/ledger'
 import { LEDGER_MAX_NAME, LEDGER_MAX_PAY } from 'game-domain/schemas/ledger'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import type { EntityFormModel } from '../../components/index'
 import {
   AdderBox,
@@ -37,10 +34,11 @@ import {
   Text,
   tokens,
 } from '../../components/index'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { failureMessage, useServerAction } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useSync } from '../../replica/syncContext'
+import { useTableAct, useTableRead } from '../../replica/useTable'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
@@ -109,16 +107,16 @@ function byState(jobs: readonly Job[]): Job[] {
   return [...jobs.filter((j) => j.state === 'open'), ...jobs.filter((j) => j.state !== 'open')]
 }
 
-export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator: boolean }) {
-  const ledger = useQuery(api.ledger.get, { gameId })
-  const { canWrite } = useConnection()
+export function GameLedger({ gameId, mediator }: { gameId: string; mediator: boolean }) {
+  const ledger = useTableRead('ledger.get', { gameId })
+  const { canWrite } = useSync()
   const failure = playGamesCopy('theLedgerCouldNotBe')
-  const setFaction = useServerAction(useMutation(api.ledger.setFaction), { failure })
-  const removeFaction = useServerAction(useMutation(api.ledger.removeFaction), { failure })
-  const setJob = useServerAction(useMutation(api.ledger.setJob), { failure })
-  const setJobState = useServerAction(useMutation(api.ledger.setJobState), { failure })
-  const removeJob = useServerAction(useMutation(api.ledger.removeJob), { failure })
-  const completeJob = useMutation(api.ledger.completeJob)
+  const setFaction = useServerAction(useTableAct('ledger.setFaction', gameId), { failure })
+  const removeFaction = useServerAction(useTableAct('ledger.removeFaction', gameId), { failure })
+  const setJob = useServerAction(useTableAct('ledger.setJob', gameId), { failure })
+  const setJobState = useServerAction(useTableAct('ledger.setJobState', gameId), { failure })
+  const removeJob = useServerAction(useTableAct('ledger.removeJob', gameId), { failure })
+  const completeJob = useTableAct('ledger.completeJob', gameId)
 
   const [removingFaction, setRemovingFaction] = useState<Faction | null>(null)
   const [removingJob, setRemovingJob] = useState<Job | null>(null)
@@ -151,13 +149,12 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
             {
               id: 'deal',
               label: faction.deal ? playGamesCopy('endTheDeal') : playGamesCopy('signADeal'),
-              onSelect: () =>
-                void setFaction.run({ gameId, faction: { ...faction, deal: !faction.deal } }),
+              onSelect: () => void setFaction.run({ faction: { ...faction, deal: !faction.deal } }),
             },
             ...standings.map((standing) => ({
               id: standing,
               label: STANDING_ACTION[standing],
-              onSelect: () => void setFaction.run({ gameId, faction: { ...faction, standing } }),
+              onSelect: () => void setFaction.run({ faction: { ...faction, standing } }),
             })),
           ],
           [
@@ -194,13 +191,12 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
                     ? {
                         id: 'drop',
                         label: playGamesCopy('drop'),
-                        onSelect: () =>
-                          void setJobState.run({ gameId, id: job.id, state: 'dropped' }),
+                        onSelect: () => void setJobState.run({ id: job.id, state: 'dropped' }),
                       }
                     : {
                         id: 'reopen',
                         label: playGamesCopy('reopen'),
-                        onSelect: () => void setJobState.run({ gameId, id: job.id, state: 'open' }),
+                        onSelect: () => void setJobState.run({ id: job.id, state: 'open' }),
                       },
                 ],
             [
@@ -253,7 +249,6 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
             disabled={off}
             onAdd={(name) =>
               setFaction.run({
-                gameId,
                 faction: { id: crypto.randomUUID(), name, standing: 'neutral', deal: false },
               })
             }
@@ -301,7 +296,7 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
           <JobAdder
             disabled={off}
             factions={factions}
-            onAdd={(terms) => setJob.run({ gameId, job: { id: crypto.randomUUID(), ...terms } })}
+            onAdd={(terms) => setJob.run({ job: { id: crypto.randomUUID(), ...terms } })}
           />
         )}
         {error !== null && <FieldError>{error}</FieldError>}
@@ -316,7 +311,7 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
         confirmLabel={playGamesCopy('remove')}
         onConfirm={async () => {
           if (removingFaction === null) return
-          await removeFaction.run({ gameId, id: removingFaction.id })
+          await removeFaction.run({ id: removingFaction.id })
         }}
       />
       <ConfirmDialog
@@ -330,7 +325,7 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
         confirmLabel={playGamesCopy('remove')}
         onConfirm={async () => {
           if (removingJob === null) return
-          await removeJob.run({ gameId, id: removingJob.id })
+          await removeJob.run({ id: removingJob.id })
         }}
       />
       <ConfirmDialog
@@ -348,7 +343,7 @@ export function GameLedger({ gameId, mediator }: { gameId: Id<'games'>; mediator
         describeError={(err) => failureMessage(err, playGamesCopy('thatJobCouldNotBe'))}
         onConfirm={async () => {
           if (finishing === null) return
-          const paid = await completeJob({ gameId, id: finishing.id })
+          const paid = await completeJob({ id: finishing.id })
           setNote(
             paid === null
               ? playGamesCopy('alreadyDone')

@@ -10,30 +10,24 @@
  * says why the capture comes first and the restore after).
  */
 
-import { afterAll, afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import type { QueryAnswers } from '../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
-import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt } from './mediatorFixture'
+import type { QueryAnswers } from '../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
+import {
+  acts,
+  answerActs,
+  closeRooms,
+  openRooms,
+  serveReads,
+} from '../../replica/__tests__/fakeRooms'
+import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './mediatorFixture'
 
-type Sent = { name: string; args: Record<string, unknown> }
-const sent: Sent[] = []
+/** What the Game's room was sent, by name. */
+const sent = acts
 
-function useMutation(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>)
-  const mutate = async (args: Record<string, unknown>) => {
-    sent.push({ name, args })
-    if (name === 'mediator:runEncounter' || name === 'mediator:bringInWave') return { added: 1 }
-    return null
-  }
-  return Object.assign(mutate, { withOptimisticUpdate: () => mutate })
-}
-
-const convexMocks = await installConvexMocks({
-  convexReact: { useMutation },
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
+const serverMocks = await installServerMocks({
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
 })
 
 // Capture before mocking: a module namespace is a live view.
@@ -42,17 +36,17 @@ mock.module('../../lib/flags', () => ({ ...realFlags, flagOn: () => true }))
 
 afterAll(async () => {
   mock.module('../../lib/flags', () => realFlags)
-  convexMocks.restore()
+  serverMocks.restore()
   const { flagOn } = await import('../../lib/flags')
   if (flagOn('encounterSheet')) throw new Error('flags were not restored')
 })
 
 const { PlayMediatorCockpit } = await import('../PlayMediatorCockpit')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { clearPlayRolls } = await import('../playRolls.model')
-const { usePrepStore } = await import('../../stores/prepStore')
-const { withSignedInBackend } = await import('../../stores/__tests__/signedInBackend')
+const { useEncounters } = await import('../../replica/collections')
+const { withSignedInBackend } = await import('../../replica/__tests__/signedInBackend')
 
 withSignedInBackend()
 
@@ -60,13 +54,19 @@ beforeAll(async () => {
   await hydrateStores()
 })
 
-afterEach(() => {
-  cleanup()
-  clearPlayRolls()
-  sent.length = 0
+beforeEach(() => {
+  openRooms(GAME)
+  answerActs(({ name }) =>
+    name === 'mediator.runEncounter' || name === 'mediator.bringInWave' ? { added: 1 } : null
+  )
 })
 
-const NOW = Date.now()
+afterEach(() => {
+  cleanup()
+  closeRooms()
+  clearPlayRolls()
+})
+
 const GAME = 'g-rust'
 const STAMP = '2026-10-26T00:00:00.000Z'
 const BAND = { id: 'band', name: 'Raider Band' }
@@ -133,10 +133,10 @@ const RUNNING = {
 
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
-    'games:members': MEDIATOR_MEMBERS,
-    'crew:vitals': mediatorCrewAt(NOW),
-    'seats:forGame': MEDIATOR_SEATS,
-    'entities:listForGame': {
+    'games.members': MEDIATOR_MEMBERS,
+    'crew.vitals': mediatorCrewAt(),
+    'seats.forGame': MEDIATOR_SEATS,
+    'entities.listForGame': {
       pilots: [],
       mechs: [],
       npcs: [],
@@ -144,37 +144,33 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       crawlers: [],
       primaryCrawlerId: null,
     },
-    'scenes:current': { conditions: [], hours: 0 },
-    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    'mediator:npcs': TRAY,
-    'mediator:patterns': [],
-    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
-    'mediator:running': RUNNING,
-    'salvageAreas:here': null,
-    'proposals:sent': [],
-    'proposals:alerts': [],
-    'changeLog:rolls': [],
-    'channelBindings:current': null,
-    'safety:stopSign': null,
-    'account:me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
+    'scenes.current': { conditions: [], hours: 0 },
+    'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'mediator.npcs': TRAY,
+    'mediator.amMediator': true,
+    'mediator.patterns': [],
+    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
+    'mediator.running': RUNNING,
+    'salvageAreas.here': null,
+    'ops.sent': [],
+    'changeLog.alerts': [],
+    'changeLog.rolls': [],
+    'channelBindings.current': null,
+    'safety.stopSign': null,
+    'account.me': { _id: 'u-gm', displayName: 'GM', avatarUrl: null, email: null },
     ...over,
   }
 }
 
 async function renderCockpit(over: QueryAnswers = {}) {
-  setQueryAnswers(answers(over))
+  const all = answers(over)
+  setQueryAnswers(all)
+  serveReads(GAME, all)
   await act(async () => {
     render(
-      <ConnectionContext.Provider
-        value={{
-          mode: 'connected',
-          canWrite: true,
-          showDisconnectedWarning: false,
-          settling: false,
-        }}
-      >
+      <SyncContext.Provider value={{ status: 'live', canWrite: true, outdated: false }}>
         <PlayMediatorCockpit gameId={GAME} gameName="The Rust Belt Run" />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -204,9 +200,9 @@ describe('groups on the tray', () => {
   test('one Reaction roll for the whole group is sent for its members', async () => {
     await renderCockpit()
     await click(named('Roll Reaction for Raider Band'))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator:recordGroupRoll']))
+    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.recordGroupRoll']))
+    expect(sent[0]).toMatchObject({ gameId: GAME })
     expect(sent[0]?.args).toMatchObject({
-      gameId: GAME,
       groupId: 'band',
       roll: { table: 'reaction' },
     })
@@ -221,7 +217,7 @@ describe('groups on the tray', () => {
       rolledAt: STAMP,
     }
     await renderCockpit({
-      'mediator:npcs': TRAY.map((row) =>
+      'mediator.npcs': TRAY.map((row) =>
         row._id === 'n-3' ? { ...row, body: { ...row.body, lastMediatorRoll: rolled } } : row
       ),
     })
@@ -235,7 +231,7 @@ describe('groups on the tray', () => {
     const loner = within(screen.getByRole('region', { name: 'NPC: Loner' }))
     expect(loner.queryByText('Morale due')).toBeNull()
     await click(mule.getByRole('button', { name: 'Roll Morale for Mule' }))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator:updateNpc']))
+    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.updateNpc']))
     expect(sent[0]?.args).toMatchObject({
       npcId: 'n-mule',
       patch: { lastMediatorRoll: { table: 'morale' } },
@@ -248,11 +244,11 @@ describe('waves', () => {
     await renderCockpit()
     expect(screen.getByText('Gantry snipers · held')).toBeTruthy()
     await click(named('Bring in wave 2'))
-    expect(sent).toEqual([{ name: 'mediator:bringInWave', args: { gameId: GAME, wave: 2 } }])
+    expect(sent).toEqual([{ gameId: GAME, name: 'mediator.bringInWave', args: { wave: 2 } }])
   })
 
   test('running an encounter asks for waves', async () => {
-    usePrepStore.setState({
+    useEncounters.setState({
       encounters: [
         {
           id: 'enc-1',
@@ -266,14 +262,15 @@ describe('waves', () => {
         },
       ],
     })
-    await renderCockpit({ 'mediator:running': null })
+    await renderCockpit({ 'mediator.running': null })
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
     await click(dialog.getByRole('button', { name: 'Run Ambush' }))
-    expect(sent).toContainEqual({
-      name: 'mediator:runEncounter',
-      args: { gameId: GAME, encounterId: 'enc-1', clear: false, waves: true },
+    expect(sent.find((s) => s.name === 'mediator.runEncounter')?.args).toMatchObject({
+      encounter: { id: 'enc-1', name: 'Ambush' },
+      clear: false,
+      waves: true,
     })
-    act(() => usePrepStore.setState({ encounters: [] }))
+    act(() => useEncounters.setState({ encounters: [] }))
   })
 })

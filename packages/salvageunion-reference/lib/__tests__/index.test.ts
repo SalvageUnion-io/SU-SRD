@@ -10,14 +10,7 @@ import {
 import { isAbility } from '../entityGuards'
 import { SCHEMA_REGISTRY } from '../generated/schemaRegistry.generated'
 import { EntitySchemaNames, SalvageUnionReference } from '../index'
-
-/** Narrow away null/undefined; throws (failing the test) when the value is missing. */
-function defined<T>(value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error('Expected value to be defined')
-  }
-  return value
-}
+import { defined } from '../testing'
 
 describe('SalvageUnionReference static properties', () => {
   it('should have all model properties defined and returning data', () => {

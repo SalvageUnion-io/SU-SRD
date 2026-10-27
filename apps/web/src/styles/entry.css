@@ -16,7 +16,6 @@
  * deliberately unlayered rules; see its header.
  */
 @layer su-reset, su-base;
-@import './fallback-fonts.css';
 @import './theme.css';
 @import './reset.css' layer(su-reset);
 @import './index.css' layer(su-base);

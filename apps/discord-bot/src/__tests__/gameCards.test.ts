@@ -185,7 +185,7 @@ describe('the server derives the maxima and status', () => {
   })
 
   test('a deployment older than `vitals` shows the current values alone', () => {
-    // Convex is pushed before the bot ships, but a rolled-back backend still
+    // The site ships before the bot, but a rolled-back site still
     // answers without the field. The bot no longer derives maxima, so the
     // honest render is the stored number, or a dash when there is none.
     const { vitals: _sent, ...older } = sheet('pilots', { callsign: 'Rook', currentHP: 6 })

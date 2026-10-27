@@ -11,7 +11,7 @@
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
  *    (`/play/games/$gameId`). Its chips are your role, how many are here now
- *    (the seats' heartbeats, `seats.presence`, play.md §7), the Downtime state
+ *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
  *    its one door, last in the chip group: Mediate where you mediate it, else
@@ -30,14 +30,9 @@
 
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
-import { useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
-import { isPresent } from 'game-domain/schemas/seat'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
 import { capsLabel } from '../components/atoms/capsLabel'
@@ -58,22 +53,26 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import { useConnection } from '../lib/connection/connectionContext'
 import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
+import type { GameCallResult } from '../replica/roomCalls'
+import { useGamesQuery } from '../replica/roomCalls'
+import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
+import { hereCount } from './crew.model'
 import { PlayRefusal } from './PlayRefusal'
 import type { SoloPilot } from './play.model'
 import { gamePilots, soloPilots } from './play.model'
 import { gameChips, gameCrew, gameDoor } from './playHub.model'
-import { usePresenceClock } from './usePresenceClock'
+import { useGamePresence } from './useGamePresence'
 
-type GameSummary = FunctionReturnType<typeof api.games.listMine>[number]
+type GameSummary = GameCallResult<'games.listMine'>[number]
 
 const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
 
@@ -121,8 +120,8 @@ const JOIN_FIELD = {
 const JOIN_INPUT = { height: 'var(--size-compact)', width: '100%' } satisfies CSSProperties
 
 export function PlayLanding() {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <PlayRefusal
         title={playCopy('signInToPlay')}
@@ -131,14 +130,14 @@ export function PlayLanding() {
       />
     )
   }
-  if (mode === 'connecting') return <RoutePending label={playCopy('yourSession')} />
-  if (mode === 'connected') return <ConnectedPlayLanding />
+  if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
+  if (status === 'live') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
 }
 
 function ConnectedPlayLanding() {
-  const games = useQuery(api.games.listMine, {})
-  const channels = useQuery(api.channelBindings.mine, {}) as MyChannels | undefined
+  const games = useGamesQuery('games.listMine', {})
+  const channels = useGamesQuery('channelBindings.mine', {}) as MyChannels | undefined
   return <PlayLandingView games={games} channels={channels} connected />
 }
 
@@ -338,13 +337,12 @@ function PlayGameItem({
   pilots: readonly { id: string; name: string }[]
   channel: string | null
 }) {
-  const gameId = game._id as Id<'games'>
-  const downtime = useQuery(api.downtime.state, { gameId }) ?? undefined
-  const seen = useQuery(api.seats.presence, { gameId })
-  const listing = useQuery(api.entities.listForGame, { gameId })
-  const vitals = useQuery(api.crew.vitals, { gameId })
-  const now = usePresenceClock()
-  const here = seen?.filter((at) => isPresent(at, now)).length ?? 0
+  const gameId = game._id
+  const downtime = useTableRead('downtime.state', { gameId }) ?? undefined
+  const listing = useGamesQuery('entities.listForGame', { gameId })
+  const vitals = useTableRead('crew.vitals', { gameId })
+  const presence = useGamePresence(gameId, 'watch')
+  const here = hereCount(vitals?.pilots, presence)
   const chips = gameChips({ mediator: game.mediator, here, downtime, channel })
   const door = gameDoor(game, pilots)
   const crew =

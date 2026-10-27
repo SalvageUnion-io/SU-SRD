@@ -5,45 +5,43 @@
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../../../components/__tests__/convexMock'
+import { acceptingRooms, roomActs } from '../../../../../test/roomsStub'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
+import { answerRoutes, withWorkerRoutes } from '../../../../lib/sharing/__tests__/workerRoutes'
+import { sharedPaths } from '../../../../lib/sharing/paths'
+import { withSignedInBackend } from '../../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../../replica/syncContext'
+import { forgetTableState, serveTableState } from '../../../../replica/tableState'
 
 /** `homebrew.status` for a pattern that is not homebrew. */
 const NOT_LISTED = { listed: false, hidden: false, reported: false, mine: false, admin: false }
 
-const visibilityWrites: unknown[] = []
-
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: { mutation: async () => ({ updatedAt: 1 }) },
-  convexReact: {
-    useMutation: () => async (args: unknown) => {
-      visibilityWrites.push(args)
-      return null
-    },
-  },
-  authReact: true,
+// Module scope, before the imports below — see `serverMock.ts`. The mock
+// answers only the Games list; the router and sign-in are stand-ins.
+const serverMocks = await installServerMocks({
   router: true,
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
-const { ConnectionContext } = await import('../../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../../stores/entityStore')
-const { usePatternStore } = await import('../../../../stores/patternStore')
+const { SyncContext } = await import('../../../../replica/syncContext')
+const { useUnits } = await import('../../../../replica/units')
+const { usePatterns } = await import('../../../../replica/collections')
 const { PublicSheetView } = await import('../../../sheet/PublicSheetView')
 const { usePageCredit } = await import('../../../../stores/pageCredit')
 
 withSignedInBackend()
+withWorkerRoutes()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const PAGE = sharedPaths.sheet('pattern', 'pat-tow-rig')
+const STATUS = sharedPaths.homebrew('pat-tow-rig')
+
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
-const SIGNED_OUT: ConnectionState = { ...CONNECTED, mode: 'solo', canWrite: false }
+const SIGNED_OUT: SyncState = { ...CONNECTED, status: 'signedOut', canWrite: false }
 
 const body = {
   id: 'pat-tow-rig',
@@ -69,6 +67,12 @@ function answer(over: Record<string, unknown> = {}) {
   }
 }
 
+/** The account room's sharing record for the pattern. */
+function sharing(visibility: 'private' | 'link') {
+  const record = { visibility, gameId: null, gameName: null, builtCount: 3, homebrew: false }
+  return { appId: 'pat-tow-rig', body: record }
+}
+
 /** Drive the store's server-first write (stub commit, then memory) to completion. */
 async function settle(done: () => boolean): Promise<void> {
   for (let i = 0; i < 200 && !done(); i++) {
@@ -78,30 +82,28 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-function renderAs(connection: ConnectionState) {
+function renderAs(connection: SyncState) {
   return render(
-    <ConnectionContext.Provider value={connection}>
+    <SyncContext.Provider value={connection}>
       <PublicSheetView kind="pattern" appId="pat-tow-rig" />
-    </ConnectionContext.Provider>
+    </SyncContext.Provider>
   )
 }
 
 beforeEach(() => {
-  useEntityStore.setState({
+  useUnits.setState({
     mechs: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  usePatternStore.setState({ mechPatterns: [], hydrated: true })
-  convexMocks.navigations.length = 0
-  visibilityWrites.length = 0
+  usePatterns.setState({ mechPatterns: [], hydrated: true })
+  serverMocks.navigations.length = 0
+  forgetTableState()
+  acceptingRooms()
 })
 
 describe('a shared pattern reads like the book and says a player made it', () => {
   test('laid out as the book pattern page: HOMEBREW stamp, the maker credited on the foot, their notes as its description', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     const { container } = renderAs(SIGNED_OUT)
 
     expect(screen.getByRole('heading', { level: 1, name: /Tow Rig/ })).toBeTruthy()
@@ -118,20 +120,14 @@ describe('a shared pattern reads like the book and says a player made it', () =>
   })
 
   test('the foot forgets the credit once the page is gone', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     const { unmount } = renderAs(SIGNED_OUT)
     unmount()
     expect(usePageCredit.getState().credit).toBeUndefined()
   })
 
   test('the chassis and the loadout come from the reference', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
 
     expect(screen.getAllByText('Scrapper chassis').length).toBeGreaterThan(0)
@@ -141,10 +137,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
   })
 
   test('signed out, it offers sign-in rather than a build that would be refused', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
 
     expect(screen.queryByRole('button', { name: /^Build With This/ })).toBeNull()
@@ -152,10 +145,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
   })
 
   test('a pattern the reader may not see is not there at all', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': null,
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: null })
     renderAs(SIGNED_OUT)
     expect(screen.getByText(/pattern isn['’]t available/i)).toBeTruthy()
   })
@@ -163,60 +153,51 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 
 describe('signed in', () => {
   test('Build With This makes a fresh mech that records its source, and opens it', async () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
     })
-    await settle(() => convexMocks.navigations.length > 0)
+    await settle(() => serverMocks.navigations.length > 0)
 
-    const [mech] = useEntityStore.getState().mechs
+    const [mech] = useUnits.getState().mechs
     expect(mech).toMatchObject({ name: 'Tow Rig', sourcePattern: 'pat-tow-rig', cargoLots: [] })
-    expect(convexMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
+    expect(serverMocks.navigations).toEqual([{ to: '/mechs/$id', params: { id: mech?.id } }])
   })
 
   test('Copy to my shelf saves it under a new id', async () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Make a copy' }))
     })
-    await settle(() => usePatternStore.getState().mechPatterns.length > 0)
+    await settle(() => usePatterns.getState().mechPatterns.length > 0)
 
-    const [copy] = usePatternStore.getState().mechPatterns
+    const [copy] = usePatterns.getState().mechPatterns
     expect(copy?.name).toBe('Tow Rig')
     expect(copy?.id).not.toBe('pat-tow-rig')
   })
 
   test('its maker keeps the copy action, and is told who can see it', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    usePatterns.setState({ mechPatterns: [body], hydrated: true })
+    serveTableState('account', { sharing: [sharing('link')] })
     renderAs(CONNECTED)
 
     expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
   })
 
-  test('its maker changes who can see it from the Share dialog every player thing opens', async () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer({ mine: true, visibility: 'link' }),
-      'shelf:patternSharing': [
-        { appId: 'pat-tow-rig', visibility: 'link', gameId: null, gameName: null, builtCount: 3 },
-      ],
-      'games:listMine': [],
-    })
+  test('its maker opens it before sharing it, and shares it from the dialog every player thing opens', async () => {
+    // Not shared, so the shared read has nothing: the maker's own Shelf has it.
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: null })
+    usePatterns.setState({ mechPatterns: [body], hydrated: true })
+    setQueryAnswers({ 'games.listMine': [] })
+    serveTableState('account', { sharing: [sharing('private')] })
     renderAs(CONNECTED)
+    expect(screen.getByText('Only you can see this pattern.')).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Share Tow Rig' }))
@@ -224,26 +205,26 @@ describe('signed in', () => {
     expect(screen.getByRole('group', { name: /who can see it/i })).toBeTruthy()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: /only me/i }))
+      fireEvent.click(screen.getByRole('radio', { name: /^Public/ }))
     })
 
-    expect(visibilityWrites).toEqual([{ patternId: 'pat-tow-rig', visibility: 'private' }])
+    expect(roomActs).toEqual([
+      {
+        gameId: null,
+        name: 'shelf.setPatternVisibility',
+        args: { patternId: 'pat-tow-rig', visibility: 'link' },
+      },
+    ])
   })
 
   test('a reader who is not its maker is never offered Share', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer({ visibility: null }),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer({ visibility: null }) })
     renderAs(CONNECTED)
     expect(screen.queryByRole('button', { name: 'Share Tow Rig' })).toBeNull()
   })
 
   test('the stat column spells stat names out', () => {
-    setQueryAnswers({
-      'homebrew:status': NOT_LISTED,
-      'publicSheet:pattern': answer(),
-    })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
     expect(screen.getByText('Structure Points')).toBeTruthy()
     expect(screen.queryByText('Structure Pts.')).toBeNull()

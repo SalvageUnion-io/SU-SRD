@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { APP_BASE, appPath } from '../../lib/appBase'
-import { appUrl, originOf } from '../../lib/site'
 import { renderUnionBar } from '../../shell/unionBar'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
+import { worker } from './worker'
 
 /**
  * The app at salvageunion.io/build (ADR-048), which the one Worker runs
@@ -420,16 +419,5 @@ describe('the bare base', () => {
       expect(res.status).toBe(301)
       expect(res.headers.get('location')).toBe(`${BASE}/${new URL(url).search}`)
     }
-  })
-})
-
-describe('the deploy', () => {
-  it("sets Convex Auth's SITE_URL to where the app is served, on every deploy", async () => {
-    const workflow = await Bun.file(
-      new URL('../../../../../.github/workflows/deploy-cloudflare.yml', import.meta.url)
-    ).text()
-    const siteUrlEnv = workflow.match(/^\s*APP_URL:\s*(\S+)\s*$/m)?.[1]
-    expect(siteUrlEnv).toBe(appUrl('', originOf()))
-    expect(workflow).toContain('bunx convex env set SITE_URL "$APP_URL"')
   })
 })

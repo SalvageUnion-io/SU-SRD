@@ -73,11 +73,6 @@ export type AppEnv = PreviewEnv & {
   ASSETS: Assets
 }
 
-/** Whether a path is the app's: `/build` or `/play` itself, or anything under either. */
-export function isAppPath(pathname: string): boolean {
-  return routeInApp(pathname) !== null
-}
-
 /**
  * A binding that answers a miss in the app (under the base, or under Play's
  * root) with the shell, as Static Assets' `single-page-application` mode does.
@@ -104,7 +99,7 @@ function defaultCache(): ImageCache | undefined {
 }
 
 /**
- * A request for the app (`isAppPath`); `null` for a missing file, which
+ * A request for the app (`/build`, `/play` and below); `null` for a missing file, which
  * the site answers as any other miss.
  */
 export async function serveApp(
@@ -230,7 +225,7 @@ async function sharedShell(
 ): Promise<Response> {
   const shell = await shellOf(url, env, base)
   if (!shell.ok) return shell
-  const meta = await metaFor(route, url, env, fetch, base)
+  const meta = await metaFor(route, url, env, base)
   const res = meta === null ? shell : await rewritten(shell, (html) => applyMeta(html, meta))
   // A missing or private sheet answers like a page: search must not list it.
   return meta?.canonical === undefined ? noindexed(res) : res

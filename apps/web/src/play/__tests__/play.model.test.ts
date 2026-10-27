@@ -48,12 +48,12 @@ describe('PHASE_TONE', () => {
 })
 
 describe('connectionLine', () => {
-  test('says who play reaches, in every mode', () => {
-    expect(connectionLine('connected', false)).toBe('Connected · changes reach the table live')
-    expect(connectionLine('connected', true)).toBe('Solo · nothing is shared')
-    expect(connectionLine('connecting', true)).toBe('Connecting…')
-    expect(connectionLine('disconnected', false)).toBe('Disconnected · waiting to reconnect')
-    expect(connectionLine('solo', true)).toBe('Signed out')
+  test('says who play reaches while live, and nothing otherwise', () => {
+    expect(connectionLine('live', false)).toBe('Connected · changes reach the table live')
+    expect(connectionLine('live', true)).toBe('Solo · nothing is shared')
+    expect(connectionLine('syncing', true)).toBeNull()
+    expect(connectionLine('offline', false)).toBeNull()
+    expect(connectionLine('signedOut', true)).toBeNull()
   })
 })
 

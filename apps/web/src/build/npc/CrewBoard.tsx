@@ -21,7 +21,6 @@
  * full-height modal (§5).
  */
 
-import { useQuery } from 'convex/react'
 import { containerOf, sameContainer } from 'game-domain/container'
 import { slotKey } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -30,8 +29,6 @@ import { NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { api } from '../../../convex/_generated/api'
-import type { Id } from '../../../convex/_generated/dataModel'
 import {
   Badge,
   Button,
@@ -50,8 +47,6 @@ import {
   useMediaQuery,
 } from '../../components/index'
 import { UnitRow } from '../../components/shared/UnitRow'
-import { WritesBlockedNotice } from '../../components/shared/WritesBlockedNotice'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useNpcs, useSoftLinkList } from '../../lib/entities'
 import { assignCrew } from '../../lib/links/assignLink'
@@ -73,7 +68,9 @@ import {
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
 import { npcCopy } from '../../messages/build-npc'
-import { useEntityStore } from '../../stores/entityStore'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { npcStats } from '../roster/rowStats.model'
 import { rowAppId } from '../sheet/readOnlySheetStore.model'
 import { RollTableButton } from '../wizard/RollTableButton'
@@ -116,10 +113,10 @@ type CrewBoardProps = {
 
 export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBoardProps) {
   const hydrated = useHydrateEntities(['crawler', 'npc', 'softLink'])
-  const { mode, canWrite } = useConnection()
-  const connected = mode === 'connected'
+  const { status, canWrite } = useSync()
+  const connected = status === 'live'
   const crawlers = useCrawlers()
-  const games = useQuery(api.games.listMine, connected ? {} : 'skip')
+  const games = useGamesQuery('games.listMine', connected ? {} : 'skip')
 
   /** Whether the viewer may write this crawler: its owner on a shelf, the table runner in a Game. */
   const mayWrite = (c: Crawler) => {
@@ -197,9 +194,9 @@ function CrewSlots({
   const npcs = useNpcs()
   const links = useSoftLinkList()
   const where = containerOf(crawler)
-  const gameId = where.kind === 'game' ? (where.gameId as Id<'games'>) : null
-  const listing = useQuery(api.entities.listForGame, gameId === null ? 'skip' : { gameId })
-  const members = useQuery(api.games.members, gameId === null ? 'skip' : { gameId })
+  const gameId = where.kind === 'game' ? where.gameId : null
+  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
 
   /** Other members' NPCs in this Game, read live and never cached (ADR-037). */
   const theirs = useMemo<Npc[]>(() => {
@@ -416,7 +413,7 @@ function SlotPanel({
   // The form's own complaint; a failed save is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
   const save = useServerAction(
-    () => useEntityStore.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
+    () => useUnits.getState().create('npc', crewDraftToCreateInput(slot, draft, gameId)),
     { failure: 'The NPC could not be saved. Try again.' }
   )
   // Said by the caller as a toast: a failed assignment after a save that
@@ -452,9 +449,7 @@ function SlotPanel({
         ) : (
           <p style={HINT}>{npcCopy('theNpcAssignedHereCannot')}</p>
         )}
-        {!allowed ? (
-          <WritesBlockedNotice />
-        ) : npc ? null : (
+        {allowed && !npc && (
           <div style={ROW}>
             <Button variant="default" onClick={unassign}>
               {unassignLabel}
@@ -576,12 +571,10 @@ function SlotPanel({
 
       {error && <FieldError>{error}</FieldError>}
       <div style={ROW}>
-        {allowed ? (
+        {allowed && (
           <Button variant="primary" disabled={busy} onClick={() => void saveAndAssign()}>
             {busy ? npcCopy('saving') : npcCopy('saveAndAssignTo', { name: slot.name })}
           </Button>
-        ) : (
-          <WritesBlockedNotice />
         )}
         <Button variant="default" disabled={busy} onClick={onDone}>
           {npcCopy('keepTheBooksLine')}

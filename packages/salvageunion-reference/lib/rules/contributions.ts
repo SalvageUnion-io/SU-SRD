@@ -34,7 +34,7 @@ export type ContributionAmount =
   | { fromStat: ContributionStat }
 
 /** A contribution as declared on a piece of reference content. */
-export type DeclaredContribution = {
+type DeclaredContribution = {
   stat: ContributionStat
   amount: ContributionAmount
   target?: ContributionTarget

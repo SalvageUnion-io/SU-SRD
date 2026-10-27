@@ -23,15 +23,15 @@ import type { CSSProperties, ReactNode } from 'react'
 import { color, fontSize, space } from '../../design/tokens'
 import { savedWorkCopy } from '../../lib/routeErrorCopy'
 import { sharedCopy } from '../../messages/components-shared'
-import type { BackendKind } from '../../stores/entityBackend'
-import { selectBackend } from '../../stores/entityBackend'
+import type { SyncStatus } from '../../replica/sync'
+import { syncStatus } from '../../replica/sync'
 import { Box, RecoveryPanel } from '../index'
 import { FullPageShell } from './RouteFallbacks'
 
-/** The current backend, or null if even that cannot be read in this state. */
-function currentBackend(): BackendKind | null {
+/** The sync status, or null if even that cannot be read in this state. */
+function currentStatus(): SyncStatus | null {
   try {
-    return selectBackend()
+    return syncStatus()
   } catch {
     // This runs inside the error screen: the error that put us here is what
     // gets reported, and a second throw would only replace it with this one.
@@ -74,7 +74,7 @@ export function RootErrorComponent({ error }: ErrorComponentProps) {
       <RecoveryPanel
         title={sharedCopy('somethingWentWrong')}
         message={sharedCopy('theAppHitAnUnexpected', {
-          savedWorkCopy: savedWorkCopy(currentBackend()),
+          savedWorkCopy: savedWorkCopy(currentStatus()),
         })}
         action={{ label: sharedCopy('tryAgain'), onClick: () => window.location.reload() }}
       >
@@ -98,7 +98,7 @@ export function RouteErrorComponent({ error, reset }: ErrorComponentProps) {
       <RecoveryPanel
         title={sharedCopy('thisPageHitAnError')}
         message={sharedCopy('somethingOnThisPageDid', {
-          savedWorkCopy: savedWorkCopy(currentBackend()),
+          savedWorkCopy: savedWorkCopy(currentStatus()),
         })}
         action={{
           label: sharedCopy('tryAgain'),

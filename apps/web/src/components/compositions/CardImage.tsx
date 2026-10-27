@@ -63,7 +63,7 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
   //
   // Diverging from the client's initial state is safe HERE specifically because
   // The reference site's islands mount with `createRoot`, never `hydrateRoot` (see
-  // `apps/web/ssg/DESIGN.md`), so there is no hydration pass to mismatch.
+  // `apps/web/astro/DESIGN.md`), so there is no hydration pass to mismatch.
   const [loaded, setLoaded] = useState(() => typeof window === 'undefined')
   const imgRef = useRef<HTMLImageElement>(null)
 

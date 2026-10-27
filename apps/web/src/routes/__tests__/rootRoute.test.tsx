@@ -2,7 +2,7 @@
  * The root route's chrome, mounted under a real router signed out, in a body
  * that carries the shell's Union bar and skip link (`shell/unionBar.ts`): the
  * skip link's target, the bar's slots filled on every page but a Play screen
- * (which draws its own, ADR-045 §6) and hidden there, the footer, the default
+ * (which draws its own, ADR-051 §2) and hidden there, the footer, the default
  * tab title, and the bare `/og/*` picture surface with none of it.
  *
  * The root's own options are reused on a fresh root route, so the app's
@@ -11,15 +11,14 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, render, screen } from '@testing-library/react'
-import { installConvexMocks, setQueryAnswers } from '../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 
-// Module scope, before the imports below — see `convexMock.ts`. Signed out:
+// Module scope, before the imports below — see `serverMock.ts`. Signed out:
 // the app's first paint for a visitor.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: false, isLoading: false }) },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } =
   await import('@tanstack/react-router')

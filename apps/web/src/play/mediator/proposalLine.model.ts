@@ -4,11 +4,10 @@
  * before (ADR-030 §4, as amended), so a row names only the value it asks for.
  */
 
-import type { FunctionReturnType } from 'convex/server'
 import { fieldLabel } from 'game-domain/games/proposals'
-import type { api } from '../../../convex/_generated/api'
+import type { SentProposal } from '../../rooms/game/proposals'
 
-export type SentProposal = FunctionReturnType<typeof api.proposals.sent>[number]
+export type { SentProposal }
 
 /** "Judge · HP → 4 · "Ejection burn"". */
 export function proposalLine(p: SentProposal): string {

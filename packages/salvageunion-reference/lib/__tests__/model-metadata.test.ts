@@ -3,70 +3,62 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-// Import SalvageUnionReference - use lazy getter to avoid initialization issues
-import type { SalvageUnionReference as RefType } from '../index'
-import { SchemaToDisplayName } from '../index'
-
-let SalvageUnionReference: typeof RefType
-
-function getReference() {
-  if (!SalvageUnionReference) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SalvageUnionReference = require('../index').SalvageUnionReference
-  }
-  return SalvageUnionReference
-}
+import { SalvageUnionReference, SchemaToDisplayName } from '../index'
 
 describe('Model Metadata', () => {
   describe('schemaName property', () => {
     it('should return correct schema name for Abilities', () => {
-      expect(getReference().Abilities.schemaName).toBe('abilities')
+      expect(SalvageUnionReference.Abilities.schemaName).toBe('abilities')
     })
 
     it('should return correct schema name for Equipment', () => {
-      expect(getReference().Equipment.schemaName).toBe('equipment')
+      expect(SalvageUnionReference.Equipment.schemaName).toBe('equipment')
     })
 
     it('should return correct schema name for Modules', () => {
-      expect(getReference().Modules.schemaName).toBe('modules')
+      expect(SalvageUnionReference.Modules.schemaName).toBe('modules')
     })
 
     it('should return correct schema name for Chassis', () => {
-      expect(getReference().Chassis.schemaName).toBe('chassis')
+      expect(SalvageUnionReference.Chassis.schemaName).toBe('chassis')
     })
 
     it('should return correct schema name for Classes', () => {
-      expect(getReference().Classes.schemaName).toBe('classes')
+      expect(SalvageUnionReference.Classes.schemaName).toBe('classes')
     })
 
     it('should return correct schema name for AbilityTreeRequirements', () => {
-      expect(getReference().AbilityTreeRequirements.schemaName).toBe('ability-tree-requirements')
+      expect(SalvageUnionReference.AbilityTreeRequirements.schemaName).toBe(
+        'ability-tree-requirements'
+      )
     })
   })
 
   describe('displayName property (singular)', () => {
     it('should return correct display name for Abilities', () => {
-      expect(getReference().Abilities.displayName).toBe('Ability')
+      expect(SalvageUnionReference.Abilities.displayName).toBe('Ability')
     })
 
     it('should return correct display name for Equipment', () => {
-      expect(getReference().Equipment.displayName).toBe('Equipment')
+      expect(SalvageUnionReference.Equipment.displayName).toBe('Equipment')
     })
 
     it('should return correct display name for Modules', () => {
-      expect(getReference().Modules.displayName).toBe('Module')
+      expect(SalvageUnionReference.Modules.displayName).toBe('Module')
     })
 
     it('should return correct display name for Chassis', () => {
-      expect(getReference().Chassis.displayName).toBe('Chassis')
+      expect(SalvageUnionReference.Chassis.displayName).toBe('Chassis')
     })
 
     it('should return correct display name for Classes', () => {
-      expect(getReference().Classes.displayName).toBe('Class')
+      expect(SalvageUnionReference.Classes.displayName).toBe('Class')
     })
 
     it('should return correct display name for AbilityTreeRequirements', () => {
-      expect(getReference().AbilityTreeRequirements.displayName).toBe('Ability Tree Requirement')
+      expect(SalvageUnionReference.AbilityTreeRequirements.displayName).toBe(
+        'Ability Tree Requirement'
+      )
     })
   })
 
@@ -132,8 +124,8 @@ describe('Model Metadata', () => {
 
   describe('Consistency between schemaName and SchemaToDisplayName', () => {
     it('should have matching schema names', () => {
-      const schemaName = getReference().Abilities.schemaName
-      const displayName = getReference().Abilities.displayName
+      const schemaName = SalvageUnionReference.Abilities.schemaName
+      const displayName = SalvageUnionReference.Abilities.displayName
 
       // Checked widening of the display-name literal union for the matcher
       const mapped: string = SchemaToDisplayName[schemaName as keyof typeof SchemaToDisplayName]
@@ -142,14 +134,14 @@ describe('Model Metadata', () => {
 
     it('should work for all models', () => {
       const models = [
-        getReference().Abilities,
-        getReference().Equipment,
-        getReference().Modules,
-        getReference().Chassis,
-        getReference().Classes,
-        getReference().Systems,
-        getReference().Drones,
-        getReference().Vehicles,
+        SalvageUnionReference.Abilities,
+        SalvageUnionReference.Equipment,
+        SalvageUnionReference.Modules,
+        SalvageUnionReference.Chassis,
+        SalvageUnionReference.Classes,
+        SalvageUnionReference.Systems,
+        SalvageUnionReference.Drones,
+        SalvageUnionReference.Vehicles,
       ]
 
       for (const model of models) {

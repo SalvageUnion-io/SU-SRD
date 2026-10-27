@@ -507,8 +507,7 @@ function preflight(root: string): void {
   assertCoversWorkspaces('entity nesting', [SRC], {
     'apps/discord-bot':
       'renders Discord Components V2 containers, not React components: no entity cards to nest.',
-    'apps/su-assets': 'a Worker that serves image bytes and short error strings; no components.',
-    'packages/game-domain': 'schemas and rules shared with Convex and the bot; no components.',
+    'packages/game-domain': 'schemas and rules shared with the Worker and the bot; no components.',
     'packages/salvageunion-reference':
       'data, the ORM and the entity model the cards read; no components.',
     'packages/gates': 'the gates themselves: the fixtures quote the shapes they forbid.',

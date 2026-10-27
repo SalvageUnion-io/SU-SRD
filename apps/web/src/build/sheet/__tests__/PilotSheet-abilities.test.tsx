@@ -19,10 +19,9 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { EntitySurfaceProvider } from '../../../components/index'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
 beforeAll(hydrateStores)
@@ -69,18 +68,8 @@ function makePilot(overrides: Partial<Pilot> = {}): Pilot {
   }
 }
 
-function makeStubStore(pilot: Pilot, updateSpy?: ReturnType<typeof mock>): typeof useEntityStore {
-  const updateMock = updateSpy ?? mock(async () => pilot)
-  return makeEntityStoreMock({
-    pilots: [pilot],
-    hydrated: { pilots: true, mechs: false, crawlers: false, npcs: false, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [pilot]),
-    get: mock((_type: string, id: string) => (id === pilot.id ? pilot : null)),
-    create: mock(async () => pilot),
-    update: updateMock,
-    delete: mock(async () => {}),
-  })
+function makeStubStore(pilot: Pilot, update?: ReturnType<typeof mock>) {
+  return makeSingleUnitStore('pilot', pilot, { update })
 }
 
 describe('PilotSheet — ability AP cost (Slice D)', () => {

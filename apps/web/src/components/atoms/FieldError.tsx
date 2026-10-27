@@ -1,13 +1,14 @@
-import type { ComponentProps, ReactNode } from 'react'
-import { Message } from './Message'
+import type { CSSProperties, ReactNode } from 'react'
+import { font, fontSize, space } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 
 type FieldErrorProps = {
-  /** The message. Renders nothing when null/undefined/false — call sites can pass a bare expression. */
+  /** The message. Renders nothing when null/undefined/false/'' — call sites can pass a bare expression. */
   children?: ReactNode
   /** Call-site classes (spacing only). Never restyle colour or type here. */
   className?: string
   /** Call-site spacing: the margin above the line, a step of the space scale. */
-  spaceAbove?: ComponentProps<typeof Message>['spaceAbove']
+  spaceAbove?: keyof typeof space
   /**
    * DOM id, so an input can point at this message with `aria-describedby` —
    * the standard way to associate an error with the control it describes.
@@ -22,28 +23,45 @@ type FieldErrorProps = {
   id?: string
 }
 
+const LINE = {
+  display: 'block',
+  fontFamily: font.body,
+  fontSize: fontSize.caption,
+} satisfies CSSProperties
+
 /**
- * FieldError — the ONE single-message validation / advisory line.
+ * FieldError — the ONE single-message failure / validation / advisory line.
  *
  * Never a hand-rolled `<p role="alert">`. Its colour is `danger`, not rust:
  * rust is the ACTION colour (buttons, AP costs, primary CTAs), and spending it on
  * errors overloads it. Its size is `caption` (13px), the house token for
  * secondary explanatory copy — the same one `EmptyState` uses for its body — so
- * an error reads at one size everywhere.
+ * an error reads at one size everywhere. The ink is a class
+ * (`.su-message--bad`) because the ground recolours it: `statusBad` clears AA
+ * as text on paper, and on an ink ground (the frame's `data-ground`, chrome
+ * K1) the line prints in paper.
  *
  * Distinct from its neighbours, deliberately:
  *   - `Banner`  — a LIST of soft warnings with severity pills.
  *   - `Callout` — a 3px accent-framed CONTENT note; no aria role.
  *   - `FieldError` — one inline message, announced via `role="alert"`.
  *
- * It is `Message tone="bad"` under the validation name; the empty-child guard
- * and the block-level `<span>` (valid inside phrasing content, such as
- * a field's wrapper) are Message's.
+ * A block-level `<span>`, not a `<p>`, so it is valid inside phrasing content
+ * such as a field's wrapper.
  */
 export function FieldError({ children, className, spaceAbove, id }: FieldErrorProps) {
+  // An empty live region still announces on some screen readers.
+  if (children === null || children === undefined || children === false || children === '') {
+    return null
+  }
   return (
-    <Message tone="bad" id={id} className={className} spaceAbove={spaceAbove}>
+    <span
+      id={id}
+      role="alert"
+      className={cn('su-message--bad', className)}
+      style={spaceAbove === undefined ? LINE : { ...LINE, marginTop: space[spaceAbove] }}
+    >
       {children}
-    </Message>
+    </span>
   )
 }

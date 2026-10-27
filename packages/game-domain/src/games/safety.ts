@@ -2,9 +2,9 @@
  * Safety Protocols, as a Game keeps them (Core Book pp.12-13): the table's
  * boundaries, in the book's two lists, and the Stop Sign anyone may show.
  *
- * Shared by the server (`convex/safety.ts` checks the caps), the Game page's
+ * Shared by the Game room (it checks the caps), the Game page's
  * Safety section and Play's Stop button, so the list names and limits are one
- * set. Pure: no React, no Convex.
+ * set. Pure: no React, no rooms.
  */
 
 /**

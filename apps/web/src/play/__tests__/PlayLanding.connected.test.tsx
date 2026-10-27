@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, spyOn, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
@@ -10,27 +10,33 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * Game with its mech or "No Mech". Nothing that builds.
  * Signed out, sign in.
  *
- * Queries are answered by name (`convexMock.ts`): `games.listMine` and
- * `channelBindings.mine`, then `downtime.state`, `seats.presence`,
+ * Queries are answered by name (`serverMock.ts`): `games.listMine` and
+ * `channelBindings.mine`, then `downtime.state`,
  * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
  * so links are anchors.
  */
 
+import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import {
-  installConvexMocks,
+  installServerMocks,
   queryCalls,
   setQueryAnswers,
-} from '../../components/__tests__/convexMock'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
-import type { ConnectionMode } from '../../lib/connection/connectionMode'
+} from '../../components/__tests__/serverMock'
+import { closeRooms, serveReads } from '../../replica/__tests__/fakeRooms'
+import type { SyncStatus } from '../../replica/sync'
+import { crewPilot } from './crewRows'
 
-const convexMocks = await installConvexMocks()
+// Who each Game's room says is here (`useGamePresence`): nobody, unless a test says.
+const presence: { here: ReadonlySet<string> | null } = { here: null }
+const serverMocks = await installServerMocks({
+  also: { '../../play/useGamePresence': () => ({ useGamePresence: () => presence.here }) },
+})
 
 const { PlayLanding } = await import('../PlayLanding')
-const { ConnectionContext } = await import('../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../replica/syncContext')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../stores/entityBackend')
+const { useUnits } = await import('../../replica/units')
+const { resetSync } = await import('../../replica/sync')
 
 const SUMMARY = { templateOrigin: undefined, organizer: false, tableRunner: false }
 const TENACITY = {
@@ -55,24 +61,23 @@ const WASTES = {
 }
 const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent: false }
 
-/** No channel bound anywhere, and nobody's seat beating: what most tests need answered. */
+/** No channel bound anywhere, and no crew: what most tests need answered. */
 const QUIET = {
-  'channelBindings:mine': { personal: null, games: [] },
-  'seats:presence': [],
-  'entities:listForGame': {
+  'channelBindings.mine': { personal: null, games: [] },
+  'entities.listForGame': {
     pilots: [],
     mechs: [],
     crawlers: [],
     softLinks: [],
     primaryCrawlerId: null,
   },
-  'crew:vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
+  'crew.vitals': { viewerId: 'u-me', pilots: [], mechs: [] },
 }
 
 beforeAll(async () => {
   await hydrateStores()
-  setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-  const store = useEntityStore.getState()
+  resetSync()
+  const store = useUnits.getState()
   await store.adopt('pilot', pilotFixture({ id: 'land-rook', name: 'Rook', gameId: 'land-g1' }))
   await store.adopt('pilot', pilotFixture({ id: 'land-wren', name: 'Wren', gameId: null }))
   await store.adopt('pilot', pilotFixture({ id: 'land-kes', name: 'Kestrel', gameId: null }))
@@ -87,27 +92,26 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-  const store = useEntityStore.getState()
+  const store = useUnits.getState()
   await store.forget('softLink', 'land-link')
   await store.forget('mech', 'land-mech')
   await store.forget('pilot', 'land-rook')
   await store.forget('pilot', 'land-wren')
   await store.forget('pilot', 'land-kes')
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
-async function renderAs(mode: ConnectionMode) {
+async function renderAs(status: SyncStatus) {
   const state = {
-    mode,
-    canWrite: mode === 'connected',
-    showDisconnectedWarning: mode === 'disconnected',
-    settling: mode === 'connecting',
+    status,
+    canWrite: status === 'live',
+    outdated: false,
   }
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={state}>
+      <SyncContext.Provider value={state}>
         <PlayLanding />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
@@ -120,9 +124,9 @@ const card = (name: string) => {
 }
 
 describe('the Play landing', () => {
-  test('signed out, asks you to sign in and asks Convex nothing', async () => {
-    setQueryAnswers({})
-    await renderAs('solo')
+  test('signed out, asks you to sign in and asks the server nothing', async () => {
+    answerReads({})
+    await renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Sign in with Discord' }).getAttribute('href')).toBe(
       '/sign-in'
@@ -131,12 +135,12 @@ describe('the Play landing', () => {
   })
 
   test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
-    setQueryAnswers({
-      'games:listMine': [TENACITY, WASTES],
-      'downtime:state': IN_DOWNTIME,
+    answerReads({
+      'games.listMine': [TENACITY, WASTES],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
     })
-    await renderAs('connected')
+    await renderAs('live')
     const tenacity = card('Tenacity')
     // The whole Compact opens the Game's page in Play.
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
@@ -159,20 +163,15 @@ describe('the Play landing', () => {
     expect(mediate.textContent).toBe('Mediate')
     // One door per Game.
     expect(wastes.queryByRole('link', { name: /^Play / })).toBeNull()
-    // `downtime.state` for each Game.
-    const asked = queryCalls()
-      .filter((c) => c.name === 'downtime:state')
-      .map((c) => (c.args as { gameId: string }).gameId)
-    expect([...new Set(asked)].sort()).toEqual(['land-g1', 'land-g2'])
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
-    setQueryAnswers({
-      'games:listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
-      'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    answerReads({
+      'games.listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],
+      'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
       ...QUIET,
     })
-    await renderAs('connected')
+    await renderAs('live')
     const elsewhere = card('Elsewhere')
     expect(elsewhere.queryByText('Downtime')).toBeNull()
     expect(elsewhere.queryByText('Scene')).toBeNull()
@@ -183,8 +182,8 @@ describe('the Play landing', () => {
   })
 
   test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
-    setQueryAnswers({ 'games:listMine': [], 'downtime:state': IN_DOWNTIME, ...QUIET })
-    await renderAs('connected')
+    answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
     const solo = section('Play solo')
     expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
       '/play/pilots/land-wren'
@@ -210,13 +209,13 @@ describe('the Play landing', () => {
   })
 
   test('the head offers + New Game and Join; Join opens the invite screen from a link or its token', async () => {
-    setQueryAnswers({ 'games:listMine': [], 'templates:list': [], ...QUIET })
+    answerReads({ 'games.listMine': [], 'templates.list': [], ...QUIET })
     const assigned: string[] = []
     const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
       assigned.push(String(to))
     })
     try {
-      await renderAs('connected')
+      await renderAs('live')
       await act(async () => {
         fireEvent.click(screen.getByRole('button', { name: '+ New Game' }))
       })
@@ -253,11 +252,11 @@ describe('the Play landing', () => {
   })
 
   test('a Game’s channel is a chip on its card; there is no Discord section', async () => {
-    setQueryAnswers({
-      'games:listMine': [TENACITY, WASTES],
-      'downtime:state': IN_DOWNTIME,
+    answerReads({
+      'games.listMine': [TENACITY, WASTES],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'channelBindings:mine': {
+      'channelBindings.mine': {
         personal: null,
         games: [
           {
@@ -270,25 +269,25 @@ describe('the Play landing', () => {
         ],
       },
     })
-    await renderAs('connected')
+    await renderAs('live')
     expect(card('Tenacity').getByText('#salvage-run')).toBeTruthy()
     expect(card('Wastes').queryByText(/^#/)).toBeNull()
     expect(screen.queryByRole('region', { name: 'Discord' })).toBeNull()
   })
 
   test('the crew are Minis with their chips: a boarded pilot is its mech, else the pilot', async () => {
-    setQueryAnswers({
-      'games:listMine': [TENACITY],
-      'downtime:state': IN_DOWNTIME,
+    answerReads({
+      'games.listMine': [TENACITY],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'entities:listForGame': {
+      'entities.listForGame': {
         pilots: [],
         mechs: [],
         crawlers: [{ _id: 'c1', appId: 'a-c1', body: { id: 'a-c1', name: 'Big Sal' } }],
         softLinks: [],
         primaryCrawlerId: 'c1',
       },
-      'crew:vitals': {
+      'crew.vitals': {
         viewerId: 'u-me',
         pilots: [
           {
@@ -348,7 +347,7 @@ describe('the Play landing', () => {
         ],
       },
     })
-    await renderAs('connected')
+    await renderAs('live')
     const tenacity = screen.getByRole('heading', { name: 'Tenacity (Game)' }).closest('li')
     const minis = [...(tenacity?.querySelectorAll('[data-entity-linked] > *') ?? [])].map(
       (mini) => mini.textContent ?? ''
@@ -372,23 +371,33 @@ describe('the Play landing', () => {
     expect(hrefs).toContain('/pilots/a-p2')
   })
 
-  test('Your Games: how many are here now, from the seats’ heartbeat', async () => {
-    const now = Date.now()
-    setQueryAnswers({
-      'games:listMine': [TENACITY],
-      'downtime:state': IN_DOWNTIME,
+  test('Your Games: how many are here now, from the Game’s room', async () => {
+    answerReads({
+      'games.listMine': [TENACITY],
+      'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      // Two beat a moment ago; one has not beaten for an hour.
-      'seats:presence': [now - 1_000, now - 5_000, now - 3_600_000],
+      'crew.vitals': {
+        viewerId: 'u-me',
+        pilots: [
+          crewPilot('p1', 'Mags', 'u-mags'),
+          crewPilot('p2', 'Rook', 'u-rook'),
+          crewPilot('p3', 'Wren', 'u-wren'),
+        ],
+        mechs: [],
+      },
     })
-    await renderAs('connected')
-    const tenacity = card('Tenacity')
-    expect(tenacity.getByText('2 here')).toBeTruthy()
+    presence.here = new Set(['u-mags', 'u-rook', 'u-mediator'])
+    try {
+      await renderAs('live')
+      expect(card('Tenacity').getByText('2 here')).toBeTruthy()
+    } finally {
+      presence.here = null
+    }
   })
 
   test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
-    setQueryAnswers({})
-    await renderAs('disconnected')
+    answerReads({})
+    await renderAs('offline')
     expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
     expect(
       section('Your Games').getByText('Your Games list once the connection returns.')
@@ -399,3 +408,11 @@ describe('the Play landing', () => {
     expect(queryCalls()).toHaveLength(0)
   })
 })
+
+/** Answer the Games reads, and serve the Game room's records from the table reads among them. */
+function answerReads(answers: Record<string, unknown>): void {
+  setQueryAnswers(answers)
+  serveReads('land-g1', answers)
+}
+
+afterEach(closeRooms)

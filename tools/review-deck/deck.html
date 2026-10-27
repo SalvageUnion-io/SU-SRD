@@ -228,7 +228,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
   // verdict on this shoot kept when it replaced it.
   const prior = (s) => {
     const v = verdicts[keyOf(s)] || byView[viewOf(keyOf(s))]
-    const p = v && v.commit && v.commit !== data.commit ? v : v?.previous
+    const p = v?.commit && v.commit !== data.commit ? v : v?.previous
     return p && ((p.comment || '').trim() || p.verdict === 'changes') ? p : null
   }
   let chosen = false
@@ -246,7 +246,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
     ['Play', [['Play hub', ['play-hub']], ['Games', ['game-page', 'invite']], ['Player', ['play-player']], ['Solo', ['play-solo']], ['Mediator', ['play-mediator']]]],
   ]
   const placeOf = {}
-  PARTS.forEach(([part, groups], pi) => groups.forEach(([group, families], gi) => { for (const f of families) placeOf[f] = { part, group, rank: pi * 100 + gi } }))
+  PARTS.forEach(([part, groups], pi) => { groups.forEach(([group, families], gi) => { for (const f of families) placeOf[f] = { part, group, rank: pi * 100 + gi } }) })
   const place = (s) => s.upd ? { part: UPDATES, group: `${s.upd.n}. ${s.upd.name}`, rank: 1000 + s.upd.n } : placeOf[s.family] || { part: 'Other', group: s.family, rank: 999 }
   const hasRule = (s, r) => (s.rules || []).some((x) => x.rule === r) || (s.issues || []).some((x) => x.rule === r)
 
@@ -284,7 +284,7 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--rule-li
       if (f === 'phone') return s.width < 1000
       return true
     })
-    const keep = cur ? view.findIndex((s) => s === cur) : -1
+    const keep = cur ? view.indexOf(cur) : -1
     const same = keep < 0 && cur ? view.findIndex((s) => base(s) === base(cur)) : -1
     pos = keep >= 0 ? keep : same >= 0 ? same : 0
     render()

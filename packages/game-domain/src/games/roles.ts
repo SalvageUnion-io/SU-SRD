@@ -3,11 +3,11 @@
  *
  * The role model is a base role plus one modifier: every member is a Player or
  * a Mediator, and exactly one also carries `organizer`. Both ends read these
- * answers: the server authorizes with them (`convex/model/permissions.ts`) and
+ * answers: the Game room authorizes with them and
  * the Game surface hides what the server would refuse
  * (`src/lib/games/gameRoster.ts`). One copy here means the two cannot disagree.
  *
- * Pure: no Convex, no React. The server reads the roster from the database and
+ * Pure: no rooms, no React. The server reads the roster from the database and
  * hands these functions plain flags.
  */
 

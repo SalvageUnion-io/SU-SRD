@@ -24,6 +24,7 @@
  */
 
 import type { EntitySchemaName, SchemaToEntityMap } from './generated/schemaRegistry.generated'
+import type { Roll } from './rules/types'
 
 /** The fields BaseEntitySchema requires of every entity, defaulted per schema. */
 function requiredEntityFields(schemaName: EntitySchemaName) {
@@ -59,4 +60,16 @@ export function entityFixture<K extends EntitySchemaName>(
  */
 export function malformed<T>(value: unknown): T {
   return value as T
+}
+
+/** Narrow away null and undefined; throws, failing the test, when the value is missing. */
+export function defined<T>(value: T | null | undefined): T {
+  if (value === null || value === undefined) throw new Error('Expected value to be defined')
+  return value
+}
+
+/** A scripted `Roll`: each call answers the next value, then repeats the last. */
+export function seqRoll(...values: number[]): Roll {
+  let i = 0
+  return () => values[i++] ?? values[values.length - 1] ?? 1
 }

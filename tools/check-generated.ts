@@ -7,14 +7,14 @@
  * `schemas/` and `lib/generated/` are gitignored build output, not checked
  * here), the app's `src/routeTree.gen.ts`,
  * and the `worker-configuration.d.ts` that `wrangler types` writes for each of
- * the three Workers (`Env` from wrangler.jsonc, so a binding added there without
+ * the two Workers (`Env` from wrangler.jsonc, so a binding added there without
  * the types fails here). Each is regenerated here and then compared with what
  * is committed. A
  * stale one fails.
  *
  * The Worker files hold `Env` only (`--include-runtime=false`): the workerd
  * runtime globals come once from the `@cloudflare/workers-types` root
- * devDependency, listed in su-assets' and the bot's tsconfig `types`, instead
+ * devDependency, listed in the bot's tsconfig `types`, instead
  * of a 16k-line copy per Worker. apps/web typechecks its Worker with the
  * DOM lib, which conflicts with that package, so its file is committed and
  * drift-checked but no tsconfig includes it; its `Env` stays hand-written. Bump it with `wrangler` — its peer range names the version
@@ -77,7 +77,6 @@ export const GENERATED_PATHS = [
   'packages/salvageunion-reference/lib/index.ts',
   'apps/web/src/routeTree.gen.ts',
   'apps/web/worker-configuration.d.ts',
-  'apps/su-assets/worker-configuration.d.ts',
   'apps/discord-bot/worker-configuration.d.ts',
 ] as const
 

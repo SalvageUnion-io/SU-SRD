@@ -7,18 +7,17 @@
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
-import { installConvexMocks } from '../../../components/__tests__/convexMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
 
-// The signed-out "Make a copy" is the sign-in button, whose provider wants a
-// live Convex client. Module scope, before the imports below.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: { useConvexAuth: () => ({ isAuthenticated: false, isLoading: false }) },
+// The signed-out "Make a copy" is the sign-in button, whose real `signIn`
+// leaves the page. Module scope, before the imports below.
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated: false, isLoading: false }) },
 })
-afterAll(() => convexMocks.restore())
+afterAll(() => serverMocks.restore())
 
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 const { StarterSheetView } = await import('../StarterSheetView')
 
 beforeAll(hydrateStores)
@@ -26,9 +25,9 @@ beforeAll(hydrateStores)
 describe('a Starter Set sheet', () => {
   test('is the template’s own sheet, read-only, with "Make a copy" in its band’s corner', () => {
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <StarterSheetView kind="pilot" id="starter-pilot-bonesaw" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByRole('heading', { level: 1, name: 'Bonesaw (Pilot)' })).toBeTruthy()

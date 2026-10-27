@@ -5,19 +5,18 @@
  * is not homebrew (not shared by link), so a private page reads as before.
  */
 
-import { useMutation, useQuery } from 'convex/react'
 import { useState } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { Button, toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { useHomebrewSetHidden, useHomebrewStatus } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'
 import { ReportDialog } from './ReportDialog'
 
 type HomebrewControlsProps = { appId: string; name: string }
 
 export function HomebrewControls({ appId, name }: HomebrewControlsProps) {
-  const status = useQuery(api.homebrew.status, { appId })
-  const setHidden = useMutation(api.homebrew.setHidden)
+  const status = useHomebrewStatus(appId)
+  const setHidden = useHomebrewSetHidden()
   const [reporting, setReporting] = useState(false)
   const hide = useServerAction((hidden: boolean) => setHidden({ appId, hidden }), {
     failure: buildHomebrewCopy('didNotSave'),

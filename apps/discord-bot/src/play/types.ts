@@ -1,20 +1,20 @@
 /**
- * The wire shapes the app Convex deployment returns to the bot.
+ * The wire shapes the site Worker's `BotGateway` answers the bot.
  *
  * These are **imported**, not copied: the single declaration is
- * `packages/game-domain/src/botWire.ts`, which `convex/botClient.ts` annotates
- * every handler with. Change a `botClient` return shape and both sides fail to
- * compile until that file agrees. Importing cannot drag React into the Worker:
+ * `packages/game-domain/src/botWire.ts`, which the gateway
+ * (`apps/web/src/worker/botGateway.ts`) answers in. Change a shape and both
+ * sides fail to compile until that file agrees. Importing cannot drag React into the Worker:
  * `import type` is erased at bundle time, and `botWire.ts` imports nothing at
  * all, so it type-checks cleanly under this workspace's settings.
  *
  * What sharing does NOT buy is validation. This is still a network boundary and
- * the bot and the deployment ship separately, so every field is still read
+ * the bot and the site ship separately, so every field is still read
  * defensively (a removed field degrades to "—" rather than throwing) — see
- * `SheetResult.publicRead` for the worked example of a key an older deployment
+ * `SheetResult.publicRead` for the worked example of a key an older site
  * does not send.
  *
- * Server-side coverage of these shapes: `apps/web/test/convex/__tests__/bot.test.ts`.
+ * Server-side coverage of these shapes: `apps/web/src/worker/__tests__/botGateway.test.ts`.
  */
 
 import type { BotDenialReason } from 'game-domain/botWire'

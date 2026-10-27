@@ -2,6 +2,7 @@ import { SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
 import { DOC_PAGES } from '../../lib/docPages'
+import { clientSwap } from '../../runtime/clientSwap'
 import { AccountMenu } from '../index'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -30,7 +31,7 @@ function AccountIslandBody({ compact }: { compact: boolean }) {
 }
 
 /** At the bar's end on a desktop: avatar and name. */
-export function AccountIsland() {
+function AccountIsland() {
   return <AccountIslandBody compact={false} />
 }
 
@@ -39,6 +40,10 @@ export function AccountIsland() {
  * island rather than a `compact` prop, because chrome takes no props: a prop
  * here would put a props script on every page.
  */
-export function AccountAvatarIsland() {
+function AccountAvatarIsland() {
   return <AccountIslandBody compact />
 }
+
+/** The islands as Astro hydrates them, swapped in over nothing (`clientSwap`). */
+export const AccountIslandClient = clientSwap('AccountIsland', AccountIsland)
+export const AccountAvatarIslandClient = clientSwap('AccountAvatarIsland', AccountAvatarIsland)

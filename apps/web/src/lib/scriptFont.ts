@@ -1,13 +1,14 @@
 /**
  * The hand the legacy tagline is quoted in: Caveat, self-hosted beside Barlow
- * in the base stylesheet (`styles/base.css`), so it renders offline and under
- * the CSP like the rest of the type. The front door, the SRD's home and the
- * link preview set the quote in it.
+ * (`astro/build/fonts.ts`), so it renders offline and under the CSP like the
+ * rest of the type. The front door, the SRD's home and the link preview set
+ * the quote in it. Astro's Fonts API names its stack by this property.
  */
-export const SCRIPT_FONT = "'Caveat', cursive"
+export const SCRIPT_FONT_VARIABLE = '--font-caveat'
+export const SCRIPT_FONT = `var(${SCRIPT_FONT_VARIABLE})`
 
-/** The face the quote is set in, as `FontFaceSet.load` names it. */
-export const SCRIPT_FACE = `600 1em ${SCRIPT_FONT}`
+/** The face the quote is set in, as `FontFaceSet.load` names it: `stack` is the property's value. */
+export const scriptFace = (stack: string): string => `600 1em ${stack}`
 
 /** Whether `pathname` is the front door, `/` under the app's base path. */
 export function isFrontDoor(pathname: string, basePath: string): boolean {
@@ -33,10 +34,11 @@ export function isFrontDoor(pathname: string, basePath: string): boolean {
 export function preloadScriptFont(
   pathname: string,
   basePath: string,
-  fonts: Pick<FontFaceSet, 'load'> | undefined
+  fonts: Pick<FontFaceSet, 'load'> | undefined,
+  stack: string
 ): void {
-  if (!fonts || !isFrontDoor(pathname, basePath)) return
-  fonts.load(SCRIPT_FACE).catch(() => {
+  if (!fonts || !stack || !isFrontDoor(pathname, basePath)) return
+  fonts.load(scriptFace(stack)).catch(() => {
     // A hint only: the quote's layout asks for the face again, and falls back to `cursive`.
   })
 }

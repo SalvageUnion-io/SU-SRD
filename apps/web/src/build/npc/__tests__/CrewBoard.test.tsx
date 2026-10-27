@@ -7,35 +7,25 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
-import type { ConnectionState } from '../../../lib/connection/connectionContext'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import type { SyncState } from '../../../replica/syncContext'
 
-const writes: unknown[] = []
+// Module scope, before the imports below — see `serverMock.ts`.
+const serverMocks = await installServerMocks()
+afterAll(() => serverMocks.restore())
 
-// Module scope, before the imports below — see `convexMock.ts`.
-const convexMocks = await installConvexMocks({
-  convexClient: {
-    mutation: async (_ref: unknown, args: unknown) => {
-      writes.push(args)
-      return { updatedAt: 1 }
-    },
-  },
-})
-afterAll(() => convexMocks.restore())
-
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
-const { useEntityStore } = await import('../../../stores/entityStore')
+const { SyncContext } = await import('../../../replica/syncContext')
+const { useUnits } = await import('../../../replica/units')
 const { CrewBoard } = await import('../CrewBoard')
 
 withSignedInBackend()
 
-const CONNECTED: ConnectionState = {
-  mode: 'connected',
+const CONNECTED: SyncState = {
+  status: 'live',
   canWrite: true,
-  showDisconnectedWarning: false,
-  settling: false,
+  outdated: false,
 }
 
 /** A shelf crawler: its Med Bay's book crew already named inline. */
@@ -65,28 +55,27 @@ function Board({ crawlerId, initialSlot }: { crawlerId: string; initialSlot?: st
 async function renderBoard(crawlerId: string, initialSlot?: string) {
   await act(async () => {
     render(
-      <ConnectionContext.Provider value={CONNECTED}>
+      <SyncContext.Provider value={CONNECTED}>
         <Board crawlerId={crawlerId} initialSlot={initialSlot} />
-      </ConnectionContext.Provider>
+      </SyncContext.Provider>
     )
   })
 }
 
 beforeEach(() => {
-  writes.length = 0
-  useEntityStore.setState({
+  useUnits.setState({
     crawlers: [SHELF_CRAWLER],
     npcs: [],
     softLinks: [],
     hydrated: { pilots: true, mechs: true, crawlers: true, npcs: true, softLinks: true },
   })
-  setQueryAnswers({ 'games:listMine': [] })
+  setQueryAnswers({ 'games.listMine': [] })
 })
 
 describe('the slots', () => {
   test('the type first, then one per bay, each keeping the book’s line', async () => {
     await renderBoard('c1')
-    // Each slot is a Compact in select mode: picking it opens the slot.
+    // Each slot is a Compact in select status: picking it opens the slot.
     expect(screen.getByRole('radio', { name: 'Type · Augmented: Union Crawler A.I.' })).toBeTruthy()
     // The book's crew line: its name on the Compact, its HP a label-first chip.
     const mags = screen.getByText('Old Mags').closest('.su-entity-compact')
@@ -101,7 +90,7 @@ describe('the slots', () => {
 
 describe('design, assign, unassign', () => {
   test('the book’s line comes back exactly as it was', async () => {
-    const before = JSON.stringify(useEntityStore.getState().crawlers[0])
+    const before = JSON.stringify(useUnits.getState().crawlers[0])
     await renderBoard('c1')
 
     await act(async () => {
@@ -121,9 +110,9 @@ describe('design, assign, unassign', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save and assign to Med Bay' }))
     })
-    await waitFor(() => expect(useEntityStore.getState().softLinks).toHaveLength(1))
+    await waitFor(() => expect(useUnits.getState().softLinks).toHaveLength(1))
 
-    const [npc] = useEntityStore.getState().npcs
+    const [npc] = useUnits.getState().npcs
     expect(npc).toMatchObject({
       name: 'Doc Ambrose',
       position: 'Doc',
@@ -131,14 +120,14 @@ describe('design, assign, unassign', () => {
       keepsake: 'A dented tin of boiled sweets',
       gameId: null,
     })
-    expect(useEntityStore.getState().softLinks[0]).toMatchObject({
+    expect(useUnits.getState().softLinks[0]).toMatchObject({
       type: 'npc-to-crawler',
       from: { type: 'npc', id: npc?.id },
       to: { type: 'crawler', id: 'c1' },
       slot: { kind: 'bay', bayRef: 'med-bay' },
     })
     // Linking wrote nothing to the crawler.
-    expect(JSON.stringify(useEntityStore.getState().crawlers[0])).toBe(before)
+    expect(JSON.stringify(useUnits.getState().crawlers[0])).toBe(before)
 
     // The slot now shows the NPC, dashed and stamped.
     expect(screen.getByRole('radio', { name: 'Med Bay: Doc Ambrose' })).toBeTruthy()
@@ -148,11 +137,11 @@ describe('design, assign, unassign', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Unassign Doc Ambrose from Med Bay' }))
     })
-    await waitFor(() => expect(useEntityStore.getState().softLinks).toHaveLength(0))
+    await waitFor(() => expect(useUnits.getState().softLinks).toHaveLength(0))
 
     // The NPC survives, and the bay is back to the book's line, byte for byte.
-    expect(useEntityStore.getState().npcs).toHaveLength(1)
-    expect(JSON.stringify(useEntityStore.getState().crawlers[0])).toBe(before)
+    expect(useUnits.getState().npcs).toHaveLength(1)
+    expect(JSON.stringify(useUnits.getState().crawlers[0])).toBe(before)
     // The slot closes in the write's success callback, a tick after the store empties.
     await waitFor(() => expect(screen.getByText('Old Mags')).toBeTruthy())
   })
@@ -167,10 +156,10 @@ describe('design, assign, unassign', () => {
 
 describe('only whoever may write the crawler assigns its crew (D7)', () => {
   test('a player sees a Game crawler read-only, and is told why', async () => {
-    useEntityStore.setState({ crawlers: [{ ...SHELF_CRAWLER, gameId: 'g1' }] })
+    useUnits.setState({ crawlers: [{ ...SHELF_CRAWLER, gameId: 'g1' }] })
     setQueryAnswers({
-      'games:listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities:listForGame': {
+      'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
+      'entities.listForGame': {
         pilots: [],
         mechs: [],
         crawlers: [],
@@ -178,7 +167,7 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
         softLinks: [],
         primaryCrawlerId: null,
       },
-      'games:members': [],
+      'games.members': [],
     })
     await renderBoard('c1')
     expect(screen.queryByRole('button', { name: 'Design Med Bay crew' })).toBeNull()

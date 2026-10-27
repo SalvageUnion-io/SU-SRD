@@ -1,6 +1,7 @@
 import { Suspense, useLayoutEffect } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { SchemaList } from '../../lib/useGameData'
+import { clientSwap } from '../../runtime/clientSwap'
 import { EntityCardStatic } from '../EntityCardStatic'
 import { GameDataGate } from '../GameDataGate'
 import type { NameRefIndex, PageRefIndex } from '../index'
@@ -62,3 +63,9 @@ export function ReferenceEntityIsland({
     </IslandErrorBoundary>
   )
 }
+
+/** The island as Astro hydrates it: `ReferenceEntityIsland` swapped in over its stand-in (`clientSwap`). */
+export const ReferenceEntityIslandClient = clientSwap(
+  'ReferenceEntityIsland',
+  ReferenceEntityIsland
+)

@@ -20,7 +20,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useSoftLinkList } from '../../lib/entities'
 import { softLinkFromServer } from '../../lib/links/linkSync'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
-import { useEntityStore } from '../../stores/entityStore'
+import { useUnits } from '../../replica/units'
 import { CrewSheetBanner } from '../sheet/CrewSheetBanner'
 import { rowAppId } from '../sheet/readOnlySheetStore.model'
 import { SheetFallback } from '../sheet/SheetFallback'
@@ -48,7 +48,7 @@ export function NpcSheetView({ id }: { id: string }) {
   const navigate = useNavigate()
   const { confirm, dialog } = useConfirm()
   const links = useSoftLinkList()
-  const crawlers = useEntityStore((s) => s.crawlers)
+  const crawlers = useUnits((s) => s.crawlers)
   const { status, held, listing, listedRow, members, me, sheetMode, crew } = useLocatedSheet(
     'npc',
     id

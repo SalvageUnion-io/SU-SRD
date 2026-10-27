@@ -3,8 +3,10 @@ import {
   ACCOUNT_HINT_KEY,
   clearAccountHint,
   readAccountHint,
+  STORED_SESSION_KEY,
   writeAccountHint,
 } from '../../lib/accountHint'
+import { SESSION_KEY } from '../../lib/auth/storedSession'
 
 /** A `Storage` over a Map, so each test starts from nothing. */
 function memoryStorage(entries: Record<string, string> = {}): Storage {
@@ -25,10 +27,14 @@ function memoryStorage(entries: Record<string, string> = {}): Storage {
   }
 }
 
-const SESSION = { __convexAuthRefreshToken_happyconvexcloud: 'refresh' }
+const SESSION = { [SESSION_KEY]: 'user123' }
 
 describe('account hint', () => {
-  test('reads back what was written while a Convex Auth session is stored', () => {
+  test("reads the stored session under the app's own key", () => {
+    expect(STORED_SESSION_KEY).toBe(SESSION_KEY)
+  })
+
+  test('reads back what was written while a session is stored', () => {
     const storage = memoryStorage(SESSION)
     writeAccountHint({ name: 'Rae Voss', avatarUrl: 'https://cdn.example/a.png' }, storage)
     expect(readAccountHint(storage)).toEqual({
@@ -43,8 +49,8 @@ describe('account hint', () => {
     expect(readAccountHint(storage)).toBeNull()
   })
 
-  test('an emptied refresh token is no session', () => {
-    const storage = memoryStorage({ __convexAuthRefreshToken_x: '' })
+  test('an emptied stored session is no session', () => {
+    const storage = memoryStorage({ [SESSION_KEY]: '' })
     writeAccountHint({ name: 'Rae Voss', avatarUrl: null }, storage)
     expect(readAccountHint(storage)).toBeNull()
   })

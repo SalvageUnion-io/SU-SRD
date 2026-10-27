@@ -96,12 +96,18 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // entry, the chip lanes, the overflow, the bottom-right fill's runtime
     // and its watch, which fits off-screen heads in later turns). Something
     // loading React or game data at page load again lands far above it.
-    // Measured 27,098 with the Homebrew island registered (ADR-061): one hop
-    // away (`runtime/homebrewLoad.ts`), it costs the island entry 161 bytes.
+    // Measured 27,098 with the Homebrew island registered (ADR-061), 161
+    // bytes in the island entry.
     // Measured 27,212 once the island lists patterns as the book does
     // (`PatternListing` on the game-data surface): its lazy chunk's preload
     // list names more chunks, 42 bytes more in the island entry.
-    expect(totals.bytes).toBeLessThan(27_300)
+    // Measured 27,517 on Vite 8.3.5, which Astro 7 needs (ADR-065): its
+    // preload helper dedupes in-flight preloads, 323 bytes more. Measured
+    // 27,697 built by Astro: its client build keeps the helper's `relList`
+    // check, 146 bytes more. Measured 27,570 once sign-in moved to the
+    // Worker: the bar's hint reads one key instead of scanning for Convex
+    // Auth's.
+    expect(totals.bytes).toBeLessThan(27_800)
   })
 
   test('a chassis item page loads chassis-bundle data but not unrelated content schemas', async ({
@@ -118,7 +124,7 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
 
     // The same ratchet as the leaf page: a chassis page's card is static HTML,
     // and nothing on it loads React or data until a reader reaches for it.
-    expect(totals.bytes).toBeLessThan(27_300)
+    expect(totals.bytes).toBeLessThan(27_800)
   })
 
   test('search never loads the salvageunion-reference data chunks — only the compact index', async ({

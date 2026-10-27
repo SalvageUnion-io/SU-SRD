@@ -1,8 +1,7 @@
 /**
  * Area Salvage rule tests.
  *
- * Core Book pp. 244–248. The d20 is INJECTABLE via the shared `Roll` seam, so
- * every test is deterministic — no real randomness.
+ * Core Book pp. 244–248. Each test passes its d20, so none is random.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -15,14 +14,7 @@ import {
   mechSalvageBand,
   mechSalvageResult,
   mechSalvageScrap,
-  performAreaSalvage,
 } from '../salvage'
-import type { Roll } from '../types'
-
-/** Returns a Roll that always yields `value`, ignoring `sides`. */
-function fixedRoll(value: number): Roll {
-  return () => value
-}
 
 // ---------------------------------------------------------------------------
 // areaSalvageBand — band boundaries (Area Salvage table, p.248)
@@ -54,25 +46,25 @@ describe('areaSalvageBand', () => {
 })
 
 // ---------------------------------------------------------------------------
-// performAreaSalvage — scrap quantities + jackpot choice
+// areaSalvageResult — scrap quantities + jackpot choice
 // ---------------------------------------------------------------------------
 
-describe('performAreaSalvage', () => {
+describe('areaSalvageResult', () => {
   test('scrap bands deposit 1/2/3 scrap at the area TL', () => {
-    const one = performAreaSalvage({ areaTl: 3, roll: fixedRoll(4) })
+    const one = areaSalvageResult({ areaTl: 3, d20: 4 })
     expect(one.scrapQty).toBe(1)
     expect(one.areaTl).toBe(3)
     expect(one.requiresPlayerChoice).toBe(false)
 
-    const two = performAreaSalvage({ areaTl: 3, roll: fixedRoll(8) })
+    const two = areaSalvageResult({ areaTl: 3, d20: 8 })
     expect(two.scrapQty).toBe(2)
 
-    const three = performAreaSalvage({ areaTl: 3, roll: fixedRoll(15) })
+    const three = areaSalvageResult({ areaTl: 3, d20: 15 })
     expect(three.scrapQty).toBe(3)
   })
 
   test('a 1 finds nothing', () => {
-    const result = performAreaSalvage({ areaTl: 2, roll: fixedRoll(1) })
+    const result = areaSalvageResult({ areaTl: 2, d20: 1 })
     expect(result.band).toBe('nothing')
     expect(result.scrapQty).toBe(0)
     expect(result.requiresPlayerChoice).toBe(false)
@@ -80,7 +72,7 @@ describe('performAreaSalvage', () => {
   })
 
   test('a 20 grants no scrap and requires a player choice', () => {
-    const result = performAreaSalvage({ areaTl: 4, roll: fixedRoll(20) })
+    const result = areaSalvageResult({ areaTl: 4, d20: 20 })
     expect(result.band).toBe('jackpot')
     expect(result.scrapQty).toBe(0)
     expect(result.requiresPlayerChoice).toBe(true)

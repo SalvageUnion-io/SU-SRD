@@ -1,7 +1,7 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { space } from '../design/tokens'
 import { componentsCopy } from '../messages/components'
-import { KofiButton, MarkdownSection, SlabSection, Stack } from './index'
+import { MarkdownSection, SlabSection, Stack } from './index'
 
 type ColophonProps = {
   /** Raw contents of the repo-root `ABOUT_JRVS.md` (left column, top). */
@@ -11,8 +11,8 @@ type ColophonProps = {
   /** Raw contents of the repo-root `SPECIAL_THANKS.md` (left column, below the
    * support block). Same contract as `aboutMarkdown`. */
   specialThanksMarkdown: string
-  /** Ko-fi page code — the `<code>` in `ko-fi.com/<code>`. */
-  kofiCode: string
+  /** The Ko-fi button, in the support slab's `actions` slot: an island on the page. */
+  support: ReactNode
 }
 
 // Two columns from `md` up: the column template is `.su-colophon`, the rest is
@@ -30,26 +30,21 @@ const ROOT = { display: 'grid', gap: space[32] } satisfies CSSProperties
  * here — all three are repo-root markdown documents passed in raw (see
  * `MarkdownSection`).
  *
- * The Ko-fi button needs client JS to swap in the widget, so the page hydrates
- * this block rather than render it statically, via `ColophonIsland`.
+ * It renders statically; only the Ko-fi button (`support`, the page's
+ * `KofiIsland`) needs client JS.
  */
 export function Colophon({
   aboutMarkdown,
   llmMarkdown,
   specialThanksMarkdown,
-  kofiCode,
+  support,
 }: ColophonProps) {
   return (
     <div className="su-colophon" style={ROOT}>
       <Stack gap={32}>
         <MarkdownSection markdown={aboutMarkdown} />
 
-        <SlabSection
-          as="h2"
-          title={componentsCopy('supportTheProject')}
-          actions={<KofiButton code={kofiCode} />}
-          page
-        />
+        <SlabSection as="h2" title={componentsCopy('supportTheProject')} actions={support} page />
 
         <MarkdownSection markdown={specialThanksMarkdown} />
       </Stack>

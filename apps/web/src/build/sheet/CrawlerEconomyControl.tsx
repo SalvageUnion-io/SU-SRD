@@ -1,3 +1,5 @@
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
+import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
  * / UPGRADE / TRADE spec lozenges (Core Book p.218-223): Pay Upkeep (with the
@@ -72,8 +74,7 @@ import {
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { useEntityStore } from '../../stores/entityStore'
-import { LIVE_SHEET_TXN } from '../../stores/surfaceProvenance'
+import { LIVE_SHEET_TXN } from '../../replica/provenance'
 import {
   describeDeterioration,
   INITIAL_UPKEEP_STATE,
@@ -83,6 +84,16 @@ import {
   upkeepReducer,
 } from './crawlerEconomyDialogState.model'
 import { ExoticTrade } from './ExoticTrade'
+import {
+  ACTION_ROW,
+  PICKER,
+  PICKER_LABEL,
+  PICKERS,
+  QTY,
+  TEXT,
+  TEXT_AFTER,
+  TEXT_TIGHT,
+} from './economyStyles.model'
 import { freshEntity } from './freshEntity.model'
 
 const BODY = {
@@ -93,19 +104,7 @@ const BODY = {
   padding: tokens.space[20],
 } satisfies CSSProperties
 
-/** Body copy: the `sm` size rung, with its line height. */
-const TEXT = {
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
-  lineHeight: 1.25 / 0.875,
-  color: tokens.color.ink,
-} satisfies CSSProperties
-
 const MUTED = { ...TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
-
-const TEXT_TIGHT = { ...TEXT, margin: 0 } satisfies CSSProperties
-
-const TEXT_AFTER = { ...TEXT, marginTop: tokens.space[8] } satisfies CSSProperties
 
 const CONTRIBUTE_LABEL = {
   fontSize: tokens.fontSize.xs,
@@ -116,32 +115,6 @@ const CONTRIBUTE_LABEL_CAPS = capsLabel({ tracking: 'snug' })
 
 const SMALL = { fontSize: tokens.fontSize.xs, lineHeight: 1 / 0.75 } satisfies CSSProperties
 
-const PICKERS = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'flex-end',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-const PICKER_LABEL = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-} satisfies CSSProperties
-
-/** A compact select: tighter than the `Select` skin's own padding. */
-const PICKER = { padding: `${tokens.space[6]} ${tokens.space[8]}` } satisfies CSSProperties
-
-const QTY = { display: 'inline-flex', paddingBottom: tokens.space[4] } satisfies CSSProperties
-
-const ACTION_ROW = {
-  marginTop: tokens.space[8],
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'
 
@@ -149,8 +122,8 @@ const TRADING_BAY = 'trading-bay'
 
 type CrawlerEconomyControlProps = {
   crawler: Crawler
-  /** Injectable store — defaults to useEntityStore. */
-  store: typeof useEntityStore
+  /** Injectable store — defaults to useUnits. */
+  store: UnitsStore
   /** The open dialog; null renders nothing. */
   open: CrawlerEconomyDialog | null
   onClose: () => void
@@ -185,7 +158,7 @@ export function CrawlerEconomyControl({
 
 type DialogProps = {
   crawler: Crawler
-  store: typeof useEntityStore
+  store: UnitsStore
   onClose: () => void
 }
 
@@ -374,7 +347,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
     if (!freshQuote?.affordable) return
     const patch: Partial<Crawler> = {
-      techLevel: `tech-${freshQuote.toTl}`,
+      techLevel: crawlerTechLevelSlug(freshQuote.toTl),
       upgradePool: freshQuote.remainingPool,
     }
     const bays = fresh.crawlerBays ?? []

@@ -1,25 +1,24 @@
-import { useQueries } from 'convex/react'
-import { useEffect } from 'react'
-import { api } from '../../../convex/_generated/api'
-import { BUILD_FLOOR } from '../../../convex/buildFloor'
+import { useEffect, useState } from 'react'
+import { askFloor } from '../account/accountApi'
 import { reloadOntoNewBuild, serverBootsAnotherBuild } from '../sw/register'
+import { BUILD_FLOOR } from './buildFloorStamp'
 
 /**
- * The build floor: one Convex subscription that retires stale tabs.
+ * The build floor: the one ask that retires stale tabs.
  *
- * The floor is a number in `convex/buildFloor.ts`. It is compiled into both
- * the backend (`build.floor`) and this bundle, and it is raised by hand, only
+ * The floor is a number in `buildFloorStamp.ts`. It is compiled into both
+ * the Worker (`ACCOUNT_PATHS.floor`) and this bundle, and it is raised by hand, only
  * when a change breaks a tab that is already open. A tab whose bundle carries a
  * lower floor than the backend's was built before a change it cannot survive:
  * it may call a function that no longer exists, or send a shape that is now
  * refused. So:
  *
- * 1. **Writes stop at once.** `ConnectionProvider` reports `outdated`, so
+ * 1. **Writes stop at once.** `SyncProvider` reports `outdated`, so
  *    `canWrite` is false and the store refuses with the `outdated` reason.
- * 2. **The tab reloads once the Worker serves another build.** The Convex push
- *    lands a minute or two before the Worker deploy, so reloading the moment
- *    the floor moves would boot the same old shell — and, being outdated
- *    again, reload again. Instead it asks the Worker which shell it serves
+ * 2. **The tab reloads once the Worker serves another build.** A floor read
+ *    mid-deploy can come from a Worker version beside an older shell, so
+ *    reloading the moment the floor moves could boot the same old shell — and,
+ *    being outdated again, reload again. Instead it asks the Worker which shell it serves
  *    (`serverBootsAnotherBuild`), with backoff, and reloads only when that
  *    shell is not this page's. An unreachable server answers "same", so an
  *    offline tab waits rather than loops.
@@ -78,21 +77,43 @@ export function reloadOnceServed(
   }
 }
 
-/** Module-level, so the subscription's request is the same object every render. */
-const FLOOR_REQUEST = { floor: { query: api.build.floor, args: {} } }
+/** How often a tab asks the Worker for the floor, besides whenever it is focused. */
+const FLOOR_POLL_MS = 5 * 60_000
+
+/**
+ * The backend's floor: the Worker serves it and ships with
+ * it, so a floor that rose is already the new build's, asked on focus and
+ * every `FLOOR_POLL_MS`. One it cannot reach answers nothing.
+ */
+function useFloor(): number | undefined {
+  const [floor, setFloor] = useState<number | undefined>(undefined)
+  useEffect(() => {
+    let live = true
+    const check = () =>
+      void askFloor().then((answer) => {
+        if (live && answer !== undefined) setFloor(answer)
+      })
+    check()
+    const timer = setInterval(check, FLOOR_POLL_MS)
+    window.addEventListener('focus', check)
+    return () => {
+      live = false
+      clearInterval(timer)
+      window.removeEventListener('focus', check)
+    }
+  }, [])
+  return floor
+}
 
 /**
  * Whether this tab is below the backend's build floor, and, while it is, works
- * toward a reload. `ConnectionProvider` is the one caller.
+ * toward a reload. `SyncProvider` is the one caller.
  *
- * `useQueries` rather than `useQuery` because it hands back a failed query as
- * an `Error` instead of throwing it: this runs in `ConnectionProvider`, at the
- * root, where a throw would blank the whole app. A floor it cannot read
- * refuses nothing.
+ * It runs in `SyncProvider`, at the root, where a throw would blank the whole
+ * app, so a floor it cannot read refuses nothing.
  */
 export function useBuildFloor(): boolean {
-  const result: unknown = useQueries(FLOOR_REQUEST).floor
-  const outdated = isOutdated(typeof result === 'number' ? result : undefined, BUILD_FLOOR)
+  const outdated = isOutdated(useFloor(), BUILD_FLOOR)
 
   useEffect(() => {
     if (!outdated) return

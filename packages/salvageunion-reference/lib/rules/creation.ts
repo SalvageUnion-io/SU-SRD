@@ -160,7 +160,7 @@ export function legalStartingPatterns<T extends CreationPatternInput>(patterns: 
 export const MECH_CREATION_SCRAP_CAP = 20
 
 /** One loadout line: an item's Salvage Value + how many copies are crafted. */
-export type MechCreationLoadoutEntry = { sv: number; count: number }
+type MechCreationLoadoutEntry = { sv: number; count: number }
 
 export type MechCreationBudgetInput = {
   /** The chosen chassis's Salvage Value; 0 while no chassis is chosen. */

@@ -1,22 +1,22 @@
 /**
- * The relay: Convex asking the bot to post a Play roll into a bound channel
- * (`convex/channelBindings.ts#postRoll`, wire shapes in `game-domain/botWire`),
- * or a Stop Sign (`convex/safety.ts#postStop`, `handlePostStop`).
+ * The relay: the site Worker asking the bot to post a Play roll into a bound
+ * channel (`channelBindings.postRoll`, wire shapes in `game-domain/botWire`),
+ * or a Stop Sign (`handlePostStop`).
  *
- * The Worker is the one place holding both the bot token and the roll card, so
- * Convex sends the roll and the bot renders it with `buildPostedRollMessage`:
+ * The bot is the one place holding both the bot token and the roll card, so
+ * the site sends the roll and the bot renders it with `buildPostedRollMessage`:
  * the message in the channel is exactly the card `/su roll` posts, with its
  * `↻ Roll again` (only the roller's) and `See table` buttons. It is posted as
  * a NEW message with the bot token, since there is no interaction to answer.
  *
- * Authenticated with the bearer `BOT_SECRET`, the same value the bot
- * presents to Convex's `/bot/*`, in the other direction. Unset, the relay is
- * a 404, as `/bot/*` is on a deployment that has not opted in.
+ * Reached only over the site's service binding (`Relay`, its `BOT`), never
+ * from the internet, so it presents no secret.
  *
  * Every failure answers with a sentence fit for the roller, because Play shows
  * it in the Feed: posting is never allowed to fail silently.
  */
 
+import { WorkerEntrypoint } from 'cloudflare:workers'
 import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import type {
@@ -24,7 +24,11 @@ import type {
   PostRollRelayResponse,
   PostStopRelayRequest,
 } from 'game-domain/botWire'
-import { bearerToken, isPostableRoll, secretsMatch } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ROLL_PATH,
+  BOT_RELAY_POST_STOP_PATH,
+  isPostableRoll,
+} from 'game-domain/botWire'
 import { buildPostedRollMessage } from '../commands/roll'
 import { v2Reply } from '../container'
 import { encodeRollResult } from '../customId'
@@ -69,17 +73,6 @@ function discordFailure(status: number, code: number | string | null): string {
   return `Discord refused the post (${status}).`
 }
 
-/** The relay's 404 or 401 when the request may not post, else null. */
-function refusal(request: Request, env: Env): Response | null {
-  const expected = env.BOT_SECRET
-  if (!expected) return answer({ error: 'not found' }, 404)
-  const presented = bearerToken(request.headers.get('Authorization'))
-  if (presented === null || !secretsMatch(presented, expected)) {
-    return answer({ error: 'unauthorized' }, 401)
-  }
-  return null
-}
-
 /**
  * Post one message to a channel with the bot token, answering with its id or
  * Discord's refusal in words. One attempt: whoever asked is waiting on Play,
@@ -119,10 +112,7 @@ async function postToChannel(
 }
 
 /** Handle `POST BOT_RELAY_POST_ROLL_PATH`. */
-export async function handlePostRoll(request: Request, env: Env): Promise<Response> {
-  const refused = refusal(request, env)
-  if (refused !== null) return refused
-
+async function handlePostRoll(request: Request, env: Env): Promise<Response> {
   const parsed = parseRequest(await request.json().catch(() => null))
   if (parsed === null) {
     return answer({ ok: false, status: null, message: 'That roll cannot be posted.' }, 400)
@@ -141,14 +131,23 @@ export async function handlePostRoll(request: Request, env: Env): Promise<Respon
 }
 
 /** Handle `POST BOT_RELAY_POST_STOP_PATH`: the Stop Sign's fixed post (`stopSignContainer`). */
-export async function handlePostStop(request: Request, env: Env): Promise<Response> {
-  const refused = refusal(request, env)
-  if (refused !== null) return refused
-
+async function handlePostStop(request: Request, env: Env): Promise<Response> {
   const body = (await request.json().catch(() => null)) as Partial<PostStopRelayRequest> | null
   const channelId = body !== null && typeof body === 'object' ? body.channelId : undefined
   if (!isChannelId(channelId)) {
     return answer({ ok: false, status: null, message: 'That channel cannot be posted to.' }, 400)
   }
   return postToChannel(env, channelId, v2Reply(stopSignContainer()), 'handlePostStop')
+}
+
+/** @public The site's way to post (its `BOT` service binding names it as its `entrypoint`). */
+export class Relay extends WorkerEntrypoint<Env> {
+  override fetch(request: Request): Promise<Response> {
+    const { pathname } = new URL(request.url)
+    if (request.method === 'POST' && pathname === BOT_RELAY_POST_ROLL_PATH)
+      return handlePostRoll(request, this.env)
+    if (request.method === 'POST' && pathname === BOT_RELAY_POST_STOP_PATH)
+      return handlePostStop(request, this.env)
+    return Promise.resolve(answer({ error: 'not found' }, 404))
+  }
 }

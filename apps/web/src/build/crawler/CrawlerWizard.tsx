@@ -1,3 +1,4 @@
+import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
@@ -42,7 +43,6 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { CrawlerCrewStep } from './CrawlerCrewStep'
 import { CrawlerIdentityStep } from './CrawlerIdentityStep'
 import { CrawlerReviewStep } from './CrawlerReviewStep'
-import '../../styles/build/wizard.css'
 
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
@@ -174,7 +174,7 @@ export function CrawlerWizard({
       const maxSP =
         f.techLevel !== null
           ? crawlerMaxSP({
-              techLevel: `tech-${f.techLevel}`,
+              techLevel: crawlerTechLevelSlug(f.techLevel),
               ...(f.type !== null ? { type: f.type } : {}),
             })
           : undefined

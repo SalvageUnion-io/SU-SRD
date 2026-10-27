@@ -19,7 +19,7 @@ import { AppBar } from '../index'
  * hands in only what it makes live: the search, the account controls and the
  * phone cluster (`UnionDrawer` with its triggers).
  *
- * No router, store or Convex import: the reference pages render it.
+ * No router, store or Worker-call import: the reference pages render it.
  */
 
 type UnionBarProps = {

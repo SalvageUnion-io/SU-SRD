@@ -8,7 +8,7 @@ import { fakeExecute } from './fakeInteraction'
 
 /**
  * `/su feedback`. Whether a note is taken is the app's call
- * (`convex/feedback.ts`, proven in `feedback.test.ts` there); these pin what
+ * (`apps/web/src/worker/shared/feedback.ts`, proven in its tests); these pin what
  * the bot sends and that every answer is private.
  */
 
@@ -22,7 +22,7 @@ const unexpected = () => Promise.reject(new Error('not called in this test')) as
 
 function client(overrides: Partial<SiteClient>): SiteClient {
   return {
-    ...createSiteClient({}),
+    ...createSiteClient(undefined),
     me: unexpected,
     games: unexpected,
     sheet: unexpected,
@@ -82,7 +82,7 @@ describe('/su feedback', () => {
     expect(refused.edits[0]?.content).toBe('That is 5 notes today.')
 
     restore()
-    restore = setSiteClient(createSiteClient({}))
+    restore = setSiteClient(createSiteClient(undefined))
     const down = fakeExecute({
       subcommand: 'feedback',
       strings: { kind: 'suggestion', text: 'More tables please' },

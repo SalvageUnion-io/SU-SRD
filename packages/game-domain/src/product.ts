@@ -25,7 +25,7 @@
  *   `taglineBy`, who it is quoted from.
  * - `wordmark` — the site's own name, as the reference OG card draws it.
  *
- * Dependency-free on purpose: the Discord bot Worker and Convex import it as
+ * Dependency-free on purpose: the Discord bot Worker and the site Worker import it as
  * `game-domain/product` without pulling in React, and the UI library's OG
  * card draws it too.
  */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { bearerToken, isPostableRoll, secretsMatch } from '../botWire'
+import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from '../botWire'
 
 describe('isPostableRoll', () => {
   it('takes a named table and one or two whole d20s', () => {
@@ -24,26 +24,8 @@ describe('isPostableRoll', () => {
   })
 })
 
-describe('secretsMatch', () => {
-  it('matches only the same secret', () => {
-    expect(secretsMatch('s3cret', 's3cret')).toBe(true)
-    expect(secretsMatch('s3cret', 's3creT')).toBe(false)
-  })
-
-  it('refuses a secret of another length', () => {
-    expect(secretsMatch('s3cret', 's3cret!')).toBe(false)
-  })
-})
-
-describe('bearerToken', () => {
-  it('reads the token from a bearer header', () => {
-    expect(bearerToken('Bearer abc.def')).toBe('abc.def')
-    expect(bearerToken('  Bearer abc  ')).toBe('abc')
-  })
-
-  it('is null for a missing, empty or non-bearer header', () => {
-    expect(bearerToken(null)).toBeNull()
-    expect(bearerToken('Bearer ')).toBeNull()
-    expect(bearerToken('Basic abc')).toBeNull()
+describe('relayUrl', () => {
+  it('names a relay path as a binding fetch takes it', () => {
+    expect(new URL(relayUrl(BOT_RELAY_POST_ROLL_PATH)).pathname).toBe('/relay/post-roll')
   })
 })

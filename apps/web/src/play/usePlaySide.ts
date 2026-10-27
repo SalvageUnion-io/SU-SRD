@@ -3,18 +3,16 @@
  * Game's feed and seats, the bound channel, the screen's one Post toggle, the
  * roll dispatch and the Feed's lines.
  *
- * Called once per screen: by `PlaySideColumn` on the canvas, by
- * `PlayCockpitPhone` on a phone, which puts the sections on its own tabs.
- * Only one form is ever mounted, so the dispatch (`usePlayRollDispatch`),
- * which writes every roll recorded in Play to the Game's log and, per the
- * toggle, to Discord, runs exactly once whichever tab is open.
+ * Called once per screen, by `PlayCockpit`, which hands it to the Crew and
+ * Tables panes, so the dispatch (`usePlayRollDispatch`), which writes every
+ * roll recorded in Play to the Game's log and, per the toggle, to Discord,
+ * runs exactly once whichever pane is open.
  *
  * The Tables and Feed half is `useSideFeed`, which the Mediator's side
  * (`usePlayMediatorSide`) calls too.
  */
 
 import { useState } from 'react'
-import type { Id } from '../../convex/_generated/dataModel'
 import type { PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
 import { playFeedEntries } from './feed.model'
@@ -29,6 +27,8 @@ import { postDefault, usePlayChannelBinding, usePlayRollDispatch } from './usePl
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
+  /** The Game the Feed is of; null at the solo table. */
+  gameId: string | null
   binding: PlayBinding | null | undefined
   /** The screen's one Post toggle. */
   post: boolean
@@ -64,7 +64,7 @@ export function useSideFeed({
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
   const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })
-  return { binding, post, setPost, dispatch, entries }
+  return { gameId: target.gameId, binding, post, setPost, dispatch, entries }
 }
 
 export type PlaySide = SideFeed & {
@@ -75,7 +75,7 @@ export type PlaySide = SideFeed & {
 export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
   const inGame = target.gameId !== null
   const feed = useGameFeed(play.pilot)
-  const sources = useGameBoardSources(target.gameId as Id<'games'> | null)
+  const sources = useGameBoardSources(target.gameId)
   const binding = usePlayChannelBinding(target)
   const side = useSideFeed({
     target,

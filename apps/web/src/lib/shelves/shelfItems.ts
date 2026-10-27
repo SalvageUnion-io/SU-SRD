@@ -23,7 +23,7 @@ import type { Npc } from 'game-domain/schemas/npc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
+import { parseCrawlerTechLevel, resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import type { LinkedUnit } from '../../components/index'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
@@ -90,7 +90,7 @@ export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolea
 /**
  * Whether a cached crawler is one you keep. A crawler in your Training Bay is; one in
  * a Game is the crew's, and this browser caches the crawler of every Game you
- * are in (`WiringSync`), so it is yours to keep only where you run the table.
+ * are in (`RoomFeed`), so it is yours to keep only where you run the table.
  * With no Game list to ask (offline, or still loading), it is shown rather
  * than hidden: hiding a build is the one mistake a Training Bay must not make.
  */
@@ -126,8 +126,8 @@ export function crawlerFact(crawler: Pick<Crawler, 'type'>): string | undefined 
 
 /** A crawler's reading is its tech level: `TL 1`. */
 export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): UnitReading | undefined {
-  const tl = crawler.techLevel.replace(/[^0-9]/g, '')
-  return tl ? { label: 'TL', value: tl } : undefined
+  const tl = parseCrawlerTechLevel(crawler.techLevel)
+  return tl === undefined ? undefined : { label: 'TL', value: String(tl) }
 }
 
 /** A pattern's reading is how full its system slots are: `SYS 12/12`. */

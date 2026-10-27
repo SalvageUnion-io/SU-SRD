@@ -4,7 +4,7 @@
  * player for the Feed, and the crew's vitals, maxima and status
  * (`crew.vitals`, derived on the server, ADR-038 §4) for Crew.
  *
- * Every read is a Convex subscription, so a crewmate's roll, or the resolve
+ * Every read is a live room read, so a crewmate's roll, or the resolve
  * they are part-way through ("Rook is resolving Crush", ADR-038 §2), arrives
  * here as it happens.
  *
@@ -13,17 +13,16 @@
  * holds the Crew column's seat lines.
  */
 
-import { useQuery } from 'convex/react'
-import type { FunctionReturnType } from 'convex/server'
 import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel } from 'salvageunion-reference/rules'
-import { api } from '../../convex/_generated/api'
-import type { Id } from '../../convex/_generated/dataModel'
-import { useConnection } from '../lib/connection/connectionContext'
-import { isSignedIn } from '../lib/connection/connectionMode'
 import { gauge, pool } from '../lib/units/crewPair'
+import { isSignedIn } from '../replica/sync'
+import { useSync } from '../replica/syncContext'
+import { useTableRead } from '../replica/useTable'
+import type { ProposalRead } from '../rooms/game/proposals'
+import type { CrewVitals } from '../rooms/vitals'
 import type { BoardSources } from './boardMenu.model'
 
 /** One roll on the Game's log (`changeLog.rolls`). */
@@ -37,14 +36,14 @@ export type RollLine = {
   source: string
 }
 
-/** One Mediator alert (`proposals.alerts`). */
+/** One Mediator alert (`changeLog.alerts`). */
 export type AlertLine = { _id: string; message: string; ts: number }
 
-/** A proposal awaiting this player's answer (`proposals.pending`). */
-export type PendingProposal = FunctionReturnType<typeof api.proposals.pending>[number]
+/** A proposal awaiting this player's answer (`ops.pending`). */
+export type PendingProposal = ProposalRead
 
 /** The crew as the server derives it (`crew.vitals`). */
-export type CrewVitals = FunctionReturnType<typeof api.crew.vitals>
+export type { CrewVitals }
 
 /** One crewmate, as Play's Crew reads it. */
 export type CrewLine = {
@@ -100,16 +99,16 @@ const LOG_ROLLS = 30
 const LOG_ALERTS = 10
 
 export function useGameFeed(pilot: Pilot | null): GameFeed {
-  const { mode } = useConnection()
+  const { status } = useSync()
   const container = pilot === null ? null : containerOf(pilot)
-  const gameId = container?.kind === 'game' ? (container.gameId as Id<'games'>) : null
-  const signedIn = isSignedIn(mode)
+  const gameId = container?.kind === 'game' ? container.gameId : null
+  const signedIn = isSignedIn(status)
   const inGame = signedIn && gameId !== null
 
-  const rolls = useQuery(api.changeLog.rolls, inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
-  const alerts = useQuery(api.proposals.alerts, inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
-  const pending = useQuery(api.proposals.pending, inGame ? { gameId } : 'skip')
-  const crew = useQuery(api.crew.vitals, inGame ? { gameId } : 'skip')
+  const rolls = useTableRead('changeLog.rolls', inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
+  const alerts = useTableRead('changeLog.alerts', inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
+  const pending = useTableRead('ops.pending', inGame ? { gameId } : 'skip')
+  const crew = useTableRead('crew.vitals', inGame ? { gameId } : 'skip')
 
   return {
     rolls: rolls ?? null,

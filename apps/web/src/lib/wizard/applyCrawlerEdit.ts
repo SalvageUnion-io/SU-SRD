@@ -20,15 +20,15 @@
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { EntityState } from '../../stores/entityStore'
-import { WIZARD_TXN } from '../../stores/surfaceProvenance'
+import { WIZARD_TXN } from '../../replica/provenance'
+import type { UnitsState } from '../../replica/units'
 import type { CrawlerWizardFormState } from './crawlerFormState'
 import { crawlerFormCrewToPatches, defaultTypeNpcState } from './crawlerFormState'
 
 /**
  * Apply the crew/type portion of a crawler edit save.
  *
- * @param storeState  The live EntityState (write surface).
+ * @param storeState  The live UnitsState (write surface).
  * @param crawlerId   The crawler being edited.
  * @param form        The edited form. Only `type` and `crew` are read here.
  * @param oldType     The crawler's type BEFORE this save, or null.
@@ -37,7 +37,7 @@ import { crawlerFormCrewToPatches, defaultTypeNpcState } from './crawlerFormStat
  *                    Omit when the caller has already written `type` itself.
  */
 export async function applyCrawlerCrewAndTypeEdit(
-  storeState: EntityState,
+  storeState: UnitsState,
   crawlerId: string,
   form: CrawlerWizardFormState,
   oldType: string | null,

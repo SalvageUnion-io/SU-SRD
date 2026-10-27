@@ -125,16 +125,9 @@ check_header https://salvageunion.io/ content-security-policy "srd CSP reaches t
 check_header https://salvageunion.io/ strict-transport-security "srd HSTS reaches the browser"
 check_header https://salvageunion.io/build/ content-security-policy "app CSP reaches the browser and admits error reports" "connect-src 'self'"
 check_header https://salvageunion.io/build/ strict-transport-security "app HSTS reaches the browser"
-# One CSP for the whole app (apps/web/public/_headers): without Convex in it,
-# sign-in would never complete.
-check_header https://salvageunion.io/build/ content-security-policy "app CSP admits Convex" "wss://*.convex.cloud"
-# The endpoints that bring the browser's and Convex's errors into Workers Issues
-# are routed (apps/web/src/worker/errorReports.ts): they take POST only.
+# The endpoint that brings the browser's errors into Workers Issues is routed
+# (apps/web/src/worker/errorReports.ts): it takes POST only.
 check https://salvageunion.io/__errors 405 "error report endpoint is routed"
-check https://salvageunion.io/__convex-logs 405 "Convex log stream endpoint is routed"
-# Where the Convex dashboard's webhook posted before the app was one, kept
-# until it is pointed at /__convex-logs.
-check https://salvageunion.io/build/__convex-logs 405 "retired Convex log stream endpoint is routed"
 # The app is a single-page app, so only su-srd's Worker keeps a missing
 # chunk under /build from #759, where a missing hashed chunk answered `200 text/html` and the
 # `immutable` header pinned that HTML into the HTTP cache for a year. curl sends
@@ -149,10 +142,11 @@ check https://salvageunion.io/build/p/pilot/smoke 200 "app client route without 
 # (apps/web/src/worker/index.ts).
 check_header_lacks https://salvageunion.io/assets/index-DEADBEEF.js cache-control "srd rotated chunk 404 is not immutable" immutable
 check_header_lacks https://salvageunion.io/build/assets/index-DEADBEEF.js cache-control "app rotated chunk 404 is not immutable" immutable
-# A derivative, not the master: entity cards ask for `-440`/`-880` first. It
-# reaches Cloudflare Images only once the baked `-440`/`-880` objects are gone
-# from su-lp-assets; while one is stored, the Worker serves that copy.
-check https://assets.salvageunion.io/chassis/mule-440.webp 200 "artwork derivative"
+# A derivative, not the master: entity cards ask for `-440q80`/`-880q80` first,
+# and a zone rewrite renders it (ADR-033). A direct /cdn-cgi/ request is the
+# WAF's to refuse, or any width would bill.
+check https://assets.salvageunion.io/chassis/mule-440q80.webp 200 "artwork derivative"
+check https://assets.salvageunion.io/cdn-cgi/image/width=100/chassis/mule.webp 403 "artwork transforms only the allowed widths"
 
 # BODY, not status: Cloudflare's zone-level managed robots.txt also answers 200
 # and carries no `Disallow`, so a status check would pass on exactly the

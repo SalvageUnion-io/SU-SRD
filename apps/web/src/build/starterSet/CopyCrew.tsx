@@ -16,16 +16,15 @@
  * signing in. Offline it is absent, as every write is.
  */
 
-import { useQuery } from 'convex/react'
 import { SHELF } from 'game-domain/container'
-import { api } from '../../../convex/_generated/api'
 import { HeaderMenu } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import { starterRoster } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 import { serializeContainer } from '../entityContainer/containerKey.model'
 import { confirmCopyCrew, copyCrewSearch } from './useCopyCrewOnArrival'
@@ -36,7 +35,7 @@ const copyCrewReturn = (roster: StarterRosterId) => `/starter?copy=${copyCrewSea
 type CopyCrewProps = { confirm: Confirm; roster?: StarterRosterId }
 
 function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
-  const games = useQuery(api.games.listMine)
+  const games = useGamesQuery('games.listMine', {})
   const kind = starterRoster(roster).crawlers.length > 0 ? 'crawler' : 'pilot'
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
   return (
@@ -57,8 +56,8 @@ function ConnectedCopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
 }
 
 export function CopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
-  const { mode } = useConnection()
-  if (mode === 'solo') {
+  const { status } = useSync()
+  if (status === 'signedOut') {
     return (
       <SignInControl
         label={buildStarterSetCopy('signInToCopyTheCrew')}
@@ -67,6 +66,6 @@ export function CopyCrew({ confirm, roster = 'starter-set' }: CopyCrewProps) {
       />
     )
   }
-  if (mode !== 'connected') return null
+  if (status !== 'live') return null
   return <ConnectedCopyCrew confirm={confirm} roster={roster} />
 }

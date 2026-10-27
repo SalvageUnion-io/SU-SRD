@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
@@ -24,27 +24,27 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
  * end: each offered pilot is handed to the real `PlayGate`, with the Cockpit
  * itself stubbed.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * The Games reads are answered **by name** — see
+ * `serverMock.ts`; the Game room serves the rest (`fakeRooms.ts`).
  */
 
-import { getFunctionName } from 'convex/server'
 import type { ReactNode } from 'react'
 import { createElement } from 'react'
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
 import { pilotFixture } from '../../../components/__tests__/fixtures'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { answerActs, closeRooms, openRooms, serveReads } from '../../../replica/__tests__/fakeRooms'
 
+/** Every Games call (`games:destroy`) and act on the Game's room (`ledger.setFaction`), in order. */
 const mutations: { name: string; args: unknown }[] = []
 /** Every `router.navigate(opts)` the hub made. */
 const navigations: unknown[] = []
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
-const convexMocks = await installConvexMocks({
-  convexReact: {
-    useMutation: (ref: unknown) => async (args: unknown) => {
-      mutations.push({ name: getFunctionName(ref as never), args })
-    },
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
+const serverMocks = await installServerMocks({
+  call: (name, args) => {
+    mutations.push({ name, args })
   },
   // A router that records where Play goes. `useRouter` answers, so
   // `AppLink` renders this `Link`: a plain anchor carrying its props.
@@ -61,7 +61,7 @@ const convexMocks = await installConvexMocks({
         },
       }),
     }),
-    // Relative to `convexMock.ts`, not this file. Whether the gate opens it,
+    // Relative to `serverMock.ts`, not this file. Whether the gate opens it,
     // and for which pilot, is all the launch tests need of the Cockpit.
     '../../play/PlayCockpit': () => ({
       PlayCockpit: ({ target }: { target: { pilotId: string } }) =>
@@ -72,10 +72,10 @@ const convexMocks = await installConvexMocks({
 
 const { GameHub } = await import('../GameHub')
 const { PlayGate } = await import('../../../play/PlayGate')
-const { ConnectionContext } = await import('../../../lib/connection/connectionContext')
+const { SyncContext } = await import('../../../replica/syncContext')
 const { hydrateStores } = await import('../../../components/__tests__/hydrateStores')
-const { useEntityStore } = await import('../../../stores/entityStore')
-const { setEntityBackendAuthState } = await import('../../../stores/entityBackend')
+const { useUnits } = await import('../../../replica/units')
+const { resetSync } = await import('../../../replica/sync')
 const { CHAPTER_BAND_COLOR } = await import('../../../components/index')
 
 /** A colour as the DOM reads it back off an inline style. */
@@ -90,10 +90,22 @@ beforeAll(hydrateStores)
 beforeEach(() => {
   mutations.length = 0
   navigations.length = 0
+  openRooms('g1')
+  answerActs(({ name, args }) => {
+    mutations.push({ name, args })
+  })
 })
 
+afterEach(closeRooms)
+
+/** The Games reads answered, and the Game's room serving what the table reads answer. */
+function answer(all: QueryAnswers): void {
+  setQueryAnswers(all)
+  serveReads('g1', all)
+}
+
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })
 
 const GAME = {
@@ -112,23 +124,23 @@ const GAME = {
 /** Everything below `games.get`, for a viewer whose role the test sets. */
 function answers(over: QueryAnswers = {}): QueryAnswers {
   return {
-    'games:get': GAME,
-    'account:me': { _id: 'u1', displayName: 'Ash' },
-    'games:members': [
+    'games.get': GAME,
+    'account.me': { _id: 'u1', displayName: 'Ash' },
+    'games.members': [
       { userId: 'u1', displayName: 'Ash', mediator: false, organizer: false, joinedAt: 1 },
       { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
     ],
-    'entities:listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
-    'crew:vitals': undefined,
-    'proposals:pending': [],
-    'downtime:state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
-    'mediator:amMediator': false,
-    'ledger:get': { factions: [], jobs: [], incomeCollected: false },
-    'proposals:sent': [],
+    'entities.listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
+    'crew.vitals': undefined,
+    'ops.pending': [],
+    'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
+    'mediator.amMediator': false,
+    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
+    'ops.sent': [],
     // A column's "Move in…" checks its moves against your Games.
-    'games:listMine': [],
-    'safety:boundaries': [],
-    'safety:stopSign': { stop: null, mayLift: false, mayManage: false, postToChannel: false },
+    'games.listMine': [],
+    'safety.boundaries': [],
+    'safety.stopSign': { stop: null, mayLift: false, mayManage: false, postToChannel: false },
     ...over,
   }
 }
@@ -142,7 +154,7 @@ async function openGameMenu(): Promise<void> {
 
 // Async act: the roster inside flips its hydrated flag from a promise after mount.
 async function renderHub(over: QueryAnswers = {}): Promise<void> {
-  setQueryAnswers(answers(over))
+  answer(answers(over))
   await act(async () => {
     render(<GameHub gameId="g1" />)
   })
@@ -168,7 +180,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
   })
 
   test('the sections are Slabs (solid stamps), level 2 under the page’s h1', async () => {
-    await renderHub({ 'games:get': { ...GAME, organizer: true } })
+    await renderHub({ 'games.get': { ...GAME, organizer: true } })
     for (const name of ['Crew', 'Invite link', 'The Game']) {
       expect(heading(name)).toBeTruthy()
     }
@@ -178,7 +190,7 @@ describe('a Manage page in Play (ADR-052 §5, §7)', () => {
 describe('the sections under the roster', () => {
   test('every member gets the answer queue and The Game, below the lists; no Crew & seats', async () => {
     await renderHub({
-      'proposals:pending': [
+      'ops.pending': [
         { _id: 'c1', entityType: 'pilot', field: 'currentHP', after: 3, reason: null },
       ],
     })
@@ -207,7 +219,7 @@ describe('the sections under the roster', () => {
   })
 
   test('the Organizer gets the invite link, who mediates, and ending the game', async () => {
-    await renderHub({ 'games:get': { ...GAME, organizer: true } })
+    await renderHub({ 'games.get': { ...GAME, organizer: true } })
 
     // The buttons are `CopyInviteLink`'s and `ResetInviteLink`'s, mounted only when Connected.
     expect(heading('Invite link')).toBeTruthy()
@@ -227,8 +239,8 @@ describe('the sections under the roster', () => {
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
     await renderHub({
-      'games:get': { ...GAME, organizer: true, mediator: true },
-      'games:members': [
+      'games.get': { ...GAME, organizer: true, mediator: true },
+      'games.members': [
         { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
         { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
       ],
@@ -244,13 +256,13 @@ describe('the sections under the roster', () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Hand over' }))
     })
     expect(mutations).toEqual([
-      { name: 'games:setMediator', args: { gameId: 'g1', userId: 'u2', mediator: true } },
-      { name: 'games:setMediator', args: { gameId: 'g1', userId: 'u1', mediator: false } },
+      { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u2', mediator: true } },
+      { name: 'games.setMediator', args: { gameId: 'g1', userId: 'u1', mediator: false } },
     ])
   })
 
   test('ending the game asks first, says where everything lands, and then shows your Games', async () => {
-    await renderHub({ 'games:get': { ...GAME, organizer: true } })
+    await renderHub({ 'games.get': { ...GAME, organizer: true } })
 
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
@@ -265,12 +277,12 @@ describe('the sections under the roster', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
-    expect(mutations).toEqual([{ name: 'games:destroy', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
     expect(navigations).toEqual([{ to: '/play' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
-    await renderHub({ 'games:get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
+    await renderHub({ 'games.get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     await openGameMenu()
     fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
 
@@ -285,11 +297,11 @@ describe('the sections under the roster', () => {
 describe('the seats, on the Pilots rows', () => {
   test('each pilot carries its HP and mech, and the Pilots head counts the seats', async () => {
     await renderHub({
-      'games:members': [
+      'games.members': [
         { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
         { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
       ],
-      'entities:listForGame': {
+      'entities.listForGame': {
         pilots: [
           { _id: 'p1', appId: 'a-p1', ownerId: 'u2', body: { id: 'a-p1', callsign: 'Pickle' } },
           { _id: 'p2', appId: 'a-p2', ownerId: null, body: { id: 'a-p2', callsign: 'Hotdog' } },
@@ -303,7 +315,7 @@ describe('the seats, on the Pilots rows', () => {
         ],
       },
       // The server's derived maxima; an absent current HP is full.
-      'crew:vitals': {
+      'crew.vitals': {
         viewerId: 'u1',
         mechs: [],
         pilots: [
@@ -330,7 +342,7 @@ describe('the seats, on the Pilots rows', () => {
 
 describe('the Mediator on the Game page', () => {
   test('a player, or an Organizer who does not mediate, gets no Mediator door', async () => {
-    await renderHub({ 'games:get': { ...GAME, organizer: true } })
+    await renderHub({ 'games.get': { ...GAME, organizer: true } })
     expect(screen.queryByText('You mediate')).toBeNull()
     // Their way in is the player's Play button, not the Mediator's link.
     expect(screen.queryByRole('link', { name: 'Mediate' })).toBeNull()
@@ -339,8 +351,8 @@ describe('the Mediator on the Game page', () => {
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
     await renderHub({
-      'games:get': { ...GAME, mediator: true },
-      'proposals:sent': [
+      'games.get': { ...GAME, mediator: true },
+      'ops.sent': [
         {
           _id: 'c1',
           entityId: 'p1',
@@ -371,7 +383,7 @@ describe('the Mediator on the Game page', () => {
 
 describe('a game the viewer is not in', () => {
   test('explains itself, and offers the way back to your Games, instead of rendering the table', async () => {
-    await renderHub({ 'games:get': null })
+    await renderHub({ 'games.get': null })
 
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
@@ -380,7 +392,7 @@ describe('a game the viewer is not in', () => {
   })
 
   test('still loading is not the same as not a member', async () => {
-    await renderHub({ 'games:get': undefined })
+    await renderHub({ 'games.get': undefined })
 
     expect(screen.getByText(/Loading this Game/i)).toBeTruthy()
     expect(screen.queryByText(/not in this Game/i)).toBeNull()
@@ -433,8 +445,8 @@ describe('Play from the Game page', () => {
 
   beforeAll(async () => {
     // Filling the cache only: `adopt` is not a user write, so it needs no account.
-    setEntityBackendAuthState({ signedIn: false, online: true, authSettled: true })
-    const store = useEntityStore.getState()
+    resetSync()
+    const store = useUnits.getState()
     for (const [id, name] of HELD) {
       await store.adopt('pilot', pilotFixture({ id, name, gameId: 'g1' }))
     }
@@ -442,7 +454,7 @@ describe('Play from the Game page', () => {
 
   afterAll(async () => {
     // Leave the shared store as this file found it.
-    const store = useEntityStore.getState()
+    const store = useUnits.getState()
     for (const [id] of HELD) await store.forget('pilot', id)
   })
 
@@ -461,22 +473,21 @@ describe('Play from the Game page', () => {
   /** The body of `/play/<id>`, signed in and connected. */
   async function openGate(id: string): Promise<void> {
     const connected = {
-      mode: 'connected' as const,
+      status: 'live' as const,
       canWrite: true,
-      showDisconnectedWarning: false,
-      settling: false,
+      outdated: false,
     }
     await act(async () => {
       render(
-        <ConnectionContext.Provider value={connected}>
+        <SyncContext.Provider value={connected}>
           <PlayGate id={id} />
-        </ConnectionContext.Provider>
+        </SyncContext.Provider>
       )
     })
   }
 
   test('a player gets it in the band, above the roster', async () => {
-    await renderHub({ 'games:members': MEDIATED })
+    await renderHub({ 'games.members': MEDIATED })
 
     const button = launcher()
     expect(button).toBeTruthy()
@@ -488,9 +499,9 @@ describe('Play from the Game page', () => {
 
   test('the Mediator’s is one Mediate link instead, opening Play’s Mediator screen', async () => {
     await renderHub({
-      'games:get': { ...GAME, mediator: true, organizer: true },
-      'games:members': ASH_MEDIATES,
-      'mediator:amMediator': true,
+      'games.get': { ...GAME, mediator: true, organizer: true },
+      'games.members': ASH_MEDIATES,
+      'mediator.amMediator': true,
     })
     expect(launcher()).toBeNull()
     const links = screen.getAllByRole('link', { name: 'Mediate' })
@@ -498,7 +509,7 @@ describe('Play from the Game page', () => {
   })
 
   test('a Game with no Mediator plays too', async () => {
-    await renderHub({ 'entities:listForGame': listing(PILOTS) })
+    await renderHub({ 'entities.listForGame': listing(PILOTS) })
     const dialog = await openPicker()
     expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
     await act(async () => {
@@ -508,12 +519,12 @@ describe('Play from the Game page', () => {
   })
 
   test('nothing shows while the crew is still loading', async () => {
-    await renderHub({ 'games:members': undefined })
+    await renderHub({ 'games.members': undefined })
     expect(launcher()).toBeNull()
   })
 
   test('asks only for the pilot, yours first, with your first one chosen; Play opens it', async () => {
-    await renderHub({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) })
+    await renderHub({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) })
     const dialog = await openPicker()
 
     // The pilot is the only choice on offer, and a crewmate's is not one.
@@ -531,7 +542,7 @@ describe('Play from the Game page', () => {
   })
 
   test('opened before the pilots answer, it says so, then chooses yours when they arrive', async () => {
-    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': undefined }))
+    answer(answers({ 'games.members': MEDIATED, 'entities.listForGame': undefined }))
     let view: ReturnType<typeof render> | undefined
     await act(async () => {
       view = render(<GameHub gameId="g1" />)
@@ -540,7 +551,7 @@ describe('Play from the Game page', () => {
     expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
     expect(within(dialog).queryByText(/saved in this browser/)).toBeNull()
 
-    setQueryAnswers(answers({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) }))
+    answer(answers({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) }))
     await act(async () => {
       view?.rerender(<GameHub gameId="g1" />)
     })
@@ -550,8 +561,8 @@ describe('Play from the Game page', () => {
 
   test('a viewer who owns no pilot gets no pre-selection, and picks one', async () => {
     await renderHub({
-      'games:members': MEDIATED,
-      'entities:listForGame': listing([THEIRS, PREGEN]),
+      'games.members': MEDIATED,
+      'entities.listForGame': listing([THEIRS, PREGEN]),
     })
     const dialog = await openPicker()
 
@@ -574,8 +585,8 @@ describe('Play from the Game page', () => {
 
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
     await renderHub({
-      'games:members': MEDIATED,
-      'entities:listForGame': listing([THEIRS]),
+      'games.members': MEDIATED,
+      'entities.listForGame': listing([THEIRS]),
     })
     const dialog = await openPicker()
 
@@ -588,8 +599,8 @@ describe('Play from the Game page', () => {
 
   test('every pilot it offers opens Play at the gate, not "Pilot not found"', async () => {
     await renderHub({
-      'games:members': MEDIATED,
-      'entities:listForGame': listing([...PILOTS, PREGEN]),
+      'games.members': MEDIATED,
+      'entities.listForGame': listing([...PILOTS, PREGEN]),
     })
     let dialog = await openPicker()
     const count = within(dialog).getAllByRole('radio').length
@@ -617,7 +628,7 @@ describe('Play from the Game page', () => {
   })
 
   test('the dialog takes focus, and Escape closes it without launching', async () => {
-    await renderHub({ 'games:members': MEDIATED, 'entities:listForGame': listing(PILOTS) })
+    await renderHub({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) })
     const dialog = await openPicker()
 
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
@@ -640,7 +651,7 @@ describe('Factions and Jobs', () => {
   }
 
   test('every member reads them: a faction’s standing and deal, a job’s faction and pay', async () => {
-    await renderHub({ 'ledger:get': LEDGER })
+    await renderHub({ 'ledger.get': LEDGER })
 
     const factions = screen.getByRole('list', { name: 'Factions' })
     expect(within(factions).getByText('Stefanus')).toBeTruthy()
@@ -655,7 +666,7 @@ describe('Factions and Jobs', () => {
   })
 
   test('the Mediator adds a faction, neutral and with no deal', async () => {
-    await renderHub({ 'games:get': { ...GAME, mediator: true }, 'ledger:get': LEDGER })
+    await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ledger.get': LEDGER })
 
     fireEvent.change(screen.getByRole('textbox', { name: 'New faction name' }), {
       target: { value: 'DronTek' },
@@ -663,15 +674,14 @@ describe('Factions and Jobs', () => {
     await act(async () => {
       fireEvent.click(screen.getAllByRole('button', { name: 'Add' })[0] as HTMLElement)
     })
-    const added = mutations.find((m) => m.name === 'ledger:setFaction')
+    const added = mutations.find((m) => m.name === 'ledger.setFaction')
     expect(added?.args).toMatchObject({
-      gameId: 'g1',
       faction: { name: 'DronTek', standing: 'neutral', deal: false },
     })
   })
 
   test('Finish asks first, then pays the open job once, on the server', async () => {
-    await renderHub({ 'games:get': { ...GAME, mediator: true }, 'ledger:get': LEDGER })
+    await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ledger.get': LEDGER })
 
     // Only the open job offers it.
     expect(screen.getAllByRole('button', { name: 'Finish' })).toHaveLength(1)
@@ -680,39 +690,35 @@ describe('Factions and Jobs', () => {
     })
     const dialog = screen.getByRole('alertdialog')
     expect(within(dialog).getByText('It pays 30 Tech 3 Scrap into the crawler, once.')).toBeTruthy()
-    expect(mutations.some((m) => m.name === 'ledger:completeJob')).toBe(false)
+    expect(mutations.some((m) => m.name === 'ledger.completeJob')).toBe(false)
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Finish' }))
     })
-    expect(mutations.find((m) => m.name === 'ledger:completeJob')?.args).toEqual({
-      gameId: 'g1',
-      id: 'j1',
-    })
+    expect(mutations.find((m) => m.name === 'ledger.completeJob')?.args).toEqual({ id: 'j1' })
   })
 })
 
 describe('Safety (Core Book pp.12-13)', () => {
   /** The hub as `GamePage` mounts it: connected, so the Stop Sign is read. */
   async function renderConnected(over: QueryAnswers): Promise<void> {
-    setQueryAnswers(answers(over))
+    answer(answers(over))
     const connected = {
-      mode: 'connected' as const,
+      status: 'live' as const,
       canWrite: true,
-      showDisconnectedWarning: false,
-      settling: false,
+      outdated: false,
     }
     await act(async () => {
       render(
-        <ConnectionContext.Provider value={connected}>
+        <SyncContext.Provider value={connected}>
           <GameHub gameId="g1" />
-        </ConnectionContext.Provider>
+        </SyncContext.Provider>
       )
     })
   }
 
   test('both lists, each boundary without a name, and × only on what you may take off', async () => {
     await renderHub({
-      'safety:boundaries': [
+      'safety.boundaries': [
         { _id: 'b1', kind: 'outOfBounds', text: 'Graphic torture', mayRemove: true },
         { _id: 'b2', kind: 'offCamera', text: 'Gore', mayRemove: false },
       ],
@@ -733,7 +739,7 @@ describe('Safety (Core Book pp.12-13)', () => {
 
   test('while the Stop Sign is up, the page says the game is paused, without who', async () => {
     await renderConnected({
-      'safety:stopSign': {
+      'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
         mayManage: false,
@@ -749,7 +755,7 @@ describe('Safety (Core Book pp.12-13)', () => {
 
   test('whoever may lift it gets Resume play', async () => {
     await renderConnected({
-      'safety:stopSign': {
+      'safety.stopSign': {
         stop: { shownAt: 1, mine: true },
         mayLift: true,
         mayManage: true,
@@ -766,8 +772,8 @@ describe('Safety (Core Book pp.12-13)', () => {
 
   test('every write is one call: add, take off, show, resume, opt in', async () => {
     await renderConnected({
-      'safety:boundaries': [{ _id: 'b1', kind: 'outOfBounds', text: 'Spiders', mayRemove: true }],
-      'safety:stopSign': {
+      'safety.boundaries': [{ _id: 'b1', kind: 'outOfBounds', text: 'Spiders', mayRemove: true }],
+      'safety.stopSign': {
         stop: { shownAt: 1, mine: true },
         mayLift: true,
         mayManage: true,
@@ -792,10 +798,10 @@ describe('Safety (Core Book pp.12-13)', () => {
       fireEvent.click(screen.getByRole('switch', { name: 'Post it to the Discord channel' }))
     })
     expect(mutations).toEqual([
-      { name: 'safety:addBoundary', args: { gameId: 'g1', kind: 'offCamera', text: 'Gore' } },
-      { name: 'safety:removeBoundary', args: { boundaryId: 'b1' } },
-      { name: 'safety:liftStop', args: { gameId: 'g1' } },
-      { name: 'safety:setPostToChannel', args: { gameId: 'g1', on: true } },
+      { name: 'safety.addBoundary', args: { kind: 'offCamera', text: 'Gore' } },
+      { name: 'safety.removeBoundary', args: { boundaryId: 'b1' } },
+      { name: 'safety.liftStop', args: {} },
+      { name: 'safety.setPostToChannel', args: { on: true } },
     ])
   })
 
@@ -804,6 +810,6 @@ describe('Safety (Core Book pp.12-13)', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Show the Stop Sign' }))
     })
-    expect(mutations).toEqual([{ name: 'safety:showStop', args: { gameId: 'g1' } }])
+    expect(mutations).toEqual([{ name: 'safety.showStop', args: {} }])
   })
 })

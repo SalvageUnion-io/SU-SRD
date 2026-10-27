@@ -14,14 +14,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  *  - a signed-out visitor must still see what they were invited to
  *  - back from "Sign in to join", the page joins without asking again
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  * This screen asks only `invites.preview`, from two components.
  */
 
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { ConvexError } from 'convex/values'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { RoomDeclined } from '../../../replica/roomSocket'
 
 const redeemResult: unknown = { kind: 'joined', gameId: 'g1' }
 let redeemError: Error | null = null
@@ -31,28 +29,24 @@ const mutationCalls: string[] = []
 // actually hits, so it needs exercising rather than assuming.
 let isAuthenticated = true
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
 //
 // `authReact` for the signed-out branch's sign-in control; `router` because
 // redeeming navigates, and the stub records where.
-const convexMocks = await installConvexMocks({
-  authReact: true,
+const serverMocks = await installServerMocks({
+  authReact: { useSession: () => ({ isAuthenticated, isLoading: false }) },
   router: true,
-  convexReact: {
-    useMutation: (ref: unknown) => async () => {
-      const name = getFunctionName(ref as FunctionReference<'mutation'>)
-      mutationCalls.push(name)
-      if (redeemError !== null) throw redeemError
-      return redeemResult
-    },
-    useConvexAuth: () => ({ isAuthenticated, isLoading: false }),
+  call: (name) => {
+    mutationCalls.push(name)
+    if (redeemError !== null) throw redeemError
+    return redeemResult
   },
 })
 
-const navigations = convexMocks.navigations
+const navigations = serverMocks.navigations
 
 const { InviteScreen } = await import('../InviteScreen')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
 function preview(over: Record<string, unknown> = {}) {
   return {
@@ -66,15 +60,15 @@ function preview(over: Record<string, unknown> = {}) {
 const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
 
 function renderJoin(value: unknown, joinOnArrival = false) {
-  setQueryAnswers({ 'invites:preview': value })
+  setQueryAnswers({ 'invites.preview': value })
   navigations.length = 0
   mutationCalls.length = 0
   redeemError = null
   isAuthenticated = true
   return render(
-    <ConnectionProvider>
+    <SyncProvider>
       <InviteScreen token="A1B2C3D4E5F6G7H8" joinOnArrival={joinOnArrival} />
-    </ConnectionProvider>
+    </SyncProvider>
   )
 }
 
@@ -100,7 +94,7 @@ describe('a live invite', () => {
   test('back from "Sign in to join", it joins without asking again', async () => {
     renderJoin(preview(), true)
     await waitFor(() => expect(navigations).toEqual([THE_GAME]))
-    expect(mutationCalls).toEqual(['invites:redeem'])
+    expect(mutationCalls).toEqual(['invites.redeem'])
   })
 
   test('arriving to join a dead link spends nothing', () => {
@@ -111,7 +105,7 @@ describe('a live invite', () => {
 
   test('a refusal is surfaced in the server’s own words', async () => {
     renderJoin(preview())
-    redeemError = new ConvexError('That invite link no longer works')
+    redeemError = new RoomDeclined('That invite link no longer works')
     fireEvent.click(screen.getByText('Join this Game'))
     await waitFor(() => expect(screen.getByText(/no longer works/)).toBeTruthy())
   })
@@ -142,11 +136,11 @@ describe('a visitor who is not signed in', () => {
     renderJoin(preview())
     isAuthenticated = false
     cleanup()
-    setQueryAnswers({ 'invites:preview': preview() })
+    setQueryAnswers({ 'invites.preview': preview() })
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <InviteScreen token="A1B2C3D4E5F6G7H8" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
@@ -158,11 +152,11 @@ describe('a visitor who is not signed in', () => {
 
   test('a dead code is refused without ever prompting a sign-in', () => {
     isAuthenticated = false
-    setQueryAnswers({ 'invites:preview': null })
+    setQueryAnswers({ 'invites.preview': null })
     render(
-      <ConnectionProvider>
+      <SyncProvider>
         <InviteScreen token="A1B2C3D4E5F6G7H8" />
-      </ConnectionProvider>
+      </SyncProvider>
     )
 
     expect(screen.getByText(/does not work/i)).toBeTruthy()
@@ -175,5 +169,5 @@ describe('a visitor who is not signed in', () => {
 })
 
 afterAll(() => {
-  convexMocks.restore()
+  serverMocks.restore()
 })

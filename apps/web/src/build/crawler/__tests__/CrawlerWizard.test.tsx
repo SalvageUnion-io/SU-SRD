@@ -13,75 +13,39 @@
  * (the reference dataset is preloaded via bunfig.toml).
  */
 
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { describe, expect, it, mock } from 'bun:test'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
-import { resetStores } from '../../../stores/__tests__/resetStores'
-import { withSignedInBackend } from '../../../stores/__tests__/signedInBackend'
-import { useEntityStore } from '../../../stores/entityStore'
+import { useUnits } from '../../../replica/units'
+import {
+  clickButton,
+  clickNext,
+  fillIdentity,
+  getNextButton,
+  pickByName,
+  pickRadio,
+  withWizardStore,
+} from '../../__tests__/wizardHarness'
 import { CrawlerWizard } from '../CrawlerWizard'
 
-// Building and editing need an account (ADR-034 as amended), so these writes run signed in.
-withSignedInBackend()
-
-// ---------------------------------------------------------------------------
-// Pre-load reference data
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Store reset
-// ---------------------------------------------------------------------------
-
-beforeEach(async () => {
-  sessionStorage.clear()
-  resetStores()
-  await useEntityStore.getState().hydrate('crawler')
-})
-
-afterEach(async () => {
-  await act(async () => {
-    cleanup()
-  })
-  sessionStorage.clear()
-  resetStores()
-})
+withWizardStore('crawler')
 
 // ---------------------------------------------------------------------------
 // Helpers (WizShell skeleton)
 // ---------------------------------------------------------------------------
 
-/** Crawler-type cells are radio SelCards (exactly-one semantics). */
-async function pickType(name: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('radio', { name }))
-  })
+function renderWizard() {
+  return render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 }
 
-/** Weapon cards are toggle picks — div[role="button"] with aria-label. */
-function getPickByName(name: string): HTMLElement {
-  const candidates = screen.getAllByRole('button')
-  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (!exact) throw new Error(`No role=button pick for "${name}"`)
-  return exact
-}
-
-async function pick(name: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(getPickByName(name))
-  })
-}
-
-/** The primary CTA is labeled from the steps array: 'Next: {step}' (`NextLabel`). */
-function getNextButton(): HTMLButtonElement {
-  return screen.getByRole<HTMLButtonElement>('button', { name: /^Next: / })
-}
-
-async function clickNext(): Promise<void> {
-  await act(async () => {
-    fireEvent.click(getNextButton())
-  })
+/** Choose `type` (radio cards), then on past Statistics to the Armament Bay. */
+async function walkToArmament(type: string): Promise<void> {
+  await waitFor(() => screen.getByRole('radio', { name: type }))
+  await pickRadio(type)
+  await clickNext() // Statistics
+  await clickNext() // -> Armament Bay
 }
 
 /** Expand a crew roster row by pressing its shut Mini, a button named for the entity. */
@@ -92,18 +56,6 @@ async function expandRow(name: string): Promise<void> {
   if (!card) throw new Error(`No clickable roster card for "${name}"`)
   await act(async () => {
     fireEvent.click(card)
-  })
-}
-
-/** Fill a click-to-edit IdentityField (open → type → blur commits). */
-async function fillField(editLabel: string, value: string): Promise<void> {
-  await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: editLabel }))
-  })
-  const input = screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
-  await act(async () => {
-    fireEvent.change(input, { target: { value } })
-    fireEvent.blur(input, { target: { value } })
   })
 }
 
@@ -141,7 +93,7 @@ function nonWeaponSystemAtTL(tl: number): { id: string; name: string } {
 
 describe('CrawlerWizard — create mode', () => {
   it('step 1 renders the five types as radio entity cards with a mutations badge + detail', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
 
     expect(screen.getAllByText('Choose a Crawler Type').length).toBeGreaterThan(0)
     await waitFor(() => {
@@ -156,7 +108,7 @@ describe('CrawlerWizard — create mode', () => {
     expect(screen.getByText(/Choose your Crawler type/i)).toBeTruthy()
 
     // Selecting Battle shows its full detail card: the unique Ability + NPC.
-    await pickType('Battle')
+    await pickRadio('Battle')
     await waitFor(() => {
       expect(screen.getAllByText('Improved Armour and Armaments').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
@@ -165,9 +117,9 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('the Augmented type surfaces the +1 Training Point callout (text only)', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
     await waitFor(() => screen.getByRole('radio', { name: 'Augmented' }))
-    await pickType('Augmented')
+    await pickRadio('Augmented')
     await waitFor(() => {
       expect(screen.getByText(/\+1 Training Point/)).toBeTruthy()
       expect(screen.getByText(/Augment ability tree only/)).toBeTruthy()
@@ -175,9 +127,9 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
+    await pickRadio('Battle')
     await clickNext() // -> Statistics
 
     const breakdown = screen.getByTestId('sp-breakdown')
@@ -189,12 +141,8 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('TL-filters the Armament step to Tech 1 weapons only (non-weapons excluded)', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
-    await clickNext() // Statistics
-    await clickNext() // -> Armament Bay
+    renderWizard()
+    await walkToArmament('Battle')
 
     const tl1 = weaponSystemAtTL(1)
     const tl2 = weaponSystemAtTL(2)
@@ -208,29 +156,21 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('gates the Armament step on the minimum-1 weapon mount', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
-    await pickType('Engineering')
-    await clickNext() // Statistics
-    await clickNext() // -> Armament Bay
+    renderWizard()
+    await walkToArmament('Engineering')
 
     // Nothing mounted — Next is locked with the reason in the footer.
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Mount at least one Weapons System/i)).toBeTruthy()
 
     const weapon = weaponSystemAtTL(1)
-    await pick(weapon.name)
+    await pickByName(weapon.name)
     expect(getNextButton().disabled).toBe(false)
   })
 
   it('hard-caps installs at the mutations-derived type allowance (Engineering = 1)', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => screen.getByRole('radio', { name: 'Engineering' }))
-    await pickType('Engineering')
-    await clickNext() // Statistics
-    await clickNext() // -> Armament Bay
+    renderWizard()
+    await walkToArmament('Engineering')
 
     const weapons = weaponSystemsUpToTL(1)
     expect(weapons.length).toBeGreaterThanOrEqual(2)
@@ -243,14 +183,14 @@ describe('CrawlerWizard — create mode', () => {
 
     // Install one — the count hits the cap and the other cards disable
     // (a disabled card drops its role=button, so it is no longer pickable).
-    await pick(must(first).name)
+    await pickByName(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
     expect(screen.queryByRole('button', { name: must(second).name })).toBeNull()
     // The installed card stays interactive so it can be swapped out.
     expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
 
     // Removing it frees the slot — the other weapon becomes selectable again.
-    await pick(must(first).name)
+    await pickByName(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('0/1')
     await waitFor(() => {
       expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
@@ -258,26 +198,20 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('a Battle Crawler mounts two — and a type change re-clamps with a toast', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
-    await clickNext() // Statistics
-    await clickNext() // -> Armament Bay
+    renderWizard()
+    await walkToArmament('Battle')
 
     const weapons = weaponSystemsUpToTL(1)
     const [first, second] = weapons
     await waitFor(() => screen.getByRole('button', { name: must(first).name }))
-    await pick(must(first).name)
-    await pick(must(second).name)
+    await pickByName(must(first).name)
+    await pickByName(must(second).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('2/2')
 
     // Back to step 1: switching Battle → Engineering re-clamps to 1 slot,
     // dropping the NEWEST mount.
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Crawler Type/i }))
-    })
-    await pickType('Engineering')
+    await clickButton(/Crawler Type/i)
+    await pickRadio('Engineering')
     await clickNext() // Statistics
     await clickNext() // -> Armament Bay
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
@@ -292,7 +226,7 @@ describe('CrawlerWizard — create mode', () => {
 
     // --- Step 1: Choose a Crawler Type ---
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
+    await pickRadio('Battle')
     await clickNext()
 
     // --- Step 2: Note your Crawler Statistics (display-only) ---
@@ -301,33 +235,30 @@ describe('CrawlerWizard — create mode', () => {
 
     // --- Step 3: Arm the Armament Bay (min 1, Tech 1 weapons) ---
     const tl1 = weaponSystemAtTL(1)
-    await pick(tl1.name)
+    await pickByName(tl1.name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/')
     await clickNext()
 
     // --- Step 4: Name your Crew (roster rows → IdentityFields) ---
     await expandRow('Battle')
-    await fillField('Edit grizzled veteran name', 'Vex')
-    await fillField('Edit grizzled veteran motto', 'No retreat')
+    await fillIdentity('Edit grizzled veteran name', 'Vex')
+    await fillIdentity('Edit grizzled veteran motto', 'No retreat')
     await expandRow('Command Bay')
-    await fillField('Edit princeps name', 'Maddox')
-    await fillField('Edit princeps keepsake', 'A medal')
+    await fillIdentity('Edit princeps name', 'Maddox')
+    await fillIdentity('Edit princeps keepsake', 'A medal')
     await clickNext()
 
     // --- Step 5: Name your Crawler (+ scrap pool; NO upgrade pool input) ---
     expect(screen.queryByLabelText(/Upgrade Pool/i)).toBeNull()
-    await fillField('Edit crawler name', 'Bay Wagon')
+    await fillIdentity('Edit crawler name', 'Bay Wagon')
     fireEvent.change(screen.getByLabelText(/Scrap T2/i), { target: { value: '3' } })
     await clickNext()
 
     // --- Review → submit ('Create Crawler ✦') ---
-    const submit = screen.getByRole('button', { name: /Create Crawler/i })
-    await act(async () => {
-      fireEvent.click(submit)
-    })
+    await clickButton(/Create Crawler/i)
 
     await waitFor(() => {
-      const crawlers = useEntityStore.getState().list('crawler')
+      const crawlers = useUnits.getState().list('crawler')
       expect(crawlers.length).toBe(1)
       const c = must(crawlers[0])
       expect(c.name).toBe('Bay Wagon')
@@ -370,37 +301,31 @@ describe('CrawlerWizard — create mode', () => {
   })
 
   it('name gate: cannot reach Create with an empty name', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
-
-    await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
-    await clickNext() // Statistics
-    await clickNext() // Armament Bay
-    await pick(weaponSystemAtTL(1).name) // satisfy the min-1 mount
+    renderWizard()
+    await walkToArmament('Battle')
+    await pickByName(weaponSystemAtTL(1).name) // satisfy the min-1 mount
     await clickNext() // Crew
     await clickNext() // Name
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Name your Crawler to continue/i)).toBeTruthy()
-    expect(useEntityStore.getState().list('crawler').length).toBe(0)
+    expect(useUnits.getState().list('crawler').length).toBe(0)
   })
 
   it('cancel calls onCancel', async () => {
     const onCancel = mock(() => {})
     render(<CrawlerWizard onComplete={() => {}} onCancel={onCancel} />)
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Cancel/i }))
-    })
+    await clickButton(/Cancel/i)
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
   it('offers no bay catalog anywhere — bays are seeded, not chosen', async () => {
-    render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
+    renderWizard()
 
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    await pickType('Battle')
+    await pickRadio('Battle')
 
     expect(screen.queryByLabelText('Bay entity slug')).toBeNull()
     expect(screen.queryByRole('button', { name: /Add Bay/i })).toBeNull()

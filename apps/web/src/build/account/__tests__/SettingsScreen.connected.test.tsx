@@ -1,8 +1,6 @@
 import { afterAll, afterEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { FunctionReference } from 'convex/server'
-import { getFunctionName } from 'convex/server'
-import { ConvexError } from 'convex/values'
+import { RoomDeclined } from '../../../replica/roomSocket'
 
 /**
  * `SettingsScreen` for somebody who has an account.
@@ -14,61 +12,62 @@ import { ConvexError } from 'convex/values'
  * not offered before there is anything to export, and that a blank display name
  * falls back to the Discord one rather than to nothing.
  *
- * Queries are answered **by name** (`getFunctionName`) — see `convexMock.ts`.
+ * Queries are answered **by name** — see `serverMock.ts`.
  * Name-keying needs no modulo wrap: a state change re-renders and replays the
  * same hooks, which would run off the end of a positional queue and collapse
  * the screen back to its loading state.
  */
 
-import type { QueryAnswers } from '../../../components/__tests__/convexMock'
-import { installConvexMocks, setQueryAnswers } from '../../../components/__tests__/convexMock'
+import type { QueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import {
+  accountAnswers,
+  accountApiStub,
+  accountFailures,
+  resetAccountApi,
+} from '../../../lib/account/__tests__/accountApiStub'
 
 let authed = true
 
-/**
- * What each account mutation throws this test, keyed by function name
- * (`'account:deleteAccount'`); a name with no entry lands.
- */
-let failures: Record<string, unknown> = {}
+/** What the Worker's deletion throws this test; null lands. */
+let deletionFailure: unknown = null
 
 /** How many deletions reached the server this test. */
 let deletions = 0
 
-function useMutationMock(ref: unknown) {
-  const name = getFunctionName(ref as FunctionReference<'mutation'>)
-  return async () => {
-    if (name === 'account:deleteAccount') deletions++
-    if (name in failures) throw failures[name]
-    return null
-  }
+/** The Worker's deletion (`lib/auth/session`). */
+async function deleteAccount() {
+  deletions++
+  if (deletionFailure !== null) throw deletionFailure
 }
 
 // Module scope, before the imports below: `mock.module` only affects imports
-// that resolve after it runs. See `convexMock.ts` for the capture/restore rules.
+// that resolve after it runs. See `serverMock.ts` for the capture/restore rules.
 // `authReact` because the profile mounts `SignInControl`.
-const convexMocks = await installConvexMocks({
-  authReact: true,
-  convexReact: {
-    useConvexAuth: () => ({ isAuthenticated: authed, isLoading: false }),
-    useMutation: useMutationMock,
+const serverMocks = await installServerMocks({
+  authReact: {
+    deleteAccount,
+    useSession: () => ({ isAuthenticated: authed, isLoading: false }),
   },
+  also: { '../../lib/account/accountApi': accountApiStub },
 })
 
 const { SettingsScreen } = await import('../SettingsScreen')
-const { ConnectionProvider } = await import('../../../lib/connection/ConnectionProvider')
+const { SyncProvider } = await import('../../../replica/SyncProvider')
 
 function withQueries(answers: QueryAnswers): void {
   setQueryAnswers(answers)
 }
 
 /**
- * The two the profile asks for; `exported` is what most cases vary. Not
- * `games:listMine`: the Games list left this page for the masthead, and the
- * mock throws on an unregistered query — so a page that started asking for it
- * again would fail here rather than quietly re-growing the list.
+ * The two the profile asks the Worker for. No other read is answered: the
+ * mock throws on an unregistered one, so a page that started asking another
+ * would fail here.
  */
 function profileQueries(me: unknown, exported: unknown = { pilots: [] }): QueryAnswers {
-  return { 'account:me': me, 'account:exportMine': exported }
+  accountAnswers.me = me as never
+  accountAnswers.exported = exported as never
+  return {}
 }
 
 /** Force the browser's online flag, which is what picks Connected vs Disconnected. */
@@ -78,16 +77,17 @@ function setOnline(value: boolean): void {
 
 afterEach(() => {
   authed = true
-  failures = {}
+  deletionFailure = null
+  resetAccountApi()
   deletions = 0
   setOnline(true)
 })
 
 const wrap = () =>
   render(
-    <ConnectionProvider>
+    <SyncProvider>
       <SettingsScreen />
-    </ConnectionProvider>
+    </SyncProvider>
   )
 
 const ME = { displayName: 'Beefcake', avatarUrl: null, discordId: 'd1' }
@@ -167,7 +167,8 @@ describe('taking your data, and taking it away', () => {
     // Clicking it early would hand somebody an empty file and call it their data.
     // Explicit rather than via profileQueries: a default parameter cannot
     // express "still loading", since `undefined` is what triggers the default.
-    withQueries({ ...profileQueries(ME), 'account:exportMine': undefined })
+    withQueries(profileQueries(ME))
+    accountAnswers.exported = undefined
     wrap()
     expect(screen.getByText('Download my data').closest('button')?.disabled).toBe(true)
   })
@@ -218,7 +219,7 @@ async function press(label: string): Promise<void> {
 
 describe('a write the server does not take says so', () => {
   test("a refused deletion says the server's words, on the dialog", async () => {
-    failures = { 'account:deleteAccount': new ConvexError('You still organise a Game.') }
+    deletionFailure = new RoomDeclined('You still organise a Game.')
     withQueries(profileQueries(ME))
     wrap()
 
@@ -240,9 +241,7 @@ describe('a write the server does not take says so', () => {
   })
 
   test('a failed deletion says so in words, never its raw text', async () => {
-    failures = {
-      'account:deleteAccount': new Error('[CONVEX M(account:deleteAccount)] Server Error'),
-    }
+    deletionFailure = new Error('account deletion answered 500: unreachable')
     withQueries(profileQueries(ME))
     wrap()
 
@@ -253,7 +252,7 @@ describe('a write the server does not take says so', () => {
   })
 
   test('Cancel clears the failure line', async () => {
-    failures = { 'account:deleteAccount': new Error('boom') }
+    deletionFailure = new Error('boom')
     withQueries(profileQueries(ME))
     wrap()
 
@@ -265,9 +264,7 @@ describe('a write the server does not take says so', () => {
   })
 
   test('a failed display-name save says so in words, never its raw text', async () => {
-    failures = {
-      'account:updateProfile': new Error('[CONVEX M(account:updateProfile)] Server Error'),
-    }
+    accountFailures.updateProfile = new Error('/__rooms/account/profile answered 500 Server Error')
     withQueries(profileQueries(ME))
     wrap()
 
@@ -277,4 +274,4 @@ describe('a write the server does not take says so', () => {
   })
 })
 
-afterAll(convexMocks.restore)
+afterAll(serverMocks.restore)

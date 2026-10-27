@@ -1,11 +1,10 @@
-import { useQuery } from 'convex/react'
 import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
-import { api } from '../../../convex/_generated/api'
 import { MARK_SRC } from '../../lib/documentHead'
 import { fullSheetCard } from '../../lib/linkPreview/previewStats'
 import type { PreviewKind } from '../../lib/linkPreview/previewSummary'
 import { inviteCard, isPreviewKind, privateCard } from '../../lib/linkPreview/previewSummary'
+import { useInvitePreview, useSheetPreview } from '../../lib/sharing/reads'
 import type { OgCardProps } from '../index'
 import { OgCard } from '../index'
 
@@ -59,7 +58,7 @@ function Ready({ card }: { card: OgCardProps }) {
 }
 
 function SheetSurface({ kind, id }: { kind: PreviewKind; id: string }) {
-  const answer = useQuery(api.publicSheet.preview, { kind, appId: id })
+  const answer = useSheetPreview(kind, id)
   if (answer === undefined) return null
   const card =
     answer === null
@@ -69,7 +68,7 @@ function SheetSurface({ kind, id }: { kind: PreviewKind; id: string }) {
 }
 
 function InviteSurface({ code }: { code: string }) {
-  const answer = useQuery(api.publicSheet.invitePreview, { code })
+  const answer = useInvitePreview(code)
   if (answer === undefined) return null
   // An unknown or expired code gets the plain card, never a blank page.
   return <Ready card={answer === null ? privateCard(host()) : inviteCard(answer, host())} />

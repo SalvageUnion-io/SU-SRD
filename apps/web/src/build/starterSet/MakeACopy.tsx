@@ -17,7 +17,6 @@ import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Button, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { copyStarter } from '../../lib/starterSet/copyStarter'
 import {
   rosterOf,
@@ -25,6 +24,7 @@ import {
   starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
+import { useSync } from '../../replica/syncContext'
 import { SignInControl } from '../account/SignInControl'
 
 type MakeACopyProps = {
@@ -36,9 +36,9 @@ type MakeACopyProps = {
 }
 
 export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
-  const { mode } = useConnection()
+  const { status } = useSync()
 
-  if (mode === 'solo') {
+  if (status === 'signedOut') {
     return (
       <SignInControl
         label={buildStarterSetCopy('signInToMakeA')}
@@ -48,7 +48,7 @@ export function MakeACopy({ kind, templateId, name, confirm }: MakeACopyProps) {
       />
     )
   }
-  if (mode !== 'connected') return null
+  if (status !== 'live') return null
 
   return (
     <Button

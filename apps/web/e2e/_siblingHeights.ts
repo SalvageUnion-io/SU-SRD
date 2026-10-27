@@ -80,9 +80,27 @@ function scan({
     // not a control on a line: Minis side by side in a masonry grid
     // (`MiniGrid`) differ in height by their text.
     .filter((el) => !el.matches('.su-entity-mini[data-contentful]'))
+  // A control in a tap target wider than it draws (a strip's Mini button: a
+  // transparent border, its fill clipped inside) measures as what it draws.
   const box = (el: Element): Box => {
     const r = el.getBoundingClientRect()
-    return { el, x: r.left, y: r.top, w: r.width, h: r.height }
+    const s = getComputedStyle(el)
+    if (s.backgroundClip !== 'padding-box' || s.borderTopColor !== 'rgba(0, 0, 0, 0)') {
+      return { el, x: r.left, y: r.top, w: r.width, h: r.height }
+    }
+    const [top, right, bottom, left] = [
+      s.borderTopWidth,
+      s.borderRightWidth,
+      s.borderBottomWidth,
+      s.borderLeftWidth,
+    ].map(Number.parseFloat) as [number, number, number, number]
+    return {
+      el,
+      x: r.left + left,
+      y: r.top + top,
+      w: r.width - left - right,
+      h: r.height - top - bottom,
+    }
   }
   const column = (el: Element) => el.closest('section[aria-label]')
   const sameLine = (a: Box, b: Box) => {

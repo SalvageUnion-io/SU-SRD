@@ -53,22 +53,21 @@
  * ## Solo renders nothing
  *
  * With no account there is only the Training Bay, so there is nowhere to move to,
- * and the Convex read would have no provider.
+ * and no Games to read.
  */
 
-import { useQuery } from 'convex/react'
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { api } from '../../../convex/_generated/api'
 import { Field, FieldError } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
-import { useConnection } from '../../lib/connection/connectionContext'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { moveDestinations } from '../../lib/games/gameRoster'
 import { entityContainerCopy } from '../../messages/build-entity-container'
-import { useEntityStore } from '../../stores/entityStore'
-import { CONTAINER_MOVE } from '../../stores/surfaceProvenance'
+import { CONTAINER_MOVE } from '../../replica/provenance'
+import { useGamesQuery } from '../../replica/roomCalls'
+import { useSync } from '../../replica/syncContext'
+import { useUnits } from '../../replica/units'
 import { ContainerPicker } from './ContainerPicker'
 import { requestMove } from './requestMove.model'
 
@@ -101,7 +100,7 @@ function ConnectedMoveToContainerControl({
   onChanged,
   className,
 }: MoveToContainerControlProps) {
-  const games = useQuery(api.games.listMine)
+  const games = useGamesQuery('games.listMine', {})
 
   const current = containerOf(entity)
   const destinations = moveDestinations({ kind: entityType, current, games: games ?? [] })
@@ -118,7 +117,7 @@ function ConnectedMoveToContainerControl({
   }
 
   async function move(next: Container) {
-    await useEntityStore.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
+    await useUnits.getState().update(entityType, entityId, moveTo(next), CONTAINER_MOVE)
     onChanged?.()
   }
 
@@ -168,7 +167,7 @@ function ConnectedMoveToContainerControl({
 }
 
 export function MoveToContainerControl(props: MoveToContainerControlProps) {
-  const { mode } = useConnection()
-  if (mode !== 'connected') return null
+  const { status } = useSync()
+  if (status !== 'live') return null
   return <ConnectedMoveToContainerControl {...props} />
 }

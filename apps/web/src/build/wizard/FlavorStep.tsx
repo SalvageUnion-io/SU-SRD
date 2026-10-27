@@ -1,5 +1,4 @@
 import { Field, Input, Textarea } from '../../components/index'
-import '../../styles/build/wizard.css'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { RollTableButton } from './RollTableButton'
 import type { PilotRollField, RollTableDeps } from './rollTableHelpers.model'

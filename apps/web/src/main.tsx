@@ -10,11 +10,11 @@ import {
   installChunkRecovery,
   reactRootErrorHandlers,
 } from './lib/observability'
-import { preloadScriptFont } from './lib/scriptFont'
+import { preloadScriptFont, SCRIPT_FONT_VARIABLE } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
+import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
-import { setEntityBackendAuthState } from './stores/entityBackend'
 
 const router = createRouter({
   routeTree,
@@ -51,15 +51,20 @@ initBrowserObservability()
 // route the router resolves. See `installChunkRecovery` in lib/browserObservability.ts.
 installChunkRecovery()
 
-// Until `ConnectionProvider` reports, nobody knows yet whether there is a
-// session, so the stores treat the account's rows as on their way: a route
-// opened at boot waits for them (stores/rowArrival.ts) rather than rendering
-// an empty roster that fills a moment later.
-setEntityBackendAuthState({ signedIn: false, online: navigator.onLine, authSettled: false })
+// Until `SyncProvider` reports, nobody knows yet whether there is a session,
+// so the account's rows are on their way: a route opened at boot waits for
+// them (`replica.untilArrived`) rather than rendering an empty roster that
+// fills a moment later.
+setSyncStatus('syncing')
 
 // The front door's quote face, asked for now so it is in hand before the quote
 // paints rather than swapped in under it (lib/scriptFont.ts).
-preloadScriptFont(window.location.pathname, APP_BASE, document.fonts)
+preloadScriptFont(
+  window.location.pathname,
+  APP_BASE,
+  document.fonts,
+  getComputedStyle(document.documentElement).getPropertyValue(SCRIPT_FONT_VARIABLE).trim()
+)
 
 const rootEl = document.getElementById('root')
 if (!rootEl) throw new Error('Root element not found')
@@ -73,7 +78,7 @@ createRoot(rootEl, reactRootErrorHandlers).render(
 )
 
 // The one service-worker registration: `virtual:pwa-register`, handed to
-// lib/sw/register.ts. `registerType: 'prompt'` (vite.config.ts) means a new
+// lib/sw/register.ts. `registerType: 'prompt'` (astro.config.ts) means a new
 // worker installs and then waits rather than claiming this page mid-session.
 // A breaking deploy's build floor reloads an open tab at once
 // (lib/connection/buildFloor.ts); a compatible one waits for its next page

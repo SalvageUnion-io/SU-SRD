@@ -32,11 +32,14 @@
 import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
 import type { APIInteraction, APIUser } from 'discord-api-types/v10'
 import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
-import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
+
+export { Relay } from './relay'
+
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
 import { setSiteClient, site } from '../commands/siteReply'
+import type { SiteGateway } from '../play/client'
 import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
 import {
@@ -48,7 +51,6 @@ import {
   webhookRoutes,
 } from './adapter'
 import { oneShotRest } from './oneShotRest'
-import { handlePostRoll, handlePostStop } from './relay'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -189,9 +191,8 @@ async function health(env: Env): Promise<Response> {
     applicationId: Boolean(env.DISCORD_APPLICATION_ID),
     publicKey: Boolean(env.DISCORD_PUBLIC_KEY),
     token: Boolean(env.DISCORD_TOKEN),
-    // Either alone is as broken as neither: every Game command would answer
-    // that the app cannot be reached.
-    site: Boolean(env.BACKEND_SITE_URL) && Boolean(env.BOT_SECRET),
+    // Without it every Game command would answer that the app cannot be reached.
+    site: Boolean(env.SITE),
   }
 
   if (!configured.token) {
@@ -205,7 +206,7 @@ async function health(env: Env): Promise<Response> {
     return Response.json(
       {
         ok: false,
-        reason: 'BACKEND_SITE_URL and BOT_SECRET must both be set',
+        reason: 'the site service binding is missing',
         configured,
       },
       { status: 503 }
@@ -264,15 +265,6 @@ export default {
       return new Response('Method not allowed', { status: 405 })
     }
 
-    // Convex posting a Play roll to a bound channel: bearer-authenticated, not
-    // Discord-signed, so it is routed before signature verification.
-    if (new URL(request.url).pathname === BOT_RELAY_POST_ROLL_PATH) {
-      return handlePostRoll(request, env)
-    }
-    if (new URL(request.url).pathname === BOT_RELAY_POST_STOP_PATH) {
-      return handlePostStop(request, env)
-    }
-
     // The RAW body, verified before it is parsed. Re-serialising a parsed body
     // does not round-trip byte-for-byte, and verifying the wrong bytes is the
     // classic way an interactions endpoint ends up accepting forgeries.
@@ -293,12 +285,7 @@ export default {
 
     // Configuration arrives as `env`, so the client can only be built once a
     // request exists. Cheap: a client is two strings and a closure.
-    setSiteClient(
-      createSiteClient({
-        siteUrl: env.BACKEND_SITE_URL,
-        botSecret: env.BOT_SECRET,
-      })
-    )
+    setSiteClient(createSiteClient(env.SITE as unknown as SiteGateway | undefined))
 
     let interaction: APIInteraction
     try {

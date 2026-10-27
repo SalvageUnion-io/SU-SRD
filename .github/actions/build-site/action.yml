@@ -1,5 +1,5 @@
 name: Build the site
-description: Build the site against a Convex URL, render its OG images into apps/web/dist and upload it as `web-dist`
+description: Build the site, render its OG images into apps/web/dist and upload it as `web-dist`
 
 # The site's one release build, shared by the `build-web` jobs of
 # deploy-cloudflare.yml (production) and deploy-preview.yml (a PR's Worker
@@ -7,18 +7,13 @@ description: Build the site against a Convex URL, render its OG images into apps
 # checkout that holds it), with `fetch-depth: 0`: the changelog page is
 # `main`'s history (ADR-041), and a shallow clone would render one commit of it.
 #
-# THE BUILD HOLDS NO SECRET and pushes nothing anywhere. The Convex URL is a
-# constant the caller passes; the job that pushes the backend checks the
-# deploy key resolves to it (`.github/actions/convex-push`).
+# THE BUILD HOLDS NO SECRET and pushes nothing anywhere.
 #
 # The OG render is best-effort, every step of it `continue-on-error`: a
 # missing browser or a wedged page keeps the default og:image and never stops
 # the build. `include-hidden-files`: the artifact is what ships, byte for
 # byte, so it must not silently drop a dotfile the build emitted.
 inputs:
-  convex-url:
-    description: The Convex client URL the app is compiled against (VITE_CONVEX_URL)
-    required: true
   commit-ref:
     description: The commit stamped into the build (VITE_COMMIT_REF)
     required: true
@@ -39,7 +34,6 @@ runs:
     - name: Build the site
       shell: bash
       env:
-        VITE_CONVEX_URL: ${{ inputs.convex-url }}
         VITE_COMMIT_REF: ${{ inputs.commit-ref }}
         VITE_SITE_ORIGIN: ${{ inputs.site-origin }}
       run: bun --filter web build
@@ -92,7 +86,11 @@ runs:
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
         name: web-dist
-        path: apps/web/dist/
+        # The site (`dist/client`), its Worker (`dist/server`) and wrangler's
+        # pointer to the Worker's config, which `wrangler deploy` follows.
+        path: |
+          apps/web/dist/
+          apps/web/.wrangler/deploy/config.json
         include-hidden-files: true
         if-no-files-found: error
         retention-days: ${{ inputs.retention-days }}

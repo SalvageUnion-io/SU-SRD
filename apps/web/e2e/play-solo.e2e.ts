@@ -7,9 +7,9 @@ import { expect, test } from './fixtures'
  * a pilot and a mech on the shelf, played without a Game, through each
  * Situation — On foot, Boarded, and a Downtime the player runs themselves.
  *
- * In every state the page never scrolls at the Play viewports (the canvas at
- * 1280 × 800, the phone form in a 1024 × 700 window and on a 390 × 844
- * phone), and axe finds nothing at the canvas or the phone.
+ * In every state the page never scrolls at the Play viewports (the columns
+ * in a 1440 × 900 and a 1024 × 700 window, the tabs on a 390 × 844 phone),
+ * and axe finds nothing wide or on the phone.
  *
  * Skips without the test sign-in seam, like every signed-in spec
  * (`fixtures.ts`); ci.yml's `build-web` carries the seam and runs it on every

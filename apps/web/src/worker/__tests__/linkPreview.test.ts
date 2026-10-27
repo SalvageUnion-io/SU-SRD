@@ -1,13 +1,14 @@
-import { afterEach, describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { color } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { META_END, META_START } from '../../lib/documentHead'
 import { renderShell } from '../../shell/shell'
-import type { Env } from '../index'
-import worker from '../index'
+import type { Env } from '../env'
 import type { ImageCache } from '../linkPreview'
 import { ogImage, previewRouteOf, versionOf } from '../linkPreview'
+import type { SharedDb } from '../shared/db'
 import { applyMeta } from '../shellMeta'
+import { worker } from './worker'
 
 /**
  * Link previews for player things. Discord's unfurler
@@ -19,9 +20,7 @@ import { applyMeta } from '../shellMeta'
 /** The real shell, so a test fails if it loses its markers. */
 const SHELL = renderShell()
 
-const CONVEX_URL = 'https://convex.example'
-
-/** What the fake Convex answers, by function path then by a key of its args. */
+/** What the shared database holds, by the read it answers then by a key of its args. */
 type Answers = Record<string, Record<string, unknown>>
 
 const PATTERN = {
@@ -31,7 +30,7 @@ const PATTERN = {
   gameName: null,
 }
 
-/** A Component Embed as Convex answers it, with a `<` a player could type. */
+/** A Component Embed as the shared database keeps it, with a `<` a player could type. */
 const EMBED = JSON.stringify({
   component: { type: 17, components: [{ type: 10, content: '## Tow <Rig>' }] },
 })
@@ -50,30 +49,51 @@ const INVITE = {
 
 const ANSWERS: Answers = {
   'publicSheet:preview': {
-    // Asked with the app's address, a pattern's answer carries its Discord card.
+    // A pattern's answer carries its Discord card.
     'pattern/pat-1': { ...PATTERN, componentEmbed: EMBED },
     'pilot/p-1': PILOT,
-    // p-2 exists but is private: Convex answers it with null, as for a missing one.
+    // p-2 exists but is private: it has no row, as a missing one has none.
     'pilot/p-2': null,
   },
   'publicSheet:invitePreview': { K7QR2XA: INVITE },
 }
 
-/** Every request the fake network saw. */
+/** Every request the fake network and database saw. */
 let seen: { url: string; body: unknown }[] = []
+/** What the shared database holds now: the last `fakeFetch` sets it. */
+let held: Answers = ANSWERS
+
+/** The shared database's slice the previews read, answering from `held`. */
+const SHARED = {
+  prepare: (sql: string) => ({
+    bind: (...args: string[]) => {
+      const row = () => {
+        if (sql.includes('from invites')) {
+          seen.push({ url: 'd1:invite', body: { code: args[0] } })
+          const invite = held['publicSheet:invitePreview']?.[args[0] ?? ''] as
+            | typeof INVITE
+            | undefined
+          return invite ? { name: invite.gameName, mediated_by: invite.mediatedBy } : null
+        }
+        seen.push({ url: 'd1:preview', body: { kind: args[0], appId: args[1] } })
+        const preview = held['publicSheet:preview']?.[`${args[0]}/${args[1]}`]
+        return preview ? { page: 'null', preview: JSON.stringify(preview) } : null
+      }
+      return {
+        first: async () => row(),
+        all: async () => ({ results: [] }),
+      }
+    },
+  }),
+} as unknown as SharedDb
 
 function fakeFetch(answers: Answers = ANSWERS, png = true) {
   seen = []
+  held = answers
   return async (input: Request | string, init?: RequestInit): Promise<Response> => {
     const url = typeof input === 'string' ? input : input.url
     const body = init?.body ? JSON.parse(String(init.body)) : undefined
     seen.push({ url, body })
-    if (url.startsWith(CONVEX_URL)) {
-      const { path, args } = body as { path: string; args: Record<string, string> }
-      const key = args.code ?? `${args.kind}/${args.appId}`
-      const value = answers[path]?.[key] ?? null
-      return Response.json({ status: 'success', value })
-    }
     if (url.includes('/browser-rendering/screenshot')) {
       return png
         ? new Response(new Uint8Array([137, 80, 78, 71]), {
@@ -97,7 +117,7 @@ function env(over: Partial<Env> = {}): Env {
         return new Response(SHELL, { headers: { 'content-type': 'text/html' } })
       },
     },
-    CONVEX_URL,
+    SHARED,
     CF_ACCOUNT_ID: 'acct',
     BROWSER_RENDERING_TOKEN: 'token',
     ...over,
@@ -156,13 +176,9 @@ describe('a Discordbot fetch of a shared pattern', () => {
 describe("a shared pattern's Discord card", () => {
   it('carries its Component Embed, as a book pattern page does, script-escaped', async () => {
     const html = await unfurl('/p/pattern/pat-1')
-    const asked = seen.find(
-      (r) => (r.body as { path?: string } | undefined)?.path === 'publicSheet:preview'
-    )
-    expect((asked?.body as { args: unknown } | undefined)?.args).toEqual({
+    expect(seen.find((r) => r.url === 'd1:preview')?.body).toEqual({
       kind: 'pattern',
       appId: 'pat-1',
-      appUrl: 'https://salvageunion.io/build',
     })
     const block = html.slice(html.indexOf(META_START), html.indexOf(META_END))
     expect(block).toContain('<script id="discord:component-embed" type="application/json">')
@@ -287,13 +303,23 @@ describe('without a renderer', () => {
   })
 })
 
-describe('when Convex does not answer', () => {
+describe('when the shared database does not answer', () => {
   it('keeps the sitewide defaults rather than breaking the page', async () => {
-    globalThis.fetch = (async () =>
-      new Response('down', { status: 503 })) as unknown as typeof fetch
-    const res = await worker.fetch(discordbot('/p/pilot/p-1'), env())
-    expect(res.status).toBe(200)
-    expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
+    const down = {
+      prepare: () => {
+        throw new Error('D1 down')
+      },
+    } as unknown as SharedDb
+    const errors = spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      for (const e of [env({ SHARED: down }), env({ SHARED: undefined })]) {
+        const res = await worker.fetch(discordbot('/p/pilot/p-1'), e)
+        expect(res.status).toBe(200)
+        expect(meta(await res.text(), 'og:title')).toBe('Training Bay · SalvageUnion.io')
+      }
+    } finally {
+      errors.mockRestore()
+    }
   })
 })
 

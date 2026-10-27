@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Children, cloneElement, Fragment, isValidElement } from 'react'
+import { cloneElement, Fragment, isValidElement } from 'react'
 import { splitStatLine } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import type { CSSVarStyle } from '../../../styles/cssVars'
@@ -154,10 +154,15 @@ export function Chips({
  * chip, its key prefixed with its Fragment's so two Fragments never collide.
  */
 function chipNodes(node: ReactNode, prefix = ''): ReactNode[] {
-  return Children.toArray(node).flatMap((child) => {
+  // Keyed here, not by `Children.toArray`, which has React warn for a host's
+  // unkeyed array (Mini's `[quantity, state]`) though each chip gets a key.
+  return (Array.isArray(node) ? node : [node]).flatMap((child: ReactNode, index) => {
+    if (child === null || child === undefined || typeof child === 'boolean') return []
+    if (Array.isArray(child)) return chipNodes(child, `${prefix}${index}/`)
     if (!isValidElement<{ children?: ReactNode }>(child)) return [child]
-    if (child.type === Fragment) return chipNodes(child.props.children, `${prefix}${child.key}/`)
-    return [prefix ? cloneElement(child, { key: `${prefix}${child.key}` }) : child]
+    const key = `${prefix}${child.key ?? index}`
+    if (child.type === Fragment) return chipNodes(child.props.children, `${key}/`)
+    return [cloneElement(child, { key })]
   })
 }
 

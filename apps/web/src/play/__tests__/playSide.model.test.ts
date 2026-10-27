@@ -5,7 +5,6 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
-import { PRESENCE_STALE_MS } from 'game-domain/schemas/seat'
 import { channelButtonLabel, channelTag, postLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
 import { mineText, playFeedEntries } from '../feed.model'
@@ -22,28 +21,23 @@ import {
 } from '../playRolls.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
-import { crewAt } from './crewFixture'
-
-const NOW = 1_800_000_000_000
+import { CREW_HERE, crewAt } from './crewFixture'
 
 describe('the Crew (play.md §7)', () => {
-  const lines = crewSeatLines(crewAt(NOW), [], 'bonesaw', NOW)
+  const lines = crewSeatLines(crewAt(), [], 'bonesaw', CREW_HERE)
 
   test('one line per other seat: the pilot this screen plays is left out', () => {
     expect(lines.map((l) => l.name)).toEqual(['Mags', 'Rook', 'Wren'])
   })
 
-  test('presence is the seat’s heartbeat: a beat an hour old is away', () => {
+  test('presence is the player having the Game open: Wren’s player has not', () => {
     expect(lines.map((l) => [l.name, l.present])).toEqual([
       ['Mags', true],
       ['Rook', true],
       ['Wren', false],
     ])
-    // Just inside, and just past, the stale window.
-    const edge = crewSeatLines(crewAt(NOW), [], 'bonesaw', NOW - 3_000 + PRESENCE_STALE_MS - 1)
-    expect(edge.find((l) => l.name === 'Rook')?.present).toBe(true)
-    const past = crewSeatLines(crewAt(NOW), [], 'bonesaw', NOW - 3_000 + PRESENCE_STALE_MS)
-    expect(past.find((l) => l.name === 'Rook')?.present).toBe(false)
+    // Before the room answers, nobody is here.
+    expect(crewSeatLines(crewAt(), [], 'bonesaw', null).some((l) => l.present)).toBe(false)
   })
 
   test('the mount: Boarded · <mech>, or On foot', () => {
@@ -61,7 +55,7 @@ describe('the Crew (play.md §7)', () => {
   })
 
   test('a crewmate whose mech overheats is flagged by its Heat', () => {
-    const crew = crewAt(NOW)
+    const crew = crewAt()
     const atlas = crew.mechs[0]
     if (atlas === undefined) throw new Error('fixture')
     crew.mechs[0] = {
@@ -70,13 +64,13 @@ describe('the Crew (play.md §7)', () => {
       status: { ...(atlas.status ?? ({} as never)), overheating: true },
       attention: true,
     }
-    const mags = crewSeatLines(crew, [], 'bonesaw', NOW)[0]
+    const mags = crewSeatLines(crew, [], 'bonesaw', CREW_HERE)[0]
     expect(mags?.vital).toEqual({ label: 'Heat', value: '9', attention: true })
   })
 
   test('a crewmate whose mech is shut down is flagged by it; otherwise by its SP', () => {
     const flagged = (status: Record<string, boolean>) => {
-      const crew = crewAt(NOW)
+      const crew = crewAt()
       const atlas = crew.mechs[0]
       if (atlas === undefined) throw new Error('fixture')
       crew.mechs[0] = {
@@ -84,7 +78,7 @@ describe('the Crew (play.md §7)', () => {
         status: { ...(atlas.status ?? ({} as never)), ...status },
         attention: true,
       }
-      return crewSeatLines(crew, [], 'bonesaw', NOW)[0]?.vital
+      return crewSeatLines(crew, [], 'bonesaw', CREW_HERE)[0]?.vital
     }
     expect(flagged({ shutdown: true })).toEqual({
       label: 'Shut down',
@@ -103,13 +97,13 @@ describe('the Crew (play.md §7)', () => {
   })
 
   test('the pair (crewPair): aboard their mech; on foot their assigned mech, for its MECH chip', () => {
-    const crew = crewAt(NOW)
+    const crew = crewAt()
     const atlas = crew.mechs[0]
     const rook = crew.pilots[2]
     if (atlas === undefined || rook === undefined) throw new Error('fixture')
     // Mags climbs out of Atlas, which stays assigned to them.
     crew.pilots[1] = { ...(crew.pilots[1] ?? rook), boarded: false }
-    const [mags, onFootRook, wren] = crewSeatLines(crew, [], 'bonesaw', NOW)
+    const [mags, onFootRook, wren] = crewSeatLines(crew, [], 'bonesaw', CREW_HERE)
     expect(mags && pairedMech(mags)).toMatchObject({ name: 'Atlas' })
     expect(mags?.boardedIn).toBeNull()
     expect(onFootRook && pairedMech(onFootRook)).toBeNull()
@@ -117,12 +111,15 @@ describe('the Crew (play.md §7)', () => {
   })
 
   test('no crew read yet: no lines', () => {
-    expect(crewSeatLines(null, [], 'bonesaw', NOW)).toEqual([])
+    expect(crewSeatLines(null, [], 'bonesaw', CREW_HERE)).toEqual([])
   })
 
-  test('"N here" counts every seat beating now, the viewer’s own included', () => {
-    expect(hereCount(crewAt(NOW).pilots, NOW)).toBe(3)
-    expect(hereCount(undefined, NOW)).toBe(0)
+  test('"N here" counts every player at a seat who has the Game open, the viewer included, once each', () => {
+    const pilots = crewAt().pilots
+    expect(hereCount(pilots, CREW_HERE)).toBe(3)
+    expect(hereCount([...pilots, { ownerId: [...CREW_HERE][0] ?? 'missing' }], CREW_HERE)).toBe(3)
+    expect(hereCount(undefined, CREW_HERE)).toBe(0)
+    expect(hereCount(crewAt().pilots, null)).toBe(0)
     expect(liveLabel(3)).toBe('● Live · 3 here')
     expect(liveLabel(null)).toBe('● Live')
     expect(liveLabel(3, 4)).toBe('● Live · 3 of 4 here')
@@ -131,27 +128,25 @@ describe('the Crew (play.md §7)', () => {
 
 describe('read-only, said in one place (play.md §7)', () => {
   test('writes may go: nothing to say', () => {
-    expect(playReadOnly({ mode: 'connected', canWrite: true })).toBeNull()
+    expect(playReadOnly({ status: 'live', canWrite: true })).toBeNull()
   })
 
   test('disconnected and outdated each say so', () => {
-    expect(playReadOnly({ mode: 'disconnected', canWrite: false })?.stamp).toBe(
-      'Read-only · disconnected'
-    )
-    expect(playReadOnly({ mode: 'connected', canWrite: false, outdated: true })?.stamp).toBe(
+    expect(playReadOnly({ status: 'offline', canWrite: false })?.stamp).toBe('Offline · read-only')
+    expect(playReadOnly({ status: 'live', canWrite: false, outdated: true })?.stamp).toBe(
       'Read-only · outdated'
     )
-    expect(playReadOnly({ mode: 'connecting', canWrite: false })?.says).toBe(
+    expect(playReadOnly({ status: 'syncing', canWrite: false })?.says).toBe(
       'Read-only while the connection settles.'
     )
   })
 
   test('signed out, or a server not taking changes, each say so', () => {
-    expect(playReadOnly({ mode: 'solo', canWrite: false })).toEqual({
+    expect(playReadOnly({ status: 'signedOut', canWrite: false })).toEqual({
       stamp: 'Read-only · signed out',
       says: 'Read-only: sign in to play.',
     })
-    expect(playReadOnly({ mode: 'connected', canWrite: false })).toEqual({
+    expect(playReadOnly({ status: 'live', canWrite: false })).toEqual({
       stamp: 'Read-only',
       says: 'Read-only: the server is not taking changes right now.',
     })

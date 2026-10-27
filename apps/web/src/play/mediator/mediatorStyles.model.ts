@@ -1,6 +1,7 @@
 /**
  * The Mediator's shared text styles (play.md §10): the muted copy and the
- * lined-up numbers inside the propose dock and the proposals list.
+ * lined-up numbers inside the propose dock and the proposals list; the note
+ * lines and control rows of the Opposition's boxes and the seats.
  *
  * Style objects over `tokens` only: no stylesheet class (ADR-046).
  */
@@ -23,3 +24,22 @@ export const MUTED = { ...BODY, color: color.ink75 } satisfies CSSProperties
 
 /** Numbers line up. */
 export const NUMBERS = { fontVariantNumeric: 'tabular-nums' } satisfies CSSProperties
+
+/** A line of the Opposition's and the seats' notes. */
+export const NOTE = {
+  color: color.ink,
+  fontFamily: font.body,
+  fontSize: fontSize.note,
+  margin: 0,
+} satisfies CSSProperties
+
+export const NOTE_MUTED = { ...NOTE, color: color.ink75 } satisfies CSSProperties
+
+export const STRONG = { fontWeight: tokens.weight.bold } satisfies CSSProperties
+
+/** A row of small controls. */
+export const CONTROLS = {
+  alignItems: 'center',
+  display: 'flex',
+  gap: tokens.space[4],
+} satisfies CSSProperties

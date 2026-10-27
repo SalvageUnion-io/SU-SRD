@@ -28,9 +28,8 @@ import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
 import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
-import type { useEntityStore } from '../../../stores/entityStore'
-import { LIVE_SHEET_MANUAL } from '../../../stores/surfaceProvenance'
+import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
+import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { CrawlerSheet } from '../CrawlerSheet'
 
 /** Open every crew lead's Details: in Edit a crew lead starts collapsed, its fields behind it. */
@@ -120,20 +119,8 @@ type Spies = {
   updateCrawlerBay: ReturnType<typeof mock>
 }
 
-function makeStubStore(crawler: Crawler, spies?: Partial<Spies>): typeof useEntityStore {
-  const update = spies?.update ?? mock(async () => crawler)
-  const updateCrawlerBay = spies?.updateCrawlerBay ?? mock(async () => crawler)
-  return makeEntityStoreMock({
-    crawlers: [crawler],
-    hydrated: { pilots: false, mechs: false, crawlers: true, npcs: true, softLinks: false },
-    hydrate: mock(async () => {}),
-    list: mock(() => [crawler]),
-    get: mock((_type: string, id: string) => (id === crawler.id ? crawler : null)),
-    create: mock(async () => crawler),
-    update,
-    updateCrawlerBay,
-    delete: mock(async () => {}),
-  })
+function makeStubStore(crawler: Crawler, spies?: Partial<Spies>) {
+  return makeSingleUnitStore('crawler', crawler, spies)
 }
 
 // ---------------------------------------------------------------------------
