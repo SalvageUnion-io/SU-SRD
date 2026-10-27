@@ -78,10 +78,10 @@
   // bindings above: its own shared database and photos, so a Preview never
   // reads or writes production's.
   // Its error endpoints run without the rate limits, which the Worker allows.
-  // AUTH_CALLBACK_ORIGIN "https://salvageunion.io" joins its vars once
-  // production serves this Worker's sign-in (the 4.5 cutover): every Preview
-  // then signs in through production's one Discord redirect.
+  // Every Preview signs in through production's one Discord redirect
+  // (AUTH_CALLBACK_ORIGIN, src/worker/auth/index.ts).
   "previews": {
+    "vars": { "AUTH_CALLBACK_ORIGIN": "https://salvageunion.io" },
     "d1_databases": [
       {
         "binding": "SHARED",
