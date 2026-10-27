@@ -10,7 +10,8 @@
  *     (ADR-056).
  *   - `chunk-miss`: `/assets/*` (or `/build/assets/*`) → a bare **404**.
  *   - `legacy-301`: a page path from before the move out of `/schema/…/item/`,
- *     or one that is gone (the search page) → a **301** to where it lives now
+ *     or one that is gone (the search page, an action's page, a touch icon by
+ *     its conventional name) → a **301** to where it lives now
  *     (`../lib/redirects.ts`).
  *   - `not-found`: anything else → `404.html`, read through the asset
  *     binding, with a 404.
@@ -31,7 +32,7 @@
 
 import { API_V1_PATH } from '../lib/apiV1Paths'
 import { appPath } from '../lib/appBase'
-import { currentPathFor, retiredSitePage } from '../lib/redirects'
+import { currentPathFor, formerSitePath, retiredSitePage } from '../lib/redirects'
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
@@ -83,14 +84,16 @@ export async function serveMiss(request: Request, env: { ASSETS: Assets }): Prom
     return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
   }
 
-  // 3. A page under the old grammar, or one that is gone (the search page):
-  // one hop to its new address, query kept.
-  const moved = currentPathFor(url.pathname) ?? retiredSitePage(url.pathname)
+  // 3. A page under the old grammar, or one that is gone (the search page,
+  // an action's page): one hop to its new address, query kept.
+  const moved =
+    currentPathFor(url.pathname) ?? retiredSitePage(url.pathname) ?? formerSitePath(url.pathname)
   if (moved) {
+    const query = moved.includes('?') ? url.search.replace(/^\?/, '&') : url.search
     return new Response(null, {
       status: 301,
       headers: {
-        location: `${moved}${url.search}`,
+        location: `${moved}${query}`,
         'cache-control': 'public, max-age=86400',
       },
     })
