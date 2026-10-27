@@ -259,7 +259,7 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
           href={cockpitPath(pilot.pilotId)}
           aria-label={playCopy('playSolo2', { name: pilot.name })}
           variant="ink"
-          size="compact"
+          size="mini"
         >
           {playCopy('playSolo')}
         </Button>
@@ -368,8 +368,8 @@ function PlayGameItem({
         trailing={
           door ? (
             // Ink on the Game's pink, as its stamps are (R44: a control on a
-            // pink band is ink), Compact: a row's control is a whole tap target.
-            <Button href={door.href} aria-label={door.ariaLabel} variant="ink" size="compact">
+            // pink band is ink), a chip's height.
+            <Button href={door.href} aria-label={door.ariaLabel} variant="ink" size="mini">
               {door.label}
             </Button>
           ) : undefined

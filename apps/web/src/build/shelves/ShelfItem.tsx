@@ -91,7 +91,6 @@ export function ShelfItem({
           hasMenu ? (
             <HeaderMenu
               variant="overflow"
-              size="compact"
               trigger={null}
               label={buildShelvesCopy('moreFor', { name })}
               sections={menu}
