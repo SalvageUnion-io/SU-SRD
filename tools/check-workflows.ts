@@ -38,9 +38,8 @@
  *                 function in its `if:` — the implicit `success()` is false
  *                 whenever any ancestor was skipped.
  *   secrets-env   every job that reads an Environment secret declared in
- *                 `tools/environments.ts` (`production`: Cloudflare, Convex
- *                 and Discord; `preview`: Cloudflare and the staging Convex
- *                 key) declares an Environment holding it, and every
+ *                 `tools/environments.ts` (`production`: Cloudflare and
+ *                 Discord; `preview`: Cloudflare) declares an Environment holding it, and every
  *                 Environment a job names is declared there. The secrets live
  *                 only in Environments: `production` admits `main` alone, and
  *                 `preview` admits any branch, but only from a job that names

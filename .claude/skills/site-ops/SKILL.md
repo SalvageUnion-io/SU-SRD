@@ -95,12 +95,13 @@ pbpaste | tr -d '\n' | bunx wrangler secret put DISCORD_CLIENT_SECRET
 Guard on **length 32** before writing: if the copy silently failed, refusing
 beats writing garbage into production auth. Only a real sign-in proves it.
 
-## Convex, the retired fallback
+## Convex, retired
 
-The site no longer talks to Convex (ADR-030). The Convex project, its data and
-its keys stay intact as a fallback, and nothing in `main` deploys to it; its
-code is at the `convex-last` tag. Never run a `convex` command against it, and
-never delete or change its data, without the owner's word in the thread.
+The site no longer talks to Convex (ADR-064), and no workflow holds a Convex
+key. Its code is at the `convex-last` tag and its last export (data and photo
+files) is in the private R2 bucket `su-archive` under `convex/`. Never run a
+`convex` command against the project, or delete it, without the owner's word
+in the thread.
 
 ## Report
 
