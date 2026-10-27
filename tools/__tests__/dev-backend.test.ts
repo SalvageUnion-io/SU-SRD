@@ -187,6 +187,17 @@ describe('main', () => {
     expect(world.errors[0]).toContain('installing chrome-headless-shell failed: offline')
   })
 
+  test('a Chromium that still cannot start after the install is named as such', async () => {
+    const s = setup()
+    const { sys, world } = fakeSys({ comesUp: new Map([[`${s.dev}/`, s.root]]) })
+    sys.launch = async () => {
+      throw new Error('Missing libnss3\nlog')
+    }
+    expect(await main([], sys, s)).toBe(0)
+    expect(world.calls).toContain('run bunx playwright install chromium-headless-shell')
+    expect(world.errors[0]).toContain('Chromium could not start: Missing libnss3')
+  })
+
   test('a Chromium that cannot start is named as such', async () => {
     const s = setup()
     const { sys, world } = fakeSys({ comesUp: new Map([[`${s.dev}/`, s.root]]) })

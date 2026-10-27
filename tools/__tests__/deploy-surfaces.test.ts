@@ -227,6 +227,12 @@ describe('deploy-surfaces — script against a real git history', () => {
     const c = commit('apps/web/page.tsx')
     expect(decide(c)).toEqual({ stale: 'false', deploy: '["web"]' })
   })
+  test('a commit beside the record, not after it, deploys what differs from it', () => {
+    git(work, 'checkout', '--quiet', '--detach', a)
+    const side = commit('apps/discord-bot/side.ts')
+    expect(decide(side)).toEqual({ stale: 'false', deploy: '["discord-bot"]' })
+  })
+
   test('says why it ships what it ships', () => {
     const stale = decideLogged(a).lines
     expect(stale[0]).toBe(`last recorded deploy: ${b}`)

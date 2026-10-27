@@ -12,8 +12,6 @@
  *     deletion (`./auth/`).
  *   - `app`: `/build`, `/play` and below → the app (`./app.ts`); a file it
  *     does not have is a miss.
- *   - `cutover`: `/admin/cutover/*` → the cutover's door, for
- *     `tools/cutover-run.ts` alone (`./cutover.ts`).
  *   - `rooms`: `/__rooms/*` → each room kind's schema version (`health`), a
  *     member's socket to a Game's room, the signed-in player's socket to
  *     their account room (`./roomRoutes.ts`), one Games call by its name
@@ -39,7 +37,6 @@ import { isAccountPath, serveAccount } from './accountRoutes'
 import { serveApp } from './app'
 import { handleAuth } from './auth/index'
 import { d1Sql } from './auth/store'
-import { handleCutover } from './cutover'
 import type { Env } from './env'
 import { handleErrorReport } from './errorReports'
 import { serveGameCall } from './gameCalls'
@@ -50,7 +47,6 @@ import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from './roomRou
 import type { GameRoomStub } from './rooms'
 import { rooms } from './rooms'
 import type { WorkerRouteName } from './routeTable'
-import { CUTOVER_PREFIX } from './routeTable'
 import { deleteRoomAccount } from './shared/accountDeletion'
 import type { SharedDb } from './shared/db'
 import { isSharedPath, serveShared } from './sharedRoutes'
@@ -96,10 +92,6 @@ export const SERVE: Record<WorkerRouteName, Serve> = {
     handleErrorReport(request, { app: 'web', limiter: env.ERROR_REPORT_LIMIT }),
   auth,
   app: async (request, env) => (await serveApp(request, env)) ?? serveMiss(request, env),
-  cutover: (request, env) =>
-    new URL(request.url).pathname.startsWith(CUTOVER_PREFIX)
-      ? handleCutover(request, env)
-      : serveMiss(request, env),
   rooms: roomsRoute,
   shared: (request, env) =>
     isSharedPath(new URL(request.url).pathname)

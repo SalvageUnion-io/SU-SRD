@@ -222,6 +222,13 @@ describe('runGenerators', () => {
     expect(JSON.parse(readFileSync(cacheFile, 'utf8'))).not.toHaveProperty('racing')
   })
 
+  test('a cache that cannot be written costs only the next skip', async () => {
+    const blocked = join(root, 'blocked')
+    writeFileSync(blocked, 'a file, so no directory can go under it')
+    const [r] = await runGenerators([counting], { root, cacheFile: join(blocked, 'cache.json') })
+    expect(r).toMatchObject({ skipped: false, status: 0 })
+  })
+
   test('an unreadable cache is a miss, not a crash', async () => {
     writeFileSync(cacheFile, 'not json')
     const before = runs()
