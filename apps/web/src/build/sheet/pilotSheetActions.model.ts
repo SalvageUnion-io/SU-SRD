@@ -124,7 +124,7 @@ export function usePilotSheetActions({
    */
   function saveBuildEdit(fields: Partial<Pilot>, label: string) {
     if (softWarnings.preview(fields).length === 0) {
-      void softWarnings.saveAnyway()
+      runWrite(() => softWarnings.saveAnyway())
       return
     }
     setWarningSubtitle(label)
@@ -282,7 +282,7 @@ export function usePilotSheetActions({
       setWarningSubtitle(null)
     },
     confirmBuildEdit: () => {
-      void softWarnings.saveAnyway()
+      runWrite(() => softWarnings.saveAnyway())
       setWarningSubtitle(null)
     },
   }

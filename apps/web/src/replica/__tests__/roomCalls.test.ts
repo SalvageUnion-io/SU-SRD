@@ -8,7 +8,13 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { ROOMS_CALL_PATH } from '../../rooms/routes'
-import { forgetGamesAnswers, roomCall, useGamesCall, useGamesQuery } from '../roomCalls'
+import {
+  forgetGamesAnswers,
+  RoomUnreachable,
+  roomCall,
+  useGamesCall,
+  useGamesQuery,
+} from '../roomCalls'
 import { noteRoomChange } from '../roomChanges'
 import { RoomDeclined } from '../roomSocket'
 
@@ -53,6 +59,15 @@ describe('roomCall', () => {
   test('a failed request throws with the call it was', async () => {
     answer = () => ({ status: 500, body: { error: 'call_failed' } })
     await expect(roomCall('games.listMine', {})).rejects.toThrow('games.listMine answered 500')
+  })
+
+  test('a request that never reached the server is a RoomUnreachable', async () => {
+    globalThis.fetch = (async () => {
+      throw new TypeError('Load failed')
+    }) as unknown as typeof fetch
+    const call = roomCall('games.listMine', {})
+    await expect(call).rejects.toBeInstanceOf(RoomUnreachable)
+    await expect(call).rejects.toThrow('games.listMine did not reach the server')
   })
 })
 
