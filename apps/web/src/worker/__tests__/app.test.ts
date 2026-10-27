@@ -158,9 +158,9 @@ async function expectSiteMiss(res: Response) {
 describe("a missing FILE is the site's 404, not the shell", () => {
   for (const path of [
     '/foo.png',
-    '/favicon.ico',
+    '/favicon.png',
     '/robots.txt',
-    '/apple-touch-icon.png',
+    '/touch-icon.png',
     '/manifest.json',
     '/deep/path/thing.txt',
     '/missing.html',
@@ -169,6 +169,18 @@ describe("a missing FILE is the site's 404, not the shell", () => {
       await expectSiteMiss(await worker.fetch(req(path), envWith()))
     })
   }
+
+  it('sends the site’s icons, asked for under the app, to the site’s own', async () => {
+    const moves: Array<[path: string, to: string]> = [
+      ['/favicon.ico', '/favicon.ico'],
+      ['/apple-touch-icon-precomposed.png', '/favicons/su/favicon-180.png'],
+    ]
+    for (const [path, to] of moves) {
+      const res = await worker.fetch(req(path), envWith())
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe(to)
+    }
+  })
 
   it('passes a file that is there through', async () => {
     const res = await worker.fetch(req('/icon-192.png'), envWith())

@@ -78,6 +78,27 @@ describe('a page under the pre-N4 `/schema/…/item/` grammar 301s to its new ad
   }
 })
 
+describe('an earlier address of a site page 301s to where it lives now', () => {
+  const moves: Array<[from: string, to: string]> = [
+    ['/titans/typhon/', '/bio-titans/typhon/'],
+    ['/titans/', '/bio-titans/'],
+    ['/actions/hack/', '/?q=hack'],
+    ['/actions/hack/?ref=x', '/?q=hack&ref=x'],
+    ['/catalog-categories/mech/', '/'],
+    ['/sheets/mech', '/build/mechs/new'],
+    ['/apple-touch-icon.png', '/favicons/su/favicon-180.png'],
+  ]
+  for (const [from, to] of moves) {
+    it(`${from} → ${to}`, async () => {
+      const env = envWith()
+      const res = await worker.fetch(req(from), env)
+
+      expect(res.status).toBe(301)
+      expect(res.headers.get('location')).toBe(to)
+    })
+  }
+})
+
 describe('any other miss is the 404 page, uncacheable', () => {
   for (const path of [
     '/nope-does-not-exist/',
