@@ -12,10 +12,12 @@ import { z } from 'salvageunion-reference/zod'
  *
  * Two kinds, because two things put a picture on an entity:
  *
- *   - `upload` — the player's own image, in R2. `url` is the
- *     address the Worker handed back for the upload; a key is never reused, so every reader (the sheet, a crewmate's
- *     view, the public sheet) renders it without a query. No room checks it
- *     against `storageId` on a write yet.
+ *   - `upload` — the player's own image, in R2 under `storageId`. Every
+ *     reader (the sheet, a crewmate's view, the public sheet) renders it from
+ *     the Worker by that key (`photoPath`), never from the stored `url`, so a
+ *     `url` naming another host shows nothing from it. A photo uploaded before
+ *     4.5 keeps its Convex `url`; its file was copied into R2 under its Convex
+ *     `_storage` id.
  *   - `asset` — licensed artwork on the CDN, by object key. The Starter Set
  *     crew carry their portraits this way, and a copy keeps it.
  *
@@ -48,9 +50,17 @@ export const photoFields = {
   photo: PhotoSchema.optional(),
 }
 
-/** Where a photo is served from. */
+/** Where the Worker uploads (`POST`) and serves (`GET <path>/<key>`) photos, from R2. */
+export const PHOTOS_PATH = '/__photos'
+
+/** A photo's address under `PHOTOS_PATH`. */
+export function photoPath(key: string): string {
+  return `${PHOTOS_PATH}/${encodeURIComponent(key)}`
+}
+
+/** Where a photo is served from: an upload by its key, whatever `url` it stored. */
 export function photoUrl(photo: Photo): string {
-  return photo.kind === 'upload' ? photo.url : assetUrl(photo.path)
+  return photo.kind === 'upload' ? photoPath(photo.storageId) : assetUrl(photo.path)
 }
 
 /** The storage id a body's photo holds, if it is an upload — what the server counts references by. */

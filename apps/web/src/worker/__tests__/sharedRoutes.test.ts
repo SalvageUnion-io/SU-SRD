@@ -316,6 +316,20 @@ describe('servePhotos', () => {
     expect((await served.arrayBuffer()).byteLength).toBe(10)
   })
 
+  it('serves a pre-4.5 photo copied under its Convex storage id', async () => {
+    const { it: photos } = bucket()
+    await photos.put('kg2a8b9c0d1e2f3g4h5j6k7m8n9p0q1r', new ArrayBuffer(7), {
+      httpMetadata: { contentType: 'image/jpeg' },
+      customMetadata: {},
+    })
+    const served = await servePhotos(
+      new Request(`${ORIGIN}${PHOTOS_PATH}/kg2a8b9c0d1e2f3g4h5j6k7m8n9p0q1r`),
+      { SHARED: {} as never, PHOTOS: photos }
+    )
+    expect(served.status).toBe(200)
+    expect(served.headers.get('content-type')).toBe('image/jpeg')
+  })
+
   it('refuses an upload sent from another site, however signed in', async () => {
     const { it: photos, files } = bucket()
     expect(

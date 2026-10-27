@@ -93,7 +93,7 @@ describe('a Starter Set build’s pre-rendered shell', () => {
     expect(meta(html, 'theme-color')).toBe(color.pilot)
   })
 
-  it("unfurls with the site's own picture: the render surfaces read Convex, which has no template", () => {
+  it("unfurls with the site's own picture: a player's unit has no picture template", () => {
     const html = shellFor(path)
     expect(meta(html, 'og:image')).toBe(`${PROD}/og-image.png`)
     expect(meta(html, 'twitter:card')).toBe('summary_large_image')

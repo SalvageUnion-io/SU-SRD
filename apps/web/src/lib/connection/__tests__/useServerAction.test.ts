@@ -64,7 +64,7 @@ describe('failureMessage', () => {
   })
 
   test("a defect says the caller's line, never its own text", () => {
-    const redacted = new Error('[CONVEX M(games:create)] [Request ID: 1] Server Error')
+    const redacted = new Error('games.create failed [request 1]')
     expect(failureMessage(redacted, FAILURE)).toBe(FAILURE)
   })
 
@@ -90,7 +90,7 @@ describe('failureMessage', () => {
 // for the player was meant to happen and is not.
 describe('what gets reported', () => {
   test('a defect is reported once', () => {
-    const defect = new Error('[CONVEX M(games:create)] [Request ID: 1] Server Error')
+    const defect = new Error('games.create failed [request 1]')
     failureMessage(defect, FAILURE)
     expect(captured).toEqual([defect])
   })

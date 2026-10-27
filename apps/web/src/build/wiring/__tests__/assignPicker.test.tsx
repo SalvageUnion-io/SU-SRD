@@ -459,7 +459,7 @@ describe('AssignPicker — a refusal is shown in the dialog', () => {
   })
 
   test('a defect is not shown raw', async () => {
-    const raw = '[CONVEX M(entities:upsertSoftLink)] [Request ID: x] Server Error'
+    const raw = 'entities.upsertSoftLink failed [request x]'
     await pickAndConfirm(async () => {
       throw new Error(raw)
     })
