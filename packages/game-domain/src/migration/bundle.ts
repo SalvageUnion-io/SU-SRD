@@ -45,7 +45,6 @@ const BundleUnitSchema = z.object({
   updatedAt: z.number(),
   ops: z.array(BundleOpSchema),
 })
-export type BundleUnit = z.infer<typeof BundleUnitSchema>
 
 /** A body without an op log: a saved pattern, an encounter, a tray NPC. */
 const BundleRecordSchema = z.object({
@@ -53,7 +52,6 @@ const BundleRecordSchema = z.object({
   body: Body,
   extra: z.record(z.string(), z.unknown()),
 })
-export type BundleRecord = z.infer<typeof BundleRecordSchema>
 
 const BundleLinkSchema = z.object({
   type: z.string(),
@@ -142,22 +140,3 @@ export const GameBundleSchema = z.object({
     .default(null),
 })
 export type GameBundle = z.infer<typeof GameBundleSchema>
-
-/** What crosses rooms and lands in D1: homebrew, signals, photos. */
-export const SiteBundleSchema = z.object({
-  homebrewReports: z.array(
-    z.object({ patternAppId: z.string(), reporter: z.string(), reason: z.string(), at: z.number() })
-  ),
-  homebrewHidden: z.array(
-    z.object({ patternAppId: z.string(), hiddenAt: z.number().nullable(), reportCount: z.number() })
-  ),
-  usageCounts: z.array(z.object({ key: z.string(), weekStart: z.number(), count: z.number() })),
-  botGuilds: z.array(
-    z.object({ guildId: z.string(), firstSeenAt: z.number(), lastSeenAt: z.number() })
-  ),
-  metricsSnapshots: z.array(z.record(z.string(), z.unknown())),
-  feedback: z.array(z.record(z.string(), z.unknown())),
-  /** Uploaded photos to copy from Convex file storage to R2, by storage id. */
-  photos: z.array(z.object({ storageId: z.string(), owner: z.string() })),
-})
-export type SiteBundle = z.infer<typeof SiteBundleSchema>

@@ -106,7 +106,6 @@
       "name": "tools",
       "version": "0.0.0",
       "devDependencies": {
-        "game-domain": "workspace:*",
         "gates": "workspace:*",
         "salvageunion-reference": "workspace:*",
         "sharp": "catalog:",

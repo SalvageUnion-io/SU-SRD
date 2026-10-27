@@ -8,7 +8,6 @@
     "test": "bun test --parallel=4 --no-isolate"
   },
   "devDependencies": {
-    "game-domain": "workspace:*",
     "gates": "workspace:*",
     "salvageunion-reference": "workspace:*",
     "sharp": "catalog:"

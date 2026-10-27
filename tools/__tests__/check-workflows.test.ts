@@ -652,6 +652,16 @@ describe('secrets-env', () => {
     expect(run(job('GITHUB_TOKEN'), job('DISCORD_TOKEN', 'production'))).toEqual([])
   })
 
+  test('with no secret declared, no job reads one, so it fails as passing empty', () => {
+    const bare = {
+      environments: [{ name: 'production', branches: ['main'], secrets: [] }],
+      sentinel: null,
+    }
+    expect(checkSecretsEnv(ctx({ extra: [job('DISCORD_TOKEN')] }), bare).failures[0]).toContain(
+      'would pass by doing nothing'
+    )
+  })
+
   test('no job reading a production secret fails rather than passing empty', () => {
     expect(run(job('GITHUB_TOKEN'))[0]).toContain('would pass by doing nothing')
     expect(run()[0]).toContain('would pass by doing nothing')

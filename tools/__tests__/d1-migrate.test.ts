@@ -45,6 +45,11 @@ describe('d1-migrate', () => {
   it('stops on anything else, and touches no other database', async () => {
     const denied = wrangler({ 'd1 info': { exitCode: 1, stderr: 'Authentication error' } })
     await expect(migrate('su-shared', denied.run)).rejects.toThrow('could not read')
+    const uncreated = wrangler({
+      'd1 info': { exitCode: 1, stderr: "Couldn't find a D1 DB named 'su-shared'" },
+      'd1 create': { exitCode: 1, stderr: 'quota reached' },
+    })
+    await expect(migrate('su-shared', uncreated.run)).rejects.toThrow('could not create')
     const failed = wrangler({ 'd1 migrations': { exitCode: 1, stderr: 'syntax error' } })
     await expect(migrate('su-shared', failed.run)).rejects.toThrow('migrations failed')
     await expect(migrate('production-db', wrangler({}).run)).rejects.toThrow('not one of')

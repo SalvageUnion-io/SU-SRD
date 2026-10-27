@@ -2,8 +2,7 @@
  * The Worker's Cron Triggers (`triggers.crons` in wrangler.jsonc), over the
  * shared database (ADR-057):
  *
- *   - `METRICS_CRON`, daily: the usage totals into a snapshot (`takeSnapshot`),
- *     once the cutover has filled the database.
+ *   - `METRICS_CRON`, daily: the usage totals into a snapshot (`takeSnapshot`).
  *   - `FEEDBACK_CRON`, hourly: waiting feedback filed as GitHub issues, and
  *     old rows deleted (`sweepFeedback`).
  *
@@ -11,7 +10,6 @@
  */
 
 import type { SharedDb } from './shared/db'
-import { isFilled } from './shared/db'
 import { sweepFeedback } from './shared/feedback'
 import { takeSnapshot } from './shared/signals'
 
@@ -39,8 +37,7 @@ export async function runCron(
 ): Promise<void> {
   if (!env.SHARED) throw new Error('cron: no shared database bound')
   if (cron === METRICS_CRON) {
-    // Before the cutover fills it the database counts nothing worth a snapshot.
-    if (await isFilled(env.SHARED)) await takeSnapshot(env.SHARED, now)
+    await takeSnapshot(env.SHARED, now)
     return
   }
   if (cron === FEEDBACK_CRON) {

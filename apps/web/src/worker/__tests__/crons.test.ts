@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { FEEDBACK_CRON, METRICS_CRON, runCron } from '../crons'
 import type { Env } from '../env'
 import { testDb } from '../shared/__tests__/d1'
-import { markFilled } from '../shared/db'
 import { acceptFeedback } from '../shared/feedback'
 import { readMetrics } from '../shared/signals'
 import { worker } from './worker'
@@ -21,14 +20,10 @@ describe('the Cron Triggers', () => {
     expect(WRANGLER.triggers.crons).toEqual([METRICS_CRON, FEEDBACK_CRON])
   })
 
-  it('take the snapshot through the Worker, once the database is filled', async () => {
+  it('take the snapshot through the Worker', async () => {
     const SHARED = testDb()
-    const tick = (scheduledTime: number) =>
-      worker.scheduled({ cron: METRICS_CRON, scheduledTime }, { SHARED } as unknown as Env)
-    await tick(4)
     expect((await readMetrics(SHARED)).snapshot).toBeNull()
-    await markFilled(SHARED)
-    await tick(5)
+    await worker.scheduled({ cron: METRICS_CRON, scheduledTime: 5 }, { SHARED } as unknown as Env)
     expect((await readMetrics(SHARED)).snapshot?.takenAt).toBe(5)
   })
 

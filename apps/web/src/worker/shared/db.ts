@@ -32,34 +32,3 @@ export function parseJson<T>(text: unknown): T | null {
     return null
   }
 }
-
-/** SQLite has no boolean: 0 and 1. */
-export { bit as flag } from '../../rooms/game/store'
-
-/**
- * Whether the cutover's copy has filled the shared database. Until it has,
- * a reader keeps its old source, so nothing reads an empty table: a missing
- * binding or a failed read counts as not filled.
- */
-export async function isFilled(db: SharedDb | undefined): Promise<boolean> {
-  if (db === undefined) return false
-  try {
-    const row = await db
-      .prepare("select value from shared_meta where key = 'filled'")
-      .first<{ value: string }>()
-    return row !== null
-  } catch {
-    return false
-  }
-}
-
-/** Mark the shared database filled: every reader moves to it. The cutover's last step. */
-export async function markFilled(db: SharedDb, now = Date.now()) {
-  await db
-    .prepare(
-      `insert into shared_meta (key, value) values ('filled', ?1)
-       on conflict (key) do update set value = excluded.value`
-    )
-    .bind(String(now))
-    .run()
-}
