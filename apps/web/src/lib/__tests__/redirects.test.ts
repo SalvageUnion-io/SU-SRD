@@ -10,7 +10,7 @@
  * the build emits must be reachable from its old address.
  */
 import { describe, expect, it } from 'bun:test'
-import { redirectRules, redirectsEndpoint } from '../../reference/endpoints/redirects'
+import { actionMoves, redirectRules, redirectsEndpoint } from '../../reference/endpoints/redirects'
 import type { RouteContext } from '../../reference/types'
 import { DOC_PAGES } from '../docPages'
 import { itemHref, patternHref, schemaHref } from '../entityHref'
@@ -18,6 +18,7 @@ import { ogImagePath } from '../ogCard'
 import {
   currentPathFor,
   FIXED_MOVES,
+  formerSitePath,
   legacyItemHref,
   retiredDocPage,
   retiredSitePage,
@@ -27,6 +28,25 @@ import { getItemStaticPaths, getPatternStaticPaths, getSchemaStaticPaths } from 
 
 describe('_redirects', () => {
   const rules = redirectRules()
+
+  it('sends an action’s old page to the one entity that has it', () => {
+    expect(rules).toContainEqual({
+      from: '/actions/hauling-all-day/',
+      to: '/abilities/hauling-all-day/',
+    })
+    expect(rules).toContainEqual({
+      from: '/actions/armour-plating-genbu/',
+      to: '/bio-titans/genbu/',
+    })
+    // Several entities list it: the Worker sends it to the search instead.
+    expect(actionMoves().some(({ from }) => from === '/actions/system-repair/')).toBe(false)
+  })
+
+  it('sends a renamed page to its current name, with or without the slash', () => {
+    for (const from of ['/equipment/knife-missle/', '/equipment/knife-missle']) {
+      expect(rules).toContainEqual({ from, to: '/equipment/knife-missile/' })
+    }
+  })
 
   it('keeps the sitemap alias', () => {
     expect(rules).toContainEqual({ from: '/sitemap.xml', to: '/sitemap-index.xml' })
@@ -192,5 +212,41 @@ describe('retired site pages', () => {
     expect(retiredSitePage('/discord')).toBe('/bot/')
     expect(retiredSitePage('/discord/')).toBe('/bot/')
     expect(retiredSitePage('/bot/')).toBeUndefined()
+  })
+})
+
+describe('formerSitePath', () => {
+  it('moves the site’s earlier page addresses', () => {
+    expect(formerSitePath('/titans/apophis/')).toBe('/bio-titans/apophis/')
+    expect(formerSitePath('/titans')).toBe('/bio-titans/')
+    expect(formerSitePath('/actions/portable-cryopod/')).toBe('/?q=portable+cryopod')
+    expect(formerSitePath('/catalog-categories/guides/')).toBe('/guides/')
+    expect(formerSitePath('/sheets/pilot')).toBe('/build/pilots/new')
+    expect(formerSitePath('/roll-tables/salvage-cache-table/')).toBe('/?q=salvage+cache+table')
+  })
+
+  it('sends the touch icon’s conventional names to the one the page links', () => {
+    for (const path of [
+      '/apple-touch-icon.png',
+      '/apple-touch-icon-precomposed.png',
+      '/apple-touch-icon-152x152.png',
+      '/build/apple-touch-icon-120x120-precomposed.png',
+    ]) {
+      expect(formerSitePath(path)).toBe('/favicons/su/favicon-180.png')
+    }
+    expect(formerSitePath('/build/favicons/su/favicon.svg')).toBe('/favicons/su/favicon.svg')
+  })
+
+  it('leaves every other path alone', () => {
+    for (const path of [
+      '/favicons/missing.png',
+      '/sheets/robot',
+      '/actions/',
+      '/actions/a/b/',
+      '/roll-tables/core-mechanic-table/',
+      '/nope/',
+    ]) {
+      expect(formerSitePath(path)).toBeUndefined()
+    }
   })
 })

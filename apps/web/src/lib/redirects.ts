@@ -25,6 +25,7 @@ import {
   mediatePath,
   sheetPath,
 } from 'game-domain/entityKinds'
+import { APP_BASE, appPath, underBase } from './appBase'
 import { DOC_PAGES } from './docPages'
 
 /** An exact `from → to` 301. */
@@ -35,7 +36,23 @@ export type Move = { from: string; to: string }
  * `sitemap-index.xml`, while every crawler and every human types `sitemap.xml`:
  * the canonical name really is the index, and the redirect is permanent.
  */
-export const FIXED_MOVES: readonly Move[] = [{ from: '/sitemap.xml', to: '/sitemap-index.xml' }]
+export const FIXED_MOVES: readonly Move[] = [
+  { from: '/sitemap.xml', to: '/sitemap-index.xml' },
+  // Pages published under an earlier name, still crawled and linked.
+  ...bothSpellings('/equipment/knife-missle/', '/equipment/knife-missile/'),
+  ...bothSpellings(
+    '/systems/integrated-amphibious-locomotion-system/',
+    '/systems/amphibious-locomotion-system/'
+  ),
+]
+
+/** A page's move with and without its trailing slash: a hand-typed link may have either. */
+function bothSpellings(from: string, to: string): Move[] {
+  return [
+    { from, to },
+    { from: from.slice(0, -1), to },
+  ]
+}
 
 // ---------------------------------------------------------------------------
 // The reference pages' old grammar
@@ -119,6 +136,74 @@ const RETIRED_SITE_PAGES: ReadonlyMap<string, string> = new Map([
  */
 export function retiredSitePage(pathname: string): string | undefined {
   return RETIRED_SITE_PAGES.get(pathname.replace(/\/+$/, ''))
+}
+
+// ---------------------------------------------------------------------------
+// Earlier addresses of the site's pages
+// ---------------------------------------------------------------------------
+
+/**
+ * The site's own pages that went, by pattern rather than one rule per page.
+ * Search engines still crawl them daily, and leyline.press links the mech
+ * sheet:
+ *
+ *   - `/titans/…`                     → `/bio-titans/…`
+ *   - `/actions/<slug>/`              → the Union bar's search for its words.
+ *     An action has no page of its own: it renders on the entity that has it,
+ *     and `_redirects` sends each action with one such entity there first
+ *     (`endpoints/redirects.ts`). This is the rest.
+ *   - `/catalog-categories/<id>/`     → the guides, or the home page, which
+ *     lists every category
+ *   - `/sheets/<kind>`                → a new sheet of that kind in Build
+ *   - `/roll-tables/salvage-cache-table/` → the search: the table is two now,
+ *     one per book
+ *   - `/apple-touch-icon*.png`        → the icon `documentHead` declares; iOS
+ *     asks for the conventional names before reading the page, at the root
+ *     and under the app's base when Build is added to a home screen
+ *   - the site's icons asked for under the app's base → the site's own
+ *
+ * @param pathname - The request's pathname, as `URL` parses it
+ * @returns The root-relative address it lands on, or `undefined`
+ */
+export function formerSitePath(pathname: string): string | undefined {
+  const icon = siteIcon(pathname)
+  if (icon) return icon
+  const parts = pathname.split('/').filter((part) => part.length > 0)
+  const [first, second] = parts
+  if (first === 'titans')
+    return `/bio-titans/${parts.slice(1).join('/')}${parts.length > 1 ? '/' : ''}`
+  if (parts.length > 2 || second === undefined) return undefined
+  if (first === 'actions' && SLUG.test(second)) return searchFor(second)
+  if (first === 'catalog-categories') return second === 'guides' ? '/guides/' : '/'
+  if (first === 'sheets' && parts.length === 2 && isEntityKind(second)) {
+    return appPath(`/${second}s/new`)
+  }
+  if (first === 'roll-tables' && second === 'salvage-cache-table') return searchFor(second)
+  return undefined
+}
+
+/** iOS's guesses at a touch icon, sized or not, precomposed or not. */
+const APPLE_TOUCH_ICON = /^\/apple-touch-icon(-\d+x\d+)?(-precomposed)?\.png$/
+
+/** The touch icon `documentHead.ts` links. */
+const TOUCH_ICON = '/favicons/su/favicon-180.png'
+
+/** An icon asked for by a conventional name, or under the app's base. */
+function siteIcon(pathname: string): string | undefined {
+  const app = underBase(pathname)
+  const path = app ? pathname.slice(APP_BASE.length) : pathname
+  if (APPLE_TOUCH_ICON.test(path)) return TOUCH_ICON
+  if (!app) return undefined
+  if (path === '/favicon.ico') return path
+  if (path === '/favicon.svg') return '/favicons/su/favicon.svg'
+  return path.startsWith('/favicons/') ? path : undefined
+}
+
+const SLUG = /^[a-z0-9-]+$/
+
+/** The home page with the Union bar's search open on a slug's words. */
+function searchFor(slug: string): string {
+  return `/?q=${slug.split('-').filter(Boolean).join('+')}`
 }
 
 // ---------------------------------------------------------------------------

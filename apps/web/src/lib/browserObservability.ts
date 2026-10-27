@@ -144,10 +144,20 @@ export const ABANDONED_VIEW_TRANSITIONS = [
  *   nothing in it to act on.
  * - **`__gCrWeb`**: Chrome on iOS's own injected script, reached for in a
  *   frame it was not injected into (`Can't find variable: __gCrWeb`).
+ * - **`window.ethereum`**: Brave's built-in wallet on iOS runs
+ *   `window.ethereum.selectedAddress = undefined` as an inline script in every
+ *   page, and it throws where the wallet object is missing. Its stack names
+ *   only the page itself (`global code@https://salvageunion.io/:1:16`), so the
+ *   extension check below cannot see it. The app never reads `window.ethereum`.
  *
  * Matched as substrings of `${name}: ${message}`.
  */
-const BROWSER_NOISE = ['ResizeObserver loop', 'NonError: Script error.', '__gCrWeb']
+const BROWSER_NOISE = [
+  'ResizeObserver loop',
+  'NonError: Script error.',
+  '__gCrWeb',
+  'window.ethereum.selectedAddress',
+]
 
 /**
  * The URL schemes a browser extension's own scripts run under (Chromium,
