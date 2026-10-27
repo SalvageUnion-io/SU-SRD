@@ -189,7 +189,6 @@ describe('the route table Astro injects (`WORKER_ROUTES`)', () => {
         '/build',
         '/build/pilots',
         '/play/',
-        '/admin/cutover/site',
         '/__rooms/health',
         '/__shared/sheet',
         '/__photos',
@@ -204,7 +203,6 @@ describe('the route table Astro injects (`WORKER_ROUTES`)', () => {
       'app',
       'app',
       'app',
-      'cutover',
       'rooms',
       'shared',
       'photos',
@@ -224,7 +222,6 @@ describe('the route table Astro injects (`WORKER_ROUTES`)', () => {
 describe('a path a route has nothing at is the site miss', () => {
   it.each([
     ['GET', '/auth/nope'],
-    ['GET', '/admin/cutover'],
     ['GET', '/__rooms/nope'],
     ['GET', '/__shared'],
     ['POST', '/homebrew/patterns.json'],

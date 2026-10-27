@@ -67,7 +67,7 @@ export const OpInputSchema = RoomOpSchema.pick({
   unset: true,
 })
 
-/** A pilot, mech, crawler or NPC as held: the bundle's `BundleUnit` without its op log. @public */
+/** A pilot, mech, crawler or NPC as held: the bundle's unit without its op log. @public */
 export const RoomUnitSchema = z.object({
   kind: z.enum(ENTITY_KINDS),
   appId: z.string(),

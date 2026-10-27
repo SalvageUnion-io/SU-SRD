@@ -24,8 +24,6 @@ export type Env = AppEnv &
     AUTH_CALLBACK_ORIGIN?: string
     /** `'true'` only in `.dev.vars` for a test build: the test sign-in seam. */
     TEST_AUTH?: string
-    /** The cutover runner's bearer secret ; unset, its door is a 404. */
-    CUTOVER_SECRET?: string
     /** Entity photos (R2, `./photos.ts`); unset, an upload answers 503. */
     PHOTOS?: PhotoBucket
     /** The site admins' Discord ids, comma-separated (`./auth/index.ts` `identityOf`). */
