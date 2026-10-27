@@ -155,7 +155,7 @@ export function useMechSheetActions({
     const removed = fresh.systems[index]
     const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
     if (softWarnings.preview(patch).length === 0) {
-      void softWarnings.saveAnyway()
+      runWrite(() => softWarnings.saveAnyway())
       return
     }
     setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)
@@ -250,7 +250,7 @@ export function useMechSheetActions({
       setWarningSubtitle(null)
     },
     confirmBuildEdit: () => {
-      void softWarnings.saveAnyway()
+      runWrite(() => softWarnings.saveAnyway())
       setWarningSubtitle(null)
     },
   }
