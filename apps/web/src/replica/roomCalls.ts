@@ -21,6 +21,13 @@ import { RoomDeclined } from './roomSocket'
 
 export type { GameCallArgs, GameCallResult } from '../worker/shared/gameCalls'
 
+/**
+ * A call whose request never reached the Worker: the browser's own network
+ * failure (`Failed to fetch`, `Load failed`, `NetworkError when attempting to
+ * fetch resource.`), or a page unloading mid-request.
+ */
+export class RoomUnreachable extends Error {}
+
 /** One call to the Worker: its value, or a `RoomDeclined` with the player's words. */
 export async function roomCall<N extends GameCallName>(
   name: N,
@@ -31,6 +38,8 @@ export async function roomCall<N extends GameCallName>(
     credentials: 'same-origin',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name, args }),
+  }).catch((cause: unknown) => {
+    throw new RoomUnreachable(`${name} did not reach the server`, { cause })
   })
   if (!res.ok) throw new Error(`${name} answered ${res.status}`)
   const answer = (await res.json()) as
@@ -60,8 +69,11 @@ function fetchAnswer(key: string, name: GameCallName, args: unknown, at: number)
       for (const listener of listeners) listener()
     },
     (error: unknown) => {
-      // A refusal on a read is an answer the screen has no way to show: it keeps the last one.
-      if (!(error instanceof RoomDeclined)) captureException(error)
+      // A refusal on a read is an answer the screen has no way to show, and an
+      // unreachable server is the player's network, not a bug: it keeps the last one.
+      if (!(error instanceof RoomDeclined || error instanceof RoomUnreachable)) {
+        captureException(error)
+      }
     }
   )
 }
