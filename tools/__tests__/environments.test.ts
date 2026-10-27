@@ -165,11 +165,11 @@ describe('compare', () => {
 })
 
 describe('the declaration', () => {
-  test('production admits main alone, unreviewed, and holds the three deploy secrets', () => {
+  test('production admits main alone, unreviewed, and holds the two deploy secrets', () => {
     expect(ENVIRONMENTS[0]).toEqual({
       name: 'production',
       branches: ['main'],
-      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN'],
+      secrets: ['CLOUDFLARE_API_TOKEN', 'DISCORD_TOKEN'],
     })
   })
 
@@ -177,7 +177,7 @@ describe('the declaration', () => {
     expect(ENVIRONMENTS[1]).toEqual({
       name: 'preview',
       branches: ['**/*'],
-      secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
+      secrets: ['CLOUDFLARE_API_TOKEN'],
     })
   })
 
@@ -223,7 +223,7 @@ describe('readLive', () => {
           { id: 2, name: 'v*', type: 'tag' },
         ],
       }),
-      [`${E}/production/secrets`]: ok({ secrets: [{ name: 'CONVEX_DEPLOY_KEY' }] }),
+      [`${E}/production/secrets`]: ok({ secrets: [{ name: 'DISCORD_TOKEN' }] }),
       [`${E}?`]: ok({
         environments: [
           {
@@ -255,7 +255,7 @@ describe('readLive', () => {
           name: 'production',
           policy: 'custom',
           branches: ['main'],
-          secrets: ['CONVEX_DEPLOY_KEY'],
+          secrets: ['DISCORD_TOKEN'],
           reviewers: ['owner', 'team:ops'],
         },
         {
@@ -278,10 +278,10 @@ describe('readLive', () => {
       [`${E}?`]: ok({ environments: [{ name: 'production', deployment_branch_policy: null }] }),
       [`repos/${REPO}/actions/secrets`]: forbidden,
     })
-    const state = readLive(true, api, { CONVEX_DEPLOY_KEY: 'x', DISCORD_TOKEN: '' })
+    const state = readLive(true, api, { DISCORD_TOKEN: 'x', CLOUDFLARE_API_TOKEN: '' })
     expect(state.environments[0]?.secrets).toBeNull()
     expect(state.repositorySecrets).toBeNull()
-    expect(state.readableOutside).toEqual(['CONVEX_DEPLOY_KEY'])
+    expect(state.readableOutside).toEqual(['DISCORD_TOKEN'])
   })
 
   test('any other API failure throws rather than reading as empty', () => {
@@ -583,12 +583,12 @@ describe('main', () => {
   })
 
   test('--apply writes first and reports each change; --secrets-from-env runs the sentinel', () => {
-    const r = run(['--apply', '--secrets-from-env'], declared(), { CONVEX_DEPLOY_KEY: 'leak' })
+    const r = run(['--apply', '--secrets-from-env'], declared(), { DISCORD_TOKEN: 'leak' })
     expect(r.out[0]).toBe('applied  production: custom deployment branch policy')
     expect(r.calls.some((c) => c.args[1] === 'PUT')).toBe(true)
     expect(r.code).toBe(1)
     expect(r.err[0]).toBe('\n1 drift(s) from tools/environments.ts:')
-    expect(r.err[1]).toContain('CONVEX_DEPLOY_KEY')
+    expect(r.err[1]).toContain('DISCORD_TOKEN')
   })
 
   test('an unreadable ruleset is reported as not run, never as passed', () => {

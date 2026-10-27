@@ -76,13 +76,11 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     // date with `main` and passed `CI Success` (ADR-033 §Credentials).
     name: 'production',
     branches: ['main'],
-    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_DEPLOY_KEY', 'DISCORD_TOKEN'],
+    secrets: ['CLOUDFLARE_API_TOKEN', 'DISCORD_TOKEN'],
   },
   {
     // `deploy-preview.yml`: ships each PR into `main` that carries the
-    // `preview` label as Worker Previews `pr-<n>`. The staging Convex key
-    // (`perfect-donkey-72`) stays until the Convex project is retired, as
-    // production's does. It runs from ANY branch (`**/*`),
+    // `preview` label as Worker Previews `pr-<n>`. It runs from ANY branch (`**/*`),
     // and the label is the gate: no required reviewer. Accepted risk
     // (ADR-033 §Credentials): the Cloudflare token
     // cannot be narrowed to the previews (Workers Scripts: Edit reaches every
@@ -90,7 +88,7 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     // that can deploy production.
     name: 'preview',
     branches: ['**/*'],
-    secrets: ['CLOUDFLARE_API_TOKEN', 'CONVEX_PREVIEW_DEPLOY_KEY'],
+    secrets: ['CLOUDFLARE_API_TOKEN'],
   },
   {
     // `gallery-pages.yml`: deploys the screenshot galleries to GitHub
