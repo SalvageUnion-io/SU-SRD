@@ -37,7 +37,11 @@
   # loaded from static.cloudflareinsights.com and posting page loads to
   # cloudflareinsights.com; drop either origin and the dashboard silently
   # records nothing.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
+  #
+  # img-src names every host a picture comes from: the artwork CDN, Discord
+  # avatars and the Ko-fi button. A player's photo is served from 'self'
+  # (/__photos), never from the url its body stored.
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name

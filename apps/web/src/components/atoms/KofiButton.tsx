@@ -15,7 +15,7 @@ import { useEffect, useRef } from 'react'
  * script is blocked or fails, the plain link remains — nothing breaks.
  *
  * Requires the host CSP to allow `script-src https://storage.ko-fi.com`
- * (the button image is served from the same host, covered by `img-src https:`).
+ * (the button image is served from the same host, covered by `img-src https://storage.ko-fi.com`).
  * See each app's `public/_headers`.
  */
 
