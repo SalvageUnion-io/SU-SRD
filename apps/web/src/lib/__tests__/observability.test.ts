@@ -130,21 +130,21 @@ describe('observability', () => {
   })
 
   test('captureException carries fingerprint and tags', () => {
-    // The grouping half. Without it a Convex defect groups by its own message,
+    // The grouping half. Without it a server defect groups by its own message,
     // which carries a per-request id — one condition, N issues.
     captureException(
-      new Error('[CONVEX M(entities:upsertByAppId)] [Request ID: abc] Server Error'),
+      new Error('entities.upsertByAppId failed [request abc]'),
       { source: 'commitWrite' },
       {
-        fingerprint: ['app-commit-write-failed', 'entities:upsertByAppId', 'defect'],
-        tags: { convex_function: 'entities:upsertByAppId' },
+        fingerprint: ['app-commit-write-failed', 'entities.upsertByAppId', 'defect'],
+        tags: { act: 'entities.upsertByAppId' },
       }
     )
 
     expect(posts[0]?.body).toMatchObject({
       context: { source: 'commitWrite' },
-      fingerprint: ['app-commit-write-failed', 'entities:upsertByAppId', 'defect'],
-      tags: { convex_function: 'entities:upsertByAppId' },
+      fingerprint: ['app-commit-write-failed', 'entities.upsertByAppId', 'defect'],
+      tags: { act: 'entities.upsertByAppId' },
     })
   })
 

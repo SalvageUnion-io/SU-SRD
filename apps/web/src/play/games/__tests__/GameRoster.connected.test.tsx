@@ -540,7 +540,7 @@ describe('every verb that changes who has a build asks first', () => {
   test('any other failure stays on the dialog with a plain reason, never the raw error', async () => {
     await renderAs({ ...ME, _id: 'u-med' }, listing({ crawlers: [CRAWLER] }))
     await press('#430 Tenacity', 'Delete…')
-    mutationError = new Error('[CONVEX M(entities:removeCrawler)] Server Error')
+    mutationError = new Error('entities.removeCrawler failed')
 
     await confirmWith('Delete')
     expect(screen.getByRole('alertdialog')).toBeTruthy()

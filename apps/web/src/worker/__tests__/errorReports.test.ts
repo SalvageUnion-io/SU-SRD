@@ -95,8 +95,8 @@ describe('handleErrorReport', () => {
     const res = await handleErrorReport(
       post(
         JSON.stringify({
-          message: '[CONVEX M(games:create)] [Request ID: 1b66] Server Error',
-          fingerprint: ['convex', 'games:create'],
+          message: 'games.create failed [request 1b66]',
+          fingerprint: ['server-defect', 'games.create'],
         })
       ),
       { app: 'app' }
@@ -105,9 +105,9 @@ describe('handleErrorReport', () => {
     expect(res.status).toBe(204)
     const [error, context] = logged[0] as [Error, Record<string, unknown>]
     expect(error.name).toBe('Error')
-    expect(error.message).toBe('convex games:create')
-    expect(error.stack).toBe('Error: convex games:create')
-    expect(context.message).toBe('[CONVEX M(games:create)] [Request ID: 1b66] Server Error')
+    expect(error.message).toBe('server-defect games.create')
+    expect(error.stack).toBe('Error: server-defect games.create')
+    expect(context.message).toBe('games.create failed [request 1b66]')
   })
 
   test('answers 405 to anything but POST, and logs nothing', async () => {

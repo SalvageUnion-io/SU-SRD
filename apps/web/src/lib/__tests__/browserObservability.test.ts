@@ -54,19 +54,15 @@ describe('createBrowserObservability', () => {
   })
 
   test('the fingerprint travels with the report, for the Worker to group by', () => {
-    // Convex's redacted errors carry a per-request id in the message, so
+    // A server defect carries a per-request id in its message, so
     // without a fingerprint one condition scatters across issues.
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })
     obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
-    obs.captureException(
-      new Error('[CONVEX M(games:create)] [Request ID: 1b66] Server Error'),
-      undefined,
-      {
-        fingerprint: ['convex', 'games:create'],
-      }
-    )
-    expect(sent[0]?.report.fingerprint).toEqual(['convex', 'games:create'])
+    obs.captureException(new Error('games.create failed [request 1b66]'), undefined, {
+      fingerprint: ['server-defect', 'games.create'],
+    })
+    expect(sent[0]?.report.fingerprint).toEqual(['server-defect', 'games.create'])
   })
 
   test('ignoreErrors drops a match of the error’s name and message, and only a match', () => {

@@ -231,7 +231,7 @@ describe('ConfirmDialog — when the action fails', () => {
     render(
       <Harness
         onConfirm={async () => {
-          throw new Error('[CONVEX M(entities:removeCrawler)] Server Error')
+          throw new Error('entities.removeCrawler failed')
         }}
       />
     )
@@ -240,7 +240,7 @@ describe('ConfirmDialog — when the action fails', () => {
     })
     const alert = screen.getByRole('alert').textContent ?? ''
     expect(alert).toBe('That did not work. Try again.')
-    expect(alert).not.toContain('CONVEX')
+    expect(alert).not.toContain('removeCrawler')
   })
 
   test('the failure line is about that attempt: reopening clears it', async () => {
