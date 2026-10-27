@@ -50,8 +50,9 @@ describe('PhotoSchema', () => {
 })
 
 describe('photoUrl / uploadedPhotoId', () => {
-  test('an upload is served from its own url and counted by its storage id', () => {
-    expect(photoUrl(UPLOAD)).toBe(UPLOAD.url)
+  test('an upload is served from the Worker by its storage id, never its stored url', () => {
+    expect(photoUrl(UPLOAD)).toBe('/__photos/kg2abc')
+    expect(photoUrl({ ...UPLOAD, storageId: 'a b.webp' })).toBe('/__photos/a%20b.webp')
     expect(uploadedPhotoId({ photo: UPLOAD })).toBe('kg2abc')
   })
 

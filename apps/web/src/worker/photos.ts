@@ -48,8 +48,12 @@ const PHOTO_TYPES: Record<string, string> = {
 /** A photo's ceiling. The client scales to 1600px first, which lands far under it. */
 export const MAX_PHOTO_BYTES = 4 * 1024 * 1024
 
-/** A key this route minted: a UUID and its type's extension, nothing a path could escape with. */
-const KEY = /^[0-9a-f-]{36}\.(webp|jpg|png)$/
+/**
+ * A key this route minted (a UUID and its type's extension), or a pre-4.5
+ * photo's Convex `_storage` id it was copied under: nothing a path could
+ * escape with.
+ */
+const KEY = /^(?:[0-9a-f-]{36}\.(?:webp|jpg|png)|[0-9a-z]{20,40})$/
 
 type Identify = (request: Request, env: PhotosEnv) => Promise<Identity | null>
 

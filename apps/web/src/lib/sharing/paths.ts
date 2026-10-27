@@ -8,10 +8,9 @@
  * can read.
  */
 
-export const SHARED_PATH = '/__shared'
+export { PHOTOS_PATH, photoPath } from 'game-domain/schemas/photo'
 
-/** Where a photo is uploaded (`POST`) and served (`GET <path>/<key>`), from R2. */
-export const PHOTOS_PATH = '/__photos'
+export const SHARED_PATH = '/__shared'
 
 const part = encodeURIComponent
 
@@ -38,8 +37,3 @@ export const sharedPaths = {
   /** `GET`: the patterns crewmates shared with one of the reader's Games. */
   gamePatterns: (gameId: string) => `${SHARED_PATH}/games/${part(gameId)}/patterns`,
 } as const
-
-/** A photo's address under `PHOTOS_PATH`. */
-export function photoPath(key: string): string {
-  return `${PHOTOS_PATH}/${part(key)}`
-}
