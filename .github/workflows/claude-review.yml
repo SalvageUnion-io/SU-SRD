@@ -106,7 +106,10 @@ jobs:
 
       # The verdict is posted here, from the structured output, so a failing
       # review always says why: one comment, edited on each run, plus an
-      # annotation on each finding's line.
+      # annotation on each finding's line. The comment is found by its marker
+      # over REST, never `gh pr comment --edit-last`: that edits whatever the
+      # bot said last (the Preview comment), and its GraphQL lookup times out
+      # on a PR with many comments.
       - name: Post the verdict
         if: always() && steps.review.outcome == 'success'
         env:
@@ -122,8 +125,15 @@ jobs:
             body=$(printf '%s' "$VERDICT" | jq -r '"**Claude review: \(.findings | length) finding(s).**\n\n" + (.findings | map("- `\(.file)\(if .line then ":\(.line)" else "" end)`: \(.problem)") | join("\n"))')
             printf '%s' "$VERDICT" | jq -r '.findings[] | "::error file=\(.file),line=\(.line // 1)::\(.problem | gsub("\n"; " "))"'
           fi
-          printf '%s\n' "$body" > "$RUNNER_TEMP/verdict.md"
-          gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body-file "$RUNNER_TEMP/verdict.md" --edit-last --create-if-none
+          marker='<!-- claude-review -->'
+          printf '%s\n%s\n' "$marker" "$body" > "$RUNNER_TEMP/verdict.md"
+          id=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" --paginate \
+            --jq "[.[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\")))][0].id // empty" | head -n 1)
+          if [ -n "$id" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -F body=@"$RUNNER_TEMP/verdict.md" > /dev/null
+          else
+            gh api "repos/$GITHUB_REPOSITORY/issues/$PR/comments" -F body=@"$RUNNER_TEMP/verdict.md" > /dev/null
+          fi
 
       - name: Fail on findings
         env:
