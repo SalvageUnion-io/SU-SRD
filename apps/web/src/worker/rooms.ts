@@ -52,6 +52,7 @@ import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { loadCrewReference, unitVitals } from '../rooms/vitals'
 import { LEASE_SETTLE_MS, settleStaleOffers } from './leaseAlarm'
+import { builtMech, countPatternBuild } from './patternBuilds'
 import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
 import { storageSql } from './roomStorage'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
@@ -306,11 +307,22 @@ export class AccountRoom extends Room {
   ): GameActAnswer<unknown> {
     const name = act.name as keyof typeof ACCOUNT_ACTS
     const run = ACCOUNT_ACTS[name] as (c: unknown, a: unknown) => unknown
+    const built = name === 'createUnit' ? builtMech(this.logic, act.args) : null
     const answer = answerOrRefuse(() =>
       run({ room: this.logic, actor: member, at: Date.now() }, act.args)
     )
     if (answer.ok && !ACCOUNT_READ_ACTS.has(name)) this.broadcastSnapshots()
+    if (answer.ok && built !== null) {
+      countPatternBuild(this, sharedDb(this.env), accountHome, built, member)
+    }
     return answer
+  }
+
+  /** Count a mech built from one of the player's patterns; false when it is not here. */
+  countBuild(patternId: string, builder: string): boolean {
+    const counted = this.logic.sharing.countBuild(patternId, builder, Date.now())
+    if (counted) this.broadcastSnapshots()
+    return counted
   }
 
   /** The player's own name and avatar overrides; anyone else, null. */
@@ -344,6 +356,7 @@ export class AccountRoom extends Room {
 /** What the Game room asks of a player's account room: the handoff, and the Opposition tray at a Game's end. */
 type AccountHome = UnitHome & {
   fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): Promise<void>
+  countBuild(patternId: string, builder: string): Promise<boolean>
 }
 
 /**

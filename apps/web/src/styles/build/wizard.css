@@ -104,9 +104,22 @@
   pointer-events: none;
 }
 
-/* The step labels show from `md`. */
-.su-wiz-rail-label {
-  display: none;
+/* The step labels show from `md`; under it each is read, not drawn (as
+   `.su-sr-only`), so a step's button keeps its name. */
+@media not (width >= 48rem) {
+  .su-wiz-rail-label {
+    border-width: 0;
+    clip-path: inset(50%);
+    height: 1px;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    margin: -1px; /* design-tokens-ignore: the visually-hidden pattern, not spacing */
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
 }
 
 @media (width >= 48rem) {

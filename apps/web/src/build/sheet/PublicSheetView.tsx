@@ -22,11 +22,15 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
-import { shareSegment } from 'game-domain/shareAddress'
+import { segmentNames, shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
-import { usePublicPattern, usePublicSheet } from '../../lib/sharing/reads'
+import { useMe } from '../../lib/account/accountApi'
+import type { PublicPatternPage } from '../../lib/sharing/reads'
+import { usePatternSharing, usePublicPattern, usePublicSheet } from '../../lib/sharing/reads'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { usePatterns } from '../../replica/collections'
+import { useViewerId } from '../../replica/roomCalls'
 import { PublicPattern } from '../mech/Pattern/PublicPattern'
 import { NpcSheet } from '../npc/NpcSheet'
 import { PublicSheet } from './PublicSheet'
@@ -80,9 +84,38 @@ function PublicSheetQuery({ kind, appId, onAddress }: QueryProps & { kind: Sheet
   return <PublicSheet appId={result.appId} answer={result} />
 }
 
+/**
+ * The reader's own pattern, as the page reads one: from their Shelf, which
+ * is what lets its maker open it before it is shared, and share it. Null when
+ * it is not theirs; undefined while a signed-in reader's Shelf arrives.
+ */
+function useOwnPattern(
+  segment: string,
+  shared: PublicPatternPage | null | undefined
+): PublicPatternPage | null | undefined {
+  const viewer = useViewerId()
+  const own = usePatterns((s) => s.mechPatterns.find((p) => segmentNames(segment, p.id)))
+  const hydrated = usePatterns((s) => s.hydrated)
+  const sharing = usePatternSharing()?.find((s) => s.appId === own?.id)
+  const me = useMe(own !== undefined)
+  if (own === undefined) return viewer === null || hydrated ? null : undefined
+  return {
+    appId: own.id,
+    body: own,
+    madeBy: shared?.madeBy ?? me?.displayName ?? buildSheetCopy('aPlayer'),
+    sharedAt: shared?.sharedAt ?? null,
+    builtCount: sharing?.builtCount ?? shared?.builtCount ?? 0,
+    mine: true,
+    visibility: sharing?.visibility ?? 'private',
+  }
+}
+
 /** A saved pattern: readable by link, by its Game's crew, or by its maker. */
 function PublicPatternQuery({ appId, onAddress }: QueryProps) {
-  const result = usePublicPattern(appId)
+  const shared = usePublicPattern(appId)
+  const own = useOwnPattern(appId, shared)
+  // Shared by link answers at once; not shared waits on the reader's Shelf.
+  const result = own ?? (own === undefined && !shared ? undefined : shared)
   useCanonicalAddress(appId, result, onAddress)
   if (result === undefined) return <SheetSkeleton />
   if (result === null) return <NotAvailable what="pattern" />

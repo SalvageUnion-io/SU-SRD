@@ -111,6 +111,19 @@ describe('who may read a pattern', () => {
     expect(shelfPublished(room.shelf.store).crew).toEqual([])
   })
 
+  test('a mech built from it counts: its maker’s always, anyone else’s only while shared', () => {
+    const room = shelf()
+    room.sharing.putRecord(PLAYER, 'patterns', pattern('pat1'), AT)
+    const built = () => room.sharing.patternSharing(PLAYER)[0]?.sharing.builtCount
+    expect(room.sharing.countBuild('pat1', PLAYER, AT)).toBe(true)
+    expect(room.sharing.countBuild('pat1', STRANGER, AT)).toBe(false)
+    expect(built()).toBe(1)
+    room.sharing.setPatternVisibility(PLAYER, 'pat1', 'link', null, AT)
+    expect(room.sharing.countBuild('pat1', STRANGER, AT)).toBe(true)
+    expect(built()).toBe(2)
+    expect(room.sharing.countBuild('gone', PLAYER, AT)).toBe(false)
+  })
+
   test('a Game must be named, and the pattern must be there', () => {
     const room = shelf()
     room.sharing.putRecord(PLAYER, 'patterns', pattern('pat1'), AT)

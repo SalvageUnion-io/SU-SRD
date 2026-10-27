@@ -77,3 +77,26 @@ export async function memberGameName(
     .first<{ name: string }>()
   return row?.name ?? null
 }
+
+/**
+ * Who made a pattern `reader` may build from: shared by link, or with a Game
+ * they are in. Null when it is neither, which is also a pattern of their own.
+ */
+export async function patternMakerFor(
+  db: SharedDb,
+  appId: string,
+  reader: string
+): Promise<string | null> {
+  const row = await db
+    .prepare(
+      `select owner_id from public_sheets where kind = 'pattern' and app_id = ?1
+       union all
+       select c.owner_id from crew_patterns c
+       join memberships m on m.game_id = c.game_id and m.discord_id = ?2
+       where c.app_id = ?1
+       limit 1`
+    )
+    .bind(appId, reader)
+    .first<{ owner_id: string | null }>()
+  return row?.owner_id ?? null
+}

@@ -4,7 +4,7 @@ import { CROSS_CONTAINER_REFUSAL, endsMatchType, isSlotted } from 'game-domain/l
 import type { StoredOp, UnitRow } from '../game/store'
 import { fromJson, GameStore } from '../game/store'
 import type { SubmitResult } from '../game/units'
-import { GameUnits, parseUnitBody } from '../game/units'
+import { crawlerHasSlot, GameUnits, parseUnitBody } from '../game/units'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { RoomSql } from '../sql'
@@ -205,17 +205,24 @@ export class AccountShelf {
 
   /**
    * Wire two units on the Shelf (ADR-037), replacing the links it conflicts
-   * with. Crew slots are a Game's (ADR-044), so a slotted link is refused
-   * here; an end that is not on the Shelf is in another place.
+   * with. A crew link is the crawler's writer's (ADR-044), which on the Shelf
+   * is its player, and names a slot the crawler has; an end that is not on
+   * the Shelf is in another place.
    */
   drawLink(actor: string, link: LinkShape): void {
     if (!endsMatchType(link)) {
       throw new Error(`A ${link.type} link cannot join ${link.from.type} → ${link.to.type}`)
     }
-    if (isSlotted(link.type)) throw new RoomRefusal('Crew is assigned in a Game')
+    if (isSlotted(link.type) !== (link.slot !== undefined)) {
+      throw new Error(`A ${link.type} link ${isSlotted(link.type) ? 'names' : 'has no'} crew slot`)
+    }
     this.store.sql.transaction(() => {
       this.writable(actor, link.from.id)
-      if (this.store.unit(link.to.id) === null) throw new RoomRefusal(CROSS_CONTAINER_REFUSAL)
+      const to = this.store.unit(link.to.id)
+      if (to === null) throw new RoomRefusal(CROSS_CONTAINER_REFUSAL)
+      if (link.slot !== undefined && !crawlerHasSlot(to.body, link.slot)) {
+        throw new RoomRefusal('That crawler has no such crew slot.')
+      }
       this.units.writeLink(link)
     })
   }

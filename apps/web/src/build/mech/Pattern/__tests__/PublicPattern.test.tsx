@@ -67,6 +67,12 @@ function answer(over: Record<string, unknown> = {}) {
   }
 }
 
+/** The account room's sharing record for the pattern. */
+function sharing(visibility: 'private' | 'link') {
+  const record = { visibility, gameId: null, gameName: null, builtCount: 3, homebrew: false }
+  return { appId: 'pat-tow-rig', body: record }
+}
+
 /** Drive the store's server-first write (stub commit, then memory) to completion. */
 async function settle(done: () => boolean): Promise<void> {
   for (let i = 0; i < 200 && !done(); i++) {
@@ -175,31 +181,23 @@ describe('signed in', () => {
   })
 
   test('its maker keeps the copy action, and is told who can see it', () => {
-    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer({ mine: true, visibility: 'link' }) })
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    usePatterns.setState({ mechPatterns: [body], hydrated: true })
+    serveTableState('account', { sharing: [sharing('link')] })
     renderAs(CONNECTED)
 
     expect(screen.getByRole('button', { name: 'Make a copy' })).toBeTruthy()
     expect(screen.getByText(/Anyone with the link/)).toBeTruthy()
   })
 
-  test('its maker changes who can see it from the Share dialog every player thing opens', async () => {
-    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer({ mine: true, visibility: 'link' }) })
+  test('its maker opens it before sharing it, and shares it from the dialog every player thing opens', async () => {
+    // Not shared, so the shared read has nothing: the maker's own Shelf has it.
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: null })
+    usePatterns.setState({ mechPatterns: [body], hydrated: true })
     setQueryAnswers({ 'games.listMine': [] })
-    serveTableState('account', {
-      sharing: [
-        {
-          appId: 'pat-tow-rig',
-          body: {
-            visibility: 'link',
-            gameId: null,
-            gameName: null,
-            builtCount: 3,
-            homebrew: false,
-          },
-        },
-      ],
-    })
+    serveTableState('account', { sharing: [sharing('private')] })
     renderAs(CONNECTED)
+    expect(screen.getByText('Only you can see this pattern.')).toBeTruthy()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Share Tow Rig' }))
@@ -207,14 +205,14 @@ describe('signed in', () => {
     expect(screen.getByRole('group', { name: /who can see it/i })).toBeTruthy()
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('radio', { name: /only me/i }))
+      fireEvent.click(screen.getByRole('radio', { name: /^Public/ }))
     })
 
     expect(roomActs).toEqual([
       {
         gameId: null,
         name: 'shelf.setPatternVisibility',
-        args: { patternId: 'pat-tow-rig', visibility: 'private' },
+        args: { patternId: 'pat-tow-rig', visibility: 'link' },
       },
     ])
   })

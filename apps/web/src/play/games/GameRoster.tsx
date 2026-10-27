@@ -292,6 +292,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           trailing={
             <HeaderMenu
               variant="overflow"
+              size="compact"
               trigger={null}
               label={playGamesCopy('moreFor', { name: row.name })}
               sections={rowMenu(row)}

@@ -5,6 +5,7 @@ import type { Identity } from '../auth/index'
 import type { PhotoBucket } from '../photos'
 import { MAX_PHOTO_BYTES, servePhotos } from '../photos'
 import { publishGame, testDb } from '../shared/__tests__/d1'
+import { patternMakerFor } from '../shared/crewPatterns'
 import { RoomPublisher } from '../shared/roomRows'
 import { serveShared } from '../sharedRoutes'
 
@@ -211,6 +212,14 @@ describe('serveShared', () => {
     expect((await ask(db, sharedPaths.gamePatterns('g2'), READER)).body.value).toEqual([])
     expect((await ask(db, sharedPaths.crewPatterns(), MAKER)).body.value).toEqual([])
     expect((await ask(db, sharedPaths.crewPatterns(), null)).body.value).toEqual([])
+  })
+
+  it('names the maker of a pattern a reader may build from, and nobody for one they may not', async () => {
+    const db = await world()
+    expect(await patternMakerFor(db, 'pat-1', 'd-9')).toBe('d-1')
+    expect(await patternMakerFor(db, 'pat-2', READER.discordId)).toBe('d-1')
+    expect(await patternMakerFor(db, 'pat-2', 'd-9')).toBeNull()
+    expect(await patternMakerFor(db, 'pat-gone', READER.discordId)).toBeNull()
   })
 
   it('leaves out a crew pattern whose body cannot be read', async () => {

@@ -139,17 +139,35 @@ describe('the Shelf is its player’s', () => {
   })
 })
 
-describe('what the Shelf refuses', () => {
-  test('a crew slot, a mismatched link, a second kind under one id, and a move off to nowhere', () => {
+describe('solo crawler crew', () => {
+  test('its player crews a bay the crawler has, and gives it back', () => {
     const { room } = shelf()
+    const body = { ...bodies.crawler('c1'), crawlerBays: [{ bayRef: 'med-bay' }] }
+    room.shelf.create(PLAYER, { id: 'c1', kind: 'crawler', body, at: AT })
+    room.shelf.create(PLAYER, { id: 'n1', kind: 'npc', body: bodies.npc('n1'), at: AT })
+    const crew = {
+      type: 'npc-to-crawler' as const,
+      from: { type: 'npc' as const, id: 'n1' },
+      to: { type: 'crawler' as const, id: 'c1' },
+      slot: { kind: 'bay' as const, bayRef: 'med-bay' },
+    }
+    expect(() => room.shelf.drawLink(STRANGER, crew)).toThrow(/not your Training Bay/)
     expect(() =>
-      room.shelf.drawLink(PLAYER, {
-        type: 'npc-to-crawler',
-        from: { type: 'npc', id: 'n1' },
-        to: { type: 'crawler', id: 'c1' },
-        slot: { kind: 'crew' } as never,
-      })
-    ).toThrow('Crew is assigned in a Game')
+      room.shelf.drawLink(PLAYER, { ...crew, slot: { kind: 'bay', bayRef: 'no-such-bay' } })
+    ).toThrow('no such crew slot')
+    expect(() => room.shelf.drawLink(PLAYER, { ...crew, slot: undefined })).toThrow(
+      'names crew slot'
+    )
+    room.shelf.drawLink(PLAYER, crew)
+    expect(room.shelf.links(PLAYER).filter((l) => l.type === 'npc-to-crawler')).toHaveLength(1)
+    room.shelf.removeLink(PLAYER, crew)
+    expect(room.shelf.links(PLAYER).filter((l) => l.type === 'npc-to-crawler')).toHaveLength(0)
+  })
+})
+
+describe('what the Shelf refuses', () => {
+  test('a mismatched link, a second kind under one id, and a move off to nowhere', () => {
+    const { room } = shelf()
     expect(() =>
       room.shelf.drawLink(PLAYER, {
         type: 'mech-to-pilot',

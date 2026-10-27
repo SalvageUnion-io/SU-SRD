@@ -262,6 +262,7 @@ export const buildSheetCopy = messages({
   thisSheetIsSharedRead: 'This sheet is shared read-only. It updates as its owner plays.',
   readOnlySheet: 'Read-only sheet',
   thisIsntAvailable: 'This {what} isn’t available',
+  aPlayer: 'a player',
   theLinkMayBeWrong: 'The link may be wrong, or its owner may have stopped sharing it.',
   aSharedNpcReadOnly: 'A shared NPC, read-only. Only whoever made it can change it.',
   trainingBay: 'Training Bay',

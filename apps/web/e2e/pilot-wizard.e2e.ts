@@ -46,7 +46,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   // trees that class reveals. Both halves gate Next.
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')
-  await expect(page.getByTestId('ability-count')).toHaveText('1 / 1')
+  await expect(page.getByTestId('ability-count')).toContainText('1/1')
   await clickNext(page)
 
   // Step 3: Equipment — exactly two Tech 1 picks.
@@ -54,7 +54,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(equipmentOptions.first()).toBeVisible()
   await equipmentOptions.first().click()
   await equipmentOptions.first().click()
-  await expect(page.getByTestId('equipment-count')).toHaveText('2 / 2')
+  await expect(page.getByTestId('equipment-count')).toContainText('2/2')
   await clickNext(page)
 
   // Step 4: identity — name + callsign both required before Next opens.

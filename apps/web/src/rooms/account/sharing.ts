@@ -137,6 +137,24 @@ export class AccountSharing {
   }
 
   /**
+   * Count a mech built from one of the player's patterns. The builder is its
+   * maker, or a reader the Worker found it shared with (`countPatternBuild`);
+   * a pattern deleted since is not counted.
+   */
+  countBuild(patternId: string, builder: string, at: number): boolean {
+    const row = this.store.rows(
+      "select extra from records where tbl = 'patterns' and app_id = ?",
+      patternId
+    )[0]
+    if (row === undefined) return false
+    const extra = fromJson<PatternExtra>(row.extra)
+    const shared = extra.publicRead === true || (extra.gameId ?? null) !== null
+    if (builder !== this.shelf.owner() && !shared) return false
+    this.writeExtra(patternId, { ...extra, builtCount: (extra.builtCount ?? 0) + 1 }, at)
+    return true
+  }
+
+  /**
    * Share one of the player's units by link, or stop. Sharing parses its
    * body first, as a pattern's is.
    */

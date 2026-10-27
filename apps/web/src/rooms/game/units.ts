@@ -521,7 +521,10 @@ export class GameUnits {
 }
 
 /** Whether a crawler body has the slot: the bay installed, or a type chosen. */
-function crawlerHasSlot(body: Record<string, unknown>, slot: NonNullable<LinkShape['slot']>) {
+export function crawlerHasSlot(
+  body: Record<string, unknown>,
+  slot: NonNullable<LinkShape['slot']>
+) {
   if (slot.kind === 'type') return typeof body.type === 'string' && body.type.length > 0
   const bays = body.crawlerBays
   return (
