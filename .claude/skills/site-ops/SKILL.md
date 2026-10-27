@@ -1,6 +1,6 @@
 ---
 name: site-ops
-description: Use when setting up or checking the site Worker's sign-in, when Discord sign-in fails or answers 503, when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable`, or its `/health` returns 503, when rotating DISCORD_CLIENT_SECRET, when an agent needs the app signed in (`bun run dev:backend`), or when anything would touch the retired Convex project.
+description: Use when setting up or checking the site Worker's sign-in, when Discord sign-in fails or answers 503, when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable`, or its `/health` returns 503, when rotating DISCORD_CLIENT_SECRET, when an agent needs the app signed in (`bun run dev:backend`).
 allowed-tools: Bash, Read
 ---
 
@@ -95,13 +95,11 @@ pbpaste | tr -d '\n' | bunx wrangler secret put DISCORD_CLIENT_SECRET
 Guard on **length 32** before writing: if the copy silently failed, refusing
 beats writing garbage into production auth. Only a real sign-in proves it.
 
-## Convex, retired
+## Convex, deleted
 
-The site no longer talks to Convex (ADR-064), and no workflow holds a Convex
-key. Its code is at the `convex-last` tag and its last export (data and photo
-files) is in the private R2 bucket `su-archive` under `convex/`. Never run a
-`convex` command against the project, or delete it, without the owner's word
-in the thread.
+The Convex project was deleted on 2026-10-27 (ADR-064). Its code is at the
+`convex-last` tag, and its last export (data and photo files) is in the private
+R2 bucket `su-archive` under `convex/`.
 
 ## Report
 
