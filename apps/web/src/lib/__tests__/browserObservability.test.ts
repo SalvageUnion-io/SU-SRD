@@ -100,6 +100,22 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['Script error. in our own words'])
   })
 
+  test('Brave iOS’s injected window.ethereum line is dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    obs.captureException(
+      Object.assign(
+        new TypeError(
+          "undefined is not an object (evaluating 'window.ethereum.selectedAddress = undefined')"
+        ),
+        { stack: 'global code@https://salvageunion.io/build/:1:16' }
+      )
+    )
+    obs.captureException(new Error('a real one'))
+    expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
+  })
+
   test('an error raised wholly inside a browser extension is dropped', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })
