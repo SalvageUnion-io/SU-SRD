@@ -97,6 +97,18 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(csp[0]).toContain("connect-src 'self'")
     expect(csp[0]).not.toContain('convex')
   })
+
+  it('loads pictures only from its own hosts, not any https site', () => {
+    const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
+    const img = headers.match(/Content-Security-Policy:.*\bimg-src ([^;]*);/)?.[1]?.split(' ')
+    expect(img).toEqual([
+      "'self'",
+      'data:',
+      'https://assets.salvageunion.io',
+      'https://cdn.discordapp.com',
+      'https://storage.ko-fi.com',
+    ])
+  })
 })
 
 describe('/build/* — the app, answered as a single-page app', () => {
