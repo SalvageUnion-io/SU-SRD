@@ -1496,3 +1496,28 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-tech-level__block .su-entity-compact__title {
   font-size: var(--text-display-lg);
 }
+
+/* A Mini control in a chip strip (C8: a "⋯", a Use, a row's door) draws at
+   its chips' 18px in WCAG 2.2's 24px target (2.5.8), as a linked chip does
+   (`.su-chip-link`, R12): a transparent border takes the difference, its
+   fill is clipped to the plate inside, an outlined button's frame is an
+   outline on that plate's edge, and a negative margin of the same keeps its
+   line and its neighbours where they were. Last in the file, so it beats the
+   grounds' border colours above. */
+.su-chips > .su-chip-lane > .su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > .su-btn.su-btn--mini {
+  --su-mini-inset: calc((var(--space-24) - var(--size-mini)) / 2);
+
+  background-clip: padding-box;
+  border-color: transparent;
+  border-width: var(--su-mini-inset);
+  box-sizing: border-box;
+  height: var(--space-24);
+  margin: calc(-1 * var(--su-mini-inset));
+}
+
+.su-chips > .su-chip-lane > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini,
+.su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
+  outline: var(--bw-chrome) solid currentcolor;
+  outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
+}

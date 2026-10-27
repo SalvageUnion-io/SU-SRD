@@ -173,6 +173,23 @@ function scan({
   }
   const describe = (el: Element) => (el.textContent ?? '').trim().replace(/\s+/g, ' ').slice(0, 40)
   /**
+   * A chip as it draws: a strip's Mini control stands in a 24px tap target
+   * wider than its plate (a transparent border, its fill clipped inside, R12),
+   * and is measured as its plate, as a linked chip is as its cell.
+   */
+  const drawn = (el: Element): DOMRect => {
+    const r = el.getBoundingClientRect()
+    const s = getComputedStyle(el)
+    if (s.backgroundClip !== 'padding-box' || s.borderTopColor !== 'rgba(0, 0, 0, 0)') return r
+    const [top, right, bottom, left] = [
+      s.borderTopWidth,
+      s.borderRightWidth,
+      s.borderBottomWidth,
+      s.borderLeftWidth,
+    ].map(Number.parseFloat) as [number, number, number, number]
+    return new DOMRect(r.left + left, r.top + top, r.width - left - right, r.height - top - bottom)
+  }
+  /**
    * How much taller a head is as drawn than with its chips laid on one line
    * beside its name, the name held at its width (its own wrap is the name's,
    * not the chips'): the height its chips add by stacking. Measured by
@@ -287,7 +304,7 @@ function scan({
 
     // LINES: chips whose boxes overlap vertically by half the shorter one.
     const boxes: Box[] = chips.map((el) => {
-      const r = el.getBoundingClientRect()
+      const r = drawn(el)
       return { el, x: r.left, y: r.top, w: r.width, h: r.height }
     })
     const lines: Box[][] = []
@@ -412,7 +429,7 @@ function scan({
       if (drawn) faults.push(`fill: ${where} its chips were never fitted (no data-fill-item)`)
       continue
     }
-    const box = (el: Element) => el.getBoundingClientRect()
+    const box = drawn
     // Lines: items whose boxes overlap vertically by half the shorter one;
     // the name's line is the one that overlaps the name's lower half.
     const lines: Element[][] = []
