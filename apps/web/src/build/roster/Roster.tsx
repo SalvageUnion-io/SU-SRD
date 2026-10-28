@@ -1,10 +1,8 @@
 /**
  * Roster — what `/` shows, by who is looking:
  *
- *  - **Signed out** — the front door (`FrontDoor`).
- *    While the session is still settling, a browser that remembers no
- *    account (`readAccountHint`) gets the front door at once rather than a
- *    wait: it is almost always what they will see.
+ *  - **Signed out** — the front door (`FrontDoor`), at once while the session
+ *    settles in a browser that remembers no account (`showsSignedOutView`).
  *  - **Signed in** — everything you keep, on your account (`Shelves`).
  *    Disconnected too: the whole cached pile is the only rendering that
  *    cannot lose a build. The root holds this route for the front door's few
@@ -17,10 +15,9 @@
 import { lazy, Suspense } from 'react'
 import { GameDataGate } from '../../components/GameDataGate'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
-import { readAccountHint } from '../../lib/accountHint'
-import { browserStorage } from '../../lib/accountState'
 import { sharedCopy } from '../../messages/components-shared'
 import { useSync } from '../../replica/syncContext'
+import { showsSignedOutView } from '../account/signedOutView.model'
 import { FrontDoor } from './FrontDoor'
 
 /** Signed in only, so the front door's first load leaves the Shelves' code for later. */
@@ -33,8 +30,7 @@ export function Roster() {
   // every build lives in an account (ADR-034 as amended). The front door says
   // what the app is, offers the sign-in, and opens the Starter Set, which reading
   // needs no account for.
-  if (status === 'signedOut') return <FrontDoor />
-  if (status === 'syncing' && readAccountHint(browserStorage()) === null) return <FrontDoor />
+  if (showsSignedOutView(status)) return <FrontDoor />
   return (
     <GameDataGate fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       <Suspense fallback={<RoutePending />}>

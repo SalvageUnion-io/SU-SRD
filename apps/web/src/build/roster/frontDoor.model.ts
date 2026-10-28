@@ -12,37 +12,9 @@
  * proven, not trusted.
  */
 
-import { readAccountHint } from '../../lib/accountHint'
-import { browserStorage } from '../../lib/accountState'
-import { routeInApp } from '../../lib/appBase'
-
-export const FRONT_DOOR_SCHEMAS: string[] = [
+export const FRONT_DOOR_SCHEMAS = [
   'abilities',
   'ability-tree-requirements',
   'chassis',
   'classes',
-]
-
-/** Whether the app's route (`/`, the Roster) is the front door's. */
-export const isRosterRoute = (route: string | null): boolean => route === '/'
-
-/**
- * Whether this browser is likely to see the front door at `pathname` (a site
- * path): the Roster's address, and no account remembered here. Signed in, the
- * Roster is the player's Shelves, which need the whole dataset.
- */
-export function expectsFrontDoor(pathname: string, storage = browserStorage()): boolean {
-  return isRosterRoute(routeInApp(pathname)) && readAccountHint(storage) === null
-}
-
-/**
- * Set on `<html>` by the shell's head script (`FRONT_DOOR_SCRIPT`, `astro/build/frontDoor.tsx`) when the
- * document opens on the front door: it shows the front door the build
- * rendered into the shell (`astro/build/frontDoor.tsx`, `styles/build/screens.css`)
- * until the app's first render replaces it, and holds that render until the
- * front door can draw (`main.tsx`).
- */
-export const FRONT_DOOR_ATTRIBUTE = 'data-front-door'
-
-/** The class of the front door the build renders into the shell, shown by `FRONT_DOOR_ATTRIBUTE` (`styles/build/screens.css`). */
-export const FRONT_DOOR_STATIC_CLASS = 'su-front-door-static'
+] as const

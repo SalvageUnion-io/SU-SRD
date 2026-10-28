@@ -3,20 +3,20 @@
  * The app's shell, `build/index.html` (ADR-050): the one document the Worker
  * serves for every `/build/*` and `/play/*` navigation. Astro bundles the
  * app's entry into it, after React's Fast Refresh preamble (empty in a build).
- * Its root holds the front door's markup (`../../build/frontDoor`), which the
- * head script shows when the document opens on the front door. That script
+ * Its root holds the signed-out views' markup (`../../build/signedOutViews`),
+ * and the head script shows the one the document opens on. That script
  * comes before the stylesheets: an inline script after one waits for it to
  * load, and holds the parser, and so the entry's imports, with it.
  */
 
 import { appShell } from '../../build/appShell'
-import { FRONT_DOOR_SCRIPT, frontDoorMarkup } from '../../build/frontDoor'
+import { SIGNED_OUT_VIEW_SCRIPT, signedOutViewsMarkup } from '../../build/signedOutViews'
 import Fonts from '../../components/Fonts.astro'
 
-const { head, body } = appShell(import.meta.env.VITE_SITE_ORIGIN, await frontDoorMarkup())
+const { head, body } = appShell(import.meta.env.VITE_SITE_ORIGIN, await signedOutViewsMarkup())
 ---
 <html lang="en">
-  <head><script is:inline set:html={FRONT_DOOR_SCRIPT}></script><Fragment set:html={head} /><Fonts /></head>
+  <head><script is:inline set:html={SIGNED_OUT_VIEW_SCRIPT}></script><Fragment set:html={head} /><Fonts /></head>
   <body><Fragment set:html={body} /><script>
     import '@vitejs/plugin-react/preamble'
     import '../../../src/main'

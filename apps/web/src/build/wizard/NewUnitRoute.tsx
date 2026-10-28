@@ -44,23 +44,36 @@ export function NewUnitRoute({
   const handleComplete = useWizardReturn(game)
 
   return (
-    <main>
-      <NewEntityScreen
-        kind={kind}
-        mode={mode}
-        returnTo={returnTo}
-        gameId={game}
-        wizard={wizard({
-          onComplete: handleComplete,
-          onCancel: handleComplete,
-          gameId: game,
-          onOffRules: () => void navigate({ to: NEW_PATH[kind], search: { mode: 'blank', game } }),
-        })}
-        onModeChange={(next) =>
-          void navigate({ to: NEW_PATH[kind], search: (prev) => ({ ...prev, mode: next }) })
-        }
-        onCreated={(id) => void navigate({ to: SHEET_PATH[kind], params: { id } })}
-      />
-    </main>
+    <NewEntityScreen
+      kind={kind}
+      mode={mode}
+      returnTo={returnTo}
+      gameId={game}
+      wizard={
+        <UnitWizard
+          render={wizard}
+          onComplete={handleComplete}
+          onCancel={handleComplete}
+          gameId={game}
+          onOffRules={() => void navigate({ to: NEW_PATH[kind], search: { mode: 'blank', game } })}
+        />
+      }
+      onModeChange={(next) =>
+        void navigate({ to: NEW_PATH[kind], search: (prev) => ({ ...prev, mode: next }) })
+      }
+      onCreated={(id) => void navigate({ to: SHEET_PATH[kind], params: { id } })}
+    />
   )
+}
+
+/**
+ * The route's wizard, drawn when it renders rather than when the route does:
+ * a route reads its deep link's pick from the reference data (`preselect`),
+ * which `NewEntityScreen` waits for.
+ */
+function UnitWizard({
+  render,
+  ...props
+}: UnitWizardProps & { render: (props: UnitWizardProps) => ReactNode }) {
+  return render(props)
 }

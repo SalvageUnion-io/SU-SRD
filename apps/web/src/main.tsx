@@ -2,7 +2,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { FRONT_DOOR_ATTRIBUTE, FRONT_DOOR_SCHEMAS } from './build/roster/frontDoor.model'
+import { firstPaintSchemas, SIGNED_OUT_VIEW_ATTRIBUTE } from './build/account/signedOutView.model'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
 import { APP_BASE, APP_REWRITE } from './lib/appBase'
@@ -80,14 +80,24 @@ const renderApp = (root: HTMLElement) =>
     </StrictMode>
   )
 
-// Opening on the front door the shell already shows (`FRONT_DOOR_ATTRIBUTE`),
+// The whole dataset, once the first route has loaded: the root asked only for
+// what that route's first paint waits on (`firstPaintSchemas`), and the
+// rest is for whatever is opened next. Deduplicated where the root asked for
+// it all (`preloadGameData`).
+const stopWaiting = router.subscribe('onResolved', () => {
+  stopWaiting()
+  void preloadGameData('all', 'full')
+})
+
+// Opening on a signed-out view the shell already shows (`SIGNED_OUT_VIEW_ATTRIBUTE`),
 // the first render, which replaces it, waits until the live one can draw in
 // its place: its schemas and its route. Sooner, the root's own waits would
 // swap the page for a spinner. A failure renders anyway: the gates retry.
-if (document.documentElement.hasAttribute(FRONT_DOOR_ATTRIBUTE)) {
-  void Promise.allSettled([preloadGameData(FRONT_DOOR_SCHEMAS, 'full'), router.load()]).then(() =>
-    renderApp(rootEl)
-  )
+if (document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
+  void Promise.allSettled([
+    preloadGameData(firstPaintSchemas(window.location.pathname), 'full'),
+    router.load(),
+  ]).then(() => renderApp(rootEl))
 } else {
   renderApp(rootEl)
 }

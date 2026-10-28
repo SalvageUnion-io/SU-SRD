@@ -8,12 +8,8 @@ import {
   HeaderGames,
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
+import { firstPaintSchemas, routeSchemas } from '../build/account/signedOutView.model'
 import { TestAuthBridge } from '../build/account/TestAuthBridge'
-import {
-  expectsFrontDoor,
-  FRONT_DOOR_SCHEMAS,
-  isRosterRoute,
-} from '../build/roster/frontDoor.model'
 import type { EntitySurfaceValue } from '../components/index'
 import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
@@ -49,13 +45,12 @@ import '../styles/app.css'
  * entry chunk. These are the gates' own keyed preloads (`useGameData`), so the
  * gates and the bar's controls (`useGameData().ready`) share these requests.
  *
- * A visitor opening the front door gets its few schemas first, then the rest:
- * on a slow line the whole dataset would share the bandwidth the front door's
- * first paint waits on.
+ * A browser that remembers no account, opening a route whose signed-out view
+ * needs less (`firstPaintSchemas`), asks for that alone: on a slow line the
+ * whole dataset would share the bandwidth that view's code and data wait on.
+ * The rest follows once the route has loaded (`main.tsx`).
  */
-void (expectsFrontDoor(window.location.pathname)
-  ? preloadGameData(FRONT_DOOR_SCHEMAS, 'full').then(() => preloadGameData('all', 'full'))
-  : preloadGameData('all', 'full'))
+void preloadGameData(firstPaintSchemas(window.location.pathname), 'full')
 
 const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
 
@@ -138,7 +133,7 @@ function RootComponent() {
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
           <div id="main-content" tabIndex={-1}>
-            <GameDataReady schemas={isRosterRoute(pathname) ? FRONT_DOOR_SCHEMAS : 'all'}>
+            <GameDataReady schemas={routeSchemas(pathname)}>
               <Outlet />
             </GameDataReady>
           </div>
