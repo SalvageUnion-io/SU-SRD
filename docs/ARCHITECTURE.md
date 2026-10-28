@@ -97,7 +97,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Declare every import; a shared runtime package is a root `catalog:` entry, a shared dev tool a root devDependency.
 31. **Audit and overrides** <a id="audit"></a>
     `bun run audit` fails any advisory (PRs touching manifests, and nightly); it ignores nothing.
-    `overrides`: `sharp` is a floor and `miniflare`'s `undici` and `@cloudflare/vitest-plugin`'s `zod` pins until each asks for the fix; `@randsum/roller` and `salvageunion-reference` pin one copy.
+    `overrides`: `sharp` is a floor and `miniflare`'s `undici` and `@cloudflare/vitest-plugin`'s `zod` pins until each asks for the fix; `@randsum/roller` and `salvageunion-reference` pin one copy. `deepmerge` points at `vendor/deepmerge`, upstream 4.3.1 with GHSA-gcqx-w48m-w2h4 fixed (no fixed release exists; only the PWA build reaches it); drop both once upstream ships one.
 32. **Dead code** <a id="dead-code"></a>
     `bun run knip` with `includeEntryExports`; delete what it flags; `@public` and `@knipignore` are the only escape hatches.
 33. **MCP servers** <a id="mcp"></a>
