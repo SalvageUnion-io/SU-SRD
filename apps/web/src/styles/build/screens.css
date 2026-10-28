@@ -8,3 +8,25 @@
 html[data-union-bar-hidden] .su-union-bar {
   display: none;
 }
+
+/* The signed-out views the build drew into the shell's root
+   (`astro/build/signedOutViews.tsx`): each shown only when the head script
+   marks the document as opening on it (`SIGNED_OUT_VIEW_ATTRIBUTE`, one rule
+   per `SIGNED_OUT_VIEWS` route); the app's first render replaces it. */
+.su-signed-out-static {
+  display: none;
+}
+
+html[data-signed-out-view='/'] .su-signed-out-static[data-view='/'],
+html[data-signed-out-view='/pilots/new'] .su-signed-out-static[data-view='/pilots/new'],
+html[data-signed-out-view='/mechs/new'] .su-signed-out-static[data-view='/mechs/new'],
+html[data-signed-out-view='/crawlers/new'] .su-signed-out-static[data-view='/crawlers/new'],
+html[data-signed-out-view='/npcs/new'] .su-signed-out-static[data-view='/npcs/new'] {
+  display: block;
+}
+
+/* Not painted until its faces are in (`SIGNED_OUT_FONTS_ATTRIBUTE`): in the
+   fallback, the live view replacing it would count as the page's largest paint. */
+html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
+  visibility: hidden;
+}

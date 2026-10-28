@@ -86,10 +86,18 @@ function headTags(): string {
 /**
  * The body: the Union bar (`./unionBar`), the root the app mounts on, and
  * `main.tsx`, the source entry, which the build replaces with its hashed chunk
- * (and the dev server serves as is).
+ * (and the dev server serves as is). The build's root holds the front door's
+ * markup (`root`, `astro/build/frontDoor.tsx`), which the app's first render
+ * replaces.
  */
-function bodyMarkup(): string {
-  return renderUnionBar() + renderToStaticMarkup(createElement('div', { id: 'root' }))
+function bodyMarkup(root = ''): string {
+  return (
+    renderUnionBar() +
+    renderToStaticMarkup(
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: the build's own render of the front door
+      createElement('div', { id: 'root', dangerouslySetInnerHTML: { __html: root } })
+    )
+  )
 }
 
 function bodyTags(): string {
@@ -101,10 +109,11 @@ function bodyTags(): string {
 
 /**
  * The shell's head and body without its entry script, for the build's page
- * (`astro/pages/build/index.astro`), which bundles the entry itself.
+ * (`astro/pages/build/index.astro`), which bundles the entry itself; `root`
+ * is the markup its root starts with.
  */
-export function shellParts(): { head: string; body: string } {
-  return { head: `${headTags()}${META_START}${previewTags()}${META_END}`, body: bodyMarkup() }
+export function shellParts(root = ''): { head: string; body: string } {
+  return { head: `${headTags()}${META_START}${previewTags()}${META_END}`, body: bodyMarkup(root) }
 }
 
 /** The shell as the dev server serves it, its entry from source (`appShellInDev`). */

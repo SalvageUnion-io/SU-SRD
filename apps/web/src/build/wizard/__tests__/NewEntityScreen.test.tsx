@@ -95,9 +95,9 @@ describe('NewEntityScreen — signed out', () => {
 
 describe('NewEntityScreen — the gate’s landmark', () => {
   // The Union bar takes the colour of the page's leading band, a band first in
-  // `<main>` (`unionBarMatch.ts`). The pilot, mech and crawler routes wrap
-  // the screen in theirs; the NPC route has none, so its gate brings one.
-  test('the NPC gate is its own <main>; the others leave it to their route', () => {
+  // `<main>` (`unionBarMatch.ts`). The screen draws the one its gate leads,
+  // for every kind: the routes draw none.
+  test('every gate is its own <main>', () => {
     for (const kind of ['npc', 'mech'] as const) {
       rtlRender(
         <NewEntityScreen
@@ -108,7 +108,7 @@ describe('NewEntityScreen — the gate’s landmark', () => {
           onCreated={noop}
         />
       )
-      expect(screen.queryAllByRole('main')).toHaveLength(kind === 'npc' ? 1 : 0)
+      expect(screen.queryAllByRole('main')).toHaveLength(1)
       cleanup()
     }
   })
