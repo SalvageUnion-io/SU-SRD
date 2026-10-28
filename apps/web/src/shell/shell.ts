@@ -91,7 +91,13 @@ function headTags(): string {
  * replaces.
  */
 function bodyMarkup(root = ''): string {
-  return `${renderUnionBar()}<div id="root">${root}</div>`
+  return (
+    renderUnionBar() +
+    renderToStaticMarkup(
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: the build's own render of the front door
+      createElement('div', { id: 'root', dangerouslySetInnerHTML: { __html: root } })
+    )
+  )
 }
 
 function bodyTags(): string {

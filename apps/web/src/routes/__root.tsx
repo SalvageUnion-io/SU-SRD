@@ -9,7 +9,11 @@ import {
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
 import { TestAuthBridge } from '../build/account/TestAuthBridge'
-import { expectsFrontDoor, FRONT_DOOR_SCHEMAS, isRosterRoute } from '../build/roster/frontDoorData'
+import {
+  expectsFrontDoor,
+  FRONT_DOOR_SCHEMAS,
+  isRosterRoute,
+} from '../build/roster/frontDoor.model'
 import type { EntitySurfaceValue } from '../components/index'
 import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'

@@ -137,6 +137,8 @@ async function renderHub(): Promise<void> {
       </SyncProvider>
     )
   })
+  // The Shelves are a lazy chunk (`Roster`): wait out its pending fallback.
+  await settle(() => document.querySelector('[aria-busy="true"]') === null)
 }
 
 async function settle(done: () => boolean): Promise<void> {

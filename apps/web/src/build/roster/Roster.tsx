@@ -8,7 +8,7 @@
  *  - **Signed in** — everything you keep, on your account (`Shelves`).
  *    Disconnected too: the whole cached pile is the only rendering that
  *    cannot lose a build. The root holds this route for the front door's few
- *    schemas only (`frontDoorData.ts`), so the Shelves wait for the rest here.
+ *    schemas only (`frontDoor.model.ts`), so the Shelves wait for the rest here.
  *
  * A Game's page is Play's (`/play/games/$gameId`, ADR-052 §5): Build renders
  * none.

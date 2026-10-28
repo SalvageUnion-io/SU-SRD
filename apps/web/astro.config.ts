@@ -17,7 +17,6 @@ import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
 import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
-import { bootPreloadPlugin } from './astro/build/bootPreload'
 import { DEV_STATE, devWorker } from './astro/build/devWorker'
 import { FONTS } from './astro/build/fonts'
 import { islandDirectives } from './astro/build/islandDirectives'
@@ -145,8 +144,6 @@ export default defineConfig({
       // The UI library's stylesheet, shared by both apps.
       ...clientOnly(emitBaseStylesheet()),
       ...clientOnly(graph.plugin),
-      // The shell's head preloads what its first render waits on (`bootPreload`).
-      ...clientOnly(bootPreloadPlugin()),
       ...entrySignatures,
       ...clientOnly(pwa),
     ],

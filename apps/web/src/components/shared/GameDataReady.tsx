@@ -30,7 +30,7 @@ function ReadyMarker() {
  * Holds every route behind `GameDataGate` until the full SalvageUnionReference
  * dataset is loaded, a route's wait (`RoutePending`) while it loads. One route
  * is held for less (`schemas`): the signed-out front door, whose few schemas
- * are proven (`build/roster/frontDoorData.ts`); signed in, its Roster gates
+ * are proven (`build/roster/frontDoor.model.ts`); signed in, its Roster gates
  * the Shelves on everything itself.
  *
  * Everything, not a per-route list: the entity-display layer pulls trait

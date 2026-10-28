@@ -6,15 +6,15 @@
  * paint waits on ~60 KB of data rather than all of it; the rest follows in the
  * background, for the route they open next.
  *
- * `__tests__/frontDoorData.test.ts` renders the front door with only these
+ * `__tests__/frontDoor.model.test.ts` renders the front door with only these
  * loaded and with everything, and fails when the two differ: a card that reads
  * a schema missing here degrades silently (`readReference`), so the list is
  * proven, not trusted.
  */
 
-import { ACCOUNT_HINT_KEY, readAccountHint, STORED_SESSION_KEY } from '../../lib/accountHint'
+import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
-import { APP_BASE, routeInApp } from '../../lib/appBase'
+import { routeInApp } from '../../lib/appBase'
 
 export const FRONT_DOOR_SCHEMAS: string[] = [
   'abilities',
@@ -36,7 +36,7 @@ export function expectsFrontDoor(pathname: string, storage = browserStorage()): 
 }
 
 /**
- * Set on `<html>` by the shell's head script (`FRONT_DOOR_SCRIPT`) when the
+ * Set on `<html>` by the shell's head script (`FRONT_DOOR_SCRIPT`, `astro/build/frontDoor.tsx`) when the
  * document opens on the front door: it shows the front door the build
  * rendered into the shell (`astro/build/frontDoor.tsx`, `styles/build/screens.css`)
  * until the app's first render replaces it, and holds that render until the
@@ -44,10 +44,5 @@ export function expectsFrontDoor(pathname: string, storage = browserStorage()): 
  */
 export const FRONT_DOOR_ATTRIBUTE = 'data-front-door'
 
-/**
- * `expectsFrontDoor`, as the shell's inline head script, which runs before the
- * body is drawn and so cannot wait for a module: the base's address and no
- * remembered account. No storage at all reads as no account, as
- * `browserStorage` does. `__tests__/frontDoorData.test.ts` holds the two equal.
- */
-export const FRONT_DOOR_SCRIPT = `(function(){var p=location.pathname;if(p!==${JSON.stringify(APP_BASE)}&&p!==${JSON.stringify(`${APP_BASE}/`)})return;var s=null;try{s=localStorage}catch(e){}try{if(s&&s.getItem(${JSON.stringify(ACCOUNT_HINT_KEY)})!==null&&s.getItem(${JSON.stringify(STORED_SESSION_KEY)}))return}catch(e){}document.documentElement.setAttribute(${JSON.stringify(FRONT_DOOR_ATTRIBUTE)},'')})()`
+/** The class of the front door the build renders into the shell, shown by `FRONT_DOOR_ATTRIBUTE` (`styles/build/screens.css`). */
+export const FRONT_DOOR_STATIC_CLASS = 'su-front-door-static'

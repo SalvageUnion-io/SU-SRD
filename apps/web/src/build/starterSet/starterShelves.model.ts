@@ -54,7 +54,7 @@ function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined 
  * The art of the reference entity a build is made from; none when it cannot be
  * read. Its artwork alone, not its whole model (`toEntityModel`), which would
  * resolve a chassis's abilities from `actions`, a schema the front door does
- * not wait for (`roster/frontDoorData.ts`).
+ * not wait for (`roster/frontDoor.model.ts`).
  */
 function artOf(source: string, entity: () => RefMetaEntity | null | undefined) {
   return readReference(
