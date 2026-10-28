@@ -48,7 +48,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).
 15. **Deployments** <a id="deployments"></a>
-    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Convex is retired (2026-10-27): its last export is in the private R2 bucket `su-archive`, and the `convex-last` tag holds its code.
+    Production is the su-srd Worker with D1 `su-shared`; each Preview has its own rooms and the D1 `su-shared-preview`. Convex was retired and deleted (2026-10-27): its last export is in the private R2 bucket `su-archive`, and the `convex-last` tag holds its code.
     `bun run dev` runs the Worker beside the dev server with test auth; setup and rotations are the `site-ops` skill.
 16. **Worker environment** <a id="worker-env"></a>
     Sign-in is the site Worker's (`src/worker/auth/`, D1 `SHARED`): `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`; the bot is reached by service binding (`BOT`), with no shared secret.
@@ -113,7 +113,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`.
     `tools/check-observability.ts` guards it.
 37. **Identifiers** <a id="identifiers"></a>
-    The retired Convex project was `alex-jarvis:susrd` (production `exuberant-porpoise-183`); its last export is `su-archive/convex/`.
+    The deleted Convex project was `alex-jarvis:susrd` (production `exuberant-porpoise-183`); its last export is `su-archive/convex/`.
     Repo `SalvageUnion-io/SU-SRD`, branch `main`; the deployed commit is the release (ADR-041).
 38. **Contributions and provenance** · ADR-029 · [spec](architecture/contributions.md) <a id="contributions"></a>
     One source / op / target model in `salvageunion-reference/lib/rules/contributions.ts`; derivations return parts, so provenance shows wherever a value does.
