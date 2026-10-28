@@ -12,7 +12,9 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
+import { APP_BASE } from '../../src/lib/appBase'
 import { writePublicPages } from './appPlugins'
+import { withBootPreload } from './bootPreload'
 import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
@@ -34,6 +36,10 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
     hooks: {
       'astro:build:done': async ({ dir, pages, logger }) => {
         const distDir = fileURLToPath(dir)
+        // The app shell's boot preloads, before its inline script is hashed
+        // and the public pages are written from it.
+        const shellFile = join(distDir, APP_BASE.slice(1), 'index.html')
+        await writeFile(shellFile, withBootPreload(await readFile(shellFile, 'utf-8')))
         const routes = pages
           .map(({ pathname }) => routeOf(pathname))
           // Endpoints: a file name (`llms.txt`, `_redirects`), not a page.

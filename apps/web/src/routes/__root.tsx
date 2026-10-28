@@ -9,6 +9,7 @@ import {
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
 import { TestAuthBridge } from '../build/account/TestAuthBridge'
+import { expectsFrontDoor, FRONT_DOOR_SCHEMAS, isRosterRoute } from '../build/roster/frontDoorData'
 import type { EntitySurfaceValue } from '../components/index'
 import { EntitySurfaceProvider, ToasterMount } from '../components/index'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
@@ -20,6 +21,7 @@ import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
+import { preloadGameData } from '../lib/useGameData'
 import { ReplicaSync } from '../replica/ReplicaSync'
 import { SyncProvider } from '../replica/SyncProvider'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
@@ -34,6 +36,23 @@ import '../styles/app.css'
  * stamp (`appliesRules`, ADR-029 §6). The Page opener is `EntityPageHost`'s,
  * below (the detail dialog).
  */
+/*
+ * The dataset's preload, started at MODULE SCOPE, not on first render.
+ *
+ * Started inside a component, the fetch would wait for React to boot, mount
+ * the provider tree and render down to the gate: dead time on the critical
+ * path. At module scope it overlaps React's bootstrap and the rest of the
+ * entry chunk. These are the gates' own keyed preloads (`useGameData`), so the
+ * gates and the bar's controls (`useGameData().ready`) share these requests.
+ *
+ * A visitor opening the front door gets its few schemas first, then the rest:
+ * on a slow line the whole dataset would share the bandwidth the front door's
+ * first paint waits on.
+ */
+void (expectsFrontDoor(window.location.pathname)
+  ? preloadGameData(FRONT_DOOR_SCHEMAS, 'full').then(() => preloadGameData('all', 'full'))
+  : preloadGameData('all', 'full'))
+
 const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
 
 export const Route = createRootRoute({
@@ -115,7 +134,7 @@ function RootComponent() {
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
           <div id="main-content" tabIndex={-1}>
-            <GameDataReady>
+            <GameDataReady schemas={isRosterRoute(pathname) ? FRONT_DOOR_SCHEMAS : 'all'}>
               <Outlet />
             </GameDataReady>
           </div>

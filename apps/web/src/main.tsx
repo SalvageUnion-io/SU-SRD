@@ -2,6 +2,7 @@ import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { FRONT_DOOR_ATTRIBUTE, FRONT_DOOR_SCHEMAS } from './build/roster/frontDoorData'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
 import { RouteNotFound, RoutePending } from './components/shared/RouteFallbacks'
 import { APP_BASE, APP_REWRITE } from './lib/appBase'
@@ -13,6 +14,7 @@ import {
 import { preloadScriptFont, SCRIPT_FONT_VARIABLE } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
+import { preloadGameData } from './lib/useGameData'
 import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
 
@@ -71,11 +73,24 @@ if (!rootEl) throw new Error('Root element not found')
 
 // The error hooks are how a render crash gets reported: an error a boundary
 // catches never reaches the window's `error` event, which is all the reporter hears.
-createRoot(rootEl, reactRootErrorHandlers).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>
-)
+const renderApp = (root: HTMLElement) =>
+  createRoot(root, reactRootErrorHandlers).render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>
+  )
+
+// Opening on the front door the shell already shows (`FRONT_DOOR_ATTRIBUTE`),
+// the first render, which replaces it, waits until the live one can draw in
+// its place: its schemas and its route. Sooner, the root's own waits would
+// swap the page for a spinner. A failure renders anyway: the gates retry.
+if (document.documentElement.hasAttribute(FRONT_DOOR_ATTRIBUTE)) {
+  void Promise.allSettled([preloadGameData(FRONT_DOOR_SCHEMAS, 'full'), router.load()]).then(() =>
+    renderApp(rootEl)
+  )
+} else {
+  renderApp(rootEl)
+}
 
 // The one service-worker registration: `virtual:pwa-register`, handed to
 // lib/sw/register.ts. `registerType: 'prompt'` (astro.config.ts) means a new

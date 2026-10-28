@@ -13,7 +13,12 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
 import type { RefMetaEntity } from 'salvageunion-reference'
-import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
+import {
+  entityRef,
+  getAssetUrl,
+  getReferenceEntityName,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { EntityFormModel, TagItem } from '../../components/index'
 import { relation } from '../../components/index'
@@ -45,13 +50,19 @@ function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined 
   return photo ? { kind: 'image', url: photoUrl(photo) } : undefined
 }
 
-/** The art of the reference entity a build is made from; none when it cannot be read. */
+/**
+ * The art of the reference entity a build is made from; none when it cannot be
+ * read. Its artwork alone, not its whole model (`toEntityModel`), which would
+ * resolve a chassis's abilities from `actions`, a schema the front door does
+ * not wait for (`roster/frontDoorData.ts`).
+ */
 function artOf(source: string, entity: () => RefMetaEntity | null | undefined) {
   return readReference(
     `StarterCard.${source}`,
-    () => {
+    (): EntityFormModel['art'] => {
       const found = entity()
-      return found ? toEntityModel(found).art : NO_ART
+      const url = found ? getAssetUrl(found) : undefined
+      return url ? { kind: 'image', url } : NO_ART
     },
     NO_ART
   )
@@ -83,7 +94,8 @@ function sourceRelation(
   return readReference(`StarterCard.${source}`, () => {
     const found = entity()
     if (!found) return []
-    const { ref, title } = toEntityModel(found)
+    const ref = entityRef(found)
+    const title = getReferenceEntityName(found) ?? found.name
     return [relation(`${source}-${ref.id}`, label, title, { ref })]
   }, [])
 }

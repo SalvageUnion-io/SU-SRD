@@ -8,3 +8,14 @@
 html[data-union-bar-hidden] .su-union-bar {
   display: none;
 }
+
+/* The front door the build drew into the shell's root (`astro/build/frontDoor.tsx`),
+   shown only when the head script marks the document as opening on it
+   (`FRONT_DOOR_ATTRIBUTE`); the app's first render replaces it. */
+.su-front-door-static {
+  display: none;
+}
+
+html[data-front-door] .su-front-door-static {
+  display: block;
+}

@@ -13,8 +13,11 @@ import { SITE_MANIFEST } from '../../src/pwa'
 import { shellParts } from '../../src/shell/shell'
 import { BASE_STYLESHEET } from '../lib/assets'
 
-export function appShell(siteOrigin: string | undefined): { head: string; body: string } {
-  const { head, body } = shellParts()
+export function appShell(
+  siteOrigin: string | undefined,
+  root = ''
+): { head: string; body: string } {
+  const { head, body } = shellParts(root)
   const links = `<link rel="stylesheet" href="${BASE_STYLESHEET.href}"><link rel="manifest" href="${SITE_MANIFEST}">`
   const named = head.replaceAll(
     `${originOf()}${appPath('/')}`,
