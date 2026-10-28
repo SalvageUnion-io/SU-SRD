@@ -377,9 +377,13 @@
     padding-bottom: var(--space-12);
   }
 
+  /* At its field's height before the field is there: the app's shell is
+     served with the box empty, so the page under it keeps its place when the
+     app fills it in. */
   .su-union-bar__end > .su-union-bar__search {
     display: block;
     flex: 1 1 auto;
+    min-height: var(--su-union-bar-control);
     min-width: 0;
   }
 
