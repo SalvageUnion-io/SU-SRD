@@ -74,10 +74,21 @@ export async function signedOutViewsMarkup(): Promise<string> {
 export const SIGNED_OUT_FONTS_ATTRIBUTE = 'data-signed-out-fonts'
 
 /**
+ * `value` as a JavaScript literal inside an inline `<script>`: JSON, with the
+ * characters that could end the element or the line (`<`, `>`, U+2028,
+ * U+2029) as escapes, which read back as themselves.
+ */
+const literal = (value: unknown): string =>
+  JSON.stringify(value).replace(
+    /[<>\u2028\u2029]/g,
+    (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`
+  )
+
+/**
  * `signedOutViewAt`, as the shell's inline head script, which runs before the
  * body is drawn and so cannot wait for a module: a view's route under the
  * base and no remembered account. No storage at all reads as no account, as
  * `browserStorage` does. `__tests__/signedOutViews.test.ts` holds the two equal.
  * It then waits for the faces (`SIGNED_OUT_FONTS_ATTRIBUTE`).
  */
-export const SIGNED_OUT_VIEW_SCRIPT = `(function(){var p=location.pathname,b=${JSON.stringify(APP_BASE)},r=p===b?"/":p.indexOf(b+"/")===0?p.slice(b.length):null;if(r===null||${JSON.stringify(Object.keys(SIGNED_OUT_VIEWS))}.indexOf(r)<0)return;var s=null;try{s=localStorage}catch(e){}try{if(s&&s.getItem(${JSON.stringify(ACCOUNT_HINT_KEY)})!==null&&s.getItem(${JSON.stringify(STORED_SESSION_KEY)}))return}catch(e){}var d=document.documentElement,f=document.fonts,k=function(){d.setAttribute(${JSON.stringify(SIGNED_OUT_FONTS_ATTRIBUTE)},"")},w=function(){if(f.status==="loaded")k()};d.setAttribute(${JSON.stringify(SIGNED_OUT_VIEW_ATTRIBUTE)},r);if(!f||r==="/"){k();return}setTimeout(k,3000);f.addEventListener("loadingdone",w);f.addEventListener("loadingerror",w)})()`
+export const SIGNED_OUT_VIEW_SCRIPT = `(function(){var p=location.pathname,b=${literal(APP_BASE)},r=p===b?"/":p.indexOf(b+"/")===0?p.slice(b.length):null;if(r===null||${literal(Object.keys(SIGNED_OUT_VIEWS))}.indexOf(r)<0)return;var s=null;try{s=localStorage}catch(e){}try{if(s&&s.getItem(${literal(ACCOUNT_HINT_KEY)})!==null&&s.getItem(${literal(STORED_SESSION_KEY)}))return}catch(e){}var d=document.documentElement,f=document.fonts,k=function(){d.setAttribute(${literal(SIGNED_OUT_FONTS_ATTRIBUTE)},"")},w=function(){if(f.status==="loaded")k()};d.setAttribute(${literal(SIGNED_OUT_VIEW_ATTRIBUTE)},r);if(!f||r==="/"){k();return}setTimeout(k,3000);f.addEventListener("loadingdone",w);f.addEventListener("loadingerror",w)})()`
