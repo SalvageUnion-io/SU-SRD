@@ -1,0 +1,7 @@
+{
+  "name": "deepmerge",
+  "version": "4.3.1-susrd.1",
+  "description": "deepmerge 4.3.1 with GHSA-gcqx-w48m-w2h4 fixed; the root overrides point every dependent here.",
+  "license": "MIT",
+  "main": "index.cjs"
+}
