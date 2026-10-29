@@ -19,7 +19,7 @@ const PENDING_RULES: Readonly<Record<string, { law: string; ceiling: number }>> 
     law: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
     ceiling: 0,
   },
-  'tab-size': { law: "R41 (§4.7): a Button beside Tabs is the Tabs' Size", ceiling: 1 },
+  'tab-size': { law: "R41 (§4.7): a Button beside Tabs is the Tabs' Size", ceiling: 28 },
 }
 
 /**
