@@ -27,6 +27,7 @@ const { EncounterPage } = await import('../EncounterPage')
 const { EncounterShelf } = await import('../../shelves/EncounterShelf')
 const { useConfirm } = await import('../../../components/shared/useConfirm')
 const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
+const { WritesBlockedOffline } = await import('../../../replica/sync')
 
 withSignedInBackend()
 
@@ -230,6 +231,36 @@ describe('an encounter page', () => {
     await click(screen.getByRole('button', { name: 'Edit' }))
     expect(screen.getByRole('button', { name: 'Add opposition from the reference' })).toBeTruthy()
     expect(screen.getByText('Notes')).toBeTruthy()
+  })
+
+  test('a refused edit is told once and leaves no unhandled rejection', async () => {
+    // The collection's api is the prototype of every state the store hands out.
+    const api = Object.getPrototypeOf(useEncounters.getState())
+    const refuse = spyOn(api, 'update').mockImplementation(async () => {
+      throw new WritesBlockedOffline()
+    })
+    const unhandled: unknown[] = []
+    const onUnhandled = (reason: unknown) => {
+      unhandled.push(reason)
+    }
+    process.on('unhandledRejection', onUnhandled)
+    try {
+      await renderPage()
+      await click(screen.getByRole('button', { name: 'More for Raider' }))
+      await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Remove' }))
+      await editField('your notes', 'Raiders on the gantry.')
+      await settle(() => refuse.mock.calls.length >= 2)
+      // One macrotask, so a rejection with no handler has been reported.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+      })
+      expect(refuse.mock.calls.length).toBe(2)
+      expect(unhandled).toEqual([])
+      expect(current()?.opposition).toHaveLength(1)
+    } finally {
+      process.off('unhandledRejection', onUnhandled)
+      refuse.mockRestore()
+    }
   })
 
   test('Delete, under the corner ⋯, asks first, then returns to the Training Bay', async () => {
