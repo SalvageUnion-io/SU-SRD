@@ -110,7 +110,8 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     // The book page's band, not a hatched one: the stamp says it instead.
     expect(container.querySelector('[data-user-made]')).toBeNull()
     expect(container.querySelector('.su-entity-stamps')?.textContent).toContain('Homebrew')
-    expect(screen.getByRole('link', { name: /Scrapper/ })).toBeTruthy()
+    // Its chassis chip opens the chassis's Page where the app keeps it (the surface's opener).
+    expect(container.querySelector('.su-entity-stamps')?.textContent).toContain('Scrapper')
     // The notes lead the pattern as a book pattern's prose does.
     expect(container.querySelector('.su-entity-page__opening')?.textContent).toContain(
       'Rig first, rivet later.'
@@ -134,6 +135,14 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     for (const part of ['Rigging Arm', 'Transport Hold', 'Comms Module']) {
       expect(screen.getAllByText(part).length).toBeGreaterThan(0)
     }
+  })
+
+  test('its chassis chip never links an SRD path, which in the app lands under /build and 404s', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    const { container } = renderAs(SIGNED_OUT)
+
+    const hrefs = [...container.querySelectorAll('a[href]')].map((a) => a.getAttribute('href'))
+    expect(hrefs.filter((href) => href?.startsWith('/chassis/'))).toEqual([])
   })
 
   test('signed out, it offers sign-in rather than a build that would be refused', () => {

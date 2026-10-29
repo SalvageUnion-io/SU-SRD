@@ -26,7 +26,7 @@ import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefObjectPattern } from 'salvageunion-reference'
-import { getAssetUrl, getEntitySlug, toEntityModel } from 'salvageunion-reference'
+import { getAssetUrl, toEntityModel } from 'salvageunion-reference'
 import {
   Button,
   ChapterBand,
@@ -42,7 +42,6 @@ import {
 import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
-import { itemHref } from '../../../lib/entityHref'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
@@ -182,7 +181,6 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                 parent={{
                   label: mechCopy('patternOf'),
                   ref: toEntityModel(chassis).ref,
-                  href: itemHref('chassis', getEntitySlug(chassis)),
                 }}
               />
             ) : undefined
