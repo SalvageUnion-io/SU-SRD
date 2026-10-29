@@ -7,7 +7,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
 ## Areas
 
 1. **Packages** <a id="packages"></a>
-   `salvageunion-reference` → every app; `game-domain` → `apps/web` (app, Worker, rooms) / bot; `gates` → `tools/`, app e2e.
+   `salvageunion-reference` → every app; `game-domain` → `apps/web` (app, Worker, rooms) / bot / `gates`; `gates` → `tools/`, app e2e.
    Packages never import an app (`noRestrictedImports`); deps use `workspace:*`.
 2. **salvageunion-reference** · ADR-005, ADR-006, ADR-013 <a id="reference"></a>
    Private, no build, no version. Zod in `lib/schemas/` is the one source of types, JSON Schema and validation: every schema imports `z` from `lib/zod.ts` (`jitless`, for the CSP), never `zod`; `Ref*` types and JSON Schema are gitignored, rebuilt on install, typecheck, build and test (`ref-generate`).
@@ -29,7 +29,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `game-domain` (botWire, schemas) as types only; changing them is cross-package. Lookup = embed: `discordEntryCard`.
+   Imports `game-domain` types, and values only from its leaf modules (botWire, product, appAddress, entityKinds; `noRestrictedImports`); changing them is cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, the rooms and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars a rule in a product folder.
@@ -87,8 +87,8 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     `main` ruleset (`MAIN_RULESET` in `tools/environments.ts`): no deletion or force-push, PR only, strict `CI Success` + PR-title checks, CodeQL.
     Actions are allowlisted and SHA-pinned (zizmor); ruleset and Environments drift-checked nightly; no merge queue.
 28. **Deploy** <a id="deploy"></a>
-    `deploy-cloudflare.yml` on `main` push: plan → build → deploy → smoke → record (tag `deployed/cloudflare`).
-    `tools/deploy-surfaces.ts` picks what ships and fails safe to everything; a dispatched `sha` rolls back. srd's OG images build at deploy; the bot leg registers its slash commands.
+    `deploy-cloudflare.yml` on `main` push: plan → build → deploy → smoke → record (tag `deployed/cloudflare`); `tools/deploy-surfaces.ts` picks what ships, fails safe to everything; a dispatched `sha` rolls back.
+    D1 migrates before the Worker ships and never back, so a migration is expand-only: a drop or rename lands once no deployed Worker reads it (`check-migrations.ts`).
 29. **Preview deploys** <a id="previews"></a>
     A PR into `main` or a `su-io-*` release branch labelled `preview` gets a su-srd Preview `pr-<n>` (its own rooms) per push, linked in a comment, deleted on close.
     The label is the approval (no Environment reviewer); Previews share the D1 `su-shared-preview`.

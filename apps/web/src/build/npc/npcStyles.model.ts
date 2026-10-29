@@ -6,8 +6,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { tokens } from '../../components/index'
+import { capsLabel, tokens } from '../../components/index'
 
 export const PAGE = {
   backgroundColor: tokens.color.wkBg,

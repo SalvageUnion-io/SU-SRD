@@ -3,6 +3,7 @@ import type { SearchResult } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { itemHref } from '../../lib/entityHref'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
+import { searchHref } from '../../lib/searchHref'
 import type { CompactSearchEntry } from '../../lib/searchIndexTypes'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
@@ -92,7 +93,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
   if (!query || !ready) return null
 
   // The home page's search, opened on the query (`SearchIsland`'s hero).
-  const searchHref = `/?q=${encodeURIComponent(query)}`
+  const searchHere = searchHref(query)
 
   return (
     <IslandErrorBoundary>
@@ -126,7 +127,7 @@ export function DidYouMeanIsland({ pathname }: DidYouMeanIslandProps = {}) {
             </ul>
           </DocumentLinks>
         )}
-        <a href={searchHref} className="su-not-found__link">
+        <a href={searchHere} className="su-not-found__link">
           {islandsCopy('searchTheReferenceFor', { query })}
         </a>
       </SlabSection>

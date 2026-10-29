@@ -1,8 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { Box } from '../../components/containers/Box'
-import { Eyebrow, tokens } from '../../components/index'
+import { Box, Eyebrow, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 /** Per-step rule metadata carried by each wizard's step table. */

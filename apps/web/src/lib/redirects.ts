@@ -27,6 +27,7 @@ import {
 } from 'game-domain/entityKinds'
 import { APP_BASE, appPath, underBase } from './appBase'
 import { DOC_PAGES } from './docPages'
+import { searchHref } from './searchHref'
 
 /** An exact `from → to` 301. */
 export type Move = { from: string; to: string }
@@ -203,7 +204,7 @@ const SLUG = /^[a-z0-9-]+$/
 
 /** The home page with the Union bar's search open on a slug's words. */
 function searchFor(slug: string): string {
-  return `/?q=${slug.split('-').filter(Boolean).join('+')}`
+  return searchHref(slug.split('-').filter(Boolean).join(' '))
 }
 
 // ---------------------------------------------------------------------------

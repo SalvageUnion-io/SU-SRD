@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { exports } from 'cloudflare:workers'
-import { bodies, PLAYER } from '../../rooms/game/__tests__/harness'
+import { bodies, PLAYER, parcel } from '../../rooms/game/__tests__/harness'
 import type { LeaseOutcome } from '../../rooms/handoff'
 import { AccountRoom } from '../rooms'
 
@@ -44,30 +44,7 @@ function shelf() {
     getWebSockets: () => [],
   }
   const room = new AccountRoom(ctx as never, {} as never)
-  room.importAccount({
-    discordId: PLAYER,
-    name: 'Player',
-    avatarUrl: null,
-    units: [
-      {
-        kind: 'pilot',
-        appId: 'p1',
-        owner: PLAYER,
-        publicRead: false,
-        body: bodies.pilot('p1'),
-        headSeq: 0,
-        fieldSeqs: {},
-        updatedAt: 0,
-        ops: [],
-      },
-    ],
-    patterns: [],
-    encounters: [],
-    npcTray: [],
-    links: [],
-    seats: [],
-    channelBindings: [],
-  })
+  room.accept(parcel(PLAYER, 'pilot', 'p1', bodies.pilot('p1')), PLAYER, 0)
   const offer = (at: number) =>
     room.offer({
       leaseId: 'L1',
@@ -125,12 +102,15 @@ describe('the account room’s other doors', () => {
     expect(room.refuseLease('L-unknown', Date.now())).toBe('refused')
   })
 
-  test('forget wipes the Shelf for its own player only', async () => {
+  test('forget wipes the Shelf for its own player only, and leaves it theirs, empty', async () => {
     const { room } = shelf()
     await room.forget('d-stranger')
     expect(room.unitsFor(PLAYER)).toHaveLength(1)
     await room.forget(PLAYER)
     expect(room.unitsFor(PLAYER)).toEqual([])
-    expect(room.exportFor(PLAYER)).toBeNull()
+    expect(room.exportFor(PLAYER)).toMatchObject({ pilots: [], mechs: [] })
+    // Signing straight back in, a Game can hand them a unit again.
+    room.accept(parcel(PLAYER, 'pilot', 'p2', bodies.pilot('p2')), PLAYER, 1)
+    expect(room.unitsFor(PLAYER).map((u) => u.id)).toEqual(['p2'])
   })
 })

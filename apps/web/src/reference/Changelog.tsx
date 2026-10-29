@@ -13,7 +13,7 @@ const LIST = {
 // The bullets. Their spacing between items and their marker colour are child /
 // pseudo-element selectors, so those two are `.su-changelog__items`.
 const ITEMS = {
-  color: color.wkMuted, // design-tokens-ignore: a bullet list
+  color: color.wkMuted, // design-tokens-ignore(muted-note): a bullet list
   fontFamily: font.body,
   fontSize: fontSize.sm,
   lineHeight: '1.25rem',

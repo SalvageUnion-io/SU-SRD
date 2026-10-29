@@ -5,8 +5,8 @@
  * logic lives in `../rooms/`, over `RoomSql`; this file is only the wiring.
  */
 
-import { DurableObject, exports } from 'cloudflare:workers'
-import type { DurableObjectNamespace, WebSocket as RoomSocket } from '@cloudflare/workers-types'
+import { DurableObject } from 'cloudflare:workers'
+import type { WebSocket as RoomSocket } from '@cloudflare/workers-types'
 import type { SheetVitals } from 'game-domain/botWire'
 import { applyOp } from 'game-domain/ops/applyOp'
 import { isDowntimeStepOp } from 'game-domain/ops/downtimeStep'
@@ -26,6 +26,7 @@ import {
   appliedMessages,
   batchAnswer,
   crewRecord,
+  defectAnswer,
   gameSnapshot,
   readClientMessage,
   refusedBatch,
@@ -40,21 +41,23 @@ import {
 } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
-import type { HomeAddress, LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
+import type { LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
 import { migrate } from '../rooms/migrate'
 import type { PresenceMessage } from '../rooms/presence'
 import { presentMembers, ROOM_PROTOCOL, SEAT_TAG, WATCH_TAG } from '../rooms/presence'
-import type { ServerMessage } from '../rooms/protocol'
+import type { ClientMessage, ServerMessage } from '../rooms/protocol'
 import { gamePublished, shelfPublished } from '../rooms/publish'
 import { answerOrRefuse } from '../rooms/refusal'
 import { ACCOUNT_ROOM, GAME_ROOM } from '../rooms/schemas'
 import type { RoomSql } from '../rooms/sql'
 import { loadCrewReference, unitVitals } from '../rooms/vitals'
+import { reportError } from './errorReports'
 import { LEASE_SETTLE_MS, settleStaleOffers } from './leaseAlarm'
 import { builtMech, countPatternBuild } from './patternBuilds'
-import { sendEach, sendQuietly, snapshotEach } from './roomSockets'
+import { closeGone, sendEach, sendQuietly, snapshotEach } from './roomSockets'
 import { storageSql } from './roomStorage'
+import { accountHome, homeOf } from './roomStubs'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
@@ -62,6 +65,9 @@ import { postStopSign } from './shared/stopSign'
 import { isShelfAct, runShelfAct } from './shelfActs'
 
 type RoomHealth = { schema: number }
+
+/** How long a room waits to write its shared rows again after a write failed. */
+const PUBLISH_RETRY_MS = 60_000
 
 /** workerd's global; this workspace's types are the DOM's. */
 declare const WebSocketPair: typeof import('@cloudflare/workers-types').WebSocketPair
@@ -104,7 +110,7 @@ abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
 
   protected abstract readonly publisher: RoomPublisher
 
-  /** Write every row this room publishes to the shared database now: the cutover's, after import. */
+  /** Write every row this room publishes to the shared database now, before a call answers. */
   republish(): Promise<{ sheets: number; homebrew: number }> {
     return this.publisher.republish()
   }
@@ -114,10 +120,41 @@ abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
     void this.publisher.changed()
   }
 
+  /** The shared rows did not land: the alarm writes them again, unless it is due sooner anyway. */
+  protected publishLater(): void {
+    const at = Date.now() + PUBLISH_RETRY_MS
+    void this.ctx.storage.getAlarm().then(async (due) => {
+      if (due === null || due > at) await this.ctx.storage.setAlarm(at)
+    })
+  }
+
   protected abstract readonly transit: RoomTransit
 
   /** Every open socket hears the room afresh; the shared rows follow. */
   protected abstract broadcastSnapshots(): void
+
+  /**
+   * One message from a socket the Worker let through, answered on that
+   * socket. A defect is reported and still answered (`defectAnswer`), so the
+   * client's write fails rather than waiting on an answer that never comes.
+   */
+  override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
+    const [member] = this.ctx.getTags(ws)
+    const said = member === undefined ? null : readClientMessage(message)
+    if (member === undefined || said === null) {
+      sendQuietly(ws, JSON.stringify(UNREADABLE))
+      return
+    }
+    try {
+      this.heard(ws, member, said)
+    } catch (error) {
+      reportError(error, { where: 'room.socket', said: said.type })
+      sendQuietly(ws, JSON.stringify(defectAnswer(said)))
+    }
+  }
+
+  /** One `ops` batch or `act` from `member`, answered on `ws`. */
+  protected abstract heard(ws: RoomSocket, member: string, said: ClientMessage): void
 
   offer(args: Parameters<UnitHome['offer']>[0]): UnitParcel {
     const parcel = this.transit.offer(args)
@@ -143,8 +180,15 @@ abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
     return this.transit.refuseLease(leaseId, at)
   }
 
-  override alarm(): Promise<void> {
-    return settleStaleOffers(this, this.transit, this.ctx.storage, homeOf)
+  /** Settle the offers nobody answered, and write the shared rows again, in case the last write failed. */
+  override async alarm(): Promise<void> {
+    await settleStaleOffers(this, this.transit, this.ctx.storage, homeOf)
+    try {
+      await this.publisher.republish()
+    } catch (error) {
+      reportError(error, { where: 'room.republish' })
+      this.publishLater()
+    }
   }
 
   /**
@@ -178,8 +222,8 @@ abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
 
 /**
  * @public A player's shelf, named by their Discord id; loaded by workerd
- * (`wrangler.jsonc` `exports`). Its RPC is the player's units, the handoff
- * (`UnitHome`) and the cutover's import; the Worker names the actor.
+ * (`wrangler.jsonc` `exports`). Its RPC is the player's units, their profile
+ * and the handoff (`UnitHome`); the Worker names the actor.
  */
 export class AccountRoom extends Room {
   private readonly logic: AccountRoomLogic
@@ -196,8 +240,12 @@ export class AccountRoom extends Room {
       return discordId === null ? null : { discordId, ...this.logic.shelf.totals() }
     })
     const owner = ctx.id.name ?? null
-    this.publisher = new RoomPublisher(sharedDb(env), `account:${owner}`, owner, () =>
-      shelfPublished(this.logic.shelf.store)
+    this.publisher = new RoomPublisher(
+      sharedDb(env),
+      `account:${owner}`,
+      owner,
+      () => shelfPublished(this.logic.shelf.store),
+      () => this.publishLater()
     )
     // The room is named by its player, so it is theirs before they first open
     // it: a Game that ends can hand them their units (after the migration above).
@@ -233,17 +281,6 @@ export class AccountRoom extends Room {
     this.broadcastSnapshots()
   }
 
-  importAccount(bundle: unknown): { imported: boolean } {
-    const answer = this.logic.transit.importAccount(bundle, Date.now())
-    this.broadcastSnapshots()
-    return answer
-  }
-
-  /** What differs between this room and the bundle it was imported from; empty when they agree. */
-  diffImport(bundle: Parameters<AccountRoomLogic['transit']['diffImport']>[0]): string[] {
-    return this.logic.transit.diffImport(bundle)
-  }
-
   /** The player's socket, which the Worker let through: their Shelf, then its changes. */
   override async fetch(request: Request): Promise<Response> {
     const member = this.socketMember(request)
@@ -260,29 +297,23 @@ export class AccountRoom extends Room {
    * area's or their Shelf's, `./shelfActs.ts`), answered on its socket, heard
    * by all of theirs.
    */
-  override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
-    const [member] = this.ctx.getTags(ws)
-    const said = member === undefined ? null : readClientMessage(message)
-    if (member !== undefined && said?.type === 'act') {
+  protected heard(ws: RoomSocket, member: string, said: ClientMessage): void {
+    if (said.type === 'act') {
       const act = socketAct(said, ACCOUNT_SOCKET_ACTS)
       if (!('refusal' in act) && isShelfAct(act)) {
-        const id = said.id
         const answered = (answer: GameActAnswer<unknown>) => {
           if (answer.ok) this.broadcastSnapshots()
-          sendQuietly(ws, JSON.stringify(actAnswer(id, answer)))
+          sendQuietly(ws, JSON.stringify(actAnswer(said.id, answer)))
         }
-        runShelfAct(this.logic, sharedDb(this.env), member, act, answered, () => ws.close(1011))
+        const broken = () => sendQuietly(ws, JSON.stringify(defectAnswer(said)))
+        runShelfAct(this.logic, sharedDb(this.env), member, act, answered, broken)
       } else {
         const answer = 'refusal' in act ? { ok: false as const, ...act } : this.soloAct(member, act)
         ws.send(JSON.stringify(actAnswer(said.id, answer)))
       }
       return
     }
-    const batch = said?.type === 'ops' ? said.ops : null
-    if (member === undefined || batch === null) {
-      ws.send(JSON.stringify(UNREADABLE))
-      return
-    }
+    const batch = said.ops
     const opIds = batch.map((op) => op.id)
     const submitted = answerOrRefuse(() => this.logic.shelf.submit(member, batch))
     if (!submitted.ok) {
@@ -292,7 +323,7 @@ export class AccountRoom extends Room {
     const result = submitted.value
     if (result.ok) {
       const ids = result.applied.map((op) => op.id)
-      sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null))
+      sendEach(this.ctx, appliedMessages(this.logic.shelf.store, ids, null), (m) => this.mine(m))
       // A solo Downtime step is read back off its op (the seat's `doneSteps`).
       if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
       else this.published()
@@ -341,22 +372,27 @@ export class AccountRoom extends Room {
     return this.logic.shelf.exportFor(actor)
   }
 
-  /** The player deleted their account: the room is wiped and left unclaimed. */
+  /**
+   * The player deleted their account: the room is wiped, and theirs again
+   * at once, empty, so signing straight back in finds it as a new player's.
+   */
   async forget(actor: string): Promise<void> {
-    if (this.logic.shelf.owner() === actor) await this.wipe()
-    this.published()
+    if (this.logic.shelf.owner() === actor) {
+      await this.wipe()
+      this.logic.shelf.claim(actor, Date.now())
+    }
+    this.broadcastSnapshots()
+  }
+
+  /** Whether `member` is this room's player. */
+  private mine(member: string): boolean {
+    return member === this.logic.shelf.owner()
   }
 
   protected broadcastSnapshots(): void {
     snapshotEach(this.ctx, (member) => shelfSnapshot(this.logic, member))
     this.published()
   }
-}
-
-/** What the Game room asks of a player's account room: the handoff, and the Opposition tray at a Game's end. */
-type AccountHome = UnitHome & {
-  fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): Promise<void>
-  countBuild(patternId: string, builder: string): Promise<boolean>
 }
 
 /**
@@ -373,8 +409,12 @@ export class GameRoom extends Room {
     super(ctx, env, GAME_ROOM)
     this.logic = new GameRoomLogic(this.sql, { applyOp })
     this.transit = this.logic.transit
-    this.publisher = new RoomPublisher(sharedDb(env), `game:${ctx.id.name}`, null, () =>
-      gamePublished(this.logic.store, this.gameId)
+    this.publisher = new RoomPublisher(
+      sharedDb(env),
+      `game:${ctx.id.name}`,
+      null,
+      () => gamePublished(this.logic.store, this.gameId),
+      () => this.publishLater()
     )
   }
 
@@ -454,24 +494,28 @@ export class GameRoom extends Room {
     }
     await accountHome(ended.tray.to).fileTray(`disband-tray:${this.gameId}`, ended.tray.npcs, at)
     await this.wipe()
-    this.published()
+    this.dropStrangers()
     return { ok: true, value: null }
   }
 
   /** A member deleted their account; a Game left with nobody is wiped. */
   async forget(userId: string): Promise<void> {
     if (this.logic.roster.forgetMember(userId).empty) await this.wipe()
-    this.published()
+    this.dropStrangers()
   }
 
-  /** The cutover: copy one Game's bundle in, once (ADR-064 §7). */
-  importGame(bundle: unknown): { imported: boolean } {
-    return this.logic.transit.importGame(bundle, Date.now())
+  /**
+   * After the roster lost someone (or everyone): every socket hears the room
+   * as it now is, which for a non-member is empty, and a non-member's socket
+   * is then closed for good (`ROOM_GONE`).
+   */
+  private dropStrangers(): void {
+    this.broadcastSnapshots()
+    closeGone(this.ctx, (member) => this.isMember(member))
   }
 
-  /** What differs between this room and the bundle it was imported from; empty when they agree. */
-  diffImport(bundle: Parameters<GameRoomLogic['transit']['diffImport']>[0]): string[] {
-    return this.logic.transit.diffImport(bundle)
+  private isMember(member: string): boolean {
+    return this.logic.store.member(member) !== null
   }
 
   /**
@@ -491,10 +535,8 @@ export class GameRoom extends Room {
    * A member's `ops` batch (applied all or none) or `act` (run as theirs),
    * answered on its socket; every socket hears what changed.
    */
-  override webSocketMessage(ws: RoomSocket, message: string | ArrayBuffer): void {
-    const [member] = this.ctx.getTags(ws)
-    const said = member === undefined ? null : readClientMessage(message)
-    if (member !== undefined && said?.type === 'act') {
+  protected heard(ws: RoomSocket, member: string, said: ClientMessage): void {
+    if (said.type === 'act') {
       const act = socketAct(said, GAME_SOCKET_ACTS)
       const answer =
         'refusal' in act
@@ -503,13 +545,11 @@ export class GameRoom extends Room {
       ws.send(JSON.stringify(actAnswer(said.id, answer)))
       return
     }
-    const batch = said?.type === 'ops' ? said.ops : null
-    if (member === undefined || batch === null) {
-      ws.send(JSON.stringify(UNREADABLE))
-      return
-    }
-    const opIds = batch.map((op) => op.id)
-    const answer = this.act(member, 'submit', { ops: batch })
+    const opIds = said.ops.map((op) => op.id)
+    const answer = this.act(member, 'submit', {
+      ops: said.ops,
+      ...(said.replayed === true ? { replayed: true } : {}),
+    })
     ws.send(
       JSON.stringify(
         answer.ok ? batchAnswer(opIds, answer.value) : refusedBatch(opIds, answer.refusal)
@@ -530,8 +570,9 @@ export class GameRoom extends Room {
     this.published()
   }
 
+  /** The same messages to every member's open socket. */
   private broadcast(messages: readonly ServerMessage[]): void {
-    sendEach(this.ctx, messages)
+    sendEach(this.ctx, messages, (member) => this.isMember(member))
   }
 
   /** Who is here, to every open socket but `gone` (the one closing). */
@@ -544,48 +585,4 @@ export class GameRoom extends Room {
     const text = JSON.stringify(message)
     for (const ws of open) sendQuietly(ws, text)
   }
-}
-
-/** The room namespaces, as `wrangler.jsonc` declares them. */
-export function rooms() {
-  return exports as unknown as {
-    AccountRoom: DurableObjectNamespace<AccountRoom>
-    GameRoom: DurableObjectNamespace<GameRoom>
-  }
-}
-
-/**
- * A Game room's stub as its callers use it. workerd's own stub type drops a
- * result holding `unknown` (a unit's body) to `never`; every value here is
- * plain JSON, so each method answers its own result.
- */
-export type GameRoomStub = {
-  [K in 'unitsFor' | 'unit' | 'disband' | 'forget' | 'importGame' | 'diffImport' | 'republish']: (
-    ...args: Parameters<GameRoom[K]>
-  ) => Promise<Awaited<ReturnType<GameRoom[K]>>>
-} & {
-  act<N extends GameActName>(
-    actor: string,
-    name: N,
-    args: GameActArgs<N>
-  ): Promise<GameActAnswer<GameActResult<N>>>
-} & {
-  [K in keyof UnitHome]: (
-    ...args: Parameters<UnitHome[K]>
-  ) => Promise<Awaited<ReturnType<UnitHome[K]>>>
-}
-
-/** The Game room named `gameId`. */
-function gameRoom(gameId: string): GameRoomStub {
-  return rooms().GameRoom.getByName(gameId) as unknown as GameRoomStub
-}
-
-/** The room a unit lives in, as the other side of a handoff. */
-function homeOf(address: HomeAddress): UnitHome {
-  return address.kind === 'game' ? gameRoom(address.gameId) : accountHome(address.userId)
-}
-
-/** A player's account room, by Discord id. */
-function accountHome(userId: string): AccountHome {
-  return rooms().AccountRoom.getByName(userId) as unknown as AccountHome
 }

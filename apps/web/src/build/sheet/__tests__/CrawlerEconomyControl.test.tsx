@@ -17,8 +17,8 @@
  * SalvageControl.test.tsx. NO mock.module().
  */
 
-import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, mock, spyOn, test } from 'bun:test'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerFixture } from '../../../components/__tests__/fixtures'
@@ -123,16 +123,45 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Roll Deterioration (d20)' }))
     await screen.findByRole('status')
 
-    expect(update).not.toHaveBeenCalled() // no SP loss on 2-5
-    expect(updateCrawlerBay).toHaveBeenCalledTimes(1)
-    expect(updateCrawlerBay.mock.calls[0]).toEqual([
-      crawler.id,
-      'med-bay',
-      { condition: 'damaged' },
-      1,
-      LIVE_SHEET_TXN,
+    // No SP loss on 2-5: the one write damages the Bay.
+    expect(updateCrawlerBay).not.toHaveBeenCalled()
+    expect(update.mock.calls).toEqual([
+      [
+        'crawler',
+        crawler.id,
+        { crawlerBays: [{ bayRef: 'trading-bay' }, { bayRef: 'med-bay', condition: 'damaged' }] },
+        LIVE_SHEET_TXN,
+      ],
     ])
     expect(screen.getByRole('status').textContent).toContain('Med Bay is Damaged')
+  })
+
+  test('a 1 loses SP and damages a Bay in one write; a refusal applies neither', async () => {
+    const crawler = makeCrawler({ scrapPool: {}, currentSP: 10 })
+    const { store, update } = makeStubStore(crawler)
+    update.mockImplementation(async () => {
+      throw new Error('refused')
+    })
+    const quiet = spyOn(console, 'error').mockImplementation(() => undefined)
+    render(
+      <CrawlerEconomyControl
+        crawler={crawler}
+        store={store}
+        open="upkeep"
+        onClose={() => {}}
+        rollFor={async () => seqRoll(1, 1)}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Roll Deterioration (d20)' }))
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1))
+    expect(update.mock.calls[0]?.[2]).toEqual({
+      currentSP: 5,
+      crawlerBays: [{ bayRef: 'trading-bay', condition: 'damaged' }, { bayRef: 'med-bay' }],
+    })
+    // The dialog never claims an outcome the write did not land.
+    expect(screen.queryByRole('status')).toBeNull()
+    quiet.mockRestore()
   })
 
   test('the 11-19 band auto-applies the 5 SP loss', async () => {

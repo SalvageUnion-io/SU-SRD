@@ -7,8 +7,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { capsLabel } from '../components/atoms/capsLabel'
-import { ActivationCost, cn, Radio, Stat } from '../components/index'
+import { ActivationCost, capsLabel, cn, Radio, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import { playCopy } from '../messages/play'
 import type { ResolveModel } from './useActionsDeck'
@@ -26,7 +25,7 @@ const NO_COST = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
   fontSize: fontSize.note,
-  color: color.wkMuted, // design-tokens-ignore: a condensed label
+  color: color.wkMuted, // design-tokens-ignore(muted-note): a condensed label
 } satisfies CSSProperties
 
 /**

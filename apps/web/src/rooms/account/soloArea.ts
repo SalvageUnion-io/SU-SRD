@@ -1,6 +1,6 @@
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import { RoomRefusal } from '../refusal'
-import { putSalvageArea, salvageAreaOf, setSalvageArea, spendSalvageSupply } from '../salvageArea'
+import { salvageAreaOf, setSalvageArea, spendSalvageSupply } from '../salvageArea'
 import type { AccountShelf } from './shelf'
 
 /**
@@ -36,11 +36,6 @@ export class AccountSoloArea {
       if (pilot.kind !== 'pilot') throw new RoomRefusal('That is not a Pilot')
       return spendSalvageSupply(this.store, at)
     })
-  }
-
-  /** The cutover's copy, as Convex kept it. */
-  import(area: SalvageArea & { updatedAt: number }): void {
-    putSalvageArea(this.store, area, area.updatedAt)
   }
 
   /** When the area last changed; 0 for one never set. */

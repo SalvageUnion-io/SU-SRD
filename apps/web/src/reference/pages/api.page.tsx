@@ -9,8 +9,7 @@
 
 import type { CSSProperties } from 'react'
 import { getEntitySlug } from 'salvageunion-reference'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Chips, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
+import { Chips, capsLabel, InlineRef, Slab, SlabSection, Stack } from '../../components/index'
 import { borderWidth, color, font, fontSize, radius, space, weight } from '../../design/tokens'
 import { apiSampleChassis } from '../../lib/apiSample'
 import { API_V1_PATH } from '../../lib/apiV1Paths'
@@ -34,7 +33,7 @@ import { DocPanel } from '../DocPanel'
 import { apiV1Manifest } from '../endpoints/apiV1'
 import type { PageModule, PageResult } from '../types'
 
-const TITLE = pageTitle('Dataset API')
+const TITLE = pageTitle(pagesCopy('datasetApi'))
 const DESCRIPTION =
   'The SalvageUnion.io Dataset API, version 1: every piece of Salvage Union game data as versioned, CORS-enabled JSON with a stability promise.'
 

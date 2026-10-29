@@ -19,14 +19,14 @@ type ReplyComponent = APIMessageTopLevelComponent
  * These are the only three keys any handler sets. There is no `embeds`:
  * every reply is Components V2, which forbids them.
  */
-type ReplyPayload = {
+export type ReplyPayload = {
   content?: string
   components?: readonly ReplyComponent[]
   flags?: number
 }
 
 /** An edit may also clear the content, which a fresh reply cannot. */
-type EditReplyPayload = Omit<ReplyPayload, 'content'> & { content?: string | null }
+export type EditReplyPayload = Omit<ReplyPayload, 'content'> & { content?: string | null }
 
 /** An autocomplete choice as the handlers emit it (name + string value). */
 export type CommandChoice = { name: string; value: string }

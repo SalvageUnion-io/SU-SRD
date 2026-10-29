@@ -14,6 +14,7 @@
  */
 
 import { LISTING_PARAMS, listingViewStorageKey } from '../lib/listingParams'
+import { SEARCH_PAGE, searchQuery } from '../lib/searchHref'
 
 type Predicate = (props: Record<string, unknown>, win: Window) => boolean
 
@@ -28,8 +29,8 @@ function stored(win: Window, key: string): string | null {
 
 const MOUNTS_NOW: Record<string, Predicate> = {
   SearchIsland: (props, win) =>
-    (props.variant === 'hero' || win.location.pathname === '/') &&
-    Boolean(new URLSearchParams(win.location.search).get('q')?.trim()),
+    (props.variant === 'hero' || win.location.pathname === SEARCH_PAGE) &&
+    searchQuery(win.location.search) !== undefined,
   SchemaViewerIsland: (props, win) => {
     const query = new URLSearchParams(win.location.search)
     if (LISTING_PARAMS.some((key) => query.has(key))) return true

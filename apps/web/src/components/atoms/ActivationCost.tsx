@@ -1,5 +1,4 @@
 import type { CSSProperties } from 'react'
-import { fontSize, space, weight } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
@@ -40,54 +39,26 @@ const BOX = {
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
-// The chips' weight, bold at every size; each Size's type and inset are its
-// chips' (a Mini strip's 12px caps, a Compact strip's 14px).
-const BOX_MINI = {
-  fontSize: fontSize.xs,
-  fontWeight: weight.bold,
-  paddingInlineStart: space[4],
-  paddingInlineEnd: `calc(${space[4]} + ${TIP})`,
-} satisfies CSSProperties
-
-const BOX_COMPACT = {
-  fontSize: fontSize.sm,
-  fontWeight: weight.bold,
-  paddingInlineStart: space[6],
-  paddingInlineEnd: `calc(${space[6]} + ${TIP})`,
-} satisfies CSSProperties
-
-const BOX_FULL = {
-  ...BOX_COMPACT,
-  fontSize: fontSize.base,
-  paddingInlineStart: space[8],
-  paddingInlineEnd: `calc(${space[8]} + ${TIP})`,
-} satisfies CSSProperties
-
-/** The link preview's box: its chips' plate height, its weight their caps'. */
-const BOX_OG = {
-  fontSize: '44px',
-  fontWeight: weight.extrabold,
-  paddingBlock: space[8],
-  paddingInlineStart: space[12],
-  paddingInlineEnd: `calc(${space[24]} + ${TIP})`,
-} satisfies CSSProperties
-
-const BOX_FOR = {
-  full: BOX_FULL,
-  compact: BOX_COMPACT,
-  mini: BOX_MINI,
-  og: BOX_OG,
-} satisfies Record<Size | 'og', CSSProperties>
+// Each Size's type, weight and inset are its chips' (a Mini strip's 12px caps,
+// a Compact strip's 14px; `og` the link preview's plate): a modifier class
+// (`.su-cost--<rung>` on the box, `.su-cost-edge--<rung>` on its edge, which
+// shares the type size so its `em` point matches), so a host's stylesheet can
+// resize a box per breakpoint by specificity alone.
+const RUNG = {
+  full: { edge: 'su-cost-edge--full', box: 'su-cost--full' },
+  compact: { edge: 'su-cost-edge--compact', box: 'su-cost--compact' },
+  mini: { edge: 'su-cost-edge--mini', box: 'su-cost--mini' },
+  og: { edge: 'su-cost-edge--og', box: 'su-cost--og' },
+} as const satisfies Record<Size | 'og', { edge: string; box: string }>
 
 export function ActivationCost({ cost, currency = 'AP', size = 'compact' }: ActivationCostProps) {
   if (cost === undefined) return null
   const displayCost = cost === 'Variable' ? 'X' : cost
 
-  const rung = BOX_FOR[size]
-  // The edge shares the box's type size, so its `em` point matches the box's.
+  const rung = RUNG[size]
   return (
-    <span className="su-cost-edge" style={{ fontSize: rung.fontSize }}>
-      <span className={COST} style={{ ...BOX, ...rung }}>
+    <span className={cn('su-cost-edge', rung.edge)}>
+      <span className={cn(COST, rung.box)} style={BOX}>
         {currency === '' ? displayCost : `${displayCost} ${currency}`}
       </span>
     </span>

@@ -21,7 +21,7 @@ type PatternInput = Omit<MechPattern, 'id' | 'createdAt'>
 export type PatternVisibility = 'private' | 'link' | 'game'
 
 /** A pattern's address: its public page, which the maker and its readers share. */
-export function patternHref(patternId: string): string {
+export function savedPatternHref(patternId: string): string {
   return `/p/pattern/${patternId}`
 }
 

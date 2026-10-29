@@ -1,5 +1,6 @@
 import type { ElementType } from 'react'
 import { citeLine } from 'salvageunion-reference'
+import { cn } from '../../lib/cn'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { ChapterFoot } from '../atoms/ChapterFoot'
 import { FOCUS_RING } from '../atoms/interaction'
@@ -83,7 +84,7 @@ function End({
         <ul className="su-footer__links">
           {links.map((link) => (
             <li key={link.href}>
-              <LinkComponent href={link.href} className={`su-footer__link ${FOCUS_RING}`}>
+              <LinkComponent href={link.href} className={cn('su-footer__link', FOCUS_RING)}>
                 {link.label}
               </LinkComponent>
             </li>

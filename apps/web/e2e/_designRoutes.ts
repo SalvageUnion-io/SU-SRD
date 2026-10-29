@@ -47,20 +47,33 @@ export type DesignView = {
 /** What a gate's scan reads off one view: its findings, placed on the view (`place`). */
 export type DesignScan = (view: DesignView) => Promise<Placed[]>
 
-/** Let the page come to rest: game data, the network, the fonts, any "Loading …", the chip fits. */
+/**
+ * Let the page come to rest: game data, the network, the fonts, any "Loading …",
+ * the chip fits, then every finite animation. A page still loading or fitting
+ * fails here rather than handing a gate a skeleton to measure; only the
+ * network wait may time out (a live room keeps its socket busy).
+ */
 async function settle(page: Page): Promise<void> {
   await page.waitForLoadState('networkidle').catch(() => {})
   await page.evaluate(() => document.fonts.ready.then(() => undefined))
-  await expect(page.getByText(/^Loading\b.*…$/))
-    .toHaveCount(0, { timeout: 15_000 })
-    .catch(() => {})
+  await expect(page.getByText(/^Loading\b.*…$/), 'the page finished loading').toHaveCount(0, {
+    timeout: 15_000,
+  })
   // The chip fill's later turns (`chipFillWatch.ts`): every head fitted.
-  await page
-    .waitForFunction(() => !document.documentElement.hasAttribute('data-chip-fitting'), null, {
-      timeout: 15_000,
-    })
-    .catch(() => {})
-  await page.waitForTimeout(300)
+  await page.waitForFunction(
+    () => !document.documentElement.hasAttribute('data-chip-fitting'),
+    null,
+    { timeout: 15_000 }
+  )
+  // Transitions and one-shot animations end; a spinner's infinite one never does.
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().endTime !== Number.POSITIVE_INFINITY)
+        .map((a) => a.finished.catch(() => undefined))
+    ).then(() => undefined)
+  )
 }
 
 /** Put the sheet in Edit (`editSheet`), then let it settle for a capture. */

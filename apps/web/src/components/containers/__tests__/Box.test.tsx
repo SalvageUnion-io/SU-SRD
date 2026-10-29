@@ -77,4 +77,20 @@ describe('Box', () => {
     )
     expect(container.querySelector('[data-fill]')).toBeNull()
   })
+
+  test('select: the box is a radio that keeps its fill; a toggle is no Box pick', () => {
+    const { container } = render(
+      <Box fill select={{ kind: 'select', role: 'radio', selected: false, onSelect: () => {} }}>
+        Body
+      </Box>
+    )
+    const radio = container.querySelector('[role="radio"]')
+    expect(radio?.classList.contains('su-box')).toBe(true)
+    expect(radio?.hasAttribute('data-fill')).toBe(true)
+    const toggle = (
+      // @ts-expect-error a toggle surface has no keyboard path on a Box
+      <Box select={{ kind: 'select', role: 'toggle', selected: false, onSelect: () => {} }} />
+    )
+    expect(toggle).toBeDefined()
+  })
 })

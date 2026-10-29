@@ -1,5 +1,6 @@
 import type { ClientMessage, RoomOp, RoomUnit, ServerMessage } from '../protocol'
 import { ClientMessageSchema } from '../protocol'
+import { DEFECT_REFUSAL } from '../refusal'
 import { crewVitals } from '../vitals'
 import type { GameRoomLogic } from './gameRoomLogic'
 import type { GameStore, StoredOp, UnitRow } from './store'
@@ -171,7 +172,7 @@ export const UNREADABLE: ServerMessage = {
 
 /** What the sender of a batch hears: `ack`, or why it was declined. */
 export function batchAnswer(opIds: string[], result: SubmitResult): ServerMessage {
-  if (result.ok) return { type: 'ack', opIds }
+  if (result.ok) return { type: 'ack', opIds, fresh: result.fresh }
   const reason =
     result.reason === 'conflict'
       ? `Changed elsewhere first: ${result.fields.join(', ')}`
@@ -181,4 +182,14 @@ export function batchAnswer(opIds: string[], result: SubmitResult): ServerMessag
 
 export function refusedBatch(opIds: string[], reason: string): ServerMessage {
   return { type: 'declined', opIds, reason }
+}
+
+/** What the sender hears when the room failed on its message: refused, without the defect's words. */
+export function defectAnswer(said: ClientMessage): ServerMessage {
+  return said.type === 'act'
+    ? { type: 'refused', id: said.id, reason: DEFECT_REFUSAL }
+    : refusedBatch(
+        said.ops.map((op) => op.id),
+        DEFECT_REFUSAL
+      )
 }

@@ -13,12 +13,17 @@
  * as `<name>.model.ts`, so a plain `dashboardRules.ts` or `pilotInventory.ts`
  * has nowhere to hide in a component folder.
  *
+ * A name is not the whole rule: a view-model can still carry one. So in the
+ * Build and Play areas a module may not export a numeric constant
+ * (`export const SETBACK_AMOUNT = 2`): a number a rule turns on lives in its
+ * rules home, where the bot and the rooms reach it too.
+ *
  * No baseline: the count is zero.
  *
  * Usage: bun tools/check-rules-home.ts
  */
 
-import { existsSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 
@@ -82,6 +87,22 @@ export function misplacedRules(root: string): { scanned: number; problems: strin
   return { scanned: files.length, problems }
 }
 
+/** `export const NAME = 2`: a numeric constant exported from a module. */
+const NUMERIC_EXPORT = /^export const ([A-Z][A-Z0-9_]*)\s*(?::[^=]+)?=\s*-?\d/gm
+
+/** Numeric constants exported from the areas' non-test modules: a rule's number outside a rules home. */
+export function areaRuleConstants(root: string): string[] {
+  const skip = (p: string) => p.endsWith(`${sep}node_modules`) || p.endsWith(`${sep}__tests__`)
+  return AREA_DIRS.flatMap((dir) => walk(join(root, dir), skip))
+    .filter((f) => !TEST_FILE.test(f))
+    .flatMap((f) =>
+      [...readFileSync(f, 'utf8').matchAll(NUMERIC_EXPORT)].map(
+        ([, name]) =>
+          `${relative(root, f)} exports the number ${name}: move a rule's constant to a rules home (game-domain/src/rules, the reference's lib/rules)`
+      )
+    )
+}
+
 /** Run the gate against `root`; returns the exit code. */
 export function main(root: string, log = console.log, error = console.error): number {
   if (!statSync(join(root, COMPONENTS_DIR), { throwIfNoEntry: false })?.isDirectory()) {
@@ -90,14 +111,14 @@ export function main(root: string, log = console.log, error = console.error): nu
   }
   const components = misplacedRules(root)
   assertScanFloor('check-rules-home (components)', components.scanned, COMPONENTS_FLOOR)
-  const { problems } = components
+  const problems = [...components.problems, ...areaRuleConstants(root)]
   if (problems.length > 0) {
     error(`check-rules-home: ${problems.length} problem(s):`)
     for (const p of problems) error(`  ${p}`)
     return 1
   }
   log(
-    `check-rules-home: ${components.scanned} component files hold only components, hooks and view-models`
+    `check-rules-home: ${components.scanned} component files hold only components, hooks and view-models, and the areas export no rule constant`
   )
   return 0
 }

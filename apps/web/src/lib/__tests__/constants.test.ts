@@ -16,6 +16,17 @@ describe('THEME_COLOR', () => {
     ).json()
     expect(THEME_COLOR).toBe(manifest.theme_color)
   })
+
+  it("is theme.css's --color-ink-deep, in hex", async () => {
+    const theme = await Bun.file(new URL('../../styles/theme.css', import.meta.url)).text()
+    const rgb = theme.match(/--color-ink-deep:\s*rgb\((\d+),\s*(\d+),\s*(\d+)\)/)
+    expect(rgb).not.toBeNull()
+    const hex = `#${(rgb ?? [])
+      .slice(1, 4)
+      .map((n) => Number(n).toString(16).padStart(2, '0'))
+      .join('')}`
+    expect(THEME_COLOR).toBe(hex)
+  })
 })
 
 describe('the site name', () => {

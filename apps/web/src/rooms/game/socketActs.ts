@@ -82,6 +82,7 @@ const DOWNTIME_ACTS = {
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
   'downtime.spendUpkeep': PLACE,
+  'downtime.spendNanites': PLACE,
 }
 
 /** A unit's Change Log, as the drawer reads it. */

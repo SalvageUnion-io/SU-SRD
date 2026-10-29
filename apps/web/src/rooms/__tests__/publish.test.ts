@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import type { AccountBundle } from 'game-domain/migration/bundle'
+import { seedShelf } from '../account/__tests__/seedShelf'
 import { AccountRoomLogic } from '../account/accountRoomLogic'
 import {
   AT,
@@ -125,43 +125,31 @@ describe('what a Game room publishes', () => {
 })
 
 describe('what an account room publishes', () => {
-  function shelf(patterns: AccountBundle['patterns']) {
+  function shelf(
+    patterns: { id: string; body: Record<string, unknown>; extra?: Record<string, unknown> }[]
+  ) {
     const sql = bunSql()
     migrate(sql, ACCOUNT_ROOM)
     const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp })
-    room.transit.importAccount(
-      {
-        discordId: PLAYER,
-        name: 'Rosa',
-        avatarUrl: null,
-        units: [],
-        patterns,
-        encounters: [],
-        npcTray: [],
-        links: [],
-        seats: [],
-        channelBindings: [],
-        salvageArea: null,
-      },
-      AT
-    )
+    const records = patterns.map((p) => ({ table: 'patterns' as const, ...p }))
+    seedShelf(room, { owner: PLAYER, name: 'Rosa', records }, AT)
     return room.shelf.store
   }
 
   test('a pattern shared by link gets a page; on the Reference too, a Homebrew listing', () => {
     const store = shelf([
-      { appId: 'pat-private', body: { name: 'Mine' }, extra: {} },
+      { id: 'pat-private', body: { name: 'Mine' }, extra: {} },
       {
-        appId: 'pat-link',
+        id: 'pat-link',
         body: { name: 'Linked', chassisRef: 'iron-mongrel' },
         extra: { publicRead: true, sharedAt: AT, builtCount: 2 },
       },
       {
-        appId: 'pat-home',
+        id: 'pat-home',
         body: { name: ' Homebrewed ', chassisRef: 'iron-mongrel' },
         extra: { publicRead: true, sharedAt: AT, homebrew: true },
       },
-      { appId: 'pat-crew', body: { name: 'Crew' }, extra: { homebrew: true } },
+      { id: 'pat-crew', body: { name: 'Crew' }, extra: { homebrew: true } },
     ])
     put(store, 'npc', 'n1', { publicRead: true })
     const { sheets, homebrew } = shelfPublished(store)

@@ -19,6 +19,7 @@ import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
+import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
@@ -143,9 +144,9 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
   // (`/?q=mule`), once, as if typed.
   const prefilled = useRef(false)
   useEffect(() => {
-    if (prefilled.current || !(hero || window.location.pathname === '/')) return
+    if (prefilled.current || !(hero || window.location.pathname === SEARCH_PAGE)) return
     prefilled.current = true
-    const term = new URLSearchParams(window.location.search).get('q')?.trim()
+    const term = searchQuery(window.location.search)
     if (!term) return
     load()
     handleInput(term)

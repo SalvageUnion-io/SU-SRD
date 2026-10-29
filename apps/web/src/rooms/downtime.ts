@@ -1,5 +1,11 @@
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
-import { downtimeStepCount, isUpkeepStep, UPKEEP_STEP_NAME } from 'game-domain/rules/downtime'
+import {
+  CRAFT_STEP_NAME,
+  downtimeGuideSteps,
+  downtimeStepCount,
+  isUpkeepStep,
+  UPKEEP_STEP_NAME,
+} from 'game-domain/rules/downtime'
 import type { GameStore } from './game/store'
 import { RoomRefusal } from './refusal'
 
@@ -21,6 +27,8 @@ export type Running = {
   /** The Game's members done with the step; always empty solo. */
   completedBy: string[]
   upkeepSpent: boolean
+  /** The Craft step's Nanite processing was claimed (`spendNanites`). */
+  nanitesSpent: boolean
 }
 
 /** Where a Downtime is kept: its running state, null when none runs, and the write that replaces it. */
@@ -32,7 +40,14 @@ export type DowntimePlace = {
 /** Begin at the first step. Already running, a no-op: a second press must not charge upkeep twice. */
 export function beginDowntime(place: DowntimePlace, runId: string, at: number): void {
   if (place.running() !== null) return
-  place.write({ runId, stepIndex: 0, startedAt: at, completedBy: [], upkeepSpent: false })
+  place.write({
+    runId,
+    stepIndex: 0,
+    startedAt: at,
+    completedBy: [],
+    upkeepSpent: false,
+    nanitesSpent: false,
+  })
 }
 
 /**
@@ -59,6 +74,20 @@ export function spendUpkeep(place: DowntimePlace): boolean {
   }
   if (running.upkeepSpent) return false
   place.write({ ...running, upkeepSpent: true })
+  return true
+}
+
+/**
+ * Record the crawler's Inert Meld Nanites processed, in the Craft step only.
+ * False when they already were this Downtime, so the caller rolls them once.
+ */
+export function spendNanites(place: DowntimePlace): boolean {
+  const running = requireRunning(place)
+  if (downtimeGuideSteps()[running.stepIndex]?.name !== CRAFT_STEP_NAME) {
+    throw new RoomRefusal(`Nanites are processed in the ${CRAFT_STEP_NAME} step`)
+  }
+  if (running.nanitesSpent) return false
+  place.write({ ...running, nanitesSpent: true })
   return true
 }
 

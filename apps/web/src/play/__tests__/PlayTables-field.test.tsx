@@ -10,7 +10,7 @@
  */
 import { afterAll, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import type { RosterLine } from '../mediator/encounterRoster.model'
+import type { RosterLine } from 'game-domain/rules/encounterRoster'
 
 /** The d20 every roll lands on: Arid Steppes Encounters 16-19, the traders. */
 const TRADERS = 17

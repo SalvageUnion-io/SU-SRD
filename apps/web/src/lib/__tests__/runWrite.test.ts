@@ -32,26 +32,13 @@ afterEach(() => {
   toast.dismiss()
 })
 
-/** Collects anything the process would have reported as unhandled. */
-function withUnhandledCapture<T>(run: () => T): { result: T; unhandled: unknown[] } {
-  const unhandled: unknown[] = []
-  const onUnhandled = (err: unknown) => unhandled.push(err)
-  process.on('unhandledRejection', onUnhandled)
-  try {
-    return { result: run(), unhandled }
-  } finally {
-    process.off('unhandledRejection', onUnhandled)
-  }
-}
-
 describe('runWrite', () => {
+  // `bun test` fails the running test on any unhandled rejection, so the
+  // assertion is the macrotask turn itself: a leaked rejection is reported
+  // after the microtask checkpoint, inside it, and fails this test.
   test('a blocked write is swallowed, not left unhandled', async () => {
-    const { unhandled } = withUnhandledCapture(() => {
-      runWrite(() => Promise.reject(new WritesBlockedOffline()))
-    })
-    // Give the microtask queue and one macrotask turn to report a leak.
+    runWrite(() => Promise.reject(new WritesBlockedOffline()))
     await new Promise((r) => setTimeout(r, 10))
-    expect(unhandled).toHaveLength(0)
   })
 
   test('a synchronous throw is caught too', () => {

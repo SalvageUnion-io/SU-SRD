@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { cn } from '../../../lib/cn'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
 import type { PeekAttrs } from '../peekContext'
 import type { EntityLinkAttrs, EntityMode } from '../types'
@@ -29,7 +30,7 @@ export function LinkSurface({
   style?: CSSProperties
   children: ReactNode
 }) {
-  const cls = `${className} ${FOCUS_RING}`
+  const cls = cn(className, FOCUS_RING)
   if (target.href) {
     // An in-app path goes through the app's router link; anything else
     // (another site's page) is a plain anchor.

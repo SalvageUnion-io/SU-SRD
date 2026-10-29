@@ -47,6 +47,9 @@ export { CloseButton } from './atoms/CloseButton'
 export { Conditions } from './atoms/Conditions'
 // Copied — a copy control's own Check swap and polite status (chrome K5).
 export { CopiedIcon, CopiedStatus } from './atoms/Copied'
+// capsLabel — the one caps recipe (R14): a label in caps asks it for its class.
+export type { CapsLabelProps } from './atoms/capsLabel'
+export { capsLabel } from './atoms/capsLabel'
 export type { ChapterTone } from './atoms/chapterBandColor'
 export { CHAPTER_BAND_COLOR } from './atoms/chapterBandColor'
 export { Eyebrow } from './atoms/Eyebrow'
@@ -67,14 +70,20 @@ export { FOCUS_RING } from './atoms/interaction'
 export { KofiButton } from './atoms/KofiButton'
 export { useModKeyHint } from './atoms/modKeyHint'
 export { NextLabel } from './atoms/NextLabel'
+// slotPips — a slot count as a line of pips, for a wizard's tracker tab.
+export { slotPips } from './atoms/pipRows'
 export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'
 export { Radio } from './atoms/Radio'
 export { SearchField } from './atoms/SearchField'
 export { Segmented, SegmentedOption } from './atoms/Segmented'
+// SkipLink — the one skip-to-content link, first in every document (K9).
+export { SkipLink } from './atoms/SkipLink'
 export type { SlabCount } from './atoms/Slab'
 export { Slab } from './atoms/Slab'
 // Cargo / inventory — dashed addressable slot cells (ruleset §5, atom 10)
 export { SlotGrid } from './atoms/SlotGrid'
+// Speckle — the light speckle on a colour band or ink ground (ruleset §3.5.1).
+export { Speckle } from './atoms/Speckle'
 export type { StatState } from './atoms/Stat'
 export { Stat } from './atoms/Stat'
 export { StatColumn } from './atoms/StatColumn'
@@ -287,6 +296,7 @@ export { EntityRollMini } from './referenceEntity/card/EntityRollMini'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
+export type { HomebrewCredit } from './referenceEntity/card/HomebrewCreditChip'
 // HomebrewStamp — the dashed HOMEBREW stamp (ruleset §3.9) every player-made
 // thing wears: a card's labels, a Compact's marks, a saved pattern's page.
 export { HomebrewStamp } from './referenceEntity/card/HomebrewStamp'
@@ -304,6 +314,8 @@ export { WhenDamaged } from './referenceEntity/card/WhenDamaged'
 export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 // Interactive choice cards (granted-equipment choices)
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
+// EntityDetailDialog — an entity's Page in a dialog: the app's open-in-place reading.
+export { EntityDetailDialog } from './referenceEntity/EntityDetailDialog'
 // Entity controls: the live preset (navigateControl).
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
 export { navigateControl } from './referenceEntity/referenceEntityControls'

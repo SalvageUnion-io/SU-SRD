@@ -1,6 +1,7 @@
 import type { z } from 'salvageunion-reference/zod'
 import type { ACCOUNT_SOCKET_ACTS, SHELF_ACTS } from '../game/socketActs'
 import { entityLog } from '../ops'
+import { RoomRefusal } from '../refusal'
 import type { AccountRoomLogic } from './accountRoomLogic'
 
 /** The Shelf's own acts are answered apart (`worker/shelfActs.ts`), since one reads the shared database. */
@@ -10,7 +11,7 @@ type Context = { room: AccountRoomLogic; actor: string; at: number }
 
 /** A solo Downtime names its Pilot, and one that does not is refused. */
 function pilotOf(args: { pilotId?: string }): string {
-  if (args.pilotId === undefined) throw new Error('A solo Downtime names its Pilot')
+  if (args.pilotId === undefined) throw new RoomRefusal('A solo Downtime names its Pilot')
   return args.pilotId
 }
 
@@ -37,6 +38,7 @@ export const ACCOUNT_ACTS: { [N in keyof Acts]: (c: Context, a: Args<N>) => unkn
   'downtime.setStep': (c, a) => c.room.solo.setDowntimeStep(c.actor, pilotOf(a), a.stepIndex),
   'downtime.end': (c, a) => c.room.solo.endDowntime(c.actor, pilotOf(a)),
   'downtime.spendUpkeep': (c, a) => c.room.solo.spendUpkeep(c.actor, pilotOf(a)),
+  'downtime.spendNanites': (c, a) => c.room.solo.spendNanites(c.actor, pilotOf(a)),
   'changeLog.forEntity': (c, a) => entityLog(c.room.shelf.history(c.actor, a.entityId)),
 }
 

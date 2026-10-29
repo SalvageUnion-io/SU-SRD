@@ -1,6 +1,7 @@
 import { createFileRoute, useParams } from '@tanstack/react-router'
 import { LinkPreviewSurface } from '../../../components/shared/LinkPreviewSurface'
 import { pageTitle } from '../../../lib/pageTitle'
+import { routesCopy } from '../../../messages/routes'
 
 /**
  * `/og/$kind/$id` — the render surface of a player thing's link preview:
@@ -9,7 +10,7 @@ import { pageTitle } from '../../../lib/pageTitle'
  * as the id). The root draws it without the app's chrome.
  */
 export const Route = createFileRoute('/og/$kind/$id')({
-  head: () => ({ meta: [{ title: pageTitle('Link preview') }] }),
+  head: () => ({ meta: [{ title: pageTitle(routesCopy('linkPreview')) }] }),
   component: LinkPreviewRoute,
 })
 

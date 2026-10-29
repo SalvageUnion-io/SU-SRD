@@ -13,14 +13,16 @@
 
 import type { ProposalTarget } from 'game-domain/games/proposals'
 import { fieldLabel } from 'game-domain/games/proposals'
+import type { SetbackKind } from 'game-domain/rules/setbacks'
+import { SETBACK_AMOUNT } from 'game-domain/rules/setbacks'
 import type { CSSProperties } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { Button, ModalShell, ReferenceEntityCard, tokens } from '../../components/index'
 import { useGameData } from '../../lib/useGameData'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED } from './mediatorStyles.model'
-import type { SetbackDraft, SetbackKind } from './setbacks.model'
-import { SETBACK_AMOUNT, setbackDraft } from './setbacks.model'
+import type { SetbackDraft } from './setbacks.model'
+import { setbackDraft } from './setbacks.model'
 
 const { space } = tokens
 

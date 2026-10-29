@@ -5,7 +5,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import type { ChapterTone } from '../components/atoms/chapterBandColor'
+import type { ChapterTone } from '../components/index'
 import { tokens } from '../components/index'
 import { useSync } from '../replica/syncContext'
 import { connectionLine, phaseBand } from './play.model'

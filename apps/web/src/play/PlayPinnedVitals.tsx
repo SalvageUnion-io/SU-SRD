@@ -5,8 +5,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { capsLabel } from '../components/atoms/capsLabel'
-import { Box, heatDangerFrom, tokens } from '../components/index'
+import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PinnedUnit } from './playPanes.model'

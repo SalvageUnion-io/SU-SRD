@@ -40,8 +40,11 @@
  *
  * Listing secret names needs a token with admin read on the repo: the owner's
  * `gh` has it, Actions' GITHUB_TOKEN does not. A check the token cannot make is
- * printed as not run, never passed silently; the nightly job covers the
- * repository-level half with `--secrets-from-env` instead.
+ * printed as not run, never passed silently (in Actions, as a warning
+ * annotation too); the nightly job covers the repository-level half with
+ * `--secrets-from-env` instead. `--require-all` makes a check not run a
+ * failure: the nightly job passes it when it holds the owner's read-only
+ * admin token (`SETTINGS_READ_TOKEN`), with which every check can run.
  *
  * It never reads, prints or writes a secret value. `--apply` creates or updates
  * Environments, their branch policies and their required reviewers and nothing else: it prints the
@@ -52,6 +55,7 @@
  *   bun tools/environments.ts                      # compare live settings (exit 1 on drift)
  *   bun tools/environments.ts --apply              # create/update Environments + branch policies
  *   bun tools/environments.ts --secrets-from-env   # also fail on a secret readable outside its Environment
+ *   bun tools/environments.ts --require-all        # a check this token cannot run is a failure
  */
 
 export const REPO = 'SalvageUnion-io/SU-SRD'
@@ -549,7 +553,7 @@ export function main(
 ): number {
   const args = new Set(argv)
   for (const a of args) {
-    if (!['--apply', '--secrets-from-env'].includes(a)) {
+    if (!['--apply', '--secrets-from-env', '--require-all'].includes(a)) {
       error(`unknown argument ${a}`)
       return 2
     }
@@ -561,9 +565,18 @@ export function main(
     compare(ENVIRONMENTS, REPOSITORY_SECRETS, readLive(args.has('--secrets-from-env'), api, env)),
     compareRuleset(MAIN_RULESET, readRuleset(MAIN_RULESET.name, api)),
   ]
-  const failures = verdicts.flatMap((v) => v.failures)
+  const notRun = verdicts.flatMap((v) => v.notRun)
+  const failures = [
+    ...verdicts.flatMap((v) => v.failures),
+    ...(args.has('--require-all') ? notRun.map((line) => `not run: ${line}`) : []),
+  ]
   for (const line of verdicts.flatMap((v) => v.ran)) log(`checked  ${line}`)
-  for (const line of verdicts.flatMap((v) => v.notRun)) log(`not run  ${line}`)
+  for (const line of notRun) log(`not run  ${line}`)
+  if (notRun.length > 0 && env.GITHUB_ACTIONS === 'true') {
+    log(
+      `::warning title=Settings not fully verified::${notRun.length} check(s) not run with this token: ${notRun.join('; ')}`
+    )
+  }
   if (failures.length) {
     error(`\n${failures.length} drift(s) from tools/environments.ts:`)
     for (const f of failures) error(`  - ${f}`)

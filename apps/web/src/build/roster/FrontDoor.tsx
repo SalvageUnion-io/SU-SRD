@@ -23,8 +23,7 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { ChapterBand, Slab, Stack, StartHere, tokens } from '../../components/index'
+import { ChapterBand, capsLabel, Slab, Stack, StartHere, tokens } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'

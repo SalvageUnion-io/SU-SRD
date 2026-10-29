@@ -17,11 +17,20 @@
  *    set whenever it changes.
  *  - A client sends `ops`: one batch, applied all or none (a transfer is a
  *    batch), answered by `ack` or `declined` naming the batch's op ids.
- *    An op id is idempotent, so a replay after a reconnect is safe.
+ *    An op id is idempotent, so a replay after a reconnect is safe, and
+ *    the `ack` says which ids it applied `fresh`. A batch
+ *    made offline is `replayed`, and a Game room takes it only on the
+ *    sender's own units (ADR-063 decision 9).
  *  - Or an `act`: one named write the room has to decide (spending the last
  *    Supply, passing an hour, showing the Stop Sign), answered by `answered`
  *    with its value or `refused` with why, naming the act's id. Its effect
  *    reaches every socket as `record` deltas, as any other write's does.
+ *  - A message the room fails on (a defect) is still answered, `declined` or
+ *    `refused` with `DEFECT_REFUSAL`, never its message, so a write never
+ *    waits on an answer that will not come.
+ *  - A reader who is no longer in the room (its Game ended, or they left it
+ *    for good) has their socket closed with `ROOM_GONE`, which the client
+ *    does not reopen.
  *
  * Exports marked `@public` are the contract the client reads before the
  * rooms send them; each loses the mark when the room side lands.
@@ -67,7 +76,7 @@ export const OpInputSchema = RoomOpSchema.pick({
   unset: true,
 })
 
-/** A pilot, mech, crawler or NPC as held: the bundle's unit without its op log. @public */
+/** A pilot, mech, crawler or NPC as held, without its op log. @public */
 export const RoomUnitSchema = z.object({
   kind: z.enum(ENTITY_KINDS),
   appId: z.string(),
@@ -163,7 +172,12 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('record'), table: z.enum(RECORD_TABLES), record: RoomRecordSchema }),
   z.object({ type: z.literal('recordGone'), table: z.enum(RECORD_TABLES), appId: z.string() }),
   z.object({ type: z.literal('links'), links: z.array(RoomLinkSchema) }),
-  z.object({ type: z.literal('ack'), opIds: z.array(z.string()) }),
+  z.object({
+    type: z.literal('ack'),
+    opIds: z.array(z.string()),
+    /** The op ids this batch applied; the others had landed before (a resend, a replay). */
+    fresh: z.array(z.string()),
+  }),
   z.object({ type: z.literal('declined'), opIds: z.array(z.string()), reason: z.string() }),
   z.object({ type: z.literal('answered'), id: z.string(), value: z.unknown().optional() }),
   z.object({ type: z.literal('refused'), id: z.string(), reason: z.string() }),
@@ -171,9 +185,17 @@ export const ServerMessageSchema = z.discriminatedUnion('type', [
 ])
 export type ServerMessage = z.infer<typeof ServerMessageSchema>
 
+/** The close code that ends a socket for good: its reader is no longer in the room. */
+export const ROOM_GONE = 4410
+
 /** Client to room. */
 export const ClientMessageSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('ops'), ops: z.array(OpInputSchema).min(1) }),
+  z.object({
+    type: z.literal('ops'),
+    ops: z.array(OpInputSchema).min(1),
+    /** Made offline and sent from the outbox: only the sender's own units. */
+    replayed: z.literal(true).optional(),
+  }),
   /** `name` is one of the room's acts, named as the client calls it (`salvageAreas.spend`, `scenes.passHour`, …). */
   z.object({
     type: z.literal('act'),

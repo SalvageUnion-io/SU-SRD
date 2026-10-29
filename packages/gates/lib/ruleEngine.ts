@@ -18,11 +18,13 @@
  *   - **the verdict** — `evaluate`, which knows two kinds of rule:
  *       * `zero` — any finding fails. There is no baseline entry to maintain,
  *         because the only legal count is none;
- *       * `ratchet` — a committed baseline burning down. The count may not
- *         rise, AND it may not fall without the baseline falling with it: an
- *         unrecorded improvement is slack that the next regression spends.
+ *       * `ratchet` — a committed baseline burning down, counted per file.
+ *         No file's count may rise, AND none may fall without the baseline
+ *         falling with it: an unrecorded improvement is slack that the next
+ *         regression spends. Per file, because a total lets a new finding in
+ *         one file hide behind a fix in another.
  *   - **the baseline file** — one JSON document keyed by rule set, holding
- *     ratchet rules only.
+ *     ratchet rules only, each a file → count map.
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -63,8 +65,17 @@ export type RuleSet = {
   summary?: (root: string) => string
 }
 
-/** Rule set id -> ratchet rule id -> allowed count. */
-export type Baseline = Record<string, Record<string, number>>
+/** File -> findings allowed in it. */
+export type FileCounts = Record<string, number>
+
+/**
+ * Rule set id -> ratchet rule id -> allowed count per file. A bare number is
+ * the older total-only shape, read until `--update-baseline` rewrites it.
+ */
+export type Baseline = Record<string, Record<string, FileCounts | number>>
+
+/** A baseline entry as file counts; a total-only number is one pseudo-file. */
+const TOTAL = '(total)'
 
 const SKIP_SEGMENTS = new Set(['node_modules', 'dist', 'generated'])
 
@@ -112,6 +123,8 @@ type RuleVerdict = {
   found: number
   allowed: number
   findings: Finding[]
+  /** Files holding more findings than their baseline, a ratchet's regression. */
+  over: string[]
   /** Why this rule fails, or null when it passes. */
   problem: 'nonzero' | 'regressed' | 'unrecorded-improvement' | null
 }
@@ -128,18 +141,30 @@ export type SetVerdict = {
 export function evaluate(
   set: RuleSet,
   results: Record<string, Finding[]>,
-  baseline: Record<string, number> = {}
+  baseline: Record<string, FileCounts | number> = {}
 ): SetVerdict {
   const rules = set.rules.map((rule): RuleVerdict => {
     const findings = results[rule.id] ?? []
     const found = findings.length
     if (rule.mode === 'zero') {
-      return { rule, found, allowed: 0, findings, problem: found > 0 ? 'nonzero' : null }
+      return { rule, found, allowed: 0, findings, over: [], problem: found > 0 ? 'nonzero' : null }
     }
-    const allowed = baseline[rule.id] ?? 0
-    const problem =
-      found > allowed ? 'regressed' : found < allowed ? 'unrecorded-improvement' : null
-    return { rule, found, allowed, findings, problem }
+    const entry = baseline[rule.id] ?? {}
+    const allowedBy = typeof entry === 'number' ? { [TOTAL]: entry } : entry
+    const allowed = Object.values(allowedBy).reduce((n, c) => n + c, 0)
+    const foundBy = typeof entry === 'number' ? { [TOTAL]: found } : countByFile(findings)
+    const over = Object.keys(foundBy).filter((f) => (foundBy[f] ?? 0) > (allowedBy[f] ?? 0))
+    const under = Object.keys(allowedBy).some((f) => (allowedBy[f] ?? 0) > (foundBy[f] ?? 0))
+    const problem = over.length > 0 ? 'regressed' : under ? 'unrecorded-improvement' : null
+    const overSet = new Set(
+      typeof entry === 'number' && over.length > 0 ? Object.keys(countByFile(findings)) : over
+    )
+    // A regression's report leads with the files that broke their allowance.
+    const ordered = [
+      ...findings.filter((f) => overSet.has(f.file)),
+      ...findings.filter((f) => !overSet.has(f.file)),
+    ]
+    return { rule, found, allowed, findings: ordered, over, problem }
   })
   const ratchetIds = new Set(set.rules.filter((r) => r.mode === 'ratchet').map((r) => r.id))
   const staleBaselineKeys = Object.keys(baseline).filter((id) => !ratchetIds.has(id))
@@ -151,20 +176,29 @@ export function evaluate(
   }
 }
 
-/** The ratchet counts `--update-baseline` would write for one rule set. */
+/** Findings per file, keys sorted so a written baseline diffs cleanly. */
+function countByFile(findings: readonly Finding[]): FileCounts {
+  const counts: FileCounts = {}
+  for (const f of [...findings].sort((a, b) => a.file.localeCompare(b.file))) {
+    counts[f.file] = (counts[f.file] ?? 0) + 1
+  }
+  return counts
+}
+
+/** The per-file ratchet counts `--update-baseline` would write for one rule set. */
 export function ratchetCounts(
   set: RuleSet,
   results: Record<string, Finding[]>
-): Record<string, number> {
-  const out: Record<string, number> = {}
+): Record<string, FileCounts> {
+  const out: Record<string, FileCounts> = {}
   for (const rule of set.rules) {
-    if (rule.mode === 'ratchet') out[rule.id] = (results[rule.id] ?? []).length
+    if (rule.mode === 'ratchet') out[rule.id] = countByFile(results[rule.id] ?? [])
   }
   return out
 }
 
 /**
- * Ratchet rules whose new count is HIGHER than the committed one.
+ * Ratchet rules whose count in some file is HIGHER than the committed one.
  *
  * `tools/check-rule-sets.ts --update-baseline` refuses them unless
  * `--allow-increase` is passed, for the one legitimate reason: a rule made
@@ -172,12 +206,19 @@ export function ratchetCounts(
  * with the reason written down. Drift may not.
  */
 export function increases(
-  previous: Record<string, number>,
-  next: Record<string, number>
+  previous: Record<string, FileCounts | number>,
+  next: Record<string, FileCounts>
 ): string[] {
-  return Object.entries(next)
-    .filter(([id, n]) => n > (previous[id] ?? 0))
-    .map(([id, n]) => `${id}: ${previous[id] ?? 0} → ${n}`)
+  return Object.entries(next).flatMap(([id, counts]) => {
+    const before = previous[id]
+    if (typeof before === 'number') {
+      const total = Object.values(counts).reduce((n, c) => n + c, 0)
+      return total > before ? [`${id}: ${before} → ${total}`] : []
+    }
+    return Object.entries(counts)
+      .filter(([file, n]) => n > (before?.[file] ?? 0))
+      .map(([file, n]) => `${id} ${file}: ${before?.[file] ?? 0} → ${n}`)
+  })
 }
 
 export function readBaseline(path: string): Baseline {
@@ -194,7 +235,9 @@ export function formatFailures(verdict: SetVerdict, updateCommand: string): stri
     if (r.problem === 'nonzero') {
       lines.push(`   must be zero, found ${r.found}`)
     } else if (r.problem === 'regressed') {
-      lines.push(`   ${r.allowed} allowed, ${r.found} found (+${r.found - r.allowed})`)
+      lines.push(
+        `   ${r.allowed} allowed, ${r.found} found; over the baseline in ${r.over.join(', ')}`
+      )
     } else {
       lines.push(
         `   improved: baseline says ${r.allowed}, found ${r.found}. Lock the gain in —`,

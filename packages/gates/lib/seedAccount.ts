@@ -16,7 +16,7 @@
  * origin, empty where the page has a `baseURL` (the e2e specs).
  */
 import type { Page } from '@playwright/test'
-import { appPath } from '../../../apps/web/src/lib/appBase'
+import { appPath } from 'game-domain/appAddress'
 import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
 import {
   copyStarter,

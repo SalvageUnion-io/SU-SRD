@@ -46,9 +46,12 @@ class FakeSocket {
       queueMicrotask(() => this.onmessage?.({ data: JSON.stringify(message) }))
     if (said.type === 'ops') {
       const batch = { gameId: this.gameId, ops: said.ops ?? [] }
+      // As a room does, an op id it took before is acked and not applied again.
+      const landed = new Set(batches.flatMap((sent) => sent.ops.map((op) => op.id)))
       batches.push(batch)
       takeOps(batch)
-      reply({ type: 'ack', opIds: (said.ops ?? []).map((op) => op.id) })
+      const opIds = batch.ops.map((op) => op.id)
+      reply({ type: 'ack', opIds, fresh: opIds.filter((id) => !landed.has(id)) })
       return
     }
     const act: SentAct = { gameId: this.gameId, name: said.name ?? '', args: said.args ?? {} }

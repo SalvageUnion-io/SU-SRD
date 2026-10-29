@@ -21,11 +21,11 @@
  * Mediator's too (`PlayMediatorSide`), over the same `useSideFeed`.
  */
 
+import type { RosterLine } from 'game-domain/rules/encounterRoster'
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection } from '../components/index'
 import { playCopy } from '../messages/play'
-import type { RosterLine } from './mediator/encounterRoster.model'
 import { PlayCrew } from './PlayCrew'
 import { PlayFeed } from './PlayFeed'
 import { PlayTables } from './PlayTables'

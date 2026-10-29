@@ -160,12 +160,22 @@ jobs:
       - name: Setup Bun
         uses: ./.github/actions/setup-bun
 
+      # GITHUB_TOKEN cannot list Environment secrets or read the ruleset's
+      # bypass actors, so those checks print `not run` and a warning. With the
+      # owner's read-only admin token (repository secret SETTINGS_READ_TOKEN)
+      # every check runs, and `--require-all` fails one that could not.
       - name: Compare live Environments and the main ruleset against tools/environments.ts
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.SETTINGS_READ_TOKEN || github.token }}
+          ADMIN_READ: ${{ secrets.SETTINGS_READ_TOKEN != '' }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-        run: bun tools/environments.ts --secrets-from-env
+        run: |
+          if [ "$ADMIN_READ" = "true" ]; then
+            bun tools/environments.ts --secrets-from-env --require-all
+          else
+            bun tools/environments.ts --secrets-from-env
+          fi
 
   # ONE notifier: on any result that is not `success` it opens (or comments
   # on) a single tracking issue labeled `nightly-e2e-failure`; on the next

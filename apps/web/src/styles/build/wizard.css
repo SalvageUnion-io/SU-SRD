@@ -113,7 +113,7 @@
     height: 1px;
     inset-block-start: 0;
     inset-inline-start: 0;
-    margin: -1px; /* design-tokens-ignore: the visually-hidden pattern, not spacing */
+    margin: -1px; /* design-tokens-ignore(raw-spacing): the visually-hidden pattern, not spacing */
     overflow: hidden;
     padding: 0;
     position: absolute;
@@ -221,7 +221,7 @@
   }
 
   .su-wiz-rail-tab--active {
-    margin-left: -5px; /* design-tokens-ignore: a fit, centres the 44px active tab on the 34px tabs' column */
+    margin-left: -5px; /* design-tokens-ignore(raw-spacing): a fit, centres the 44px active tab on the 34px tabs' column */
   }
 
   .su-wiz-main {

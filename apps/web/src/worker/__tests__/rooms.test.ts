@@ -1,8 +1,10 @@
-import { afterEach, describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, spyOn, test } from 'bun:test'
 import { exports } from 'cloudflare:workers'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
-import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { bunSql } from '../../rooms/__tests__/bunSql'
+import { parcel } from '../../rooms/game/__tests__/harness'
+import { ROOM_GONE } from '../../rooms/protocol'
 import { serveAccountSocket, serveGameSocket, serveRoomsHealth } from '../roomRoutes'
 import { AccountRoom, GameRoom } from '../rooms'
 
@@ -23,10 +25,24 @@ afterEach(() => {
   delete namespaces.AccountRoom
 })
 
-type Sock = { tags: string[]; sent: string[]; send: (text: string) => void }
+type Sock = {
+  tags: string[]
+  sent: string[]
+  closed: number | null
+  send: (text: string) => void
+  close: (code: number) => void
+}
 
 function sock(...tags: string[]): Sock {
-  const s: Sock = { tags, sent: [], send: (text) => s.sent.push(text) }
+  const s: Sock = {
+    tags,
+    sent: [],
+    closed: null,
+    send: (text) => s.sent.push(text),
+    close: (code) => {
+      s.closed = code
+    },
+  }
   return s
 }
 
@@ -55,12 +71,7 @@ describe('an account room', () => {
   const shelf = (...sockets: Sock[]) => {
     const room = new AccountRoom(roomState(sockets, 'd-rook') as never, {} as never)
     const body = pilotFixture({ id: 'p1', name: 'Pilot', callsign: 'p1', classRef: 'salvager' })
-    const unit = { kind: 'pilot', appId: 'p1', owner: 'd-rook', publicRead: false, body }
-    room.importAccount({
-      ...{ discordId: 'd-rook', name: 'Rook', avatarUrl: null, patterns: [], encounters: [] },
-      ...{ npcTray: [], links: [], seats: [], channelBindings: [] },
-      units: [{ ...unit, headSeq: 0, fieldSeqs: {}, updatedAt: 0, ops: [] }],
-    })
+    room.accept(parcel('d-rook', 'pilot', 'p1', body), 'd-rook', 0)
     for (const socket of sockets) socket.sent.length = 0
     return room
   }
@@ -69,7 +80,6 @@ describe('an account room', () => {
     const room = new AccountRoom(roomState([], 'd-rook') as never, {} as never)
     expect(() => room.fileTray('disband-tray:g1', [{ id: 'n1', name: 'Raider' }], 1)).not.toThrow()
     expect(room.unitsFor('d-rook')).toEqual([])
-    expect(() => room.importAccount({ discordId: 'd-wren' })).toThrow()
   })
 
   test('opens a socket for its player only', async () => {
@@ -191,7 +201,9 @@ describe('a Game room’s socket', () => {
   function seated() {
     const org = sock('d-org', 'seat')
     const player = sock('d-player', 'watch')
-    const room = new GameRoom(roomState([org, player], 'g1') as never, {} as never)
+    // A socket opened before its member left: it hears nothing the members do.
+    const left = sock('d-left', 'watch')
+    const room = new GameRoom(roomState([org, player, left], 'g1') as never, {} as never)
     const profile = { displayName: 'Org', avatarUrl: null }
     room.act('d-org', 'create', { name: 'Tenacity', profile })
     const code = room.act('d-org', 'inviteCode', undefined as never)
@@ -201,7 +213,8 @@ describe('a Game room’s socket', () => {
     room.act('d-player', 'createUnit', { id: 'p1', kind: 'pilot', body })
     org.sent.length = 0
     player.sent.length = 0
-    return { room, org, player }
+    left.sent.length = 0
+    return { room, org, player, left }
   }
   const batch = (id: string) =>
     JSON.stringify({
@@ -231,8 +244,9 @@ describe('a Game room’s socket', () => {
   })
 
   test('an ops batch is acked to its sender and heard by all as applied, with the crew’s vitals', () => {
-    const { room, org, player } = seated()
+    const { room, org, player, left } = seated()
     room.webSocketMessage(player as never, batch('op-1'))
+    expect(left.sent).toEqual([])
     expect(received(player).map((m) => m.type)).toEqual(['applied', 'record', 'ack'])
     expect(received(org)).toEqual([
       expect.objectContaining({
@@ -268,6 +282,53 @@ describe('a Game room’s socket', () => {
 
   const act = (id: string, name: string, args?: unknown) =>
     JSON.stringify({ type: 'act', id, name, args })
+
+  test('a replayed batch is taken only on the sender’s own units', () => {
+    const { room, org } = seated()
+    const body = crawlerFixture({ id: 'c1', name: 'Tenacity' })
+    room.act('d-org', 'createUnit', { id: 'c1', kind: 'crawler', body })
+    org.sent.length = 0
+    const op = (id: string, replayed: boolean) =>
+      JSON.stringify({
+        type: 'ops',
+        ...(replayed ? { replayed: true } : {}),
+        ops: [
+          { id, unitId: 'c1', baseSeq: 0, at: 0, kind: 'manual', source: 'live-sheet', patch: {} },
+        ],
+      })
+    room.webSocketMessage(org as never, op('op-r', true))
+    room.webSocketMessage(org as never, op('op-l', false))
+    expect(received(org).filter((m) => m.type === 'ack' || m.type === 'declined')).toEqual([
+      expect.objectContaining({ type: 'declined', opIds: ['op-r'] }),
+      { type: 'ack', opIds: ['op-l'], fresh: ['op-l'] },
+    ])
+  })
+
+  test('a message the room fails on is still answered, without the failure’s words', () => {
+    const errors = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const rook = sock('u1', 'seat')
+      // A room with no Game id: every act fails, as a defect does.
+      const room = gameRoom([rook])
+      room.webSocketMessage(rook as never, act('a-1', 'safety.liftStop'))
+      room.webSocketMessage(rook as never, batch('op-1'))
+      expect(received(rook)).toEqual([
+        { type: 'refused', id: 'a-1', reason: 'Something went wrong' },
+        { type: 'declined', opIds: ['op-1'], reason: 'Something went wrong' },
+      ])
+      expect(errors).toHaveBeenCalledTimes(2)
+    } finally {
+      errors.mockRestore()
+    }
+  })
+
+  test('a member who leaves for good hears the Game emptied, and their socket closes for good', async () => {
+    const { room, org, player } = seated()
+    await room.forget('d-player')
+    expect(received(player)).toEqual([{ type: 'snapshot', units: [], records: {}, links: [] }])
+    expect(player.closed).toBe(ROOM_GONE)
+    expect(org.closed).toBeNull()
+  })
 
   test('an act is answered to its sender, and every socket hears the Game change', () => {
     const { room, org, player } = seated()

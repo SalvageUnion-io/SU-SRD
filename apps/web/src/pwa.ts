@@ -61,7 +61,7 @@
  */
 
 import type { VitePWAOptions } from 'vite-plugin-pwa'
-import { APP_BASE } from './lib/appBase'
+import { APP_BASE, PLAY_ROOT } from './lib/appBase'
 
 /** The one web manifest, at the site's root; every page links it. */
 export const SITE_MANIFEST = '/site.webmanifest'
@@ -96,6 +96,13 @@ const APP_DIR = APP_BASE.slice(1)
 const BUILDER_SHELL = `${APP_DIR}/index.html`
 
 /**
+ * The app's paths, Build and Play: what `routeInApp` reads as the app. The
+ * app rule below and `public/sw-lifecycle.js` spell it out as a literal, since
+ * neither can import it (`__tests__/pwa.test.ts` holds both to it).
+ */
+export const APP_PATH = new RegExp(`^(${APP_BASE}|${PLAY_ROOT})(/|$)`)
+
+/**
  * The runtime rules, in match order. Each `urlPattern` is stringified into
  * `sw.js` by workbox-build, so it must not reference anything outside its own
  * parameters.
@@ -103,10 +110,9 @@ const BUILDER_SHELL = `${APP_DIR}/index.html`
 export const RUNTIME_CACHING = [
   {
     // The app, Build and Play: the network's shell, else the precached one.
-    // Literal `APP_BASE` and `PLAY_ROOT`: workbox-build stringifies the
-    // function on its own.
+    // `APP_PATH`, spelled out: workbox-build stringifies the function on its own.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
-      request.mode === 'navigate' && /^\/(build|play)(\/|$)/.test(url.pathname),
+      request.mode === 'navigate' && /^(\/build|\/play)(\/|$)/.test(url.pathname),
     handler: 'NetworkOnly' as const,
     options: { precacheFallback: { fallbackURL: BUILDER_SHELL } },
   },
@@ -128,11 +134,6 @@ export const RUNTIME_CACHING = [
     urlPattern: ({ request }: { request: Request }) => request.mode === 'navigate',
     handler: 'NetworkFirst' as const,
     options: { cacheName: PAGES_CACHE, networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS },
-  },
-  {
-    urlPattern: /\/schema\/.*\.json$/,
-    handler: 'StaleWhileRevalidate' as const,
-    options: { cacheName: 'data' },
   },
   {
     // The search index: 493 KB, fetched on first search interaction. One

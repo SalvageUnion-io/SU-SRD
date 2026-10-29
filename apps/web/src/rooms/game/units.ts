@@ -64,7 +64,8 @@ const PAIRED_ELSEWHERE =
 
 /** The answer to a batch of ops: every op applied, or the first one refused and nothing written. */
 export type SubmitResult =
-  | { ok: true; applied: { id: string; seq: number }[] }
+  /** `fresh`: the op ids this batch applied; the rest of `applied` had landed before. */
+  | { ok: true; applied: { id: string; seq: number }[]; fresh: string[] }
   | { ok: false; opId: string; reason: 'conflict'; fields: string[] }
   | { ok: false; opId: string; reason: 'invalid'; message: string }
 
@@ -102,7 +103,9 @@ export class GameUnits {
           : this.store.requireMember(actor)
       const existing = this.store.unit(args.id)
       if (existing !== null) {
-        if (existing.kind !== args.kind) throw new Error(`${args.id} is already a ${existing.kind}`)
+        if (existing.kind !== args.kind) {
+          throw new RoomRefusal(`${args.id} is already a ${existing.kind}`)
+        }
         return
       }
       const unit: UnitRow = {
@@ -166,16 +169,20 @@ export class GameUnits {
     try {
       return this.store.sql.transaction(() => {
         const applied: { id: string; seq: number }[] = []
+        const fresh: string[] = []
         for (const input of ops) {
           const seen = this.store.op(input.id)
           if (seen !== null) {
-            if (seen.unitId !== input.unitId) throw new Error(`Op ${input.id} names another unit`)
+            if (seen.unitId !== input.unitId) {
+              throw new RoomRefusal(`Op ${input.id} names another unit`)
+            }
             if (seen.seq !== null) applied.push({ id: seen.id, seq: seen.seq })
             continue
           }
           applied.push({ id: input.id, seq: this.applyTo(writable(input), input, actor) })
+          fresh.push(input.id)
         }
-        return { ok: true, applied } as const
+        return { ok: true, applied, fresh } as const
       })
     } catch (error) {
       if (error instanceof BatchRefused) return error.result

@@ -33,6 +33,9 @@ export type GameRead = {
 /** What a profile shows on a roster, as the member's account room last sent it. */
 export type Profile = { displayName: string | null; avatarUrl: string | null }
 
+/** The longest name a Game takes: every member's list and the bot show it. */
+const GAME_NAME_MAX = 80
+
 /**
  * Where a Game's units go when it ends: each to an account room, under a
  * lease named after the Game and the unit, so a retried ending delivers each
@@ -77,6 +80,9 @@ export class GameRoster {
   ): void {
     const name = args.name.trim()
     if (name.length === 0) throw new RoomRefusal('A Game needs a name')
+    if (name.length > GAME_NAME_MAX) {
+      throw new RoomRefusal(`A Game’s name is at most ${GAME_NAME_MAX} characters`)
+    }
     this.store.sql.transaction(() => {
       if (this.store.game() !== null) return
       this.store.rows(

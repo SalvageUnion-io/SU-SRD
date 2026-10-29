@@ -6,8 +6,17 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { crawlerFixture, FIXTURE_NOW, pilotFixture } from '../../components/__tests__/fixtures'
+import { ROOM_GONE } from '../../rooms/protocol'
 import { gameScope, getView, hold } from '../replica'
-import { foldRoomMessage, onRoomOpen, openRoom, RoomDeclined, roomOf } from '../roomSocket'
+import {
+  foldRoomMessage,
+  gameGone,
+  holdGames,
+  onRoomOpen,
+  openRoom,
+  RoomDeclined,
+  roomOf,
+} from '../roomSocket'
 import { WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
 
@@ -164,7 +173,7 @@ describe('openRoom', () => {
     readyState = 0
     onopen: (() => void) | null = null
     onmessage: ((event: { data: string }) => void) | null = null
-    onclose: (() => void) | null = null
+    onclose: ((event: { code: number }) => void) | null = null
     closedWith: number | null = null
     sent: unknown[] = []
     constructor(
@@ -220,7 +229,7 @@ describe('openRoom', () => {
     expect(roomOf(null)).not.toBeNull()
     close()
     expect(roomOf(null)).toBeNull()
-    socket.onclose?.()
+    socket.onclose?.({ code: 1000 })
     expect(socket.closedWith).toBe(1000)
     expect(FakeSocket.all).toHaveLength(1)
   })
@@ -239,6 +248,20 @@ describe('openRoom', () => {
     close()
   })
 
+  test('knows a Game the player is no longer in only once their Games are listed', () => {
+    let heard = 0
+    const stop = onRoomOpen(() => heard++)
+    expect(gameGone('g1')).toBe(false)
+    holdGames(['g2'])
+    expect(heard).toBe(1)
+    expect(gameGone('g1')).toBe(true)
+    expect(gameGone('g2')).toBe(false)
+    expect(gameGone(null)).toBe(false)
+    holdGames(null)
+    expect(gameGone('g1')).toBe(false)
+    stop()
+  })
+
   test('while open, it is the Game’s room: a batch waits for its ack or declined', async () => {
     const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
     const socket = FakeSocket.all[0] as FakeSocket
@@ -249,8 +272,13 @@ describe('openRoom', () => {
 
     const acked = room?.submit([op('o1')])
     expect(socket.sent).toEqual([{ type: 'ops', ops: [op('o1')] }])
-    socket.says({ type: 'ack', opIds: ['o1'] })
-    await acked
+    socket.says({ type: 'ack', opIds: ['o1'], fresh: ['o1'] })
+    expect(await acked).toEqual(['o1'])
+
+    // A resend of what had landed: acked, and none of it applied by this batch.
+    const again = room?.submit([op('o1')])
+    socket.says({ type: 'ack', opIds: ['o1'], fresh: [] })
+    expect(await again).toEqual([])
 
     const refused = room?.submit([op('o2')])
     socket.says({ type: 'declined', opIds: ['o2'], reason: 'Not yours' })
@@ -273,7 +301,7 @@ describe('openRoom', () => {
     const first = FakeSocket.all[0] as FakeSocket
     first.opens()
     const sent = roomOf('g1')?.submit([op('o1')])
-    first.onclose?.()
+    first.onclose?.({ code: 1006 })
     expect(roomOf('g1')).toBeNull()
 
     await new Promise((resolve) => setTimeout(resolve, 1_050))
@@ -282,6 +310,35 @@ describe('openRoom', () => {
     expect(second.sent).toEqual([{ type: 'ops', ops: [op('o1')] }])
     second.says({ type: 'ack', opIds: ['o1'] })
     await sent
+    close()
+  })
+
+  test('a batch goes marked when it was made offline, and again so after a drop', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
+    const first = FakeSocket.all[0] as FakeSocket
+    first.opens()
+    const sent = roomOf('g1')?.submit([op('o1')], { replayed: true })
+    expect(first.sent).toEqual([{ type: 'ops', ops: [op('o1')], replayed: true }])
+    first.onclose?.({ code: 1006 })
+    await new Promise((resolve) => setTimeout(resolve, 1_050))
+    const second = FakeSocket.all[1] as FakeSocket
+    second.opens()
+    expect(second.sent).toEqual([{ type: 'ops', ops: [op('o1')], replayed: true }])
+    second.says({ type: 'ack', opIds: ['o1'] })
+    await sent
+    close()
+  })
+
+  test('a socket the room closes for good is not reopened, and what waited fails', async () => {
+    const close = openRoom('/__rooms/games/g1/socket', G1, 'g1')
+    const socket = FakeSocket.all[0] as FakeSocket
+    socket.opens()
+    const sent = roomOf('g1')?.submit([op('o1')])
+    socket.onclose?.({ code: ROOM_GONE })
+    await expect(sent).rejects.toBeInstanceOf(WritesBlockedOffline)
+    expect(roomOf('g1')).toBeNull()
+    await new Promise((resolve) => setTimeout(resolve, 1_050))
+    expect(FakeSocket.all).toHaveLength(1)
     close()
   })
 
@@ -311,7 +368,7 @@ describe('openRoom', () => {
     const room = roomOf('g1')
     const passed = room?.act('scene.passHour', {})
     socket.readyState = 3
-    socket.onclose?.()
+    socket.onclose?.({ code: 1000 })
     await expect(passed).rejects.toBeInstanceOf(WritesBlockedOffline)
     await expect(room?.act('scene.passHour', {})).rejects.toBeInstanceOf(WritesBlockedOffline)
     close()

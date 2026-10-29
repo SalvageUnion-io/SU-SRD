@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { PilotSchema } from 'game-domain/schemas/pilot'
+import { seedShelf } from '../account/__tests__/seedShelf'
 import { AccountRoomLogic } from '../account/accountRoomLogic'
 import { AT, bodies, PLAYER, stubApplyOp } from '../game/__tests__/harness'
 import { migrate } from '../migrate'
@@ -14,26 +15,16 @@ function shelf() {
   const sql = bunSql()
   migrate(sql, ACCOUNT_ROOM)
   const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp, newId: () => 'id' })
-  const unit = (kind: 'pilot' | 'mech' | 'crawler', appId: string) => ({
+  const unit = (kind: 'pilot' | 'mech' | 'crawler', id: string) => ({
     kind,
-    appId,
-    owner: PLAYER,
-    publicRead: false,
-    body: bodies[kind](appId) as Record<string, unknown>,
-    headSeq: 0,
-    fieldSeqs: {},
-    updatedAt: AT,
-    ops: [],
+    id,
+    body: bodies[kind](id) as Record<string, unknown>,
   })
-  room.transit.importAccount(
+  seedShelf(
+    room,
     {
-      discordId: PLAYER,
-      name: 'Player',
-      avatarUrl: null,
+      owner: PLAYER,
       units: [unit('pilot', 'p1'), unit('mech', 'm1'), unit('crawler', 'c1')],
-      patterns: [],
-      encounters: [],
-      npcTray: [],
       links: [
         {
           type: 'mech-to-pilot',
@@ -42,15 +33,8 @@ function shelf() {
         },
       ],
       seats: [
-        {
-          pilotId: 'p1',
-          mount: { kind: 'boarded', mechId: 'm1' },
-          range: 'Far',
-          activeEffects: [],
-          ejected: true,
-        },
+        { pilotId: 'p1', mount: { kind: 'boarded', mechId: 'm1' }, range: 'Far', ejected: true },
       ],
-      channelBindings: [],
     },
     AT
   )

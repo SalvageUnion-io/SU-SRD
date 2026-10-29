@@ -93,7 +93,7 @@
 }
 
 .su-stat-column--compact .su-stat-column__cell {
-  min-height: 32px; /* design-tokens-ignore: a read-out, not a control; `--size-compact` lifts to 44px on touch */
+  min-height: 32px; /* design-tokens-ignore(size-literal): a read-out, not a control; `--size-compact` lifts to 44px on touch */
 }
 
 .su-stat-column--compact .su-stat-column__stat > .su-stat-plate--value {

@@ -27,7 +27,8 @@
  */
 ;((sw) => {
   const MARKER = 'su-sw-v1'
-  const BUILDER = /^\/(build|play)(\/|$)/
+  // `APP_PATH` in src/pwa.ts, spelled out: this file is served as-is.
+  const BUILDER = /^(\/build|\/play)(\/|$)/
   let legacy = false
   let takeover = false
 

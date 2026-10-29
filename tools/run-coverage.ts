@@ -53,7 +53,9 @@ const coverageArgs = (dir: string) => [
 ]
 
 /** The files `bun test` finds on its own (its default name patterns). */
-const TEST_FILES = new Bun.Glob('**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx,mjs,cjs,mts,cts}')
+export const TEST_FILES = new Bun.Glob(
+  '**/*{.test,_test,.spec,_spec}.{js,jsx,ts,tsx,mjs,cjs,mts,cts}'
+)
 
 /**
  * A workspace's test files dealt round-robin, in path order, into `count`

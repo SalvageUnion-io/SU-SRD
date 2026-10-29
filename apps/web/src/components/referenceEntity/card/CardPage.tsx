@@ -69,7 +69,7 @@ type CardPageProps = {
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
-  /** `afterExtraContent` and `expand`. */
+  /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
   /** How each action card renders: the card itself, at depth 1. */

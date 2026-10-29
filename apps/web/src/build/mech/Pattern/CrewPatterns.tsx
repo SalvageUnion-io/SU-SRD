@@ -11,7 +11,11 @@ import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { Entity, quotePatternName, SlabSection, tokens } from '../../../components/index'
 import { AppLink } from '../../../components/shared/AppLink'
-import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
+import {
+  asReferencePattern,
+  patternChassis,
+  savedPatternHref,
+} from '../../../lib/patterns/patterns'
 import { useCrewPatterns } from '../../../lib/sharing/reads'
 import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
@@ -45,7 +49,7 @@ export function CrewPatterns() {
         {rows.map(({ appId, pattern, chassis, madeBy, gameName }) => (
           <li key={appId}>
             <AppLink
-              href={patternHref(appId)}
+              href={savedPatternHref(appId)}
               style={LINK}
               aria-label={mechCopy('madeBySharedIn', { name: pattern.name, madeBy, gameName })}
             >

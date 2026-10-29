@@ -25,7 +25,6 @@ import type { Npc } from 'game-domain/schemas/npc'
 import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import { ActionMinis, Button, SlabSection, Tags, tokens, traitTags } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
@@ -188,9 +187,7 @@ export function NpcSheet({
     .map((slug) => resolveNpcAction(slug))
     .filter((action) => action !== null)
     .map((action) => ({ ...action, schemaName: 'actions' }))
-  const traits = traitTags(
-    toEntityModel(npcAsReferenceEntity(view) as unknown as RefMetaEntity).traits
-  )
+  const traits = traitTags(toEntityModel(npcAsReferenceEntity(view)).traits)
 
   return (
     <>

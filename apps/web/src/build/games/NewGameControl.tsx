@@ -117,6 +117,8 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
                   aria-label={buildGamesCopy('newGameName')}
                   placeholder={buildGamesCopy('unionCrawler430')}
                   value={name}
+                  // The room's cap on a Game's name (`rooms/game/roster.ts`).
+                  maxLength={80}
                   onChange={(e) => setName(e.target.value)}
                 />
               </Field>

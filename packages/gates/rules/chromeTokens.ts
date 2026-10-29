@@ -17,8 +17,9 @@
  * ## Every rule is zero
  *
  * Any finding fails, and none has a baseline entry. A genuinely-correct case
- * is an EXEMPTIONS entry with a written reason, or a `design-tokens-ignore`
- * comment on its line.
+ * is an EXEMPTIONS entry with a written reason, or a
+ * `design-tokens-ignore(<rule-id>): <reason>` comment on its line naming the
+ * rule (`../lib/tokenIgnore.ts`).
  */
 
 import { readFileSync } from 'node:fs'
@@ -34,17 +35,20 @@ import {
   matchesIn,
   parseCss,
 } from '../lib/styleSource'
+import { ignoredRules } from '../lib/tokenIgnore'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { ENTITY_FRAME_STYLE_FILES, entityFrameInkCss, entityFrameInkScript } from './entityFrames'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
   'apps/web/src',
+  // The Astro shell, read as a script: its inline styles and attributes.
+  'apps/web/astro',
   'apps/discord-bot/src',
   'packages/game-domain/src',
 ]
 
-const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css']
+const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.astro']
 
 /** A parsed source: a stylesheet's declarations, or a script with comments blanked. */
 type Source =
@@ -473,7 +477,7 @@ const CHROME_RULES: ChromeRule[] = [
     id: 'muted-note',
     mode: 'zero',
     rule: 'hard rule R52 — a muted note is `Text variant="note"`: no style object pairs a muted ink with a font size',
-    fix: 'Render the line as `<Text variant="note">` and drop the style object\'s colour, face and size (keep only its margin). A muted label that is not a note (a caps label, a status word, a row value) keeps its object with `// design-tokens-ignore: <what it is>` on the colour line. The atoms and containers that own their lines are NOTE_OWNERS (packages/gates/rules/chromeTokens.ts).',
+    fix: 'Render the line as `<Text variant="note">` and drop the style object\'s colour, face and size (keep only its margin). A muted label that is not a note (a caps label, a status word, a row value) keeps its object with `// design-tokens-ignore(muted-note): <what it is>` on the colour line. The atoms and containers that own their lines are NOTE_OWNERS (packages/gates/rules/chromeTokens.ts).',
     script: mutedNoteScript,
   },
   {
@@ -493,6 +497,9 @@ const CHROME_RULES: ChromeRule[] = [
     script: entityFrameInkScript,
   },
 ]
+
+/** Every rule id here, for the `design-tokens-ignore` names the tokens set checks. */
+export const CHROME_RULE_IDS: readonly string[] = CHROME_RULES.map((r) => r.id)
 
 /**
  * Sanctioned cases. Each entry needs a reason — an exemption without a
@@ -545,12 +552,13 @@ export function scanChromeSources(sources: ReadonlyMap<string, string>): Record<
               detail: h.detail,
             }))
       for (const hit of hits) {
-        // A line may opt out with a cited reason; a block's header also by
-        // the comment that opens its body (where the formatter puts it).
+        // A line may opt out of a rule it names, with a reason; a block's
+        // header also by the comment that opens its body (where the formatter
+        // puts it).
         const next = src.lines[hit.line]?.trim() ?? ''
         if (
-          src.lines[hit.line - 1]?.includes('design-tokens-ignore') ||
-          (src.kind === 'css' && next.startsWith('/*') && next.includes('design-tokens-ignore'))
+          ignoredRules(src.lines[hit.line - 1] ?? '').has(rule.id) ||
+          (src.kind === 'css' && next.startsWith('/*') && ignoredRules(next).has(rule.id))
         )
           continue
         out[rule.id]?.push({ file: rel, line: hit.line, detail: hit.detail })
@@ -564,7 +572,8 @@ export const chromeTokens: RuleSet = {
   id: 'chrome-tokens',
   label: 'chrome tokens',
   rules: CHROME_RULES,
-  exemptionsLive: 'packages/gates/rules/chromeTokens.ts (or a `design-tokens-ignore` line comment)',
+  exemptionsLive:
+    'packages/gates/rules/chromeTokens.ts (or a `design-tokens-ignore(<rule-id>): <reason>` line comment)',
   preflight(root) {
     const files = scannedFiles(root)
     assertScanFloor('chrome tokens', files.length, SCAN_FLOOR)

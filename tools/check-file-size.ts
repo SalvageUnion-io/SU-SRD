@@ -44,15 +44,14 @@ const SCAN_FLOOR = 630
 export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'apps/discord-bot/src/gameCards.ts': 662,
   'apps/web/src/build/npc/CrewBoard.tsx': 618,
-  'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 615,
+  'apps/web/src/build/sheet/CrawlerEconomyControl.tsx': 604,
   'apps/web/src/lib/rules/creation.ts': 722,
-  'apps/web/src/components/referenceEntity/card/ReferenceEntityCard.tsx': 601,
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 610,
   'packages/salvageunion-reference/lib/rules/derivedStats.ts': 652,
   'tools/check-doc-drift.ts': 840,
   'tools/check-rules-fidelity.ts': 1_014,
-  'tools/check-workflows.ts': 764,
+  'tools/check-workflows.ts': 628,
 }
 
 const SOURCE = /\.(tsx?|m?js)$/
@@ -140,10 +139,13 @@ export function main(
   return 0
 }
 
-if (import.meta.main) {
-  const root = join(import.meta.dir, '..')
-  // Tracked and untracked-but-not-ignored, so a new file fails before it is committed.
+/**
+ * Repo-relative paths that exist: tracked and untracked-but-not-ignored, so a
+ * new file fails before it is committed.
+ */
+export async function listedPaths(root = join(import.meta.dir, '..')): Promise<string[]> {
   const listed = await $`git ls-files --cached --others --exclude-standard`.cwd(root).text()
-  const paths = listed.split('\n').filter((p) => p && existsSync(join(root, p)))
-  process.exit(main(root, paths))
+  return listed.split('\n').filter((p) => p && existsSync(join(root, p)))
 }
+
+if (import.meta.main) process.exit(main(join(import.meta.dir, '..'), await listedPaths()))

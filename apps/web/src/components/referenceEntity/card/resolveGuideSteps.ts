@@ -1,5 +1,6 @@
 import type {
   RefEntity,
+  RefEnumSchemaName,
   RefMetaEntity,
   RefObjectGuideStep,
   RefObjectTable,
@@ -90,7 +91,7 @@ function getCoreTreeNames(): Set<string> {
  */
 export function enrichForFiltering(
   entity: Record<string, unknown>,
-  schemaName: string
+  schemaName: RefEnumSchemaName
 ): Record<string, unknown> {
   if ((schemaName === 'systems' || schemaName === 'modules') && Array.isArray(entity.actions)) {
     const hasDamage = (entity.actions as string[]).some((name) => {

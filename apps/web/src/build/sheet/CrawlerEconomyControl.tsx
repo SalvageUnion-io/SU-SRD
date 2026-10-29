@@ -39,11 +39,11 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
-import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
-import { capsLabel } from '../../components/atoms/capsLabel'
+import { crawlerMaxSP, parseCrawlerTechLevel, resolvePoolStart } from 'salvageunion-reference/rules'
 import {
   Button,
   Cluster,
+  capsLabel,
   DialogActions,
   EmptyState,
   Eyebrow,
@@ -64,7 +64,7 @@ import {
   convertedCount,
   convertScrap,
   crawlerUpgradeQuote,
-  payUpkeep,
+  payUpkeepPatch,
   performDeterioration,
   performTradingRoll,
   poolAvailableAtOrAbove,
@@ -73,8 +73,10 @@ import {
   tradingSourceTl,
   upkeepShortfall,
 } from '../../lib/rules/crawlerEconomy'
+import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_TXN } from '../../replica/provenance'
+import { useTableRead } from '../../replica/useTable'
 import {
   describeDeterioration,
   INITIAL_UPKEEP_STATE,
@@ -171,6 +173,12 @@ type RollFor = { rollFor: (tableName: string) => Promise<Roll> }
 function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
   const [{ result, choosePrompt, done }, dispatch] = useReducer(upkeepReducer, INITIAL_UPKEEP_STATE)
+  // A running Downtime claims its Upkeep once (`downtime.spendUpkeep`), in Play.
+  const downtime = useTableRead(
+    'downtime.state',
+    crawler.gameId ? { gameId: crawler.gameId } : 'skip'
+  )
+  const inDowntime = downtime?.stepIndex != null
 
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
   const pool = crawler.scrapPool ?? {}
@@ -179,67 +187,59 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
   const quote = crawlerUpgradeQuote(tl, crawler.upgradePool ?? 0)
 
   /** Pay: draw 5×TL+ scrap, credit the Upgrade Pool in full (auto-applies). */
-  async function handlePay() {
+  function handlePay() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
-    const payment = payUpkeep(fresh.scrapPool ?? {}, freshTl)
-    if (!payment) {
+    const paid = payUpkeepPatch(fresh, freshTl)
+    if (!paid) {
       dispatch({ type: 'payFailed' })
       return
     }
-    const nextUpgradePool = (fresh.upgradePool ?? 0) + payment.upgradeCredit
-    await storeState.update(
-      'crawler',
-      crawler.id,
-      {
-        scrapPool: payment.pool,
-        upgradePool: nextUpgradePool,
-      },
-      LIVE_SHEET_TXN
+    const drawText = paid.payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
+    runWrite(
+      () => storeState.update('crawler', crawler.id, paid.patch, LIVE_SHEET_TXN),
+      () =>
+        dispatch({
+          type: 'paid',
+          message: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${paid.patch.upgradePool}${
+            quote ? ` of ${quote.cost}` : ''
+          }.`,
+        })
     )
-    const drawText = payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
-    dispatch({
-      type: 'paid',
-      message: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${nextUpgradePool}${
-        quote ? ` of ${quote.cost}` : ''
-      }.`,
-    })
   }
 
   /**
    * Failed Upkeep: roll the Deterioration Table. SP loss and the "chosen at
    * random" Bay damage auto-apply; the 6-10 band leaves the Bay pick to the
-   * player (ADR-007).
+   * player (ADR-007). The SP loss and the Bay are one write, so a refusal
+   * leaves neither half applied.
    */
-  async function handleDeterioration() {
-    const roll = await rollFor('Crawler Deterioration')
-    const fresh = freshEntity(storeState, 'crawler', crawler)
-    const bays = fresh.crawlerBays ?? []
-    const maxSP = crawlerMaxSP(fresh)
-    const currentSP = resolvePool(fresh.currentSP, maxSP)
-    const effect = performDeterioration({ currentSP, bayCount: bays.length, roll })
+  function handleDeterioration() {
+    runWrite(async () => {
+      const roll = await rollFor('Crawler Deterioration')
+      const fresh = freshEntity(storeState, 'crawler', crawler)
+      const bays = fresh.crawlerBays ?? []
+      // Lost from the stored SP, not the clamped display (`resolvePoolStart`).
+      const currentSP = resolvePoolStart(fresh.currentSP, crawlerMaxSP(fresh))
+      const effect = performDeterioration({ currentSP, bayCount: bays.length, roll })
 
-    if (effect.spLoss > 0) {
-      await storeState.update('crawler', crawler.id, { currentSP: effect.nextSP }, LIVE_SHEET_TXN)
-    }
-    let bayName: string | null = null
-    if (effect.randomBayIndex !== null) {
-      const entry = bays[effect.randomBayIndex]
+      const patch: Partial<Crawler> = {}
+      if (effect.spLoss > 0) patch.currentSP = effect.nextSP
+      const entry = effect.randomBayIndex === null ? undefined : bays[effect.randomBayIndex]
       if (entry) {
-        await storeState.updateCrawlerBay(
-          crawler.id,
-          entry.bayRef,
-          { condition: 'damaged' },
-          effect.randomBayIndex,
-          LIVE_SHEET_TXN
+        patch.crawlerBays = bays.map((bay, i) =>
+          i === effect.randomBayIndex ? { ...bay, condition: 'damaged' as const } : bay
         )
-        bayName = resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef
       }
-    }
-    dispatch({
-      type: 'deteriorated',
-      message: describeDeterioration(effect, bayName),
-      choosePrompt: effect.requiresPlayerChoice,
+      if (Object.keys(patch).length > 0) {
+        await storeState.update('crawler', crawler.id, patch, LIVE_SHEET_TXN)
+      }
+      const bayName = entry ? (resolveCrawlerBay(entry.bayRef)?.name ?? entry.bayRef) : null
+      dispatch({
+        type: 'deteriorated',
+        message: describeDeterioration(effect, bayName),
+        choosePrompt: effect.requiresPlayerChoice,
+      })
     })
   }
 
@@ -277,30 +277,21 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           </p>
         )}
         {choosePrompt && <FieldError>{buildSheetCopy('chooseABayAndMark')}</FieldError>}
+        {!done && inDowntime && shortfall === 0 && (
+          <FieldError>{buildSheetCopy('upkeepInPlay')}</FieldError>
+        )}
 
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? buildSheetCopy('done') : buildSheetCopy('cancel')}
           </Button>
           {!done && shortfall === 0 && (
-            <Button
-              variant="primary"
-              size="compact"
-              onClick={() => {
-                void handlePay()
-              }}
-            >
+            <Button variant="primary" size="compact" onClick={handlePay} disabled={inDowntime}>
               {buildSheetCopy('payUpkeep')}
             </Button>
           )}
           {!done && shortfall > 0 && (
-            <Button
-              variant="primary"
-              size="compact"
-              onClick={() => {
-                void handleDeterioration()
-              }}
-            >
+            <Button variant="primary" size="compact" onClick={handleDeterioration}>
               {buildSheetCopy('rollDeteriorationD20')}
             </Button>
           )}
@@ -324,24 +315,26 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   const [contribution, setContribution] = useState(1)
 
   /** Voluntary acceleration (p.218): move pool scrap into the Upgrade Pool. */
-  async function handleContribute() {
+  function handleContribute() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const result = contributeToUpgradePool(fresh.scrapPool ?? {}, freshTl, contribution)
     if (!result) return
-    await storeState.update(
-      'crawler',
-      crawler.id,
-      {
-        scrapPool: result.pool,
-        upgradePool: (fresh.upgradePool ?? 0) + contribution,
-      },
-      LIVE_SHEET_TXN
+    runWrite(() =>
+      storeState.update(
+        'crawler',
+        crawler.id,
+        {
+          scrapPool: result.pool,
+          upgradePool: (fresh.upgradePool ?? 0) + contribution,
+        },
+        LIVE_SHEET_TXN
+      )
     )
   }
 
   /** Consume the pool, bump the Tech Level, repair damaged Bays (p.219). */
-  async function handleUpgrade() {
+  function handleUpgrade() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
@@ -354,8 +347,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
     if (bays.some((bay) => (bay.condition ?? 'intact') === 'damaged')) {
       patch.crawlerBays = bays.map((bay) => ({ ...bay, condition: 'intact' as const }))
     }
-    await storeState.update('crawler', crawler.id, patch, LIVE_SHEET_TXN)
-    onClose()
+    runWrite(() => storeState.update('crawler', crawler.id, patch, LIVE_SHEET_TXN), onClose)
   }
 
   return (
@@ -400,9 +392,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
                 variant="default"
                 disabled={contributable === 0 || contribution > contributable}
                 title={buildSheetCopy('moveScrapTechOrHigher', { contribution, tl })}
-                onClick={() => {
-                  void handleContribute()
-                }}
+                onClick={handleContribute}
               >
                 {buildSheetCopy('addToUpgradePool')}
               </Button>
@@ -419,9 +409,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
           <Button
             variant="primary"
             size="compact"
-            onClick={() => {
-              void handleUpgrade()
-            }}
+            onClick={handleUpgrade}
             disabled={!quote?.affordable}
           >
             {quote
@@ -459,18 +447,21 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
     gate.operational && fromTl !== toTl && toCount !== null && count > 0 && bucket >= count
 
   /** Apply the fixed equal-value exchange to the pool buckets (auto-applies). */
-  async function handleConvert() {
+  function handleConvert() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const result = convertScrap(fresh.scrapPool ?? {}, fromTl, count, toTl)
     if (!result) {
       dispatch({ type: 'converted', note: buildSheetCopy('thePoolNoLongerCovers') })
       return
     }
-    await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN)
-    dispatch({
-      type: 'converted',
-      note: buildSheetCopy('tradedTForT', { count, fromTl, toCount: result.toCount, toTl }),
-    })
+    runWrite(
+      () => storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN),
+      () =>
+        dispatch({
+          type: 'converted',
+          note: buildSheetCopy('tradedTForT', { count, fromTl, toCount: result.toCount, toTl }),
+        })
+    )
   }
 
   /** Once per Downtime (honor system) — what the wastelanders brought. */
@@ -566,9 +557,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                       ? buildSheetCopy('thePoolOnlyHoldsT', { bucket, fromTl })
                       : buildSheetCopy('applyTheExchangeToThe')
                   }
-                  onClick={() => {
-                    void handleConvert()
-                  }}
+                  onClick={handleConvert}
                 >
                   {buildSheetCopy('trade')}
                 </Button>

@@ -1,4 +1,4 @@
-import { Database } from 'bun:sqlite'
+import type { Database } from 'bun:sqlite'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, spyOn } from 'bun:test'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import type { SessionAnswer } from '../../lib/auth/paths'
@@ -78,7 +78,7 @@ beforeEach(() => {
 
 function deps(overrides: Partial<AuthDeps> = {}): AuthDeps {
   return {
-    sql: bunAuthSql(new Database(':memory:')),
+    sql: bunAuthSql(testDb().sqlite),
     removeAccount: async (who) => {
       removed.push(who)
       return null

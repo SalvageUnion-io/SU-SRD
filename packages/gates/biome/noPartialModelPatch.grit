@@ -5,7 +5,7 @@
 // test asserts on fixtures, and the failure reads as a component bug. Turning
 // the crawler lookups into the indexed resolver broke 17 tests in five suites
 // at once, every one of which had patched `all` alone. `patchModelRows`
-// (test/patchModel.ts) patches every accessor.
+// (apps/web/test/patchModel.ts) patches every accessor.
 //
 // Matches the accessor on `SalvageUnionReference.<Model>` directly; binding the
 // model to a local first evades it.
@@ -13,5 +13,5 @@ language js(typescript, jsx)
 
 JsAssignmentExpression(left=$target) as $assign where {
   $target <: r"^SalvageUnionReference\.\w+\.(?:all|getById|getByName|getBySlug|find|findAll)$",
-  register_diagnostic(span=$assign, message="Patch reference-model rows with patchModelRows(model, rows) from test/patchModel.ts, which covers every accessor.", severity="error")
+  register_diagnostic(span=$assign, message="Patch reference-model rows with patchModelRows(model, rows) from apps/web/test/patchModel.ts, which covers every accessor.", severity="error")
 }

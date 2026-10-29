@@ -136,12 +136,17 @@ describe('chrome-tokens/left-rail', () => {
     expect(lines(css, 'left-rail')).toEqual([1])
   })
 
-  test('a design-tokens-ignore comment waives its own line only', () => {
+  test('a design-tokens-ignore comment waives the rule it names, on its own line only', () => {
     const css = scan(
       'apps/web/src/styles/x.css',
-      '.a { border-left: 3px solid; } /* design-tokens-ignore: reason */\n.b { border-left: 3px solid; }'
+      [
+        '.a { border-left: 3px solid; } /* design-tokens-ignore(left-rail): reason */',
+        '.b { border-left: 3px solid; }',
+        '.c { border-left: 3px solid; } /* design-tokens-ignore: no rule named */',
+        '.d { border-left: 3px solid; } /* design-tokens-ignore(dashed): another rule */',
+      ].join('\n')
     )
-    expect(lines(css, 'left-rail')).toEqual([2])
+    expect(lines(css, 'left-rail')).toEqual([2, 3, 4])
   })
 })
 
@@ -376,7 +381,7 @@ describe('chrome-tokens/muted-note', () => {
       "const C = { color: 'var(--color-wk-muted)', fontSize: fontSize.xs }",
       'const D = { color: color.wkMuted, margin: 0 }',
       'const E = { color: color.ink, fontSize: fontSize.sm }',
-      'const F = { color: color.wkMuted, fontSize: fontSize.sm } // design-tokens-ignore: a label',
+      'const F = { color: color.wkMuted, fontSize: fontSize.sm } // design-tokens-ignore(muted-note): a label',
     ].join('\n')
     expect(lines(scan('apps/web/src/X.tsx', body), 'muted-note')).toEqual([1, 2, 3])
     expect(scan('apps/web/src/components/atoms/X.tsx', body)['muted-note']).toEqual([])
@@ -420,7 +425,7 @@ describe('chrome-tokens/raw-breakpoint', () => {
         '@media (pointer: coarse), not (width >= 48rem) { .a { color: red; } }',
         '@media print { .a { max-width: 30rem; } }',
         '@container (width >= 18rem) {',
-        '  /* design-tokens-ignore: a component’s own fit */',
+        '  /* design-tokens-ignore(raw-breakpoint): a component’s own fit */',
         '  .a { color: red; }',
         '}',
       ].join('\n')

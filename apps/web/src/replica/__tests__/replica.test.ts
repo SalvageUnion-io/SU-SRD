@@ -88,6 +88,21 @@ describe('a scope snapshot', () => {
     expect(headSeqOf('pilot', 'p1')).toBe(5)
   })
 
+  test('takes a unit moved into another room at the same headSeq, stamped later', () => {
+    const at = (gameId: string | null, version: number) => ({
+      table: 'pilot' as const,
+      row: { ...pilot('p1', 'A'), gameId },
+      version,
+      headSeq: 4,
+    })
+    serve(gameScope('g1'), ['pilot'], [at('g1', 9)])
+    serve('account', ['pilot'], [at(null, 12)])
+    expect(getView().pilots[0]?.gameId).toBeNull()
+    // The room it left, answering late, does not take it back.
+    serve(gameScope('g1'), ['pilot'], [at('g1', 9)])
+    expect(getView().pilots[0]?.gameId).toBeNull()
+  })
+
   test('keeps the held copy of a row that no longer parses', () => {
     serve('account', ['pilot'], [{ table: 'pilot', row: pilot('p1', 'Good'), version: 1 }])
     serve('account', ['pilot'], [{ table: 'pilot', row: { id: 'p1', name: 7 }, version: 2 }])

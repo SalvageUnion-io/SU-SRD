@@ -19,7 +19,7 @@ const LAST_UPDATED = '21 October 2026'
 function page(): PageResult {
   return {
     meta: {
-      title: pageTitle('Discord Bot Terms of Service'),
+      title: pageTitle(pagesCopy('discordBotTermsTitle')),
       description: pagesCopy('termsOfServiceForThe'),
     },
     children: (

@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { Button, Eyebrow, Select, Slab, Stat } from '../../components/index'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import { EXOTIC_RESOURCES, exoticBucket, tradeExotic } from '../../lib/rules/exoticSalvage'
+import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_TXN } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
@@ -46,7 +47,7 @@ export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: Units
     ) : null
   const bucket = exoticBucket(pool, resource.key)
 
-  async function handleTrade() {
+  function handleTrade() {
     if (!resource) return
     const fresh = freshEntity(storeState, 'crawler', crawler)
     const result = tradeExotic(fresh.scrapPool ?? {}, resource.key, count)
@@ -54,16 +55,20 @@ export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: Units
       setNote(buildSheetCopy('thePoolNoLongerCovers'))
       return
     }
-    await storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN)
-    setNote(
-      buildSheetCopy('tradedExotic', {
-        count,
-        name: EXOTIC_NAME[resource.key],
-        scrap: result.scrap,
-        tl: result.tl,
-      })
+    runWrite(
+      () => storeState.update('crawler', crawler.id, { scrapPool: result.pool }, LIVE_SHEET_TXN),
+      () => {
+        setNote(
+          buildSheetCopy('tradedExotic', {
+            count,
+            name: EXOTIC_NAME[resource.key],
+            scrap: result.scrap,
+            tl: result.tl,
+          })
+        )
+        setCount(1)
+      }
     )
-    setCount(1)
   }
 
   return (
@@ -120,9 +125,7 @@ export function ExoticTrade({ crawler, store }: { crawler: Crawler; store: Units
           size="compact"
           variant="primary"
           disabled={count < 1 || count > bucket}
-          onClick={() => {
-            void handleTrade()
-          }}
+          onClick={handleTrade}
         >
           {buildSheetCopy('trade')}
         </Button>

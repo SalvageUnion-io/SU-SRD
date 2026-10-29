@@ -10,6 +10,8 @@
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity } from 'salvageunion-reference'
 import {
+  getHitPoints,
+  getStructurePoints,
   NO_EFFECT,
   resultForTable,
   rollOnTable,
@@ -23,12 +25,10 @@ export type MoraleRoll = NonNullable<EncounterNpc['lastMediatorRoll']>
 
 /** A reference entity's HP or SP, whichever it tracks. */
 export function trackOf(entity: RefEntity): { maxHp: number; statKind: 'hp' | 'sp' } {
-  if ('structurePoints' in entity && typeof entity.structurePoints === 'number') {
-    return { maxHp: entity.structurePoints, statKind: 'sp' }
-  }
-  if ('hitPoints' in entity && typeof entity.hitPoints === 'number') {
-    return { maxHp: entity.hitPoints, statKind: 'hp' }
-  }
+  const structurePoints = getStructurePoints(entity)
+  if (structurePoints !== undefined) return { maxHp: structurePoints, statKind: 'sp' }
+  const hitPoints = getHitPoints(entity)
+  if (hitPoints !== undefined) return { maxHp: hitPoints, statKind: 'hp' }
   return { maxHp: 0, statKind: 'hp' }
 }
 

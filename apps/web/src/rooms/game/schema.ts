@@ -18,7 +18,7 @@
  * - `tray` and `running_encounter`: the Mediator's Opposition and the
  *   encounter being run, read by nobody else (ADR-059 §4).
  * - `leases`: handoffs in and out, so each is accepted once and refused for good.
- * - `imports`: the cutover copies already taken in, so a rerun takes nothing twice.
+ * - `imports`: written by nothing now; a table is never dropped from a room.
  *
  * Presence is not stored; the Scene, salvage area, ledger and Safety
  * Protocols are step 3's, the roll and alert feed step 4's.
@@ -135,6 +135,11 @@ export const GAME_ROOM_TABLES: readonly string[] = [
 export const GAME_ROOM_STAMPS: readonly string[] = [
   'alter table links add column created_at integer not null default 0',
   'alter table tray add column updated_at integer not null default 0',
+]
+
+/** Step 5 of `GAME_ROOM`: whether a running Downtime's Nanites were processed (`../downtime.ts`). */
+export const GAME_ROOM_NANITES: readonly string[] = [
+  'alter table downtime_run add column nanites_spent integer not null default 0',
 ]
 
 /**

@@ -12,6 +12,7 @@
  * downed wreck's into the crawler.
  */
 
+import type { WreckPart } from 'game-domain/rules/wreck'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -103,16 +104,6 @@ export function areaSalvageToPilot(
 }
 
 // ─── mech salvage of a wreck (F2) ────────────────────────────────────────────
-
-/** One part of a downed mech: its Chassis, or a System or Module it mounted. */
-export type WreckPart = {
-  key: string
-  kind: 'chassis' | 'system' | 'module'
-  name: string
-  /** Numeric TL 1–6 when known: the Scrap a 2–5 pays is of the Chassis's. */
-  techLevel?: number
-  salvageValue: number
-}
 
 export type WreckSalvageOutcome = {
   /** Null when the band yields nothing, or the picks are not the band's to take. */

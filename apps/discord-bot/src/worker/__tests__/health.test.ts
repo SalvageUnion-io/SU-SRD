@@ -1,4 +1,5 @@
-import { describe, expect, test } from 'bun:test'
+import { beforeEach, describe, expect, test } from 'bun:test'
+import { resetHealthProbe } from '../healthProbe'
 import worker from '../index'
 import { withFetchStub } from './stubFetch'
 
@@ -23,6 +24,7 @@ import { withFetchStub } from './stubFetch'
  */
 
 const stubFetch = withFetchStub()
+beforeEach(resetHealthProbe)
 
 function envWith(overrides: Partial<Env> = {}): Env {
   return {
@@ -142,6 +144,20 @@ describe('/health', () => {
     expect(body.reason).toContain('site service binding')
     expect(body.configured.site).toBe(false)
     expect(called).toBe(false)
+  })
+
+  test('reuses the probe within the isolate, so a public URL cannot spend the rate limit', async () => {
+    let calls = 0
+    stubFetch(async () => {
+      calls++
+      return Response.json({ username: 'SalvageUnion.io', id: '1' }, { status: 200 })
+    })
+
+    for (let i = 0; i < 3; i++) {
+      const res = await worker.fetch(healthRequest(), envWith(), ctx)
+      expect(res.status).toBe(200)
+    }
+    expect(calls).toBe(1)
   })
 
   test('only answers GET /health — any other path falls through to 405', async () => {

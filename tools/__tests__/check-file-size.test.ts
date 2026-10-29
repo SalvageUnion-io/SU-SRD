@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
   lineCount,
+  listedPaths,
   MAX_LINES,
   main,
   OVER_BUDGET,
@@ -140,5 +141,14 @@ describe('main', () => {
       expect(existsSync(join(ROOT, path))).toBe(true)
       expect(budget).toBeGreaterThan(MAX_LINES)
     }
+  })
+})
+
+describe('listedPaths', () => {
+  test("lists the repository's files, each one present on disk", async () => {
+    const paths = await listedPaths()
+    expect(paths).toContain('package.json')
+    expect(paths).toContain('tools/check-file-size.ts')
+    expect(paths.every((p) => p.length > 0 && !p.startsWith('/'))).toBe(true)
   })
 })

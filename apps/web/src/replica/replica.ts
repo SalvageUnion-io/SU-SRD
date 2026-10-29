@@ -146,10 +146,15 @@ function parse<T extends Table>(table: T, row: unknown): RowOf<T> | null {
   return null
 }
 
+/**
+ * A unit at a later `headSeq`, or at the same one stamped later: a move into
+ * another room keeps its op log and `headSeq`, and only the stamp says where
+ * it now is.
+ */
 function newer(served: Served, current: Held | undefined): boolean {
   if (current === undefined || current.version === undefined) return true
   if (served.headSeq !== undefined && current.headSeq !== undefined) {
-    return served.headSeq > current.headSeq
+    if (served.headSeq !== current.headSeq) return served.headSeq > current.headSeq
   }
   return served.version > current.version
 }

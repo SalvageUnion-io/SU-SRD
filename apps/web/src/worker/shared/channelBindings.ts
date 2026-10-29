@@ -31,16 +31,25 @@ export const CHANNEL_NOT_FOUND = 'That channel could not be found.'
 /** Discord's own cap on a channel name. */
 const CHANNEL_NAME_MAX = 100
 
+/** One binding as stored, with its Game's name. */
 type BindingColumns = {
   channel_id: string
   game_id: string | null
   bound_by: string
   channel_name: string | null
+  bound_at: number
   game_name: string | null
 }
 
-const BINDING = `select b.channel_id, b.game_id, b.bound_by, b.channel_name, g.name as game_name
-  from channel_bindings b left join games g on g.game_id = b.game_id`
+const BINDING = `select b.channel_id, b.game_id, b.bound_by, b.channel_name, b.bound_at,
+  g.name as game_name from channel_bindings b left join games g on g.game_id = b.game_id`
+
+/** How a binding is found: by its Game, by the account whose solo play it is, or by its channel. */
+const BINDING_BY = {
+  game: 'b.game_id = ?1',
+  solo: 'b.game_id is null and b.bound_by = ?1',
+  channel: 'b.channel_id = ?1',
+} as const
 
 function summaryOf(row: BindingColumns): ChannelBindingSummary {
   return {
@@ -57,8 +66,13 @@ function channelNameOf(raw: string | null | undefined): string | null {
   return name.length === 0 ? null : name
 }
 
-function bindingWhere(db: SharedDb, where: string, value: string): Promise<BindingColumns | null> {
-  return db.prepare(`${BINDING} where ${where}`).bind(value).first<BindingColumns>()
+/** The binding a Game, an account's solo play (by Discord id) or a channel holds; null when none. */
+export function bindingBy(
+  db: SharedDb,
+  by: keyof typeof BINDING_BY,
+  value: string
+): Promise<BindingColumns | null> {
+  return db.prepare(`${BINDING} where ${BINDING_BY[by]}`).bind(value).first<BindingColumns>()
 }
 
 /** The channel a Game is bound to, for Play's rolls and the Game's page; null when none. */
@@ -66,7 +80,7 @@ export async function bindingForGame(
   db: SharedDb,
   gameId: string
 ): Promise<ChannelBindingSummary | null> {
-  const row = await bindingWhere(db, 'b.game_id = ?1', gameId)
+  const row = await bindingBy(db, 'game', gameId)
   return row === null ? null : summaryOf(row)
 }
 
@@ -75,7 +89,7 @@ export async function soloBinding(
   db: SharedDb,
   discordId: string
 ): Promise<ChannelBindingSummary | null> {
-  const row = await bindingWhere(db, 'b.game_id is null and b.bound_by = ?1', discordId)
+  const row = await bindingBy(db, 'solo', discordId)
   return row === null ? null : summaryOf(row)
 }
 
@@ -111,7 +125,7 @@ export async function bindChannel(
     }
   }
 
-  const held = await bindingWhere(db, 'b.channel_id = ?1', channelId)
+  const held = await bindingBy(db, 'channel', channelId)
   const sameTarget =
     held !== null &&
     (gameId === null
@@ -159,7 +173,7 @@ export async function bindChannel(
       )
       .bind(channelId, gameId, discordId, channelName, now),
   ])
-  const bound = await bindingWhere(db, 'b.channel_id = ?1', channelId)
+  const bound = await bindingBy(db, 'channel', channelId)
   if (bound === null) throw new Error('channel binding vanished on insert')
   return {
     ok: true,
@@ -175,7 +189,7 @@ export async function unbindChannel(
   discordId: string,
   channelId: string
 ): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
-  const held = await bindingWhere(db, 'b.channel_id = ?1', channelId)
+  const held = await bindingBy(db, 'channel', channelId)
   if (held === null) return { ok: true, unbound: null }
   if (!(await mayManage(db, discordId, held))) {
     return {

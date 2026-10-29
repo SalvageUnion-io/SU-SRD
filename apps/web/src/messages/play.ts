@@ -60,6 +60,7 @@ export const playCopy = messages({
   d20EachActiveOn20: 'd20 each · 20 is Active',
   theMediatorProcessesThem: 'The Mediator processes them',
   noInertNanites: 'No Inert Meld Nanites to process.',
+  nanitesAlreadyProcessed: 'The Nanites are already processed this Downtime.',
   processedNanites:
     'Processed {processed} Inert Meld Nanite piles and found {found} Active Meld Nanites.',
   appliesEachLineCanBe: 'Applies, each line can be unticked if your table rules it differently.',
@@ -175,6 +176,12 @@ export const playCopy = messages({
   cascadeFailureASevereConsequence:
     'Cascade Failure: a severe consequence. Take the damage on the unit’s gauge in Units; nothing was applied for you.',
   copyResultToClipboard: 'Copy result to clipboard',
+  copyFailed: 'The result could not be copied.',
+  upkeepShort:
+    'Upkeep is {scrap} Scrap of Tech {tl} or higher, and the pool is {short} short. Unpaid Upkeep is a roll on the Crawler Deterioration table, on the crawler sheet.',
+  upkeepNotDrawn:
+    'Upkeep is marked paid this Downtime, but the {scrap} Scrap was not drawn. Take it from the pool on the crawler sheet.',
+  rollFailed: 'The dice could not be rolled. Try again.',
   tables: 'Tables',
   situation: 'Situation',
   downtime: 'Downtime, {setByMediatorPhrase}',

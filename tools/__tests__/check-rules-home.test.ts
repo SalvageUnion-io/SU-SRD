@@ -2,7 +2,13 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { AREA_DIRS, COMPONENTS_DIR, main, misplacedRules } from '../check-rules-home'
+import {
+  AREA_DIRS,
+  areaRuleConstants,
+  COMPONENTS_DIR,
+  main,
+  misplacedRules,
+} from '../check-rules-home'
 
 const ROOT = join(import.meta.dir, '..', '..')
 const temps: string[] = []
@@ -49,6 +55,25 @@ describe('misplacedRules', () => {
       `${COMPONENTS_DIR}/sheet/item.rules.ts`,
       `${COMPONENTS_DIR}/sheet/pilotInventory.ts`,
       `${COMPONENTS_DIR}/sheet/userBadge.ts`,
+    ])
+  })
+})
+
+describe('areaRuleConstants', () => {
+  test('flags a numeric constant an area module exports; passes tests, locals and non-numbers', () => {
+    const root = tree({
+      [`${AREA_DIRS[1]}/mediator/setbacks.model.ts`]: 'export const SETBACK_AMOUNT = 2\n',
+      [`${AREA_DIRS[0]}/prep/threat.model.ts`]: 'export const TECH_LEVEL_MAX: number = 6\n',
+      [`${AREA_DIRS[1]}/tables.model.ts`]: 'const FIND_LIMIT = 6\nexport const LABEL = "x"\n',
+      [`${AREA_DIRS[1]}/__tests__/fixture.ts`]: 'export const ROLL = 14\n',
+    })
+    expect(
+      areaRuleConstants(root)
+        .map((p) => p.split(' exports ')[0])
+        .sort()
+    ).toEqual([
+      `${AREA_DIRS[0]}/prep/threat.model.ts`,
+      `${AREA_DIRS[1]}/mediator/setbacks.model.ts`,
     ])
   })
 })

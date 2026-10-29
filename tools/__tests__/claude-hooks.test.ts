@@ -147,6 +147,18 @@ describe('settings.json deny rules', () => {
     expect(ask).toContain(rule)
   })
 
+  // `Bash(bun *)` and `Bash(bunx *)` would otherwise run these unprompted
+  // against the live account: production D1 has no per-statement undo.
+  test.each([
+    'Bash(*wrangler* d1 execute*)',
+    'Bash(*wrangler*--remote*)',
+    'Bash(*wrangler* rollback*)',
+    'Bash(*d1-migrate*)',
+    'Bash(*environments.ts*--apply*)',
+  ])('asks before %s', (rule) => {
+    expect(ask).toContain(rule)
+  })
+
   test.each(['rebase', 'push --force-with-lease'])('never allows git %s outright', (cmd) => {
     expect(allow.filter((rule) => rule.startsWith(`Bash(git ${cmd}`))).toEqual([])
   })
@@ -573,5 +585,78 @@ esac`,
     ).hooks.SessionStart.flatMap((entry) => entry.hooks)
     const status = hooks.find((hook) => hook.command.endsWith('/session-status.sh'))
     expect(status?.timeout).toBeLessThanOrEqual(10)
+  })
+})
+
+describe('session-start.sh (SessionStart) binary pins', () => {
+  const hook = join(HOOKS, 'session-start.sh')
+  const functions = readFileSync(hook, 'utf8')
+    .split('\n')
+    .reduce<{ out: string[]; on: boolean }>(
+      (acc, line) => {
+        if (/^(pinned_sha256|verified)\(\) \{$/.test(line)) acc.on = true
+        if (acc.on) acc.out.push(line)
+        if (line === '}') acc.on = false
+        return acc
+      },
+      { out: [], on: false }
+    )
+    .out.join('\n')
+  /** Run `verified <key> <file>` from the hook; true when it accepts the file. */
+  const verified = async (key: string, file: string) => {
+    const proc = Bun.spawn(
+      ['bash', '-c', `note() { :; }\n${functions}\nverified "$1" "$2"`, 'hook', key, file],
+      { stdout: 'pipe', stderr: 'pipe' }
+    )
+    return (await proc.exited) === 0
+  }
+  const pin = async (key: string) => {
+    const proc = Bun.spawn(['bash', '-c', `${functions}\npinned_sha256 "$1"`, 'hook', key], {
+      stdout: 'pipe',
+    })
+    return (await new Response(proc.stdout).text()).trim()
+  }
+
+  test.each(['linux-x64', 'linux-aarch64', 'darwin-x64', 'darwin-aarch64'])(
+    "packageManager's Bun has a recorded sha256 for %s",
+    async (platform) => {
+      const manifest = await Bun.file(join(ROOT, 'package.json')).json()
+      const want = String(manifest.packageManager).replace(/^bun@/, '')
+      expect(await pin(`bun-${want}-${platform}`)).toMatch(/^[0-9a-f]{64}$/)
+    }
+  )
+
+  test('refuses a file whose sha256 is not the recorded one, and an unrecorded version', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'session-start-pin-'))
+    try {
+      const file = join(dir, 'bun.zip')
+      writeFileSync(file, 'not bun')
+      expect(await verified('bun-1.4.2-linux-x64', file)).toBe(false)
+      expect(await verified('bun-0.0.0-linux-x64', file)).toBe(false)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
+
+  test('accepts a file whose sha256 is the recorded one', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'session-start-pin-'))
+    try {
+      const file = join(dir, 'op.zip')
+      writeFileSync(file, 'x')
+      const sum = new Bun.CryptoHasher('sha256').update('x').digest('hex')
+      const proc = Bun.spawn(
+        [
+          'bash',
+          '-c',
+          `note() { :; }\n${functions.replace('case "$1" in', `case "$1" in\n    test-key) echo ${sum} ;;`)}\nverified test-key "$1"`,
+          'hook',
+          file,
+        ],
+        { stdout: 'pipe', stderr: 'pipe' }
+      )
+      expect(await proc.exited).toBe(0)
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })

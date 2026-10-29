@@ -1,6 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
-import { downtimeStepCount, isUpkeepStep } from 'game-domain/rules/downtime'
+import {
+  CRAFT_STEP_NAME,
+  downtimeStepCount,
+  downtimeStepNames,
+  isUpkeepStep,
+} from 'game-domain/rules/downtime'
 import { AT, bodies, MEDIATOR, ORGANIZER, op, PLAYER, STRANGER, table } from './harness'
 
 function seated() {
@@ -99,6 +104,22 @@ describe('Downtime', () => {
     room.play.setDowntimeStep(MEDIATOR, upkeep)
     expect(room.play.spendUpkeep(MEDIATOR)).toBe(true)
     expect(room.play.spendUpkeep(MEDIATOR)).toBe(false)
+  })
+
+  test('Nanites are processed once, in the Craft step, by the Mediator', () => {
+    const { room } = seated()
+    room.play.beginDowntime(MEDIATOR, AT)
+    const craft = downtimeStepNames().indexOf(CRAFT_STEP_NAME)
+    if (craft < 1) throw new Error('the guide has no Craft step after the first')
+    expect(() => room.play.spendNanites(MEDIATOR)).toThrow('Nanites are processed in')
+    room.play.setDowntimeStep(MEDIATOR, craft)
+    expect(() => room.play.spendNanites(PLAYER)).toThrow()
+    expect(room.play.spendNanites(MEDIATOR)).toBe(true)
+    expect(room.play.spendNanites(MEDIATOR)).toBe(false)
+    room.play.endDowntime(MEDIATOR)
+    room.play.beginDowntime(MEDIATOR, AT + 1)
+    room.play.setDowntimeStep(MEDIATOR, craft)
+    expect(room.play.spendNanites(MEDIATOR)).toBe(true)
   })
 
   test('a step a pilot applies twice lands once', () => {

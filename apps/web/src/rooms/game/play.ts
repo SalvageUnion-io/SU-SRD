@@ -1,5 +1,12 @@
 import type { Running } from '../downtime'
-import { beginDowntime, doneSteps, moveDowntime, requireRunning, spendUpkeep } from '../downtime'
+import {
+  beginDowntime,
+  doneSteps,
+  moveDowntime,
+  requireRunning,
+  spendNanites,
+  spendUpkeep,
+} from '../downtime'
 import { RoomRefusal } from '../refusal'
 import { SeatTable } from '../seats'
 import type { GameStore, UnitRow } from './store'
@@ -110,6 +117,11 @@ export class GamePlay extends SeatTable {
     return this.asMediator(actor, () => spendUpkeep(this.place))
   }
 
+  /** The crawler's Nanite processing, the Mediator's as its Upkeep is. */
+  spendNanites(actor: string): boolean {
+    return this.asMediator(actor, () => spendNanites(this.place))
+  }
+
   private asMediator<T>(actor: string, act: () => T): T {
     return this.store.sql.transaction(() => {
       this.store.requireMediator(actor)
@@ -127,6 +139,7 @@ export class GamePlay extends SeatTable {
         startedAt: Number(row.started_at),
         completedBy: fromJson<string[]>(row.completed_by),
         upkeepSpent: row.upkeep_spent === 1,
+        nanitesSpent: row.nanites_spent === 1,
       }
     },
     write: (next: Running | null): void => {
@@ -135,16 +148,17 @@ export class GamePlay extends SeatTable {
         return
       }
       this.store.rows(
-        `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent)
-         values (1, ?, ?, ?, ?, ?)
+        `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent, nanites_spent)
+         values (1, ?, ?, ?, ?, ?, ?)
          on conflict (id) do update set run_id = excluded.run_id, step_index = excluded.step_index,
            started_at = excluded.started_at, completed_by = excluded.completed_by,
-           upkeep_spent = excluded.upkeep_spent`,
+           upkeep_spent = excluded.upkeep_spent, nanites_spent = excluded.nanites_spent`,
         next.runId,
         next.stepIndex,
         next.startedAt,
         JSON.stringify(next.completedBy),
-        next.upkeepSpent ? 1 : 0
+        next.upkeepSpent ? 1 : 0,
+        next.nanitesSpent ? 1 : 0
       )
     },
   }

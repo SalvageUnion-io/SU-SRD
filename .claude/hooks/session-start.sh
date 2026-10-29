@@ -33,6 +33,38 @@ HAVE="$(bun --version 2>/dev/null || echo none)"
 
 note() { echo "[session-start] $*"; }
 
+# A fetched binary runs only when its sha256 is the one recorded here: the
+# version is a pointer, the hash is the artifact (tools/lint-workflows.sh), and
+# `op` is handed the vault token. An unrecorded version is refused like a
+# mismatch. BUMPING packageManager or OP_VERSION: add the new hashes, Bun's from
+# the release's SHASUMS256.txt, op's from its zips (claude-hooks.test.ts fails
+# on a Bun pin with none).
+pinned_sha256() {
+  case "$1" in
+    bun-1.4.2-linux-x64) echo 36368faef7527875d5ffa52e53cd48021741f2a83eb6208a8dd64068d422a913 ;;
+    bun-1.4.2-linux-aarch64) echo 54328bbc2d9c8e0c9f892c544d66c57a83b84139e34909e5ee81758f1ac8fda7 ;;
+    bun-1.4.2-darwin-x64) echo 80520d7e17526308c9185d261679ac6d27798d3803a0e9f7ff9121ab8affb012 ;;
+    bun-1.4.2-darwin-aarch64) echo 90987a3a16d7db556d886ac3d551e7b6d3edf0a1cf43acaed622e8676be1d12f ;;
+    op-2.30.3-amd64) echo a16307ebcecb40fd091d7a6ff4f0c380c3c0897c4f4616de2c5d285e57d5ee28 ;;
+    op-2.30.3-arm64) echo 39bd361b2cd4819ea757583624eeda33f6062ba5ccfc2b90ad0764aed94cd1c4 ;;
+  esac
+}
+
+# Is file $2 the artifact pinned for $1? Prints why not.
+verified() {
+  local want have
+  want="$(pinned_sha256 "$1")"
+  if [ -z "$want" ]; then
+    note "no sha256 is recorded for $1; refusing to install it."
+    return 1
+  fi
+  have="$({ sha256sum "$2" 2>/dev/null || shasum -a 256 "$2" 2>/dev/null; } | cut -d' ' -f1)"
+  if [ "$have" != "$want" ]; then
+    note "$1 has sha256 ${have:-unreadable}, not the recorded $want; refusing to install it."
+    return 1
+  fi
+}
+
 if [ "$HAVE" != "$WANT" ]; then
   note "Bun $HAVE present, repo pins $WANT — installing the pinned version."
   PREFIX="${HOME}/.local/share/su-srd-bun/${WANT}"
@@ -53,12 +85,14 @@ if [ "$HAVE" != "$WANT" ]; then
     esac
     URL="https://github.com/oven-sh/bun/releases/download/bun-v${WANT}/bun-${OS}-${ARCH}.zip"
     if curl -fsSL --max-time 180 -o "${PREFIX}/bun.zip" "$URL" &&
+      verified "bun-${WANT}-${OS}-${ARCH}" "${PREFIX}/bun.zip" &&
       unzip -oq "${PREFIX}/bun.zip" -d "$PREFIX" &&
       mv -f "${PREFIX}/bun-${OS}-${ARCH}/bun" "${PREFIX}/bun"; then
       chmod +x "${PREFIX}/bun"
       rm -rf "${PREFIX}/bun.zip" "${PREFIX}/bun-${OS}-${ARCH}"
     else
-      note "could not download Bun ${WANT} from ${URL}."
+      rm -f "${PREFIX}/bun.zip"
+      note "could not install Bun ${WANT} from ${URL}."
       note "Install it by hand; until then bun.lock may be unreadable and every bun script will fail."
       exit 0
     fi
@@ -105,8 +139,10 @@ fi
 OP_VERSION=2.30.3
 if [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ] && ! command -v op >/dev/null 2>&1; then
   OP_TMP="$(mktemp -d)"
-  OP_URL="https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_$(dpkg --print-architecture 2>/dev/null || echo amd64)_v${OP_VERSION}.zip"
-  if curl -fsSL --max-time 60 -o "$OP_TMP/op.zip" "$OP_URL" && unzip -oq "$OP_TMP/op.zip" -d "$OP_TMP" &&
+  OP_ARCH="$(dpkg --print-architecture 2>/dev/null || echo amd64)"
+  OP_URL="https://cache.agilebits.com/dist/1P/op2/pkg/v${OP_VERSION}/op_linux_${OP_ARCH}_v${OP_VERSION}.zip"
+  if curl -fsSL --max-time 60 -o "$OP_TMP/op.zip" "$OP_URL" &&
+    verified "op-${OP_VERSION}-${OP_ARCH}" "$OP_TMP/op.zip" && unzip -oq "$OP_TMP/op.zip" -d "$OP_TMP" &&
     install -m 0755 "$OP_TMP/op" /usr/local/bin/op 2>/dev/null; then
     note "1Password CLI $(op --version) installed."
   else

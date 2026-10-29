@@ -9,7 +9,7 @@
  * - `seats`: each Shelf pilot's solo play state and solo Downtime.
  * - `records`: the op-less bodies, by table: saved patterns, encounters and
  *   the NPC tray.
- * - `leases` and `imports`: as the Game room's, for handoffs and the cutover.
+ * - `leases` and `imports`: as the Game room's (handoffs; `imports` unused).
  * - `salvage_area`: the area the player's solo table is salvaging, at most one.
  */
 /** Step 1 of `ACCOUNT_ROOM` (`../schemas.ts`). */

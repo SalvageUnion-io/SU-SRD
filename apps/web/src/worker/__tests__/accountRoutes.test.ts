@@ -8,8 +8,8 @@ import { ACCOUNT_PATHS } from '../../rooms/routes'
 import type { AccountExport, Me } from '../accountRoutes'
 import { isAccountPath, serveAccount } from '../accountRoutes'
 import type { Identity } from '../auth/index'
-import { authStore, d1Sql, saveAccount } from '../auth/store'
-import { testDb } from '../shared/__tests__/d1'
+import { d1Sql, saveAccount } from '../auth/store'
+import { publishGame, testDb } from '../shared/__tests__/d1'
 import { bumpUsage } from '../shared/signals'
 
 /**
@@ -40,7 +40,7 @@ beforeEach(async () => {
   db = testDb()
   profile = { displayName: null, avatarUrl: null }
   await saveAccount(
-    await authStore(d1Sql(db as never)),
+    d1Sql(db as never),
     {
       accountId: 'u-1',
       discordId: 'd-1',
@@ -101,6 +101,36 @@ describe('the account’s routes', () => {
     expect((await call(ACCOUNT_PATHS.profile, PLAYER, { displayName: 'Bonesaw' })).status).toBe(200)
     const after = (await (await call(ACCOUNT_PATHS.me, PLAYER)).json()) as Me
     expect(after.displayName).toBe('Bonesaw')
+  })
+
+  test('a name the player sets reaches the roster of every Game they are in', async () => {
+    await publishGame(db, 'g-1', {
+      name: 'Reclamation',
+      mediatedBy: null,
+      members: [{ discordId: 'd-1', mediator: false, organizer: true }],
+    })
+    const acts: unknown[] = []
+    namespaces.GameRoom = {
+      getByName: (gameId: string) => ({
+        act: async (actor: string, name: string, args: unknown) => {
+          acts.push({ gameId, actor, name, args })
+          return { ok: true, value: null }
+        },
+      }),
+    }
+    try {
+      await call(ACCOUNT_PATHS.profile, PLAYER, { displayName: 'Bonesaw' })
+    } finally {
+      delete namespaces.GameRoom
+    }
+    expect(acts).toEqual([
+      {
+        gameId: 'g-1',
+        actor: 'd-1',
+        name: 'updateProfile',
+        args: { profile: { displayName: 'Bonesaw', avatarUrl: 'https://cdn/discord.png' } },
+      },
+    ])
   })
 
   test('a write from another origin, or signed out, is refused', async () => {

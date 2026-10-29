@@ -47,27 +47,35 @@ export function pilotMaxima(pilot: Pilot, crawler: Pick<Crawler, 'techLevel'> | 
 }
 
 /**
- * A mech's max SP, EP and Heat. Beefcake is a PILOT ability that raises the
- * piloted MECH (ADR-029), so the pilot in it (or assigned to it) and the
- * effects their seat has switched on come in too.
+ * A mech's max SP, EP and Heat, with the parts each ledger lists. Beefcake is
+ * a PILOT ability that raises the piloted MECH (ADR-029), so the pilot in it
+ * (or assigned to it) and the effects their seat has switched on come in too.
+ * `stats` are the chassis's stats where a caller holds them already (a
+ * test's narrow chassis); null or omitted reads them from `chassisRef`.
  */
 export function mechMaxima(
   mech: Mech,
   pilotAbilities: string[] | undefined,
-  switchedOn: readonly string[]
+  switchedOn: readonly string[],
+  stats?: Parameters<typeof mechMaxSPParts>[1]
 ) {
   const chassis = resolveChassisRef(mech.chassisRef)
+  const from = stats ?? chassis
   const active = Object.fromEntries(switchedOn.map((ref) => [ref, true]))
   const piloting = { ...pilotingContext(mech, pilotAbilities), active }
-  const spParts = mechMaxSPParts(mech, chassis, piloting)
+  const spParts = mechMaxSPParts(mech, from, piloting)
+  const epParts = mechMaxEPParts(mech, from, piloting)
+  const heatParts = mechMaxHeatParts(mech, from, piloting)
   return {
     chassis,
     active,
     piloting,
     spParts,
+    epParts,
+    heatParts,
     maxSP: spParts.total,
-    maxEP: mechMaxEPParts(mech, chassis, piloting).total,
-    maxHeat: mechMaxHeatParts(mech, chassis, piloting).total,
+    maxEP: epParts.total,
+    maxHeat: heatParts.total,
   }
 }
 

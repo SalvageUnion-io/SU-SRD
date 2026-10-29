@@ -18,10 +18,11 @@ import type { Profile, ShelfExport } from '../rooms/account/shelf'
 import { ACCOUNT_PATHS } from '../rooms/routes'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import { rooms } from './rooms'
-import { exportedRows, signInProfile } from './shared/accounts'
+import { gameRoom, rooms } from './roomStubs'
+import { exportedRows, shownProfile, signInProfile } from './shared/accounts'
 import type { SharedDb } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
+import { gamesOf } from './shared/games'
 import { readMetrics, takeSnapshot } from './shared/signals'
 
 export type AccountEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string }
@@ -42,7 +43,7 @@ function accountRoom(discordId: string): AccountRoomStub {
   return rooms().AccountRoom.getByName(discordId) as unknown as AccountRoomStub
 }
 
-/** What `me` answers: the Convex users id as `_id` while Convex rows still name owners by it. */
+/** What `me` answers: sign-in's account id as `_id`. */
 export type Me = {
   _id: string
   discordId: string
@@ -119,6 +120,7 @@ export async function serveAccount(
       const patch = await body(request, ProfileSchema)
       if (patch === null) return new Response(null, { status: 400 })
       await accountRoom(who.discordId).setProfile(who.discordId, patch)
+      await showOnRosters(env, who)
       return json(null)
     }
     case `GET ${ACCOUNT_PATHS.export}`:
@@ -158,11 +160,23 @@ async function me(env: AccountEnv, who: Identity): Promise<Me> {
   return {
     _id: who.accountId,
     discordId: who.discordId,
-    displayName: own?.displayName ?? account?.name ?? null,
-    avatarUrl: own?.avatarUrl ?? account?.avatar_url ?? null,
+    ...shownProfile(own, account),
     email: account?.email ?? null,
     admin: who.admin,
   }
+}
+
+/** The player's name and avatar as they now show, on the roster of every Game they are in. */
+async function showOnRosters(env: AccountEnv, who: Identity): Promise<void> {
+  const [account, own, games] = await Promise.all([
+    signInProfile(shared(env), who.accountId),
+    accountRoom(who.discordId).profile(who.discordId),
+    gamesOf(shared(env), who.discordId),
+  ])
+  const profile = shownProfile(own, account)
+  await Promise.all(
+    games.map(({ gameId }) => gameRoom(gameId).act(who.discordId, 'updateProfile', { profile }))
+  )
 }
 
 async function exportOf(env: AccountEnv, who: Identity): Promise<AccountExport> {

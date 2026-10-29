@@ -16,10 +16,12 @@
  */
 
 import { useMemo } from 'react'
-import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
+import type { EntityInstance, RefNPC } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
 import { Entity, relation, Toggle, useDisclosure, VitalGauge } from '../../components/index'
+import type { ResolvedNpc } from '../../lib/crawlerRefs'
+import type { ReferenceNpc } from '../../lib/npcs/npcModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { NpcLinesProps } from './NpcLines'
 import { NpcLines } from './NpcLines'
@@ -34,9 +36,23 @@ type CrewLeadMiniProps = NpcLinesProps & {
 } & CrewSource
 
 /** Who heads it: the bay's SRD crew NPC, or a crew lead no reference record describes (`unitRowModel`). */
-type CrewSource =
-  | { entity: RefMetaEntity; model?: never }
-  | { model: EntityFormModel; entity?: never }
+type CrewSource = { npc: ResolvedNpc; model?: never } | { model: EntityFormModel; npc?: never }
+
+/**
+ * A slot's SRD crew NPC as the model its Mini reads. The book prints it inside
+ * its bay or crawler type, with no id, source or page of its own, so the card
+ * reads it as a synthetic NPC (`entityRef`), titled by its position: the
+ * fields typed here are all there are.
+ */
+function crewNpcModel(npc: ResolvedNpc): EntityFormModel {
+  const entity: Pick<RefNPC, 'name' | 'hitPoints'> & { schemaName: string; position?: string } = {
+    ...npc,
+    name: npc.position ?? '',
+    hitPoints: npc.hitPoints ?? 0,
+    schemaName: 'npcs',
+  }
+  return toEntityModel(entity as ReferenceNpc)
+}
 
 /**
  * The head's chips past the role: the model's own, less its book HP, which
@@ -73,9 +89,9 @@ function readLines({
 }
 
 export function CrewLeadMini(props: CrewLeadMiniProps) {
-  const { bayName, title, name, hp, maxHp, onHpChange, instance, mode, peekAt, entity } = props
+  const { bayName, title, name, hp, maxHp, onHpChange, instance, mode, peekAt, npc } = props
   const own = props.model
-  const base = useMemo(() => own ?? toEntityModel(entity as RefMetaEntity), [own, entity])
+  const base = useMemo(() => own ?? crewNpcModel(npc as ResolvedNpc), [own, npc])
   const editing = onHpChange !== undefined
   // In Edit the crew lead starts collapsed, its lines read as in Read; its
   // Details control opens their fields: a bay's crew lead is a collapsed

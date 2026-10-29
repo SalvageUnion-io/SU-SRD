@@ -18,7 +18,7 @@ export function salvageAreaOf(store: GameStore): SalvageArea | null {
 }
 
 /** Write the area as it is. */
-export function putSalvageArea(store: GameStore, area: SalvageArea, at: number): void {
+function putSalvageArea(store: GameStore, area: SalvageArea, at: number): void {
   store.rows(
     `insert into salvage_area (id, name, tech_level, supply, updated_at) values (1, ?, ?, ?, ?)
      on conflict (id) do update set name = excluded.name, tech_level = excluded.tech_level,

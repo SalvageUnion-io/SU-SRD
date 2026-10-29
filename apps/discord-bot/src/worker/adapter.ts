@@ -44,7 +44,10 @@ import type {
   CommandButtonInteraction,
   CommandChoice,
   CommandExecuteInteraction,
+  EditReplyPayload,
+  ReplyPayload,
 } from '../commands/interactions'
+import { toWire } from '../wire'
 
 /** What the Worker returns to Discord as the initial response. */
 export type InitialResponse = { type: number; data?: unknown }
@@ -60,6 +63,8 @@ export class ResponseSink {
   private resolveFirst!: (r: InitialResponse) => void
   readonly first: Promise<InitialResponse>
   settled = false
+  /** The first response, once sent: the error path reads what kind it was. */
+  sent: InitialResponse | null = null
 
   constructor() {
     this.first = new Promise<InitialResponse>((resolve) => {
@@ -70,6 +75,7 @@ export class ResponseSink {
   send(response: InitialResponse): void {
     if (this.settled) return
     this.settled = true
+    this.sent = response
     this.resolveFirst(response)
   }
 }
@@ -211,20 +217,23 @@ function replyMembers(ctx: AdapterContext) {
   const routes = webhookRoutes(ctx.applicationId, token)
 
   return {
-    async reply(payload: unknown): Promise<unknown> {
+    async reply(payload: ReplyPayload): Promise<unknown> {
       // Before the first response this IS the HTTP response. After it — which
       // happens when an error handler replies on an already-answered
       // interaction — it has to become a follow-up, or it would be silently
       // dropped.
       //
-      // Payloads go as they are: a container is already Discord's JSON
-      // (`toContainer`), which `JSON.stringify` writes — the Worker's for the
-      // initial response, the REST client's for everything after.
+      // Every payload goes through `toWire`: a container is already Discord's
+      // JSON (`toContainer`), which `JSON.stringify` writes — the Worker's for
+      // the initial response, the REST client's for everything after.
       if (!ctx.sink.settled) {
-        ctx.sink.send({ type: InteractionResponseType.ChannelMessageWithSource, data: payload })
+        ctx.sink.send({
+          type: InteractionResponseType.ChannelMessageWithSource,
+          data: toWire(payload),
+        })
         return undefined
       }
-      return ctx.rest.post(routes.followUp, { body: payload })
+      return ctx.rest.post(routes.followUp, { body: toWire(payload) })
     },
 
     async deferReply(options?: { flags?: number }): Promise<unknown> {
@@ -235,12 +244,12 @@ function replyMembers(ctx: AdapterContext) {
       return undefined
     },
 
-    async editReply(payload: unknown): Promise<unknown> {
-      return ctx.rest.patch(routes.original, { body: payload })
+    async editReply(payload: EditReplyPayload): Promise<unknown> {
+      return ctx.rest.patch(routes.original, { body: toWire(payload) })
     },
 
-    async followUp(payload: unknown): Promise<unknown> {
-      return ctx.rest.post(routes.followUp, { body: payload })
+    async followUp(payload: ReplyPayload): Promise<unknown> {
+      return ctx.rest.post(routes.followUp, { body: toWire(payload) })
     },
   }
 }

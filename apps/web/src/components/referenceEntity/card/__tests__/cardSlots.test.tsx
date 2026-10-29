@@ -1,7 +1,6 @@
 /**
  * The card's generic SLOTS render where the anatomy says, and only when given:
- * `subtitleExtra` under the head, `afterExtraContent` after the body, `expand`
- * before the footer. And a header-only card (no body, no nested groups) grows
+ * `subtitleExtra` under the head, `afterExtraContent` after the body. And a header-only card (no body, no nested groups) grows
  * no lead gap: the empty strip the uniformity audit found on NPC actions.
  */
 import { describe, expect, test } from 'bun:test'
@@ -24,13 +23,11 @@ describe('card slots', () => {
         data={drill()}
         subtitleExtra={<span>sub line</span>}
         afterExtraContent={<span>after body</span>}
-        expand={<span>expanded</span>}
       />
     )
     const text = container.textContent ?? ''
     expect(screen.getByText('sub line')).toBeTruthy()
     expect(text.indexOf('sub line')).toBeLessThan(text.indexOf('after body'))
-    expect(text.indexOf('after body')).toBeLessThan(text.indexOf('expanded'))
   })
 
   test('a header-only card grows no empty lead strip', () => {

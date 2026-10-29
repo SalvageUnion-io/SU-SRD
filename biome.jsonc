@@ -281,12 +281,13 @@
               // in the tree today — this keeps it that way rather than cleaning
               // it up later.
               //
-              // The package's declared subpath exports are `/rules`, `/zod` and
-              // `/testing` (test code only), plus the committed `/data/*` and
-              // `/schemas/*` files, which srd's JSON API serves verbatim.
+              // The package's declared subpath exports are `/rules`, `/zod`,
+              // `/proseDeviations`, `/assetDerivatives` and `/testing` (test
+              // code only), plus the committed `/data/*` and `/schemas/*`
+              // files, which srd's JSON API serves verbatim.
               {
                 "group": ["salvageunion-reference/lib/**"],
-                "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', or '/testing' from test code) — never a path inside the package."
+                "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/proseDeviations', '/assetDerivatives', or '/testing' from test code) — never a path inside the package."
               }
             ]
           }
@@ -463,6 +464,10 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
                     "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
                   },
@@ -475,6 +480,129 @@
                     "group": ["**/SmallButtons"],
                     "importNamePattern": "StepButton",
                     "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // lib/gameData's build-only consumers, which the static pages and
+      // endpoints call: the override above restated without its ban.
+      "includes": [
+        "apps/web/src/lib/staticPaths.ts",
+        "apps/web/src/lib/pageRefIndex.ts",
+        "apps/web/src/lib/apiSample.ts",
+        "apps/web/src/lib/searchIndexBuild.ts",
+        "apps/web/src/lib/__tests__/**"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The areas take the component library through its barrel
+      // (`components/index.ts`), whose roster (`components/__tests__/roster.test.ts`)
+      // holds every export to a law: a module deep-imported from
+      // components/{atoms,containers,compositions,referenceEntity} would be a
+      // primitive no law names. Tests may reach a module they test. Restates
+      // the R7 override above in full (Biome overrides REPLACE a rule's
+      // options); the overrides after it restate this pattern for their files.
+      "includes": [
+        "apps/web/src/{build,play,reference,rooms,routes}/**",
+        "!**/__tests__/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  },
+                  {
+                    "group": [
+                      "**/components/atoms/**",
+                      "**/components/containers/**",
+                      "**/components/compositions/**",
+                      "**/components/referenceEntity/**"
+                    ],
+                    "message": "The library's face is its barrel: take a component from 'components/index' (or an entity part from 'components/entity'). A module under components/{atoms,containers,compositions,referenceEntity} is the library's own; a new one lands in the barrel under its law in components/__tests__/roster.test.ts."
                   }
                 ]
               }
@@ -513,6 +641,10 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
                     "group": ["**/entity/parts", "**/entity/parts/**"],
                     "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
                   },
@@ -530,6 +662,15 @@
                     "group": ["**/components/index", "**/components", "**/atoms/Panel"],
                     "importNamePattern": "Panel",
                     "message": "R35 (ruleset §6.6): a sheet's carried thing is a Mini in `SheetItemLine` (a synthetic model, `syntheticItemModel`), never a `Panel`."
+                  },
+                  {
+                    "group": [
+                      "**/components/atoms/**",
+                      "**/components/containers/**",
+                      "**/components/compositions/**",
+                      "**/components/referenceEntity/**"
+                    ],
+                    "message": "The library's face is its barrel: take a component from 'components/index' (or an entity part from 'components/entity'). A module under components/{atoms,containers,compositions,referenceEntity} is the library's own; a new one lands in the barrel under its law in components/__tests__/roster.test.ts."
                   }
                 ]
               }
@@ -599,6 +740,73 @@
                     "group": ["**/SmallButtons"],
                     "importNamePattern": "StepButton",
                     "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  },
+                  {
+                    "group": [
+                      "**/components/atoms/**",
+                      "**/components/containers/**",
+                      "**/components/compositions/**",
+                      "**/components/referenceEntity/**"
+                    ],
+                    "message": "The library's face is its barrel: take a component from 'components/index' (or an entity part from 'components/entity'). A module under components/{atoms,containers,compositions,referenceEntity} is the library's own; a new one lands in the barrel under its law in components/__tests__/roster.test.ts."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The static page's client half, its islands and their runtime: the
+      // override above restated with the `lib/gameData` ban, which the
+      // pages and endpoints it also covers need to import.
+      "includes": ["apps/web/src/runtime/**", "apps/web/src/components/islands/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  },
+                  "@tanstack/react-router": "A static page never routes: it links with a plain href.",
+                  "zustand": "A static page holds no store; an island keeps its state in React."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/routes/**", "**/stores/**", "**/shell/**", "**/main"],
+                    "message": "A static page never imports the app's routes, stores, shell or entry: they would ship on every page, past its 20 KB budget."
+                  },
+                  {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
+                    "group": ["**/entity/parts", "**/entity/parts/**"],
+                    "message": "R7: entity markup lives only in components/entity/. Take an entity form (`Compact`, `CompactFrame`, `Entity`) or a shared part from the entity module's face ('components/entity', or the components barrel); a file under entity/parts is the forms' own."
+                  },
+                  {
+                    "group": ["**"],
+                    "importNamePattern": "RadioCardGroup",
+                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                  },
+                  {
+                    "group": ["**/SmallButtons"],
+                    "importNamePattern": "StepButton",
+                    "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
                   }
                 ]
               }
@@ -642,6 +850,10 @@
                     "message": "Import from 'salvageunion-reference' or a declared subpath export — never a path inside the package."
                   },
                   {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
                     "group": ["**/stores/**"],
                     "message": "The display layer takes its data as props; a product folder wires the stores."
                   },
@@ -668,7 +880,7 @@
     },
     {
       // R24 (hard-rules.md, ruleset §6.6): the files that may take
-      // `RadioCardGroup`, which the three overrides above refuse everywhere
+      // `RadioCardGroup`, which the overrides above refuse everywhere
       // else in apps/web/src. A pick dialog is `PickDialog`; the wizards keep
       // their own steps' radio groups (a class, a crawler type, an NPC's
       // template) and `MasonryColumns`' `radio` grid; the barrel exports it, and
@@ -697,6 +909,10 @@
                 },
                 "patterns": [
                   {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
                     "group": ["@/*"],
                     "message": "Use relative imports instead of @/ path aliases."
                   },
@@ -712,6 +928,15 @@
                     "group": ["**/SmallButtons"],
                     "importNamePattern": "StepButton",
                     "message": "R12 (ruleset §6.2, §6.3): one stepper. A count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`; `StepButton` is drawn by those two alone."
+                  },
+                  {
+                    "group": [
+                      "**/components/atoms/**",
+                      "**/components/containers/**",
+                      "**/components/compositions/**",
+                      "**/components/referenceEntity/**"
+                    ],
+                    "message": "The library's face is its barrel: take a component from 'components/index' (or an entity part from 'components/entity'). A module under components/{atoms,containers,compositions,referenceEntity} is the library's own; a new one lands in the barrel under its law in components/__tests__/roster.test.ts."
                   }
                 ]
               }
@@ -741,6 +966,10 @@
                   "zustand": "The display layer takes its data as props; a product folder wires the stores."
                 },
                 "patterns": [
+                  {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
                   {
                     "group": ["@/*"],
                     "message": "Use relative imports instead of @/ path aliases."
@@ -796,6 +1025,10 @@
                 },
                 "patterns": [
                   {
+                    "group": ["**/lib/gameData"],
+                    "message": "lib/gameData preloads the whole corpus with a top-level await, at build time: only page modules, endpoints and their build-only lib helpers import it. A client module loads the data through useGameData."
+                  },
+                  {
                     "group": ["@/*"],
                     "message": "Use relative imports instead of @/ path aliases."
                   },
@@ -839,6 +1072,92 @@
     // SalvageUnionReference call, no inlined pool default) are the GritQL
     // plugins declared at the top of this file.
     // -------------------------------------------------------------------
+    {
+      // Packages never import an app: the dependency flows one way
+      // (docs/ARCHITECTURE.md#packages). Restates the root options, since an
+      // override replaces them for matched files; salvageunion-reference's
+      // own override below wins for its files.
+      "includes": ["packages/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses).",
+                  "react": {
+                    "importNames": ["forwardRef"],
+                    "message": "React 19 passes `ref` as an ordinary prop: type it with ComponentPropsWithRef<…> (or `ref?: Ref<T>`) and take it from props. forwardRef is slated for deprecation."
+                  }
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/proseDeviations', '/assetDerivatives', or '/testing' from test code) — never a path inside the package."
+                  },
+                  {
+                    "group": ["**/apps/**"],
+                    "message": "A package never imports from apps/* — the dependency flows one way (docs/ARCHITECTURE.md#packages). Move what both need into a package (an app address is `game-domain/appAddress`'s)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      // The bot takes game-domain's types, plus values only from its leaf
+      // modules: a value import from its schemas, rules or ops would pull Zod
+      // and the reference schemas into the Worker's startup budget
+      // (docs/ARCHITECTURE.md#discord-bot). Restates the root options.
+      "includes": ["apps/discord-bot/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "zod": "Import `z` from 'salvageunion-reference/zod' instead of importing 'zod' directly (ADR-013: the shared module runs z.config({ jitless: true }) before any schema is constructed, which a direct zod import bypasses)."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/*"],
+                    "message": "Use relative imports instead of @/ path aliases."
+                  },
+                  {
+                    "group": ["salvageunion-reference/lib/**"],
+                    "message": "Import from 'salvageunion-reference' or a declared subpath export ('/rules', '/zod', '/proseDeviations', '/assetDerivatives', or '/testing' from test code) — never a path inside the package."
+                  },
+                  {
+                    "group": [
+                      "game-domain/**",
+                      "!game-domain/botWire",
+                      "!game-domain/product",
+                      "!game-domain/appAddress",
+                      "!game-domain/entityKinds",
+                      "!game-domain/schemas/**"
+                    ],
+                    "message": "The bot imports values only from game-domain's leaf modules (botWire, product, appAddress, entityKinds); anything else would load Zod and the schemas at Worker startup (docs/ARCHITECTURE.md#discord-bot)."
+                  },
+                  {
+                    "group": ["game-domain/schemas/**"],
+                    "importNamePattern": "[a-z].*|[A-Z0-9_]+|.*Schema",
+                    "message": "The bot takes only types from game-domain's schemas (`import type`): a value would load Zod and the schemas at Worker startup (docs/ARCHITECTURE.md#discord-bot)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     {
       // ADR-013: no app/package outside the canonical module may import zod
       // directly. salvageunion-reference gets an extra restriction on top:

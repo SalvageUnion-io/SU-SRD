@@ -1,8 +1,9 @@
 // A reference model is indexed by id, name and slug (BaseModel.getById /
 // getByName / getBySlug), so `find((e) => e.id === x)` on one is a linear scan
 // of the whole schema with an O(1) answer beside it. This matches that
-// predicate on `SalvageUnionReference.<Model>` and on any `.all()` result.
-// A find over a local alias of `.all()` is out of its reach.
+// predicate on `SalvageUnionReference.<Model>` and on any `.all()` result,
+// alone or as one arm of an `||` chain (`c.id === r || c.name === r`). A find
+// over a local alias of `.all()` is out of its reach.
 language js(typescript, jsx)
 
 or {
@@ -11,10 +12,21 @@ or {
   `($source.all() as $type).find($pred)`
 } as $call where {
   $pred <: or {
-    `($p) => $p.$key === $v`,
-    `$p => $p.$key === $v`,
-    `($p) => $v === $p.$key`,
-    `$p => $v === $p.$key`,
+    or {
+      `($p) => $body`,
+      `$p => $body`
+    } where {
+      $body <: or {
+        `$p.$key === $v`,
+        `$v === $p.$key`,
+        `$left || $right` where {
+          $body <: contains or {
+            `$p.$key === $v`,
+            `$v === $p.$key`
+          }
+        }
+      }
+    },
     `({ $key }) => $key === $v`,
     `({ $key }) => $v === $key`
   },

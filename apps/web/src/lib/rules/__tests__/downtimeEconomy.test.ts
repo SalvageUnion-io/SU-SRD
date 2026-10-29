@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import type { WreckPart } from 'game-domain/rules/wreck'
 import { makeScrapLot } from 'game-domain/schemas/cargoLot'
 import type { ScrapPool } from 'game-domain/schemas/crawler'
 import { areaSalvageResult } from 'salvageunion-reference/rules'
-import type { WreckPart } from '../downtimeEconomy'
 import {
   areaSalvageToMech,
   areaSalvageToPilot,

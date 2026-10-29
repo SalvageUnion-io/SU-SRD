@@ -3,9 +3,10 @@ import { MechWizard } from '../../build/mech/MechWizard'
 import { NewUnitRoute } from '../../build/wizard/NewUnitRoute'
 import { newUnitHead, newUnitSearch } from '../../lib/newUnitRoute'
 import { preselectedChassis, preselectedPattern } from '../../lib/wizard/preselect'
+import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/mechs/new')({
-  head: () => newUnitHead('New Mech'),
+  head: () => newUnitHead(routesCopy('newMech')),
   // pattern: the chassis's pattern slug, from an SRD pattern page's "Build With This"
   validateSearch: (search: Record<string, unknown>) => newUnitSearch(search, 'chassis', 'pattern'),
   component: NewMechRoute,

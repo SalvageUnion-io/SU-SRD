@@ -30,13 +30,34 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The root package.json moves `shared` only beyond its `version`: every PR
+    # into main bumps that (version-bump below), and a bump alone builds and
+    # ships nothing (tools/deploy-surfaces.ts reads it the same way).
     outputs:
-      web: ${{ steps.filter.outputs.web }}
-      workers: ${{ steps.filter.outputs.workers }}
-      code: ${{ steps.filter.outputs.code }}
+      web: ${{ steps.filter.outputs.web == 'true' || steps.manifest.outputs.changed == 'true' }}
+      workers: ${{ steps.filter.outputs.workers == 'true' || steps.manifest.outputs.changed == 'true' }}
+      code: ${{ steps.filter.outputs.code == 'true' || steps.manifest.outputs.changed == 'true' }}
       docs: ${{ steps.filter.outputs.docs }}
       deps: ${{ steps.filter.outputs.deps }}
     steps:
+      # The PR's merge commit and its first parent, the base's tip.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+
+      # Fails safe: an unreadable base manifest reads as changed.
+      - name: Root manifest changed beyond its version
+        id: manifest
+        run: |
+          strip() { jq -S 'del(.version)'; }
+          if cmp -s <(git show HEAD^1:package.json | strip) <(strip <package.json); then
+            echo "changed=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >>"$GITHUB_OUTPUT"
+          fi
+
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
@@ -45,7 +66,6 @@ jobs:
             # tools/deploy-surfaces.ts SHARED_PATHS to each other.
             shared: &shared
               - 'packages/salvageunion-reference/**'
-              - 'package.json'
               - 'bun.lock'
               - 'knip.json'
               - 'tsconfig*.json'
@@ -55,6 +75,8 @@ jobs:
               - '.github/actions/**'
               # the linker config
               - 'bunfig.toml'
+              # the patched build dependencies package.json's overrides point at
+              - 'vendor/**'
               # root prose rendered by the site and asserted on by
               # src/components tests
               - 'ABOUT_JRVS.md'
@@ -160,9 +182,10 @@ jobs:
         run: bun run test:coverage
 
       # The rooms' Durable Object wiring, inside workerd (apps/web/vitest.config.ts);
-      # their logic is covered above, under bun test.
+      # their logic is covered above, under bun test. Through the registry, as
+      # `bun run check` runs it.
       - name: Room wiring in workerd
-        run: bun --filter web test:workerd
+        run: bun tools/check.ts test-workerd
 
   # The build jobs need only `changes`: they take no artifact from the check
   # jobs, and `CI Success` already fails on any of them.

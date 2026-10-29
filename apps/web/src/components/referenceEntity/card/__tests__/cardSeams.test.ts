@@ -212,7 +212,6 @@ describe('cardChrome', () => {
   const base = {
     onCardClick: () => {},
     controls: undefined,
-    cardClickable: undefined,
     disabled: undefined,
     selectable: undefined,
     className: undefined,

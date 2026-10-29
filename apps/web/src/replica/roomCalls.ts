@@ -118,8 +118,9 @@ export function useViewerId(): string | null {
   return useMyPerson()
 }
 
-/** Forget every answer: a test's fresh start. */
+/** Forget every answer: the session ended (they were its account's), or a test starts afresh. */
 export function forgetGamesAnswers(): void {
   answers.clear()
   fetching.clear()
+  for (const listener of listeners) listener()
 }

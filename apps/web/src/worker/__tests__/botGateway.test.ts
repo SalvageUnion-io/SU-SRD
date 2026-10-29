@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'bun:test'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
 import { answerBot as answer } from '../botGateway'
-import { publishGame, testDb } from '../shared/__tests__/d1'
+import type { BotRooms } from '../botSheets'
+import { publishGame, signedIn, testDb } from '../shared/__tests__/d1'
 
 /**
  * The bot's gateway answers from the shared database and the rooms, and null
@@ -11,10 +12,7 @@ import { publishGame, testDb } from '../shared/__tests__/d1'
 /** A database with Rosa signed in with Discord and in one Game. */
 async function filled() {
   const db = testDb()
-  // The sign-in creates `accounts` on first use; the rows here are its columns.
-  db.sqlite.exec(`create table accounts (account_id text primary key, discord_id text unique,
-    name text, display_name text, avatar_url text)`)
-  db.sqlite.exec(`insert into accounts values ('acct-rosa', 'd-rosa', 'rosa', 'Rosa', null)`)
+  signedIn(db, { accountId: 'acct-rosa', discordId: 'd-rosa', name: 'rosa' })
   await publishGame(db, 'g-1', {
     name: 'Reclamation',
     mediatedBy: 'Rosa',
@@ -37,8 +35,15 @@ describe('answerBot', () => {
     const db = await filled()
     expect(await answerBot(db, 'me', { discordId: 'd-rosa' })).toEqual({
       ok: true,
-      user: { userId: 'acct-rosa', displayName: 'Rosa', avatarUrl: null },
+      user: { userId: 'acct-rosa', displayName: 'rosa', avatarUrl: null },
       games: [RECLAMATION],
+    })
+    // The name she set herself, which her account room keeps, wins over Discord's.
+    const named = {
+      account: () => ({ profile: async () => ({ displayName: 'Rosa', avatarUrl: null }) }),
+    } as unknown as BotRooms
+    expect(await answerBot(db, 'me', { discordId: 'd-rosa' }, named)).toMatchObject({
+      user: { displayName: 'Rosa' },
     })
     expect(await answerBot(db, 'games', { discordId: 'd-rosa' })).toEqual({
       ok: true,
@@ -124,7 +129,7 @@ describe('answerBot', () => {
         throw new TypeError('unit is not a function')
       },
     })
-    const rooms = { account: cannot, game: cannot }
+    const rooms = { account: () => ({ ...cannot(), profile: async () => null }), game: cannot }
     const args = { discordId: 'd-rosa', table: 'pilots', entityId: 'p-1' }
     for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, args, rooms)).toBeNull()

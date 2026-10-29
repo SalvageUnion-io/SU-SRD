@@ -31,7 +31,7 @@ describe('selection', () => {
 
   test('fast skips the suite, the network and regeneration', () => {
     const fast = ids(['--profile=fast'])
-    for (const slow of ['test', 'audit', 'actionlint', 'generated']) {
+    for (const slow of ['test', 'test-workerd', 'audit', 'actionlint', 'generated']) {
       expect(fast).not.toContain(slow)
     }
     expect(fast).toContain('typecheck')
@@ -48,6 +48,7 @@ describe('selection', () => {
   test('ci leaves the suite to its own job', () => {
     const ci = ids(['--profile=ci'])
     expect(ci).not.toContain('test')
+    expect(ci).not.toContain('test-workerd')
     expect(ci).toContain('audit')
     expect(ci).toContain('actionlint')
   })

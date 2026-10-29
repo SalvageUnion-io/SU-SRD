@@ -9,13 +9,14 @@ import { PRODUCT } from 'game-domain/product'
 import { EncounterPage } from '../../build/prep/EncounterPage'
 import { RosterSkeleton } from '../../components/index'
 import { areaTitle } from '../../lib/pageTitle'
+import { routesCopy } from '../../messages/routes'
 import { useEncounters, usePatterns } from '../../replica/collections'
 
 export const Route = createFileRoute('/encounters/$id')({
   loader: async () => {
     await Promise.all([useEncounters.getState().hydrate(), usePatterns.getState().hydrate()])
   },
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Encounter') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('encounter')) }] }),
   component: EncounterRoute,
   pendingComponent: RosterSkeleton,
 })

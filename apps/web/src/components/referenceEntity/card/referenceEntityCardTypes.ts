@@ -130,10 +130,6 @@ export type ReferenceEntityCardProps = {
   disabled?: boolean
   /** Draw select mode's ink ring (`SELECTED_RING`) — non-layout-shifting. */
   selected?: boolean
-  /** The word on the ink seal a `selected` Card wears on its head band's
-   * right (hard rule R15): "Selected" by default. A Mini (`<Entity size="mini">`)
-   * is ring only, never sealed. */
-  selectionSeal?: string
   /** A rust "Suggested" stamp leading the sub-header — a recommended pick. */
   suggested?: boolean
   /** Off: select mode's one dim (`SELECT_DIM`, hard rule R15) — an option the
@@ -141,8 +137,6 @@ export type ReferenceEntityCardProps = {
   selectable?: boolean
   /** Whole-card click → role=button + hover-enlarge + focus ring. */
   onCardClick?: () => void
-  /** Enable the hover-enlarge/role=button affordance without a click handler. */
-  cardClickable?: boolean
   /**
    * Selection a11y for a whole-card toggle (picker cells). When set alongside
    * `selected` + a card click, the interactive wrapper announces the selection
@@ -166,14 +160,6 @@ export type ReferenceEntityCardProps = {
    * Its `techLevel` also drives `perTechLevel` datavalue scaling (e.g. Custom
    * Sniper Rifle damage) — the crawler level in the app. */
   scalingParent?: Record<string, unknown>
-  /** Extra content on the accent field after the body box, before the footer
-   * (e.g. a crawler bay's crew inset). */
-  expand?: ReactNode
-  /** The state a card's own folding sections start in (a crawler bay's Bay
-   * Info and When Damaged), when they fold. On the reference nothing folds
-   * (R43), so
-   * the default is no fold; inside a Peek nothing folds either. */
-  sectionFold?: 'open' | 'closed'
 
   // ─── SLOT OVERRIDES (generic extension seams — additive) ───
   titleOverride?: string

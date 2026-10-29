@@ -18,6 +18,10 @@ afterAll(() => {
 const findings = (n: number): Finding[] =>
   Array.from({ length: n }, (_, i) => ({ file: `src/f${i}.ts`, line: i + 1, detail: `hit ${i}` }))
 
+/** The per-file baseline `findings(n)` would record: one in each file. */
+const perFile = (n: number) =>
+  Object.fromEntries(Array.from({ length: n }, (_, i) => [`src/f${i}.ts`, 1]))
+
 const SET: RuleSet = {
   id: 'demo',
   label: 'demo',
@@ -38,14 +42,17 @@ describe('readBaseline', () => {
     const dir = mkdtempSync(join(tmpdir(), 'baseline-'))
     temps.push(dir)
     const path = join(dir, 'baseline.json')
-    writeFileSync(path, JSON.stringify({ demo: { r: 4 }, other: { x: 1 } }))
-    expect(readBaseline(path)).toEqual({ demo: { r: 4 }, other: { x: 1 } })
+    const baseline = { demo: { r: { 'src/a.ts': 4 } }, other: { x: { 'src/b.ts': 1 } } }
+    writeFileSync(path, JSON.stringify(baseline))
+    expect(readBaseline(path)).toEqual(baseline)
   })
 })
 
 describe('formatFailures', () => {
   test('a passing set prints nothing', () => {
-    expect(formatFailures(evaluate(SET, { z: [], r: findings(2) }, { r: 2 }), 'UPD')).toEqual([])
+    expect(
+      formatFailures(evaluate(SET, { z: [], r: findings(2) }, { r: perFile(2) }), 'UPD')
+    ).toEqual([])
   })
 
   test('a zero rule cites its law, its fix and each finding, then points at the exemptions', () => {
@@ -59,12 +66,14 @@ describe('formatFailures', () => {
     expect(text).toContain('not a higher number')
   })
 
-  test('a regressed ratchet prints allowed, found and the overshoot', () => {
-    const text = formatFailures(evaluate(SET, { z: [], r: findings(5) }, { r: 3 }), 'UPD').join(
-      '\n'
-    )
+  test('a regressed ratchet prints allowed, found and the files over their baseline', () => {
+    const text = formatFailures(
+      evaluate(SET, { z: [], r: findings(5) }, { r: perFile(3) }),
+      'UPD'
+    ).join('\n')
     expect(text).toContain('── demo/r — ratchet law')
-    expect(text).toContain('3 allowed, 5 found (+2)')
+    expect(text).toContain('3 allowed, 5 found; over the baseline in src/f3.ts, src/f4.ts')
+    expect(text.indexOf('src/f3.ts:4')).toBeLessThan(text.indexOf('src/f0.ts:1'))
     expect(text).toContain('fix: fix r')
   })
 
@@ -76,9 +85,10 @@ describe('formatFailures', () => {
   })
 
   test('an unrecorded improvement asks for a baseline update, not an exemption', () => {
-    const text = formatFailures(evaluate(SET, { z: [], r: findings(1) }, { r: 3 }), 'UPD').join(
-      '\n'
-    )
+    const text = formatFailures(
+      evaluate(SET, { z: [], r: findings(1) }, { r: perFile(3) }),
+      'UPD'
+    ).join('\n')
     expect(text).toContain('improved: baseline says 3, found 1')
     expect(text).toContain('run: UPD')
     expect(text).not.toContain('EXEMPTIONS')
@@ -86,7 +96,9 @@ describe('formatFailures', () => {
   })
 
   test('a stale baseline key is named with the update command', () => {
-    const text = formatFailures(evaluate(SET, { z: [], r: [] }, { gone: 2 }), 'UPD').join('\n')
+    const text = formatFailures(evaluate(SET, { z: [], r: [] }, { gone: perFile(2) }), 'UPD').join(
+      '\n'
+    )
     expect(text).toContain('baseline names `gone`, which is not a ratchet rule of this set')
     expect(text).toContain('Zero rules carry no baseline. run: UPD')
     expect(text).not.toContain('EXEMPTIONS')

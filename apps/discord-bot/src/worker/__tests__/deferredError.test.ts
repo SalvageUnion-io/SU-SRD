@@ -16,11 +16,9 @@ import { ResponseSink, webhookRoutes } from '../adapter'
  *
  * ## Why these tests are at this level
  *
- * `replay.test.ts` drives the whole Worker through a signed request, which is
- * right for the transport. This is about the sink's settle semantics and the
- * route the repair has to take, so it asserts those directly — a full replay
- * would prove the response code and still not show WHICH Discord endpoint was
- * written to, which is the entire question.
+ * `replay.test.ts` ("the error fallbacks") drives the repair itself through a
+ * signed request and asserts the PATCH it sends. These pin the two facts it
+ * rests on: the sink's settle semantics and the route the repair has to take.
  */
 
 const APPLICATION_ID = '111111111111111111'

@@ -11,7 +11,6 @@
  */
 
 import type { CrawlerNpcState } from 'game-domain/schemas/crawler'
-import type { RefMetaEntity } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import { embeddedPeekAddress } from '../../components/index'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
@@ -69,7 +68,7 @@ export function CrawlerCrewLead({
     <CrewLeadMini
       {...(npc
         ? {
-            entity: { ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity,
+            npc,
             peekAt: embeddedPeekAddress(slot.schemaName, slot.id, 'npc'),
           }
         : { model: unitRowModel({ kind: 'npc', name: 'Crew' }) })}

@@ -12,10 +12,12 @@
  * each member marks themselves done with the step (`markStepDone`), and
  * `games.members` names everyone the ready pips count.
  *
- * A step this pilot takes is one op with a stable id (`downtimeStepOpId`,
- * ADR-063 §6) carrying what it applies to the pilot, so it applies once
- * however often the screen reloads, a player presses Undo or the Mediator
- * goes Back; `doneSteps` reads them back. The Mediator's own screen (no
+ * A step this pilot takes is one batch (`sendStep`): an op with a stable id
+ * (`downtimeStepOpId`, ADR-063 §6) carrying what it applies to the pilot, and
+ * one beside it for the mech's share, so it applies once however often the
+ * screen reloads, a player presses Undo or the Mediator goes Back;
+ * `doneSteps` reads them back, and the room's answer says whether this call
+ * was the one that took it. The Mediator's own screen (no
  * pilot) takes no step. Before the first answer
  * Downtime reads as not running. Writes go through `useGuardedWrite`: refused
  * here while they cannot go (Disconnected, Outdated), never queued (ADR-030
@@ -24,10 +26,10 @@
 
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
+import { sendStep } from '../replica/outbox'
 import { PLAY_TXN } from '../replica/provenance'
 import { useGamesQuery } from '../replica/roomCalls'
-import { roomOf } from '../replica/roomSocket'
-import { isSignedIn, WritesBlockedOffline } from '../replica/sync'
+import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import type { PlayScreen } from './play.model'
@@ -59,6 +61,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const end = useTableAct('downtime.end', gameId)
   const markStepDone = useTableAct('downtime.markStepDone', gameId)
   const spendUpkeep = useTableAct('downtime.spendUpkeep', gameId)
+  const spendNanites = useTableAct('downtime.spendNanites', gameId)
   // A room names its run; a solo one copied from Convex is named by when it started.
   const run = state?.runId ?? state?.startedAt ?? 0
 
@@ -89,22 +92,25 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     markStepDone:
       pilotId === null
         ? null
-        : (stepIndex, patch) =>
+        : (stepIndex, patch, mech) =>
             guarded.ask(async () => {
-              const op = {
-                id: downtimeStepOpId(run, pilotId, stepIndex),
-                unitId: pilotId,
+              const stepOp = (unitId: string, opPatch: Record<string, unknown>) => ({
+                id: downtimeStepOpId(run, unitId, stepIndex),
+                unitId,
                 baseSeq: null,
                 at: Date.now(),
                 ...PLAY_TXN,
-                patch,
-              }
-              const room = roomOf(gameId)
-              if (room === null) throw new WritesBlockedOffline()
-              await room.submit([op])
-              // A step already taken is acked again, and changes nothing.
-              return !(state?.doneSteps ?? []).includes(stepIndex)
+                patch: opPatch,
+              })
+              // A step already taken is acked again, and changes nothing:
+              // the room says whether this call's step op was the one applied.
+              return sendStep(
+                gameId,
+                stepOp(pilotId, patch),
+                mech ? [stepOp(mech.id, mech.patch)] : []
+              )
             }),
     spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
+    spendNanites: () => guarded.ask(() => spendNanites(place)),
   }
 }

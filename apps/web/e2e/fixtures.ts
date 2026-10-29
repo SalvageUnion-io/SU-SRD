@@ -21,7 +21,7 @@ import { waitForReady } from './_helpers'
  * ## How it signs in
  *
  * Through `TestAuthBridge`, the build-time test seam that calls the
- * test-only `password` provider, by `signInThroughSeam`
+ * Worker's test-only sign-in (`POST /auth/test-sign-in`), by `signInThroughSeam`
  * (`packages/gates/lib/testSignIn.ts`, the one caller of the seam). Each test signs up a fresh account, because a
  * reused one would inherit the last run's roster and assert against it. Two
  * things must line up (see `signin-save.e2e.ts`'s header): `VITE_TEST_AUTH=true`

@@ -29,8 +29,9 @@
  * carries its full reasoning.
  *
  * A rule is `zero` (any finding fails) or a `ratchet` counted against
- * `tools/baselines/rule-sets.json`. Today the two `copy` rules ratchet.
- * A ratchet fails when its count RISES, and also when it FALLS without the
+ * `tools/baselines/rule-sets.json`, per file. Today the `copy` and
+ * `ui-strings` rules ratchet.
+ * A ratchet fails when a file's count RISES, and also when one FALLS without the
  * baseline falling with it — an unrecorded improvement is slack that the next
  * regression spends without anyone seeing. A baseline only falls:
  * `--update-baseline` refuses a rise unless `--allow-increase`, which belongs
@@ -139,8 +140,10 @@ function main(argv: readonly string[]): void {
     writeFileSync(BASELINE_PATH, `${JSON.stringify(ordered, null, 2)}\n`)
     console.log('✓ baseline written: tools/baselines/rule-sets.json')
     for (const set of sets) {
-      for (const [id, n] of Object.entries(ordered[set.id] ?? {}))
-        console.log(`   ${set.id}/${id}: ${n}`)
+      for (const [id, counts] of Object.entries(ordered[set.id] ?? {})) {
+        const n = Object.values(counts).reduce((sum, c) => sum + c, 0)
+        console.log(`   ${set.id}/${id}: ${n} in ${Object.keys(counts).length} file(s)`)
+      }
     }
     return
   }

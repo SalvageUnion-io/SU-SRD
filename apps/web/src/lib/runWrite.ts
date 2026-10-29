@@ -24,10 +24,11 @@
  *
  * ## What it does NOT do
  *
- * It does not retry, queue, or roll back. Disconnected is read-only by decision,
- * not by accident, and an outbox would smuggle conflict resolution back in
- * (ADR-030 §1). The write is refused, the player is told, and the state on
- * screen is still the truth.
+ * It does not retry, queue, or roll back. Offline, an edit to the player's own
+ * pilot, mech or NPC waits in the outbox (`replica/outbox.ts` `queues()`,
+ * ADR-063 decision 9) and its write resolves while the op is still pending;
+ * every other write is refused. `runWrite` reports only the refusals: the
+ * player is told, and the state on screen is still the truth.
  */
 
 import { toast } from '../components/index'

@@ -5,6 +5,7 @@ import {
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
 import { bunSql } from '../../__tests__/bunSql'
+import type { UnitParcel } from '../../handoff'
 import { migrate } from '../../migrate'
 import type { ApplyOp, OpInput } from '../../ops'
 import { GAME_ROOM } from '../../schemas'
@@ -92,4 +93,25 @@ export function op(unitId: string, patch: Record<string, unknown>, over: Partial
     patch,
     ...over,
   } satisfies OpInput
+}
+
+/**
+ * One unit handed in from another room, as an offer parcels it: a suite
+ * fills a room through the room's own door (`accept`).
+ */
+export function parcel(
+  ownerId: string,
+  kind: UnitParcel['unit']['kind'],
+  id: string,
+  body: Record<string, unknown>,
+  over: Partial<UnitParcel['unit']> = {}
+): UnitParcel {
+  return {
+    leaseId: `seed:${id}`,
+    from: { kind: 'game', gameId: 'seed' },
+    unit: { id, kind, ownerId, body, headSeq: 0, fieldSeqs: {}, publicRead: false, ...over },
+    ops: [],
+    links: [],
+    seat: null,
+  }
 }

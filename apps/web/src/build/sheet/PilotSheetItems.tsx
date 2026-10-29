@@ -17,14 +17,14 @@ import {
   AdderBox,
   AdderField,
   Button,
+  Content,
   Entity,
+  EntityDetailDialog,
   HeaderMenu,
   Input,
   ReferenceEntityCard,
   Stat,
 } from '../../components/index'
-import { Content } from '../../components/referenceEntity/Content'
-import { EntityDetailDialog } from '../../components/referenceEntity/EntityDetailDialog'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
 import {

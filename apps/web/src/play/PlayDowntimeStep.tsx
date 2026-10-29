@@ -9,9 +9,9 @@
  *  - **Solo** the player runs it ("You run it"): Apply & mark done, then Next
  *    step (the last step ends Downtime).
  *
- * Either way the step is one op on the pilot with a stable id
- * (`markStepDone`, ADR-063 §6) carrying what it applies to the pilot, and the
- * mech's share goes only when that op answers it was taken now. A taken step
+ * Either way the step is one batch with stable ids (`markStepDone`, ADR-063
+ * §6) carrying what it applies to the pilot and the mech's share, so the
+ * mech is never repaired twice for one step. A taken step
  * never offers Apply or Skip again, so a reload, an Undo or the Mediator's
  * Back never applies a step twice (Train's +1 TP). A Game's "done" is per
  * member, the step per pilot: a member running two pilots applies it for each.
@@ -19,8 +19,8 @@
  * Upkeep is spent once per Downtime: the claim (`spendUpkeep`) answers false
  * when it is already paid, and the Scrap is drawn only when it answers true.
  * Process Nanites (the Craft step, with a Nanite Processing Bay) goes to
- * whoever pays Upkeep, and spends the piles it rolls, so a second press finds
- * none (`processDowntimeNanites`).
+ * whoever pays Upkeep, and is claimed once per Downtime the same way
+ * (`spendNanites`, in `processDowntimeNanites`).
  * Restore never confirms: its patches only heal, repair and recharge, and
  * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
  *
@@ -32,21 +32,19 @@
 import { downtimeMechPatch, downtimePilotPatch } from 'game-domain/rules/downtime'
 import { useId, useState } from 'react'
 import type { RefObjectGuideStep } from 'salvageunion-reference'
-import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
   Button,
   Checkbox,
   Content,
+  capsLabel,
   cn,
   SELECT_DIM,
   Stat,
   TitledBox,
 } from '../components/index'
 import { rollD20 } from '../lib/dice'
-import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
-import { PLAY_TXN } from '../replica/provenance'
 import { useViewerId } from '../replica/roomCalls'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
@@ -115,13 +113,17 @@ export function PlayDowntimeStep({
   }
 
   /**
-   * Take the step for this pilot, with what it applies to them. False when it
-   * was already done (another tab, before a reload, before an Undo or a Back)
-   * or the write was refused: apply nothing more.
+   * Take the step for this pilot, with what it applies to them and their
+   * mech (one batch). False when it was already done (another tab, before a
+   * reload, before an Undo or a Back) or the write was refused: apply nothing
+   * more.
    */
-  async function take(pilotPatch: Record<string, unknown>): Promise<boolean> {
+  async function take(
+    pilotPatch: Record<string, unknown>,
+    mechShare?: { id: string; patch: Record<string, unknown> }
+  ): Promise<boolean> {
     if (downtime.markStepDone === null) return false
-    const ok = await downtime.markStepDone(stepIndex, pilotPatch)
+    const ok = await downtime.markStepDone(stepIndex, pilotPatch, mechShare)
     if (ok) setClaimedHere(true)
     else setNote('This step is already done this Downtime.')
     return ok
@@ -144,23 +146,31 @@ export function PlayDowntimeStep({
     const pilotPatch = freshPilot
       ? downtimePilotPatch(freshPilot, medBayOf(crawler), steps, actions.crawlerTechLevel)
       : {}
-    if (!(await take(pilotPatch))) return
-    if (mech) {
-      const fresh = store.get('mech', mech.id) ?? mech
-      const patch = downtimeMechPatch(fresh, crawlerTl(crawler), steps, mechBayOf(crawler))
-      if (Object.keys(patch).length > 0) {
-        runWrite(() => store.update('mech', mech.id, patch, PLAY_TXN))
-        applied.push(fresh.name)
-      }
-    }
+    const freshMech = mech ? (store.get('mech', mech.id) ?? mech) : null
+    const mechPatch = freshMech
+      ? downtimeMechPatch(freshMech, crawlerTl(crawler), steps, mechBayOf(crawler))
+      : {}
+    const mechShare =
+      freshMech && Object.keys(mechPatch).length > 0
+        ? { id: freshMech.id, patch: mechPatch }
+        : undefined
+    if (!(await take(pilotPatch, mechShare))) return
+    if (freshMech && mechShare) applied.push(freshMech.name)
     if (freshPilot && Object.keys(pilotPatch).length > 0) applied.push(freshPilot.name)
     // What was applied lands on the Feed as a change (play.md §8).
     if (applied.length > 0) recordPlayChange(`${step.name} · ${applied.join(', ')}`)
     const upkeep = plan.find((l) => l.key === 'upkeep' && l.skippable && !unticked.has(l.key))
     const paid = upkeep ? await payTheUpkeep() : null
     const nanites = plan.find((l) => l.key === 'nanites' && l.skippable && !unticked.has(l.key))
-    const processed = nanites ? processDowntimeNanites({ crawler, store, rollD20 }) : null
-    if (processed) recordPlayChange(`${step.name} · ${processed}`)
+    const processed = nanites
+      ? await processDowntimeNanites({
+          crawler,
+          store,
+          rollD20,
+          label: step.name,
+          spendNanites: downtime.spendNanites,
+        })
+      : null
     setNote(
       [applied.length > 0 ? `Applied to ${applied.join(' and ')}.` : null, paid, processed]
         .filter(Boolean)

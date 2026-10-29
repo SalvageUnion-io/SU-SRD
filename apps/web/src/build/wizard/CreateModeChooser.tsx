@@ -13,11 +13,10 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, TitledBox, tokens } from '../../components/index'
+import { Button, ChapterBand, capsLabel, TitledBox, tokens } from '../../components/index'
 import { AppLink } from '../../components/shared/AppLink'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 

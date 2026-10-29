@@ -7,6 +7,9 @@ export const referenceCopy = messages({
   upkeep: 'Upkeep',
   upgrade: 'Upgrade',
   approximatePopulation: 'Approximate Population',
+  techScrap: 'Tech {tech} Scrap',
+  highestTechLevel:
+    'Tech {tech} is the highest level of Union Crawler and it cannot be upgraded further.',
   unionCrawlerTechLevels: 'Union Crawler Tech Levels',
   techLevels: 'Tech Levels',
   app: 'APP',

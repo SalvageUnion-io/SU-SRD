@@ -33,7 +33,7 @@ import {
   asReferencePattern,
   patternChassis,
   patternFromMech,
-  patternHref,
+  savedPatternHref,
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
@@ -133,7 +133,7 @@ function SavePatternBody({
     onClose()
     toast.success(mechCopy('savedPattern', { name: result.value.name }))
     onSaved?.(result.value.id)
-    if (!stay) go(patternHref(result.value.id))
+    if (!stay) go(savedPatternHref(result.value.id))
   }
 
   const nameField = (

@@ -2,21 +2,21 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Box } from '../../components/containers/Box'
 import {
   Badge,
+  Box,
   Button,
   ChapterBand,
   ConfirmDialog,
+  capsLabel,
   NextLabel,
   Stat,
+  slotPips,
   TrackStep,
   tokens,
 } from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { slotPips } from '../../components/atoms/pipRows'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
@@ -298,8 +298,8 @@ const bodyStyle = { display: 'flex', flex: '1 1 0%' } satisfies CSSProperties
 const pipeStyle = {
   backgroundColor: tokens.color.ink,
   // The pipe is a drawn shape, not a frame (ruleset §4.4's 3px is for frames).
-  borderTopLeftRadius: '0.75rem', // design-tokens-ignore: the rail pipe's drawn end
-  borderTopRightRadius: '0.75rem', // design-tokens-ignore: the rail pipe's drawn end
+  borderTopLeftRadius: '0.75rem', // design-tokens-ignore(raw-radius): the rail pipe's drawn end
+  borderTopRightRadius: '0.75rem', // design-tokens-ignore(raw-radius): the rail pipe's drawn end
   bottom: tokens.space[48],
   left: tokens.space[4],
   position: 'absolute',
@@ -310,8 +310,8 @@ const pipeStyle = {
 /** Shown from lg (`.su-wiz-rail-stub`). */
 const pipeStubStyle = {
   backgroundColor: tokens.color.ink,
-  borderBottomLeftRadius: '0.5rem', // design-tokens-ignore: the rail pipe's drawn end
-  borderBottomRightRadius: '0.5rem', // design-tokens-ignore: the rail pipe's drawn end
+  borderBottomLeftRadius: '0.5rem', // design-tokens-ignore(raw-radius): the rail pipe's drawn end
+  borderBottomRightRadius: '0.5rem', // design-tokens-ignore(raw-radius): the rail pipe's drawn end
   bottom: tokens.space[12],
   height: '2.25rem',
   justifyContent: 'center',
@@ -322,9 +322,9 @@ const pipeStubStyle = {
 
 /** A CSS triangle: its borders are the arrowhead's geometry, not a frame weight. */
 const arrowheadStyle = {
-  borderLeft: '9px solid transparent', // design-tokens-ignore: triangle geometry
-  borderRight: '9px solid transparent', // design-tokens-ignore: triangle geometry
-  borderTop: `14px solid ${tokens.color.paper}`, // design-tokens-ignore: triangle geometry
+  borderLeft: '9px solid transparent', // design-tokens-ignore(raw-border-width): triangle geometry
+  borderRight: '9px solid transparent', // design-tokens-ignore(raw-border-width): triangle geometry
+  borderTop: `14px solid ${tokens.color.paper}`, // design-tokens-ignore(raw-border-width): triangle geometry
   height: 0,
   marginTop: tokens.space[8],
   width: 0,
@@ -343,7 +343,7 @@ const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 /** The step's frame: it reserves scroll room under the pinned footer, which overlaps it. */
 const stepFrameStyle = {
   ...fillStyle,
-  paddingBottom: '6rem', // design-tokens-ignore: a fit, the pinned footer's room, not spacing
+  paddingBottom: '6rem', // design-tokens-ignore(raw-spacing): a fit, the pinned footer's room, not spacing
 } satisfies CSSProperties
 
 /** The step's head: its number stamp and its title on one line, over the frame. */

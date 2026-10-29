@@ -1,9 +1,15 @@
 import { Fragment } from 'react'
 import type { StaticEntitySummary } from 'salvageunion-reference'
 import { bookName, citeLine } from 'salvageunion-reference'
-import { capsLabel } from '../components/atoms/capsLabel'
 import type { NameRefIndex, PageRefIndex } from '../components/index'
-import { InlineRef, mentionRef, RollTableInstrument, SlabSection, Stat } from '../components/index'
+import {
+  capsLabel,
+  InlineRef,
+  mentionRef,
+  RollTableInstrument,
+  SlabSection,
+  Stat,
+} from '../components/index'
 import { MentionProse } from '../components/MentionProse'
 import { cn } from '../lib/cn'
 import { refText } from '../lib/rollTablePage'

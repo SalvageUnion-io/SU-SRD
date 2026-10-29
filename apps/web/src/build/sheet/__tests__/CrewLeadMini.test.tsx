@@ -11,7 +11,6 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { unitRowModel } from '../../../lib/units/unitModel'
 import { CrewLeadMini } from '../CrewLeadMini'
@@ -81,14 +80,7 @@ describe('CrewLeadMini — the head and its HP', () => {
     const npc = bay?.npc
     if (!npc) throw new Error('fixture missing: the Med Bay crew NPC')
     render(
-      <CrewLeadMini
-        {...BASE}
-        title={npc.position}
-        name=""
-        hp={2}
-        maxHp={npc.hitPoints}
-        entity={{ ...npc, name: npc.position, schemaName: 'npcs' } as unknown as RefMetaEntity}
-      />
+      <CrewLeadMini {...BASE} title={npc.position} name="" hp={2} maxHp={npc.hitPoints} npc={npc} />
     )
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(within(group).getByRole('img', { name: `HP 2 of ${npc.hitPoints}` })).toBeTruthy()

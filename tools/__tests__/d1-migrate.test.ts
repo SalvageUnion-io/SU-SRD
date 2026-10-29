@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 import { readFileSync } from 'node:fs'
-import { migrate, migrationConfig } from '../d1-migrate'
+import { cli, migrate, migrationConfig, runner } from '../d1-migrate'
 
 /** d1-migrate: create the shared database once, then apply what it has not had. */
 
@@ -53,5 +53,20 @@ describe('d1-migrate', () => {
     const failed = wrangler({ 'd1 migrations': { exitCode: 1, stderr: 'syntax error' } })
     await expect(migrate('su-shared', failed.run)).rejects.toThrow('migrations failed')
     await expect(migrate('production-db', wrangler({}).run)).rejects.toThrow('not one of')
+  })
+
+  it('the CLI exits 0 on success and 1 with the reason on a failure', async () => {
+    expect(await cli(['su-shared'], wrangler({}).run)).toBe(0)
+    const said: unknown[] = []
+    expect(await cli(['production-db'], wrangler({}).run, (l) => said.push(l))).toBe(1)
+    expect(String(said[0])).toContain('not one of')
+  })
+
+  it('a runner spawns its command from apps/web and returns what it printed', async () => {
+    const run = runner(['sh', '-c', 'pwd; echo oops >&2; exit 3', 'sh'])
+    const { exitCode, stdout, stderr } = await run([])
+    expect(exitCode).toBe(3)
+    expect(stdout.trim()).toEndWith('apps/web')
+    expect(stderr.trim()).toBe('oops')
   })
 })

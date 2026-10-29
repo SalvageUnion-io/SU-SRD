@@ -3,9 +3,10 @@ import { PilotWizard } from '../../build/pilot/PilotWizard'
 import { NewUnitRoute } from '../../build/wizard/NewUnitRoute'
 import { newUnitHead, newUnitSearch } from '../../lib/newUnitRoute'
 import { preselectedClassId } from '../../lib/wizard/preselect'
+import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/pilots/new')({
-  head: () => newUnitHead('New Pilot'),
+  head: () => newUnitHead(routesCopy('newPilot')),
   validateSearch: (search: Record<string, unknown>) => newUnitSearch(search, 'class'),
   component: NewPilotRoute,
 })

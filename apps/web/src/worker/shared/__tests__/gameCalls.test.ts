@@ -9,11 +9,11 @@ import { migrate } from '../../../rooms/migrate'
 import { gamePublished } from '../../../rooms/publish'
 import { RoomRefusal } from '../../../rooms/refusal'
 import { GAME_ROOM } from '../../../rooms/schemas'
-import type { GameRoomStub } from '../../rooms'
+import type { GameRoomStub } from '../../roomStubs'
 import type { CallDeps } from '../gameCalls'
 import { gameCall } from '../gameCalls'
 import { RoomPublisher } from '../roomRows'
-import { testDb } from './d1'
+import { signedIn, testDb } from './d1'
 
 /**
  * The Games calls over real Game room logic and the shared database in
@@ -26,11 +26,10 @@ const PLAYER = { discordId: 'd-player', accountId: 'a-player' }
 
 function world(over: Partial<CallDeps> = {}) {
   const db = testDb()
-  db.sqlite.exec(
-    'create table accounts (account_id text, discord_id text, display_name text, name text, avatar_url text)'
-  )
-  db.sqlite.exec(
-    "insert into accounts values ('a-org', 'd-org', 'Org', null, null), ('a-player', 'd-player', null, 'Rosa', null)"
+  signedIn(
+    db,
+    { accountId: 'a-org', discordId: 'd-org', name: 'org' },
+    { accountId: 'a-player', discordId: 'd-player', name: 'Rosa' }
   )
   const games = new Map<string, GameRoomStub>()
   let ids = 0
@@ -64,7 +63,15 @@ function world(over: Partial<CallDeps> = {}) {
   const deps: CallDeps = {
     db,
     game,
-    account: () => ({ unit: async () => null }) as never,
+    // The Organizer named themself `Org`; the player shows Discord's name.
+    account: (discordId: string) =>
+      ({
+        unit: async () => null,
+        profile: async (actor: string) =>
+          actor === discordId && actor === ORG.discordId
+            ? { displayName: 'Org', avatarUrl: null }
+            : null,
+      }) as never,
     bot: undefined,
     newId: () => `id-${++ids}`,
     ...over,
@@ -139,6 +146,18 @@ describe('the Games calls', () => {
       refusal: 'That invite link is not valid',
     })
   })
+
+  test('args a call does not take are refused before any room hears them', async () => {
+    const { deps } = world()
+    const refused = { ok: false as const, refusal: 'Not what that call takes' }
+    expect(await gameCall('invites.redeem', { code: 7 }, ORG, deps)).toEqual(refused)
+    expect(await gameCall('games.create', { name: ['Tenacity'] }, ORG, deps)).toEqual(refused)
+    expect(await gameCall('games.get', null, ORG, deps)).toEqual(refused)
+    expect(await gameCall('games.create', { name: 'x'.repeat(81) }, ORG, deps)).toEqual({
+      ok: false,
+      refusal: 'A Game’s name is at most 80 characters',
+    })
+  })
 })
 
 type Listed = {
@@ -188,6 +207,7 @@ describe('who holds what in a Game', () => {
 describe('where a unit is, and a move between rooms', () => {
   const shelf = (calls: string[], accept: () => void = () => {}) => ({
     unit: async (_actor: string, id: string) => (id === 'shelf-1' ? { id, kind: 'pilot' } : null),
+    profile: async () => null,
     offer: async () => {
       calls.push('offer')
       return { unitId: 'shelf-1' }

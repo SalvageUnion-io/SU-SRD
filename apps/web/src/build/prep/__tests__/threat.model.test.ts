@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { Encounter, EncounterOpponent } from 'game-domain/schemas/encounter'
-import { spoilsOf, techSpread, threatRead } from '../threat.model'
+import { encounterThreat, spoilsOf, techSpread } from '../threat.model'
 
 const NOW = '2026-10-25T00:00:00.000Z'
 
@@ -36,7 +36,7 @@ const encounter = (opposition: EncounterOpponent[], groups: Encounter['groups'] 
 
 describe('threatRead (Core Book p.255)', () => {
   test('counts who meets the Pilots, the Tech Levels and total SP and HP', () => {
-    const read = threatRead(
+    const read = encounterThreat(
       encounter(
         [
           opponent('mule', 'chassis', 'mule', 10),
@@ -60,18 +60,18 @@ describe('threatRead (Core Book p.255)', () => {
 
   test('the crew is outnumbered by more in the first wave; level Tech reads as neither', () => {
     const many = ['a', 'b', 'c'].map((id) => opponent(id, 'chassis', 'mule', 10))
-    expect(threatRead(encounter(many), { size: 2, techLevel: 1 })).toMatchObject({
+    expect(encounterThreat(encounter(many), { size: 2, techLevel: 1 })).toMatchObject({
       outnumbered: 'crew',
       tech: null,
     })
-    expect(threatRead(encounter(many), { size: 3, techLevel: 2 })).toMatchObject({
+    expect(encounterThreat(encounter(many), { size: 3, techLevel: 2 })).toMatchObject({
       outnumbered: null,
       tech: 'lower',
     })
   })
 
   test('no Tech Level when nothing fielded has one', () => {
-    const read = threatRead(encounter([opponent('r', 'npcs', 'raider', 3)]), {
+    const read = encounterThreat(encounter([opponent('r', 'npcs', 'raider', 3)]), {
       size: 4,
       techLevel: 1,
     })

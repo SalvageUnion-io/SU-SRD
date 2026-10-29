@@ -103,6 +103,17 @@ describe('useGamePresence', () => {
     expect(socket?.closedWith).toBe(1000)
   })
 
+  test('a malformed or foreign frame is ignored, not thrown', () => {
+    const view = mount('live', [{ name: 'm', gameId: 'g5', role: 'seat' }])
+    const [socket] = FakeSocket.opened
+    socket?.say(['u1'])
+    for (const data of ['not json', 'null', '{"type":"presence","here":"u2"}', '{"type":"ack"}']) {
+      act(() => socket?.onmessage?.({ data }))
+    }
+    expect([...(seen.m ?? [])]).toEqual(['u1'])
+    view.unmount()
+  })
+
   test('a watcher opens its own socket that does not count it', () => {
     const view = mount('live', [{ name: 'w', gameId: 'g2', role: 'watch' }])
     expect(FakeSocket.opened[0]?.url).toMatch(/\?seat=0$/)

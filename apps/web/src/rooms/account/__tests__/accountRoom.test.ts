@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import type { AccountBundle } from 'game-domain/migration/bundle'
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { bunSql } from '../../__tests__/bunSql'
 import { AT, bodies, op, PLAYER, STRANGER, stubApplyOp, table } from '../../game/__tests__/harness'
 import type { GameRoomLogic } from '../../game/gameRoomLogic'
@@ -9,6 +9,7 @@ import { handOff } from '../../handoff'
 import { migrate } from '../../migrate'
 import { ACCOUNT_ROOM } from '../../schemas'
 import { AccountRoomLogic } from '../accountRoomLogic'
+import { seedShelf } from './seedShelf'
 
 let ids = 0
 
@@ -17,40 +18,28 @@ function shelf() {
   const sql = bunSql()
   migrate(sql, ACCOUNT_ROOM)
   const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp, newId: () => `a-${++ids}` })
-  room.transit.importAccount(bundle(), AT)
+  seedShelf(
+    room,
+    {
+      owner: PLAYER,
+      name: 'Player',
+      units: [
+        { kind: 'pilot', id: 'p1', body: bodies.pilot('p1') as Record<string, unknown> },
+        { kind: 'mech', id: 'm1', body: bodies.mech('m1') as Record<string, unknown> },
+      ],
+      links: [
+        {
+          type: 'mech-to-pilot',
+          from: { type: 'mech', id: 'm1' },
+          to: { type: 'pilot', id: 'p1' },
+        },
+      ],
+      seats: [{ pilotId: 'p1', mount: { kind: 'boarded', mechId: 'm1' }, range: 'Far' }],
+      records: [{ table: 'patterns', id: 'pat1', body: { name: 'Pattern' } }],
+    },
+    AT
+  )
   return { room, sql }
-}
-
-function bundle(over: Partial<AccountBundle> = {}): AccountBundle {
-  const unit = (kind: 'pilot' | 'mech', appId: string) => ({
-    kind,
-    appId,
-    owner: PLAYER,
-    publicRead: false,
-    body: bodies[kind](appId) as Record<string, unknown>,
-    headSeq: 0,
-    fieldSeqs: {},
-    updatedAt: AT,
-    ops: [],
-  })
-  return {
-    discordId: PLAYER,
-    name: 'Player',
-    avatarUrl: null,
-    units: [unit('pilot', 'p1'), unit('mech', 'm1')],
-    patterns: [{ appId: 'pat1', body: { name: 'Pattern' }, extra: {} }],
-    encounters: [],
-    npcTray: [],
-    links: [
-      { type: 'mech-to-pilot', from: { type: 'mech', id: 'm1' }, to: { type: 'pilot', id: 'p1' } },
-    ],
-    seats: [
-      { pilotId: 'p1', mount: { kind: 'boarded', mechId: 'm1' }, range: 'Far', activeEffects: [] },
-    ],
-    channelBindings: [],
-    salvageArea: null,
-    ...over,
-  }
 }
 
 function seatOf(sql: ReturnType<typeof bunSql>, pilotId: string) {
@@ -102,10 +91,12 @@ describe('the Shelf is its player’s', () => {
     expect(room.shelf.submit(PLAYER, [first])).toEqual({
       ok: true,
       applied: [{ id: first.id, seq: 1 }],
+      fresh: [first.id],
     })
     expect(room.shelf.submit(PLAYER, [first])).toEqual({
       ok: true,
       applied: [{ id: first.id, seq: 1 }],
+      fresh: [],
     })
     const refused = room.shelf.submit(PLAYER, [op('m1', { name: 'X' }), op('p1', { invalid: 1 })])
     expect(refused).toMatchObject({ ok: false, reason: 'invalid' })
@@ -271,25 +262,6 @@ describe('a disbanded Game’s Opposition', () => {
   })
 })
 
-describe('the cutover import', () => {
-  test('is whole, and a rerun takes nothing', () => {
-    const { room } = shelf()
-    expect(room.transit.diffImport(bundle())).toEqual([])
-    expect(room.transit.importAccount(bundle({ units: [] }), AT)).toEqual({ imported: false })
-    expect(room.shelf.records(PLAYER, 'patterns')).toEqual([
-      { appId: 'pat1', body: { name: 'Pattern', id: 'pat1' } },
-    ])
-  })
-
-  test('refuses another player’s bundle and a malformed one', () => {
-    const { room } = shelf()
-    expect(() => room.transit.importAccount(bundle({ discordId: STRANGER }), AT)).toThrow(
-      /PLAYER|d-player/
-    )
-    expect(() => room.transit.importAccount({ discordId: PLAYER }, AT)).toThrow()
-  })
-})
-
 describe('the solo table’s salvage area', () => {
   const yard = { name: 'Scrapyard', techLevel: 2, supply: 2 }
 
@@ -313,18 +285,6 @@ describe('the solo table’s salvage area', () => {
     room.soloArea.set(PLAYER, yard, AT)
     expect(() => room.soloArea.spend(PLAYER, 'm1', AT)).toThrow('That is not a Pilot')
     expect(() => room.soloArea.spend(STRANGER, 'p1', AT)).toThrow()
-  })
-
-  test('comes over in the cutover import, as Convex kept it', () => {
-    const sql = bunSql()
-    migrate(sql, ACCOUNT_ROOM)
-    const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp })
-    const area = { ...yard, updatedAt: 5 }
-    room.transit.importAccount(bundle({ salvageArea: area }), AT)
-    expect(room.soloArea.here(PLAYER)).toEqual(yard)
-    expect(room.soloArea.updatedAt()).toBe(5)
-    expect(room.transit.diffImport(bundle({ salvageArea: area }))).toEqual([])
-    expect(room.transit.diffImport(bundle())).toEqual(['salvageArea: differs'])
   })
 })
 
@@ -367,6 +327,20 @@ describe('the solo table’s seats and Downtime', () => {
     expect(room.solo.soloSeats(PLAYER)[0]?.range).toBe('Far')
     room.solo.endDowntime(PLAYER, 'p1')
     expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toBeNull()
+  })
+
+  test('a solo Downtime claims its Nanites once, from a seat kept before the claim too', () => {
+    const { room } = shelf()
+    const craft = downtimeStepNames().indexOf(CRAFT_STEP_NAME)
+    room.solo.beginDowntime(PLAYER, 'p1', AT)
+    room.solo.setDowntimeStep(PLAYER, 'p1', craft)
+    room.shelf.store.rows(
+      'update seats set downtime_state = ? where pilot_id = ?',
+      JSON.stringify({ runId: String(AT), stepIndex: craft, startedAt: AT, upkeepSpent: false }),
+      'p1'
+    )
+    expect(room.solo.spendNanites(PLAYER, 'p1')).toBe(true)
+    expect(room.solo.spendNanites(PLAYER, 'p1')).toBe(false)
   })
 })
 

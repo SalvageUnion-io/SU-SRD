@@ -47,30 +47,27 @@ export function getItemStaticPaths() {
   // page?" (`hasPage` in entityHref.ts) agreeing with what actually gets generated.
   for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
-    // of an assertion; a non-canonical id is skipped, same as a load failure.
+    // of an assertion. Any other failure throws: a skipped schema would drop
+    // its pages and its published item URLs without a word.
     if (!isSchemaName(schema.id)) continue
-    try {
-      const items = SalvageUnionReference.findAllIn(schema.id, () => true)
-      const entries = items.filter(
-        (item): item is typeof item & { id: string } => 'id' in item && !!item.id
-      )
+    const items = SalvageUnionReference.findAllIn(schema.id, () => true)
+    const entries = items.filter(
+      (item): item is typeof item & { id: string } => 'id' in item && !!item.id
+    )
 
-      for (const item of entries) {
-        const displayData = getReferenceEntityData(item)
-        paths.push({
-          params: { schemaId: schema.id, itemId: displayData.slug },
-          props: {
-            item,
-            schema,
-            // The page's words outside CSS (<title>, meta, JSON-LD,
-            // breadcrumbs) print a glossary name as the book does.
-            itemName: displayTitle(displayData.name),
-            itemDescription: displayData.description ?? '',
-          },
-        })
-      }
-    } catch {
-      // Skip schemas that can't be loaded
+    for (const item of entries) {
+      const displayData = getReferenceEntityData(item)
+      paths.push({
+        params: { schemaId: schema.id, itemId: displayData.slug },
+        props: {
+          item,
+          schema,
+          // The page's words outside CSS (<title>, meta, JSON-LD,
+          // breadcrumbs) print a glossary name as the book does.
+          itemName: displayTitle(displayData.name),
+          itemDescription: displayData.description ?? '',
+        },
+      })
     }
   }
 

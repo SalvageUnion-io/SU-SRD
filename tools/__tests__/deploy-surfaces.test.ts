@@ -3,7 +3,14 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { decideSurfaces, isShared, main, planDeploy, SURFACES } from '../deploy-surfaces'
+import {
+  decideSurfaces,
+  isShared,
+  main,
+  manifestMoved,
+  planDeploy,
+  SURFACES,
+} from '../deploy-surfaces'
 
 const EVERYTHING = { web: true, 'discord-bot': true }
 const NOTHING = { web: false, 'discord-bot': false }
@@ -69,6 +76,8 @@ describe('deploy-surfaces — decideSurfaces', () => {
     'SPECIAL_THANKS.md',
     'ABOUT_JRVS.md',
     'LLM_STATEMENT.md',
+    // the patched build dependency package.json's overrides point at
+    'vendor/deepmerge/index.cjs',
   ])('a shared path (%s) deploys everything', (path) => {
     expect(decideSurfaces([path], false)).toEqual(EVERYTHING)
   })
@@ -97,6 +106,26 @@ describe('deploy-surfaces — decideSurfaces', () => {
     expect(isShared('.github/workflows/deploy-cloudflare.yml')).toBe(true)
     expect(isShared('.github/workflows/deploy-cloudflare.yml.orig')).toBe(false)
     expect(isShared('apps/packages/x.ts')).toBe(false)
+  })
+})
+
+describe('deploy-surfaces — manifestMoved', () => {
+  const manifest = (version: string, extra: Record<string, unknown> = {}) =>
+    JSON.stringify({ name: 'susrd', version, scripts: { test: 'bun test' }, ...extra }, null, 2)
+
+  test('a version bump alone does not move the manifest', () => {
+    expect(manifestMoved(manifest('1.0.0'), manifest('1.0.1'))).toBe(false)
+  })
+
+  test('any other change does', () => {
+    expect(manifestMoved(manifest('1.0.0'), manifest('1.0.1', { overrides: { a: '1' } }))).toBe(
+      true
+    )
+  })
+
+  test('an unreadable or unparsable side reads as moved', () => {
+    expect(manifestMoved(null, manifest('1.0.0'))).toBe(true)
+    expect(manifestMoved(manifest('1.0.0'), '{ not json')).toBe(true)
   })
 })
 
@@ -266,5 +295,25 @@ describe('deploy-surfaces — script against a real git history', () => {
     })
     expect(proc.exitCode).toBe(0)
     expect(readFileSync(out, 'utf8')).toBe('stale=false\ndeploy=[]\n')
+  })
+
+  test('a release bump to the root manifest ships the site alone; any other edit to it ships everything', () => {
+    git(work, 'checkout', '--quiet', '--detach', b)
+    const write = (version: string, extra = '') => {
+      writeFileSync(
+        join(work, 'package.json'),
+        `{\n  "name": "susrd",\n  "version": "${version}"${extra}\n}\n`
+      )
+      git(work, 'add', '-A')
+      git(work, 'commit', '--quiet', '-m', `package.json ${version}`)
+      return git(work, 'rev-parse', 'HEAD')
+    }
+    const recorded = write('1.0.0')
+    git(work, 'push', '--quiet', '--force', 'origin', `${recorded}:refs/tags/deployed/cloudflare`)
+    const bumped = write('1.0.1')
+    expect(decide(bumped)).toEqual({ stale: 'false', deploy: '["web"]' })
+    git(work, 'checkout', '--quiet', '--detach', bumped)
+    const edited = write('1.0.2', ',\n  "private": true')
+    expect(decide(edited)).toEqual({ stale: 'false', deploy: '["web","discord-bot"]' })
   })
 })

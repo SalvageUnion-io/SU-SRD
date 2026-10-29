@@ -1,5 +1,5 @@
 /**
- * The one way this app touches `localStorage`.
+ * The guard for `localStorage`: `localStore()` resolves it, or `null`.
  *
  * ## Why a helper rather than the global
  *
@@ -16,11 +16,10 @@
  *  - **It may hold nonsense.** The value came from a previous build, another
  *    tab, or the user's own devtools.
  *
- * The five modules that used it each solved some subset with a different shape
- * — a `typeof` check inside a `try`, a separate `storageAvailable()` predicate,
- * or (in one case) a bare `try` with no `typeof` guard at all, the one variant
- * that throws `ReferenceError` instead of returning a fallback. Converging them
- * means the guard is correct once instead of nearly-correct five times.
+ * The guard that holds is the global's evaluation inside the `try`, and
+ * `localStore()` is that guard written once. A module that keeps its own small
+ * reader (or one for `sessionStorage`) follows the same rule: the global is
+ * named only inside its `try`, never hoisted above it.
  *
  * ## Contract
  *

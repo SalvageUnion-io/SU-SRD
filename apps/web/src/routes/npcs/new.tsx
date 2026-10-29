@@ -4,6 +4,7 @@ import type { NpcDesignerView } from '../../build/npc/NpcDesignerPage'
 import { NpcDesignerPage } from '../../build/npc/NpcDesignerPage'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
 import { areaTitle } from '../../lib/pageTitle'
+import { routesCopy } from '../../messages/routes'
 
 type NpcsNewSearch = {
   view: NpcDesignerView
@@ -19,7 +20,7 @@ type NpcsNewSearch = {
  * here. Always the guided designer: an NPC has no Blank door (D4).
  */
 export const Route = createFileRoute('/npcs/new')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Design an NPC') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('designAnNpc')) }] }),
   validateSearch: (search: Record<string, unknown>): NpcsNewSearch => ({
     view: search.view === 'crew' ? 'crew' : 'any',
     ...(typeof search.crawler === 'string' && search.crawler ? { crawler: search.crawler } : {}),

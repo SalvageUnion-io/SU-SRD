@@ -12,7 +12,11 @@
  *
  *   1. a `*.test.ts(x)` with no `__tests__` directory in its path. Tests live
  *      in a `__tests__/` beside their subject;
- *   2. a workspace whose `test` script is not `TEST_SCRIPT`. Bun reads neither
+ *   2. a file `bun test` runs (`TEST_FILES`, its default name patterns:
+ *      `.spec`, `_test`, `.mts`, …) that is not a `*.test.ts(x)`: Bun would run
+ *      it, while this gate, the testing rule's `paths:` and Biome's test-only
+ *      rules would not see it;
+ *   3. a workspace whose `test` script is not `TEST_SCRIPT`. Bun reads neither
  *      flag from `bunfig.toml`, so they live in the script. Each workspace's
  *      bunfig owns its preloads; the root bunfig has no `[test]` section.
  *
@@ -26,6 +30,7 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 import { readManifests } from 'gates/lib/workspaceGraph'
+import { TEST_FILES } from './run-coverage'
 
 /** ~65% of today's count (544 test files): a catastrophe floor. */
 const TEST_FLOOR = 350
@@ -33,14 +38,22 @@ const TEST_FLOOR = 350
 const TEST_FILE = /\.test\.tsx?$/
 
 /**
- * Every workspace's `test` script. `--parallel=N --no-isolate` measured faster
- * than serial; bare `--parallel` (it implies `--isolate`) measured slower.
+ * Every workspace's `test` script, the inner loop. `--parallel=N --no-isolate`
+ * measured faster than serial; bare `--parallel` (it implies `--isolate`)
+ * measured slower. Files share a process differently here than in CI's serial
+ * run, and the suite is not order-free, so the root `bun run test` runs CI's
+ * gate itself (`run-coverage.ts`): that verdict is the one that merges.
  */
 export const TEST_SCRIPT = 'bun test --parallel=4 --no-isolate'
 
 /** Test files whose path has no `__tests__` directory. */
 export function siblingTests(paths: readonly string[]): string[] {
   return paths.filter((p) => TEST_FILE.test(p) && !p.split('/').includes('__tests__'))
+}
+
+/** Files Bun runs as tests that are not named `*.test.ts(x)`. */
+export function strayTests(paths: readonly string[]): string[] {
+  return paths.filter((p) => TEST_FILES.match(p) && !TEST_FILE.test(p))
 }
 
 export type TestScript = { dir: string; script: string | undefined }
@@ -72,6 +85,7 @@ export function main(
   const scripts = workspaceTestScripts(root)
   const problems = [
     ...siblingTests(tests).map((p) => `${p} is outside a __tests__/ directory`),
+    ...strayTests(paths).map((p) => `${p} is a file bun test runs; name it *.test.ts(x)`),
     ...scriptDrift(scripts),
   ]
   if (problems.length > 0) {
@@ -85,10 +99,13 @@ export function main(
   return 0
 }
 
-if (import.meta.main) {
-  const root = join(import.meta.dir, '..')
-  // Tracked and untracked-but-not-ignored, so a new test fails before it is committed.
+/**
+ * Repo-relative paths that exist: tracked and untracked-but-not-ignored, so a
+ * new test fails before it is committed.
+ */
+export async function listedPaths(root = join(import.meta.dir, '..')): Promise<string[]> {
   const listed = await $`git ls-files --cached --others --exclude-standard`.cwd(root).text()
-  const paths = listed.split('\n').filter((p) => p && existsSync(join(root, p)))
-  process.exit(main(root, paths))
+  return listed.split('\n').filter((p) => p && existsSync(join(root, p)))
 }
+
+if (import.meta.main) process.exit(main(join(import.meta.dir, '..'), await listedPaths()))

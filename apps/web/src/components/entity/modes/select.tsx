@@ -62,12 +62,15 @@ export function SelectSurface({
   label,
   className,
   style,
+  fill = false,
   children,
 }: {
   mode: SelectMode
   label: string
   className: string
   style?: CSSProperties
+  /** The host fills its parent's height (`Box`'s `fill`): `data-fill` on the surface. */
+  fill?: boolean
   children: ReactNode
 }) {
   if (mode.role === 'radio') {
@@ -78,6 +81,7 @@ export function SelectSurface({
         className={cn(className, FOCUS_RING)}
         style={{ ...style, cursor: 'pointer' }}
         aria-label={label}
+        fill={fill}
       >
         {children}
       </RadioCard>
@@ -86,7 +90,12 @@ export function SelectSurface({
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: a pointer convenience; the SelectCheck checkbox inside is the control
     // biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard path is the SelectCheck checkbox inside
-    <div className={className} style={{ ...style, cursor: 'pointer' }} onClick={mode.onSelect}>
+    <div
+      className={className}
+      style={{ ...style, cursor: 'pointer' }}
+      data-fill={fill || undefined}
+      onClick={mode.onSelect}
+    >
       {children}
     </div>
   )

@@ -28,6 +28,7 @@ const ROSTER = {
     'RollTableInstrument', // §5.8 RollTable
     'StatusBadge', // §5.9 Condition
     'SlotGrid', // §5.10 SlotGrid
+    'slotPips', // §4.5 a slot count as pips, a wizard's tracker tab
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
   ],
@@ -59,6 +60,7 @@ const ROSTER = {
     'RecoveryPanel',
     // K9 focus
     'FOCUS_RING',
+    'SkipLink',
     // K10 tabs, segmented, toggle
     'Tabs',
     'TabList',
@@ -88,6 +90,8 @@ const ROSTER = {
     'HeaderMenu',
     'PopoverPanel',
     'useModKeyHint',
+    // R14 caps: the one recipe a label in caps asks
+    'capsLabel',
     // The shell: the Union bar, its drawer and foot, the chapter band (ruleset Source 2, §3.11)
     'AppBar',
     'AccountMenu',
@@ -96,6 +100,7 @@ const ROSTER = {
     'ChapterBand',
     'CHAPTER_BAND_COLOR',
     'ToneStrip',
+    'Speckle', // §3.5.1 the speckle on a band or an ink ground
     'PageShell',
     'KofiButton',
     'Text',
@@ -116,6 +121,7 @@ const ROSTER = {
     'SELECT_DIM',
     'ReferenceEntityCard',
     'Content',
+    'EntityDetailDialog', // the Page in a dialog (the app's open-in-place reading)
     'ActionMinis',
     'PatternListing',
     'EntityPageStamps',

@@ -1,16 +1,32 @@
 /**
- * Accounts as the sign-in keeps them (`accounts`, created by the Worker's
- * sign-in on first use): read here by Discord id, for the bot.
+ * Accounts as the sign-in keeps them (`accounts`, `migrations/0007_sign_in.sql`):
+ * read here by Discord id, for the bot, and by account id for the profile
+ * Discord gives a player.
  */
 
+import type { Profile } from '../../rooms/account/shelf'
 import type { SharedDb } from './db'
 
-/** The account a Discord user signs in with, as the bot shows it. */
+/** The account a Discord user signs in with: Discord's name and avatar. */
 export type DiscordAccount = {
   account_id: string
-  display_name: string | null
   name: string | null
   avatar_url: string | null
+}
+
+/**
+ * The name and avatar a player shows everywhere (their `me`, each Game's
+ * roster, the bot): their own (`AccountRoom.profile`) where they set one, else
+ * Discord's.
+ */
+export function shownProfile(
+  own: Profile | null,
+  discord: Pick<DiscordAccount, 'name' | 'avatar_url'> | null
+): Profile {
+  return {
+    displayName: own?.displayName ?? discord?.name ?? null,
+    avatarUrl: own?.avatarUrl ?? discord?.avatar_url ?? null,
+  }
 }
 
 /** The account signed in with Discord user `discordId`, or null for none. */
@@ -19,9 +35,7 @@ export function accountByDiscordId(
   discordId: string
 ): Promise<DiscordAccount | null> {
   return db
-    .prepare(
-      'select account_id, display_name, name, avatar_url from accounts where discord_id = ?1'
-    )
+    .prepare('select account_id, name, avatar_url from accounts where discord_id = ?1')
     .bind(discordId)
     .first<DiscordAccount>()
 }

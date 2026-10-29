@@ -260,7 +260,7 @@ const SEGMENT = { flex: '1 1 0%' } satisfies CSSProperties
 // the Union bar and the band (the band paints over it: it is positioned).
 const SENTINEL = {
   height: '1px',
-  marginBottom: '-1px', // design-tokens-ignore: a fit, the sentinel takes back its own 1px
+  marginBottom: '-1px', // design-tokens-ignore(raw-spacing): a fit, the sentinel takes back its own 1px
   width: '100%',
 } satisfies CSSProperties
 

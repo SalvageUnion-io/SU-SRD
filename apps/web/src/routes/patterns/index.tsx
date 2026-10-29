@@ -8,7 +8,7 @@ import { areaTitle } from '../../lib/pageTitle'
 import { mechsCopy } from '../../messages/routes-mechs'
 
 export const Route = createFileRoute('/patterns/')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Mech Patterns') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, mechsCopy('mechPatterns')) }] }),
   component: MechPatternsPage,
 })
 

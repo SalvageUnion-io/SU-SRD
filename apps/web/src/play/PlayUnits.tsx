@@ -75,7 +75,7 @@ const CHIPS = {
 } satisfies CSSProperties
 
 const RANGE_LABEL = {
-  color: 'var(--color-wk-muted)', // design-tokens-ignore: the range label
+  color: 'var(--color-wk-muted)', // design-tokens-ignore(muted-note): the range label
   fontSize: tokens.fontSize.sm,
 } satisfies CSSProperties
 

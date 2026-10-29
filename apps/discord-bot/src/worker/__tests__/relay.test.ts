@@ -68,6 +68,19 @@ describe('the post-roll relay', () => {
     expect(json).toContain('rolled by Roach-Boy')
     expect(json).toContain('Roll again')
     expect(json).toContain('See table')
+    // Only Discord's keys, and mention-inert: the roller's name is player text.
+    expect(sent.body.allowed_mentions).toEqual({ parse: [] })
+    expect(Object.keys(sent.body).sort()).toEqual(['allowed_mentions', 'components', 'flags'])
+  })
+
+  test('a roller named like a mention pings nobody', async () => {
+    let sent: Record<string, unknown> | null = null
+    stubFetch(async (_input, init) => {
+      sent = JSON.parse(String(init?.body)) as Record<string, unknown>
+      return Response.json({ id: 'msg-2' }, { status: 200 })
+    })
+    await relay(relayRequest({ ...ROLL, roller: '@everyone <@&42>' }))
+    expect(sent).toMatchObject({ allowed_mentions: { parse: [] } })
   })
 
   test('a Discord refusal comes back worded for the roller', async () => {

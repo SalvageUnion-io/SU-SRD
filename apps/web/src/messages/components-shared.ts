@@ -3,6 +3,11 @@
 import { messages } from './define'
 
 export const sharedCopy = messages({
+  savedWorkOnAccount:
+    'Everything saved to your account is stored on the server and is not affected.',
+  savedWorkOnAnAccount: 'Anything saved to an account is stored on the server and is not affected.',
+  savedWorkSignedOut: 'Nothing is built without an account, so reloading loses nothing.',
+  savedWorkUnknown: 'Anything already saved is not affected.',
   noPictureYet: 'No picture yet.',
   uploading: 'Uploading…',
   replace: 'Replace',
@@ -15,6 +20,7 @@ export const sharedCopy = messages({
   offlineReadOnly: 'Offline · read-only',
   notConnectedYourGamesAre: 'Not connected — your Games are read-only until the connection returns',
   offlineChangeDeclined: 'A change made offline was not saved: {reason}',
+  offlineGameGone: 'its Game has ended, or you are no longer in it',
   somethingWentWrong: 'Something went wrong',
   theAppHitAnUnexpected: 'The app hit an unexpected error. {savedWorkCopy}',
   tryAgain: 'Try again',

@@ -35,11 +35,11 @@ import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
-import { capsLabel } from '../components/atoms/capsLabel'
 import {
   Badge,
   Button,
   ChapterBand,
+  capsLabel,
   Entity,
   FieldError,
   Input,

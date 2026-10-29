@@ -13,10 +13,16 @@ import { readReference } from './readReference'
 export function resolveClass(ref: string): RefClass | undefined {
   return readReference(
     'resolveClass',
-    () =>
-      SalvageUnionReference.Classes.all().find(
-        (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
-      ),
+    () => {
+      const classes = SalvageUnionReference.Classes
+      const needle = ref.toLowerCase()
+      return (
+        classes.getById(ref) ??
+        classes.getByName(ref) ??
+        classes.getBySlug(ref) ??
+        classes.all().find((c) => c.name.toLowerCase() === needle)
+      )
+    },
     undefined
   )
 }

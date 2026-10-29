@@ -19,7 +19,7 @@ import { Island } from '../../runtime/Island'
 function page(): PageResult {
   return {
     meta: {
-      title: pageTitle('404 - Page Not Found'),
+      title: pageTitle(pagesCopy('pageNotFoundTitle')),
       description: pagesCopy('thePageYouAreLooking'),
       noindex: true,
     },

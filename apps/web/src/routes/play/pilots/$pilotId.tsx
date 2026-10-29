@@ -16,11 +16,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import { areaTitle } from '../../../lib/pageTitle'
+import { routesCopy } from '../../../messages/routes'
 import { PlayGate } from '../../../play/PlayGate'
 import { useUnits } from '../../../replica/units'
 
 export const Route = createFileRoute('/play/pilots/$pilotId')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Play') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('play')) }] }),
   loader: async () => {
     const store = useUnits.getState()
     await Promise.all([

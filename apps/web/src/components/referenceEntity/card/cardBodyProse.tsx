@@ -59,7 +59,6 @@ export type CardBodyInput = Pick<
   | 'onSelectionChange'
   | 'afterExtraContent'
   | 'showChassisAbility'
-  | 'sectionFold'
 > & {
   data: ReferenceCardEntity
   entity: RefMetaEntity

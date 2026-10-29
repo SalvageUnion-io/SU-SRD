@@ -128,7 +128,6 @@ export const lookupCommand = {
       return
     }
 
-    const { data: _data, ...payload } = buildLookupMessage(hit)
-    await interaction.reply(payload)
+    await interaction.reply(buildLookupMessage(hit))
   },
 }

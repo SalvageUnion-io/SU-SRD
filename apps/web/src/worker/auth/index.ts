@@ -29,7 +29,6 @@ import { base64urlJson, passwordHash, sha256Hex } from './crypto'
 import type { Account, AuthSql, SignIn } from './store'
 import {
   accountIdOf,
-  authStore,
   closeSession,
   d1Sql,
   forgetAccount,
@@ -250,7 +249,7 @@ async function signInAs(
   deps: AuthDeps,
   signIn: SignIn & { secret?: string }
 ): Promise<string> {
-  const sql = await authStore(deps.sql)
+  const { sql } = deps
   const now = (deps.now ?? Date.now)()
   const accountId = (await accountIdOf(sql, signIn)) ?? crypto.randomUUID()
   await saveAccount(sql, { ...signIn, accountId }, now)
@@ -284,7 +283,7 @@ export async function identityOf(
 ): Promise<Identity | null> {
   const raw = readCookie(request, SESSION_COOKIE)
   if (!raw) return null
-  const session = await readSession(await authStore(d1Sql(env.SHARED)), raw, now)
+  const session = await readSession(d1Sql(env.SHARED), raw, now)
   if (session === null) return null
   return identityFor(session.account, env.ADMIN_DISCORD_IDS)
 }
@@ -309,7 +308,7 @@ async function personOf(account: Account): Promise<string> {
 async function deleteAccount(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
   if (!raw) return json({ errorMessage: 'Not signed in' }, 401)
-  const sql = await authStore(deps.sql)
+  const { sql } = deps
   const session = await readSession(sql, raw, (deps.now ?? Date.now)())
   if (session === null) return json({ errorMessage: 'Not signed in' }, 401)
   const refused = await deps.removeAccount(await identityFor(session.account, deps.adminIds))
@@ -325,7 +324,7 @@ async function session(request: Request, url: URL, deps: AuthDeps): Promise<Resp
   const raw = readCookie(request, SESSION_COOKIE)
   const signedOut = () => json(null, 401, raw ? [cookie(url, SESSION_COOKIE, '', 0)] : [])
   if (!raw) return signedOut()
-  const sql = await authStore(deps.sql)
+  const { sql } = deps
   const session = await readSession(sql, raw, (deps.now ?? Date.now)())
   if (session === null) return signedOut()
   const answer: SessionAnswer = {
@@ -341,7 +340,7 @@ async function session(request: Request, url: URL, deps: AuthDeps): Promise<Resp
 
 async function signOut(request: Request, url: URL, deps: AuthDeps): Promise<Response> {
   const raw = readCookie(request, SESSION_COOKIE)
-  if (raw) await closeSession(await authStore(deps.sql), raw)
+  if (raw) await closeSession(deps.sql, raw)
   return new Response(null, {
     status: 204,
     headers: { 'set-cookie': cookie(url, SESSION_COOKIE, '', 0), 'cache-control': 'no-store' },
@@ -363,7 +362,7 @@ async function testSignIn(request: Request, url: URL, deps: AuthDeps): Promise<R
   if (typeof email !== 'string' || typeof password !== 'string' || email === '')
     return new Response('email and password', { status: 400 })
   const secret = await passwordHash(password, email)
-  const existing = await testSecret(await authStore(deps.sql), email)
+  const existing = await testSecret(deps.sql, email)
   if (flow === 'signIn' ? existing !== secret : existing !== undefined)
     return new Response(flow === 'signIn' ? 'Invalid credentials' : 'Account exists', {
       status: flow === 'signIn' ? 401 : 409,

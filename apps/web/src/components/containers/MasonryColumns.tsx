@@ -1,11 +1,17 @@
 import type { ReactNode } from 'react'
-import { Children } from 'react'
-import { widthAtLeast } from '../../design/tokens'
-import { useMediaQuery } from '../../lib/useMediaQuery'
+import { Children, isValidElement } from 'react'
+import { cn } from '../../lib/cn'
 import { RadioCardGroup } from './RadioCardGroup'
 
 /** `.su-masonry` (`styles/partials/containers.css`): it collapses to one block in print. */
 const FLOW = 'su-masonry'
+
+/** The cap on the viewport's column count, as the stylesheet reads it. */
+const MAX = {
+  1: 'su-masonry--max-1',
+  2: 'su-masonry--max-2',
+  3: undefined,
+} as const
 
 type MasonryColumnsProps = {
   children: ReactNode
@@ -14,48 +20,34 @@ type MasonryColumnsProps = {
    * `2` for constrained lists — e.g. wizard selection pools, which never split
    * past two columns.
    */
-  maxColumns?: number
-  /**
-   * Radio-group semantics for exactly-one pickers: the flow is a
-   * `RadioCardGroup`. Pair with `ReferenceEntityCard` cells using
-   * `selectionRole="radio"` / `TitledBox` cells in select mode, and pass an accessible
-   * group name via `ariaLabel`.
-   */
-  radio?: boolean
-  /** Accessible name for the radiogroup (required when `radio` is set). */
-  ariaLabel?: string
-}
-
-// Column count is driven purely by viewport width via matchMedia, on the
-// ladder's md and xl rungs (1 column < 48rem, 2 from 48rem, 3 from 80rem).
-// matchMedia listeners fire ONLY when a breakpoint is crossed, so resizing
-// within a breakpoint does zero JS work and triggers no redistribution.
-const MD = widthAtLeast('md')
-const XL = widthAtLeast('xl')
-
-function useColumnCount(): number {
-  // The server snapshot (1 column: both queries answer false) is used for SSR
-  // *and* the first hydration render, so the client's initial tree matches the
-  // SSR HTML; React then reconciles to the live viewport column count without
-  // a hydration mismatch (React #418). Seeding useState from `window` instead
-  // rendered 1 column on the server but 2–3 on the client's first render,
-  // breaking hydration.
-  const xl = useMediaQuery(XL, false)
-  const md = useMediaQuery(MD, false)
-  if (xl) return 3
-  if (md) return 2
-  return 1
-}
+  maxColumns?: 1 | 2 | 3
+} & (
+  | { radio?: false; ariaLabel?: undefined }
+  | {
+      /**
+       * Radio-group semantics for exactly-one pickers: the flow is a
+       * `RadioCardGroup`. Pair with `ReferenceEntityCard` cells using
+       * `selectionRole="radio"` / `TitledBox` cells in select mode.
+       */
+      radio: true
+      /** The radiogroup's accessible name. */
+      ariaLabel: string
+    }
+)
 
 /**
- * Masonry layout built from independent flex columns instead of CSS
- * multi-column. CSS `columns` re-balances every card on every resize frame
- * (a binary search of full layout passes), which janks on large lists. Here
- * each column is its own block flow with no cross-column balancing, so a resize
- * within a breakpoint costs nothing. Cards are distributed round-robin, so
- * columns balance by count rather than exact height.
+ * Masonry: the cards in source order, each whole, flowing down one column and
+ * on into the next (CSS multi-column, `.su-masonry`), so each column runs its
+ * own height with no ragged gaps between rows. The column count is the
+ * viewport's, on the ladder's md and xl rungs (1 column below 48rem, 2 from
+ * 48rem, 3 from 80rem), capped by `maxColumns`, all in the stylesheet: a
+ * breakpoint crossing re-flows the same elements, so no card remounts and
+ * none loses its state, and the server's HTML is the client's.
  *
- * Print collapses to a single stacked column (`.su-masonry` in `styles/partials/containers.css`).
+ * The DOM order is the reading order: down the first column, then the next,
+ * so Tab, a screen reader and a radio group's arrow keys move as the eye does.
+ *
+ * Print collapses to a single stacked column.
  */
 export function MasonryColumns({
   children,
@@ -63,26 +55,23 @@ export function MasonryColumns({
   radio = false,
   ariaLabel,
 }: MasonryColumnsProps) {
-  const columnCount = Math.min(useColumnCount(), maxColumns)
-  const items = Children.toArray(children)
-
-  const columns: ReactNode[][] = Array.from({ length: columnCount }, () => [])
-  items.forEach((child, i) => {
-    columns[i % columnCount]?.push(child)
-  })
-
-  const flow = columns.map((col, i) => (
-    // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional buckets — the index IS their identity
-    <div key={i} className="su-masonry-column">
-      {col}
+  // Each card keeps its own key (`Children.toArray` gives every element one),
+  // so its wrapper, and the card, survive any change in the list around it.
+  const items = Children.toArray(children).map((child, i) => (
+    <div
+      key={isValidElement(child) && child.key != null ? child.key : i}
+      className="su-masonry__item"
+    >
+      {child}
     </div>
   ))
+  const className = cn(FLOW, MAX[maxColumns])
 
   return radio ? (
-    <RadioCardGroup label={ariaLabel ?? ''} className={FLOW}>
-      {flow}
+    <RadioCardGroup label={ariaLabel ?? ''} className={className}>
+      {items}
     </RadioCardGroup>
   ) : (
-    <div className={FLOW}>{flow}</div>
+    <div className={className}>{items}</div>
   )
 }

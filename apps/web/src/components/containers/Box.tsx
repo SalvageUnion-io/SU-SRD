@@ -10,8 +10,13 @@ import type { EntityMode } from '../entity/types'
 /** `frame="hairline"`: one light hairline all round, in place of the Compact's weight. */
 const HAIRLINE = { borderWidth: borderWidth.hairline } satisfies CSSProperties
 
-/** A level-1 pick that is no entity: the Compact's select mode on its frame. */
-type BoxSelect = Extract<EntityMode, { kind: 'select' }>
+/**
+ * A level-1 pick that is no entity: the Compact's select mode on its frame,
+ * as a radio. A `toggle` surface takes its keyboard path from the
+ * `SelectCheck` in a Compact's head, which a Box has none of, so a Box picks
+ * only as one card of a `RadioCardGroup`.
+ */
+type BoxSelect = Extract<EntityMode, { kind: 'select' }> & { role: 'radio' }
 
 export type BoxProps = {
   /** The band over the body: `TitledBox`'s cut-out head. Omitted, the box is its frame and body. */
@@ -28,11 +33,11 @@ export type BoxProps = {
    * so the sheet's content carries the weight.
    */
   frame?: 'compact' | 'hairline'
-  /** The landmark: `section` (named by `label`), an `article`, or a plain `div`. */
+  /** The landmark: `section` (named by `label`), an `article`, or a plain `div`. Not with `select`, whose root is the radio. */
   as?: 'section' | 'article' | 'div'
-  /** Names a `section`. */
+  /** Names a `section`, or a `select` radio that has no `label` of its own. */
   label?: string
-  /** A role on the root (`alert`, `note`). */
+  /** A role on the root (`alert`, `note`). Not with `select`, whose role is `radio`. */
   role?: string
   /**
    * The paper body's padding: `padded` (12px, a 12px gap between blocks) or
@@ -58,9 +63,8 @@ export type BoxProps = {
   shrink?: boolean
   /**
    * Select mode (EDL Modes), for a level-1 pick that is no entity (a wizard's
-   * Custom build, an NPC's Start blank): the whole box is the surface, a radio
-   * or a toggle, and selected it wears the Compact's ink ring. `TitledBox` seals
-   * its head.
+   * Custom build, an NPC's Start blank): the whole box is the surface, a radio,
+   * and selected it wears the Compact's ink ring. `TitledBox` seals its head.
    */
   select?: BoxSelect
   children?: ReactNode
@@ -131,6 +135,7 @@ export function Box({
         mode={select}
         label={select.label ?? label ?? ''}
         className={cn(ROW_ROOT, 'su-box', className)}
+        fill={fill}
       >
         {frame}
       </SelectSurface>

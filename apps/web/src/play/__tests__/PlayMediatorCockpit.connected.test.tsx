@@ -45,7 +45,7 @@ function answerAct({ name }: { name: string }): unknown {
   if (name === 'mediator.runEncounter') return { added: 1 }
   if (name === 'scenes.passHour') return 3
   if (name === 'ledger.collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
-  return name === 'downtime.spendUpkeep' ? true : null
+  return name === 'downtime.spendUpkeep' || name === 'downtime.spendNanites' ? true : null
 }
 
 const serverMocks = await installServerMocks({
@@ -825,6 +825,7 @@ describe('Downtime', () => {
         expect(screen.getByText(/^Processed 2 Inert Meld Nanite piles/)).toBeTruthy()
       )
       expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.inertNanites).toBe(0)
+      expect(names()).toEqual(['downtime.spendNanites'])
     } finally {
       cleanup()
       await useUnits.getState().adopt('crawler', before)

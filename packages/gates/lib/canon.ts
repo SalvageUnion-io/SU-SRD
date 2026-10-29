@@ -13,6 +13,11 @@
  *   - a file: a repo path, or a basename unique among the gate files
  *     (`chipFill.test.ts`), optionally `#token`, a string the file holds
  *     (an e2e finding's rule, a Biome override's message).
+ *
+ * Not every gate fails a PR: an e2e spec without the `@pr` tag runs only in
+ * the nightly job, and a rule in `apps/web/e2e/_pendingRules.ts` reports
+ * under a ceiling. `gateTier` says which, and `--list` prints it beside the
+ * gate (`R40  _chipStrips.ts#align (pending)`).
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -335,12 +340,7 @@ export function canonFaults(
     if (!(id in canon)) faults.push(`${id} (${doc}) names no gate: add its entry to CANON`)
   }
   const byName = new Map<string, string[]>()
-  for (const file of [
-    ...listFiles(root, GATE_DIRS, GATE_EXTS),
-    ...(existsSync(join(root, 'biome.jsonc')) ? ['biome.jsonc'] : []),
-  ]) {
-    byName.set(basename(file), [...(byName.get(basename(file)) ?? []), file])
-  }
+  for (const [name, files] of gateFilesByName(root)) byName.set(name, [...files])
   for (const [id, refs] of Object.entries(canon)) {
     if (!laws.has(id)) faults.push(`CANON names ${id}, which no canon doc defines: remove it`)
     if (refs.length === 0) faults.push(`${id} is held by nothing: name its gate, or cut the law`)
@@ -356,6 +356,61 @@ export function canonFaults(
     }
   }
   return faults
+}
+
+/** Every gate file under `root`, by basename (a basename ref resolves among these). */
+function gateFilesByName(root: string): Map<string, string[]> {
+  const byName = new Map<string, string[]>()
+  for (const file of [
+    ...listFiles(root, GATE_DIRS, GATE_EXTS),
+    ...(existsSync(join(root, 'biome.jsonc')) ? ['biome.jsonc'] : []),
+  ]) {
+    byName.set(basename(file), [...(byName.get(basename(file)) ?? []), file])
+  }
+  return byName
+}
+
+/** When a gate fails: on every PR, only in the nightly e2e job, or never (pending, under a ceiling). */
+export type GateTier = 'pr' | 'nightly' | 'pending'
+
+const E2E_DIR = 'apps/web/e2e/'
+const PENDING_RULES_FILE = `${E2E_DIR}_pendingRules.ts`
+/**
+ * The spec that walks every layout gate: on a PR it holds only the gates ci.yml's
+ * `E2E_DESIGN_GATES` names, each of which has a `@pr` corpus spec of its own,
+ * so importing a scanner does not put it in the PR tier.
+ */
+const DESIGN_WALK = `${E2E_DIR}design-walk.e2e.ts`
+
+/**
+ * Each gate ref's tier, read from the tree under `root`: a rule-set rule, a
+ * check and a unit test (an e2e scanner's own included) fail a PR; an e2e spec does when it is tagged `@pr`,
+ * an e2e scanner (`_x.ts`) when a `@pr` spec imports it; a pending rule's
+ * finding (`_pendingRules.ts`, or `<scanner>#<pending rule>`) never does.
+ */
+export function gateTier(root: string): (ref: string) => GateTier {
+  const byName = gateFilesByName(root)
+  const read = (path: string) =>
+    existsSync(join(root, path)) ? readFileSync(join(root, path), 'utf-8') : ''
+  const pendingText = read(PENDING_RULES_FILE)
+  const pendingRules = new Set(
+    [...pendingText.matchAll(/^ {2}'?([\w-]+)'?:\s*\{/gm)].map((m) => m[1] ?? '')
+  )
+  const prSpecs = listFiles(root, [E2E_DIR], ['.ts'])
+    .filter((f) => f.endsWith('.e2e.ts') && f !== DESIGN_WALK)
+    .map(read)
+    .filter((text) => text.includes("'@pr'"))
+  return (ref) => {
+    if (LAW_ID.test(ref) || ref.startsWith('check:')) return 'pr'
+    const [file = '', token] = ref.split('#')
+    if (!file.includes('.')) return 'pr'
+    const path = file.includes('/') ? file : (byName.get(file)?.[0] ?? file)
+    if (!path.startsWith(E2E_DIR) || /\.test\.tsx?$/.test(path)) return 'pr'
+    if (path === PENDING_RULES_FILE || (token && pendingRules.has(token))) return 'pending'
+    if (path.endsWith('.e2e.ts')) return read(path).includes("'@pr'") ? 'pr' : 'nightly'
+    const specifier = `'./${basename(path).replace(/\.ts$/, '')}'`
+    return prSpecs.some((text) => text.includes(specifier)) ? 'pr' : 'nightly'
+  }
 }
 
 function refFault(

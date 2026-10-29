@@ -73,6 +73,7 @@ import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
+import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
@@ -375,10 +376,10 @@ export function PilotSheet({
                             condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
                             usesLeft={pilot.equipmentUses?.[slug]}
                             onConditionChange={(itemSlug, next) => {
-                              void actions.handleEquipmentConditionChange(itemSlug, next)
+                              runWrite(() => actions.handleEquipmentConditionChange(itemSlug, next))
                             }}
                             onUsesChange={(itemSlug, next) => {
-                              void actions.handleUsesChange(itemSlug, next)
+                              actions.handleUsesChange(itemSlug, next)
                             }}
                             onRemove={readOnly ? undefined : () => actions.toggleEquipment(slug)}
                             readOnly={readOnly}
@@ -396,7 +397,7 @@ export function PilotSheet({
                               readOnly
                                 ? undefined
                                 : () => {
-                                    void actions.handleGenericInventoryChange(
+                                    actions.handleGenericInventoryChange(
                                       model.genericInventory.filter((_, i) => i !== index)
                                     )
                                   }
@@ -420,10 +421,7 @@ export function PilotSheet({
                     <div style={ADDER_ROW}>
                       <GenericEntryAdder
                         onAdd={(entry) => {
-                          void actions.handleGenericInventoryChange([
-                            ...model.genericInventory,
-                            entry,
-                          ])
+                          actions.handleGenericInventoryChange([...model.genericInventory, entry])
                         }}
                       />
                     </div>
@@ -446,10 +444,10 @@ export function PilotSheet({
           readOnly={readOnly}
           onManage={() => setPicker('abilities')}
           onSpend={(cost) => {
-            void actions.handleSpendAP(cost)
+            actions.handleSpendAP(cost)
           }}
           onToggleUsed={(slug, next) => {
-            void actions.handleAbilityUsedChange(slug, next)
+            actions.handleAbilityUsedChange(slug, next)
           }}
           onRemoveUnknown={(slug) => actions.toggleAbility(slug)}
         />

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useContext } from 'react'
-import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import {
   actionCostCurrency,
   extractVisibleActions,
@@ -50,6 +50,7 @@ import {
   MAX_DEPTH,
   namesOwnPage,
   resolveHide,
+  schemaOf,
   sectionHeadingLevel,
 } from './cardHelpers'
 import { CRAWLER_ABILITY_SEAL, resolveCardSections } from './cardSections'
@@ -163,11 +164,9 @@ function ReferenceEntityCardInner({
   status,
   disabled,
   selected,
-  selectionSeal,
   suggested,
   selectable,
   onCardClick,
-  cardClickable,
   selectionRole,
   cardClickLabel,
   controls,
@@ -182,8 +181,6 @@ function ReferenceEntityCardInner({
   className,
   titleAs,
   scalingParent,
-  expand,
-  sectionFold,
 }: ReferenceEntityCardProps) {
   // Section bands are h2s (nested titles h3s) only when this card IS the page
   // (`sectionHeadingLevel`), whatever `titleAs` says: its h1 is the chapter band.
@@ -199,9 +196,7 @@ function ReferenceEntityCardInner({
   // Texture comes from the surface (E13); a card's own `texture` wins.
   const surface = useEntitySurface()
   const textured = texture ?? surface.texture
-  const schemaName = (
-    'schemaName' in entity && typeof entity.schemaName === 'string' ? entity.schemaName : undefined
-  ) as RefEnumSchemaName | 'actions' | undefined
+  const schemaName = schemaOf(entity)
   if (!schemaName) {
     console.warn('ReferenceEntityCard: data does not have a schemaName property', data)
     return null
@@ -315,7 +310,6 @@ function ReferenceEntityCardInner({
   const { outer, frameStyle } = resolveCardInteraction({
     onCardClick,
     controls,
-    cardClickable,
     disabled,
     selectable,
     className,
@@ -366,12 +360,11 @@ function ReferenceEntityCardInner({
   // state and last slots (C8, hard rule R6), and the select seal on the
   // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
   const slots = cardStripSlots({ controls, status, subject: entityName })
-  // A selected Card always wears the seal, "Selected" unless the caller names
-  // its own word. A Mini (level 2) is ring only.
-  const seal = selected ? <SelectedSeal word={selectionSeal} /> : undefined
+  // A selected Card always wears the "Selected" seal. A Mini (level 2) is ring only.
+  const seal = selected ? <SelectedSeal /> : undefined
 
   // A card met inside another names its own Page: its name links (`CardTitleLink`).
-  const interactive = !!(onCardClick || cardClickable || selectable || selectionRole)
+  const interactive = !!(onCardClick || selectable || selectionRole)
   const place = { onPage, depth: depthProp, insidePeek, interactive }
   const titleContent = namesOwnPage(place) ? (
     <CardTitleLink entity={entity} title={name} inPeek={insidePeek} pattern={pattern} />
@@ -446,7 +439,6 @@ function ReferenceEntityCardInner({
     onSelectionChange,
     afterExtraContent,
     showChassisAbility,
-    sectionFold: insidePeek ? undefined : sectionFold,
     NestedCard: ReferenceEntityCardInner,
   }
   const resolved = resolveBodyProse(bodyInput)
@@ -490,12 +482,7 @@ function ReferenceEntityCardInner({
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
-        after={
-          <>
-            {afterExtraContent}
-            {expand}
-          </>
-        }
+        after={afterExtraContent}
         sectionAs={sectionAs}
         action={{
           NestedCard: ReferenceEntityCardInner,
@@ -507,7 +494,7 @@ function ReferenceEntityCardInner({
     )
   }
 
-  const after = [afterExtraContent, expand, rendersFooter, !hide?.patterns && patternList.length]
+  const after = [afterExtraContent, rendersFooter, !hide?.patterns && patternList.length]
   const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
   const lone = !depth && ![...under, ...after].some(Boolean) // +MORE alone, nested a body (C2b)
   return (
@@ -524,7 +511,7 @@ function ReferenceEntityCardInner({
         {body}
         <CardLead
           bare={!subtitleExtra && !body}
-          nested={!!(actionsNode || nestedGroupsNode || expand)}
+          nested={!!(actionsNode || nestedGroupsNode)}
           table={rollTableNode}
           size={size}
         />
@@ -548,12 +535,6 @@ function ReferenceEntityCardInner({
         {afterExtraContent && (
           <div style={{ padding: compact ? space[12] : `${space[12]} ${space[14]}` }}>
             {afterExtraContent}
-          </div>
-        )}
-        {/* SLOT: expand — before the footer (a crawler bay's crew inset). */}
-        {expand && (
-          <div style={{ padding: `0 ${compact ? space[12] : space[14]} ${space[12]}` }}>
-            {expand}
           </div>
         )}
         {/* FOOTER — a Peek's wears the header band. */}
