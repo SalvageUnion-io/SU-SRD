@@ -14,7 +14,8 @@ const IN_PEEK = { 'data-peek-open': '', tabIndex: -1 } as EntityLinkAttrs
 
 /**
  * A card's NAME as the link to its own Page (R33), as a Mini's name is
- * (`.su-entity-mini__link`): a nested card's,
+ * (`.su-entity-mini__link`), stretched over its whole head in CSS (EDL E6) so the
+ * band opens it and the body still reads: a nested card's,
  * and the Peek's, so an entity met inside another opens where it lives without
  * a chip or a ⋯ of its own. A route is an `<a href>`, the app's Page opener a
  * button (`LinkSurface`); with neither, or inside a pick (the pick is the one

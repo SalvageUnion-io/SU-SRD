@@ -123,7 +123,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E3: ['R35'],
   E4: ['Mention.test.tsx', 'rawMarkup.test.ts'],
   E5: ['R34'],
-  E6: ['N1', 'N2', 'N3', 'N4', 'N8'],
+  E6: ['N1', 'N2', 'N3', 'N4', 'N8', 'link-heads.e2e.ts'],
   E7: ['modeAnatomy.test.tsx'],
   E8: ['R6'],
   E9: ['R4', 'R1', 'E17'],

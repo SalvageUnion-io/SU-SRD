@@ -1058,10 +1058,24 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: none;
 }
 
-/* A Mini with controls (`data-acts`): its name is the link (C8). */
+/* A Mini with controls (`data-acts`): its name is the link (C8), stretched
+   over the whole pill (EDL E6), so the pill opens its entity as a Mini without
+   controls does; the controls and linked chips are raised above it, never
+   nested in it. */
 .su-entity-mini__link {
   color: inherit;
   text-decoration: none;
+}
+
+[data-acts] :is(a, [role='button']).su-entity-mini__link::after {
+  content: '';
+  inset: 0;
+  position: absolute;
+}
+
+[data-acts] .su-entity-mini__chips :is(a, button, input, [role='button'], [tabindex], [data-peek]) {
+  position: relative;
+  z-index: 1;
 }
 
 /* The name gives way first: it takes the room the chips leave and ends in
@@ -1427,6 +1441,25 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 
 .su-card-title-link:hover {
   text-decoration: underline;
+}
+
+/* A contentful card's head is its link (EDL E6): the name's link stretches over
+   the whole band, so the body below stays read and its own links free, and
+   the head's chips that act or Peek are raised above it, never nested in it. */
+.su-entity-compact__head:has(:is(a, [role='button']).su-card-title-link) {
+  position: relative;
+}
+
+:is(a, [role='button']).su-card-title-link::after {
+  content: '';
+  inset: 0;
+  position: absolute;
+}
+
+.su-entity-compact__head:has(:is(a, [role='button']).su-card-title-link)
+  :is(a, button, input, [role='button'], [tabindex], [data-peek]):not(.su-card-title-link) {
+  position: relative;
+  z-index: 1;
 }
 
 /* An index CompactIndex's chips (`.su-entity-index__chips`): items of the band's

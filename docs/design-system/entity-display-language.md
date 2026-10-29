@@ -25,7 +25,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 
 ## Modes
 
-1. **read** — no affordance; all forms. 2. **link** — the whole surface, no chevron; Mention, Mini, Compact.
+1. **read** — no affordance; all forms. 2. **link** — the whole surface, contentful its head, no chevron.
 3. **select** — ink ring and "Selected" seal; Compact or contentful (N7); one choice is a radio. An in-card choice is a toggle Mini: ring on its pill, unchosen dimmed (`selectable`), no seal.
 
 ## Hard rules
@@ -37,7 +37,7 @@ Each names its gate ([hard-rules.md](hard-rules.md)); breaking one needs an amen
 - **E3** A Mini at level 2 (E6) or where a Compact will not fit: a long list, one a line (N4; a drone's parts two), a slot under 12rem.
 - **E4** An entity named in prose is a Mention, never a chip, Stat or raw markup.
 - **E5** The detail view is a Page, never a new tab.
-- **E6** Three levels: 0 the page box (Page, dialog, wizard step, Peek plate); 1 Compacts; 2 Minis only. Nested contentful and Peek names link.
+- **E6** Three levels: 0 the page box (Page, dialog, wizard step, Peek plate); 1 Compacts; 2 Minis only. Nested contentful and Peek heads link.
   **N1** nothing titled at level 2 or deeper; **N2** nested, only a Mini is a head alone (a header-only Compact is a list item); **N3** a Mini nests nothing (deeper: its link or Peek), bar a sheet's crawler bay (R46); **N4** a Mini fills its line; **N5**, **N6**: ruleset §5;
   **N7** select is level 1's, bar the in-card toggle; **N8** one level deep on a Page is an open Compact, bar a loadout or ability tree (R39).
 - **E7** Modes fill slots, never change anatomy (C9). **E8** A header-only Compact never expands in place (ruleset §1.5).

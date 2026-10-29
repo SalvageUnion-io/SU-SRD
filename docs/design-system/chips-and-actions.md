@@ -40,4 +40,4 @@ A strip is a Mini, a Compact or Full head, or a TitledBox or Slab header.
 ## Built as
 
 - **A narrow head** — the fill (C2b) keeps the Tech Level, the cost and the slots beside the name and moves what does not fit into the body's first row, left-aligned (a header-only head: behind +MORE); a Mini's or Compact's name then ends in "…", a Full's or Page's wraps only when not even those fit beside its one line.
-- **A Mini with actions** — a `div` whose name cut-out is the link and the Peek trigger, so no button sits inside a link.
+- **A Mini with actions** — a `div` whose name cut-out is the link and the Peek trigger, stretched over the pill (E6), so no button sits inside a link.
