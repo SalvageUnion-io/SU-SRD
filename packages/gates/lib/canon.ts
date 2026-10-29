@@ -17,7 +17,7 @@
  * Not every gate fails a PR: an e2e spec without the `@pr` tag runs only in
  * the nightly job, and a rule in `apps/web/e2e/_pendingRules.ts` reports
  * under a ceiling. `gateTier` says which, and `--list` prints it beside the
- * gate (`R40  _chipStrips.ts#align (pending)`).
+ * gate (`R12  _typeFloor.ts (nightly)`).
  */
 
 import { existsSync, readFileSync } from 'node:fs'
@@ -226,8 +226,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R37: ['_chipStrips.ts#taller', '_chipStrips.ts#overflow', 'chipFill.test.ts', 'chipFit.test.ts'],
   R38: ['chrome-tokens/entity-frame-ink', '_entityFrames.ts'],
   R39: ['_nestingDepth.ts#N8'],
-  R40: ['_chipStrips.ts#align', '_pendingRules.ts#R40'],
-  R41: ['_siblingHeights.ts#tab-size', '_pendingRules.ts#R41'],
+  R40: ['_chipStrips.ts#align'],
+  R41: ['_siblingHeights.ts#tab-size'],
   R42: ['_entityFrames.ts#bottom-edge', 'DocPanel.test.tsx'],
   R43: [
     '_pageWhole.ts#fold',

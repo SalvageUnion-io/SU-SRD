@@ -20,7 +20,7 @@ const AUTHORED_LEAD_KEYS = new Set(AUTHORED_LEADS.map((d) => `${d.name}\n${d.tex
 export function ruling(
   item: Pick<ProseItem, 'kind' | 'file' | 'entityName' | 'text'>,
   repeats: number
-): Omit<LockEntry, 'hash'> | undefined {
+): Omit<LockEntry, 'hash' | 'stamp'> | undefined {
   const suffixBase = item.text.match(OWNER_SUFFIX)?.[1]
   if (item.kind === 'name')
     return PRINTED_NAMES.has(item.text) || (suffixBase && PRINTED_NAMES.has(suffixBase))

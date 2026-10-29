@@ -16,6 +16,7 @@ import {
   extractVisibleActions,
   getBookPatterns,
   getChassisAbilities,
+  isChassis,
   isTitanicAction,
   vehicleSystemNames,
 } from 'salvageunion-reference'
@@ -107,19 +108,16 @@ export function resolveNestedSections({
   const droneInfos: DroneLoadout[] = canExpand
     ? pattern
       ? resolvePatternDrones(pattern)
-      : schemaName === 'chassis'
+      : isChassis(entity)
         ? [resolveChassisDrone(entity)].filter((d): d is DroneLoadout => d !== undefined)
         : []
     : []
 
   // THIS card's own drone loadout (when it IS a drone, or a vehicle): the
-  // parent-provided `droneLoadout`, else its own systems/modules. Rendered as
-  // listings INSIDE this card's body — never leaked to the parent (chassis) body.
-  const ownDroneLoadout =
-    droneLoadout ??
-    ((schemaName === 'drones' || schemaName === 'vehicles') && canExpand
-      ? resolveDroneOwnLoadout(entity)
-      : undefined)
+  // parent-provided `droneLoadout`, else its own systems/modules, which are
+  // empty for anything else. Rendered as listings INSIDE this card's body —
+  // never leaked to the parent (chassis) body.
+  const ownDroneLoadout = droneLoadout ?? (canExpand ? resolveDroneOwnLoadout(entity) : undefined)
 
   return {
     canExpand,

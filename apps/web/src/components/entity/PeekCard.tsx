@@ -1,5 +1,5 @@
 import type { RefEntity } from 'salvageunion-reference'
-import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
+import { getChassisAbilities, isChassis, SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { schemaOf } from '../referenceEntity/card/cardHelpers'
 import { ActionMinis } from '../referenceEntity/card/NestedCards'
@@ -69,7 +69,7 @@ const PEEK_HIDE = { patterns: true }
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
 export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
-  const chassis = schemaOf(entity) === 'chassis'
+  const chassis = isChassis(entity)
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard

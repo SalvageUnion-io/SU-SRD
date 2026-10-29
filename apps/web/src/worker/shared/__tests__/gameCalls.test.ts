@@ -60,6 +60,13 @@ function world(over: Partial<CallDeps> = {}) {
     games.set(gameId, stub)
     return stub
   }
+  /** The Games each account room noted, by Discord id. */
+  const noted = new Map<string, Set<string>>()
+  const notesOf = (discordId: string) => {
+    const known = noted.get(discordId) ?? new Set<string>()
+    noted.set(discordId, known)
+    return known
+  }
   const deps: CallDeps = {
     db,
     game,
@@ -71,6 +78,12 @@ function world(over: Partial<CallDeps> = {}) {
           actor === discordId && actor === ORG.discordId
             ? { displayName: 'Org', avatarUrl: null }
             : null,
+        joinedGame: async (gameId: string) => {
+          notesOf(discordId).add(gameId)
+        },
+        leftGame: async (gameId: string) => {
+          notesOf(discordId).delete(gameId)
+        },
       }) as never,
     bot: undefined,
     newId: () => `id-${++ids}`,
@@ -85,7 +98,7 @@ function world(over: Partial<CallDeps> = {}) {
     if (answer === null || !answer.ok) throw new Error(JSON.stringify(answer))
     return answer.value
   }
-  return { db, deps, call, game }
+  return { db, deps, call, game, notesOf }
 }
 
 describe('the Games calls', () => {
@@ -115,6 +128,18 @@ describe('the Games calls', () => {
     expect(await call('games.get', { gameId }, PLAYER)).toMatchObject({ mediator: true })
     const reset = await gameCall('invites.reset', { gameId }, PLAYER, deps)
     expect(reset).toEqual({ ok: false, refusal: 'Only the Organiser can do that' })
+  })
+
+  test('each account room notes the Games its player starts or joins, and not a refused start', async () => {
+    const { call, deps, notesOf } = world()
+    const gameId = (await call('games.create', { name: 'Tenacity' })) as string
+    const fromTemplate = (await call('templates.createGame', {
+      templateId: 'starter-set',
+    })) as string
+    await call('invites.redeem', { code: await call('invites.link', { gameId }) }, PLAYER)
+    expect(await gameCall('games.create', { name: ' ' }, ORG, deps)).toMatchObject({ ok: false })
+    expect([...notesOf(ORG.discordId)]).toEqual([gameId, fromTemplate])
+    expect([...notesOf(PLAYER.discordId)]).toEqual([gameId])
   })
 
   test('a Game from the Starter Set lists its crew unassigned, aboard its crawler', async () => {
@@ -208,6 +233,8 @@ describe('where a unit is, and a move between rooms', () => {
   const shelf = (calls: string[], accept: () => void = () => {}) => ({
     unit: async (_actor: string, id: string) => (id === 'shelf-1' ? { id, kind: 'pilot' } : null),
     profile: async () => null,
+    joinedGame: async () => {},
+    leftGame: async () => {},
     offer: async () => {
       calls.push('offer')
       return { unitId: 'shelf-1' }

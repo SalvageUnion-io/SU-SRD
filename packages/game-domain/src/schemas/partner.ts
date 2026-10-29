@@ -85,6 +85,14 @@ export const PartnerInstanceSchema = z
      */
     techLevelOverride: z.number().int().min(1).max(6).optional(),
 
+    /**
+     * Absolute pinned maxima (ADR-022, Free Edit), the mech's `max*Override`
+     * for a partner: absent reads as the tech-level derivation.
+     */
+    maxSpOverride: z.number().int().nonnegative().optional(),
+    maxEpOverride: z.number().int().nonnegative().optional(),
+    maxHeatOverride: z.number().int().nonnegative().optional(),
+
     /** Current structure points. Absent reads as the derived maximum. */
     currentSP: z.number().int().min(0).optional(),
 

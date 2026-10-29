@@ -1,7 +1,7 @@
 import { test } from '@playwright/test'
 
 /**
- * Rules whose screens do not hold them yet (hard-rules.md R40 and R41). A gate
+ * Rules whose screens do not hold them yet (hard-rules.md, "pending"). A gate
  * finds them like any other rule, but reports them on its test (an annotation
  * per rule, with a count and the first findings) and fails on them only past
  * their `ceiling`: the most findings one gate's walk may make of the rule. The
@@ -14,13 +14,7 @@ import { test } from '@playwright/test'
  * Keyed by the finding's rule (`_findings.ts`). `packages/gates/lib/canon.ts`
  * reads these keys, so `bun run check canon --list` marks the gates pending.
  */
-const PENDING_RULES: Readonly<Record<string, { law: string; ceiling: number }>> = {
-  align: {
-    law: 'R40 (EDL E22): a name and its title cut-out sit at the left of their head',
-    ceiling: 0,
-  },
-  'tab-size': { law: "R41 (§4.7): a Button beside Tabs is the Tabs' Size", ceiling: 28 },
-}
+const PENDING_RULES: Readonly<Record<string, { law: string; ceiling: number }>> = {}
 
 /**
  * The findings that fail: every one whose rule is not pending, and every one

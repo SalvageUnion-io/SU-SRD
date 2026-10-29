@@ -25,6 +25,7 @@ import type {
   BotUsageResult,
   GamesResult,
   MeResult,
+  UnbindChannelArgs,
   UnbindChannelResult,
 } from 'game-domain/botWire'
 import type { SheetTable } from 'game-domain/entityKinds'
@@ -108,6 +109,11 @@ async function callerGame(db: SharedDb, discordId: string, raw: string): Promise
   return named?.gameId ?? null
 }
 
+/** Whether the caller holds Manage Channels where they ran it; undefined outside a server. */
+function manageChannelsOf(args: { manageChannels?: unknown }): boolean | undefined {
+  return typeof args.manageChannels === 'boolean' ? args.manageChannels : undefined
+}
+
 async function bind(
   db: SharedDb,
   args: BindChannelArgs
@@ -125,16 +131,17 @@ async function bind(
     channelId,
     gameId,
     channelName: args.channelName ?? null,
+    manageChannels: manageChannelsOf(args),
   })
 }
 
 async function unbind(
   db: SharedDb,
-  args: { discordId: string; channelId: string }
+  args: UnbindChannelArgs
 ): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
   const account = await accountByDiscordId(db, args.discordId)
   if (account === null) return botDenial('unlinked')
-  return unbindChannel(db, args.discordId, args.channelId.trim())
+  return unbindChannel(db, args.discordId, args.channelId.trim(), manageChannelsOf(args))
 }
 
 /** One op's answer, or null when the site cannot answer it (no database, or a room that fails). */
@@ -157,7 +164,7 @@ export async function answerBot(
     case 'bindChannel':
       return bind(db, args as BindChannelArgs)
     case 'unbindChannel':
-      return unbind(db, args as { discordId: string; channelId: string })
+      return unbind(db, args as UnbindChannelArgs)
     case 'mine':
       return rooms ? fromRooms(() => mine(db, rooms, String(args.discordId))) : null
     case 'sheet':

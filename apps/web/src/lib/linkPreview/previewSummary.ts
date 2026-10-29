@@ -15,7 +15,7 @@
  */
 
 import { PRODUCT } from 'game-domain/product'
-import type { OgCardProps } from '../../components/index'
+import type { OgCardProps } from '../../components/compositions/ogCardText'
 import { color } from '../../design/tokens'
 
 /** The kinds of player thing a link previews. */

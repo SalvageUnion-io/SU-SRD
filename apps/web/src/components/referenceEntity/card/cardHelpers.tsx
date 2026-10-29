@@ -13,6 +13,7 @@ import type {
   RefObjectChoice,
   RefObjectContentBlock,
 } from 'salvageunion-reference'
+import { isChassis, isVehicle } from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type {
   CardTitleTag,
@@ -35,11 +36,8 @@ export function schemaOf(entity: RefMetaEntity): RefEnumSchemaName | 'actions' |
  * What a card's own `[(CHASSIS)]` tokens read: a chassis's name, or a vehicle's
  * (the E-Boat's item reuses the Kraken's chassis text); nothing otherwise.
  */
-export function chassisMiniName(
-  schemaName: RefEnumSchemaName | 'actions',
-  name: string
-): string | undefined {
-  return schemaName === 'chassis' || schemaName === 'vehicles' ? name : undefined
+export function chassisMiniName(entity: RefMetaEntity, name: string): string | undefined {
+  return isChassis(entity) || isVehicle(entity) ? name : undefined
 }
 
 /**

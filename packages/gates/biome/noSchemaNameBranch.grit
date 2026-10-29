@@ -1,0 +1,43 @@
+// A card customises by slot and reads an entity's shape, never its schema's
+// name (.claude/rules/display-system.md): `isChassis(entity)`, `'coreTrees' in
+// data`, not `schemaName === 'chassis'`. Shape guards live in
+// salvageunion-reference's `entityGuards.ts`. This matches a comparison of a
+// `schemaName` (bare, as a member, or `schemaOf(…)`) with a string literal,
+// either way round. `'actions'` stays allowed: it is the virtual schema an
+// action record names, not a data schema.
+language js(typescript, jsx)
+
+or {
+  or {
+    `$subject === $literal`,
+    `$subject !== $literal`
+  } where {
+    $subject <: or {
+      `schemaName`,
+      `$owner.schemaName`,
+      `schemaOf($entity)`
+    },
+    $literal <: r"^['\"][^'\"]*['\"]$",
+    not $literal <: or {
+      `'actions'`,
+      `"actions"`
+    }
+  },
+  or {
+    `$text === $named`,
+    `$text !== $named`
+  } where {
+    $named <: or {
+      `schemaName`,
+      `$owner.schemaName`,
+      `schemaOf($entity)`
+    },
+    $text <: r"^['\"][^'\"]*['\"]$",
+    not $text <: or {
+      `'actions'`,
+      `"actions"`
+    }
+  }
+} as $compare where {
+  register_diagnostic(span=$compare, message="Branch on an entity's shape, not its schema name: use a guard from salvageunion-reference (isChassis, isAbility, isCrawler, …), adding one to lib/entityGuards.ts if none fits.", severity="error")
+}

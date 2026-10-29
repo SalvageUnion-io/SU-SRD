@@ -13,6 +13,8 @@ import { testDb } from './d1'
 const WHO = { accountId: 'u-1', discordId: 'd-1' }
 let db: ReturnType<typeof testDb>
 let calls: string[]
+/** The Games the player's account room noted. */
+let noted: string[]
 
 function seed() {
   db.sqlite.exec(`
@@ -54,6 +56,7 @@ function deps(overrides: Partial<AccountDeletionDeps> = {}): AccountDeletionDeps
       },
     }),
     account: (discordId) => ({
+      gameIds: async () => noted,
       forget: async (actor) => {
         calls.push(`wipe ${discordId} as ${actor}`)
       },
@@ -67,6 +70,7 @@ const left = (sql: string) => db.sqlite.query(sql).all()
 beforeEach(() => {
   db = testDb()
   calls = []
+  noted = ['g-shared']
   seed()
 })
 
@@ -99,9 +103,18 @@ describe('deleteRoomAccount', () => {
     expect(left('select sender from feedback')).toEqual([{ sender: 'discord:d-2' }])
   })
 
+  test('a Game only their account room noted forgets them too', async () => {
+    // The publish that would have filed the membership never landed.
+    db.sqlite.run("delete from memberships where game_id = 'g-shared' and discord_id = 'd-1'")
+    expect(await deleteRoomAccount(WHO, deps())).toBeNull()
+    expect(calls).toContain('forget g-shared d-1')
+    expect(calls.filter((c) => c === 'forget g-shared d-1')).toHaveLength(1)
+  })
+
   test('a second run finds nothing left and still answers null', async () => {
     await deleteRoomAccount(WHO, deps())
     calls = []
+    noted = []
     expect(await deleteRoomAccount(WHO, deps())).toBeNull()
     expect(calls).toEqual(['wipe d-1 as d-1'])
   })
@@ -110,6 +123,7 @@ describe('deleteRoomAccount', () => {
     const refusing = (error: Error) =>
       deps({
         account: () => ({
+          gameIds: async () => [],
           forget: async () => {
             throw error
           },

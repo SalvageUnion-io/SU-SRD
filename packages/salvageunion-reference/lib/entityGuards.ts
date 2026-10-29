@@ -1,14 +1,28 @@
 /**
- * Type guards over reference data.
+ * Type guards over reference data, read off each record's shape so a consumer
+ * branches on what an entity carries rather than on its schema's name.
  *
- * There is no shape guard for a System versus a Module: they share one schema,
- * and the only field that distinguishes them is the `schemaName` stamped at
- * load time, so the discriminant is `entity.schemaName === 'systems'`.
+ * There is no shape guard for a System versus a Module (`isSystemOrModule`
+ * covers both): they share one schema, and the only field that distinguishes
+ * them is the `schemaName` stamped at load time, so the discriminant is
+ * `entity.schemaName === 'systems'`. A Vehicle and a Drone are the same
+ * mechanical stat block; `isVehicle` reads the stamp for the same reason.
  *
  * The package barrel (`lib/index.ts`) re-exports, by name, only what consumers import.
  */
 
-import type { RefAbility, RefClass, RefMetaEntity, RefObjectAdvancedClass } from './schemas/index'
+import type {
+  RefAbility,
+  RefChassis,
+  RefClass,
+  RefCrawler,
+  RefCrawlerBay,
+  RefMetaEntity,
+  RefModule,
+  RefObjectAdvancedClass,
+  RefSystem,
+  RefVehicle,
+} from './schemas/index'
 
 // ============================================================================
 // TYPE GUARDS - Schema-specific
@@ -57,4 +71,36 @@ export function isBaseAdvancedClass(entity: RefMetaEntity): entity is RefObjectA
     'hybrid' in entity &&
     entity.hybrid === true
   )
+}
+
+/** A Chassis: the one schema with `chassisAbilities`, which every chassis states. */
+export function isChassis(entity: RefMetaEntity): entity is RefChassis {
+  return 'chassisAbilities' in entity
+}
+
+/** A Crawler type: its commander `npc` and its `actions`, both required. */
+export function isCrawler(entity: RefMetaEntity): entity is RefCrawler {
+  return 'npc' in entity && 'actions' in entity
+}
+
+/**
+ * A Crawler Bay: a crew `npc`, a `damagedEffect` or the `expansion` tag (every
+ * bay states it), and never `actions`, which is what separates its crew from a
+ * crawler's commander.
+ */
+export function isCrawlerBay(entity: RefMetaEntity): entity is RefCrawlerBay {
+  return (
+    !('actions' in entity) &&
+    ('expansion' in entity || 'npc' in entity || 'damagedEffect' in entity)
+  )
+}
+
+/** A System or a Module: the two schemas that state `slotsRequired`. */
+export function isSystemOrModule(entity: RefMetaEntity): entity is RefSystem | RefModule {
+  return 'slotsRequired' in entity
+}
+
+/** A Vehicle. No field separates it from a Drone, so this reads the load-time stamp. */
+export function isVehicle(entity: RefMetaEntity): entity is RefVehicle {
+  return 'schemaName' in entity && entity.schemaName === 'vehicles'
 }

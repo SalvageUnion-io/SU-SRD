@@ -5,9 +5,9 @@
 
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
+import { MEMBER_HEADER, SEAT_HEADER } from './room'
 import type { GameRoomStub } from './roomStubs'
 import { rooms } from './roomStubs'
-import { MEMBER_HEADER, SEAT_HEADER } from './rooms'
 import type { SharedDb } from './shared/db'
 import { crossOrigin } from './shared/refusals'
 

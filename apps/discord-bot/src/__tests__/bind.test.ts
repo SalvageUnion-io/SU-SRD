@@ -77,11 +77,13 @@ describe('/su bind', () => {
       userId: 'discord-me',
       channelId: 'channel-1',
       channelName: 'salvage-run',
+      manageChannels: true,
       strings: { game: 'game-1' },
     })
     await bindCommand.execute(interaction)
-    // The channel's name rides beside its id, so Play can show `#salvage-run`.
-    expect(asked).toEqual(['discord-me', 'channel-1', 'game-1', 'salvage-run'])
+    // The channel's name rides beside its id, so Play can show `#salvage-run`;
+    // the caller's Manage Channels rides too, for the site to check.
+    expect(asked).toEqual(['discord-me', 'channel-1', 'game-1', 'salvage-run', true])
     expect(deferred).toEqual({ called: true, ephemeral: true })
     expect(followUps[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
@@ -98,7 +100,7 @@ describe('/su bind', () => {
     )
     const { interaction, followUps } = fakeExecute({ subcommand: 'bind', userId: 'discord-me' })
     await bindCommand.execute(interaction)
-    expect(asked).toEqual(['discord-me', 'channel-1', null, 'salvage-run'])
+    expect(asked).toEqual(['discord-me', 'channel-1', null, 'salvage-run', null])
     expect(followUps).toHaveLength(1)
   })
 
@@ -157,6 +159,18 @@ describe('/su bind', () => {
     const { interaction, edits } = fakeExecute({ subcommand: 'bind' })
     await bindCommand.execute(interaction)
     expect(edits[0]?.content).toContain('could not be reached')
+  })
+
+  test('in a server, without Manage Channels it refuses privately and calls nothing', async () => {
+    restore = setSiteClient(client({}))
+    const { interaction, replies, deferred } = fakeExecute({
+      subcommand: 'bind',
+      manageChannels: false,
+    })
+    await bindCommand.execute(interaction)
+    expect(deferred.called).toBe(false)
+    expect(replies[0]?.flags).toBe(MessageFlags.Ephemeral)
+    expect(replies[0]?.content).toContain('Manage Channels')
   })
 
   test('with no channel to bind it asks for one and calls nothing', async () => {
@@ -224,9 +238,11 @@ describe('/su unbind', () => {
       subcommand: 'unbind',
       userId: 'discord-me',
       channelId: 'channel-9',
+      manageChannels: false,
     })
     await suCommand.execute(interaction)
-    expect(asked).toEqual(['discord-me', 'channel-9'])
+    // Without Manage Channels it still asks: whoever bound the channel may unbind it.
+    expect(asked).toEqual(['discord-me', 'channel-9', false])
     expect(followUps[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
   })
 

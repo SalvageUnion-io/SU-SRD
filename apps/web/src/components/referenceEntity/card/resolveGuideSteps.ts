@@ -1,11 +1,10 @@
 import type {
   RefEntity,
-  RefEnumSchemaName,
   RefMetaEntity,
   RefObjectGuideStep,
   RefObjectTable,
 } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { isAbility, isSystemOrModule, SalvageUnionReference } from 'salvageunion-reference'
 
 /**
  * Resolve a guide's `steps` into everything the card needs to RENDER them.
@@ -89,18 +88,15 @@ function getCoreTreeNames(): Set<string> {
  *   "Choose your first Ability" filters on it; without this the step would
  *   list all 103 abilities instead of the level-1 core ones.
  */
-export function enrichForFiltering(
-  entity: Record<string, unknown>,
-  schemaName: RefEnumSchemaName
-): Record<string, unknown> {
-  if ((schemaName === 'systems' || schemaName === 'modules') && Array.isArray(entity.actions)) {
-    const hasDamage = (entity.actions as string[]).some((name) => {
+export function enrichForFiltering(entity: RefEntity): Record<string, unknown> {
+  if (isSystemOrModule(entity)) {
+    const hasDamage = entity.actions.some((name) => {
       const action = SalvageUnionReference.Actions.getByName(name)
       return action?.damage !== undefined
     })
     return { ...entity, hasDamage }
   }
-  if (schemaName === 'abilities' && typeof entity.tree === 'string') {
+  if (isAbility(entity)) {
     const { tree } = entity
     const treeType =
       tree === 'Generic'
@@ -133,9 +129,7 @@ function resolveStepEntities(step: RefObjectGuideStep): RefEntity[] {
   const filters = step.filters ?? []
   const passes = (entity: RefEntity): boolean =>
     filters.length === 0 ||
-    filters.every((filter) =>
-      matchesFilter(enrichForFiltering(entity as Record<string, unknown>, schemaName), filter)
-    )
+    filters.every((filter) => matchesFilter(enrichForFiltering(entity), filter))
 
   if (!step.schemaEntities || step.schemaEntities.length === 0) {
     return SalvageUnionReference.findAllIn(schemaName, passes) as RefEntity[]

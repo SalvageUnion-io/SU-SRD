@@ -113,4 +113,14 @@ describe('the account room’s other doors', () => {
     room.accept(parcel(PLAYER, 'pilot', 'p2', bodies.pilot('p2')), PLAYER, 1)
     expect(room.unitsFor(PLAYER).map((u) => u.id)).toEqual(['p2'])
   })
+
+  test('keeps the Games its player joins until each ends, and forgets them with the account', async () => {
+    const { room } = shelf()
+    room.joinedGame('g1')
+    room.joinedGame('g2')
+    room.leftGame('g1')
+    expect(room.gameIds()).toEqual(['g2'])
+    await room.forget(PLAYER)
+    expect(room.gameIds()).toEqual([])
+  })
 })

@@ -37,6 +37,7 @@ import type {
 import {
   ApplicationCommandOptionType,
   InteractionResponseType,
+  PermissionFlagsBits,
   Routes,
 } from 'discord-api-types/v10'
 import type {
@@ -193,6 +194,8 @@ type RawActor = {
   /** The partial channel Discord sends beside (and, in newer payloads, instead of) `channel_id`. */
   channel?: { id?: string; name?: string | null } | null
   member?: {
+    /** The member's permissions in this channel, overwrites applied: a decimal bitfield. */
+    permissions?: string
     nick?: string | null
     user?: { id: string; global_name?: string | null; username?: string }
   }
@@ -210,6 +213,24 @@ function actorOf(raw: RawActor): Pick<CommandExecuteInteraction, 'user'> {
   return {
     user: { id: raw.member?.user?.id ?? raw.user?.id ?? '', displayName: displayNameOf(raw) },
   }
+}
+
+/**
+ * Whether the member holds Manage Channels where the command ran (an
+ * Administrator holds every permission); null outside a server, which sends no
+ * member. A bitfield that does not parse holds nothing.
+ */
+function manageChannelsOf(raw: RawActor): boolean | null {
+  const permissions = raw.member?.permissions
+  if (raw.member === undefined) return null
+  let bits: bigint
+  try {
+    bits = BigInt(permissions ?? '0')
+  } catch {
+    return false
+  }
+  const grants = PermissionFlagsBits.ManageChannels | PermissionFlagsBits.Administrator
+  return (bits & grants) !== 0n
 }
 
 function replyMembers(ctx: AdapterContext) {
@@ -314,6 +335,7 @@ export function makeExecuteInteraction(ctx: AdapterContext): CommandExecuteInter
     ...actorOf(raw),
     channelId: raw.channel_id ?? raw.channel?.id ?? null,
     channelName: raw.channel?.name ?? null,
+    manageChannels: manageChannelsOf(raw),
     targetMessage: targetMessageOf(raw.data),
     ...replyMembers(ctx),
   } as CommandExecuteInteraction

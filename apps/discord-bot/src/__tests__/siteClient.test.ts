@@ -96,9 +96,20 @@ describe('the gateway', () => {
       { discordId: 'd1', channelId: 'ch1' },
     ],
     [
+      'bindChannel',
+      // In a server: whether the caller holds Manage Channels there.
+      (c: Client) => c.bindChannel('d1', 'ch1', null, null, false),
+      { discordId: 'd1', channelId: 'ch1', manageChannels: false },
+    ],
+    [
       'unbindChannel',
       (c: Client) => c.unbindChannel('d1', 'ch1'),
       { discordId: 'd1', channelId: 'ch1' },
+    ],
+    [
+      'unbindChannel',
+      (c: Client) => c.unbindChannel('d1', 'ch1', true),
+      { discordId: 'd1', channelId: 'ch1', manageChannels: true },
     ],
   ])('%s sends the arguments the site reads', async (op, call, expected) => {
     // The one untyped seam: the gateway reads these by name, so a renamed

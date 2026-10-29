@@ -59,6 +59,8 @@ export type FakeExecuteOptions = {
   channelId?: string | null
   /** That channel's name; `salvage-run` by default. */
   channelName?: string | null
+  /** Whether the member holds Manage Channels there; null (a DM) by default. */
+  manageChannels?: boolean | null
 }
 
 export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
@@ -89,6 +91,7 @@ export function fakeExecute(options: FakeExecuteOptions = {}): FakeExecute {
     user: { id: options.userId ?? 'discord-tester', displayName: options.displayName },
     channelId: options.channelId === undefined ? 'channel-1' : options.channelId,
     channelName: options.channelName === undefined ? 'salvage-run' : options.channelName,
+    manageChannels: options.manageChannels ?? null,
     targetMessage: options.targetMessage ?? null,
     reply: (arg: ReplyArg) => {
       replies.push(arg)

@@ -112,6 +112,23 @@ describe('answerBot', () => {
     })
   })
 
+  it('passes Manage Channels through to the binding rules', async () => {
+    const db = await filled()
+    signedIn(db, { accountId: 'acct-tam', discordId: 'd-tam', name: 'tam' })
+    const bind = { discordId: 'd-rosa', channelId: 'c-1' }
+    expect(await answerBot(db, 'bindChannel', { ...bind, manageChannels: false })).toMatchObject({
+      reason: 'forbidden',
+    })
+    expect(await answerBot(db, 'bindChannel', { ...bind, manageChannels: true })).toMatchObject({
+      ok: true,
+    })
+    const unbind = { discordId: 'd-tam', channelId: 'c-1' }
+    expect(await answerBot(db, 'unbindChannel', unbind)).toMatchObject({ reason: 'forbidden' })
+    expect(await answerBot(db, 'unbindChannel', { ...unbind, manageChannels: true })).toMatchObject(
+      { ok: true, unbound: { channelId: 'c-1' } }
+    )
+  })
+
   it('cannot answer the rooms’ ops without the rooms', async () => {
     const db = await filled()
     for (const op of ['sheet', 'mine'] as const) {

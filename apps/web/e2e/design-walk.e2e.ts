@@ -167,8 +167,7 @@ function designGates(page: Page): Gate[] {
        *   computed size times every scale above it. Play is swept again in a
        *   mid-size window (`MID`, 1024 × 700), on the `lg` rung, where its
        *   three columns are at their narrowest.
-       * - `tab-size` (pending, `_pendingRules.ts`): a Button beside Tabs is the
-       *   Tabs' Size.
+       * - `tab-size`: a Button beside Tabs is the Tabs' Size (R41).
        * Then, under a coarse pointer (a touch phone), every menu item a seeded
        * page opens is on the 44px floor (§4.6): the Training Bay's ⋯ and the
        * Play bar's.

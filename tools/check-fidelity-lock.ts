@@ -7,7 +7,7 @@
  * every gate. The books cannot reach CI — they are gitignored, copyright-
  * bearing PDFs — so the comparison itself runs locally
  * (`check-rules-fidelity.ts`) and records its verdict for every string in the
- * lock, as a hash of the data's text plus a verdict code. No book text.
+ * lock, as a hash of the data's text, a stamp and a verdict code. No book text.
  *
  * The numbers are held the same way: every stat block (`gates/lib/statFidelity.ts`
  * — a chassis' stats, a pattern's parts, a System's Tech Level, an action's
@@ -22,15 +22,21 @@
  *     and commit the lock;
  *   - an entry names a string that no longer exists (`--prune` drops these,
  *     with no book needed: removing a string verifies nothing);
- *   - an entry does not parse — the narrow format is what keeps book text out.
+ *   - an entry does not parse — the narrow format is what keeps book text out,
+ *     and an entry without its 12-hex stamp is one the books never produced.
  *
  * A recorded drift verdict passes, so it can be scheduled; what the gate
  * refuses is prose nobody has compared, and more of it than before: the
  * `deviation`, `unverified` and `unverified-source` counts ratchet against
  * `tools/baselines/fidelity.json`, so a paraphrase recorded as `deviation`
  * fails rather than landing quietly. A count only falls (`--update-baseline`);
- * a rise needs `--allow-increase` and the reason in the PR. A hand-written
- * `verbatim` line still parses: review holds that, as the lock is generated.
+ * a rise needs `--allow-increase` and the reason in the PR.
+ *
+ * A stamp hashes the verdict with the book passage it was reached on
+ * (`fidelityStamp`), so only the books can check its value: a hand-written
+ * `verbatim` line with a made-up stamp passes here and fails
+ * `bun tools/check-rules-fidelity.ts --verify` (the `rules-fidelity-books`
+ * check, wherever the extract or the su-rules checkout is present).
  *
  * Run:  bun tools/check-fidelity-lock.ts [--prune | --update-baseline [--allow-increase]]
  */

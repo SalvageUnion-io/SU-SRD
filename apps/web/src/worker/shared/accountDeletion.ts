@@ -3,6 +3,8 @@
  *
  *  1. Each Game they are in forgets them: their units go, the Organizer flag
  *     passes on, and a Game left with nobody ends (its channel binding too).
+ *     Their Games are those their account room noted and those the shared
+ *     database's memberships name, so a Game whose rows never landed is found.
  *  2. Their account room is wiped: their Shelf, solo table and tray.
  *  3. What the shared database holds of theirs goes, in one batch: public
  *     sheets, Homebrew (and its reports and moderation), crew patterns,
@@ -17,12 +19,13 @@ import { RoomRefusal } from '../../rooms/refusal'
 import type { Identity } from '../auth/index'
 import type { GameRoomStub } from '../roomStubs'
 import type { SharedDb } from './db'
+import { membershipGameIds } from './games'
 
 /** The shared database and the rooms by name: `rooms().GameRoom` / `.AccountRoom.getByName`. */
 export type AccountDeletionDeps = {
   db: SharedDb
   game(gameId: string): Pick<GameRoomStub, 'forget' | 'republish'>
-  account(discordId: string): { forget(actor: string): Promise<void> }
+  account(discordId: string): { gameIds(): Promise<string[]>; forget(actor: string): Promise<void> }
 }
 
 /**
@@ -36,11 +39,12 @@ export async function deleteRoomAccount(
   const { db } = deps
   const { discordId } = who
   try {
-    const { results } = await db
-      .prepare('select game_id from memberships where discord_id = ?1')
-      .bind(discordId)
-      .all<{ game_id: string }>()
-    for (const { game_id: gameId } of results) {
+    const account = deps.account(discordId)
+    const gameIds = new Set([
+      ...(await account.gameIds()),
+      ...(await membershipGameIds(db, discordId)),
+    ])
+    for (const gameId of gameIds) {
       const room = deps.game(gameId)
       await room.forget(discordId)
       // The Game's rows follow now, so nothing below races its publish: a
@@ -54,7 +58,7 @@ export async function deleteRoomAccount(
         .run()
     }
 
-    await deps.account(discordId).forget(discordId)
+    await account.forget(discordId)
 
     const theirPatterns = 'select app_id from homebrew_patterns where owner_id = ?1'
     await db.batch([

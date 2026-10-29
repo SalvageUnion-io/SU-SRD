@@ -21,8 +21,14 @@ import {
 const ids = (argv: string[]) => selectChecks(CHECKS, parseArgs(argv)).map((c) => c.id)
 
 describe('selection', () => {
-  test('full runs every registered check', () => {
-    expect(ids([])).toEqual(CHECKS.map((c) => c.id))
+  test('full runs every registered check but the nightly-only ones', () => {
+    expect(ids([])).toEqual(CHECKS.filter((c) => c.profiles.join() !== 'nightly').map((c) => c.id))
+  })
+
+  test('nightly runs only the checks too slow for a PR', () => {
+    expect(ids(['--profile=nightly'])).toEqual(['test-order'])
+    for (const p of ['full', 'fast', 'pre-push', 'ci'])
+      expect(ids([`--profile=${p}`])).not.toContain('test-order')
   })
 
   test('generated runs first, before anything that reads what it writes', () => {

@@ -1,5 +1,6 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
+import { AccountGames } from './games'
 import { AccountSharing } from './sharing'
 import { AccountShelf } from './shelf'
 import { AccountSoloArea } from './soloArea'
@@ -12,7 +13,7 @@ import { AccountTransit } from './transit'
  * player's units and what they write; transit is what crosses into a Game
  * and back; the solo area is what their own table
  * is salvaging, and solo its seats and Downtime; sharing is the Shelf's
- * records and who may read them.
+ * records and who may read them; games, the Games the player is in.
  */
 export class AccountRoomLogic {
   readonly shelf: AccountShelf
@@ -20,6 +21,7 @@ export class AccountRoomLogic {
   readonly soloArea: AccountSoloArea
   readonly solo: AccountSoloPlay
   readonly sharing: AccountSharing
+  readonly games: AccountGames
 
   constructor(sql: RoomSql, deps: { applyOp: ApplyOp; newId?: () => string }) {
     this.shelf = new AccountShelf(sql, {
@@ -30,5 +32,6 @@ export class AccountRoomLogic {
     this.solo = new AccountSoloPlay(this.shelf)
     this.transit = new AccountTransit(this.shelf)
     this.sharing = new AccountSharing(this.shelf)
+    this.games = new AccountGames(sql)
   }
 }

@@ -38,6 +38,15 @@ describe('the channel a command ran in', () => {
     expect(interaction.channelName).toBe('salvage-run')
   })
 
+  test('Manage Channels, from the member’s resolved permissions', () => {
+    const member = (permissions: string) => ({ user: { id: 'u1' }, permissions })
+    expect(execute({ member: member('16') }).manageChannels).toBe(true)
+    expect(execute({ member: member('8') }).manageChannels).toBe(true) // Administrator
+    expect(execute({ member: member('2048') }).manageChannels).toBe(false)
+    expect(execute({ member: member('not a number') }).manageChannels).toBe(false)
+    expect(execute({ member: undefined, user: { id: 'u1' } }).manageChannels).toBeNull()
+  })
+
   test('no channel object: the id alone, and no name', () => {
     const interaction = execute({ channel_id: '123' })
     expect(interaction.channelId).toBe('123')

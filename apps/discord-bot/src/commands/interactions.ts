@@ -58,6 +58,12 @@ export type CommandExecuteInteraction = {
    */
   channelName: string | null
   /**
+   * Whether the member holds Manage Channels in that channel, from the
+   * permissions Discord resolves into the interaction (`/su bind` needs it in
+   * a server); null outside a server (a DM), where Discord sends no member.
+   */
+  manageChannels: boolean | null
+  /**
    * The message a message context-menu command was used on, or null for a
    * slash command.
    */

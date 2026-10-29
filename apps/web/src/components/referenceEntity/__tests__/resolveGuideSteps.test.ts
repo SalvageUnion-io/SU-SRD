@@ -110,22 +110,38 @@ describe('matchesFilter', () => {
 })
 
 describe('enrichForFiltering', () => {
+  const abilityIn = (pick: (tree: string) => boolean) => {
+    const ability = SalvageUnionReference.Abilities.all().find((a) => pick(a.tree))
+    if (!ability) throw new Error('no ability in the reference set matches')
+    return ability
+  }
+
   it('classifies an ability tree as core when a class lists it', () => {
-    const coreTree = SalvageUnionReference.Classes.all()
-      .flatMap((c) => (c as { coreTrees?: string[] }).coreTrees ?? [])
-      .find(Boolean)
-    expect(coreTree).toBeDefined()
-    const enriched = enrichForFiltering({ tree: coreTree }, 'abilities')
+    const coreTrees = new Set(
+      SalvageUnionReference.Classes.all().flatMap(
+        (c) => (c as { coreTrees?: string[] }).coreTrees ?? []
+      )
+    )
+    const enriched = enrichForFiltering(abilityIn((tree) => coreTrees.has(tree)))
     expect(enriched.treeType).toBe('core')
   })
 
   it('classifies Generic and Legendary trees', () => {
-    expect(enrichForFiltering({ tree: 'Generic' }, 'abilities').treeType).toBe('generic')
-    expect(enrichForFiltering({ tree: 'Legendary Ace' }, 'abilities').treeType).toBe('legendary')
+    expect(enrichForFiltering(abilityIn((tree) => tree === 'Generic')).treeType).toBe('generic')
+    expect(enrichForFiltering(abilityIn((tree) => tree.startsWith('Legendary'))).treeType).toBe(
+      'legendary'
+    )
   })
 
-  it('leaves entities of other schemas untouched', () => {
-    const input = { tree: 'Generic' }
-    expect(enrichForFiltering(input, 'equipment')).toBe(input)
+  it('marks whether a system deals damage', () => {
+    const [system] = SalvageUnionReference.Systems.all()
+    if (!system) throw new Error('no system in the reference set')
+    expect(typeof enrichForFiltering(system).hasDamage).toBe('boolean')
+  })
+
+  it('leaves entities of other shapes untouched', () => {
+    const [input] = SalvageUnionReference.Equipment.all()
+    if (!input) throw new Error('no equipment in the reference set')
+    expect(enrichForFiltering(input)).toBe(input)
   })
 })

@@ -59,7 +59,8 @@ function page(): PageResult {
               <li>
                 <strong>{pagesCopy('boundChannels')}</strong> (<code>{pagesCopy('suBind')}</code>):
                 the channel’s ID and name, the Game it posts for (or none, for solo play), who bound
-                it and when. <code>{pagesCopy('suUnbind')}</code> deletes it.
+                it and when. <code>{pagesCopy('suUnbind')}</code> deletes it, run by whoever bound
+                it or anyone with Manage Channels in that channel.
               </li>
               <li>
                 <strong>{pagesCopy('rollsFromPlay')}</strong> a roll made on salvageunion.io is

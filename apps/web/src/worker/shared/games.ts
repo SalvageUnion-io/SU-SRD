@@ -39,6 +39,15 @@ export async function gamesOf(db: SharedDb, discordId: string): Promise<MemberGa
   }))
 }
 
+/** The id of every Game the shared database has an account in, whether or not its `games` row is there. */
+export async function membershipGameIds(db: SharedDb, discordId: string): Promise<string[]> {
+  const { results } = await db
+    .prepare('select game_id from memberships where discord_id = ?1')
+    .bind(discordId)
+    .all<{ game_id: string }>()
+  return results.map((row) => row.game_id)
+}
+
 /** One member's place in one Game, or null when they are not in it. */
 export async function membershipOf(
   db: SharedDb,

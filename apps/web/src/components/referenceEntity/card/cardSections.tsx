@@ -7,7 +7,7 @@
  */
 
 import type { ReactNode } from 'react'
-import { resolveTable } from 'salvageunion-reference'
+import { isCrawler, isCrawlerBay, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
@@ -61,7 +61,6 @@ function bodyClassName(hasArt: boolean): string | undefined {
 export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const {
     entity,
-    schemaName,
     pattern,
     entityName,
     resolvedChassisName,
@@ -284,7 +283,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   // open with all its content (N8, R39), as it is where its crew choices are
   // being made.
   const bayCrewPeek =
-    schemaName === 'crawler-bays' && !onSelectionChange && !onPage && typeof entity.id === 'string'
+    isCrawlerBay(entity) && !onSelectionChange && !onPage && typeof entity.id === 'string'
       ? embeddedPeekAddress('crawler-bays', entity.id, 'npc')
       : undefined
   // WHEN DAMAGED — the bay's section above its crew.
@@ -325,9 +324,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
               key={group.label}
               entities={group.entities}
               host={nestedHost}
-              seal={
-                schemaName === 'crawlers' && group.kind === 'npc' ? CRAWLER_NPC_SEAL : undefined
-              }
+              seal={isCrawler(entity) && group.kind === 'npc' ? CRAWLER_NPC_SEAL : undefined}
               write={group.kind === 'npc' ? { selections, onSelectionChange, hide } : undefined}
             />
           )

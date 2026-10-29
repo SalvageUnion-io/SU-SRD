@@ -288,7 +288,9 @@ describe('collectStats', () => {
 
   test('the lock gate holds stat blocks like prose: an edited number is unverified', () => {
     const comment = JSON.parse(serializeLock({ editions: {}, entries: {} })).$comment as string
-    const entries = Object.fromEntries(items.map((i) => [i.key, `${proseHash(i.text)} verbatim`]))
+    const entries = Object.fromEntries(
+      items.map((i) => [i.key, `${proseHash(i.text)} 000000000000 verbatim`])
+    )
     const file = { $comment: comment, editions: {}, entries } as LockFile
     expect(compareWithLock(items, file).unverified).toEqual([])
     const edited = items.map((i) =>
