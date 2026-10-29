@@ -158,9 +158,9 @@ export function useHarnessPlay({
             setDone((d) => (isDone ? [...d, self] : d.filter((m) => m.userId !== ME)))
           },
       doneSteps,
-      // The step's op, with what it applies to the pilot (`patch`).
-      markStepDone: async (i, patch) => {
-        record('downtime.markStepDone', { stepIndex: i, patch })
+      // The step's batch: what it applies to the pilot (`patch`), and the mech's share.
+      markStepDone: async (i, patch, mech) => {
+        record('downtime.markStepDone', { stepIndex: i, patch, ...(mech ? { mech } : {}) })
         if (doneSteps.includes(i)) return false
         setDoneSteps((d) => [...d, i])
         return true
@@ -168,6 +168,10 @@ export function useHarnessPlay({
       spendUpkeep: async () => {
         record('downtime.spendUpkeep')
         return spendUpkeep()
+      },
+      spendNanites: async () => {
+        record('downtime.spendNanites')
+        return true
       },
     },
     canWrite,

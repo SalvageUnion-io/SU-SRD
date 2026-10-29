@@ -11,33 +11,26 @@ test.use({ account: 'anonymous' })
  * Signed out, the app is read-only: a visitor who opens a wizard is asked to sign
  * in instead, so there is never unsaved anonymous work to hand off. This pins
  * both halves — the refusal, and that what is built after signing in is
- * durable — and it is the reason the test-only password provider exists.
- * Without this spec that provider is an auth surface with no consumer, so fix
- * this file rather than delete it: **deleting the spec means deleting the
- * provider too.**
+ * durable — and it is a consumer of the Worker's test sign-in
+ * (`POST /auth/test-sign-in`). Without the specs that sign in, that route is an
+ * auth surface with no consumer, so fix this file rather than delete it.
  *
- * ## What it needs, and why it skips without it
+ * ## What it needs
  *
- * Two things have to line up:
+ * Two things have to line up (`fixtures.ts`, "How it signs in"):
  *
- *  - `TEST_AUTH=true` on the build's deployment, so the `password` provider exists,
+ *  - `TEST_AUTH=true` on the Worker, so `/auth/test-sign-in` answers,
  *  - `VITE_TEST_AUTH=true` in the build, so `TestAuthBridge` registers the seam.
  *
- * The PR-blocking CI suite builds with neither, so this skips there with
- * a stated reason rather than failing — the same trade `app-offline.e2e.ts` makes for
- * the dev-server case: a spec that went red in the ordinary run would be
- * deleted the first time it annoyed somebody.
- *
- * **It runs nightly.** `e2e` in `.github/workflows/e2e-nightly.yml`
- * provides both against a local Worker — state
- * destroyed with the runner, so it needs no credentials and never
- * puts a password provider on production. The same seam signs in every other
- * spec that builds something (`fixtures.ts`): signed out, the app is read-only.
- *
- * That job sets `E2E_EXPECT_AUTH_SEAM`, which turns the skip into a throw.
+ * Both CI tiers carry them against a local Worker (`.github/actions/test-build`
+ * with `test-auth`), with state destroyed with the runner, and both set
+ * `E2E_EXPECT_AUTH_SEAM`, so a lost seam throws there rather than skipping.
+ * This spec is not tagged `@pr`: it runs nightly (`e2e` in
+ * `.github/workflows/e2e-nightly.yml`), with every untagged spec. A build
+ * without the seam (production) skips it with the reason stated.
  *
  * Run it for real against the local Worker (no setup). Playwright starts
- * `bun run dev`, or reuses a running one, which carries all three:
+ * `bun run dev`, or reuses a running one, which carries both:
  *
  *   cd apps/web && bunx playwright test --project=desktop signin-save.e2e.ts
  */

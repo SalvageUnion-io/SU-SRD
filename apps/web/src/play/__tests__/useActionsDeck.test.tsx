@@ -12,7 +12,7 @@
  * real EP cost is picked from the loaded set so the Activate write is exercised.
  */
 
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatResolving } from 'game-domain/schemas/seat'
@@ -105,6 +105,13 @@ const rollFourteen: NonNullable<ActionsDeckProps['rollFor']> = async () => () =>
 async function clickRolling(text: string): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByText(text))
+  })
+}
+
+/** Activate, and let its write land: the resolve moves on only once it has. */
+async function clickActivate(): Promise<void> {
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
   })
 }
 
@@ -213,12 +220,12 @@ describe('the resolve', () => {
     expect(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' })).toBeTruthy()
   })
 
-  test('Activate writes the EP-spend patch through the store', () => {
+  test('Activate writes the EP-spend patch through the store', async () => {
     const mech = makeMech()
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('mech')
     expect(calls[0]?.patch.currentEP).toBe(Math.max(0, 6 - epCost))
@@ -282,7 +289,7 @@ describe('the resolve', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('Hot(X) stepper projects heat and drives the Activate patch', () => {
+  test('Hot(X) stepper projects heat and drives the Activate patch', async () => {
     expect(varHotSystem).toBeTruthy()
     const sys = varHotSystem as { id: string; actionName: string }
     const mech = mechFixture({
@@ -301,7 +308,7 @@ describe('the resolve', () => {
     expect(proj?.textContent).toContain('Heat 1/')
     fireEvent.click(screen.getByLabelText('Increase Hot'))
     expect(container.querySelector('.su-play-deck-hotx-proj')?.textContent).toContain('Heat 2/')
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
     const resolvedSystem = resolveSystem(sys.id)
     if (!resolvedSystem) throw new Error(`unresolved system ${sys.id}`)
     const action = SalvageUnionReference.resolveActions(resolvedSystem)?.find(
@@ -313,7 +320,7 @@ describe('the resolve', () => {
     expect(calls[0]?.patch.currentHeat).toBe(expectedHeat)
   })
 
-  test('EP/AP cost radios: choosing AP spends the pilot AP', () => {
+  test('EP/AP cost radios: choosing AP spends the pilot AP', async () => {
     expect(epApModule).toBeTruthy()
     const mod = epApModule as { id: string; actionName: string }
     const mech = mechFixture({
@@ -345,7 +352,7 @@ describe('the resolve', () => {
     // Both radios render; pick AP, then Activate → a pilot AP spend, not a mech write.
     const apRadio = screen.getByLabelText('1 AP')
     fireEvent.click(apRadio)
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
     expect(calls).toHaveLength(1)
     expect(calls[0]?.type).toBe('pilot')
     expect(calls[0]?.patch.currentAP).toBe(4)
@@ -365,7 +372,7 @@ describe('the resolve', () => {
 describe('the resolve — unrecorded live stats default to full, not empty', () => {
   const CHASSIS = 'leviathan'
 
-  test('Activate spends EP from the full pool when EP was never stored', () => {
+  test('Activate spends EP from the full pool when EP was never stored', async () => {
     const mech = mechFixture({
       id: 'm1',
       name: 'Rig',
@@ -377,7 +384,7 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     const { epCost } = clickPrimaryAction(container)
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
 
     const epMax = mechMaxEP(mech, resolveChassisRef(CHASSIS))
     expect(epMax).toBeGreaterThan(epCost)
@@ -386,7 +393,7 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     expect(calls[0]?.patch.currentEP).toBe(epMax - epCost)
   })
 
-  test('Activate spends AP from the full pool when AP was never stored', () => {
+  test('Activate spends AP from the full pool when AP was never stored', async () => {
     const mod = epApModule as { id: string; actionName: string }
     expect(mod).toBeTruthy()
     const mech = mechFixture({
@@ -416,7 +423,7 @@ describe('the resolve — unrecorded live stats default to full, not empty', () 
     )
     clickActionByName(container, mod.actionName)
     fireEvent.click(screen.getByLabelText('1 AP'))
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
 
     const apMax = pilotMaxAP(pilot)
     expect(apMax).toBeGreaterThan(1)
@@ -557,7 +564,7 @@ describe('the resolve on the seat', () => {
     const written: (SeatResolving | null)[] = []
     const { container } = render(<ActionsDeck mech={mech} store={store} written={written} />)
     clickPrimaryAction(container)
-    fireEvent.click(screen.getByRole('button', { name: /^Activate\b/ }))
+    await clickActivate()
     await clickRolling('Roll the Die')
     fireEvent.click(screen.getByText('Cancel'))
 
@@ -568,6 +575,25 @@ describe('the resolve on the seat', () => {
     expect(written[2]).toMatchObject({ ref: key, activated: true, applied: false })
     expect(written[3]).toBeNull()
     expect(screen.queryByText('Cancel')).toBeNull()
+  })
+
+  test('a refused Activate leaves the resolve unactivated', async () => {
+    const mech = makeMech()
+    const { store } = stubStore(mech)
+    const refusing: PlayStore = {
+      ...store,
+      update: async () => {
+        throw new Error('refused')
+      },
+    }
+    const quiet = spyOn(console, 'error').mockImplementation(() => undefined)
+    const written: (SeatResolving | null)[] = []
+    const { container } = render(<ActionsDeck mech={mech} store={refusing} written={written} />)
+    clickPrimaryAction(container)
+    await clickActivate()
+    quiet.mockRestore()
+    expect(written).toHaveLength(1)
+    expect(written[0]).toMatchObject({ activated: false })
   })
 
   test('a reload mid-resolve keeps the roll: the seat reopens the action on it', () => {

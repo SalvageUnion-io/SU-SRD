@@ -1,6 +1,11 @@
-import { describe, expect, test } from 'bun:test'
+import { afterEach, describe, expect, test } from 'bun:test'
+import { SlashCommandBuilder } from '@discordjs/builders'
 import { InteractionResponseType, InteractionType, MessageFlags } from 'discord-api-types/v10'
+import { commands } from '../../commands/index'
+import type { CommandExecuteInteraction } from '../../commands/interactions'
+import { v2Reply } from '../../container'
 import worker from '../index'
+import { withFetchStub } from './stubFetch'
 
 /**
  * The signed replay harness — the bot's pre-deploy gate (ADR-033).
@@ -71,7 +76,7 @@ async function signedRequest(
   overrides: { signature?: string; timestamp?: string; body?: string } = {}
 ): Promise<Request> {
   const raw = overrides.body ?? JSON.stringify(body)
-  const timestamp = overrides.timestamp ?? '1700000000'
+  const timestamp = overrides.timestamp ?? String(Math.floor(Date.now() / 1000))
   const signature =
     overrides.signature ??
     bytesToHex(
@@ -242,6 +247,21 @@ describe('signature verification', () => {
         signature,
         body: original.replace('"1"', '"999"'),
       }),
+      envFor(keys),
+      ctx
+    )
+
+    expect(res.status).toBe(401)
+  })
+
+  test('a correctly signed request with a stale timestamp is rejected', async () => {
+    // The timestamp is signed, so a captured request replayed later carries
+    // its old one: ten minutes out is outside the window.
+    const keys = await generateKeyPair()
+    const { ctx } = executionContext()
+    const stale = String(Math.floor(Date.now() / 1000) - 10 * 60)
+    const res = await worker.fetch(
+      await signedRequest(interaction.ping(), keys, { timestamp: stale }),
       envFor(keys),
       ctx
     )
@@ -469,5 +489,135 @@ describe('interaction dispatch', () => {
 
     const body = (await res.json()) as { type: number }
     expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
+  })
+})
+
+describe('the error fallbacks', () => {
+  const stubFetch = withFetchStub()
+  const BOOM = 'test-boom'
+  afterEach(() => {
+    commands.delete(BOOM)
+  })
+
+  /** Register a throwaway command that runs `execute`, then throws. */
+  function boom(execute: (interaction: CommandExecuteInteraction) => Promise<void>) {
+    commands.set(BOOM, {
+      data: new SlashCommandBuilder().setName(BOOM).setDescription('throws'),
+      execute: async (interaction) => {
+        await execute(interaction)
+        throw new Error('boom')
+      },
+    })
+  }
+
+  /** Run `/test-boom`, returning the initial response and every REST call it made. */
+  async function run(raw: Record<string, unknown>) {
+    const calls: Array<{ method: string; url: string; body: Record<string, unknown> }> = []
+    stubFetch(async (input, init) => {
+      calls.push({
+        method: init?.method ?? 'GET',
+        url: String(input),
+        body: JSON.parse(String(init?.body)) as Record<string, unknown>,
+      })
+      return Response.json({ id: 'msg' }, { status: 200 })
+    })
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(await signedRequest(raw, keys), envFor(keys), ctx)
+    await settled()
+    return { body: (await res.json()) as { type: number; data?: Record<string, unknown> }, calls }
+  }
+
+  const command = () => ({ ...interaction.command('roll'), data: { id: 'x', name: BOOM, type: 1 } })
+
+  test('a handler that throws before answering gets a private, mention-inert message', async () => {
+    boom(async () => {})
+    const { body } = await run(command())
+    expect(body.type).toBe(InteractionResponseType.ChannelMessageWithSource)
+    expect(body.data).toEqual({
+      content: 'There was an error while executing this command!',
+      flags: MessageFlags.Ephemeral,
+      allowed_mentions: { parse: [] },
+    })
+  })
+
+  test('a deferred handler that throws has its placeholder edited to the error', async () => {
+    boom(async (interaction) => {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral })
+    })
+    const { body, calls } = await run(command())
+    expect(body.type).toBe(InteractionResponseType.DeferredChannelMessageWithSource)
+    expect(calls).toEqual([
+      {
+        method: 'PATCH',
+        url: `https://discord.com/api/v10/webhooks/${APPLICATION_ID}/interaction-token/messages/%40original`,
+        body: {
+          content: 'There was an error while executing this command!',
+          allowed_mentions: { parse: [] },
+        },
+      },
+    ])
+  })
+
+  test('a handler that throws after a container reply gets a container edit, never content', async () => {
+    // Discord refuses plain `content` on a Components V2 message.
+    boom(async (interaction) => {
+      await interaction.reply(v2Reply({ accent: 0, blocks: [{ kind: 'text', content: 'hi' }] }))
+    })
+    const { calls } = await run(command())
+    expect(calls).toHaveLength(1)
+    const edit = calls[0]?.body ?? {}
+    expect(calls[0]?.method).toBe('PATCH')
+    expect(edit.content).toBeUndefined()
+    expect(edit.flags).toBe(MessageFlags.IsComponentsV2)
+    expect(JSON.stringify(edit.components)).toContain('There was an error')
+    expect(edit.allowed_mentions).toEqual({ parse: [] })
+  })
+
+  test('an autocomplete with no handler answers with no choices, not a message', async () => {
+    boom(async () => {})
+    const raw = {
+      ...interaction.autocomplete('roll', 'table', 'x'),
+      data: { id: 'x', name: BOOM, type: 1 },
+    }
+    const { body } = await run(raw)
+    expect(body).toEqual({
+      type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+      data: { choices: [] },
+    })
+  })
+
+  test('an autocomplete that throws answers with no choices', async () => {
+    commands.set(BOOM, {
+      data: new SlashCommandBuilder().setName(BOOM).setDescription('throws'),
+      execute: async () => {},
+      autocomplete: async () => {
+        throw new Error('boom')
+      },
+    })
+    const raw = {
+      ...interaction.autocomplete('roll', 'table', 'x'),
+      data: { id: 'x', name: BOOM, type: 1 },
+    }
+    const { body } = await run(raw)
+    expect(body.type).toBe(InteractionResponseType.ApplicationCommandAutocompleteResult)
+    expect(body.data).toEqual({ choices: [] })
+  })
+})
+
+describe('every reply is mention-inert', () => {
+  test('a command reply carries an empty allowed_mentions', async () => {
+    const keys = await generateKeyPair()
+    const { ctx, settled } = executionContext()
+    const res = await worker.fetch(
+      await signedRequest(interaction.command('lookup', [{ name: 'entity', value: 'mule' }]), keys),
+      envFor(keys),
+      ctx
+    )
+    await settled()
+    const body = (await res.json()) as { data?: Record<string, unknown> }
+    expect(body.data?.allowed_mentions).toEqual({ parse: [] })
+    // The builder's own `data` never reaches Discord.
+    expect(Object.keys(body.data ?? {}).sort()).toEqual(['allowed_mentions', 'components', 'flags'])
   })
 })

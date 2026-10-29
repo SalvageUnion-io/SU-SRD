@@ -6,6 +6,7 @@ import {
 } from './account/schema'
 import {
   GAME_ROOM_CHANGE_LOG,
+  GAME_ROOM_NANITES,
   GAME_ROOM_STAMPS,
   GAME_ROOM_TABLE_STATE,
   GAME_ROOM_TABLES,
@@ -26,4 +27,5 @@ export const GAME_ROOM: Migrations = [
   GAME_ROOM_STAMPS,
   GAME_ROOM_TABLE_STATE,
   GAME_ROOM_CHANGE_LOG,
+  GAME_ROOM_NANITES,
 ]

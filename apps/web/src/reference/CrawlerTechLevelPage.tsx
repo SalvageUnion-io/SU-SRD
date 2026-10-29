@@ -1,7 +1,6 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { capsLabel } from '../components/atoms/capsLabel'
-import { Box, Entity, Slab } from '../components/index'
+import { Box, capsLabel, Entity, Slab } from '../components/index'
 import { cn } from '../lib/cn'
 import { itemHref } from '../lib/entityHref'
 import { referenceCopy } from '../messages/reference'
@@ -15,19 +14,13 @@ import { referenceCopy } from '../messages/reference'
  * reads them, in a plain Box, never an infobox (R47);
  * the band carries its Tech Level and Structure Points. The
  * sidebar is the ladder, every level a header-only Compact in order, this
- * one marked, the rest linking to their Pages. Every word is the data's
- * (`crawler-tech-levels.json`), the book's phrasing around it.
+ * one marked, the rest linking to their Pages. Every figure is the data's
+ * (`crawler-tech-levels.json`); the book's phrasing around it is the
+ * catalogue's (`referenceCopy`).
  */
 
-type TechLevel = {
-  name: string
-  techLevel: number
-  structurePoints: number
-  upkeepCost: number
-  upgradeCost: number | null
-  populationMin: number
-  populationMax: number | null
-}
+/** One Union Crawler Tech Level, as the data holds it. */
+type TechLevel = ReturnType<typeof SalvageUnionReference.CrawlerTechLevels.all>[number]
 
 const NUMBER = new Intl.NumberFormat('en-GB')
 
@@ -43,13 +36,13 @@ type BookLine = { label: string; figure?: string; rest?: string }
 /** The book's lines for one level, label first, in its order; its Tech Level
  * and Structure Points are the band's. */
 function bookLines(level: TechLevel): BookLine[] {
-  const scrap = `Tech ${level.techLevel} Scrap`
+  const scrap = referenceCopy('techScrap', { tech: level.techLevel })
   return [
     { label: referenceCopy('upkeep'), figure: `${level.upkeepCost}×`, rest: scrap },
     level.upgradeCost == null
       ? {
           label: referenceCopy('upgrade'),
-          rest: `Tech ${level.techLevel} is the highest level of Union Crawler and it cannot be upgraded further.`,
+          rest: referenceCopy('highestTechLevel', { tech: level.techLevel }),
         }
       : { label: referenceCopy('upgrade'), figure: `${level.upgradeCost}×`, rest: scrap },
     { label: referenceCopy('approximatePopulation'), figure: population(level) },
@@ -57,10 +50,11 @@ function bookLines(level: TechLevel): BookLine[] {
 }
 
 export function CrawlerTechLevelPage({ item }: { item: RefEntity }) {
-  const level = item as unknown as TechLevel
   const ladder = [...SalvageUnionReference.CrawlerTechLevels.all()].sort(
     (a, b) => a.techLevel - b.techLevel
   )
+  const level = ladder.find((rung) => rung.id === item.id)
+  if (!level) throw new Error(`${item.id} is not a Union Crawler Tech Level`)
   return (
     <div className="su-tech-level">
       <Box className="su-tech-level__block">

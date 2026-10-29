@@ -17,11 +17,11 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
-import { capsLabel } from '../components/atoms/capsLabel'
 import type { CSSVarStyle } from '../components/index'
 import {
   Box,
   Button,
+  capsLabel,
   EmptyState,
   heatDangerFrom,
   Toggle,

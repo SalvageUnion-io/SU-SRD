@@ -98,20 +98,36 @@ async function importPublicKey(publicKeyHex: string): Promise<CryptoKey | null> 
 }
 
 /**
- * True when `rawBody` really came from Discord for this application.
+ * How far a request's signed timestamp may sit from the clock, in seconds. The
+ * signature covers the timestamp, so a body captured and re-sent later fails
+ * here. Per-request clock granularity (workerd freezes `Date.now()` between
+ * I/O) is plenty for a window this wide.
+ */
+const TIMESTAMP_WINDOW_SECONDS = 5 * 60
+
+/** The signed timestamp (Unix seconds) is within the window of `nowMs`. */
+function isFresh(timestamp: string, nowMs: number): boolean {
+  if (!/^\d{1,12}$/.test(timestamp)) return false
+  return Math.abs(nowMs / 1000 - Number(timestamp)) <= TIMESTAMP_WINDOW_SECONDS
+}
+
+/**
+ * True when `rawBody` really came from Discord for this application, recently.
  *
  * Returns false — never throws — for every failure mode (absent headers,
- * malformed hex, bad key, bad signature), because the caller's response is the
- * same 401 in all of them and distinguishing them in the reply would tell a
- * prober which part they got wrong.
+ * malformed hex, bad key, bad signature, a stale timestamp), because the
+ * caller's response is the same 401 in all of them and distinguishing them in
+ * the reply would tell a prober which part they got wrong.
  */
 export async function isValidDiscordRequest(
   rawBody: string,
   signatureHex: string | null,
   timestamp: string | null,
-  publicKeyHex: string
+  publicKeyHex: string,
+  nowMs: number = Date.now()
 ): Promise<boolean> {
   if (!signatureHex || !timestamp) return false
+  if (!isFresh(timestamp, nowMs)) return false
 
   const signature = hexToBytes(signatureHex)
   if (!signature) return false

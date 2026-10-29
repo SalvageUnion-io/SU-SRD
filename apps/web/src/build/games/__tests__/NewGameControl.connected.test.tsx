@@ -114,6 +114,8 @@ describe('starting a game', () => {
     await renderOpen()
     const create = screen.getByRole('button', { name: 'Create' })
     expect(create.hasAttribute('disabled')).toBe(true)
+    // No longer than the room takes.
+    expect(screen.getByLabelText('New Game name').getAttribute('maxlength')).toBe('80')
 
     fireEvent.change(screen.getByLabelText('New Game name'), {
       target: { value: 'Union Crawler #430' },

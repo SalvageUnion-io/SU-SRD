@@ -7,10 +7,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
 import { pageTitle } from '../../lib/pageTitle'
+import { routesCopy } from '../../messages/routes'
 import { routesSCopy } from '../../messages/routes-s'
 
 export const Route = createFileRoute('/s/$id')({
-  head: () => ({ meta: [{ title: pageTitle('Retired link') }] }),
+  head: () => ({ meta: [{ title: pageTitle(routesCopy('retiredLink')) }] }),
   component: RetiredShareLink,
 })
 

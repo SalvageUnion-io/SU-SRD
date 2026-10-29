@@ -4,13 +4,24 @@
  * catalog-categories) have no /<id>/ listing page, so item pages for
  * them would be sitemap orphans whose breadcrumbs 404.
  */
-import { describe, expect, it } from 'bun:test'
-import { getSchemaCatalog } from '../gameData'
+import { describe, expect, it, spyOn } from 'bun:test'
+import { getSchemaCatalog, SalvageUnionReference } from '../gameData'
 import { getItemStaticPaths, getSchemaStaticPaths } from '../staticPaths'
 
 describe('getItemStaticPaths', () => {
   const itemPaths = getItemStaticPaths()
   const schemaPaths = getSchemaStaticPaths()
+
+  it('throws a failing schema read instead of dropping its pages', () => {
+    const findAll = spyOn(SalvageUnionReference, 'findAllIn').mockImplementation(() => {
+      throw new Error('bad row')
+    })
+    try {
+      expect(() => getItemStaticPaths()).toThrow('bad row')
+    } finally {
+      findAll.mockRestore()
+    }
+  })
 
   it('emits no item pages for meta schemas', () => {
     const metaIds = new Set(

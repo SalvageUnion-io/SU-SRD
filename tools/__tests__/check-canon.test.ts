@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { CANON_DOCS, canonFaults, gatesOf, lawsIn } from 'gates/lib/canon'
+import { CANON_DOCS, canonFaults, gatesOf, gateTier, lawsIn } from 'gates/lib/canon'
 import { CONTEXT, main } from '../check-canon'
 import { fixtureTrees } from './fixtureTree'
 
@@ -129,6 +129,31 @@ describe('gatesOf', () => {
     expect(
       gatesOf('§0', { '§0': ['R1', 'roster.test.ts'], R1: ['chrome/slab-style', '§0'] })
     ).toEqual(['chrome/slab-style', 'roster.test.ts'])
+  })
+})
+
+describe('gateTier', () => {
+  test('a gate that fails no PR is nightly or pending', () => {
+    const tier = gateTier(
+      repo({
+        'apps/web/e2e/tagged.e2e.ts':
+          "import { x } from './_scan'\ntest('a', { tag: '@pr' }, () => {})",
+        'apps/web/e2e/untagged.e2e.ts': "import { y } from './_night'\ntest('b', () => {})",
+        'apps/web/e2e/_scan.ts': 'export const x = 1',
+        'apps/web/e2e/_night.ts': 'export const y = 1',
+        'apps/web/e2e/_pendingRules.ts':
+          "const PENDING_RULES = {\n  align: { law: 'R40', ceiling: 3 },\n}",
+        'apps/web/e2e/__tests__/scan.test.ts': 'test("x", () => {})',
+      })
+    )
+    expect(tier('tagged.e2e.ts')).toBe('pr')
+    expect(tier('_scan.ts')).toBe('pr')
+    expect(tier('untagged.e2e.ts')).toBe('nightly')
+    expect(tier('_night.ts')).toBe('nightly')
+    expect(tier('_scan.ts#align')).toBe('pending')
+    expect(tier('_pendingRules.ts#R40')).toBe('pending')
+    expect(tier('scan.test.ts')).toBe('pr')
+    expect(tier('tokens/raw-color')).toBe('pr')
   })
 })
 

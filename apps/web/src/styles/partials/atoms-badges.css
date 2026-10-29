@@ -112,13 +112,63 @@
 /* The pointy cost box (`ActivationCost`): ink on every band, in the chips'
    condensed caps face, whatever face its row inherits. Its block padding is
    the bordered chips' plus their 1px rule's worth. */
+/* `--su-cost-tip` is the point's depth, `ActivationCost`'s TIP: the box's
+   right inset clears it. */
 .su-cost {
+  --su-cost-tip: 0.5em;
+
   align-self: stretch;
   background-color: var(--color-ink);
   color: var(--color-paper);
   font-family: var(--font-cond);
   letter-spacing: var(--tracking-caps-tight);
   padding-block: calc(var(--space-2) + var(--bw-hairline));
+}
+
+/* The cost box's Size rungs (`ActivationCost`'s `size`): its chips' type,
+   weight and inline inset, the right inset carrying the point's depth.
+   The edge takes the same type size, so its `em` point matches the box's. */
+.su-cost-edge--mini,
+.su-cost--mini {
+  font-size: var(--text-xs);
+}
+
+.su-cost--mini {
+  font-weight: var(--font-weight-bold);
+  padding-inline: var(--space-4) calc(var(--space-4) + var(--su-cost-tip));
+}
+
+.su-cost-edge--compact,
+.su-cost--compact {
+  font-size: var(--text-sm);
+}
+
+.su-cost--compact {
+  font-weight: var(--font-weight-bold);
+  padding-inline: var(--space-6) calc(var(--space-6) + var(--su-cost-tip));
+}
+
+.su-cost-edge--full,
+.su-cost--full {
+  font-size: var(--text-base);
+}
+
+.su-cost--full {
+  font-weight: var(--font-weight-bold);
+  padding-inline: var(--space-8) calc(var(--space-8) + var(--su-cost-tip));
+}
+
+/* The link preview's box (`OgCard`): its chips' plate height, its weight
+   their caps'. */
+.su-cost-edge--og,
+.su-cost--og {
+  font-size: 44px;
+}
+
+.su-cost--og {
+  font-weight: var(--font-weight-extrabold);
+  padding-block: var(--space-8);
+  padding-inline: var(--space-12) calc(var(--space-24) + var(--su-cost-tip));
 }
 
 /* The box always sits in its edge, which draws nothing on paper. On an ink

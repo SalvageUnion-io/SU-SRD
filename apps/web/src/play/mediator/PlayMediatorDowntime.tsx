@@ -50,7 +50,7 @@ import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
 import { crawlerTl } from '../playDowntime.model'
 import { playLineModel } from '../playLine.model'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
-import { recordPlayChange, reportingRoll } from '../playRolls.model'
+import { reportingRoll } from '../playRolls.model'
 import { payDowntimeUpkeep } from '../playUpkeep.model'
 import type { PlayActions } from '../usePlayActions'
 import { doneOf, seatDone } from './mediatorTable.model'
@@ -121,10 +121,16 @@ export function PlayMediatorDowntime({
     }
   }
 
-  function processNanites() {
-    const said = processDowntimeNanites({ crawler: unit, store, rollD20 })
-    if (said) recordPlayChange(`${CRAFT_STEP_NAME} · ${said}`)
-    setNaniteNote(said)
+  async function processNanites() {
+    setNaniteNote(
+      await processDowntimeNanites({
+        crawler: unit,
+        store,
+        rollD20,
+        label: CRAFT_STEP_NAME,
+        spendNanites: downtime.spendNanites,
+      })
+    )
   }
 
   return (
@@ -312,7 +318,7 @@ export function PlayMediatorDowntime({
                             craftStepName: CRAFT_STEP_NAME,
                           })
                   }
-                  onClick={processNanites}
+                  onClick={() => void processNanites()}
                 >
                   {mediatorCopy('process')}
                 </Button>

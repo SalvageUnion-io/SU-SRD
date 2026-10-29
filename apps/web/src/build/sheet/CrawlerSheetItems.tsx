@@ -7,7 +7,7 @@ import type { UnitsStore } from '../../replica/units'
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
-import type { RefMetaEntity } from 'salvageunion-reference'
+import type { RefCrawlerBay } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import {
   BayInfo,
@@ -72,13 +72,17 @@ const DOCKS = {
   margin: `0 0 ${tokens.space[6]}`,
 } satisfies CSSProperties
 
+type BayContent = NonNullable<RefCrawlerBay['content']>
+
 /** Split a bay's rules content into its always-true half and its damaged half. */
-function splitBayContent(content: unknown): { normal: unknown[]; damaged: string[] } {
-  if (!Array.isArray(content)) return { normal: [], damaged: [] }
-  const normal: unknown[] = []
+function splitBayContent(content: RefCrawlerBay['content']): {
+  normal: BayContent
+  damaged: string[]
+} {
+  const normal: BayContent = []
   const damaged: string[] = []
-  for (const block of content) {
-    const value = (block as { value?: unknown })?.value
+  for (const block of content ?? []) {
+    const { value } = block
     if (typeof value === 'string' && WHEN_DAMAGED.test(value)) damaged.push(value)
     else normal.push(block)
   }
@@ -229,7 +233,7 @@ export function CrawlerBayCard({
   // and the SRD crew NPC, which is its crew lead's Mini here.
   const { normal } = splitBayContent(bay.content)
   const damagedText = damagedEffectOf(bay) ?? ''
-  const tokenData = { ...bay, npc: undefined, content: normal } as unknown as RefMetaEntity
+  const tokenData = { ...bay, npc: undefined, content: normal }
   // Its Bay Info folds, the sidebar's Storage Bay's too.
   const infoFold = 'closed'
 
@@ -268,12 +272,12 @@ export function CrawlerBayCard({
                   />
                 )}
                 <EntityChoices
-                  entity={bay as unknown as RefMetaEntity}
+                  entity={bay}
                   selections={selections}
                   onSelectionChange={readOnly ? undefined : setSelections}
                   techLevel={crawlerTl}
                 />
-                <EntityRollMini entity={bay as unknown as RefMetaEntity} disabled={damaged} />
+                <EntityRollMini entity={bay} disabled={damaged} />
                 {contents}
                 {crew}
               </>

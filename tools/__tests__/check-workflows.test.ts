@@ -46,6 +46,7 @@ jobs:
               - 'package.json'
               - 'bun.lock'
               - 'bunfig.toml'
+              - 'vendor/**'
               - 'tsconfig*.json'
               - '.github/workflows/**'
               - '.github/actions/**'
@@ -345,6 +346,40 @@ describe('path-filters', () => {
     expect(checkPathFilters(globbed).failures).toContainEqual(
       expect.stringContaining('a change to `tsconfig*`, but')
     )
+  })
+
+  /** CI_TEXT with the root manifest read by a `manifest` step instead of `shared`. */
+  const withManifestStep = (outputs: string) =>
+    CI_TEXT.replace("              - 'package.json'\n", '').replace(
+      '    steps:\n      - uses: dorny/paths-filter@',
+      `    outputs:\n${outputs}    steps:\n      - id: manifest\n        run: echo changed=true\n      - uses: dorny/paths-filter@`
+    )
+  const read = `\${{ steps.filter.outputs.X == 'true' || steps.manifest.outputs.changed == 'true' }}`
+
+  test('a manifest step that reaches every *shared output stands in for package.json in shared', () => {
+    const ci = withManifestStep(
+      `      web: ${read.replace('X', 'web')}\n      workers: ${read.replace('X', 'workers')}\n`
+    )
+    expect(checkPathFilters(ctx({ ci })).failures.join('\n')).not.toContain('package.json')
+  })
+
+  test('a *shared output that does not read the manifest step fails', () => {
+    const ci = withManifestStep(`      web: ${read.replace('X', 'web')}\n`)
+    expect(checkPathFilters(ctx({ ci })).failures).toContainEqual(
+      expect.stringContaining('output `workers` carries `*shared` but not')
+    )
+  })
+
+  test("a file: override's directory must be shared in ci.yml and the deploy", () => {
+    const manifests = {
+      'package.json': { overrides: { deepmerge: 'file:./vendor/deepmerge', zod: '4.0.0' } },
+      'packages/ref/package.json': { name: 'ref' },
+    }
+    const unshared = CI_TEXT.replace("              - 'vendor/**'\n", '')
+    expect(checkPathFilters(ctx({ ci: unshared, manifests })).failures).toContainEqual(
+      expect.stringContaining('`file:vendor/deepmerge`')
+    )
+    expect(checkPathFilters(ctx({ manifests })).failures.join('\n')).not.toContain('file:')
   })
 
   test('a workspace: dependency no workspace declares fails rather than passing as covered', () => {

@@ -21,7 +21,9 @@ import type {
 } from 'game-domain/botWire'
 import type { EntityKind, SheetKind, SheetTable } from 'game-domain/entityKinds'
 import { SHEET_KINDS, TABLE_OF_KIND } from 'game-domain/entityKinds'
-import { accountByDiscordId } from './shared/accounts'
+import type { Profile } from '../rooms/account/shelf'
+import type { DiscordAccount } from './shared/accounts'
+import { accountByDiscordId, shownProfile } from './shared/accounts'
 import type { SharedDb } from './shared/db'
 import { gamesOf } from './shared/games'
 import { publicPage } from './shared/publicSheets'
@@ -40,8 +42,26 @@ type UnitReader<U> = {
 
 /** The rooms, by name: an account room by Discord id, a Game room by Game id. */
 export type BotRooms = {
-  account(discordId: string): UnitReader<RoomSheet>
+  account(discordId: string): UnitReader<RoomSheet> & {
+    profile(actor: string): Promise<Profile | null>
+  }
   game(gameId: string): UnitReader<RoomSheet & { ownerName: string | null }>
+}
+
+/** The name the player shows: their own where they set one (their account room's), else Discord's. */
+export async function shownName(
+  rooms: BotRooms | undefined,
+  discordId: string,
+  account: DiscordAccount | null
+): Promise<string> {
+  const own =
+    rooms === undefined
+      ? null
+      : await rooms
+          .account(discordId)
+          .profile(discordId)
+          .catch(() => null)
+  return shownProfile(own, account).displayName ?? 'Crewmate'
 }
 
 const KIND_OF_TABLE = Object.fromEntries(
@@ -110,9 +130,7 @@ export async function sheet(
       id: found.unit.id,
       appId: found.unit.id,
       publicRead: published !== null,
-      ownerName: found.mine
-        ? (account?.display_name ?? account?.name ?? 'Crewmate')
-        : found.ownerName,
+      ownerName: found.mine ? await shownName(rooms, args.discordId, account) : found.ownerName,
       body: found.unit.body,
       vitals: found.unit.vitals ?? null,
     }

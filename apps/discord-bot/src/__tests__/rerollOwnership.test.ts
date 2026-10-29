@@ -9,6 +9,8 @@ import { buildPostedRollMessage, buildRollMessage } from '../commands/roll'
 import type { ContainerData } from '../container'
 import { decodeRollRequest, encodeRollRequest } from '../customId'
 import { noEffectContainer } from '../errorContainer'
+import type { MessagePayload } from '../wire'
+import { toWire } from '../wire'
 import { buttonInteractionHandlerFor } from './helpers'
 
 const reroll = (data: ContainerData): string => {
@@ -112,7 +114,7 @@ describe('a re-roll shares the status of its first roll', () => {
     expect(replies).toHaveLength(1)
     expect(replies[0]?.flags).toBe(MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral)
     // Ours, not Discord's: the internal marker never reaches the wire.
-    expect(replies[0]).not.toHaveProperty('ephemeral')
+    expect(toWire((replies[0] ?? {}) as MessagePayload)).not.toHaveProperty('ephemeral')
   })
 
   test('pressing a public re-roll answers publicly', async () => {

@@ -151,6 +151,7 @@ function playFor({
       doneSteps: gameId === null ? [] : null,
       markStepDone: gameId === null ? async () => true : null,
       spendUpkeep: async () => true,
+      spendNanites: async () => true,
     },
     canWrite: true,
     readOnly: null,

@@ -55,7 +55,7 @@ const TRACK = {
   display: 'inline-flex',
   flexShrink: 0,
   height: TRACK_H,
-  padding: 2,
+  padding: space[2],
   transition: `background-color ${duration.fast} ${ease}`,
   width: TRACK_W,
 } satisfies CSSProperties

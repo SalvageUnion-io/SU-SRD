@@ -20,11 +20,11 @@
 }
 
 .su-inline-ref--link {
-  border-bottom-color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+  border-bottom-color: var(--color-rust); /* design-tokens-ignore(rust-allowlist): InlineRef §3.1 */
 }
 
 .su-inline-ref--link:hover {
-  color: var(--color-rust); /* design-tokens-ignore: InlineRef §3.1 */
+  color: var(--color-rust); /* design-tokens-ignore(rust-allowlist): InlineRef §3.1 */
 }
 
 .su-inline-ref--inert {

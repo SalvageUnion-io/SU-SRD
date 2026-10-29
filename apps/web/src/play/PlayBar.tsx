@@ -27,10 +27,8 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { capsLabel } from '../components/atoms/capsLabel'
-import type { ChapterTone } from '../components/atoms/chapterBandColor'
-import { Speckle } from '../components/atoms/Speckle'
-import { Badge, Button, tokens } from '../components/index'
+import type { ChapterTone } from '../components/index'
+import { Badge, Button, capsLabel, Speckle, tokens } from '../components/index'
 import { cn } from '../lib/cn'
 import type { PlayReadOnly } from './play.model'
 import { liveLabel, phaseBand } from './play.model'

@@ -13,15 +13,11 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { Photo } from 'game-domain/schemas/photo'
 import { photoUrl } from 'game-domain/schemas/photo'
 import type { RefMetaEntity } from 'salvageunion-reference'
-import {
-  entityRef,
-  getAssetUrl,
-  getReferenceEntityName,
-  SalvageUnionReference,
-} from 'salvageunion-reference'
+import { entityRef, getAssetUrl, getReferenceEntityName } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { EntityFormModel, TagItem } from '../../components/index'
 import { relation } from '../../components/index'
+import { resolveClass } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { readReference } from '../../lib/readReference'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
@@ -100,12 +96,6 @@ function sourceRelation(
   }, [])
 }
 
-function findClass(ref: string) {
-  return SalvageUnionReference.Classes.all().find(
-    (c) => c.id === ref || c.name === ref || c.name.toLowerCase() === ref.toLowerCase()
-  )
-}
-
 /** A crew's columns, built from the static seed: the Starter Set's by default. */
 export function starterShelves(rosterId: StarterRosterId = 'starter-set'): StarterShelf[] {
   const roster = starterRoster(rosterId)
@@ -120,9 +110,9 @@ export function starterShelves(rosterId: StarterRosterId = 'starter-set'): Start
           kind: 'pilot',
           name: p.name,
           readings: readings(pilotStats(p.classRef)),
-          art: photoArt(p.photo) ?? artOf('class', () => findClass(p.classRef)),
+          art: photoArt(p.photo) ?? artOf('class', () => resolveClass(p.classRef)),
         }),
-        relations: sourceRelation('Class', 'class', () => findClass(p.classRef)),
+        relations: sourceRelation('Class', 'class', () => resolveClass(p.classRef)),
       })),
     },
     {

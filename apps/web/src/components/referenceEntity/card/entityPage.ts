@@ -22,6 +22,7 @@ import { actionTypeStamps, costCell, factCells, traitTags } from '../../entity'
 import type { BookStat } from '../referenceEntityStatsConfig'
 import type { EntityRelation } from './abilityTreeRelations'
 import { abilityTreeRelations } from './abilityTreeRelations'
+import { schemaOf } from './cardHelpers'
 
 export type EntityPageMeta = {
   /**
@@ -74,7 +75,7 @@ function isOwnStat(key: string): boolean {
  * beside the title as every other page's do.
  */
 function statsInBody(entity: RefMetaEntity): boolean {
-  return 'schemaName' in entity && entity.schemaName === 'chassis'
+  return schemaOf(entity) === 'chassis'
 }
 
 /** Whether a book stat rides a chassis page's band, out of its body: its provenance. */

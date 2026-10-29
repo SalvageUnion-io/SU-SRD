@@ -1,6 +1,7 @@
 import type { RefEntity } from 'salvageunion-reference'
 import { getChassisAbilities, SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
+import { schemaOf } from '../referenceEntity/card/cardHelpers'
 import { ActionMinis } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import { InsidePeekContext } from './peekContext'
@@ -15,7 +16,7 @@ const ANY_CHASSIS = 'Mech'
  * share. Undefined for anything that is not an action with the placeholder.
  */
 function peekChassisName(entity: RefEntity): string | undefined {
-  if (!('schemaName' in entity) || entity.schemaName !== 'actions') return undefined
+  if (schemaOf(entity) !== 'actions') return undefined
   if (!JSON.stringify(entity).includes('[(CHASSIS)]')) return undefined
   try {
     const owners = SalvageUnionReference.findAllIn('chassis', (chassis) =>
@@ -68,7 +69,7 @@ const PEEK_HIDE = { patterns: true }
  * `down` Peek (its trigger damaged or destroyed) paints its band as the trigger does.
  */
 export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: Down }) {
-  const chassis = 'schemaName' in entity && entity.schemaName === 'chassis'
+  const chassis = schemaOf(entity) === 'chassis'
   return (
     <InsidePeekContext.Provider value={true}>
       <ReferenceEntityCard

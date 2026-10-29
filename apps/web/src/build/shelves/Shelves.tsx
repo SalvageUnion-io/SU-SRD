@@ -71,7 +71,7 @@ import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { patternCopy, patternHref } from '../../lib/patterns/patterns'
+import { patternCopy, savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
@@ -309,7 +309,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   function patternMenu(pattern: MechPattern): HeaderMenuItem[][] {
     return [
       [
-        { id: 'open', label: 'Open', onSelect: () => go(patternHref(pattern.id)) },
+        { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
         {
           id: 'copy',
           label: 'Make a copy',
@@ -568,7 +568,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   note={chassisFact(p.chassisRef)}
                   name={p.name}
                   reading={patternReading(p)}
-                  href={patternHref(p.id)}
+                  href={savedPatternHref(p.id)}
                   userMade
                   chips={patternChips(sharing?.find((s) => s.appId === p.id))}
                   menu={patternMenu(p)}

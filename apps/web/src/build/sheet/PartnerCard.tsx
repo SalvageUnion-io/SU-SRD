@@ -32,7 +32,7 @@ import type { UnitsStore } from '../../replica/units'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
-import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { resolveGauge, resolvePoolStart } from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Field,
@@ -136,9 +136,12 @@ export function PartnerCard({
     crawlerReadOnly,
   })
 
-  const sp = resolvePool(partner.currentSP, max.structurePoints)
-  const ep = resolvePool(partner.currentEP, max.energyPoints)
-  const heat = resolveGauge(partner.currentHeat, max.heatCapacity)
+  // The stored value as it is: Free Edit may take a vital past its derived
+  // max (surfaces.md §1), and the cell shows it over the max rather than
+  // hiding it.
+  const sp = resolvePoolStart(partner.currentSP, max.structurePoints)
+  const ep = resolvePoolStart(partner.currentEP, max.energyPoints)
+  const heat = resolveGauge(partner.currentHeat)
 
   /** Write through the HOST — a partner has no store row of its own. */
   const patch = (fields: Partial<PartnerInstance>): void => {
@@ -155,7 +158,8 @@ export function PartnerCard({
     )
   }
 
-  const clamp = (next: number, ceiling: number) => Math.max(0, Math.min(next, ceiling))
+  /** No vital goes below 0; the derived max is shown, never enforced. */
+  const floor = (next: number) => Math.max(0, next)
 
   // SP / EP / Heat are EDITABLE stat cells; the rest are derived read-onlys.
   // Tech level is never typed in — it comes from the crawler (pilot-granted) or
@@ -171,9 +175,7 @@ export function PartnerCard({
       value: sp,
       outOfMax: max.structurePoints,
       hoverText: scalingHover('structurePoints'),
-      onChange: editable
-        ? (next) => patch({ currentSP: clamp(next, max.structurePoints) })
-        : undefined,
+      onChange: editable ? (next) => patch({ currentSP: floor(next) }) : undefined,
     },
     {
       key: 'ep',
@@ -182,9 +184,7 @@ export function PartnerCard({
       value: ep,
       outOfMax: max.energyPoints,
       hoverText: scalingHover('energyPoints'),
-      onChange: editable
-        ? (next) => patch({ currentEP: clamp(next, max.energyPoints) })
-        : undefined,
+      onChange: editable ? (next) => patch({ currentEP: floor(next) }) : undefined,
     },
     {
       key: 'heat',
@@ -193,9 +193,7 @@ export function PartnerCard({
       value: heat,
       outOfMax: max.heatCapacity,
       hoverText: scalingHover('heatCapacity'),
-      onChange: editable
-        ? (next) => patch({ currentHeat: clamp(next, max.heatCapacity) })
-        : undefined,
+      onChange: editable ? (next) => patch({ currentHeat: floor(next) }) : undefined,
     },
     {
       key: 'sys',

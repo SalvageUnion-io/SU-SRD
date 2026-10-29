@@ -10,9 +10,8 @@
  * - **Columns by the room it has**, not the viewport: a column is at least
  *   18rem and there are three at most, so the grid is one column in a
  *   sidebar, a card or on a phone, and two or three across a page's main
- *   column. It is CSS multi-column (`.su-mini-grid`): these lists are a few
- *   dozen Minis at most, so the reflow `MasonryColumns` avoids for a large
- *   catalogue costs nothing here, and it reads down each column in order.
+ *   column. It is CSS multi-column (`.su-mini-grid`), as `MasonryColumns` is,
+ *   and it reads down each column in order.
  * - **Edit** (`edit`) makes it a sheet's item list (`.su-sheet-items`), each
  *   line's controls in its Mini's chip group.
  * - **Play** (`play`) marks it one of Play's lists (`data-play-list`, play.md

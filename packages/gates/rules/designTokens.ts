@@ -31,6 +31,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import {
+  bareNumber,
   castsShadow,
   declaration,
   declaredValue,
@@ -41,7 +42,9 @@ import {
 import type { Exemption, Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { isExempt, listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
+import { ignoredRules, markerProblems } from '../lib/tokenIgnore'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { CHROME_RULE_IDS } from './chromeTokens'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
@@ -50,6 +53,9 @@ const SCAN_DIRS = [
   // tone is derived, `guideTone()`); scanning this directory keeps it so.
   'packages/salvageunion-reference/data',
   'apps/web/src',
+  // The Astro shell's layouts, pages and components: an inline `style=` or a
+  // `<style>` block there paints the same pages.
+  'apps/web/astro',
   // An entire APP the guard could not see. Its accent colours restate the
   // palette as hex ints (the `0x` arm of raw-color), the form Discord's API
   // takes; those two files are exempt below, so a new literal anywhere else in
@@ -61,7 +67,7 @@ const SCAN_DIRS = [
 // greembeem (a MediaWiki-palette novelty page) ships as a static file under
 // apps/web/public/, which this check does not scan, so it needs no raw-color
 // exemption here.
-const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json']
+const SCAN_EXTENSIONS = ['.ts', '.tsx', '.css', '.json', '.astro']
 
 type TokenRule = Rule & {
   pattern: RegExp
@@ -127,6 +133,27 @@ const LOCAL_Z_MAX = 3
 /** The three Size heights (ruleset §4.7), the values `--size-*` owns, in px or rem. */
 const SIZE_LITERAL = /(?<![\w.#-])(?:(?:18|32|44)px|(?:1\.125|2|2\.75)rem)(?![\w-])/
 
+/**
+ * A colour literal in any spelling: hex (3, 4, 6 or 8 digits), `rgb()`,
+ * `hsl()`, `oklch()`, or a Discord `0x` integer. The guards are on `raw-color`.
+ */
+const COLOR_LITERAL =
+  /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|(?<![a-zA-Z0-9])(?:rgba?|hsla?|oklch)\([^)]*\)|(?<![a-zA-Z0-9_])0x[0-9a-fA-F]{6}\b/
+
+/**
+ * What a colour property may not spell, beyond `COLOR_LITERAL`: an all-digit
+ * 3-digit hex (`#000`, which prose cannot tell from a PR ref, so it is read
+ * only in a colour's value) and a CSS named colour.
+ */
+const COLOR_VALUE_ONLY =
+  /#\d{3}\b|(?<![\w.$-])(?:white|black|red|green|blue|yellow|orange|purple|pink|brown|gr[ae]y|silver|gold|navy|maroon|olive|lime|aqua|teal|fuchsia|cyan|magenta|beige|ivory|tan|khaki|crimson|coral|salmon|indigo|violet)(?![\w-])/
+
+/** A declaration of a property that takes a colour. */
+const COLOR_DECLARATION = declaration(
+  '(?:background|border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?|outline|text-decoration|column-rule)(?:-color)?|color|fill|stroke|caret-color|accent-color|stop-color|box-shadow|text-shadow',
+  '(?:background|border(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|outline|textDecoration|columnRule)(?:Color)?|color|fill|stroke|caretColor|accentColor|stopColor|boxShadow|textShadow'
+)
+
 const TOKEN_RULES: TokenRule[] = [
   {
     id: 'shadow-tokens',
@@ -154,11 +181,8 @@ const TOKEN_RULES: TokenRule[] = [
     //    provenance-degrading false positive as PR refs.
     //
     // 2. `(?!\d{1,3}\b)` still excludes a 3-digit ALL-numeric run (`#466`, a PR
-    //    ref, is a valid *length* but never a colour anyone means). That also
-    //    drops a 3-digit all-numeric shorthand like `#000`; those are rare and
-    //    live only in the already-exempt print stylesheet. A
-    //    shorthand with any letter (`#fff`, `#a1b`) and every 6-/8-digit form is
-    //    still caught. Colour-carrying matches lose nothing; prose stops firing.
+    //    ref, is a valid *length* but never a colour anyone means); a `#000`
+    //    in a colour's value is still caught, by arm 5.
     //
     // 3. `(?<!&)` excludes a `#` preceded by `&` — an HTML numeric character
     //    entity like `&#8599;` (↗) or `&#9670;` (◆) in JSX. A 4-digit entity is
@@ -172,8 +196,21 @@ const TOKEN_RULES: TokenRule[] = [
     //    instead. The lookbehind still refuses a letter or digit before `rgb`, so an
     //    identifier ending in it (`srgb(`) is not a false positive, while `_`,
     //    `(`, space and line-start all correctly count as a boundary.
-    pattern:
-      /(?<!&)#(?!\d{1,3}\b)(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|(?<![a-zA-Z0-9])rgba?\([^)]*\)|(?<![a-zA-Z0-9_])0x[0-9a-fA-F]{6}\b/g,
+    //
+    // 5. `hsl()` and `oklch()` are colour literals as `rgb()` is. A colour
+    //    PROPERTY's value is also read for a named colour (`'white'`) and an
+    //    all-digit 3-digit hex (`#000`): there the context says it is a
+    //    colour, where in prose the same run is a word or a PR ref.
+    pattern: new RegExp(`${COLOR_DECLARATION.source}|${COLOR_LITERAL.source}`, 'g'),
+    keep: (match, line, file) => {
+      if (!/^[\w-]+\s*:/.test(match)) return true
+      const value = outsideTokens(declaredValue(match))
+      if (COLOR_LITERAL.test(value)) return true
+      // In a stylesheet, only a declaration line: prose in a comment ("a
+      // solid fill: rust at 40% is a pastel salmon") is not a value.
+      if (file.endsWith('.css') && !/^\s*[\w-]+\s*:/.test(line)) return false
+      return COLOR_VALUE_ONLY.test(value)
+    },
   },
   {
     id: 'gradient',
@@ -281,7 +318,12 @@ const TOKEN_RULES: TokenRule[] = [
       '(?:min-|max-)?(?:height|block-size)|min-width',
       '(?:min|max)?(?:[hH]eight|[bB]lockSize)|minWidth'
     ),
-    keep: (match) => SIZE_LITERAL.test(outsideTokens(declaredValue(match))),
+    keep: (match) => {
+      const value = declaredValue(match)
+      return (
+        SIZE_LITERAL.test(outsideTokens(value)) || [18, 32, 44].includes(bareNumber(value) ?? 0)
+      )
+    },
   },
   {
     id: 'ink-mix',
@@ -362,8 +404,8 @@ const TOKEN_RULES: TokenRule[] = [
     // A literal off the scale (3px, 7px, 22px, 0.6em…) is a layout move to
     // review, not a find-and-replace. A fit that is not spacing (a -1px
     // overlap, a face's side bearing, room under a pinned bar) takes a
-    // `design-tokens-ignore` with its reason on the line.
-    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. An off-scale literal moves to the nearest rung; check the page with `bun run shot`. A component fit, not spacing, takes `design-tokens-ignore: <reason>` on its line.',
+    // `design-tokens-ignore(raw-spacing)` with its reason on the line.
+    fix: 'Use the scale: `space[N]` / `var(--space-N)` — 2, 4, 6, 8 or 12 inside a block (12 the card gutter), 16 or 24 between blocks. A unitless number in a style object is px and counts. An off-scale literal moves to the nearest rung; check the page with `bun run shot`. A component fit, not spacing, takes `design-tokens-ignore(raw-spacing): <reason>` on its line.',
     pattern: declaration(
       '(?:padding|margin)(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?|(?:row-|column-)?gap',
       '(?:padding|margin)(?:Top|Right|Bottom|Left|Block|Inline)?(?:Start|End)?|(?:row|column)?[gG]ap'
@@ -383,7 +425,24 @@ const TOKEN_RULES: TokenRule[] = [
     // Where the rung is defined: the token files, not a use.
     skip: ['apps/web/src/styles/theme.css', 'apps/web/src/design/tokens.ts'],
   },
+  {
+    id: 'ignore-marker',
+    mode: 'zero',
+    rule: 'every waiver is named — a `design-tokens-ignore` waives the rules it names, with its reason',
+    // A marker waives only the rules it names. One that names nothing, no
+    // known rule or no reason waives nothing, and is a finding rather than a
+    // silent no-op.
+    fix: 'Write `design-tokens-ignore(<rule-id>): <reason>` — the tokens or chrome-tokens rule the line breaks (`raw-spacing`, `muted-note`, …), comma-separated for more than one, and why the literal is right here.',
+    pattern: /design-tokens-ignore[^\n]*/g,
+    keep: (match) => markerProblems(match, KNOWN_RULE_IDS).length > 0,
+  },
 ]
+
+/** The rules a `design-tokens-ignore` may name: this set's and chrome-tokens'. */
+const KNOWN_RULE_IDS: ReadonlySet<string> = new Set([
+  ...TOKEN_RULES.map((r) => r.id).filter((id) => id !== 'ignore-marker'),
+  ...CHROME_RULE_IDS,
+])
 
 /**
  * Sanctioned literals. Each entry needs a reason — an exemption without a
@@ -412,13 +471,13 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/components/atoms/buttonVariants.ts',
     rules: ['rust-allowlist'],
     reason:
-      "THE rust allowlist (ruleset §3.1): Button's class-string recipe, which links styled as buttons use. Its stylesheet half is `.su-btn--primary` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist (the file is shared, so it cannot be exempted whole).",
+      "THE rust allowlist (ruleset §3.1): Button's class-string recipe, which links styled as buttons use. Its stylesheet half is `.su-btn--primary` in styles/partials/button.css, whose rust lines carry a `design-tokens-ignore(rust-allowlist)` naming this allowlist (the file is shared, so it cannot be exempted whole).",
   },
   {
     file: 'apps/web/src/components/atoms/InlineRef.tsx',
     rules: ['rust-allowlist'],
     reason:
-      'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/index.css, whose rust lines carry a `design-tokens-ignore` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
+      'THE rust allowlist (ruleset §3.1): the one Reference exception — an inline link. Its paint lives in the stylesheet half, `.su-inline-ref--link` in styles/partials/inline-ref.css, whose rust lines carry a `design-tokens-ignore(rust-allowlist)` naming this allowlist; this entry keeps the component itself sanctioned to name rust.',
   },
   {
     file: 'packages/salvageunion-reference/lib/view/discordAccents.ts',
@@ -439,10 +498,10 @@ const EXEMPTIONS: Exemption[] = [
       'The user-made hatch (ruleset §3.5 and §3.9): a HARD-STOP `repeating-linear-gradient(135deg, …)` — coincident stops on `--color-ink-20` over the band\'s own colour — so it paints rules and never blends. Ruled in the ruleset before it was built ("it joins EXEMPTIONS when it lands"); alone in its file so the exemption covers this one constant.',
   },
   {
-    file: 'apps/web/src/styles/global.css',
+    file: 'apps/web/src/styles/pilot-panel.css',
     rules: ['gradient', 'raw-color', 'raw-border-width', 'raw-shadow'],
     reason:
-      'Ruleset §3.5 THE one-off: the .su-pilot-panel junk slab on srd /about (a torn-off hull panel with the dedication carved into it) is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of salvaged junk rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust, the painted hull, the rivet heads and the carved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights, and raw-shadow for its rivets, whose inset bevels are the lighting of the picture, not a lift. CAVEAT, since a file-level exemption is blunter than the rationale: it also swallows three literals outside the illustration block — the .catalog-item hover box-shadow and .catalog-item__name text-shadow (real shadow debt on an authored surface, still owed a token) and one #fff in the print block. Line-scoping the exemption was considered and rejected as too brittle to survive edits to this file; they are recorded here instead of silently absorbed.',
+      'Ruleset §3.5 THE one-off: the .su-pilot-panel junk slab on srd /about (a torn-off hull panel with the dedication carved into it) is a CSS illustration, ruled a sanctioned one-off. It is the single place smooth shading is allowed, and it is allowed because it is a picture of salvaged junk rather than a UI surface. Not precedent — no second one-off without an explicit ruling. raw-color rides along because it is the SAME illustration: the rust, the painted hull, the rivet heads and the carved lettering are one picture, and a picture needs more shades than a UI palette has — the rivets alone spend nine greys on lit/worn/green/flush/hole. Tokenising them would add a dozen tokens nothing else could ever reuse. raw-border-width rides along for the same picture: the plate bevel is four light-catch and underside edges of 1 and 2px, drawn as borders, not frame weights, and raw-shadow for its rivets, whose inset bevels are the lighting of the picture, not a lift. Alone in its file (global.css imports it) so the exemption covers the picture only.',
   },
   {
     file: 'apps/web/src/components/referenceEntity/card/cardChrome.ts',
@@ -502,8 +561,9 @@ export function scanTokenSources(sources: ReadonlyMap<string, string>): Record<s
       if (rule.skip?.some((s) => rel.includes(s))) continue
       lines.forEach((raw, i) => {
         const line = rule.joinValue ? logicalLine(lines, i) : raw
-        // A line may opt out with a cited reason.
-        if (line.includes('design-tokens-ignore')) return
+        // A line may opt out of a rule it names, with a reason; never out of
+        // the rule that checks the marker itself.
+        if (rule.id !== 'ignore-marker' && ignoredRules(line).has(rule.id)) return
         for (const match of line.match(rule.pattern) ?? []) {
           if (rule.keep && !rule.keep(match, line, rel)) continue
           out[rule.id]?.push({ file: rel, line: i + 1, detail: match })
@@ -518,7 +578,8 @@ export const designTokens: RuleSet = {
   id: 'tokens',
   label: 'design tokens',
   rules: TOKEN_RULES,
-  exemptionsLive: 'packages/gates/rules/designTokens.ts (or a `design-tokens-ignore` line comment)',
+  exemptionsLive:
+    'packages/gates/rules/designTokens.ts (or a `design-tokens-ignore(<rule-id>): <reason>` line comment)',
   preflight(root) {
     assertScanFloor('design tokens', scannedFiles(root).length, SCAN_FLOOR)
     // A workspace never added to SCAN_DIRS only makes the floor go up, so the

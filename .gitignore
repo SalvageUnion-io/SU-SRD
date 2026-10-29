@@ -50,6 +50,8 @@ apps/web/src/.routeTree.gen.*.ts
 .env
 .env.local
 .env.*.local
+# Wrangler's local secrets (a developer's Discord secret, the test build's TEST_AUTH)
+.dev.vars*
 
 # Claude Code
 .claude/settings.local.json

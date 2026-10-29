@@ -6,13 +6,13 @@
 
 import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen } from '@testing-library/react'
+import type { Wreck } from 'game-domain/rules/wreck'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { rollForTable } from '../../../components/index'
 import { newTrayNpc, readTrayNpc } from '../opposition.model'
 import { PlayWreckSalvage } from '../PlayWreckSalvage'
 import type { PlayMediator } from '../usePlayMediator'
-import type { Wreck } from '../wreck.model'
 import { wreckOf } from '../wreck.model'
 
 const NOW = '2026-10-24T00:00:00.000Z'

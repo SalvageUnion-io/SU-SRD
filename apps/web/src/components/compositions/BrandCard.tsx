@@ -99,7 +99,7 @@ const TITLE = {
   lineHeight: 0.84,
   // The face's side bearing grows with its size: pull the wordmark's ink back
   // onto the inset an entity card's 120px title starts on.
-  margin: '0 0 0 -0.03em', // design-tokens-ignore: a fit, the face's side bearing at this size
+  margin: '0 0 0 -0.03em', // design-tokens-ignore(raw-spacing): a fit, the face's side bearing at this size
 } satisfies CSSProperties
 const TITLE_CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 

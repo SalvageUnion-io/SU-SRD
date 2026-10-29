@@ -54,7 +54,8 @@ function replayResult(payload: string):
 
 /**
  * A Components V2 payload ready for `interaction.reply`, or a user-facing
- * error. `data` is the pure container it was rendered from.
+ * error. `data` is the pure container it was rendered from; it and
+ * `ephemeral` are ours, and the transport's `toWire` drops them.
  */
 export type RollMessage =
   | { flags: number; components: [APIContainerComponent]; data: ContainerData; ephemeral?: true }
@@ -280,7 +281,6 @@ export const rollCommand = {
       await interaction.reply({ content: message.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data: _data, ephemeral: _ephemeral, ...payload } = message
-    await interaction.reply(payload)
+    await interaction.reply(message)
   },
 }

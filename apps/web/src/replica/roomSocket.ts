@@ -21,7 +21,7 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
 import { ROOM_PROTOCOL } from '../rooms/presence'
 import type { RecordTable, RoomUnit, ServerMessage } from '../rooms/protocol'
-import { ServerMessageSchema } from '../rooms/protocol'
+import { ROOM_GONE, ServerMessageSchema } from '../rooms/protocol'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
 import { noteRoomChange } from './roomChanges'
@@ -148,15 +148,21 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
 /** Waits before reopening a dropped socket: doubling, at most 30 s. */
 const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 
-/** A batch sent and not yet answered, keyed by its first op's id; a null refusal is its ack. */
-type Batch = { ops: readonly OpInput[]; settle: (refusal: Error | null) => void }
+/** A batch sent and not yet answered, keyed by its first op's id; a null refusal is its ack, with the ids it applied. */
+type Batch = {
+  ops: readonly OpInput[]
+  replayed: boolean
+  settle: (refusal: Error | null, fresh?: readonly string[]) => void
+}
 
 /** An act sent and not yet answered: its value when `answered`, or why not. */
 type Pending = { resolve: (value: unknown) => void; reject: (refusal: Error) => void }
 
 /** A room this tab holds open, to send its ops and its acts. */
 type Room = {
-  submit(ops: readonly OpInput[]): Promise<void>
+  /** One batch; `replayed` when it was made offline (the outbox's), which the room takes only on the player's own units. */
+  /** Answers the op ids this batch applied; one that had landed before is not among them. */
+  submit(ops: readonly OpInput[], options?: { replayed?: boolean }): Promise<readonly string[]>
   /** One named write the room decides (`salvageArea.spend`, …): its value, or a `RoomDeclined`. */
   act(name: string, args: unknown): Promise<unknown>
 }
@@ -175,6 +181,24 @@ const opened = new Set<() => void>()
 export function onRoomOpen(listener: () => void): () => void {
   opened.add(listener)
   return () => opened.delete(listener)
+}
+
+/** The player's Games, as the Worker last listed them (`RoomFeed`); null before it answers. */
+let games: ReadonlySet<string> | null = null
+
+/**
+ * Hold the player's Games as the Worker lists them, or null when unknown (the
+ * feed is down). A changed list is heard as a room opening is, so a write held
+ * for a Game the player has left can be told now.
+ */
+export function holdGames(gameIds: readonly string[] | null): void {
+  games = gameIds === null ? null : new Set(gameIds)
+  if (games !== null) for (const listener of opened) listener()
+}
+
+/** Whether `gameId` is a Game the player is known no longer to be in: it ended, or they left. */
+export function gameGone(gameId: string | null): boolean {
+  return gameId !== null && games !== null && !games.has(gameId)
 }
 
 /** A unit test's stand-in for each room it has not opened (`test/roomsStub.ts`); none in the app. */
@@ -207,8 +231,9 @@ export class RoomDeclined extends Error {}
  * (an op id is idempotent, so a batch the room had already applied is safe
  * to send again). An act waits for its `answered` or `refused`; one in flight
  * when the socket drops fails as an offline write does and is never sent
- * again, since an act (spending a Supply) is not safe to repeat. Answers its
- * close.
+ * again, since an act (spending a Supply) is not safe to repeat. A socket
+ * the room closes for good (`ROOM_GONE`: the Game ended, or the player is no
+ * longer in it) is not reopened. Answers its close.
  */
 export function openRoom(path: string, scope: Scope, gameId: string | null = null): () => void {
   const url = new URL(path, window.location.href)
@@ -219,25 +244,32 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     for (const pending of acting.values()) pending.reject(new WritesBlockedOffline())
     acting.clear()
   }
+  // Nothing will answer these now: the edit fails as one made offline does,
+  // rather than hang, and an outbox op stays queued for the next send.
+  const settleWaiting = () => {
+    for (const batch of waiting.values()) batch.settle(new WritesBlockedOffline())
+    waiting.clear()
+  }
   let socket: WebSocket | null = null
   let retry: ReturnType<typeof setTimeout> | undefined
   let attempt = 0
   let closed = false
-  const send = (ops: readonly OpInput[]) => {
-    if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ops', ops }))
+  const send = ({ ops, replayed }: Pick<Batch, 'ops' | 'replayed'>) => {
+    if (socket?.readyState !== WebSocket.OPEN) return
+    socket.send(JSON.stringify({ type: 'ops', ops, ...(replayed ? { replayed: true } : {}) }))
   }
-  const answer = (opIds: readonly string[], refusal: Error | null) => {
+  const answer = (opIds: readonly string[], refusal: Error | null, fresh?: readonly string[]) => {
     const batch = waiting.get(opIds[0] ?? '')
     if (batch === undefined) return
     waiting.delete(opIds[0] as string)
-    batch.settle(refusal)
+    batch.settle(refusal, fresh)
   }
   const connect = () => {
     socket = new WebSocket(url.href, [ROOM_PROTOCOL])
     socket.onopen = () => {
       attempt = 0
       open.set(gameId ?? ACCOUNT, room)
-      for (const batch of waiting.values()) send(batch.ops)
+      for (const batch of waiting.values()) send(batch)
       for (const listener of opened) listener()
     }
     socket.onmessage = (event) => {
@@ -248,9 +280,16 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
         data = undefined
       }
       const reply = data as
-        | { type?: unknown; opIds?: string[]; id?: string; value?: unknown; reason?: string }
+        | {
+            type?: unknown
+            opIds?: string[]
+            fresh?: string[]
+            id?: string
+            value?: unknown
+            reason?: string
+          }
         | undefined
-      if (reply?.type === 'ack') answer(reply.opIds ?? [], null)
+      if (reply?.type === 'ack') answer(reply.opIds ?? [], null, reply.fresh ?? reply.opIds ?? [])
       else if (reply?.type === 'declined')
         answer(reply.opIds ?? [], new RoomDeclined(reply.reason ?? ''))
       else if (reply?.type === 'answered' || reply?.type === 'refused') {
@@ -265,23 +304,32 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
         if (reply?.type !== 'presence') noteRoomChange()
       }
     }
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
       dropActs()
+      if (event.code === ROOM_GONE) {
+        // Nothing here is the player's now: what waited fails as an offline
+        // write does, and their Games are read again, which unmounts this.
+        closed = true
+        settleWaiting()
+        noteRoomChange()
+      }
       if (closed) return
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
     }
   }
   const room: Room = {
-    submit: (ops) =>
+    submit: (ops, options) =>
       new Promise((resolve, reject) => {
         const first = ops[0]
-        if (first === undefined) return resolve()
-        waiting.set(first.id, {
+        if (first === undefined) return resolve([])
+        const batch: Batch = {
           ops,
-          settle: (refusal) => (refusal === null ? resolve() : reject(refusal)),
-        })
-        send(ops)
+          replayed: options?.replayed === true,
+          settle: (refusal, fresh = []) => (refusal === null ? resolve(fresh) : reject(refusal)),
+        }
+        waiting.set(first.id, batch)
+        send(batch)
       }),
     act: (name, args) =>
       new Promise((resolve, reject) => {
@@ -297,10 +345,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     clearTimeout(retry)
     if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
     socket?.close(1000)
-    // Nothing will answer these now: the edit fails as one made offline does,
-    // rather than hang, and an outbox op stays queued for the next send.
-    for (const batch of waiting.values()) batch.settle(new WritesBlockedOffline())
-    waiting.clear()
+    settleWaiting()
     dropActs()
   }
 }

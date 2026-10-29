@@ -83,6 +83,10 @@ const FIXTURES: Record<string, string> = {
     'export const opener = window.open', // 16: flagged
     'export const own = (dialog: { open: () => void }) => dialog.open()',
     'export const href = window.location.href',
+    "export const byId = () => SalvageUnionReference.Chassis.find((c) => c.id === 'x')", // 19: flagged
+    "export const anyKey = (m: any) => m.all().find((c) => c.slug === 'x' || c.name === 'X')", // 20: flagged
+    'export const byField = () => SalvageUnionReference.Chassis.find((c) => c.tier === 1)',
+    "export const indexed = () => SalvageUnionReference.Chassis.getById('x')",
     '',
   ].join('\n'),
   [ROUTE_ERRORS]: [
@@ -243,6 +247,12 @@ describe('noWindowOpen', () => {
 
   test('does not apply outside the app', () => {
     expect(flagged(OTHER_TEST, 'plugin', 'Never open a new tab')).toEqual([])
+  })
+})
+
+describe('noModelFindByKey', () => {
+  test('flags a find by id, name or slug, alone or in an || chain, not a find by another field', () => {
+    expect(flagged(SOURCE, 'plugin', 'Look a reference entity up by index')).toEqual([19, 20])
   })
 })
 

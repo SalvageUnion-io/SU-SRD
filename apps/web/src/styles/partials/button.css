@@ -70,14 +70,14 @@
 /* The rust allowlist's stylesheet half (ruleset §3.1): rust is Button's.
    These four lines are the only rust in this file, and each says so. */
 .su-btn--primary {
-  background-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
-  border-color: var(--color-rust); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  background-color: var(--color-rust); /* design-tokens-ignore(rust-allowlist): Button's rust */
+  border-color: var(--color-rust); /* design-tokens-ignore(rust-allowlist): Button's rust */
   color: var(--color-paper);
 }
 
 .su-btn--primary:hover:not(:disabled) {
-  background-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
-  border-color: var(--color-rust-hi); /* design-tokens-ignore: Button's rust (ruleset §3.1) */
+  background-color: var(--color-rust-hi); /* design-tokens-ignore(rust-allowlist): Button's rust */
+  border-color: var(--color-rust-hi); /* design-tokens-ignore(rust-allowlist): Button's rust */
 }
 
 /* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about

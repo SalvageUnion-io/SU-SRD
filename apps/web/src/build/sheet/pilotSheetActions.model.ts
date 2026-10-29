@@ -18,10 +18,10 @@ import type { UnitsStore } from '../../replica/units'
  *   This is the default and what almost every handler wants.
  * - `writeAwait(fields, meta?)` — returns the promise, so a handler can
  *   sequence something AFTER the write lands (the destroyed-undo toast has to
- *   know the write happened before it offers the undo). Callers `void` it, so
- *   a rejection here is still uncaught — that is pre-existing behaviour, kept
- *   deliberately: swallowing it inside the helper would let the undo toast
- *   claim a change that never persisted.
+ *   know the write happened before it offers the undo). Only
+ *   `handleEquipmentConditionChange` uses it, and its callers run it through
+ *   `runWrite`, so a refusal is said and the undo toast is never offered for a
+ *   change that did not persist.
  *
  * Every handler reads the FRESHEST record via `freshEntity` rather than the
  * render-time prop, so rapid sequential edits (and another tab's write landing
@@ -33,7 +33,7 @@ import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { SoftWarning } from 'salvageunion-reference/rules'
-import { enrichPilotSnapshot, pilotMaxAP, resolvePool } from 'salvageunion-reference/rules'
+import { enrichPilotSnapshot, pilotMaxAP, resolvePoolStart } from 'salvageunion-reference/rules'
 import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { pilotActivationPatch } from '../../lib/rules/actionPatches'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
@@ -66,10 +66,10 @@ export type PilotSheetActions = {
   toggleAbility: (slug: string) => void
   toggleEquipment: (slug: string) => void
   handleEquipmentConditionChange: (slug: string, next: ItemCondition) => Promise<void>
-  handleUsesChange: (slug: string, next: number) => Promise<void>
-  handleSpendAP: (cost: number) => Promise<void>
-  handleAbilityUsedChange: (slug: string, next: boolean) => Promise<void>
-  handleGenericInventoryChange: (next: GenericInventoryEntry[]) => Promise<void>
+  handleUsesChange: (slug: string, next: number) => void
+  handleSpendAP: (cost: number) => void
+  handleAbilityUsedChange: (slug: string, next: boolean) => void
+  handleGenericInventoryChange: (next: GenericInventoryEntry[]) => void
   /** Advisory soft-warning state for the confirm dialog. */
   warnings: SoftWarning[]
   warningSubtitle: string | null
@@ -231,36 +231,37 @@ export function usePilotSheetActions({
     if (next === 'destroyed' && prevCondition !== 'destroyed') {
       const name = resolveEquipment(slug)?.name ?? slug
       destroyedUndoToast(name, () => {
-        void handleEquipmentConditionChange(slug, prevCondition)
+        runWrite(() => handleEquipmentConditionChange(slug, prevCondition))
       })
     }
   }
 
-  async function handleUsesChange(slug: string, next: number) {
+  function handleUsesChange(slug: string, next: number) {
     const prev = freshPilot().equipmentUses ?? {}
-    await writeAwait({ equipmentUses: { ...prev, [slug]: next } })
+    write({ equipmentUses: { ...prev, [slug]: next } })
   }
 
-  async function handleSpendAP(cost: number) {
+  function handleSpendAP(cost: number) {
     const p = freshPilot()
-    const current = resolvePool(p.currentAP, pilotMaxAP({ ...p, crawlerTechLevel }))
+    // Spent from the stored value, not the clamped display (`resolvePoolStart`).
+    const current = resolvePoolStart(p.currentAP, pilotMaxAP({ ...p, crawlerTechLevel }))
     const patch = pilotActivationPatch({ apCost: cost, currentAP: current })
     if (patch.currentAP === undefined || patch.currentAP === current) return
-    await writeAwait(patch)
+    write(patch)
   }
 
-  async function handleAbilityUsedChange(slug: string, next: boolean) {
+  function handleAbilityUsedChange(slug: string, next: boolean) {
     const prev = new Set(freshPilot().usedAbilities ?? [])
     if (next) {
       prev.add(slug)
     } else {
       prev.delete(slug)
     }
-    await writeAwait({ usedAbilities: Array.from(prev) })
+    write({ usedAbilities: Array.from(prev) })
   }
 
-  async function handleGenericInventoryChange(next: GenericInventoryEntry[]) {
-    await writeAwait({ genericInventory: next })
+  function handleGenericInventoryChange(next: GenericInventoryEntry[]) {
+    write({ genericInventory: next })
   }
 
   return {

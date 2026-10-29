@@ -3,9 +3,11 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import {
+  listedPaths,
   main,
   scriptDrift,
   siblingTests,
+  strayTests,
   TEST_SCRIPT,
   workspaceTestScripts,
 } from '../check-test-layout'
@@ -27,6 +29,26 @@ const manifest = (test?: string) => JSON.stringify({ scripts: test ? { test } : 
 
 afterAll(() => {
   for (const t of temps) rmSync(t, { recursive: true, force: true })
+})
+
+describe('strayTests', () => {
+  test('flags every name bun test runs that is not *.test.ts(x)', () => {
+    expect(
+      strayTests([
+        'apps/b/src/__tests__/a.spec.ts',
+        'apps/b/src/__tests__/b_test.ts',
+        'apps/b/src/__tests__/c.test.mts',
+        'apps/b/src/__tests__/d.test.ts',
+        'apps/b/src/__tests__/e.test.tsx',
+        'apps/b/e2e/flow.e2e.ts',
+        'apps/b/src/spec.ts',
+      ])
+    ).toEqual([
+      'apps/b/src/__tests__/a.spec.ts',
+      'apps/b/src/__tests__/b_test.ts',
+      'apps/b/src/__tests__/c.test.mts',
+    ])
+  })
 })
 
 describe('siblingTests', () => {
@@ -103,5 +125,14 @@ describe('main', () => {
       '  apps/a/src/Card.test.tsx is outside a __tests__/ directory',
       `  apps/a/package.json's test script is "bun test"`,
     ])
+  })
+})
+
+describe('listedPaths', () => {
+  test("lists the repository's files, each one present on disk", async () => {
+    const paths = await listedPaths()
+    expect(paths).toContain('package.json')
+    expect(paths).toContain('tools/check-test-layout.ts')
+    expect(paths.every((p) => p.length > 0 && !p.startsWith('/'))).toBe(true)
   })
 })

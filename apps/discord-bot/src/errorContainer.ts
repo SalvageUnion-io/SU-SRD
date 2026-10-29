@@ -103,6 +103,15 @@ export function noEffectContainer(
 }
 
 /**
+ * A command threw after its first reply was a container. Discord refuses
+ * plain `content` on a Components V2 message, so the Worker's error edit is
+ * this instead.
+ */
+export function commandErrorContainer(text: string): ContainerData {
+  return { accent: DISCORD_NEUTRAL_ACCENT, blocks: [{ kind: 'text', content: text }] }
+}
+
+/**
  * `/su lookup` found nothing. In the same system as a result, as the roll's
  * unknown table is, and pointing at the way in that works. No suggestion
  * buttons: the lookup already falls back to the top search hit, so reaching

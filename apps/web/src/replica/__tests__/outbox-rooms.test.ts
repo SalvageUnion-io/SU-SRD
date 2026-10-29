@@ -1,7 +1,8 @@
 /**
  * An edit to a unit in a Game whose socket is open goes to that room as an
  * `ops` batch, and the room's `declined` is the refusal; a unit whose room is
- * not open goes nowhere and fails as offline.
+ * not open goes nowhere and fails as offline. A Downtime step is taken by
+ * the call whose step op the room's `ack` names as applied.
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
@@ -9,6 +10,7 @@ import { acceptingRooms, roomAnswer, roomOps } from '../../../test/roomsStub'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 
 const { openRoom, RoomDeclined } = await import('../roomSocket')
+const { sendStep } = await import('../outbox')
 const { gameScope } = await import('../replica')
 const { resetSync, setSyncStatus, WritesBlockedOffline } = await import('../sync')
 const { useUnits } = await import('../units')
@@ -38,7 +40,9 @@ let close = () => {}
 let socket: FakeSocket
 
 /** Answer the batch the room was just sent. */
-async function answer(reply: { type: 'ack' } | { type: 'declined'; reason: string }) {
+async function answer(
+  reply: { type: 'ack'; fresh?: string[] } | { type: 'declined'; reason: string }
+) {
   await new Promise((resolve) => setTimeout(resolve, 0))
   const batch = socket.sent.at(-1)
   socket.onmessage?.({
@@ -93,5 +97,16 @@ describe('fed by the rooms', () => {
     ).rejects.toBeInstanceOf(WritesBlockedOffline)
     expect(socket.sent).toEqual([])
     expect(useUnits.getState().get('pilot', 'sp')?.name).toBe('Before')
+  })
+
+  test('a Downtime step is this call’s only when the room says it applied the step op', async () => {
+    const step = { id: 'step-1', unitId: 'gp', baseSeq: null, at: 1, ...TXN, patch: {} }
+    const first = sendStep('g1', step)
+    await answer({ type: 'ack', fresh: ['step-1'] })
+    expect(await first).toBe(true)
+
+    const again = sendStep('g1', step)
+    await answer({ type: 'ack', fresh: [] })
+    expect(await again).toBe(false)
   })
 })

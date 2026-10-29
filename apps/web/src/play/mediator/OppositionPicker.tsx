@@ -14,6 +14,7 @@
  * Presentational: `usePlayMediator` reads the Opposition and makes the writes.
  */
 
+import type { RosterLine } from 'game-domain/rules/encounterRoster'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
@@ -30,7 +31,6 @@ import {
   tokens,
 } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
-import type { RosterLine } from './encounterRoster.model'
 import type { EncounterRefSchema, SavedPattern, TrayDraw, TrayNpc } from './opposition.model'
 import { OPPOSITION_SCHEMAS, patternSlugOf, patternsOf, slugOf } from './opposition.model'
 

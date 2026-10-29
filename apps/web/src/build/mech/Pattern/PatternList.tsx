@@ -23,7 +23,11 @@ import {
 } from '../../../components/index'
 import { UnitRow } from '../../../components/shared/UnitRow'
 import { useMe } from '../../../lib/account/accountApi'
-import { asReferencePattern, patternChassis, patternHref } from '../../../lib/patterns/patterns'
+import {
+  asReferencePattern,
+  patternChassis,
+  savedPatternHref,
+} from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
@@ -91,7 +95,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   instance={{ title: quotePatternName(pattern.name), userMade: true }}
                   mode={{
                     kind: 'link',
-                    href: patternHref(pattern.id),
+                    href: savedPatternHref(pattern.id),
                     attrs: { 'aria-label': `View pattern ${pattern.name}` },
                   }}
                   lead

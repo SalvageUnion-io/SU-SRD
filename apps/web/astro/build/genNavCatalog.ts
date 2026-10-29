@@ -36,9 +36,7 @@ export async function renderNavCatalogModule(): Promise<string> {
   // Dynamic so this module can be imported for its types without paying the
   // ORM preload.
   const { SalvageUnionReference } = await import('salvageunion-reference')
-  if (!SalvageUnionReference.isLoaded('chassis')) {
-    await SalvageUnionReference.preload('all')
-  }
+  await SalvageUnionReference.preload('all')
   const { buildChapters } = await import('../../src/lib/chapters')
   const sections = buildChapters().map((chapter) => ({
     id: chapter.id,

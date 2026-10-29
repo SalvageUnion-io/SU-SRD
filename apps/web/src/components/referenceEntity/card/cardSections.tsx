@@ -13,7 +13,6 @@ import { referenceEntityCopy } from '../../../messages/components-reference-enti
 import type { Size } from '../../../styles/sizing'
 import { CardImage } from '../../compositions/CardImage'
 import { embeddedPeekAddress, tablePeekAddress } from '../../entity/peekContext'
-import { BayInfo } from './BayInfo'
 import { resolveBodyLayout } from './bodyBlocks'
 import { CardProse, FoldedActionProse, PatternProse } from './CardProse'
 import { CardRollTable } from './CardRollTable'
@@ -84,7 +83,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     afterExtraContent,
     selections,
     onSelectionChange,
-    sectionFold,
     NestedCard,
   } = input
   const {
@@ -106,9 +104,6 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     nestedHost,
   } = resolved
   const isPattern = !!pattern
-  // A CRAWLER BAY reads as three sections: its
-  // Bay Info, then its crew NPC, then its When Damaged.
-  const isBay = schemaName === 'crawler-bays'
   // ROLL TABLE — the entity's own, or its folded action's, under its ROLL THE
   // DIE bar (R8). In a framed card it is a nested element, so it wears
   // its own box at the nested width, never full-width; flush on a page.
@@ -241,14 +236,8 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
 
   const bodyContent: ReactNode = (
     <>
-      {/* The reference reads a bay's prose bare; only a sheet's folding bay names it Bay Info. */}
-      {isBay && sectionFold ? (
-        <BayInfo subject={entityName} fold={sectionFold} onPage={onPage}>
-          {proseContent}
-        </BayInfo>
-      ) : (
-        proseContent
-      )}
+      {/* The card reads a bay's prose bare; a sheet's folding bay names it Bay Info itself. */}
+      {proseContent}
       {/* On a page the steps stand as a page section (`CardPage`'s `guide`). */}
       {!onPage && guideStepsNode}
     </>
@@ -302,10 +291,10 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
   const damagedNode: ReactNode =
     !hide?.damagedEffect && damagedEffect ? (
       onPage ? (
-        <WhenDamaged effect={damagedEffect} subject={entityName} onPage fold={sectionFold} />
+        <WhenDamaged effect={damagedEffect} subject={entityName} onPage />
       ) : (
         <CardStack size={size}>
-          <WhenDamaged effect={damagedEffect} subject={entityName} fold={sectionFold} />
+          <WhenDamaged effect={damagedEffect} subject={entityName} />
         </CardStack>
       )
     ) : null

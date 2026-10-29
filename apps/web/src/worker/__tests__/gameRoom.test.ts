@@ -170,16 +170,12 @@ describe('the Game room Durable Object', () => {
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
   })
 
-  test('a Game whose last member leaves is wiped; an unread bundle is refused', async () => {
+  test('a Game whose last member leaves is wiped', async () => {
     const { game } = await seeded('g-forget')
     await game.forget(PLAYER)
     expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
     await game.forget(ORGANIZER)
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
-
-    const { game: fresh } = room('g-import')
-    expect(() => fresh.importGame({})).toThrow()
-    expect(fresh.diffImport({ gameId: 'g-import' } as never)).toEqual(['g-import: not imported'])
   })
 
   test('a Stop Sign on a table that opted in is posted after the act', async () => {

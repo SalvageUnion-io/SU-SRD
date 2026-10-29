@@ -22,6 +22,20 @@ const channels = new Map<string, Channel>()
 /** Waits before reopening a dropped socket: doubling, at most 30 s. */
 const RETRY_MS = [1_000, 2_000, 4_000, 8_000, 15_000, 30_000]
 
+/** The member ids a `presence` frame names, or null for any other or malformed frame. */
+function presenceOf(data: unknown): PresenceMessage['here'] | null {
+  let message: unknown
+  try {
+    message = JSON.parse(String(data))
+  } catch {
+    return null
+  }
+  if (typeof message !== 'object' || message === null) return null
+  const { type, here } = message as { type?: unknown; here?: unknown }
+  if (type !== 'presence' || !Array.isArray(here)) return null
+  return here.every((id) => typeof id === 'string') ? (here as PresenceMessage['here']) : null
+}
+
 function openChannel(key: string, url: string): Channel {
   const channel: Channel = { here: null, listeners: new Set(), users: 0, close: () => undefined }
   const tell = (here: Here) => {
@@ -38,8 +52,8 @@ function openChannel(key: string, url: string): Channel {
       attempt = 0
     }
     socket.onmessage = (event) => {
-      const message = JSON.parse(String(event.data)) as PresenceMessage
-      if (message.type === 'presence') tell(new Set(message.here))
+      const here = presenceOf(event.data)
+      if (here !== null) tell(new Set(here))
     }
     socket.onclose = () => {
       if (closed) return

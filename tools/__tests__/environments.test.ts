@@ -596,4 +596,14 @@ describe('main', () => {
     expect(r.code).toBe(0)
     expect(r.out).toContain('not run  ruleset `main` (this token cannot read rulesets)')
   })
+
+  test('in Actions a check not run is a warning; --require-all makes it a failure', () => {
+    const unreadable = { ...declared(), [`repos/${REPO}/rulesets?`]: forbidden }
+    const warned = run([], unreadable, { GITHUB_ACTIONS: 'true' })
+    expect(warned.code).toBe(0)
+    expect(warned.out.at(-2)).toStartWith('::warning title=Settings not fully verified::')
+    const strict = run(['--require-all'], unreadable)
+    expect(strict.code).toBe(1)
+    expect(strict.err.join('\n')).toContain('not run: ruleset `main`')
+  })
 })

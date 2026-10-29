@@ -1,21 +1,14 @@
-import type { LinkShape } from 'game-domain/links/linkRules'
-import type { AccountBundle } from 'game-domain/migration/bundle'
-import { AccountBundleSchema } from 'game-domain/migration/bundle'
 import type { UnitRow } from '../game/store'
 import { bit } from '../game/store'
-import { importedOp, stable } from '../game/transit'
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
 import { Leases, MOVED_OFF } from '../leases'
 import { RoomRefusal } from '../refusal'
 import { seatOf } from '../seats'
 import type { AccountShelf } from './shelf'
-import { SHELF_RECORDS } from './shelf'
-import type { AccountSoloArea } from './soloArea'
 
 /**
  * Units crossing a Shelf's walls: both halves of the two-room handoff
- * (`../handoff.ts`) and the cutover's one-off import of an account from
- * Convex. A unit goes from a Shelf only into a Game, carried by its
+ * (`../handoff.ts`). A unit goes from a Shelf only into a Game, carried by its
  * player; a pilot takes its solo seat along, and a mech that goes ahead of
  * its pilot leaves the solo seat boarded, so the pilot that follows sits
  * down in it.
@@ -24,10 +17,7 @@ import type { AccountSoloArea } from './soloArea'
 export class AccountTransit {
   private readonly leases: Leases
 
-  constructor(
-    private readonly shelf: AccountShelf,
-    private readonly soloArea: AccountSoloArea
-  ) {
+  constructor(private readonly shelf: AccountShelf) {
     this.leases = new Leases(shelf.store)
   }
 
@@ -114,7 +104,7 @@ export class AccountTransit {
         if (this.store.unit(other) !== null && link.slot === undefined)
           this.shelf.units.writeLink(link)
       }
-      if (unit.kind === 'pilot' && parcel.seat !== null) this.putSeat(unit.id, parcel.seat, {}, at)
+      if (unit.kind === 'pilot' && parcel.seat !== null) this.putSeat(unit.id, parcel.seat, at)
       this.leases.put(parcel.leaseId, unit.id, 'in', 'accepted', parcel.from, at)
     })
   }
@@ -124,13 +114,8 @@ export class AccountTransit {
     return this.leases.refuse(leaseId, at)
   }
 
-  /** A solo seat; what a parcel carries, plus the resolve and Downtime only an import brings. */
-  private putSeat(
-    pilotId: string,
-    seat: ParcelSeat,
-    solo: { resolving?: unknown; downtime?: unknown },
-    at: number
-  ): void {
+  /** A solo seat, as a parcel carries it: nothing resolving, no Downtime running. */
+  private putSeat(pilotId: string, seat: ParcelSeat, at: number): void {
     this.store.rows(
       `insert into seats (pilot_id, mount, range_band, active_effects, resolving, ejected, downtime_state, updated_at)
        values (?, ?, ?, ?, ?, ?, ?, ?)
@@ -141,9 +126,9 @@ export class AccountTransit {
       JSON.stringify(seat.mount),
       seat.range,
       JSON.stringify(seat.activeEffects),
-      solo.resolving == null ? null : JSON.stringify(solo.resolving),
+      null,
       bit(seat.ejected),
-      solo.downtime == null ? null : JSON.stringify(solo.downtime),
+      null,
       at
     )
   }
@@ -175,113 +160,5 @@ export class AccountTransit {
         at
       )
     })
-  }
-
-  // ------------------------------------------------------------ the import
-
-  /**
-   * Copy an account in from the cutover's bundle, validated here at the
-   * room's edge. Idempotent by Discord id: a second import takes nothing, so
-   * the copy can be rerun until its sweep is clean; units, records and ops
-   * are keyed by their ids besides. Refuses a room that is someone else's.
-   * Channel bindings are the bot's step's to take.
-   */
-  importAccount(raw: unknown, at: number): { imported: boolean } {
-    const bundle = AccountBundleSchema.parse(raw)
-    return this.store.sql.transaction(() => {
-      const source = `account:${bundle.discordId}`
-      if (this.store.rows('select 1 from imports where source = ?', source).length > 0) {
-        return { imported: false }
-      }
-      this.shelf.claim(bundle.discordId, at)
-      this.store.rows(
-        'update account set display_name = ?, avatar_url = ? where id = 1',
-        bundle.name,
-        bundle.avatarUrl
-      )
-      for (const unit of bundle.units) {
-        this.store.putUnit({
-          id: unit.appId,
-          kind: unit.kind,
-          ownerId: bundle.discordId,
-          body: unit.body,
-          headSeq: unit.headSeq,
-          fieldSeqs: unit.fieldSeqs,
-          publicRead: unit.publicRead,
-          createdAt: unit.updatedAt,
-          updatedAt: unit.updatedAt,
-          leaseId: null,
-        })
-        for (const op of unit.ops) this.store.putOp(importedOp(op))
-      }
-      for (const link of bundle.links) this.store.putLink(link as LinkShape, at)
-      for (const seat of bundle.seats) this.importSeat(seat, at)
-      for (const table of SHELF_RECORDS) {
-        for (const record of bundle[table]) {
-          this.store.rows(
-            `insert into records (tbl, app_id, body, extra, updated_at) values (?, ?, ?, ?, ?)
-             on conflict(tbl, app_id) do update set body = excluded.body, extra = excluded.extra,
-               updated_at = excluded.updated_at`,
-            table,
-            record.appId,
-            JSON.stringify({ ...record.body, id: record.appId }),
-            JSON.stringify(record.extra),
-            at
-          )
-        }
-      }
-      if (bundle.salvageArea !== null) this.soloArea.import(bundle.salvageArea)
-      this.store.rows('insert into imports (source, imported_at) values (?, ?)', source, at)
-      return { imported: true }
-    })
-  }
-
-  /** How the room differs from the bundle it was copied from: one line per difference, none when whole. */
-  diffImport(bundle: AccountBundle): string[] {
-    if (this.shelf.owner() !== bundle.discordId) return [`${bundle.discordId}: not imported`]
-    const out: string[] = []
-    const units = new Map(this.store.units().map((u) => [u.id, u]))
-    for (const unit of bundle.units) {
-      const here = units.get(unit.appId)
-      units.delete(unit.appId)
-      if (here === undefined) {
-        out.push(`${unit.kind} ${unit.appId}: missing`)
-        continue
-      }
-      if (here.headSeq !== unit.headSeq)
-        out.push(`${unit.appId}: head ${here.headSeq} ≠ ${unit.headSeq}`)
-      if (stable(here.body) !== stable(unit.body)) out.push(`${unit.appId}: body differs`)
-      const missing = unit.ops.filter((o) => this.store.op(o.id)?.unitId !== unit.appId)
-      if (missing.length > 0) out.push(`${unit.appId}: ${missing.length} ops missing`)
-    }
-    for (const [id, extra] of units) out.push(`${extra.kind} ${id}: not in the bundle`)
-    const links = this.store.links().length
-    if (links !== bundle.links.length) out.push(`links: ${links} ≠ ${bundle.links.length}`)
-    for (const table of SHELF_RECORDS) {
-      const n = this.store.rows('select count(*) as n from records where tbl = ?', table)[0]?.n
-      if (n !== bundle[table].length) out.push(`${table}: ${n} ≠ ${bundle[table].length}`)
-    }
-    const area = bundle.salvageArea
-    const want =
-      area === null ? null : { name: area.name, techLevel: area.techLevel, supply: area.supply }
-    if (stable(this.soloArea.here(bundle.discordId)) !== stable(want))
-      out.push('salvageArea: differs')
-    return out
-  }
-
-  private importSeat(seat: Record<string, unknown>, at: number): void {
-    const pilotId = seat.pilotId
-    if (typeof pilotId !== 'string') return
-    this.putSeat(
-      pilotId,
-      {
-        mount: (seat.mount as ParcelSeat['mount'] | undefined) ?? { kind: 'foot' },
-        range: typeof seat.range === 'string' ? seat.range : 'Close',
-        activeEffects: Array.isArray(seat.activeEffects) ? (seat.activeEffects as string[]) : [],
-        ejected: seat.ejected === true,
-      },
-      { resolving: seat.resolving, downtime: seat.downtime },
-      typeof seat.updatedAt === 'number' ? seat.updatedAt : at
-    )
   }
 }

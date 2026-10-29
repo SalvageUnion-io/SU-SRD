@@ -52,6 +52,21 @@ export function testDb(): SharedDb & { sqlite: Database } {
   }
 }
 
+/** Accounts as sign-in saves them: Discord's name and avatar, by Discord id. */
+export function signedIn(
+  db: SharedDb & { sqlite: Database },
+  ...accounts: { accountId: string; discordId: string; name: string | null; avatarUrl?: string }[]
+): void {
+  for (const a of accounts) {
+    db.sqlite
+      .query(
+        `insert into accounts (account_id, discord_id, name, avatar_url, created_at, updated_at)
+         values (?, ?, ?, ?, 0, 0)`
+      )
+      .run(a.accountId, a.discordId, a.name, a.avatarUrl ?? null)
+  }
+}
+
 /** `rows` written as room `room` writes them; a Shelf's Homebrew needs its `maker`. */
 export function publish(
   db: SharedDb,

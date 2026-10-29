@@ -157,6 +157,21 @@ export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment | n
 }
 
 /**
+ * Paid Upkeep as the one crawler patch both the Live Sheet and Play write:
+ * the drawn pool and the credited Upgrade Pool. Null when the pool can't
+ * cover it.
+ */
+export function payUpkeepPatch(
+  crawler: Pick<Crawler, 'scrapPool' | 'upgradePool'>,
+  crawlerTl: number
+): { patch: { scrapPool: ScrapPool; upgradePool: number }; payment: UpkeepPayment } | null {
+  const payment = payUpkeep(crawler.scrapPool ?? {}, crawlerTl)
+  if (payment === null) return null
+  const upgradePool = (crawler.upgradePool ?? 0) + payment.upgradeCredit
+  return { patch: { scrapPool: payment.pool, upgradePool }, payment }
+}
+
+/**
  * Voluntary Upgrade-Pool contribution (p.218 "spend additional Scrap towards
  * your Upgrade Pool"): draws `amount` Scrap (crawler TL or higher) from the
  * pool; the caller adds `amount` to `upgradePool`. Null when unaffordable.

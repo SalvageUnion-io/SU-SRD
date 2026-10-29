@@ -3,7 +3,7 @@ import { SHEET_NOT_FOUND } from 'game-domain/botDenials'
 import type { SheetVitals } from 'game-domain/botWire'
 import type { BotRooms } from '../botSheets'
 import { mine, sheet } from '../botSheets'
-import { publish, publishGame, testDb } from '../shared/__tests__/d1'
+import { publish, publishGame, signedIn, testDb } from '../shared/__tests__/d1'
 
 /**
  * `/su sheet` from the rooms: the caller's Shelf, their Games' units, and a
@@ -33,6 +33,11 @@ const rooms: BotRooms = {
       actor === 'd-rosa' && discordId === 'd-rosa' && id === SHELF_MECH.id
         ? { ...SHELF_MECH, vitals: SHELF_VITALS }
         : null,
+    // Rosa named herself; Discord calls her `rosa`.
+    profile: async (actor) =>
+      actor === 'd-rosa' && discordId === 'd-rosa'
+        ? { displayName: 'Rosa', avatarUrl: null }
+        : null,
   }),
   game: (gameId) => ({
     unitsFor: async (actor) =>
@@ -48,10 +53,11 @@ const rooms: BotRooms = {
 
 async function table() {
   const db = testDb()
-  db.sqlite.exec(`create table accounts (account_id text primary key, discord_id text unique,
-    name text, display_name text, avatar_url text)`)
-  db.sqlite.exec(`insert into accounts values ('acct-rosa', 'd-rosa', 'rosa', 'Rosa', null),
-    ('acct-ines', 'd-ines', 'ines', 'Ines', null)`)
+  signedIn(
+    db,
+    { accountId: 'acct-rosa', discordId: 'd-rosa', name: 'rosa' },
+    { accountId: 'acct-ines', discordId: 'd-ines', name: 'ines' }
+  )
   await publishGame(db, 'g-1', {
     name: 'Reclamation',
     mediatedBy: 'Rosa',

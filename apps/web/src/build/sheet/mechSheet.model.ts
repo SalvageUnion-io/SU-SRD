@@ -12,16 +12,14 @@ import type { UnitsStore } from '../../replica/units'
  * for everything the card renders.
  */
 
-import { pilotingContext } from 'game-domain/rules/pilotingContext'
+import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { StatGroup } from 'salvageunion-reference'
 import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
+import type { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from 'salvageunion-reference/rules'
 import {
   computeMechCapacity,
-  mechMaxEPParts,
-  mechMaxHeatParts,
-  mechMaxSPParts,
   resolveChassisRef,
   resolveGauge,
   resolvePool,
@@ -100,16 +98,19 @@ export function useMechSheetModel({
   const chassis = resolveChassis(mech, chassisOverride)
   const cargo = useCargo({ mech, crawler, store, readOnly, crawlerReadOnly, pilotAbilities })
 
-  // Derived maxima: chassis stat + hand-edited modifiers.
-  // Beefcake is a PILOT ability that raises the piloted MECH's Max SP and Cargo,
-  // so a mech's maxima cannot be derived from the mech alone (ADR-029).
-  const piloting = pilotingContext(mech, pilotAbilities)
-  const spParts = mechMaxSPParts(mech, chassis, piloting)
-  const epParts = mechMaxEPParts(mech, chassis, piloting)
-  const heatParts = mechMaxHeatParts(mech, chassis, piloting)
-  const maxSP = spParts.total
-  const maxEP = epParts.total
-  const heatCap = heatParts.total
+  // Derived maxima: chassis stat + hand-edited modifiers, the one derivation
+  // Play and the crew list read (`mechMaxima`). Beefcake is a PILOT ability
+  // that raises the piloted MECH's Max SP and Cargo, so a mech's maxima cannot
+  // be derived from the mech alone (ADR-029). The sheet is the build, not a
+  // seat: no effect is switched on here (`[]`).
+  const {
+    spParts,
+    epParts,
+    heatParts,
+    maxSP,
+    maxEP,
+    maxHeat: heatCap,
+  } = mechMaxima(mech, pilotAbilities, [], chassis)
   const currentSP = resolvePool(mech.currentSP, maxSP)
   const currentEP = resolvePool(mech.currentEP, maxEP)
   const currentHeat = resolveGauge(mech.currentHeat, heatCap)

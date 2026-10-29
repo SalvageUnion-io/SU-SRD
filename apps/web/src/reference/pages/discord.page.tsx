@@ -56,7 +56,7 @@ function buildExamples() {
   return { rollTableCount, lookupExample }
 }
 
-const TITLE = pageTitle('Discord Bot')
+const TITLE = pageTitle(pagesCopy('discordBot'))
 const DESCRIPTION =
   'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
 
@@ -78,7 +78,7 @@ const KEY_CAP = {
 } satisfies CSSProperties
 
 const LEGAL = {
-  color: color.wkMuted, // design-tokens-ignore: the legal line
+  color: color.wkMuted, // design-tokens-ignore(muted-note): the legal line
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'center',

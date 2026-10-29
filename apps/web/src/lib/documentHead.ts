@@ -20,9 +20,10 @@ export const SITE_NAME = 'SalvageUnion.io'
 /**
  * The browser-chrome colour every page emits as `theme-color` unless it names
  * its own. It must equal `theme_color` in `public/site.webmanifest`, which only
- * an installed PWA reads; `constants.test.ts` holds the two together.
+ * an installed PWA reads, and theme.css's `--color-ink-deep`; `constants.test.ts`
+ * holds the three together.
  */
-export const THEME_COLOR = '#1b1712' // design-tokens-ignore: --color-ink-deep, spelled as the manifest spells it
+export const THEME_COLOR = '#1b1712' // design-tokens-ignore(raw-color): --color-ink-deep, spelled as the manifest spells it
 
 /** The Cargo "SU" mark (`bun run brand`), as each page links it. */
 export const SITE_ICONS = [

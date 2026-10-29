@@ -15,11 +15,12 @@ import { isEmptyOp } from 'game-domain/ops/applyOp'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
+import { sharedCopy } from '../messages/components-shared'
 import { keepOutbox, readOutbox } from './persist'
 import { row } from './replica'
 import { roomCall } from './roomCalls'
 import { noteRoomChange } from './roomChanges'
-import { RoomDeclined, roomOrStandIn } from './roomSocket'
+import { gameGone, RoomDeclined, roomOrStandIn } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
 /** What the room answered for a unit it made: its version and `headSeq`. */
@@ -96,8 +97,8 @@ export async function sendOp(
 
 // ── The outbox: own units' ops made offline ──────────────────────────────
 
-/** An op waiting to go, with where its author held the unit. */
-type Waiting = { unit: UnitKind; gameId: string | null; op: OpInput }
+/** An op waiting to go, with where its author held the unit; `sent` once a flush has sent it. */
+type Waiting = { unit: UnitKind; gameId: string | null; op: OpInput; sent?: true }
 
 /**
  * Whether an edit to `unit` waits in the outbox now rather than being
@@ -117,13 +118,17 @@ function waitingOps(): Promise<Waiting[]> {
 }
 
 /**
- * Keep one op until the connection returns. A unit holds at most one: a later
- * op folds into the one waiting, which keeps its `baseSeq`, so a second edit
- * offline is not refused on reconnect for a field the first one changed.
+ * Keep one op until the connection returns. A unit holds at most one unsent:
+ * a later op folds into it, keeping its `baseSeq`, so a second edit offline
+ * is not refused on reconnect for a field the first one changed. One already
+ * sent may have landed under its id, which the room would not apply twice,
+ * so a later edit waits behind it as an op of its own.
  */
 async function queue(write: Waiting): Promise<void> {
   const ops = await waitingOps()
-  const same = ops.find((w) => w.unit === write.unit && w.op.unitId === write.op.unitId)
+  const same = ops.find(
+    (w) => w.sent !== true && w.unit === write.unit && w.op.unitId === write.op.unitId
+  )
   if (same === undefined) ops.push(write)
   else same.op = foldOps(same.op, write.op)
   await keepOutbox(ops)
@@ -151,11 +156,14 @@ function foldOps(a: OpInput, b: OpInput): OpInput {
 let flushing: Promise<string[]> | null = null
 
 /**
- * Send what waits, oldest first, one op at a time to its room; answers why
- * each declined op was refused. A send that fails outright (the connection
- * went again, or its room is not open) stops, keeping the rest for next time.
- * A call while one is under way waits for it and answers none, so each
- * refusal is told once.
+ * Send what waits, oldest first, one op at a time to its room, as replayed
+ * (the room takes it only on the player's own units); answers why each
+ * declined op was refused. An op for a Game the player is no longer in (it
+ * ended, or they left, while offline: `gameGone`) is dropped and told as
+ * declined. One whose room is only not open yet keeps waiting without
+ * holding up the others; a send that fails outright (the connection went
+ * again) stops, keeping the rest for next time. A call while one is under
+ * way waits for it and answers none, so each refusal is told once.
  */
 export function flushOutbox(): Promise<string[]> {
   if (flushing !== null) return flushing.then(() => [])
@@ -163,15 +171,24 @@ export function flushOutbox(): Promise<string[]> {
     const declined: string[] = []
     const ops = await waitingOps()
     try {
-      while (ops.length > 0 && writable()) {
-        const { gameId, op } = ops[0] as Waiting
-        await roomFor(gameId)
-          .submit([op])
-          .catch((err: unknown) => {
-            if (!(err instanceof RoomDeclined)) throw err
-            declined.push(err.message)
-          })
-        ops.shift()
+      for (const write of [...ops]) {
+        if (!writable()) break
+        if (gameGone(write.gameId)) {
+          declined.push(sharedCopy('offlineGameGone'))
+          ops.splice(ops.indexOf(write), 1)
+          await keepOutbox(ops)
+          continue
+        }
+        const room = roomOrStandIn(write.gameId)
+        if (room === null) continue
+        // From here it may land, so nothing folds into it (`queue`).
+        write.sent = true
+        await keepOutbox(ops)
+        await room.submit([write.op], { replayed: true }).catch((err: unknown) => {
+          if (!(err instanceof RoomDeclined)) throw err
+          declined.push(err.message)
+        })
+        ops.splice(ops.indexOf(write), 1)
         await keepOutbox(ops)
       }
     } catch {
@@ -351,4 +368,24 @@ export async function sendTransfer(writes: readonly TransferWrite[]): Promise<vo
     throw new RoomDeclined('Both sides of a transfer must be at the same table')
   }
   await roomFor(gameId).submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
+}
+
+/**
+ * Send a Downtime step (ADR-063 §6) to its room, and fail if it does not
+ * land: the pilot's step op and the mech's share in one batch, each with a
+ * stable id (`downtimeStepOpId`), so a step sent twice (a reload, a second
+ * tab, a slow read) applies nothing the second time. The step op goes even
+ * when it changes nothing (Skip still takes the step); the mech's only with a
+ * change. Never queued: Downtime is the table's, so its caller refuses it
+ * off `live` (`useGuardedWrite`), and with no room open it fails as offline.
+ * True when this call took the step: the room's `ack` names the step op
+ * among those it applied, not among those that had landed before.
+ */
+export async function sendStep(
+  gameId: string | null,
+  step: OpInput,
+  also: readonly OpInput[] = []
+): Promise<boolean> {
+  const fresh = await roomFor(gameId).submit([step, ...also.filter((op) => !isEmptyOp(op))])
+  return fresh.includes(step.id)
 }

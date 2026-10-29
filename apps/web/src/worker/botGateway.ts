@@ -30,7 +30,7 @@ import type {
 import type { SheetTable } from 'game-domain/entityKinds'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
 import type { BotRooms } from './botSheets'
-import { mine, sheet } from './botSheets'
+import { mine, sheet, shownName } from './botSheets'
 import { accountByDiscordId } from './shared/accounts'
 import {
   bindChannel,
@@ -47,14 +47,18 @@ type GatewayEnv = { SHARED?: SharedDb }
 
 type BotAnswer = BotFailure | BotSuccess<unknown>
 
-async function me(db: SharedDb, discordId: string): Promise<BotFailure | BotSuccess<MeResult>> {
+async function me(
+  db: SharedDb,
+  rooms: BotRooms | undefined,
+  discordId: string
+): Promise<BotFailure | BotSuccess<MeResult>> {
   const account = await accountByDiscordId(db, discordId)
   if (account === null) return botDenial('unlinked')
   return {
     ok: true,
     user: {
       userId: account.account_id,
-      displayName: account.display_name ?? account.name ?? 'Crewmate',
+      displayName: await shownName(rooms, discordId, account),
       avatarUrl: account.avatar_url,
     },
     games: await gamesOf(db, discordId),
@@ -143,7 +147,7 @@ export async function answerBot(
   if (!db) return null
   switch (op) {
     case 'me':
-      return me(db, String(args.discordId))
+      return me(db, rooms, String(args.discordId))
     case 'games':
       return games(db, String(args.discordId))
     case 'usage':

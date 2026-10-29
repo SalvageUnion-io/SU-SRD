@@ -73,9 +73,7 @@ import {
   hasVariableHot,
   isAreaSalvage,
   isDestructiveOutcome,
-  mechPush,
   pilotActivationPatch,
-  pilotOverloadPatch,
 } from '../lib/rules/actionPatches'
 import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEconomy'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
@@ -85,6 +83,7 @@ import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
 import type { PlayStore } from './play.model'
+import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
 import type { SalvageAreaView } from './useSalvageArea'
 
@@ -325,10 +324,13 @@ export function useActionsDeck({
           })
         ),
       })
+      // The resolve moves on to Roll only once the spend has landed.
       if (Object.keys(patch).length > 0) {
-        runWrite(() => s.update('pilot', pilot.id, patch, meta))
-      }
-      step(current, { activated: true })
+        runWrite(
+          () => s.update('pilot', pilot.id, patch, meta),
+          () => step(current, { activated: true })
+        )
+      } else step(current, { activated: true })
       return
     }
     // EP is the mech's: only a boarded deck offers it.
@@ -346,9 +348,11 @@ export function useActionsDeck({
       prevUses: fresh.itemUses,
     })
     if (Object.keys(patch).length > 0) {
-      runWrite(() => s.update('mech', mech.id, patch, meta))
-    }
-    step(current, { activated: true })
+      runWrite(
+        () => s.update('mech', mech.id, patch, meta),
+        () => step(current, { activated: true })
+      )
+    } else step(current, { activated: true })
   }
 
   /**
@@ -382,16 +386,13 @@ export function useActionsDeck({
     const coreRoll = await rollFor('Core Mechanic')
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
-    const pushed = mechPush(s.get('mech', mech.id) ?? mech, heatRoll, heatScale)
-    if (pushed === null) return
-    runWrite(() => s.update('mech', mech.id, pushed.patch, meta))
-    const hurt = pilot ? pilotOverloadPatch(s.get('pilot', pilot.id) ?? pilot, pushed.effect) : null
-    if (pilot && hurt !== null) runWrite(() => s.update('pilot', pilot.id, hurt, meta))
-    const result = performCoreRoll(coreRoll)
-    setPushLog(pushed.text)
-    setMeltdown(pushed.meltdown)
-    setApplyRouted(false)
-    step(current, { roll: result, applied: false })
+    // The readout, a Meltdown and the reroll follow only a Push that landed.
+    pushMech({ store: s, mech, pilot: pilot ?? null, roll: heatRoll, heatScale }, (pushed) => {
+      setPushLog(pushed.text)
+      setMeltdown(pushed.meltdown)
+      setApplyRouted(false)
+      step(current, { roll: performCoreRoll(coreRoll), applied: false })
+    })
   }
 
   /**
@@ -434,12 +435,9 @@ export function useActionsDeck({
   }
 
   /** The player's half of a meltdown: mark the mech Destroyed (ADR-007). */
-  function confirmMeltdown() {
+  function meltDown() {
     if (!mech) return
-    runWrite(
-      () => s.update('mech', mech.id, { destroyed: true }, meta),
-      () => setMeltdown(false)
-    )
+    confirmMeltdown(s, mech.id, () => setMeltdown(false))
   }
 
   const resolve = ((): ResolveModel => {
@@ -580,9 +578,7 @@ export function useActionsDeck({
             haul,
           }
         : undefined,
-      meltdown: meltdown
-        ? { onConfirm: confirmMeltdown, onDismiss: () => setMeltdown(false) }
-        : null,
+      meltdown: meltdown ? { onConfirm: meltDown, onDismiss: () => setMeltdown(false) } : null,
       applied,
       applyRouted,
     }

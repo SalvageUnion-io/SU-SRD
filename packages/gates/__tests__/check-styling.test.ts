@@ -50,23 +50,23 @@ const SET: RuleSet = {
 
 describe('ruleEngine.evaluate', () => {
   test('passes when zero rules are clean and ratchets sit exactly at baseline', () => {
-    const v = evaluate(SET, { z: [], r: finding(3) }, { r: 3 })
+    const v = evaluate(SET, { z: [], r: finding(3) }, { r: { 'x.ts': 3 } })
     expect(v.ok).toBe(true)
   })
 
   test('a zero rule fails on any finding, with no baseline to hide behind', () => {
-    const v = evaluate(SET, { z: finding(1), r: [] }, { r: 0 })
+    const v = evaluate(SET, { z: finding(1), r: [] }, { r: {} })
     expect(v.ok).toBe(false)
     expect(v.rules.find((r) => r.rule.id === 'z')?.problem).toBe('nonzero')
   })
 
   test('a ratchet fails when the count rises', () => {
-    const v = evaluate(SET, { z: [], r: finding(4) }, { r: 3 })
+    const v = evaluate(SET, { z: [], r: finding(4) }, { r: { 'x.ts': 3 } })
     expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
   })
 
   test('a ratchet fails when the count FALLS but the baseline was not lowered', () => {
-    const v = evaluate(SET, { z: [], r: finding(2) }, { r: 3 })
+    const v = evaluate(SET, { z: [], r: finding(2) }, { r: { 'x.ts': 3 } })
     expect(v.ok).toBe(false)
     expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('unrecorded-improvement')
     expect(formatFailures(v, 'UPDATE').join('\n')).toContain('run: UPDATE')
@@ -78,16 +78,35 @@ describe('ruleEngine.evaluate', () => {
   })
 
   test('a baseline entry for a zero rule or an unknown rule is stale and fails', () => {
-    const v = evaluate(SET, { z: [], r: [] }, { r: 0, z: 0, gone: 4 })
+    const v = evaluate(SET, { z: [], r: [] }, { r: {}, z: {}, gone: { 'x.ts': 4 } })
     expect(v.ok).toBe(false)
     expect(v.staleBaselineKeys.sort()).toEqual(['gone', 'z'])
   })
 
   test('ratchetCounts records ratchet rules only, and increases() names only rises', () => {
     const counts = ratchetCounts(SET, { z: finding(9), r: finding(2) })
-    expect(counts).toEqual({ r: 2 })
-    expect(increases({ r: 3 }, { r: 2 })).toEqual([])
-    expect(increases({ r: 1 }, { r: 2 })).toEqual(['r: 1 → 2'])
+    expect(counts).toEqual({ r: { 'x.ts': 2 } })
+    expect(increases({ r: { 'x.ts': 3 } }, { r: { 'x.ts': 2 } })).toEqual([])
+    expect(increases({ r: { 'x.ts': 1 } }, { r: { 'x.ts': 2 } })).toEqual(['r x.ts: 1 → 2'])
+    // A file the baseline does not name counts from zero, even when the total holds.
+    expect(increases({ r: { 'x.ts': 2 } }, { r: { 'x.ts': 1, 'y.ts': 1 } })).toEqual([
+      'r y.ts: 0 → 1',
+    ])
+  })
+
+  test('a new finding in one file cannot hide behind a fix in another', () => {
+    const moved = [{ file: 'y.ts', line: 1, detail: 'd' }, ...finding(2)]
+    const v = evaluate(SET, { z: [], r: moved }, { r: { 'x.ts': 3 } })
+    const r = v.rules.find((x) => x.rule.id === 'r')
+    expect(r?.problem).toBe('regressed')
+    expect(r?.over).toEqual(['y.ts'])
+  })
+
+  test('an older total-only baseline is still read as a total', () => {
+    expect(evaluate(SET, { z: [], r: finding(3) }, { r: 3 }).ok).toBe(true)
+    expect(evaluate(SET, { z: [], r: finding(4) }, { r: 3 }).ok).toBe(false)
+    expect(increases({ r: 3 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual([])
+    expect(increases({ r: 2 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual(['r: 2 → 3'])
   })
 })
 
@@ -139,17 +158,55 @@ describe('tokens rule set', () => {
         'see microsoft/TypeScript#30581 and PR #466',
         "const arrow = '&#8599;'",
         "const shadow = 'shadow-[0_5px_18px_rgba(0,0,0,0.2)]'",
+        "const h = { color: 'hsl(30 20% 10%)' }",
+        'background: oklch(0.3 0.02 60);',
+        "const w = { color: 'white', background: '#000' }",
+        'border: 1px solid black;',
+        'color: var(--color-ink);',
+        "const t = { background: 'transparent', color: color.ink }",
       ].join('\n')
     )
-    expect(found['raw-color']?.map((f) => f.line)).toEqual([1, 4])
+    expect(found['raw-color']?.map((f) => f.line)).toEqual([1, 4, 5, 6, 7, 7, 8])
   })
 
-  test('a design-tokens-ignore comment waives its own line only', () => {
+  test('a stylesheet comment that reads like a colour declaration is prose', () => {
+    const found = scan(
+      'apps/web/src/styles/x.css',
+      ' * a solid fill: rust at 40% is a pastel salmon'
+    )
+    expect(found['raw-color']).toEqual([])
+  })
+
+  test('a design-tokens-ignore comment waives the rule it names, on its own line only', () => {
     const found = scan(
       'apps/web/src/routes/x.tsx',
-      "const a = '#ff0000' // design-tokens-ignore: brand\nconst b = '#00ff00'"
+      [
+        "const a = '#ff0000' // design-tokens-ignore(raw-color): brand",
+        "const b = '#00ff00'",
+        "const c = { color: '#ff0000', padding: '3px' } // design-tokens-ignore(raw-spacing): a fit",
+        "const d = '#ff0000' // design-tokens-ignore(raw-color, raw-spacing): two rules",
+      ].join('\n')
     )
-    expect(found['raw-color']?.map((f) => f.line)).toEqual([2])
+    expect(found['raw-color']?.map((f) => f.line)).toEqual([2, 3])
+    expect(found['raw-spacing']).toEqual([])
+  })
+
+  test('ignore-marker: a bare marker, one with no reason and one naming no rule fail', () => {
+    const found = scan(
+      'apps/web/src/routes/x.tsx',
+      [
+        "const a = '#ff0000' // design-tokens-ignore: brand",
+        "const b = '#ff0000' // design-tokens-ignore(raw-color):",
+        "const c = '#ff0000' // design-tokens-ignore(raw-colour): a typo",
+        "const d = '#ff0000' // design-tokens-ignore(ignore-marker): no",
+        "const e = '#ff0000' // design-tokens-ignore(raw-color): brand",
+        'const f = { color: color.wkMuted } // design-tokens-ignore(muted-note): a chrome rule',
+        '.g { margin: -1px; } /* design-tokens-ignore(raw-spacing): the hidden pattern */',
+      ].join('\n')
+    )
+    expect(found['ignore-marker']?.map((f) => f.line)).toEqual([1, 2, 3, 4])
+    // A bare marker waives nothing.
+    expect(found['raw-color']?.map((f) => f.line)).toEqual([1, 2, 3, 4])
   })
 
   test('the token definition file is exempt from raw-color but not from other rules', () => {
@@ -245,7 +302,7 @@ describe('tokens rule set', () => {
     }
     const css = scan(
       'apps/web/src/styles/index.css',
-      "background: var(--color-rust); /* design-tokens-ignore: Button's rust */\nborder-color: var(--color-rust);"
+      "background: var(--color-rust); /* design-tokens-ignore(rust-allowlist): Button's rust */\nborder-color: var(--color-rust);"
     )
     expect(css['rust-allowlist']?.map((f) => f.line)).toEqual([2])
   })
@@ -343,8 +400,12 @@ describe('tokens rule set', () => {
       'max-width: 32rem;',
     ].join('\n')
     expect(lines('size-literal', css)).toEqual([1, 2, 3])
-    const ts = "const A = { height: '18px', minHeight: size.full, width: '18px' }"
-    expect(details('size-literal', 'apps/web/src/x.tsx', ts)).toEqual(["height: '18px'"])
+    const ts =
+      "const A = { height: '18px', minHeight: size.full, width: '18px' }\nconst B = { minHeight: 44, height: 20 }"
+    expect(details('size-literal', 'apps/web/src/x.tsx', ts)).toEqual([
+      "height: '18px'",
+      'minHeight: 44',
+    ])
   })
 
   test('ink-mix: a color-mix of ink fails; the ramp and other mixes pass', () => {
@@ -381,8 +442,9 @@ describe('tokens rule set', () => {
       'border-radius: calc(var(--radius-card) - var(--bw-chrome));',
       'border-radius: 0;',
       'border-radius: 50%;',
+      'const d = { borderRadius: 5 }',
     ].join('\n')
-    expect(lines('raw-radius', text)).toEqual([1, 2, 3])
+    expect(lines('raw-radius', text)).toEqual([1, 2, 3, 8])
   })
 
   test('radius-panel: the 6px rung by either spelling fails; the 3px card passes', () => {
@@ -400,7 +462,7 @@ describe('tokens rule set', () => {
     ])
   })
 
-  test('raw-spacing: a length outside the scale tokens is counted; tokens and unitless options are not', () => {
+  test('raw-spacing: a length outside the scale tokens is counted, a unitless px included; tokens are not', () => {
     const text = [
       'padding: 3px var(--space-6);',
       'gap: 0.75rem;',
@@ -408,12 +470,17 @@ describe('tokens rule set', () => {
       'padding: var(--space-8) var(--space-12);',
       'margin: calc(-1 * var(--space-4));',
       'margin: 0;',
-      'QRCode.toString(url, { margin: 1 })', // a library option, unitless
+      'const b = { paddingTop: 7, gap: 13, margin: 0, padding: space[4] }',
+      'const c = { marginLeft: -1 }',
+      'const d = { padding: 2 * scale, gap: count }',
     ].join('\n')
     expect(details('raw-spacing', 'apps/web/src/x.tsx', text)).toEqual([
       'padding: 3px var(--space-6)',
       'gap: 0.75rem',
       "marginLeft: '34px'",
+      'paddingTop: 7',
+      'gap: 13',
+      'marginLeft: -1',
     ])
   })
 

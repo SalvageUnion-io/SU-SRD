@@ -7,7 +7,7 @@
  * Every path is a browser path; `openApp` puts the app's base in front.
  */
 import type { Page } from '@playwright/test'
-import { APP_BASE, appPath } from '../../../apps/web/src/lib/appBase'
+import { APP_BASE, appPath } from 'game-domain/appAddress'
 
 /**
  * `page.goto`, again when a client navigation aborts it.

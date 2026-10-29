@@ -3,6 +3,7 @@ import { PRODUCT } from 'game-domain/product'
 import { useCallback } from 'react'
 import { PublicSheetView } from '../../../build/sheet/PublicSheetView'
 import { areaTitle } from '../../../lib/pageTitle'
+import { routesCopy } from '../../../messages/routes'
 
 /**
  * `/p/$kind/$appId` — one published sheet, readable with no account
@@ -27,7 +28,7 @@ import { areaTitle } from '../../../lib/pageTitle'
  * tree out of the entry chunk (see `routes/__tests__/routeExports.test.ts`).
  */
 export const Route = createFileRoute('/p/$kind/$appId')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, 'Shared sheet') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('sharedSheet')) }] }),
   component: PublicSheetRoute,
 })
 

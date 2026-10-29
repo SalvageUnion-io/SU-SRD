@@ -50,12 +50,14 @@ export {
 export { bookQuote } from './bookQuote'
 export { parseContentBlockString, replaceChassisPlaceholder } from './contentBlockHelpers'
 export {
+  getHitPoints,
   getName,
   getPageReference,
   getReferenceEntityName,
   getSlotsRequired,
   getSource,
   getSources,
+  getStructurePoints,
   getTechLevel,
   getTree,
 } from './entityFields'

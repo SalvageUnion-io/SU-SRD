@@ -158,8 +158,11 @@ describe('a solo Downtime, end to end', () => {
     await click(lines.getByRole('checkbox', { name: 'Bonesaw' }))
     calls.length = 0
     await click(button('Apply & mark done'))
-    expect(calls.map((c) => c.type)).toEqual(['mech'])
-    expect(calls[0]?.patch).toMatchObject({ currentHeat: 0 })
+    // The mech's share rides in the step's batch, beside the pilot's op.
+    expect(calls).toEqual([])
+    expect(writes.filter((w) => w.name === 'downtime.markStepDone').at(-1)).toMatchObject({
+      args: { patch: {}, mech: { id: mech.id, patch: { currentHeat: 0 } } },
+    })
     await click(button(/^Next: Step \d+$/))
 
     // On to Train your Pilot.
@@ -371,10 +374,11 @@ describe('a Game’s step', () => {
     ).toBeNull()
 
     await click(button('Apply & mark done'))
-    // The mech's share is a store write; the pilot's rides on the step's op.
-    expect(calls.map((c) => c.type)).toEqual(['mech'])
+    // The pilot's and the mech's shares ride in the step's batch, not a store write.
+    expect(calls).toEqual([])
     expect(writes.find((w) => w.name === 'downtime.markStepDone')?.args).toMatchObject({
       patch: { currentHP: expect.any(Number) },
+      mech: { id: mech.id },
     })
     expect(writes).toContainEqual({ name: 'downtime.markDone', args: true })
     expect(within(stepBox()).getByText('Mediator advances · 2 of 4 done')).toBeTruthy()

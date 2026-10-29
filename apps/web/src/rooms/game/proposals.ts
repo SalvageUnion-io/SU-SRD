@@ -143,7 +143,7 @@ export class GameProposals {
           proposal.author,
           proposal.reason
         )
-        return { ok: true, applied: [{ id: proposal.id, seq }] } as const
+        return { ok: true, applied: [{ id: proposal.id, seq }], fresh: [proposal.id] } as const
       })
     } catch (error) {
       if (error instanceof BatchRefused) {

@@ -14,7 +14,6 @@ import type { CommandButtonInteraction } from './commands/interactions'
 import type { LookupMessage } from './commands/lookup'
 import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
 import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
-import type { ContainerData } from './container'
 import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
@@ -57,8 +56,7 @@ export async function handleButtonInteraction(
       await interaction.reply({ content: posted.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data: _data, ...payload } = posted
-    await interaction.reply(payload)
+    await interaction.reply(posted)
     return
   }
 
@@ -100,8 +98,7 @@ export async function handleButtonInteraction(
       await interaction.reply({ content: seen.error, flags: MessageFlags.Ephemeral })
       return
     }
-    const { data: _data, ...payload } = seen
-    await interaction.reply(payload)
+    await interaction.reply(seen)
     return
   }
 
@@ -135,11 +132,5 @@ export async function handleButtonInteraction(
     return
   }
 
-  // `data` and `ephemeral` are ours, not Discord's: the flags already carry it.
-  const {
-    data: _data,
-    ephemeral: _ephemeral,
-    ...payload
-  } = message as typeof message & { data?: ContainerData; ephemeral?: true }
-  await interaction.reply(payload)
+  await interaction.reply(message)
 }

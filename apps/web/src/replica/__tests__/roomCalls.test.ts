@@ -79,6 +79,14 @@ describe('useGamesQuery', () => {
     await waitFor(() => expect(result.current).toEqual([{ _id: 'g1' }] as never))
   })
 
+  test('forgets its answer when the session ends, so the next account never reads it', async () => {
+    answer = () => ({ body: { ok: true, value: [{ _id: 'g1' }] } })
+    const { result } = renderHook(() => useGamesQuery('games.listMine', {}))
+    await waitFor(() => expect(result.current).toEqual([{ _id: 'g1' }] as never))
+    act(() => forgetGamesAnswers())
+    expect(result.current).toBeUndefined()
+  })
+
   test('a skipped read sends nothing', async () => {
     const { result } = renderHook(() => useGamesQuery('games.get', 'skip'))
     await new Promise((resolve) => setTimeout(resolve, 10))

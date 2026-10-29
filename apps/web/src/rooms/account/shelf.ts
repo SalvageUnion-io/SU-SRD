@@ -153,7 +153,9 @@ export class AccountShelf {
       this.requireOwner(actor)
       const existing = this.store.unit(args.id)
       if (existing !== null) {
-        if (existing.kind !== args.kind) throw new Error(`${args.id} is already a ${existing.kind}`)
+        if (existing.kind !== args.kind) {
+          throw new RoomRefusal(`${args.id} is already a ${existing.kind}`)
+        }
         return
       }
       this.store.putUnit({

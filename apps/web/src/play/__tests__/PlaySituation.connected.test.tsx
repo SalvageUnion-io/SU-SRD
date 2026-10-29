@@ -494,6 +494,20 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     })
   })
 
+  test('a step carries the mech’s share in the same batch, under its own stable id', async () => {
+    await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID })
+    await act(async () => {
+      await play()?.downtime.markStepDone?.(1, {}, { id: 'mg-rook', patch: { currentHeat: 0 } })
+    })
+    expect(batches[0]).toMatchObject({
+      gameId: GAME_ID,
+      ops: [
+        { id: 'downtime:0:pg-rook:1', unitId: 'pg-rook', patch: {} },
+        { id: 'downtime:0:mg-rook:1', unitId: 'mg-rook', patch: { currentHeat: 0 } },
+      ],
+    })
+  })
+
   test('the Mediator’s handle is unlocked', async () => {
     await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID, mediator: true })
     expect(play()?.downtime.locked).toBe(false)

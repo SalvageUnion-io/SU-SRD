@@ -34,7 +34,7 @@ const REASON = { display: 'block', color: tokens.color.wkMuted } satisfies CSSPr
 const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSProperties
 
 const STATE = {
-  color: tokens.color.ink75, // design-tokens-ignore: a post's status word
+  color: tokens.color.ink75, // design-tokens-ignore(muted-note): a post's status word
   fontFamily: tokens.font.body,
   fontSize: tokens.fontSize.note,
   whiteSpace: 'nowrap',

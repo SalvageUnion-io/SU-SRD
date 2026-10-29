@@ -39,7 +39,7 @@ export function LinkQr({ url }: LinkQrProps) {
 
   useEffect(() => {
     let cancelled = false
-    QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' })
+    QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' }) // design-tokens-ignore(raw-spacing): the QR quiet zone in modules, a library option, not CSS
       .then((markup) => {
         if (!cancelled) setSvg(markup)
       })

@@ -25,11 +25,10 @@ describe("a card's head carries its controls", () => {
       <ReferenceEntityCard
         data={equipment()}
         selected
-        selectionSeal="Equipped"
         controls={[{ key: 'swap', ariaLabel: 'Swap', label: 'Swap', onClick: () => {} }]}
       />
     )
-    const seal = screen.getByText('Equipped')
+    const seal = screen.getByText('Selected')
     const control = screen.getByRole('button', { name: 'Swap' })
     expect(lane(control)).toBe('menu')
     expect(head(seal)).not.toBeNull()

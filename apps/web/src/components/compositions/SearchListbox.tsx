@@ -64,7 +64,7 @@ const CATEGORY_ACT = { ...CATEGORY, cursor: 'pointer' } satisfies CSSProperties
 const CATEGORY_TITLE = { color: color.ink, fontWeight: weight.medium } satisfies CSSProperties
 
 const CATEGORY_GROUP = {
-  color: color.wkMuted, // design-tokens-ignore: a category group label
+  color: color.wkMuted, // design-tokens-ignore(muted-note): a category group label
   fontSize: fontSize.xs,
   lineHeight: 'calc(1 / 0.75)',
   marginTop: space[2],

@@ -95,6 +95,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ['full'],
   },
   {
+    id: 'test-workerd',
+    guards:
+      "the rooms' Durable Object wiring inside workerd (apps/web/vitest.config.ts); CI's coverage job runs it by id",
+    fix: 'fix the test; `bun --filter web test:workerd` reruns it',
+    cmd: ['bun', '--filter', 'web', 'test:workerd'],
+    areas: ['code'],
+    profiles: ['full'],
+  },
+  {
     id: 'typecheck',
     guards: 'TypeScript across every workspace and test/',
     fix: 'fix the type error',
@@ -184,8 +193,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'rules-home',
     guards:
-      'no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/)',
-    fix: 'move a rule to a lib/rules home, or name a view-model `<name>.model.ts`',
+      'no rules- or model-named module sits in a product folder (apps/web/src/components/, build/, play/), and build/ and play/ export no numeric constant',
+    fix: 'move a rule (or its number) to a rules home, or name a view-model `<name>.model.ts`',
     cmd: ['bun', 'tools/check-rules-home.ts'],
     areas: ['code'],
     profiles: ALL,
@@ -196,6 +205,15 @@ export const CHECKS: readonly CheckSpec[] = [
       'every *.test.ts(x) sits in a __tests__/ directory; every workspace has the one test script',
     fix: "git mv the test into a __tests__/ beside its subject (deepen its relative paths); set the workspace's test script to TEST_SCRIPT (tools/check-test-layout.ts)",
     cmd: ['bun', 'tools/check-test-layout.ts'],
+    areas: ['code'],
+    profiles: ALL,
+  },
+  {
+    id: 'migrations',
+    guards:
+      'a D1 migration on main is never edited or deleted; a new one numbers after them, and drops or renames only with a `-- contract:` line',
+    fix: 'put the change in a new, higher-numbered migration; a drop or rename ships once no deployed Worker reads it (docs/ARCHITECTURE.md#deploy)',
+    cmd: ['bun', 'tools/check-migrations.ts'],
     areas: ['code'],
     profiles: ALL,
   },

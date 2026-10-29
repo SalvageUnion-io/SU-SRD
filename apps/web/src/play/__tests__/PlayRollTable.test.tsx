@@ -151,6 +151,25 @@ describe('rolling a standard table', () => {
     expect(await screen.findByText('Core Mechanic: rolled 7 (2–10)')).toBeTruthy()
   })
 
+  test('a roll on no row is still a roll: No effect, reported and toasted', async () => {
+    const reported: Array<[string, string]> = []
+    queued = [5]
+    render(
+      <>
+        <PlayRollTable
+          table={{ type: 'standard', '11-20': 'Something happens' } as never}
+          name="Gapped"
+          onRollResult={(text, key) => reported.push([text, key])}
+        />
+        <ToasterMount />
+      </>
+    )
+    await roll()
+    expect(marked()).toHaveLength(0)
+    expect(reported).toEqual([['No effect', '']])
+    expect(await screen.findByText('Gapped: rolled 5')).toBeTruthy()
+  })
+
   test('the table asks for its own die by name', async () => {
     queued = [7]
     render(<PlayRollTable table={RANGE_TABLE} name="Core Mechanic" />)

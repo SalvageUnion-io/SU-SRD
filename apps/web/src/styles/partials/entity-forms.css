@@ -697,7 +697,7 @@
 }
 
 @container (width >= 18rem) {
-  /* design-tokens-ignore: E10, the art's window appears by the Compact's own room (18rem), a component's fit, not a page breakpoint */
+  /* design-tokens-ignore(raw-breakpoint): E10, the art's window appears by the Compact's own room (18rem), a component's fit, not a page breakpoint */
   .su-entity-compact__art {
     display: block;
   }
@@ -1010,7 +1010,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   line-height: 1.2;
   max-width: 100%;
   overflow: hidden;
-  padding: calc(var(--space-2) + round(down, var(--bw-chrome), 1px)) var(--space-6) 0 var(--space-4); /* design-tokens-ignore: the edge snapped to a whole pixel, not spacing */
+  padding: calc(var(--space-2) + round(down, var(--bw-chrome), 1px)) var(--space-6) 0 var(--space-4); /* design-tokens-ignore(raw-spacing): the edge snapped to a whole pixel, not spacing */
   position: relative;
   white-space: nowrap;
 }

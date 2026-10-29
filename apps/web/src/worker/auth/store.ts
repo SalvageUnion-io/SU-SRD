@@ -1,17 +1,8 @@
 /**
  * Accounts and sessions, in the shared D1 database (`SHARED`, `wrangler.jsonc`).
  *
- * An account's id is made on its first sign-in (one that signed in while
- * Convex was the server of record keeps its Convex `users` id). It is found
- * again by how it signs in: `discord_id`, or `test_email` where `TEST_AUTH`
- * allows the test seam. `name` is Discord's
- * and every sign-in refreshes it; `display_name` is the player's own, which
- * sign-in never writes. A session is a random token in an HttpOnly cookie; the
- * table keeps only its SHA-256, so a read of the database signs nobody in.
- *
- * The tables are made on first use in each isolate, `if not exists`, so a
- * fresh database (a Preview's, `wrangler dev`'s, the dev server's) needs no
- * migration step.
+ * The tables are `apps/web/migrations/0007_sign_in.sql`'s, which says what
+ * each column holds; the deploy, each Preview and the dev server apply it.
  */
 
 import type { SqlValue } from '../../rooms/sql'
@@ -38,42 +29,6 @@ export function d1Sql(db: SharedDb): AuthSql {
         .bind(...bindings)
         .first(),
   }
-}
-
-const SCHEMA = [
-  `create table if not exists accounts (
-    account_id text primary key,
-    discord_id text unique,
-    test_email text unique,
-    name text,
-    display_name text,
-    avatar_url text,
-    email text,
-    secret text,
-    created_at integer not null,
-    updated_at integer not null
-  )`,
-  `create table if not exists sessions (
-    id text primary key,
-    account_id text not null references accounts(account_id) on delete cascade,
-    expires_at integer not null
-  )`,
-  'create index if not exists sessions_by_account on sessions(account_id)',
-]
-
-const ready = new WeakMap<AuthSql, Promise<void>>()
-
-/** The store, its tables in place. */
-export async function authStore(sql: AuthSql): Promise<AuthSql> {
-  let schema = ready.get(sql)
-  if (schema === undefined) {
-    schema = (async () => {
-      for (const statement of SCHEMA) await sql.run(statement)
-    })()
-    ready.set(sql, schema)
-  }
-  await schema
-  return sql
 }
 
 /** How an account signs in, and the profile that sign-in brings. */
@@ -202,7 +157,7 @@ export async function closeSession(sql: AuthSql, token: string): Promise<void> {
   await sql.run('delete from sessions where id = ?', await sha256Hex(token))
 }
 
-/** The account's sign-in and every session it has, gone: its Convex account was deleted. */
+/** The account's sign-in and every session it has, gone: the player deleted their account. */
 export async function forgetAccount(sql: AuthSql, accountId: string): Promise<void> {
   await sql.run('delete from sessions where account_id = ?', accountId)
   await sql.run('delete from accounts where account_id = ?', accountId)

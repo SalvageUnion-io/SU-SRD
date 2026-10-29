@@ -11,10 +11,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import { areaTitle } from '../../../lib/pageTitle'
+import { routesCopy } from '../../../messages/routes'
 import { GamePage } from '../../../play/games/GamePage'
 
 export const Route = createFileRoute('/play/games/$gameId')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Game') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('game')) }] }),
   component: GamePageRoute,
 })
 

@@ -21,21 +21,26 @@
 import type { BotRelay } from 'game-domain/botWire'
 import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
+import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
+import { z } from 'salvageunion-reference/zod'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../../rooms/game/acts'
-import type { GameRead } from '../../rooms/game/roster'
+import type { GameRead, Profile } from '../../rooms/game/roster'
 import { templateList } from '../../rooms/game/template'
 import type { HomeAddress, UnitHome } from '../../rooms/handoff'
 import { handOff } from '../../rooms/handoff'
 import { RoomRefusal } from '../../rooms/refusal'
-import type { GameRoomStub } from '../rooms'
+import type { GameRoomStub } from '../roomStubs'
+import { shownProfile, signInProfile } from './accounts'
+import { bindingBy } from './channelBindings'
 import type { SharedDb } from './db'
 import { gameOfInvite, gamesOf } from './games'
 
 /** A player's account room, as these calls use it. */
 type AccountStub = UnitHome & {
   unit(actor: string, unitId: string): Promise<{ id: string; kind: EntityKind } | null>
+  profile(actor: string): Promise<Profile | null>
 }
 
 /** Everything a call reaches: the shared database, the rooms, the bot, a fresh id. */
@@ -69,13 +74,13 @@ function gameView(read: GameRead) {
   return { _id: gameId, ...(templateOrigin === null ? {} : { templateOrigin }), ...rest }
 }
 
-/** What a roster shows of the player, from their account as the sign-in keeps it. */
-async function profileOf(db: SharedDb, who: Caller) {
-  const row = await db
-    .prepare('select display_name, name, avatar_url from accounts where account_id = ?1')
-    .bind(who.accountId)
-    .first<{ display_name: string | null; name: string | null; avatar_url: string | null }>()
-  return { displayName: row?.display_name ?? row?.name ?? null, avatarUrl: row?.avatar_url ?? null }
+/** What a roster shows of the player: their own name and avatar, else Discord's. */
+async function profileOf(deps: CallDeps, who: Caller): Promise<Profile> {
+  const [discord, own] = await Promise.all([
+    signInProfile(deps.db, who.accountId),
+    deps.account(who.discordId).profile(who.discordId),
+  ])
+  return shownProfile(own, discord)
 }
 
 /** A code as every door that takes one reads it. */
@@ -100,23 +105,20 @@ type ListedCrawler = { _id: string; appId: string; body: Record<string, unknown>
 
 type BindingView = { channelId: string; channelName: string | null; boundAt: number }
 
-async function bindingWhere(
+/** A Game's binding, or the player's solo play's, as these calls answer it. */
+async function bindingView(
   db: SharedDb,
-  where: string,
+  by: 'game' | 'solo',
   value: string
 ): Promise<BindingView | null> {
-  const row = await db
-    .prepare(`select channel_id, channel_name, bound_at from channel_bindings where ${where}`)
-    .bind(value)
-    .first<{ channel_id: string; channel_name: string | null; bound_at: number }>()
+  const row = await bindingBy(db, by, value)
   return row === null
     ? null
     : { channelId: row.channel_id, channelName: row.channel_name, boundAt: row.bound_at }
 }
 
-const gameBinding = (db: SharedDb, gameId: string) => bindingWhere(db, 'game_id = ?1', gameId)
-const soloBinding = (db: SharedDb, discordId: string) =>
-  bindingWhere(db, 'game_id is null and bound_by = ?1', discordId)
+const gameBinding = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
+const soloBinding = (db: SharedDb, discordId: string) => bindingView(db, 'solo', discordId)
 
 /** Where a unit the player may see lives, and whether they may write it; null when nowhere. */
 async function find(who: Caller, kind: EntityKind, id: string, deps: CallDeps) {
@@ -157,7 +159,7 @@ async function rollerName(
       if (typeof value === 'string' && value.trim().length > 0) return value.trim()
     }
   }
-  return (await profileOf(deps.db, who)).displayName ?? 'Crewmate'
+  return (await profileOf(deps, who)).displayName ?? 'Crewmate'
 }
 
 const CALLS = {
@@ -179,7 +181,7 @@ const CALLS = {
   ) => {
     const gameId = deps.newId()
     const room = deps.game(gameId)
-    await act(room, who.discordId, 'create', { ...a, profile: await profileOf(deps.db, who) })
+    await act(room, who.discordId, 'create', { ...a, profile: await profileOf(deps, who) })
     return republished(room, gameId)
   },
   'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
@@ -235,7 +237,7 @@ const CALLS = {
     const gameId = await gameOfInvite(deps.db, normalized(a.code))
     if (gameId === null) throw new RoomRefusal('That invite link is not valid')
     const room = deps.game(gameId)
-    const profile = await profileOf(deps.db, who)
+    const profile = await profileOf(deps, who)
     const kind = await act(room, who.discordId, 'redeem', { code: a.code, profile })
     return republished(room, { kind, gameId })
   },
@@ -248,7 +250,7 @@ const CALLS = {
   ) => {
     const gameId = deps.newId()
     const room = deps.game(gameId)
-    const profile = await profileOf(deps.db, who)
+    const profile = await profileOf(deps, who)
     await act(room, who.discordId, 'createFromTemplate', { ...a, profile })
     return republished(room, gameId)
   },
@@ -454,6 +456,45 @@ export type GameCallArgs<N extends GameCallName> =
 /** What a call answers. */
 export type GameCallResult<N extends GameCallName> = Awaited<ReturnType<(typeof CALLS)[N]>>
 
+const GAME = z.object({ gameId: z.string() })
+const KIND = z.enum(ENTITY_KINDS)
+
+/**
+ * What each call takes, parsed before it runs, as a socket act's args are
+ * (`../../rooms/game/socketActs.ts`). What the args mean (a name not too
+ * long, a unit that exists) is still the room's to refuse.
+ */
+const CALL_ARGS = {
+  'games.listMine': z.object({}),
+  'games.get': GAME,
+  'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
+  'games.destroy': GAME,
+  'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
+  'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
+  'games.members': GAME,
+  'invites.preview': z.object({ code: z.string() }),
+  'invites.link': GAME,
+  'invites.reset': GAME,
+  'invites.redeem': z.object({ code: z.string() }),
+  'templates.list': z.object({}),
+  'templates.createGame': z.object({ templateId: z.string(), name: z.string().optional() }),
+  'ownership.assign': GAME.extend({ entityId: z.string(), userId: z.string().optional() }),
+  'ownership.unassign': GAME.extend({ entityId: z.string() }),
+  'entities.remove': GAME.extend({ entityId: z.string() }),
+  'entities.removeCrawler': GAME.extend({ crawlerId: z.string() }),
+  'entities.listForGame': GAME,
+  'entities.locate': z.object({ kind: KIND, id: z.string() }),
+  'entities.move': z.object({ kind: KIND, appId: z.string(), gameId: z.string().nullable() }),
+  'channelBindings.mine': z.object({}),
+  'channelBindings.current': z.object({ gameId: z.string().optional() }),
+  'channelBindings.postRoll': z.object({
+    gameId: z.string().optional(),
+    pilotId: z.string().optional(),
+    roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
+    post: z.boolean(),
+  }),
+} satisfies Record<GameCallName, z.ZodType>
+
 /** The calls a signed-out visitor may make: an invite's preview, the template list. */
 const SIGNED_OUT: ReadonlySet<string> = new Set(['invites.preview', 'templates.list'])
 
@@ -471,8 +512,10 @@ export async function gameCall(
     args: unknown,
     deps: CallDeps
   ) => Promise<unknown>
+  const parsed = CALL_ARGS[name as GameCallName].safeParse(args ?? {})
+  if (!parsed.success) return { ok: false, refusal: 'Not what that call takes' }
   try {
-    return { ok: true, value: await call(who, args ?? {}, deps) }
+    return { ok: true, value: await call(who, parsed.data, deps) }
   } catch (error) {
     if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
     throw error

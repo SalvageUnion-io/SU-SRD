@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { borderWidth, color, layer, radius, shadow, space } from '../../design/tokens'
+import { borderWidth, color, radius, shadow, space } from '../../design/tokens'
 
 /**
  * The one surface every floating panel stands on, in its two grounds.
@@ -34,11 +34,10 @@ export const POPUP_SURFACE = {
 
 /**
  * The ink popup both hover surfaces share (`Tooltip`, `StatProvenance`): the
- * ink surface with its inline padding, at the overlay layer. Each spreads it
- * and adds its own size, type and vertical padding.
+ * ink surface with its inline padding. Each spreads it and adds its own size,
+ * type and vertical padding; its layer is on its positioner.
  */
 export const INK_POPUP = {
   ...POPUP_SURFACE.ink,
   paddingInline: space[12],
-  zIndex: layer.overlay,
 } satisfies CSSProperties

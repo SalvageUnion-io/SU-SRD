@@ -32,6 +32,8 @@ export const buildSheetCopy = messages({
   thePoolIsScrapShort:
     'The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise. Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.',
   chooseABayAndMark: 'Choose a Bay and mark it Damaged using its status badge on the sheet.',
+  upkeepInPlay:
+    'A Downtime is running: pay its Upkeep in Play, where it is paid once for the whole crew.',
   done: 'Done',
   cancel: 'Cancel',
   rollDeteriorationD20: 'Roll Deterioration (d20)',

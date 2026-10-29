@@ -3,9 +3,10 @@ import { CrawlerWizard } from '../../build/crawler/CrawlerWizard'
 import { NewUnitRoute } from '../../build/wizard/NewUnitRoute'
 import { newUnitHead, newUnitSearch } from '../../lib/newUnitRoute'
 import { preselectedCrawlerType } from '../../lib/wizard/preselect'
+import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/crawlers/new')({
-  head: () => newUnitHead('New Crawler'),
+  head: () => newUnitHead(routesCopy('newCrawler')),
   validateSearch: (search: Record<string, unknown>) => newUnitSearch(search, 'type'),
   component: CrawlersNewPage,
 })

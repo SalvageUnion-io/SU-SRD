@@ -11,7 +11,7 @@ import { useMyPerson } from '../lib/auth/session'
 import { accountSocketPath, gameSocketPath } from '../rooms/routes'
 import { gameScope, serve, TABLES } from './replica'
 import { useGamesQuery } from './roomCalls'
-import { openRoom } from './roomSocket'
+import { holdGames, openRoom } from './roomSocket'
 import { forgetTableState } from './tableState'
 
 function GameFeed({ gameId }: { gameId: string }) {
@@ -38,7 +38,9 @@ export function RoomFeed() {
       forgetTableState(gameScope(gameId))
     }
     was.current = now
+    holdGames(now)
   }, [games])
+  useEffect(() => () => holdGames(null), [])
   if (person === null) return null
   return (
     <>

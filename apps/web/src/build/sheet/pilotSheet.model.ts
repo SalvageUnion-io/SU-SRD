@@ -12,18 +12,14 @@
  * record bugs that were already paid for once.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotMaxima } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import { useMemo } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  isPilotDead,
-  pilotMaxAPParts,
-  pilotMaxHPParts,
-  resolvePool,
-} from 'salvageunion-reference/rules'
+import type { pilotMaxAPParts, pilotMaxHPParts } from 'salvageunion-reference/rules'
+import { isPilotDead, resolvePool } from 'salvageunion-reference/rules'
 import type { ProvenanceLine, TreeTrack } from '../../components/index'
 import { linesFromBreakdown, trackForTree } from '../../components/index'
 import { resolveClass } from '../../lib/classRef'
@@ -172,11 +168,12 @@ export function usePilotSheetModel({
   })
   const crawlerLink = outgoing.find((link) => link.type === 'pilot-to-crawler')
   const linkedCrawler = crawlerLink ? storeState.get('crawler', crawlerLink.to.id) : null
-  const effectiveCrawlerLevel = resolveEffectiveCrawlerLevel(pilot, linkedCrawler)
   // The same effective level drives the pilot's Stat Training bonus to max HP
-  // and AP (always derived from the crawler tier — see
-  // `pilotMaxHPParts`), so every max-HP read below goes through this input.
-  const statInput = { ...pilot, crawlerTechLevel: effectiveCrawlerLevel }
+  // and AP (always derived from the crawler tier — see `pilotMaxHPParts`), so
+  // every max-HP read below goes through this input: `pilotMaxima`, the one
+  // derivation Play and the crew list read.
+  const { statInput, hpParts, apParts, maxHP, maxAP } = pilotMaxima(pilot, linkedCrawler)
+  const effectiveCrawlerLevel = statInput.crawlerTechLevel
   // Memoized so the {techLevel} object's identity is stable across renders.
   //
   // The original comment here justified this by "the React.memo on the (heavy)
@@ -311,9 +308,6 @@ export function usePilotSheetModel({
     (slug) => !SalvageUnionReference.Abilities.getBySlug(slug)
   )
 
-  const hpParts = pilotMaxHPParts(statInput)
-  const apParts = pilotMaxAPParts(statInput)
-
   // Stat provenance ledgers (ADR-029). Injuries ride the contribution line —
   // a negative rules-sourced addend, derived from `injuries` so healing restores
   // max HP with no bookkeeping.
@@ -324,8 +318,6 @@ export function usePilotSheetModel({
     installedDetail: 'rules A11',
   })
   const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
-  const maxHP = Math.max(0, hpParts.total)
-  const maxAP = Math.max(0, apParts.total)
   const hp = resolvePool(pilot.currentHP, maxHP)
   const ap = resolvePool(pilot.currentAP, maxAP)
   const tp = pilot.trainingPoints ?? 0

@@ -6,8 +6,8 @@ import {
   mechFromPattern,
   patternCopy,
   patternFromMech,
-  patternHref,
   patternLoadout,
+  savedPatternHref,
   slotsUsed,
 } from '../patterns'
 
@@ -111,6 +111,6 @@ describe('a pattern in the reference shapes', () => {
   })
 
   test('lives at /p/pattern/:id', () => {
-    expect(patternHref('pat-tow-rig')).toBe('/p/pattern/pat-tow-rig')
+    expect(savedPatternHref('pat-tow-rig')).toBe('/p/pattern/pat-tow-rig')
   })
 })

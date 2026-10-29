@@ -390,7 +390,7 @@ function ChoiceOptionGroup({
       {counter && !readOnly && (
         <div
           style={{
-            color: color.wkMuted, // design-tokens-ignore: the choice counter
+            color: color.wkMuted, // design-tokens-ignore(muted-note): the choice counter
             fontFamily: font.body,
             fontSize: fontSize.badge,
             marginBottom: space[4],

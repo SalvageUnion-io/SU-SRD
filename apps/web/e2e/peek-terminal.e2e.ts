@@ -170,7 +170,7 @@ test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 test.use({ viewport: DESIGN_VIEWPORTS.page })
 
-test('a Peek of every kind is terminal', async ({ page }) => {
+test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const opened = new Map<string, string>()
   const failures: string[] = []

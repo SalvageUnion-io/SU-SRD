@@ -55,19 +55,38 @@ export function declaredValue(match: string): string {
   return match.slice(match.indexOf(':') + 1)
 }
 
-/** Keep a declaration that spells a length outside its tokens. */
-export const keepLengthLiteral = (match: string) => lengthLiterals(declaredValue(match)).length > 0
+/**
+ * A value that is a bare non-zero number (`7`, `-1`, `0.5`): React reads one
+ * as px on a length property, so a style object's `{ gap: 13 }` is `13px`.
+ */
+const BARE_NUMBER = /^\s*(-?(?:\d+\.?\d*|\.\d+))\s*,?\s*$/
+
+/** The px a bare-number value stands for, or `undefined` when the value is not one. */
+export function bareNumber(value: string): number | undefined {
+  const m = value.match(BARE_NUMBER)
+  return m ? Number(m[1]) : undefined
+}
+
+/**
+ * Keep a declaration that spells a length outside its tokens: a literal with
+ * a unit, or a bare non-zero number (a style object's unitless px).
+ */
+export const keepLengthLiteral = (match: string) => {
+  const value = declaredValue(match)
+  return lengthLiterals(value).length > 0 || (bareNumber(value) ?? 0) !== 0
+}
 
 /**
  * A declaration of one of `js` (camelCase, in a style object, its value a
- * quoted string or template literal) or `css` (kebab-case, in a stylesheet).
+ * quoted string, a template literal or a bare number, which React reads as px
+ * on a length) or `css` (kebab-case, in a stylesheet).
  * The JS arm is tried first and stops at its closing quote; the CSS arm takes
  * an unquoted value and stops at `;`, `{`, `}` or the next `, name:` of a
  * style object, so one entry never swallows its neighbours.
  */
 export function declaration(css: string, js: string): RegExp {
   return new RegExp(
-    `(?<![\\w-])(?:${js})\\s*:\\s*(?:'[^'\\n]*'|"[^"\\n]*"|\`[^\`\\n]*\`)|(?<![\\w-])(?:${css})\\s*:\\s*(?!['"\`])(?:(?!,\\s*[\\w-]+\\s*:)[^;{}\\n])+`,
+    `(?<![\\w-])(?:${js})\\s*:\\s*(?:'[^'\\n]*'|"[^"\\n]*"|\`[^\`\\n]*\`|-?(?:\\d+\\.?\\d*|\\.\\d+)(?=\\s*(?:[,}]|$)))|(?<![\\w-])(?:${css})\\s*:\\s*(?!['"\`])(?:(?!,\\s*[\\w-]+\\s*:)[^;{}\\n])+`,
     'g'
   )
 }

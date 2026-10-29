@@ -11,10 +11,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import { areaTitle } from '../../../../lib/pageTitle'
+import { routesCopy } from '../../../../messages/routes'
 import { PlayMediatorGate } from '../../../../play/PlayMediatorGate'
 
 export const Route = createFileRoute('/play/games/$gameId_/mediate')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, 'Mediate') }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('mediate')) }] }),
   component: PlayMediatorPage,
 })
 

@@ -15,7 +15,9 @@
  *      sits in `previews`.
  *
  * Applying is forward only and idempotent: wrangler records each file it ran
- * in the database's `d1_migrations` table.
+ * in the database's `d1_migrations` table. So a merged migration is never
+ * edited, and the old Worker (and a rollback) runs on the new schema:
+ * `tools/check-migrations.ts` holds both (docs/ARCHITECTURE.md#deploy).
  *
  * Usage: bun tools/d1-migrate.ts <database_name>
  */
@@ -31,19 +33,20 @@ const DATABASES = ['su-shared', 'su-shared-preview'] as const
 
 type Run = (args: string[]) => Promise<{ exitCode: number; stdout: string; stderr: string }>
 
-async function wrangler(args: string[]): ReturnType<Run> {
-  const proc = Bun.spawn(['bunx', 'wrangler', ...args], {
-    cwd: WEB,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
-    proc.exited,
-  ])
-  return { exitCode, stdout, stderr }
-}
+/** A `Run` over `cmd` (wrangler, or a stub in the tests), from `apps/web`. */
+export const runner =
+  (cmd: readonly string[]): Run =>
+  async (args) => {
+    const proc = Bun.spawn([...cmd, ...args], { cwd: WEB, stdout: 'pipe', stderr: 'pipe' })
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ])
+    return { exitCode, stdout, stderr }
+  }
+
+const wrangler = runner(['bunx', 'wrangler'])
 
 /** The one-binding config `migrations apply` reads, naming `name`. */
 export function migrationConfig(name: string): Record<string, unknown> {
@@ -80,10 +83,19 @@ export async function migrate(name: string, run: Run = wrangler): Promise<void> 
   console.log(applied.stdout.trim())
 }
 
-if (import.meta.main) {
-  const name = process.argv[2] ?? ''
-  migrate(name).catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : error)
-    process.exit(1)
-  })
+/** The CLI: migrate `argv[0]`; returns the exit code. */
+export async function cli(
+  argv: readonly string[] = process.argv.slice(2),
+  run: Run = wrangler,
+  error: (line: unknown) => void = console.error
+): Promise<number> {
+  try {
+    await migrate(argv[0] ?? '', run)
+    return 0
+  } catch (caught) {
+    error(caught instanceof Error ? caught.message : caught)
+    return 1
+  }
 }
+
+if (import.meta.main) process.exit(await cli())

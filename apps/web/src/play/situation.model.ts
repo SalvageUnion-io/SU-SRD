@@ -93,19 +93,28 @@ export type PlayDowntime = {
    */
   doneSteps: readonly number[] | null
   /**
-   * Take a step for this pilot: its one op, carrying what it applies to the
-   * pilot (empty to skip). True when this call took it; false when it was
-   * already done (apply nothing more then) or the write was refused. Null on
-   * the Mediator's own screen.
+   * Take a step for this pilot: its op, carrying what it applies to the
+   * pilot (empty to skip), and the mech's share in the same batch. True when
+   * this call took it; false when it was already done (apply nothing more
+   * then) or the write was refused. Null on the Mediator's own screen.
    */
   markStepDone:
-    | ((stepIndex: number, pilotPatch: Record<string, unknown>) => Promise<boolean>)
+    | ((
+        stepIndex: number,
+        pilotPatch: Record<string, unknown>,
+        mech?: { id: string; patch: Record<string, unknown> }
+      ) => Promise<boolean>)
     | null
   /**
    * Record the crawler's upkeep as paid for this Downtime. True when this call
    * paid it; deduct the Scrap only then.
    */
   spendUpkeep: () => Promise<boolean>
+  /**
+   * Record the crawler's Nanites as processed for this Downtime. True when
+   * this call claimed it; roll and spend the piles only then.
+   */
+  spendNanites: () => Promise<boolean>
 }
 
 /**

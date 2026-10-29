@@ -64,14 +64,20 @@ function listFiles(dir: string, ext: string): string[] {
     .map((f) => join(dir, f))
 }
 
-/** Every file whose content can change what the three generators write. */
-function inputFiles(): string[] {
+/**
+ * Every file whose content can change what the three generators write.
+ * `ensureGenerated.test.ts` walks the generators' imports and fails on one
+ * missing here.
+ */
+export function inputFiles(): string[] {
   return [
     ...listFiles(join(PACKAGE_DIR, 'lib', 'schemas'), '.ts'),
     ...listFiles(join(PACKAGE_DIR, 'data'), '.json'),
     join(PACKAGE_DIR, 'lib', 'zod.ts'),
     join(PACKAGE_DIR, 'lib', 'naming.ts'),
     join(PACKAGE_DIR, 'lib', 'listProjection.ts'),
+    // `SRD_SITE_URL`, baked into every JSON Schema `$id`.
+    join(PACKAGE_DIR, 'lib', 'origin.ts'),
     join(PACKAGE_DIR, 'tools', 'generateRegistry.ts'),
     join(PACKAGE_DIR, 'tools', 'generateJsonSchemas.ts'),
     join(PACKAGE_DIR, 'tools', 'generateDocs.ts'),

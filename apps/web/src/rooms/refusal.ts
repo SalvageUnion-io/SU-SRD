@@ -10,6 +10,9 @@ export class RoomRefusal extends Error {
   }
 }
 
+/** What a defect is answered with, in place of its message. */
+export const DEFECT_REFUSAL = 'Something went wrong'
+
 /** `run`'s value, or the refusal it threw; anything else it throws is a defect and throws on. */
 export function answerOrRefuse<T>(
   run: () => T

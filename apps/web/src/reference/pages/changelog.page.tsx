@@ -18,7 +18,7 @@ import { Changelog } from '../Changelog'
 import { DocPage } from '../DocPage'
 import type { PageModule, PageResult } from '../types'
 
-const TITLE = pageTitle('Changelog')
+const TITLE = pageTitle(pagesCopy('changelog'))
 const DESCRIPTION = `Changes to the salvageunion.io reference site and its app over time.`
 
 function page(): PageResult {

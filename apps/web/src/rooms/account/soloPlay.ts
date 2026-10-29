@@ -1,5 +1,5 @@
 import type { DowntimePlace, Running } from '../downtime'
-import { beginDowntime, doneSteps, moveDowntime, spendUpkeep } from '../downtime'
+import { beginDowntime, doneSteps, moveDowntime, spendNanites, spendUpkeep } from '../downtime'
 import type { UnitRow } from '../game/store'
 import { fromJsonOrNull } from '../game/store'
 import { RoomRefusal } from '../refusal'
@@ -14,11 +14,18 @@ import type { AccountShelf } from './shelf'
  */
 
 /** A solo Downtime as its seat keeps it; one copied from Convex has no `runId`. */
-type SoloDowntime = { runId?: string; stepIndex: number; startedAt: number; upkeepSpent: boolean }
+type SoloDowntime = {
+  runId?: string
+  stepIndex: number
+  startedAt: number
+  upkeepSpent: boolean
+  /** Absent on a seat kept before Nanite processing was claimed. */
+  nanitesSpent?: boolean
+}
 
 /** A solo seat as `seats.solo` answered: its Downtime, with the steps taken, beside it. */
 export type SoloSeatRead = SeatRead & {
-  downtime: (Omit<Running, 'completedBy'> & { doneSteps: number[] }) | null
+  downtime: (Omit<Running, 'completedBy' | 'nanitesSpent'> & { doneSteps: number[] }) | null
 }
 
 export class AccountSoloPlay extends SeatTable {
@@ -77,6 +84,10 @@ export class AccountSoloPlay extends SeatTable {
     return this.asPilot(actor, pilotId, (place) => spendUpkeep(place))
   }
 
+  spendNanites(actor: string, pilotId: string): boolean {
+    return this.asPilot(actor, pilotId, (place) => spendNanites(place))
+  }
+
   private asPilot<T>(actor: string, pilotId: string, act: (place: DowntimePlace) => T): T {
     return this.store.sql.transaction(() => {
       this.writable(actor, pilotId, 'pilot')
@@ -91,7 +102,12 @@ export class AccountSoloPlay extends SeatTable {
       running: () => {
         const kept = fromJsonOrNull<SoloDowntime>(row()?.downtime_state as string | null)
         if (kept === null) return null
-        return { ...kept, runId: kept.runId ?? String(kept.startedAt), completedBy: [] }
+        return {
+          ...kept,
+          runId: kept.runId ?? String(kept.startedAt),
+          completedBy: [],
+          nanitesSpent: kept.nanitesSpent ?? false,
+        }
       },
       write: (next) => {
         if (row() === undefined) {
@@ -106,6 +122,7 @@ export class AccountSoloPlay extends SeatTable {
                 stepIndex: next.stepIndex,
                 startedAt: next.startedAt,
                 upkeepSpent: next.upkeepSpent,
+                nanitesSpent: next.nanitesSpent,
               }
         this.store.rows(
           'update seats set downtime_state = ? where pilot_id = ?',

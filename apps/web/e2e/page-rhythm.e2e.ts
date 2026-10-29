@@ -25,7 +25,7 @@ const APP_PAGE = { sheet: '/starter/mech/starter-mech-mazona', token: 'Mini Mort
 test.use({ account: 'anonymous' })
 test.describe.configure({ retries: 0 })
 
-test('each kind of SRD Page keeps one rhythm', async ({ page }) => {
+test('each kind of SRD Page keeps one rhythm', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(5 * 60_000)
   await expectCorpusClean(page, 'page-rhythm', () => findRhythm(page), {
     routes: corpusRoutes('rhythm'),
@@ -38,7 +38,7 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
   test.describe(`at ${width} width`, () => {
     test.use({ viewport })
 
-    test("the app's Page keeps one rhythm", async ({ page }) => {
+    test("the app's Page keeps one rhythm", { tag: '@pr' }, async ({ page }) => {
       await openApp(page, APP_PAGE.sheet)
       const token = page.locator('.su-entity-mini').filter({ hasText: APP_PAGE.token }).first()
       await token.locator('.su-entity-mini__name').click()

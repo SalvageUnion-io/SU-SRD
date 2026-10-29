@@ -59,6 +59,8 @@ type RadioCardProps = {
   className?: string
   style?: CSSProperties
   'aria-label'?: string
+  /** The card fills its parent's height: `data-fill` on the card (a `Box`'s `fill`). */
+  fill?: boolean
   children: ReactNode
 }
 
@@ -72,6 +74,7 @@ export function RadioCard({
   className,
   style,
   'aria-label': ariaLabel,
+  fill = false,
   children,
 }: RadioCardProps) {
   const value = useId()
@@ -100,6 +103,7 @@ export function RadioCard({
       aria-label={ariaLabel}
       className={className}
       style={style}
+      data-fill={fill || undefined}
       render={<div />}
       onClick={(event) => {
         // The press is the card's own: skip Base UI's, which would check the

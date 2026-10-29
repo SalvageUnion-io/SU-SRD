@@ -25,9 +25,8 @@ import { PRODUCT } from 'game-domain/product'
 import { X } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { Fragment } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
 import { Colophon } from '../../components/Colophon'
-import { Button, cn, InlineRef, SlabSection } from '../../components/index'
+import { Button, capsLabel, cn, InlineRef, SlabSection } from '../../components/index'
 import { KofiIsland } from '../../components/islands/KofiIsland'
 import { color, fontSize, iconSize, space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
@@ -58,7 +57,7 @@ const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 /** The `<code>` in `ko-fi.com/<code>`. */
 const KOFI_CODE = 'C3Z82382ZC'
 
-const TITLE = pageTitle('About')
+const TITLE = pageTitle(pagesCopy('about'))
 const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'

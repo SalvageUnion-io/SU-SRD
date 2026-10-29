@@ -11,6 +11,7 @@
  * was left of it is destroyed (`wreckOf`, `wreckSalvageOutcome`).
  */
 
+import type { Wreck, WreckPart } from 'game-domain/rules/wreck'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { MechSalvageResult } from 'salvageunion-reference/rules'
@@ -21,7 +22,6 @@ import {
   mechSalvageScrap,
 } from 'salvageunion-reference/rules'
 import { Button, rollForTable, Text, Toggle, tokens } from '../../components/index'
-import type { WreckPart } from '../../lib/rules/downtimeEconomy'
 import { wreckSalvageOutcome, wreckScrapOutcome } from '../../lib/rules/downtimeEconomy'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
@@ -29,7 +29,6 @@ import { reportingRoll } from '../playRolls.model'
 import type { TrayNpc } from './opposition.model'
 import type { PlayMediator } from './usePlayMediator'
 import { NOTHING } from './usePlayMediator'
-import type { Wreck } from './wreck.model'
 
 const ROW = {
   alignItems: 'center',

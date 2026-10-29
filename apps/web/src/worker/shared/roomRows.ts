@@ -17,12 +17,15 @@ export function sharedDb(env: unknown): SharedDb | undefined {
  * A room's rows in the shared database, kept in step with the room
  * (`../../rooms/publish.ts`): after every change the room asks again, and its
  * whole set is written in one batch, so a share, an edit and an unshare all
- * land the same way. The cutover's runner asks once per room after import.
+ * land the same way.
  *
  * - **One write at a time.** A change while a write is out queues one more
  *   write, of whatever is true by then.
  * - **Nothing to say twice.** A room that published nothing, and still
  *   publishes nothing, writes nothing.
+ * - **Not left behind.** A write that fails is reported and handed to
+ *   `failed`, so the room can write its rows again later (its alarm): every
+ *   reader, account deletion among them, trusts these rows.
  * - **Only its own.** A room deletes the public sheets it wrote (`room`) and
  *   no longer holds, so a unit that moved keeps the row its new room wrote;
  *   a maker's Homebrew listings and crew patterns are their account room's
@@ -41,7 +44,9 @@ export class RoomPublisher {
     private readonly room: string,
     /** The Shelf's player, whose Homebrew listings these are; none for a Game. */
     private readonly maker: string | null,
-    private readonly rowsOf: () => Published
+    private readonly rowsOf: () => Published,
+    /** A write after a change failed: the room's to try again later; unset, nobody tries. */
+    private readonly failed?: () => void
   ) {}
 
   /** After a change: write the room's rows, now or after the write that is out. */
@@ -71,6 +76,7 @@ export class RoomPublisher {
         await this.write(this.rowsOf())
       } catch (error) {
         console.error('publishing a room failed', this.room, error)
+        this.failed?.()
       }
     } while (this.again)
   }

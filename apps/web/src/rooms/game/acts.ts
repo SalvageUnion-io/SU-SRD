@@ -110,6 +110,7 @@ const GAME_ACTS = {
   'downtime.markStepDone': (c: ActContext, a: { done: boolean }) =>
     c.room.play.markStepDone(c.actor, a.done),
   'downtime.spendUpkeep': (c: ActContext) => c.room.play.spendUpkeep(c.actor),
+  'downtime.spendNanites': (c: ActContext) => c.room.play.spendNanites(c.actor),
 
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),

@@ -4,7 +4,7 @@ import { env, exports as workerExports } from 'cloudflare:workers'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { pilotFixture } from '../src/components/__tests__/fixtures'
 import { handOff } from '../src/rooms/handoff'
-import type { GameRoomStub } from '../src/worker/rooms'
+import type { GameRoomStub } from '../src/worker/roomStubs'
 
 const exports = workerExports as unknown as {
   GameRoom: { getByName(name: string): GameRoomStub }
@@ -34,6 +34,27 @@ async function game(gameId: string) {
   const pilot = pilotFixture({ id: 'p1', name: 'Pilot p1', callsign: 'p1', classRef: 'salvager' })
   await room.act(PLAYER, 'createUnit', { id: 'p1', kind: 'pilot', body: pilot })
   return room
+}
+
+/** Pilot `id`, `PLAYER`'s, as a handoff from their Training Bay brings it in. */
+function handedIn(id: string, body: Record<string, unknown>, over: { publicRead?: boolean } = {}) {
+  return {
+    leaseId: `seed:${id}`,
+    from: { kind: 'account' as const, userId: PLAYER },
+    unit: {
+      id,
+      kind: 'pilot' as const,
+      ownerId: PLAYER,
+      body,
+      headSeq: 0,
+      fieldSeqs: {},
+      publicRead: false,
+      ...over,
+    },
+    ops: [],
+    links: [],
+    seat: null,
+  }
 }
 
 const motto = (motto: string, over: object = {}) => ({
@@ -75,7 +96,7 @@ describe('the Game room over RPC', () => {
     const op = motto('Keep moving')
     expect(await room.act(PLAYER, 'submit', { ops: [op] })).toEqual({
       ok: true,
-      value: { ok: true, applied: [{ id: op.id, seq: 1 }] },
+      value: { ok: true, applied: [{ id: op.id, seq: 1 }], fresh: [op.id] },
     })
     expect(await room.unitsFor(PLAYER)).toMatchObject([
       { id: 'p1', body: { motto: 'Keep moving' } },
@@ -174,33 +195,8 @@ describe('what the Game room publishes', () => {
   it('writes its shared units to the shared database, and drops them once it is wiped', async () => {
     const room = exports.GameRoom.getByName('g-publish')
     const pilot = pilotFixture({ id: 'p9', name: 'Rosa', callsign: 'Rosa', classRef: 'salvager' })
-    await room.importGame({
-      gameId: 'g-publish',
-      name: 'Tenacity',
-      members: [{ discordId: PLAYER, mediator: false, organizer: true, joinedAt: 1 }],
-      inviteCode: null,
-      primaryCrawler: null,
-      units: [
-        {
-          kind: 'pilot',
-          appId: 'p9',
-          owner: PLAYER,
-          publicRead: true,
-          body: pilot,
-          headSeq: 0,
-          fieldSeqs: {},
-          updatedAt: 1,
-          ops: [],
-        },
-      ],
-      opposition: [],
-      links: [],
-      seats: [],
-      downtime: null,
-      runningEncounter: null,
-      channelBindings: [],
-      crewPatterns: [],
-    })
+    await room.act(PLAYER, 'create', { name: 'Tenacity', profile: profile('Player') })
+    await room.accept(handedIn('p9', pilot, { publicRead: true }), PLAYER, 1)
     expect(await room.republish()).toEqual({ sheets: 1, homebrew: 0 })
     const row = await SHARED.prepare(
       "select room, preview from public_sheets where kind = 'pilot' and app_id = 'p9'"

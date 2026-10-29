@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'bun:test'
+import { describe, expect, spyOn, test } from 'bun:test'
 import type { Published, PublishedSheet } from '../../../rooms/publish'
 import { gameOfInvite, gamesOf, invitePreview } from '../games'
 import { homebrewPatterns } from '../homebrew'
@@ -114,6 +114,31 @@ describe('a room’s rows in the shared database', () => {
     await game.it.changed()
     expect(await gamesOf(db, 'd-1')).toEqual([])
     expect(await gameOfInvite(db, 'CODE2')).toBeNull()
+  })
+
+  test('a write that fails is handed back to the room to try again', async () => {
+    const db = testDb()
+    let failures = 0
+    const broken = {
+      ...db,
+      batch: async () => {
+        throw new Error('D1 is down')
+      },
+    }
+    const errors = spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const it = new RoomPublisher(
+        broken,
+        'account:d-1',
+        'd-1',
+        () => ({ sheets: [sheet('p1')], homebrew: [] }),
+        () => failures++
+      )
+      await it.changed()
+    } finally {
+      errors.mockRestore()
+    }
+    expect(failures).toBe(1)
   })
 
   test('without a shared database it writes nothing and does not fail', async () => {

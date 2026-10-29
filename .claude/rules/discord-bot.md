@@ -14,6 +14,8 @@ paths:
   `*Container.ts` builder. Never `embeds:` or `content`: Components V2 rejects them.
 - Limits are enforced once, in `toContainer` (`V2_LIMIT`); add no second guard.
 - Builders are pure; changing a sent message means rebuilding it.
+- The transport sends every message through `toWire` (`src/wire.ts`): Discord's
+  keys only, and `allowed_mentions` empty, so player text never pings.
 
 ## What Discord renders
 

@@ -34,6 +34,8 @@ import { v2Reply } from '../container'
 import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'
 import { stopSignContainer } from '../stopSignContainer'
+import type { MessagePayload } from '../wire'
+import { toWire } from '../wire'
 import { oneShotRest } from './oneShotRest'
 
 function answer(body: PostRollRelayResponse | { error: string }, status: number): Response {
@@ -81,13 +83,13 @@ function discordFailure(status: number, code: number | string | null): string {
 async function postToChannel(
   env: Env,
   channelId: string,
-  payload: object,
+  payload: MessagePayload,
   fn: string
 ): Promise<Response> {
   const rest = oneShotRest(env.DISCORD_TOKEN)
   try {
     const posted = (await rest.post(Routes.channelMessages(channelId), {
-      body: payload,
+      body: toWire(payload),
     })) as { id?: string }
     return answer({ ok: true, messageId: posted.id ?? '' }, 200)
   } catch (error) {
@@ -126,8 +128,7 @@ async function handlePostRoll(request: Request, env: Env): Promise<Response> {
   if ('error' in message) {
     return answer({ ok: false, status: null, message: message.error }, 422)
   }
-  const { data: _data, ephemeral: _ephemeral, ...payload } = message
-  return postToChannel(env, parsed.channelId, payload, 'handlePostRoll')
+  return postToChannel(env, parsed.channelId, message, 'handlePostRoll')
 }
 
 /** Handle `POST BOT_RELAY_POST_STOP_PATH`: the Stop Sign's fixed post (`stopSignContainer`). */

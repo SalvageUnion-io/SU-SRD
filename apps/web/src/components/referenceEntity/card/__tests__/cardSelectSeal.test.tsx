@@ -2,8 +2,7 @@
  * Hard rule R15, one select mode (EDL Modes): a selected Card (level 1) wears
  * the ink ring AND the "Selected" seal, with no caller having to ask for the
  * seal; a chosen Mini (level 2, `<Entity size="mini" chosen>`) wears the ring alone; an
- * option the picker cannot take wears the one select dim. Before this a wizard
- * Card was ringed but never sealed, since no caller passed `selectionSeal`.
+ * option the picker cannot take wears the one select dim.
  */
 import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
@@ -37,12 +36,6 @@ describe('a selected Card (level 1)', () => {
     expect(seal.closest('.su-entity-compact__head')).not.toBeNull()
     expect(container.querySelector<HTMLElement>('.su-ec-frame')?.style.boxShadow).toBe(RING)
     expect(screen.getByRole('radio', { name: 'Hauler' }).getAttribute('aria-checked')).toBe('true')
-  })
-
-  test("takes the caller's word for its seal", () => {
-    render(<ReferenceEntityCard data={hauler()} selected selectionSeal="Chosen" />)
-    expect(screen.getByText('Chosen')).toBeTruthy()
-    expect(screen.queryByText('Selected')).toBeNull()
   })
 
   test('unselected, it has neither ring nor seal', () => {

@@ -29,9 +29,9 @@
  *      its own CPU time. Read `cpuTime` from `wrangler tail` instead.
  */
 
-import { DiscordAPIError, HTTPError, RateLimitError, REST } from '@discordjs/rest'
-import type { APIInteraction, APIUser } from 'discord-api-types/v10'
-import { InteractionResponseType, InteractionType, Routes } from 'discord-api-types/v10'
+import { REST } from '@discordjs/rest'
+import type { APIInteraction } from 'discord-api-types/v10'
+import { InteractionResponseType, InteractionType, MessageFlags } from 'discord-api-types/v10'
 
 export { Relay } from './relay'
 
@@ -39,9 +39,14 @@ import { SalvageUnionReference } from 'salvageunion-reference'
 import { handleButtonInteraction } from '../buttons'
 import { commands } from '../commands/index'
 import { setSiteClient, site } from '../commands/siteReply'
+import { v2Reply } from '../container'
+import { commandErrorContainer } from '../errorContainer'
 import type { SiteGateway } from '../play/client'
 import { createSiteClient } from '../play/client'
 import { reportError } from '../reportError'
+import type { MessagePayload } from '../wire'
+import { toWire } from '../wire'
+import type { InitialResponse } from './adapter'
 import {
   interactionName,
   makeAutocompleteInteraction,
@@ -50,7 +55,8 @@ import {
   ResponseSink,
   webhookRoutes,
 } from './adapter'
-import { oneShotRest } from './oneShotRest'
+import { probeDiscord } from './healthProbe'
+import { viaFetch } from './oneShotRest'
 import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './verify'
 
 /**
@@ -62,6 +68,43 @@ import { isValidDiscordRequest, SIGNATURE_HEADER, TIMESTAMP_HEADER } from './ver
 await SalvageUnionReference.preload('all')
 
 type ExecutionCtx = { waitUntil(promise: Promise<unknown>): void }
+
+const COMMAND_ERROR = 'There was an error while executing this command!'
+
+/**
+ * The fallback initial response when a handler threw or never answered. An
+ * autocomplete may only be answered with choices, so it gets none; anything
+ * else gets a private message.
+ */
+function fallbackResponse(raw: APIInteraction, content: string): InitialResponse {
+  if (raw.type === InteractionType.ApplicationCommandAutocomplete) {
+    return {
+      type: InteractionResponseType.ApplicationCommandAutocompleteResult,
+      data: { choices: [] },
+    }
+  }
+  return {
+    type: InteractionResponseType.ChannelMessageWithSource,
+    data: toWire({ content, flags: MessageFlags.Ephemeral }),
+  }
+}
+
+/**
+ * The edit that replaces a spent first response with the error. A message
+ * already sent as Components V2 refuses plain `content`, and a deferred
+ * placeholder refuses becoming one, so the edit matches what was sent.
+ */
+function errorEdit(sent: InitialResponse | null): MessagePayload {
+  const flags = (sent?.data as { flags?: number } | undefined)?.flags ?? 0
+  if (
+    sent?.type === InteractionResponseType.ChannelMessageWithSource &&
+    (flags & MessageFlags.IsComponentsV2) !== 0
+  ) {
+    // An edit cannot change whether a message is ephemeral, so the flag stays off.
+    return v2Reply(commandErrorContainer(COMMAND_ERROR))
+  }
+  return { content: COMMAND_ERROR }
+}
 
 /**
  * Dispatch one interaction, returning the initial response.
@@ -76,9 +119,9 @@ async function dispatch(
   raw: APIInteraction,
   env: Env,
   ctx: ExecutionCtx
-): Promise<{ type: number; data?: unknown }> {
+): Promise<InitialResponse> {
   const sink = new ResponseSink()
-  const rest = new REST({ version: '10' }).setToken(env.DISCORD_TOKEN)
+  const rest = new REST({ version: '10', makeRequest: viaFetch }).setToken(env.DISCORD_TOKEN)
   const adapterCtx = {
     raw,
     applicationId: env.DISCORD_APPLICATION_ID,
@@ -131,7 +174,7 @@ async function dispatch(
       // @original with the same rest client the adapter uses.
       try {
         await rest.patch(webhookRoutes(env.DISCORD_APPLICATION_ID, raw.token).original, {
-          body: { content: 'There was an error while executing this command!' },
+          body: toWire(errorEdit(sink.sent)),
         })
       } catch (patchError) {
         // The interaction token has a 15-minute life and Discord can refuse.
@@ -143,10 +186,7 @@ async function dispatch(
     }
 
     // Nothing sent yet — the initial response is still ours to use.
-    sink.send({
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: { content: 'There was an error while executing this command!', flags: 64 },
-    })
+    sink.send(fallbackResponse(raw, COMMAND_ERROR))
   })
 
   ctx.waitUntil(guarded)
@@ -155,10 +195,7 @@ async function dispatch(
   // responding. The second is a bug, and an explicit empty ack diagnoses it far
   // better than a Discord-side timeout.
   const finished = guarded.then(() => {
-    sink.send({
-      type: InteractionResponseType.ChannelMessageWithSource,
-      data: { content: 'This command produced no response.', flags: 64 },
-    })
+    sink.send(fallbackResponse(raw, 'This command produced no response.'))
     return sink.first
   })
 
@@ -184,7 +221,9 @@ async function dispatch(
  * is what makes the check meaningful rather than a bare boolean.
  *
  * Unauthenticated on purpose: it reveals only public facts, and requiring a
- * credential to check a credential is a loop that helps nobody at 3am.
+ * credential to check a credential is a loop that helps nobody at 3am. The
+ * probe is cached per isolate (`probeDiscord`), so hammering the URL cannot
+ * spend the token's rate limit.
  */
 async function health(env: Env): Promise<Response> {
   const configured = {
@@ -213,33 +252,17 @@ async function health(env: Env): Promise<Response> {
     )
   }
 
-  let tokenValid = false
-  let botUser: string | null = null
-  let discordStatus: number | null = null
-
-  // One attempt, no waiting out a rate limit: a probe reports what Discord
-  // answered now.
-  const rest = oneShotRest(env.DISCORD_TOKEN)
-
-  try {
-    const me = (await rest.get(Routes.user())) as Partial<APIUser>
-    discordStatus = 200
-    tokenValid = true
-    botUser = me.username ?? null
-  } catch (err) {
-    if (err instanceof DiscordAPIError || err instanceof HTTPError) {
-      discordStatus = err.status
-    } else if (err instanceof RateLimitError) {
-      discordStatus = 429
-    } else {
-      // Network failure reaching Discord is not a bad token; say so rather than
-      // implying the credential is wrong.
-      return Response.json(
-        { ok: false, reason: 'could not reach Discord', configured },
-        { status: 502 }
-      )
-    }
+  const probe = await probeDiscord(env.DISCORD_TOKEN)
+  if (probe === 'unreachable') {
+    // Network failure reaching Discord is not a bad token; say so rather than
+    // implying the credential is wrong.
+    return Response.json(
+      { ok: false, reason: 'could not reach Discord', configured },
+      { status: 502 }
+    )
   }
+  const { discordStatus, botUser } = probe
+  const tokenValid = discordStatus === 200
 
   return Response.json(
     {

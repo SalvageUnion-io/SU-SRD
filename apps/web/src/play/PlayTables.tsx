@@ -17,6 +17,7 @@
  * The open table sits directly in the column (level 1, play.md §12).
  */
 
+import type { RosterLine } from 'game-domain/rules/encounterRoster'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
@@ -35,7 +36,6 @@ import {
 import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
 import { postLabel } from './channels.model'
-import type { RosterLine } from './mediator/encounterRoster.model'
 import { readRoster } from './mediator/encounterRoster.model'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'

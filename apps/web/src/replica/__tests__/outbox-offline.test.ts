@@ -12,7 +12,7 @@ import { crawlerFixture, pilotFixture } from '../../components/__tests__/fixture
 /** Each op the rooms took. */
 const sent = () => roomOps.flatMap(({ ops }) => ops)
 
-const { RoomDeclined } = await import('../roomSocket')
+const { holdGames, RoomDeclined } = await import('../roomSocket')
 const { flushOutbox, forgetOutbox } = await import('../outbox')
 const { resetSync, setSyncStatus, WritesBlockedOffline } = await import('../sync')
 const { useUnits } = await import('../units')
@@ -34,6 +34,7 @@ afterEach(() => {
   resetSync()
   forgetOutbox()
   acceptingRooms()
+  holdGames(null)
 })
 
 describe('offline', () => {
@@ -92,6 +93,72 @@ describe('back live', () => {
     const [first, second] = await Promise.all([flushOutbox(), flushOutbox()])
     expect(first).toEqual(['That sheet is no longer yours'])
     expect(second).toEqual([])
+  })
+
+  test('each op goes up marked as replayed, so the room takes it only on your own units', async () => {
+    await useUnits.getState().update('pilot', 'p1', { callsign: 'Offline' }, TXN)
+    setSyncStatus('live')
+    await flushOutbox()
+    expect(roomOps.map((batch) => batch.replayed)).toEqual([true])
+  })
+
+  test('an edit made while its op is in flight goes up as an op of its own', async () => {
+    const units = useUnits.getState()
+    await units.update('pilot', 'p1', { callsign: 'First' }, TXN)
+    setSyncStatus('live')
+    // The room applies the first op, but its answer never arrives: offline again.
+    let editDuringSend: Promise<unknown> = Promise.resolve()
+    roomAnswer.submit = async () => {
+      setSyncStatus('offline')
+      editDuringSend = units.update('pilot', 'p1', { name: 'Second' }, TXN)
+      await editDuringSend
+      throw new Error('Connection lost')
+    }
+    await flushOutbox()
+    await editDuringSend
+
+    acceptingRooms()
+    setSyncStatus('live')
+    await flushOutbox()
+    // Folded into the first, the second edit would carry its id, which the room skips.
+    const [first, second] = sent()
+    expect(first?.patch).toMatchObject({ callsign: 'First' })
+    expect(first?.patch.name).toBeUndefined()
+    expect(second?.patch).toMatchObject({ name: 'Second' })
+    expect(second?.id).not.toBe(first?.id)
+  })
+
+  test('an op for a Game whose room is not open waits without holding up the rest', async () => {
+    const units = useUnits.getState()
+    await units.adopt('pilot', pilotFixture({ id: 'p2', callsign: 'Away', gameId: 'g-gone' }))
+    await units.update('pilot', 'p2', { callsign: 'Stuck' }, TXN)
+    await units.update('pilot', 'p1', { callsign: 'Shelf' }, TXN)
+    roomAnswer.open = (gameId) => gameId !== 'g-gone'
+    setSyncStatus('live')
+
+    expect(await flushOutbox()).toEqual([])
+    expect(sent().map((op) => op.patch.callsign)).toEqual(['Shelf'])
+
+    acceptingRooms()
+    await flushOutbox()
+    expect(sent().map((op) => op.patch.callsign)).toEqual(['Stuck'])
+  })
+
+  test('an op for a Game the player is no longer in is told as declined, and dropped', async () => {
+    const units = useUnits.getState()
+    await units.adopt('pilot', pilotFixture({ id: 'p2', callsign: 'Away', gameId: 'g-gone' }))
+    await units.update('pilot', 'p2', { callsign: 'Lost' }, TXN)
+    await units.update('pilot', 'p1', { callsign: 'Shelf' }, TXN)
+    roomAnswer.open = (gameId) => gameId !== 'g-gone'
+    holdGames(['g-other'])
+    setSyncStatus('live')
+
+    expect(await flushOutbox()).toEqual(['its Game has ended, or you are no longer in it'])
+    expect(sent().map((op) => op.patch.callsign)).toEqual(['Shelf'])
+
+    acceptingRooms()
+    expect(await flushOutbox()).toEqual([])
+    expect(sent()).toEqual([])
   })
 
   test('a send that fails keeps the op for next time', async () => {

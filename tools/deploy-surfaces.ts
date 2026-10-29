@@ -55,9 +55,13 @@ type Surface = (typeof SURFACES)[number]
  * reason), so an edit to one changes what those surfaces serve even though
  * nothing under `apps/` moved. Of `.github/`, only this deploy's own workflow
  * and the actions its jobs run can change what ships. Every entry but
- * `packages/` (which ci.yml filters per app) is in ci.yml's `shared` filter
- * too, so what redeploys every surface was tested against every app:
+ * `packages/` (which ci.yml filters per app) and `package.json` (the `manifest`
+ * step of its `changes` job) is in ci.yml's `shared` filter too, so what
+ * redeploys every surface was tested against every app:
  * tools/check-workflows.ts (path-filters) holds the two lists together.
+ *
+ * The root `package.json` is shared only beyond its `version`: every PR into
+ * main bumps it, and a bump alone redeploys only the site (`VERSION_ONLY`).
  */
 export const SHARED_PATHS = [
   'packages/',
@@ -70,7 +74,15 @@ export const SHARED_PATHS = [
   'ABOUT_JRVS.md',
   'LLM_STATEMENT.md',
   'SPECIAL_THANKS.md',
+  // the patched build dependencies package.json's overrides point at
+  'vendor/',
 ] as const
+
+/**
+ * A root `package.json` that moved only its `version`: the release the site
+ * names, and its `/changelog` is built from git, so it redeploys the site alone.
+ */
+const VERSION_ONLY = 'package.json#version'
 
 /** Does `path` fall under one of `SHARED_PATHS`? */
 export function isShared(path: string): boolean {
@@ -92,7 +104,11 @@ export function decideSurfaces(
   const all = forceAll || changed === null || changed.some(isShared)
   const result = {} as Record<Surface, boolean>
   for (const app of SURFACES) {
-    result[app] = all || (changed ?? []).some((path) => path.startsWith(`apps/${app}/`))
+    result[app] =
+      all ||
+      (changed ?? []).some(
+        (path) => path.startsWith(`apps/${app}/`) || (app === 'web' && path === VERSION_ONLY)
+      )
   }
   return result
 }
@@ -165,13 +181,43 @@ function ancestryOf(git: Git, base: string | null): Ancestry {
   return 'diverged'
 }
 
-/** Files that differ between the recorded deploy and HEAD, or null with no record. */
+/**
+ * Does the root manifest differ beyond its `version`? Either side unreadable
+ * or unparsable reads as moved, so a doubt still deploys everything.
+ */
+export function manifestMoved(before: string | null, after: string | null): boolean {
+  const withoutVersion = (text: string | null) => {
+    if (text === null) return null
+    try {
+      const { version: _, ...rest } = JSON.parse(text) as Record<string, unknown>
+      return JSON.stringify(rest)
+    } catch {
+      return null
+    }
+  }
+  const [a, b] = [withoutVersion(before), withoutVersion(after)]
+  return a === null || b === null || a !== b
+}
+
+/**
+ * Files that differ between the recorded deploy and HEAD, or null with no
+ * record. A root `package.json` that moved only its `version` reads as
+ * `VERSION_ONLY`.
+ */
 function changedSince(git: Git, base: string | null): string[] | null {
   if (base === null) return null
   const diff = git(['diff', '--name-only', base, 'HEAD'])
   if (!diff.ok) return null
   if (diff.out === '') return []
-  return diff.out.split('\n')
+  const changed = diff.out.split('\n')
+  if (!changed.includes('package.json')) return changed
+  const read = (rev: string) => {
+    const shown = git(['show', `${rev}:package.json`])
+    return shown.ok ? shown.out : null
+  }
+  return manifestMoved(read(base), read('HEAD'))
+    ? changed
+    : changed.map((path) => (path === 'package.json' ? VERSION_ONLY : path))
 }
 
 /** Decide and report the deploy for the checkout at `context.cwd`; writes `$GITHUB_OUTPUT`. */

@@ -7,8 +7,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { capsLabel } from '../../components/atoms/capsLabel'
-import { Eyebrow, InlineRef, SlabSection } from '../../components/index'
+import { capsLabel, Eyebrow, InlineRef, SlabSection } from '../../components/index'
 import { space, weight } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { cn } from '../../lib/cn'

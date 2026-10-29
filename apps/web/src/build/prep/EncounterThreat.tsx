@@ -5,21 +5,16 @@
  * encounter and write nothing to it; the crew is remembered on this device.
  */
 
+import type { Crew } from 'game-domain/rules/threat'
+import { CREW_DEFAULT, CREW_SIZE_MAX, TECH_LEVEL_MAX } from 'game-domain/rules/threat'
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Cluster, EmptyState, SlabSection, Stack, Stat, Text, tokens } from '../../components/index'
 import { localStore } from '../../lib/safeLocalStorage'
 import { buildPrepCopy } from '../../messages/build-prep'
-import type { Crew, Spoil } from './threat.model'
-import {
-  CREW_DEFAULT,
-  CREW_SIZE_MAX,
-  spoilsOf,
-  TECH_LEVEL_MAX,
-  techSpread,
-  threatRead,
-} from './threat.model'
+import type { Spoil } from './threat.model'
+import { encounterThreat, spoilsOf, techSpread } from './threat.model'
 
 const CREW_KEY = 'su.encounter.crew'
 
@@ -72,7 +67,7 @@ export function ThreatReadLine({
     setCrew(value)
     writeCrew(value)
   }
-  const read = threatRead(encounter, crew)
+  const read = encounterThreat(encounter, crew)
   return (
     <SlabSection as="h3" size="mini" id="encounter-threat" title={buildPrepCopy('threatRead')}>
       <Stack gap={8}>

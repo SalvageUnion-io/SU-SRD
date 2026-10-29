@@ -5,8 +5,13 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { readRosterLine as readLineIn, rosterIndex } from 'game-domain/rules/encounterRoster'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { readRoster, readRosterLine } from '../encounterRoster.model'
+import { readRoster } from '../encounterRoster.model'
+import { OPPOSITION_SCHEMAS } from '../opposition.model'
+
+const index = rosterIndex(OPPOSITION_SCHEMAS.map((s) => s.schema))
+const readRosterLine = (text: string) => readLineIn(text, index)
 
 /** Every roster line in the data, with the table and row it is on. */
 function everyLine(): { table: string; key: string; line: string }[] {

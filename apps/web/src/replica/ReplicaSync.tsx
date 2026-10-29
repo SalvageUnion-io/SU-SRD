@@ -16,6 +16,7 @@ import { forgetOutbox } from './outbox'
 import { dropFromDevice, keepOnDevice, sessionAccount } from './persist'
 import { RoomFeed } from './RoomFeed'
 import { clear, markArrived, rowsComingChanged, setRowsComing, TABLES } from './replica'
+import { forgetGamesAnswers } from './roomCalls'
 import type { SyncStatus } from './sync'
 import { isSignedIn, subscribeSync, syncStatus } from './sync'
 import { useSync } from './syncContext'
@@ -52,6 +53,7 @@ export function ReplicaSync() {
       // away: its rows are nobody's to show.
       void dropFromDevice()
       forgetOutbox()
+      forgetGamesAnswers()
       if (was !== null && was !== 'signedOut') clear()
       return
     }

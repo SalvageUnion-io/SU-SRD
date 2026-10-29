@@ -12,12 +12,13 @@
  *
  * Usage:
  *   bun tools/check-canon.ts           # check
- *   bun tools/check-canon.ts --list    # each law and the gates that hold it
+ *   bun tools/check-canon.ts --list    # each law and the gates that hold it, a gate
+ *                                      # that fails no PR marked (nightly) or (pending)
  */
 
 import { join } from 'node:path'
 import type { CanonContext } from 'gates/lib/canon'
-import { CANON, canonFaults, canonLaws, gatesOf } from 'gates/lib/canon'
+import { CANON, canonFaults, canonLaws, gatesOf, gateTier } from 'gates/lib/canon'
 import { assertScanFloor } from 'gates/lib/scanFloor'
 import { RULE_SETS } from 'gates/rules/ruleSets'
 import { CHECKS } from './check'
@@ -43,7 +44,11 @@ export function main(
 ): number {
   const laws = canonLaws(root)
   if (argv.includes('--list')) {
-    for (const id of laws.keys()) out.log(`${id.padEnd(9)} ${gatesOf(id, canon).join(', ')}`)
+    const tier = gateTier(root)
+    const label = (ref: string) => (tier(ref) === 'pr' ? ref : `${ref} (${tier(ref)})`)
+    for (const id of laws.keys()) {
+      out.log(`${id.padEnd(9)} ${gatesOf(id, canon).map(label).join(', ')}`)
+    }
     return 0
   }
   assertScanFloor('canon (laws in docs/design-system)', laws.size, floor)

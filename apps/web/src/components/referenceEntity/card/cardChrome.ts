@@ -155,7 +155,6 @@ export function resolveFrameWidth(size: Size): string {
 export function resolveCardInteraction({
   onCardClick,
   controls,
-  cardClickable,
   disabled,
   selectable,
   className,
@@ -166,7 +165,6 @@ export function resolveCardInteraction({
 }: {
   onCardClick: (() => void) | undefined
   controls: ReferenceEntityControl[] | undefined
-  cardClickable: boolean | undefined
   disabled: boolean | undefined
   selectable: boolean | undefined
   className: string | undefined
@@ -187,7 +185,7 @@ export function resolveCardInteraction({
   // the same, nested one interactive inside another, and turned the card's
   // content presentational, so a screen reader could not read its stats.
   const pointerOnly = !onCardClick && !!clickControl && !clickControl.hidden
-  const isHoverable = !!resolvedCardClick || !!cardClickable
+  const isHoverable = !!resolvedCardClick
   // Classes, not a style object: a caller's `className` may override any of
   // these (`.su-ec-outer` in `styles/partials/reference-card.css`).
   const outerClassName = cn(

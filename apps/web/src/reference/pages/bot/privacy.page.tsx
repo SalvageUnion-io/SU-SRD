@@ -17,7 +17,7 @@ const BODY = proseColumn(space[16])
 const LIST = bulletList(space[4], 'padding')
 const AFTER_LIST = { marginTop: space[8] }
 
-const LAST_UPDATED = '26 October 2026'
+const LAST_UPDATED = '29 October 2026'
 
 function page(): PageResult {
   return {
@@ -37,9 +37,10 @@ function page(): PageResult {
             <ul style={LIST}>
               <li>
                 <strong>{pagesCopy('rollsAndLookups')}</strong> (<code>{pagesCopy('suRoll')}</code>,{' '}
-                <code>{pagesCopy('suLookup')}</code>): nothing about you. They answer in real time
-                and keep no record. Buttons such as “Roll again” carry the table or dice in the
-                button itself.
+                <code>{pagesCopy('suLookup')}</code>): we keep no record; they answer in real time.
+                A roll’s card names who rolled, and its “Roll again” button carries the roller’s
+                Discord ID so that only they can use it. Other buttons carry the table or dice in
+                the button itself.
               </li>
               <li>
                 <strong>{pagesCopy('usageCounts')}</strong> {pagesCopy('forEveryCommandAWeekly')}
@@ -67,9 +68,9 @@ function page(): PageResult {
               </li>
             </ul>
             <p style={AFTER_LIST}>
-              The Bot requests only the “Guilds” gateway intent. It does{' '}
-              <strong>{pagesCopy('not')}</strong> read message content, and it never stores your
-              messages.
+              The Bot does <strong>{pagesCopy('not')}</strong> read message content, except the one
+              message you choose with “Look up in Salvage Union”, which it reads to answer you and
+              never stores. It never stores your messages.
             </p>
           </div>
 

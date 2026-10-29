@@ -26,7 +26,6 @@ import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
-import type { HeatCheckEffect } from 'salvageunion-reference/rules'
 import {
   canPush,
   mechMaxHeat,
@@ -41,8 +40,6 @@ import { Button, Entity, Toggle } from '../components/index'
 import {
   describeHeatCheck,
   heatCheckOncePatch,
-  mechPush,
-  pilotOverloadPatch,
   shutdownTogglePatch,
   VENT_PATCH,
 } from '../lib/rules/actionPatches'
@@ -54,6 +51,7 @@ import { PlayRollInstrument } from './PlayRollInstrument'
 import type { PlayStore } from './play.model'
 import { playLineModel } from './playLine.model'
 import { recordPlayChange } from './playRolls.model'
+import { confirmMeltdown, hurtPilot, pushMech } from './reactorWrites.model'
 import type { PlayActions } from './usePlayActions'
 
 /** What the last roll or act came to; `overloadRoll` marks the table. */
@@ -107,24 +105,12 @@ export function PlayReactorRow({
       plainD20s: 1,
       outcome: () => said,
     })
-    const pushed = mechPush(fresh(), roll, heatScale)
-    if (pushed === null) return
-    const { patch, text, meltdown, overloadRoll, effect } = pushed
-    said = text
-    runWrite(
-      () => store.update('mech', mech.id, patch, PLAY_TXN),
-      () => {
+    const pushed = pushMech(
+      { store, mech, pilot, roll, heatScale },
+      ({ text, meltdown, overloadRoll }) =>
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
-        hurtPilot(effect)
-      }
     )
-  }
-
-  /** A Bio-Chassis overload's harm to the pilot aboard, written to the pilot. */
-  function hurtPilot(effect: HeatCheckEffect) {
-    if (pilot === null) return
-    const patch = pilotOverloadPatch(store.get('pilot', pilot.id) ?? pilot, effect)
-    if (patch !== null) runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN))
+    said = pushed?.text
   }
 
   async function doHeatCheck() {
@@ -148,7 +134,7 @@ export function PlayReactorRow({
       () => store.update('mech', mech.id, patch, PLAY_TXN),
       () => {
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
-        hurtPilot(effect)
+        hurtPilot(store, pilot, effect)
       }
     )
   }
@@ -175,11 +161,8 @@ export function PlayReactorRow({
     )
   }
 
-  function confirmMeltdown() {
-    runWrite(
-      () => store.update('mech', mech.id, { destroyed: true }, PLAY_TXN),
-      () => setLog(null)
-    )
+  function meltDown() {
+    confirmMeltdown(store, mech.id, () => setLog(null))
   }
 
   function togglePush() {
@@ -246,7 +229,7 @@ export function PlayReactorRow({
                       </p>
                     ) : null}
                     {log?.meltdown && (
-                      <Button variant="primary" size="compact" onClick={confirmMeltdown}>
+                      <Button variant="primary" size="compact" onClick={meltDown}>
                         {playCopy('confirmMeltdownMarkMechDestroyed')}
                       </Button>
                     )}

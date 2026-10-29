@@ -15,7 +15,7 @@
 
 import { RoomRefusal } from '../../rooms/refusal'
 import type { Identity } from '../auth/index'
-import type { GameRoomStub } from '../rooms'
+import type { GameRoomStub } from '../roomStubs'
 import type { SharedDb } from './db'
 
 /** The shared database and the rooms by name: `rooms().GameRoom` / `.AccountRoom.getByName`. */
@@ -76,7 +76,7 @@ export async function deleteRoomAccount(
       db
         .prepare('delete from channel_bindings where game_id is null and bound_by = ?1')
         .bind(discordId),
-      // `discord:` as the Worker and the bot write it; `user:` as Convex's site form did.
+      // `discord:` as the Worker and the bot write it; `user:` as older site feedback was filed.
       db
         .prepare('delete from feedback where sender in (?1, ?2)')
         .bind(`discord:${discordId}`, `user:${who.accountId}`),

@@ -147,29 +147,40 @@
   }
 }
 
-/* MasonryColumns (`components/containers/MasonryColumns.tsx`): independent flex
-   columns, collapsed to one stacked column in print. */
+/* MasonryColumns (`components/containers/MasonryColumns.tsx`): one flow in
+   source order, down each column and on into the next, 1 / 2 / 3 columns on
+   the ladder's md and xl rungs under its cap, one column in print. */
 .su-masonry {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-16);
+  column-gap: var(--space-16);
+  columns: 1;
 }
 
-.su-masonry-column {
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--space-16);
+@media (width >= 48rem) {
+  .su-masonry:not(.su-masonry--max-1) {
+    columns: 2;
+  }
+}
+
+@media (width >= 80rem) {
+  .su-masonry:not(.su-masonry--max-1, .su-masonry--max-2) {
+    columns: 3;
+  }
+}
+
+/* Each card whole in its column, a gap under it; a gap at a column's foot
+   falls away at the break. */
+.su-masonry__item {
+  break-inside: avoid;
+  margin-block-end: var(--space-16);
+}
+
+.su-masonry__item:last-child {
+  margin-block-end: 0;
 }
 
 @media print {
   .su-masonry {
-    display: block;
-  }
-
-  .su-masonry-column {
-    width: 100%;
+    columns: 1;
   }
 }
 

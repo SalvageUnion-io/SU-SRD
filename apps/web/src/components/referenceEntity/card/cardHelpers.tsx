@@ -7,7 +7,12 @@
  * from the card would make every section a circular dependency.
  */
 
-import type { RefObjectChoice, RefObjectContentBlock } from 'salvageunion-reference'
+import type {
+  RefEnumSchemaName,
+  RefMetaEntity,
+  RefObjectChoice,
+  RefObjectContentBlock,
+} from 'salvageunion-reference'
 import { getChoiceSourceKind } from '../choiceCard/choiceSelectionHelpers'
 import type {
   CardTitleTag,
@@ -19,11 +24,21 @@ import type {
  * bounds runaway recursion (deep chassis → systems → actions, or grant cycles). */
 export const MAX_DEPTH = 3
 
+/** The schema an entity names at runtime (the static union omits it), typed so a misspelt one fails typecheck. */
+export function schemaOf(entity: RefMetaEntity): RefEnumSchemaName | 'actions' | undefined {
+  return 'schemaName' in entity && typeof entity.schemaName === 'string'
+    ? (entity.schemaName as RefEnumSchemaName | 'actions')
+    : undefined
+}
+
 /**
  * What a card's own `[(CHASSIS)]` tokens read: a chassis's name, or a vehicle's
  * (the E-Boat's item reuses the Kraken's chassis text); nothing otherwise.
  */
-export function chassisMiniName(schemaName: string, name: string): string | undefined {
+export function chassisMiniName(
+  schemaName: RefEnumSchemaName | 'actions',
+  name: string
+): string | undefined {
   return schemaName === 'chassis' || schemaName === 'vehicles' ? name : undefined
 }
 

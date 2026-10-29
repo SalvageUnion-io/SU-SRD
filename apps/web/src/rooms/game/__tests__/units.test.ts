@@ -58,7 +58,7 @@ describe('writing by ops', () => {
   test('the holder applies an op; the snapshot moves to its seq', () => {
     const { room } = withCrew()
     const result = room.units.submit(PLAYER, [op('p1', { currentHP: 3 })])
-    expect(result).toEqual({ ok: true, applied: [{ id: expect.any(String), seq: 1 }] })
+    expect(result).toMatchObject({ ok: true, applied: [{ id: expect.any(String), seq: 1 }] })
     const pilot = room.units.list(PLAYER).find((u) => u.id === 'p1')
     expect(pilot?.body.currentHP).toBe(3)
     expect(pilot?.headSeq).toBe(1)
@@ -73,6 +73,7 @@ describe('writing by ops', () => {
     expect(room.units.submit(PLAYER, [once])).toEqual({
       ok: true,
       applied: [{ id: once.id, seq: 1 }],
+      fresh: [],
     })
     expect(room.units.history(PLAYER, 'p1')).toHaveLength(1)
   })

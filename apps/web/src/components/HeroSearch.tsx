@@ -1,5 +1,6 @@
 import type { FormEventHandler, ReactNode } from 'react'
 import { HERO_SEARCH_PLACEHOLDER } from '../lib/heroSearch'
+import { SEARCH_PAGE, SEARCH_PARAM } from '../lib/searchHref'
 import { componentsCopy } from '../messages/components'
 import { Button, SearchField } from './index'
 
@@ -24,7 +25,7 @@ type HeroSearchFormProps = {
 export function HeroSearchForm({ children, onSubmit }: HeroSearchFormProps) {
   return (
     <search>
-      <form action="/" method="get" className="su-hero-search" onSubmit={onSubmit}>
+      <form action={SEARCH_PAGE} method="get" className="su-hero-search" onSubmit={onSubmit}>
         {children}
         <Button type="submit" variant="primary" size="full">
           {componentsCopy('search')}
@@ -41,7 +42,7 @@ export function HeroSearchStatic() {
       <div className="su-hero-search__box">
         <SearchField
           type="search"
-          name="q"
+          name={SEARCH_PARAM}
           placeholder={HERO_SEARCH_PLACEHOLDER}
           aria-label={componentsCopy('searchTheReference')}
           shortcut="⌘K"

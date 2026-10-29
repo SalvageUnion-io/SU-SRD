@@ -43,7 +43,6 @@ import {
   rollNpcCritical,
   rollReaction,
 } from '../../lib/rules/opposition'
-import { runWrite } from '../../lib/runWrite'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { sharedPaths } from '../../lib/sharing/paths'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -447,9 +446,10 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       if (held === null && haul !== NOTHING) throw new Error('There is no crawler to haul it to')
       // Claimed first, as a Downtime step is: a second press never pays twice.
       // A wreck that yields nothing is settled too: what was left is destroyed.
+      // The haul is awaited, so a refused write is said rather than lost.
       await updateNpc({ npcId: npcId(npc), patch: { salvaged: true } })
       if (held !== null && patch !== null) {
-        runWrite(() => store.update('crawler', held.id, patch, PLAY_TXN))
+        await store.update('crawler', held.id, patch, PLAY_TXN)
       }
     }),
     area,

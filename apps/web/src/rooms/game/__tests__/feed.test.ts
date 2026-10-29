@@ -141,10 +141,16 @@ describe('what a Game room tells a socket', () => {
 
 describe('what the sender of a batch hears', () => {
   test('an ack, or the reason it was declined', () => {
-    expect(batchAnswer(['a'], { ok: true, applied: [{ id: 'a', seq: 1 }] })).toEqual({
-      type: 'ack',
-      opIds: ['a'],
-    })
+    expect(
+      batchAnswer(['a', 'b'], {
+        ok: true,
+        applied: [
+          { id: 'a', seq: 1 },
+          { id: 'b', seq: 2 },
+        ],
+        fresh: ['b'],
+      })
+    ).toEqual({ type: 'ack', opIds: ['a', 'b'], fresh: ['b'] })
     expect(
       batchAnswer(['a'], { ok: false, opId: 'a', reason: 'conflict', fields: ['motto', 'name'] })
     ).toEqual({ type: 'declined', opIds: ['a'], reason: 'Changed elsewhere first: motto, name' })

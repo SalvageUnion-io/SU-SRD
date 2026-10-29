@@ -9,8 +9,9 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { APP_BASE, appPath } from '../lib/appBase'
+import { APP_BASE, appPath, PLAY_ROOT, routeInApp } from '../lib/appBase'
 import {
+  APP_PATH,
   NAVIGATION_TIMEOUT_SECONDS,
   PAGES_CACHE,
   RUNTIME_CACHING,
@@ -40,6 +41,32 @@ describe('builder navigations', () => {
       expect(rule?.options).toEqual({ precacheFallback: { fallbackURL: 'build/index.html' } })
     }
   )
+})
+
+describe('the app paths', () => {
+  test.each([
+    APP_BASE,
+    appPath('/'),
+    appPath('/pilots/x'),
+    PLAY_ROOT,
+    appPath('/play/games/x'),
+    '/',
+    '/chassis/',
+    '/builder/',
+    '/playbook/',
+  ])('%s is the app exactly where routeInApp says so', (path) => {
+    expect(APP_PATH.test(path)).toBe(routeInApp(path) !== null)
+  })
+
+  test('are the ones the app rule spells out', () => {
+    const appRule = ruleFor('navigate', APP_BASE)
+    expect(String(appRule?.urlPattern)).toContain(`${APP_PATH}.test(url.pathname)`)
+  })
+
+  test('are the ones sw-lifecycle.js spells out', () => {
+    const lifecycle = readFileSync(join(import.meta.dir, '../../public/sw-lifecycle.js'), 'utf8')
+    expect(lifecycle).toContain(`const BUILDER = ${APP_PATH}`)
+  })
 })
 
 describe('page navigations', () => {
@@ -81,7 +108,7 @@ describe('the navigation rules', () => {
     for (const rule of navigation) {
       const original = rule.urlPattern as Matcher
       const rebuilt = new Function(`return (${original.toString()})`)() as Matcher
-      for (const path of ['/', '/build/', '/chassis/']) {
+      for (const path of ['/', '/build/', '/play/games/x', '/chassis/']) {
         expect(rebuilt(requestOf('navigate', path))).toBe(original(requestOf('navigate', path)))
       }
     }
@@ -92,6 +119,13 @@ describe('the navigation rules', () => {
     // maps `/` and `/build/` onto their index.html: cache-first.
     expect(WORKBOX_OPTIONS.directoryIndex).toBeNull()
     expect(WORKBOX_OPTIONS.navigateFallback).toBeNull()
+  })
+})
+
+describe('the data rules', () => {
+  test('cache only what a page fetches: the search index', () => {
+    const data = RUNTIME_CACHING.filter((r) => r.urlPattern instanceof RegExp)
+    expect(data.map((r) => String(r.urlPattern))).toEqual([String(/\/search-index\.json$/)])
   })
 })
 

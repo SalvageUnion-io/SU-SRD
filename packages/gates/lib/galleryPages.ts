@@ -8,7 +8,7 @@
  * seed has run.
  */
 
-import { APP_BASE } from '../../../apps/web/src/lib/appBase'
+import { APP_BASE } from 'game-domain/appAddress'
 
 /** Where the app is served on the site (ADR-048), from its one home. */
 export { APP_BASE }

@@ -125,6 +125,30 @@ describe('GameDataGate with an explicit schema list', () => {
     expect(screen.getByText('real content')).toBeTruthy()
   })
 
+  test("'all' waits for every catalog schema, not just chassis and actions", async () => {
+    isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockImplementation(
+      (schema) => schema === 'chassis' || schema === 'actions'
+    )
+    let finish: () => void = () => {}
+    preloadSpy = spyOn(SalvageUnionReference, 'preload').mockReturnValue(
+      new Promise<void>((resolve) => {
+        finish = resolve
+      })
+    )
+
+    render(
+      <GameDataGate fallback={<div>wait</div>}>
+        <div>real content</div>
+      </GameDataGate>
+    )
+
+    expect(screen.getByText('wait')).toBeTruthy()
+    expect(preloadSpy).toHaveBeenCalledWith('all', { projection: 'full' })
+
+    await act(async () => finish())
+    expect(screen.getByText('real content')).toBeTruthy()
+  })
+
   test('two gates asking for the same schemas in any order share one preload', async () => {
     isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
     let finish: () => void = () => {}
