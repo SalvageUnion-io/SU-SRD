@@ -46,6 +46,13 @@
  * failure: the nightly job passes it when it holds the owner's read-only
  * admin token (`SETTINGS_READ_TOKEN`), with which every check can run.
  *
+ * `SETTINGS_READ_TOKEN` is the owner's fine-grained token on SalvageUnion-io,
+ * SU-SRD only, with Read-only repository permissions and nothing else:
+ * Metadata, Actions (Environments, branch policies, reviewers), Administration
+ * (the ruleset's bypass actors), Environments and Secrets (secret names; the
+ * API never returns a value). A repository secret, in `REPOSITORY_SECRETS`,
+ * because the job that reads it stays outside every Environment.
+ *
  * It never reads, prints or writes a secret value. `--apply` creates or updates
  * Environments, their branch policies and their required reviewers and nothing else: it prints the
  * `gh secret set` / `gh secret delete` / Environment delete commands for the
@@ -150,11 +157,15 @@ export const MAIN_RULESET: RulesetSpec = {
 
 /**
  * Secrets allowed at repository level, readable from any branch. Only a
- * credential that reaches no deploy and that every PR needs belongs here:
- * the Claude review's token (`claude-review.yml`, `claude.yml`) spends review
- * usage and nothing else. Every deploy secret stays in its Environment.
+ * credential that reaches no deploy belongs here: the Claude review's token
+ * (`claude-review.yml`, `claude.yml`) spends review usage, and
+ * `SETTINGS_READ_TOKEN` reads settings, read-only. Every deploy secret stays
+ * in its Environment.
  */
-export const REPOSITORY_SECRETS: readonly string[] = ['CLAUDE_CODE_OAUTH_TOKEN']
+export const REPOSITORY_SECRETS: readonly string[] = [
+  'CLAUDE_CODE_OAUTH_TOKEN',
+  'SETTINGS_READ_TOKEN',
+]
 
 /**
  * The one job that maps Environment secrets WITHOUT declaring the Environment,

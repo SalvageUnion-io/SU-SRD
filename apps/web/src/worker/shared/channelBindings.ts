@@ -5,10 +5,15 @@
  * holds one binding, a Game is bound to one channel, an account's solo play
  * to one).
  *
+ * In a server, binding takes Manage Channels in the channel (the bot reads it
+ * off the interaction and sends it as `manageChannels`); in a DM, where it is
+ * absent, nobody holds it and nobody needs it.
+ *
  * Binding again moves the binding: the Game's (or the account's) old channel
  * is released. A channel somebody else's Game or solo play holds is taken
- * only by a caller who could have unbound it: for a Game, its Mediator or
- * Organiser (`mayBindChannel`); for solo play, the account that bound it.
+ * only by a caller who could have unbound it: whoever bound it, anyone with
+ * Manage Channels there, and for a Game its Mediator or Organiser
+ * (`mayBindChannel`).
  */
 
 import type {
@@ -18,6 +23,7 @@ import type {
   ChannelBindingSummary,
   UnbindChannelResult,
 } from 'game-domain/botWire'
+import { BIND_NEEDS_MANAGE_CHANNELS } from 'game-domain/botWire'
 import { mayBindChannel } from 'game-domain/games/discord'
 import type { SharedDb } from './db'
 import { membershipOf } from './games'
@@ -94,8 +100,14 @@ export async function soloBinding(
 }
 
 /** Whether `discordId` may unbind (or take over) this binding. */
-async function mayManage(db: SharedDb, discordId: string, held: BindingColumns) {
-  if (held.game_id === null) return held.bound_by === discordId
+async function mayManage(
+  db: SharedDb,
+  discordId: string,
+  held: BindingColumns,
+  manageChannels: boolean | undefined
+) {
+  if (manageChannels === true || held.bound_by === discordId) return true
+  if (held.game_id === null) return false
   const member = await membershipOf(db, held.game_id, discordId)
   return member !== null && mayBindChannel(member)
 }
@@ -108,11 +120,19 @@ async function mayManage(db: SharedDb, discordId: string, held: BindingColumns) 
 export async function bindChannel(
   db: SharedDb,
   discordId: string,
-  args: { channelId: string; gameId: string | null; channelName?: string | null },
+  args: {
+    channelId: string
+    gameId: string | null
+    channelName?: string | null
+    manageChannels?: boolean
+  },
   now = Date.now()
 ): Promise<BotFailure | BotSuccess<BindChannelResult>> {
-  const { channelId, gameId } = args
+  const { channelId, gameId, manageChannels } = args
   const channelName = channelNameOf(args.channelName)
+  if (manageChannels === false) {
+    return { ok: false, reason: 'forbidden', message: BIND_NEEDS_MANAGE_CHANNELS }
+  }
   if (gameId !== null) {
     const member = await membershipOf(db, gameId, discordId)
     if (member === null) return { ok: false, reason: 'not-found', message: GAME_NOT_FOUND }
@@ -144,7 +164,7 @@ export async function bindChannel(
       previousChannelId: null,
     }
   }
-  if (held !== null && !(await mayManage(db, discordId, held))) {
+  if (held !== null && !(await mayManage(db, discordId, held, manageChannels))) {
     return {
       ok: false,
       reason: 'forbidden',
@@ -183,22 +203,27 @@ export async function bindChannel(
   }
 }
 
-/** Unbind whatever `channelId` holds. Nothing bound is no failure: the reply says so. */
+/**
+ * Unbind whatever `channelId` holds: whoever bound it, anyone with Manage
+ * Channels there, or the Game's Mediator or Organiser may. Nothing bound is
+ * no failure: the reply says so.
+ */
 export async function unbindChannel(
   db: SharedDb,
   discordId: string,
-  channelId: string
+  channelId: string,
+  manageChannels?: boolean
 ): Promise<BotFailure | BotSuccess<UnbindChannelResult>> {
   const held = await bindingBy(db, 'channel', channelId)
   if (held === null) return { ok: true, unbound: null }
-  if (!(await mayManage(db, discordId, held))) {
+  if (!(await mayManage(db, discordId, held, manageChannels))) {
     return {
       ok: false,
       reason: 'forbidden',
       message:
         held.game_id === null
-          ? 'Only the person who bound this channel can unbind it.'
-          : 'Only the Game’s Mediator or Organiser can unbind its channel.',
+          ? 'Only the person who bound this channel, or someone with Manage Channels, can unbind it.'
+          : 'Only the Game’s Mediator or Organiser, or someone with Manage Channels, can unbind its channel.',
     }
   }
   await db.prepare('delete from channel_bindings where channel_id = ?1').bind(channelId).run()

@@ -186,9 +186,10 @@ describe('the declaration', () => {
     expect(ENVIRONMENTS).toHaveLength(3)
   })
 
-  test('only the review token is allowed at repository level, and no Environment holds it', () => {
-    expect(REPOSITORY_SECRETS).toEqual(['CLAUDE_CODE_OAUTH_TOKEN'])
-    for (const env of ENVIRONMENTS) expect(env.secrets).not.toContain('CLAUDE_CODE_OAUTH_TOKEN')
+  test('only the review token and the settings reader are allowed at repository level, and no Environment holds them', () => {
+    expect(REPOSITORY_SECRETS).toEqual(['CLAUDE_CODE_OAUTH_TOKEN', 'SETTINGS_READ_TOKEN'])
+    for (const env of ENVIRONMENTS)
+      for (const name of REPOSITORY_SECRETS) expect(env.secrets).not.toContain(name)
   })
 })
 

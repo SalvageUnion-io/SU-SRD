@@ -124,9 +124,9 @@ export function Compact({
   const target = useLinkTarget(mode, model.ref)
   const down = downOf(instance?.condition)
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined, undefined, down)
-  const ability = model.ref.schemaName === 'abilities'
-  // An ability's Compact wears its tier tone (E12); any other "do" entity the ink banner.
-  const fill = model.kind.nature === 'do' && !ability ? 'ink' : model.tone
+  // An ability's Compact wears its tier tone (E12); an action, the one other
+  // "do" entity, the ink banner.
+  const fill = model.kind.nature === 'do' && model.kind.domain === 'action' ? 'ink' : model.tone
   const paint = paintFor(fill, { down, texture: surface.texture })
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title

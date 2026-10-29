@@ -59,8 +59,8 @@ describe('check-fidelity-lock — main', () => {
     return { code, out, err, lockPath, baselinePath }
   }
   const LOCKED = {
-    a: `${proseHash('Verbatim words.')} verbatim`,
-    b: `${proseHash('Paraphrased words.')} deviation paraphrase`,
+    a: `${proseHash('Verbatim words.')} 0123456789ab verbatim`,
+    b: `${proseHash('Paraphrased words.')} 0123456789ab deviation paraphrase`,
   }
 
   test('the real repository passes', () => {
@@ -86,7 +86,11 @@ describe('check-fidelity-lock — main', () => {
   })
 
   test('a new, edited, stale or malformed entry fails, and so does a new deviation', () => {
-    const r = run([], { a: '0000000000000000 verbatim', gone: LOCKED.a, bad: 'nonsense' }, {})
+    const r = run(
+      [],
+      { a: '0000000000000000 0123456789ab verbatim', gone: LOCKED.a, bad: 'nonsense' },
+      {}
+    )
     expect(r.code).toBe(1)
     const text = r.err.join('\n')
     expect(text).toContain('malformed lock entr')

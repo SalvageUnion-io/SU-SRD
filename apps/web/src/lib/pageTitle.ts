@@ -5,6 +5,8 @@
  * `routes/__root.tsx`), so a player with a pilot, a mech and a Game open in
  * separate tabs can tell them apart. A page in one of the app's named areas
  * names its area too (`areaTitle`): `Patterns · Training Bay · SalvageUnion.io`.
+ * The account's own pages (sign-in, sign-out, settings) belong to the whole
+ * app, not an area (glossary.md §9), so they take `pageTitle` alone.
  *
  * Only a relative import of a module with none: the app's shell, which the
  * Vite config loads, titles itself with it too. So the area's name is the

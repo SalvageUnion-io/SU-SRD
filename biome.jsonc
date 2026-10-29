@@ -93,6 +93,16 @@
       // The detail view is a Page, never a new tab (hard rule R34).
       "path": "./packages/gates/biome/noWindowOpen.grit",
       "includes": ["**/apps/web/src/**"]
+    },
+    {
+      // Card internals read an entity's shape, never its schema name.
+      "path": "./packages/gates/biome/noSchemaNameBranch.grit",
+      "includes": [
+        "**/apps/web/src/components/**",
+        "!**/*.test.ts",
+        "!**/*.test.tsx",
+        "!**/__tests__/**"
+      ]
     }
   ],
   "files": {

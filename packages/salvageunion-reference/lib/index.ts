@@ -61,7 +61,16 @@ export {
   getTechLevel,
   getTree,
 } from './entityFields'
-export { isAbility, isBaseAdvancedClass, isCoreClass } from './entityGuards'
+export {
+  isAbility,
+  isBaseAdvancedClass,
+  isChassis,
+  isCoreClass,
+  isCrawler,
+  isCrawlerBay,
+  isSystemOrModule,
+  isVehicle,
+} from './entityGuards'
 export { formerSlugsIn, resolveFormerSlug } from './formerSlugs'
 // Every Ref* entity type and the RefEntity / RefMetaEntity unions,
 // generated from lib/schemas/registry.ts. Exported as a family rather than

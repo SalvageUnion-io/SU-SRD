@@ -183,13 +183,31 @@ export type ChannelBindingSummary = {
  * What the bot sends `bindChannel` (`/su bind`): who ran it, the channel it
  * ran in and its name, and the Game it named (its id, or a name typed by
  * hand), absent for solo play. `channelName` is optional on the wire: a bot
- * that predates it binds without one.
+ * that predates it binds without one. `manageChannels` is whether the caller
+ * holds Manage Channels in that channel, read from the interaction's
+ * `member.permissions`; absent outside a server (a DM), where nobody holds it.
  */
 export type BindChannelArgs = {
   discordId: string
   channelId: string
   channelName?: string
   game?: string
+  manageChannels?: boolean
+}
+
+/**
+ * The refusal, in a server, of `/su bind` without Manage Channels in the
+ * channel: a channel is the server's, so its moderators decide where rolls
+ * post. The bot says it before asking; the site says it to a bot that asks anyway.
+ */
+export const BIND_NEEDS_MANAGE_CHANNELS =
+  'You need the Manage Channels permission in this channel to bind it.'
+
+/** What the bot sends `unbindChannel` (`/su unbind`); `manageChannels` as for `bindChannel`. */
+export type UnbindChannelArgs = {
+  discordId: string
+  channelId: string
+  manageChannels?: boolean
 }
 
 /**

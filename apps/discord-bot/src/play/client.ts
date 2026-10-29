@@ -1,4 +1,10 @@
-import type { BindChannelArgs, BotFeedbackArgs, BotOpName, BotUsageArgs } from 'game-domain/botWire'
+import type {
+  BindChannelArgs,
+  BotFeedbackArgs,
+  BotOpName,
+  BotUsageArgs,
+  UnbindChannelArgs,
+} from 'game-domain/botWire'
 import { PRODUCT } from 'game-domain/product'
 import { reportError } from '../reportError'
 import type {
@@ -54,10 +60,15 @@ export type SiteClient = {
     discordId: string,
     channelId: string,
     game: string | null,
-    channelName?: string | null
+    channelName?: string | null,
+    manageChannels?: boolean | null
   ): Promise<SiteResult<BindChannelResult>>
   /** `/su unbind`: release whatever `channelId` is bound to. */
-  unbindChannel(discordId: string, channelId: string): Promise<SiteResult<UnbindChannelResult>>
+  unbindChannel(
+    discordId: string,
+    channelId: string,
+    manageChannels?: boolean | null
+  ): Promise<SiteResult<UnbindChannelResult>>
   /** One answered command for the weekly tallies (ADR-057): its name and server, never who. */
   usage(name: string, guildId: string | null): Promise<SiteResult<BotUsageResult>>
   /** `/su feedback`: hand a note on to be filed as a GitHub issue. */
@@ -143,16 +154,24 @@ export function createSiteClient(gateway: SiteGateway | undefined): SiteClient {
     mineForAutocomplete: (discordId) => call('mine', { discordId }, true),
     sheet: (discordId, table, entityId) => call('sheet', { discordId, table, entityId }),
     gamesForAutocomplete: (discordId) => call('games', { discordId }, true),
-    bindChannel: (discordId, channelId, game, channelName) => {
+    bindChannel: (discordId, channelId, game, channelName, manageChannels) => {
       const args: BindChannelArgs = {
         discordId,
         channelId,
         ...(channelName ? { channelName } : {}),
         ...(game === null ? {} : { game }),
+        ...(typeof manageChannels === 'boolean' ? { manageChannels } : {}),
       }
       return call('bindChannel', args)
     },
-    unbindChannel: (discordId, channelId) => call('unbindChannel', { discordId, channelId }),
+    unbindChannel: (discordId, channelId, manageChannels) => {
+      const args: UnbindChannelArgs = {
+        discordId,
+        channelId,
+        ...(typeof manageChannels === 'boolean' ? { manageChannels } : {}),
+      }
+      return call('unbindChannel', args)
+    },
     usage: (name, guildId) => {
       const args: BotUsageArgs = { name, ...(guildId === null ? {} : { guildId }) }
       return call('usage', args)

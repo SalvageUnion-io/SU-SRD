@@ -2,6 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { fidelityStamp } from '../lib/fidelityStamp'
 import type { LockFile } from '../lib/proseFidelity'
 import {
   collectProse,
@@ -171,15 +172,48 @@ describe('proseHash', () => {
 
 describe('lock entries', () => {
   test('round-trip', () => {
-    const e = { hash: '0123456789abcdef', verdict: 'unverified', reason: 'paraphrase' } as const
+    const e = {
+      hash: '0123456789abcdef',
+      stamp: '0123456789ab',
+      verdict: 'unverified',
+      reason: 'paraphrase',
+    } as const
     expect(parseLockEntry(formatLockEntry(e))).toEqual(e)
   })
 
   test('refuse anything that could carry book text', () => {
-    expect(parseLockEntry('0123456789abcdef verbatim A magnetically propelled')).toBeString()
-    expect(parseLockEntry('0123456789abcdef verbatim made-up-reason')).toBeString()
-    expect(parseLockEntry('0123456789abcdef approved')).toBeString()
+    expect(parseLockEntry('0123456789abcdef 0123456789ab verbatim A magnetically')).toBeString()
+    expect(parseLockEntry('0123456789abcdef 0123456789ab verbatim made-up-reason')).toBeString()
+    expect(parseLockEntry('0123456789abcdef 0123456789ab approved')).toBeString()
     expect(parseLockEntry({ hash: '0123456789abcdef', verdict: 'verbatim' })).toBeString()
+  })
+
+  test('refuse an entry with no stamp', () => {
+    expect(parseLockEntry('0123456789abcdef verbatim')).toBeString()
+    expect(parseLockEntry('0123456789abcdef 0123 verbatim')).toBeString()
+  })
+})
+
+describe('fidelityStamp', () => {
+  const page = 'Railgun. A magnetically propelled slug.'
+  const stamp = fidelityStamp('Railgun', 'verbatim', undefined, page)
+
+  test('is 12 hex digits, unmoved by whitespace and typography in the book text', () => {
+    expect(stamp).toMatch(/^[0-9a-f]{12}$/)
+    expect(fidelityStamp('Railgun', 'verbatim', undefined, `  ${page.replace(' ', '\n')}`)).toBe(
+      stamp
+    )
+  })
+
+  test('changes with the book text, the verdict, the reason or the data', () => {
+    const others = [
+      fidelityStamp('Railgun', 'verbatim', undefined, 'Railgun. Another slug.'),
+      fidelityStamp('Railgun', 'verbatim', undefined, ''),
+      fidelityStamp('Railgun', 'verbatim', 'elsewhere', page),
+      fidelityStamp('Railgun', 'unverified', 'no-match', page),
+      fidelityStamp('Rail gun', 'verbatim', undefined, page),
+    ]
+    expect(new Set([stamp, ...others]).size).toBe(others.length + 1)
   })
 })
 
@@ -189,7 +223,9 @@ describe('compareWithLock', () => {
   const full = {
     $comment: comment,
     editions: { 'Core Book': 'Salvage Union Digital Edition 2.0a' },
-    entries: Object.fromEntries(items.map((i) => [i.key, `${proseHash(i.text)} verbatim`])),
+    entries: Object.fromEntries(
+      items.map((i) => [i.key, `${proseHash(i.text)} 000000000000 verbatim`])
+    ),
   } as LockFile
 
   test('passes a lock that covers every string', () => {
@@ -202,8 +238,8 @@ describe('compareWithLock', () => {
     if (!first || !second) throw new Error('fixture yielded too few strings')
     const entries = { ...full.entries }
     delete entries[first.key]
-    entries[second.key] = '0000000000000000 verbatim'
-    entries['systems.json#gone.name'] = `${proseHash('x')} verbatim`
+    entries[second.key] = '0000000000000000 000000000000 verbatim'
+    entries['systems.json#gone.name'] = `${proseHash('x')} 000000000000 verbatim`
     entries['systems.json#bad.name'] = 'verbatim'
     const d = compareWithLock(items, { ...full, entries })
     expect(d.unverified.map((u) => [u.item.key, u.was?.hash])).toEqual([
@@ -215,7 +251,10 @@ describe('compareWithLock', () => {
   })
 
   test('--prune drops only entries for strings that no longer exist', () => {
-    const entries = { ...full.entries, 'systems.json#gone.name': `${proseHash('x')} verbatim` }
+    const entries = {
+      ...full.entries,
+      'systems.json#gone.name': `${proseHash('x')} 000000000000 verbatim`,
+    }
     expect(pruneLock({ ...full, entries }, items).entries).toEqual(full.entries)
   })
 
@@ -260,15 +299,21 @@ describe('the lock file on disk', () => {
     fixtures.push(dir)
     const path = join(dir, 'fidelity.lock.json')
     const entries = new Map([
-      ['systems/b@stat', { hash: 'bbbbbbbbbbbb', verdict: 'verbatim' as const }],
-      ['abilities/a', { hash: 'aaaaaaaaaaaa', verdict: 'verbatim' as const }],
+      [
+        'systems/b@stat',
+        { hash: 'bbbbbbbbbbbb', stamp: '222222222222', verdict: 'verbatim' as const },
+      ],
+      [
+        'abilities/a',
+        { hash: 'aaaaaaaaaaaa', stamp: '111111111111', verdict: 'verbatim' as const },
+      ],
     ])
     writeLockFile(toLockFile({ editions: { 'Core Book': 'Edition 2.0a' }, entries }), path)
     const read = readLockFile(path)
     expect(read?.editions).toEqual({ 'Core Book': 'Edition 2.0a' })
     expect(read?.entries).toEqual({
-      'abilities/a': 'aaaaaaaaaaaa verbatim',
-      'systems/b@stat': 'bbbbbbbbbbbb verbatim',
+      'abilities/a': 'aaaaaaaaaaaa 111111111111 verbatim',
+      'systems/b@stat': 'bbbbbbbbbbbb 222222222222 verbatim',
     })
     // Written sorted, so the committed file diffs one entry at a time.
     const keys = Object.keys(read?.entries ?? {})

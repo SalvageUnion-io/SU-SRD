@@ -94,6 +94,34 @@ describe('channel bindings', () => {
     expect(await soloBinding(db, 'ines')).toBeNull()
   })
 
+  it('binds in a server only for someone with Manage Channels there', async () => {
+    const db = await table()
+    expect(
+      await bindChannel(db, 'ines', { ...bindGame(null), manageChannels: false })
+    ).toMatchObject({ reason: 'forbidden', message: expect.stringContaining('Manage Channels') })
+    expect(
+      await bindChannel(db, 'rosa', { ...bindGame('g-1'), manageChannels: false })
+    ).toMatchObject({ reason: 'forbidden' })
+    expect(await soloBinding(db, 'ines')).toBeNull()
+    expect(
+      await bindChannel(db, 'ines', { ...bindGame(null), manageChannels: true })
+    ).toMatchObject({ ok: true })
+  })
+
+  it('lets someone with Manage Channels unbind anybody’s channel', async () => {
+    const db = await table()
+    await bindChannel(db, 'ines', bindGame(null, 'c-9'))
+    await bindChannel(db, 'rosa', bindGame('g-1', 'c-1'))
+    expect(await unbindChannel(db, 'tam', 'c-9', false)).toMatchObject({ reason: 'forbidden' })
+    expect(await unbindChannel(db, 'tam', 'c-1', false)).toMatchObject({ reason: 'forbidden' })
+    expect(await unbindChannel(db, 'tam', 'c-9', true)).toMatchObject({
+      unbound: { channelId: 'c-9' },
+    })
+    expect(await unbindChannel(db, 'tam', 'c-1', true)).toMatchObject({
+      unbound: { channelId: 'c-1', gameId: 'g-1' },
+    })
+  })
+
   it('unbinds nothing without failing', async () => {
     const db = await table()
     expect(await unbindChannel(db, 'rosa', 'c-404')).toEqual({ ok: true, unbound: null })

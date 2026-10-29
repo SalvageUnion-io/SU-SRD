@@ -15,14 +15,13 @@
  */
 
 import type { EntityModel, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+import { isChassis, toEntityModel } from 'salvageunion-reference'
 import type { StatItem } from '../../containers/statsBarTypes'
 import type { TagItem } from '../../entity'
 import { actionTypeStamps, costCell, factCells, traitTags } from '../../entity'
 import type { BookStat } from '../referenceEntityStatsConfig'
 import type { EntityRelation } from './abilityTreeRelations'
 import { abilityTreeRelations } from './abilityTreeRelations'
-import { schemaOf } from './cardHelpers'
 
 export type EntityPageMeta = {
   /**
@@ -75,7 +74,7 @@ function isOwnStat(key: string): boolean {
  * beside the title as every other page's do.
  */
 function statsInBody(entity: RefMetaEntity): boolean {
-  return schemaOf(entity) === 'chassis'
+  return isChassis(entity)
 }
 
 /** Whether a book stat rides a chassis page's band, out of its body: its provenance. */

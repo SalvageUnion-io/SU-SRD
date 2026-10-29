@@ -1,6 +1,6 @@
 ---
 name: site-ops
-description: Use when setting up or checking the site Worker's sign-in, when Discord sign-in fails or answers 503, when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable`, or its `/health` returns 503, when rotating DISCORD_CLIENT_SECRET, when an agent needs the app signed in (`bun run dev:backend`).
+description: Use when setting up or checking the site Worker's sign-in, when Discord sign-in fails or answers 503, when the bot replies "salvageunion.io is not configured for this bot", answers `unavailable`, or its `/health` returns 503, when rotating DISCORD_CLIENT_SECRET, when creating the nightly settings check's SETTINGS_READ_TOKEN, when an agent needs the app signed in (`bun run dev:backend`).
 allowed-tools: Bash, Read
 ---
 
@@ -94,6 +94,18 @@ pbpaste | tr -d '\n' | bunx wrangler secret put DISCORD_CLIENT_SECRET
 
 Guard on **length 32** before writing: if the copy silently failed, refusing
 beats writing garbage into production auth. Only a real sign-in proves it.
+
+## The nightly settings check's token
+
+The nightly `environments` job (`e2e-nightly.yml`) runs
+`bun tools/environments.ts --require-all` only when the repository secret
+`SETTINGS_READ_TOKEN` exists; without it, the checks GITHUB_TOKEN cannot make
+(secret names, the ruleset's bypass actors) print `not run`. The owner creates
+it as a fine-grained token on SalvageUnion-io, SU-SRD only, every permission
+**read-only**: Metadata, Actions, Administration, Environments, Secrets. The
+header of `tools/environments.ts` says what each one reads. Set it with
+`gh secret set SETTINGS_READ_TOKEN --repo SalvageUnion-io/SU-SRD`, value on
+stdin, and dispatch the workflow to check it.
 
 ## Convex, deleted
 

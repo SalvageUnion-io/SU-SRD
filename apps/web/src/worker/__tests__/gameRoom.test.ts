@@ -55,16 +55,17 @@ function room(gameId: string) {
 }
 
 /** Shelves the Game room hands units to, recording what each was given. */
-const shelves = new Map<string, { parcels: UnitParcel[]; trays: unknown[] }>()
+const shelves = new Map<string, { parcels: UnitParcel[]; trays: unknown[]; left: string[] }>()
 Object.assign(exports, {
   GameRoom: { getByName: (name: string) => made.get(name) },
   AccountRoom: {
     getByName: (userId: string) => {
-      const shelf = shelves.get(userId) ?? { parcels: [], trays: [] }
+      const shelf = shelves.get(userId) ?? { parcels: [], trays: [], left: [] }
       shelves.set(userId, shelf)
       return {
         accept: async (parcel: UnitParcel) => void shelf.parcels.push(parcel),
         fileTray: async (_lease: string, npcs: unknown[]) => void shelf.trays.push(npcs),
+        leftGame: async (gameId: string) => void shelf.left.push(gameId),
       }
     },
   },
@@ -167,6 +168,9 @@ describe('the Game room Durable Object', () => {
     expect(shelves.get(ORGANIZER)?.trays).toMatchObject([
       [{ id: expect.any(String), name: 'Raider' }],
     ])
+    // Each member's room drops the Game from its list.
+    expect(shelves.get(ORGANIZER)?.left).toEqual(['g-end'])
+    expect(shelves.get(PLAYER)?.left).toEqual(['g-end'])
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
   })
 

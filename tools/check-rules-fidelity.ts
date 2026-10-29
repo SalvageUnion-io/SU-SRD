@@ -12,10 +12,14 @@
  *
  *   - THIS script runs locally, where `bun run rules:extract` has produced the
  *     text layers. It classifies every string and, with `--update`, writes the
- *     lock: a hash of each string's text plus its verdict, and no book text.
+ *     lock: a hash of each string's text, its verdict, and a stamp hashed over
+ *     both and the book passage the verdict was reached on (`fidelityStamp`),
+ *     and no book text. Without `--update` it recomputes every verdict and
+ *     stamp and fails on any that differ from the lock: a hand-written entry
+ *     cannot carry the stamp the books produce.
  *   - `check-fidelity-lock.ts`, the CI gate, needs no book. It fails when a
  *     string's hash has no lock entry, so any prose edit forces a local
- *     re-verification here.
+ *     re-verification here; it can check a stamp's format, not its value.
  *
  * Verdicts:
  *
@@ -57,16 +61,20 @@
  * Books are matched by FILENAME PATTERN (`gates/lib/rulesBooks.ts`), so a new
  * edition dropped into `rules/` is picked up without a code change.
  *
- * Requires the gitignored extract: `bun run rules:extract`. With none present
- * this exits 0 with a notice: a local check, not a CI gate. Where it looks: `findExtractDir` in `extract-rules.ts`.
+ * Requires the gitignored extract: `bun run rules:extract`, or the su-rules
+ * checkout beside this one. With none present this exits 0 with a notice (a
+ * local check, not a CI gate); `--verify` and `--update` exit 1 instead. Where
+ * it looks: `findExtractDir` in `extract-rules.ts`.
  *
  * Run:  bun tools/check-rules-fidelity.ts            # verify; report what the lock would change
+ *       bun tools/check-rules-fidelity.ts --verify   # ... and fail when there is no extract
  *       bun tools/check-rules-fidelity.ts --update   # ... and rewrite the lock
  *       bun tools/check-rules-fidelity.ts --show=paraphrase,omission   # list those, with diffs
  *       bun tools/check-rules-fidelity.ts --show=stat-mismatch          # stat blocks that differ
  */
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
+import { fidelityStamp } from 'gates/lib/fidelityStamp'
 import type {
   Anchor,
   DRIFT_REASONS,
@@ -82,7 +90,6 @@ import {
   proseHash,
   readLockFile,
   toLockFile,
-  VERDICTS,
   writeLockFile,
 } from 'gates/lib/proseFidelity'
 import { ruling } from 'gates/lib/proseRuling'
@@ -100,6 +107,7 @@ import {
 } from 'salvageunion-reference/proseDeviations'
 import type { Layer } from './extract-rules'
 import { findExtractDir, LAYER_DIR } from './extract-rules'
+import { excerpt, label, printStatSummary, printSummary } from './fidelityReport'
 
 /** A cited page and its neighbours: a paragraph may run over a page break. */
 const NEAR = 2
@@ -130,6 +138,8 @@ type Book = {
   tokens: string[]
   rawTokens: string[]
   tokPage: number[]
+  /** The text file this layer was read from. */
+  file: string
   /** page -> [first token, last token + 1) */
   pageTok: Map<number, [number, number]>
   gram: Map<string, number[]>
@@ -198,6 +208,7 @@ function loadBook(spec: BookSpec, layer: Layer, path: string): Book {
     spec,
     ...(scope ? { scope } : {}),
     layer,
+    file: basename(path),
     pages,
     views,
     tokens,
@@ -221,10 +232,6 @@ function pageWindow(b: Book, page: number): [number, number] {
   }
   return [lo, hi]
 }
-
-// ---------------------------------------------------------------------------
-// Locating the extract
-// ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
 // Search
@@ -686,7 +693,13 @@ type Result = {
   page?: number
   score?: number
   diff?: string
+  /** The book passage the verdict was reached on, for its stamp; never written out. */
+  evidence?: string
 }
+
+/** Where a passage was read: book, file, layer and page, then its text. */
+const passage = (b: Book, page: number, text: string) =>
+  `${b.spec.id} ${b.file} ${b.layer} p.${page}\n${text}`
 
 /** The text with the allowlist's markup rules applied, and which rule each applies. */
 function candidates(item: ProseItem): { text: string; rule?: ProseRuleId }[] {
@@ -740,7 +753,11 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
       const hit = search(lib, c.text, item.kind, item.anchors, !!c.rule && citedBooks.size > 0)
       if (!hit) continue
       if (c.rule && citedBooks.size > 0 && hasPage && !hit.near) continue
-      const where = { book: hit.book.spec.id, page: hit.page }
+      const where = {
+        book: hit.book.spec.id,
+        page: hit.page,
+        evidence: passage(hit.book, hit.page, hit.book.pages.get(hit.page) ?? ''),
+      }
       if (c.rule) done({ verdict: 'deviation', reason: c.rule, ...where })
       else if (hit.near) done({ verdict: 'verbatim', ...where })
       else if (citedBooks.size && !citedBooks.has(hit.book.spec))
@@ -793,6 +810,7 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
           page: f.page,
           score: Math.round(f.score * 1000) / 1000,
           diff: shortDiff(f),
+          evidence: passage(f.book, f.page, f.book.rawTokens.slice(f.bStart, f.bEnd).join(' ')),
         }
       : {}
     if (f && f.score >= need && D.length >= 3 && !(item.structural && f.score < 0.85)) {
@@ -818,77 +836,22 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
 }
 
 // ---------------------------------------------------------------------------
-// Output
-// ---------------------------------------------------------------------------
-
-const label = (r: { verdict: string; reason?: string }) =>
-  r.reason ? `${r.verdict} ${r.reason}` : r.verdict
-
-function countBy<T>(xs: T[], key: (x: T) => string): [string, number][] {
-  const m = new Map<string, number>()
-  for (const x of xs) m.set(key(x), (m.get(key(x)) ?? 0) + 1)
-  return [...m].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-}
-
-function primarySource(item: ProseItem): string {
-  const a = item.anchors[0]
-  if (!a) return '(no source)'
-  return a.booklet ? `${a.source} (${a.booklet})` : a.source
-}
-
-function printSummary(results: Result[]) {
-  console.log('\nVerdicts')
-  for (const v of VERDICTS) {
-    const rs = results.filter((r) => r.verdict === v)
-    if (rs.length === 0) continue
-    console.log(`  ${v.padEnd(18)} ${String(rs.length).padStart(5)}`)
-    for (const [reason, n] of countBy(rs, (r) => r.reason ?? ''))
-      if (reason) console.log(`    ${reason.padEnd(20)} ${String(n).padStart(5)}`)
-  }
-  console.log('\nBy cited source (verbatim+deviation+authored / unverified / no local text)')
-  for (const [src] of countBy(results, (r) => primarySource(r.item))) {
-    const rs = results.filter((r) => primarySource(r.item) === src)
-    const ok = rs.filter((r) => ['verbatim', 'deviation', 'authored'].includes(r.verdict)).length
-    const unv = rs.filter((r) => r.verdict === 'unverified').length
-    const nosrc = rs.filter((r) => r.verdict === 'unverified-source').length
-    console.log(
-      `  ${src.slice(0, 40).padEnd(41)} ${String(rs.length).padStart(5)}  ${ok}/${unv}/${nosrc}`
-    )
-  }
-}
-
-/** Stat verdicts by schema, in the same shape as the prose summary. */
-function printStatSummary(results: StatResult[]) {
-  const kind = (r: StatResult) =>
-    `${r.item.kind}${r.item.path.startsWith('.actions[') ? ' action' : ''}`
-  console.log('\nStat blocks (verbatim / stat-mismatch / no-match / unverified-source)')
-  for (const [k] of countBy(results, kind).sort((a, b) => a[0].localeCompare(b[0]))) {
-    const rs = results.filter((r) => kind(r) === k)
-    const n = (f: (r: StatResult) => boolean) => rs.filter(f).length
-    console.log(
-      `  ${k.padEnd(18)} ${String(rs.length).padStart(5)}  ${n((r) => r.verdict === 'verbatim')}/${n((r) => r.reason === 'stat-mismatch')}/${n((r) => r.reason === 'no-match')}/${n((r) => r.verdict === 'unverified-source')}`
-    )
-  }
-}
-
-function excerpt(s: string, n = 90): string {
-  return s.length > n ? `${s.slice(0, n - 1)}…` : s
-}
-
-// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
 async function main() {
   const args = process.argv.slice(2)
   const update = args.includes('--update')
+  const strict = update || args.includes('--verify')
   const show = args
     .find((a) => a.startsWith('--show='))
     ?.slice('--show='.length)
     .split(',')
   const missing = (msg: string) => {
-    if (update) {
-      console.error(`${msg}\n--update needs the books: nothing was written.`)
+    if (strict) {
+      console.error(
+        `${msg}\n${update ? '--update needs the books: nothing was written.' : '--verify needs the books.'}`
+      )
       process.exitCode = 1
     } else console.log(msg)
   }
@@ -936,7 +899,14 @@ async function main() {
       ? statContext(parsePages(readFileSync(corePath, 'utf8')))
       : undefined
   const statItems = collectStats()
-  const stats = statItems.map((i) => statVerdict(ctx, i))
+  // A block an extractor read was read from its cited Core Book page.
+  const stats = statItems.map((i): StatResult & { evidence?: string } => {
+    const r = statVerdict(ctx, i)
+    const page = i.anchors[0]?.page
+    return r.verdict === 'unverified-source' || page === undefined
+      ? r
+      : { ...r, evidence: `Core Book p.${page}\n${ctx?.pages.get(page) ?? ''}` }
+  })
   console.log(
     `Rules fidelity: ${items.length} strings and ${statItems.length} stat blocks against ${files.size} books (${dir}), ${Math.round(performance.now() - t0)} ms`
   )
@@ -971,6 +941,7 @@ async function main() {
         r.item.key,
         {
           hash: proseHash(r.item.text),
+          stamp: fidelityStamp(r.item.text, r.verdict, r.reason, r.evidence ?? ''),
           verdict: r.verdict,
           ...(r.reason ? { reason: r.reason } : {}),
         },
@@ -989,24 +960,42 @@ async function main() {
     return
   }
   const diff = compareWithLock([...items, ...statItems], committed)
-  const changed = [...results, ...stats].filter((r) => {
+  const current = (r: { item: { key: string; text: string } }) => {
     const e = diff.entries.get(r.item.key)
-    return e && e.hash === proseHash(r.item.text) && label(e) !== label(r)
+    return e?.hash === proseHash(r.item.text) ? e : undefined
+  }
+  const changed = [...results, ...stats].filter((r) => {
+    const e = current(r)
+    return e && label(e) !== label(r)
+  })
+  // Same verdict, different stamp: written by hand, or the book text moved.
+  const unstamped = [...results, ...stats].filter((r) => {
+    const e = current(r)
+    return e && label(e) === label(r) && e.stamp !== lock.entries.get(r.item.key)?.stamp
   })
   const sorted = (e: Record<string, string>) => JSON.stringify(Object.entries(e).sort())
   const editionsMoved = sorted(committed.editions ?? {}) !== sorted(editions)
-  const stale = diff.unverified.length + diff.stale.length + diff.malformed.length + changed.length
+  const stale =
+    diff.unverified.length +
+    diff.stale.length +
+    diff.malformed.length +
+    changed.length +
+    unstamped.length
   if (stale === 0 && !editionsMoved) {
     console.log('\nfidelity.lock.json is up to date.')
     return
   }
   console.log(
-    `\nfidelity.lock.json is out of date: ${diff.unverified.length} unrecorded or edited, ${diff.stale.length} stale, ${diff.malformed.length} malformed, ${changed.length} verdicts changed${editionsMoved ? ', editions changed' : ''}.`
+    `\nfidelity.lock.json is out of date: ${diff.unverified.length} unrecorded or edited, ${diff.stale.length} stale, ${diff.malformed.length} malformed, ${changed.length} verdicts changed, ${unstamped.length} stamps not what the books give${editionsMoved ? ', editions changed' : ''}.`
   )
   for (const r of changed.slice(0, 30)) {
     const e = diff.entries.get(r.item.key)
     console.log(`  ${r.item.key}: ${e ? label(e) : '-'} → ${label(r)}`)
   }
+  for (const r of unstamped.slice(0, 30))
+    console.log(
+      `  ${r.item.key}: ${label(r)} stamp ${current(r)?.stamp} ≠ ${lock.entries.get(r.item.key)?.stamp}`
+    )
   console.log('Run `bun tools/check-rules-fidelity.ts --update` and commit the lock.')
   process.exitCode = 1
 }

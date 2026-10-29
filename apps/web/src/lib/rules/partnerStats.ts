@@ -32,6 +32,7 @@ import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
+import { pinFor } from 'salvageunion-reference/rules'
 import { partnerGrantCount } from './partnerGrants'
 
 /** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */
@@ -115,7 +116,22 @@ export function partnerTechLevel(
 }
 
 /**
- * A partner's derived maxima at a given tech level.
+ * The partner fields that pin a maximum (ADR-022, Free Edit), the mech's own
+ * `max*Override` names. Only the vitals pin; slots and cargo stay derived.
+ */
+export const PARTNER_MAX_OVERRIDE = {
+  structurePoints: 'maxSpOverride',
+  energyPoints: 'maxEpOverride',
+  heatCapacity: 'maxHeatOverride',
+} as const satisfies Partial<Record<PartnerStatKey, keyof PartnerInstance>>
+
+const PINS: Partial<
+  Record<PartnerStatKey, (typeof PARTNER_MAX_OVERRIDE)[keyof typeof PARTNER_MAX_OVERRIDE]>
+> = PARTNER_MAX_OVERRIDE
+
+/**
+ * A partner's maxima at a given tech level: each stat's `total`, so a pinned
+ * SP / EP / Heat reads as its pin.
  *
  * "It gains additional stats as shown for each Tech level above the first" —
  * so the bonus applies `techLevel - 1` times, never at Tech 1. Records without
@@ -125,17 +141,9 @@ export function partnerDerivedStats(
   partner: PartnerInstance,
   techLevel: number
 ): PartnerDerivedStats {
-  const statBlock = resolvePartnerStatBlock(partner)
-  const bonuses = (statBlock as { bonusPerTechLevel?: Record<string, number> } | null)
-    ?.bonusPerTechLevel
-  const steps = Math.max(0, techLevel - 1)
-
+  const parts = partnerDerivedStatsParts(partner, techLevel)
   const out = {} as PartnerDerivedStats
-  for (const key of SCALED_STATS) {
-    const base = statOf(statBlock, key) ?? 0
-    const per = bonuses?.[key]
-    out[key] = base + (typeof per === 'number' ? per * steps : 0)
-  }
+  for (const key of SCALED_STATS) out[key] = parts[key].total
   return out
 }
 
@@ -146,8 +154,9 @@ export function partnerDerivedStats(
  * explained it before, so each stat resolves to `{ base, installed, ... }` where
  * `installed` carries the scaling — an anonymous rules-sourced contribution.
  *
- * `override` is always absent: partners have no cap-pin field, so a partner stat
- * is never overridden.
+ * A stored `PARTNER_MAX_OVERRIDE` pin replaces `total` exactly as a mech's
+ * does: `derived` is retained for the revert, and a pin equal to it is no
+ * override (`pinFor`, the write-time half of the same rule).
  */
 export function partnerDerivedStatsParts(
   partner: PartnerInstance,
@@ -164,6 +173,9 @@ export function partnerDerivedStatsParts(
     const per = bonuses?.[key]
     const scaled = typeof per === 'number' ? per * steps : 0
     const derived = Math.max(0, base + scaled)
+    const pinField = PINS[key]
+    const pin = pinField ? partner[pinField] : undefined
+    const overridden = pin !== undefined && pinFor(pin, { derived }) !== undefined
     out[key] = {
       base,
       installed: scaled,
@@ -173,8 +185,9 @@ export function partnerDerivedStatsParts(
       sources: [],
       adjustment: 0,
       derived,
-      total: derived,
-      overridden: false,
+      ...(overridden ? { override: pin } : {}),
+      total: overridden ? pin : derived,
+      overridden,
     }
   }
   return out

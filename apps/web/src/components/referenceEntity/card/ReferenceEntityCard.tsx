@@ -12,6 +12,7 @@ import {
   getTechLevel,
   isAbility,
   isBioTitanPattern,
+  isCrawler,
   isTitanicAction,
   resolveGrantedEntities,
   resolveProvenance,
@@ -244,7 +245,7 @@ function ReferenceEntityCardInner({
         ? stripHostParenthetical(entityName, hostName)
         : entityName)
   // `[(CHASSIS)]` content tokens resolve to the owning chassis name.
-  const resolvedChassisName = chassisName ?? chassisMiniName(schemaName, entityName)
+  const resolvedChassisName = chassisName ?? chassisMiniName(entity, entityName)
 
   const action = isAction ? (entity as ActionFields) : undefined
   // The "Titanic Actions" entry is a meta-descriptor for the titanic-action
@@ -464,7 +465,7 @@ function ReferenceEntityCardInner({
         hero={hero ?? heroNode}
         leadActions={hide?.actions && !showChassisAbility ? [] : chassisAbilityEntities}
         otherActions={hide?.actions ? [] : [...gridActions, ...titanicActions]}
-        actionSeal={schemaName === 'crawlers' ? CRAWLER_ABILITY_SEAL : undefined}
+        actionSeal={isCrawler(entity) ? CRAWLER_ABILITY_SEAL : undefined}
         subLine={
           (subtitleExtra || hasSubLine) && (
             <PageSubLine extra={subtitleExtra}>{suggestedNode}</PageSubLine>

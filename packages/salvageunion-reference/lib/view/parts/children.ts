@@ -4,7 +4,7 @@
  */
 
 import { extractVisibleActions, getChassisAbilities } from '../../actionResolution'
-import { isAbility, isBaseAdvancedClass, isCoreClass } from '../../entityGuards'
+import { isAbility, isBaseAdvancedClass, isCoreClass, isVehicle } from '../../entityGuards'
 import { resolveGrantedEntities } from '../../helpers'
 import { SalvageUnionReference } from '../../index'
 import { getBookPatterns, isBioTitanPattern } from '../../patterns'
@@ -237,7 +237,7 @@ function vehicleItem(name: string): RefEntity | undefined {
  * vehicle has no ACTIONS slab. A name that resolves to neither is dropped.
  */
 export function vehicleSystemNames(entity: RefMetaEntity): string[] {
-  if (!('schemaName' in entity) || entity.schemaName !== 'vehicles') return []
+  if (!isVehicle(entity)) return []
   return stringsOf('actions' in entity ? entity.actions : undefined).filter(
     (name) => vehicleItem(name) !== undefined
   )
@@ -245,7 +245,8 @@ export function vehicleSystemNames(entity: RefMetaEntity): string[] {
 
 /**
  * A drone's or vehicle's OWN systems/modules loadout: a drone's from its name
- * arrays, a vehicle's from every item it lists (`vehicleSystemNames`).
+ * arrays, a vehicle's from every item it lists (`vehicleSystemNames`). Empty
+ * for any other entity.
  */
 export function droneOwnLoadout(entity: RefMetaEntity): {
   systems: RefEntity[]

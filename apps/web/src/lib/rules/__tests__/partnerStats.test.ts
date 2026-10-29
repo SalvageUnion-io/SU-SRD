@@ -19,6 +19,7 @@ import type { PartnerInstance } from 'game-domain/schemas/partner'
 import {
   partnerCap,
   partnerDerivedStats,
+  partnerDerivedStatsParts,
   partnerTechLevel,
   resolvePartnerStatBlock,
 } from '../partnerStats'
@@ -139,6 +140,32 @@ describe('partnerDerivedStats', () => {
   test('an unresolvable partner yields zeroes rather than NaN', () => {
     const stats = partnerDerivedStats(partner({ hostRef: 'no-such-partner' }), 4)
     expect(Object.values(stats).every((v) => v === 0)).toBe(true)
+  })
+})
+
+describe('partnerDerivedStats — max override', () => {
+  // Survey Drone at Tech 3 derives SP 6 / EP 8 / Heat; pins replace them.
+  test('a pin replaces the total and keeps the derivation to revert to', () => {
+    const p = partner({ maxSpOverride: 10, maxEpOverride: 3, maxHeatOverride: 9 })
+    const parts = partnerDerivedStatsParts(p, 3)
+    expect(parts.structurePoints).toMatchObject({ derived: 6, total: 10, overridden: true })
+    expect(parts.energyPoints).toMatchObject({ derived: 8, total: 3, overridden: true })
+    expect(parts.heatCapacity.overridden).toBe(true)
+    expect(partnerDerivedStats(p, 3).structurePoints).toBe(10)
+    expect(partnerDerivedStats(p, 3).heatCapacity).toBe(9)
+  })
+
+  test('a pin equal to the derivation is no override', () => {
+    const parts = partnerDerivedStatsParts(partner({ maxSpOverride: 6 }), 3)
+    expect(parts.structurePoints).toMatchObject({ total: 6, overridden: false })
+    expect(parts.structurePoints.override).toBeUndefined()
+  })
+
+  test('slots and cargo never pin', () => {
+    const plain = partnerDerivedStats(partner({}), 3)
+    const pinned = partnerDerivedStats(partner({ maxSpOverride: 10 }), 3)
+    expect(pinned.systemSlots).toBe(plain.systemSlots)
+    expect(pinned.cargoCapacity).toBe(plain.cargoCapacity)
   })
 })
 

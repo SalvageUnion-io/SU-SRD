@@ -9,10 +9,11 @@ import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../
 import type { HomeAddress, UnitHome } from '../rooms/handoff'
 import type { AccountRoom, GameRoom } from './rooms'
 
-/** What the Game room asks of a player's account room: the handoff, and the Opposition tray at a Game's end. */
+/** What the Game room asks of a player's account room: the handoff, and at a Game's end the Opposition tray and its list of Games. */
 type AccountHome = UnitHome & {
   fileTray(leaseId: string, npcs: Record<string, unknown>[], at: number): Promise<void>
   countBuild(patternId: string, builder: string): Promise<boolean>
+  leftGame(gameId: string): Promise<void>
 }
 
 /** The room namespaces, as `wrangler.jsonc` declares them. */

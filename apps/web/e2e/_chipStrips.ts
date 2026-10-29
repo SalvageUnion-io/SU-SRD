@@ -52,7 +52,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **more-contentful** a +MORE on a contentful rendering (a contentful
  *   Mini, a head with an overflow row): its overflow is its body's first row.
  *
- * Reported and not failed while its entry stands in `_pendingRules.ts`:
+ * Hard rule R40 (E22), failing:
  *
  * - **align** a head's name not at its left: room before it, on its line,
  *   that nothing (the art, the tier) fills (EDL E22).

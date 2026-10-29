@@ -161,7 +161,7 @@ export function ProposeDock({
       />
       <div style={SEND_ROW}>
         <p style={MUTED}>{mediatorCopy('thePlayerDecides')}</p>
-        <Button size="mini" disabled={!canWrite} onClick={() => setSetbacksOpen(true)}>
+        <Button size="compact" disabled={!canWrite} onClick={() => setSetbacksOpen(true)}>
           {mediatorCopy('setbacks')}
         </Button>
       </div>
@@ -226,7 +226,7 @@ export function ProposeDock({
         </p>
         <Button
           variant="primary"
-          size="full"
+          size="compact"
           disabled={!canWrite || target === null || value === null || sending}
           onClick={send}
         >

@@ -41,7 +41,10 @@ const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
 
 const LIST = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
 
-/** Mobile-endpoint segmented Pilot/Mech/Crawler switch. */
+/**
+ * Mobile-endpoint segmented Pilot/Mech/Crawler switch. Compact, the Size of
+ * the crew's head action beside it ("Copy the crew to…", hard rule R41).
+ */
 export function SegmentSwitch({
   active,
   onChange,
@@ -51,7 +54,7 @@ export function SegmentSwitch({
 }) {
   return (
     <div className="su-segment-switch">
-      <Segmented label={rosterCopy('show')} fill style={FILL}>
+      <Segmented label={rosterCopy('show')} size="compact" fill style={FILL}>
         {SEGMENTS.map((seg) => (
           <SegmentedOption
             key={seg.kind}

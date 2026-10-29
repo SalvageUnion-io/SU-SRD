@@ -199,7 +199,6 @@ export async function findSiblingHeights(page: Page, within?: string): Promise<F
  * on the Tabs' line or in the band that holds them (the nearest ancestor,
  * four levels up at most, that holds a Button too), every Button but a
  * strip's chip is a tab's height. One `tab-size:` line per Button off it.
- * Report-only until the screens hold it (`_pendingRules.ts`).
  */
 function scanTabSize(): string[] {
   const visible = (el: Element) => {

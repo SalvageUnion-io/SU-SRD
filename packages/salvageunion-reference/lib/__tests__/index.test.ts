@@ -7,7 +7,14 @@ import {
   getTechLevel,
   getTechLevelNumber,
 } from '../entityFields'
-import { isAbility } from '../entityGuards'
+import {
+  isAbility,
+  isChassis,
+  isCrawler,
+  isCrawlerBay,
+  isSystemOrModule,
+  isVehicle,
+} from '../entityGuards'
 import { SCHEMA_REGISTRY } from '../generated/schemaRegistry.generated'
 import { EntitySchemaNames, SalvageUnionReference } from '../index'
 import { defined } from '../testing'
@@ -321,6 +328,27 @@ describe('Type Guards', () => {
     expect(isAbility(null)).toBe(false)
     expect(isAbility(undefined)).toBe(false)
   })
+})
+
+describe('Shape guards hold for exactly their schemas', () => {
+  const guards = [
+    { guard: isAbility, schemas: ['abilities'] },
+    { guard: isChassis, schemas: ['chassis'] },
+    { guard: isCrawler, schemas: ['crawlers'] },
+    { guard: isCrawlerBay, schemas: ['crawler-bays'] },
+    { guard: isSystemOrModule, schemas: ['systems', 'modules'] },
+    { guard: isVehicle, schemas: ['vehicles'] },
+  ]
+  for (const { guard, schemas } of guards) {
+    it(`${guard.name} is true for every ${schemas.join(' and ')} record and no other`, () => {
+      for (const schemaName of EntitySchemaNames) {
+        const expected = schemas.includes(schemaName)
+        for (const entity of SalvageUnionReference.findAllIn(schemaName, () => true)) {
+          expect([schemaName, entity.id, guard(entity)]).toEqual([schemaName, entity.id, expected])
+        }
+      }
+    })
+  }
 })
 
 describe('Property Extractors', () => {

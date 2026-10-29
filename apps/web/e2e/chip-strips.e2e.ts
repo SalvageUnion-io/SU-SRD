@@ -10,9 +10,9 @@ import { test } from './fixtures'
  * lines on no common edge, a cost out of its corner, a chip clipped or past
  * its strip's edge (R3), too many lines, and R37's: a head its chips make
  * taller, a chip above its name, an overflow row that is not its body's
- * first, +MORE on a contentful head. There is no allowlist: every fault
- * fails, bar a pending rule's (`_pendingRules.ts`: a name off its head's
- * left), which the report shows.
+ * first, +MORE on a contentful head, a name off its head's left (R40). There
+ * is no allowlist: every fault fails, bar a pending rule's
+ * (`_pendingRules.ts`), which the report shows.
  *
  * Every signed-in context (`designRoutes`) is `design-walk.e2e.ts`'s.
  *

@@ -1,5 +1,6 @@
 import type { SlashCommandSubcommandBuilder } from '@discordjs/builders'
 import { MessageFlags } from 'discord-api-types/v10'
+import { BIND_NEEDS_MANAGE_CHANNELS } from 'game-domain/botWire'
 import { boundContainer, unboundContainer } from '../bindingContainer'
 import type { CommandAutocompleteInteraction, CommandExecuteInteraction } from './interactions'
 import { respondWithSite, site } from './siteReply'
@@ -11,9 +12,12 @@ import { respondWithSite, site } from './siteReply'
  * so Play can show `#salvage-run`) to one of your Games
  * (its Mediator or Organiser only); `/su bind` with no Game binds it to your
  * solo play. A Game posts to one channel and so does a person, so binding
- * again moves it. `/su unbind` releases the channel, and rolls stop posting
- * there. The site decides who may do what (`worker/shared/channelBindings.ts`);
- * the bot only says what it decided.
+ * again moves it. In a server, binding takes Manage Channels in the channel;
+ * `/su unbind` releases it for whoever bound it, anyone with Manage Channels
+ * there, or the Game's Mediator or Organiser, and rolls stop posting there.
+ * The site decides who may do what (`worker/shared/channelBindings.ts`) from
+ * the permission the bot reads off the interaction; the bot refuses a bind
+ * without it before asking, and otherwise only says what the site decided.
  *
  * Both replies are ephemeral, like every app reply that is about a person's
  * standing (`siteReply.ts`): a refusal names a role, and the confirmation
@@ -63,10 +67,23 @@ export const bindCommand = {
       await interaction.reply({ content: NO_CHANNEL, flags: MessageFlags.Ephemeral })
       return
     }
+    if (interaction.manageChannels === false) {
+      await interaction.reply({
+        content: BIND_NEEDS_MANAGE_CHANNELS,
+        flags: MessageFlags.Ephemeral,
+      })
+      return
+    }
     const game = interaction.options.getString('game')?.trim() || null
     await respondWithSite(interaction, {
       call: (client) =>
-        client.bindChannel(interaction.user.id, channelId, game, interaction.channelName),
+        client.bindChannel(
+          interaction.user.id,
+          channelId,
+          game,
+          interaction.channelName,
+          interaction.manageChannels
+        ),
       render: (value) => boundContainer(value),
     })
   },
@@ -84,7 +101,8 @@ export const unbindCommand = {
       return
     }
     await respondWithSite(interaction, {
-      call: (client) => client.unbindChannel(interaction.user.id, channelId),
+      call: (client) =>
+        client.unbindChannel(interaction.user.id, channelId, interaction.manageChannels),
       render: (value) => unboundContainer(value, channelId),
     })
   },

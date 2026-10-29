@@ -71,5 +71,5 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R31 Value cells and seams** (§7.1, §7.2) — a value cell is paper with a 1px ink frame on every side (a paper rule on ink, the state colour under a state); a border-riding stamp centres within 1px on its line.
 - **R33 A Peek is terminal** (§1.6, E16) — no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page.
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact or Mini; every item of a Live Sheet's lists is or holds a Mini or Compact (a carried thing the reference lacks is a Mini from `syntheticItemModel`); a Play list's line is a Mini; a `Lead` only on an SRD index; a chassis ability at level 1 only on its chassis or pattern Page and the mech hero, else a contentful Mini.
-- **R40 A name sits at the left** (E22) — a name and its cut-out start at their head's left; only the art or the tier stands before them. Pending: `align`.
-- **R41 A Button beside Tabs is their Size** (§4.7) — on the Tabs' line or in the band that holds them. Pending: `tab-size`.
+- **R40 A name sits at the left** (E22) — a name and its cut-out start at their head's left; only the art or the tier stands before them.
+- **R41 A Button beside Tabs is their Size** (§4.7) — on the Tabs' line or in the band that holds them.

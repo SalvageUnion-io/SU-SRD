@@ -16,7 +16,7 @@
  *
  * ## Profiles
  *
- *   full      everything — `bun run check`
+ *   full      everything but the nightly-only checks — `bun run check`
  *   fast      the inner loop (~8 s warm, ~22 s from a cold typecheck on 4
  *             cores): no test suite, no network, no regeneration —
  *             `bun run check:fast`
@@ -24,6 +24,8 @@
  *             runs it, in about a minute)
  *   ci        everything except the test suite, which runs in CI's own
  *             `coverage` job
+ *   nightly   the checks too slow for a PR (each suite in reversed file
+ *             order) — e2e-nightly.yml's `nightly-checks` job
  *
  * Positional ids run exactly those checks, whatever the profile:
  * `bun run check styling workflows`. `--list` prints the registry.
@@ -45,7 +47,7 @@
 import { availableParallelism } from 'node:os'
 import { join } from 'node:path'
 
-type Profile = 'full' | 'fast' | 'pre-push' | 'ci'
+type Profile = 'full' | 'fast' | 'pre-push' | 'ci' | 'nightly'
 type Area = 'code' | 'docs' | 'deps'
 const AREAS: readonly Area[] = ['code', 'docs', 'deps']
 
@@ -69,6 +71,7 @@ export type CheckSpec = {
 }
 
 const ALL: readonly Profile[] = ['full', 'fast', 'pre-push', 'ci']
+const PROFILES: readonly Profile[] = [...ALL, 'nightly']
 const REPO_INVARIANT: readonly Area[] = ['code', 'docs']
 
 /**
@@ -153,6 +156,15 @@ export const CHECKS: readonly CheckSpec[] = [
     cmd: ['bun', 'tools/check-fidelity-lock.ts'],
     areas: REPO_INVARIANT,
     profiles: ALL,
+  },
+  {
+    id: 'rules-fidelity-books',
+    guards:
+      "every lock entry's verdict and stamp are what the books give now (a hand-written entry fails); passes with a notice where no rules extract or su-rules checkout is present",
+    fix: '`bun tools/check-rules-fidelity.ts --update`, then commit the lock; a changed verdict is a prose fix or a ruling to review first. `--verify` fails where the books are missing',
+    cmd: ['bun', 'tools/check-rules-fidelity.ts'],
+    areas: REPO_INVARIANT,
+    profiles: ['full'],
   },
   {
     id: 'doc-drift',
@@ -264,6 +276,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ['full', 'ci'],
   },
   {
+    id: 'test-order',
+    guards:
+      "each workspace's test files in one non-isolated process, path order then reversed: no test passes only because of what an earlier file left behind",
+    fix: 'reset the state the leaking file leaves (afterEach/afterAll, mock.restore, a fresh instance); `bun tools/check-test-order.ts <workspace>` reruns one',
+    cmd: ['bun', 'tools/check-test-order.ts'],
+    areas: ['code'],
+    profiles: ['nightly'],
+  },
+  {
     id: 'actionlint',
     guards: 'actionlint + zizmor over .github/ (pinned, hash-verified binaries)',
     fix: "fix the finding; zizmor's config is .github/zizmor.yml",
@@ -304,8 +325,8 @@ export function parseArgs(argv: readonly string[]): Options {
   for (const arg of argv) {
     const [flag, value = ''] = arg.split('=', 2) as [string, string | undefined]
     if (flag === '--profile') {
-      if (!(ALL as readonly string[]).includes(value)) {
-        throw new UsageError(`unknown profile "${value}" (known: ${ALL.join(', ')})`)
+      if (!(PROFILES as readonly string[]).includes(value)) {
+        throw new UsageError(`unknown profile "${value}" (known: ${PROFILES.join(', ')})`)
       }
       opts.profile = value as Profile
     } else if (flag === '--fast') opts.profile = 'fast'

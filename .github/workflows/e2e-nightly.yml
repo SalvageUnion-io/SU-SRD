@@ -13,7 +13,9 @@ name: E2E (nightly)
 # `production-smoke` re-runs deploy-cloudflare.yml's post-deploy smoke list
 # (tools/smoke-production.sh) against the live hostnames, so drift between
 # deploys opens the same tracking issue. `audit` runs `bun run audit` against
-# the unchanged tree, so a newly published advisory does too.
+# the unchanged tree, so a newly published advisory does too. `nightly-checks`
+# runs the registry's `nightly` profile (tools/check.ts): the gates too slow
+# for a PR.
 #
 # Trigger manually any time via the "Run workflow" button (workflow_dispatch).
 
@@ -133,6 +135,24 @@ jobs:
       - name: Audit the dependency tree
         run: bun run audit
 
+  nightly-checks:
+    # tools/check.ts's `nightly` profile, so the list lives in the registry:
+    # today `test-order`, every suite run once more with its files reversed
+    # (about 12 minutes on 4 cores, most of it apps/web).
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: ./.github/actions/setup-bun
+
+      - name: Run the nightly-only registry checks
+        run: bun tools/check.ts --profile=nightly
+
   environments:
     # The live half of `secrets-env` (tools/check-workflows.ts): the GitHub
     # Environments and the `main` ruleset as configured match
@@ -193,7 +213,7 @@ jobs:
   # dispatch (blocked by the production environment's main-only policy, so red
   # with zero steps) would otherwise open a false alarm or close a real one.
   notify:
-    needs: [e2e, production-smoke, audit, environments]
+    needs: [e2e, production-smoke, audit, nightly-checks, environments]
     if: always() && !cancelled() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # Two REST calls. A wedged notifier is the worst one to leave unbounded —

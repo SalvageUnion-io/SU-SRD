@@ -1,4 +1,5 @@
 import {
+  ACCOUNT_ROOM_GAMES,
   ACCOUNT_ROOM_RECORD_STAMPS,
   ACCOUNT_ROOM_SOLO_AREA,
   ACCOUNT_ROOM_STAMPS,
@@ -19,6 +20,7 @@ export const ACCOUNT_ROOM: Migrations = [
   ACCOUNT_ROOM_STAMPS,
   ACCOUNT_ROOM_RECORD_STAMPS,
   ACCOUNT_ROOM_SOLO_AREA,
+  ACCOUNT_ROOM_GAMES,
 ]
 
 /** A Game and its live table (ADR-064 §2). Append a step; never edit a shipped one. */

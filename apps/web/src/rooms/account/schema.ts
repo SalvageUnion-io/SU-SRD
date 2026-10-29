@@ -11,6 +11,7 @@
  *   the NPC tray.
  * - `leases` and `imports`: as the Game room's (handoffs; `imports` unused).
  * - `salvage_area`: the area the player's solo table is salvaging, at most one.
+ * - `games`: the Games the player is in, which account deletion reads.
  */
 /** Step 1 of `ACCOUNT_ROOM` (`../schemas.ts`). */
 export const ACCOUNT_ROOM_TABLES: readonly string[] = [
@@ -109,4 +110,16 @@ export const ACCOUNT_ROOM_SOLO_AREA: readonly string[] = [
         supply integer not null,
         updated_at integer not null
       )`,
+]
+
+/**
+ * Step 5 of `ACCOUNT_ROOM`: the Games the player is in (`./games.ts`), and
+ * whether this room has seeded them from the shared database's memberships.
+ */
+export const ACCOUNT_ROOM_GAMES: readonly string[] = [
+  `create table games (
+        game_id text primary key,
+        joined_at integer not null
+      )`,
+  'alter table account add column games_seeded integer not null default 0',
 ]

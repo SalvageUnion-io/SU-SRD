@@ -41,6 +41,8 @@ import { gameOfInvite, gamesOf } from './games'
 type AccountStub = UnitHome & {
   unit(actor: string, unitId: string): Promise<{ id: string; kind: EntityKind } | null>
   profile(actor: string): Promise<Profile | null>
+  joinedGame(gameId: string): Promise<void>
+  leftGame(gameId: string): Promise<void>
 }
 
 /** Everything a call reaches: the shared database, the rooms, the bot, a fresh id. */
@@ -85,6 +87,23 @@ async function profileOf(deps: CallDeps, who: Caller): Promise<Profile> {
 
 /** A code as every door that takes one reads it. */
 const normalized = (code: string) => code.trim().toUpperCase()
+
+/**
+ * Start Game `gameId` as the player: their account room notes it first, so
+ * deleting the account finds it even if the Game's shared rows never land.
+ * A refused start was never theirs, so the note goes again.
+ */
+async function started(who: Caller, gameId: string, deps: CallDeps, start: () => Promise<void>) {
+  const account = deps.account(who.discordId)
+  await account.joinedGame(gameId)
+  try {
+    await start()
+  } catch (error) {
+    if (error instanceof RoomRefusal) await account.leftGame(gameId)
+    throw error
+  }
+  return republished(deps.game(gameId), gameId)
+}
 
 /** Have the room write its shared rows now, so the next list reads the change. */
 async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
@@ -180,9 +199,10 @@ const CALLS = {
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
-    const room = deps.game(gameId)
-    await act(room, who.discordId, 'create', { ...a, profile: await profileOf(deps, who) })
-    return republished(room, gameId)
+    const profile = await profileOf(deps, who)
+    return started(who, gameId, deps, async () => {
+      await act(deps.game(gameId), who.discordId, 'create', { ...a, profile })
+    })
   },
   'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const room = deps.game(a.gameId)
@@ -238,6 +258,9 @@ const CALLS = {
     if (gameId === null) throw new RoomRefusal('That invite link is not valid')
     const room = deps.game(gameId)
     const profile = await profileOf(deps, who)
+    // Noted before the join, as a start is. A refused join leaves a note for a Game
+    // they are not in, which deletion's forget passes over.
+    await deps.account(who.discordId).joinedGame(gameId)
     const kind = await act(room, who.discordId, 'redeem', { code: a.code, profile })
     return republished(room, { kind, gameId })
   },
@@ -249,10 +272,10 @@ const CALLS = {
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
-    const room = deps.game(gameId)
     const profile = await profileOf(deps, who)
-    await act(room, who.discordId, 'createFromTemplate', { ...a, profile })
-    return republished(room, gameId)
+    return started(who, gameId, deps, async () => {
+      await act(deps.game(gameId), who.discordId, 'createFromTemplate', { ...a, profile })
+    })
   },
 
   'ownership.assign': async (

@@ -11,11 +11,12 @@ import type { UnitsStore } from '../../replica/units'
  *
  *   - `titleOverride`  the instance's name ("Custos" over "Survey Drone"),
  *                      exactly as a pattern-named drone is titled in the SRD.
- *   - `statsOverride`  SP / EP / Heat as EDITABLE stats (a `StatItem` with an
- *                      `onChange` renders the Stat cell in +/- edit mode), plus
- *                      the derived read-onlys: tech level, slots used, cargo.
- *   - `afterExtraContent`  identity fields, the Hold, and the installed
- *                      Systems / Modules with their conditions and uses.
+ *   - `statsOverride`  the maxima, as the mech's chassis strip reads them:
+ *                      tech level, SP / EP / Heat, slots used, cargo.
+ *   - `afterExtraContent`  SP / EP / Heat as the mech's `SheetVitalGauge`s,
+ *                      each max pinnable and revertible, then identity
+ *                      fields, the Hold, and the installed Systems / Modules
+ *                      with their conditions and uses.
  *
  * Everything a partner could do on its late `/sheet/partner/:id` live sheet it
  * still does here; the sheet is gone, not the capability.
@@ -32,10 +33,12 @@ import type { UnitsStore } from '../../replica/units'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
-import { resolveGauge, resolvePoolStart } from 'salvageunion-reference/rules'
+import { pinFor, resolveGauge, resolvePoolStart } from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Field,
+  heatDangerFrom,
+  linesFromBreakdown,
   MiniGrid,
   ReferenceEntityCard,
   SlabSection,
@@ -47,7 +50,9 @@ import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import type { PartnerWithHost } from '../../lib/partnerLookup'
 import { replacePartner } from '../../lib/partnerLookup'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import type { PartnerStatKey } from '../../lib/rules/partnerStats'
 import {
+  PARTNER_MAX_OVERRIDE,
   partnerCap,
   partnerDerivedStats,
   partnerDerivedStatsParts,
@@ -56,11 +61,14 @@ import {
 } from '../../lib/rules/partnerStats'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { ChangeMeta } from '../../replica/provenance'
+import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
 import { MechItemMini } from './MechItemMini'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
+import { SheetVitalGauge } from './SheetVitalGauge'
+import type { SheetVital } from './sheetVitals.model'
 
 /** No stat-block loadout: the partner's installed items are its loadout. */
 const NO_LOADOUT = { systems: [], modules: [] }
@@ -144,7 +152,7 @@ export function PartnerCard({
   const heat = resolveGauge(partner.currentHeat)
 
   /** Write through the HOST — a partner has no store row of its own. */
-  const patch = (fields: Partial<PartnerInstance>): void => {
+  const patch = (fields: Partial<PartnerInstance>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void => {
     if (readOnly) return
     runWrite(() =>
       storeState.update(
@@ -153,7 +161,7 @@ export function PartnerCard({
         {
           partners: replacePartner(host.partners, partner.id, fields),
         },
-        LIVE_SHEET_MANUAL
+        meta
       )
     )
   }
@@ -161,8 +169,55 @@ export function PartnerCard({
   /** No vital goes below 0; the derived max is shown, never enforced. */
   const floor = (next: number) => Math.max(0, next)
 
-  // SP / EP / Heat are EDITABLE stat cells; the rest are derived read-onlys.
-  // Tech level is never typed in — it comes from the crawler (pilot-granted) or
+  /** Pin (or, with `undefined`, revert) a max; a write that changes nothing is skipped. */
+  const overrideMax = (key: keyof typeof PARTNER_MAX_OVERRIDE, pin: number | undefined): void => {
+    const field = PARTNER_MAX_OVERRIDE[key]
+    if (partner[field] === pin) return
+    patch({ [field]: pin }, LIVE_SHEET_OVERRIDE)
+  }
+
+  // The mech's vitals, gauge for gauge (`MechVitals`): Edit pins a max with
+  // its provenance and ↺ reverts it; Read draws the track alone.
+  const vitals: {
+    vital: SheetVital
+    key: keyof typeof PARTNER_MAX_OVERRIDE & PartnerStatKey
+    value: number
+    write: (next: number) => Partial<PartnerInstance>
+  }[] = [
+    { vital: 'sp', key: 'structurePoints', value: sp, write: (n) => ({ currentSP: n }) },
+    { vital: 'ep', key: 'energyPoints', value: ep, write: (n) => ({ currentEP: n }) },
+    { vital: 'heat', key: 'heatCapacity', value: heat, write: (n) => ({ currentHeat: n }) },
+  ]
+  const gauges = vitals.map(({ vital, key, value, write }) => {
+    const parts = maxParts[key]
+    return (
+      <SheetVitalGauge
+        key={vital}
+        vital={vital}
+        value={value}
+        max={parts.total}
+        danger={vital === 'heat' && parts.total > 0 ? heatDangerFrom(parts.total) : undefined}
+        onChange={editable ? (next) => patch(write(floor(next))) : undefined}
+        onMaxChange={editable ? (next) => overrideMax(key, pinFor(next, parts)) : undefined}
+        breakdown={editable ? parts : undefined}
+        provenance={
+          editable
+            ? linesFromBreakdown(parts, {
+                base: statBlock?.name ?? buildSheetCopy('unnamed'),
+                baseDetail: 'base',
+                installed: `Tech ${techLevel} scaling`,
+              })
+            : undefined
+        }
+        onRevertOverride={editable ? () => overrideMax(key, undefined) : undefined}
+        readOnly={readOnly}
+      />
+    )
+  })
+
+  // Every cell is a read-only figure: SP / EP / Heat are the maxima (a pin
+  // included), as on the mech's chassis strip; their gauges below are the
+  // control. Tech level is never typed in — it comes from the crawler (pilot-granted) or
   // is fixed by the stat block (mech-granted). See `partnerTechLevel`.
   // The stat order every surface keeps (`STATS`, salvageunion-reference):
   // Tech Level, then SP / EP / Heat, then the slots and Cargo.
@@ -172,28 +227,22 @@ export function PartnerCard({
       key: 'sp',
       group: 'vitals',
       label: buildSheetCopy('sp'),
-      value: sp,
-      outOfMax: max.structurePoints,
+      value: max.structurePoints,
       hoverText: scalingHover('structurePoints'),
-      onChange: editable ? (next) => patch({ currentSP: floor(next) }) : undefined,
     },
     {
       key: 'ep',
       group: 'vitals',
       label: buildSheetCopy('ep'),
-      value: ep,
-      outOfMax: max.energyPoints,
+      value: max.energyPoints,
       hoverText: scalingHover('energyPoints'),
-      onChange: editable ? (next) => patch({ currentEP: floor(next) }) : undefined,
     },
     {
       key: 'heat',
       group: 'vitals',
       label: buildSheetCopy('heat'),
-      value: heat,
-      outOfMax: max.heatCapacity,
+      value: max.heatCapacity,
       hoverText: scalingHover('heatCapacity'),
-      onChange: editable ? (next) => patch({ currentHeat: floor(next) }) : undefined,
     },
     {
       key: 'sys',
@@ -316,6 +365,7 @@ export function PartnerCard({
       controls={controls.length > 0 ? controls : undefined}
       afterExtraContent={
         <Stack gap={16}>
+          <Stack gap={12}>{gauges}</Stack>
           <Stack gap={12}>
             <Field
               label={buildSheetCopy('name')}
