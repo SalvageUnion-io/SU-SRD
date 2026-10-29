@@ -150,6 +150,8 @@ export const designRoutes: readonly DesignRoute[] = [
  * - `ability-trees`: ability trees on their tracks: a Core class's page, a
  *   Hybrid Class's, the abilities index's Tree, and every Starter pilot's sheet,
  *   each class's trees (`ability-trees.e2e.ts`).
+ * - `linked-head`: a contentful card met inside another, whose name links to
+ *   its Page: a drone's and a vehicle's systems (`link-heads.e2e.ts`).
  */
 export type CorpusTrait =
   | 'contentful-mini'
@@ -159,6 +161,7 @@ export type CorpusTrait =
   | 'rhythm'
   | 'seam'
   | 'ability-trees'
+  | 'linked-head'
 
 /** One signed-out page of the reference corpus: its family, its path, what it is picked for. */
 export type CorpusPage = {
@@ -239,8 +242,8 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/classes/fabricator/', 'ability-trees'),
   page('/bio-titans/tyrant/', 'rhythm', 'header-mini'),
   page('/npcs/saboteur/', 'rhythm'),
-  page('/drones/pest-drone/', 'rhythm'),
-  page('/vehicles/fighting-box-wheel/'),
+  page('/drones/pest-drone/', 'rhythm', 'linked-head'),
+  page('/vehicles/fighting-box-wheel/', 'linked-head'),
   page('/crawler-bays/armoury/', 'rhythm'),
   page('/creatures/irradiated-scorpion/'),
   page('/roll-tables/core-mechanic/'),

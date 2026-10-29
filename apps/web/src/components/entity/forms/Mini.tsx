@@ -56,7 +56,8 @@ export type MiniSlots = {
    * The last slot (C8): the host's actions and its ✕, at the Mini's Size.
    * A Mini with controls (this, `uses` or a `stateActs` state) is a `div` whose NAME is the link
    * and the Peek trigger, so no control sits inside a link
-   * (`chips-and-actions.md`, "A Mini with actions").
+   * (`chips-and-actions.md`, "A Mini with actions"); in CSS the link stretches
+   * over the whole pill, the controls raised above it (EDL E6).
    */
   menu?: ReactNode
 }
