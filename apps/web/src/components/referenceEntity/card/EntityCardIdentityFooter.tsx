@@ -73,9 +73,18 @@ const CITE = { display: 'inline-block', overflowWrap: 'break-word' } satisfies C
 const CUTOUT = {
   backgroundColor: 'var(--color-paper)',
   color: 'var(--color-ink)',
-  marginTop: `calc(-1 * ${space[8]})`,
   padding: `${space[4]} ${space[8]} ${space[6]}`,
   textAlign: 'left',
+} satisfies CSSProperties
+
+/**
+ * The cut-out's slot, on a band: a flex item pulled up through the band's top
+ * padding, so the paper hangs from the band's top edge. (A negative margin on
+ * the inline cut-out itself moves nothing: the line's baseline places it.)
+ */
+const CUTOUT_SLOT = {
+  alignSelf: 'flex-start',
+  marginTop: `calc(-1 * ${space[8]})`,
 } satisfies CSSProperties
 
 export function EntityCardIdentityFooter({
@@ -140,7 +149,15 @@ export function EntityCardIdentityFooter({
           the page. The citation is a readout: it never clips, so every page
           number shows. */}
       {citation && (
-        <span style={{ contain: 'inline-size', flex: '1 1 0', minWidth: 0, textAlign: 'right' }}>
+        <span
+          style={{
+            contain: 'inline-size',
+            flex: '1 1 0',
+            minWidth: 0,
+            textAlign: 'right',
+            ...(onBand ? CUTOUT_SLOT : {}),
+          }}
+        >
           {/* On a band the source sits on its own cut-out: the card's paper
               hanging from the band's top edge, ink on it, the head's notch
               mirrored at the foot. */}

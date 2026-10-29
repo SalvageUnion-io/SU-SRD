@@ -1,8 +1,6 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { getEntitySlug } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
-import { itemHref } from '../../../lib/entityHref'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
 import { StatColumn } from '../../atoms/StatColumn'
@@ -33,6 +31,8 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 
 /** A neighbour's Section names its relation, so its Mini drops the type stamp. */
 const NEIGHBOUR_OMIT = ['kind'] as const
+/** A neighbour opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
+const LINK = { kind: 'link' } as const
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -237,7 +237,7 @@ export function CardPage({
                   size="compact"
                   context="play"
                   entity={ability}
-                  mode={{ kind: 'link', href: itemHref('abilities', getEntitySlug(ability)) }}
+                  mode={LINK}
                   omit={NEIGHBOUR_OMIT}
                 />
               ))}
