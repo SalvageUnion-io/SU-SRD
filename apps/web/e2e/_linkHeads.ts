@@ -74,3 +74,55 @@ export async function countLinkHeads(page: Page): Promise<number> {
       ).length
   )
 }
+
+/** An entity's link surfaces that are real anchors: every form's, and the heads above. */
+const ENTITY_ANCHORS = [
+  'a.su-entity-compact',
+  'a.su-entity-compact__cover',
+  'a.su-entity-index',
+  'a.su-entity-mini',
+  'a.su-entity-mini__head',
+  'a.su-entity-mini__link',
+  'a.su-card-title-link',
+  'a.su-pattern-rows__head',
+  'a.su-class-path__link',
+].join(',')
+
+/**
+ * Every entity link on the page (scoped to `within`, a dialog) that opens no
+ * page: one `route:` line per href that answers an error or draws the app's
+ * Page Not Found (the app's shell answers every path under its base, so the
+ * status alone cannot tell; an SRD path inside the app was one).
+ */
+export async function findDeadLinks(page: Page, within = 'body'): Promise<Finding[]> {
+  const hrefs = await page.evaluate(
+    ({ within, anchors }) => [
+      ...new Set(
+        [...(document.querySelector(within)?.querySelectorAll(anchors) ?? [])].map(
+          (a) => (a as HTMLAnchorElement).href
+        )
+      ),
+    ],
+    { within, anchors: ENTITY_ANCHORS }
+  )
+  const faults: string[] = []
+  const probe = await page.context().newPage()
+  try {
+    for (const href of hrefs) {
+      const response = await probe.goto(href, { waitUntil: 'networkidle' })
+      const status = response?.status() ?? 0
+      const notFound =
+        status >= 400 ||
+        (await probe
+          .locator('.su-not-found')
+          .first()
+          .waitFor({ timeout: 2_000 })
+          .then(() => true)
+          .catch(() => false))
+      if (notFound) faults.push(`route: ${new URL(href).pathname} opens no page (${status})`)
+    }
+  } finally {
+    await probe.close()
+  }
+  return fromFaults(faults)
+}
