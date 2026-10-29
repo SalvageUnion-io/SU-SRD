@@ -156,6 +156,11 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     queue.current = next.catch(reportWriteFailure)
     return next
   }
+  // A write nothing waits on: the queue above tells its refusal, once, so the
+  // rejection stops here rather than escaping as an unhandled one.
+  const fire = (change: (current: Encounter) => Partial<Encounter>) => {
+    write(change).catch(() => undefined)
+  }
 
   // The picker fields the Mediator's own saved patterns: an encounter is on
   // their shelf, in no Game whose crew could have shared one.
@@ -170,12 +175,12 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
   const fielded = encounter.opposition.map(opponentAsTray)
 
   const remove = (opponent: EncounterOpponent) =>
-    void write((current) => ({
+    fire((current) => ({
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
 
   const move = (opponent: EncounterOpponent, groupId: string | null) =>
-    void write((current) => ({
+    fire((current) => ({
       opposition: moveToGroup(current.opposition, opponent.id, groupId),
     }))
 
@@ -263,13 +268,13 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
               <Field
                 label={buildPrepCopy('name')}
                 value={encounter.name}
-                onSave={async (next) => {
+                onSave={(next) => {
                   const name = next.trim()
                   if (name === '') {
                     toast.error(buildPrepCopy('needsAName'))
                     return
                   }
-                  await write(() => ({ name }))
+                  fire(() => ({ name }))
                 }}
               />
             )}
@@ -315,11 +320,10 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                           writes={{
                             rename: (group) => setNaming(group),
                             setWave: (group, wave) =>
-                              void write((current) => ({
+                              fire((current) => ({
                                 groups: setGroupWave(groupsOf(current), group.id, wave),
                               })),
-                            remove: (group) =>
-                              void write((current) => removeGroup(current, group.id)),
+                            remove: (group) => fire((current) => removeGroup(current, group.id)),
                           }}
                         />
                       ) : encounter.opposition.length === 0 ? (
@@ -342,10 +346,10 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                     tables={encounter.tables}
                     canWrite={canWrite}
                     onPin={(name) =>
-                      void write((current) => ({ tables: pinTable(current.tables, name) }))
+                      fire((current) => ({ tables: pinTable(current.tables, name) }))
                     }
                     onUnpin={(name) =>
-                      void write((current) => ({ tables: unpinTable(current.tables, name) }))
+                      fire((current) => ({ tables: unpinTable(current.tables, name) }))
                     }
                   />
                 )}
@@ -366,8 +370,8 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                       placeholder={buildPrepCopy('notesPlaceholder')}
                       onSave={
                         canWrite
-                          ? async (next) => {
-                              await write(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
+                          ? (next) => {
+                              fire(() => ({ notes: next.slice(0, ENCOUNTER_MAX_NOTES) }))
                             }
                           : undefined
                       }
@@ -388,8 +392,8 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                       placeholder={buildPrepCopy('briefingPlaceholder')}
                       onSave={
                         canWrite
-                          ? async (next) => {
-                              await write(() => ({
+                          ? (next) => {
+                              fire(() => ({
                                 briefing: next.slice(0, ENCOUNTER_MAX_BRIEFING),
                               }))
                             }
@@ -414,7 +418,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           npcs={fielded}
           saved={saved}
           onAdd={(schema, entity, draw) =>
-            void write((current) => {
+            fire((current) => {
               if (!hasRoomFor(current)) return {}
               const body = newTrayNpc(
                 schema,

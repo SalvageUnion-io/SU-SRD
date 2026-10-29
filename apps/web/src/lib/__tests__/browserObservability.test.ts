@@ -112,6 +112,24 @@ describe('createBrowserObservability', () => {
     expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
   })
 
+  test('Brave iOS’s injected window.__firefox__ helpers are dropped', () => {
+    const { sent, transport } = recorder()
+    const obs = createBrowserObservability({ transport })
+    obs.init({ endpoint: ENDPOINT, target: new EventTarget() })
+    const injected = (error: Error) =>
+      Object.assign(error, { stack: 'global code@https://salvageunion.io/:1:12' })
+    obs.captureException(
+      injected(
+        Object.assign(new Error("Can't find variable: __firefox__"), { name: 'ReferenceError' })
+      )
+    )
+    obs.captureException(
+      injected(new TypeError("undefined is not an object (evaluating 'window.__firefox__.reader')"))
+    )
+    obs.captureException(new Error('a real one'))
+    expect(sent.map((s) => s.report.message)).toEqual(['a real one'])
+  })
+
   test('an error raised wholly inside a browser extension is dropped', () => {
     const { sent, transport } = recorder()
     const obs = createBrowserObservability({ transport })

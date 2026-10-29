@@ -149,6 +149,12 @@ export const ABANDONED_VIEW_TRANSITIONS = [
  *   page, and it throws where the wallet object is missing. Its stack names
  *   only the page itself (`global code@https://salvageunion.io/:1:16`), so the
  *   extension check below cannot see it. The app never reads `window.ethereum`.
+ * - **`__firefox__`**: Brave on iOS is built on Firefox for iOS and injects
+ *   its helpers (reader mode and the rest) the same way, under
+ *   `window.__firefox__`; where that object is missing they throw
+ *   (`Can't find variable: __firefox__`, `undefined is not an object
+ *   (evaluating 'window.__firefox__.reader')`), with the same page-only stack.
+ *   The app never reads it.
  *
  * Matched as substrings of `${name}: ${message}`.
  */
@@ -157,6 +163,7 @@ const BROWSER_NOISE = [
   'NonError: Script error.',
   '__gCrWeb',
   'window.ethereum.selectedAddress',
+  '__firefox__',
 ]
 
 /**
