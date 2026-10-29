@@ -13,9 +13,13 @@ import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { writePublicPages } from './appPlugins'
+import { assertNoDeadLinks } from './deadLinks'
 import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
+
+/** The app's generated route tree, which names every route its links may open. */
+const ROUTE_TREE = fileURLToPath(new URL('../../src/routeTree.gen.ts', import.meta.url))
 
 /** Astro's island runtime and its directives, with room to spare. */
 const MAX_INLINE_SCRIPTS = 12
@@ -68,6 +72,7 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
         const headers = await readFile(headersFile, 'utf-8')
         await writeFile(headersFile, withScriptHashes(headers, [...inline].map(scriptHash)))
         await assertNoUuidLinks(distDir)
+        await assertNoDeadLinks(distDir, await readFile(ROUTE_TREE, 'utf-8'))
 
         writePublicPages(distDir, process.env.VITE_SITE_ORIGIN)
 
