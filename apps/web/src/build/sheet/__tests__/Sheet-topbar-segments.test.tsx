@@ -176,4 +176,16 @@ describe('Sheet — mobile segment switch', () => {
     const links = Array.from(nav.querySelectorAll('a')).map((a) => a.getAttribute('href'))
     expect(links).toEqual(['/pilots/pilot-1'])
   })
+
+  test('absent on a wired crawler sheet: it homes many pilots and mechs', () => {
+    render(
+      <Sheet
+        kind="crawler"
+        id="crawler-1"
+        entityStore={makeEntityLookupMock([fakePilot, fakeMech, fakeCrawler])}
+        softLinkStore={makeSoftLinkStoreMock([mechToPilot, pilotToCrawler])}
+      />
+    )
+    expect(screen.queryByRole('navigation', { name: /assigned sheets/i })).toBeNull()
+  })
 })

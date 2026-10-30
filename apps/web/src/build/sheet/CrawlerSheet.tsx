@@ -11,7 +11,8 @@ import type { UnitsStore } from '../../replica/units'
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
  *     by CrawlerLiveSheet and passed as `economy`) → Bays (2-column masonry, the
- *     Armament Bay's weapons inside their bay) → Assigned Units.
+ *     Armament Bay's weapons inside their bay) → Assigned Units, under the
+ *     bays (a crew of many pilots and mechs is a list that grows downward).
  *   The Storage Bay, what the crawler carries, is the permanent right
  *     sidebar: beside the sheet from the 64rem rung, under the opening on a
  *     phone.
@@ -159,7 +160,7 @@ type CrawlerSheetProps = {
    * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
-   * into the content column's bottom section.
+   * into the content column, under the Bays.
    */
   linkedUnits?: ReactNode
   /**
@@ -496,9 +497,8 @@ export function CrawlerSheet({
         // to go somewhere: they are crawler-level data (the pool is what bay
         // REPAIRS spend), so hiding them with the bay would strand them; they
         // render under a Storage Bay Slab instead. -----
-        // The Assigned Units follow it there (R49: they ride the sidebar).
         aside={
-          storageBays.length > 0 || storageContents || linkedUnits ? (
+          storageBays.length > 0 || storageContents ? (
             <>
               {storageBays.length > 0
                 ? storageBays.map(({ entry, i }) => (
@@ -511,7 +511,6 @@ export function CrawlerSheet({
                       {storageContents}
                     </SlabSection>
                   )}
-              {linkedUnits}
             </>
           ) : undefined
         }
@@ -568,6 +567,9 @@ export function CrawlerSheet({
             </MiniGrid>
           </SlabSection>
         )}
+        {/* Assigned Units — under the Bays: a crawler's crew is every pilot
+            and mech it homes, a list that grows down the content column. */}
+        {linkedUnits}
       </SheetColumns>
 
       {/* The weapons picker — the existing master-detail modal, mounted
