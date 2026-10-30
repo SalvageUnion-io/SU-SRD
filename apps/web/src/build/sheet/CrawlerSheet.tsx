@@ -498,21 +498,15 @@ export function CrawlerSheet({
         // REPAIRS spend), so hiding them with the bay would strand them; they
         // render under a Storage Bay Slab instead. -----
         aside={
-          storageBays.length > 0 || storageContents ? (
-            <>
-              {storageBays.length > 0
-                ? storageBays.map(({ entry, i }) => (
-                    <div key={`storage-${i}`} style={SHRINK}>
-                      {renderBay(entry, i)}
-                    </div>
-                  ))
-                : storageContents && (
-                    <SlabSection title={buildSheetCopy('storageBay')}>
-                      {storageContents}
-                    </SlabSection>
-                  )}
-            </>
-          ) : undefined
+          storageBays.length > 0
+            ? storageBays.map(({ entry, i }) => (
+                <div key={`storage-${i}`} style={SHRINK}>
+                  {renderBay(entry, i)}
+                </div>
+              ))
+            : storageContents && (
+                <SlabSection title={buildSheetCopy('storageBay')}>{storageContents}</SlabSection>
+              )
         }
       >
         {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
