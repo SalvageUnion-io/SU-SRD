@@ -19,7 +19,7 @@ type RuleBriefProps = StepRule & {
 const ruleStyle = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 1.625,
   margin: 0,
   maxWidth: '70ch',

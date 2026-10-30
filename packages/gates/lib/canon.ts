@@ -54,6 +54,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§1.7': ['R17', 'R43'],
   '§1.8': ['E2', 'E3', 'R35'],
   '§1.9': ['ContainerControls.test.tsx', 'ContainerPicker.test.tsx', 'R1'],
+  '§1.10': ['_hierarchy.ts#measure', '_hierarchy.ts#first-screen'],
   '§2': ['roster.test.ts'],
   '§2.1': ['VitalGauge.test.tsx', 'R11'],
   '§2.2': ['R36', 'R12'],
@@ -77,6 +78,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§3.10': ['R30'],
   '§3.11': ['AppBar.test.tsx'],
   '§3.12': ['copy/banned-variant', 'copy/lowercase-term', 'R14'],
+  '§3.13': ['_hierarchy.ts#make-rust', '_hierarchy.ts#stamp-twin'],
   '§4': ['tokens/raw-color'],
   '§4.1': ['tokens/raw-color', 'tokens/cool-ground', 'tokens/ink-mix'],
   '§4.2': ['tokens/raw-tracking', 'R14'],
@@ -85,6 +87,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§4.5': ['pipRows.test.ts'],
   '§4.6': ['R12', 'tokens/type-floor', 'sizeHeights.test.ts'],
   '§4.7': ['R12', 'R41'],
+  '§4.8': ['hierarchy/font-size-rung', '_hierarchy.ts#type-ladder'],
+  '§4.9': ['_hierarchy.ts#slab-size', 'R53'],
   '§5': ['roster.test.ts'],
   '§5.1': ['roster.test.ts'],
   '§5.2': ['roster.test.ts', 'R42'],
@@ -146,6 +150,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E21: ['R38'],
   E22: ['R40', 'R45'],
   E23: ['peekSize.test.tsx', 'CompactBody.test.tsx'],
+  E24: ['_hierarchy.ts#title-size', '_hierarchy.ts#slab-size'],
+  E25: ['_hierarchy.ts#heading-skip', '_hierarchy.ts#heading-depth'],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],
   N2: ['entity-nesting/head-only-token'],
   N3: ['entity-nesting/nested-card-level', '_nestingDepth.ts'],
@@ -169,6 +175,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   C9: ['modeAnatomy.test.tsx'],
   C10: ['R4'],
   C11: ['R5', 'RelationTag.test.tsx'],
+  C12: ['_hierarchy.ts#tool-title-clip'],
   // ── hard-rules.md ──
   R0: ['designRoutes.test.ts', 'design-walk.e2e.ts'],
   R1: ['chrome/slab-section', 'chrome/slab-style', 'SlabSection.test.tsx'],
@@ -255,6 +262,9 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R50: ['GameHub.connected.test.tsx', 'Roster.test.tsx'],
   R51: ['TitledBox.test.tsx', 'StartHere.test.tsx'],
   R52: ['chrome-tokens/muted-note'],
+  R53: ['_hierarchy.ts#stray-head', '_hierarchy.ts#nested-slab'],
+  R54: ['hierarchy/bare-applink', 'hierarchy.test.ts'],
+  R55: ['design-walk.e2e.ts#findHierarchy', '_hierarchy.ts'],
 }
 
 /** A law's id as the canon and its citations spell it. */

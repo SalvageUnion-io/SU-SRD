@@ -9,7 +9,7 @@ import { tokens } from '../../components/index'
 /** Body copy: the `sm` size rung, with its line height. */
 export const TEXT = {
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 1.25 / 0.875,
   color: tokens.color.ink,
 } satisfies CSSProperties

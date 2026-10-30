@@ -8,8 +8,16 @@
 
 import { publicPath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, Cluster, SlabSection, Stack, Text, toast, tokens } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import {
+  Button,
+  Cluster,
+  InlineRef,
+  SlabSection,
+  Stack,
+  Text,
+  toast,
+  tokens,
+} from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { HomebrewModeration as Queue } from '../../lib/sharing/reads'
 import { useHomebrewDismiss, useHomebrewSetHidden } from '../../lib/sharing/reads'
@@ -30,7 +38,7 @@ const LIST = {
 const REASONS = {
   color: tokens.color.ink2,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   margin: 0,
   paddingInlineStart: tokens.space[20],
 } satisfies CSSProperties
@@ -60,9 +68,9 @@ export function HomebrewModeration({ queue }: { queue: Queue }) {
 
   const line = (item: Moderated) => (
     <Cluster gap={8}>
-      <AppLink href={publicPath('pattern', item.appId, item.name)} style={NAME}>
+      <InlineRef href={publicPath('pattern', item.appId, item.name)} style={NAME}>
         {item.name}
-      </AppLink>
+      </InlineRef>
       <Text variant="hint">{buildHomebrewCopy('patternBy', { name: item.madeBy })}</Text>
     </Cluster>
   )

@@ -53,7 +53,7 @@ const ROWS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfi
 /** A category result; its hover and highlight ground is `.su-search__category`. */
 const CATEGORY = {
   display: 'block',
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
   paddingBlock: space[12],
   paddingInline: space[16],
@@ -65,7 +65,7 @@ const CATEGORY_TITLE = { color: color.ink, fontWeight: weight.medium } satisfies
 
 const CATEGORY_GROUP = {
   color: color.wkMuted, // design-tokens-ignore(muted-note): a category group label
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   marginTop: space[2],
 } satisfies CSSProperties

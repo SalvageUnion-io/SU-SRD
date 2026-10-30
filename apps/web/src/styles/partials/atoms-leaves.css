@@ -48,7 +48,7 @@
 .su-search-field__input {
   background-color: transparent;
   color: var(--color-ink);
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   line-height: 1.5;
   width: 100%;
 }

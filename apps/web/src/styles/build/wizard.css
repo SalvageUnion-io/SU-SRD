@@ -272,7 +272,7 @@
 /* The review steps' recap (pilot, mech, crawler): the type of the Box's
    body, which pads it. */
 .su-wiz-review-panel {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: calc(1.25 / 0.875);
 }
 

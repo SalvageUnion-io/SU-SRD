@@ -163,7 +163,7 @@ const ITEM = {
 
 const ITEM_LABEL = {
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 1.3,
   overflowWrap: 'anywhere',
 } satisfies CSSProperties

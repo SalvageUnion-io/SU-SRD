@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { StarterSetRoster } from '../../build/starterSet/StarterSetRoster'
-import { PageShell } from '../../components/index'
 import { STARTER_SET_TITLE } from '../../lib/starterSet/starterTemplates'
 
 /**
@@ -17,9 +16,5 @@ export const Route = createFileRoute('/starter/')({
 
 function StarterSetRoute() {
   const { copy } = Route.useSearch()
-  return (
-    <PageShell>
-      <StarterSetRoster headingLevel="h1" copy={copy} />
-    </PageShell>
-  )
+  return <StarterSetRoster headingLevel="h1" copy={copy} />
 }

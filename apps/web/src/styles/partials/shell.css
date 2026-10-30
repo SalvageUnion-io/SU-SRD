@@ -426,7 +426,7 @@
   align-items: baseline;
   column-gap: var(--space-8);
   font-family: var(--font-cond);
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   min-width: 0;
 }
@@ -1246,7 +1246,7 @@
 }
 
 .su-chapter-foot__end {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: 1.5;
 }
 

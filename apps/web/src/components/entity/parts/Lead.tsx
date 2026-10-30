@@ -6,7 +6,7 @@ const LEAD = {
   color: color.ink2,
   display: '-webkit-box',
   flexBasis: '100%',
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 1.4,
   margin: 0,
   overflow: 'hidden',

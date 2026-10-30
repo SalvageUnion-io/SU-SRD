@@ -34,7 +34,7 @@ export function docMeasure(maxWidth: '48rem' | '64rem', gap: string): CSSPropert
 }
 
 /** Body prose at the reading size. */
-export const PROSE = { fontSize: fontSize.sm, lineHeight: 1.625 } satisfies CSSProperties
+export const PROSE = { fontSize: fontSize.body, lineHeight: 1.625 } satisfies CSSProperties
 
 /** A column of prose blocks. */
 export function proseColumn(gap: string): CSSProperties {
@@ -71,7 +71,7 @@ export function inlineCode(onPaper = false): CSSProperties {
  *  12px text needs 4.5:1, which `ink60` misses on the page ground. */
 export const SMALL_PRINT = {
   color: color.wkMuted, // design-tokens-ignore(muted-note): the policies' small print
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 

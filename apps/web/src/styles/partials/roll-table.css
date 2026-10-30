@@ -14,9 +14,9 @@
 .su-roll {
   --su-roll-pad-x: var(--space-12);
   --su-roll-range: 4.5rem;
-  --su-roll-range-size: var(--text-xl);
-  --su-roll-label-size: var(--text-lg);
-  --su-roll-value-size: var(--text-base);
+  --su-roll-range-size: var(--text-readout);
+  --su-roll-label-size: var(--text-readout);
+  --su-roll-value-size: var(--text-lede);
   --su-roll-title-size: var(--text-readout);
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -28,7 +28,7 @@
   --su-roll-range: 4rem;
   --su-roll-range-size: var(--text-readout);
   --su-roll-label-size: var(--text-readout);
-  --su-roll-value-size: var(--text-sm);
+  --su-roll-value-size: var(--text-body);
 }
 
 .su-roll[data-size='mini'] {
@@ -36,7 +36,7 @@
   --su-roll-range: 3rem;
   --su-roll-range-size: var(--text-readout);
   --su-roll-label-size: var(--text-lede);
-  --su-roll-value-size: var(--text-xs);
+  --su-roll-value-size: var(--text-chip);
   --su-roll-title-size: var(--text-lede);
 }
 
@@ -110,7 +110,7 @@
 .su-roll__cols {
   align-items: center;
   display: flex;
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: 1.1;
   min-width: 0;
 }
@@ -173,7 +173,7 @@
 .su-roll__hint {
   color: var(--color-paper-85);
   flex: 1 1 8rem;
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   min-width: 0;
 }
 
@@ -459,7 +459,7 @@
 
   .su-roll__bands[data-split] {
     --su-roll-range: 3.5rem;
-    --su-roll-value-size: var(--text-sm);
+    --su-roll-value-size: var(--text-body);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -522,8 +522,8 @@
    * narrower ranges.
    */
   .su-roll[data-density='compact'] {
-    --su-roll-label-size: var(--text-base);
-    --su-roll-value-size: var(--text-sm);
+    --su-roll-label-size: var(--text-lede);
+    --su-roll-value-size: var(--text-body);
   }
 
   .su-roll[data-density='compact'] .su-roll__body {
@@ -536,8 +536,8 @@
 
   .su-roll[data-density='dense'] .su-roll__bands[data-split] {
     --su-roll-range: 2.75rem;
-    --su-roll-range-size: var(--text-lg);
-    --su-roll-label-size: var(--text-sm);
+    --su-roll-range-size: var(--text-readout);
+    --su-roll-label-size: var(--text-body);
   }
 
   .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__body {
@@ -559,7 +559,7 @@
 
   /* The columns grid's twenty rows set tighter, so it ends above the fold. */
   .su-roll[data-density] .su-roll__table {
-    font-size: var(--text-sm);
+    font-size: var(--text-body);
   }
 
   .su-roll[data-density] .su-roll__table tbody th,

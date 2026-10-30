@@ -130,7 +130,7 @@
    The edge takes the same type size, so its `em` point matches the box's. */
 .su-cost-edge--mini,
 .su-cost--mini {
-  font-size: var(--text-xs);
+  font-size: var(--text-chip);
 }
 
 .su-cost--mini {
@@ -140,7 +140,7 @@
 
 .su-cost-edge--compact,
 .su-cost--compact {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
 }
 
 .su-cost--compact {
@@ -150,7 +150,7 @@
 
 .su-cost-edge--full,
 .su-cost--full {
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
 }
 
 .su-cost--full {
@@ -249,17 +249,17 @@
 }
 
 .su-stat-plate--full {
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   font-weight: var(--font-weight-semibold);
 }
 
 .su-stat-plate--compact {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
 }
 
 .su-stat-plate--mini {
-  font-size: var(--text-xs);
+  font-size: var(--text-chip);
   font-weight: var(--font-weight-normal);
 }
 

@@ -14,6 +14,7 @@ import {
   tokens,
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -49,7 +50,7 @@ import { useSync } from '../../replica/syncContext'
 const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
 /** The invite's words, a step up from the body's. */
-const WORDS = { fontSize: 'var(--text-lg)' } satisfies CSSProperties
+const WORDS = { fontSize: 'var(--text-readout)' } satisfies CSSProperties
 
 const HINT = { ...WORDS, textAlign: 'left' } satisfies CSSProperties
 
@@ -222,8 +223,14 @@ export function InviteScreen({ token, joinOnArrival = false }: InviteProps) {
   }
 
   return (
-    <PageShell>
-      <ChapterBand tone="play">{playGamesCopy('joinAGame')}</ChapterBand>
+    <PageShell
+      measure={PAGE_MEASURE}
+      band={
+        <ChapterBand tone="play" measure={PAGE_MEASURE}>
+          {playGamesCopy('joinAGame')}
+        </ChapterBand>
+      }
+    >
       <div style={COLUMN}>{body()}</div>
     </PageShell>
   )

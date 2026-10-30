@@ -38,7 +38,7 @@ const OPTION_NOTE = {
 /** A line that names no entity (a tree, what it costs), in the body face. */
 const LEDGER_LINE = {
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 

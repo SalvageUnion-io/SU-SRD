@@ -26,8 +26,15 @@ import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
-import { ActionMinis, Button, SlabSection, Tags, tokens, traitTags } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import {
+  ActionMinis,
+  Button,
+  InlineRef,
+  SlabSection,
+  Tags,
+  tokens,
+  traitTags,
+} from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
 import type { NpcView } from '../../lib/npcs/npcModel'
@@ -269,9 +276,9 @@ export function NpcSheet({
                         {crewing && (
                           <p style={NOTE}>
                             Crews {slotPhrase(crewing.slot)} on{' '}
-                            <AppLink href={`/crawlers/${crewing.crawlerId}`}>
+                            <InlineRef href={`/crawlers/${crewing.crawlerId}`}>
                               {crewing.crawlerName}
-                            </AppLink>
+                            </InlineRef>
                             . Whoever runs that crawler assigns and unassigns its crew.
                           </p>
                         )}

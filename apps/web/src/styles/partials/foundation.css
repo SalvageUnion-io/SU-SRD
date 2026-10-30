@@ -92,7 +92,7 @@ button {
   padding: var(--space-8) var(--space-16);
   background-color: var(--color-paper);
   color: var(--color-ink);
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   border: var(--bw-entity) solid var(--color-ink);
   border-radius: var(--radius-card);
 }
@@ -117,7 +117,7 @@ body {
   background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-body);
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }

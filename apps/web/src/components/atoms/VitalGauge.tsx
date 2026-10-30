@@ -446,7 +446,7 @@ export function VitalGauge({
             style={{
               fontWeight: weight.bold,
               color: isOver ? color.statusBad : color.ink,
-              fontSize: isDense ? fontSize.display : fontSize.displayLg,
+              fontSize: isDense ? fontSize.displayLg : fontSize.displayLg,
             }}
           >
             {shown}

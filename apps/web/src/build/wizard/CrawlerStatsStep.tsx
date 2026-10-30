@@ -16,7 +16,7 @@ const statRowStyle = {
 const proseStyle = {
   color: 'currentcolor',
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 1.625,
   maxWidth: '64ch',
 } satisfies CSSProperties

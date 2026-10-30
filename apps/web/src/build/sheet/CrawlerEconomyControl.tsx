@@ -109,13 +109,13 @@ const BODY = {
 const MUTED = { ...TEXT, color: tokens.color.wkMuted } satisfies CSSProperties
 
 const CONTRIBUTE_LABEL = {
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
   lineHeight: 1 / 0.75,
   color: tokens.color.ink,
 } satisfies CSSProperties
 const CONTRIBUTE_LABEL_CAPS = capsLabel({ tracking: 'snug' })
 
-const SMALL = { fontSize: tokens.fontSize.xs, lineHeight: 1 / 0.75 } satisfies CSSProperties
+const SMALL = { fontSize: tokens.fontSize.chip, lineHeight: 1 / 0.75 } satisfies CSSProperties
 
 /** Which economy dialog is open (the lozenge that was clicked). */
 export type CrawlerEconomyDialog = 'upkeep' | 'upgrade' | 'trade'

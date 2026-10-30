@@ -113,7 +113,7 @@ const COUNT = {
   color: color.wkMuted,
   flexShrink: 0,
   fontFamily: font.body,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   fontWeight: weight.bold,
   letterSpacing: 'normal',
   lineHeight: 'calc(1 / 0.75)',
@@ -150,7 +150,7 @@ const LABEL = {
   flexShrink: 1,
   minWidth: 'min-content',
   minHeight: 'var(--size-compact)',
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 1.625,
   paddingBottom: space[2],
   paddingInline: space[8],
@@ -160,7 +160,7 @@ const LABEL = {
 /** The Mini Size's stamp: the Mini's 18px, its chip type. */
 const LABEL_MINI = {
   ...LABEL,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 1,
   minHeight: 'var(--size-mini)',
   paddingBottom: 0,

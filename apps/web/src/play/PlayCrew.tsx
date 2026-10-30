@@ -34,7 +34,7 @@ import { useGamePresence } from './useGamePresence'
 const RESOLVING = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
+  fontSize: tokens.fontSize.chip,
   margin: 0,
 } satisfies CSSProperties
 

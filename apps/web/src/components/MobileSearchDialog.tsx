@@ -43,7 +43,7 @@ const TITLE_ROW = {
 
 const TITLE = {
   color: color.ink,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 const TITLE_CAPS = capsLabel()

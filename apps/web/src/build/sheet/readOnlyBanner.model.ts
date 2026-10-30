@@ -13,7 +13,7 @@ export const READ_ONLY_BANNER = {
   borderBottom: `${tokens.borderWidth.pill} solid ${tokens.color.ink}`,
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   fontWeight: tokens.weight.semibold,
   lineHeight: 'calc(1.25 / 0.875)',
   paddingBlock: tokens.space[8],

@@ -107,7 +107,7 @@ const POPUP = {
 const SUBTITLE = {
   margin: 0,
   padding: `${space[12]} ${space[20]} 0`,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 1.2,
   color: color.wkMuted,
 } satisfies CSSProperties

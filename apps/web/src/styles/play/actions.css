@@ -120,7 +120,7 @@
   color: var(--color-ink);
   display: flex;
   font-family: var(--font-cond);
-  font-size: var(--text-note);
+  font-size: var(--text-chip);
   font-weight: var(--font-weight-bold);
   height: var(--size-compact);
   justify-content: center;
@@ -170,7 +170,7 @@ button.su-play-dt-track__step:disabled {
 .su-play-dt-line__label {
   align-items: center;
   display: inline-flex;
-  font-size: var(--text-note);
+  font-size: var(--text-chip);
   gap: var(--space-8);
 }
 

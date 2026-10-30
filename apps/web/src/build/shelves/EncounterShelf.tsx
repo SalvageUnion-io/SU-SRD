@@ -82,7 +82,7 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
       note={buildPrepCopy('shelfNote')}
       action={
         canWrite ? (
-          <Button size="compact" onClick={() => runWrite(newEncounter)}>
+          <Button variant="primary" size="compact" onClick={() => runWrite(newEncounter)}>
             {buildPrepCopy('addEncounter')}
           </Button>
         ) : undefined

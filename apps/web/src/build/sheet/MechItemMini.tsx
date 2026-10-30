@@ -34,7 +34,7 @@ import { UnknownItemLine } from './UnknownItemLine'
 const BODY_SM = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 

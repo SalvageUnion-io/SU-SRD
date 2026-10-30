@@ -102,7 +102,7 @@
 
   :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
     .su-stat-plate--compact {
-    font-size: var(--text-xs);
+    font-size: var(--text-chip);
     font-weight: var(--font-weight-normal);
   }
 
@@ -121,7 +121,7 @@
 
   .su-entity-stamps .su-cost,
   .su-chapter-band__overflow .su-cost {
-    font-size: var(--text-xs);
+    font-size: var(--text-chip);
     padding-block: 0;
   }
 }
@@ -135,7 +135,7 @@
   .su-chapter-band__aside .su-stat-plate--compact,
   .su-chapter-band__overflow .su-stat-plate--compact,
   .su-tech-level__block .su-stat-plate--compact {
-    font-size: var(--text-base);
+    font-size: var(--text-lede);
     padding-inline: var(--space-8);
   }
 
@@ -144,7 +144,7 @@
   .su-entity-stamps .su-cost,
   .su-chapter-band__overflow .su-cost-edge,
   .su-chapter-band__overflow .su-cost {
-    font-size: var(--text-base);
+    font-size: var(--text-lede);
   }
 }
 

@@ -65,7 +65,7 @@ type ShareSettingsProps = {
 const MUTED_CAPTION = {
   color: tokens.color.wkMuted, // design-tokens-ignore(muted-note): Radio's description size, every line under Public
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 

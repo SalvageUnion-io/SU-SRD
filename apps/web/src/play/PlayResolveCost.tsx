@@ -24,7 +24,7 @@ const SPEND = {
 const NO_COST = {
   fontFamily: font.cond,
   fontWeight: weight.bold,
-  fontSize: fontSize.note,
+  fontSize: fontSize.chip,
   color: color.wkMuted, // design-tokens-ignore(muted-note): a condensed label
 } satisfies CSSProperties
 

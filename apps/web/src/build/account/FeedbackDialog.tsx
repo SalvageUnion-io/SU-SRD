@@ -38,7 +38,7 @@ const BOX = { width: '100%' } satisfies CSSProperties
 
 const COUNT = {
   margin: 0,
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
   textAlign: 'right',
 } satisfies CSSProperties
 

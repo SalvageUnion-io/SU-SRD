@@ -42,7 +42,7 @@ function currentStatus(): SyncStatus | null {
 /** The error text in the Box's body: small, scrolling sideways when long. */
 const ERROR_DUMP = {
   color: color.ink,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: '1rem',
   margin: 0,
   maxWidth: '100%',

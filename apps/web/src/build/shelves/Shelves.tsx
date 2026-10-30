@@ -354,7 +354,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const newLink = (href: string, label: string) =>
     canWrite ? (
-      <Button href={href} size="compact">
+      <Button href={href} variant="primary" size="compact">
         {label}
       </Button>
     ) : undefined

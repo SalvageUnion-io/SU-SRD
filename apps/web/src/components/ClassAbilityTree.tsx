@@ -50,6 +50,7 @@ function TreeSection({
       title={tree}
       count={note ?? noteFor(track)}
       page
+      size="mini"
       className="su-ability-tree__group"
       bodyClassName="su-ability-tree__track"
     >

@@ -98,7 +98,9 @@ export async function readOverlays(page: Page): Promise<{ what: string; findings
     const address = await trigger.getAttribute('data-peek')
     await trigger.hover()
     const popup = page.locator('[data-peek-popup]')
-    await expect(popup.locator('.su-entity-compact__head, .su-roll').first()).toBeVisible()
+    await expect(
+      popup.locator('.su-entity-compact__head, .su-entity-mini__head, .su-roll').first()
+    ).toBeVisible()
     read.push({ what: `the ${address} Peek`, findings: await findGrain(page) })
     await page.mouse.move(0, 0)
     await page.keyboard.press('Escape')

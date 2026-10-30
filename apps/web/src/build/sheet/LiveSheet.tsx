@@ -270,7 +270,7 @@ const BODY_FRAME = { position: 'relative' } satisfies CSSProperties
 const OUT_NOTE = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   margin: `0 0 ${tokens.space[16]}`,
 } satisfies CSSProperties
 

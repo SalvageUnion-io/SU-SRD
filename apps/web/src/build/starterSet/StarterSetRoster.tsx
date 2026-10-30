@@ -23,9 +23,10 @@
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
-import { ChapterBand, Slab, Text, tokens } from '../../components/index'
+import { ChapterBand, PageShell, Slab, Text, tokens } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useConfirm } from '../../components/shared/useConfirm'
+import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import {
   QUICKSTART_BOOK,
@@ -68,13 +69,8 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
   const { confirm, dialog } = useConfirm()
   useCopyCrewOnArrival(copy, confirm)
 
-  return (
+  const body = (
     <>
-      {headingLevel === 'h1' && (
-        <ChapterBand tone="build" aside={<CopyCrew confirm={confirm} />} asideAt="controls">
-          {buildStarterSetCopy('starterSet2')}
-        </ChapterBand>
-      )}
       <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
           {headingLevel === 'h2' && (
@@ -111,6 +107,25 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
       )}
       {dialog}
     </>
+  )
+  if (headingLevel === 'h2') return body
+  // Its own page sits on the page measure (ruleset §1.10), band and body alike.
+  return (
+    <PageShell
+      measure={PAGE_MEASURE}
+      band={
+        <ChapterBand
+          tone="build"
+          measure={PAGE_MEASURE}
+          aside={<CopyCrew confirm={confirm} />}
+          asideAt="controls"
+        >
+          {buildStarterSetCopy('starterSet2')}
+        </ChapterBand>
+      }
+    >
+      {body}
+    </PageShell>
   )
 }
 
