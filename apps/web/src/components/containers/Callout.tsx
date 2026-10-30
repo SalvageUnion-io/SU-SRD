@@ -31,7 +31,7 @@ type CalloutProps = {
 
 /** The paper body: the box pads it. */
 const NOTE_BODY = {
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 1.375,
   color: color.ink,
 } satisfies CSSProperties

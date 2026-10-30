@@ -87,7 +87,7 @@ const bodyStyle = {
   gap: space[16],
   margin: 0,
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   // `text-sm`'s paired line height. The hand-rolled confirms this replaces
   // got it from the utility; an inline font-size carries none of its own.
   lineHeight: '20px',

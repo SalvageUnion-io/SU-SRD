@@ -346,7 +346,7 @@ function HorizontalValue({
   // the stepper adds no vertical height to the row: the shared `StepButton` at
   // its `cell` fit, its plate set in CSS by the ground the Stat is printed on.
   const stepStyle = {
-    fontSize: size === 'mini' ? fontSize.xs : fontSize.sm,
+    fontSize: size === 'mini' ? fontSize.chip : fontSize.body,
     lineHeight: size === 'mini' ? LINE_HEIGHT_XS : LINE_HEIGHT_SM,
     width: size === 'mini' ? space[16] : space[20],
   } satisfies CSSProperties

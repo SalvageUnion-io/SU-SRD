@@ -36,40 +36,20 @@
      row, body and foot, and the app pages that share their column. */
   --page-measure: 75rem;
 
-  /* Semantic type scale (ruleset §4.2 — the ONE font-size ladder). Shared by
-     every surface:
-       badge    11px   THE FLOOR — every caps label, stamp, badge, pill,
-                       unit suffix and compact caps value
-       note     11.5px small body copy in rails and insets
-       caption  13px   small body copy — hints, empty states, subtitles
-       lede     15px   emphasized inline values, inset titles
-     Nothing renders under 11px (ruleset §4.6, R12):
-     `bun run check styling` (tokens/type-floor) rejects any size under it. */
+  /* The type ladder (ruleset §4.8): every font size is one of these rungs
+     (`fontSize` in design/tokens.ts says what each is for). Nothing renders
+     under 11px (ruleset §4.6, R12). */
   --text-badge: 11px;
-  --text-note: 11.5px;
+  --text-chip: 12px;
   --text-caption: 13px;
-  --text-lede: 15px;
-  /* The DISPLAY step — a readout meant to be read across a table, not a label.
-     The ladder above lede runs at a ~1.2 ratio:
-
-       lede 15 -> readout 17 -> title 22 -> display 26 -> display-lg 31 -> hero 38
-  */
-  --text-display: 26px;
+  --text-body: 14px;
+  --text-lede: 16px;
   --text-readout: 17px;
   --text-title: 22px;
   --text-display-lg: 31px;
   --text-hero: 38px;
-  /* The ChapterBand's notched page title (ruleset, "The source": the chapter
-     band), at sm and up; a phone sets it at hero. */
+  /* The ChapterBand's notched page title, at sm and up; a phone sets it at hero. */
   --text-chapter: 64px;
-  /* The inherited rem rungs, `xs` … `3xl`, still in live use. Prefer a
-     semantic rung above. */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
 
   /* Font weights in use. */
   --font-weight-normal: 400;

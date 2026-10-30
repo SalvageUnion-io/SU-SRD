@@ -72,14 +72,14 @@ const KEY_CAP = {
   borderStyle: 'solid',
   borderWidth: borderWidth.hairline,
   fontFamily: font.body,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   paddingInline: space[6],
 } satisfies CSSProperties
 
 const LEGAL = {
   color: color.wkMuted, // design-tokens-ignore(muted-note): the legal line
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'center',
 } satisfies CSSProperties

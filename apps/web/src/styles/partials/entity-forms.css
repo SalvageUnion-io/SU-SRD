@@ -137,6 +137,15 @@
   white-space: normal;
 }
 
+/* A TitledBox's title names no entity, so it never gives way to its chips:
+   it wraps at spaces, as a Peek's does (C12). */
+.su-box .su-entity-compact__title:not(.su-entity-compact:not(.su-box) *) {
+  min-width: min-content;
+  overflow: visible;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
 /* An ability's tier numeral, at the left, on the band: the title's face in
    the band's own foreground, undimmed, so it holds the 4.5:1 the tier bands
    are tested at (`design/__tests__/contrast.test.ts`). */
@@ -570,7 +579,7 @@
   border: var(--bw-hairline) solid var(--color-ink);
   box-shadow: none;
   color: var(--color-paper);
-  font-size: var(--text-xs);
+  font-size: var(--text-chip);
   font-weight: var(--font-weight-normal);
   line-height: 1;
 }
@@ -980,7 +989,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 .su-entity-mini__lead {
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: 1.4;
   margin: 0;
 }

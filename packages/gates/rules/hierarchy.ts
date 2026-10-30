@@ -10,7 +10,7 @@
  *   a link drawn as plain words; a standalone link is `Button href`, a link in
  *   prose `InlineRef`.
  *
- * Both are ratchets (`tools/baselines/rule-sets.json`): pending, burning down.
+ * Both are zero: any finding fails.
  */
 
 import { readFileSync } from 'node:fs'
@@ -30,11 +30,13 @@ const RETIRED_SCRIPT = new RegExp(
 )
 const RETIRED_VAR = new RegExp(`var\\(--text-(?:${RETIRED.join('|')})\\)`)
 const LITERAL_CSS = /font-size:\s*-?[\d.]+(?:px|rem|em)\b/
+const OG_SELECTOR = /[-_]og\b|'og'/
 const LITERAL_SCRIPT = /fontSize:\s*['"`]?-?[\d.]+(?:px|rem|em)?['"`]?\s*[,}]/
 
-/** The ladder's own home, and the link preview's (chrome K12), which draws at its own sizes. */
+/** The ladder's own home, the browser reset, and the link preview's (chrome K12), which draws at its own sizes. */
 const OWNERS = [
   'apps/web/src/styles/theme.css',
+  'apps/web/src/styles/reset.css',
   'apps/web/src/design/tokens.ts',
   'apps/web/src/components/compositions/OgCard.tsx',
   'apps/web/src/components/compositions/BrandCard.tsx',
@@ -55,7 +57,11 @@ export function fontSizeFindings(rel: string, source: string): Finding[] {
   if (OWNERS.some((o) => rel.startsWith(o))) return []
   const out: Finding[] = []
   const css = rel.endsWith('.css')
+  // A stylesheet rule for the link preview (`og` in its selector) is the preview's own scale.
+  let preview = false
   source.split('\n').forEach((raw, i) => {
+    if (css && raw.trimEnd().endsWith('{')) preview = OG_SELECTOR.test(raw)
+    if (preview) return
     const line = css ? raw : codeOf(raw)
     const retired =
       line.match(RETIRED_VAR)?.[0] ?? (css ? undefined : line.match(RETIRED_SCRIPT)?.[0])
@@ -105,13 +111,13 @@ export function bareAppLinkFindings(rel: string, source: string): Finding[] {
 const RULES: readonly Rule[] = [
   {
     id: 'font-size-rung',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'ruleset §4.8 — every font size is a rung of the type ladder (`--text-*`)',
     fix: 'Use a rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64 (`fontSize.*`, `var(--text-*)`). The rem aliases, `note` and the 26px `display` are retired; no literal size.',
   },
   {
     id: 'bare-applink',
-    mode: 'ratchet',
+    mode: 'zero',
     rule: 'hard rule R54 — a link looks like a link',
     fix: 'Draw a standalone link as `<Button href>`, a link in a sentence as `InlineRef`; an `AppLink` wraps a whole card or row, never bare words.',
   },

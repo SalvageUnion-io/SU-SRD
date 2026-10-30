@@ -98,7 +98,7 @@ const STRIP = {
 
 const SMALL_TEXT = {
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
   lineHeight: 1 / 0.75,
   color: tokens.color.ink,
 } satisfies CSSProperties

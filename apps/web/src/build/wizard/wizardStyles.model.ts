@@ -18,7 +18,7 @@ export const fieldRowStyle = { display: 'flex', gap: tokens.space[8] } satisfies
  * with the size.
  */
 export const textSmStyle = {
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
 

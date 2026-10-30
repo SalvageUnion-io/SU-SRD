@@ -56,7 +56,7 @@ function tallyLabel(key: string): string {
 const TABLE = {
   borderCollapse: 'collapse',
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   width: '100%',
 } satisfies CSSProperties
 

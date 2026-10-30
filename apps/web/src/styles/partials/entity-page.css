@@ -65,7 +65,7 @@
   color: var(--color-paper);
   display: flex;
   flex: 1 1 auto;
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: 1.1;
   min-width: 0;
   padding: 0 var(--space-8);
@@ -164,7 +164,7 @@
 .su-entity-page__opening {
   display: flex;
   flex-direction: column;
-  font-size: var(--text-lg);
+  font-size: var(--text-readout);
   gap: var(--space-12);
   line-height: 1.6;
 }
@@ -172,7 +172,7 @@
 .su-entity-page__prose {
   display: flex;
   flex-direction: column;
-  font-size: var(--text-lg);
+  font-size: var(--text-readout);
   gap: var(--space-12);
   line-height: 1.6;
 }
@@ -185,7 +185,7 @@
 
 /* The flavour line is set one step under the prose. */
 .su-entity-page__prose [data-prose='flavor'] {
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   font-weight: var(--font-weight-semibold);
 }
 
@@ -193,7 +193,7 @@
 @media not (width >= 40rem) {
   .su-entity-page__opening,
   .su-entity-page__prose {
-    font-size: 17px;
+    font-size: var(--text-readout);
   }
 }
 

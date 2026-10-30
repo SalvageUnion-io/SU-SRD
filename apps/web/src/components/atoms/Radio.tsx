@@ -50,7 +50,7 @@ const CHOICE_INPUT_STACKED = { ...CHOICE_INPUT, marginTop: space[2] } satisfies 
 const LABEL_TEXT = {
   color: color.ink,
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   fontWeight: weight.medium,
   lineHeight: 'calc(1.25 / 0.875)',
 } satisfies CSSProperties
@@ -59,7 +59,7 @@ const LABEL_TEXT_STACKED = { ...LABEL_TEXT, fontWeight: weight.bold } satisfies 
 const DESCRIPTION = {
   color: color.wkMuted,
   fontFamily: font.body,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties
 

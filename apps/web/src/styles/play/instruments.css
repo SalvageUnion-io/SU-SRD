@@ -32,7 +32,7 @@
 }
 .su-play-deck-cost-choice-lab {
   padding: 0;
-  font-size: var(--text-note);
+  font-size: var(--text-chip);
   color: var(--color-wk-muted);
 }
 .su-play-deck-hotx {

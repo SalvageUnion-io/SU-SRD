@@ -13,8 +13,7 @@
 import { gamePath } from 'game-domain/entityKinds'
 import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { useState } from 'react'
-import { EmptyState, FOCUS_RING, Slab } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, EmptyState, Slab } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import { PlayCrawlerUnit } from '../PlayUnits'
@@ -75,9 +74,9 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       {crawler === null ? (
         <>
           <EmptyState variant="inline" body={mediatorCopy('thisGameHasNoUnion')} />
-          <AppLink href={gamePath(mediator.gameId)} className={FOCUS_RING}>
+          <Button href={gamePath(mediator.gameId)} size="compact">
             {mediatorCopy('raiseOneFromTheGame')}
-          </AppLink>
+          </Button>
         </>
       ) : (
         <PlayCrawlerUnit

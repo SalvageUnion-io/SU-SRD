@@ -56,7 +56,7 @@
   font-size: var(--text-badge);
 }
 .su-caps--note {
-  font-size: var(--text-note);
+  font-size: var(--text-chip);
 }
 .su-caps--caption {
   font-size: var(--text-caption);
@@ -71,7 +71,7 @@
   font-size: var(--text-title);
 }
 .su-caps--display {
-  font-size: var(--text-display);
+  font-size: var(--text-display-lg);
 }
 
 /* Caps labels run bold by default; `semibold` is the chip weight. */
@@ -473,7 +473,7 @@
   border-left: var(--bw-hairline) solid var(--color-ink-30);
 }
 .su-seg__option[data-numeral] {
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   min-width: 38px;
   padding: 0 var(--space-8);
 }

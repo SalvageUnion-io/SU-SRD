@@ -36,7 +36,7 @@ const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSPropertie
 const STATE = {
   color: tokens.color.ink75, // design-tokens-ignore(muted-note): a post's status word
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.note,
+  fontSize: tokens.fontSize.chip,
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 

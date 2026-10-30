@@ -48,7 +48,7 @@ const SECTION = {
 const NOTES = {
   color: tokens.color.ink,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 1.45,
   margin: 0,
   overflowWrap: 'anywhere',

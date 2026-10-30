@@ -98,7 +98,7 @@ export const STEPPERS_FULL = {
 } satisfies CSSProperties
 export const STEP_FULL = {
   flex: '1 1 0%',
-  fontSize: fontSize.display,
+  fontSize: fontSize.displayLg,
   height: 'var(--size-full)',
   width: 'auto',
 } satisfies CSSProperties

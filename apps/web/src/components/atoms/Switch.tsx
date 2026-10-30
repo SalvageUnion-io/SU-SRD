@@ -37,7 +37,7 @@ const ROW = {
   cursor: 'pointer',
   display: 'inline-flex',
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   fontWeight: weight.bold,
   gap: space[8],
   lineHeight: 'calc(1.25 / 0.875)',

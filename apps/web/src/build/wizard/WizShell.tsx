@@ -138,7 +138,7 @@ const railTabActiveStyle = {
   backgroundColor: tokens.color.ink,
   boxShadow: '0 0 0 4px var(--tone)',
   color: tokens.color.paper,
-  fontSize: tokens.fontSize['2xl'],
+  fontSize: tokens.fontSize.title,
   height: tokens.size.full,
   lineHeight: 1,
   width: tokens.size.full,
@@ -179,13 +179,13 @@ const railLabelActiveStyle = {
 
 const railLabelDoneStyle = {
   ...railLabelStyle,
-  fontSize: tokens.fontSize.note,
+  fontSize: tokens.fontSize.chip,
   opacity: 0.8,
 } satisfies CSSProperties
 
 const railLabelFutureStyle = {
   ...railLabelStyle,
-  fontSize: tokens.fontSize.note,
+  fontSize: tokens.fontSize.chip,
   opacity: 0.66,
 } satisfies CSSProperties
 
@@ -250,7 +250,7 @@ const pillTrackersStyle = {
 /** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
 const pillNoteStyle = {
   color: tokens.color.pilot,
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   margin: 0,
   paddingInline: tokens.space[8],

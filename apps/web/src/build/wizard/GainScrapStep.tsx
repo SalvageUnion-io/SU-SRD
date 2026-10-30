@@ -14,7 +14,7 @@ const briefStyle = {
   alignSelf: 'center',
   color: 'currentcolor',
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 1.625,
   margin: 0,
   maxWidth: '52ch',

@@ -466,7 +466,7 @@ const HOSTED_STYLE = {
 const SUBTITLE_STYLE = {
   margin: 0,
   padding: `${space[12]} ${space[16]} 0`,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 1.2,
   color: color.wkMuted, // design-tokens-ignore(muted-note): the dialog subtitle, in caps
 } satisfies CSSProperties

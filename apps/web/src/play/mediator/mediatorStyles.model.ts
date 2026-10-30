@@ -29,7 +29,7 @@ export const NUMBERS = { fontVariantNumeric: 'tabular-nums' } satisfies CSSPrope
 export const NOTE = {
   color: color.ink,
   fontFamily: font.body,
-  fontSize: fontSize.note,
+  fontSize: fontSize.chip,
   margin: 0,
 } satisfies CSSProperties
 

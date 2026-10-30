@@ -15,7 +15,7 @@ const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 const LEDE = {
   margin: 0,
   fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
   color: 'currentcolor',
 } satisfies CSSProperties

@@ -131,8 +131,6 @@ function designGates(page: Page): Gate[] {
        * (§4.8), each form's title and Slab rung (E24, §4.9), the heading
        * outline (E25), one sub-section rung (R53), the emphasis ladder
        * (§3.13), a TitledBox's whole title (C12) and the two measures (§1.10).
-       * Its rules but the title rungs, the outline and the first screen are
-       * pending (`_pendingRules.ts`).
        */
       gate: 'hierarchy',
       scan: async ({ family, width, where }) =>

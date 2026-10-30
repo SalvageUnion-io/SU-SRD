@@ -10,14 +10,14 @@ import { fromFaults } from './_findings'
  * - `type-ladder` (§4.8): a drawn font size that is no `--text-*` rung;
  * - `title-size` (E24): an entity title, index name, Mini name or band title
  *   off its form's rung; `slab-size` (§4.9): a Slab stamp off body (14px), a
- *   Mini Slab's off caption (13px);
+ *   Mini Slab's off chip (12px);
  * - `heading-skip` (E25): a heading more than one level under the one before
  *   it; `heading-depth`: a heading at or above the level of the section that
  *   holds it;
- * - `stray-head` (R53): a heading that is no band title, Slab, entity title
- *   or screen-reader label; `nested-slab`: a Slab section in a Slab section,
+ * - `stray-head` (R53): a heading that is no band title, Slab, entity title,
+ *   contents chapter or screen-reader label; `nested-slab`: a Slab section in a Slab section,
  *   not Mini;
- * - `make-rust` (§3.13): a "+ New…" control not rust; `stamp-twin`: a button
+ * - `make-rust` (§3.13): a "+ New…" or "+ Design…" control not rust; `stamp-twin`: a button
  *   painted like a read stamp beside it on its line;
  * - `tool-title-clip` (C12): a TitledBox's title clipped to "…";
  * - `measure` (§1.10): a Reference or Manage band title off the page measure's
@@ -82,7 +82,7 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     if (!stamp || !drawn(stamp)) continue
     const section = slab.closest('.su-slab-section')
     const mini = section?.classList.contains('su-slab-section--mini') ?? false
-    const want = mini ? 13 : 14
+    const want = mini ? 12 : 14
     if (!near(px(stamp), want)) out.push(`slab-size: ${px(stamp)}px, not ${want}px, ${name(stamp)}`)
     const outer = section?.parentElement?.closest('.su-slab-section')
     if (section && outer && !mini) out.push(`nested-slab: ${name(stamp)} in a Slab section`)
@@ -112,7 +112,7 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
       srOnly(h) ||
       h.closest('[data-slab]') ||
       h.matches(
-        '.su-chapter-band__title, .su-entity-compact__title, .su-entity-index__name, .su-entity-mini__name, .su-play-bar__notch'
+        '.su-chapter-band__title, .su-contents__heading, .su-entity-compact__title, .su-entity-index__name, .su-entity-mini__name, .su-play-bar__notch'
       )
     if (!known && drawn(h)) out.push(`stray-head: ${name(h)}`)
   }
@@ -128,7 +128,7 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
   )
   for (const c of controls) {
     const text = (c.textContent ?? '').trim()
-    if (/^\+\s*New\b/i.test(text) && getComputedStyle(c).backgroundColor !== rust)
+    if (/^\+\s*(?:New|Design)\b/i.test(text) && getComputedStyle(c).backgroundColor !== rust)
       out.push(`make-rust: ${name(c)}`)
   }
   const fill = (el: Element) => getComputedStyle(el).backgroundColor

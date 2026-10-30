@@ -11,11 +11,11 @@ import { bareAppLinkFindings, fontSizeFindings, hierarchy } from '../rules/hiera
 const lines = (found: { line: number }[]) => found.map((f) => f.line)
 
 describe('hierarchy rule set', () => {
-  test('both rules are ratchets', () => {
+  test('both rules are zero', () => {
     expect(hierarchy.id).toBe('hierarchy')
     expect(hierarchy.rules.map((r) => [r.id, r.mode])).toEqual([
-      ['font-size-rung', 'ratchet'],
-      ['bare-applink', 'ratchet'],
+      ['font-size-rung', 'zero'],
+      ['bare-applink', 'zero'],
     ])
   })
 
@@ -54,6 +54,12 @@ describe('hierarchy/font-size-rung', () => {
   test("the ladder's home and the link preview set their own sizes", () => {
     const source = '.a { font-size: 34px; }'
     expect(fontSizeFindings('apps/web/src/styles/theme.css', source)).toEqual([])
+    expect(
+      fontSizeFindings(
+        'apps/web/src/styles/partials/x.css',
+        '.su-og-chips .a {\n  font-size: 36px;\n}'
+      )
+    ).toEqual([])
     expect(
       fontSizeFindings('apps/web/src/components/compositions/OgCard.tsx', "{ fontSize: '34px' }")
     ).toEqual([])

@@ -13,7 +13,7 @@ const SECTION = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[12],
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 1.625,
 } satisfies CSSProperties
 

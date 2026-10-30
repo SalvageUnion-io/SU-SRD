@@ -107,7 +107,7 @@ function resolveOptionEntity(option: ChoiceCardOption): RefEntity | undefined {
 /** A read-only chosen value, set as bold prose (`text-xs`, its line height included). */
 const chosenValueStyle = {
   fontFamily: font.body,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: '1rem',
   fontWeight: weight.bold,
   color: color.ink,
@@ -146,7 +146,7 @@ const optionNameStyle = {
 /** Off a Page, an option's text at the card body's size. */
 const optionTextStyle = {
   color: color.ink,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 1.5,
   margin: 0,
 } satisfies CSSProperties

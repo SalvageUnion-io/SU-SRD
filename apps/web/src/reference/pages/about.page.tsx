@@ -80,7 +80,7 @@ const PANEL_BODY = {
 
 /** A carved caps line — `.su-carved-text` (global.css) is the cut. */
 const CARVED_LINE = {
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   fontWeight: weight.medium,
   lineHeight: 'calc(1.25 / 0.875)',
   textAlign: 'center',
@@ -91,7 +91,7 @@ const CARVED = cn('su-carved-text', capsLabel({ weight: 'inherit', tracking: 'sn
 const INSPIRATION = { ...CARVED_LINE, lineHeight: 1.625 } satisfies CSSProperties
 
 const INSPIRATION_NAME = {
-  fontSize: fontSize.lg,
+  fontSize: fontSize.readout,
   fontWeight: weight.bold,
   lineHeight: 'calc(1.75 / 1.125)',
 } satisfies CSSProperties
@@ -105,17 +105,17 @@ const PILOTS = {
   justifyContent: 'center',
 } satisfies CSSProperties
 
-const PILOT_GAP = { fontSize: fontSize.base, lineHeight: 1.5 } satisfies CSSProperties
+const PILOT_GAP = { fontSize: fontSize.lede, lineHeight: 1.5 } satisfies CSSProperties
 
 const PILOT = {
-  fontSize: fontSize.xl,
+  fontSize: fontSize.readout,
   lineHeight: 'calc(1.75 / 1.25)',
 } satisfies CSSProperties
 const PILOT_CAPS = capsLabel()
 
 const FRIENDS = {
   ...CARVED_LINE,
-  fontSize: fontSize.lg,
+  fontSize: fontSize.readout,
   fontWeight: weight.bold,
   lineHeight: 'calc(1.75 / 1.125)',
 } satisfies CSSProperties
@@ -136,7 +136,7 @@ const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
 /** The close button: Button's ink icon square, pinned to the image's corner. */
 const LIGHTBOX_CLOSE = {
-  fontSize: fontSize['2xl'],
+  fontSize: fontSize.title,
   position: 'absolute',
   right: space[8],
   top: space[8],
@@ -159,7 +159,7 @@ const MAP = {
 
 const MAP_CREDIT = {
   color: color.paper,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
   textAlign: 'center',
 } satisfies CSSProperties

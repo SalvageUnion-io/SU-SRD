@@ -18,7 +18,6 @@ import {
   AdderBox,
   Button,
   CloseButton,
-  Eyebrow,
   FieldError,
   Input,
   SlabSection,
@@ -102,10 +101,7 @@ function BoundaryList({
   }
 
   return (
-    <section aria-labelledby={`${id}-name`} style={GROUP}>
-      <Eyebrow tone="ink" as="h3" id={`${id}-name`}>
-        {name}
-      </Eyebrow>
+    <SlabSection as="h3" id={`${id}-name`} title={name} size="mini" bodyStyle={GROUP}>
       <Text variant="note">{LIST_MEANS[kind]}</Text>
       {lines.length === 0 ? (
         <Text variant="note">{playSafetyCopy('nothingYet')}</Text>
@@ -154,7 +150,7 @@ function BoundaryList({
         </AdderBox>
       </form>
       {add.error && <FieldError>{add.error}</FieldError>}
-    </section>
+    </SlabSection>
   )
 }
 

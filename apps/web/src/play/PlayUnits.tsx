@@ -76,7 +76,7 @@ const CHIPS = {
 
 const RANGE_LABEL = {
   color: 'var(--color-wk-muted)', // design-tokens-ignore(muted-note): the range label
-  fontSize: tokens.fontSize.sm,
+  fontSize: tokens.fontSize.body,
 } satisfies CSSProperties
 
 /** Range's book codes, as the band switch shows them (`Close` → C). */

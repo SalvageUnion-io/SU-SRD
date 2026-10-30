@@ -24,8 +24,8 @@ import { useAppliesRules } from '../entity/entitySurfaceContext'
 export type ContentFontSize = 'xs' | 'sm' | 'inherit'
 
 const FONT_SIZE_STYLE: Record<ContentFontSize, CSSProperties> = {
-  xs: { fontSize: typeScale.xs, lineHeight: '1rem' },
-  sm: { fontSize: typeScale.sm, lineHeight: '1.25rem' },
+  xs: { fontSize: typeScale.chip, lineHeight: '1rem' },
+  sm: { fontSize: typeScale.body, lineHeight: '1.25rem' },
   inherit: {},
 }
 

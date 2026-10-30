@@ -118,7 +118,7 @@ const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } sat
 const ADD_BAY = {
   height: 'var(--size-compact)',
   paddingInline: tokens.space[8],
-  fontSize: tokens.fontSize.xs,
+  fontSize: tokens.fontSize.chip,
 } satisfies CSSProperties
 
 type CrawlerSheetProps = {

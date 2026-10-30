@@ -81,7 +81,7 @@ const RULED = {
 } satisfies CSSProperties
 
 const DETAIL = {
-  fontSize: fontSize.note,
+  fontSize: fontSize.chip,
   marginLeft: space[4],
   opacity: 0.6,
 } satisfies CSSProperties

@@ -50,14 +50,14 @@ const GET = <Chips chips={{ durations: ['GET'], facts: [], tags: [] }} size="min
 const CODE_SAMPLE = {
   backgroundColor: color.wkBg,
   borderRadius: radius.card,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 1.625,
   overflowX: 'auto',
 } satisfies CSSProperties
 
 // — The schema table. Its narrow-screen column drop is `.su-api__wide-cell`. —
 const TABLE = {
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: 'calc(1.25 / 0.875)',
   width: '100%',
 } satisfies CSSProperties
@@ -80,7 +80,7 @@ const TD = { paddingBlock: space[8], paddingInline: space[16] } satisfies CSSPro
 
 const TH = {
   ...TD,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   textAlign: 'left',
 } satisfies CSSProperties
@@ -96,7 +96,7 @@ const TD_COUNT = { ...TD, fontFamily: font.body, textAlign: 'right' } satisfies 
 
 const SCHEMA_ID = {
   fontFamily: font.body,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   fontWeight: weight.bold,
   lineHeight: 'calc(1 / 0.75)',
 } satisfies CSSProperties

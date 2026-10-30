@@ -17,7 +17,7 @@ const POSITIONER = { zIndex: layer.overlay } satisfies CSSProperties
 /** `text-xs` carries its paired line-height; `shadow-md` is ported as its computed value. */
 const POPUP = {
   ...INK_POPUP,
-  fontSize: fontSize.xs,
+  fontSize: fontSize.chip,
   lineHeight: 'calc(1 / 0.75)',
   maxWidth: '500px',
   overflow: 'hidden',

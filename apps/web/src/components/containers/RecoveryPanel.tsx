@@ -29,7 +29,7 @@ const BODY = { alignItems: 'center', gap: space[16], textAlign: 'center' } satis
 
 const MESSAGE = {
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: '20px',
   color: color.wkMuted,
 } satisfies CSSProperties

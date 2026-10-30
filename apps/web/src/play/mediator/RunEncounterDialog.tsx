@@ -12,8 +12,15 @@
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import { ConfirmDialog, capsLabel, Radio, Stack, toast, tokens } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import {
+  ConfirmDialog,
+  capsLabel,
+  InlineRef,
+  Radio,
+  Stack,
+  toast,
+  tokens,
+} from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { encounterLine, trayChoiceLabel } from './runEncounter.model'
 
@@ -63,7 +70,7 @@ export function RunEncounterDialog({
         encounters.length === 0 ? (
           <>
             {mediatorCopy('noEncountersYet')}{' '}
-            <AppLink href="/">{mediatorCopy('trainingBay')}</AppLink>
+            <InlineRef href="/">{mediatorCopy('trainingBay')}</InlineRef>
             {mediatorCopy('noEncountersTail')}
           </>
         ) : (

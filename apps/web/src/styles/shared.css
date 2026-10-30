@@ -87,7 +87,7 @@
  */
 /* A one-off: the lede centred on the page, a step up. */
 .su-not-found__lede {
-  font-size: var(--text-2xl);
+  font-size: var(--text-title);
   line-height: 1.4;
   margin: 0 auto;
   max-width: 40rem;
@@ -237,7 +237,7 @@
   align-items: center;
   color: var(--color-ink);
   display: flex;
-  font-size: var(--text-base);
+  font-size: var(--text-lede);
   gap: var(--space-12);
   justify-content: space-between;
   min-height: 36px;

@@ -37,7 +37,7 @@ import {
  * (`weight` → `--font-weight-`, `borderWidth` → `--bw-`), and a camelCase key
  * maps to its kebab-case name (`inkDeep` → `--color-ink-deep`, `wkBg2` →
  * `--color-wk-bg-2`, `tl1` → `--color-tl-1`). A key that starts with a digit is
- * used verbatim (`space[8]` → `--space-8`, `fontSize['2xl']` → `--text-2xl`).
+ * used verbatim (`space[8]` → `--space-8`).
  *
  * Both directions are asserted. A one-way check would let an orphan custom
  * property — a token deleted from TypeScript but left in the CSS — survive

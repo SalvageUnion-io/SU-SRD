@@ -127,59 +127,36 @@ export const widthAtLeast = (rung: keyof typeof breakpoint): string =>
   `(width >= ${breakpoint[rung]})`
 
 /**
- * The type ladder.
+ * The type ladder (ruleset §4.8): every font size is one of these rungs, named
+ * by role and shared by every surface; `bun run check styling`
+ * (`hierarchy/font-size-rung`) rejects any other size, by name or by literal.
  *
- * The first block is the SEMANTIC ladder (ruleset §4.2) — the one to reach for,
- * named by role rather than by size, and shared by every surface:
+ *   badge     11px   THE FLOOR — caps labels, stamps, badges, pills, unit
+ *                    suffixes, compact caps values
+ *   chip      12px   chip values, a Mini Slab's stamp, small rail copy
+ *   caption   13px   hints, empty states, notes, a Mini's name
+ *   body      14px   running copy, a Slab's stamp
+ *   lede      16px   a lead paragraph, emphasized inline values
+ *   readout   17px   …then the display end:
+ *   title     22px   a Compact's or Full's title
+ *   displayLg 31px   a Page's own block title, a vital's readout
+ *   hero      38px   a phone's chapter title
+ *   chapter   64px   the ChapterBand's notched page title (≥ sm)
  *
- *   badge     11px     THE FLOOR — caps labels, stamps, badges, pills, unit
- *                      suffixes, compact caps values
- *   note      11.5px   small body copy in rails and insets
- *   caption   13px     hints, empty states, subtitles
- *   lede      15px     emphasized inline values, inset titles
- *   readout   17px     …then the display end, at a ~1.2 ratio:
- *   title     22px
- *   display   26px
- *   displayLg 31px
- *   hero      38px
- *   chapter   64px     the ChapterBand's notched page title (≥ sm)
- *
- * Nothing sits under 11px (ruleset §4.6): the four rungs that once did (8, 9,
- * 10 and 10.5px) were retired into `badge`, and `bun run check styling`
- * (tokens/type-floor) rejects any smaller size, by name or by literal.
- *
- * The second block is the INHERITED rungs: the stock `text-xs` … `text-2xl`
- * rungs at their rem values (theme.css declares them), so they scale with the
- * reader's font size.
- *
- * They overlap the semantic ladder (14 sits between caption and lede; 24 and 30
- * sit either side of title and displayLg), and that overlap is real debt: two
- * spellings for one intent is the drift this system's own ruleset is written to
- * prevent. Reconciling them is a DESIGN pass with visible consequences at every
- * one of those call sites, not a mechanical port, so it is flagged here rather
- * than smuggled into a foundation layer. **Prefer the semantic rung; reach for
- * an inherited one only when migrating a call site that already used it.**
+ * Nothing sits under 11px (ruleset §4.6, `tokens/type-floor`).
  */
 export const fontSize = {
-  // — semantic ladder (ruleset §4.2) —
   badge: '11px',
-  note: '11.5px',
+  chip: '12px',
   caption: '13px',
-  lede: '15px',
+  body: '14px',
+  lede: '16px',
   readout: '17px',
   title: '22px',
-  display: '26px',
   displayLg: '31px',
   hero: '38px',
   /** The ChapterBand's notched title at desktop width (phones take `hero`). */
   chapter: '64px',
-  // — inherited rungs (rem, in live use; see the note above) —
-  xs: '0.75rem',
-  sm: '0.875rem',
-  base: '1rem',
-  lg: '1.125rem',
-  xl: '1.25rem',
-  '2xl': '1.5rem',
 } as const
 
 /** Font weights in use. Barlow ships the whole range; these are the rungs used. */

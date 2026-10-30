@@ -15,7 +15,7 @@ const LIST = {
 const ITEMS = {
   color: color.wkMuted, // design-tokens-ignore(muted-note): a bullet list
   fontFamily: font.body,
-  fontSize: fontSize.sm,
+  fontSize: fontSize.body,
   lineHeight: '1.25rem',
   listStyleType: 'disc',
   marginLeft: space[16],

@@ -93,7 +93,7 @@
  * the left edge with the prose, one step back from it. */
 .su-guide__note {
   color: var(--color-wk-muted);
-  font-size: 0.9em;
+  font-size: var(--text-caption);
   font-style: italic;
   margin: 0;
 }
@@ -152,7 +152,7 @@
 }
 
 .su-entity-page > .su-guide {
-  font-size: var(--text-lg);
+  font-size: var(--text-readout);
   line-height: 1.6;
   max-width: var(--su-guide-measure, 52rem);
 }
@@ -178,7 +178,7 @@
 
 @media not (width >= 40rem) {
   .su-entity-page > .su-guide {
-    font-size: 17px;
+    font-size: var(--text-readout);
   }
 }
 
@@ -201,7 +201,7 @@
 .su-guide__toc-block {
   display: flex;
   flex-direction: column;
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   gap: var(--space-12);
   line-height: 1.4;
 }
@@ -373,7 +373,7 @@
   .su-guide--page .su-guide__rail {
     align-self: start;
     display: block;
-    font-size: var(--text-sm);
+    font-size: var(--text-body);
     grid-column: 2;
     grid-row: 1 / -1;
     line-height: 1.4;
@@ -478,7 +478,7 @@
 /* The pattern's opening paragraph, at the head of the box's body. */
 .su-pattern-rows__prose {
   color: var(--color-ink);
-  font-size: var(--text-sm);
+  font-size: var(--text-body);
   line-height: 1.45;
   margin: 0;
   max-width: 72ch;

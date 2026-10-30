@@ -1,5 +1,7 @@
-import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ElementType, HTMLAttributes, ReactNode } from 'react'
+import { useContext } from 'react'
 import { cn } from '../../lib/cn'
+import { EntitySurfaceContext } from '../entity/entitySurfaceContext'
 import { FOCUS_RING } from './interaction'
 
 type InlineRefProps = {
@@ -44,16 +46,19 @@ type InlineRefProps = {
  * trigger's `data-peek`) reach the element in every state.
  */
 export function InlineRef({ children, href, onOpen, title, className, ...rest }: InlineRefProps) {
+  const surfaceLink = useContext(EntitySurfaceContext).linkAs
   if (href) {
+    // A path on the site goes through the surface's router link, as `Button href` does.
+    const Link: ElementType = surfaceLink && href.startsWith('/') ? surfaceLink : 'a'
     return (
-      <a
+      <Link
         href={href}
         title={title}
         className={cn('su-inline-ref su-inline-ref--link', FOCUS_RING, className)}
         {...rest}
       >
         {children}
-      </a>
+      </Link>
     )
   }
 

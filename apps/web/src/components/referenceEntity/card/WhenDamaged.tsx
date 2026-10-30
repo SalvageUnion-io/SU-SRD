@@ -19,7 +19,7 @@ const EFFECT_PAGE = {
 } satisfies CSSProperties
 
 /** In a card (a live sheet's bay, a Peek), at the card body's size. */
-const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.xs } satisfies CSSProperties
+const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.chip } satisfies CSSProperties
 
 /**
  * WHEN DAMAGED — a crawler bay's rules block, one renderer in every context

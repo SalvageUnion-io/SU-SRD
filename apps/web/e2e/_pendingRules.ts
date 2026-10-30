@@ -14,17 +14,7 @@ import { test } from '@playwright/test'
  * Keyed by the finding's rule (`_findings.ts`). `packages/gates/lib/canon.ts`
  * reads these keys, so `bun run check canon --list` marks the gates pending.
  */
-const PENDING_RULES: Readonly<Record<string, { law: string; ceiling: number }>> = {
-  // Hierarchy at render (R55, `_hierarchy.ts`).
-  'type-ladder': { law: '§4.8', ceiling: 240 },
-  'slab-size': { law: '§4.9', ceiling: 10 },
-  'stray-head': { law: 'R53', ceiling: 4 },
-  'nested-slab': { law: 'R53', ceiling: 6 },
-  'make-rust': { law: '§3.13', ceiling: 12 },
-  'stamp-twin': { law: '§3.13', ceiling: 2 },
-  'tool-title-clip': { law: 'C12', ceiling: 1 },
-  measure: { law: '§1.10', ceiling: 2 },
-}
+const PENDING_RULES: Readonly<Record<string, { law: string; ceiling: number }>> = {}
 
 /**
  * The findings that fail: every one whose rule is not pending, and every one
