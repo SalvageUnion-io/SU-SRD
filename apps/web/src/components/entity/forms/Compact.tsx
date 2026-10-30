@@ -207,6 +207,7 @@ export function Compact({
     >
       <Head
         title={title}
+        peeks={peek}
         kind={omit.includes('kind') ? undefined : model.kind.stamp}
         titleAs={slots.titleAs}
         paint={paint}
@@ -242,7 +243,7 @@ export function Compact({
         <CompactBody style={down ? { opacity: 0.6 } : undefined}>
           {slots.linked}
           {slots.leading}
-          {leadText && <Lead text={leadText} />}
+          {leadText && <Lead text={leadText} peeks={peek} />}
         </CompactBody>
       )}
     </CompactFrame>

@@ -195,11 +195,7 @@ export function CompactIndex({
           }}
         >
           <span className="su-entity-index__notch" data-fill-name="">
-            <span
-              className={cn('su-entity-index__name', INDEX_NAME_CAPS)}
-              title={model.title}
-              style={INDEX_NAME}
-            >
+            <span className={cn('su-entity-index__name', INDEX_NAME_CAPS)} style={INDEX_NAME}>
               {model.title}
             </span>
           </span>
@@ -227,7 +223,7 @@ export function CompactIndex({
         {hasChips && contentful && <ChipOverflowRow className="su-entity-index__overflow" />}
         {leadText && (
           <div className="su-entity-index__cells">
-            <Lead text={leadText} />
+            <Lead text={leadText} peeks />
           </div>
         )}
         {spare.length > 0 && (

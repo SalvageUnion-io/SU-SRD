@@ -27,6 +27,8 @@ export type HeadProps = {
    * inline-edit field (a crew lead's name). `title` still names the head.
    */
   titleContent?: ReactNode
+  /** Its card Peeks: the Peek shows the whole name, so no native tooltip opens beside it. */
+  peeks?: boolean
   /** The entity's kind, for screen readers only (`KindLabel`): never a stamp (E9). */
   kind?: string
   titleAs?: ElementType
@@ -88,6 +90,7 @@ export type HeadProps = {
 export function Head({
   title,
   titleContent,
+  peeks = false,
   kind,
   titleAs: TitleTag = 'span',
   paint,
@@ -123,7 +126,7 @@ export function Head({
       // The app's heading face and print sizes hand the title its own back
       // (`styles/build/libHandback.css`, `print.css`).
       data-handback=""
-      title={title}
+      title={peeks ? undefined : title}
       // On the notch's paper the name is ink (the class's), whatever the band.
     >
       <span>{titleContent ?? title}</span>

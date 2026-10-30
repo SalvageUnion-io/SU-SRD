@@ -30,6 +30,16 @@ describe('Compact body', () => {
     expect(container.querySelector('.su-entity-compact__frame[data-bodyless]')).toBeNull()
   })
 
+  test('a Peeking Compact opens no native tooltip beside its Peek; a still one keeps it', () => {
+    const still = render(<Entity size="compact" entity={table('Core Mechanic')} lead />)
+    expect(still.container.querySelector('.su-entity-compact__title')?.getAttribute('title')).toBe(
+      'Core Mechanic'
+    )
+    expect(still.container.querySelector('.su-entity-lead')?.hasAttribute('title')).toBe(true)
+    const peeking = render(<Entity size="compact" entity={table('Core Mechanic')} lead peek />)
+    expect(peeking.container.querySelector('[title]')).toBeNull()
+  })
+
   test('a bodyless Compact taller than its head fills with its band and sets its name at the foot', () => {
     const css = readPackageStylesheet().replace(/\s+/g, ' ')
     expect(css).toContain(

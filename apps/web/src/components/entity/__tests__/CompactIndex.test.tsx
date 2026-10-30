@@ -41,16 +41,17 @@ describe('CompactIndex lead', () => {
 
   // happy-dom drops `-webkit-box` and `-webkit-line-clamp` from a parsed
   // style, so the clamp is read from the markup React emits.
-  test('clamps it to three lines, the full text in the tooltip', () => {
+  test('clamps it to three lines, with no native tooltip beside its Peek', () => {
     const html = renderToStaticMarkup(<Entity size="compact" layout="index" entity={mule()} lead />)
-    const style = html.match(/<p [^>]*style="([^"]*)"[^>]*title="/)?.[1]
+    const style = html.match(/<p [^>]*style="([^"]*)"/)?.[1]
     expect(style).toContain('display:-webkit-box')
     expect(style).toContain('-webkit-box-orient:vertical')
     expect(style).toContain('-webkit-line-clamp:3')
     expect(style).toContain('overflow:hidden')
 
     const { container } = render(<Entity size="compact" layout="index" entity={mule()} lead />)
-    expect(cellsOf(container).querySelector('p')?.title).toBe(muleLead())
+    expect(cellsOf(container).querySelector('p')?.hasAttribute('title')).toBe(false)
+    expect(container.querySelector('[title]')).toBeNull()
   })
 
   test('without `lead`, the tile carries no lore line', () => {

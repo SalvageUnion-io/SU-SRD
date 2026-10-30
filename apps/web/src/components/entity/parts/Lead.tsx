@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize } from '../../../design/tokens'
 
-/** The lead: three lines of ink-2 prose, clamped with "…", the full text in a tooltip. */
+/** The lead: three lines of ink-2 prose, clamped with "…". */
 const LEAD = {
   color: color.ink2,
   display: '-webkit-box',
@@ -14,10 +14,14 @@ const LEAD = {
   WebkitLineClamp: 3,
 } satisfies CSSProperties
 
-/** LEAD (E11) — the entity's opening prose, while browsing only. */
-export function Lead({ text }: { text: string }) {
+/**
+ * LEAD (E11) — the entity's opening prose, while browsing only. The full text
+ * rides a native tooltip, unless its card Peeks (`peeks`): the Peek already
+ * shows the whole entry, and the two must not open together.
+ */
+export function Lead({ text, peeks = false }: { text: string; peeks?: boolean }) {
   return (
-    <p className="su-entity-lead" style={LEAD} title={text}>
+    <p className="su-entity-lead" style={LEAD} title={peeks ? undefined : text}>
       {text}
     </p>
   )
