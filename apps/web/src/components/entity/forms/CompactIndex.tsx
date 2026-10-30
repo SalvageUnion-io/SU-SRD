@@ -19,7 +19,7 @@ import { censorMark } from '../parts/censor'
 import { factCells } from '../parts/factCells'
 import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
-import { paintFor } from '../parts/paint'
+import { bandFrame, paintFor } from '../parts/paint'
 import { usePeekAttrs } from '../peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
@@ -165,7 +165,11 @@ export function CompactIndex({
         art.kind === 'image' || mark ? 'su-entity-index' : 'su-entity-index su-entity-index--bare'
       }
     >
-      <div className="su-entity-index__frame" data-user-made={model.userMade || undefined}>
+      <div
+        className="su-entity-index__frame"
+        data-user-made={model.userMade || undefined}
+        style={bandFrame(paint.background)}
+      >
         {art.kind === 'image' && (
           <span className="su-entity-index__art">
             {artWindow ? (

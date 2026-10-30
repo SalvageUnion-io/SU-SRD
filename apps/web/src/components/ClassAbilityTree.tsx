@@ -256,10 +256,11 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
     : `Stay ${articleFor(classEntity.name)} ${classEntity.name}: ${path.advanced.tree}, then one ${name} Ability.`
   // A Hybrid Class's path wears its rust, the class's own its orange.
   const track: TreeTrack = hybrid ? 'hybrid' : 'core'
+  const paint = tierPaint(track)
   const head = (
     <Head
       title={name}
-      paint={tierPaint(track)}
+      paint={paint}
       chips={
         // The kind and whose it is are marks; what it opens from, its relation (C2).
         // The paths are one list of Compacts (Compact frames, one width): its lines
@@ -285,6 +286,8 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
           Flush, so the foot's rule spans the frame. */}
       <Box
         body="flush"
+        // The frame wears the head's paint (R38).
+        frameColor={paint.background}
         head={
           hybrid ? (
             <a className="su-class-path__link" href={classHref(hybrid)}>

@@ -23,7 +23,7 @@ export type BoxProps = {
   head?: ReactNode
   /**
    * The frame's colour token value (`var(--color-…)`), set through
-   * `--su-compact-frame`, the one hook that colours a frame (R38); the subtle
+   * `--su-compact-frame`, the hook that overrides a frame's colour (R38); the subtle
    * ink-40 by default.
    */
   frameColor?: string

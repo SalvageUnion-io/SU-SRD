@@ -4,7 +4,7 @@
  * N3's named exception, the Mini this group holds). The border is no frame
  * (no head, no level). It only says they are one thing's.
  *
- * The border is every entity frame's subtle ink-40 (R38), never the entity's
+ * The border is the subtle ink-40 a frame with no band wears (R38), never the entity's
  * tone: the bay's Mini carries its tone.
  */
 

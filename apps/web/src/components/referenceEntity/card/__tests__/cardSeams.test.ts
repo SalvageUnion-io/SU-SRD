@@ -219,13 +219,20 @@ describe('cardChrome', () => {
     frameWidth: 'var(--bw-entity)',
   }
 
-  test('the frame is the subtle ink-40 (R38)', () => {
+  test("the frame wears its band's paint, ink-40 with none (R38)", () => {
     const solid = resolveCardInteraction({ ...base, selectionRole: undefined, selected: undefined })
     expect(solid.frameStyle).toMatchObject({
-      borderColor: 'var(--color-ink-40)',
+      borderColor: 'var(--su-compact-frame,var(--su-band,var(--color-ink-40)))',
       borderStyle: 'solid',
       borderTopWidth: 'var(--bw-entity)',
     })
+    const banded = resolveCardInteraction({
+      ...base,
+      selectionRole: undefined,
+      selected: undefined,
+      band: 'var(--color-chassis)',
+    })
+    expect(banded.frameStyle).toMatchObject({ '--su-band': 'var(--color-chassis)' })
   })
 
   test('a whole-card click announces selection by role', () => {
