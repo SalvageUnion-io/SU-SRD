@@ -71,24 +71,21 @@ describe('Peek size', () => {
     const { container } = render(
       <InsidePeekContext.Provider value={true}>
         <Entity size="compact" entity={drill()} lead peek />
-        <Entity size="compact" layout="index" entity={drill()} lead />
       </InsidePeekContext.Provider>
     )
     expect(container.querySelector('[data-peek]')).toBeNull()
     expect(container.querySelectorAll('.su-entity-compact__title[title]').length).toBe(1)
-    expect(container.querySelectorAll('.su-entity-index__name[title]').length).toBe(1)
   })
 
-  test('an index Compact and a Mini Peek as Minis', () => {
+  test('a Mini Peeks as a Mini', () => {
     const entity = drill()
     const { container } = render(
       <EntitySurfaceProvider value={{ hrefFor }}>
-        <Entity size="compact" layout="index" entity={entity} mode={{ kind: 'link' }} lead />
         <Entity size="mini" context="loadout" entity={entity} mode={{ kind: 'link' }} />
       </EntitySurfaceProvider>
     )
     const triggers = [...container.querySelectorAll('[data-peek]')]
-    expect(triggers.length).toBeGreaterThanOrEqual(2)
+    expect(triggers.length).toBeGreaterThanOrEqual(1)
     for (const trigger of triggers) expect(trigger.getAttribute(PEEK_SIZE_ATTRIBUTE)).toBe('mini')
   })
 

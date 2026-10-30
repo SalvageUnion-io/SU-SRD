@@ -47,7 +47,7 @@ Each names its gate ([hard-rules.md](hard-rules.md)); breaking one needs an amen
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
 - **E13** Texture and user-made come from the surface and instance. **E16** A Peek is read-only and terminal (ruleset §1.6).
-- **E23** A Peek is one form below its trigger's (a contentful Compact down to a Mini), never beside a native tooltip.
+- **E23** A Peek is one form below its trigger's (contentful Compact down to Mini), never beside a native tooltip.
 - **E14** Tables are the Table instrument: a roll bar in a contentful (nested: a Mini), open on a Page, panel or resolve; its ROLL THE DIE stamp the roll button, a result its marked row.
 - **E15** No hand-built entity markup outside `entity/`; a rules block (When Damaged) has one renderer everywhere.
 - **E17** No "//" line: a head's chips are one group, as [chips-and-actions.md](chips-and-actions.md) C1–C8 lay it; on ink each chip has a paper rule.

@@ -280,6 +280,8 @@ export function scanNesting(a: NestingSelectors): NestingFinding[] {
       if (free - outerWidth(el) > a.tolerance)
         return `${Math.round(t.getBoundingClientRect().width)}px on a ${Math.round(free)}px line`
       if (others.length > 0) return undefined
+      // A Peek's plate is its own measure (E23: a Mini's at 360px).
+      if (p.matches('[data-peek-popup]')) return undefined
       // A percentage stays one in the computed style: only a length caps.
       const cap = ps.maxWidth.endsWith('px') ? px(ps.maxWidth) : 0
       if (cap > 0 && p.getBoundingClientRect().width >= cap - a.tolerance) return undefined
