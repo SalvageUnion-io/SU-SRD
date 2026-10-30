@@ -8,18 +8,17 @@ import type {
   LiveState,
 } from '../environments'
 import {
-  ACTIONS_APP_ID,
   apply,
   compare,
   compareRuleset,
   ENVIRONMENTS,
-  MAIN_RULESET,
   main,
   REPO,
   REPOSITORY_SECRETS,
   readLive,
   readRuleset,
 } from '../environments'
+import { ACTIONS_APP_ID, MAIN_RULESET } from '../mainRuleset'
 
 /**
  * `tools/environments.ts` — the declared GitHub Environments against a live
@@ -354,7 +353,7 @@ describe('the main ruleset', () => {
     enforcement: 'active',
     include: ['~DEFAULT_BRANCH'],
     exclude: [],
-    bypassActors: 0,
+    bypassActors: [...MAIN_RULESET.bypassActors],
     rules: [...MAIN_RULESET.rules],
     requiredChecks: MAIN_RULESET.requiredChecks.map((context) => ({
       context,
@@ -387,7 +386,13 @@ describe('the main ruleset', () => {
 
   test('each drift is named: enforcement, bypass, rules, source, strictness, code scanning', () => {
     expect(drift({ enforcement: 'evaluate' })[0]).toContain('is `evaluate`, not active')
-    expect(drift({ bypassActors: 1 })[0]).toContain('1 bypass actor(s)')
+    expect(drift({ bypassActors: [] })[0]).toContain(
+      'has bypass actors [], declared [OrganizationAdmin:-:always]'
+    )
+    const team = { actor_type: 'Team', actor_id: 9, bypass_mode: 'pull_request' }
+    expect(drift({ bypassActors: [...MAIN_RULESET.bypassActors, team] })[0]).toContain(
+      'Team:9:pull_request'
+    )
     expect(drift({ rules: ['deletion'] })[0]).toContain('carries rules [deletion]')
     const anySource = MAIN_RULESET.requiredChecks.map((context) => ({ context }))
     expect(drift({ requiredChecks: anySource })[0]).toContain('not GitHub Actions')
@@ -410,7 +415,7 @@ describe('the main ruleset', () => {
         name: 'main',
         enforcement: 'active',
         conditions: { ref_name: { include: ['~DEFAULT_BRANCH'], exclude: [] } },
-        bypass_actors: [],
+        bypass_actors: [{ actor_id: null, actor_type: 'OrganizationAdmin', bypass_mode: 'always' }],
         rules: [
           { type: 'deletion' },
           {
@@ -433,7 +438,7 @@ describe('the main ruleset', () => {
       enforcement: 'active',
       include: ['~DEFAULT_BRANCH'],
       exclude: [],
-      bypassActors: 0,
+      bypassActors: [{ actor_type: 'OrganizationAdmin', actor_id: null, bypass_mode: 'always' }],
       rules: ['deletion', 'required_status_checks', 'code_scanning'],
       requiredChecks: [{ context: 'CI Success', integration_id: ACTIONS_APP_ID }],
       strict: true,
@@ -530,7 +535,7 @@ describe('main', () => {
         name: 'main',
         enforcement: 'active',
         conditions: { ref_name: { include: [...MAIN_RULESET.include], exclude: [] } },
-        bypass_actors: [],
+        bypass_actors: [...MAIN_RULESET.bypassActors],
         rules: MAIN_RULESET.rules.map((type) =>
           type === 'required_status_checks'
             ? {

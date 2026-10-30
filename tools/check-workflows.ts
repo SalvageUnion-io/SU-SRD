@@ -73,8 +73,8 @@ import {
   stepsOf,
 } from 'gates/lib/workflowYaml'
 import { readManifests } from 'gates/lib/workspaceGraph'
-import type { EnvironmentSpec, RulesetSpec } from './environments'
-import { ENVIRONMENTS, MAIN_RULESET, SECRET_SENTINEL } from './environments'
+import { ENVIRONMENTS, SECRET_SENTINEL } from './environments'
+import { MAIN_RULESET } from './mainRuleset'
 import { checkPathFilters } from './workflowPathFilters'
 
 export type { WorkflowFile }
@@ -142,7 +142,7 @@ const UNGATED_BY_DESIGN: Record<string, string> = {}
 export function checkAggregator(
   ctx: WorkflowContext,
   exempt: Record<string, string> = UNGATED_BY_DESIGN,
-  ruleset: RulesetSpec = MAIN_RULESET
+  ruleset: typeof MAIN_RULESET = MAIN_RULESET
 ): CheckResult {
   const doc = file(ctx, CI)
   if (!doc) return { ok: '', failures: [`${CI} is missing`] }
@@ -419,7 +419,7 @@ export function checkDeployOrder(ctx: WorkflowContext): CheckResult {
 // ─── secrets-env ────────────────────────────────────────────────────────────
 
 export type SecretsDeclaration = {
-  environments: readonly EnvironmentSpec[]
+  environments: typeof ENVIRONMENTS
   /** The one job that maps Environment secrets with NO environment; null skips it (tests). */
   sentinel: { file: string; job: string } | null
 }
