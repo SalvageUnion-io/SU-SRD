@@ -100,3 +100,26 @@ describe('rooms', () => {
     expect(res.status).toBe(403)
   })
 })
+
+describe('room backups', () => {
+  it('a dump of one room restores into another, over RPC', async () => {
+    const from = exports.GameRoom.getByName('backed-up')
+    await runInDurableObject(from, (_instance, state) => {
+      state.storage.sql.exec('create table if not exists notes (id text primary key, body text)')
+      state.storage.sql.exec("insert into notes values ('n-1', 'Salvage')")
+    })
+    const dump = await from.dump()
+    expect(dump.tables.notes).toEqual([{ id: 'n-1', body: 'Salvage' }])
+    expect(Object.keys(dump.tables).some((table) => table.startsWith('_cf_'))).toBe(false)
+    const to = exports.GameRoom.getByName('restored')
+    await runInDurableObject(to, (_instance, state) => {
+      state.storage.sql.exec('create table if not exists notes (id text primary key, body text)')
+    })
+    await to.restore(dump)
+    await runInDurableObject(to, (_instance, state) => {
+      expect(state.storage.sql.exec('select * from notes').toArray()).toEqual([
+        { id: 'n-1', body: 'Salvage' },
+      ])
+    })
+  })
+})

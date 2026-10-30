@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url'
 import type { AstroIntegration } from 'astro'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { writePublicPages } from './appPlugins'
+import { assertUrlSafeAssets } from './assetNames'
 import { assertNoDeadLinks } from './deadLinks'
 import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
@@ -71,6 +72,7 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
         const headersFile = join(distDir, '_headers')
         const headers = await readFile(headersFile, 'utf-8')
         await writeFile(headersFile, withScriptHashes(headers, [...inline].map(scriptHash)))
+        await assertUrlSafeAssets(distDir)
         await assertNoUuidLinks(distDir)
         await assertNoDeadLinks(distDir, await readFile(ROUTE_TREE, 'utf-8'))
 

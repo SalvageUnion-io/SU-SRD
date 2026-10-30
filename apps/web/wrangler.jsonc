@@ -61,7 +61,12 @@
   ],
 
   // PHOTOS: entity photos (src/worker/photos.ts); `su-photos-preview` in `previews`.
-  "r2_buckets": [{ "binding": "PHOTOS", "bucket_name": "su-photos" }],
+  // ARCHIVE: the private bucket the nightly room backups go to
+  // (src/worker/shared/backups.ts); a Preview has none, and runs no crons.
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "su-photos" },
+    { "binding": "ARCHIVE", "bucket_name": "su-archive" }
+  ],
 
   // BOT: the Discord bot's relay (`su-discord-bot`'s `Relay` entrypoint), which
   // posts a Play roll or a Stop Sign to a bound channel
@@ -70,9 +75,9 @@
   // before this binding deploys.
   "services": [{ "binding": "BOT", "service": "su-discord-bot", "entrypoint": "Relay" }],
 
-  // The daily usage snapshot and the hourly feedback sweep (src/worker/crons.ts,
-  // which names each schedule).
-  "triggers": { "crons": ["13 5 * * *", "23 * * * *"] },
+  // The daily usage snapshot, the hourly feedback sweep and the nightly room
+  // backup (src/worker/crons.ts, which names each schedule).
+  "triggers": { "crons": ["13 5 * * *", "23 * * * *", "43 4 * * *"] },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
   // bindings above: its own shared database and photos, so a Preview never

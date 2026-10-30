@@ -4,12 +4,14 @@ import { FEEDBACK_REFUSAL } from 'game-domain/feedback'
 import { NATIVE_FETCH_GLOBALS } from '../../../test/env'
 import { BUILD_FLOOR } from '../../lib/connection/buildFloorStamp'
 import type { Profile } from '../../rooms/account/shelf'
+import type { RoomDump } from '../../rooms/dump'
 import { ACCOUNT_PATHS } from '../../rooms/routes'
 import type { AccountExport, Me } from '../accountRoutes'
 import { isAccountPath, serveAccount } from '../accountRoutes'
 import type { Identity } from '../auth/index'
 import { d1Sql, saveAccount } from '../auth/store'
 import { publishGame, testDb } from '../shared/__tests__/d1'
+import type { ArchiveBucket, BackupRooms } from '../shared/backups'
 import { bumpUsage } from '../shared/signals'
 
 /**
@@ -72,14 +74,27 @@ afterEach(() => {
   delete namespaces.AccountRoom
 })
 
-function call(path: string, who: Identity | null, body?: unknown, origin = ORIGIN) {
+function call(
+  path: string,
+  who: Identity | null,
+  body?: unknown,
+  origin = ORIGIN,
+  extra: { ARCHIVE?: ArchiveBucket; rooms?: BackupRooms } = {}
+) {
   const request = new Request(`${ORIGIN}${path}`, {
     method: body === undefined ? 'GET' : 'POST',
     headers: { origin, 'content-type': 'application/json' },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   })
-  return serveAccount(request, { SHARED: db as never }, async () => who)
+  return serveAccount(
+    request,
+    { SHARED: db as never, ARCHIVE: extra.ARCHIVE },
+    async () => who,
+    () => extra.rooms ?? { dump: async () => DUMP, restore: async () => {} }
+  )
 }
+
+const DUMP: RoomDump = { format: 1, schema: 1, tables: { units: [{ id: 'u-1' }] } }
 
 describe('the account’s routes', () => {
   test('are named under the rooms’ path', () => {
@@ -185,6 +200,43 @@ describe('the account’s routes', () => {
     }
     expect(read.snapshot?.counts.accounts).toBe(0)
     expect(read.weeks[0]?.counts['downtime:game']).toBe(1)
+  })
+
+  test('backing up and restoring rooms are an admin’s, into and out of the archive', async () => {
+    const objects = new Map<string, string>()
+    const ARCHIVE: ArchiveBucket = {
+      put: async (key, value) => {
+        objects.set(key, value)
+      },
+      get: async (key) => {
+        const value = objects.get(key)
+        return value === undefined ? null : { text: async () => value }
+      },
+    }
+    const restored: string[] = []
+    const rooms: BackupRooms = {
+      dump: async () => DUMP,
+      restore: async (kind, name) => {
+        restored.push(`${kind}/${name}`)
+      },
+    }
+    const extra = { ARCHIVE, rooms }
+    expect((await call(ACCOUNT_PATHS.backup, null, {}, ORIGIN, extra)).status).toBe(401)
+    expect((await call(ACCOUNT_PATHS.backup, PLAYER, {}, ORIGIN, extra)).status).toBe(403)
+    expect((await call(ACCOUNT_PATHS.backup, ADMIN, {})).status).toBe(503)
+    const ran = (await (await call(ACCOUNT_PATHS.backup, ADMIN, {}, ORIGIN, extra)).json()) as {
+      written: number
+      takenAt: string
+    }
+    expect(ran.written).toBe(1)
+    const day = ran.takenAt.slice(0, 10)
+    const restore = (body: unknown, who = ADMIN) =>
+      call(ACCOUNT_PATHS.restore, who, body, ORIGIN, extra)
+    expect((await restore({ day, kind: 'account', name: 'd-1' }, PLAYER)).status).toBe(403)
+    expect((await restore({ day: 'today', kind: 'account', name: 'd-1' })).status).toBe(400)
+    expect((await restore({ day, kind: 'game', name: 'nope' })).status).toBe(404)
+    expect((await restore({ day, kind: 'account', name: 'd-1' })).status).toBe(200)
+    expect(restored).toEqual(['account/d-1'])
   })
 
   test('the build floor is anyone’s', async () => {

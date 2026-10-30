@@ -80,21 +80,29 @@ const renderApp = (root: HTMLElement) =>
     </StrictMode>
   )
 
-// The whole dataset, once the first route has loaded: the root asked only for
-// what that route's first paint waits on (`firstPaintSchemas`), and the
-// rest is for whatever is opened next. Deduplicated where the root asked for
-// it all (`preloadGameData`).
-const stopWaiting = router.subscribe('onResolved', () => {
-  stopWaiting()
-  void preloadGameData('all', 'full')
-})
-
 // Opening on a signed-out view the shell already shows (`SIGNED_OUT_VIEW_ATTRIBUTE`),
 // the first render, which replaces it, waits until the live one can draw in
 // its place: its schemas and its route. Sooner, the root's own waits would
 // swap the page for a spinner. A failure renders anyway: the gates retry.
+let firstRender: Promise<unknown> = Promise.resolve()
+
+// The whole dataset, once the first route has loaded and drawn and the
+// browser is idle: the root asked only for what that route's first paint
+// waits on (`firstPaintSchemas`), and the rest is for whatever is opened
+// next. Fetched sooner, its 700 KB shares a phone's connection with that first
+// paint and holds it back by seconds. Deduplicated where the root asked for it
+// all (`preloadGameData`).
+const whenIdle = (run: () => void): void => {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 5000 })
+  else setTimeout(run, 2000)
+}
+const stopWaiting = router.subscribe('onResolved', () => {
+  stopWaiting()
+  void firstRender.then(() => whenIdle(() => void preloadGameData('all', 'full')))
+})
+
 if (document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
-  void Promise.allSettled([
+  firstRender = Promise.allSettled([
     preloadGameData(firstPaintSchemas(window.location.pathname), 'full'),
     router.load(),
   ]).then(() => renderApp(rootEl))

@@ -5,9 +5,11 @@
 
 import { exports } from 'cloudflare:workers'
 import type { DurableObjectNamespace } from '@cloudflare/workers-types'
+import type { RoomDump } from '../rooms/dump'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../rooms/game/acts'
 import type { HomeAddress, UnitHome } from '../rooms/handoff'
 import type { AccountRoom, GameRoom } from './rooms'
+import type { BackupRooms, RoomKind } from './shared/backups'
 
 /** What the Game room asks of a player's account room: the handoff, and at a Game's end the Opposition tray and its list of Games. */
 type AccountHome = UnitHome & {
@@ -58,4 +60,17 @@ export function homeOf(address: HomeAddress): UnitHome {
 /** A player's account room, by Discord id. */
 export function accountHome(userId: string): AccountHome {
   return rooms().AccountRoom.getByName(userId) as unknown as AccountHome
+}
+
+/** Every room by kind and name, as the nightly backup and an admin's restore reach it. */
+export function backupRooms(): BackupRooms {
+  const room = (kind: RoomKind, name: string) =>
+    (kind === 'account' ? rooms().AccountRoom : rooms().GameRoom).getByName(name) as unknown as {
+      dump(): Promise<RoomDump>
+      restore(dump: RoomDump): Promise<void>
+    }
+  return {
+    dump: (kind, name) => room(kind, name).dump(),
+    restore: (kind, name, dump) => room(kind, name).restore(dump),
+  }
 }

@@ -17,6 +17,7 @@ import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { VitePWA } from 'vite-plugin-pwa'
 import { appGraph } from './astro/build/appGraph'
 import { appShellInDev, baseStylesheetModule } from './astro/build/appPlugins'
+import { HASHED_NAMES } from './astro/build/assetNames'
 import { DEV_STATE, devWorker } from './astro/build/devWorker'
 import { FONTS } from './astro/build/fonts'
 import { islandDirectives } from './astro/build/islandDirectives'
@@ -81,13 +82,6 @@ const pwa = VitePWA({
 })
 const pwaApi = (): VitePluginPWAAPI | undefined =>
   pwa.find((plugin) => plugin.name === 'vite-plugin-pwa')?.api as VitePluginPWAAPI | undefined
-
-/** `name-hash`, as the bundle-budget specs match chunks by prefix (`e2e/_bundle.ts`). */
-const HASHED_NAMES = {
-  entryFileNames: 'assets/[name]-[hash].js',
-  chunkFileNames: 'assets/[name]-[hash].js',
-  assetFileNames: 'assets/[name]-[hash][extname]',
-}
 
 /**
  * Entries keep their exports but may gain more (`allow-extension`): Astro's
