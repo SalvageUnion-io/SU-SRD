@@ -32,8 +32,8 @@
  *   - with `--secrets-from-env`: none of the Environment secrets is readable
  *     in this process (CI maps them into a job that has NO environment, so a
  *     non-empty value can only be a repository- or organisation-level copy);
- *   - the `main` branch ruleset carries exactly `MAIN_RULESET`: its target,
- *     no bypass actors, its rule types, its required status contexts (strict,
+ *   - the `main` branch ruleset carries exactly `MAIN_RULESET` (tools/mainRuleset.ts): its target,
+ *     its bypass actors, its rule types, its required status contexts (strict,
  *     each from GitHub Actions) and its code-scanning gate. `check-workflows.ts`
  *     (`aggregator`) reads the same declaration to know which workflows the
  *     ruleset waits on. The ruleset is owner-applied; `--apply` never edits it.
@@ -64,6 +64,9 @@
  *   bun tools/environments.ts --secrets-from-env   # also fail on a secret readable outside its Environment
  *   bun tools/environments.ts --require-all        # a check this token cannot run is a failure
  */
+
+import type { BypassActorSpec, CodeScanningSpec, RulesetSpec } from './mainRuleset'
+import { ACTIONS_APP_ID, MAIN_RULESET } from './mainRuleset'
 
 export const REPO = 'SalvageUnion-io/SU-SRD'
 
@@ -110,50 +113,6 @@ export const ENVIRONMENTS: readonly EnvironmentSpec[] = [
     secrets: [],
   },
 ]
-
-/** A `code_scanning` rule entry: which tool's results gate a merge, and at what severity. */
-type CodeScanningSpec = {
-  tool: string
-  security_alerts_threshold: string
-  alerts_threshold: string
-}
-
-export type RulesetSpec = {
-  name: string
-  /** `conditions.ref_name.include`; nothing is excluded and no actor bypasses. */
-  include: readonly string[]
-  /** Every rule type the ruleset carries. */
-  rules: readonly string[]
-  /** `required_status_checks` contexts, each from GitHub Actions, strict (up to date with the base). */
-  requiredChecks: readonly string[]
-  /** `code_scanning` tools: blocking a merge on a finding is this rule's job, not a status. */
-  codeScanning: readonly CodeScanningSpec[]
-}
-
-/** The GitHub Actions app: the only source a required context is taken from. */
-export const ACTIONS_APP_ID = 15368
-
-/**
- * The `main` branch ruleset. CodeQL gates through `code_scanning` alone: its
- * job's own status (`Analyze (javascript-typescript)`) passes once the analysis
- * uploads, whatever it found, so requiring it too added nothing but a second
- * name to keep in step.
- */
-export const MAIN_RULESET: RulesetSpec = {
-  name: 'main',
-  include: ['~DEFAULT_BRANCH'],
-  rules: [
-    'deletion',
-    'non_fast_forward',
-    'required_status_checks',
-    'code_scanning',
-    'pull_request',
-  ],
-  requiredChecks: ['CI Success', 'PR title is a conventional commit', 'Claude review'],
-  codeScanning: [
-    { tool: 'CodeQL', security_alerts_threshold: 'high_or_higher', alerts_threshold: 'errors' },
-  ],
-}
 
 /**
  * Secrets allowed at repository level, readable from any branch. Only a
@@ -306,7 +265,7 @@ export type LiveRuleset = {
   include: string[]
   exclude: string[]
   /** null when the token may not see bypass actors. */
-  bypassActors: number | null
+  bypassActors: BypassActorSpec[] | null
   rules: string[]
   requiredChecks: { context: string; integration_id?: number }[]
   strict: boolean
@@ -336,8 +295,12 @@ export function compareRuleset(spec: RulesetSpec, have: LiveRuleset | null | und
         `declared include [${spec.include.join(', ')}] and no exclusions`
     )
   }
-  if (have.bypassActors !== null && have.bypassActors > 0)
-    failures.push(`${what} has ${have.bypassActors} bypass actor(s); it declares none`)
+  const actors = (l: readonly BypassActorSpec[]) =>
+    l.map((a) => `${a.actor_type}:${a.actor_id ?? '-'}:${a.bypass_mode}`)
+  if (have.bypassActors !== null && !same(actors(have.bypassActors), actors(spec.bypassActors)))
+    failures.push(
+      `${what} has bypass actors [${actors(have.bypassActors)}], declared [${actors(spec.bypassActors)}]`
+    )
   if (!same(have.rules, spec.rules)) {
     failures.push(
       `${what} carries rules [${sorted(have.rules).join(', ')}], declared [${sorted(spec.rules).join(', ')}]`
@@ -476,7 +439,7 @@ type ApiRuleset = {
   name: string
   enforcement: string
   conditions?: { ref_name?: { include?: string[]; exclude?: string[] } }
-  bypass_actors?: unknown[]
+  bypass_actors?: BypassActorSpec[]
   rules?: ApiRule[]
 }
 
@@ -495,7 +458,7 @@ export function readRuleset(name: string, api: GhApi = gh): LiveRuleset | null |
     enforcement: r.enforcement,
     include: r.conditions?.ref_name?.include ?? [],
     exclude: r.conditions?.ref_name?.exclude ?? [],
-    bypassActors: r.bypass_actors ? r.bypass_actors.length : null,
+    bypassActors: r.bypass_actors ?? null,
     rules: rules.map((x) => x.type),
     requiredChecks:
       (checks.required_status_checks as LiveRuleset['requiredChecks'] | undefined) ?? [],

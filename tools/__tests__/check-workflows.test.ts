@@ -13,7 +13,7 @@ import {
   toolIsPinned,
   WORKFLOW_CHECKS,
 } from '../check-workflows'
-import { MAIN_RULESET } from '../environments'
+import { MAIN_RULESET } from '../mainRuleset'
 
 /**
  * `tools/check-workflows.ts` — five merge-gating invariants over `.github/`.
