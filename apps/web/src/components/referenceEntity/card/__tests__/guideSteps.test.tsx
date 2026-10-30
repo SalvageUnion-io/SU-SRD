@@ -151,8 +151,11 @@ describe('GuideSteps on the page', () => {
 
     const heads = [...container.querySelectorAll('.su-guide__head h2')]
     expect(heads).toHaveLength(pilot.steps.length)
-    // The stamp reads numeral, then name.
-    expect(heads[0]?.textContent).toBe(`1 ${pilot.steps[0]?.name}`)
+    // The stamp reads the name; the numeral is the step's rail tab, beside it.
+    expect(heads[0]?.textContent).toBe(pilot.steps[0]?.name)
+    const tabs = [...container.querySelectorAll('.su-guide__step > .su-guide__tab')]
+    expect(tabs.map((tab) => tab.textContent)).toEqual(pilot.steps.map((_, i) => `${i + 1}`))
+    expect(tabs[0]?.getAttribute('aria-hidden')).toBe('true')
   })
 
   test('an optional step says so on its slab', () => {
@@ -221,7 +224,7 @@ describe('GuideSteps on the page', () => {
     sections.forEach((section, index) => {
       expect(section.querySelector('.su-slab-section__head h2')?.textContent).toBe(labels[index])
       // Numbering restarts in every section.
-      expect(section.querySelector('.su-guide__head h3')?.textContent).toMatch(/^1 /)
+      expect(section.querySelector('.su-guide__tab')?.textContent).toBe('1')
     })
     expect(container.querySelectorAll('.su-guide__head h3')).toHaveLength(downtime.steps.length)
   })
@@ -316,18 +319,32 @@ describe('GuideSteps on the page', () => {
     expect(container.textContent).toContain('Reactor Overload Table p. 235')
   })
 
-  test("a step's options on its Page are open Compacts, one a line, never Minis (N8)", () => {
+  test("a step's options on its Page are header Compacts linking to their Pages (R39)", () => {
     const { container } = render(
-      <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+      <EntitySurfaceProvider value={{ hrefFor: (ref) => `/${ref.schemaName}/${ref.slug}/` }}>
+        <ReferenceEntityCard data={guide('Create a Mech')} presentation="page" />
+      </EntitySurfaceProvider>
     )
-    const list = container.querySelector('ul.su-guide__rows[aria-label="Craft your Systems"]')
+    const list = container.querySelector('ul.su-guide__options[aria-label="Craft your Systems"]')
     expect(list).not.toBeNull()
     const items = list?.querySelectorAll(':scope > li') ?? []
     expect(items.length).toBeGreaterThan(0)
     for (const item of items) {
-      expect(item.querySelector('.su-ec-frame')).not.toBeNull()
-      expect(item.querySelector(':scope > .su-entity-mini')).toBeNull()
+      expect(item.querySelector('.su-entity-compact__frame')).not.toBeNull()
+      expect(item.querySelector('.su-entity-mini')).toBeNull()
+      expect(item.querySelector('a[href^="/systems/"]')).not.toBeNull()
+      // A header alone: none of the option's rules text.
+      expect(item.querySelector('.su-ec-frame')).toBeNull()
     }
+  })
+
+  test("a ladder's levels on its Page stay open Compacts (N8)", () => {
+    const { container } = render(
+      <ReferenceEntityCard data={guide('Upgrading your Union Crawler')} presentation="page" />
+    )
+    const cards = container.querySelector('.su-guide__ladder-cards')
+    expect(cards?.querySelector('.su-ec-frame')).not.toBeNull()
+    expect(cards?.querySelector('.su-guide__options')).toBeNull()
   })
 
   test('a wide step table scrolls in its own box', () => {

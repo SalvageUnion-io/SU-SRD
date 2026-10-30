@@ -197,6 +197,105 @@
   scroll-margin-top: var(--space-24);
 }
 
+/*
+ * The steps run down the wizard's rail (`WizShell`): each step's numeral is
+ * the rail's ink tab, at the active tab's Size and the title rung, on the
+ * connector pipe that joins it to the next step, so the page reads as the
+ * book's numbered procedure and the builder walks the same one. An optional
+ * step's tab is hollow, as a step not yet taken is in the wizard. The name is
+ * the step's Slab beside its tab; its prose, options and table hang under
+ * the name, clear of the pipe. The pipe ends at the last step's foot, capped
+ * as the rail's stub is. A phone draws the tab at the Compact Size.
+ */
+.su-guide--page {
+  --su-guide-tab: var(--size-compact);
+  --su-guide-pipe: var(--space-20);
+}
+
+.su-guide--page .su-guide__step {
+  column-gap: var(--space-12);
+  display: grid;
+  grid-template-columns: var(--su-guide-tab) minmax(0, 1fr);
+  position: relative;
+}
+
+.su-guide--page .su-guide__step > .su-guide__head,
+.su-guide--page .su-guide__step > .su-guide__body {
+  grid-column: 2;
+}
+
+/* The pipe: from under the tab to the next step's tab, across the gap. */
+.su-guide--page .su-guide__step::before {
+  background-color: var(--color-ink);
+  bottom: calc(-1 * var(--space-12));
+  content: '';
+  left: calc((var(--su-guide-tab) - var(--su-guide-pipe)) / 2);
+  position: absolute;
+  top: 0;
+  width: var(--su-guide-pipe);
+}
+
+.su-guide--page .su-guide__step:first-child::before {
+  border-top-left-radius: 0.75rem; /* design-tokens-ignore(raw-radius): the rail pipe's drawn end */
+  border-top-right-radius: 0.75rem; /* design-tokens-ignore(raw-radius): the rail pipe's drawn end */
+  top: var(--space-4);
+}
+
+.su-guide--page .su-guide__step:last-child::before {
+  border-bottom-left-radius: 0.5rem; /* design-tokens-ignore(raw-radius): the rail pipe's drawn end */
+  border-bottom-right-radius: 0.5rem; /* design-tokens-ignore(raw-radius): the rail pipe's drawn end */
+  bottom: 0;
+}
+
+.su-guide--page .su-guide__step > .su-guide__tab {
+  align-self: start;
+  background-color: var(--color-ink);
+  border-radius: var(--radius-badge);
+  color: var(--color-paper);
+  display: grid;
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  height: var(--su-guide-tab);
+  line-height: 1;
+  place-items: center;
+  position: relative;
+  width: var(--su-guide-tab);
+}
+
+.su-guide--page .su-guide__step[data-optional] > .su-guide__tab {
+  background-color: var(--color-paper);
+  box-shadow: inset 0 0 0 var(--bw-pill) var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* The name stands level with its tab. */
+.su-guide--page .su-guide__step > .su-guide__head {
+  align-self: center;
+  grid-row: 1;
+  min-height: var(--su-guide-tab);
+}
+
+@media (width >= 40rem) {
+  .su-guide--page {
+    --su-guide-tab: var(--size-full);
+    --su-guide-pipe: var(--space-28);
+  }
+
+  .su-guide--page .su-guide__step {
+    column-gap: var(--space-16);
+  }
+
+  /* The pipe takes its width from the column, so the ladder takes half of
+     what is left, room for a level's whole name. */
+  .su-guide--page .su-guide__ladder-cards {
+    flex-basis: 50%;
+  }
+}
+
 /* The phone's contents: the list, always open, under its solid slab. */
 .su-guide__toc-block {
   display: flex;
@@ -231,7 +330,7 @@
 }
 
 .su-guide__toc-link {
-  align-items: baseline;
+  align-items: center;
   border-radius: var(--radius-card);
   color: var(--color-ink);
   display: flex;
@@ -258,12 +357,27 @@
   box-shadow: var(--focus-ring-shadow);
 }
 
+/* Each entry's numeral is a small rail tab, hollow as the wizard's steps
+   ahead are; the step the reader is in fills with ink, as the wizard's
+   current step does. */
 .su-guide__toc-num {
+  border-radius: var(--radius-badge);
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink);
+  display: inline-grid;
   flex: none;
   font-family: var(--font-cond);
+  font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-extrabold);
-  min-width: 1.5ch;
+  height: var(--space-24);
+  line-height: 1;
+  place-items: center;
+  width: var(--space-24);
+}
+
+.su-guide__toc-link[aria-current] > .su-guide__toc-num {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
 }
 
 /*

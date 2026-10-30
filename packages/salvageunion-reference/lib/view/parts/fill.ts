@@ -16,7 +16,8 @@ const RULES_BLUE = 'wk-line'
  * A guide's tone token, or `undefined` for every other entity. A creation
  * guide wears the colour of what it creates (R44): Create a Pilot
  * pilot orange, Create a Mech mech green, Create a Crawler crawler pink.
- * Heat wears its own red; every other guide rules blue, as
+ * Heat wears its own red and Crawler Downtime the crawler's pink; every
+ * other guide rules blue, as
  * its page's band is. A guide is the record with
  * a `guideType`.
  */
@@ -32,6 +33,7 @@ export function guideTone(entity: RefMetaEntity): string | undefined {
   const creation = CREATION_TONE[entity.guideType]
   if (creation) return creation
   if ('name' in entity && entity.name === 'Heat') return 'heat'
+  if ('name' in entity && entity.name === 'Crawler Downtime') return 'crawler'
   return RULES_BLUE
 }
 
