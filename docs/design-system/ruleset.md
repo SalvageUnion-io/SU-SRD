@@ -61,7 +61,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground.
    2. **§4.2 The tracking ladder** — tokens only: `--tracking-caps-tight` (0.04em) the label default, `-snug` at the 11px floor, `--tracking-caps` chips, `-wide` header stamps, `--tracking-eyebrow` brand caption.
    3. **§4.3 The border map** — 3px `--bw-entity` full card, 2px `--bw-entity-compact` (contentful below Full, `Box`), 1.5px `--bw-chrome` controls, 1px `--bw-hairline` value cells, table rules, sheet Identity/Vitals. A Compact, Mini or Box is inked only with content under its head.
-      Entity frames are `--color-ink-40`; only ability trees and patterns take a colour (`--su-compact-frame`); a non-entity box, its band's (R51).
+      A frame is its head's band paint, an entity's (R38) or a box's (R51); with no band, `--color-ink-40`; ability trees override (`--su-compact-frame`).
    4. **§4.4 Radius and spacing** — entity frames and stamps are square; all else that frames or floats is 3px, `calc(3px − frame)` inside; only the ink-banner tail is rounder.
       Spacing inside a block is `{2, 4, 6, 8, 12}px`, 12px the card gutter; between blocks, 16 or 24px. No literal where a token exists.
    5. **§4.5 The pip-row split** — at most 6 a row, bottom-heavy (7 → 3/4, 13 → 4/4/5); the redline pip at 70%.

@@ -17,7 +17,7 @@
    with no rule above it. Padded, its blocks stand 12px apart; flush, the
    content pads itself or rules its own bands. A Box's colour (`frameColor`,
    through `--su-compact-frame`) is its own frame's: the entities inside it keep
-   the subtle ink-40 (R38). */
+   their own band's paint (R38). */
 .su-box__body {
   --su-compact-frame: initial;
   display: flex;

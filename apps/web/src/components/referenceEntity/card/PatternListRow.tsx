@@ -235,6 +235,8 @@ export function PatternListing({
   const head = <Head title={`“${name}”`} titleContent={edit?.name} paint={paint} chips={chips} />
   return (
     <Box
+      // The frame wears the head's paint (R38).
+      frameColor={paint.background}
       head={
         href && !edit ? (
           <a

@@ -53,7 +53,7 @@ Each names its gate ([hard-rules.md](hard-rules.md)); breaking one needs an amen
 - **E18** Only the name flexes (C5); no stamp or chip is cut to "…". A Mini's head is one row (N4), of a static budget (C3).
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
 - **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), then Share (phone: glyph) and Build With This last (phone: chip-sized); a chassis's stats but TL, SV lead its body
-- **E21** Entity frames are the subtle ink-40 (ruleset §4.3). **E22** A name and its cut-out sit at their head's left.
+- **E21** An entity's frame is its band's paint (ruleset §4.3). **E22** A name and its cut-out sit at their head's left.
 
 ## Which form, where
 

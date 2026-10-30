@@ -9,6 +9,7 @@
  * one is grey, whatever its tone.
  */
 
+import type { CSSProperties } from 'react'
 import { foregroundOn } from '../../../design/contrast'
 import type { Down } from '../../referenceEntity/card/cardChrome'
 import { downBand } from '../../referenceEntity/card/cardChrome'
@@ -24,6 +25,15 @@ export type Paint = {
 }
 
 const FOREGROUND = { ink: 'var(--color-ink)', paper: 'var(--color-paper)' } as const
+
+/**
+ * The frame's colour, the band's (R38): `--su-band` on the frame, read by its
+ * border after `--su-compact-frame` (a tree's tier, a pattern's colour). With
+ * no band (`initial`), the frame keeps the subtle ink-40 and never inherits an
+ * outer frame's band.
+ */
+export const bandFrame = (band: string | undefined): CSSProperties =>
+  ({ '--su-band': band ?? 'initial' }) as CSSProperties
 
 export function paintFor(
   tone: string,

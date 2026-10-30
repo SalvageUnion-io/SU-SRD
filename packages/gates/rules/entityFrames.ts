@@ -8,10 +8,10 @@ import type { CssDecl } from '../lib/styleSource'
 import { matchesIn } from '../lib/styleSource'
 
 /**
- * An entity's frame (ruleset §4.3): the subtle
- * `--color-ink-40` the sheets' panels wear, never solid ink nor a per-entity
- * tone. Only `--su-compact-frame` colours one (an ability tree's tier, a
- * pattern's colour).
+ * An entity's frame (ruleset §4.3): its band's paint, through `--su-band`
+ * (the subtle `--color-ink-40` with no band), never a literal solid ink nor a
+ * tone; `--su-compact-frame` overrides (an ability tree's tier, a pattern's
+ * colour).
  */
 const ENTITY_FRAME_CLASSES = [
   'su-entity-compact__frame',
@@ -52,7 +52,7 @@ export const entityFrameInkCss = (decls: CssDecl[]) =>
     .filter((d) => SOLID_INK.test(d.value) && framesAnEntity(d.context.at(-1) ?? ''))
     .map((d) => ({ line: d.line, detail: `${d.context.at(-1)} { ${d.prop}: ${d.value} }` }))
 
-/** The values a frame's `borderColor` may take: the subtle ink, clear, or the tree's or pattern's colour. */
+/** The values a frame's `borderColor` may take: the subtle ink, clear, or the hook chain (tree, pattern, band). */
 const FRAME_COLOUR_OK =
   /^(?:(?:tokens\.)?color\.ink40|['"`]var\(--color-ink-40\)['"`]|['"`]transparent['"`]|['"`]var\(--su-compact-frame[^'"`]*['"`])$/
 

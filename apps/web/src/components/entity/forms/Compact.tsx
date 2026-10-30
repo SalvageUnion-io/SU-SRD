@@ -203,6 +203,7 @@ export function Compact({
     <CompactFrame
       userMade={userMade}
       bodyless={!hasBody}
+      band={paint.background}
       style={selected ? SELECTED_RING : undefined}
     >
       <Head

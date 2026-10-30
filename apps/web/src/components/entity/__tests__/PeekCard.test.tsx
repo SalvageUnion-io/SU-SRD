@@ -66,7 +66,11 @@ describe('Peek footer', () => {
   // the exact mix.
   test("a damaged trigger's Peek no longer wears the plain tone", () => {
     const { container } = render(<PeekCard entity={scrap()} down />)
-    expect(container.querySelector('[style*="--color-pilot"]')).toBeNull()
+    // The frame's `--su-band` keeps the mix as written; only the paint is read here.
+    const painted = [...container.querySelectorAll<HTMLElement>('[style]')].filter((el) =>
+      /--color-pilot/.test(el.style.background + el.style.backgroundColor)
+    )
+    expect(painted).toEqual([])
   })
 })
 

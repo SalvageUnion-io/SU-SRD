@@ -25,8 +25,8 @@
   text-decoration: none;
 }
 
-/* The frame: the subtle ink-40 the sheets' panels
-   wear (R38), never solid ink or the entity's tone, round a Compact or `Box` with content
+/* The frame: its head's band paint (R38, `--su-band`; the subtle ink-40 for a
+   `Box` with no band), round a Compact or `Box` with content
    under its head; no edge round one that is its head alone (`data-bodyless`),
    its width kept transparent so nothing moves, and the paper stopping inside
    it so no paper ring shows round the band. Player-made is solid like the
@@ -37,7 +37,7 @@
 .su-entity-compact__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  border-color: var(--su-compact-frame, var(--color-ink-40));
+  border-color: var(--su-compact-frame, var(--su-band, var(--color-ink-40)));
   border-style: solid;
   border-width: var(--bw-entity-compact);
   display: flex;
@@ -769,7 +769,7 @@
 .su-entity-index__frame {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  /* The subtle ink-40 (R38) round a CompactIndex with its lead under the
+  /* The band's paint (R38) round a CompactIndex with its lead under the
      band, none round a band alone, as a Compact's frame. */
   border: var(--bw-entity-compact) solid transparent;
   display: flex;
@@ -779,7 +779,7 @@
 }
 
 .su-entity-index__frame:has(> .su-entity-index__cells) {
-  border-color: var(--color-ink-40);
+  border-color: var(--su-band, var(--color-ink-40));
 }
 
 .su-entity-index__art {
@@ -930,7 +930,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 
 /* A CONTENTFUL Mini (N3, `body`): its head, the link and Peek trigger, then
    the entity's text and the host's content, contained under the pill by a
-   border in the frames' subtle ink-40 (R38), with
+   border in the pill's paint (R38), with
    no band, set in from the pill's edge to the name's tab. */
 .su-entity-mini[data-contentful] {
   flex-direction: column;
@@ -945,13 +945,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* The body hangs from the pill: sides and foot at the pill's edge width, in
-   the pill's subtle ink-40 (R38; an ability tree's tier through
+   the pill's paint (R38; an ability tree's tier through
    `--su-compact-frame`), so the Mini holds its content. It is the paper the name's
    tab is cut from, on any ground, as a Compact's frame is. */
 .su-entity-mini__body {
   background-clip: padding-box;
   background-color: var(--color-paper);
-  border-color: var(--su-compact-frame, var(--color-ink-40));
+  border-color: var(--su-compact-frame, var(--su-band, var(--color-ink-40)));
   border-style: solid;
   border-top: 0;
   border-width: var(--bw-chrome);
@@ -1030,14 +1030,14 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   align-self: center;
 }
 
-/* A contentful Mini wears the same cut-out as every Mini: the subtle ink-40
-   (R38) round its paint but never under it, its tab opens into the body's paper, as a Compact's
+/* A contentful Mini wears the same cut-out as every Mini: its paint's frame
+   (R38) round it but never under it, its tab opens into the body's paper, as a Compact's
    does, so no rule runs between head and body; and the paint over the tab is
    the header-only Mini's strip (its clear edge and its padding), so the head
    never reads as a flat bar. Its height is as before R45 covered every Mini.
    Gated by `e2e/token-cutout.e2e.ts`. */
 .su-entity-mini[data-contentful] .su-entity-mini__pill {
-  border-color: var(--su-compact-frame, var(--color-ink-40));
+  border-color: var(--su-compact-frame, var(--su-band, var(--color-ink-40)));
   padding-top: calc(var(--space-2) + var(--bw-chrome));
 }
 
