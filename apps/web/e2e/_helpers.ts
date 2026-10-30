@@ -65,13 +65,19 @@ export { editSheet, waitForReady }
 export type SearchPeek = { schema: string; name: string }
 
 /**
- * Type `name` into the Union bar's search (the combobox mounts its island on
- * intent, so it is clicked first) and return the result Mini of `schema` that
- * holds it, a Peek trigger (`data-peek`), without waiting for it.
+ * Type `name` into the Union bar's search and return the result Mini of
+ * `schema` that holds it, a Peek trigger (`data-peek`), without waiting for it.
+ * The combobox mounts its island on intent, so it is clicked first, and typed
+ * into once the island has swapped in over its stand-in (`clientSwap`), so the
+ * fill never rides the stand-in-to-island hand-off.
  */
 export async function searchPeekTrigger(page: Page, { schema, name }: SearchPeek) {
   const search = page.getByRole('combobox', { name: 'Search the Reference' }).first()
   await search.click()
+  await expect(
+    page.locator('[data-island="SearchIsland"]').filter({ has: search }),
+    'the search island swaps in over its stand-in'
+  ).not.toHaveAttribute('data-standin')
   await search.fill(name)
   return page.locator(`[role="option"][data-peek^="${schema}:"]`).filter({ hasText: name }).first()
 }
