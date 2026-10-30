@@ -248,7 +248,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/creatures/irradiated-scorpion/'),
   page('/roll-tables/core-mechanic/'),
   page('/roll-tables/mechapult/'),
-  page('/guides/create-a-pilot/', 'rhythm', 'header-mini'),
+  page('/guides/create-a-pilot/', 'rhythm'),
   page('/guides/crawler-downtime/', 'seam'),
   { family: 'training-bay', path: at('/') },
   { family: 'starter-set', path: at('/starter') },
