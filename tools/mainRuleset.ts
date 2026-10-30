@@ -11,7 +11,10 @@ export type CodeScanningSpec = {
   alerts_threshold: string
 }
 
-/** A `bypass_actors` entry; `actor_id` is null for `OrganizationAdmin`, a role. */
+/**
+ * A `bypass_actors` entry. `actor_id` is null for `OrganizationAdmin`, a role:
+ * `gh api repos/SalvageUnion-io/SU-SRD/rulesets/<id>` returns null, not 1.
+ */
 export type BypassActorSpec = { actor_type: string; actor_id: number | null; bypass_mode: string }
 
 export type RulesetSpec = {
