@@ -162,6 +162,7 @@ export function resolveCardInteraction({
   cardClickLabel,
   selected,
   frameWidth,
+  band,
 }: {
   onCardClick: (() => void) | undefined
   controls: ReferenceEntityControl[] | undefined
@@ -173,6 +174,8 @@ export function resolveCardInteraction({
   selected: boolean | undefined
   /** From `resolveFrameWidth`. */
   frameWidth: string
+  /** The header band's paint, which the frame wears (R38). */
+  band?: string
 }): {
   outer: CardOuterProps
   frameStyle: CSSProperties
@@ -230,18 +233,19 @@ export function resolveCardInteraction({
   // Selection state — select mode's ring (`SELECTED_RING`), the same 3px ink
   // ring a selected Compact and a select-mode Box draw. A non-layout-shifting
   // box-shadow that reads as a border, sitting just outside the frame.
-  // The frame is the subtle ink-40 on every card (R38), a user-made one too
-  // (its HOMEBREW chip marks it); the tone lives in
-  // the header band alone. Longhands, so a caller overriding one side
-  // never trips React's shorthand/longhand warning.
+  // The frame wears the header band's paint (R38, `--su-band`), a user-made
+  // card too (its HOMEBREW chip marks it); the chain has no spaces, so the copy
+  // gate reads no words. Longhands, so a caller overriding one side never trips
+  // React's shorthand/longhand warning.
   const frame = {
     borderStyle: 'solid',
-    borderColor: 'var(--color-ink-40)',
+    borderColor: 'var(--su-compact-frame,var(--su-band,var(--color-ink-40)))',
     borderTopWidth: frameWidth,
     borderRightWidth: frameWidth,
     borderBottomWidth: frameWidth,
     borderLeftWidth: frameWidth,
-  } satisfies CSSProperties
+    '--su-band': band ?? 'initial',
+  } as CSSProperties
   const frameStyle = selected ? { ...frame, ...SELECTED_RING } : frame
   return { outer, frameStyle }
 }

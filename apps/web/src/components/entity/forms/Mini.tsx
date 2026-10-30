@@ -21,7 +21,7 @@ import { Chips } from '../parts/Chips'
 import { watchTokenOverflow } from '../parts/chipFit'
 import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
-import { paintFor } from '../parts/paint'
+import { bandFrame, paintFor } from '../parts/paint'
 import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
@@ -322,9 +322,14 @@ export function Mini({
   )
   if (!body) return head
   return (
-    <div ref={contentfulRef} className={cn('su-entity-mini', dimClass)} data-contentful="">
+    <div
+      ref={contentfulRef}
+      className={cn('su-entity-mini', dimClass)}
+      data-contentful=""
+      style={bandFrame(paint.background)}
+    >
       {head}
-      {/* Bordered in the pill's subtle ink-40 (R38), so the Mini contains its content. */}
+      {/* Bordered in the pill's paint (R38), so the Mini contains its content. */}
       <div
         data-user-made={userMade || undefined}
         className="su-entity-mini__body"

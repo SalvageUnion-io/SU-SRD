@@ -211,9 +211,8 @@ function ReferenceEntityCardInner({
   const compact = depth > 0 || size !== 'full'
   const hide = resolveHide(hideProp, insidePeek)
   const tone = resolveCardTone(schemaName, entity)
-  // HAVE vs DO, by data shape.
   const fill: HeaderFill = resolveHeaderFill(entity, insidePeek)
-  // Damaged dulls the header, destroyed greys it (`cardDown`); the body dims.
+  // HAVE vs DO, by data shape. Damaged dulls the header, destroyed greys it (`cardDown`); the body dims.
   const isDown = cardDown(status, hostDown)
   const { onBand, bandColor } = resolveCardColors({ tone, isDown, fill })
   const grain: CardGrain | undefined =
@@ -318,6 +317,7 @@ function ReferenceEntityCardInner({
     cardClickLabel,
     selected,
     frameWidth: resolveFrameWidth(size),
+    band: bandColor,
   })
 
   // SUGGESTED — an ink stamp leading the "//" line, marking a recommended
@@ -502,7 +502,7 @@ function ReferenceEntityCardInner({
   return (
     <PeekSizeContext.Provider value={compact ? 'mini' : 'compact'}>
       <CardOuter {...outer}>
-        {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
+        {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight, dash and band ours. */}
         <div className="su-ec-frame" style={frameStyle}>
           {header(lone ? 'more' : 'body')}
           {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}

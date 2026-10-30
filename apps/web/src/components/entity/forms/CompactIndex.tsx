@@ -19,8 +19,7 @@ import { censorMark } from '../parts/censor'
 import { factCells } from '../parts/factCells'
 import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
-import { paintFor } from '../parts/paint'
-import { PEEK_ATTRIBUTE, usePeekAttrs } from '../peekContext'
+import { bandFrame, paintFor } from '../parts/paint'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 export type CompactIndexProps = {
@@ -104,10 +103,6 @@ export function CompactIndex({
 }: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
-  // Its name may end in "…": the index Compact Peeks the whole entry.
-  const peek = usePeekAttrs(model.ref)
-  // Without a Peek (inside one, or a synthetic ref) the tooltip reads the cut text.
-  const peeks = PEEK_ATTRIBUTE in peek
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   // An index Compact's budget is a compact head's (C3), in its kind's own context (C4):
   // of its measures (its `ref-stat-*` stats) it keeps the one that context
@@ -162,12 +157,15 @@ export function CompactIndex({
     <LinkSurface
       target={target}
       label={model.title}
-      peek={peek}
       className={
         art.kind === 'image' || mark ? 'su-entity-index' : 'su-entity-index su-entity-index--bare'
       }
     >
-      <div className="su-entity-index__frame" data-user-made={model.userMade || undefined}>
+      <div
+        className="su-entity-index__frame"
+        data-user-made={model.userMade || undefined}
+        style={bandFrame(paint.background)}
+      >
         {art.kind === 'image' && (
           <span className="su-entity-index__art">
             {artWindow ? (
@@ -199,7 +197,7 @@ export function CompactIndex({
           <span className="su-entity-index__notch" data-fill-name="">
             <span
               className={cn('su-entity-index__name', INDEX_NAME_CAPS)}
-              title={peeks ? undefined : model.title}
+              title={model.title}
               style={INDEX_NAME}
             >
               {model.title}
@@ -229,7 +227,7 @@ export function CompactIndex({
         {hasChips && contentful && <ChipOverflowRow className="su-entity-index__overflow" />}
         {leadText && (
           <div className="su-entity-index__cells">
-            <Lead text={leadText} peeks={peeks} />
+            <Lead text={leadText} />
           </div>
         )}
         {spare.length > 0 && (

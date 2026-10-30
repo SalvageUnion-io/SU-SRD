@@ -491,8 +491,8 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'entity-frame-ink',
     mode: 'zero',
-    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame is the subtle ink-40 the sheets wear, never solid ink or its tone; only `--su-compact-frame` colours one (an ability tree, a pattern)',
-    fix: "Paint the frame `var(--color-ink-40)` (`color.ink40` in a style object), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame take their colour through `--su-compact-frame` alone.",
+    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame wears its band paint through `--su-band` (ink-40 with none), never a literal solid ink or tone; `--su-compact-frame` overrides (an ability tree, a pattern)',
+    fix: "Paint the frame `var(--su-compact-frame, var(--su-band, var(--color-ink-40)))` and hand it its band through `bandFrame` (`entity/parts/paint.ts`), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame override through `--su-compact-frame`.",
     css: entityFrameInkCss,
     script: entityFrameInkScript,
   },

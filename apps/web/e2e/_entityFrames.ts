@@ -5,9 +5,9 @@ import { fromFaults } from './_findings'
 /**
  * The frame-colour law (ruleset §4.3, EDL E21) as the
  * rendered page draws it: every entity's frame (a Compact's, CompactIndex's, Card's,
- * a choice option's `Box`, a Mini's pill and a contentful Mini's body, a
- * MiniGroup's) wears the subtle `--color-ink-40` the sheets' panels wear,
- * never solid ink or the entity's tone. Only `--su-compact-frame` colours one: an
+ * a contentful Mini's pill and body) wears its head's band paint (`--su-band`),
+ * never the old neutral grey; a frame with no band (a `Box`, a MiniGroup) wears
+ * the subtle `--color-ink-40`. `--su-compact-frame` overrides both: an
  * ability tree's tier, a pattern's colour. `findFrames` returns one
  * `frame:` line per frame whose drawn edges are another colour, and a
  * `bottom-edge:` line per Compact that is its head alone (`data-bodyless`) yet
@@ -29,6 +29,18 @@ const SUBTLE = 'rgba(40, 32, 25, 0.4)'
 /** Runs in the page; returns plain data. */
 function scanFrames({ frames, subtle }: { frames: string; subtle: string }): string[] {
   const faults: string[] = []
+  // The colour this frame owes: its band's, resolved by a probe that reads the
+  // same `--su-band` the frame inherits; a MiniGroup has no head, so no band.
+  const owed = (el: Element) => {
+    if (el.matches('.su-mini-group')) return subtle
+    const probe = document.createElement('i')
+    probe.style.cssText =
+      'position:absolute;visibility:hidden;border-top:1px solid var(--su-band, var(--color-ink-40))'
+    el.append(probe)
+    const colour = getComputedStyle(probe).borderTopColor
+    probe.remove()
+    return colour
+  }
   const describe = (el: Element) =>
     (el.closest('.su-entity-compact, .su-entity-mini, .su-entity-index, .su-ec') ?? el).textContent
       ?.trim()
@@ -55,24 +67,25 @@ function scanFrames({ frames, subtle }: { frames: string; subtle: string }): str
     // A tree's tier or a pattern's colour, through the one hook.
     if (s.getPropertyValue('--su-compact-frame').trim() !== '') continue
     const off = new Set<string>()
+    const expected = owed(el)
     for (const side of ['top', 'right', 'bottom', 'left']) {
       const width = Number.parseFloat(s.getPropertyValue(`border-${side}-width`)) || 0
       const style = s.getPropertyValue(`border-${side}-style`)
       const colour = s.getPropertyValue(`border-${side}-color`).trim()
       if (width === 0 || style === 'none' || style === 'hidden') continue
       if (/^rgba\(.*,\s*0\)$|^transparent$/.test(colour)) continue
-      if (colour !== subtle) off.add(colour)
+      if (colour !== expected) off.add(colour)
     }
     if (off.size > 0) {
       faults.push(
-        `frame: "${describe(el)}" (${el.classList[0] ?? el.tagName.toLowerCase()}) is ${[...off].join(' / ')}, not the subtle ink-40`
+        `frame: "${describe(el)}" (${el.classList[0] ?? el.tagName.toLowerCase()}) is ${[...off].join(' / ')}, not its band's ${expected}`
       )
     }
   }
   return faults
 }
 
-/** Every entity frame on the page that is not the subtle ink-40. */
+/** Every entity frame on the page that does not wear its band's colour. */
 export async function findFrames(page: Page): Promise<Finding[]> {
   return fromFaults(await page.evaluate(scanFrames, { frames: ENTITY_FRAMES, subtle: SUBTLE }))
 }
