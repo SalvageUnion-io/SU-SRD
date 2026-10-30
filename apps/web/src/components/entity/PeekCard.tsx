@@ -1,9 +1,11 @@
-import type { RefEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { getChassisAbilities, isChassis, SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
+import { conditionOf } from '../referenceEntity/card/cardChrome'
 import { schemaOf } from '../referenceEntity/card/cardHelpers'
 import { ActionMinis } from '../referenceEntity/card/NestedCards'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
+import { Entity } from './Entity'
 import { InsidePeekContext } from './peekContext'
 
 /** What `[(CHASSIS)]` reads when more than one chassis shares the ability. */
@@ -80,6 +82,27 @@ export function PeekCard({ entity, down = false }: { entity: RefEntity; down?: D
         hostDown={down}
         hide={PEEK_HIDE}
         afterExtraContent={chassis ? peekChassisAbilities(entity, down) : undefined}
+      />
+    </InsidePeekContext.Provider>
+  )
+}
+
+/**
+ * The PEEK one form down (E23): opened from a Compact or a Mini, the entity is
+ * a contentful Mini, its one-row head over its text, read-only and terminal
+ * as `PeekCard` is. A Mini nests nothing (N3), so a host's children, actions
+ * and table are its Page's.
+ */
+export function PeekMini({ entity, down = false }: { entity: RefEntity; down?: Down }) {
+  const condition = conditionOf(down)
+  return (
+    <InsidePeekContext.Provider value={true}>
+      <Entity
+        size="mini"
+        context="browse"
+        entity={entity as RefMetaEntity}
+        instance={condition ? { condition } : undefined}
+        body={{ chassisName: peekChassisName(entity) }}
       />
     </InsidePeekContext.Provider>
   )

@@ -20,7 +20,7 @@ import { factCells } from '../parts/factCells'
 import { INDEX_NAME, INDEX_NAME_CAPS } from '../parts/indexName'
 import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
-import { usePeekAttrs } from '../peekContext'
+import { PEEK_ATTRIBUTE, usePeekAttrs } from '../peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 export type CompactIndexProps = {
@@ -106,6 +106,8 @@ export function CompactIndex({
   const target = useLinkTarget(mode, model.ref)
   // Its name may end in "…": the index Compact Peeks the whole entry.
   const peek = usePeekAttrs(model.ref)
+  // Without a Peek (inside one, or a synthetic ref) the tooltip reads the cut text.
+  const peeks = PEEK_ATTRIBUTE in peek
   const paint = paintFor(model.tone, { down: false, texture: surface.texture })
   // An index Compact's budget is a compact head's (C3), in its kind's own context (C4):
   // of its measures (its `ref-stat-*` stats) it keeps the one that context
@@ -195,7 +197,11 @@ export function CompactIndex({
           }}
         >
           <span className="su-entity-index__notch" data-fill-name="">
-            <span className={cn('su-entity-index__name', INDEX_NAME_CAPS)} style={INDEX_NAME}>
+            <span
+              className={cn('su-entity-index__name', INDEX_NAME_CAPS)}
+              title={peeks ? undefined : model.title}
+              style={INDEX_NAME}
+            >
               {model.title}
             </span>
           </span>
@@ -223,7 +229,7 @@ export function CompactIndex({
         {hasChips && contentful && <ChipOverflowRow className="su-entity-index__overflow" />}
         {leadText && (
           <div className="su-entity-index__cells">
-            <Lead text={leadText} peeks />
+            <Lead text={leadText} peeks={peeks} />
           </div>
         )}
         {spare.length > 0 && (

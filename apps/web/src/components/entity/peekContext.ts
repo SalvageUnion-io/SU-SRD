@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { createContext, useContext } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { InsidePeekContext } from '../atoms/insidePeek'
 import type { Down } from '../referenceEntity/card/cardChrome'
@@ -28,6 +28,24 @@ export const PEEK_PRESS_ATTRIBUTE = 'data-peek-press'
  * (`destroyed`): its Peek is down the same way. */
 export const PEEK_DOWN_ATTRIBUTE = 'data-peek-down'
 
+/**
+ * The form a Peek opens at (EDL E23): one below the form its trigger sits in.
+ * From a Page, a Full card or bare prose it is a Compact contentful; from a
+ * Compact or a Mini (a Compact's self-Peek, a Mention in its prose) a
+ * contentful Mini, the floor.
+ */
+export type PeekSize = 'compact' | 'mini'
+
+/**
+ * The size a Peek opened in this subtree takes. Every Compact and Mini form
+ * (`Entity`) and every compact card (`ReferenceEntityCard` below Full) sets it
+ * to `mini`; outside them it is `compact`.
+ */
+export const PeekSizeContext = createContext<PeekSize>('compact')
+
+/** Set on a trigger whose Peek opens as a Mini (`PeekSizeContext`). */
+export const PEEK_SIZE_ATTRIBUTE = 'data-peek-size'
+
 /** A ref's address as a trigger carries it: `schema:id`. */
 function peekAddress(ref: EntityRef): string {
   return `${ref.schemaName}:${ref.id}`
@@ -47,6 +65,7 @@ export function parsePeekAddress(
 export type PeekAttrs = {
   [PEEK_ATTRIBUTE]?: string
   [PEEK_DOWN_ATTRIBUTE]?: 'damaged' | 'destroyed'
+  [PEEK_SIZE_ATTRIBUTE]?: 'mini'
 }
 
 /**
@@ -80,7 +99,8 @@ export function tablePeekAddress(source: unknown): string | undefined {
  * (built from embedded data) has no dataset row to show unless its caller
  * names one (`address`, an `embeddedPeekAddress`), a pattern is drawn by its
  * own page, and inside a Peek nothing peeks again. A `down` trigger (damaged
- * or destroyed) says so, and its Peek is down the same way.
+ * or destroyed) says so, and its Peek is down the same way; one inside a
+ * Compact or a Mini says its Peek is a Mini (E23).
  */
 export function usePeekAttrs(
   ref: EntityRef | undefined,
@@ -88,6 +108,7 @@ export function usePeekAttrs(
   down: Down = false
 ): PeekAttrs {
   const inside = useInsidePeek()
+  const size = useContext(PeekSizeContext)
   if (inside) return {}
   const at = address ?? (ref && !ref.synthetic && !ref.pattern ? peekAddress(ref) : undefined)
   if (!at) return {}
@@ -95,5 +116,6 @@ export function usePeekAttrs(
   return {
     [PEEK_ATTRIBUTE]: at,
     ...(condition ? { [PEEK_DOWN_ATTRIBUTE]: condition } : {}),
+    ...(size === 'mini' ? { [PEEK_SIZE_ATTRIBUTE]: size } : {}),
   }
 }

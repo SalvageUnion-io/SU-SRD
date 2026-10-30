@@ -26,7 +26,7 @@ import { Chips } from '../../entity'
 import { EntitySurfaceProvider } from '../../entity/EntitySurface'
 import { useEntityExternalLink, useEntitySurface } from '../../entity/entitySurfaceContext'
 import { SelectedSeal } from '../../entity/modes/select'
-import { InsidePeekContext } from '../../entity/peekContext'
+import { InsidePeekContext, PeekSizeContext } from '../../entity/peekContext'
 import { quotePatternName } from '../pattern/quotePatternName'
 import { treeRelationNodes } from './abilityTreeRelations'
 import { CardHead } from './CardHead'
@@ -498,62 +498,65 @@ function ReferenceEntityCardInner({
   const after = [afterExtraContent, rendersFooter, !hide?.patterns && patternList.length]
   const under = [subtitleExtra, body, rollTableNode, patternSection, actionsNode, nestedGroupsNode]
   const lone = !depth && ![...under, ...after].some(Boolean) // +MORE alone, nested a body (C2b)
+  // A Peek opened from a card below Full, or nested in one, is a Mini (E23).
   return (
-    <CardOuter {...outer}>
-      {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
-      <div className="su-ec-frame" style={frameStyle}>
-        {header(lone ? 'more' : 'body')}
-        {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
-        {subtitleExtra && (
-          <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
-            {subtitleExtra}
-          </div>
-        )}
-        {body}
-        <CardLead
-          bare={!subtitleExtra && !body}
-          nested={!!(actionsNode || nestedGroupsNode)}
-          table={rollTableNode}
-          size={size}
-        />
-        {patternSection}
-        {actionsNode}
-        {nestedGroupsNode}
-        {/* BASIC CHASSIS → its patterns as Minis. */}
-        {!hide?.patterns && patternList.length > 0 && (
-          <CardStack size={size}>
-            <PatternList
-              chassis={entity}
-              chassisName={entityName}
-              patterns={patternList}
-              depth={depth + 1}
-              hostDown={isDown}
-              NestedCard={ReferenceEntityCardInner}
-            />
-          </CardStack>
-        )}
-        {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
-        {afterExtraContent && (
-          <div style={{ padding: compact ? space[12] : `${space[12]} ${space[14]}` }}>
-            {afterExtraContent}
-          </div>
-        )}
-        {/* FOOTER — a Peek's wears the header band. */}
-        {rendersFooter ? (
-          // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
-          <EntityCardIdentityFooter
-            // Every printing on the one line, on every foot (ruleset Source 2).
-            provenance={userMade ? undefined : provenance}
-            footMeta={footMeta}
-            externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
+    <PeekSizeContext.Provider value={compact ? 'mini' : 'compact'}>
+      <CardOuter {...outer}>
+        {/* Paper, radius and clip are `.su-ec-frame` (ADR-046), weight and dash ours. */}
+        <div className="su-ec-frame" style={frameStyle}>
+          {header(lone ? 'more' : 'body')}
+          {/* SLOT: subtitleExtra — an extra line under the header (absent ⇒ nothing). */}
+          {subtitleExtra && (
+            <div style={{ padding: `${space[4]} ${compact ? space[12] : space[14]} 0` }}>
+              {subtitleExtra}
+            </div>
+          )}
+          {body}
+          <CardLead
+            bare={!subtitleExtra && !body}
+            nested={!!(actionsNode || nestedGroupsNode)}
+            table={rollTableNode}
             size={size}
-            credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
-            band={{ onBand, bandColor }}
-            grain={grain}
           />
-        ) : null}
-      </div>
-    </CardOuter>
+          {patternSection}
+          {actionsNode}
+          {nestedGroupsNode}
+          {/* BASIC CHASSIS → its patterns as Minis. */}
+          {!hide?.patterns && patternList.length > 0 && (
+            <CardStack size={size}>
+              <PatternList
+                chassis={entity}
+                chassisName={entityName}
+                patterns={patternList}
+                depth={depth + 1}
+                hostDown={isDown}
+                NestedCard={ReferenceEntityCardInner}
+              />
+            </CardStack>
+          )}
+          {/* SLOT: afterExtraContent — trailing body content (absent ⇒ nothing). */}
+          {afterExtraContent && (
+            <div style={{ padding: compact ? space[12] : `${space[12]} ${space[14]}` }}>
+              {afterExtraContent}
+            </div>
+          )}
+          {/* FOOTER — a Peek's wears the header band. */}
+          {rendersFooter ? (
+            // USER-MADE (ruleset §3.9): the credit is the maker, never a page.
+            <EntityCardIdentityFooter
+              // Every printing on the one line, on every foot (ruleset Source 2).
+              provenance={userMade ? undefined : provenance}
+              footMeta={footMeta}
+              externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
+              size={size}
+              credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
+              band={{ onBand, bandColor }}
+              grain={grain}
+            />
+          ) : null}
+        </div>
+      </CardOuter>
+    </PeekSizeContext.Provider>
   )
 }
 
