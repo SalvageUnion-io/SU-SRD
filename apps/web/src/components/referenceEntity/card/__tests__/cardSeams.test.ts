@@ -225,6 +225,8 @@ describe('cardChrome', () => {
       borderColor: 'var(--su-compact-frame,var(--su-band,var(--color-ink-40)))',
       borderStyle: 'solid',
       borderTopWidth: 'var(--bw-entity)',
+      // No band: never an outer frame's.
+      '--su-band': 'initial',
     })
     const banded = resolveCardInteraction({
       ...base,

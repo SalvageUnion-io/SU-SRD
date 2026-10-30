@@ -244,7 +244,7 @@ export function resolveCardInteraction({
     borderRightWidth: frameWidth,
     borderBottomWidth: frameWidth,
     borderLeftWidth: frameWidth,
-    ...(band ? { '--su-band': band } : {}),
+    '--su-band': band ?? 'initial',
   } as CSSProperties
   const frameStyle = selected ? { ...frame, ...SELECTED_RING } : frame
   return { outer, frameStyle }
