@@ -55,6 +55,8 @@ Each names its gate ([hard-rules.md](hard-rules.md)); breaking one needs an amen
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
 - **E20** On a show page's plate: only the trail (app sheet: `corner`); stamps, chips, controls fill as E17 (`asideAt="notch"`), then Share (phone: glyph) and Build With This last (phone: chip-sized); a chassis's stats but TL, SV lead its body
 - **E21** An entity's frame is its band's paint (ruleset §4.3). **E22** A name and its cut-out sit at their head's left.
+- **E24** A title's size is its form's: a Page band's the chapter rung (hero on a phone), a Compact's, Full's, index's or Peek's the title, a Page's own block display, a Mini's name caption; a Slab's stamp body, a Mini Slab's caption.
+- **E25** Headings follow the levels: h1 the band's title, h2 a level-0 section, h3 a level-1 title or sub-section, h4 level 2; none skipped, none at or above its section's.
 
 ## Which form, where
 

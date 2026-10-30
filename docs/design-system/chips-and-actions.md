@@ -36,6 +36,7 @@ A strip is a Mini, a Compact or Full head, or a TitledBox or Slab header.
 - **C9** A mode swaps what fills a slot (a read chip, a control, a seal), never its size.
 - **C10** A header's summary never repeats a child's fact or its parent's summary; Slab and TitledBox take it as one `SlabCount` list.
 - **C11** A related entity is a relation chip (a player unit on a sheet is a Mini, R5), label first, its value Peeking and opening it (a Game, which has no Peek, links to its Play page): never a loose stamp ("Assigned: X") or a Mini beside the strip. Read and Edit show the same chip. An absent relation draws nothing (C6), never an "Unassigned" chip. An ability's tree is its one relation chip; its Preceding and Next abilities are its Page's nested references, never chips.
+- **C12** Only an entity's name flexes: a tool panel's title (Propose a change) wraps, never ends in "…".
 
 ## Built as
 

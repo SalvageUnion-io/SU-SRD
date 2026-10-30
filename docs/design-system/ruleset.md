@@ -30,6 +30,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    8. **Entity forms** — Mention, the Sizes and Page: [entity-display-language.md](entity-display-language.md).
    9. **Manage — the owner's desk** — Training Bay, Play hub, a Game, invites: paper under the area's band, level 0, Slab sections, Compacts that link.
       No stepper or in-place edit; acts are Buttons in a chip group or under a Slab, destruction `confirm`. Rust is a door into play or a make (Play, Mediate, New Game); Open and filters are ink.
+   10. **Two measures** — Reference and Manage sit on `--page-measure`; a Live Sheet and Play fill the window. On a phone a page's first content is on its first screen: its controls one row or a menu.
 2. **§2 The rendering matrix** — one primitive per role on every surface; the surface picks its skin.
    1. **Vitals** — `VitalGauge`; a `Stat` in listings. TP is a counter, no gauge.
    2. **Caps and slots** — `Stat`; an override is a dashed, logged control.
@@ -56,6 +57,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
        Each mode has its nav (Build: Training Bay, Patterns, Starter Set; Play: Games ▾, Solo), the current one in ink from first paint.
    12. **§3.12 Microcopy** — sentence case; game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Caps only through the stamp and `Button`. Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248).
+   13. **§3.13 The emphasis ladder** — rust (a region's one make or door: Play, Mediate, every + New) over ink fill, outline, ghost. A read stamp and a button never share a look on one line: on a band, the button is outlined.
 4. **§4 Foundations** — tokens, one home: `apps/web/src/styles/theme.css`.
    1. **§4.1 Colour roles** — values in `theme.css` alone. `--color-paper` is the one light surface, `--color-wk-bg` the page ground (the cool `-2` is off-palette), `--color-band-cream` the one cream.
       The ink ramp is warm ink at opacity, never a grey; rules blue is a band, never a ground.
@@ -68,6 +70,8 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    6. **§4.6 The floors: type and touch** — nothing under 11px as seen (a 1200px link preview: 34px). Touch takes a bigger Size, never a hidden hit area; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`), every button and chip, every screen.
       A line's controls share one Size; chip values match labels, one gap apart, filled as C2b. A Button beside Tabs is their Size.
+   8. **§4.8 The type ladder** — every font size is a `--text-*` rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64; no other size, alias or literal (a link preview's own, K12).
+   9. **§4.9 Rank rides the container** — band, then Slab, then frame, then Mini, as in the book: a Slab's 14px stamp may sit over 22px titles; hierarchy is never fixed by enlarging a stamp.
 5. **§5 The irreducible set** — 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.
    4. **Well** — labelled value: `Stat`, label first (steppers when edited). 5. **Gauge** — segmented current/max: `VitalGauge`. 6. **Btn** — the only mutator: `Button`.
