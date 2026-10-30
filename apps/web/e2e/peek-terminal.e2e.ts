@@ -174,6 +174,7 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   test.setTimeout(10 * 60_000)
   const opened = new Map<string, string>()
   const failures: string[] = []
+  const misses: string[] = []
 
   // The Union bar's search: a Mini per schema.
   for (const { schema, name } of SEARCH) {
@@ -183,7 +184,13 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
       () => true,
       () => false
     )
-    if (!found) continue
+    // A search that finds no Mini says what it found instead, so a missing
+    // kind below reads as the search's miss, not a kind that stopped Peeking.
+    if (!found) {
+      const options = await page.getByRole('option').allTextContents()
+      misses.push(`"${name}": no ${schema} Mini (options: ${options.join(' | ') || 'none'})`)
+      continue
+    }
     const address = (await trigger.getAttribute('data-peek')) ?? schema
     const kind = kindOf(address)
     if (opened.has(kind)) continue
@@ -213,6 +220,7 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   }
 
   test.info().annotations.push({ type: 'kinds', description: [...opened.keys()].sort().join(' ') })
+  expect(misses, 'the search finds a Mini for each name').toEqual([])
   expect([...opened.keys()].sort(), 'every kind that Peeks opened one').toEqual(
     expect.arrayContaining([...KINDS])
   )
