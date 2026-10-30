@@ -25,6 +25,9 @@ import type { CardTitleTag, NestedCard, ReferenceCardEntity } from './referenceE
 import type { ResolvedGuideStep } from './resolveGuideSteps'
 
 const TOC_TITLE = cn('su-guide__toc-title', capsLabel({ tracking: 'caps' }))
+/** An option opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
+const LINK = { kind: 'link' } as const
+
 const TOC_SECTION = cn('su-guide__toc-link su-guide__toc-link--section', capsLabel())
 
 /**
@@ -126,13 +129,34 @@ export function GuideSteps({
   const pageRef = useRef<HTMLDivElement>(null)
   useEffect(() => (pageRef.current ? watchGuideContents(pageRef.current) : undefined), [])
 
-  // A step's options. On the guide's Page they are one level deep: each a
-  // Compact drawn open with all its content (N8, R39), one a line. Anywhere
-  // else (a Peek, a guide
-  // nested in a card) they are level 2: Minis.
+  // A step's options. On the guide's Page they are one level deep, each a
+  // Compact one a line: a choice's options as the book's procedure lists
+  // them, a header a line that links to the option's Page (R39's named
+  // exception), and a ladder drawn open with all its content (N8, R39), as it
+  // is what its prose explains. Anywhere else (a Peek, a guide nested in a
+  // card) they are level 2: Minis.
   const optionTitleAs = stepAs === 'h1' || stepAs === 'h2' ? headingBelow(stepAs) : undefined
-  const optionList = (entities: ReferenceCardEntity[], label: string) =>
-    page && !insidePeek ? (
+  // Level 1 (ruleset N1): the guide's own Page, outside a Peek.
+  const onPage = page && !insidePeek
+  const optionList = (entities: ReferenceCardEntity[], label: string, open: boolean) => {
+    if (onPage && !open) {
+      return (
+        <ul aria-label={label} className="su-guide__rows su-guide__options">
+          {entities.map((entity, index) => (
+            <li key={cardKey(entity, index)}>
+              <Entity
+                size="compact"
+                context="browse"
+                entity={entity as RefMetaEntity}
+                mode={LINK}
+                instance={isDown ? { condition: conditionOf(isDown) } : undefined}
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    return onPage ? (
       <ul aria-label={label} className="su-guide__rows">
         {entities.map((entity, index) => (
           <li key={cardKey(entity, index)}>
@@ -151,6 +175,7 @@ export function GuideSteps({
     ) : (
       <EntityMiniList entities={entities} label={label} />
     )
+  }
 
   const renderStep = ({ step, number, entities, table, subGuide }: ResolvedGuideStep) => {
     const stepProse = chunkGuideStepProse(step.content).map((chunk, index) => {
@@ -192,18 +217,25 @@ export function GuideSteps({
       options = (
         <div className="su-guide__ladder">
           <div className="su-guide__ladder-prose">{stepProse}</div>
-          <div className="su-guide__ladder-cards">{optionList(entities, step.name)}</div>
+          <div className="su-guide__ladder-cards">{optionList(entities, step.name, true)}</div>
         </div>
       )
     } else if (entities.length > 0) {
-      options = <div className="su-guide__cards">{optionList(entities, step.name)}</div>
+      options = <div className="su-guide__cards">{optionList(entities, step.name, false)}</div>
     }
     return (
       <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
+        {/* On its Page the numeral is the wizard's rail tab, on the pipe
+            that runs down the steps' left edge; the list says the number. */}
+        {page && (
+          <span aria-hidden="true" className="su-guide__tab">
+            {number}
+          </span>
+        )}
         <StepHead
           as={stepAs}
           id={anchors?.get(step.id)}
-          number={number}
+          number={page ? undefined : number}
           name={step.name}
           optional={step.optional}
         />
@@ -313,7 +345,9 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
       {group.steps.map(({ step, number }) => (
         <li key={step.id}>
           <a className="su-guide__toc-link" href={`#${anchors.get(step.id)}`}>
-            <span className="su-guide__toc-num">{number}</span>
+            <span className="su-guide__toc-num" aria-hidden="true">
+              {number}
+            </span>
             {step.name}
           </a>
         </li>
@@ -341,6 +375,7 @@ function GuideContents({ groups, anchors }: { groups: StepGroup[]; anchors: Map<
 /**
  * A step's slab: a two-cell chip, its numeral on the ink and its name on a
  * paper cell (`9 | CHOOSE YOUR APPEARANCE`); "Optional" at the rule's end.
+ * Without a `number` (the guide's Page, whose tab carries it) the name alone.
  */
 function StepHead({
   as,
@@ -351,7 +386,7 @@ function StepHead({
 }: {
   as: ElementType | undefined
   id: string | undefined
-  number: number
+  number: number | undefined
   name: string
   optional: boolean | undefined
 }) {
@@ -363,9 +398,13 @@ function StepHead({
       // Flush: the step's own gap spaces it, not the slab's margin.
       flush
       label={
-        <>
-          {number} <span className="su-guide__step-name">{name}</span>
-        </>
+        number === undefined ? (
+          name
+        ) : (
+          <>
+            {number} <span className="su-guide__step-name">{name}</span>
+          </>
+        )
       }
       count={optional ? 'Optional' : undefined}
     />

@@ -1,8 +1,8 @@
 /**
  * A GUIDE WEARS RULES BLUE, as its page's band does (R44), save where it is
  * about one thing: a creation
- * guide wears the colour of what it builds, pilot, mech or crawler, and the
- * Heat guide Heat's own red.
+ * guide wears the colour of what it builds, pilot, mech or crawler, the
+ * Heat guide Heat's own red, and Crawler Downtime the crawler's pink.
  *
  * A guide's card reads its hue through `entityGuideToneColor`, which
  * `resolveDomainTone` applies. These tests pin that contract:
@@ -32,14 +32,20 @@ describe('guide tone — a guide card wears its subject, else rules blue', () =>
     expect(guides.every((guide) => typeof guide.guideType === 'string')).toBe(true)
   })
 
-  /** What each guide wears: its unit's colour, Heat's red, else rules blue. */
+  /** What each guide wears: its unit's colour, Heat's red, Crawler Downtime's pink, else rules blue. */
   const expected = (guide: (typeof guides)[number]) =>
     ({
       'character-creation': 'var(--color-pilot)',
       'mech-creation': 'var(--color-mech)',
       'crawler-creation': 'var(--color-crawler)',
     })[guide.guideType as string] ??
-    (guide.name === 'Heat' ? 'var(--color-heat)' : 'var(--color-wk-line)')
+    (
+      { Heat: 'var(--color-heat)', 'Crawler Downtime': 'var(--color-crawler)' } as Record<
+        string,
+        string
+      >
+    )[guide.name] ??
+    'var(--color-wk-line)'
 
   test('every shipped guide resolves to its colour, the tile and the card alike', () => {
     for (const guide of guides) {
