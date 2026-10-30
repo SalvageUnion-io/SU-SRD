@@ -315,11 +315,14 @@ export function Sheet({
     </div>
   ) : undefined
 
-  // Mobile segmented Pilot/Mech/Crawler switch — wired sheets
+  // Mobile segmented Pilot/Mech/Crawler switch — wired pilot and mech sheets
   // only; each present counterpart gets a segment, the viewed kind is active.
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
+  // A crawler has none: it homes a whole crew, many pilots and mechs, so one
+  // Pilot and one Mech segment (and the sticky bar's linked Minis, which read
+  // the same set) misname it; its Assigned units list them all.
   let segments: LiveSheetSegment[] | undefined
-  if (wired) {
+  if (wired && kind !== 'crawler') {
     segments = []
     const counterparts = [
       { key: 'pilot', label: buildSheetCopy('pilot'), unit: composition.pilot },
