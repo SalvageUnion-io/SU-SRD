@@ -6,6 +6,8 @@
 
 import { DurableObject } from 'cloudflare:workers'
 import type { WebSocket as RoomSocket } from '@cloudflare/workers-types'
+import type { RoomDump } from '../rooms/dump'
+import { dumpRoom, loadRoom } from '../rooms/dump'
 import { defectAnswer, readClientMessage, UNREADABLE } from '../rooms/game/feed'
 import type { LeaseOutcome, UnitHome, UnitParcel } from '../rooms/handoff'
 import type { Migrations } from '../rooms/migrate'
@@ -63,6 +65,21 @@ export abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
 
   health(): RoomHealth {
     return { schema: this.schema }
+  }
+
+  /** Every row the room keeps, for the nightly backup (`./shared/backups.ts`). */
+  dump(): RoomDump {
+    return dumpRoom(this.sql, this.schema)
+  }
+
+  /**
+   * Replace the room's storage with a backup (an admin's restore): every open
+   * socket hears the restored room, and the shared rows follow.
+   */
+  restore(dump: RoomDump): void {
+    loadRoom(this.sql, this.schema, dump)
+    this.broadcastSnapshots()
+    this.published()
   }
 
   protected abstract readonly publisher: RoomPublisher

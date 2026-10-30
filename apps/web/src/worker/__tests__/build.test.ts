@@ -98,6 +98,14 @@ describe('wrangler.jsonc agrees with the Worker', () => {
     expect(csp[0]).not.toContain('convex')
   })
 
+  it('closes what default-src leaves open: plugins, <base> and form targets', () => {
+    const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
+    const csp = headers.match(/^\s*Content-Security-Policy:\s*(.*)$/m)?.[1] ?? ''
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
+    expect(csp).toContain("form-action 'self'")
+  })
+
   it('loads pictures only from its own hosts, not any https site', () => {
     const headers = readFileSync(join(import.meta.dir, '../../../public/_headers'), 'utf8')
     const img = headers.match(/Content-Security-Policy:.*\bimg-src ([^;]*);/)?.[1]?.split(' ')

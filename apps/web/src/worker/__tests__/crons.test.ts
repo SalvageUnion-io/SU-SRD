@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
-import { FEEDBACK_CRON, METRICS_CRON, runCron } from '../crons'
+import { BACKUP_CRON, FEEDBACK_CRON, METRICS_CRON, runCron } from '../crons'
 import type { Env } from '../env'
 import { testDb } from '../shared/__tests__/d1'
 import { acceptFeedback } from '../shared/feedback'
 import { readMetrics } from '../shared/signals'
 import { worker } from './worker'
 
-/** The Worker's Cron Triggers: the daily snapshot and the hourly feedback sweep. */
+/** The Worker's Cron Triggers: the daily snapshot, the hourly feedback sweep and the nightly backup. */
 
 const WRANGLER = (
   (await import(join(import.meta.dir, '../../../wrangler.jsonc'))) as {
@@ -16,8 +16,8 @@ const WRANGLER = (
 ).default
 
 describe('the Cron Triggers', () => {
-  it('are the two wrangler.jsonc schedules', () => {
-    expect(WRANGLER.triggers.crons).toEqual([METRICS_CRON, FEEDBACK_CRON])
+  it('are the three wrangler.jsonc schedules', () => {
+    expect(WRANGLER.triggers.crons).toEqual([METRICS_CRON, FEEDBACK_CRON, BACKUP_CRON])
   })
 
   it('take the snapshot through the Worker', async () => {
@@ -42,5 +42,24 @@ describe('the Cron Triggers', () => {
     ).rejects.toThrow('refused 1')
     await expect(runCron('* * * * *', { SHARED })).rejects.toThrow('no job')
     await expect(runCron(METRICS_CRON, {})).rejects.toThrow('no shared database')
+    await expect(runCron(BACKUP_CRON, { SHARED })).rejects.toThrow('no archive bucket')
+  })
+
+  it('back up every room the shared database knows into the archive', async () => {
+    const SHARED = testDb()
+    SHARED.sqlite.exec("insert into games (game_id, name, updated_at) values ('g-1', 'Wastes', 1)")
+    const written: string[] = []
+    const ARCHIVE = {
+      put: async (key: string) => {
+        written.push(key)
+      },
+      get: async () => null,
+    }
+    const rooms = () => ({
+      dump: async () => ({ format: 1 as const, schema: 1, tables: { units: [{ id: 'u' }] } }),
+      restore: async () => {},
+    })
+    await runCron(BACKUP_CRON, { SHARED, ARCHIVE }, Date.UTC(2026, 9, 30), fetch, rooms)
+    expect(written).toEqual(['rooms/2026-10-30/game/g-1.json', 'rooms/2026-10-30/manifest.json'])
   })
 })

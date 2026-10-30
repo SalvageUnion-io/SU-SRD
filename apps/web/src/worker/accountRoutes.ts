@@ -1,6 +1,7 @@
 /**
  * The account's routes on the Worker (`ACCOUNT_PATHS`): the player, their
- * profile, export and feedback, and the admin metrics and build floor. Who is asking is
+ * profile, export and feedback, the admin metrics, room backup and restore,
+ * and the build floor. Who is asking is
  * the session cookie's (`identityOf`); the player's own things are their
  * account room's, and what crosses accounts is the shared database's.
  *
@@ -18,14 +19,16 @@ import type { Profile, ShelfExport } from '../rooms/account/shelf'
 import { ACCOUNT_PATHS } from '../rooms/routes'
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import { gameRoom, rooms } from './roomStubs'
+import { backupRooms, gameRoom, rooms } from './roomStubs'
 import { exportedRows, shownProfile, signInProfile } from './shared/accounts'
+import type { ArchiveBucket, BackupRooms } from './shared/backups'
+import { backUpRooms, restoreRoom } from './shared/backups'
 import type { SharedDb } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
 import { gamesOf } from './shared/games'
 import { readMetrics, takeSnapshot } from './shared/signals'
 
-export type AccountEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string }
+export type AccountEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; ARCHIVE?: ArchiveBucket }
 
 type Identify = (request: Request, env: AccountEnv) => Promise<Identity | null>
 
@@ -65,6 +68,12 @@ const ProfileSchema = z.object({
   avatarUrl: z.string().max(2000).nullable().optional(),
 })
 
+const RestoreSchema = z.object({
+  day: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  kind: z.enum(['account', 'game']),
+  name: z.string().min(1).max(200),
+})
+
 const FeedbackSchema = z.object({
   kind: z.enum(['suggestion', 'report']),
   text: z.string(),
@@ -99,7 +108,8 @@ export function isAccountPath(pathname: string): boolean {
 export async function serveAccount(
   request: Request,
   env: AccountEnv,
-  identify: Identify = identityOf
+  identify: Identify = identityOf,
+  roomsForBackup: () => BackupRooms = backupRooms
 ): Promise<Response> {
   const { pathname, origin } = new URL(request.url)
   const method = request.method
@@ -146,6 +156,20 @@ export async function serveAccount(
       if (!who.admin) return new Response(null, { status: 403 })
       await takeSnapshot(shared(env))
       return json(null)
+    case `POST ${ACCOUNT_PATHS.backup}`:
+      if (who === null) return signedOut()
+      if (!who.admin) return new Response(null, { status: 403 })
+      if (!env.ARCHIVE) return new Response(null, { status: 503 })
+      return json(await backUpRooms(shared(env), env.ARCHIVE, roomsForBackup(), Date.now()))
+    case `POST ${ACCOUNT_PATHS.restore}`: {
+      if (who === null) return signedOut()
+      if (!who.admin) return new Response(null, { status: 403 })
+      if (!env.ARCHIVE) return new Response(null, { status: 503 })
+      const room = await body(request, RestoreSchema)
+      if (room === null) return new Response(null, { status: 400 })
+      const outcome = await restoreRoom(env.ARCHIVE, roomsForBackup(), room)
+      return outcome === 'restored' ? json(null) : new Response(null, { status: 404 })
+    }
     default:
       return new Response(null, { status: 405 })
   }

@@ -107,7 +107,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     `gh` is REST only (GraphQL gets 403): use `gh api` or `mcp__github__*`; no route means report it unread.
     Merge: `gh api -X PUT repos/{owner}/{repo}/pulls/<n>/merge -f merge_method=squash` or `mcp__github__merge_pull_request`; no `gh stack`. Environment, `su-rules`: [cloud-environment.md](ops/cloud-environment.md).
 35. **Cloudflare** <a id="cloudflare"></a>
-    Workers `su-srd` (`salvageunion.io`, `/build`), `su-discord-bot`; R2 `su-lp-assets` on `assets.salvageunion.io` (ADR-033).
+    Workers `su-srd` (`salvageunion.io`, `www.`, `intheunionnow.com` → `/build`) and `su-discord-bot`, both on workers.dev (the bot's Discord endpoint, the smoke check); D1 `su-shared`(`-preview`); R2 `su-photos`(`-preview`), `su-archive` ([room backups](ops/room-backups.md), the Convex export), `su-rules-private`, and `su-lp-assets` on `assets.salvageunion.io` (ADR-033; zone rules "artwork…" resize, cache, set headers).
     The account is shared with RANDSUM; re-derive from `apps/*/wrangler.jsonc`, `wrangler deployments list`.
 36. **Error tracking** · ADR-049 <a id="errors"></a>
     Workers Issues, no SDK, browser stacks minified; browsers post to `/__errors`.

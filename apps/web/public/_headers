@@ -41,7 +41,11 @@
   # img-src names every host a picture comes from: the artwork CDN, Discord
   # avatars and the Ko-fi button. A player's photo is served from 'self'
   # (/__photos), never from the url its body stored.
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com;
+  #
+  # default-src does not stand in for base-uri or form-action: without them
+  # an injected <base> repoints every relative script, and a form may post
+  # anywhere. The site's forms are its own search and script-handled ones.
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self';
 
 # The production Worker's own workers.dev address serves the same pages as
 # salvageunion.io (it stays on for the smoke check). Its canonicals already name

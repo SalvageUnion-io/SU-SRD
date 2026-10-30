@@ -11,7 +11,7 @@ Intent → doc. Area links and "ADR-N" resolve in [ARCHITECTURE.md](ARCHITECTURE
 7. **A Game's page** — Play's: [play.md](architecture/play.md) §16; ADR-030, ADR-052.
 8. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 9. **Sharing** — ADR-032, ADR-036.
-10. **Accounts, Games, the rooms** — ADR-030, ADR-064; [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#room-conventions); procedures: the [`site-ops`](../.claude/skills/site-ops/SKILL.md) skill.
+10. **Accounts, Games, the rooms** — ADR-030, ADR-064; [room backups](ops/room-backups.md); [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#room-conventions); procedures: the [`site-ops`](../.claude/skills/site-ops/SKILL.md) skill.
 11. **Invites, links between entities** — ADR-030, ADR-037.
 12. **Feature names in copy (Game, Shelf, assign)** — [glossary.md](architecture/glossary.md).
 13. **Discord bot** — [Game client](ARCHITECTURE.md#bot-game-client); [its CLAUDE.md](../apps/discord-bot/CLAUDE.md)
