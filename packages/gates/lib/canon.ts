@@ -145,6 +145,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E20: ['R37', '_chipStrips.ts#fill', 'surfaces.test.ts'],
   E21: ['R38'],
   E22: ['R40', 'R45'],
+  E23: ['peekSize.test.tsx', 'CompactBody.test.tsx'],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],
   N2: ['entity-nesting/head-only-token'],
   N3: ['entity-nesting/nested-card-level', '_nestingDepth.ts'],

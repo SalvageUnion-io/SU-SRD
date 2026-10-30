@@ -21,7 +21,7 @@ import { Lead } from '../parts/Lead'
 import { paintFor } from '../parts/paint'
 import type { TagItem } from '../parts/tagItems'
 import { traitTags } from '../parts/tagItems'
-import { usePeekAttrs } from '../peekContext'
+import { PEEK_ATTRIBUTE, usePeekAttrs } from '../peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 import { CompactBody, CompactFrame } from './CompactFrame'
 import { ROW_ROOT } from './rowRoot'
@@ -124,6 +124,8 @@ export function Compact({
   const target = useLinkTarget(mode, model.ref)
   const down = downOf(instance?.condition)
   const peekAttrs = usePeekAttrs(peek ? model.ref : undefined, undefined, down)
+  // Only a Compact that Peeks drops its native tooltips (E23).
+  const peeks = PEEK_ATTRIBUTE in peekAttrs
   // An ability's Compact wears its tier tone (E12); an action, the one other
   // "do" entity, the ink banner.
   const fill = model.kind.nature === 'do' && model.kind.domain === 'action' ? 'ink' : model.tone
@@ -208,6 +210,7 @@ export function Compact({
     >
       <Head
         title={title}
+        peeks={peeks}
         kind={omit.includes('kind') ? undefined : model.kind.stamp}
         titleAs={slots.titleAs}
         paint={paint}
@@ -243,7 +246,7 @@ export function Compact({
         <CompactBody style={down ? { opacity: 0.6 } : undefined}>
           {slots.linked}
           {slots.leading}
-          {leadText && <Lead text={leadText} />}
+          {leadText && <Lead text={leadText} peeks={peeks} />}
         </CompactBody>
       )}
     </CompactFrame>

@@ -14,6 +14,7 @@ import { Mini } from './forms/Mini'
 import type { LinkedUnit } from './LinkedUnits'
 import { LinkedUnits } from './LinkedUnits'
 import type { TagItem } from './parts/tagItems'
+import { PeekSizeContext } from './peekContext'
 import type { EntityFormModel, EntityMode, EntityOmit } from './types'
 
 type EntitySource =
@@ -114,6 +115,12 @@ export type EntityProps = EntitySource &
  * `ReferenceEntityCard` the Card and Page.
  */
 export function Entity(props: EntityProps) {
+  const form = <EntityForm {...props} />
+  // A Peek opened from a Compact or a Mini is a Mini (E23), its own included.
+  return <PeekSizeContext.Provider value="mini">{form}</PeekSizeContext.Provider>
+}
+
+function EntityForm(props: EntityProps) {
   const {
     instance,
     mode,

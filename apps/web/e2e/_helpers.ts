@@ -81,7 +81,9 @@ export async function openPeekFromSearch(page: Page, peek: SearchPeek): Promise<
   const trigger = await searchPeekTrigger(page, peek)
   await expect(trigger, `a ${peek.schema} Mini for ${peek.name} to Peek`).toBeVisible()
   await trigger.hover()
-  await expect(page.locator('[data-peek-popup] .su-entity-compact__head').first()).toBeVisible()
+  await expect(
+    page.locator('[data-peek-popup]').locator('.su-entity-compact__head, .su-entity-mini').first()
+  ).toBeVisible()
 }
 
 /**

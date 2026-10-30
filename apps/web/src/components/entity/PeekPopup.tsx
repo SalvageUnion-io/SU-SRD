@@ -15,8 +15,9 @@ import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import type { PeekLoader } from './Peek'
-import { PeekCard } from './PeekCard'
+import { PeekCard, PeekMini } from './PeekCard'
 import { PeekTable } from './PeekTable'
+import type { PeekSize } from './peekContext'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
 
@@ -92,6 +93,7 @@ export function PeekPopup({
   schemaName,
   entityId,
   down = false,
+  size = 'compact',
   load,
   onDismiss,
 }: {
@@ -101,6 +103,8 @@ export function PeekPopup({
   entityId: string
   /** The trigger is damaged or destroyed: the card is down as it is. */
   down?: Down
+  /** One form below the trigger's (E23): a Compact contentful, or a contentful Mini. */
+  size?: PeekSize
   load: PeekLoader
   onDismiss: () => void
 }) {
@@ -148,13 +152,15 @@ export function PeekPopup({
               background: 'transparent',
               maxHeight: '80vh',
               overflowY: 'auto',
-              width: '500px',
+              width: size === 'mini' ? '360px' : '500px',
             }}
           >
             {subject ? (
               <PeekBoundary>
                 {subject.kind === 'table' ? (
                   <PeekTable name={subject.name} table={subject.table} />
+                ) : size === 'mini' ? (
+                  <PeekMini entity={subject.entity} down={down} />
                 ) : (
                   <PeekCard entity={subject.entity} down={down} />
                 )}

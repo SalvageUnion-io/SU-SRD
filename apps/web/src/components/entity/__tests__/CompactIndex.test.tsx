@@ -53,6 +53,11 @@ describe('CompactIndex lead', () => {
     expect(cellsOf(container).querySelector('p')?.title).toBe(muleLead())
   })
 
+  test('an index tile never Peeks: it links through to the entry', () => {
+    const { container } = render(<Entity size="compact" layout="index" entity={mule()} lead />)
+    expect(container.querySelector('[data-peek]')).toBeNull()
+  })
+
   test('without `lead`, the tile carries no lore line', () => {
     const { container } = render(<Entity size="compact" layout="index" entity={mule()} />)
     expect(container.querySelector('.su-entity-index__cells p')).toBeNull()

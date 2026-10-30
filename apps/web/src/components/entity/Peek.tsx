@@ -2,7 +2,8 @@ import { lazy, Suspense, useCallback, useEffect, useId, useRef, useState } from 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import type { Down } from '../referenceEntity/card/cardChrome'
 import { downOf } from '../referenceEntity/card/cardChrome'
-import { PEEK_DOWN_ATTRIBUTE, parsePeekAddress } from './peekContext'
+import type { PeekSize } from './peekContext'
+import { PEEK_DOWN_ATTRIBUTE, PEEK_SIZE_ATTRIBUTE, parsePeekAddress } from './peekContext'
 import { installPeekController } from './peekController'
 
 /** The popup, the card inside it and the data it reads load on the first Peek. */
@@ -13,14 +14,21 @@ export type PeekLoader = (schemaName: string) => Promise<void>
 
 const loadOneSchema: PeekLoader = (schemaName) => SalvageUnionReference.preload([schemaName])
 
-type Active = { anchor: HTMLElement; schemaName: string; id: string; down: Down }
+type Active = {
+  anchor: HTMLElement
+  schemaName: string
+  id: string
+  down: Down
+  size: PeekSize
+}
 
 /** Only the first host on a page listens; a second would open every Peek twice. */
 let hostMounted = false
 
 /**
  * PEEK HOST — the page's one Peek (entity display language E4, E16): a
- * compact, read-only Card of the entity a Mention or a Tag names, shown on
+ * read-only view of the entity a Mention or a Tag names, one form below its
+ * trigger's (E23: a Compact contentful, or from a Compact or Mini a Mini), shown on
  * hover, keyboard focus or a long press, hidden on leave, blur or Escape.
  *
  * Triggers carry only their entity's address (`data-peek`, set by `Mention`
@@ -48,7 +56,8 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
       open: (anchor, address) => {
         const target = parsePeekAddress(address)
         const down = downOf(anchor.getAttribute(PEEK_DOWN_ATTRIBUTE) ?? undefined)
-        setActive(target ? { anchor, ...target, down } : null)
+        const size = anchor.getAttribute(PEEK_SIZE_ATTRIBUTE) === 'mini' ? 'mini' : 'compact'
+        setActive(target ? { anchor, ...target, down, size } : null)
       },
       close: () => setActive(null),
     })
@@ -78,12 +87,13 @@ export function PeekHost({ load = loadOneSchema }: { load?: PeekLoader }) {
     <Suspense fallback={null}>
       <PeekPopup
         // Another entity is another popup: its load starts over.
-        key={`${active.schemaName}:${active.id}:${active.down}`}
+        key={`${active.schemaName}:${active.id}:${active.down}:${active.size}`}
         id={popupId}
         anchor={active.anchor}
         schemaName={active.schemaName}
         entityId={active.id}
         down={active.down}
+        size={active.size}
         load={load}
         onDismiss={dismiss}
       />
