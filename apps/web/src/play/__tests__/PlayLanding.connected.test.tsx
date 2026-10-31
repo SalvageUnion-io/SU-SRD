@@ -165,6 +165,12 @@ describe('the Play landing', () => {
     expect(wastes.getByRole('link', { name: 'Play Vane in Wastes' }).getAttribute('href')).toBe(
       '/play/pilots/land-vane'
     )
+
+    // R56: a Game's name is kept whole: on a phone its doors are the body's
+    // first row rather than a cut name (the fit itself: chipFill.test.ts).
+    const heading = wastes.getByRole('heading', { name: 'Wastes (Game)' })
+    expect(heading.closest('[data-fill-whole]')).not.toBeNull()
+    expect(heading.className).toContain('su-entity-compact__title--whole')
   })
 
   test('a live group session: a chip says so, and your pilot’s door joins it', async () => {

@@ -366,6 +366,9 @@ function PlayGameItem({
         size="compact"
         model={gameRowModel(game.name)}
         titleAs="h3"
+        // The Game's name is never cut (R56): its doors are the body's first
+        // row when they don't fit beside it.
+        wholeName
         mode={{ kind: 'link', href: gamePath(game._id) }}
         labels={chips.map((chip) => (
           <Stat key={chip.key} label={chip.label} value={chip.value} size="mini" />

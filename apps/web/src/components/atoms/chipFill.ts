@@ -35,6 +35,12 @@ export const FILL_HEAD = '[data-chip-fill]'
 /** Its name (the cut-out, the title's plate): the bottom line's left end. */
 export const FILL_NAME = '[data-fill-name]'
 
+/**
+ * A name kept whole (R56): never "…", and the host's controls leave for the
+ * body's first row before it would give way (`planWithRoom`).
+ */
+export const WHOLE_ATTRIBUTE = 'data-fill-whole'
+
 /** Nodes beside a chip that are no chip: an open menu's focus guards and portal owner. */
 const NOT_CHIP_ATTRIBUTES = ['data-base-ui-focus-guard', 'data-base-ui-portal', 'aria-owns']
 
@@ -316,6 +322,21 @@ function planWithRoom(
   if (!hasRow) return plan
   const kept = widths.reduce((sum, width, i) => (plan.out[i] ? sum : sum + gap + width), 0)
   const unclassed = items.map((item) => classOfItem(item, container) === '' && copiesWhole(item))
+  // A whole name (R56: a Game's on the Play hub) is never cut nor wrapped to
+  // make room: where it and what stays do not share its line, the host's
+  // controls (the menu lane's doors) are the first row, only the Tech Level
+  // and the cost staying.
+  if (name.hasAttribute(WHOLE_ATTRIBUTE)) {
+    if (kept + oneLineWidth(name) <= room - 1) return plan
+    return {
+      out: items.map(
+        (item, i) =>
+          plan.out[i] ||
+          (!WHOLE_STAYS.has(classOfItem(item, container)) && (copiesWhole(item) || forwards(item)))
+      ),
+      more: false,
+    }
+  }
   const shortest = ellipsizes(name)
     ? nameWidth
     : Math.max(oneLineWidth(name, 'min-content'), widestWord(name))
@@ -344,6 +365,9 @@ function planWithRoom(
   )
   return { out: items.map((_, i) => !stays[i]), more: false }
 }
+
+/** What stays beside a whole name (R56) however long it is: the Tech Level and the cost. */
+const WHOLE_STAYS = new Set(['rank', 'cost'])
 
 /** What stays in the head however long its name: the cost and the slots after it (C8). */
 const CORNER_CLASSES = new Set(['cost', 'state', 'uses', 'menu'])
