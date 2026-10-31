@@ -51,6 +51,7 @@ describe('PlayMediatorGate', () => {
     answerReads({})
     renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to run your Game' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
   })
 
   test('the Mediator gets the screen, under the Game’s name', () => {

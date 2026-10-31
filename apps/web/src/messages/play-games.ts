@@ -28,7 +28,6 @@ export const playGamesCopy = messages({
   thisGame: 'this Game',
   signInToOpenThis: 'Sign in to open this Game',
   aGameLivesOnIts: "A Game lives on its players' accounts. Sign in, then open it from Play.",
-  signInWithDiscord: 'Sign in with Discord',
   yourSession: 'your session',
   thisGameOpensOnceYou: 'This Game opens once you are back online',
   aGamesPageIsRead:

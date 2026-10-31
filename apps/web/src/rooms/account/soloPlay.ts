@@ -63,9 +63,10 @@ export class AccountSoloPlay extends SeatTable {
     })
   }
 
-  beginDowntime(actor: string, pilotId: string, at: number): void {
+  /** Begin the pilot's solo Downtime; true when this began one. */
+  beginDowntime(actor: string, pilotId: string, at: number): boolean {
     // Named by its start, as Convex named a solo run, so a step op copied from there is this run's.
-    this.asPilot(actor, pilotId, (place) => beginDowntime(place, String(at), at))
+    return this.asPilot(actor, pilotId, (place) => beginDowntime(place, String(at), at))
   }
 
   advanceDowntime(actor: string, pilotId: string): void {

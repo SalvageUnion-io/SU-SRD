@@ -11,6 +11,7 @@
  */
 
 import '../../styles/play/play.css'
+import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import { RoutePending } from '../../components/shared/RouteFallbacks'
 import { playGamesCopy } from '../../messages/play-games'
@@ -25,7 +26,7 @@ export function GamePage({ gameId }: { gameId: string }) {
       <PlayRefusal
         title={playGamesCopy('signInToOpenThis')}
         body={playGamesCopy('aGameLivesOnIts')}
-        link={{ href: '/sign-in', label: playGamesCopy('signInWithDiscord'), back: false }}
+        signInTo={gamePath(gameId)}
       />
     )
   }

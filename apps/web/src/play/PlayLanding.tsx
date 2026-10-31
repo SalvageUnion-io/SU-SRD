@@ -14,8 +14,8 @@
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
- *    its one door, last in the chip group: Mediate where you mediate it, else
- *    Play <your pilot> (`playHub.model.ts`). At its rule's end, as each
+ *    its doors, last in the chip group: Mediate where you mediate it, then
+ *    Play <pilot> for each pilot of yours in it (`playHub.model.ts`). At its rule's end, as each
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
@@ -69,7 +69,7 @@ import { hereCount } from './crew.model'
 import { PlayRefusal } from './PlayRefusal'
 import type { SoloPilot } from './play.model'
 import { gamePilots, soloPilots } from './play.model'
-import { gameChips, gameCrew, gameDoor } from './playHub.model'
+import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
@@ -126,7 +126,7 @@ export function PlayLanding() {
       <PlayRefusal
         title={playCopy('signInToPlay')}
         body={playCopy('playRunsYourPilotsSolo2')}
-        link={{ href: '/sign-in', label: playCopy('signInWithDiscord'), back: false }}
+        signInTo="/play/"
       />
     )
   }
@@ -325,8 +325,8 @@ function JoinGame() {
 /**
  * One of your Games, as a contentful Compact: the whole Compact opens the
  * Game's page; its chips say your role, how many are here, the Downtime state
- * and its channel; its body is the crew, each unit opening its sheet; its one
- * door, last in the chip group, goes into play.
+ * and its channel; its body is the crew, each unit opening its sheet; its
+ * doors, last in the chip group, go into play.
  */
 function PlayGameItem({
   game,
@@ -344,7 +344,7 @@ function PlayGameItem({
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)
   const chips = gameChips({ mediator: game.mediator, here, downtime, channel })
-  const door = gameDoor(game, pilots)
+  const doors = gameDoors(game, pilots)
   const crew =
     listing && vitals
       ? gameCrew({
@@ -366,13 +366,21 @@ function PlayGameItem({
         ))}
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
-          door ? (
-            // Ink on the Game's pink, as its stamps are (R44: a control on a
-            // pink band is ink), a chip's height.
-            <Button href={door.href} aria-label={door.ariaLabel} variant="ink" size="mini">
-              {door.label}
-            </Button>
-          ) : undefined
+          doors.length > 0
+            ? // Ink on the Game's pink, as its stamps are (R44: a control on a
+              // pink band is ink), a chip's height.
+              doors.map((door) => (
+                <Button
+                  key={door.href}
+                  href={door.href}
+                  aria-label={door.ariaLabel}
+                  variant="ink"
+                  size="mini"
+                >
+                  {door.label}
+                </Button>
+              ))
+            : undefined
         }
       />
     </li>

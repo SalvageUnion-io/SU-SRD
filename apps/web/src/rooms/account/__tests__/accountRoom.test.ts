@@ -310,8 +310,9 @@ describe('the solo table’s seats and Downtime', () => {
   test('its player runs a pilot’s Downtime, its steps read back off their ops', () => {
     const { room } = shelf()
     expect(() => room.solo.advanceDowntime(PLAYER, 'p1')).toThrow('Downtime is not running')
-    room.solo.beginDowntime(PLAYER, 'p1', AT)
-    room.solo.beginDowntime(PLAYER, 'p1', AT + 1)
+    // True only for the press that began it: the usage signal counts that one.
+    expect(room.solo.beginDowntime(PLAYER, 'p1', AT)).toBe(true)
+    expect(room.solo.beginDowntime(PLAYER, 'p1', AT + 1)).toBe(false)
     room.shelf.submit(PLAYER, [
       op('p1', {}, { id: downtimeStepOpId(AT, 'p1', 0), source: 'downtime' }),
     ])

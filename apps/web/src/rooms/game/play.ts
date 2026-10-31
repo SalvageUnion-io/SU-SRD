@@ -85,8 +85,9 @@ export class GamePlay extends SeatTable {
     }
   }
 
-  beginDowntime(actor: string, at: number): void {
-    this.asMediator(actor, () => beginDowntime(this.place, this.newId(), at))
+  /** Begin a Downtime; true when this began one, false when one was already running. */
+  beginDowntime(actor: string, at: number): boolean {
+    return this.asMediator(actor, () => beginDowntime(this.place, this.newId(), at))
   }
 
   advanceDowntime(actor: string): void {

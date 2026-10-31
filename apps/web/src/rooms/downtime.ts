@@ -37,9 +37,12 @@ export type DowntimePlace = {
   write(next: Running | null): void
 }
 
-/** Begin at the first step. Already running, a no-op: a second press must not charge upkeep twice. */
-export function beginDowntime(place: DowntimePlace, runId: string, at: number): void {
-  if (place.running() !== null) return
+/**
+ * Begin at the first step; true when this began one. Already running, a no-op
+ * (false): a second press must not charge upkeep twice, nor count twice.
+ */
+export function beginDowntime(place: DowntimePlace, runId: string, at: number): boolean {
+  if (place.running() !== null) return false
   place.write({
     runId,
     stepIndex: 0,
@@ -48,6 +51,7 @@ export function beginDowntime(place: DowntimePlace, runId: string, at: number): 
     upkeepSpent: false,
     nanitesSpent: false,
   })
+  return true
 }
 
 /**

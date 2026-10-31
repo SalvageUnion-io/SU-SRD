@@ -5,11 +5,11 @@
  * `h1`, and the ways into the Cockpit beside it on the band's foot, wrapping up
  * over the name when they do not fit (`asideAt="controls"`).
  *
- * Every member gets one way into the Cockpit. The
+ * Every member gets a way into the Cockpit. The
  * Mediator's is a **Mediate** chip after a **YOU MEDIATE** stamp, opening
- * Play's Mediator screen (`/play/games/$gameId/mediate`, play.md §10); a player's is
+ * Play's Mediator screen (`/play/games/$gameId/mediate`, play.md §10); a pilot's is
  * the hub's `actions`, a **Play** chip that asks which pilot to play
- * (`LaunchPlay`).
+ * (`LaunchPlay`), beside Mediate when the Mediator plays one too.
  */
 
 import { mediatePath } from 'game-domain/entityKinds'
@@ -40,7 +40,7 @@ export function GameBand({
   name: string
   /** The viewer mediates this Game (`games.get`'s membership flag). */
   mediator?: boolean
-  /** A player's chip button, right of the name (`LaunchPlay`); the Mediator's is the link above. */
+  /** The Play chip button, right of the name (`LaunchPlay`), after Mediate when both show. */
   actions?: ReactNode
 }) {
   const mediates = mediator && gameId !== null
@@ -59,7 +59,7 @@ export function GameBand({
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   {playGamesCopy('youMediate')}
                 </Badge>
-                <Button href={mediatePath(gameId)} variant="default" size="compact">
+                <Button href={mediatePath(gameId)} variant="ink" size="compact">
                   {playGamesCopy('mediate')}
                 </Button>
               </Cluster>

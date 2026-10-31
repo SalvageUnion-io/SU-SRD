@@ -113,6 +113,7 @@ describe('refusals', () => {
     setQueryAnswers({})
     await renderGate('play-rook', 'signedOut')
     expect(heading('Sign in to play')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
     expect(opened()).toBeNull()
   })

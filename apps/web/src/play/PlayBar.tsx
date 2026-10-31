@@ -90,7 +90,7 @@ const SLOT = {
 const SPACER = { flex: '1 1 0%' } satisfies CSSProperties
 
 export type PlayBarProps = {
-  /** The Game's name, or "Solo · <pilot>" (`playTitle`). */
+  /** The Game's name, or solo the pilot's (`playTitle`). */
   title: string
   /** Where back goes: the Game's page, or (solo) the Play hub. */
   backHref?: string

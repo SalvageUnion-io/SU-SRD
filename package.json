@@ -1,7 +1,7 @@
 {
   "name": "susrd",
   "private": true,
-  "version": "4.5.26",
+  "version": "4.5.27",
   "type": "module",
   "packageManager": "bun@1.4.2",
   "license": "https://leyline.press/pages/salvage-union-open-game-licence-1-0b",
@@ -34,6 +34,12 @@
       "zod": "4.6.6"
     },
     "deepmerge": "file:./vendor/deepmerge",
+    "filelist": {
+      "minimatch": "11.0.2"
+    },
+    "workbox-build": {
+      "glob": "14.0.3"
+    },
     "salvageunion-reference": "workspace:*",
     "sharp": ">=0.35.5"
   },

@@ -30,7 +30,7 @@
 
 import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
-import { PRODUCT } from 'game-domain/product'
+import { cockpitPath } from 'game-domain/entityKinds'
 import { useEffect } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
@@ -50,8 +50,8 @@ export function PlayGate({ id }: { id: string }) {
     return (
       <PlayRefusal
         title={playCopy('signInToPlay')}
-        body={playCopy('playRunsYourPilotsSolo')}
-        link={{ href: '/', label: PRODUCT.build }}
+        body={playCopy('playRunsYourPilotsSolo2')}
+        signInTo={cockpitPath(id)}
       />
     )
   }

@@ -4,6 +4,7 @@ import { exports } from 'cloudflare:workers'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import type { UnitParcel } from '../../rooms/handoff'
 import { GameRoom } from '../rooms'
+import { testDb } from '../shared/__tests__/d1'
 
 /**
  * The Game room's Durable Object layer under `bun test`, over a stand-in for
@@ -39,7 +40,7 @@ function storage() {
 
 const made = new Map<string, GameRoom>()
 
-function room(gameId: string) {
+function room(gameId: string, env: Record<string, unknown> = {}) {
   const store = storage()
   const waiting: Promise<unknown>[] = []
   const ctx = {
@@ -49,7 +50,7 @@ function room(gameId: string) {
     getWebSockets: () => [],
     waitUntil: (promise: Promise<unknown>) => void waiting.push(promise),
   }
-  const game = new GameRoom(ctx as never, {} as never)
+  const game = new GameRoom(ctx as never, env as never)
   made.set(gameId, game)
   return { game, store, waiting }
 }
@@ -71,8 +72,8 @@ Object.assign(exports, {
   },
 })
 
-async function seeded(gameId: string) {
-  const made = room(gameId)
+async function seeded(gameId: string, env: Record<string, unknown> = {}) {
+  const made = room(gameId, env)
   const { game } = made
   game.act(ORGANIZER, 'create', { name: 'Tenacity', profile: profile('Org') })
   const code = game.act(ORGANIZER, 'inviteCode', undefined as never)
@@ -180,6 +181,25 @@ describe('the Game room Durable Object', () => {
     expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
     await game.forget(ORGANIZER)
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+  })
+
+  test('a Downtime begun counts once toward the weekly usage signal', async () => {
+    const db = testDb()
+    const { game } = await seeded('g-usage', { SHARED: db })
+    game.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
+    expect(game.act(ORGANIZER, 'downtime.begin', undefined as never)).toEqual({
+      ok: true,
+      value: true,
+    })
+    // A second press while it runs begins nothing, so counts nothing.
+    expect(game.act(ORGANIZER, 'downtime.begin', undefined as never)).toEqual({
+      ok: true,
+      value: false,
+    })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(db.sqlite.query('select key, count from usage_counts').all()).toEqual([
+      { key: 'downtime:game', count: 1 },
+    ])
   })
 
   test('a Stop Sign on a table that opted in is posted after the act', async () => {
