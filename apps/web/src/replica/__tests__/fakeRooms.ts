@@ -144,6 +144,7 @@ const READ_TABLES: Record<string, { table: StateTable; records: (answer: unknown
   'salvageAreas.here': { table: 'salvageArea', records: one },
   'ledger.get': { table: 'ledger', records: one },
   'safety.stopSign': { table: 'safety', records: one },
+  'session.state': { table: 'session', records: one },
   'safety.boundaries': { table: 'boundaries', records: list },
   'mediator.npcs': {
     table: 'opposition',

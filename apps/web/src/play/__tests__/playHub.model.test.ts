@@ -7,6 +7,12 @@ import { gameChips, gameCrew, gameDoors, pairedCrew } from '../playHub.model'
 const GAME = { _id: 'g1', name: 'The Rust Belt Run', mediator: false }
 
 describe('its chips', () => {
+  test('Session live follows your role while a group session runs', () => {
+    expect(
+      gameChips({ mediator: false, live: true, here: 0, downtime: undefined }).map((c) => c.label)
+    ).toEqual(['Player', 'Session live'])
+  })
+
   test('your role, how many are here, and the Downtime step', () => {
     expect(
       gameChips({ mediator: false, here: 3, downtime: { running: true, stepIndex: 3 } })
@@ -45,15 +51,27 @@ describe('its doors', () => {
     ariaLabel: 'Play Bonesaw in The Rust Belt Run',
   }
 
-  test('a Mediator who also plays gets Mediate, then their pilot', () => {
+  const START = {
+    label: 'Start group session',
+    href: '/play/games/g1/mediate',
+    ariaLabel: 'Start a group session of The Rust Belt Run',
+    start: true,
+  }
+
+  test('a Mediator who also plays gets their door, then their pilot', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], false)).toEqual([
+      START,
+      BONESAW,
+    ])
+    // Before the room answers, Mediate: never a Start that cannot be pressed.
     expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual([
       MEDIATE,
       BONESAW,
     ])
   })
 
-  test('a Mediator with no pilot there gets Mediate alone', () => {
-    expect(gameDoors({ ...GAME, mediator: true }, [])).toEqual([MEDIATE])
+  test('a Mediator with no pilot there gets their door alone', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [], true)).toEqual([MEDIATE])
   })
 
   test('a player gets a door for every pilot of theirs', () => {
@@ -74,6 +92,17 @@ describe('its doors', () => {
 
   test('none with no pilot of yours there', () => {
     expect(gameDoors(GAME, [])).toEqual([])
+  })
+
+  test('once a session is live: Mediate, and each pilot joins it', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }], true)).toEqual([
+      MEDIATE,
+      {
+        label: 'Join as Bonesaw',
+        href: '/play/pilots/p1',
+        ariaLabel: 'Join the session in The Rust Belt Run as Bonesaw',
+      },
+    ])
   })
 })
 

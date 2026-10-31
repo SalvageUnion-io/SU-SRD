@@ -188,12 +188,13 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.waitForURL(/\/build\/npcs\/(?!new)/, LONG)
   const npc = new URL(page.url()).pathname
 
-  // Play's screens. The Organizer mediates the Game, so its Compact's one door
-  // is Mediate (ADR-052 §4): the player's screen is the pilot's own, `/play/<id>`.
+  // Play's screens: the player's is the pilot's own, `/play/<id>`; the
+  // Mediator's is the Game's own, which its Compact offers only once a group
+  // session is live (Start group session until then), so it is the Game's path.
   const pilotId = pilot.match(/\/pilots\/([^/?#]+)/)?.[1]
   if (!pilotId) throw new Error(`no pilot id in ${pilot}`)
   const playSolo = await playDoor(page, `Play ${SEED_SOLO} solo`, base)
-  const playMediator = await playDoor(page, `Mediate ${SEED_GAME}`, base)
+  const playMediator = `${game}/mediate`
 
   return {
     pilot,

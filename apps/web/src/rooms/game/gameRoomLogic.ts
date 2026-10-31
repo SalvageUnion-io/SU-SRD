@@ -8,6 +8,7 @@ import { GameProposals } from './proposals'
 import { GameRoster, randomInviteCode } from './roster'
 import { GameSafety } from './safety'
 import { GameScene } from './scene'
+import { GameSession } from './session'
 import { GameStore } from './store'
 import { GameTransit } from './transit'
 import { GameUnits } from './units'
@@ -27,6 +28,7 @@ export class GameRoomLogic {
   readonly scene: GameScene
   readonly ledger: GameLedger
   readonly safety: GameSafety
+  readonly session: GameSession
   readonly log: GameLog
   /** Mints an id for what the room makes (a proposal's op). */
   readonly newId: () => string
@@ -48,6 +50,7 @@ export class GameRoomLogic {
     this.scene = new GameScene(store, this.units)
     this.ledger = new GameLedger(store, this.units, this.play, newId)
     this.safety = new GameSafety(store, newId)
+    this.session = new GameSession(store)
     this.log = new GameLog(store, newId)
   }
 }

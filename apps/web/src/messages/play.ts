@@ -229,4 +229,13 @@ export const playCopy = messages({
   nothingToTrackInDowntime: 'Nothing to track in Downtime: the tabs hold the step.',
   vitals: 'Vitals',
   unitVitals: '{name}’s vitals',
+  sessionLive: 'Session live',
+  startGroupSession: 'Start group session',
+  endGroupSession: 'End group session',
+  couldNotStartSession: 'Could not start the session.',
+  couldNotEndSession: 'Could not end the session.',
+  joinSession: 'Join session',
+  startGroupSessionOf: 'Start a group session of {game}',
+  joinAs: 'Join as {name}',
+  joinSessionAs: 'Join the session in {game} as {name}',
 })

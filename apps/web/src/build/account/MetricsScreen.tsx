@@ -49,6 +49,7 @@ const TOTALS: ReadonlyArray<[keyof Counts, string]> = [
 function tallyLabel(key: string): string {
   if (key === 'downtime:game') return buildAccountCopy('downtimeAtAGame')
   if (key === 'downtime:solo') return buildAccountCopy('downtimeSolo')
+  if (key === 'session:game') return buildAccountCopy('groupSessionsStarted')
   if (key.startsWith('bot:')) return `/${key.slice(4)}`
   return key
 }

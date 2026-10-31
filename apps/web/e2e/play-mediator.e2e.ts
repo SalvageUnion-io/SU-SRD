@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { buildPilot } from './_helpers'
+import { buildPilot, openApp } from './_helpers'
 import {
   axeViolations,
   expectNoPageScroll,
@@ -17,7 +17,7 @@ import { expect, test } from './fixtures'
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins
  * by a link and builds a pilot in it. Each opens Play from the Play landing:
- * the Mediator's "Mediate <Game>", the player's "Play Mira Voss in <Game>".
+ * the Mediator's "Start a group session of <Game>", the player's "Play Mira Voss in <Game>".
  *
  *  1. **Propose → accept.** The Mediator taps the player's seat, which aims
  *     Propose, and proposes HP → 4; the proposal reads Pending. The player
@@ -78,8 +78,11 @@ test(
       await expectNoPageScroll(player.page, 'player in a Game, On foot')
       a11y.push(...(await axeViolations(player.page, 'player in a Game, On foot')))
 
-      const mediatorPath = await playDoor(page, `Mediate ${GAME}`)
-      await openPlay(page, mediatorPath)
+      // The Mediator starts the group session from the hub, which opens their screen.
+      await openApp(page, '/play/')
+      await page.getByRole('button', { name: `Start a group session of ${GAME}` }).click()
+      await page.waitForURL(/\/mediate$/, { timeout: 30_000 })
+      await openPlay(page, new URL(page.url()).pathname)
       const bar = page.locator('.su-play-root header')
       await expect(bar.getByRole('heading', { name: GAME })).toBeVisible()
       await expect(bar.getByText('Mediator', { exact: true })).toBeVisible()

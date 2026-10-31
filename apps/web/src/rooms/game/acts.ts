@@ -173,6 +173,9 @@ const GAME_ACTS = {
   'safety.removeBoundary': (c: ActContext, a: { boundaryId: string }) =>
     c.room.safety.removeBoundary(c.actor, a.boundaryId),
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
+  'session.state': (c: ActContext) => c.room.session.session(c.actor),
+  'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
+  'session.end': (c: ActContext) => c.room.session.end(c.actor),
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
   'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),
   'safety.setPostToChannel': (c: ActContext, a: { on: boolean }) =>
@@ -235,6 +238,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'ledger.get',
   'safety.boundaries',
   'safety.stopSign',
+  'session.state',
 ])
 
 /** A refusal the player reads, apart from a defect, which the Worker logs. */

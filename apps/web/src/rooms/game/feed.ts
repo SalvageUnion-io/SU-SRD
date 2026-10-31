@@ -31,13 +31,15 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
 
 /**
  * What the table plays under, as each member reads it: one record each for the
- * Scene, the area, the ledger and the Stop Sign, and one per boundary. Who
+ * Scene, the area, the ledger, the Stop Sign and the group session, and one
+ * per boundary. Who
  * added a boundary or showed the Stop Sign stays in the room (`safety.ts`).
  */
 function tableRecords(room: GameRoomLogic, actor: string) {
   const area = room.scene.salvageArea(actor)
   const ledger = room.ledger.ledger(actor)
   const safety = room.safety.stopSign(actor)
+  const session = room.session.session(actor)
   const one = (appId: string, body: object | null, updatedAt: number) =>
     body === null ? [] : [{ appId, body: { ...body }, updatedAt }]
   return {
@@ -48,6 +50,7 @@ function tableRecords(room: GameRoomLogic, actor: string) {
       .boundaries(actor)
       .map(({ id, addedAt, ...body }) => ({ appId: id, body, updatedAt: addedAt })),
     safety: one('safety', safety, room.safety.updatedAt()),
+    session: one('session', session, session.startedAt ?? 0),
   }
 }
 

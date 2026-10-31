@@ -50,6 +50,7 @@ import { playGamesCopy } from '../../messages/play-games'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { StopSignBanner } from '../StopSign'
+import { useGameSession } from '../useGameSession'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
@@ -171,6 +172,7 @@ export function GameHub({ gameId }: GameHubProps) {
   // `games.get` rather than listMine-and-find: it distinguishes "still
   // loading" from "not a member" without fetching every table you are in.
   const game = useGamesQuery('games.get', { gameId: gameId })
+  const session = useGameSession(gameId)
 
   return (
     <PageShell
@@ -181,7 +183,16 @@ export function GameHub({ gameId }: GameHubProps) {
           gameId={gameId}
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
-          actions={game ? <LaunchPlay gameId={gameId} onlyWithPilots={game.mediator} /> : undefined}
+          actions={
+            game ? (
+              <LaunchPlay
+                gameId={gameId}
+                onlyWithPilots={game.mediator}
+                live={session?.live === true}
+              />
+            ) : undefined
+          }
+          session={session}
         />
       }
       bodyStyle={GAME_BODY}

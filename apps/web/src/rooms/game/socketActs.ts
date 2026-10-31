@@ -119,6 +119,8 @@ export const GAME_SOCKET_ACTS = {
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'safety.setPostToChannel': z.object({ on: z.boolean() }),
+  'session.start': NONE,
+  'session.end': NONE,
 
   ...SEAT_ACTS,
   ...DOWNTIME_ACTS,

@@ -45,6 +45,7 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   ledger: null,
   boundaries: null,
   safety: null,
+  session: null,
   members: null,
   seats: null,
   downtime: null,
