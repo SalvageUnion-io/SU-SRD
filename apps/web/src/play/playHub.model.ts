@@ -76,7 +76,9 @@ export function gameDoors(
       ? [{ label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }]
       : [
           {
-            label: playCopy('startGroupSession'),
+            // Short on the hub's head, so the Game's name keeps its room (C2b); the
+            // accessible name says it in full.
+            label: playCopy('startSession'),
             href: mediatePath(game._id),
             ariaLabel: playCopy('startGroupSessionOf', { game: game.name }),
             start: true,

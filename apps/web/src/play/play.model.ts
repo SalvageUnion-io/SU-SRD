@@ -94,7 +94,7 @@ export function connectionLine(status: SyncStatus, solo: boolean): string | null
 
 /**
  * Why Play is read-only right now, as it says so (play.md §7): `stamp` for the
- * Play bar, in place of the LIVE stamp, and `says` in full. Null while writes
+ * Play bar, in place of the ONLINE stamp, and `says` in full. Null while writes
  * may go. The flag itself is `canWrite` (`Play.canWrite`); this is the words.
  */
 export type PlayReadOnly = { stamp: string; says: string }
@@ -125,12 +125,15 @@ export function playReadOnly(connection: {
 }
 
 /**
- * The LIVE stamp: "● Live", and in a Game, how many seats are here ("● Live ·
- * 4 here"), or of how many, on the Mediator's screen ("● Live · 3 of 4 here").
+ * The ONLINE stamp: "● Online", and in a Game, how many seats are here ("● Online ·
+ * 4 here"), or of how many, on the Mediator's screen ("● Online · 3 of 4 here").
+ * `short` (a phone's bar, one line): the count alone after the dot ("● 3 of 4
+ * here"), "● Online" while there is none.
  */
-export function liveLabel(here: number | null, of: number | null = null): string {
-  if (here === null) return '● Live'
-  return of === null ? `● Live · ${here} here` : `● Live · ${here} of ${of} here`
+export function liveLabel(here: number | null, of: number | null = null, short = false): string {
+  if (here === null) return '● Online'
+  const count = of === null ? `${here} here` : `${here} of ${of} here`
+  return short ? `● ${count}` : `● Online · ${count}`
 }
 
 /** One shelf pilot the landing's Solo section offers, with the mech assigned to it. */

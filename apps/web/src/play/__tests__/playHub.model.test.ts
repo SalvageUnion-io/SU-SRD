@@ -52,7 +52,7 @@ describe('its doors', () => {
   }
 
   const START = {
-    label: 'Start group session',
+    label: 'Start session',
     href: '/play/games/g1/mediate',
     ariaLabel: 'Start a group session of The Rust Belt Run',
     start: true,

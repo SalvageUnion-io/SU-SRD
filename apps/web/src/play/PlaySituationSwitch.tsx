@@ -199,10 +199,10 @@ function BoardOptionControl({
       <SegmentedOption
         pressed={pressed}
         disabled
-        title={playCopy('noMechToBoard')}
         aria-label={playCopy('noMechToBoard2', { label })}
       >
-        {shown ?? label}
+        {/* Said on the option, never only in a hover title a phone can't read. */}
+        {pressed ? (shown ?? label) : playCopy('noMech')}
       </SegmentedOption>
     )
   }

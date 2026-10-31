@@ -86,7 +86,7 @@ describe('the Cockpit frame', () => {
     expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
-    expect(bar.queryByText(/● Live/)).toBeNull()
+    expect(bar.queryByText(/● Online/)).toBeNull()
     expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     // Nothing bound: the channel button is Connect.
     expect(bar.getByRole('button', { name: 'Connect a Discord channel' })).toBeTruthy()
@@ -108,7 +108,7 @@ describe('the Cockpit frame', () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Tenacity')
     expect(screen.getByText('Connected · changes reach the table live')).toBeTruthy()
-    expect(within(screen.getByRole('banner')).getByText(/● Live/)).toBeTruthy()
+    expect(within(screen.getByRole('banner')).getByText(/● Online/)).toBeTruthy()
   })
 
   test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
@@ -193,7 +193,7 @@ describe('the Cockpit frame', () => {
 
   test('offline, Play is read-only and says so once, in the bar’s stamp', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' }, 'offline')
-    expect(screen.queryByText(/● Live/)).toBeNull()
+    expect(screen.queryByText(/● Online/)).toBeNull()
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('status').textContent).toBe('Offline · read-only')
     expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()

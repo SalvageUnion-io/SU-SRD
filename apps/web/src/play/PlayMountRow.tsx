@@ -55,9 +55,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
   ) : (
     <>
       {main === undefined ? (
-        <Button size="mini" disabled title={playCopy('noMechToBoard')}>
-          {playCopy('board')}
-        </Button>
+        // Said, never a disabled Board with a hover title a phone can't read.
+        <NeedChip need={playCopy('noMechToBoard')} />
       ) : (
         // The outlined Button reads on the Mini's pill (R19),
         // beside the Use and Eject a filled one draws.

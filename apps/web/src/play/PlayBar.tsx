@@ -2,7 +2,7 @@
  * PlayBar — the Cockpit's top bar: back to the Game's page, `ChevronLeft` and
  * "Game" (solo, "Play", back to the Play hub; ADR-052 §6), the
  * screen's title (the Game's name, or the pilot's), the role stamp
- * (the Mediator's screen says MEDIATOR, a solo one SOLO), the LIVE stamp
+ * (the Mediator's screen says MEDIATOR, a solo one SOLO), the ONLINE stamp
  * while play reaches the server, then the Situation switch (On foot /
  * Boarded / Downtime, the `situation` slot), and at the end the Stop Sign
  * (in a Game), the Discord channel button and ⋯ (the `stop`, `channel` and
@@ -20,7 +20,7 @@
  * order), so its cut-out still sits on the band's foot.
  *
  * Presentational: what goes in the slots is the screen's. Everything on the
- * line is one Size, Compact (ruleset §4.7): the stamps (role, LIVE,
+ * line is one Size, Compact (ruleset §4.7): the stamps (role, ONLINE,
  * read-only) keep the Compact rung's type and take the line's height
  * (`play/bar.css`), their text centred, so they stand as tall as the buttons
  * beside them.
@@ -71,10 +71,10 @@ const TITLE = {
 const TITLE_CAPS = capsLabel({ size: 'readout' })
 
 /**
- * A bar stamp (role, LIVE, read-only): the ink plate, never rust (ruleset
+ * A bar stamp (role, ONLINE, read-only): the ink plate, never rust (ruleset
  * §3.1). Its height is the line's (`.su-play-bar__stamp`, `play/bar.css`).
  */
-const LIVE = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
+const ONLINE = { flexShrink: 0, whiteSpace: 'nowrap' } satisfies CSSProperties
 
 const STAMP = 'su-play-bar__stamp'
 const NOTCH = 'su-play-bar__notch'
@@ -96,16 +96,18 @@ export type PlayBarProps = {
   backHref?: string
   /** The place back goes to, its name beside the chevron: "Game", or "Play" (the hub). */
   backLabel?: string
-  /** Play reaches the server: the LIVE stamp shows. */
+  /** Play reaches the server: the ONLINE stamp shows. */
   live: boolean
-  /** In a Game, how many seats are here (`hereCount`): the stamp reads "● Live · 4 here". */
+  /** In a Game, how many seats are here (`hereCount`): the stamp reads "● Online · 4 here". */
   here?: number | null
-  /** Of how many seats: the stamp reads "● Live · 3 of 4 here" (the Mediator's screen). */
+  /** Of how many seats: the stamp reads "● Online · 3 of 4 here" (the Mediator's screen). */
   of?: number | null
   /** A stamp after the title naming the viewer's role: "Mediator". */
   stamp?: string
+  /** A phone's bar, kept to one line: the ONLINE stamp says its count alone (`liveLabel`). */
+  short?: boolean
   /**
-   * Why Play is read-only (`playReadOnly`): its stamp takes the LIVE stamp's
+   * Why Play is read-only (`playReadOnly`): its stamp takes the ONLINE stamp's
    * place, so the bar says so wherever the screen is read-only.
    */
   readOnly?: PlayReadOnly | null
@@ -129,6 +131,7 @@ export function PlayBar({
   here = null,
   of = null,
   stamp,
+  short = false,
   readOnly = null,
   situation,
   stop,
@@ -151,7 +154,7 @@ export function PlayBar({
         {title}
       </h1>
       {stamp && (
-        <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
+        <Badge shape="stamp" size="compact" className={STAMP} style={ONLINE}>
           {stamp}
         </Badge>
       )}
@@ -161,7 +164,7 @@ export function PlayBar({
           size="compact"
           surface="inverse"
           className={STAMP}
-          style={LIVE}
+          style={ONLINE}
           role="status"
           title={readOnly.says}
         >
@@ -169,8 +172,8 @@ export function PlayBar({
         </Badge>
       ) : (
         live && (
-          <Badge shape="stamp" size="compact" className={STAMP} style={LIVE}>
-            {liveLabel(here, of)}
+          <Badge shape="stamp" size="compact" className={STAMP} style={ONLINE}>
+            {liveLabel(here, of, short)}
           </Badge>
         )
       )}
