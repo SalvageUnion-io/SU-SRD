@@ -183,7 +183,7 @@ describe('the Game room Durable Object', () => {
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
   })
 
-  test('a Downtime begun counts once toward the weekly usage signal', async () => {
+  test('a Downtime begun and a group session started each count once toward the weekly usage signals', async () => {
     const db = testDb()
     const { game } = await seeded('g-usage', { SHARED: db })
     game.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
@@ -196,9 +196,16 @@ describe('the Game room Durable Object', () => {
       ok: true,
       value: false,
     })
+    // A group session started counts too, once.
+    expect(game.act(ORGANIZER, 'session.start', undefined as never)).toEqual({
+      ok: true,
+      value: true,
+    })
+    game.act(ORGANIZER, 'session.start', undefined as never)
     await new Promise((resolve) => setTimeout(resolve, 0))
-    expect(db.sqlite.query('select key, count from usage_counts').all()).toEqual([
+    expect(db.sqlite.query('select key, count from usage_counts order by key').all()).toEqual([
       { key: 'downtime:game', count: 1 },
+      { key: 'session:game', count: 1 },
     ])
   })
 

@@ -3,7 +3,8 @@
  * them out. A Game is a contentful Compact (ruleset §1.9): the whole Compact
  * opens the Game's page in Play; its chips are your role, how many are here,
  * the Downtime state and its Discord channel; its body is the crew as
- * header-only Minis; its doors are the ways into play, Mediate and Play <pilot>.
+ * header-only Minis; its doors are the ways into play: the group session
+ * (Start group session, then Mediate) and Play or Join as <pilot>.
  */
 
 import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
@@ -11,29 +12,37 @@ import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
 import { VITAL } from '../lib/units/readings'
+import { playCopy } from '../messages/play'
 import type { CrewVitals } from './useGameFeed'
 
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
 
-/** One of a Game's doors: where it goes and what it is called. */
-export type GameDoor = { label: string; href: string; ariaLabel: string }
+/**
+ * One of a Game's doors: where it goes and what it is called. A `start` door
+ * starts the group session first (the table runner's, before one is live).
+ */
+export type GameDoor = { label: string; href: string; ariaLabel: string; start?: true }
 
 /**
- * A Game's chips, in order: your role in it, how many are here now (only when
+ * A Game's chips, in order: your role in it, Session live while a group
+ * session runs, how many are here now (only when
  * anyone is), the Downtime state while it runs (its step, 1-based, once it
  * has one), and the Discord channel its rolls post to, once one is bound.
  */
 export function gameChips(args: {
   mediator: boolean
+  /** A group session is running (`session.state`). */
+  live?: boolean
   here: number
   downtime: { running: boolean; stepIndex: number | null } | undefined
   /** The bound channel as `#salvage-run`; null or absent with none. */
   channel?: string | null
 }): HubChip[] {
-  const { mediator, here, downtime, channel } = args
+  const { mediator, live = false, here, downtime, channel } = args
   return [
     { key: 'role', label: mediator ? 'Mediator' : 'Player' },
+    ...(live ? [{ key: 'session', label: playCopy('sessionLive') }] : []),
     ...(here > 0 ? [{ key: 'here', label: `${here} here` }] : []),
     ...(downtime?.running
       ? [
@@ -49,24 +58,45 @@ export function gameChips(args: {
 }
 
 /**
- * A Game's doors, in order: Mediate where you mediate it, then Play for each
- * pilot of yours in it, so a Mediator who also plays and a player with two
- * pilots reach every one of them. None when you neither mediate nor have a
- * pilot there (its page is where you add one).
+ * A Game's doors, in order: the table runner's first (Start group session
+ * until one is live, then Mediate; Mediate while the session is unknown), then one for each pilot of yours in it
+ * (Join as <pilot> while a session is live, else Play <pilot>), so a Mediator
+ * who also plays and a player with two pilots reach every one of them. None
+ * when you neither mediate nor have a pilot there (its page is where you add one).
  */
 export function gameDoors(
   game: { _id: string; name: string; mediator: boolean },
-  pilots: readonly { id: string; name: string }[]
+  pilots: readonly { id: string; name: string }[],
+  /** A group session is live; null while unknown (loading, or no connection), read as not live but with no Start. */
+  live: boolean | null = null
 ): GameDoor[] {
-  return [
-    ...(game.mediator
+  const runner: GameDoor[] = !game.mediator
+    ? []
+    : live !== false
       ? [{ label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }]
-      : []),
-    ...pilots.map((pilot) => ({
-      label: `Play ${pilot.name}`,
-      href: cockpitPath(pilot.id),
-      ariaLabel: `Play ${pilot.name} in ${game.name}`,
-    })),
+      : [
+          {
+            label: playCopy('startGroupSession'),
+            href: mediatePath(game._id),
+            ariaLabel: playCopy('startGroupSessionOf', { game: game.name }),
+            start: true,
+          },
+        ]
+  return [
+    ...runner,
+    ...pilots.map((pilot) =>
+      live
+        ? {
+            label: playCopy('joinAs', { name: pilot.name }),
+            href: cockpitPath(pilot.id),
+            ariaLabel: playCopy('joinSessionAs', { game: game.name, name: pilot.name }),
+          }
+        : {
+            label: `Play ${pilot.name}`,
+            href: cockpitPath(pilot.id),
+            ariaLabel: `Play ${pilot.name} in ${game.name}`,
+          }
+    ),
   ]
 }
 

@@ -167,6 +167,21 @@ describe('the Play landing', () => {
     )
   })
 
+  test('a live group session: a chip says so, and your pilot’s door joins it', async () => {
+    answerReads({
+      'games.listMine': [TENACITY],
+      'downtime.state': IN_DOWNTIME,
+      'session.state': { live: true, startedAt: 1 },
+      ...QUIET,
+    })
+    await renderAs('live')
+    const tenacity = card('Tenacity')
+    expect(tenacity.getByText('Session live')).toBeTruthy()
+    const join = tenacity.getByRole('link', { name: 'Join the session in Tenacity as Rook' })
+    expect(join.getAttribute('href')).toBe('/play/pilots/land-rook')
+    expect(join.textContent).toBe('Join as Rook')
+  })
+
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
     answerReads({
       'games.listMine': [{ ...TENACITY, _id: 'land-g9', name: 'Elsewhere' }],

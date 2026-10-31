@@ -143,6 +143,18 @@ export const GAME_ROOM_NANITES: readonly string[] = [
 ]
 
 /**
+ * Step 6 of `GAME_ROOM`: the group session (`session.ts`), at most one row,
+ * there only while the Mediator has one running.
+ */
+export const GAME_ROOM_SESSION: readonly string[] = [
+  `create table session (
+        id integer primary key check (id = 1),
+        started_at integer not null,
+        started_by text not null
+      )`,
+]
+
+/**
  * Step 3 of `GAME_ROOM`: what the table plays under, beside its units.
  *
  * - `scene`: the Scene's conditions and the hours passed under them.

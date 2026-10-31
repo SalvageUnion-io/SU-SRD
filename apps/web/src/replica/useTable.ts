@@ -93,6 +93,7 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   'ledger.get': { table: 'ledger' },
   'safety.boundaries': { table: 'boundaries' },
   'safety.stopSign': { table: 'safety' },
+  'session.state': { table: 'session' },
   // The one `mediator` record is the running encounter, and having it at all is mediating.
   'mediator.npcs': { table: 'opposition' },
   'mediator.running': {
@@ -121,6 +122,7 @@ type Reads = {
   'ledger.get': GameActResult<'ledger.get'>
   'safety.boundaries': (Omit<BoundaryRead, 'id' | 'addedAt'> & { _id: string })[]
   'safety.stopSign': GameActResult<'safety.stopSign'>
+  'session.state': GameActResult<'session.state'>
   'mediator.npcs': { _id: string; body: Record<string, unknown> }[]
   'mediator.running': RunningEncounter | null
   'mediator.amMediator': boolean

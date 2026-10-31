@@ -33,6 +33,7 @@ export const buildAccountCopy = messages({
   botServersSevenDays: 'Bot servers, 7 days',
   downtimeAtAGame: 'Downtime at a Game',
   downtimeSolo: 'Downtime solo',
+  groupSessionsStarted: 'Group sessions started',
   nothingTalliedYet: 'Nothing tallied yet: no Downtime and no bot command.',
   weekOf: 'Week of',
   aFreshSnapshotCouldNot: 'A fresh snapshot could not be started. Try again.',

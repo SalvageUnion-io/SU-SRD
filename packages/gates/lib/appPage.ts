@@ -97,7 +97,8 @@ export function sheetLink(page: Page, name: string, kind = '') {
 
 /**
  * A Play hub door's path, read off its link: "Play Bonesaw in <Game>", "Play
- * Mira Voss solo" or "Mediate <Game>" (`PlayLanding`), so Play is reached the
+ * Mira Voss solo" or, once a group session is live, "Mediate <Game>"
+ * (`PlayLanding`), so Play is reached the
  * way a player reaches it. The browser path, the app's base included.
  */
 export async function playDoor(page: Page, name: string | RegExp, base = ''): Promise<string> {

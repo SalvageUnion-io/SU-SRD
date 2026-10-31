@@ -5,8 +5,9 @@
  *  - **Tell the table** opens its form (`TellTheTable`)
  *    in a dialog: one word to every player at once (`changeLog.broadcast`),
  *    which lands on each of their Feeds, with the last five sent under it.
- *  - **⋯**: the Game's own page, and the reference (the SRD Explorer,
- *    `SrdExplorer`) in an overlay over Play.
+ *  - **⋯**: Start or End group session (`useGameSession`, play.md §10), the
+ *    Game's own page, and the reference (the SRD Explorer, `SrdExplorer`) in
+ *    an overlay over Play.
  *
  * Both Compact, as every control on the bar is (ruleset §4.7).
  */
@@ -15,7 +16,9 @@ import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
 import { useState } from 'react'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { useGameSession } from '../useGameSession'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import type { PlayMediator } from './usePlayMediator'
@@ -25,6 +28,8 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
   const [telling, setTelling] = useState(false)
   const [reference, setReference] = useState(false)
   const gameHref = gamePath(mediator.gameId)
+  const session = useGameSession(mediator.gameId)
+  const mayRun = session !== null && session.canWrite && !session.pending
 
   return (
     <>
@@ -37,6 +42,20 @@ export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator })
         label={mediatorCopy('more')}
         trigger={null}
         sections={[
+          [
+            {
+              id: 'session',
+              label: session?.live ? playCopy('endGroupSession') : playCopy('startGroupSession'),
+              ...(mayRun
+                ? {
+                    onSelect: () => {
+                      if (session.live) session.end()
+                      else void session.start()
+                    },
+                  }
+                : {}),
+            },
+          ],
           [
             {
               id: 'game',

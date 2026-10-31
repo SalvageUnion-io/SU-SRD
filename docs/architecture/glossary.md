@@ -20,3 +20,4 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Play hub's band); the header's tabs stay Reference | Build | Play. The whole app is "the app" (the account: a salvageunion.io account), never "the Cantina".
    Both are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.
+10. **Group session** — a Game's table sitting down to play: the table runner's **Start group session** and **End group session**; while it runs, "Session live" and **Join session**. Never a lock: Play opens without one.

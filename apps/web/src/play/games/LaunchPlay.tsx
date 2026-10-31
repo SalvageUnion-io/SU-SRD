@@ -39,6 +39,7 @@ import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
+import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { OwnerSeal } from './OwnerSeal'
@@ -51,10 +52,13 @@ function preselect(pilots: readonly RosterRow[]): string | null {
 export function LaunchPlay({
   gameId,
   onlyWithPilots = false,
+  live = false,
 }: {
   gameId: string
   /** Show nothing until this browser holds one of the Game's pilots (the Mediator's Play). */
   onlyWithPilots?: boolean
+  /** A group session is live: the chip reads Join session. */
+  live?: boolean
 }) {
   // Probed rather than required, as `GameRoster` and `AppLink` do: component
   // tests render the hub without a RouterProvider.
@@ -107,7 +111,7 @@ export function LaunchPlay({
   return (
     <>
       <Button variant="ink" size="compact" onClick={openPicker}>
-        {playGamesCopy('play')}
+        {live ? playCopy('joinSession') : playGamesCopy('play')}
       </Button>
       <PickDialog
         open={open}

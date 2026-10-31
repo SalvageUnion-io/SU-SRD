@@ -309,6 +309,9 @@ export class GameRoom extends Room {
     if (name === 'downtime.begin' && answer.ok && answer.value === true) {
       this.countUsage('downtime:game')
     }
+    if (name === 'session.start' && answer.ok && answer.value === true) {
+      this.countUsage('session:game')
+    }
     if (answer.ok && !GAME_READ_ACTS.has(name)) {
       const result = answer.value as GameActResult<'submit'>
       if (name !== 'submit') this.broadcastSnapshots()

@@ -14,8 +14,10 @@
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
- *    its doors, last in the chip group: Mediate where you mediate it, then
- *    Play <pilot> for each pilot of yours in it (`playHub.model.ts`). At its rule's end, as each
+ *    its doors, last in the chip group: where you mediate it, Start group
+ *    session (`useGameSession`) until one is live, then Mediate; then Play
+ *    <pilot> (Join as <pilot> while a session is live) for each pilot of
+ *    yours in it (`playHub.model.ts`). Session live is a chip too. At its rule's end, as each
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
@@ -71,6 +73,7 @@ import type { SoloPilot } from './play.model'
 import { gamePilots, soloPilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
+import { useGameSession } from './useGameSession'
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
 
@@ -343,8 +346,11 @@ function PlayGameItem({
   const vitals = useTableRead('crew.vitals', { gameId })
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)
-  const chips = gameChips({ mediator: game.mediator, here, downtime, channel })
-  const doors = gameDoors(game, pilots)
+  const session = useGameSession(gameId)
+  const go = useGo()
+  const live = session?.live === true
+  const chips = gameChips({ mediator: game.mediator, live, here, downtime, channel })
+  const doors = gameDoors(game, pilots, session === null ? null : live)
   const crew =
     listing && vitals
       ? gameCrew({
@@ -369,17 +375,35 @@ function PlayGameItem({
           doors.length > 0
             ? // Ink on the Game's pink, as its stamps are (R44: a control on a
               // pink band is ink), a chip's height.
-              doors.map((door) => (
-                <Button
-                  key={door.href}
-                  href={door.href}
-                  aria-label={door.ariaLabel}
-                  variant="ink"
-                  size="mini"
-                >
-                  {door.label}
-                </Button>
-              ))
+              doors.map((door) =>
+                door.start ? (
+                  // Start the session, then open the Mediator's screen.
+                  <Button
+                    key={door.href}
+                    aria-label={door.ariaLabel}
+                    variant="ink"
+                    size="mini"
+                    disabled={session === null || !session.canWrite || session.pending}
+                    onClick={() => {
+                      void session?.start().then((started) => {
+                        if (started) go(door.href)
+                      })
+                    }}
+                  >
+                    {door.label}
+                  </Button>
+                ) : (
+                  <Button
+                    key={door.href}
+                    href={door.href}
+                    aria-label={door.ariaLabel}
+                    variant="ink"
+                    size="mini"
+                  >
+                    {door.label}
+                  </Button>
+                )
+              )
             : undefined
         }
       />
