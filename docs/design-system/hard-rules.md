@@ -4,7 +4,7 @@ Each law of [ruleset.md](ruleset.md), [EDL](entity-display-language.md), [chips-
 Every law in those five docs names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate, or not at all.
 A rule is **held** (its gate fails the build) unless it says **pending**: its gate runs and reports, but fails nothing until the screens hold it (an entry in `PENDING_RULES`, `apps/web/e2e/_pendingRules.ts`). The loop: land the gate pending, burn the findings to zero, delete the entry.
 
-Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6, R37 · [Primitives](#primitives) R1, R7–R11, R15, R16, R18, R19, R23, R30, R32, R34, R36, R38, R39, R42–R51, R53–R55 · [Chrome](#chrome) R20, R22, R24, R27–R29, R52 · [Measures](#measures) R12–R14, R17, R21, R25, R26, R31, R33, R35, R40, R41.
+Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6, R37 · [Primitives](#primitives) R1, R7–R11, R15, R16, R18, R19, R23, R30, R32, R34, R36, R38, R39, R42–R51, R53–R56 · [Chrome](#chrome) R20, R22, R24, R27–R29, R52 · [Measures](#measures) R12–R14, R17, R21, R25, R26, R31, R33, R35, R40, R41.
 
 ## Coverage
 
@@ -50,7 +50,8 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R51 An infobox's frame is its head's colour** (§4.3) — a headed non-entity box (`TitledBox`, a Start Here step) is framed in its band's paint.
 - **R53 One sub-section rung** (§4.9, E25) — a section inside a section is the Mini Slab (`SlabSection size="mini"`), at chip size; no eyebrow, coloured bar or sentence-case head stands in for a section head, bar the book's contents chapters on the Reference home (`ContentsChapter`).
 - **R54 A link looks like a link** — a standalone link is `Button href` or `InlineRef`, never bare `AppLink` text, and never larger than the note beside it.
-- **R55 Hierarchy at render** (§1.10, §3.13, §4.8, §4.9, E24, E25, C12) — `_hierarchy.ts` reads each view: every drawn size a rung (`type-ladder`), titles and Slabs at their form's rung (`title-size`, `slab-size`), headings neither skipped nor at their section's level (`heading-skip`, `heading-depth`), no stray head (`stray-head`, R53), a nested Slab Mini (`nested-slab`), every + New rust (`make-rust`), no button twin of a stamp on its line (`stamp-twin`), no clipped tool title (`tool-title-clip`), Reference and Manage on the measure (`measure`), a phone's content on its first screen (`first-screen`).
+- **R55 Hierarchy at render** (§1.10, §3.13, §4.8, §4.9, E24, E25, C12) — `_hierarchy.ts` reads each view: every drawn size a rung, titles and Slabs at their form's rung, headings neither skipped nor at their section's level, no stray head (R53), a nested Slab Mini, every + New rust, no button twin of a stamp on its line, no clipped tool title, Reference and Manage on the measure, a phone's content on its first screen.
+- **R56 A Game's name is never cut** (C2b) — on the Play hub (`wholeName`) its doors drop to the body's first row instead.
 
 ## Chrome
 

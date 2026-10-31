@@ -63,6 +63,12 @@ export type EntityProps = EntitySource &
     /** Compact only: the title's element — a heading where the Compact is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
+     * Compact only: the name is never cut (hard rule R56, a Game's on the Play
+     * hub): where it and the host's controls do not share the head's line, the
+     * controls are the body's first row.
+     */
+    wholeName?: boolean
+    /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
      * hard rule R6).
@@ -130,6 +136,7 @@ function EntityForm(props: EntityProps) {
     peekAt,
     priority,
     titleAs,
+    wholeName,
     missingArt,
     controls,
     labels,
@@ -189,9 +196,17 @@ function EntityForm(props: EntityProps) {
           omit={omit}
           peek={peek}
           slots={
-            titleAs || controls || labels || relations || trailing || state || linkedNode
+            titleAs ||
+            wholeName ||
+            controls ||
+            labels ||
+            relations ||
+            trailing ||
+            state ||
+            linkedNode
               ? {
                   ...(titleAs ? { titleAs } : {}),
+                  ...(wholeName ? { wholeName } : {}),
                   ...(linkedNode ? { linked: linkedNode } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),

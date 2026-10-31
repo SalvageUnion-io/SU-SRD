@@ -119,6 +119,20 @@ function head(
 
 type Fill = { room: number; name: number; shortest?: number }
 
+/** A host's control in the menu lane (C8), as `asStrip` lays it: a Game's door, a link 80 wide. */
+function menuDoor(): HTMLElement {
+  const lane = document.createElement('span')
+  lane.className = 'su-chip-lane'
+  lane.setAttribute('data-chip-class', 'menu')
+  lane.style.display = 'contents'
+  const door = document.createElement('a')
+  door.href = '/play/games/g/mediate'
+  door.textContent = 'Mediate'
+  door.getBoundingClientRect = () => ({ width: 80 }) as DOMRect
+  lane.append(door)
+  return lane
+}
+
 const items = (el: HTMLElement) => [...el.querySelectorAll<HTMLElement>('[data-fill-item]')]
 const out = (el: HTMLElement) =>
   [...el.querySelectorAll<HTMLElement>('[data-fill-out]')].map((chip) => chip.textContent)
@@ -205,6 +219,25 @@ describe('watchChipFill', () => {
     expect(out(el)).toEqual([])
     expect(el.querySelector('[data-fill-corner]')).toBeNull()
     expect(prop(el, '--su-name-basis')).toBe(`${200 - 88 - 1}px`)
+  })
+
+  test("a whole name (R56) is never cut: the host's controls are the body's first row before it gives way", () => {
+    const { el, row } = head([], { room: 200, name: 150, shortest: 60, route: 'body' })
+    const name = el.querySelector<HTMLElement>('[data-fill-name]') as HTMLElement
+    name.setAttribute('data-fill-whole', '')
+    el.append(menuDoor())
+    watchChipFill(el)
+    // 150 + 4 + 80 does not fit 200: the door leaves, the name keeps its line.
+    expect(el.querySelector('a')?.hasAttribute('data-fill-out')).toBe(true)
+    expect(row.textContent).toBe('Mediate')
+    expect(prop(el, '--su-name-basis')).toBe('auto')
+  })
+
+  test('a name not kept whole keeps that door beside it, breaking between its words', () => {
+    const { el } = head([], { room: 200, name: 150, shortest: 60, route: 'body' })
+    el.append(menuDoor())
+    watchChipFill(el)
+    expect(el.querySelector('a')?.hasAttribute('data-fill-out')).toBe(false)
   })
 
   test("a static page's heads each fit on the page's load", () => {

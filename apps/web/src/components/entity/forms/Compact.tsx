@@ -33,6 +33,8 @@ import { ROW_ROOT } from './rowRoot'
  */
 type RowSlots = {
   titleAs?: ElementType
+  /** The name is never cut (R56): the host's controls leave for the body's first row first. */
+  wholeName?: boolean
   /** The traits, in place of the model's. */
   tags?: TagItem[]
   /** What it is built on or linked to, after the traits (`chips-and-actions.md` C11). */
@@ -213,6 +215,7 @@ export function Compact({
         peeks={peeks}
         kind={omit.includes('kind') ? undefined : model.kind.stamp}
         titleAs={slots.titleAs}
+        whole={slots.wholeName === true}
         paint={paint}
         art={omit.includes('art') ? undefined : <Art art={model.art} />}
         tier={omit.includes('tier') ? undefined : model.tier}

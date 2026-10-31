@@ -2,6 +2,7 @@ import type { ElementType, ReactNode } from 'react'
 import { cloneElement, isValidElement, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
+import { WHOLE_ATTRIBUTE } from '../../atoms/chipFill'
 import { ChipOverflowRow, MoreChip } from '../../atoms/chipOverflow'
 import { useChipFill } from '../../atoms/useChipFill'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
@@ -61,6 +62,11 @@ export type HeadProps = {
   /** The labels (`CardLabels`): on the name's line, right after the name. */
   labels?: ReactNode
   /**
+   * The name is never cut (hard rule R56): no "…", and the fill sends the
+   * host's controls to the body's first row before the name would give way.
+   */
+  whole?: boolean
+  /**
    * Where the chips that do not fit beside the name go (C2b): `body`, a
    * contentful rendering's, into its body's first row, drawn right under the
    * band; `more`, a header-only one's (a bodyless Compact), behind a +MORE chip
@@ -103,6 +109,7 @@ export function Head({
   labels,
   overflow = 'body',
   top,
+  whole = false,
 }: HeadProps) {
   const chips = asStrip(chipsProp, controls, overflow === 'more')
   const overflowRow = !!chips && overflow === 'body'
@@ -122,7 +129,11 @@ export function Head({
   )
   const titleNode = (
     <TitleTag
-      className={cn('su-entity-compact__title', NAME_CAPS)}
+      className={cn(
+        'su-entity-compact__title',
+        whole && 'su-entity-compact__title--whole',
+        NAME_CAPS
+      )}
       // The app's heading face and print sizes hand the title its own back
       // (`styles/build/libHandback.css`, `print.css`).
       data-handback=""
@@ -139,7 +150,11 @@ export function Head({
   const labelsWithChips = !!chips && !!labels
   const labelsNode = labels && <div className="su-entity-compact__labels">{labels}</div>
   const name = (
-    <div className="su-entity-compact__name" data-fill-name="">
+    <div
+      className="su-entity-compact__name"
+      data-fill-name=""
+      {...(whole ? { [WHOLE_ATTRIBUTE]: '' } : {})}
+    >
       <span className="su-entity-compact__notch">{titleNode}</span>
       {!labelsWithChips && labelsNode}
     </div>

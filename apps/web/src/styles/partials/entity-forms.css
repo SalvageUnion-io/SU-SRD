@@ -128,6 +128,17 @@
   white-space: nowrap;
 }
 
+/* A whole name (hard rule R56, a Game's on the Play hub) never ends in "…":
+   the fill sends the host's controls to the body's first row first, and a
+   name wider than the band itself wraps between words rather than clip. */
+.su-entity-compact__title--whole {
+  flex-shrink: 0;
+  max-width: 100%;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
 /* The Peek shows the whole name: there it wraps at spaces, keeping its
    longest word whole. */
 [data-peek-popup] .su-entity-compact__title {
