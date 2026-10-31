@@ -42,6 +42,12 @@ import type { HourStep } from './sceneHour.model'
 import { hourProposals, hourSteps } from './sceneHour.model'
 import type { PlayMediator } from './usePlayMediator'
 
+/** Why An hour passes is off, said on the page: a phone has no hover title. */
+const NOTE = {
+  fontSize: tokens.fontSize.caption,
+  margin: 0,
+} satisfies CSSProperties
+
 const LIST = {
   display: 'flex',
   flexDirection: 'column',
@@ -151,7 +157,6 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
             variant="default"
             size="compact"
             disabled={!canWrite || !hourly}
-            title={hourly ? undefined : mediatorCopy('nothingHourly')}
             onClick={() => {
               setSheltered(new Set())
               setAsking(true)
@@ -161,6 +166,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
           </Button>
         }
       />
+      {hourly ? null : <p style={NOTE}>{mediatorCopy('nothingHourly')}</p>}
       <MiniGrid label={mediatorCopy('sceneConditions')} play>
         {SCENE_CONDITION_IDS.map((id) => {
           const condition = SCENE_CONDITIONS[id]

@@ -120,9 +120,12 @@ describe('the Crew (play.md §7)', () => {
     expect(hereCount([...pilots, { ownerId: [...CREW_HERE][0] ?? 'missing' }], CREW_HERE)).toBe(3)
     expect(hereCount(undefined, CREW_HERE)).toBe(0)
     expect(hereCount(crewAt().pilots, null)).toBe(0)
-    expect(liveLabel(3)).toBe('● Live · 3 here')
-    expect(liveLabel(null)).toBe('● Live')
-    expect(liveLabel(3, 4)).toBe('● Live · 3 of 4 here')
+    expect(liveLabel(3)).toBe('● Online · 3 here')
+    expect(liveLabel(null)).toBe('● Online')
+    expect(liveLabel(3, 4)).toBe('● Online · 3 of 4 here')
+    // A phone's one-line bar: the count alone, "Online" while there is none.
+    expect(liveLabel(3, 4, true)).toBe('● 3 of 4 here')
+    expect(liveLabel(null, null, true)).toBe('● Online')
   })
 })
 

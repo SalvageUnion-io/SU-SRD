@@ -4,7 +4,7 @@
  * Propose as tabs on a phone, three columns from `lg`. Who may open it is
  * `PlayMediatorGate`'s question, asked before this renders.
  *
- *  - **Bar** — the MEDIATOR stamp, LIVE "3 of 4 here" (the seats' presence,
+ *  - **Bar** — the MEDIATOR stamp, ONLINE "3 of 4 here" (the seats' presence,
  *    `useGamePresence`), the Scene / Downtime switch (`PlayGameStateSwitch`; below
  *    `lg` pinned under the bar), the
  *    Stop (the Stop Sign, `StopSign.tsx`, its banner under the bar while
@@ -124,7 +124,10 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             title={gameName}
             backHref={gamePath(gameId)}
             backLabel={playCopy('game')}
-            stamp="Mediator"
+            // A phone's bar is one line (U3): its tabs (Table, Opposition,
+            // Propose) say whose screen it is, so the role stamp is the canvas's.
+            stamp={wide ? 'Mediator' : undefined}
+            short={!wide}
             tone={PHASE_TONE[running ? 'downtime' : 'scene']}
             live={status === 'live'}
             here={mediator.crew === null ? null : here}
@@ -143,7 +146,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
               />
             }
             stop={<StopSignButton sign={sign} compact={!wide} />}
-            menu={<PlayMediatorBarActions mediator={mediator} />}
+            menu={<PlayMediatorBarActions mediator={mediator} wide={wide} />}
           />
           <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>

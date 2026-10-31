@@ -40,6 +40,15 @@ export function NeedChip({ need }: { need: string }) {
   return <Stat size="mini" label={need} />
 }
 
+/**
+ * Why a line cannot run as it stands ("Out of Range at Long"), said as its
+ * state chip, never only a hover title a phone can't read. Destroyed says so
+ * already, in the line's own condition.
+ */
+function lockChip(locked: string | null, condition: string | undefined) {
+  return locked === null || condition === 'destroyed' ? {} : { state: <NeedChip need={locked} /> }
+}
+
 export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayActionRowProps) {
   const model = useMemo(() => toEntityModel(entry.action.action), [entry.action.action])
   const open = resolve !== null
@@ -59,7 +68,6 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
       onClick={onUse}
       disabled={!canWrite}
       aria-label={playCopy('use2', { name: entry.name })}
-      title={locked ?? undefined}
     >
       {playCopy('use')}
     </Button>
@@ -79,7 +87,9 @@ export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayA
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         tint={entry.source}
         dim={away || locked !== null || !canWrite}
-        {...(away ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> } : {})}
+        {...(away
+          ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> }
+          : lockChip(locked, entry.action.condition))}
         {...(controls ? { controls } : {})}
         // Contentful (N3): the action's own text, then, while it resolves, its steps.
         body={open ? { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}}

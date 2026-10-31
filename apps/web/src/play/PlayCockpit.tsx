@@ -19,7 +19,7 @@
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
- * The bar's LIVE stamp counts who is here in a Game ("● Live · 4 here",
+ * The bar's ONLINE stamp counts who is here in a Game ("● Online · 4 here",
  * `hereCount` over the Game's room, `useGamePresence`, play.md §7);
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
@@ -139,6 +139,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             backLabel={solo ? playCopy('play') : playCopy('game')}
             live={status === 'live' && !solo}
             here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
+            short={!wide}
             readOnly={play.readOnly}
             situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
             channel={
@@ -160,7 +161,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
       }
       pinned={
         <>
-          {table ? null : <PlayPinnedVitals units={pinned} />}
+          {table ? null : (
+            <PlayPinnedVitals
+              units={pinned}
+              live={{ pilot: units.live.pilot, mech: units.live.mech }}
+              onWrite={writeVital}
+            />
+          )}
           <div style={SWITCH_ROW}>
             <div style={SWITCH}>
               <PlaySituationSwitch play={play} fill />

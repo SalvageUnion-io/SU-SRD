@@ -1,6 +1,7 @@
 /**
  * The end of the Mediator's Play bar (play.md §10), after the
- * channel button: **Tell the table** and ⋯.
+ * channel button: **Tell the table** and ⋯. On a phone the bar is one line, so
+ * Tell the table is the ⋯'s first item.
  *
  *  - **Tell the table** opens its form (`TellTheTable`)
  *    in a dialog: one word to every player at once (`changeLog.broadcast`),
@@ -23,25 +24,45 @@ import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
 import type { PlayMediator } from './usePlayMediator'
 
-export function PlayMediatorBarActions({ mediator }: { mediator: PlayMediator }) {
+export function PlayMediatorBarActions({
+  mediator,
+  wide = true,
+}: {
+  mediator: PlayMediator
+  /** From `lg`: Tell the table is a bar button; below it, the ⋯'s first item. */
+  wide?: boolean
+}) {
   const router = useRouter({ warn: false })
   const [telling, setTelling] = useState(false)
   const [reference, setReference] = useState(false)
   const gameHref = gamePath(mediator.gameId)
   const session = useGameSession(mediator.gameId)
-  const mayRun = session !== null && session.canWrite && !session.pending
+  const mayRun = session?.canWrite && !session.pending
 
   return (
     <>
-      <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
-        {mediatorCopy('tellTheTable')}
-      </Button>
+      {wide && (
+        <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
+          {mediatorCopy('tellTheTable')}
+        </Button>
+      )}
       <HeaderMenu
         variant="overflow"
         size="compact"
         label={mediatorCopy('more')}
         trigger={null}
         sections={[
+          ...(wide
+            ? []
+            : [
+                [
+                  {
+                    id: 'tell',
+                    label: mediatorCopy('tellTheTable'),
+                    onSelect: () => setTelling(true),
+                  },
+                ],
+              ]),
           [
             {
               id: 'session',

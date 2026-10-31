@@ -1,7 +1,8 @@
 /**
  * PlayPinnedVitals — the live vitals pinned above every pane below `lg`
  * (play.md §11, `pinnedUnits`): what a spend reads, in reach whichever pane
- * is open. From `lg` the Units column holds them, so nothing is pinned.
+ * is open, with its − / + while the unit is live, so damage lands without a
+ * tab switch. From `lg` the Units column holds them, so nothing is pinned.
  */
 
 import type { CSSProperties } from 'react'
@@ -9,6 +10,7 @@ import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PinnedUnit } from './playPanes.model'
+import { tableUnits } from './tableMode.model'
 
 /** One unit a line: its gauges share it. */
 const UNITS = {
@@ -51,13 +53,25 @@ const CELL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
  * its name, then its vitals as the Units column draws them (`PlayVital`, the
  * compact `VitalGauge`: R7, Play's vitals are the sheet's gauge in a darker
  * skin, never a listing's Stat), each unit's HP and AP in a box in its tone.
- * A read-out: the − / + are the Units pane's. Nothing in Downtime.
+ * A live unit's vitals take their − / + and write the field the Units pane
+ * writes (`tableUnits`); a unit that isn't live is a read-out. Nothing in
+ * Downtime.
  */
-export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
+export function PlayPinnedVitals({
+  units,
+  live,
+  onWrite,
+}: {
+  units: readonly PinnedUnit[]
+  /** Which units take writes (`usePlayUnits().live`). */
+  live: Record<PinnedUnit['kind'], boolean>
+  /** The Units pane's write: the unit, the record field, the clamped value. */
+  onWrite: (kind: PinnedUnit['kind'], field: string, next: number) => void
+}) {
   if (units.length === 0) return null
   return (
     <section aria-label={playCopy('pinnedVitals')} style={UNITS}>
-      {units.map((unit) => (
+      {tableUnits(units).map((unit) => (
         <Box key={unit.kind} frameColor={`var(--color-${unit.kind})`} body="flush" bodyStyle={UNIT}>
           <p className={UNIT_NAME_CAPS} style={UNIT_NAME}>
             {unit.name}
@@ -71,6 +85,9 @@ export function PlayPinnedVitals({ units }: { units: readonly PinnedUnit[] }) {
                   max={v.max}
                   tone={unit.kind}
                   danger={v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined}
+                  onChange={
+                    live[unit.kind] ? (next) => onWrite(unit.kind, v.field, next) : undefined
+                  }
                 />
               </li>
             ))}

@@ -276,7 +276,7 @@ describe('the bar', () => {
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('heading', { name: 'The Rust Belt Run' })).toBeTruthy()
     expect(bar.getByText('Mediator')).toBeTruthy()
-    expect(bar.getByText('● Live · 3 of 4 here')).toBeTruthy()
+    expect(bar.getByText('● Online · 3 of 4 here')).toBeTruthy()
     expect(bar.getByRole('button', { name: 'Game channel: where rolls post' })).toBeTruthy()
   })
 
