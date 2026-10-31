@@ -16,8 +16,7 @@
  * refuses every write a non-Mediator might try (`requireMediator`).
  */
 
-import { gamePath } from 'game-domain/entityKinds'
-import { PRODUCT } from 'game-domain/product'
+import { gamePath, mediatePath } from 'game-domain/entityKinds'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
 import { useGamesQuery } from '../replica/roomCalls'
@@ -34,7 +33,7 @@ export function PlayMediatorGate({ gameId }: { gameId: string }) {
       <PlayRefusal
         title={playCopy('signInToRunYour')}
         body={playCopy('theMediatorRunsAGame')}
-        link={{ href: '/', label: PRODUCT.build }}
+        signInTo={mediatePath(gameId)}
       />
     )
   }

@@ -90,7 +90,8 @@ describe('the Cockpit frame', () => {
     expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
     // Nothing bound: the channel button is Connect.
     expect(bar.getByRole('button', { name: 'Connect a Discord channel' })).toBeTruthy()
-    expect(bar.getByRole('button', { name: 'More' })).toBeTruthy()
+    // Solo there is nothing for ⋯ to open, so there is none.
+    expect(bar.queryByRole('button', { name: 'More' })).toBeNull()
   })
 
   test('on foot the bar and the foot wear the pilot’s orange, ink on it', async () => {

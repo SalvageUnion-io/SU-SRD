@@ -48,6 +48,7 @@ describe('GamePage', () => {
     setQueryAnswers({})
     renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to open this Game' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     expect(screen.queryByText(/The page of/)).toBeNull()
   })
 

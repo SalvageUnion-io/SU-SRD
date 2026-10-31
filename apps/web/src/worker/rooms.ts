@@ -190,6 +190,9 @@ export class AccountRoom extends Room {
       run({ room: this.logic, actor: member, at: Date.now() }, act.args)
     )
     if (answer.ok && !ACCOUNT_READ_ACTS.has(name)) this.broadcastSnapshots()
+    if (answer.ok && name === 'downtime.begin' && answer.value === true) {
+      this.countUsage('downtime:solo')
+    }
     if (answer.ok && built !== null) {
       countPatternBuild(this, sharedDb(this.env), accountHome, built, member)
     }
@@ -302,6 +305,9 @@ export class GameRoom extends Room {
     )
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
+    }
+    if (name === 'downtime.begin' && answer.ok && answer.value === true) {
+      this.countUsage('downtime:game')
     }
     if (answer.ok && !GAME_READ_ACTS.has(name)) {
       const result = answer.value as GameActResult<'submit'>

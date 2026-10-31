@@ -22,6 +22,8 @@ import { sendQuietly } from './roomSockets'
 import { storageSql } from './roomStorage'
 import { homeOf } from './roomStubs'
 import type { RoomPublisher } from './shared/roomRows'
+import { sharedDb } from './shared/roomRows'
+import { bumpUsage } from './shared/signals'
 
 type RoomHealth = { schema: number }
 
@@ -92,6 +94,16 @@ export abstract class Room extends DurableObject<RoomEnv> implements UnitHome {
   /** After a change: the shared rows follow, not holding up the answer (no `waitUntil` in a Durable Object). */
   protected published(): void {
     void this.publisher.changed()
+  }
+
+  /**
+   * Add one to a weekly usage signal (ADR-057 §1), off the answer's path: a
+   * count that cannot land is reported and lost, never the act it counts.
+   */
+  protected countUsage(key: string): void {
+    const db = sharedDb(this.env)
+    if (db === undefined) return
+    void bumpUsage(db, key).catch((error) => reportError(error, { where: 'room.countUsage' }))
   }
 
   /** The shared rows did not land: the alarm writes them again, unless it is due sooner anyway. */

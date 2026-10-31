@@ -60,10 +60,8 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
 }
 
 /**
- * A pilot's Play screen, `/play/pilots/<id>`, read off its Training Bay Compact's sheet link.
- * For a pilot in a Game its player also mediates: that Game's Compact on the Play
- * hub has one door, Mediate (ADR-052 §4), so there is no "Play <pilot>" to
- * follow.
+ * A pilot's Play screen, `/play/pilots/<id>`, read off its Training Bay Compact's sheet link,
+ * so a spec reaches it without first waiting on the Play hub's Games.
  */
 export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   await openApp(page, '/')

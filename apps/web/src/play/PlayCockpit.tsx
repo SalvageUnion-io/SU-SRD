@@ -28,15 +28,14 @@
  * bar says the game is paused (`StopSign.tsx`).
  * The channel button shows where rolls post, or Connect (`PlayChannelButton`,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
- * §5–§6); solo, "‹ Play" goes back to the Play hub and ⋯ is inert.
+ * §5–§6); solo, "‹ Play" goes back to the Play hub and there is no ⋯.
  */
 
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
-import { Ellipsis } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Button, HeaderMenu, tokens } from '../components/index'
+import { HeaderMenu, tokens } from '../components/index'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
@@ -150,7 +149,11 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               />
             }
             stop={<StopSignButton sign={sign} compact={!wide} />}
-            menu={<CockpitMenu target={target} />}
+            menu={
+              target.gameId === null ? undefined : (
+                <CockpitMenu gameId={target.gameId} gameName={target.gameName} />
+              )
+            }
           />
           <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
@@ -184,20 +187,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   )
 }
 
-/**
- * The bar's ⋯: in a Game, the Game's page (ADR-052 §5), as the Mediator's ⋯
- * offers it; solo there is nothing to open yet, so it stays inert.
- */
-function CockpitMenu({ target }: { target: PlayTarget }) {
+/** The bar's ⋯ in a Game: the Game's page (ADR-052 §5), as the Mediator's ⋯ offers it. */
+function CockpitMenu({ gameId, gameName }: { gameId: string; gameName: string | null }) {
   const router = useRouter({ warn: false })
-  const { gameId } = target
-  if (gameId === null) {
-    return (
-      <Button variant="ghost" size="compact" aria-label={playCopy('more')} disabled>
-        <Ellipsis size={tokens.iconSize.compact} aria-hidden="true" />
-      </Button>
-    )
-  }
   return (
     <HeaderMenu
       variant="overflow"
@@ -209,7 +201,7 @@ function CockpitMenu({ target }: { target: PlayTarget }) {
           {
             id: 'game',
             label: playCopy('gamePage'),
-            hint: target.gameName ?? undefined,
+            hint: gameName ?? undefined,
             onSelect: () => {
               if (router) void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
               else window.location.assign(gamePath(gameId))

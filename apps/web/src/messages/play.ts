@@ -83,8 +83,6 @@ export const playCopy = messages({
   posted: 'Posted',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',
-  playRunsYourPilotsSolo:
-    'Play runs your Pilots, solo or in a Game. Sign in, then open Play and choose one.',
   yourSession: 'your session',
   pilotNotFound: 'Pilot not found',
   hasNoPilot: '{name} has no Pilot',
@@ -94,7 +92,6 @@ export const playCopy = messages({
   youreNotInThisPilots: "You're not in this Pilot's Game",
   playOpensForMembersOf: 'Play opens for members of the Game {name} plays in.',
   playRunsYourPilotsSolo2: 'Play runs your Pilots, solo or in a Game. Sign in to open them.',
-  signInWithDiscord: 'Sign in with Discord',
   yourGames: 'Your Games',
   yourGames2: 'your Games',
   playSolo: 'Play solo',
@@ -108,8 +105,7 @@ export const playCopy = messages({
   thatIsNotAnInvite: 'That is not an invite link.',
   join: 'Join',
   signInToRunYour: 'Sign in to run your Game',
-  theMediatorRunsAGame:
-    'The Mediator runs a Game from Play. Sign in, then open Play and choose Mediate.',
+  theMediatorRunsAGame: 'The Mediator runs a Game from Play. Sign in to open this one.',
   onlyThisGamesMediatorRuns: "Only this Game's Mediator runs this screen",
   mediateIsForWhoeverMediates:
     'Mediate is for whoever mediates the Game. Its players play their Pilots from Play.',

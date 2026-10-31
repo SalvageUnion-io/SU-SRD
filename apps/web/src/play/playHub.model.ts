@@ -3,7 +3,7 @@
  * them out. A Game is a contentful Compact (ruleset §1.9): the whole Compact
  * opens the Game's page in Play; its chips are your role, how many are here,
  * the Downtime state and its Discord channel; its body is the crew as
- * header-only Minis; its one door is the way into play, Mediate or Play <pilot>.
+ * header-only Minis; its doors are the ways into play, Mediate and Play <pilot>.
  */
 
 import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
@@ -16,7 +16,7 @@ import type { CrewVitals } from './useGameFeed'
 /** A label-first chip on a Game's Compact: `Mediator`, `3 here`, `DOWNTIME | Step 4`. */
 export type HubChip = { key: string; label: string; value?: string }
 
-/** A Game's one door, rust: where it goes and what it is called. */
+/** One of a Game's doors: where it goes and what it is called. */
 export type GameDoor = { label: string; href: string; ariaLabel: string }
 
 /**
@@ -49,23 +49,25 @@ export function gameChips(args: {
 }
 
 /**
- * A Game's one door: Mediate where you mediate it, else Play your first pilot
- * in it; none when you have no pilot there (its page is where you add one).
+ * A Game's doors, in order: Mediate where you mediate it, then Play for each
+ * pilot of yours in it, so a Mediator who also plays and a player with two
+ * pilots reach every one of them. None when you neither mediate nor have a
+ * pilot there (its page is where you add one).
  */
-export function gameDoor(
+export function gameDoors(
   game: { _id: string; name: string; mediator: boolean },
   pilots: readonly { id: string; name: string }[]
-): GameDoor | null {
-  if (game.mediator) {
-    return { label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }
-  }
-  const pilot = pilots[0]
-  if (pilot === undefined) return null
-  return {
-    label: `Play ${pilot.name}`,
-    href: cockpitPath(pilot.id),
-    ariaLabel: `Play ${pilot.name} in ${game.name}`,
-  }
+): GameDoor[] {
+  return [
+    ...(game.mediator
+      ? [{ label: 'Mediate', href: mediatePath(game._id), ariaLabel: `Mediate ${game.name}` }]
+      : []),
+    ...pilots.map((pilot) => ({
+      label: `Play ${pilot.name}`,
+      href: cockpitPath(pilot.id),
+      ariaLabel: `Play ${pilot.name} in ${game.name}`,
+    })),
+  ]
 }
 
 type ListedRow = { _id: string; appId: string | null; body: unknown }

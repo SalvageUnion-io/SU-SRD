@@ -77,9 +77,9 @@ describe('Downtime', () => {
     const { room } = seated()
     expect(room.play.downtime(PLAYER)?.running).toBe(false)
     expect(() => room.play.beginDowntime(PLAYER, AT)).toThrow('Only the Mediator')
-    room.play.beginDowntime(MEDIATOR, AT)
+    expect(room.play.beginDowntime(MEDIATOR, AT)).toBe(true)
     const runId = room.play.downtime(PLAYER)?.runId
-    room.play.beginDowntime(MEDIATOR, AT + 1)
+    expect(room.play.beginDowntime(MEDIATOR, AT + 1)).toBe(false)
     expect(room.play.downtime(PLAYER)?.runId).toBe(runId)
 
     room.play.markStepDone(PLAYER, true)

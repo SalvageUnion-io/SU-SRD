@@ -8,12 +8,13 @@ The site counts what is used and stores nothing new about who used it.
 
 - **Totals** (accounts, sheets by kind, patterns, Games, Games with two or more
   members, Discord servers) are tallied once a day, a page at a time, into a
-  `metricsSnapshots` row (`convex/metrics.ts`). Convex has no count, and a
+  `metrics_snapshots` row (`takeSnapshot`, `apps/web/src/worker/shared/signals.ts`; Convex's `metrics.ts` before 4.5). Convex has no count, and a
   live count over growing tables would not stay inside a query's limits.
 - **Weekly signals** are counters bumped by the write that is the signal:
-  `usageCounts` holds one row per key per week (Monday 00:00 UTC). A Downtime
+  `usage_counts` holds one row per key per week (Monday 00:00 UTC). A Downtime
   begun (`downtime:game`, `downtime:solo`) and a bot command answered
-  (`bot:<command>`) are the keys today.
+  (`bot:<command>`) are the keys today; the Game and account rooms bump the
+  Downtime keys (`Room.countUsage`).
 - **Bot reach** is `botGuilds`: one row per Discord server the bot has answered
   in, with when it first and last did. A server's id, never a member's.
 - The bot reports a command over its existing door (`/bot/usage`), after
@@ -28,7 +29,7 @@ calls `forAdmin`; the Monday report runs `report` with the deployment key.
 ### 3. Admins are a deployment setting
 
 An admin is an account whose Discord id is listed in the deployment's
-`ADMIN_DISCORD_IDS` (`convex/model/admin.ts`). No column and no mutation grants
+`ADMIN_DISCORD_IDS` (a Worker variable, `apps/web/src/worker/env.ts`). No column and no mutation grants
 it. Everybody else gets null from admin reads and a refusal from admin writes.
 
 ### 4. Feedback becomes a public GitHub issue

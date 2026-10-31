@@ -1,8 +1,9 @@
 /**
- * LaunchPlay — a player's way into Play from the Game hub: a **Play** chip
- * button in the Game band (`GameBand`'s `actions`), and a dialog that asks
- * which pilot to play. The Mediator's chip is the band's own **Mediate** link
- * to Play's Mediator screen instead.
+ * LaunchPlay — a member's way into Play for a pilot from the Game hub: a
+ * **Play** chip button in the Game band (`GameBand`'s `actions`), and a dialog
+ * that asks which pilot to play. The Mediator's own way in is the band's
+ * **Mediate** link; a Mediator who also plays a pilot here gets Play beside it,
+ * and one who plays none sees no Play (`onlyWithPilots`).
  *
  * The button is always there: Play runs a Game with or without a Mediator
  * (ADR-051 §4).
@@ -47,7 +48,14 @@ function preselect(pilots: readonly RosterRow[]): string | null {
   return pilots.find((row) => row.owner?.mine === true)?.serverId ?? null
 }
 
-export function LaunchPlay({ gameId }: { gameId: string }) {
+export function LaunchPlay({
+  gameId,
+  onlyWithPilots = false,
+}: {
+  gameId: string
+  /** Show nothing until this browser holds one of the Game's pilots (the Mediator's Play). */
+  onlyWithPilots?: boolean
+}) {
   // Probed rather than required, as `GameRoster` and `AppLink` do: component
   // tests render the hub without a RouterProvider.
   const router = useRouter({ warn: false })
@@ -80,6 +88,7 @@ export function LaunchPlay({ gameId }: { gameId: string }) {
     }).filter((row) => row.localId !== null)
   )
   const pilots = [...yours, ...others]
+  if (onlyWithPilots && pilots.length === 0) return null
   const selected = picked ?? preselect(pilots)
   const chosen = pilots.find((row) => row.serverId === selected) ?? null
 

@@ -5,8 +5,8 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  * The Play hub (`/play/`, ADR-052 §4): + New Game and Join with a link on its
  * band; Your Games, each a contentful Compact opening the Game's page with
  * your role, how many are here, the Downtime state and its channel as chips,
- * its crew as Minis (each pilot and its mech one Mini), and one door (Mediate
- * where you mediate it, else Play <your pilot>); Play solo, each pilot in no
+ * its crew as Minis (each pilot and its mech one Mini), and its doors (Mediate
+ * where you mediate it, then Play <pilot> for each pilot of yours there); Play solo, each pilot in no
  * Game with its mech or "No Mech". Nothing that builds.
  * Signed out, sign in.
  *
@@ -79,6 +79,8 @@ beforeAll(async () => {
   resetSync()
   const store = useUnits.getState()
   await store.adopt('pilot', pilotFixture({ id: 'land-rook', name: 'Rook', gameId: 'land-g1' }))
+  // The Mediator of Wastes plays a pilot there too.
+  await store.adopt('pilot', pilotFixture({ id: 'land-vane', name: 'Vane', gameId: 'land-g2' }))
   await store.adopt('pilot', pilotFixture({ id: 'land-wren', name: 'Wren', gameId: null }))
   await store.adopt('pilot', pilotFixture({ id: 'land-kes', name: 'Kestrel', gameId: null }))
   await store.adopt('mech', mechFixture({ id: 'land-mech', name: 'Scrapper', gameId: null }))
@@ -128,13 +130,11 @@ describe('the Play landing', () => {
     answerReads({})
     await renderAs('signedOut')
     expect(screen.getByRole('heading', { name: 'Sign in to play' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Sign in with Discord' }).getAttribute('href')).toBe(
-      '/sign-in'
-    )
+    expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     expect(queryCalls()).toHaveLength(0)
   })
 
-  test('Your Games: each a Compact opening its page, your role, and one door: Play <pilot> or Mediate', async () => {
+  test('Your Games: each a Compact opening its page, your role, and its doors: Mediate, then Play <pilot>', async () => {
     answerReads({
       'games.listMine': [TENACITY, WASTES],
       'downtime.state': IN_DOWNTIME,
@@ -161,8 +161,10 @@ describe('the Play landing', () => {
     const mediate = wastes.getByRole('link', { name: 'Mediate Wastes' })
     expect(mediate.getAttribute('href')).toBe('/play/games/land-g2/mediate')
     expect(mediate.textContent).toBe('Mediate')
-    // One door per Game.
-    expect(wastes.queryByRole('link', { name: /^Play / })).toBeNull()
+    // A Mediator who also plays reaches their pilot too.
+    expect(wastes.getByRole('link', { name: 'Play Vane in Wastes' }).getAttribute('href')).toBe(
+      '/play/pilots/land-vane'
+    )
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {

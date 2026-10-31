@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import type { CrewSources } from '../playHub.model'
-import { gameChips, gameCrew, gameDoor, pairedCrew } from '../playHub.model'
+import { gameChips, gameCrew, gameDoors, pairedCrew } from '../playHub.model'
 
-/** The Play hub's Your Games: a Game's Compact, its chips and its one door (ADR-052 §4). */
+/** The Play hub's Your Games: a Game's Compact, its chips and its doors (ADR-052 §4). */
 
 const GAME = { _id: 'g1', name: 'The Rust Belt Run', mediator: false }
 
@@ -33,25 +33,47 @@ describe('its chips', () => {
   })
 })
 
-describe('its one door', () => {
-  test('Mediate where you mediate, even with a pilot there', () => {
-    expect(gameDoor({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual({
-      label: 'Mediate',
-      href: '/play/games/g1/mediate',
-      ariaLabel: 'Mediate The Rust Belt Run',
-    })
+describe('its doors', () => {
+  const MEDIATE = {
+    label: 'Mediate',
+    href: '/play/games/g1/mediate',
+    ariaLabel: 'Mediate The Rust Belt Run',
+  }
+  const BONESAW = {
+    label: 'Play Bonesaw',
+    href: '/play/pilots/p1',
+    ariaLabel: 'Play Bonesaw in The Rust Belt Run',
+  }
+
+  test('a Mediator who also plays gets Mediate, then their pilot', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [{ id: 'p1', name: 'Bonesaw' }])).toEqual([
+      MEDIATE,
+      BONESAW,
+    ])
   })
 
-  test('else Play your pilot', () => {
-    expect(gameDoor(GAME, [{ id: 'p1', name: 'Bonesaw' }])).toEqual({
-      label: 'Play Bonesaw',
-      href: '/play/pilots/p1',
-      ariaLabel: 'Play Bonesaw in The Rust Belt Run',
-    })
+  test('a Mediator with no pilot there gets Mediate alone', () => {
+    expect(gameDoors({ ...GAME, mediator: true }, [])).toEqual([MEDIATE])
+  })
+
+  test('a player gets a door for every pilot of theirs', () => {
+    expect(
+      gameDoors(GAME, [
+        { id: 'p1', name: 'Bonesaw' },
+        { id: 'p2', name: 'Driftwood' },
+      ])
+    ).toEqual([
+      BONESAW,
+      {
+        label: 'Play Driftwood',
+        href: '/play/pilots/p2',
+        ariaLabel: 'Play Driftwood in The Rust Belt Run',
+      },
+    ])
   })
 
   test('none with no pilot of yours there', () => {
-    expect(gameDoor(GAME, [])).toBeNull()
+    expect(gameDoors(GAME, [])).toEqual([])
   })
 })
 

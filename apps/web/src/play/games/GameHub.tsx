@@ -6,10 +6,11 @@
  * way the Training Bay lists your things and puts everything you can do about the
  * table below the lists (docs/architecture/play.md §16):
  *
- *  0. **The band** (`GameBand`): the Game's name on Play's band, and one way
+ *  0. **The band** (`GameBand`): the Game's name on Play's band, and the ways
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
- *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); a player's **Play**
- *     (`LaunchPlay`) asks which pilot and opens Play for it.
+ *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); **Play**
+ *     (`LaunchPlay`) asks which pilot and opens Play for it, for a player and
+ *     for a Mediator who also plays one here.
  *  1. Two columns of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
@@ -180,7 +181,7 @@ export function GameHub({ gameId }: GameHubProps) {
           gameId={gameId}
           name={game ? game.name : 'Game'}
           mediator={game?.mediator}
-          actions={game && !game.mediator ? <LaunchPlay gameId={gameId} /> : undefined}
+          actions={game ? <LaunchPlay gameId={gameId} onlyWithPilots={game.mediator} /> : undefined}
         />
       }
       bodyStyle={GAME_BODY}
