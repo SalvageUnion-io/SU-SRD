@@ -100,7 +100,7 @@ import { useUnits } from '../../replica/units'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
-import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
+import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
@@ -182,9 +182,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Chip names from the WHOLE pile: a link names its other end either way.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  // A linked unit's Mini carries its own stat chips.
-  const pilotReadings = new Map(allPilots.map((p) => [p.id, rowStats(pilotRailItems(p))]))
-  const mechReadings = new Map(allMechs.map((m) => [m.id, rowStats(mechRailItems(m))]))
+  const { pilotReadings, mechReadings } = crewReadings(allPilots, allMechs, allCrawlers, softLinks)
   const patternSource = allMechs.find((m) => m.id === savingPattern)
 
   // The Showing select: a Game you have since left falls back to Everything.
@@ -428,7 +426,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   kind="pilot"
                   note={pilotFact(p)}
                   name={p.name}
-                  reading={rowStats(pilotRailItems(p))[0]}
+                  reading={pilotReadings.get(p.id)?.[0]}
                   href={`/pilots/${p.id}`}
                   chips={linkChip(sharedByLink, p.id)}
                   linked={crewLinked({
@@ -457,7 +455,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   kind="mech"
                   note={chassisFact(m.chassisRef)}
                   name={m.name}
-                  reading={rowStats(mechRailItems(m))[0]}
+                  reading={mechReadings.get(m.id)?.[0]}
                   href={`/mechs/${m.id}`}
                   chips={linkChip(sharedByLink, m.id)}
                   linked={crewLinked({

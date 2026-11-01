@@ -4,8 +4,8 @@
  *  - **A Mech** is salvaged on the Mech Salvage table: its Chassis, and the
  *    Systems and Modules its pattern mounts, each at its own Tech Level and
  *    Salvage Value (`WreckPart`).
- *  - **A Vehicle** is scrapped for its Salvage Value in Scrap of its Tech
- *    Level (p.246). Which of its Systems or Modules can be salvaged is the
+ *  - **A Vehicle or a Drone** is scrapped for its Salvage Value in Scrap of
+ *    its Tech Level (p.246). Which of its Systems or Modules can be salvaged is the
  *    Mediator's call, so none is offered here.
  *  - Everything else (NPCs, squads, creatures, Bio-Titans, Meld) leaves no
  *    salvage the rules price in Scrap of Tech 1–6.
@@ -65,7 +65,7 @@ export function wreckOf(
   mounted: readonly MountedItem[]
 ): Wreck | null {
   if (entity === null) return null
-  if (refSchema === 'vehicles') {
+  if (refSchema === 'vehicles' || refSchema === 'drones') {
     const techLevel = tierOf(entity.techLevel)
     const salvageValue = salvageValueOf(entity.salvageValue)
     return techLevel === undefined || salvageValue === 0

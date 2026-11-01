@@ -76,23 +76,20 @@ describe('createBlank — mech', () => {
     expect(mech?.chassisRef).toBe('')
     expect(mech?.systems).toEqual([])
     expect(mech?.modules).toEqual([])
-    // No chassis → no seeded SP/EP; Heat still starts at 0.
     expect(mech?.currentSP).toBeUndefined()
     expect(mech?.currentEP).toBeUndefined()
-    expect(mech?.currentHeat).toBe(0)
+    expect(mech?.currentHeat).toBeUndefined()
   })
 
-  test('with a chassis pick (any TL, no scrap cost): seeds full SP/EP from the chassis', async () => {
+  test('with a chassis pick (any TL, no scrap cost): leaves SP/EP/Heat unset, so they read full', async () => {
     const id = await createBlank('mech', { name: 'Dust Mule', chassisRef: 'mule' })
 
     const mech = useUnits.getState().get('mech', id)
     expect(() => MechSchema.parse(mech)).not.toThrow()
     expect(mech?.chassisRef).toBe('mule')
-
-    const mule = SalvageUnionReference.Chassis.getByName('Mule')
-    expect(mech?.currentSP).toBe(mule?.structurePoints)
-    expect(mech?.currentEP).toBe(mule?.energyPoints)
-    expect(mech?.currentHeat).toBe(0)
+    expect(mech?.currentSP).toBeUndefined()
+    expect(mech?.currentEP).toBeUndefined()
+    expect(mech?.currentHeat).toBeUndefined()
   })
 })
 

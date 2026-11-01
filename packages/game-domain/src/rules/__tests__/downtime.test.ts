@@ -271,7 +271,7 @@ describe('repairableItems', () => {
 describe('downtimeMechPatch', () => {
   it('restores SP/EP to derived max and Heat to 0', () => {
     const mech = makeMech({ currentSP: 2, currentEP: 1, currentHeat: 4 })
-    const patch = downtimeMechPatch(mech, 3, allDowntimeSteps())
+    const patch = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())
     // Mule chassis: SP 12 (pinned against real data via derivedStats).
     expect(patch.currentSP).toBeDefined()
     expect(patch.currentSP).toBeGreaterThan(2)
@@ -280,9 +280,20 @@ describe('downtimeMechPatch', () => {
     expect(patch.currentHeat).toBe(0)
   })
 
+  it('restores SP to the max the pilot raises: Beefcake (Mule, TL1: 12 + 3 + 1)', () => {
+    const mech = makeMech({ currentSP: 2 })
+    expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps()).currentSP).toBe(12)
+    expect(downtimeMechPatch(mech, ['beefcake'], 3, allDowntimeSteps()).currentSP).toBe(16)
+  })
+
+  it('skips a mech whose conditions say Destroyed, as it skips the flag', () => {
+    const mech = makeMech({ currentSP: 2, conditions: ['destroyed'] })
+    expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})
+  })
+
   it('produces an empty patch when everything is already at rest', () => {
     const mech = makeMech()
-    expect(downtimeMechPatch(mech, 3, allDowntimeSteps())).toEqual({})
+    expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})
   })
 
   it('a non-operational Mech Bay blocks restore + repair but not Uses recharge (p.221)', () => {
@@ -294,7 +305,7 @@ describe('downtimeMechPatch', () => {
       conditions: [CHASSIS_DAMAGED_CONDITION],
       itemUses: { [TL1_SYSTEM]: 1 },
     })
-    const patch = downtimeMechPatch(mech, 3, allDowntimeSteps(), { operational: false })
+    const patch = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps(), { operational: false })
     // No SP/EP/Heat restore, no repairs…
     expect(patch.currentSP).toBeUndefined()
     expect(patch.currentEP).toBeUndefined()
@@ -307,8 +318,8 @@ describe('downtimeMechPatch', () => {
 
   it('an operational Mech Bay passed explicitly behaves like the default', () => {
     const mech = makeMech({ currentSP: 2, currentHeat: 4 })
-    const gated = downtimeMechPatch(mech, 3, allDowntimeSteps(), { operational: true })
-    const defaulted = downtimeMechPatch(mech, 3, allDowntimeSteps())
+    const gated = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps(), { operational: true })
+    const defaulted = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())
     expect(gated).toEqual(defaulted)
   })
 
@@ -319,7 +330,7 @@ describe('downtimeMechPatch', () => {
       moduleConditions: { [TL1_MODULE]: 'damaged' },
       conditions: ['Prone', CHASSIS_DAMAGED_CONDITION],
     })
-    const patch = downtimeMechPatch(mech, 3, allDowntimeSteps())
+    const patch = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())
     expect(patch.systemConditions).toEqual({ [TL1_SYSTEM]: 'intact', [highTl]: 'damaged' })
     expect(patch.moduleConditions).toEqual({ [TL1_MODULE]: 'intact' })
     expect(patch.conditions).toEqual(['Prone'])
@@ -329,19 +340,19 @@ describe('downtimeMechPatch', () => {
     const mech = makeMech({
       systemConditions: { [TL1_SYSTEM]: 'destroyed' },
     })
-    const patch = downtimeMechPatch(mech, 6, allDowntimeSteps())
+    const patch = downtimeMechPatch(mech, undefined, 6, allDowntimeSteps())
     expect(patch.systemConditions).toBeUndefined()
   })
 
   it('recharges itemUses by clearing the map (absent = full)', () => {
     const mech = makeMech({ itemUses: { [TL1_SYSTEM]: 1 } })
-    const patch = downtimeMechPatch(mech, 3, allDowntimeSteps())
+    const patch = downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())
     expect(patch.itemUses).toEqual({})
   })
 
   it('skips a Destroyed mech entirely', () => {
     const mech = makeMech({ destroyed: true, currentSP: 0, currentHeat: 9, itemUses: { a: 0 } })
-    expect(downtimeMechPatch(mech, 6, allDowntimeSteps())).toEqual({})
+    expect(downtimeMechPatch(mech, undefined, 6, allDowntimeSteps())).toEqual({})
   })
 
   it('applies nothing when every step is skipped', () => {
@@ -351,7 +362,7 @@ describe('downtimeMechPatch', () => {
       systemConditions: { [TL1_SYSTEM]: 'damaged' },
       itemUses: { [TL1_SYSTEM]: 0 },
     })
-    expect(downtimeMechPatch(mech, 6, noSteps())).toEqual({})
+    expect(downtimeMechPatch(mech, undefined, 6, noSteps())).toEqual({})
   })
 
   it('honours individual step toggles (repair off, restore on)', () => {
@@ -359,7 +370,10 @@ describe('downtimeMechPatch', () => {
       currentHeat: 5,
       systemConditions: { [TL1_SYSTEM]: 'damaged' },
     })
-    const patch = downtimeMechPatch(mech, 6, { ...allDowntimeSteps(), repairItems: false })
+    const patch = downtimeMechPatch(mech, undefined, 6, {
+      ...allDowntimeSteps(),
+      repairItems: false,
+    })
     expect(patch.currentHeat).toBe(0)
     expect(patch.systemConditions).toBeUndefined()
   })

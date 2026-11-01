@@ -149,7 +149,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
       expect(m.modules).toEqual(['comms-module'])
       expect(m.cargoLots).toEqual([]) // guided create grants no starting cargo
       expect(m.quirk).toBe('Rattles at speed')
-      expect(m.currentHeat).toBe(0)
+      expect(m.currentHeat).toBeUndefined()
       expect(m.schemaVersion).toBe(1)
     })
 

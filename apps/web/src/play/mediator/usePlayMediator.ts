@@ -300,8 +300,6 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
                 important,
                 maxEp: npc.track.reactor.maxEp,
                 heatCap: npc.track.reactor.heatCap,
-                currentEp: npc.track.reactor.maxEp,
-                currentHeat: 0,
               }
             : { important },
       }),

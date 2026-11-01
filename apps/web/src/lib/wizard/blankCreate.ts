@@ -106,9 +106,7 @@ export async function createBlank(
 
   if (kind === 'mech') {
     const { name, chassisRef } = seed as BlankMechSeed
-    // mechFormToCreateInput resolves the chassis itself: with a pick it seeds
-    // full SP/EP from the chassis (like InstantiateFromPattern); without one
-    // the current stats stay absent and the sheet derives 0-maxima safely.
+    // Current SP/EP/Heat stay absent, so the sheet reads the derived maxima.
     const created = await store.create(
       'mech',
       inGame(

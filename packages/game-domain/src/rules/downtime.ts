@@ -34,8 +34,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  mechMaxEP,
-  mechMaxSP,
   parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
@@ -47,6 +45,7 @@ import type { Crawler } from '../schemas/crawler'
 import type { ItemConditionMap } from '../schemas/itemCondition'
 import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
+import { mechHasCondition, mechMaxima } from './crewStatus'
 
 // ---------------------------------------------------------------------------
 // Steps
@@ -306,20 +305,24 @@ function repairConditionMap(
  * `mechBay` gates restore + repair (p.221: a Damaged — or missing — Mech Bay
  * blocks both; Uses still recharge, that is Downtime rest, not the bay).
  * Omitted = assume operational, for callers outside the crawler context.
+ *
+ * `pilotAbilities` are the abilities of the pilot assigned to the mech: Beefcake
+ * raises the piloted mech's Max SP, so restore reaches the max the sheet shows.
+ * Switched-on effects are scene-long and never count at Downtime.
  */
 export function downtimeMechPatch(
   mech: Mech,
+  pilotAbilities: string[] | undefined,
   crawlerTl: number,
   steps: DowntimeSteps,
   mechBay?: Pick<MechBayStatus, 'operational'>
 ): Partial<Mech> {
-  if (mech.destroyed) return {}
+  if (mechHasCondition(mech, 'Destroyed')) return {}
   const patch: Partial<Mech> = {}
   const bayOperational = mechBay?.operational ?? true
 
   if (steps.restoreMechs && bayOperational) {
-    const maxSP = mechMaxSP(mech)
-    const maxEP = mechMaxEP(mech)
+    const { maxSP, maxEP } = mechMaxima(mech, pilotAbilities, [])
     if (mech.currentSP !== undefined && mech.currentSP !== maxSP) patch.currentSP = maxSP
     if (mech.currentEP !== undefined && mech.currentEP !== maxEP) patch.currentEP = maxEP
     if (resolveGauge(mech.currentHeat) !== 0) patch.currentHeat = 0

@@ -66,6 +66,7 @@ export function PlayActionEntry({
         <PlayReactorRow
           mech={actions.mech}
           pilot={actions.pilot}
+          crawler={actions.crawler}
           store={actions.store}
           rollFor={actions.rollFor}
           need={need}

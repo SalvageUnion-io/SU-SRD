@@ -387,12 +387,15 @@ export function useActionsDeck({
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
     // The readout, a Meltdown and the reroll follow only a Push that landed.
-    pushMech({ store: s, mech, pilot: pilot ?? null, roll: heatRoll, heatScale }, (pushed) => {
-      setPushLog(pushed.text)
-      setMeltdown(pushed.meltdown)
-      setApplyRouted(false)
-      step(current, { roll: performCoreRoll(coreRoll), applied: false })
-    })
+    pushMech(
+      { store: s, mech, pilot: pilot ?? null, crawler: crawler ?? null, roll: heatRoll, heatScale },
+      (pushed) => {
+        setPushLog(pushed.text)
+        setMeltdown(pushed.meltdown)
+        setApplyRouted(false)
+        step(current, { roll: performCoreRoll(coreRoll), applied: false })
+      }
+    )
   }
 
   /**

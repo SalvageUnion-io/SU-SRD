@@ -74,7 +74,10 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
           stepIndex: state.stepIndex,
           completedBy: state.completedBy,
           upkeepSpent: state.upkeepSpent,
-          members: (members ?? []).map((m) => ({ userId: m.userId, displayName: m.displayName })),
+          // The players the step waits on: never the Mediator, who advances it.
+          members: (members ?? [])
+            .filter((m) => !m.mediator)
+            .map((m) => ({ userId: m.userId, displayName: m.displayName })),
         }
   const solo = gameId === null
   const mayMove = solo || target.mediator

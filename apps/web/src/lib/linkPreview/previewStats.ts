@@ -8,21 +8,20 @@
  * sheet shows, from the same rules (`salvageunion-reference/rules`).
  */
 
+import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   crawlerMaxSP,
-  mechMaxEP,
-  mechMaxHeat,
   mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
+  parseCrawlerTechLevel,
   resolveChassisRef,
-  resolveModuleRef,
+  resolveGauge,
   resolvePool,
-  resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import type { OgCardStat } from '../../components/index'
-import { slotsUsed } from '../patterns/patterns'
+import { loadoutSlots } from '../patterns/patterns'
 import type { NameOf, PreviewAnswer, PreviewCard } from './previewSummary'
 import { sheetCard, titleCaseSlug } from './previewSummary'
 
@@ -64,11 +63,12 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
   const body = (answer.body ?? {}) as Body
   switch (answer.kind) {
     case 'pilot': {
-      const input = body as Parameters<typeof pilotMaxHP>[0]
+      const crawler = answer.crawlerTechLevel ? { techLevel: answer.crawlerTechLevel } : null
+      const { maxHP, maxAP } = pilotMaxima(body as Pilot, crawler)
       return [
-        { label: 'HP', value: pool(num(body, 'currentHP'), pilotMaxHP(input)) },
-        { label: 'AP', value: pool(num(body, 'currentAP'), pilotMaxAP(input)) },
-        { label: 'TP', value: String(num(body, 'currentTP') ?? 0) },
+        { label: 'HP', value: pool(num(body, 'currentHP'), maxHP) },
+        { label: 'AP', value: pool(num(body, 'currentAP'), maxAP) },
+        { label: 'TP', value: String(num(body, 'trainingPoints') ?? 0) },
         {
           label: 'Mech',
           value: answer.mechChassisRef ? referenceName('chassis', answer.mechChassisRef) : '—',
@@ -76,18 +76,18 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
       ]
     }
     case 'mech': {
-      const chassis = resolveChassisRef(String(body.chassisRef ?? ''))
-      const input = body as Parameters<typeof mechMaxSP>[0]
+      const { maxSP, maxEP, maxHeat } = mechMaxima(body as Mech, answer.pilotAbilities, [])
       return [
-        { label: 'SP', value: pool(num(body, 'currentSP'), mechMaxSP(input, chassis)) },
-        { label: 'EP', value: pool(num(body, 'currentEP'), mechMaxEP(input, chassis)) },
-        { label: 'Heat', value: `${num(body, 'currentHeat') ?? 0}/${mechMaxHeat(input, chassis)}` },
+        { label: 'SP', value: pool(num(body, 'currentSP'), maxSP) },
+        { label: 'EP', value: pool(num(body, 'currentEP'), maxEP) },
+        { label: 'Heat', value: `${resolveGauge(num(body, 'currentHeat'), maxHeat)}/${maxHeat}` },
       ]
     }
     case 'crawler': {
       const max = crawlerMaxSP(body as Parameters<typeof crawlerMaxSP>[0])
+      const techLevel = typeof body.techLevel === 'string' ? body.techLevel : ''
       return [
-        { label: 'TL', value: String(body.techLevel ?? 1) },
+        { label: 'TL', value: String(parseCrawlerTechLevel(techLevel) ?? 1) },
         { label: 'SP', value: pool(num(body, 'currentSP'), max) },
       ]
     }
@@ -98,13 +98,17 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
     case 'pattern': {
       const chassis = resolveChassisRef(String(body.chassisRef ?? ''))
       if (!chassis) return []
-      const systems = strings(body, 'systems').flatMap((ref) => resolveSystemRef(ref) ?? [])
-      const modules = strings(body, 'modules').flatMap((ref) => resolveModuleRef(ref) ?? [])
+      const systems = strings(body, 'systems')
+      const modules = strings(body, 'modules')
+      const slots = loadoutSlots({ chassisRef: chassis.id, systems, modules })
       return [
         { label: 'TL', value: String(chassis.techLevel) },
-        { label: 'SYS', value: `${slotsUsed(systems)}/${chassis.systemSlots ?? 0}` },
-        { label: 'MOD', value: `${slotsUsed(modules)}/${chassis.moduleSlots ?? 0}` },
-        { label: 'SP', value: String(chassis.structurePoints ?? 0) },
+        { label: 'SYS', value: `${slots.systemSlotsUsed}/${slots.systemSlotsMax}` },
+        { label: 'MOD', value: `${slots.moduleSlotsUsed}/${slots.moduleSlotsMax}` },
+        {
+          label: 'SP',
+          value: String(mechMaxSP({ chassisRef: chassis.id, systems, modules }, chassis)),
+        },
       ]
     }
   }

@@ -1,8 +1,17 @@
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { RANGE_BANDS, SeatSchema } from 'game-domain/schemas/seat'
 import type { GameStore, UnitRow } from './game/store'
 import { bit, fromJson, fromJsonOrNull } from './game/store'
 import { RoomRefusal } from './refusal'
+
+/** A stored mech body is destroyed by its flag or its "Destroyed" condition. */
+export function isDestroyedMech(body: Record<string, unknown>): boolean {
+  const conditions = Array.isArray(body.conditions)
+    ? body.conditions.filter((c): c is string => typeof c === 'string')
+    : []
+  return mechHasCondition({ conditions, destroyed: body.destroyed === true }, 'Destroyed')
+}
 
 /**
  * Each pilot's seat (ADR-038 §2): a Game room's for its crew
@@ -64,7 +73,7 @@ export abstract class SeatTable {
   board(actor: string, pilotId: string, mechId: string, at: number): void {
     this.write(actor, pilotId, at, (seat) => {
       const mech = this.writable(actor, mechId, 'mech')
-      if (mech.body.destroyed === true) throw new RoomRefusal('That Mech is destroyed')
+      if (isDestroyedMech(mech.body)) throw new RoomRefusal('That Mech is destroyed')
       for (const other of this.pilotSeats()) {
         if (other.pilotId === pilotId) continue
         if (other.mount.kind === 'boarded' && other.mount.mechId === mechId) {

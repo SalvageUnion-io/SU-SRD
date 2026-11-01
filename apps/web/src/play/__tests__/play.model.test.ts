@@ -71,7 +71,7 @@ describe('the landing’s pilots', () => {
   }
 
   test('Solo lists the shelf’s pilots, each with its assigned mech or none, and its HP and AP', () => {
-    const solo = soloPilots([rook, wren, kite], [scrapper], [link])
+    const solo = soloPilots([rook, wren, kite], [scrapper], [], [link])
     expect(solo.map(({ readings: _, ...p }) => p)).toEqual([
       { pilotId: 'p-wren', name: 'Wren', mechName: 'Scrapper', mechId: 'm-scrapper' },
       { pilotId: 'p-kite', name: 'Kite', mechName: null, mechId: null },

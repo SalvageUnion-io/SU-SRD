@@ -21,9 +21,7 @@
  * this pilot is theirs to unassign.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import type { SheetKind } from 'game-domain/entityKinds'
-import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -139,12 +137,12 @@ function readingsOf(
   if (kind === 'mech') {
     const mech = entity as Mech
     const pilot = subject.kind === 'pilot' ? subject.entity : composition.crawlerMechPilots[mech.id]
-    return rowStats(mechRailItems(mech, pilotingContext(mech, pilot?.abilities)))
+    return rowStats(mechRailItems(mech, pilot?.abilities))
   }
   if (kind === 'pilot') {
     const pilot = entity as Pilot
     const crawler = subject.kind === 'crawler' ? subject.entity : composition.crawler
-    return rowStats(pilotRailItems(pilot, resolveEffectiveCrawlerLevel(pilot, crawler)))
+    return rowStats(pilotRailItems(pilot, crawler))
   }
   return rowStats(crawlerRailItems(entity as Crawler))
 }

@@ -6,6 +6,7 @@
  * (ADR-007: every step skippable). Pure: no React, no store.
  */
 
+import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
   CRAFT_STEP_NAME,
@@ -22,8 +23,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import {
-  mechMaxEP,
-  mechMaxSP,
   parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
@@ -112,7 +111,7 @@ export function mechBayOf(crawler: Crawler | null): { operational: boolean } | u
 
 const arrow = (from: number, to: number) => `${from}→${to}`
 
-function mechLine(mech: Mech, crawler: Crawler | null): PlanLine | null {
+function mechLine(mech: Mech, pilot: Pilot | null, crawler: Crawler | null): PlanLine | null {
   const steps: DowntimeStepKey[] = ['restoreMechs', 'repairItems']
   const bay = mechBayOf(crawler)
   if (bay && !bay.operational) {
@@ -125,18 +124,13 @@ function mechLine(mech: Mech, crawler: Crawler | null): PlanLine | null {
       blocked: 'Mech Bay damaged: no restore or repair this Downtime',
     }
   }
-  const patch = downtimeMechPatch(mech, crawlerTl(crawler), onlySteps(steps), bay)
+  const patch = downtimeMechPatch(mech, pilot?.abilities, crawlerTl(crawler), onlySteps(steps), bay)
+  const { maxSP, maxEP } = mechMaxima(mech, pilot?.abilities, [])
   const chips: PlanChip[] = []
   if (patch.currentSP !== undefined)
-    chips.push({
-      label: 'SP',
-      value: arrow(resolvePool(mech.currentSP, mechMaxSP(mech)), patch.currentSP),
-    })
+    chips.push({ label: 'SP', value: arrow(resolvePool(mech.currentSP, maxSP), patch.currentSP) })
   if (patch.currentEP !== undefined)
-    chips.push({
-      label: 'EP',
-      value: arrow(resolvePool(mech.currentEP, mechMaxEP(mech)), patch.currentEP),
-    })
+    chips.push({ label: 'EP', value: arrow(resolvePool(mech.currentEP, maxEP), patch.currentEP) })
   if (patch.currentHeat !== undefined)
     chips.push({ label: 'Heat', value: arrow(resolveGauge(mech.currentHeat), patch.currentHeat) })
   const repaired = (next: Mech['systemConditions'], was: Mech['systemConditions']) =>
@@ -183,7 +177,13 @@ function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | nul
   const steps: DowntimeStepKey[] = ['rechargeUses']
   const chips: PlanChip[] = []
   if (mech) {
-    const patch = downtimeMechPatch(mech, crawlerTl(crawler), onlySteps(steps), mechBayOf(crawler))
+    const patch = downtimeMechPatch(
+      mech,
+      pilot?.abilities,
+      crawlerTl(crawler),
+      onlySteps(steps),
+      mechBayOf(crawler)
+    )
     if (patch.itemUses !== undefined) {
       for (const [slug, left] of Object.entries(mech.itemUses ?? {})) {
         const name = resolveSystem(slug)?.name ?? resolveModule(slug)?.name ?? slug
@@ -256,7 +256,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
   const { stepName, pilot, mech, crawler, pilotCrawlerTl, upkeep } = input
   const lines: (PlanLine | null)[] = []
   if (stepName === RESTORE_STEP_NAME) {
-    if (mech) lines.push(mechLine(mech, crawler))
+    if (mech) lines.push(mechLine(mech, pilot, crawler))
     if (pilot) lines.push(pilotLine(pilot, crawler, pilotCrawlerTl))
     lines.push(usesLine(pilot, mech, crawler, pilotCrawlerTl))
     if (pilot) lines.push(resetsLine(pilot, crawler, pilotCrawlerTl))

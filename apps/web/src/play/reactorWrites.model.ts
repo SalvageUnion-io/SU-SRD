@@ -8,6 +8,7 @@
  * a refused Push says so once and shows nothing it did not do.
  */
 
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { HeatCheckEffect, Roll } from 'salvageunion-reference/rules'
@@ -18,13 +19,16 @@ import type { PlayStore } from './play.model'
 
 type Store = Pick<PlayStore, 'get' | 'update'>
 
+/** The crawler the pilot crews: its Tech Level sets their max HP (Stat Training). */
+type Crew = { pilot: Pilot | null; crawler: Pick<Crawler, 'techLevel'> | null }
+
 /** What a Push came to (`mechPush`). */
 export type Pushed = NonNullable<ReturnType<typeof mechPush>>
 
 /** A Bio-Chassis overload's harm to the pilot aboard, written to the pilot. */
-export function hurtPilot(store: Store, pilot: Pilot | null, effect: HeatCheckEffect): void {
+export function hurtPilot(store: Store, { pilot, crawler }: Crew, effect: HeatCheckEffect): void {
   if (pilot === null) return
-  const patch = pilotOverloadPatch(store.get('pilot', pilot.id) ?? pilot, effect)
+  const patch = pilotOverloadPatch(store.get('pilot', pilot.id) ?? pilot, crawler, effect)
   if (patch !== null) runWrite(() => store.update('pilot', pilot.id, patch, PLAY_TXN))
 }
 
@@ -39,17 +43,18 @@ export function pushMech(
     store,
     mech,
     pilot,
+    crawler,
     roll,
     heatScale,
-  }: { store: Store; mech: Mech; pilot: Pilot | null; roll: Roll; heatScale: number },
+  }: Crew & { store: Store; mech: Mech; roll: Roll; heatScale: number },
   onApplied: (pushed: Pushed) => void
 ): Pushed | null {
-  const pushed = mechPush(store.get('mech', mech.id) ?? mech, roll, heatScale)
+  const pushed = mechPush(store.get('mech', mech.id) ?? mech, pilot?.abilities, roll, heatScale)
   if (pushed === null) return null
   runWrite(
     () => store.update('mech', mech.id, pushed.patch, PLAY_TXN),
     () => {
-      hurtPilot(store, pilot, pushed.effect)
+      hurtPilot(store, { pilot, crawler }, pushed.effect)
       onApplied(pushed)
     }
   )

@@ -124,7 +124,7 @@ describe('assignedUnitsFor', () => {
       { kind: 'crawler', entity: crawler },
       { crawlerMechs: [mech], crawlerMechPilots: { m1: beefy } }
     )
-    const bare = rowStats(mechRailItems(mech))
+    const bare = rowStats(mechRailItems(mech, undefined))
     expect(units[0]?.readings?.[0]?.label).toBe('SP')
     expect(units[0]?.readings?.[0]?.value).not.toBe(bare[0]?.value)
   })

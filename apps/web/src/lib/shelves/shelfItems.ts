@@ -28,7 +28,7 @@ import type { LinkedUnit } from '../../components/index'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
-import { patternChassis, patternLoadout, slotsUsed } from '../patterns/patterns'
+import { loadoutSlots, patternChassis } from '../patterns/patterns'
 import { readReference } from '../readReference'
 import { pairSide } from '../units/crewPair'
 import { VITAL, vitalReading } from '../units/readings'
@@ -134,9 +134,9 @@ export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): UnitReading
 export function patternReading(
   pattern: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>
 ): UnitReading | undefined {
-  const chassis = patternChassis(pattern)
-  if (chassis === null || typeof chassis.systemSlots !== 'number') return undefined
-  return vitalReading('SYS', slotsUsed(patternLoadout(pattern).systems), chassis.systemSlots)
+  if (patternChassis(pattern) === null) return undefined
+  const { systemSlotsUsed, systemSlotsMax } = loadoutSlots(pattern)
+  return vitalReading('SYS', systemSlotsUsed, systemSlotsMax)
 }
 
 /**

@@ -17,9 +17,9 @@
 export type { AdvancementOption } from './advancement'
 export { advancementOptionsFor, originsForHybrid, resolveAdvancementTrees } from './advancement'
 export { liveAdvancementDataset, offeredAbilityTrees } from './advancementDataset'
-export { computeMechCapacity } from './capacity'
+export { computeMechCapacity, installedSlots } from './capacity'
 export { isSchemaOnlyCatalogChoice, resolveCatalogChoiceEntities } from './choiceCatalog'
-export { abilityContributions, sumContributions } from './contributions'
+export { abilityContributions, installedContributions, sumContributions } from './contributions'
 export type { CoreRollBand, CoreRollResult } from './coreMechanic'
 export {
   CORE_ROLL_BANDS,

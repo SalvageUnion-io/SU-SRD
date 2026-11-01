@@ -16,11 +16,13 @@
 import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
+import type { TechLevel } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSPParts,
   parseCrawlerTechLevel,
   pinFor,
   resolvePool,
+  tierUpgradeCost,
 } from 'salvageunion-reference/rules'
 import { linesFromBreakdown, Stat } from '../../components/index'
 import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -49,9 +51,6 @@ type CrawlerLiveSheetProps = SheetViewCommonProps & {
    */
   liveCondition?: boolean
 }
-
-/** The Upgrade pool's cap. */
-const UPGRADE_POOL_MAX = 30
 
 export function CrawlerLiveSheet({
   crawler,
@@ -93,6 +92,10 @@ export function CrawlerLiveSheet({
   const states = bayStates(crawler)
   const intactBays = states.filter((s) => s === 'intact').length
   const tl = parseCrawlerTechLevel(crawler.techLevel)
+  // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
+  // is none (crawler-tech-levels.json), so no gauge.
+  const upgradeCost =
+    tl === undefined || tl >= 6 ? null : tierUpgradeCost(tl as TechLevel, (tl + 1) as TechLevel)
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
@@ -210,13 +213,15 @@ export function CrawlerLiveSheet({
         />
       }
       upgrade={
-        <SheetVitalGauge
-          vital="upgrade"
-          value={crawler.upgradePool ?? 0}
-          max={UPGRADE_POOL_MAX}
-          onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}
-          readOnly={!editable}
-        />
+        upgradeCost === null ? undefined : (
+          <SheetVitalGauge
+            vital="upgrade"
+            value={crawler.upgradePool ?? 0}
+            max={upgradeCost}
+            onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}
+            readOnly={!editable}
+          />
+        )
       }
       items={econItems}
     />

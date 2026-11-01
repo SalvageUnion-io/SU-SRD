@@ -11,7 +11,12 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import {
+  computeMechCapacity,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
 
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
@@ -56,13 +61,12 @@ export function patternCopy(pattern: MechPattern): PatternInput {
 }
 
 /**
- * A fresh mech built from a pattern: the chassis and loadout, full SP and EP
- * from the chassis, Heat 0, an empty hold — and the pattern it came from. Its
+ * A fresh mech built from a pattern: the chassis and loadout, SP, EP and Heat
+ * unset (full and empty by the pool rules), an empty hold — and the pattern it came from. Its
  * name is the pattern's, written with `patternName` in lockstep, because a
  * mech's name IS its pattern.
  */
 export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
-  const chassis = resolveChassisRef(pattern.chassisRef)
   return {
     schemaVersion: 1,
     name: pattern.name,
@@ -72,9 +76,6 @@ export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
     modules: [...pattern.modules],
     cargoLots: [],
     conditions: [],
-    currentSP: chassis?.structurePoints,
-    currentEP: chassis?.energyPoints,
-    currentHeat: 0,
     sourcePattern: pattern.id,
   }
 }
@@ -90,12 +91,17 @@ export function patternLoadout(pattern: Pick<MechPattern, 'systems' | 'modules'>
   }
 }
 
-/** Slots a loadout fills: a system or module's `slotsRequired`, one when unstated. */
-export function slotsUsed(items: RefEntity[]): number {
-  return items.reduce((sum, item) => {
-    const slots = 'slotsRequired' in item ? Number(item.slotsRequired) : Number.NaN
-    return sum + (Number.isFinite(slots) ? slots : 1)
-  }, 0)
+/**
+ * The slots a loadout fills and the budget it fills them from, as the mech
+ * sheet counts them (`computeMechCapacity`: a multi-headed chassis's heads
+ * add to the budget).
+ */
+export function loadoutSlots(unit: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>) {
+  return computeMechCapacity({
+    chassisRef: unit.chassisRef,
+    systems: unit.systems.map((ref) => ({ ref })),
+    modules: unit.modules.map((ref) => ({ ref })),
+  })
 }
 
 /**

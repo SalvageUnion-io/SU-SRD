@@ -45,6 +45,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { SITE_URL } from '../constants'
 import { itemHref } from '../entityHref'
+import { loadoutSlots } from '../patterns/patterns'
 import { fileStem } from './downloadJson'
 
 /** The Foundry system this file is written for, as its `system.json` names it. */
@@ -430,6 +431,7 @@ function cargoItem(lot: Mech['cargoLots'][number]): FoundryItem {
  */
 export function mechToFoundry(mech: Mech, pilotAbilities: string[] | undefined): FoundryActor {
   const { chassis, piloting, maxSP, maxEP, maxHeat } = mechMaxima(mech, pilotAbilities, [])
+  const slots = loadoutSlots(mech)
   const items: FoundryItem[] = []
   const chassisRef = chassis
   if (chassisRef) {
@@ -482,8 +484,8 @@ export function mechToFoundry(mech: Mech, pilotAbilities: string[] | undefined):
       sp: { value: resolvePool(mech.currentSP, maxSP), max: maxSP },
       'energy-points': { value: resolvePool(mech.currentEP, maxEP), max: maxEP },
       heat: { value: resolveGauge(mech.currentHeat, maxHeat), max: maxHeat },
-      'system-slots': chassisRef?.systemSlots ?? 0,
-      'module-slots': chassisRef?.moduleSlots ?? 0,
+      'system-slots': slots.systemSlotsMax,
+      'module-slots': slots.moduleSlotsMax,
     },
     items: [...items, ...mech.cargoLots.map(cargoItem)],
   }

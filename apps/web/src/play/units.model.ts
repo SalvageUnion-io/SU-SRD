@@ -70,6 +70,7 @@ export type MechRestore = { sp?: number; ep?: number; heat?: number }
  */
 export function mechRestorePreview(
   mech: Mech,
+  pilotAbilities: string[] | undefined,
   crawler: Pick<Crawler, 'crawlerBays' | 'techLevel'> | null,
   stepIndex: number | null
 ): MechRestore {
@@ -77,6 +78,7 @@ export function mechRestorePreview(
   if (downtimeGuideSteps()[stepIndex]?.name !== RESTORE_STEP_NAME) return {}
   const patch = downtimeMechPatch(
     mech,
+    pilotAbilities,
     crawler === null ? 1 : (parseCrawlerTechLevel(crawler.techLevel) ?? 1),
     allDowntimeSteps(),
     crawler === null ? undefined : mechBayStatus(crawler)

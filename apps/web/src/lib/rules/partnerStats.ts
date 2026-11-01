@@ -32,7 +32,7 @@ import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { RefEntity } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { pinFor } from 'salvageunion-reference/rules'
+import { installedContributions, pinFor, sumContributions } from 'salvageunion-reference/rules'
 import { partnerGrantCount } from './partnerGrants'
 
 /** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */
@@ -166,23 +166,30 @@ export function partnerDerivedStatsParts(
   const bonuses = (statBlock as { bonusPerTechLevel?: Record<string, number> } | null)
     ?.bonusPerTechLevel
   const steps = Math.max(0, techLevel - 1)
+  // Systems and modules attach to a partner as to a mech (Core Book p.68), so
+  // their declared contributions (a Cargo Pod's hold) count here too.
+  const installed = [...partner.systems, ...partner.modules]
+  const slotStats = {
+    systemSlots: statOf(statBlock, 'systemSlots') ?? 0,
+    moduleSlots: statOf(statBlock, 'moduleSlots') ?? 0,
+  }
 
   const out = {} as Record<PartnerStatKey, StatBreakdown>
   for (const key of SCALED_STATS) {
     const base = statOf(statBlock, key) ?? 0
     const per = bonuses?.[key]
     const scaled = typeof per === 'number' ? per * steps : 0
-    const derived = Math.max(0, base + scaled)
+    const sources = installedContributions(installed, key, { techLevel, stats: slotStats })
+    const derived = Math.max(0, base + scaled + sumContributions(sources))
     const pinField = PINS[key]
     const pin = pinField ? partner[pinField] : undefined
     const overridden = pin !== undefined && pinFor(pin, { derived }) !== undefined
     out[key] = {
       base,
       installed: scaled,
-      // Tech-level scaling is an anonymous aggregate, not a named source: it
-      // comes from the stat block's own `bonusPerTechLevel`, not from a
-      // separately-nameable ability.
-      sources: [],
+      // Tech-level scaling is an anonymous aggregate in `installed`; the
+      // installed items' contributions are named sources.
+      sources,
       adjustment: 0,
       derived,
       ...(overridden ? { override: pin } : {}),

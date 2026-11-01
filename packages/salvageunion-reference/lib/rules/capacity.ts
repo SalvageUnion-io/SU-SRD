@@ -129,6 +129,20 @@ function resolveModuleSlotCost(ref: string, slotCostOverride?: number): number {
 }
 
 /**
+ * The slots installed systems and modules fill, each its `slotsRequired`
+ * (one when unstated): the same count a mech's budget uses, for a partner.
+ */
+export function installedSlots(loadout: {
+  systems: readonly string[]
+  modules: readonly string[]
+}) {
+  return {
+    systems: loadout.systems.reduce((sum, ref) => sum + resolveSystemSlotCost(ref), 0),
+    modules: loadout.modules.reduce((sum, ref) => sum + resolveModuleSlotCost(ref), 0),
+  }
+}
+
+/**
  * Compute mech capacity from a `MechInput` and return slot usage + violations.
  *
  * Violation kinds:

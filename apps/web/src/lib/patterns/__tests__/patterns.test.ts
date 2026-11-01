@@ -3,12 +3,12 @@ import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
 import {
   asReferencePattern,
+  loadoutSlots,
   mechFromPattern,
   patternCopy,
   patternFromMech,
   patternLoadout,
   savedPatternHref,
-  slotsUsed,
 } from '../patterns'
 
 /**
@@ -61,7 +61,7 @@ describe('saving a mech as a pattern', () => {
 })
 
 describe('building a mech from a pattern', () => {
-  test('starts fresh — full SP and EP, Heat 0, an empty hold — and records its source', () => {
+  test('starts fresh — SP, EP and Heat unset, an empty hold — and records its source', () => {
     const input = mechFromPattern(towRig)
     expect(input).toMatchObject({
       name: 'Tow Rig',
@@ -71,11 +71,11 @@ describe('building a mech from a pattern', () => {
       modules: ['comms-module'],
       cargoLots: [],
       conditions: [],
-      currentHeat: 0,
       sourcePattern: 'pat-tow-rig',
     })
-    expect(input.currentSP).toBe(9)
-    expect(input.currentEP).toBe(9)
+    expect(input).not.toHaveProperty('currentSP')
+    expect(input).not.toHaveProperty('currentEP')
+    expect(input).not.toHaveProperty('currentHeat')
   })
 
   test('copies the loadout rather than sharing the arrays', () => {
@@ -98,8 +98,12 @@ describe('a pattern in the reference shapes', () => {
     const { systems, modules } = patternLoadout(towRig)
     expect(systems.map((s) => s.name)).toEqual(['Rigging Arm', 'Transport Hold'])
     expect(modules.map((m) => m.name)).toEqual(['Comms Module'])
-    expect(slotsUsed(systems)).toBe(4)
-    expect(slotsUsed(modules)).toBe(1)
+    expect(loadoutSlots(towRig)).toMatchObject({ systemSlotsUsed: 4, moduleSlotsUsed: 1 })
+  })
+
+  test("a multi-headed chassis's budget counts its heads, as the sheet does (Cerberus)", () => {
+    const bare = loadoutSlots({ chassisRef: 'cerberus', systems: [], modules: [] })
+    expect(bare.systemSlotsMax).toBeGreaterThan(5)
   })
 
   test('renders as a reference pattern, by name', () => {

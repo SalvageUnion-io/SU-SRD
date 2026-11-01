@@ -1,6 +1,5 @@
 /** Unit tests for the mech wizard form-state mappers. */
 import { describe, expect, it } from 'bun:test'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   EMPTY_MECH_FORM_STATE,
   mechFormToCreateInput,
@@ -28,11 +27,7 @@ describe('mechFormToUpdatePatch', () => {
 })
 
 describe('mechFormToCreateInput', () => {
-  it('seeds a fresh mech at full chassis SP/EP with Heat 0', () => {
-    const mule = SalvageUnionReference.Chassis.getByName('Mule')
-    expect(mule).toBeDefined()
-    if (!mule) throw new Error('expected the Mule chassis in reference data')
-
+  it("leaves a fresh mech's SP/EP/Heat unset, so they read as its derived maxima", () => {
     const input = mechFormToCreateInput({
       ...EMPTY_MECH_FORM_STATE,
       name: 'Iron Fist',
@@ -40,9 +35,9 @@ describe('mechFormToCreateInput', () => {
     })
     expect(input.schemaVersion).toBe(1)
     expect(input.chassisRef).toBe('mule')
-    expect(input.currentSP).toBe(mule.structurePoints)
-    expect(input.currentEP).toBe(mule.energyPoints)
-    expect(input.currentHeat).toBe(0)
+    expect(input).not.toHaveProperty('currentSP')
+    expect(input).not.toHaveProperty('currentEP')
+    expect(input).not.toHaveProperty('currentHeat')
     expect(input.conditions).toEqual([])
   })
 

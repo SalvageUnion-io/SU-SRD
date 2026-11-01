@@ -92,7 +92,9 @@ export function PlayDowntimeStep({
   })
   const applicable = plan.filter((line) => line.skippable)
   const members = downtime.downtime.members
-  const doneCount = downtime.downtime.completedBy.length
+  const doneCount = downtime.downtime.completedBy.filter((m) =>
+    members.some((member) => member.userId === m.userId)
+  ).length
   // This pilot's step is applied or skipped: never offered again this Downtime.
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
   // In a Game, whether this member has said they are done (`completedBy`).
@@ -148,7 +150,13 @@ export function PlayDowntimeStep({
       : {}
     const freshMech = mech ? (store.get('mech', mech.id) ?? mech) : null
     const mechPatch = freshMech
-      ? downtimeMechPatch(freshMech, crawlerTl(crawler), steps, mechBayOf(crawler))
+      ? downtimeMechPatch(
+          freshMech,
+          freshPilot?.abilities,
+          crawlerTl(crawler),
+          steps,
+          mechBayOf(crawler)
+        )
       : {}
     const mechShare =
       freshMech && Object.keys(mechPatch).length > 0

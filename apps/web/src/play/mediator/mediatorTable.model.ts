@@ -143,12 +143,27 @@ export function mediatorSeats(
     .map(({ seat }) => seat)
 }
 
-/** "3 of 4 here": how many seats are here, of how many. */
-export function hereOf(seats: readonly Pick<MediatorSeat, 'present'>[]): {
+/**
+ * The players the table counts: one per member who owns a seat, so a player
+ * with two pilots counts once, as on the player's own screen (`hereCount`).
+ * A seat no one owns counts as its own player.
+ */
+function players<S extends Pick<MediatorSeat, 'ownerId'>>(seats: readonly S[]): S[][] {
+  const byOwner = new Map<string, S[]>()
+  seats.forEach((seat, i) => {
+    const key = seat.ownerId ?? `seat:${i}`
+    byOwner.set(key, [...(byOwner.get(key) ?? []), seat])
+  })
+  return [...byOwner.values()]
+}
+
+/** "3 of 4 here": how many players are here, of how many. */
+export function hereOf(seats: readonly Pick<MediatorSeat, 'ownerId' | 'present'>[]): {
   here: number
   of: number
 } {
-  return { here: seats.filter((s) => s.present).length, of: seats.length }
+  const all = players(seats)
+  return { here: all.filter((own) => own.some((s) => s.present)).length, of: all.length }
 }
 
 /** Whether a seat's player has marked the current Downtime step done. */
@@ -165,12 +180,16 @@ export function seatStepLine(stepIndex: number, done: boolean, present: boolean)
   return present ? `Step ${stepIndex + 1} · working` : `Step ${stepIndex + 1} · away`
 }
 
-/** How many seats are done with the step: the step box's "2 of 4 done". */
+/** How many players are done with the step: the step box's "2 of 4 done". */
 export function doneOf(
   seats: readonly Pick<MediatorSeat, 'ownerId'>[],
   completedBy: readonly { userId: string }[]
 ): { done: number; of: number } {
-  return { done: seats.filter((s) => seatDone(s, completedBy)).length, of: seats.length }
+  const all = players(seats)
+  return {
+    done: all.filter((own) => own.some((s) => seatDone(s, completedBy))).length,
+    of: all.length,
+  }
 }
 
 /** The bar's Downtime option: "Begin Downtime", or running, "Downtime · Step 3". */

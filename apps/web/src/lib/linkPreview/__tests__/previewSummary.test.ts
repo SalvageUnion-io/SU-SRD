@@ -26,7 +26,7 @@ const MECH: PreviewAnswer = {
 
 const CRAWLER: PreviewAnswer = {
   kind: 'crawler',
-  body: { name: 'Tenacity', type: 'augmented', techLevel: '2' },
+  body: { name: 'Tenacity', type: 'augmented', techLevel: 'tech-2' },
   ownerName: null,
   gameName: 'Reclamation of the Wastes',
 }
@@ -137,6 +137,14 @@ describe('previewStats', () => {
     expect(stats[3]?.value).toBe('—')
   })
 
+  test("a pilot's TP is their training points, and their crawler's Tech Level raises max HP", () => {
+    const trained = { ...PILOT, body: { ...(PILOT.body as object), trainingPoints: 4 } }
+    expect(previewStats(trained)[2]).toEqual({ label: 'TP', value: '4' })
+    const max = (answer: PreviewAnswer) =>
+      Number(String(previewStats(answer)[0]?.value).split('/')[1])
+    expect(max({ ...PILOT, crawlerTechLevel: 'tech-3' }) - max(PILOT)).toBe(4)
+  })
+
   test('a pilot names its published mech by chassis', () => {
     const stats = previewStats({ ...PILOT, mechChassisRef: 'scrapper' })
     expect(stats[3]).toEqual({ label: 'Mech', value: 'Scrapper' })
@@ -154,6 +162,7 @@ describe('previewStats', () => {
   test('a mech and a crawler read their structure', () => {
     expect(previewStats(MECH).map((s) => s.label)).toEqual(['SP', 'EP', 'Heat'])
     expect(previewStats(CRAWLER).map((s) => s.label)).toEqual(['TL', 'SP'])
+    expect(previewStats(CRAWLER)[0]).toEqual({ label: 'TL', value: '2' })
   })
 
   test('names come from the reference, and fall back to words', () => {

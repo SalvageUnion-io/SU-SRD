@@ -9,6 +9,7 @@
  * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -104,7 +105,7 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       out={
-        mech.destroyed
+        mechHasCondition(mech, 'Destroyed')
           ? {
               stamp: CONDITION_LABELS.destroyed,
               note: buildSheetCopy('thisMechIsDestroyedIts'),
