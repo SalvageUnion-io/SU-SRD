@@ -51,7 +51,7 @@ const crawler: Crawler = {
   id: 'c1',
   schemaVersion: 1,
   name: 'Kettle',
-  techLevel: 'tech-3',
+  techLevel: 3,
   systems: [],
   createdAt: now,
   updatedAt: now,

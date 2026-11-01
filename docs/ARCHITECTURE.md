@@ -29,7 +29,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `game-domain` types, and values only from its leaf modules (botWire, product, appAddress, entityKinds; `noRestrictedImports`); changing them is cross-package. Lookup = embed: `discordEntryCard`.
+   Imports `game-domain` types, and values only from its leaf modules (botWire, product, appAddress, entityKinds, mechConditions; `noRestrictedImports`); changing them is cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, the rooms and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars a rule in a product folder.

@@ -79,7 +79,7 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
     id: 'crawler-1',
     schemaVersion: 1,
     name: 'Tin Lizzy',
-    techLevel: 'tech-3',
+    techLevel: 3,
     systems: [],
     createdAt: NOW,
     updatedAt: NOW,
@@ -173,7 +173,7 @@ describe('medBayStatus', () => {
   it('damaged Med Bay → present but nothing heals (p.223)', () => {
     const status = medBayStatus(
       makeCrawler({
-        techLevel: 'tech-6',
+        techLevel: 6,
         crawlerBays: [{ bayRef: 'med-bay', condition: 'damaged' }],
       })
     )
@@ -186,16 +186,16 @@ describe('medBayStatus', () => {
 
   it('bands by crawler Tech Level: 1-2 HP only, 3-4 +minor, 5-6 +major', () => {
     const bays: Crawler['crawlerBays'] = [{ bayRef: 'med-bay' }]
-    const t2 = medBayStatus(makeCrawler({ techLevel: 'tech-2', crawlerBays: bays }))
+    const t2 = medBayStatus(makeCrawler({ techLevel: 2, crawlerBays: bays }))
     expect(t2.operational).toBe(true)
     expect(t2.healsMinor).toBe(false)
     expect(t2.healsMajor).toBe(false)
 
-    const t3 = medBayStatus(makeCrawler({ techLevel: 'tech-3', crawlerBays: bays }))
+    const t3 = medBayStatus(makeCrawler({ techLevel: 3, crawlerBays: bays }))
     expect(t3.healsMinor).toBe(true)
     expect(t3.healsMajor).toBe(false)
 
-    const t5 = medBayStatus(makeCrawler({ techLevel: 'tech-5', crawlerBays: bays }))
+    const t5 = medBayStatus(makeCrawler({ techLevel: 5, crawlerBays: bays }))
     expect(t5.healsMinor).toBe(true)
     expect(t5.healsMajor).toBe(true)
   })
@@ -351,7 +351,12 @@ describe('downtimeMechPatch', () => {
   })
 
   it('skips a Destroyed mech entirely', () => {
-    const mech = makeMech({ destroyed: true, currentSP: 0, currentHeat: 9, itemUses: { a: 0 } })
+    const mech = makeMech({
+      conditions: ['Destroyed'],
+      currentSP: 0,
+      currentHeat: 9,
+      itemUses: { a: 0 },
+    })
     expect(downtimeMechPatch(mech, undefined, 6, allDowntimeSteps())).toEqual({})
   })
 

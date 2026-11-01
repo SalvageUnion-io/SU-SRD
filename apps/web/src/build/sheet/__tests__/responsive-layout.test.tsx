@@ -67,7 +67,7 @@ const fakeMech = mechFixture({
 const fakeCrawler = crawlerFixture({
   id: 'crawler-resp-1',
   name: 'Test Crawler',
-  techLevel: 'tech-2',
+  techLevel: 2,
 })
 
 // ---------------------------------------------------------------------------

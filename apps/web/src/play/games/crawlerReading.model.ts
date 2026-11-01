@@ -4,7 +4,7 @@
  */
 
 import { parseUnit } from 'game-domain/ops/applyOp'
-import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolvePool } from 'salvageunion-reference/rules'
 
 /** What the card shows of a crawler. */
 export type CrawlerReading = {
@@ -13,7 +13,7 @@ export type CrawlerReading = {
   name: string
   sp: number
   maxSP: number
-  techLevel: number | null
+  techLevel: number
 }
 
 /** A listing row (`entities.listForGame`) as the card reads it, or null. */
@@ -22,13 +22,12 @@ export function readCrawler(row: { appId: string | null; body: unknown }): Crawl
   if (!parsed.success) return null
   const crawler = parsed.data
   const maxSP = crawlerMaxSP(crawler)
-  const techLevel = parseCrawlerTechLevel(crawler.techLevel) ?? null
   return {
     id: row.appId ?? crawler.id,
     name: crawler.name,
     sp: resolvePool(crawler.currentSP, maxSP),
     maxSP,
-    techLevel,
+    techLevel: crawler.techLevel,
   }
 }
 
@@ -40,9 +39,7 @@ export function crawlerVitals(
   crawler: CrawlerReading
 ): { label: string; value: string; chip: 'rank' | 'measure' }[] {
   return [
-    ...(crawler.techLevel === null
-      ? []
-      : [{ label: 'TL', value: String(crawler.techLevel), chip: 'rank' as const }]),
+    { label: 'TL', value: String(crawler.techLevel), chip: 'rank' as const },
     { label: 'SP', value: `${crawler.sp}/${crawler.maxSP}`, chip: 'measure' as const },
   ]
 }

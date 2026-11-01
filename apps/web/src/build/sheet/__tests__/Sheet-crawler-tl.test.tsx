@@ -24,7 +24,7 @@ withSignedInBackend()
 const crawlerInput = {
   schemaVersion: 1 as const,
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
 }
 
@@ -62,8 +62,6 @@ describe('Crawler sheet — TL in the head', () => {
     await act(async () => {
       fireEvent.click(within(bandOf()).getByRole('button', { name: 'Increase Tech Level' }))
     })
-    await waitFor(() =>
-      expect(useUnits.getState().get('crawler', crawler.id)?.techLevel).toBe('tech-3')
-    )
+    await waitFor(() => expect(useUnits.getState().get('crawler', crawler.id)?.techLevel).toBe(3))
   })
 })

@@ -1,3 +1,4 @@
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { MechDerived, PilotDerived } from '../botWire'
 import { parseUnit } from '../ops/applyOp'
 import type { Pilot } from '../schemas/pilot'
@@ -52,10 +53,10 @@ export function crewDeriver<S extends CrewSeat>({
   links,
   seats,
 }: CrewRecords<S>) {
-  const crawlerTech = new Map<string, { techLevel: string }>()
+  const crawlerTech = new Map<string, { techLevel: number }>()
   for (const c of crawlers) {
-    const techLevel = (c.body as Record<string, unknown> | null)?.techLevel
-    if (c.id !== undefined && typeof techLevel === 'string') crawlerTech.set(c.id, { techLevel })
+    const techLevel = parseCrawlerTechLevel((c.body as Record<string, unknown> | null)?.techLevel)
+    if (c.id !== undefined && techLevel !== undefined) crawlerTech.set(c.id, { techLevel })
   }
   const crawlerOfPilot = new Map<string, string>()
   const mechOfPilot = new Map<string, string>()

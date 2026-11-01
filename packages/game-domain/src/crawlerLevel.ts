@@ -12,26 +12,17 @@
  *   2. Otherwise fall back to the pilot's manual `crawlerLevel`.
  *   3. Otherwise undefined (no cap resolves — unbounded, unchanged behaviour).
  *
- * A crawler's `techLevel` is stored as a slug like "tech-3";
- * `parseCrawlerTechLevel` (salvageunion-reference/rules) parses out the numeric level.
- *
  * The same effective level also drives the pilot's Stat Training bonus to max
  * HP/AP (`crawlerTechLevel` on the pilot derivations) — every surface that shows
  * or clamps a pilot's max HP/AP must feed it this value, or it reads Tech 1.
  */
 
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { Crawler } from './schemas/crawler'
 import type { Pilot } from './schemas/pilot'
 
-/** A crawler's Tech Level as a number: Tech 1 when it has none or it does not parse. */
+/** A crawler's Tech Level, or Tech 1 with no crawler. */
 export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'> | null | undefined): number {
-  return (crawler ? parseCrawlerTechLevel(crawler.techLevel) : undefined) ?? 1
-}
-
-/** A crawler's stored `techLevel` slug for a numeric Tech Level: 3 → "tech-3". */
-export function crawlerTechLevelSlug(techLevel: number): string {
-  return `tech-${techLevel}`
+  return crawler?.techLevel ?? 1
 }
 
 /**
@@ -50,11 +41,5 @@ export function resolveEffectiveCrawlerLevel(
   pilot: Pick<Pilot, 'crawlerLevel'>,
   linkedCrawler: Pick<Crawler, 'techLevel'> | null | undefined
 ): number | undefined {
-  if (linkedCrawler) {
-    const fromCrawler = parseCrawlerTechLevel(linkedCrawler.techLevel)
-    if (fromCrawler !== undefined) {
-      return fromCrawler
-    }
-  }
-  return pilot.crawlerLevel
+  return linkedCrawler?.techLevel ?? pilot.crawlerLevel
 }

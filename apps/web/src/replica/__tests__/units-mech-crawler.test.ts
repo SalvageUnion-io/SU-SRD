@@ -47,7 +47,7 @@ const baseMechInput = {
 const baseCrawlerInput = {
   schemaVersion: 1 as const,
   name: 'Store Test Crawler',
-  techLevel: 'tech-1',
+  techLevel: 1,
   systems: [],
 }
 
@@ -231,13 +231,13 @@ describe('entityStore — crawler update', () => {
       created.id,
       {
         name: 'Renamed Crawler',
-        techLevel: 'tech-4',
+        techLevel: 4,
       },
       LIVE_SHEET_MANUAL
     )
 
     expect(updated.name).toBe('Renamed Crawler')
-    expect(updated.techLevel).toBe('tech-4')
+    expect(updated.techLevel).toBe(4)
 
     const inMemory = useUnits.getState().get('crawler', created.id)
     expect(inMemory?.name).toBe('Renamed Crawler')

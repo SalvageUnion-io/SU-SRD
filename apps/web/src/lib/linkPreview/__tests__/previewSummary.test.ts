@@ -26,7 +26,7 @@ const MECH: PreviewAnswer = {
 
 const CRAWLER: PreviewAnswer = {
   kind: 'crawler',
-  body: { name: 'Tenacity', type: 'augmented', techLevel: 'tech-2' },
+  body: { name: 'Tenacity', type: 'augmented', techLevel: 2 },
   ownerName: null,
   gameName: 'Reclamation of the Wastes',
 }

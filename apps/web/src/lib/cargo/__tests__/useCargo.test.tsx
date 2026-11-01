@@ -42,7 +42,7 @@ function makeCrawler(cargoLots: CargoLot[], scrapPool: Crawler['scrapPool']): Cr
     id: 'crawler-1',
     schemaVersion: 1,
     name: 'Cargo Test Crawler',
-    techLevel: 'tech-3',
+    techLevel: 3,
     systems: [],
     cargoLots,
     scrapPool,

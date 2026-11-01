@@ -19,7 +19,7 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
-import { buildMechActions, hasCurrencyChoice, VENT_PATCH } from '../../lib/rules/actionPatches'
+import { buildMechActions, hasCurrencyChoice } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PLAY_TXN } from '../../replica/provenance'
 import type { PlayRoll } from '../playRolls.model'
@@ -494,7 +494,7 @@ describe('the Reactor and Mount rows', () => {
     try {
       const { calls } = renderBoarded()
       await click(screen.getByRole('button', { name: 'Vent' }))
-      expect(calls.at(-1)?.patch).toEqual(VENT_PATCH)
+      expect(calls.at(-1)?.patch).toEqual({ currentHeat: 0, conditions: ['Vulnerable'] })
       await click(screen.getByRole('button', { name: 'Heat check on Reactor Overload' }))
       expect(heard.at(-1)).toMatchObject({ tableName: 'Reactor Overload', label: 'Heat Check' })
       expect(screen.getByText(/^Heat Check 14/)).toBeTruthy()
@@ -529,14 +529,14 @@ describe('the Reactor and Mount rows', () => {
     expect(calls).toHaveLength(0)
   })
 
-  test('Shut down and Restart toggle the reactor flag', async () => {
+  test('Shut down and Restart toggle the Shutdown condition', async () => {
     const { calls } = renderBoarded()
     await click(screen.getByRole('button', { name: 'Shut down' }))
-    expect(calls.at(-1)?.patch).toEqual({ shutdown: true })
+    expect(calls.at(-1)?.patch).toEqual({ conditions: ['Shutdown'] })
     cleanup()
-    const down = renderBoarded({ mech: makeMech({ shutdown: true }) })
+    const down = renderBoarded({ mech: makeMech({ conditions: ['Prone', 'Shutdown'] }) })
     await click(screen.getByRole('button', { name: 'Restart' }))
-    expect(down.calls.at(-1)?.patch).toEqual({ shutdown: false })
+    expect(down.calls.at(-1)?.patch).toEqual({ conditions: ['Prone'] })
   })
 
   test('a Meltdown destroys the mech only on its own confirm (ADR-007)', async () => {
@@ -555,9 +555,9 @@ describe('the Reactor and Mount rows', () => {
       />
     )
     await click(screen.getByRole('button', { name: 'Heat check on Reactor Overload' }))
-    expect(calls.some((c) => c.patch.destroyed === true)).toBe(false)
+    expect(calls.some((c) => JSON.stringify(c.patch).includes('Destroyed'))).toBe(false)
     await click(screen.getByRole('button', { name: /^Confirm Meltdown/ }))
-    expect(calls.at(-1)?.patch).toEqual({ destroyed: true })
+    expect(calls.at(-1)?.patch.conditions).toContain('Destroyed')
     expect(screen.queryByRole('button', { name: /^Confirm Meltdown/ })).toBeNull()
   })
 

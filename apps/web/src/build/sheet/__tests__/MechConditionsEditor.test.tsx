@@ -1,12 +1,9 @@
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import type { UnitsStore } from '../../../replica/units'
 /**
- * MechConditionsEditor — unified conditions vocabulary.
- *
- * The editor renders ONE list (conditions[] + automation flags merged via
- * unifiedMechConditions) and maps edits back: removing a flag chip clears
- * the boolean flag (the manual clear), adds/removes round-trip
- * conditions[].
+ * MechConditionsEditor — the mech's one conditions list. The Reactor's
+ * Shutdown / Vulnerable / Destroyed are chips like any other: removing one is
+ * the manual clear, and every edit writes `conditions[]`.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -44,12 +41,8 @@ function makeStore(mech: Mech, captured: CapturedUpdate[]): UnitsStore {
 }
 
 describe('MechConditionsEditor', () => {
-  test('renders the unified vocabulary: conditions[] + flags as one list', () => {
-    const mech = makeMech({
-      conditions: ['Prone'],
-      shutdown: true,
-      vulnerable: true,
-    })
+  test('renders the one list, Reactor labels included', () => {
+    const mech = makeMech({ conditions: ['Prone', 'Shutdown', 'Vulnerable'] })
     render(<MechConditionsEditor mech={mech} store={makeStore(mech, [])} />)
 
     expect(screen.getByText('Prone')).toBeTruthy()
@@ -57,19 +50,16 @@ describe('MechConditionsEditor', () => {
     expect(screen.getByText('Vulnerable')).toBeTruthy()
   })
 
-  test('removing the Shutdown chip clears the flag (manual clear)', async () => {
+  test('removing the Shutdown chip clears it (manual clear)', async () => {
     const captured: CapturedUpdate[] = []
-    const mech = makeMech({ conditions: ['Prone'], shutdown: true })
+    const mech = makeMech({ conditions: ['Prone', 'Shutdown'] })
     render(<MechConditionsEditor mech={mech} store={makeStore(mech, captured)} />)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /remove condition shutdown/i }))
     })
 
-    expect(must(captured[0]).patch).toEqual({
-      shutdown: false,
-      conditions: ['Prone'],
-    })
+    expect(must(captured[0]).patch).toEqual({ conditions: ['Prone'] })
   })
 
   test('adding a free-form condition lands in conditions[]', async () => {

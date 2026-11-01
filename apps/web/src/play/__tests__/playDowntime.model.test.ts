@@ -14,7 +14,7 @@ const RESTORE = 'Restore your Mech & Pilot'
 
 type Condition = 'intact' | 'damaged'
 
-const crawler = (techLevel: string, mechBay: Condition = 'intact'): Crawler =>
+const crawler = (techLevel: number, mechBay: Condition = 'intact'): Crawler =>
   crawlerFixture({
     id: 'c',
     name: 'Tenacity',
@@ -39,7 +39,7 @@ const plan = (over: Partial<StepPlanInput>) =>
 describe('the restore step', () => {
   test('a damaged Mech Bay blocks the mech line, which may not be unticked', () => {
     const mech = mechFixture({ id: 'm', name: 'Buzzard', currentSP: 1 })
-    const site = crawler('tech-2', 'damaged')
+    const site = crawler(2, 'damaged')
     expect(mechBayOf(site)?.operational).toBe(false)
     expect(mechBayOf(null)).toBeUndefined()
     expect(plan({ mech, crawler: site })).toEqual([
@@ -63,7 +63,7 @@ describe('the restore step', () => {
         { severity: 'major', note: 'break' },
       ],
     })
-    const [line] = plan({ pilot, crawler: crawler('tech-3'), pilotCrawlerTl: 3 })
+    const [line] = plan({ pilot, crawler: crawler(3), pilotCrawlerTl: 3 })
     expect(line?.key).toBe('pilot')
     expect(line?.chips).toContainEqual({ label: 'Injuries healed', value: '1' })
   })
@@ -109,7 +109,7 @@ describe('the craft step: Process Nanites (False Flag p.66)', () => {
     crawlerFixture({
       id: 'c',
       name: 'Tenacity',
-      techLevel: 'tech-2',
+      techLevel: 2,
       crawlerBays: [{ bayRef: 'nanite-processing-bay', condition }],
       scrapPool: { inertNanites },
     })
@@ -141,6 +141,6 @@ describe('the craft step: Process Nanites (False Flag p.66)', () => {
       'Nanite Processing Bay damaged: no processing this Downtime'
     )
     expect(plan({ stepName: CRAFT, crawler: site('intact', 0) })).toEqual([])
-    expect(plan({ stepName: CRAFT, crawler: crawler('tech-2') })).toEqual([])
+    expect(plan({ stepName: CRAFT, crawler: crawler(2) })).toEqual([])
   })
 })

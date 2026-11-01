@@ -39,8 +39,8 @@ describe('mechRailItems', () => {
 describe('pilotRailItems', () => {
   test('a pilot aboard a Tech 3 crawler reads its Stat Training max, as the sheet does', () => {
     const pilot = pilotFixture({ id: 'p1' })
-    const hp = (crawler: { techLevel: string } | null) =>
+    const hp = (crawler: { techLevel: number } | null) =>
       pilotRailItems(pilot, crawler).find((s) => s.label === 'HP')?.max ?? 0
-    expect(hp({ techLevel: 'tech-3' }) - hp(null)).toBe(4)
+    expect(hp({ techLevel: 3 }) - hp(null)).toBe(4)
   })
 })

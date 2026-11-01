@@ -1,5 +1,6 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { GameStore, UnitRow } from './game/store'
 import { fromJson } from './game/store'
 import { unitName } from './game/units'
@@ -34,7 +35,7 @@ export type PublishedSheet = {
     gameName: string | null
     mechChassisRef?: string | null
     /** A pilot's crawler's stored Tech Level: it sets their max HP/AP (Stat Training). */
-    crawlerTechLevel?: string | null
+    crawlerTechLevel?: number | null
     /** A mech's pilot's abilities, as its page carries them (Beefcake). */
     pilotAbilities?: string[]
   }
@@ -284,12 +285,13 @@ function crawlerTechLevelOf(
   store: GameStore,
   units: Map<string, UnitRow>,
   pilot: UnitRow
-): string | null {
+): number | null {
   for (const link of store.linksTouching(pilot.id)) {
     if (link.type !== 'pilot-to-crawler') continue
     const crawler = units.get(link.from.id === pilot.id ? link.to.id : link.from.id)
-    const techLevel = crawler?.kind === 'crawler' ? crawler.body.techLevel : undefined
-    if (typeof techLevel === 'string') return techLevel
+    const techLevel =
+      crawler?.kind === 'crawler' ? parseCrawlerTechLevel(crawler.body.techLevel) : undefined
+    if (techLevel !== undefined) return techLevel
   }
   return null
 }

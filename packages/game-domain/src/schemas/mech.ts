@@ -47,11 +47,9 @@ export const MechSchema = z
     description: z.string().optional(),
 
     /**
-     * Active condition labels — the single unified conditions vocabulary for
-     * the mech (Vulnerable, Prone, Immobile, Burn, Ion-locked, …). The
-     * automation-written `shutdown`/`vulnerable`/`destroyed` boolean flags
-     * below are reconciled into this vocabulary at read time via
-     * `unifiedMechConditions()` in lib/rules/derivedStats.ts.
+     * Active condition labels, the mech's one conditions list (Vulnerable,
+     * Prone, Burn, …). The Reactor's Shutdown, Vulnerable and Destroyed are
+     * labels here too (`mechConditions.ts`).
      */
     conditions: z.array(z.string()),
 
@@ -136,29 +134,6 @@ export const MechSchema = z
      * All uses recharge after a week of Downtime.
      */
     itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
-
-    // ---------------------------------------------------------------------------
-    // Reactor Overload live-play state (Core Book p.233-235). All optional:
-    // absent means the mech is operating normally.
-    // ---------------------------------------------------------------------------
-    /**
-     * Set true when a Reactor Overload result of 11-19 (reactor overheat) shuts
-     * the mech down: it becomes Vulnerable and cannot act until restarted.
-     */
-    shutdown: z.boolean().optional(),
-
-    /**
-     * Set true when a result of 11-19 makes the mech Vulnerable, or by other
-     * effects. Mirrors `shutdown` for an overheat but kept separate so a GM can
-     * clear shutdown while leaving the mech Vulnerable.
-     */
-    vulnerable: z.boolean().optional(),
-
-    /**
-     * Set true on a catastrophic meltdown (Reactor Overload result of 1) — the
-     * mech is destroyed.
-     */
-    destroyed: z.boolean().optional(),
 
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),

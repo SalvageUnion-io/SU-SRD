@@ -82,7 +82,7 @@ const UPKEEP_STEP = 1
 const tenacity = crawlerFixture({
   id: 'med-tenacity',
   name: 'Tenacity',
-  techLevel: 'tech-2',
+  techLevel: 2,
   currentSP: 18,
   scrapPool: { tl2: 7 },
 })

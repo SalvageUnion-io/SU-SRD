@@ -1,16 +1,13 @@
-import { mechHasCondition } from 'game-domain/rules/crewStatus'
+import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { RANGE_BANDS, SeatResolvingSchema } from 'game-domain/schemas/seat'
 import type { GameStore, UnitRow } from './game/store'
 import { bit, fromJson, fromJsonOrNull } from './game/store'
 import { RoomRefusal } from './refusal'
 
-/** A stored mech body is destroyed by its flag or its "Destroyed" condition. */
+/** A stored mech body carries the "Destroyed" condition (or a body saved before, its flag). */
 export function isDestroyedMech(body: Record<string, unknown>): boolean {
-  const conditions = Array.isArray(body.conditions)
-    ? body.conditions.filter((c): c is string => typeof c === 'string')
-    : []
-  return mechHasCondition({ conditions, destroyed: body.destroyed === true }, 'Destroyed')
+  return hasCondition(storedMechConditions(body), 'Destroyed')
 }
 
 /**

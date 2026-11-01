@@ -67,7 +67,7 @@ describe('mechRestorePreview (play.md §6)', () => {
     expect(RESTORE_STEP).toBeGreaterThanOrEqual(0)
     const crawler = crawlerFixture({
       id: 'c',
-      techLevel: 'tech-2',
+      techLevel: 2,
       crawlerBays: [{ bayRef: 'mech-bay' }],
     })
     expect(mechRestorePreview(worn, undefined, crawler, RESTORE_STEP)).toEqual({

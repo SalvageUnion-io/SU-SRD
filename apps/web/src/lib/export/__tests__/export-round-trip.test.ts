@@ -138,7 +138,7 @@ const richCrawlerInput = {
   schemaVersion: 1 as const,
   name: 'The Rustwalker',
   description: 'A limping veteran crawler.',
-  techLevel: 'tech-3',
+  techLevel: 3,
   type: 'battle-crawler',
   typeNpc: {
     npcName: 'Sergeant Vole',

@@ -1,4 +1,3 @@
-import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
@@ -45,7 +44,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
   }
 
   const sp = crawlerMaxSPParts({
-    techLevel: crawlerTechLevelSlug(techLevel.techLevel),
+    techLevel: techLevel.techLevel,
     type: selectedType ? getEntitySlug(selectedType) : undefined,
   })
 

@@ -262,7 +262,7 @@ describe('CrawlerWizard — create mode', () => {
       expect(crawlers.length).toBe(1)
       const c = must(crawlers[0])
       expect(c.name).toBe('Bay Wagon')
-      expect(c.techLevel).toBe('tech-1')
+      expect(c.techLevel).toBe(1)
       expect(c.type).toBe(getEntitySlug(battle))
       expect(c.schemaVersion).toBe(1)
       expect(c.systems).toEqual([nameToSlug(tl1.name)])

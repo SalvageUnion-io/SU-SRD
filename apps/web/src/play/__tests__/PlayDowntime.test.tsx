@@ -66,7 +66,7 @@ function units() {
   const crawler: Crawler = crawlerFixture({
     id: 'dt-c',
     name: 'Tenacity',
-    techLevel: 'tech-2',
+    techLevel: 2,
     crawlerBays: [
       { bayRef: 'mech-bay', condition: 'intact' },
       { bayRef: 'med-bay', condition: 'intact' },

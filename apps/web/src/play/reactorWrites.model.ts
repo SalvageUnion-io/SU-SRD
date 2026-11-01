@@ -8,6 +8,7 @@
  * a refused Push says so once and shows nothing it did not do.
  */
 
+import { withCondition } from 'game-domain/mechConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -63,5 +64,13 @@ export function pushMech(
 
 /** The player's half of a Meltdown: mark the mech Destroyed (ADR-007). */
 export function confirmMeltdown(store: Store, mechId: string, onApplied: () => void): void {
-  runWrite(() => store.update('mech', mechId, { destroyed: true }, PLAY_TXN), onApplied)
+  runWrite(() => {
+    const conditions = store.get('mech', mechId)?.conditions ?? []
+    return store.update(
+      'mech',
+      mechId,
+      { conditions: withCondition(conditions, 'Destroyed', true) },
+      PLAY_TXN
+    )
+  }, onApplied)
 }

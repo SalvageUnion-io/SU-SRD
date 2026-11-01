@@ -140,6 +140,7 @@ describe('the assigned mech', () => {
     expect(menu.map((o) => o.mechId)).toEqual(['mine', 'spare'])
   })
 
+  // A body saved before the flag moved onto the conditions list still reads destroyed.
   test('assigned mech destroyed: it carries the reason, and spares are still offered', () => {
     const menu = menuFor([row('thresher', ME, { destroyed: true }), row('spare', null)])
     expect(option(menu, 'thresher')).toMatchObject({ state: 'destroyed', note: 'Destroyed' })
@@ -151,7 +152,7 @@ describe('the assigned mech', () => {
     expect(menu).toHaveLength(1)
     expect(menu[0]).toMatchObject({ mechId: 'thresher', state: 'yours', serverId: null })
 
-    const wreck = { ...assigned, destroyed: true }
+    const wreck = { ...assigned, conditions: ['Destroyed'] }
     expect(
       boardMenu({ pilotId: 'rook', assigned: wreck, sources: NO_BOARD_SOURCES })[0]
     ).toMatchObject({ state: 'destroyed' })

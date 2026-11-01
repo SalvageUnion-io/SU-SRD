@@ -5,7 +5,7 @@ const validCrawler = {
   id: 'crawler-001',
   schemaVersion: 1 as const,
   name: 'The Wandering Throne',
-  techLevel: 'tech-2',
+  techLevel: 2,
   crawlerBays: [{ bayRef: 'command-bay', npcName: 'Old Maddox', npcCurrentHP: 4 }],
   systems: ['system-drill'],
   createdAt: '2026-05-18T00:00:00.000Z',
@@ -22,7 +22,7 @@ describe('CrawlerSchema', () => {
   test('happy path: parses a complete crawler', () => {
     const result = CrawlerSchema.parse(validCrawler)
     expect(result.id).toBe('crawler-001')
-    expect(result.techLevel).toBe('tech-2')
+    expect(result.techLevel).toBe(2)
     expect(result.schemaVersion).toBe(1)
   })
 
@@ -92,8 +92,8 @@ describe('CrawlerSchema', () => {
   })
 
   test('happy path: an untyped crawler with a high tech level validates', () => {
-    const result = CrawlerSchema.parse({ ...validCrawler, techLevel: 'tech-5' })
-    expect(result.techLevel).toBe('tech-5')
+    const result = CrawlerSchema.parse({ ...validCrawler, techLevel: 5 })
+    expect(result.techLevel).toBe(5)
     expect(result.type).toBeUndefined()
   })
 
@@ -118,6 +118,15 @@ describe('CrawlerSchema', () => {
 
   test('rejects missing required field: techLevel', () => {
     expect(() => CrawlerSchema.parse(omit(validCrawler, 'techLevel'))).toThrow()
+  })
+
+  test('reads a legacy tech-N slug as its integer Tech Level', () => {
+    expect(CrawlerSchema.parse({ ...validCrawler, techLevel: 'tech-3' }).techLevel).toBe(3)
+  })
+
+  test('rejects a Tech Level outside 1-6 or an unreadable slug', () => {
+    expect(() => CrawlerSchema.parse({ ...validCrawler, techLevel: 7 })).toThrow()
+    expect(() => CrawlerSchema.parse({ ...validCrawler, techLevel: 'tech-x' })).toThrow()
   })
 
   test('rejects invalid schemaVersion', () => {

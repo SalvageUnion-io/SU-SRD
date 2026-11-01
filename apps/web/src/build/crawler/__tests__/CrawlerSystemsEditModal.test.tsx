@@ -54,7 +54,7 @@ describe('CrawlerSystemsEditModal', () => {
   test(
     'offers only weapons at the crawler’s tech level, keeping an installed one above it',
     () => {
-      renderModal(crawlerFixture({ id: 'c1', techLevel: 'tech-1', systems: ['ion-cannon'] }))
+      renderModal(crawlerFixture({ id: 'c1', techLevel: 1, systems: ['ion-cannon'] }))
 
       expect(screen.getAllByText('Edit Weapons Systems · Tech 1 and below').length).toBeGreaterThan(
         0
@@ -72,7 +72,7 @@ describe('CrawlerSystemsEditModal', () => {
   test(
     'toggling adds and removes one weapon on the freshest systems array',
     async () => {
-      const crawler = crawlerFixture({ id: 'c1', techLevel: 'tech-1', systems: ['ion-cannon'] })
+      const crawler = crawlerFixture({ id: 'c1', techLevel: 1, systems: ['ion-cannon'] })
       const { patches } = renderModal(crawler)
 
       await pickInSearcher('Red Laser')
@@ -94,7 +94,7 @@ describe('CrawlerSystemsEditModal', () => {
   test(
     'the budget is one weapon, and two on a Battle crawler',
     () => {
-      renderModal(crawlerFixture({ id: 'c1', techLevel: 'tech-1', systems: ['red-laser'] }))
+      renderModal(crawlerFixture({ id: 'c1', techLevel: 1, systems: ['red-laser'] }))
       expect(budgetText()).toMatch(/1\s*\/\s*1/)
     },
     RENDER_TIMEOUT_MS
@@ -104,22 +104,9 @@ describe('CrawlerSystemsEditModal', () => {
     'a Battle crawler mounts two',
     () => {
       renderModal(
-        crawlerFixture({ id: 'c1', techLevel: 'tech-1', type: 'battle', systems: ['red-laser'] })
+        crawlerFixture({ id: 'c1', techLevel: 1, type: 'battle', systems: ['red-laser'] })
       )
       expect(budgetText()).toMatch(/1\s*\/\s*2/)
-    },
-    RENDER_TIMEOUT_MS
-  )
-
-  test(
-    'with no readable tech level only installed weapons are offered',
-    () => {
-      renderModal(crawlerFixture({ id: 'c1', techLevel: 'unknown', systems: ['ion-cannon'] }))
-      expect(screen.getAllByText('Edit Weapons Systems · Tech — and below').length).toBeGreaterThan(
-        0
-      )
-      expect(option('Ion Cannon')).not.toBeNull()
-      expect(option('Red Laser')).toBeNull()
     },
     RENDER_TIMEOUT_MS
   )

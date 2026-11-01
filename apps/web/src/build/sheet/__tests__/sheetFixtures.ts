@@ -43,7 +43,7 @@ export const fakeMech = mechFixture({
 export const fakeCrawler = crawlerFixture({
   id: 'crawler-1',
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   crawlerBays: [{ bayRef: 'command-bay', npcCurrentHP: 4 }],
   systems: ['hull-repair'],
 })

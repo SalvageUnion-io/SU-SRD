@@ -1,5 +1,6 @@
 import { appPath } from 'game-domain/appAddress'
 import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
+import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
 import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
@@ -15,7 +16,12 @@ import {
   STAT_LABELS,
   srdEntityUrl,
 } from 'salvageunion-reference'
-import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import {
+  crawlerMaxSP,
+  parseCrawlerTechLevel,
+  resolveGauge,
+  resolvePool,
+} from 'salvageunion-reference/rules'
 import type { BodyKey } from './bodyRead'
 import { num, poolLabel, str, strArray } from './bodyRead'
 import type { CardField, ContainerData } from './container'
@@ -168,9 +174,8 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
     // cannot be confused for each other.
     heat: resolveGauge(num(body, 'currentHeat') ?? undefined, maxHeat ?? undefined),
     maxHeat,
-    // The server's status when it sent one; the body's flags otherwise.
-    destroyed: derived?.status?.destroyed ?? body.destroyed === true,
-    shutdown: derived?.status?.shutdown ?? body.shutdown === true,
+    // The server's status when it sent one; the body's conditions otherwise.
+    destroyed: derived?.status?.destroyed ?? hasCondition(storedMechConditions(body), 'Destroyed'),
   }
 }
 
@@ -509,12 +514,7 @@ function mechSheet(body: EntityBody, derived: MechDerived | null): RenderedSheet
     value: collectionLines(modules, 'modules', body, 'moduleConditions'),
   })
 
-  const status = chipRun([
-    stats.shutdown ? 'Shutdown' : '',
-    body.vulnerable === true ? 'Vulnerable' : '',
-    stats.destroyed ? CONDITION_LABELS.destroyed : '',
-    ...strArray(body, 'conditions'),
-  ])
+  const status = chipRun(storedMechConditions(body))
   if (status !== null) fields.push({ name: 'Status', value: status, inline: true })
 
   const quirk = str(body, 'quirk')
@@ -535,20 +535,20 @@ function mechSheet(body: EntityBody, derived: MechDerived | null): RenderedSheet
  */
 function crawlerSheet(body: EntityBody): RenderedSheet {
   const typeRef = str(body, 'type')
-  const techLevel = str(body, 'techLevel')
+  const techLevel = parseCrawlerTechLevel(body.techLevel)
   const fields: CardField[] = []
 
   // The max is derived here (the server derives nothing for a crawler): the tech level’s SP, the type’s bonus,
   // or the override when one is set. An unresolvable tech level
   // derives 0, which has no gauge to draw, so the current value stands alone.
   const maxSp = crawlerMaxSP({
-    techLevel: techLevel ?? '',
+    techLevel,
     type: typeRef ?? undefined,
     maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
   })
   const sp =
     maxSp > 0 ? resolvePool(num(body, 'currentSP') ?? undefined, maxSp) : num(body, 'currentSP')
-  fields.push({ name: TL, value: techLevel ?? '—', inline: true })
+  fields.push({ name: TL, value: techLevel === undefined ? '—' : String(techLevel), inline: true })
   fields.push({
     name: SP,
     value: maxSp > 0 ? gauge(sp, maxSp) : sp === null ? '—' : String(sp),
@@ -586,7 +586,7 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   }
 
   const subtitleParts = [refName('crawlers', typeRef)]
-  if (techLevel !== null) subtitleParts.push(`Tech Level ${techLevel}`)
+  if (techLevel !== undefined) subtitleParts.push(`Tech Level ${techLevel}`)
 
   return {
     name: str(body, 'name') ?? 'Crawler',

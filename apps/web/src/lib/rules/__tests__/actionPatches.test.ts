@@ -32,7 +32,7 @@ import {
   pilotOverloadPatch,
   pushPatch,
   shutdownTogglePatch,
-  VENT_PATCH,
+  ventPatch,
 } from '../actionPatches'
 import { actionEconomy } from '../mechItems'
 
@@ -53,11 +53,12 @@ describe('reactor patches', () => {
       heat: 3,
       heatCap: 10,
       currentSP: 8,
+      conditions: [],
       roll: seqRoll([20]),
     })
     expect(nextHeat).toBe(5)
     expect(patch.currentHeat).toBe(5)
-    expect(patch.shutdown).toBeUndefined()
+    expect(patch.conditions).toBeUndefined()
   })
 
   test('pushPatch: overheat overload applies shutdown + Vulnerable + SP damage', () => {
@@ -66,12 +67,13 @@ describe('reactor patches', () => {
       heat: 18,
       heatCap: 20,
       currentSP: 10,
+      conditions: ['Prone', 'vulnerable'],
       roll: seqRoll([1, 15]),
     })
     expect(nextHeat).toBe(20)
     expect(patch.currentHeat).toBe(20)
-    expect(patch.shutdown).toBe(true)
-    expect(patch.vulnerable).toBe(true)
+    // Added to what the mech already carries, never twice.
+    expect(patch.conditions).toEqual(['Prone', 'vulnerable', 'Shutdown'])
     expect(patch.currentSP).toBe(0) // 10 − 20, clamped
   })
 
@@ -81,31 +83,41 @@ describe('reactor patches', () => {
       heat: 18,
       heatCap: 20,
       currentSP: 10,
+      conditions: [],
       roll: seqRoll([1, 1]),
     })
     expect(meltdown).toBe(true)
-    // The destructive flag must NOT auto-apply — Play gates it (ADR-007).
-    expect(patch.destroyed).toBeUndefined()
+    // Destroyed must NOT auto-apply — Play gates it (ADR-007).
+    expect(patch.conditions ?? []).not.toContain('Destroyed')
   })
 
   test('heatCheckOncePatch: no +2, persists current Heat; meltdown gated', () => {
-    const passed = heatCheckOncePatch({ heat: 6, currentSP: 5, roll: seqRoll([20]) })
+    const passed = heatCheckOncePatch({
+      heat: 6,
+      currentSP: 5,
+      conditions: [],
+      roll: seqRoll([20]),
+    })
     expect(passed.patch.currentHeat).toBe(6)
-    expect(passed.patch.shutdown).toBeUndefined()
+    expect(passed.patch.conditions).toBeUndefined()
     expect(passed.meltdown).toBe(false)
-    const melt = heatCheckOncePatch({ heat: 20, currentSP: 5, roll: seqRoll([1, 1]) })
+    const melt = heatCheckOncePatch({
+      heat: 20,
+      currentSP: 5,
+      conditions: [],
+      roll: seqRoll([1, 1]),
+    })
     expect(melt.meltdown).toBe(true)
-    expect(melt.patch.destroyed).toBeUndefined()
+    expect(melt.patch.conditions ?? []).not.toContain('Destroyed')
   })
 
-  test('VENT_PATCH dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, play.md §14.1)', () => {
-    expect(VENT_PATCH).toEqual({ currentHeat: 0, vulnerable: true })
+  test('ventPatch dumps Heat to 0 + Vulnerable, no auto-shutdown (Vent ≠ Shutdown, play.md §14.1)', () => {
+    expect(ventPatch(['Prone'])).toEqual({ currentHeat: 0, conditions: ['Prone', 'Vulnerable'] })
   })
 
-  test('shutdownTogglePatch flips the flag', () => {
-    expect(shutdownTogglePatch(false)).toEqual({ shutdown: true })
-    expect(shutdownTogglePatch(true)).toEqual({ shutdown: false })
-    expect(shutdownTogglePatch(undefined)).toEqual({ shutdown: true })
+  test('shutdownTogglePatch flips the Shutdown condition', () => {
+    expect(shutdownTogglePatch([])).toEqual({ conditions: ['Shutdown'] })
+    expect(shutdownTogglePatch(['Prone', 'shutdown'])).toEqual({ conditions: ['Prone'] })
   })
 })
 
@@ -423,7 +435,7 @@ describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', (
   test("a Push's Bio-Overload shuts the chassis down and leaves its SP", () => {
     const pushed = mechPush(fleshripper, undefined, seqRoll([2, 12]))
     expect(pushed?.effect.result.outcome).toBe('bio-overload')
-    expect(pushed?.patch).toMatchObject({ currentHeat: 6, shutdown: true, vulnerable: true })
+    expect(pushed?.patch).toMatchObject({ currentHeat: 6, conditions: ['Shutdown', 'Vulnerable'] })
     // The Fleshripper's 50 SP, untouched: the Heat is the Pilot's.
     expect(pushed?.patch.currentSP).toBe(50)
     expect(pushed?.text).toContain('Bio-Chassis Overload Table 12: BIO-OVERLOAD')
@@ -443,12 +455,17 @@ describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', (
     const burnt = mechPush(fleshripper, undefined, seqRoll([2, 12]))
     const fresh = pilotFixture({ id: 'p' })
     const tl1 = burnt && pilotOverloadPatch(fresh, null, burnt.effect)
-    const tl3 = burnt && pilotOverloadPatch(fresh, { techLevel: 'tech-3' }, burnt.effect)
+    const tl3 = burnt && pilotOverloadPatch(fresh, { techLevel: 3 }, burnt.effect)
     expect((tl3?.currentHP ?? 0) - (tl1?.currentHP ?? 0)).toBe(4)
   })
 
   test("a mech's Reactor Overload leaves the Pilot alone", () => {
-    const { effect } = heatCheckOncePatch({ heat: 6, currentSP: 10, roll: seqRoll([3, 15]) })
+    const { effect } = heatCheckOncePatch({
+      heat: 6,
+      currentSP: 10,
+      conditions: [],
+      roll: seqRoll([3, 15]),
+    })
     expect(pilotOverloadPatch(pilotFixture({ id: 'p' }), null, effect)).toBeNull()
   })
 })

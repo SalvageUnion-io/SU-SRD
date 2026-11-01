@@ -9,17 +9,13 @@ import { resolveEffectiveCrawlerLevel } from '../crawlerLevel'
 
 describe('resolveEffectiveCrawlerLevel', () => {
   test('prefers a linked crawler techLevel over the manual fallback', () => {
-    const level = resolveEffectiveCrawlerLevel({ crawlerLevel: 2 }, { techLevel: 'tech-5' })
+    const level = resolveEffectiveCrawlerLevel({ crawlerLevel: 2 }, { techLevel: 5 })
     expect(level).toBe(5)
   })
 
   test('uses the manual fallback when there is no linked crawler', () => {
     expect(resolveEffectiveCrawlerLevel({ crawlerLevel: 4 }, null)).toBe(4)
     expect(resolveEffectiveCrawlerLevel({ crawlerLevel: 4 }, undefined)).toBe(4)
-  })
-
-  test('falls back to manual when the linked crawler techLevel does not parse', () => {
-    expect(resolveEffectiveCrawlerLevel({ crawlerLevel: 1 }, { techLevel: 'tech' })).toBe(1)
   })
 
   test('is undefined when neither a linked crawler nor a manual level exists', () => {

@@ -47,7 +47,7 @@ import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
-import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, PickDialog } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
@@ -189,14 +189,11 @@ const mechCandidate = (m: Mech): Candidate => ({
   note: chassisName(m.chassisRef),
 })
 
-const crawlerCandidate = (c: Crawler): Candidate => {
-  const tl = parseCrawlerTechLevel(c.techLevel)
-  return {
-    id: c.id,
-    name: c.name,
-    readings: tl === undefined ? [] : [{ label: wiringCopy('tl'), value: tl }],
-  }
-}
+const crawlerCandidate = (c: Crawler): Candidate => ({
+  id: c.id,
+  name: c.name,
+  readings: [{ label: wiringCopy('tl'), value: c.techLevel }],
+})
 
 /**
  * The empty-list copy: nothing of this kind where the subject lives at all, or

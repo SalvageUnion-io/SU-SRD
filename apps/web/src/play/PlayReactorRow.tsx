@@ -22,7 +22,7 @@
  * Not on hand, it is its head alone, the need its chip.
  */
 
-import { mechMaxima } from 'game-domain/rules/crewStatus'
+import { mechHasCondition, mechMaxima } from 'game-domain/rules/crewStatus'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -41,7 +41,7 @@ import {
   describeHeatCheck,
   heatCheckOncePatch,
   shutdownTogglePatch,
-  VENT_PATCH,
+  ventPatch,
 } from '../lib/rules/actionPatches'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
@@ -93,6 +93,7 @@ export function PlayReactorRow({
   const overloadTable = overloadTableOf(chassis)
   const overloadTableTitle = overloadTableName(overloadTable)
   const now = fresh()
+  const shutDown = mechHasCondition(now, 'Shutdown')
   const cap = mechMaxima(now, pilot?.abilities, []).maxHeat
   const heat = resolveGauge(now.currentHeat, cap)
   const pushHeat = pushHeatAt(heatScale)
@@ -127,6 +128,7 @@ export function PlayReactorRow({
     const { patch, effect, meltdown } = heatCheckOncePatch({
       heat: resolveGauge(m.currentHeat, maxHeat),
       currentSP: resolvePoolStart(m.currentSP, maxSP),
+      conditions: m.conditions,
       roll,
       table: overloadTable,
     })
@@ -145,7 +147,7 @@ export function PlayReactorRow({
   function doVent() {
     const before = resolveGauge(fresh().currentHeat, cap)
     runWrite(
-      () => store.update('mech', mech.id, VENT_PATCH, PLAY_TXN),
+      () => store.update('mech', mech.id, ventPatch(fresh().conditions), PLAY_TXN),
       () => {
         setLog({
           text: playCopy('ventedHeat0VulnerableShut'),
@@ -157,9 +159,9 @@ export function PlayReactorRow({
   }
 
   function doShutdown() {
-    const shutting = fresh().shutdown !== true
+    const shutting = !mechHasCondition(fresh(), 'Shutdown')
     runWrite(
-      () => store.update('mech', mech.id, shutdownTogglePatch(fresh().shutdown), PLAY_TXN),
+      () => store.update('mech', mech.id, shutdownTogglePatch(fresh().conditions), PLAY_TXN),
       () => recordPlayChange(`${shutting ? 'Shut down' : 'Restart'} · ${mech.name}`)
     )
   }
@@ -197,8 +199,8 @@ export function PlayReactorRow({
       <Button size="mini" onClick={doVent} disabled={off}>
         {playCopy('vent')}
       </Button>
-      <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={now.shutdown === true}>
-        {now.shutdown === true ? playCopy('restart') : playCopy('shutDown')}
+      <Toggle size="mini" onClick={doShutdown} disabled={off} pressed={shutDown}>
+        {shutDown ? playCopy('restart') : playCopy('shutDown')}
       </Toggle>
     </>
   )

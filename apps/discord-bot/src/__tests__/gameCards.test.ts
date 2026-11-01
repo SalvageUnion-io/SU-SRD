@@ -168,17 +168,21 @@ describe('the server derives the maxima and status', () => {
   })
 
   test('a mech the server reports destroyed is critical and says so', () => {
-    const wreck = sheet('mechs', { name: 'Mule', chassisRef: 'mule' }, {
-      ...MULE_VITALS,
-      status: {
-        destroyed: true,
-        shutdown: true,
-        overheating: false,
-        destroyedSystems: [],
-        destroyedModules: [],
-      },
-      attention: true,
-    } as SheetResult['vitals'])
+    const wreck = sheet(
+      'mechs',
+      { name: 'Mule', chassisRef: 'mule', conditions: ['Shutdown', 'Destroyed'] },
+      {
+        ...MULE_VITALS,
+        status: {
+          destroyed: true,
+          shutdown: true,
+          overheating: false,
+          destroyedSystems: [],
+          destroyedModules: [],
+        },
+        attention: true,
+      } as SheetResult['vitals']
+    )
     const card = sheetCard(wreck)
     expect(card.accent).toBe(CRITICAL)
     expect(cardText(card)).toContain('Shutdown · Destroyed')

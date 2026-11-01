@@ -3,7 +3,7 @@
  * player's Roster and the Starter Set, so the two read identically.
  */
 
-import { parseCrawlerTechLevel, resolveChassisRef } from 'salvageunion-reference/rules'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClassName } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
@@ -39,9 +39,8 @@ export function mechChassisStats(chassisRef: string): UnitReading[] | undefined 
  * A crawler row's stats: `TL | 2`. A crawler never lists its count of bays;
  * the crew roster reads the same.
  */
-export function crawlerStats(techLevel: string): UnitReading[] {
-  const tl = parseCrawlerTechLevel(techLevel)
-  return tl === undefined ? [] : [{ label: 'TL', value: String(tl), chip: 'rank' }]
+export function crawlerStats(techLevel: number): UnitReading[] {
+  return [{ label: 'TL', value: String(techLevel), chip: 'rank' }]
 }
 
 /**

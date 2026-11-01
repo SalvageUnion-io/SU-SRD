@@ -1,4 +1,5 @@
 import { z } from 'salvageunion-reference/zod'
+import { foldMechFlags } from '../mechConditions'
 
 /**
  * Body fields the app no longer stores. The schemas are strict, so a body
@@ -22,6 +23,10 @@ export const RETIRED_FIELDS = {
     'currentTP',
     'lastHeatCheck',
     'lastCriticalDamage',
+    // Folded into `conditions[]` first (`foldMechFlags`), so a true one is kept.
+    'shutdown',
+    'vulnerable',
+    'destroyed',
   ],
   crawler: ['maxSpModifier'],
   npc: [],
@@ -30,9 +35,14 @@ export const RETIRED_FIELDS = {
 
 export type RetiredKind = keyof typeof RETIRED_FIELDS
 
-/** The body without its kind's retired fields; anything that is not an object passes through. */
-export function withoutRetired(kind: RetiredKind, body: unknown): unknown {
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) return body
+/**
+ * The body without its kind's retired fields; anything that is not an object
+ * passes through. A retired field whose value still means something is folded
+ * into the field that replaced it first (a mech's flags into its conditions).
+ */
+export function withoutRetired(kind: RetiredKind, rawBody: unknown): unknown {
+  if (typeof rawBody !== 'object' || rawBody === null || Array.isArray(rawBody)) return rawBody
+  const body = kind === 'mech' ? foldMechFlags(rawBody as Record<string, unknown>) : rawBody
   const fields: readonly string[] = RETIRED_FIELDS[kind]
   if (!fields.some((field) => Object.hasOwn(body, field))) return body
   const kept: Record<string, unknown> = { ...body }

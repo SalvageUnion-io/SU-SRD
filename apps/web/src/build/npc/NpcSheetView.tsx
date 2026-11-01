@@ -18,7 +18,7 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import { useMemo } from 'react'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useSoftLinkList } from '../../lib/entities'
-import { softLinkFromServer } from '../../lib/links/linkSync'
+import { softLinkOf } from '../../lib/links/linkSync'
 import { crewLinkOf } from '../../lib/npcs/npcModel'
 import { useUnits } from '../../replica/units'
 import { CrewSheetBanner } from '../sheet/CrewSheetBanner'
@@ -89,7 +89,7 @@ export function NpcSheetView({ id }: { id: string }) {
   }
   if (theirs === null) return <SheetFallback kind="npc" status="unreadable" back={crew} />
 
-  const gameLinks = (listing?.softLinks ?? []).map(softLinkFromServer)
+  const gameLinks = (listing?.softLinks ?? []).map(softLinkOf)
   const gameCrawlerName = (crawlerId: string) => {
     const row = listing?.crawlers.find((c) => rowAppId(c) === crawlerId)
     const crawlerBodyName = (row?.body as { name?: unknown } | undefined)?.name

@@ -1,4 +1,4 @@
-import { crawlerUpkeepCost, parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../replica/units'
 /**
  * The Units column's unit boxes (play.md §4): the pilot,
@@ -25,6 +25,7 @@ import type { UnitsStore } from '../replica/units'
  * `.su-play-unit__*`, in `styles/play/units.css`, which `PlayFrame` loads.
  */
 
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -269,7 +270,7 @@ export function PlayMechUnit({
       chips={chassis ? <Relations items={[chassis]} /> : undefined}
       controls={
         <>
-          {stamp(mech.destroyed ? 'Destroyed' : MECH_STAMP[place])}
+          {stamp(mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : MECH_STAMP[place])}
           {place === 'boarded' && onOpenSheet ? (
             <SheetButton name={mech.name} onOpen={onOpenSheet} />
           ) : null}
@@ -384,7 +385,7 @@ export function PlayCrawlerUnit({
   store = useUnits,
 }: PlayCrawlerUnitProps) {
   const sp = hullGauge(crawler)
-  const tl = parseCrawlerTechLevel(crawler.techLevel)
+  const tl = crawler.techLevel
   const chips = bayChips(crawler)
   const write = writer(store, 'crawler', crawler.id)
   // Solid while it is the Downtime's unit, whoever may write it; dashed for reference otherwise.
@@ -400,11 +401,7 @@ export function PlayCrawlerUnit({
       chips={<Stat label={playCopy('crawler2')} size="mini" />}
       controls={
         <>
-          {downtime ? (
-            stamp('Downtime')
-          ) : tl === undefined ? null : (
-            <Stat label={playCopy('tl')} value={tl} size="mini" />
-          )}
+          {downtime ? stamp('Downtime') : <Stat label={playCopy('tl')} value={tl} size="mini" />}
           {onOpenSheet ? <SheetButton name={crawler.name} onOpen={onOpenSheet} /> : null}
         </>
       }
@@ -416,7 +413,7 @@ export function PlayCrawlerUnit({
         tone="crawler"
         onChange={live ? (v) => write({ currentSP: v }) : undefined}
       />
-      {downtime && tl !== undefined ? (
+      {downtime ? (
         <div style={CHIPS}>
           <Stat
             label={playCopy('upkeep')}

@@ -34,7 +34,6 @@ import {
   pilotMaxInventorySlots,
   pilotMaxInventorySlotsParts,
   pinFor,
-  unifiedMechConditions,
 } from '../derivedStats'
 
 // ---------------------------------------------------------------------------
@@ -402,29 +401,6 @@ describe('installed system/module contributions', () => {
   })
 })
 
-describe('unifiedMechConditions', () => {
-  it('merges boolean flags into the conditions vocabulary', () => {
-    expect(
-      unifiedMechConditions({
-        conditions: ['Prone'],
-        shutdown: true,
-        vulnerable: true,
-        destroyed: false,
-      })
-    ).toEqual(['Prone', 'Shutdown', 'Vulnerable'])
-  })
-
-  it('deduplicates case-insensitively against conditions[]', () => {
-    expect(unifiedMechConditions({ conditions: ['vulnerable'], vulnerable: true })).toEqual([
-      'vulnerable',
-    ])
-  })
-
-  it('returns conditions[] untouched when no flags are set', () => {
-    expect(unifiedMechConditions({ conditions: ['Burn (2)'] })).toEqual(['Burn (2)'])
-  })
-})
-
 // ---------------------------------------------------------------------------
 // Crawler
 // ---------------------------------------------------------------------------
@@ -433,32 +409,32 @@ describe('crawler derivation', () => {
   it('max SP comes from the tech level ORM record (no slug regex fallback to 0-pips)', () => {
     const tl3 = SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === 3)
     expect(tl3).toBeDefined()
-    expect(crawlerMaxSP({ techLevel: 'tech-3' })).toBe(tl3?.structurePoints ?? -1)
+    expect(crawlerMaxSP({ techLevel: 3 })).toBe(tl3?.structurePoints ?? -1)
   })
 
   it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
     const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
-    const base = crawlerMaxSP({ techLevel: 'tech-1' })
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'battle' })).toBe(base + 5)
+    const base = crawlerMaxSP({ techLevel: 1 })
+    expect(crawlerMaxSP({ techLevel: 1, type: 'battle' })).toBe(base + 5)
     // A type swap re-derives in BOTH directions — no stored residue.
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'engineering' })).toBe(base)
+    expect(crawlerMaxSP({ techLevel: 1, type: 'engineering' })).toBe(base)
   })
 
   it('type bonus is decomposed by crawlerMaxSPParts', () => {
-    const parts = crawlerMaxSPParts({ techLevel: 'tech-1', type: 'battle' })
+    const parts = crawlerMaxSPParts({ techLevel: 1, type: 'battle' })
     expect(parts.base).toBe(20)
     expect(parts.typeBonus).toBe(5)
     expect(parts.total).toBe(25)
   })
 
   it('an unresolvable type ref contributes no bonus', () => {
-    const base = crawlerMaxSP({ techLevel: 'tech-1' })
-    expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'no-such-type' })).toBe(base)
+    const base = crawlerMaxSP({ techLevel: 1 })
+    expect(crawlerMaxSP({ techLevel: 1, type: 'no-such-type' })).toBe(base)
   })
 
-  it('unresolvable techLevel slug derives 0', () => {
-    expect(crawlerMaxSP({ techLevel: 'garbage' })).toBe(0)
+  it('no Tech Level derives 0', () => {
+    expect(crawlerMaxSP({ techLevel: undefined })).toBe(0)
   })
 })
 
@@ -471,5 +447,11 @@ describe('parseCrawlerTechLevel', () => {
   it('returns undefined for a slug with no digits', () => {
     expect(parseCrawlerTechLevel('tech')).toBeUndefined()
     expect(parseCrawlerTechLevel('')).toBeUndefined()
+  })
+
+  it('takes a stored number as it is, and nothing else', () => {
+    expect(parseCrawlerTechLevel(4)).toBe(4)
+    expect(parseCrawlerTechLevel(2.5)).toBeUndefined()
+    expect(parseCrawlerTechLevel(null)).toBeUndefined()
   })
 })

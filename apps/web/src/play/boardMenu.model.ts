@@ -22,6 +22,7 @@
  * that `crew.model.ts` and `mediatorTable.model.ts` import.
  */
 
+import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
 import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
@@ -109,10 +110,12 @@ export function boardedMechName({
   return boardedMech?.name ?? mechs.find((m) => m.mechId === boardedMechId)?.name ?? null
 }
 
+function bodyOf(body: unknown): Record<string, unknown> {
+  return typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {}
+}
+
 function bodyField(body: unknown, field: string): unknown {
-  return typeof body === 'object' && body !== null
-    ? (body as Record<string, unknown>)[field]
-    : undefined
+  return bodyOf(body)[field]
 }
 
 /** The id links and seats use: the app id, or a template pre-gen's body id. */
@@ -208,7 +211,7 @@ export function boardMenu(args: {
       serverId: row._id,
       name: nameOf(row.body, 'Mech'),
       ...stateOf({
-        destroyed: bodyField(row.body, 'destroyed') === true,
+        destroyed: hasCondition(storedMechConditions(bodyOf(row.body)), 'Destroyed'),
         aboard: aboard.get(mechId) ?? null,
         owner: row.ownerId === null ? 'spare' : row.ownerId === viewerId ? 'yours' : 'others',
       }),

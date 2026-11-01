@@ -326,13 +326,7 @@ const CALLS = {
       if (u.kind === 'crawler') lists.crawlers.push(row)
       else lists[`${u.kind}s`].push({ ...row, ownerId: u.ownerId })
     }
-    const softLinks = links.map((link) => ({
-      _id: `${link.type}:${link.from.id}:${link.to.id}`,
-      _creationTime: 0,
-      gameId: a.gameId,
-      ...link,
-    }))
-    return { ...lists, softLinks, primaryCrawlerId: read.primaryCrawlerId }
+    return { ...lists, softLinks: links, primaryCrawlerId: read.primaryCrawlerId }
   },
   'entities.locate': async (who: Caller, a: { kind: EntityKind; id: string }, deps: CallDeps) => {
     const found = await find(who, a.kind, a.id, deps)

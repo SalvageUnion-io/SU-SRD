@@ -9,7 +9,7 @@ import { payDowntimeUpkeep } from '../playUpkeep.model'
 const crawler = crawlerFixture({
   id: 'c',
   name: 'Tenacity',
-  techLevel: 'tech-2',
+  techLevel: 2,
   scrapPool: { tl2: 7 },
   upgradePool: 0,
 })

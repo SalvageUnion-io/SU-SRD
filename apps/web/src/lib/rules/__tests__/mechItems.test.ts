@@ -2,9 +2,7 @@
  * mechItems — pure helper tests.
  *
  * itemEconomy mines EP cost / Hot heat / Uses from real reference data;
- * repairScrapCost is half SV rounded DOWN (min 1, Core Book p.233);
- * mechConditionsPatch maps unified-list edits back onto conditions[] + the
- * boolean flags (removing a flag label clears the flag — the manual clear).
+ * repairScrapCost is half SV rounded DOWN (min 1, Core Book p.233).
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -13,7 +11,6 @@ import {
   cycleCondition,
   itemEconomy,
   itemUsesRemaining,
-  mechConditionsPatch,
   repairScrapCost,
   resolveModule,
   resolveSystem,
@@ -91,49 +88,6 @@ describe('cycleCondition', () => {
     expect(cycleCondition('intact')).toBe('damaged')
     expect(cycleCondition('damaged')).toBe('destroyed')
     expect(cycleCondition('destroyed')).toBe('intact')
-  })
-})
-
-describe('mechConditionsPatch', () => {
-  test('removing a flag label clears the boolean flag (manual clear)', () => {
-    const patch = mechConditionsPatch(
-      {
-        conditions: ['Prone'],
-        shutdown: true,
-        vulnerable: true,
-        destroyed: false,
-      },
-      ['Prone', 'Vulnerable'] // 'Shutdown' chip removed
-    )
-    expect(patch.shutdown).toBe(false)
-    expect(patch.vulnerable).toBeUndefined() // still true — untouched
-    expect(patch.conditions).toEqual(['Prone']) // 'Vulnerable' stays flag-backed
-  })
-
-  test('adding a free-form condition lands in conditions[]', () => {
-    const patch = mechConditionsPatch({ conditions: [], shutdown: false }, ['Burn 2'])
-    expect(patch.conditions).toEqual(['Burn 2'])
-    expect(patch.shutdown).toBeUndefined()
-  })
-
-  test('removing a free-form condition leaves flags alone', () => {
-    const patch = mechConditionsPatch(
-      {
-        conditions: ['Prone', 'Pinned'],
-        shutdown: true,
-        vulnerable: false,
-        destroyed: false,
-      },
-      ['Pinned', 'Shutdown']
-    )
-    expect(patch.conditions).toEqual(['Pinned'])
-    expect(patch.shutdown).toBeUndefined()
-  })
-
-  test('clearing Destroyed un-bricks the mech', () => {
-    const patch = mechConditionsPatch({ conditions: [], destroyed: true }, [])
-    expect(patch.destroyed).toBe(false)
-    expect(patch.conditions).toEqual([])
   })
 })
 

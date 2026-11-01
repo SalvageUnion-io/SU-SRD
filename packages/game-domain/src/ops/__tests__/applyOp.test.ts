@@ -6,7 +6,7 @@ const crawler = {
   id: 'crawler-001',
   schemaVersion: 1 as const,
   name: 'The Wandering Throne',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: ['system-drill'],
   createdAt: '2026-05-18T00:00:00.000Z',
   updatedAt: '2026-05-18T00:00:00.000Z',
@@ -55,7 +55,7 @@ describe('applyOp', () => {
 
   test('merges a field nobody else wrote, whatever else moved', () => {
     const unit = unitOf('crawler', crawler, 3, { name: 3 })
-    const result = applyOp(unit, op({ techLevel: 'tech-3' }, { baseSeq: 1 }))
+    const result = applyOp(unit, op({ techLevel: 3 }, { baseSeq: 1 }))
     expect(result.ok).toBe(true)
   })
 

@@ -14,13 +14,11 @@ import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
  * `linkedUnits`. Owns the economy-dialog state.
  */
 
-import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
 import {
   crawlerMaxSPParts,
   nextTierUpgradeCost,
-  parseCrawlerTechLevel,
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
@@ -75,7 +73,7 @@ export function CrawlerLiveSheet({
   const spParts = crawlerMaxSPParts(crawler)
   const maxSP = spParts.total
   const spLines = linesFromBreakdown(spParts, {
-    base: `Tech ${parseCrawlerTechLevel(crawler.techLevel) ?? '?'} Crawler`,
+    base: `Tech ${crawler.techLevel} Crawler`,
     baseDetail: 'base',
     installed: 'Crawler type bonus',
   })
@@ -91,10 +89,10 @@ export function CrawlerLiveSheet({
   }
   const states = bayStates(crawler)
   const intactBays = states.filter((s) => s === 'intact').length
-  const tl = parseCrawlerTechLevel(crawler.techLevel)
+  const tl = crawler.techLevel
   // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
   // is none (crawler-tech-levels.json), so no gauge.
-  const upgradeCost = tl === undefined ? null : nextTierUpgradeCost(tl)
+  const upgradeCost = nextTierUpgradeCost(tl)
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
@@ -123,22 +121,18 @@ export function CrawlerLiveSheet({
     // Tech LVL is NOT here any more: it is the crawler's own rung, and it
     // reads as the band's TL chip beside the crawler type. The economy rail keeps the
     // things you SPEND (upkeep, upgrade pool, trade, crew).
-    ...(tl !== undefined
-      ? [
-          {
-            label: buildSheetCopy('upkeep'),
-            value: 5,
-            caption: buildSheetCopy('tScrap', { tl }),
-            action: editable
-              ? {
-                  label: buildSheetCopy('pay'),
-                  ariaLabel: buildSheetCopy('payUpkeep'),
-                  onClick: () => setEconDialog('upkeep'),
-                }
-              : undefined,
-          },
-        ]
-      : []),
+    {
+      label: buildSheetCopy('upkeep'),
+      value: 5,
+      caption: buildSheetCopy('tScrap', { tl }),
+      action: editable
+        ? {
+            label: buildSheetCopy('pay'),
+            ariaLabel: buildSheetCopy('payUpkeep'),
+            onClick: () => setEconDialog('upkeep'),
+          }
+        : undefined,
+    },
     // Upgrade is NOT a flat readout: it FILLS toward a cap, which is what a
     // gauge shows and a number cannot. It renders as one below the SP gauge —
     // its Fund action still collects onto the Vitals card's head with the others.
@@ -156,7 +150,7 @@ export function CrawlerLiveSheet({
           },
         ]
       : []),
-    ...(trading.present && tl !== undefined
+    ...(trading.present
       ? [
           {
             // Its Trade action only: the rail reads no Trade.
@@ -246,13 +240,9 @@ export function CrawlerLiveSheet({
         rank={
           <Stat
             label={buildSheetCopy('tl')}
-            value={tl ?? '—'}
-            mode={readOnly || tl === undefined ? 'read' : 'edit'}
-            onChange={
-              readOnly || tl === undefined
-                ? undefined
-                : (next) => patch({ techLevel: crawlerTechLevelSlug(next) })
-            }
+            value={tl}
+            mode={readOnly ? 'read' : 'edit'}
+            onChange={readOnly ? undefined : (next) => patch({ techLevel: next })}
             min={NUMERIC_TECH_LEVELS[0]}
             ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
             stepperLabel={buildSheetCopy('techLevel')}

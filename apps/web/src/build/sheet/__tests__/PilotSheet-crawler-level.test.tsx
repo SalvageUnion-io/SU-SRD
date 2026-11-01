@@ -63,7 +63,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
   return crawlerFixture({
     id: 'crawler-1',
     name: 'The Wanderer',
-    techLevel: 'tech-3',
+    techLevel: 3,
     ...overrides,
   })
 }
@@ -135,7 +135,7 @@ describe('PilotSheet — Crawler Level slab dropped (poster redesign, #410)', ()
 
   test('no linked-crawler readout renders on the sheet body', () => {
     const pilot = makePilot({ crawlerLevel: 2 })
-    const crawler = makeCrawler({ techLevel: 'tech-5' })
+    const crawler = makeCrawler({ techLevel: 5 })
     const { store } = makeStore({
       pilot,
       crawler,
@@ -152,7 +152,7 @@ describe('PilotSheet — Crawler Level slab dropped (poster redesign, #410)', ()
     // Linked crawler at tech-3 → the Modification choice cap is 3, surfaced as a
     // "0/3" counter on the choice group.
     const pilot = makePilot()
-    const crawler = makeCrawler({ techLevel: 'tech-3' })
+    const crawler = makeCrawler({ techLevel: 3 })
     const { store } = makeStore({
       pilot,
       crawler,

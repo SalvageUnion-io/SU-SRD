@@ -74,7 +74,7 @@ const fakeCrawler: Crawler = {
   id: 'crawler-edit-1',
   schemaVersion: 1,
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
   currentSP: 20,
   scrapPool: { tl2: 3, tl3: 4 },

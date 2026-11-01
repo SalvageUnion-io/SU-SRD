@@ -1,3 +1,4 @@
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import { z } from 'salvageunion-reference/zod'
 import { CargoLotSchema } from './cargoLot'
 import { containerFields } from './entity'
@@ -81,8 +82,14 @@ export const CrawlerSchema = z
      * wizard.
      */
     description: z.string().optional(),
-    /** Tech level (I–VI) expressed as a string slug, e.g. "tech-1" */
-    techLevel: z.string(),
+    /**
+     * Tech Level, 1-6. A body saved before it became a number holds the slug
+     * `"tech-3"`, which reads as 3 and is written back as the number.
+     */
+    techLevel: z.preprocess(
+      (value) => (typeof value === 'string' ? (parseCrawlerTechLevel(value) ?? value) : value),
+      z.number().int().min(1).max(6)
+    ),
     /**
      * Chosen crawler-type slug (the Augmented/Battle/Engineering/Exploratory/
      * Trade Caravan type, e.g. "battle").

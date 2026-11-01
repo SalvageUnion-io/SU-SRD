@@ -101,7 +101,7 @@ describe('createBlank — crawler', () => {
     expect(crawler).toBeTruthy()
     expect(() => CrawlerSchema.parse(crawler)).not.toThrow()
     expect(crawler?.name).toBe('The Long Haul')
-    expect(crawler?.techLevel).toBe('tech-1')
+    expect(crawler?.techLevel).toBe(1)
     // No crawler type is picked in a Blank create.
     expect(crawler?.type).toBeUndefined()
     // Bare SP from crawler-tech-levels.json (TL1 Hamlet = 20).
@@ -118,7 +118,7 @@ describe('createBlank — crawler', () => {
 
     const crawler = useUnits.getState().get('crawler', id)
     expect(() => CrawlerSchema.parse(crawler)).not.toThrow()
-    expect(crawler?.techLevel).toBe('tech-3')
+    expect(crawler?.techLevel).toBe(3)
     // TL3 Town Crawler = 30 SP per crawler-tech-levels.json.
     expect(crawler?.currentSP).toBe(30)
   })

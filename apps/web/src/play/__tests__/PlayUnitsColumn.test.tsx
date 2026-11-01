@@ -63,7 +63,7 @@ beforeAll(async () => {
     crawlerFixture({
       id: CRAWLER,
       name: 'Tenacity',
-      techLevel: 'tech-2',
+      techLevel: 2,
       crawlerBays: [
         { bayRef: 'mech-bay' },
         { bayRef: 'med-bay' },
@@ -310,14 +310,11 @@ describe('in a Game', () => {
       {
         _id: 'r-crawler',
         appId: GAME_CRAWLER,
-        body: crawlerFixture({ id: GAME_CRAWLER, name: 'The Long Haul', techLevel: 'tech-3' }),
+        body: crawlerFixture({ id: GAME_CRAWLER, name: 'The Long Haul', techLevel: 3 }),
       },
     ],
     softLinks: [
       {
-        _id: 'r-link',
-        _creationTime: 0,
-        gameId: GAME,
         type: 'pilot-to-crawler',
         from: { type: 'pilot', id: 'units-rook' },
         to: { type: 'crawler', id: GAME_CRAWLER },

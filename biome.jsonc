@@ -1152,9 +1152,10 @@
                       "!game-domain/product",
                       "!game-domain/appAddress",
                       "!game-domain/entityKinds",
+                      "!game-domain/mechConditions",
                       "!game-domain/schemas/**"
                     ],
-                    "message": "The bot imports values only from game-domain's leaf modules (botWire, product, appAddress, entityKinds); anything else would load Zod and the schemas at Worker startup (docs/ARCHITECTURE.md#discord-bot)."
+                    "message": "The bot imports values only from game-domain's leaf modules (botWire, product, appAddress, entityKinds, mechConditions); anything else would load Zod and the schemas at Worker startup (docs/ARCHITECTURE.md#discord-bot)."
                   },
                   {
                     "group": ["game-domain/schemas/**"],

@@ -77,7 +77,7 @@ export const bodies = {
   pilot: (id: string) =>
     pilotFixture({ id, name: `Pilot ${id}`, callsign: id, classRef: 'salvager' }),
   mech: (id: string) => mechFixture({ id, name: `Mech ${id}`, chassisRef: 'iron-mongrel' }),
-  crawler: (id: string) => crawlerFixture({ id, name: `Crawler ${id}`, techLevel: '1' }),
+  crawler: (id: string) => crawlerFixture({ id, name: `Crawler ${id}`, techLevel: 1 }),
   npc: (id: string) => npcFixture({ id }),
 }
 

@@ -14,7 +14,7 @@ import { LIVE_SHEET_TXN } from '../../../replica/provenance'
 import { ExoticTrade } from '../ExoticTrade'
 
 function setup(scrapPool: Crawler['scrapPool']) {
-  const crawler = crawlerFixture({ id: 'c', name: 'Tenacity', techLevel: 'tech-2', scrapPool })
+  const crawler = crawlerFixture({ id: 'c', name: 'Tenacity', techLevel: 2, scrapPool })
   const update = mock<
     (type: string, id: string, patch: Partial<Crawler>, meta?: ChangeMeta) => Promise<Crawler>
   >(async () => crawler)

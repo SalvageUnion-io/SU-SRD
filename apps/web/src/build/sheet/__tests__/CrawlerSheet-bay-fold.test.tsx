@@ -25,7 +25,7 @@ const crawler: Crawler = {
   id: 'crawler-fold-1',
   schemaVersion: 1,
   name: 'Tenacity',
-  techLevel: 'tech-3',
+  techLevel: 3,
   crawlerBays: [{ bayRef: 'pilot-bay' }, { bayRef: 'trading-bay' }],
   systems: [],
   currentSP: 25,

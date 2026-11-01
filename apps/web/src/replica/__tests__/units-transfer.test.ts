@@ -28,7 +28,7 @@ async function seed() {
   const crawler = await useUnits.getState().create('crawler', {
     schemaVersion: 1 as const,
     name: 'Home Base',
-    techLevel: 'tech-1',
+    techLevel: 1,
     systems: [],
   })
   return { mech, crawler }

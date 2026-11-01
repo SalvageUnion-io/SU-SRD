@@ -35,8 +35,8 @@ export type PreviewAnswer = {
   gameName: string | null
   /** A pilot's published mech, as its chassis slug. */
   mechChassisRef?: string | null
-  /** A pilot's crawler's stored Tech Level ("tech-3"), for Stat Training. */
-  crawlerTechLevel?: string | null
+  /** A pilot's crawler's Tech Level, for Stat Training; a copy published before it was a number holds "tech-3". */
+  crawlerTechLevel?: number | string | null
   /** A mech's pilot's abilities, for Beefcake. */
   pilotAbilities?: string[]
   /** A shared pattern's Discord Component Embed JSON, when the Worker asked with its address. */

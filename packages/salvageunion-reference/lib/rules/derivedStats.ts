@@ -500,33 +500,13 @@ export function mechMaxCargo(
   return mechMaxCargoParts(mech, chassis, pilot).total
 }
 
-/**
- * The unified read-time conditions vocabulary for a mech: the
- * free-form `conditions[]` merged with the automation-written boolean flags
- * (shutdown → 'Shutdown', vulnerable → 'Vulnerable', destroyed → 'Destroyed'),
- * deduplicated case-insensitively. Display layers render THIS list so the
- * two storage forms never disagree on screen.
- */
-export function unifiedMechConditions(mech: {
-  conditions: string[]
-  shutdown?: boolean
-  vulnerable?: boolean
-  destroyed?: boolean
-}): string[] {
-  const merged = [...mech.conditions]
-  const has = (label: string) => merged.some((c) => c.toLowerCase() === label.toLowerCase())
-  if (mech.shutdown && !has('Shutdown')) merged.push('Shutdown')
-  if (mech.vulnerable && !has('Vulnerable')) merged.push('Vulnerable')
-  if (mech.destroyed && !has('Destroyed')) merged.push('Destroyed')
-  return merged
-}
-
 // ---------------------------------------------------------------------------
 // Crawler
 // ---------------------------------------------------------------------------
 
 type CrawlerDerivationInput = {
-  techLevel: string
+  /** The Tech Level, 1-6; undefined (or out of range) derives a base of 0. */
+  techLevel: number | undefined
   maxSpOverride?: number
   /**
    * Chosen crawler-type slug — the type's stored
@@ -538,16 +518,16 @@ type CrawlerDerivationInput = {
 }
 
 /**
- * Parse a crawler techLevel slug (e.g. "tech-3") to its numeric level (3).
- * Returns undefined when no digits are present.
+ * A stored crawler Tech Level as a number: the number itself, or the digits of
+ * the `"tech-3"` slug a body saved before it became a number carries.
+ * Undefined for anything else. Only a reader of an unparsed body needs this;
+ * a parsed crawler's `techLevel` is already a number.
  */
-export function parseCrawlerTechLevel(techLevel: string): number | undefined {
+export function parseCrawlerTechLevel(techLevel: unknown): number | undefined {
+  if (typeof techLevel === 'number') return Number.isInteger(techLevel) ? techLevel : undefined
+  if (typeof techLevel !== 'string') return undefined
   const digits = techLevel.replace(/[^0-9]/g, '')
-  if (digits.length === 0) {
-    return undefined
-  }
-  const n = Number.parseInt(digits, 10)
-  return Number.isFinite(n) ? n : undefined
+  return digits.length === 0 ? undefined : Number.parseInt(digits, 10)
 }
 
 /**
@@ -578,12 +558,12 @@ export type CrawlerMaxSPParts = StatBreakdown & {
  * Derived crawler max SP, decomposed: the tech level's structurePoints from
  * the reference ORM, plus the chosen TYPE's stored `max_sp_bonus` mutations
  * applied AT READ (Battle Crawler +5 — the record stores the BARE tech-level
- * value, so type swaps re-derive correctly both ways). Base resolves to 0 when the techLevel slug cannot be parsed
- * — the caller should surface that as a data problem rather than rendering a
- * silent 0-pip track.
+ * value, so type swaps re-derive correctly both ways). Base resolves to 0 with
+ * no Tech Level: the caller should surface that as a data problem rather than
+ * rendering a silent 0-pip track.
  */
 export function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSPParts {
-  const tl = parseCrawlerTechLevel(crawler.techLevel)
+  const tl = crawler.techLevel
   const base =
     tl === undefined
       ? 0
