@@ -70,7 +70,7 @@ function makeCrawler(cargoLots: CargoLot[]): Crawler {
     id: 'crawler-1',
     schemaVersion: 1,
     name: 'Cargo Test Crawler',
-    techLevel: 'tech-3',
+    techLevel: 3,
     systems: [],
     cargoLots,
     createdAt: FIXTURE_NOW,

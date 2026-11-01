@@ -56,7 +56,7 @@ const baseMechInput = {
 const baseCrawlerInput = {
   schemaVersion: 1 as const,
   name: 'Test Crawler',
-  techLevel: 'tech-1',
+  techLevel: 1,
   systems: [],
 }
 

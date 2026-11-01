@@ -55,8 +55,6 @@ function gameListing(npcBody: unknown = THEIRS) {
     npcs: [{ appId: 'n-theirs', body: npcBody, ownerId: 'u-sam' }],
     softLinks: [
       {
-        _id: 'link-1',
-        _creationTime: 0,
         from: { type: 'npc', id: 'n-theirs' },
         to: { type: 'crawler', id: 'c-game' },
         type: 'npc-to-crawler',

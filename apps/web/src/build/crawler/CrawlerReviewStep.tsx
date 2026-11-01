@@ -1,4 +1,3 @@
-import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
@@ -76,7 +75,7 @@ export function CrawlerReviewStep({
   // A crawler starts at full: `SP | 20/20`, the type bonus in its hover.
   const sp = techLevel
     ? crawlerMaxSPParts({
-        techLevel: crawlerTechLevelSlug(techLevel.techLevel),
+        techLevel: techLevel.techLevel,
         type: form.type ?? undefined,
       })
     : undefined

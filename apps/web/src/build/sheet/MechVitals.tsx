@@ -9,7 +9,7 @@ import type { UnitsStore } from '../../replica/units'
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
-import { pinFor, unifiedMechConditions } from 'salvageunion-reference/rules'
+import { pinFor } from 'salvageunion-reference/rules'
 import { Conditions, Eyebrow, heatDangerFrom, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
@@ -34,8 +34,8 @@ type MechVitalsProps = {
 
 export function MechVitals({ mech, model, actions, readOnly, store }: MechVitalsProps) {
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
-  // The conditions Read prints: the same merged list the Edit chips write.
-  const readConditions = readOnly ? unifiedMechConditions(mech) : []
+  // The conditions Read prints: the same list the Edit chips write.
+  const readConditions = readOnly ? mech.conditions : []
   return (
     <>
       <SheetVitalGauge

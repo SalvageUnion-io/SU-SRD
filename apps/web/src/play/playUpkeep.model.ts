@@ -1,4 +1,3 @@
-import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * Paying a Downtime's Upkeep from Play (play.md §6, §10): the player's step
  * box (`PlayDowntimeStep`) and the Mediator's Upkeep row both pay it here.
@@ -28,7 +27,7 @@ export async function payDowntimeUpkeep({
   claim: PlayDowntime['claim']
 }): Promise<string | null> {
   if (crawler === null) return null
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = crawler.techLevel
   const paid = payUpkeepPatch(store.get('crawler', crawler.id) ?? crawler, tl)
   if (!(await claim('upkeep', crawler.id, paid.patch)))
     return 'Upkeep is already paid this Downtime.'

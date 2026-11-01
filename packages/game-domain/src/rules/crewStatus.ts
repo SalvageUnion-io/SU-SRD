@@ -9,9 +9,10 @@ import {
   resolveGauge,
   resolveModuleRef,
   resolveSystemRef,
-  unifiedMechConditions,
 } from 'salvageunion-reference/rules'
 import { resolveEffectiveCrawlerLevel } from '../crawlerLevel'
+import type { ReactorCondition } from '../mechConditions'
+import { hasCondition } from '../mechConditions'
 import type { Crawler } from '../schemas/crawler'
 import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
@@ -80,17 +81,12 @@ export function mechMaxima(
   }
 }
 
-/**
- * Whether the mech is in a condition by either storage form: the flag or the
- * label in `conditions[]` (case-insensitive), so a chip and a flag never
- * disagree about a destroyed or shut-down mech.
- */
+/** Whether the mech's conditions carry a Reactor label (case-insensitive). */
 export function mechHasCondition(
-  mech: Parameters<typeof unifiedMechConditions>[0],
-  label: 'Destroyed' | 'Shutdown' | 'Vulnerable'
+  mech: { conditions: readonly string[] },
+  label: ReactorCondition
 ): boolean {
-  const wanted = label.toLowerCase()
-  return unifiedMechConditions(mech).some((c) => c.trim().toLowerCase() === wanted)
+  return hasCondition(mech.conditions, label)
 }
 
 export type PilotStatus = {

@@ -24,7 +24,7 @@ const tenacity = (condition: 'intact' | 'damaged' = 'intact') =>
   crawlerFixture({
     id: 'c',
     name: 'Tenacity',
-    techLevel: 'tech-3',
+    techLevel: 3,
     crawlerBays: [{ bayRef: 'nanite-processing-bay', condition }],
     scrapPool: { tl1: 2, inertNanites: 3 },
   })

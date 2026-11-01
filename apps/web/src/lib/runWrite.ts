@@ -66,7 +66,7 @@ export function reportWriteFailure(err: unknown): void {
  * handling the rejection is not, by itself, enough: a handler that fires the
  * write and then states the outcome —
  *
- *     runWrite(() => store.update(mech, VENT_PATCH))
+ *     runWrite(() => store.update(mech, ventPatch(mech.conditions)))
  *     setPrompt({ log: 'Vented — Heat 0, Vulnerable.' })
  *
  * — tells a Disconnected player the vent happened while the refusal toast says

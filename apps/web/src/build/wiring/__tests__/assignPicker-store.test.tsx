@@ -58,7 +58,7 @@ const mechInput = {
 const crawlerInput = {
   schemaVersion: 1 as const,
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
   gameId: 'g1',
 }

@@ -102,7 +102,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
     id: 'crawler-type-1',
     schemaVersion: 1,
     name: 'War Wagon',
-    techLevel: 'tech-2',
+    techLevel: 2,
     systems: [],
     currentSP: 20,
     crawlerBays: [],
@@ -228,7 +228,7 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
 describe('CrawlerSchema — type/typeNpc legacy tolerance', () => {
   test('a legacy crawler (no type/typeNpc) still validates', async () => {
     const { CrawlerSchema } = await import('game-domain/schemas/crawler')
-    const legacy = makeCrawler({ techLevel: 'tech-3' })
+    const legacy = makeCrawler({ techLevel: 3 })
     const result = CrawlerSchema.safeParse(legacy)
     expect(result.success).toBe(true)
     if (result.success) {

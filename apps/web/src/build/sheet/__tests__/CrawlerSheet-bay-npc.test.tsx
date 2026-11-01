@@ -97,7 +97,7 @@ const baseCrawler: Crawler = {
   id: 'crawler-npc-1',
   schemaVersion: 1,
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
   currentSP: 20,
   crawlerBays: [

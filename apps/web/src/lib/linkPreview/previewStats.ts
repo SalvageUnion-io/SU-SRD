@@ -63,7 +63,8 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
   const body = (answer.body ?? {}) as Body
   switch (answer.kind) {
     case 'pilot': {
-      const crawler = answer.crawlerTechLevel ? { techLevel: answer.crawlerTechLevel } : null
+      const techLevel = parseCrawlerTechLevel(answer.crawlerTechLevel)
+      const crawler = techLevel === undefined ? null : { techLevel }
       const { maxHP, maxAP } = pilotMaxima(body as Pilot, crawler)
       return [
         { label: 'HP', value: pool(num(body, 'currentHP'), maxHP) },
@@ -84,10 +85,10 @@ export function previewStats(answer: PreviewAnswer): OgCardStat[] {
       ]
     }
     case 'crawler': {
-      const max = crawlerMaxSP(body as Parameters<typeof crawlerMaxSP>[0])
-      const techLevel = typeof body.techLevel === 'string' ? body.techLevel : ''
+      const techLevel = parseCrawlerTechLevel(body.techLevel)
+      const max = crawlerMaxSP({ ...(body as Parameters<typeof crawlerMaxSP>[0]), techLevel })
       return [
-        { label: 'TL', value: String(parseCrawlerTechLevel(techLevel) ?? 1) },
+        { label: 'TL', value: String(techLevel ?? 1) },
         { label: 'SP', value: pool(num(body, 'currentSP'), max) },
       ]
     }

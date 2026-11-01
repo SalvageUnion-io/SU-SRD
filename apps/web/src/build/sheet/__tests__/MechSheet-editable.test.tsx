@@ -61,7 +61,7 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
     id: 'crawler-economy-1',
     schemaVersion: 1,
     name: 'Pool Crawler',
-    techLevel: 'tech-2',
+    techLevel: 2,
     systems: [],
     cargoLots: [],
     scrapPool: { tl2: 5 },

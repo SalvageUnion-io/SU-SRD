@@ -1,4 +1,3 @@
-import { crawlerTechLevelOf, crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
@@ -179,7 +178,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
   )
   const inDowntime = downtime?.stepIndex != null
 
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = crawler.techLevel
   const pool = crawler.scrapPool ?? {}
   const available = poolAvailableAtOrAbove(pool, tl)
   const shortfall = upkeepShortfall(pool, tl)
@@ -189,7 +188,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
   /** Pay: draw 5×TL+ scrap, credit the Upgrade Pool in full (auto-applies). */
   function handlePay() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = crawlerTechLevelOf(fresh)
+    const freshTl = fresh.techLevel
     const paid = payUpkeepPatch(fresh, freshTl)
     const drawText = paid.payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
     runWrite(
@@ -306,7 +305,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
 
 function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   const storeState = store()
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = crawler.techLevel
   const upgradePool = crawler.upgradePool ?? 0
   const quote = crawlerUpgradeQuote(tl, upgradePool)
   const pool = crawler.scrapPool ?? {}
@@ -316,7 +315,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   /** Voluntary acceleration (p.218): move pool scrap into the Upgrade Pool. */
   function handleContribute() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = crawlerTechLevelOf(fresh)
+    const freshTl = fresh.techLevel
     const result = contributeToUpgradePool(fresh.scrapPool ?? {}, freshTl, contribution)
     if (!result) return
     runWrite(() =>
@@ -335,11 +334,11 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   /** Consume the pool, bump the Tech Level, repair damaged Bays (p.219). */
   function handleUpgrade() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = crawlerTechLevelOf(fresh)
+    const freshTl = fresh.techLevel
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
     if (!freshQuote?.affordable) return
     const patch: Partial<Crawler> = {
-      techLevel: crawlerTechLevelSlug(freshQuote.toTl),
+      techLevel: freshQuote.toTl,
       upgradePool: freshQuote.remainingPool,
     }
     const bays = fresh.crawlerBays ?? []
@@ -427,7 +426,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
 
 function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = crawler.techLevel
   const gate = bayGate(crawler, TRADING_BAY)
   const pool = crawler.scrapPool ?? {}
 

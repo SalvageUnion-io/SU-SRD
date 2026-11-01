@@ -84,7 +84,7 @@ async function seedPilot(): Promise<{ pilot: Pilot; crawler: Crawler }> {
   const crawler = await store.create('crawler', {
     schemaVersion: 1,
     name: 'The Wanderer',
-    techLevel: 'tech-1',
+    techLevel: 1,
     systems: [],
   })
   await store.create('softLink', {
@@ -209,9 +209,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
 
     // 2. Upgrades arrive: Stat Training (Tech 2, +2) and Bionic Arms (+2).
     //    The rules now derive exactly the pinned value — a +0 modification.
-    await upgrade(() =>
-      store.update('crawler', crawler.id, { techLevel: 'tech-2' }, LIVE_SHEET_MANUAL)
-    )
+    await upgrade(() => store.update('crawler', crawler.id, { techLevel: 2 }, LIVE_SHEET_MANUAL))
     await upgrade(() =>
       store.update(
         'pilot',
@@ -243,7 +241,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
 
     await typeMax(20)
     await upgrade(() =>
-      useUnits.getState().update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
+      useUnits.getState().update('crawler', crawler.id, { techLevel: 3 }, LIVE_SHEET_MANUAL)
     )
     await expectOverridden(20, 14)
 
@@ -257,7 +255,7 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
 
     await typeMax(20)
     await upgrade(() =>
-      useUnits.getState().update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
+      useUnits.getState().update('crawler', crawler.id, { techLevel: 3 }, LIVE_SHEET_MANUAL)
     )
     await expectOverridden(20, 14)
 
@@ -276,14 +274,10 @@ describe('Pilot HP — the override colour tracks a real modification (ADR-022)'
     const store = useUnits.getState()
 
     await typeMax(14)
-    await upgrade(() =>
-      store.update('crawler', crawler.id, { techLevel: 'tech-3' }, LIVE_SHEET_MANUAL)
-    )
+    await upgrade(() => store.update('crawler', crawler.id, { techLevel: 3 }, LIVE_SHEET_MANUAL))
     await expectNotOverridden(14)
 
-    await upgrade(() =>
-      store.update('crawler', crawler.id, { techLevel: 'tech-4' }, LIVE_SHEET_MANUAL)
-    )
+    await upgrade(() => store.update('crawler', crawler.id, { techLevel: 4 }, LIVE_SHEET_MANUAL))
     await expectOverridden(14, 16)
 
     await revert(16)

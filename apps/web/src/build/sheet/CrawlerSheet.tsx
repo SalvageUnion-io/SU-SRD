@@ -1,4 +1,3 @@
-import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
@@ -207,7 +206,7 @@ export function CrawlerSheet({
     runWrite(() => storeState.update('crawler', crawler.id, fields, LIVE_SHEET_MANUAL))
   }
 
-  const tl = crawlerTechLevelOf(crawler)
+  const tl = crawler.techLevel
   const bays = crawler.crawlerBays ?? []
   const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}

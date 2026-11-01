@@ -91,7 +91,7 @@ describe('crawlerFormToCreateInput', () => {
       }
     )
     expect(input.schemaVersion).toBe(1)
-    expect(input.techLevel).toBe('tech-1')
+    expect(input.techLevel).toBe(1)
     expect(input.crawlerBays).toEqual([{ bayRef: 'command-bay', npcCurrentHP: 4 }])
     expect(input.currentSP).toBe(20)
     expect(input.scrapPool).toEqual({ tl1: 3 })

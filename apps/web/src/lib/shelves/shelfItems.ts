@@ -23,7 +23,7 @@ import type { Npc } from 'game-domain/schemas/npc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { parseCrawlerTechLevel, resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import type { LinkedUnit } from '../../components/index'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
@@ -125,9 +125,8 @@ export function crawlerFact(crawler: Pick<Crawler, 'type'>): string | undefined 
 }
 
 /** A crawler's reading is its tech level: `TL 1`. */
-export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): UnitReading | undefined {
-  const tl = parseCrawlerTechLevel(crawler.techLevel)
-  return tl === undefined ? undefined : { label: 'TL', value: String(tl) }
+export function crawlerReading(crawler: Pick<Crawler, 'techLevel'>): UnitReading {
+  return { label: 'TL', value: String(crawler.techLevel) }
 }
 
 /** A pattern's reading is how full its system slots are: `SYS 12/12`. */

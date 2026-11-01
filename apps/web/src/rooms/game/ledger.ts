@@ -163,8 +163,7 @@ export class GameLedger {
     if (crawler === null) throw new RoomRefusal('This Game has no crawler to pay into')
     if (crawler.leaseId !== null) throw new RoomRefusal('The crawler is on its way somewhere else')
     const body = crawler.body as { name?: unknown; techLevel?: unknown; scrapPool?: ScrapPool }
-    const own = typeof body.techLevel === 'string' ? parseCrawlerTechLevel(body.techLevel) : 1
-    const level = tl ?? own ?? 1
+    const level = tl ?? parseCrawlerTechLevel(body.techLevel) ?? 1
     const crawlerName = typeof body.name === 'string' ? body.name : null
     if (scrap === 0) return { scrap, tl: level, crawlerName }
     const key = `tl${level}` as keyof ScrapPool

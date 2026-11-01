@@ -36,7 +36,8 @@ export const SoftLinkSchema = z
     to: EntityRefSchema,
     type: z.enum(['mech-to-pilot', 'pilot-to-crawler', 'mech-to-crawler', 'npc-to-crawler']),
     slot: CrewSlotSchema.optional(),
-    createdAt: z.string().datetime(),
+    /** When it was drawn; absent on a link read from a listing or a published copy, which keep no date. */
+    createdAt: z.string().datetime().optional(),
   })
   .strict()
   .superRefine((link, ctx) => {

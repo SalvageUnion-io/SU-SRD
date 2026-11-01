@@ -34,7 +34,7 @@ describe('soloMechOptions', () => {
   test('a destroyed mech is listed with its reason', () => {
     const [wreck] = soloMechOptions(
       'bonesaw',
-      [mechFixture({ id: 'wreck', name: 'Wreck', destroyed: true })],
+      [mechFixture({ id: 'wreck', name: 'Wreck', conditions: ['Destroyed'] })],
       links
     )
     expect(wreck).toMatchObject({ state: 'destroyed', note: 'Destroyed' })

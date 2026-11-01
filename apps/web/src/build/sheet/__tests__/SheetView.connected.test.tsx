@@ -90,12 +90,9 @@ const THEIR_PILOT = pilotFixture({ id: 'p-theirs', name: 'Ash Vey', gameId: GAME
 const THEIR_MECH = mechFixture({ id: 'm-theirs', name: 'Iron Mongrel', gameId: GAME })
 const CRAWLER = crawlerFixture({ id: 'c-home', name: '#430 Tenacity', gameId: GAME })
 
-function link(id: string, type: 'mech-to-pilot' | 'pilot-to-crawler', from: string, to: string) {
+function link(type: 'mech-to-pilot' | 'pilot-to-crawler', from: string, to: string) {
   const [fromType, toType] = type === 'mech-to-pilot' ? ['mech', 'pilot'] : ['pilot', 'crawler']
   return {
-    _id: id,
-    _creationTime: 0,
-    gameId: GAME,
     from: { type: fromType as 'mech' | 'pilot', id: from },
     to: { type: toType as 'pilot' | 'crawler', id: to },
     type,
@@ -113,8 +110,8 @@ function listing(over: Record<string, unknown> = {}) {
     crawlers: [{ _id: 'row-crawler', appId: CRAWLER.id, body: CRAWLER }],
     npcs: [],
     softLinks: [
-      link('l1', 'mech-to-pilot', THEIR_MECH.id, THEIR_PILOT.id),
-      link('l2', 'pilot-to-crawler', THEIR_PILOT.id, CRAWLER.id),
+      link('mech-to-pilot', THEIR_MECH.id, THEIR_PILOT.id),
+      link('pilot-to-crawler', THEIR_PILOT.id, CRAWLER.id),
     ],
     primaryCrawlerId: 'row-crawler',
     ...over,

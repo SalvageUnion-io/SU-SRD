@@ -48,7 +48,7 @@ const mech = (overrides: Partial<Mech> = {}): Mech => ({
 describe('pilotMaxima', () => {
   it("adds the crew's crawler's Stat Training: Tech 3 is +4 HP and +2 AP over none", () => {
     const bare = pilotMaxima(pilot(), null)
-    const trained = pilotMaxima(pilot(), { techLevel: 'tech-3' })
+    const trained = pilotMaxima(pilot(), { techLevel: 3 })
     expect(trained.maxHP - bare.maxHP).toBe(4)
     expect(trained.maxAP - bare.maxAP).toBe(2)
   })
@@ -61,8 +61,7 @@ describe('mechMaxima', () => {
 })
 
 describe('mechHasCondition', () => {
-  it('reads the flag or the label, in any case', () => {
-    expect(mechHasCondition(mech({ destroyed: true }), 'Destroyed')).toBe(true)
+  it('reads the label, in any case', () => {
     expect(mechHasCondition(mech({ conditions: [' destroyed '] }), 'Destroyed')).toBe(true)
     expect(mechHasCondition(mech({ conditions: ['Shutdown'] }), 'Destroyed')).toBe(false)
   })

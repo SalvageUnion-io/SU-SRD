@@ -12,11 +12,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import { useMemo } from 'react'
 import type { RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
-import {
-  isWeaponSystem,
-  parseCrawlerTechLevel,
-  resolveSystemRef,
-} from 'salvageunion-reference/rules'
+import { isWeaponSystem, resolveSystemRef } from 'salvageunion-reference/rules'
 import { EntitySearcher, ModalShell } from '../../components/index'
 import { craftableAtTl } from '../../lib/rules/crafting'
 import { crawlerWeaponSlotsFor } from '../../lib/rules/creation'
@@ -39,7 +35,7 @@ export function CrawlerSystemsEditModal({
   crawler,
   patch,
 }: CrawlerSystemsEditModalProps) {
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? null
+  const tl = crawler.techLevel
   // The type's weapon_slots mutations set the cap, as in the wizard.
   const weaponSystemsMax = crawlerWeaponSlotsFor(crawler.type ?? null)
   const weaponSystemsUsed = useMemo(
@@ -69,8 +65,7 @@ export function CrawlerSystemsEditModal({
           const installed = crawler.systems.includes(nameToSlug(s.name))
           // Keep installed weapons visible/removable even above the current TL.
           if (installed) return isWeaponSystem(s)
-          if (typeof s.techLevel !== 'number' || tl === null || !craftableAtTl(s.techLevel, tl))
-            return false
+          if (typeof s.techLevel !== 'number' || !craftableAtTl(s.techLevel, tl)) return false
           return isWeaponSystem(s)
         }}
         idOf={(item) => nameToSlug(item.name)}
@@ -91,7 +86,7 @@ export function CrawlerSystemsEditModal({
           used: weaponSystemsUsed,
           max: weaponSystemsMax,
         }}
-        title={crawlerCopy('editWeaponsSystemsTechAnd', { value: tl ?? '—' })}
+        title={crawlerCopy('editWeaponsSystemsTechAnd', { value: tl })}
         onClose={onClose}
       />
     </ModalShell>

@@ -19,7 +19,7 @@ import {
 } from '../downtimeEconomy'
 
 const crawler = (over: Record<string, unknown> = {}) => ({
-  techLevel: 'tech-3',
+  techLevel: 3,
   scrapPool: { tl1: 10, tl2: 10, tl3: 10 },
   cargoLots: [],
   ...over,

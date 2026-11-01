@@ -36,9 +36,8 @@ const fakeMech: Mech = {
   systems: ['smoke-machine'],
   modules: [],
   cargoLots: [makeScrapLot(2, 2)],
-  conditions: [],
+  conditions: ['Shutdown'],
   systemConditions: { 'smoke-machine': 'damaged' },
-  shutdown: true,
   currentSP: 8,
   currentEP: 5,
   currentHeat: 2,
@@ -50,7 +49,7 @@ const fakeCrawler = {
   id: 'crawler-snapshot-1',
   schemaVersion: 1,
   name: 'Snapshot Crawler',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
   cargoLots: [],
   scrapPool: { tl2: 5 },
@@ -119,7 +118,7 @@ describe('MechSheet — readOnly', () => {
   })
 
   test('Read leaves out an empty Conditions field instead of drawing a box', () => {
-    const calm: Mech = { ...fakeMech, shutdown: false, conditions: [] }
+    const calm: Mech = { ...fakeMech, conditions: [] }
     render(
       <MechSheet
         mech={calm}

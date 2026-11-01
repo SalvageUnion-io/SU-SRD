@@ -9,6 +9,7 @@
 
 import { containerOf } from 'game-domain/container'
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatMount } from 'game-domain/schemas/seat'
@@ -47,8 +48,8 @@ export function soloMechOptions(
         mechId: mech.id,
         serverId: null,
         name: mech.name,
-        state: mech.destroyed === true ? 'destroyed' : 'yours',
-        note: mech.destroyed === true ? 'Destroyed' : null,
+        state: mechHasCondition(mech, 'Destroyed') ? 'destroyed' : 'yours',
+        note: mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : null,
       })
     )
     .sort((a, b) => Number(b.mechId === assigned) - Number(a.mechId === assigned))

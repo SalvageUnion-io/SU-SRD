@@ -38,6 +38,7 @@ import type { UnitsStore } from '../../replica/units'
  * leaves no trace.
  */
 
+import type { LinkShape } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -46,8 +47,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { create } from 'zustand'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
-import type { ServedLink } from '../../lib/links/linkSync'
-import { softLinkFromServer } from '../../lib/links/linkSync'
+import { softLinkOf } from '../../lib/links/linkSync'
 import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import type { EntityType, UnitsState } from '../../replica/units'
 import type { WithheldUnit } from './sheetViewProps.model'
@@ -68,7 +68,7 @@ export type GameListing = {
   mechs: readonly ServerOwnable[]
   crawlers: readonly ServerCrawler[]
   npcs: readonly ServerOwnable[]
-  softLinks: readonly ServedLink[]
+  softLinks: readonly LinkShape[]
 }
 
 /** A listed row's app id: its `appId`, else its body's own `id`; null when it has neither. */
@@ -138,7 +138,7 @@ export function sheetDataFromListing(listing: GameListing): ReadOnlySheetData {
   for (const row of listing.mechs) file(data, parseAs('mech', row.body, row.appId))
   for (const row of listing.crawlers) file(data, parseAs('crawler', row.body, row.appId))
   for (const row of listing.npcs) file(data, parseAs('npc', row.body, row.appId))
-  data.softLinks = listing.softLinks.map(softLinkFromServer)
+  data.softLinks = listing.softLinks.map(softLinkOf)
   return data
 }
 
@@ -175,13 +175,7 @@ export function sheetDataFromPublic(
       published.add(unit.id)
     }
   }
-  data.softLinks = answer.links.map((link) => ({
-    id: `${link.type}:${link.from.id}:${link.to.id}`,
-    type: link.type,
-    from: { type: link.from.type, id: link.from.id },
-    to: { type: link.to.type, id: link.to.id },
-    createdAt: new Date(0).toISOString(),
-  }))
+  data.softLinks = answer.links.map(softLinkOf)
   return { data, withheld, published }
 }
 

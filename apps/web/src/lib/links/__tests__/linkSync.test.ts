@@ -1,38 +1,31 @@
 /** A served link as the local record it becomes (ADR-037). */
 
 import { describe, expect, test } from 'bun:test'
-import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
-import type { ServedLink } from '../linkSync'
-import { softLinkFromServer } from '../linkSync'
+import type { LinkShape } from 'game-domain/links/linkRules'
+import { softLinkOf } from '../linkSync'
 
-const T0 = Date.parse(FIXTURE_NOW)
-
-function served(slot?: ServedLink['slot']): ServedLink {
+function served(slot?: LinkShape['slot']): LinkShape {
   return {
-    _id: 'srv-1',
-    _creationTime: T0,
-    gameId: 'g1',
-    from: { type: 'pilot', id: 'p1' },
+    from: { type: 'npc', id: 'n1' },
     to: { type: 'crawler', id: 'c1' },
-    type: 'pilot-to-crawler',
+    type: 'npc-to-crawler',
     ...(slot === undefined ? {} : { slot }),
   }
 }
 
-describe('softLinkFromServer', () => {
-  test('keeps the server row id and its ends, created when the row was', () => {
-    expect(softLinkFromServer(served())).toEqual({
-      id: 'srv-1',
-      from: { type: 'pilot', id: 'p1' },
+describe('softLinkOf', () => {
+  test('keys the record by its type and ends, and keeps no date it does not have', () => {
+    expect(softLinkOf(served())).toEqual({
+      id: 'npc-to-crawler:n1:c1',
+      from: { type: 'npc', id: 'n1' },
       to: { type: 'crawler', id: 'c1' },
-      type: 'pilot-to-crawler',
-      createdAt: new Date(T0).toISOString(),
+      type: 'npc-to-crawler',
     })
   })
 
-  test('carries a crew slot only when the row has one', () => {
+  test('carries a crew slot only when the link has one', () => {
     const slot = { kind: 'bay' as const, bayRef: 'command' }
-    expect(softLinkFromServer(served(slot)).slot).toEqual(slot)
-    expect('slot' in softLinkFromServer(served())).toBe(false)
+    expect(softLinkOf(served(slot)).slot).toEqual(slot)
+    expect('slot' in softLinkOf(served())).toBe(false)
   })
 })

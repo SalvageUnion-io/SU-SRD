@@ -197,7 +197,7 @@ describe('the line', () => {
   })
 
   test('a crawler reads its tech level; a pattern how full its system slots are', () => {
-    expect(crawlerReading({ techLevel: 'Tech 1' })).toEqual({ label: 'TL', value: '1' })
+    expect(crawlerReading({ techLevel: 1 })).toEqual({ label: 'TL', value: '1' })
     const towRig = MechPatternSchema.parse({
       id: 'pat-tow-rig',
       schemaVersion: 1,

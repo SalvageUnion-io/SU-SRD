@@ -449,7 +449,7 @@ const STARTER_CRAWLER: Crawler = {
   name: "Crawler #430 'Tenacity'",
   description:
     'Built by its salvager pilots, the Tenacity (Crawler #430) is a quadrupedal crawler on stilt-like legs, able to explore the most rugged of terrain.',
-  techLevel: 'tech-1',
+  techLevel: 1,
   type: EXPLORATORY_TYPE,
   // The Tenacity as the Starter Set's crawler sheet draws it.
   photo: { kind: 'asset', path: 'starter-set/crawlers/tenacity.webp' },

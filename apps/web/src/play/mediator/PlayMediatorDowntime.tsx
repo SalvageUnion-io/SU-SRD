@@ -1,4 +1,3 @@
-import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * PlayMediatorDowntime — the Mediator's centre column while Downtime runs
  * (play.md §10): the ten guide steps as the
@@ -206,11 +205,9 @@ export function PlayMediatorDowntime({
               <Stat
                 size="mini"
                 label={mediatorCopy('scrap', {
-                  downtimeUpkeepScrap: crawlerUpkeepCost(
-                    unit === null ? 1 : crawlerTechLevelOf(unit)
-                  ),
+                  downtimeUpkeepScrap: crawlerUpkeepCost(unit?.techLevel ?? 1),
                 })}
-                value={unit === null ? undefined : `T${crawlerTechLevelOf(unit)}`}
+                value={unit === null ? undefined : `T${unit.techLevel}`}
               />
             }
             controls={
@@ -256,7 +253,7 @@ export function PlayMediatorDowntime({
                 <Stat
                   size="mini"
                   label={mediatorCopy('dealScrap', { deals: income.deals })}
-                  value={unit === null ? undefined : `T${crawlerTechLevelOf(unit)}`}
+                  value={unit === null ? undefined : `T${unit.techLevel}`}
                 />
               }
               controls={

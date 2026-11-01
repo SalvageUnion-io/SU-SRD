@@ -37,7 +37,7 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
   return crawlerFixture({
     id: 'crawler-hold-1',
     name: 'Hold Crawler',
-    techLevel: 'tech-2',
+    techLevel: 2,
     cargoLots: [],
     scrapPool: {},
     ...overrides,

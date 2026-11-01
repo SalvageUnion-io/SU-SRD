@@ -121,7 +121,7 @@ function makeCrawler(overrides?: Partial<Crawler>): Crawler {
     id: 'crawler-bay-choices-1',
     schemaVersion: 1,
     name: 'Iron Tortoise',
-    techLevel: 'tech-2',
+    techLevel: 2,
     crawlerBays: [{ bayRef: BAY_REF }],
     systems: [],
     currentSP: 25,

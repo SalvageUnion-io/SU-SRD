@@ -62,7 +62,7 @@ const blankCrawler: Crawler = {
   id: 'blank-crawler-1',
   schemaVersion: 1,
   name: 'The Long Haul',
-  techLevel: 'tech-1',
+  techLevel: 1,
   systems: [],
   crawlerBays: seedDefaultCrawlerBays(),
   scrapPool: {},

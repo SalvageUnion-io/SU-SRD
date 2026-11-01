@@ -22,7 +22,7 @@ import {
 const pilot = (id: string, name = `Pilot ${id}`) =>
   pilotFixture({ id, name, callsign: id, classRef: 'salvager' })
 const crawler = (id: string, gameId: string | null) => ({
-  ...crawlerFixture({ id, name: `Crawler ${id}`, techLevel: '1' }),
+  ...crawlerFixture({ id, name: `Crawler ${id}`, techLevel: 1 }),
   gameId,
 })
 const link = (id: string, from: string, to: string) => ({

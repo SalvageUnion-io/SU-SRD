@@ -9,7 +9,7 @@ import { crawlerVitals, readCrawler } from '../crawlerReading.model'
 
 describe('readCrawler', () => {
   test('a listing row reads as its live id, name, SP and Tech Level', () => {
-    const body = crawlerFixture({ id: 'c-1', name: 'Tenacity', techLevel: 'tech-3', currentSP: 7 })
+    const body = crawlerFixture({ id: 'c-1', name: 'Tenacity', techLevel: 3, currentSP: 7 })
     const reading = readCrawler({ appId: 'app-1', body })
     if (!reading) throw new Error('the fixture is a crawler')
     expect(reading).toMatchObject({ id: 'app-1', name: 'Tenacity', sp: 7, techLevel: 3 })

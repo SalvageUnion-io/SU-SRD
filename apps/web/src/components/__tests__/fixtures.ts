@@ -65,7 +65,7 @@ export function crawlerFixture(overrides: Partial<Crawler> & { id: string }): Cr
   return {
     schemaVersion: 1,
     name: 'Fixture Crawler',
-    techLevel: 'tech-1',
+    techLevel: 1,
     systems: [],
     createdAt: FIXTURE_NOW,
     updatedAt: FIXTURE_NOW,

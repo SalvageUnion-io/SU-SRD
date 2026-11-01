@@ -1,23 +1,16 @@
 import type { UnitsStore } from '../../replica/units'
 /**
- * MechConditionsEditor — the mech's unified conditions editor.
- *
- * Renders ONE list — `unifiedMechConditions()` (free-form `conditions[]`
- * merged with the automation-written shutdown/vulnerable/destroyed flags) —
- * through the one chip-well editor (`ChipListEditor`). Edits map back through
- * `mechConditionsPatch`: removing 'Shutdown' / 'Vulnerable' / 'Destroyed'
- * clears the boolean flag (the manual clear), everything else round-trips
- * `conditions[]`. The two storage forms can never disagree on screen.
+ * MechConditionsEditor — the mech's conditions editor: its one `conditions[]`
+ * list through the one chip-well editor (`ChipListEditor`). The Reactor's
+ * Shutdown, Vulnerable and Destroyed are chips here like any other, so
+ * removing one is the manual clear.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import { unifiedMechConditions } from 'salvageunion-reference/rules'
-import { mechConditionsPatch } from '../../lib/rules/mechItems'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
-import { freshEntity } from './freshEntity.model'
 
 type MechConditionsEditorProps = {
   mech: Mech
@@ -29,14 +22,12 @@ export function MechConditionsEditor({ mech, store = useUnits }: MechConditionsE
   const storeState = store()
 
   async function handleChange(next: string[]) {
-    // Freshest record from the store so rapid edits don't stomp each other.
-    const fresh = freshEntity(storeState, 'mech', mech)
-    await storeState.update('mech', mech.id, mechConditionsPatch(fresh, next), LIVE_SHEET_MANUAL)
+    await storeState.update('mech', mech.id, { conditions: next }, LIVE_SHEET_MANUAL)
   }
 
   return (
     <ChipListEditor
-      items={unifiedMechConditions(mech)}
+      items={mech.conditions}
       onChange={handleChange}
       noun="condition"
       draftWidth={CONDITION_DRAFT}

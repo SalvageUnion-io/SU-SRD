@@ -81,7 +81,7 @@ function crawler(id: string, name: string, gameId: string | null = null): Crawle
     id,
     schemaVersion: 1,
     name,
-    techLevel: 'tech-2',
+    techLevel: 2,
     systems: [],
     gameId,
     createdAt: FIXTURE_NOW,

@@ -13,6 +13,7 @@
  * patch — it stays an explicit player call at the UI layer.
  */
 
+import { hasCondition, withCondition } from 'game-domain/mechConditions'
 import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import { pushHeatAt, scaleHeat } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -58,12 +59,16 @@ import { resolveEquipment } from './pilotInventory'
  */
 function reactorPatch(
   effect: HeatCheckEffect,
-  currentHeat: number
+  currentHeat: number,
+  conditions: readonly string[]
 ): { patch: Partial<Mech>; meltdown: boolean } {
   const patch: Partial<Mech> = { currentHeat }
   if (effect.shutdown) {
-    patch.shutdown = true
-    patch.vulnerable = true
+    patch.conditions = withCondition(
+      withCondition(conditions, 'Shutdown', true),
+      'Vulnerable',
+      true
+    )
     patch.currentSP = effect.nextSP
   }
   return { patch, meltdown: effect.destroyed }
@@ -78,6 +83,8 @@ export function pushPatch(args: {
   heat: number
   heatCap: number
   currentSP: number
+  /** The mech's conditions now: an overheat adds Shutdown and Vulnerable to them. */
+  conditions: readonly string[]
   roll: Roll
   /** The Push's Heat where a Scene scales it (`pushHeatAt`); 2 by default. */
   gain?: number
@@ -89,7 +96,7 @@ export function pushPatch(args: {
   meltdown: boolean
 } {
   const { nextHeat, effect } = performPush(args)
-  const { patch, meltdown } = reactorPatch(effect, nextHeat)
+  const { patch, meltdown } = reactorPatch(effect, nextHeat, args.conditions)
   return { patch, effect, nextHeat, meltdown }
 }
 
@@ -128,6 +135,7 @@ export function mechPush(
     // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
     currentSP: resolvePoolStart(mech.currentSP, maxSP),
+    conditions: mech.conditions,
     roll,
     table,
   })
@@ -171,6 +179,7 @@ export function pilotOverloadPatch(
 export function heatCheckOncePatch(args: {
   heat: number
   currentSP: number
+  conditions: readonly string[]
   roll: Roll
   table?: OverloadTable
 }): {
@@ -179,25 +188,26 @@ export function heatCheckOncePatch(args: {
   meltdown: boolean
 } {
   const effect = performHeatCheck(args)
-  const { patch, meltdown } = reactorPatch(effect, args.heat)
+  const { patch, meltdown } = reactorPatch(effect, args.heat, args.conditions)
   return { patch, effect, meltdown }
 }
 
 /**
  * Emergency Vent: dump Heat to 0 and become Vulnerable (play.md §14.1 — Vent and
- * Shutdown are distinct controls on `PlayReactorRow`: Vent sets Heat→0 + `vulnerable`,
- * Shutdown toggles the flag). NB the tabletop rule folds a full shutdown into
+ * Shutdown are distinct controls on `PlayReactorRow`: Vent sets Heat→0 + Vulnerable,
+ * Shutdown toggles its condition). NB the tabletop rule folds a full shutdown into
  * venting; Play keeps them separate — hit Shutdown too for
  * the strict-SRD sequence.
  */
-export const VENT_PATCH: Partial<Mech> = {
-  currentHeat: 0,
-  vulnerable: true,
+export function ventPatch(conditions: readonly string[]): Partial<Mech> {
+  return { currentHeat: 0, conditions: withCondition(conditions, 'Vulnerable', true) }
 }
 
-/** Toggle the reactor Shutdown flag (reversible bookkeeping). */
-export function shutdownTogglePatch(shutdown: boolean | undefined): Partial<Mech> {
-  return { shutdown: !(shutdown ?? false) }
+/** Toggle the Shutdown condition (reversible bookkeeping). */
+export function shutdownTogglePatch(conditions: readonly string[]): Partial<Mech> {
+  return {
+    conditions: withCondition(conditions, 'Shutdown', !hasCondition(conditions, 'Shutdown')),
+  }
 }
 
 /**

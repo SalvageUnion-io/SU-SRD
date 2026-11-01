@@ -21,9 +21,6 @@ const listing = {
   npcs: [],
   softLinks: [
     {
-      _id: 'l1',
-      _creationTime: 0,
-      gameId: 'g1',
       from: { type: 'mech' as const, id: 'm1' },
       to: { type: 'pilot' as const, id: 'p1' },
       type: 'mech-to-pilot' as const,
@@ -39,11 +36,10 @@ describe('sheetDataFromListing', () => {
     expect(data.crawlers.map((c) => c.id)).toEqual(['c1'])
     expect(data.softLinks).toEqual([
       {
-        id: 'l1',
+        id: 'mech-to-pilot:m1:p1',
         type: 'mech-to-pilot',
         from: { type: 'mech', id: 'm1' },
         to: { type: 'pilot', id: 'p1' },
-        createdAt: new Date(0).toISOString(),
       },
     ])
   })

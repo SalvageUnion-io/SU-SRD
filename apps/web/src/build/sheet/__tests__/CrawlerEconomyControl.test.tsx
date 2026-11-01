@@ -35,7 +35,7 @@ function makeCrawler(overrides: Partial<Crawler> = {}): Crawler {
   return crawlerFixture({
     id: 'crawler-econ-1',
     name: 'Iron Tortoise',
-    techLevel: 'tech-2',
+    techLevel: 2,
     crawlerBays: [{ bayRef: 'trading-bay' }, { bayRef: 'med-bay' }],
     scrapPool: { tl2: 6 },
     upgradePool: 10,
@@ -253,7 +253,7 @@ describe('CrawlerEconomyControl — Upgrade Crawler', () => {
       'crawler',
       crawler.id,
       {
-        techLevel: 'tech-3',
+        techLevel: 3,
         upgradePool: 2,
         crawlerBays: [
           { bayRef: 'trading-bay', condition: 'intact' },

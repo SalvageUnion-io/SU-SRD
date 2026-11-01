@@ -8,7 +8,6 @@
  */
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
-import type { Mech } from 'game-domain/schemas/mech'
 import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { halfSalvageValue, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
@@ -103,41 +102,4 @@ export function cycleCondition(condition: ItemCondition): ItemCondition {
   if (condition === 'intact') return 'damaged'
   if (condition === 'damaged') return 'destroyed'
   return 'intact'
-}
-
-type MechConditionState = Pick<Mech, 'conditions' | 'shutdown' | 'vulnerable' | 'destroyed'>
-
-const FLAG_LABELS = ['shutdown', 'vulnerable', 'destroyed'] as const
-type FlagLabel = (typeof FLAG_LABELS)[number]
-
-/**
- * Patch for the unified mech conditions editor: the
- * editor edits the `unifiedMechConditions()` list, and this maps the edited
- * list back onto the two storage forms — removing a flag-backed label
- * ('Shutdown' / 'Vulnerable' / 'Destroyed') clears the automation-written
- * boolean flag (the manual clear); every other label lands in
- * `conditions[]`. Labels still backed by a true flag are kept OUT of
- * `conditions[]` so the two forms never double-store one condition.
- */
-export function mechConditionsPatch(prev: MechConditionState, next: string[]): Partial<Mech> {
-  const nextLower = new Set(next.map((c) => c.trim().toLowerCase()))
-  const patch: Partial<Mech> = {}
-
-  const flagStillTrue: Record<FlagLabel, boolean> = {
-    shutdown: prev.shutdown === true,
-    vulnerable: prev.vulnerable === true,
-    destroyed: prev.destroyed === true,
-  }
-  for (const flag of FLAG_LABELS) {
-    if (flagStillTrue[flag] && !nextLower.has(flag)) {
-      patch[flag] = false
-      flagStillTrue[flag] = false
-    }
-  }
-
-  patch.conditions = next.filter((c) => {
-    const lower = c.trim().toLowerCase()
-    return !FLAG_LABELS.some((flag) => flag === lower && flagStillTrue[flag])
-  })
-  return patch
 }

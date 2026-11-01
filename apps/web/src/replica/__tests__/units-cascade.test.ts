@@ -41,7 +41,7 @@ const baseMechInput = {
 const baseCrawlerInput = {
   schemaVersion: 1 as const,
   name: 'Iron Tortoise',
-  techLevel: 'tech-2',
+  techLevel: 2,
   systems: [],
   crawlerBays: [
     { bayRef: 'command-bay', npcName: 'Sarn', npcCurrentHP: 4 },
