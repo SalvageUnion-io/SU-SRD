@@ -150,9 +150,12 @@ export function mechSalvageAllows(band: MechSalvageBand, pick: MechSalvagePick):
   }
 }
 
-/** The 2–5 band's Scrap: half the Chassis's Salvage Value, rounded down, at least 1. */
-export function mechSalvageScrap(chassisSalvageValue: number): number {
-  return Math.max(1, Math.floor(Math.max(0, chassisSalvageValue) / 2))
+/**
+ * Half a Salvage Value, rounded down, at least 1: the Mech Salvage 2–5 band's
+ * Scrap (p.248) and a field repair's cost (p.221, p.233).
+ */
+export function halfSalvageValue(salvageValue: number): number {
+  return Math.max(1, Math.floor(Math.max(0, salvageValue) / 2))
 }
 
 export type MechSalvageResult = { roll: number; band: MechSalvageBand; label: string }

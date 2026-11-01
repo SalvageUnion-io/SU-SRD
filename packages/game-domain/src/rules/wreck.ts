@@ -1,3 +1,4 @@
+import { isNumericTechLevel } from 'salvageunion-reference/rules'
 /**
  * What a downed Opposition leaves to salvage (Core Book pp.245–246, 248).
  *
@@ -37,17 +38,9 @@ export type MountedItem = {
   item: Record<string, unknown> | null
 }
 
-/** The Tech Levels Scrap is kept in: Tech 1 to 6. */
-const SCRAP_TIERS = { low: 1, high: 6 } as const
-
 /** A Tech Level the scrap pool has a bucket for, or undefined. */
 function tierOf(value: unknown): number | undefined {
-  return typeof value === 'number' &&
-    Number.isInteger(value) &&
-    value >= SCRAP_TIERS.low &&
-    value <= SCRAP_TIERS.high
-    ? value
-    : undefined
+  return typeof value === 'number' && isNumericTechLevel(value) ? value : undefined
 }
 
 function salvageValueOf(value: unknown): number {

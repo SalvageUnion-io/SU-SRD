@@ -11,7 +11,13 @@ import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
 import { resultForTable } from '../../utils/resultForTable'
 import { coreRollBand } from '../coreMechanic'
-import { reactorOverloadOutcome } from '../heatCheck'
+import { bioOverloadOutcome, reactorOverloadOutcome } from '../heatCheck'
+import {
+  AREA_SALVAGE_LABEL,
+  areaSalvageBand,
+  MECH_SALVAGE_LABEL,
+  mechSalvageBand,
+} from '../salvage'
 
 const FACES = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -32,6 +38,9 @@ describe('every rules band maps to one roll-table row', () => {
   const cases: [string, (roll: number) => string][] = [
     ['Core Mechanic', coreRollBand],
     ['Reactor Overload', reactorOverloadOutcome],
+    ['Area Salvage', areaSalvageBand],
+    ['Mech Salvage', mechSalvageBand],
+    ['Bio-Chassis Overload Table', bioOverloadOutcome],
   ]
 
   for (const [tableName, band] of cases) {
@@ -48,5 +57,27 @@ describe('every rules band maps to one roll-table row', () => {
     const table = SalvageUnionReference.RollTables.getByName('Reactor Overload')?.table
     expect(reactorOverloadOutcome(20)).toBe('overdrive')
     expect(resultForTable(table, 20).result.label).toBe('Reactor Overdrive')
+  })
+
+  // The label maps are sync on purpose (no roll-tables preload for their
+  // callers), so each band's label is held to its row here instead.
+  const labelled: [string, (roll: number) => string, Record<string, string>][] = [
+    ['Area Salvage', areaSalvageBand, AREA_SALVAGE_LABEL],
+    ['Mech Salvage', mechSalvageBand, MECH_SALVAGE_LABEL],
+  ]
+  for (const [tableName, band, labels] of labelled) {
+    test(`${tableName} labels are its rows' labels`, () => {
+      const table = SalvageUnionReference.RollTables.getByName(tableName)?.table
+      for (const face of FACES) {
+        expect(labels[band(face)]).toBe(resultForTable(table, face).result.label ?? '')
+      }
+    })
+  }
+
+  test('a 20 on either Critical table is the survival row (the NPC is left at 1)', () => {
+    for (const name of ['Critical Damage', 'Critical Injury']) {
+      const table = SalvageUnionReference.RollTables.getByName(name)?.table
+      expect(resultForTable(table, 20).result.value).toMatch(/1 (SP|HP)/)
+    }
   })
 })

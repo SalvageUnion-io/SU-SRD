@@ -33,9 +33,8 @@ import {
   buildPilotActions,
   hasCurrencyChoice,
   hasVariableHot,
-  hotHeatFor,
 } from '../../lib/rules/actionPatches'
-import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { actionEconomy, itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
 import type { ActionsDeckProps, ResolveModel } from '../useActionsDeck'
@@ -210,6 +209,10 @@ function clickPrimaryAction(container: HTMLElement): { epCost: number } {
   return { epCost }
 }
 
+/** Heat for one activation at a picked X. */
+const heatAt = (action: Parameters<typeof actionEconomy>[0], x: number) =>
+  actionEconomy(action, x).heat
+
 describe('the resolve', () => {
   test('using an action opens its resolve with Activate + Roll', () => {
     const mech = makeMech()
@@ -315,7 +318,7 @@ describe('the resolve', () => {
       (a) => a.name === sys.actionName
     )
     if (!action) throw new Error(`missing action ${sys.actionName}`)
-    const expectedHeat = hotHeatFor(action, 2)
+    const expectedHeat = heatAt(action, 2)
     expect(calls).toHaveLength(1)
     expect(calls[0]?.patch.currentHeat).toBe(expectedHeat)
   })

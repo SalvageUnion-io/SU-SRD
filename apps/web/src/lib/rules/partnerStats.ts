@@ -30,16 +30,10 @@
 
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { RefEntity } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
-import { installedContributions, pinFor, sumContributions } from 'salvageunion-reference/rules'
+import { breakdownOf, installedContributions } from 'salvageunion-reference/rules'
 import { partnerGrantCount } from './partnerGrants'
-
-/** Mecha Companion's floor — "equal to your Union Crawler (Tech 3 minimum)". */
-const MECHA_COMPANION_MIN_TECH_LEVEL = 3
-
-/** Slug of the one partner carrying a tech-level floor. */
-const MECHA_COMPANION_REF = 'mecha-companion'
 
 /** Slug of the one partner whose own controller fields more than one. */
 const BIG_BROTHER_DRONE_REF = 'big-brother-drone'
@@ -110,9 +104,9 @@ export function partnerTechLevel(
   // `bonusPerTechLevel` — the crawler never touches them.
   if (partner.hostSchema === 'drones') return base
 
-  const fromCrawler = crawlerTechLevel ?? base
-  const isMechaCompanion = statBlock !== null && getEntitySlug(statBlock) === MECHA_COMPANION_REF
-  return isMechaCompanion ? Math.max(fromCrawler, MECHA_COMPANION_MIN_TECH_LEVEL) : fromCrawler
+  // A partner scales with the crawler but never below its printed Tech Level
+  // (Mecha Companion: Tech 3 minimum, Core Book p.68).
+  return Math.max(crawlerTechLevel ?? base, base)
 }
 
 /**
@@ -180,22 +174,10 @@ export function partnerDerivedStatsParts(
     const per = bonuses?.[key]
     const scaled = typeof per === 'number' ? per * steps : 0
     const sources = installedContributions(installed, key, { techLevel, stats: slotStats })
-    const derived = Math.max(0, base + scaled + sumContributions(sources))
     const pinField = PINS[key]
-    const pin = pinField ? partner[pinField] : undefined
-    const overridden = pin !== undefined && pinFor(pin, { derived }) !== undefined
-    out[key] = {
-      base,
-      installed: scaled,
-      // Tech-level scaling is an anonymous aggregate in `installed`; the
-      // installed items' contributions are named sources.
-      sources,
-      adjustment: 0,
-      derived,
-      ...(overridden ? { override: pin } : {}),
-      total: overridden ? pin : derived,
-      overridden,
-    }
+    // Tech-level scaling is an anonymous aggregate in `installed`; the
+    // installed items' contributions are named sources.
+    out[key] = breakdownOf(base, scaled, 0, pinField ? partner[pinField] : undefined, sources)
   }
   return out
 }

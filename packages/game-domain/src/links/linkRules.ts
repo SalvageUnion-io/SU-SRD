@@ -78,6 +78,12 @@ const LINK_ENDS: Readonly<
   'npc-to-crawler': { from: 'npc', to: 'crawler', exclusiveTo: false, slotted: true },
 }
 
+/** The end types a link type joins, from then to. */
+export function linkEnds(type: SoftLinkType): { from: EndType; to: EndType } {
+  const { from, to } = LINK_ENDS[type]
+  return { from, to }
+}
+
 /** The link type joining these two ends, or null when nothing may join them. */
 export function linkTypeFor(fromType: EndType, toType: EndType): SoftLinkType | null {
   for (const [type, ends] of Object.entries(LINK_ENDS) as [

@@ -1,4 +1,5 @@
-import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
+import { crawlerTechLevelOf, crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
@@ -34,12 +35,11 @@ import type { UnitsStore } from '../../replica/units'
  * `crawlerEconomyDialogState.model.ts`.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
-import { crawlerMaxSP, parseCrawlerTechLevel, resolvePoolStart } from 'salvageunion-reference/rules'
+import { crawlerMaxSP, crawlerUpkeepCost, resolvePoolStart } from 'salvageunion-reference/rules'
 import {
   Button,
   Cluster,
@@ -68,7 +68,6 @@ import {
   performDeterioration,
   performTradingRoll,
   poolAvailableAtOrAbove,
-  SCRAP_TLS,
   TRADING_AVAILABILITY_LABEL,
   tradingSourceTl,
   upkeepShortfall,
@@ -180,28 +179,25 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
   )
   const inDowntime = downtime?.stepIndex != null
 
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   const pool = crawler.scrapPool ?? {}
   const available = poolAvailableAtOrAbove(pool, tl)
   const shortfall = upkeepShortfall(pool, tl)
+  const upkeepCost = crawlerUpkeepCost(tl)
   const quote = crawlerUpgradeQuote(tl, crawler.upgradePool ?? 0)
 
   /** Pay: draw 5×TL+ scrap, credit the Upgrade Pool in full (auto-applies). */
   function handlePay() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
+    const freshTl = crawlerTechLevelOf(fresh)
     const paid = payUpkeepPatch(fresh, freshTl)
-    if (!paid) {
-      dispatch({ type: 'payFailed' })
-      return
-    }
     const drawText = paid.payment.draws.map((d) => `${d.count}× T${d.tl}`).join(' + ')
     runWrite(
       () => storeState.update('crawler', crawler.id, paid.patch, LIVE_SHEET_TXN),
       () =>
         dispatch({
           type: 'paid',
-          message: `Paid ${DOWNTIME_UPKEEP_SCRAP} Scrap (${drawText}) — Upgrade Pool now ${paid.patch.upgradePool}${
+          message: `Paid ${paid.payment.upgradeCredit} of ${paid.payment.cost} Scrap (${drawText || 'none'}) — Upgrade Pool now ${paid.patch.upgradePool}${
             quote ? ` of ${quote.cost}` : ''
           }.`,
         })
@@ -251,7 +247,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       }}
       title={buildSheetCopy('payUpkeep')}
       subtitle={buildSheetCopy('techScrapPerDowntime', {
-        downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP,
+        downtimeUpkeepScrap: upkeepCost,
         tl,
       })}
       width="narrow"
@@ -259,7 +255,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       <div style={BODY}>
         <p style={MUTED}>
           {buildSheetCopy('upkeepCostsScrapOfTech', {
-            downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP,
+            downtimeUpkeepScrap: upkeepCost,
             tl,
           })}
         </p>
@@ -277,16 +273,19 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
           </p>
         )}
         {choosePrompt && <FieldError>{buildSheetCopy('chooseABayAndMark')}</FieldError>}
-        {!done && inDowntime && shortfall === 0 && (
-          <FieldError>{buildSheetCopy('upkeepInPlay')}</FieldError>
-        )}
+        {!done && inDowntime && <FieldError>{buildSheetCopy('upkeepInPlay')}</FieldError>}
 
         <DialogActions>
           <Button variant="ghost" size="compact" onClick={onClose}>
             {done ? buildSheetCopy('done') : buildSheetCopy('cancel')}
           </Button>
-          {!done && shortfall === 0 && (
-            <Button variant="primary" size="compact" onClick={handlePay} disabled={inDowntime}>
+          {!done && (
+            <Button
+              variant={shortfall > 0 ? 'ghost' : 'primary'}
+              size="compact"
+              onClick={handlePay}
+              disabled={inDowntime}
+            >
               {buildSheetCopy('payUpkeep')}
             </Button>
           )}
@@ -307,7 +306,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
 
 function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   const storeState = store()
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   const upgradePool = crawler.upgradePool ?? 0
   const quote = crawlerUpgradeQuote(tl, upgradePool)
   const pool = crawler.scrapPool ?? {}
@@ -317,7 +316,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   /** Voluntary acceleration (p.218): move pool scrap into the Upgrade Pool. */
   function handleContribute() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
+    const freshTl = crawlerTechLevelOf(fresh)
     const result = contributeToUpgradePool(fresh.scrapPool ?? {}, freshTl, contribution)
     if (!result) return
     runWrite(() =>
@@ -336,7 +335,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
   /** Consume the pool, bump the Tech Level, repair damaged Bays (p.219). */
   function handleUpgrade() {
     const fresh = freshEntity(storeState, 'crawler', crawler)
-    const freshTl = parseCrawlerTechLevel(fresh.techLevel) ?? 1
+    const freshTl = crawlerTechLevelOf(fresh)
     const freshQuote = crawlerUpgradeQuote(freshTl, fresh.upgradePool ?? 0)
     if (!freshQuote?.affordable) return
     const patch: Partial<Crawler> = {
@@ -366,7 +365,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
               <strong>{upgradePool}</strong>). Damaged Bays are repaired during the upgrade; Upkeep
-              rises to {DOWNTIME_UPKEEP_SCRAP}× Tech {quote.toTl} Scrap.
+              rises to {crawlerUpkeepCost(quote.toTl)}× Tech {quote.toTl} Scrap.
             </p>
             {!quote.affordable && (
               <FieldError>
@@ -428,7 +427,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
 
 function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   const gate = bayGate(crawler, TRADING_BAY)
   const pool = crawler.scrapPool ?? {}
 
@@ -502,7 +501,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     value={fromTl}
                     onChange={(e) => dispatch({ type: 'pickFrom', tl: Number(e.target.value) })}
                   >
-                    {SCRAP_TLS.map((t) => (
+                    {NUMERIC_TECH_LEVELS.map((t) => (
                       <option key={t} value={t}>
                         {buildSheetCopy('techInPool', {
                           t,
@@ -520,7 +519,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     value={toTl}
                     onChange={(e) => dispatch({ type: 'pickTo', tl: Number(e.target.value) })}
                   >
-                    {SCRAP_TLS.map((t) => (
+                    {NUMERIC_TECH_LEVELS.map((t) => (
                       <option key={t} value={t}>
                         {buildSheetCopy('tech', { t })}
                       </option>

@@ -8,7 +8,6 @@
 import { useMemo, useState } from 'react'
 import type { EntitySchemaName, RefEnumSchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
-import type { TechLevel } from 'salvageunion-reference/rules'
 import type {
   EntityLike,
   FacetConfig,
@@ -19,8 +18,6 @@ import type {
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
 export const TECH_LEVEL_ROW = 'Tech level'
-
-const ALL_TLS: TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
 
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'
@@ -103,7 +100,7 @@ export function useSearcherPool({
     const present = new Set(
       pool.map((i) => i.techLevel).filter((t): t is TechLevelLike => t != null)
     )
-    return ALL_TLS.filter((tl) => present.has(tl))
+    return [...present].sort((a, b) => techLevelRank(a) - techLevelRank(b))
   }, [pool])
 
   const traitOptions = useMemo(() => {

@@ -1,3 +1,4 @@
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 /**
  * CrawlerLiveSheet — the crawler branch of the live sheet (`Sheet`
  * dispatches to it), in the poster layout.
@@ -16,16 +17,15 @@
 import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
-import type { TechLevel } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSPParts,
+  nextTierUpgradeCost,
   parseCrawlerTechLevel,
   pinFor,
   resolvePool,
-  tierUpgradeCost,
 } from 'salvageunion-reference/rules'
 import { linesFromBreakdown, Stat } from '../../components/index'
-import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
+import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
@@ -94,8 +94,7 @@ export function CrawlerLiveSheet({
   const tl = parseCrawlerTechLevel(crawler.techLevel)
   // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
   // is none (crawler-tech-levels.json), so no gauge.
-  const upgradeCost =
-    tl === undefined || tl >= 6 ? null : tierUpgradeCost(tl as TechLevel, (tl + 1) as TechLevel)
+  const upgradeCost = tl === undefined ? null : nextTierUpgradeCost(tl)
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
@@ -254,8 +253,8 @@ export function CrawlerLiveSheet({
                 ? undefined
                 : (next) => patch({ techLevel: crawlerTechLevelSlug(next) })
             }
-            min={SCRAP_TLS[0]}
-            ceiling={SCRAP_TLS[SCRAP_TLS.length - 1]}
+            min={NUMERIC_TECH_LEVELS[0]}
+            ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
             stepperLabel={buildSheetCopy('techLevel')}
           />
         }

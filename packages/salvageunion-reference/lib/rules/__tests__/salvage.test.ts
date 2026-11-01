@@ -9,11 +9,11 @@ import {
   AREA_SALVAGE_LABEL,
   areaSalvageBand,
   areaSalvageResult,
+  halfSalvageValue,
   MECH_SALVAGE_LABEL,
   mechSalvageAllows,
   mechSalvageBand,
   mechSalvageResult,
-  mechSalvageScrap,
 } from '../salvage'
 
 // ---------------------------------------------------------------------------
@@ -123,9 +123,9 @@ describe('Mech Salvage (p.248)', () => {
   })
 
   test('the 2–5 band pays half the Chassis Salvage Value, at least 1', () => {
-    expect(mechSalvageScrap(7)).toBe(3)
-    expect(mechSalvageScrap(8)).toBe(4)
-    expect(mechSalvageScrap(1)).toBe(1)
-    expect(mechSalvageScrap(0)).toBe(1)
+    expect(halfSalvageValue(7)).toBe(3)
+    expect(halfSalvageValue(8)).toBe(4)
+    expect(halfSalvageValue(1)).toBe(1)
+    expect(halfSalvageValue(0)).toBe(1)
   })
 })

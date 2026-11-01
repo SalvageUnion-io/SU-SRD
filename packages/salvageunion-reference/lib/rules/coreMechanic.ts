@@ -168,8 +168,7 @@ export function describeOverloadOutcome(
 
 /**
  * One-line readout for a mech Push's Heat Check outcome, surfaced next to the
- * re-rolled d20 in the quick-roll log. Mirrors HeatCheckControl's wording so
- * the FAB and the sheet-body readout never disagree.
+ * re-rolled d20 in the roll log.
  */
 export function describePushOutcome(
   nextHeat: number,

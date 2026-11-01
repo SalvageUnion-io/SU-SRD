@@ -46,20 +46,16 @@
       "packages/game-domain/src/links/linkRules.ts": 4,
       "packages/game-domain/src/starterSet/starterSet.ts": 6,
       "packages/salvageunion-reference/lib/rules/capacity.ts": 1,
-      "packages/salvageunion-reference/lib/rules/crawlerCapacity.ts": 2,
       "packages/salvageunion-reference/lib/rules/softWarnings.ts": 10,
       "packages/salvageunion-reference/lib/view/parts/facts.ts": 1
     },
-    "banned-variant": {
-      "apps/web/src/build/sheet/MechItemMini.tsx": 1
-    }
+    "banned-variant": {}
   },
   "ui-strings": {
     "hard-coded": {
       "apps/web/src/build/account/SettingsScreen.tsx": 2,
       "apps/web/src/build/account/SignInControl.tsx": 1,
       "apps/web/src/build/crawler/CrawlerReviewStep.tsx": 3,
-      "apps/web/src/build/crawler/CrawlerSystemsEditModal.tsx": 1,
       "apps/web/src/build/crawler/CrawlerTypeEditModal.tsx": 5,
       "apps/web/src/build/crawler/CrawlerWizard.tsx": 21,
       "apps/web/src/build/entityContainer/GamesMenu.tsx": 2,
@@ -91,12 +87,12 @@
       "apps/web/src/build/sheet/CargoLotItem.tsx": 8,
       "apps/web/src/build/sheet/ChipListEditor.tsx": 1,
       "apps/web/src/build/sheet/CrawlerEconomyControl.tsx": 17,
-      "apps/web/src/build/sheet/crawlerEconomyDialogState.model.ts": 5,
+      "apps/web/src/build/sheet/crawlerEconomyDialogState.model.ts": 4,
       "apps/web/src/build/sheet/CrawlerLiveSheet.tsx": 1,
       "apps/web/src/build/sheet/CrewSheetBanner.tsx": 4,
       "apps/web/src/build/sheet/destroyedUndoToast.model.ts": 1,
       "apps/web/src/build/sheet/LiveSheet.tsx": 3,
-      "apps/web/src/build/sheet/MechItemMini.tsx": 3,
+      "apps/web/src/build/sheet/MechItemMini.tsx": 1,
       "apps/web/src/build/sheet/mechSheet.model.ts": 4,
       "apps/web/src/build/sheet/PartnerCard.tsx": 1,
       "apps/web/src/build/sheet/PartnerHold.tsx": 2,

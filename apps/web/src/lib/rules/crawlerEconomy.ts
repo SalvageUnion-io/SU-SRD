@@ -4,9 +4,9 @@
  * Salvage Union Core Book p.218-223 — the Downtime economy loop around the
  * crawler's shared scrap pool:
  *
- * - Upkeep (p.218): 5 Scrap of the crawler's Tech Level per Downtime. Paid
- *   Upkeep credits the Upgrade Pool in full. Failing to pay triggers a d20
- *   roll on the Crawler Deterioration Table (p.219).
+ * - Upkeep (p.218): the tier's `upkeepCost` in Scrap of the crawler's Tech
+ *   Level per Downtime. Paid Upkeep credits the Upgrade Pool in full. Failing
+ *   to pay triggers a d20 roll on the Crawler Deterioration Table (p.219).
  * - Deterioration Table (p.219): 20 nothing; 11-19 lose 5 SP; 6-10 the player
  *   CHOOSES a Bay to damage; 2-5 a random Bay is damaged; 1 both (5 SP + a
  *   random Bay).
@@ -21,9 +21,11 @@
  *   Module; 6-10 a System; 2-5 a Module; 1 nothing. Wares are always one Tech
  *   Level above the crawler's.
  *
- * Pool draws follow the bay-repair convention:
- * scrap of the crawler's Tech Level *or higher* may pay a TL-denominated
- * cost, drawn from the lowest qualifying bucket upward.
+ * Every 'Scrap of its Tech Level or higher' payment (Upkeep, bay repair, mech
+ * repair) follows one policy: draw from the lowest qualifying bucket upward,
+ * and a short pool is advisory — it spends what it has, the shortfall is
+ * named, and the action still goes through (`poolShortfall`, `drawFromPool`
+ * with `partial`).
  *
  * This module is PURE: no React, no store, no real randomness — the d20 (and
  * the random-Bay pick) are injected via the shared `Roll` type so every
@@ -33,29 +35,15 @@
  * module never picks for the player.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
 import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
-import type { Roll, TechLevel } from 'salvageunion-reference/rules'
-import { tierUpgradeCost } from 'salvageunion-reference/rules'
+import type { Roll } from 'salvageunion-reference/rules'
+import {
+  crawlerUpkeepCost,
+  isNumericTechLevel,
+  NUMERIC_TECH_LEVELS,
+  nextTierUpgradeCost,
+} from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-
-/**
- * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
- *
- * Exported as the ONE home for this list: the crawler sheet's bucket steppers
- * and the exchange dialog's TL pickers read it.
- */
-export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
-
-/** Tech levels with a sequential upgrade above them, and that next level. */
-const UPGRADABLE_TLS = [1, 2, 3, 4, 5] as const
-const NEXT_TL: Record<(typeof UPGRADABLE_TLS)[number], TechLevel> = {
-  1: 2,
-  2: 3,
-  3: 4,
-  4: 5,
-  5: 6,
-}
 
 // ---------------------------------------------------------------------------
 // Pool draws (TL-or-higher, lowest bucket first)
@@ -66,7 +54,18 @@ export type PoolDraw = { tl: number; count: number }
 
 /** Total scrap available at `tl` or any higher bucket. */
 export function poolAvailableAtOrAbove(pool: ScrapPool, tl: number): number {
-  return SCRAP_TLS.filter((t) => t >= tl).reduce((sum, t) => sum + scrapPoolBucket(pool, t), 0)
+  return NUMERIC_TECH_LEVELS.filter((t) => t >= tl).reduce(
+    (sum, t) => sum + scrapPoolBucket(pool, t),
+    0
+  )
+}
+
+/**
+ * How much the pool is short of paying `cost` in Scrap of `tl` or higher
+ * (0 = covered). Advisory: callers name it and still pay what they can.
+ */
+export function poolShortfall(pool: ScrapPool, tl: number, cost: number): number {
+  return Math.max(0, cost - poolAvailableAtOrAbove(pool, tl))
 }
 
 /** A completed pool draw: the pool afterwards, and which buckets paid. */
@@ -75,11 +74,10 @@ export type PoolDrawResult = { pool: ScrapPool; draws: PoolDraw[] }
 export type DrawFromPoolOptions = {
   /**
    * Spend whatever the qualifying buckets hold instead of refusing when they
-   * cannot cover the full amount — the bay-repair convention, where a
-   * short pool still repairs and the shortfall is only surfaced on the button.
+   * cannot cover the full amount — the advisory payment policy Upkeep, bay
+   * repair and mech repair share.
    *
-   * Upkeep, Upgrade-Pool contributions and every other economy draw are
-   * all-or-nothing and leave this off.
+   * Upgrade-Pool contributions and trades are all-or-nothing and leave this off.
    */
   partial?: boolean
 }
@@ -114,7 +112,7 @@ export function drawFromPool(
   let next = pool
   let remaining = amount
   const draws: PoolDraw[] = []
-  for (const t of SCRAP_TLS) {
+  for (const t of NUMERIC_TECH_LEVELS) {
     if (t < tl || remaining <= 0) continue
     const take = Math.min(scrapPoolBucket(next, t), remaining)
     if (take > 0) {
@@ -135,38 +133,41 @@ export type UpkeepPayment = {
   pool: ScrapPool
   /** Which buckets paid (lowest qualifying first). */
   draws: PoolDraw[]
-  /** Scrap credited to the Upgrade Pool (paid Upkeep credits in full). */
+  /** The Upkeep due this Downtime. */
+  cost: number
+  /** Scrap credited to the Upgrade Pool: what was actually drawn. */
   upgradeCredit: number
+  /** What the pool could not cover (0 = paid in full); advisory. */
+  short: number
 }
 
 /** How much scrap the pool is short of this Downtime's Upkeep (0 = covered). */
 export function upkeepShortfall(pool: ScrapPool, crawlerTl: number): number {
-  // Upkeep: 5 Scrap of the crawler's Tech Level per Downtime (p.218).
-  return Math.max(0, DOWNTIME_UPKEEP_SCRAP - poolAvailableAtOrAbove(pool, crawlerTl))
+  return poolShortfall(pool, crawlerTl, crawlerUpkeepCost(crawlerTl))
 }
 
 /**
- * Pay Upkeep: draw 5 Scrap (crawler TL or higher) from the pool. The full
- * payment credits the Upgrade Pool (p.218). Returns `null` when the pool
- * can't cover it — the caller offers the Deterioration roll instead.
+ * Pay Upkeep: draw the tier's Upkeep (crawler TL or higher) from the pool and
+ * credit what was drawn to the Upgrade Pool (p.218). A short pool spends what
+ * it has, credits only that, and names the rest in `short` (advisory: the
+ * payment still lands); the caller still offers Deterioration.
  */
-export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment | null {
-  const drawn = drawFromPool(pool, crawlerTl, DOWNTIME_UPKEEP_SCRAP)
-  if (!drawn) return null
-  return { pool: drawn.pool, draws: drawn.draws, upgradeCredit: DOWNTIME_UPKEEP_SCRAP }
+export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment {
+  const cost = crawlerUpkeepCost(crawlerTl)
+  const short = poolShortfall(pool, crawlerTl, cost)
+  const drawn = drawFromPool(pool, crawlerTl, cost, { partial: true })
+  return { pool: drawn.pool, draws: drawn.draws, cost, upgradeCredit: cost - short, short }
 }
 
 /**
  * Paid Upkeep as the one crawler patch both the Live Sheet and Play write:
- * the drawn pool and the credited Upgrade Pool. Null when the pool can't
- * cover it.
+ * the drawn pool and the credited Upgrade Pool.
  */
 export function payUpkeepPatch(
   crawler: Pick<Crawler, 'scrapPool' | 'upgradePool'>,
   crawlerTl: number
-): { patch: { scrapPool: ScrapPool; upgradePool: number }; payment: UpkeepPayment } | null {
+): { patch: { scrapPool: ScrapPool; upgradePool: number }; payment: UpkeepPayment } {
   const payment = payUpkeep(crawler.scrapPool ?? {}, crawlerTl)
-  if (payment === null) return null
   const upgradePool = (crawler.upgradePool ?? 0) + payment.upgradeCredit
   return { patch: { scrapPool: payment.pool, upgradePool }, payment }
 }
@@ -287,12 +288,8 @@ export function crawlerUpgradeQuote(
   crawlerTl: number,
   upgradePool: number
 ): CrawlerUpgradeQuote | null {
-  if (crawlerTl < 1 || crawlerTl >= 6) return null
-  // Membership narrow (not a cast): non-integer inputs fall out here exactly
-  // as tierUpgradeCost would have resolved them — no record, null cost.
-  const fromTl = UPGRADABLE_TLS.find((tl) => tl === crawlerTl)
-  if (fromTl === undefined) return null
-  const cost = tierUpgradeCost(fromTl, NEXT_TL[fromTl])
+  // The data's null upgradeCost marks the top tier; no record, no cost.
+  const cost = nextTierUpgradeCost(crawlerTl)
   if (cost === null) return null
   return {
     fromTl: crawlerTl,
@@ -327,8 +324,7 @@ export function exchangeStep(fromTl: number, toTl: number): number {
  */
 export function convertedCount(fromTl: number, fromCount: number, toTl: number): number | null {
   if (fromCount <= 0 || fromTl === toTl) return null
-  if (!SCRAP_TLS.includes(fromTl as (typeof SCRAP_TLS)[number])) return null
-  if (!SCRAP_TLS.includes(toTl as (typeof SCRAP_TLS)[number])) return null
+  if (!isNumericTechLevel(fromTl) || !isNumericTechLevel(toTl)) return null
   const value = fromTl * fromCount // each piece of Scrap is worth its Tech Level (p.223)
   return value % toTl === 0 ? value / toTl : null
 }

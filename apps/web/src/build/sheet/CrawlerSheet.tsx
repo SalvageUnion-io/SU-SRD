@@ -1,3 +1,5 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
@@ -56,7 +58,6 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import {
   Button,
   EmptyState,
@@ -74,12 +75,8 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
-import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import {
-  bayRepairPatch,
-  bayRepairShortfall,
-  resolveCrawlerSystem,
-} from '../../lib/rules/crawlerItems'
+import { poolShortfall } from '../../lib/rules/crawlerEconomy'
+import { BAY_REPAIR_COST, bayRepairPatch, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import {
   addToExotic,
@@ -210,13 +207,13 @@ export function CrawlerSheet({
     runWrite(() => storeState.update('crawler', crawler.id, fields, LIVE_SHEET_MANUAL))
   }
 
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   const bays = crawler.crawlerBays ?? []
   const intactBays = bays.filter((b) => (b.condition ?? 'intact') === 'intact').length
   const pool = crawler.scrapPool ?? {}
 
   // Repair affordability is advisory only — TL+ buckets count.
-  const repairShortfall = bayRepairShortfall(pool, tl)
+  const repairShortfall = poolShortfall(pool, tl, BAY_REPAIR_COST)
 
   /**
    * Repair a damaged bay (`bayRepairPatch`: 5 Scrap from the crawler-TL
@@ -306,7 +303,7 @@ export function CrawlerSheet({
 
   // Read leaves what is empty out (ruleset §1.2): an empty state only where
   // Edit can fill it.
-  const poolEmpty = SCRAP_TLS.every((t) => scrapPoolBucket(pool, t) === 0)
+  const poolEmpty = NUMERIC_TECH_LEVELS.every((t) => scrapPoolBucket(pool, t) === 0)
   const showExotic = !readOnly || hasExotic(pool)
   const holdEmpty = (crawler.cargoLots ?? []).length === 0
   const showPool = !readOnly || !poolEmpty
@@ -352,7 +349,7 @@ export function CrawlerSheet({
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
         <SlabSection title={buildSheetCopy('scrapPool')} size="mini" bodyStyle={POOL_ROW}>
-          {SCRAP_TLS.map((t) => (
+          {NUMERIC_TECH_LEVELS.map((t) => (
             <Stat
               key={t}
               label={buildSheetCopy('t', { t })}

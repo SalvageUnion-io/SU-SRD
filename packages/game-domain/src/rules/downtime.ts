@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from '../crawlerLevel'
 /**
  * Union Crawler Downtime Procedure.
  *
@@ -34,7 +35,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
   resolveChassisRef,
@@ -79,9 +79,6 @@ export function allDowntimeSteps(): DowntimeSteps {
     clearUsed: true,
   }
 }
-
-/** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime. */
-export const DOWNTIME_UPKEEP_SCRAP = 5
 
 /**
  * The Crawler Downtime step Upkeep belongs to (p.227). Inside a Game's
@@ -174,7 +171,7 @@ export function medBayStatus(crawler: Pick<Crawler, 'crawlerBays' | 'techLevel'>
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   const operational = present && !damaged
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   return {
     present,
     damaged,

@@ -25,7 +25,6 @@ import {
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
-  hotHeatFor,
   isAreaSalvage,
   isDestructiveOutcome,
   mechPush,
@@ -35,12 +34,17 @@ import {
   shutdownTogglePatch,
   VENT_PATCH,
 } from '../actionPatches'
+import { actionEconomy } from '../mechItems'
 
 /** A deterministic roller that returns the queued values, then 20. */
 function seqRoll(values: number[]): Roll {
   let i = 0
   return () => values[i++] ?? 20
 }
+
+/** Heat for one activation at a picked X. */
+const heatAt = (action: Parameters<typeof actionEconomy>[0], x: number) =>
+  actionEconomy(action, x).heat
 
 describe('reactor patches', () => {
   test('pushPatch: passed Heat Check adds +2 Heat, no shutdown', () => {
@@ -335,13 +339,13 @@ describe('resolve flow helpers', () => {
   })
 
   test('hotHeatFor: variable Hot uses the picked X; fixed Hot keeps its printed value', () => {
-    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 'X' }] }), 4)).toBe(4)
-    expect(hotHeatFor(act({ traits: [{ type: 'hot', amount: 3 }] }), 4)).toBe(3)
+    expect(heatAt(act({ traits: [{ type: 'hot', amount: 'X' }] }), 4)).toBe(4)
+    expect(heatAt(act({ traits: [{ type: 'hot', amount: 3 }] }), 4)).toBe(3)
     // A fixed Hot with no numeric amount still costs at least 1 (matches actionEconomy).
-    expect(hotHeatFor(act({ traits: [{ type: 'hot' }] }), 4)).toBe(1)
+    expect(heatAt(act({ traits: [{ type: 'hot' }] }), 4)).toBe(1)
     // Mixed fixed + variable sum together.
     expect(
-      hotHeatFor(
+      heatAt(
         act({
           traits: [
             { type: 'hot', amount: 2 },
@@ -351,7 +355,7 @@ describe('resolve flow helpers', () => {
         5
       )
     ).toBe(7)
-    expect(hotHeatFor(act({}), 4)).toBe(0)
+    expect(heatAt(act({}), 4)).toBe(0)
   })
 
   test('economyForActivation: overrides Heat only for variable Hot, else passes through', () => {

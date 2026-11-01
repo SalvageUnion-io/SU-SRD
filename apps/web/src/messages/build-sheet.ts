@@ -30,7 +30,7 @@ export const buildSheetCopy = messages({
   upkeepCostsScrapOfTech:
     'Upkeep costs {downtimeUpkeepScrap} Scrap of Tech {tl} or higher each Downtime. Paying it credits the Upgrade Pool in full; failing to pay rolls the Crawler Deterioration Table.',
   thePoolIsScrapShort:
-    'The pool is {shortfall} scrap short — Upkeep fails unless the table rules otherwise. Trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.',
+    'The pool is {shortfall} scrap short. Paying anyway spends what it has; or trade Scrap between Tech Levels at the Trading Bay, or roll Deterioration.',
   chooseABayAndMark: 'Choose a Bay and mark it Damaged using its status badge on the sheet.',
   upkeepInPlay:
     'A Downtime is running: pay its Upkeep in Play, where it is paid once for the whole crew.',
@@ -156,7 +156,9 @@ export const buildSheetCopy = messages({
   repair2: 'Repair {name}',
   repairingCostsScrapTechOr:
     'Repairing costs {cost} Scrap (Tech {max} or higher) from the crawler pool.',
-  deductFromTheTechPool: 'Deduct {cost} from the Tech {value} pool',
+  deductFromTheTechPool: 'Deduct {cost} from Tech {value}+ Scrap',
+  repairPoolShort:
+    'The pool is {short} short: paying spends what it has, and the repair still lands.',
   repairAndDeductScrap: 'Repair {name} and deduct scrap',
   repairWithoutDeducting: 'Repair without deducting',
   repairWithoutDeductingScrap: 'Repair {name} without deducting scrap',
@@ -251,7 +253,7 @@ export const buildSheetCopy = messages({
   recharge: 'Recharge',
   markUsed2: 'Mark used',
   scrap2: '+ Scrap',
-  addScrap3Slots: 'Add Scrap (3 slots)',
+  addScrapSlots: 'Add Scrap ({slots} slots)',
   newItemName: 'New item name',
   itemName: 'Item name',
   newItemSlotCost: 'New item slot cost',

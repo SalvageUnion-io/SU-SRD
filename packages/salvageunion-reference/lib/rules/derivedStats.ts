@@ -23,6 +23,7 @@ import type { ActiveEffects, ResolvedContribution } from './contributions'
 import { abilityContributions, installedContributions, sumContributions } from './contributions'
 import { crawlerMaxSpBonus } from './creation'
 import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs'
+import { TECH_LEVEL_MAX } from './types'
 
 // ---------------------------------------------------------------------------
 // Pilot
@@ -167,7 +168,7 @@ function pilotStatTrainingContributions(
   stat: 'maxHp' | 'maxAp'
 ): ResolvedContribution[] {
   if (crawlerTechLevel === undefined || !Number.isFinite(crawlerTechLevel)) return []
-  const tech = Math.min(6, Math.max(1, Math.trunc(crawlerTechLevel)))
+  const tech = Math.min(TECH_LEVEL_MAX, Math.max(1, Math.trunc(crawlerTechLevel)))
   const tiers = tech - 1
   if (tiers === 0) return []
   const perTier = stat === 'maxHp' ? STAT_TRAINING_HP_PER_TIER : STAT_TRAINING_AP_PER_TIER
@@ -387,7 +388,7 @@ export function pinFor(next: number, parts: Pick<StatBreakdown, 'derived'>): num
 }
 
 /** Assemble a breakdown, applying the pin last so `derived` is always retained. */
-function breakdownOf(
+export function breakdownOf(
   base: number,
   installed: number,
   adjustment: number,
@@ -421,96 +422,62 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
  * never produces a negative maximum. `contributions` is the only numeric
  * encoding.
  */
-export function mechMaxSPParts(
+/** The mech stats `mechStatParts` derives: chassis key, then its stored modifier and pin. */
+const MECH_STAT_FIELDS = {
+  structurePoints: ['maxSpModifier', 'maxSpOverride'],
+  energyPoints: ['maxEpModifier', 'maxEpOverride'],
+  heatCapacity: ['maxHeatModifier', 'maxHeatOverride'],
+  cargoCapacity: ['maxCargoModifier', 'maxCargoOverride'],
+} as const
+
+/** One table-driven mech breakdown: chassis stat, modifier, pin, ability and installed contributions. */
+function mechStatParts(
+  stat: keyof typeof MECH_STAT_FIELDS,
   mech: MechDerivationInput,
   chassis?: ChassisStats | null,
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  return breakdownOf(c.structurePoints ?? 0, 0, mech.maxSpModifier ?? 0, mech.maxSpOverride, [
-    ...abilityContributions(
-      pilot?.abilities,
-      'pilotedMech',
-      'structurePoints',
-      pilot?.techLevel,
-      pilot?.active
-    ),
-    ...installedContributions(
-      [...(mech.systems ?? []), ...(mech.modules ?? [])],
-      'structurePoints',
-      {
-        techLevel: pilot?.techLevel,
-        active: pilot?.active,
-        stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-      }
-    ),
+  const [modifier, override] = MECH_STAT_FIELDS[stat]
+  const { techLevel, active, abilities } = pilot ?? {}
+  const installed = [...(mech.systems ?? []), ...(mech.modules ?? [])]
+  const stats = { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 }
+  return breakdownOf(c[stat] ?? 0, 0, mech[modifier] ?? 0, mech[override], [
+    ...abilityContributions(abilities, 'pilotedMech', stat, techLevel, active),
+    ...installedContributions(installed, stat, { techLevel, active, stats }),
   ])
+}
+
+export function mechMaxSPParts(
+  m: MechDerivationInput,
+  c?: ChassisStats | null,
+  p?: PilotingContext
+) {
+  return mechStatParts('structurePoints', m, c, p)
 }
 
 export function mechMaxEPParts(
-  mech: MechDerivationInput,
-  chassis?: ChassisStats | null,
-  pilot?: PilotingContext
-): StatBreakdown {
-  const c = resolveChassis(mech, chassis)
-  return breakdownOf(c.energyPoints ?? 0, 0, mech.maxEpModifier ?? 0, mech.maxEpOverride, [
-    ...abilityContributions(
-      pilot?.abilities,
-      'pilotedMech',
-      'energyPoints',
-      pilot?.techLevel,
-      pilot?.active
-    ),
-    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'energyPoints', {
-      techLevel: pilot?.techLevel,
-      active: pilot?.active,
-      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-    }),
-  ])
+  m: MechDerivationInput,
+  c?: ChassisStats | null,
+  p?: PilotingContext
+) {
+  return mechStatParts('energyPoints', m, c, p)
 }
 
 export function mechMaxHeatParts(
-  mech: MechDerivationInput,
-  chassis?: ChassisStats | null,
-  pilot?: PilotingContext
-): StatBreakdown {
-  const c = resolveChassis(mech, chassis)
-  return breakdownOf(c.heatCapacity ?? 0, 0, mech.maxHeatModifier ?? 0, mech.maxHeatOverride, [
-    ...abilityContributions(
-      pilot?.abilities,
-      'pilotedMech',
-      'heatCapacity',
-      pilot?.techLevel,
-      pilot?.active
-    ),
-    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'heatCapacity', {
-      techLevel: pilot?.techLevel,
-      active: pilot?.active,
-      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-    }),
-  ])
+  m: MechDerivationInput,
+  c?: ChassisStats | null,
+  p?: PilotingContext
+) {
+  return mechStatParts('heatCapacity', m, c, p)
 }
 
 export function mechMaxCargoParts(
-  mech: MechDerivationInput,
-  chassis?: ChassisStats | null,
-  pilot?: PilotingContext
-): StatBreakdown {
-  const c = resolveChassis(mech, chassis)
-  return breakdownOf(c.cargoCapacity ?? 0, 0, mech.maxCargoModifier ?? 0, mech.maxCargoOverride, [
-    ...abilityContributions(
-      pilot?.abilities,
-      'pilotedMech',
-      'cargoCapacity',
-      pilot?.techLevel,
-      pilot?.active
-    ),
-    ...installedContributions([...(mech.systems ?? []), ...(mech.modules ?? [])], 'cargoCapacity', {
-      techLevel: pilot?.techLevel,
-      active: pilot?.active,
-      stats: { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 },
-    }),
-  ])
+  m: MechDerivationInput,
+  c?: ChassisStats | null,
+  p?: PilotingContext
+) {
+  return mechStatParts('cargoCapacity', m, c, p)
 }
 
 // The scalar forms every existing call site uses. Thin `.total` wrappers so the

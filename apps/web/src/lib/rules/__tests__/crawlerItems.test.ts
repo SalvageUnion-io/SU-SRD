@@ -5,15 +5,16 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { BAY_REPAIR_COST, bayRepairPatch, bayRepairShortfall } from '../crawlerItems'
+import { poolShortfall } from '../crawlerEconomy'
+import { BAY_REPAIR_COST, bayRepairPatch } from '../crawlerItems'
 
-describe('bayRepairShortfall', () => {
+describe('poolShortfall for a bay repair', () => {
   test('0 when the TL-or-higher buckets cover the cost', () => {
-    expect(bayRepairShortfall({ tl2: 3, tl3: 2 }, 2)).toBe(0)
+    expect(poolShortfall({ tl2: 3, tl3: 2 }, 2, BAY_REPAIR_COST)).toBe(0)
   })
 
   test('lower-TL scrap does not count', () => {
-    expect(bayRepairShortfall({ tl1: 9, tl2: 1 }, 2)).toBe(BAY_REPAIR_COST - 1)
+    expect(poolShortfall({ tl1: 9, tl2: 1 }, 2, BAY_REPAIR_COST)).toBe(BAY_REPAIR_COST - 1)
   })
 })
 

@@ -1,6 +1,7 @@
 import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import {
   CRAFT_STEP_NAME,
+  currentDowntimeStep,
   downtimeGuideSteps,
   downtimeStepCount,
   isUpkeepStep,
@@ -60,9 +61,8 @@ export function beginDowntime(place: DowntimePlace, runId: string, at: number): 
  */
 export function moveDowntime(place: DowntimePlace, next: (running: Running) => number): void {
   const running = requireRunning(place)
-  const last = downtimeStepCount() - 1
-  if (last < 0) throw new Error('The Crawler Downtime guide has no steps')
-  const stepIndex = Math.max(0, Math.min(Math.trunc(next(running)), last))
+  const { index: stepIndex, count } = currentDowntimeStep(Math.trunc(next(running)))
+  if (count === 0) throw new Error('The Crawler Downtime guide has no steps')
   if (stepIndex === running.stepIndex) return
   place.write({ ...running, stepIndex, completedBy: [] })
 }

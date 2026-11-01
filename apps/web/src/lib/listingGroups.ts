@@ -7,6 +7,7 @@ import {
   getTechLevel,
   getTree,
   getUniqueSources,
+  techLevelRank,
 } from 'salvageunion-reference'
 
 /**
@@ -17,12 +18,14 @@ import {
 
 export type TechLevel = number | 'B' | 'N'
 
-/** The book's tech-level order: TL1–6, then Bio-tech and Nanite. */
-const TL_ORDER: readonly TechLevel[] = [1, 2, 3, 4, 5, 6, 'B', 'N']
+/** A group key ('1'…'6', 'B', 'N') as a Tech Level. */
+function keyLevel(key: string): TechLevel {
+  return key === 'B' || key === 'N' ? key : Number(key)
+}
 
-/** A schema's tech levels in the book's order. */
+/** A schema's tech levels in the book's order (`techLevelRank`): TL1–6, then Bio-tech and Nanite. */
 export function orderTechLevels(techLevels: readonly TechLevel[]): TechLevel[] {
-  return TL_ORDER.filter((tl) => techLevels.some((level) => String(level) === String(tl)))
+  return [...new Set(techLevels)].sort((a, b) => techLevelRank(a) - techLevelRank(b))
 }
 
 /** A tech level as a group heading and a filter token say it. */
@@ -141,8 +144,7 @@ export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGrou
   }
   const groups = [...byKey.values()]
   if (groupBy === 'tl') {
-    const rank = (key: string) => TL_ORDER.findIndex((tl) => String(tl) === key)
-    groups.sort((a, b) => rank(a.key) - rank(b.key))
+    groups.sort((a, b) => techLevelRank(keyLevel(a.key)) - techLevelRank(keyLevel(b.key)))
   }
   if (groupBy === 'kind') groups.sort((a) => (a.key === 'base' ? -1 : 1))
   if (groupBy === 'bay') groups.sort((a) => (a.key === 'standard' ? -1 : 1))

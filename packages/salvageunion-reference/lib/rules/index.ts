@@ -29,7 +29,6 @@ export {
   describePushOutcome,
   performCoreRoll,
 } from './coreMechanic'
-export { computeCrawlerCapacity } from './crawlerCapacity'
 export { isWeaponSystem } from './crawlerSystems'
 export type { CrawlerMutationInput, MechCreationBudget } from './creation'
 export {
@@ -56,6 +55,7 @@ export {
 } from './creation'
 export type { StatBreakdown } from './derivedStats'
 export {
+  breakdownOf,
   crawlerMaxSP,
   crawlerMaxSPParts,
   isPilotDead,
@@ -110,12 +110,12 @@ export type {
 export {
   AREA_SALVAGE_TABLE,
   areaSalvageResult,
+  halfSalvageValue,
   MECH_SALVAGE_TABLE,
   mechSalvageAllows,
   mechSalvageResult,
-  mechSalvageScrap,
 } from './salvage'
-export { tierUpgradeCost } from './scrap'
+export { crawlerUpkeepCost, nextTierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,
@@ -125,5 +125,5 @@ export type {
   Roll,
   SoftWarning,
   SoftWarningContext,
-  TechLevel,
 } from './types'
+export { isNumericTechLevel, NUMERIC_TECH_LEVELS, TECH_LEVEL_MAX } from './types'

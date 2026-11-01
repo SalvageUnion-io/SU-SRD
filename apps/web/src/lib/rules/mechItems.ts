@@ -7,13 +7,11 @@
  * results to persistence, MechItemCard renders them.
  */
 
-import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import { scrapPoolBucket } from '../cargo/cargoTransfer'
+import { halfSalvageValue, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 
 export type MechItem = RefSystem | RefModule
 
@@ -47,23 +45,38 @@ function itemActions(entity: MechItem): RefMetaAction[] {
   return SalvageUnionReference.resolveActions(entity) ?? []
 }
 
+/**
+ * The one per-action reducer: EP/AP from the activation cost, Heat from Hot
+ * (each trait its printed amount, min 1; a variable Hot 'X' uses `hotX` when
+ * given, clamped at 0), uses from the largest Uses trait.
+ */
+export function actionEconomy(action: RefMetaAction, hotX?: number): MechItemEconomy {
+  const traits = action.traits ?? []
+  const epCost = typeof action.activationCost === 'number' ? action.activationCost : 0
+  const heat = traits
+    .filter((t) => t.type === 'hot')
+    .reduce(
+      (sum, t) =>
+        sum +
+        (t.amount === 'X' && hotX !== undefined ? Math.max(0, hotX) : Math.max(1, traitAmount(t))),
+      0
+    )
+  const maxUses = traits
+    .filter((t) => t.type === 'uses')
+    .reduce((m, t) => Math.max(m, traitAmount(t)), 0)
+  return { epCost, heat, maxUses }
+}
+
+/**
+ * The item's economy: its primary action's (the first with a numeric
+ * activation cost, else the first), with `maxUses` the largest across all.
+ */
 export function itemEconomy(entity: MechItem): MechItemEconomy {
   const actions = itemActions(entity)
-  // The primary action drives the Use button: the first one with a numeric
-  // activation cost, falling back to the first action.
   const primary = actions.find((a) => typeof a.activationCost === 'number') ?? actions[0]
-  const epCost = typeof primary?.activationCost === 'number' ? primary.activationCost : 0
-  const heat = (primary?.traits ?? [])
-    .filter((t) => t.type === 'hot')
-    .reduce((sum, t) => sum + Math.max(1, traitAmount(t)), 0)
-  const maxUses = actions.reduce(
-    (max, action) =>
-      (action.traits ?? [])
-        .filter((t) => t.type === 'uses')
-        .reduce((m, t) => Math.max(m, traitAmount(t)), max),
-    0
-  )
-  return { epCost, heat, maxUses }
+  const base = primary ? actionEconomy(primary) : { epCost: 0, heat: 0, maxUses: 0 }
+  const maxUses = Math.max(0, ...actions.map((a) => actionEconomy(a).maxUses))
+  return { ...base, maxUses }
 }
 
 /** Uses left on an item: the stored count, capped at its max; 0 when it has no uses counter. */
@@ -82,25 +95,7 @@ export function itemUsesRemaining(maxUses: number, usesRemaining: number | undef
  * (p.233), immediately followed by "Specific beats general".
  */
 export function repairScrapCost(salvageValue: number | undefined): number {
-  return Math.max(1, Math.floor((salvageValue ?? 1) / 2))
-}
-
-/**
- * The crawler scrap-pool bucket a repair could deduct from: the LOWEST tech
- * level ≥ the item's TL whose bucket holds at least `cost` (Scrap TL must be
- * ≥ item TL; higher-TL scrap is allowed). Returns null when no bucket
- * qualifies — the repair still proceeds without a deduction (advisory,
- * never a block).
- */
-export function repairPoolTl(
-  pool: ScrapPool,
-  itemTl: number | undefined,
-  cost: number
-): number | null {
-  for (let tl = Math.max(1, itemTl ?? 1); tl <= 6; tl++) {
-    if (scrapPoolBucket(pool, tl) >= cost) return tl
-  }
-  return null
+  return halfSalvageValue(salvageValue ?? 1)
 }
 
 /** Manual status-badge cycle: Intact → Damaged → Destroyed → Intact. */

@@ -43,9 +43,8 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { heatCheckPatch } from './heatCheck'
 import type { MechItemEconomy } from './mechItems'
-import { resolveModule, resolveSystem } from './mechItems'
+import { actionEconomy, resolveModule, resolveSystem } from './mechItems'
 import { resolveEquipment } from './pilotInventory'
 
 // ---------------------------------------------------------------------------
@@ -53,24 +52,26 @@ import { resolveEquipment } from './pilotInventory'
 // ---------------------------------------------------------------------------
 
 /**
- * Strip the destructive `destroyed` flag out of a shared `heatCheckPatch`
- * result. In the sheet, `heatCheckPatch` auto-sets `destroyed` on a Meltdown
- * (overload roll = 1); Play holds a STRICTER ADR-007 line — a Meltdown's
- * mech-destruction is a player-confirmed step (like Critical Damage), never
- * silent bookkeeping. All the non-destructive fields (Heat, shutdown,
- * vulnerable, SP) still auto-apply; `meltdown` tells the caller to offer the
- * confirm. The shared `heatCheckPatch` (MechLiveSheet's path) is left untouched.
+ * A resolved Heat Check as the mech patch Play writes. Heat, the result and
+ * the Shutdown band (shutdown, Vulnerable, SP) auto-apply; a Meltdown's
+ * destruction is a player-confirmed step (ADR-007, like Critical Damage), so
+ * it only raises `meltdown` for the caller to offer the confirm.
  */
-function autoApplyPatch(patch: Partial<Mech>): { patch: Partial<Mech>; meltdown: boolean } {
-  if (!patch.destroyed) return { patch, meltdown: false }
-  const rest = { ...patch }
-  delete rest.destroyed
-  return { patch: rest, meltdown: true }
+function reactorPatch(
+  effect: HeatCheckEffect,
+  currentHeat: number
+): { patch: Partial<Mech>; meltdown: boolean } {
+  const patch: Partial<Mech> = { lastHeatCheck: effect.result, currentHeat }
+  if (effect.shutdown) {
+    patch.shutdown = true
+    patch.vulnerable = true
+    patch.currentSP = effect.nextSP
+  }
+  return { patch, meltdown: effect.destroyed }
 }
 
 /**
- * Push: +2 Heat then an immediate Heat Check. Non-destructive bookkeeping
- * auto-applies via the shared `heatCheckPatch`; a Meltdown's `destroyed` is
+ * Push: +2 Heat then an immediate Heat Check (`reactorPatch`): a Meltdown is
  * held back (`meltdown: true`) for the caller's player-confirm (ADR-007).
  * Destroyed System/Module bands are likewise left for the player to mark.
  */
@@ -89,7 +90,7 @@ export function pushPatch(args: {
   meltdown: boolean
 } {
   const { nextHeat, effect } = performPush(args)
-  const { patch, meltdown } = autoApplyPatch(heatCheckPatch(effect, nextHeat))
+  const { patch, meltdown } = reactorPatch(effect, nextHeat)
   return { patch, effect, nextHeat, meltdown }
 }
 
@@ -179,7 +180,7 @@ export function heatCheckOncePatch(args: {
   meltdown: boolean
 } {
   const effect = performHeatCheck(args)
-  const { patch, meltdown } = autoApplyPatch(heatCheckPatch(effect, args.heat))
+  const { patch, meltdown } = reactorPatch(effect, args.heat)
   return { patch, effect, meltdown }
 }
 
@@ -250,22 +251,6 @@ export type PlayAction = {
   action: RefMetaAction
   /** Live condition of the owning item ('intact' for chassis/pilot abilities). */
   condition: ItemCondition
-}
-
-function traitAmount(trait: { amount?: unknown }): number {
-  return typeof trait.amount === 'number' ? trait.amount : 0
-}
-
-/** Per-action economy (EP/AP from cost, Heat from Hot, uses from Uses). */
-function actionEconomy(action: RefMetaAction): MechItemEconomy {
-  const epCost = typeof action.activationCost === 'number' ? action.activationCost : 0
-  const heat = (action.traits ?? [])
-    .filter((t) => t.type === 'hot')
-    .reduce((sum, t) => sum + Math.max(1, traitAmount(t)), 0)
-  const maxUses = (action.traits ?? [])
-    .filter((t) => t.type === 'uses')
-    .reduce((m, t) => Math.max(m, traitAmount(t)), 0)
-  return { epCost, heat, maxUses }
 }
 
 function entityActions(entity: RefMetaEntity): RefMetaAction[] {
@@ -457,21 +442,6 @@ export function hasVariableHot(action: RefMetaAction): boolean {
 }
 
 /**
- * The Hot heat one activation produces given a player-picked `hotX` for the
- * variable Hot trait. Fixed Hot traits keep their printed amount (min 1, matching
- * `actionEconomy`); the variable 'X' Hot uses the picked value (clamped ≥ 0).
- * Non-Hot actions produce 0.
- */
-export function hotHeatFor(action: RefMetaAction, hotX: number): number {
-  return (action.traits ?? [])
-    .filter((t) => t.type === 'hot')
-    .reduce((sum, t) => {
-      if (t.amount === 'X') return sum + Math.max(0, hotX)
-      return sum + Math.max(1, traitAmount(t))
-    }, 0)
-}
-
-/**
  * Per-activation economy with a player-picked X folded in. When the action has a
  * variable Hot ('X'), the Heat is recomputed from `hotX`; otherwise the base
  * economy passes through unchanged. EP/uses are untouched (only Hot is variable).
@@ -482,7 +452,7 @@ export function economyForActivation(
   hotX: number
 ): MechItemEconomy {
   if (!hasVariableHot(action)) return base
-  return { ...base, heat: hotHeatFor(action, hotX) }
+  return { ...base, heat: actionEconomy(action, hotX).heat }
 }
 
 /** The economy with its Hot Heat scaled by a Scene's conditions (`sceneHeatScale`), rounded down. */

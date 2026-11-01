@@ -1,3 +1,4 @@
+import { isNumericTechLevel } from 'salvageunion-reference/rules'
 /**
  * cargoTransfer — the single pure reducer for cargo crossing the CARRIER⇄DEPOT
  * boundary: one reducer over both lot lists plus the depot scrap pool;
@@ -100,7 +101,7 @@ export function carrierCargoUsage(
 type ScrapTlKey = 'tl1' | 'tl2' | 'tl3' | 'tl4' | 'tl5' | 'tl6'
 
 function scrapTlKey(tl: number): ScrapTlKey | null {
-  return Number.isInteger(tl) && tl >= 1 && tl <= 6 ? (`tl${tl}` as ScrapTlKey) : null
+  return isNumericTechLevel(tl) ? `tl${tl}` : null
 }
 
 /** Read a TL bucket from the pool. Absent buckets read as 0 (schema contract). */

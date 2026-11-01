@@ -1,4 +1,4 @@
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
+import { crawlerUpkeepCost, parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../replica/units'
 /**
  * The Units column's unit boxes (play.md §4): the pilot,
@@ -25,7 +25,6 @@ import type { UnitsStore } from '../replica/units'
  * `.su-play-unit__*`, in `styles/play/units.css`, which `PlayFrame` loads.
  */
 
-import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -421,7 +420,7 @@ export function PlayCrawlerUnit({
         <div style={CHIPS}>
           <Stat
             label={playCopy('upkeep')}
-            value={`${DOWNTIME_UPKEEP_SCRAP} Scrap · T${tl}`}
+            value={`${crawlerUpkeepCost(tl)} Scrap · T${tl}`}
             size="mini"
           />
         </div>

@@ -9,12 +9,6 @@ import {
 } from '../crawlerEconomyDialogState.model'
 
 describe('upkeepReducer', () => {
-  test('a failed payment explains itself but leaves the dialog open', () => {
-    const next = upkeepReducer(INITIAL_UPKEEP_STATE, { type: 'payFailed' })
-    expect(next.done).toBe(false)
-    expect(next.result).toContain('roll Deterioration')
-  })
-
   test('paying finishes the dialog', () => {
     const next = upkeepReducer(INITIAL_UPKEEP_STATE, { type: 'paid', message: 'Paid 5 Scrap' })
     expect(next).toEqual({ result: 'Paid 5 Scrap', choosePrompt: false, done: true })

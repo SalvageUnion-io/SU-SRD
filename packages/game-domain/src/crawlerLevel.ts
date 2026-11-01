@@ -24,6 +24,11 @@ import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { Crawler } from './schemas/crawler'
 import type { Pilot } from './schemas/pilot'
 
+/** A crawler's Tech Level as a number: Tech 1 when it has none or it does not parse. */
+export function crawlerTechLevelOf(crawler: Pick<Crawler, 'techLevel'> | null | undefined): number {
+  return (crawler ? parseCrawlerTechLevel(crawler.techLevel) : undefined) ?? 1
+}
+
 /** A crawler's stored `techLevel` slug for a numeric Tech Level: 3 → "tech-3". */
 export function crawlerTechLevelSlug(techLevel: number): string {
   return `tech-${techLevel}`

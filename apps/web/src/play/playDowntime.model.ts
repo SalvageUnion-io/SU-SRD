@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * The Downtime step box's plan (play.md §6): what the current step will apply,
  * line by line, read from the pure patches in `game-domain/rules/downtime`
@@ -10,7 +11,6 @@ import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
   CRAFT_STEP_NAME,
-  DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
@@ -23,7 +23,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import {
-  parseCrawlerTechLevel,
+  crawlerUpkeepCost,
   pilotMaxAP,
   pilotMaxHP,
   resolveGauge,
@@ -94,11 +94,6 @@ function onlySteps(keys: readonly DowntimeStepKey[]): DowntimeSteps {
   return steps
 }
 
-/** The crawler's Tech Level for repairs, Tech 1 with none. */
-export function crawlerTl(crawler: Crawler | null): number {
-  return (crawler ? parseCrawlerTechLevel(crawler.techLevel) : undefined) ?? 1
-}
-
 /** The crawler's Med Bay this Downtime, none without a crawler. */
 export function medBayOf(crawler: Crawler | null): MedBayStatus {
   return crawler ? medBayStatus(crawler) : NO_MED_BAY
@@ -124,7 +119,13 @@ function mechLine(mech: Mech, pilot: Pilot | null, crawler: Crawler | null): Pla
       blocked: 'Mech Bay damaged: no restore or repair this Downtime',
     }
   }
-  const patch = downtimeMechPatch(mech, pilot?.abilities, crawlerTl(crawler), onlySteps(steps), bay)
+  const patch = downtimeMechPatch(
+    mech,
+    pilot?.abilities,
+    crawlerTechLevelOf(crawler),
+    onlySteps(steps),
+    bay
+  )
   const { maxSP, maxEP } = mechMaxima(mech, pilot?.abilities, [])
   const chips: PlanChip[] = []
   if (patch.currentSP !== undefined)
@@ -180,7 +181,7 @@ function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | nul
     const patch = downtimeMechPatch(
       mech,
       pilot?.abilities,
-      crawlerTl(crawler),
+      crawlerTechLevelOf(crawler),
       onlySteps(steps),
       mechBayOf(crawler)
     )
@@ -276,7 +277,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       chips: [
         {
           label: 'Upkeep',
-          value: `${DOWNTIME_UPKEEP_SCRAP} Scrap · T${crawlerTl(crawler)}`,
+          value: `${crawlerUpkeepCost(crawlerTechLevelOf(crawler))} Scrap · T${crawlerTechLevelOf(crawler)}`,
         },
         { label: upkeep.spent ? 'Paid' : upkeep.canPay ? 'Outstanding' : 'The Mediator pays it' },
       ],

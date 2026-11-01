@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import type { EntityRef, RefAbility, RefClass, RefMetaEntity } from 'salvageunion-reference'
+import type { EntityRef, RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { getEntitySlug, isAbility, SalvageUnionReference } from 'salvageunion-reference'
+import { classDrawingTree } from '../../../lib/rules/classPath'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
@@ -32,21 +33,11 @@ export type EntityRelation = {
 const step = (level: RefAbility['level']): number | undefined =>
   typeof level === 'number' ? level : undefined
 
-/** The class whose page draws the tree: its Core trees (bar the Salvager's), its Advanced or Legendary one. */
-function treeOwner(tree: string): RefClass | undefined {
-  if (!SalvageUnionReference.isLoaded('classes')) return undefined
-  return SalvageUnionReference.Classes.all().find((c) => {
-    if (c.advancedTree === tree || c.legendaryTree === tree) return true
-    const core: readonly string[] = 'coreTrees' in c && c.advanceable ? c.coreTrees : []
-    return core.includes(tree)
-  })
-}
-
 /** An ability's tree relations, in the strip's order; none for anything else. */
 export function abilityTreeRelations(entity: RefMetaEntity): EntityRelation[] {
   if (!isAbility(entity) || !entity.tree) return []
   const { tree } = entity
-  const owner = treeOwner(tree)
+  const owner = classDrawingTree(tree)
   return [
     {
       label: referenceEntityCopy('tree'),
