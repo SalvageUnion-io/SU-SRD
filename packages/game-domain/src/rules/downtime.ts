@@ -34,7 +34,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  mechHasCondition,
   parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
@@ -46,7 +45,7 @@ import type { Crawler } from '../schemas/crawler'
 import type { ItemConditionMap } from '../schemas/itemCondition'
 import type { Mech } from '../schemas/mech'
 import type { Pilot } from '../schemas/pilot'
-import { mechMaxima } from './crewStatus'
+import { mechHasCondition, mechMaxima } from './crewStatus'
 
 // ---------------------------------------------------------------------------
 // Steps

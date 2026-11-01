@@ -568,19 +568,6 @@ export function unifiedMechConditions(mech: {
   return merged
 }
 
-/**
- * Whether the mech is in a condition by either storage form: the flag or the
- * label in `conditions[]` (case-insensitive). Every rule that asks "is this
- * mech destroyed / shut down" asks here, so a chip and a flag never disagree.
- */
-export function mechHasCondition(
-  mech: Parameters<typeof unifiedMechConditions>[0],
-  label: 'Destroyed' | 'Shutdown' | 'Vulnerable'
-): boolean {
-  const wanted = label.toLowerCase()
-  return unifiedMechConditions(mech).some((c) => c.trim().toLowerCase() === wanted)
-}
-
 // ---------------------------------------------------------------------------
 // Crawler
 // ---------------------------------------------------------------------------

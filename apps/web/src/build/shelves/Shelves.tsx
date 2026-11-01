@@ -100,7 +100,7 @@ import { useUnits } from '../../replica/units'
 import { ExportAllButton } from '../export/ExportAllButton'
 import { ImportButton } from '../export/ImportButton'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
-import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from '../sheet/railStats.model'
+import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
@@ -182,24 +182,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Chip names from the WHOLE pile: a link names its other end either way.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  // A unit's stat chips read as its sheet does: a pilot with the crawler they
-  // crew (Stat Training), a mech with its pilot's abilities (Beefcake).
-  const pilotById = new Map(allPilots.map((p) => [p.id, p]))
-  const crawlerById = new Map(allCrawlers.map((c) => [c.id, c]))
-  const linkedTo = (type: string, fromId: string) =>
-    softLinks.find((l) => l.type === type && l.from.id === fromId)?.to.id ?? ''
-  const pilotReadings = new Map(
-    allPilots.map((p) => [
-      p.id,
-      rowStats(pilotRailItems(p, crawlerById.get(linkedTo('pilot-to-crawler', p.id)) ?? null)),
-    ])
-  )
-  const mechReadings = new Map(
-    allMechs.map((m) => [
-      m.id,
-      rowStats(mechRailItems(m, pilotById.get(linkedTo('mech-to-pilot', m.id))?.abilities)),
-    ])
-  )
+  const { pilotReadings, mechReadings } = crewReadings(allPilots, allMechs, allCrawlers, softLinks)
   const patternSource = allMechs.find((m) => m.id === savingPattern)
 
   // The Showing select: a Game you have since left falls back to Everything.

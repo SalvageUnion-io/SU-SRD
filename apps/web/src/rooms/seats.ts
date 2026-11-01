@@ -1,6 +1,6 @@
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import { RANGE_BANDS, SeatSchema } from 'game-domain/schemas/seat'
-import { mechHasCondition } from 'salvageunion-reference/rules'
 import type { GameStore, UnitRow } from './game/store'
 import { bit, fromJson, fromJsonOrNull } from './game/store'
 import { RoomRefusal } from './refusal'

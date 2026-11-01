@@ -9,12 +9,12 @@
  * Play, not the Free-Edit Live Sheet (ADR-021).
  */
 
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
-  mechHasCondition,
   mechMaxCargo,
   mechMaxEP,
   mechMaxHeat,

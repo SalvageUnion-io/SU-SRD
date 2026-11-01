@@ -59,7 +59,6 @@ export {
   crawlerMaxSP,
   crawlerMaxSPParts,
   isPilotDead,
-  mechHasCondition,
   mechMaxCargo,
   mechMaxEP,
   mechMaxEPParts,

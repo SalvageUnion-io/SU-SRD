@@ -9,6 +9,7 @@ import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { SoftLink } from 'game-domain/schemas/softLink'
 import { CONDITION_LABELS } from 'salvageunion-reference'
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { StatState } from '../../components/index'
@@ -73,6 +74,37 @@ export function pilotRailItems(
     { label: HP, value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
     { label: AP, value: resolvePool(pilot.currentAP, maxAP), max: maxAP },
   ]
+}
+
+/**
+ * Each pilot's and mech's stat chips as their own sheets read them: a pilot
+ * with the crawler they crew (Stat Training), a mech with its assigned
+ * pilot's abilities (Beefcake), by the links between them.
+ */
+export function crewReadings(
+  pilots: readonly Pilot[],
+  mechs: readonly Mech[],
+  crawlers: readonly Crawler[],
+  links: readonly Pick<SoftLink, 'type' | 'from' | 'to'>[]
+) {
+  const linkedTo = (type: string, fromId: string) =>
+    links.find((l) => l.type === type && l.from.id === fromId)?.to.id
+  const pilot = (id: string | undefined) => pilots.find((p) => p.id === id)
+  const crawler = (id: string | undefined) => crawlers.find((c) => c.id === id) ?? null
+  return {
+    pilotReadings: new Map(
+      pilots.map((p) => [
+        p.id,
+        rowStats(pilotRailItems(p, crawler(linkedTo('pilot-to-crawler', p.id)))),
+      ])
+    ),
+    mechReadings: new Map(
+      mechs.map((m) => [
+        m.id,
+        rowStats(mechRailItems(m, pilot(linkedTo('mech-to-pilot', m.id))?.abilities)),
+      ])
+    ),
+  }
 }
 
 /** Crawler rail vitals: "SP 9/13 · Bays 4/5 Intact". */

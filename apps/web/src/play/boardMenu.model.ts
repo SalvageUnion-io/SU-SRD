@@ -22,9 +22,9 @@
  * that `crew.model.ts` and `mediatorTable.model.ts` import.
  */
 
+import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
-import { mechHasCondition } from 'salvageunion-reference/rules'
 import type { HeaderMenuItem } from '../components/index'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
