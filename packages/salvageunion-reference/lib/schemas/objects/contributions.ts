@@ -102,7 +102,7 @@ export const ContributionSchema = z
       .optional(),
     voidWhen: z
       .enum(['damaged', 'destroyed'])
-      .describe('Condition at which this contribution stops applying')
+      .describe('Never set and never read; kept because the Dataset API v1 only adds')
       .optional(),
     duration: z
       .enum(['permanent', 'activated'])

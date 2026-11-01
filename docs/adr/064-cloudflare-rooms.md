@@ -32,8 +32,9 @@ is in exactly one room.
 
 1. **An account room per player.** A SQLite Durable Object named by the
    account id holds that player's shelf: pilots, mechs, crawlers, NPCs,
-   patterns, the NPC tray, encounters, each unit's op log and snapshot, and a
-   summary of the units the player holds in Game rooms (so the Training Bay
+   patterns, the NPC tray, encounters, and each unit's op log and snapshot.
+   It keeps no summary of the units the player holds in Game rooms: those
+   reach the Training Bay from each Game's socket into the replica (so it
    lists all they own, ADR-052 §1). All of a player's devices hold a socket to
    it and see one shelf.
 2. **A Game room per Game.** A SQLite Durable Object named by the Game id holds

@@ -8,6 +8,7 @@
  */
 
 import { containerOf } from 'game-domain/container'
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatMount } from 'game-domain/schemas/seat'
@@ -64,7 +65,7 @@ export type DowntimeView = {
   stepIndex: number | null
   /** Who has finished the current step; a Game's only. Clears on every move. */
   completedBy: readonly DowntimeMember[]
-  /** Upkeep is paid once per Downtime (`spendUpkeep`). */
+  /** Upkeep is paid once per Downtime (`claim`). */
   upkeepSpent: boolean
   /** Every member of the Game: one ready pip each; none solo. */
   members: readonly DowntimeMember[]
@@ -106,15 +107,16 @@ export type PlayDowntime = {
       ) => Promise<boolean>)
     | null
   /**
-   * Record the crawler's upkeep as paid for this Downtime. True when this call
-   * paid it; deduct the Scrap only then.
+   * Pay the crawler's Upkeep or process its Nanites: its patch, sent as this
+   * Downtime's one op for it (`downtime.claim`, in its own step). True when
+   * this call applied it; false when it already had been, or was refused
+   * (and said so).
    */
-  spendUpkeep: () => Promise<boolean>
-  /**
-   * Record the crawler's Nanites as processed for this Downtime. True when
-   * this call claimed it; roll and spend the piles only then.
-   */
-  spendNanites: () => Promise<boolean>
+  claim: (
+    claim: DowntimeClaim,
+    crawlerId: string,
+    patch: Record<string, unknown>
+  ) => Promise<boolean>
 }
 
 /**

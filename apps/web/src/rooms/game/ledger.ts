@@ -15,7 +15,7 @@ import type { Faction, Ledger } from 'game-domain/schemas/ledger'
 import { LedgerSchema } from 'game-domain/schemas/ledger'
 import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import { RoomRefusal } from '../refusal'
-import type { GamePlay } from './play'
+import type { DowntimeRead, GamePlay } from './play'
 import type { GameStore } from './store'
 import { fromJson } from './store'
 import type { GameUnits } from './units'
@@ -49,8 +49,7 @@ export class GameLedger {
     if (this.store.member(actor) === null) return null
     const ledger = this.read()
     const downtime = this.play.downtime(actor)
-    const incomeCollected =
-      downtime?.running === true && ledger.incomeCollectedFor === (downtime.startedAt ?? 0)
+    const incomeCollected = downtime?.running === true && collectedIn(ledger, downtime)
     return { ...ledger, incomeCollected }
   }
 
@@ -114,9 +113,9 @@ export class GameLedger {
       if (!isUpkeepStep(downtime.stepIndex)) {
         throw new RoomRefusal(`Deal income is collected in the ${UPKEEP_STEP_NAME} step`)
       }
-      const thisDowntime = downtime.startedAt ?? 0
+      const thisDowntime = downtime.runId ?? undefined
       const ledger = this.read()
-      if (ledger.incomeCollectedFor === thisDowntime) return null
+      if (collectedIn(ledger, downtime)) return null
       const scrap = dealCount(ledger)
       if (scrap === 0) throw new RoomRefusal('The crew has no deals to collect from')
       const paid = this.credit(author, scrap, null, at)
@@ -188,6 +187,17 @@ export class GameLedger {
     }
     return { scrap, tl: level, crawlerName }
   }
+}
+
+/**
+ * Whether the running Downtime's income is collected: named by its run, or,
+ * on a ledger kept before runs were named, by when it started.
+ */
+function collectedIn(ledger: Ledger, downtime: DowntimeRead): boolean {
+  const collected = ledger.incomeCollectedFor
+  return (
+    collected !== undefined && (collected === downtime.runId || collected === downtime.startedAt)
+  )
 }
 
 /** An edit's answer, or a refusal naming what it was looking for. */

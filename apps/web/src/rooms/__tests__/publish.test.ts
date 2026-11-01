@@ -105,8 +105,10 @@ describe('what a Game room publishes', () => {
     })
   })
 
-  test('its roster: name, Mediator, members and the invite that opens it now', () => {
+  test('its roster: name, Mediator, members, the invite that opens it now and its units', () => {
     const { room, code } = table('g1')
+    put(room.store, 'pilot', 'p1', {})
+    put(room.store, 'crawler', 'c1', {})
     expect(gamePublished(room.store, 'g1').roster).toEqual({
       gameId: 'g1',
       game: {
@@ -118,6 +120,7 @@ describe('what a Game room publishes', () => {
           { discordId: MEDIATOR, mediator: true, organizer: false },
         ],
         invite: code,
+        units: { pilots: 1, mechs: 0, crawlers: 1, npcs: 0 },
       },
     })
     const { code: next } = room.roster.resetInvite(ORGANIZER, AT + 5)
@@ -176,5 +179,20 @@ describe('what an account room publishes', () => {
         sharedAt: AT,
       },
     ])
+  })
+
+  test('without a name of their own, the player shows their Discord name; with one, theirs', () => {
+    const sql = bunSql()
+    migrate(sql, ACCOUNT_ROOM)
+    const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp })
+    seedShelf(room, { owner: PLAYER }, AT)
+    put(room.shelf.store, 'npc', 'n1', { publicRead: true })
+    const madeBy = () => shelfPublished(room.shelf.store).sheets[0]?.page
+    expect(room.shelf.noteDiscordName('someone-else', 'x')).toBe(false)
+    expect(room.shelf.noteDiscordName(PLAYER, 'rosa')).toBe(true)
+    expect(room.shelf.noteDiscordName(PLAYER, 'rosa')).toBe(false)
+    expect(madeBy()).toMatchObject({ madeBy: 'rosa' })
+    room.shelf.setProfile(PLAYER, { displayName: 'Bonesaw' })
+    expect(madeBy()).toMatchObject({ madeBy: 'Bonesaw' })
   })
 })

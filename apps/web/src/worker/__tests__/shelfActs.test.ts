@@ -112,7 +112,7 @@ describe('the Shelf acts', () => {
     ).toEqual({ ok: true, value: { isPublic: true } })
   })
 
-  test('a Game share names a Game the player is in, or is refused', async () => {
+  test('a Game share is to a Game the player is in, or is refused', async () => {
     const logic = room()
     const db = testDb()
     await publishGame(db, 'g1', {
@@ -153,7 +153,6 @@ describe('the Shelf acts', () => {
     expect(logic.sharing.patternSharing(PLAYER)[0]?.sharing).toMatchObject({
       visibility: 'game',
       gameId: 'g1',
-      gameName: 'The Long Haul',
     })
   })
 

@@ -1,5 +1,5 @@
 import type { Op as DomainOp, OpInput, OpResult, Unit } from 'game-domain/ops/applyOp'
-import type { OpState as DomainOpState } from 'game-domain/ops/opState'
+import type { OpState } from 'game-domain/ops/opState'
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 
 /**
@@ -9,13 +9,10 @@ import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
  * merge on its own.
  */
 
-export type { OpInput, Unit }
-
-/** A room keeps no superseded op: a newer proposal declines the one it replaces. */
-export type OpState = Exclude<DomainOpState, 'superseded'>
+export type { OpInput, OpState, Unit }
 
 /** An op as a room stores it. */
-export type Op = Omit<DomainOp, 'state'> & { state: OpState }
+export type Op = DomainOp
 
 export type ApplyOp = (unit: Unit, op: OpInput) => OpResult
 

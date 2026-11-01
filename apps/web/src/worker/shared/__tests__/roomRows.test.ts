@@ -95,6 +95,7 @@ describe('a room’s rows in the shared database', () => {
           organizer: i === 0,
         })),
         invite,
+        units: { pilots: 2, mechs: 1, crawlers: 1, npcs: 0 },
       },
     })
     game.set({ roster: roster(['d-1', 'd-2'], 'CODE1') })

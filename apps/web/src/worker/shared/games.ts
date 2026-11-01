@@ -48,6 +48,19 @@ export async function membershipGameIds(db: SharedDb, discordId: string): Promis
   return results.map((row) => row.game_id)
 }
 
+/**
+ * Every Game a player is in, as export and deletion both read it: the Games
+ * their own room noted (before the act reached the Game) beside the shared
+ * database's memberships (written once the Game's publish lands).
+ */
+export async function playerGameIds(
+  db: SharedDb,
+  discordId: string,
+  noted: readonly string[]
+): Promise<string[]> {
+  return [...new Set([...noted, ...(await membershipGameIds(db, discordId))])]
+}
+
 /** One member's place in one Game, or null when they are not in it. */
 export async function membershipOf(
   db: SharedDb,
@@ -85,7 +98,7 @@ export async function invitePreview(
       `select g.name, g.mediated_by from invites i join games g on g.game_id = i.game_id
        where i.code = ?1`
     )
-    .bind(code)
+    .bind(code.trim().toUpperCase())
     .first<{ name: string; mediated_by: string | null }>()
   return row === null ? null : { gameName: row.name, mediatedBy: row.mediated_by }
 }

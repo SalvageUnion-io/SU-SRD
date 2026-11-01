@@ -19,7 +19,7 @@ import { RoomRefusal } from '../../rooms/refusal'
 import type { Identity } from '../auth/index'
 import type { GameRoomStub } from '../roomStubs'
 import type { SharedDb } from './db'
-import { membershipGameIds } from './games'
+import { playerGameIds } from './games'
 
 /** The shared database and the rooms by name: `rooms().GameRoom` / `.AccountRoom.getByName`. */
 export type AccountDeletionDeps = {
@@ -40,10 +40,7 @@ export async function deleteRoomAccount(
   const { discordId } = who
   try {
     const account = deps.account(discordId)
-    const gameIds = new Set([
-      ...(await account.gameIds()),
-      ...(await membershipGameIds(db, discordId)),
-    ])
+    const gameIds = await playerGameIds(db, discordId, await account.gameIds())
     for (const gameId of gameIds) {
       const room = deps.game(gameId)
       await room.forget(discordId)

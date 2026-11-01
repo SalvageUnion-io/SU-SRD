@@ -175,16 +175,6 @@ export class GameRoster {
     })
   }
 
-  /** What a code is for, without spending it, or null for one that opens nothing. */
-  invitePreview(code: string): { gameName: string; invitedBy: string } | null {
-    const game = this.store.game()
-    if (game === null || game.disbandingAt !== null) return null
-    const invite = this.store.rows('select * from invites where code = ?', normalizeCode(code))[0]
-    if (invite === undefined || this.currentCode() !== invite.code) return null
-    const inviter = this.store.member(String(invite.created_by))
-    return { gameName: game.name, invitedBy: inviter?.displayName ?? 'the Organiser' }
-  }
-
   /**
    * Join as a player through the invite URL. A member redeeming any code the
    * Game ever had is already in; anyone else needs the current one.

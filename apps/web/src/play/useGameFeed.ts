@@ -32,7 +32,7 @@ export type RollLine = {
   description: string
   /** Who rolled; null when the row names nobody. */
   actorName: string | null
-  /** 'play', 'discord-bot', … */
+  /** Where the row came from: 'play'. */
   source: string
 }
 

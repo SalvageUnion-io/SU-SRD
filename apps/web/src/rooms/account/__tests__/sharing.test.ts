@@ -29,7 +29,7 @@ const pattern = (id: string, name = 'Tow Rig') => ({
   createdAt: new Date(AT).toISOString(),
 })
 
-const GAME = { id: 'g1', name: 'The Long Haul' }
+const GAME = 'g1'
 
 describe('the Shelf records', () => {
   test('a pattern is written by the id in its body, once, and deleted', () => {
@@ -85,7 +85,6 @@ describe('who may read a pattern', () => {
         sharing: {
           visibility: 'link',
           gameId: null,
-          gameName: null,
           builtCount: 0,
           homebrew: true,
         },
@@ -103,7 +102,6 @@ describe('who may read a pattern', () => {
     expect(room.sharing.patternSharing(PLAYER)[0]?.sharing).toMatchObject({
       visibility: 'game',
       gameId: 'g1',
-      gameName: 'The Long Haul',
       homebrew: false,
     })
 

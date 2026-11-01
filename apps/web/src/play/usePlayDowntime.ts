@@ -17,14 +17,15 @@
  * one beside it for the mech's share, so it applies once however often the
  * screen reloads, a player presses Undo or the Mediator goes Back;
  * `doneSteps` reads them back, and the room's answer says whether this call
- * was the one that took it. The Mediator's own screen (no
+ * was the one that took it. The Upkeep and the Nanites are crawler ops named
+ * by the run the same way (`claim`). The Mediator's own screen (no
  * pilot) takes no step. Before the first answer
  * Downtime reads as not running. Writes go through `useGuardedWrite`: refused
  * here while they cannot go (Disconnected, Outdated), never queued (ADR-030
  * §1), and a server refusal is said in its own words.
  */
 
-import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
 import { PLAY_TXN } from '../replica/provenance'
@@ -60,10 +61,9 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const setStep = useTableAct('downtime.setStep', gameId)
   const end = useTableAct('downtime.end', gameId)
   const markStepDone = useTableAct('downtime.markStepDone', gameId)
-  const spendUpkeep = useTableAct('downtime.spendUpkeep', gameId)
-  const spendNanites = useTableAct('downtime.spendNanites', gameId)
-  // A room names its run; a solo one copied from Convex is named by when it started.
-  const run = state?.runId ?? state?.startedAt ?? 0
+  const claim = useTableAct('downtime.claim', gameId)
+  // The room names the run (a solo one kept from Convex is named on the server).
+  const run = state?.runId ?? ''
 
   // `state` answers null for a solo pilot no longer on the shelf: not running.
   const downtime: DowntimeView =
@@ -113,7 +113,17 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
                 mech ? [stepOp(mech.id, mech.patch)] : []
               )
             }),
-    spendUpkeep: () => guarded.ask(() => spendUpkeep(place)),
-    spendNanites: () => guarded.ask(() => spendNanites(place)),
+    claim: (kind, crawlerId, patch) =>
+      guarded.ask(async () => {
+        const op = {
+          id: downtimeClaimOpId(run, kind),
+          unitId: crawlerId,
+          baseSeq: null,
+          at: Date.now(),
+          ...PLAY_TXN,
+          patch,
+        }
+        return (await claim({ ...place, claim: kind, op })) === true
+      }),
   }
 }

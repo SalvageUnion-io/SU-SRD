@@ -1,9 +1,8 @@
 /**
- * Paying a Downtime's Upkeep from Play (`playUpkeep.model.ts`): the claim
- * first, then the Scrap, and words that say only what landed.
+ * Paying a Downtime's Upkeep from Play (`playUpkeep.model.ts`): the draw is
+ * the run's one Upkeep op, and the words say only what landed.
  */
-import { describe, expect, spyOn, test } from 'bun:test'
-import type { Crawler } from 'game-domain/schemas/crawler'
+import { describe, expect, test } from 'bun:test'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
 import { payDowntimeUpkeep } from '../playUpkeep.model'
 
@@ -15,50 +14,39 @@ const crawler = crawlerFixture({
   upgradePool: 0,
 })
 
-function store(update: (patch: Partial<Crawler>) => Promise<void>) {
-  return {
-    get: () => crawler,
-    update: (_kind: string, _id: string, patch: Partial<Crawler>) => update(patch),
-  } as never
-}
+const store = { get: () => crawler } as never
 
 describe('payDowntimeUpkeep', () => {
-  test('draws the Scrap once the claim is this call’s', async () => {
-    const written: Partial<Crawler>[] = []
+  test('sends the Scrap as the Upkeep op on the crawler', async () => {
+    const sent: unknown[] = []
     const said = await payDowntimeUpkeep({
       crawler,
-      store: store(async (patch) => {
-        written.push(patch)
-      }),
-      spendUpkeep: async () => true,
+      store,
+      claim: async (...args) => {
+        sent.push(args)
+        return true
+      },
     })
-    expect(written).toEqual([{ scrapPool: { tl2: 2 }, upgradePool: 5 }])
+    expect(sent).toEqual([['upkeep', 'c', { scrapPool: { tl2: 2 }, upgradePool: 5 }]])
     expect(said).toBe('Paid the Upkeep. Upgrade Pool now 5.')
   })
 
-  test('a refused Scrap write never reads as paid', async () => {
-    const quiet = spyOn(console, 'error').mockImplementation(() => undefined)
+  test('a short pool pays what it has, and says by how much', async () => {
+    const poor = crawlerFixture({ ...crawler, scrapPool: { tl2: 2 } })
     const said = await payDowntimeUpkeep({
-      crawler,
-      store: store(async () => {
-        throw new Error('refused')
-      }),
-      spendUpkeep: async () => true,
+      crawler: poor,
+      store: { get: () => poor } as never,
+      claim: async () => true,
     })
-    quiet.mockRestore()
-    expect(said).toContain('the 5 Scrap was not drawn')
+    expect(said).toContain('3 short of 5 Scrap of Tech 2')
   })
 
-  test('an Upkeep already claimed draws nothing', async () => {
-    const written: Partial<Crawler>[] = []
-    const said = await payDowntimeUpkeep({
-      crawler,
-      store: store(async (patch) => {
-        written.push(patch)
-      }),
-      spendUpkeep: async () => false,
-    })
-    expect(written).toEqual([])
+  test('an Upkeep already paid says so', async () => {
+    const said = await payDowntimeUpkeep({ crawler, store, claim: async () => false })
     expect(said).toBe('Upkeep is already paid this Downtime.')
+  })
+
+  test('no crawler, nothing to pay', async () => {
+    expect(await payDowntimeUpkeep({ crawler: null, store, claim: async () => true })).toBeNull()
   })
 })

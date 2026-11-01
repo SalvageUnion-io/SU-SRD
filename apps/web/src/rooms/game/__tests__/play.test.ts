@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import {
   CRAFT_STEP_NAME,
   downtimeStepCount,
@@ -95,31 +95,69 @@ describe('Downtime', () => {
     expect(() => room.play.markStepDone(PLAYER, true)).toThrow('Downtime is not running')
   })
 
-  test('upkeep is paid once, in its own step', () => {
+  /** The run's claim op on the crawler: its id names the run and the claim. */
+  function claimOp(
+    room: ReturnType<typeof seated>['room'],
+    claim: 'upkeep' | 'nanites',
+    patch = {}
+  ) {
+    const runId = room.play.downtime(MEDIATOR)?.runId ?? ''
+    return op('c1', patch, { id: downtimeClaimOpId(runId, claim), baseSeq: null, source: 'play' })
+  }
+
+  test('upkeep is paid once, in its own step, with its Scrap in the same write', () => {
     const { room } = seated()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
     room.play.beginDowntime(MEDIATOR, AT)
     const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
     if (upkeep === undefined) throw new Error('the guide has no upkeep step')
-    if (upkeep !== 0) expect(() => room.play.spendUpkeep(MEDIATOR)).toThrow('Upkeep is paid in')
+    const paid = claimOp(room, 'upkeep', { upgradePool: 3 })
+    if (upkeep !== 0) {
+      expect(() => room.play.claim(MEDIATOR, 'upkeep', paid)).toThrow('Upkeep is paid in')
+    }
     room.play.setDowntimeStep(MEDIATOR, upkeep)
-    expect(room.play.spendUpkeep(MEDIATOR)).toBe(true)
-    expect(room.play.spendUpkeep(MEDIATOR)).toBe(false)
+    expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(false)
+    expect(() => room.play.claim(MEDIATOR, 'upkeep', { ...paid, id: 'elsewhere' })).toThrow(
+      'not this Downtime'
+    )
+    expect(room.play.claim(MEDIATOR, 'upkeep', paid)).toBe(true)
+    expect(room.play.claim(MEDIATOR, 'upkeep', { ...paid, patch: { upgradePool: 6 } })).toBe(false)
+    expect(room.store.unit('c1')?.body).toMatchObject({ upgradePool: 3 })
+    expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(true)
+  })
+
+  test('a Downtime that paid its Upkeep under the old flag stays paid', () => {
+    const { room } = seated()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.play.beginDowntime(MEDIATOR, AT)
+    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep) ?? 0
+    room.play.setDowntimeStep(MEDIATOR, upkeep)
+    room.store.rows('update downtime_run set upkeep_spent = 1')
+    room.play.markStepDone(PLAYER, true)
+    expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(true)
+    expect(room.play.claim(MEDIATOR, 'upkeep', claimOp(room, 'upkeep'))).toBe(false)
   })
 
   test('Nanites are processed once, in the Craft step, by the Mediator', () => {
     const { room } = seated()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
     room.play.beginDowntime(MEDIATOR, AT)
     const craft = downtimeStepNames().indexOf(CRAFT_STEP_NAME)
     if (craft < 1) throw new Error('the guide has no Craft step after the first')
-    expect(() => room.play.spendNanites(MEDIATOR)).toThrow('Nanites are processed in')
+    expect(() => room.play.claim(MEDIATOR, 'nanites', claimOp(room, 'nanites'))).toThrow(
+      'Nanites are processed in'
+    )
     room.play.setDowntimeStep(MEDIATOR, craft)
-    expect(() => room.play.spendNanites(PLAYER)).toThrow()
-    expect(room.play.spendNanites(MEDIATOR)).toBe(true)
-    expect(room.play.spendNanites(MEDIATOR)).toBe(false)
+    expect(() => room.play.claim(PLAYER, 'nanites', claimOp(room, 'nanites'))).toThrow()
+    expect(() =>
+      room.play.claim(MEDIATOR, 'nanites', { ...claimOp(room, 'nanites'), unitId: 'p1' })
+    ).toThrow('not a crawler')
+    expect(room.play.claim(MEDIATOR, 'nanites', claimOp(room, 'nanites'))).toBe(true)
+    expect(room.play.claim(MEDIATOR, 'nanites', claimOp(room, 'nanites'))).toBe(false)
     room.play.endDowntime(MEDIATOR)
     room.play.beginDowntime(MEDIATOR, AT + 1)
     room.play.setDowntimeStep(MEDIATOR, craft)
-    expect(room.play.spendNanites(MEDIATOR)).toBe(true)
+    expect(room.play.claim(MEDIATOR, 'nanites', claimOp(room, 'nanites'))).toBe(true)
   })
 
   test('a step a pilot applies twice lands once', () => {

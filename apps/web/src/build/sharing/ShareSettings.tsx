@@ -184,7 +184,7 @@ function PatternShareSettings({ appId, name, clipboardWriter }: ShareSettingsPro
   const gameChoices = games ?? []
   // The Game it is shared with first, then the one picked, then the first.
   const gameId = pickedGame ?? mine?.gameId ?? gameChoices[0]?._id ?? null
-  const gameName = gameChoices.find((g) => g._id === gameId)?.name ?? mine?.gameName ?? null
+  const gameName = gameChoices.find((g) => g._id === gameId)?.name ?? null
 
   const choose = (next: Visibility, nextGame: string | null = gameId) =>
     void share.run(next, nextGame)

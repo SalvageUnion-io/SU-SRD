@@ -17,7 +17,7 @@
  *    dock, its target the seat tapped on the left; every proposal
  *    sent is a press away (All proposals, `ProposalsList`, twenty at a time).
  *
- * What the sections share is `usePlayMediatorSide`, called once per screen
+ * What the sections share is the side's `useSideFeed`, called once per screen
  * by `PlayMediatorCockpit`. The roll dispatch lives there (`usePlayRollDispatch`),
  * with the Game's log left out: the log is the crew's, and the Opposition
  * reaches them only through what is posted. Headings are Slabs; the dock is a

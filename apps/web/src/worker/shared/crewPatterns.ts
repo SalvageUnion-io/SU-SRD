@@ -62,22 +62,6 @@ export async function gamePatternsFor(
   return (await crewPatternsFor(db, discordId)).filter((row) => row.gameId === gameId)
 }
 
-/** A Game's name, when the reader is in it; null otherwise: what sharing a pattern with it needs. */
-export async function memberGameName(
-  db: SharedDb,
-  gameId: string,
-  discordId: string
-): Promise<string | null> {
-  const row = await db
-    .prepare(
-      `select g.name from memberships m join games g on g.game_id = m.game_id
-       where m.game_id = ?1 and m.discord_id = ?2`
-    )
-    .bind(gameId, discordId)
-    .first<{ name: string }>()
-  return row?.name ?? null
-}
-
 /**
  * Who made a pattern `reader` may build from: shared by link, or with a Game
  * they are in. Null when it is neither, which is also a pattern of their own.

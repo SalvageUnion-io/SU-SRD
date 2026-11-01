@@ -175,8 +175,6 @@ export const playCopy = messages({
   copyFailed: 'The result could not be copied.',
   upkeepShort:
     'Paid the Upkeep, but the pool was {short} short of {scrap} Scrap of Tech {tl} or higher. Upgrade Pool now {pool}.',
-  upkeepNotDrawn:
-    'Upkeep is marked paid this Downtime, but the {scrap} Scrap was not drawn. Take it from the pool on the crawler sheet.',
   rollFailed: 'The dice could not be rolled. Try again.',
   tables: 'Tables',
   situation: 'Situation',

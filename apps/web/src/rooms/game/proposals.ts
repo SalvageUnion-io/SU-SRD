@@ -1,5 +1,6 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
+import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { GameUnits, SubmitResult } from './units'
@@ -24,7 +25,8 @@ export type ProposalRead = {
 }
 
 export type SentProposal = ProposalRead & {
-  state: 'applied' | 'proposed' | 'declined' | 'superseded'
+  /** The op's state, or `superseded` for a declined one a newer proposal replaced. */
+  state: OpState | 'superseded'
   mine: boolean
   actorName: string | null
 }

@@ -53,8 +53,9 @@ export type PublishedPattern = {
 
 /**
  * A Game room's place in the other rooms' lists (`../worker/shared/games.ts`):
- * its name and Mediator, who is in it, and the invite code that opens it now;
- * `game` is null once the room is wiped, so its rows go.
+ * its name and Mediator, who is in it, the invite code that opens it now,
+ * and how many of each unit it holds (the metrics' totals); `game` is null
+ * once the room is wiped, so its rows go.
  */
 export type PublishedRoster = {
   gameId: string
@@ -63,7 +64,22 @@ export type PublishedRoster = {
     mediatedBy: string | null
     members: { discordId: string; mediator: boolean; organizer: boolean }[]
     invite: string | null
+    units: UnitTotals
   } | null
+}
+
+/** How many of each unit a room holds. */
+export type UnitTotals = Record<'pilots' | 'mechs' | 'crawlers' | 'npcs', number>
+
+/** Count `units` by kind: an account's row in the metrics, and a Game's. */
+export function unitTotals(units: readonly { kind: EntityKind }[]): UnitTotals {
+  const count = (kind: EntityKind) => units.filter((u) => u.kind === kind).length
+  return {
+    pilots: count('pilot'),
+    mechs: count('mech'),
+    crawlers: count('crawler'),
+    npcs: count('npc'),
+  }
 }
 
 /** One pattern its maker shared with one Game's crew (ADR-032 §7). */
@@ -99,10 +115,13 @@ const KIND_NAMES: Record<EntityKind, string> = {
 
 /** What an account room publishes: its player's shared units and patterns; nothing before it is claimed. */
 export function shelfPublished(store: GameStore): Published {
-  const account = store.rows('select discord_id, display_name from account where id = 1')[0]
+  const account = store.rows(
+    'select discord_id, coalesce(display_name, discord_name) as shown from account where id = 1'
+  )[0]
   if (account === undefined) return { sheets: [], homebrew: [] }
   const owner = String(account.discord_id)
-  const name = account.display_name === null ? null : String(account.display_name)
+  // The name the player shows everywhere (`shownProfile`): their own, else Discord's.
+  const name = account.shown === null ? null : String(account.shown)
   return published(store, {
     place: { kind: 'shelf', owner },
     nameOf: (discordId) => (discordId === owner ? name : null),
@@ -138,6 +157,7 @@ export function gamePublished(store: GameStore, gameId: string): Published {
           organizer: m.organizer,
         })),
         invite: invite === undefined ? null : String(invite.code),
+        units: unitTotals(store.units()),
       },
     },
   }

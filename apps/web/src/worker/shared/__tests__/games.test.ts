@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test'
+import { exportedRows } from '../accounts'
 import { gameOfInvite, gamesOf, invitePreview, membershipOf } from '../games'
 import { publishGame, testDb } from './d1'
 
@@ -39,10 +40,22 @@ describe('memberships', () => {
 describe('invites', () => {
   it('names the Game and its Mediator, never the crew', async () => {
     const db = await table()
-    expect(await invitePreview(db, 'K7QR2XA')).toEqual({
+    expect(await invitePreview(db, ' k7qr2xa ')).toEqual({
       gameName: 'Reclamation',
       mediatedBy: 'Jrvs',
     })
     expect(await gameOfInvite(db, 'K7QR2XA')).toBe('g-1')
+  })
+})
+
+describe('a player’s Games, for export and deletion', () => {
+  it('exports every Game deletion would reach: the room’s notes beside the memberships', async () => {
+    const db = await table()
+    // g-3 is noted by the player's room, its publish not landed yet.
+    expect((await exportedRows(db, 'u-1', ['g-3', 'g-1'])).games).toEqual([
+      { gameId: 'g-3', mediator: false, organizer: false },
+      { gameId: 'g-1', mediator: true, organizer: true },
+      { gameId: 'g-2', mediator: false, organizer: false },
+    ])
   })
 })

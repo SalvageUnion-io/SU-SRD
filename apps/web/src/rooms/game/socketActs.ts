@@ -4,6 +4,7 @@ import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
 import type { ClientMessage, ServerMessage } from '../protocol'
+import { OpInputSchema } from '../protocol'
 import type { GameActAnswer, GameActName } from './acts'
 
 /**
@@ -81,8 +82,7 @@ const DOWNTIME_ACTS = {
   'downtime.advance': PLACE,
   'downtime.setStep': PLACE.extend({ stepIndex: z.number() }),
   'downtime.end': PLACE,
-  'downtime.spendUpkeep': PLACE,
-  'downtime.spendNanites': PLACE,
+  'downtime.claim': PLACE.extend({ claim: z.enum(['upkeep', 'nanites']), op: OpInputSchema }),
 }
 
 /** A unit's Change Log, as the drawer reads it. */

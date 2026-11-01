@@ -25,8 +25,8 @@ export type PatternVisibility = 'private' | 'link' | 'game'
 /** One pattern's sharing, as the Shelves page's chips and the share dialog read it. */
 export type PatternSharing = {
   visibility: PatternVisibility
+  /** The Game it is shared with; its name is the Game's own (`games.listMine`). */
   gameId: string | null
-  gameName: string | null
   builtCount: number
   homebrew: boolean
 }
@@ -38,6 +38,7 @@ type PatternExtra = {
   builtCount?: number
   homebrew?: boolean
   gameId?: string | null
+  /** Copied by an older share; never written now, dropped at the next. */
   gameName?: string | null
 }
 
@@ -99,24 +100,23 @@ export class AccountSharing {
     actor: string,
     patternId: string,
     visibility: PatternVisibility,
-    game: { id: string; name: string } | null,
+    gameId: string | null,
     at: number
   ): { visibility: PatternVisibility } {
     this.shelf.requireOwner(actor)
     const row = this.pattern(patternId)
-    if (visibility === 'game' && game === null) {
+    if (visibility === 'game' && gameId === null) {
       throw new RoomRefusal('Choose which Game to share it with')
     }
     if (visibility !== 'private' && !MechPatternSchema.safeParse(row.body).success) {
       throw new RoomRefusal('This pattern cannot be shared: it is not a whole pattern')
     }
-    const { homebrew, ...rest } = row.extra
+    const { homebrew, gameName: _copied, ...rest } = row.extra
     const extra: PatternExtra = {
       ...rest,
       publicRead: visibility === 'link',
       ...(visibility === 'link' && homebrew === true ? { homebrew } : {}),
-      gameId: visibility === 'game' ? (game?.id ?? null) : null,
-      gameName: visibility === 'game' ? (game?.name ?? null) : null,
+      gameId: visibility === 'game' ? gameId : null,
     }
     if (visibility === 'private') delete extra.sharedAt
     else extra.sharedAt = at
@@ -185,7 +185,6 @@ export class AccountSharing {
           sharing: {
             visibility: extra.publicRead === true ? 'link' : gameId !== null ? 'game' : 'private',
             gameId,
-            gameName: extra.gameName ?? null,
             builtCount: extra.builtCount ?? 0,
             homebrew: extra.homebrew === true && extra.publicRead === true,
           },

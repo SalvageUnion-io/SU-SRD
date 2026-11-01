@@ -239,11 +239,6 @@ const CALLS = {
     }))
   },
 
-  'invites.preview': async (who: Caller | null, a: { code: string }, deps: CallDeps) => {
-    const gameId = await gameOfInvite(deps.db, normalized(a.code))
-    if (gameId === null) return null
-    return act(deps.game(gameId), who?.discordId ?? '', 'invitePreview', { code: a.code })
-  },
   'invites.link': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const room = deps.game(a.gameId)
     return republished(room, await act(room, who.discordId, 'inviteCode', undefined as never))
@@ -495,7 +490,6 @@ const CALL_ARGS = {
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
   'games.members': GAME,
-  'invites.preview': z.object({ code: z.string() }),
   'invites.link': GAME,
   'invites.reset': GAME,
   'invites.redeem': z.object({ code: z.string() }),
@@ -518,8 +512,8 @@ const CALL_ARGS = {
   }),
 } satisfies Record<GameCallName, z.ZodType>
 
-/** The calls a signed-out visitor may make: an invite's preview, the template list. */
-const SIGNED_OUT: ReadonlySet<string> = new Set(['invites.preview', 'templates.list'])
+/** The call a signed-out visitor may make: the template list. An invite's preview is a Worker route. */
+const SIGNED_OUT: ReadonlySet<string> = new Set(['templates.list'])
 
 /** One call, by name, for `who`; a `RoomRefusal` comes back as an answer. */
 export async function gameCall(

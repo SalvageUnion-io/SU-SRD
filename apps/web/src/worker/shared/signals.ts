@@ -113,16 +113,20 @@ export async function dropAccountTotals(db: SharedDb, discordId: string) {
   await db.prepare('delete from account_totals where discord_id = ?1').bind(discordId).run()
 }
 
-/** Sum today's totals into a snapshot taken at `now`. */
+/** Sum today's totals into a snapshot taken at `now`: every unit, on a Shelf or in a Game. */
 export async function takeSnapshot(db: SharedDb, now = Date.now()): Promise<MetricsCounts> {
   const counts = await db
     .prepare(
       `select
          (select count(*) from account_totals) as accounts,
-         (select coalesce(sum(pilots), 0) from account_totals) as pilots,
-         (select coalesce(sum(mechs), 0) from account_totals) as mechs,
-         (select coalesce(sum(crawlers), 0) from account_totals) as crawlers,
-         (select coalesce(sum(npcs), 0) from account_totals) as npcs,
+         (select coalesce(sum(pilots), 0) from account_totals)
+           + (select coalesce(sum(pilots), 0) from games) as pilots,
+         (select coalesce(sum(mechs), 0) from account_totals)
+           + (select coalesce(sum(mechs), 0) from games) as mechs,
+         (select coalesce(sum(crawlers), 0) from account_totals)
+           + (select coalesce(sum(crawlers), 0) from games) as crawlers,
+         (select coalesce(sum(npcs), 0) from account_totals)
+           + (select coalesce(sum(npcs), 0) from games) as npcs,
          (select coalesce(sum(patterns), 0) from account_totals) as patterns,
          (select count(*) from games) as games,
          (select count(*) from (select game_id from memberships group by game_id

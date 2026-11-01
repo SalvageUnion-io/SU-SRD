@@ -45,7 +45,7 @@ function answerAct({ name }: { name: string }): unknown {
   if (name === 'mediator.runEncounter') return { added: 1 }
   if (name === 'scenes.passHour') return 3
   if (name === 'ledger.collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
-  return name === 'downtime.spendUpkeep' || name === 'downtime.spendNanites' ? true : null
+  return name === 'downtime.claim' ? true : null
 }
 
 const serverMocks = await installServerMocks({
@@ -754,12 +754,19 @@ describe('Downtime', () => {
     expect((named('Pay') as HTMLButtonElement).disabled).toBe(true)
   })
 
-  test('in Upkeep & Upgrade, Pay claims it, then draws the Scrap from the crawler', async () => {
+  test('in Upkeep & Upgrade, Pay sends the Scrap as the run’s one Upkeep op', async () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP))
     await click(named('Pay'))
     await waitFor(() => expect(screen.getByText(/^Paid the Upkeep/)).toBeTruthy())
-    expect(names()).toEqual(['downtime.spendUpkeep'])
-    expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.tl2).toBe(2)
+    expect(sent()).toMatchObject([
+      {
+        name: 'downtime.claim',
+        args: {
+          claim: 'upkeep',
+          op: { unitId: tenacity.id, patch: { scrapPool: expect.objectContaining({ tl2: 2 }) } },
+        },
+      },
+    ])
   })
 
   test('paid, it says so', async () => {
@@ -824,8 +831,12 @@ describe('Downtime', () => {
       await waitFor(() =>
         expect(screen.getByText(/^Processed 2 Inert Meld Nanite piles/)).toBeTruthy()
       )
-      expect(useUnits.getState().get('crawler', tenacity.id)?.scrapPool?.inertNanites).toBe(0)
-      expect(names()).toEqual(['downtime.spendNanites'])
+      expect(sent()).toMatchObject([
+        {
+          name: 'downtime.claim',
+          args: { claim: 'nanites', op: { patch: { scrapPool: { inertNanites: 0 } } } },
+        },
+      ])
     } finally {
       cleanup()
       await useUnits.getState().adopt('crawler', before)

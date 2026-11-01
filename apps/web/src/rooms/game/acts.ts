@@ -2,6 +2,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import type { JobTerms } from 'game-domain/games/ledger'
 import type { BoundaryKind } from 'game-domain/games/safety'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { Faction } from 'game-domain/schemas/ledger'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
@@ -44,7 +45,6 @@ const GAME_ACTS = {
     c.room.roster.updateProfile(c.actor, a.profile),
   inviteCode: (c: ActContext) => c.room.roster.inviteCode(c.actor, c.at),
   resetInvite: (c: ActContext) => c.room.roster.resetInvite(c.actor, c.at),
-  invitePreview: (c: ActContext, a: { code: string }) => c.room.roster.invitePreview(a.code),
   redeem: (c: ActContext, a: { code: string; profile: Profile }) =>
     c.room.roster.redeem(c.actor, a.code, a.profile, c.at),
 
@@ -109,8 +109,8 @@ const GAME_ACTS = {
   'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
   'downtime.markStepDone': (c: ActContext, a: { done: boolean }) =>
     c.room.play.markStepDone(c.actor, a.done),
-  'downtime.spendUpkeep': (c: ActContext) => c.room.play.spendUpkeep(c.actor),
-  'downtime.spendNanites': (c: ActContext) => c.room.play.spendNanites(c.actor),
+  'downtime.claim': (c: ActContext, a: { claim: DowntimeClaim; op: OpInput }) =>
+    c.room.play.claim(c.actor, a.claim, a.op),
 
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),
@@ -217,7 +217,6 @@ export type GameActResult<N extends GameActName> = ReturnType<Act<N>>
 export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'read',
   'members',
-  'invitePreview',
   'inviteCode',
   'units',
   'links',

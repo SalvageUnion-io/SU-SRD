@@ -1,4 +1,5 @@
-import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import {
   CRAFT_STEP_NAME,
   currentDowntimeStep,
@@ -7,7 +8,10 @@ import {
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
-import type { GameStore } from './game/store'
+import type { GameStore, UnitRow } from './game/store'
+import type { GameUnits } from './game/units'
+import { BatchRefused } from './game/units'
+import type { OpInput } from './ops'
 import { RoomRefusal } from './refusal'
 
 /**
@@ -17,7 +21,9 @@ import { RoomRefusal } from './refusal'
  *
  * A step a pilot takes is an op with a stable id (`downtimeStepOpId`, named
  * by the run's `runId`; ADR-063 §6): applying it twice is a no-op, and
- * `doneSteps` reads the steps back off those ops.
+ * `doneSteps` reads the steps back off those ops. The Upkeep and the Nanites
+ * are crawler ops named the same way (`downtimeClaimOpId`), so `claimed`
+ * reads them back too.
  */
 
 export type Running = {
@@ -27,9 +33,8 @@ export type Running = {
   startedAt: number
   /** The Game's members done with the step; always empty solo. */
   completedBy: string[]
-  upkeepSpent: boolean
-  /** The Craft step's Nanite processing was claimed (`spendNanites`). */
-  nanitesSpent: boolean
+  /** Claims a Downtime running at 4.5.33's deploy made under the old flags, before they were ops. */
+  legacyClaims: DowntimeClaim[]
 }
 
 /** Where a Downtime is kept: its running state, null when none runs, and the write that replaces it. */
@@ -44,14 +49,7 @@ export type DowntimePlace = {
  */
 export function beginDowntime(place: DowntimePlace, runId: string, at: number): boolean {
   if (place.running() !== null) return false
-  place.write({
-    runId,
-    stepIndex: 0,
-    startedAt: at,
-    completedBy: [],
-    upkeepSpent: false,
-    nanitesSpent: false,
-  })
+  place.write({ runId, stepIndex: 0, startedAt: at, completedBy: [], legacyClaims: [] })
   return true
 }
 
@@ -67,32 +65,52 @@ export function moveDowntime(place: DowntimePlace, next: (running: Running) => n
   place.write({ ...running, stepIndex, completedBy: [] })
 }
 
-/**
- * Record the crawler upkeep paid, in the Upkeep & Upgrade step only. False
- * when it was already paid, so the caller deducts the scrap once.
- */
-export function spendUpkeep(place: DowntimePlace): boolean {
-  const running = requireRunning(place)
-  if (!isUpkeepStep(running.stepIndex)) {
-    throw new RoomRefusal(`Upkeep is paid in the ${UPKEEP_STEP_NAME} step`)
-  }
-  if (running.upkeepSpent) return false
-  place.write({ ...running, upkeepSpent: true })
-  return true
+/** The step each claim is made in, and the words for one made outside it. */
+const CLAIM_STEP: Record<
+  DowntimeClaim,
+  { inStep: (stepIndex: number) => boolean; refusal: string }
+> = {
+  upkeep: { inStep: isUpkeepStep, refusal: `Upkeep is paid in the ${UPKEEP_STEP_NAME} step` },
+  nanites: {
+    inStep: (stepIndex) => downtimeGuideSteps()[stepIndex]?.name === CRAFT_STEP_NAME,
+    refusal: `Nanites are processed in the ${CRAFT_STEP_NAME} step`,
+  },
 }
 
 /**
- * Record the crawler's Inert Meld Nanites processed, in the Craft step only.
- * False when they already were this Downtime, so the caller rolls them once.
+ * Pay the Upkeep or process the Nanites: in its own step, once per Downtime.
+ * `op` is the crawler's change under the run's stable id (`downtimeClaimOpId`),
+ * applied with the claim in one write, so a claim never stands without its
+ * Scrap; a second press applies nothing. True when this call applied it.
  */
-export function spendNanites(place: DowntimePlace): boolean {
+export function claimInStep(
+  room: { store: GameStore; units: GameUnits; place: DowntimePlace },
+  claim: DowntimeClaim,
+  op: OpInput,
+  author: string,
+  crawler: UnitRow
+): boolean {
+  const { store, units, place } = room
   const running = requireRunning(place)
-  if (downtimeGuideSteps()[running.stepIndex]?.name !== CRAFT_STEP_NAME) {
-    throw new RoomRefusal(`Nanites are processed in the ${CRAFT_STEP_NAME} step`)
+  const rule = CLAIM_STEP[claim]
+  if (!rule.inStep(running.stepIndex)) throw new RoomRefusal(rule.refusal)
+  if (op.id !== downtimeClaimOpId(running.runId, claim) || op.unitId !== crawler.id) {
+    throw new RoomRefusal('That is not this Downtime’s crawler')
   }
-  if (running.nanitesSpent) return false
-  place.write({ ...running, nanitesSpent: true })
+  if (running.legacyClaims.includes(claim) || store.op(op.id) !== null) return false
+  try {
+    units.applyTo(crawler, op, author)
+  } catch (error) {
+    if (error instanceof BatchRefused) throw new RoomRefusal('The crawler could not take that')
+    throw error
+  }
   return true
+}
+
+/** Whether the running Downtime has made `claim`: its crawler op landed (or an old flag says so). */
+export function claimed(store: GameStore, running: Running, claim: DowntimeClaim): boolean {
+  if (running.legacyClaims.includes(claim)) return true
+  return store.op(downtimeClaimOpId(running.runId, claim))?.state === 'applied'
 }
 
 export function requireRunning(place: DowntimePlace): Running {

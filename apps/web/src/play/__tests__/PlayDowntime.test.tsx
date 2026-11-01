@@ -106,7 +106,7 @@ describe('a solo Downtime, end to end', () => {
         store={store}
         writes={writes}
         downtime={{ stepIndex: 0 }}
-        spendUpkeep={async () => {
+        payUpkeep={async () => {
           upkeepClaims += 1
           return upkeepClaims === 1
         }}
@@ -145,8 +145,16 @@ describe('a solo Downtime, end to end', () => {
     expect(within(stepBox()).getByText('5 Scrap · T2')).toBeTruthy()
     await click(button('Apply & mark done'))
     expect(upkeepClaims).toBe(1)
-    const paid = calls.find((c) => c.type === 'crawler')
-    expect(paid?.patch).toEqual({ scrapPool: { tl2: 2 }, upgradePool: 5 })
+    // The Scrap rides on the Upkeep op, not a store write.
+    expect(calls.filter((c) => c.type === 'crawler')).toEqual([])
+    expect(writes).toContainEqual({
+      name: 'downtime.claim',
+      args: {
+        claim: 'upkeep',
+        crawlerId: crawler.id,
+        patch: { scrapPool: { tl2: 2 }, upgradePool: 5 },
+      },
+    })
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     await click(button(/^Next: Step \d+$/))
 
@@ -184,7 +192,7 @@ describe('a solo Downtime, end to end', () => {
     expect(writes.filter((w) => w.name === 'downtime.advance')).toHaveLength(STEPS.length - 1)
   })
 
-  test('Upkeep is spent once: a second claim draws no Scrap', async () => {
+  test('Upkeep is paid once: an Upkeep op already landed says so', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)
     render(
@@ -195,7 +203,7 @@ describe('a solo Downtime, end to end', () => {
         store={store}
         writes={[]}
         downtime={{ stepIndex: STEPS.indexOf('Upkeep & Upgrade') }}
-        spendUpkeep={async () => false}
+        payUpkeep={async () => false}
       />
     )
     await click(button('Apply & mark done'))
@@ -210,21 +218,25 @@ describe('a solo Downtime, end to end', () => {
       crawlerBays: [...(base.crawlerBays ?? []), { bayRef: 'nanite-processing-bay' }],
       scrapPool: { tl2: 7, inertNanites: 3 },
     }
-    const { store, calls } = stubStore(pilot, mech, crawler)
+    const { store } = stubStore(pilot, mech, crawler)
+    const writes: Write[] = []
     render(
       <Harness
         pilot={pilot}
         mech={mech}
         situation="downtime"
         store={store}
-        writes={[]}
+        writes={writes}
         downtime={{ stepIndex: STEPS.indexOf('Craft Mech Chassis, Systems, and Modules') }}
       />
     )
     expect(within(stepBox()).getByText('Process Nanites')).toBeTruthy()
     await click(button('Apply & mark done'))
-    const write = calls.find((c) => c.type === 'crawler')
-    const pool = (write?.patch as Partial<Crawler> | undefined)?.scrapPool
+    const write = writes.find((w) => w.name === 'downtime.claim')?.args as
+      | { claim: string; patch: Partial<Crawler> }
+      | undefined
+    expect(write?.claim).toBe('nanites')
+    const pool = write?.patch.scrapPool
     expect(pool?.inertNanites).toBe(0)
     expect(pool?.activeNanites).toBeGreaterThanOrEqual(0)
     expect(pool?.activeNanites).toBeLessThanOrEqual(3)
@@ -503,7 +515,7 @@ describe('a Game’s step', () => {
     expect(within(stepBox()).queryByRole('checkbox')).toBeNull()
     await click(button('Mark done'))
     expect(writes).toContainEqual({ name: 'downtime.markDone', args: true })
-    expect(writes.some((w) => w.name === 'downtime.spendUpkeep')).toBe(false)
+    expect(writes.some((w) => w.name === 'downtime.claim')).toBe(false)
     expect(calls).toHaveLength(0)
   })
 })
