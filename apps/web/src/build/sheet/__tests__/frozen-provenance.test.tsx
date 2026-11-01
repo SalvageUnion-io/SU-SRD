@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe('Frozen surface — overrides render as plain values (P5.2)', () => {
   test('a read-only sheet shows the capped max with no override/revert affordance', async () => {
-    const pilot = await useUnits.getState().create('pilot', { ...basePilotInput, maxHpModifier: 2 })
+    const pilot = await useUnits.getState().create('pilot', { ...basePilotInput, maxHpOverride: 8 })
 
     render(<Sheet kind="pilot" id={pilot.id} readOnly />)
 

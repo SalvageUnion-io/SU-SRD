@@ -52,8 +52,7 @@ import { resolveEquipment } from './pilotInventory'
 // ---------------------------------------------------------------------------
 
 /**
- * A resolved Heat Check as the mech patch Play writes. Heat, the result and
- * the Shutdown band (shutdown, Vulnerable, SP) auto-apply; a Meltdown's
+ * A resolved Heat Check as the mech patch Play writes. Heat and the Shutdown band (shutdown, Vulnerable, SP) auto-apply; a Meltdown's
  * destruction is a player-confirmed step (ADR-007, like Critical Damage), so
  * it only raises `meltdown` for the caller to offer the confirm.
  */
@@ -61,7 +60,7 @@ function reactorPatch(
   effect: HeatCheckEffect,
   currentHeat: number
 ): { patch: Partial<Mech>; meltdown: boolean } {
-  const patch: Partial<Mech> = { lastHeatCheck: effect.result, currentHeat }
+  const patch: Partial<Mech> = { currentHeat }
   if (effect.shutdown) {
     patch.shutdown = true
     patch.vulnerable = true

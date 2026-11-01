@@ -117,10 +117,9 @@ export function useMechSheetActions({
   // ABSOLUTELY in max*Override. The derivation keeps running underneath, so the
   // gauge can show "overridden from N" and revert by clearing the pin.
   //
-  // A pin is its own field, never a signed max*Modifier delta: one field
-  // carrying both a hand pin and every rules modifier would render an automatic
-  // contribution as an override. max*Modifier means only "manual adjustment"
-  // and contributes to the derivation. See ADR-029.
+  // A pin is its own field, never a signed delta: one field carrying both a
+  // hand pin and every rules modifier would render an automatic contribution as
+  // an override. See ADR-029.
   //
   // Callers normalise the pin with `pinFor` (a pin equal to the derivation is
   // written as none); a commit that changes nothing is not written at all.

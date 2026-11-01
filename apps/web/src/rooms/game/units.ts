@@ -6,7 +6,7 @@ import {
   endsMatchType,
   isSlotted,
 } from 'game-domain/links/linkRules'
-import { UNIT_SCHEMAS } from 'game-domain/ops/applyOp'
+import { parseUnit } from 'game-domain/ops/applyOp'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, Member, StoredOp, UnitRow } from './store'
@@ -33,7 +33,7 @@ export function parseUnitBody(
   id: string,
   body: unknown
 ): Record<string, unknown> {
-  const result = UNIT_SCHEMAS[kind].safeParse({ ...(body as Record<string, unknown>), id })
+  const result = parseUnit(kind, { ...(body as Record<string, unknown>), id })
   if (!result.success) {
     throw new Error(`Invalid ${kind} payload: ${result.error.issues[0]?.message ?? 'unknown'}`)
   }

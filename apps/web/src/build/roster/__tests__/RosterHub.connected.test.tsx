@@ -249,7 +249,6 @@ describe('Training Bay: everything you own', () => {
       chassisRef: 'scrapper',
       systems: [],
       modules: [],
-      cargoLots: [],
       createdAt: '2026-01-01T00:00:00.000Z',
     })
     serveTableState('account', {

@@ -17,15 +17,14 @@
  * schemaVersion: literal(1) follows the same convention as MechSchema,
  * PilotSchema, etc. — enables future incremental migrations.
  *
- * Item arrays (systems, modules, cargoLots): mirror the fields in MechSchema
- * verbatim. The intent is that a MechPattern can be instantiated into a Mech
- * without any data transformation beyond assigning a new id, fresh cargo-lot
- * ids, fresh timestamps, and seeding live stats (currentHeat 0, full SP/EP).
+ * Item arrays (systems, modules): mirror the fields in MechSchema verbatim.
+ * A mech built from a pattern starts fresh: cargo, Damage and Heat stay on
+ * the mech a pattern was saved from.
  */
 
 import { z } from 'salvageunion-reference/zod'
-import { CargoLotSchema } from './cargoLot'
 import { photoFields } from './photo'
+import { withoutRetired } from './retired'
 
 export const MechPatternSchema = z
   .object({
@@ -40,12 +39,6 @@ export const MechPatternSchema = z
     /** Slugs of mech module items — mirrors MechSchema.modules. */
     modules: z.array(z.string()),
     /**
-     * Cargo lots — mirrors MechSchema.cargoLots. Empty on every pattern saved
-     * from a mech: cargo, like Damage and Heat, stays on the mech, and
-     * a mech built from a pattern starts fresh. Older patterns may carry some.
-     */
-    cargoLots: z.array(CargoLotSchema),
-    /**
      * The maker's notes for whoever builds it. Shown on the
      * pattern page in a dashed box: the maker's words, not the book's.
      */
@@ -57,3 +50,8 @@ export const MechPatternSchema = z
   .strict()
 
 export type MechPattern = z.infer<typeof MechPatternSchema>
+
+/** Parse a stored pattern, after dropping the fields patterns no longer store (`RETIRED_FIELDS`). */
+export function parseMechPattern(body: unknown) {
+  return MechPatternSchema.safeParse(withoutRetired('pattern', body))
+}

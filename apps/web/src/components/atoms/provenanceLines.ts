@@ -67,15 +67,6 @@ export function linesFromBreakdown(
     })
   }
 
-  if (parts.adjustment !== 0) {
-    lines.push({
-      kind: 'adjustment',
-      label: 'Manual adjustment',
-      detail: 'entered by hand',
-      amount: parts.adjustment,
-    })
-  }
-
   // An override appends to the full derivation rather than replacing it, so the
   // revert target stays visible and explained (ADR-022 amendment).
   if (parts.overridden) {
@@ -106,10 +97,6 @@ export function summarizeBreakdown(parts: StatBreakdown, labels: ProvenanceLabel
   if (parts.installed !== 0) {
     const sign = parts.installed < 0 ? '−' : '+'
     terms.push(`${sign}${Math.abs(parts.installed)} ${labels.installed ?? 'installed'}`)
-  }
-  if (parts.adjustment !== 0) {
-    const sign = parts.adjustment < 0 ? '−' : '+'
-    terms.push(`${sign}${Math.abs(parts.adjustment)} manual adjustment`)
   }
   const sum = `${terms.join(' ')} = ${parts.derived}`
   return parts.overridden ? `${sum}; overridden to ${parts.override ?? parts.total}` : sum

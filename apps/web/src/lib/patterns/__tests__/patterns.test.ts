@@ -23,7 +23,6 @@ const towRig = MechPatternSchema.parse({
   chassisRef: 'scrapper',
   systems: ['rigging-arm', 'transport-hold'],
   modules: ['comms-module'],
-  cargoLots: [],
   notes: 'Rig first, rivet later.',
   createdAt: FIXTURE_NOW,
 })
@@ -49,7 +48,6 @@ describe('saving a mech as a pattern', () => {
       chassisRef: 'scrapper',
       systems: ['rigging-arm'],
       modules: ['comms-module'],
-      cargoLots: [],
       notes: 'Hauls wrecks.',
     })
   })

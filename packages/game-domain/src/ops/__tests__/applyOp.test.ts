@@ -97,4 +97,21 @@ describe('applyOp unset', () => {
       message: 'cannot unset unknown field "notAField"',
     })
   })
+
+  test('accepts a retired field, which the result drops anyway', () => {
+    const unit = unitOf('crawler', { ...crawler, maxSpModifier: 5 })
+    const result = applyOp(unit, op({}, { unset: ['maxSpModifier'] }))
+    if (!result.ok) throw new Error(result.reason)
+    expect('maxSpModifier' in result.unit.body).toBe(false)
+  })
+})
+
+describe('retired fields', () => {
+  test('a body saved with one still takes an op, and is written without it', () => {
+    const unit = unitOf('crawler', { ...crawler, maxSpModifier: 5 })
+    const result = applyOp(unit, op({ name: 'Throne II' }))
+    if (!result.ok) throw new Error(result.reason)
+    expect('maxSpModifier' in result.unit.body).toBe(false)
+    expect(result.unit.body.name).toBe('Throne II')
+  })
 })

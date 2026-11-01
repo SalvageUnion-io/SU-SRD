@@ -124,7 +124,7 @@
       "apps/web/src/components/atoms/chipFill.ts": 1,
       "apps/web/src/components/atoms/KofiButton.tsx": 2,
       "apps/web/src/components/atoms/modKeyHint.ts": 1,
-      "apps/web/src/components/atoms/provenanceLines.ts": 6,
+      "apps/web/src/components/atoms/provenanceLines.ts": 3,
       "apps/web/src/components/atoms/SlotGrid.tsx": 2,
       "apps/web/src/components/atoms/StatProvenance.tsx": 1,
       "apps/web/src/components/atoms/transition.ts": 1,

@@ -21,7 +21,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { isSheetKind } from 'game-domain/entityKinds'
 import { NpcSchema } from 'game-domain/schemas/npc'
-import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { parseMechPattern } from 'game-domain/schemas/pattern'
 import { segmentNames, shareSegment } from 'game-domain/shareAddress'
 import { useEffect } from 'react'
 import { NotFoundPanel } from '../../components/shared/RouteFallbacks'
@@ -121,7 +121,7 @@ function PublicPatternQuery({ appId, onAddress }: QueryProps) {
   if (result === null) return <NotAvailable what="pattern" />
 
   // The body is `v.any()` on the server; parse it as every reader does.
-  const parsed = MechPatternSchema.safeParse(result.body)
+  const parsed = parseMechPattern(result.body)
   if (!parsed.success) return <NotAvailable what="pattern" />
   return <PublicPattern answer={{ ...result, pattern: parsed.data }} />
 }

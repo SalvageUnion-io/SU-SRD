@@ -1,7 +1,6 @@
 import type { MechDerived, PilotDerived } from '../botWire'
-import { MechSchema } from '../schemas/mech'
+import { parseUnit } from '../ops/applyOp'
 import type { Pilot } from '../schemas/pilot'
-import { PilotSchema } from '../schemas/pilot'
 import type { SeatMount } from '../schemas/seat'
 import {
   mechMaxima,
@@ -77,7 +76,7 @@ export function crewDeriver<S extends CrewSeat>({
   function parsePilot(body: unknown): Pilot | null {
     const known = parsedByBody.get(body)
     if (known !== undefined) return known
-    const parsed = PilotSchema.safeParse(body)
+    const parsed = parseUnit('pilot', body)
     const pilot = parsed.success ? parsed.data : null
     parsedByBody.set(body, pilot)
     return pilot
@@ -103,7 +102,7 @@ export function crewDeriver<S extends CrewSeat>({
   }
 
   function deriveMech(unit: CrewUnit): MechDerived {
-    const parsed = MechSchema.safeParse(unit.body)
+    const parsed = parseUnit('mech', unit.body)
     if (!parsed.success) {
       return { maxSP: null, maxEP: null, maxHeat: null, status: null, attention: false }
     }

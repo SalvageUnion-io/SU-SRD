@@ -437,8 +437,8 @@ describe('downtimePilotPatch', () => {
     expect(patch.injuries).toBeUndefined()
   })
 
-  it('respects maxHpModifier/maxApModifier in the restored values', () => {
-    const pilot = makePilot({ currentHP: 1, currentAP: 0, maxHpModifier: 2, maxApModifier: 1 })
+  it('respects maxHpOverride/maxApOverride in the restored values', () => {
+    const pilot = makePilot({ currentHP: 1, currentAP: 0, maxHpOverride: 12, maxApOverride: 6 })
     const patch = downtimePilotPatch(pilot, medBay(), allDowntimeSteps())
     expect(patch.currentHP).toBe(12)
     expect(patch.currentAP).toBe(6)

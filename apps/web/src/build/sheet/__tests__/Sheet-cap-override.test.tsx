@@ -77,19 +77,4 @@ describe('Live Sheet — cap override (P2.2)', () => {
     // …and the revert is an `override` op.
     expect(logged().some((e) => e.kind === 'override' && e.field === 'maxHpOverride')).toBe(true)
   })
-
-  test('a manual adjustment is NOT an override — it contributes to the derivation', async () => {
-    // Before the ADR-022 amendment maxHpModifier carried both meanings at once,
-    // so a rules-sourced bonus would have rendered as a hand override with a
-    // revert button. It is now a contribution: the max rises, no indicator.
-    const store = useUnits.getState()
-    const pilot = await store.create('pilot', { ...basePilotInput, maxHpModifier: 2 })
-
-    render(<Sheet kind="pilot" id={pilot.id} />)
-
-    // Anchor on the sheet actually being rendered before asserting absence.
-    await screen.findByRole('button', { name: /more actions/i })
-    expect(screen.queryByText(/overridden from/i)).toBeNull()
-    expect(screen.queryByRole('button', { name: /revert hp max/i })).toBeNull()
-  })
 })

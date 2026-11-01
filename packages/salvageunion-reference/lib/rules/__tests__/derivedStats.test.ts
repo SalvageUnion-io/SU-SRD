@@ -2,7 +2,7 @@
  * Unit tests for derivedStats.ts — derived maxima for all three entities.
  * The pilot max-HP derivation is rules-critical and pinned:
  *
- *   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+ *   maxHP = 10 + 2×(crawler tech − 1)
  *           − Σ(minor injury: 1, major injury: 2)
  *
  * Mech maxima use a hand-crafted chassis; crawler max SP uses REAL
@@ -61,19 +61,18 @@ describe('pilot derivation', () => {
     expect(injuryMaxHpPenalty(undefined)).toBe(0)
   })
 
-  it('pinned formula: maxHP = 10 + modifier − injuries', () => {
+  it('pinned formula: maxHP = 10 − injuries', () => {
     const pilot = {
-      maxHpModifier: 4, // a hand-entered adjustment
       injuries: [
         { severity: 'minor' as const, note: '' },
         { severity: 'major' as const, note: '' },
       ],
     }
-    expect(pilotMaxHP(pilot)).toBe(10 + 4 - 3)
+    expect(pilotMaxHP(pilot)).toBe(10 - 3)
   })
 
-  it('maxAP = 5 + modifier', () => {
-    expect(pilotMaxAP({ maxApModifier: 2 })).toBe(7)
+  it('maxAP = 5', () => {
+    expect(pilotMaxAP({})).toBe(5)
   })
 
   it('dead state: maxHP ≤ 0 — not clamped away', () => {
@@ -105,10 +104,9 @@ describe('pilot Stat Training follows the crawler tech level', () => {
     expect(pilotMaxAP({ crawlerTechLevel })).toBe(ap)
   })
 
-  it('renders as its own named provenance line, not the base or the adjustment', () => {
+  it('renders as its own named provenance line, not the base', () => {
     const hp = pilotMaxHPParts({ crawlerTechLevel: 3 })
     expect(hp.base).toBe(PILOT_BASE_HP)
-    expect(hp.adjustment).toBe(0)
     expect(hp.sources).toEqual([
       {
         source: 'Crawler Tech 3',
@@ -140,15 +138,13 @@ describe('pilot Stat Training follows the crawler tech level', () => {
     expect(pilotMaxHP({ crawlerTechLevel: 0 })).toBe(10)
   })
 
-  it('stacks with injuries and the manual adjustment', () => {
+  it('stacks with injuries', () => {
     const pilot = {
       crawlerTechLevel: 3,
-      maxHpModifier: 1,
-      maxApModifier: -1,
       injuries: [{ severity: 'major' as const, note: '' }],
     }
-    expect(pilotMaxHP(pilot)).toBe(10 + 4 + 1 - 2)
-    expect(pilotMaxAP(pilot)).toBe(5 + 2 - 1)
+    expect(pilotMaxHP(pilot)).toBe(10 + 4 - 2)
+    expect(pilotMaxAP(pilot)).toBe(5 + 2)
   })
 
   it('an absolute pin still wins, and keeps the tier-derived value as `derived`', () => {
@@ -183,37 +179,19 @@ const chassis: ChassisStats = {
 describe('mech derivation', () => {
   const bare = { chassisRef: 'no-such-chassis' }
 
-  it('maxima = chassis stat + modifier (heat sinks, capacitance banks, armour, holds)', () => {
-    const mech = {
-      ...bare,
-      maxSpModifier: 5, // Composite Armour
-      maxEpModifier: 2, // Capacitance Bank
-      maxHeatModifier: 1, // Heat Sink
-      maxCargoModifier: 4, // Storage Hold
-    }
-    expect(mechMaxSP(mech, chassis)).toBe(15)
-    expect(mechMaxEP(mech, chassis)).toBe(8)
-    expect(mechMaxHeat(mech, chassis)).toBe(6)
-    expect(mechMaxCargo(mech, chassis)).toBe(10)
-  })
-
-  it('modifiers default to 0 when absent', () => {
+  it('is the chassis stat with nothing installed', () => {
     expect(mechMaxSP(bare, chassis)).toBe(10)
     expect(mechMaxEP(bare, chassis)).toBe(6)
     expect(mechMaxHeat(bare, chassis)).toBe(5)
     expect(mechMaxCargo(bare, chassis)).toBe(6)
   })
 
-  it('negative modifiers floor at 0, never negative maxima', () => {
-    expect(mechMaxSP({ ...bare, maxSpModifier: -99 }, chassis)).toBe(0)
-  })
-
   it('resolves the chassis by SLUG from the reference ORM when not injected', () => {
     const real = SalvageUnionReference.Chassis.all()[0]
     expect(real).toBeDefined()
     if (!real) return
-    const mech = { chassisRef: getEntitySlug(real), maxSpModifier: 1 }
-    expect(mechMaxSP(mech)).toBe((real.structurePoints ?? 0) + 1)
+    const mech = { chassisRef: getEntitySlug(real) }
+    expect(mechMaxSP(mech)).toBe(real.structurePoints ?? 0)
   })
 })
 
@@ -241,20 +219,11 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
     expect(parts.base).toBe(10)
   })
 
-  it('a manual adjustment CONTRIBUTES rather than replacing', () => {
-    const parts = mechMaxSPParts({ ...bare, maxSpModifier: 3 }, chassis)
-    expect(parts.adjustment).toBe(3)
-    expect(parts.derived).toBe(13)
-    expect(parts.total).toBe(13)
+  it('without a pin the derivation stands', () => {
+    const parts = mechMaxSPParts(bare, chassis)
+    expect(parts.total).toBe(10)
     expect(parts.overridden).toBe(false)
     expect(parts.override).toBeUndefined()
-  })
-
-  it('a pin and an adjustment coexist — the pin wins, the adjustment stays visible', () => {
-    const parts = mechMaxSPParts({ ...bare, maxSpModifier: 3, maxSpOverride: 25 }, chassis)
-    expect(parts.total).toBe(25)
-    expect(parts.derived).toBe(13)
-    expect(parts.adjustment).toBe(3)
   })
 
   it('a pin of 0 is honoured, not treated as absent', () => {
@@ -341,19 +310,11 @@ describe('cap overrides — absolute pins (ADR-022 amendment)', () => {
 
 describe('pilot inventory capacity', () => {
   // Pins the equivalence with the derivation this replaced (The app's
-  // pilotInventoryCapacity): base 6 + maxInventorySlotsModifier + ability
+  // pilotInventoryCapacity): base 6 + ability
   // contributions, floored at 0 — plus the override path that field never had.
   it('is the rules base with no modifiers', () => {
     expect(pilotMaxInventorySlots({})).toBe(PILOT_BASE_INVENTORY_SLOTS)
     expect(PILOT_BASE_INVENTORY_SLOTS).toBe(6)
-  })
-
-  it('adds the hand-edited modifier', () => {
-    expect(pilotMaxInventorySlots({ maxInventorySlotsModifier: 2 })).toBe(8)
-  })
-
-  it('never goes below 0', () => {
-    expect(pilotMaxInventorySlots({ maxInventorySlotsModifier: -20 })).toBe(0)
   })
 
   it("applies Beefcake's +4 inventorySlots as a NAMED source, not an anonymous total", () => {
@@ -366,12 +327,11 @@ describe('pilot inventory capacity', () => {
   it('honours maxInventorySlotsOverride as an absolute pin, retaining the derived value', () => {
     const parts = pilotMaxInventorySlotsParts({
       abilities: ['beefcake'],
-      maxInventorySlotsModifier: 1,
       maxInventorySlotsOverride: 3,
     })
     expect(parts.overridden).toBe(true)
     expect(parts.total).toBe(3)
-    expect(parts.derived).toBe(11)
+    expect(parts.derived).toBe(10)
   })
 
   it('a pin of 0 is honoured, not treated as absent', () => {
@@ -418,14 +378,10 @@ describe('installed system/module contributions', () => {
     expect(sourceOf(mechMaxSPParts(two, chassis))).toEqual([['Composite Armour', 10]])
   })
 
-  it('adds installed contributions on top of the hand-edited modifier', () => {
-    const mech = {
-      ...bare,
-      maxEpModifier: 1,
-      systems: ['capacitance-bank', 'capacitance-bank'],
-    }
-    // base energyPoints 6 + modifier 1 + 2 banks (+2 each = +4) = 11
-    expect(mechMaxEP(mech, chassis)).toBe(11)
+  it('adds installed contributions on top of the chassis stat', () => {
+    const mech = { ...bare, systems: ['capacitance-bank', 'capacitance-bank'] }
+    // base energyPoints 6 + 2 banks (+2 each = +4) = 10
+    expect(mechMaxEP(mech, chassis)).toBe(10)
   })
 
   it('mixes system and module refs and ignores unresolved / no-contribution items', () => {
@@ -480,11 +436,6 @@ describe('crawler derivation', () => {
     expect(crawlerMaxSP({ techLevel: 'tech-3' })).toBe(tl3?.structurePoints ?? -1)
   })
 
-  it('maxSpModifier is a pure hand-edit bonus on top of the base', () => {
-    const base = crawlerMaxSP({ techLevel: 'tech-1' })
-    expect(crawlerMaxSP({ techLevel: 'tech-1', maxSpModifier: 5 })).toBe(base + 5)
-  })
-
   it('the Battle type’s +5 applies AT READ from its stored max_sp_bonus mutation', () => {
     const battle = SalvageUnionReference.Crawlers.getByName('Battle')
     expect(battle).toBeDefined()
@@ -494,16 +445,11 @@ describe('crawler derivation', () => {
     expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'engineering' })).toBe(base)
   })
 
-  it('type bonus stacks with the hand-edit modifier, decomposed by crawlerMaxSPParts', () => {
-    const parts = crawlerMaxSPParts({
-      techLevel: 'tech-1',
-      type: 'battle',
-      maxSpModifier: 2,
-    })
+  it('type bonus is decomposed by crawlerMaxSPParts', () => {
+    const parts = crawlerMaxSPParts({ techLevel: 'tech-1', type: 'battle' })
     expect(parts.base).toBe(20)
     expect(parts.typeBonus).toBe(5)
-    expect(parts.adjustment).toBe(2)
-    expect(parts.total).toBe(27)
+    expect(parts.total).toBe(25)
   })
 
   it('an unresolvable type ref contributes no bonus', () => {
@@ -511,9 +457,8 @@ describe('crawler derivation', () => {
     expect(crawlerMaxSP({ techLevel: 'tech-1', type: 'no-such-type' })).toBe(base)
   })
 
-  it('unresolvable techLevel slug yields the modifier alone (≥ 0)', () => {
+  it('unresolvable techLevel slug derives 0', () => {
     expect(crawlerMaxSP({ techLevel: 'garbage' })).toBe(0)
-    expect(crawlerMaxSP({ techLevel: 'garbage', maxSpModifier: 5 })).toBe(5)
   })
 })
 

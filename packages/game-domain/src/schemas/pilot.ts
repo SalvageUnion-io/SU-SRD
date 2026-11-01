@@ -31,40 +31,6 @@ const InjurySchema = z
   .strict()
 
 /**
- * Critical Injury Table outcome bands (Core Book p.241; mirrors the
- * "Critical Injury" entry in salvageunion-reference data/roll-tables.json).
- * - fatal: roll 1 — the pilot dies (never auto-applied; player marks it)
- * - major-injury: roll 2-5 — −2 max HP until healed (T5-6 Med Bay) + Unconscious
- * - minor-injury: roll 6-10 — −1 max HP until healed (T3-4 Med Bay) + Unconscious
- * - unconscious: roll 11-19 — stable at 0 HP, unconscious until ≥1 HP
- * - miraculous-survival: roll 20 — 1 HP, conscious, acts normally
- */
-
-const CriticalInjuryOutcomeSchema = z.enum([
-  'fatal',
-  'major-injury',
-  'minor-injury',
-  'unconscious',
-  'miraculous-survival',
-])
-
-/**
- * Recorded result of a Critical Injury Table roll (rolled when the pilot
- * reaches 0 HP). Snapshot-safe plain data stored on the pilot — same shape
- * discipline as the mech's HeatCheckResult/CriticalDamageResult.
- */
-
-const CriticalInjuryResultSchema = z
-  .object({
-    roll: z.number().int().min(1).max(20),
-    outcome: CriticalInjuryOutcomeSchema,
-
-    /** ISO timestamp of when this result was rolled. */
-    rolledAt: z.string().datetime(),
-  })
-  .strict()
-
-/**
  * A free-form inventory entry with an explicit slot cost. Used for
  * anything the pilot carries that is not a reference equipment slug — most
  * importantly Scrap (3 slots each). Slot math at the display
@@ -244,43 +210,17 @@ export const PilotSchema = z
 
     /**
      * Injuries list (enum severity, not free-form). Drives the max-HP
-     * derivation: maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
-     * − Σ(minor: 1, major: 2).
+     * derivation: maxHP = 10 + 2×(crawler tech − 1) − Σ(minor: 1, major: 2).
      * Absent = no injuries.
      */
     injuries: z.array(InjurySchema).optional(),
-
-    /**
-     * A general, hand-entered adjustment to max HP ("Manual adjustment" in the
-     * provenance panel). NOT Stat Training: that is derived from the crawler
-     * tier at read time (+2 per tech level above 1 — `pilotMaxHPParts`), and
-     * abilities contribute through their own named lines. Injury penalties are
-     * NOT folded in here either — they are derived from `injuries` so healing
-     * an injury restores max HP without bookkeeping. Absent = 0.
-     */
-    maxHpModifier: z.number().int().optional(),
-
-    /**
-     * A general, hand-entered adjustment to max AP. NOT Stat Training, which is
-     * derived from the crawler tier (+1 per tech level above 1 —
-     * `pilotMaxAPParts`). Absent = 0.
-     */
-    maxApModifier: z.number().int().optional(),
-
-    /**
-     * Passive bonuses to inventory capacity over the base 6
-     * (e.g. Beefcake +4). Absent = 0.
-     */
-    maxInventorySlotsModifier: z.number().int().optional(),
 
     // ---------------------------------------------------------------------------
     // Cap overrides — absolute pins (ADR-022 amendment, Free Edit only).
     //
     // When present the stat SHOWS this value and stops tracking its derivation.
     // The derived total is still computed underneath for the "overridden from N"
-    // callout and the one-click revert; it is never persisted. Distinct from the
-    // max*Modifier fields above, which are manual adjustments that CONTRIBUTE to
-    // the derivation rather than replacing it. See ADR-029.
+    // callout and the one-click revert; it is never persisted. See ADR-029.
     // ---------------------------------------------------------------------------
     /** Absolute pinned max Hit Points. */
     maxHpOverride: z.number().int().nonnegative().optional(),
@@ -317,11 +257,6 @@ export const PilotSchema = z
      */
     genericInventory: z.array(GenericInventoryEntrySchema).optional(),
 
-    /**
-     * The most recent Critical Injury Table result (rolled on reaching 0
-     * HP). Snapshot-safe plain data.
-     */
-    lastCriticalInjury: CriticalInjuryResultSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

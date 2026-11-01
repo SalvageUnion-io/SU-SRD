@@ -45,7 +45,6 @@ export function patternFromMech(
     chassisRef: mech.chassisRef,
     systems: [...mech.systems],
     modules: [...mech.modules],
-    cargoLots: [],
     ...(trimmedNotes ? { notes: trimmedNotes } : {}),
   }
 }
@@ -57,7 +56,7 @@ export function patternFromMech(
  */
 export function patternCopy(pattern: MechPattern): PatternInput {
   const { id: _id, createdAt: _createdAt, ...rest } = pattern
-  return { ...rest, systems: [...rest.systems], modules: [...rest.modules], cargoLots: [] }
+  return { ...rest, systems: [...rest.systems], modules: [...rest.modules] }
 }
 
 /**

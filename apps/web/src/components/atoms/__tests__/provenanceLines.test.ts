@@ -12,7 +12,6 @@ function parts(over: Partial<StatBreakdown> = {}): StatBreakdown {
     base: 10,
     installed: 0,
     sources: [],
-    adjustment: 0,
     derived: 10,
     total: 10,
     overridden: false,
@@ -41,20 +40,11 @@ describe('linesFromBreakdown', () => {
     expect(lines[1]).toMatchObject({ label: 'Injuries', amount: -2 })
   })
 
-  test('a manual adjustment is its own labelled line, never folded into the base', () => {
-    const lines = linesFromBreakdown(parts({ adjustment: 3, derived: 13, total: 13 }), {
-      base: 'Atlas chassis',
-    })
-    expect(lines.map((l) => l.kind)).toEqual(['base', 'adjustment'])
-    expect(lines[1]).toMatchObject({ label: 'Manual adjustment', amount: 3 })
-  })
-
   test('an override APPENDS to the full derivation rather than replacing it', () => {
     const lines = linesFromBreakdown(
       parts({
         installed: 5,
-        adjustment: 2,
-        derived: 17,
+        derived: 15,
         override: 25,
         total: 25,
         overridden: true,
@@ -62,14 +52,8 @@ describe('linesFromBreakdown', () => {
       { base: 'Atlas chassis', installed: 'Installed systems' }
     )
     // every derived component is still listed, then the subtotal, then the pin
-    expect(lines.map((l) => l.kind)).toEqual([
-      'base',
-      'contribution',
-      'adjustment',
-      'derived',
-      'override',
-    ])
-    expect(lines.at(-2)).toMatchObject({ label: 'Derived', amount: 17 })
+    expect(lines.map((l) => l.kind)).toEqual(['base', 'contribution', 'derived', 'override'])
+    expect(lines.at(-2)).toMatchObject({ label: 'Derived', amount: 15 })
     expect(lines.at(-1)).toMatchObject({ label: 'Override', amount: 25 })
   })
 })

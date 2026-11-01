@@ -14,10 +14,9 @@ import { z } from 'salvageunion-reference/zod'
  *
  *   - `upload` — the player's own image, in R2 under `storageId`. Every
  *     reader (the sheet, a crewmate's view, the public sheet) renders it from
- *     the Worker by that key (`photoPath`), never from the stored `url`, so a
- *     `url` naming another host shows nothing from it. A photo uploaded before
- *     4.5 keeps its Convex `url`; its file was copied into R2 under its Convex
- *     `_storage` id.
+ *     the Worker by that key (`photoPath`). An older photo also carries the
+ *     `url` it was uploaded with, which nothing reads; one uploaded before 4.5
+ *     names Convex, its file copied into R2 under its Convex `_storage` id.
  *   - `asset` — licensed artwork on the CDN, by object key. The Starter Set
  *     crew carry their portraits this way, and a copy keeps it.
  *
@@ -30,8 +29,8 @@ export const PhotoSchema = z.discriminatedUnion('kind', [
       kind: z.literal('upload'),
       /** The file's key (a copied Convex `_storage` id on older photos). */
       storageId: z.string().min(1),
-      /** Its serving URL, as the upload answered it. */
-      url: z.string().url(),
+      /** Retired: never read, no longer written; kept optional so stored photos still parse. */
+      url: z.string().url().optional(),
     })
     .strict(),
   z
@@ -58,7 +57,7 @@ export function photoPath(key: string): string {
   return `${PHOTOS_PATH}/${encodeURIComponent(key)}`
 }
 
-/** Where a photo is served from: an upload by its key, whatever `url` it stored. */
+/** Where a photo is served from: an upload by its key. */
 export function photoUrl(photo: Photo): string {
   return photo.kind === 'upload' ? photoPath(photo.storageId) : assetUrl(photo.path)
 }

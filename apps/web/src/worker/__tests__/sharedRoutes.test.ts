@@ -304,7 +304,7 @@ describe('servePhotos', () => {
     const { it: photos, files } = bucket()
     const res = await upload('image/webp', 10, MAKER, photos)
     const key = '00000000-0000-4000-8000-000000000000.webp'
-    expect(await res.json()).toEqual({ storageId: key, url: `${ORIGIN}${PHOTOS_PATH}/${key}` })
+    expect(await res.json()).toEqual({ storageId: key })
     expect(files.get(key)?.owner).toBe('d-1')
 
     const served = await servePhotos(new Request(`${ORIGIN}${PHOTOS_PATH}/${key}`), {

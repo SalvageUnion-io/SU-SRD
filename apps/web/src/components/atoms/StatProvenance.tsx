@@ -16,11 +16,10 @@ import { INK_POPUP } from './popupSurface'
  *   `base`         the rules baseline (chassis stat, tech-level SP, a constant)
  *   `contribution` a rules-sourced addend (an installed item, type bonus,
  *                  an injury penalty — negative amounts are contributions too)
- *   `adjustment`   the player's hand-entered manual adjustment
  *   `derived`      the subtotal of everything above
  *   `override`     an absolute Free-Edit pin, which REPLACES the subtotal
  */
-export type ProvenanceLineKind = 'base' | 'contribution' | 'adjustment' | 'derived' | 'override'
+export type ProvenanceLineKind = 'base' | 'contribution' | 'derived' | 'override'
 
 export type ProvenanceLine = {
   kind: ProvenanceLineKind

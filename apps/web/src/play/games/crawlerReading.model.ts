@@ -3,7 +3,7 @@
  * (docs/architecture/play.md §16).
  */
 
-import { CrawlerSchema } from 'game-domain/schemas/crawler'
+import { parseUnit } from 'game-domain/ops/applyOp'
 import { crawlerMaxSP, parseCrawlerTechLevel, resolvePool } from 'salvageunion-reference/rules'
 
 /** What the card shows of a crawler. */
@@ -18,7 +18,7 @@ export type CrawlerReading = {
 
 /** A listing row (`entities.listForGame`) as the card reads it, or null. */
 export function readCrawler(row: { appId: string | null; body: unknown }): CrawlerReading | null {
-  const parsed = CrawlerSchema.safeParse(row.body)
+  const parsed = parseUnit('crawler', row.body)
   if (!parsed.success) return null
   const crawler = parsed.data
   const maxSP = crawlerMaxSP(crawler)

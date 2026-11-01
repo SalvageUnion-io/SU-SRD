@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { fitWithin, MAX_PHOTO_EDGE, uploadPhoto } from '../uploadPhoto'
 
-const ORIGIN = 'https://salvageunion.io'
 const BLOB = new Blob(['x'], { type: 'image/webp' })
 
 describe('fitWithin', () => {
@@ -22,22 +21,21 @@ describe('uploadPhoto', () => {
       posted.push(url)
       return Response.json({ storageId: 's1.webp' })
     }
-    expect(await uploadPhoto(BLOB, post, ORIGIN)).toEqual({
+    expect(await uploadPhoto(BLOB, post)).toEqual({
       kind: 'upload',
       storageId: 's1.webp',
-      url: `${ORIGIN}/__photos/s1.webp`,
     })
     expect(posted).toEqual(['/__photos'])
   })
 
   test('says so when the Worker refuses the file, the upload fails, or the answer has no id', async () => {
     const answer = (response: Response) => async () => response
-    await expect(
-      uploadPhoto(BLOB, answer(new Response('', { status: 415 })), ORIGIN)
-    ).rejects.toThrow('under 4 MB')
-    await expect(
-      uploadPhoto(BLOB, answer(new Response('', { status: 500 })), ORIGIN)
-    ).rejects.toThrow('(500)')
-    await expect(uploadPhoto(BLOB, answer(Response.json({})), ORIGIN)).rejects.toThrow('no file id')
+    await expect(uploadPhoto(BLOB, answer(new Response('', { status: 415 })))).rejects.toThrow(
+      'under 4 MB'
+    )
+    await expect(uploadPhoto(BLOB, answer(new Response('', { status: 500 })))).rejects.toThrow(
+      '(500)'
+    )
+    await expect(uploadPhoto(BLOB, answer(Response.json({})))).rejects.toThrow('no file id')
   })
 })

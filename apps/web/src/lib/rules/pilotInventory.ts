@@ -6,7 +6,7 @@
  *   - unresolved slugs: counted at 1 so the total never lies low
  *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit)
  *   - capacity: derived by `pilotMaxInventorySlots` (base 6 +
- *     maxInventorySlotsModifier + ability contributions like Beefcake +4),
+ *     ability contributions like Beefcake +4),
  *     honouring the absolute maxInventorySlotsOverride pin
  *
  * Uses accounting: an item's max uses come from its `uses` trait
@@ -70,12 +70,10 @@ export function pilotInventoryUsed(pilot: PilotInventoryInput): number {
   return equipmentSlots + genericSlots
 }
 
-type PilotCapacityInput = Pick<Pilot, 'maxInventorySlotsModifier'> &
-  Partial<Pick<Pilot, 'abilities' | 'maxInventorySlotsOverride'>>
+type PilotCapacityInput = Partial<Pick<Pilot, 'abilities' | 'maxInventorySlotsOverride'>>
 
 /**
- * Inventory capacity (6 base) plus the hand-edited passive bonus
- * (`maxInventorySlotsModifier`) PLUS any ability contributions (Beefcake +4),
+ * Inventory capacity (6 base) plus any ability contributions (Beefcake +4),
  * and the absolute `maxInventorySlotsOverride` pin when one is set. Never
  * below 0.
  *

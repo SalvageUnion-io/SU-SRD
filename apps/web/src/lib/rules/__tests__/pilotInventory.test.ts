@@ -87,20 +87,19 @@ describe('pilotInventoryUsed / pilotInventoryCapacity', () => {
     expect(pilotInventoryCapacity()).toBe(6)
   })
 
-  test('capacity adds maxInventorySlotsModifier (Beefcake +4)', () => {
-    expect(pilotInventoryCapacity({ maxInventorySlotsModifier: 4 })).toBe(10)
-    expect(pilotInventoryCapacity({ maxInventorySlotsModifier: -10 })).toBe(0)
+  test('capacity adds Beefcake +4', () => {
+    expect(pilotInventoryCapacity({ abilities: ['beefcake'] })).toBe(10)
     expect(pilotInventoryCapacity({})).toBe(6)
   })
 
   // `maxInventorySlotsOverride` has been in the persisted Pilot schema all
   // along but was read by nothing, so a Free-Edit pin silently did nothing.
   // The capacity now derives through `pilotMaxInventorySlots`, so the pin wins
-  // over base + modifier exactly like the HP and AP pins do.
+  // over the derivation exactly like the HP and AP pins do.
   test('capacity honours the maxInventorySlotsOverride pin', () => {
-    expect(
-      pilotInventoryCapacity({ maxInventorySlotsModifier: 4, maxInventorySlotsOverride: 3 })
-    ).toBe(3)
+    expect(pilotInventoryCapacity({ abilities: ['beefcake'], maxInventorySlotsOverride: 3 })).toBe(
+      3
+    )
     expect(pilotInventoryCapacity({ maxInventorySlotsOverride: 0 })).toBe(0)
   })
 

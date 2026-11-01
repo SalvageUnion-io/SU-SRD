@@ -23,7 +23,6 @@ const band: EncounterOpponent = {
   id: 'o1',
   refSchema: 'squads',
   refSlug: 'raider-band',
-  refName: 'Raider Band',
   name: 'Raider Band',
   maxHp: 6,
   statKind: 'hp',

@@ -15,7 +15,7 @@ import { StatProvenance } from '../StatProvenance'
 const LINES: ProvenanceLine[] = [
   { kind: 'base', label: 'Atlas chassis', detail: 'base', amount: 18 },
   { kind: 'contribution', label: 'Composite Armour', detail: '×2 installed', amount: 10 },
-  { kind: 'adjustment', label: 'Manual adjustment', amount: 2 },
+  { kind: 'contribution', label: 'Beefcake', amount: 2 },
 ]
 
 function renderPanel(props: Partial<Parameters<typeof StatProvenance>[0]> = {}) {

@@ -302,7 +302,7 @@ describe('the resolve', () => {
       systems: [sys.id],
       currentEP: 6,
       currentHeat: 0,
-      maxHeatModifier: 50,
+      maxHeatOverride: 50,
     })
     const { store, calls } = stubStore(mech)
     const { container } = renderDeck(mech, store)

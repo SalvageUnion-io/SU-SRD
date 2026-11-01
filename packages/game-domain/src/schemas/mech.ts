@@ -6,104 +6,6 @@ import { PartnerInstanceSchema } from './partner'
 import { photoFields } from './photo'
 
 /**
- * Reactor Overload outcome categories (Core Book p.235). Distinct from the
- * raw d20 roll: maps the table band to a deterministic mech effect.
- * - meltdown: roll 1 — mech destroyed
- * - system-destroyed: roll 2-5 — player marks a System destroyed
- * - module-destroyed: roll 6-10 — player marks a Module destroyed
- * - overheat: roll 11-19 — shutdown + Vulnerable + SP damage = current Heat
- * - overdrive: roll 20 — Reactor Overdrive: a free additional action this
- *   turn, or a free Push within 10 minutes (nothing to apply)
- * A Bio-Chassis rolls the Bio-Chassis Overload Table instead (We Were Here
- * First p.79), which adds death-throes (1), severe-pilot-overload (4-5),
- * pilot-overload (9-10) and bio-overload (11-19).
- *
- * The 20 was stored as `'safe'` before it took the book's name, so a mech
- * saved with that `lastHeatCheck` still reads, as `'overdrive'`.
- */
-
-const ReactorOverloadOutcomeSchema = z.preprocess(
-  (value) => (value === 'safe' ? 'overdrive' : value),
-  z.enum([
-    'meltdown',
-    'system-destroyed',
-    'module-destroyed',
-    'overheat',
-    'overdrive',
-    'death-throes',
-    'severe-pilot-overload',
-    'pilot-overload',
-    'bio-overload',
-  ])
-)
-
-// The outcome of `HeatCheckResultSchema` below, the shape of `lastHeatCheck`
-// that Play's `reactorPatch` (apps/web lib/rules/actionPatches.ts) writes on every heat check.
-
-/**
- * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
- * Snapshot-safe plain data stored on the mech so the sheet can render the last
- * outcome. `heatCheckRoll` is the d20 vs current Heat; `overloaded` is true when
- * that roll <= heat. `overloadRoll` / `outcome` are only present on an overload.
- */
-
-const HeatCheckResultSchema = z
-  .object({
-    heatCheckRoll: z.number().int().min(1).max(20),
-    heatAtCheck: z.number().int().min(0),
-    overloaded: z.boolean(),
-    overloadRoll: z.number().int().min(1).max(20).optional(),
-    outcome: ReactorOverloadOutcomeSchema.optional(),
-
-    /** ISO timestamp of when this check was rolled. */
-    rolledAt: z.string().datetime(),
-  })
-  .strict()
-
-/**
- * Critical Damage Table outcome bands (Core Book p.239-240; mirrors the
- * "Critical Damage" entry in salvageunion-reference data/roll-tables.json).
- * Distinct from the raw d20 roll: maps the band to its deterministic effect.
- * - catastrophic: roll 1 — mech + all mounted Systems/Modules + Cargo destroyed;
- *   pilot dies unless they have a means to escape
- * - system-destruction: roll 2-5 — a System is destroyed (player marks which);
- *   chassis Damaged and inoperable until repaired
- * - module-destruction: roll 6-10 — a Module is destroyed (player marks which);
- *   chassis Damaged and inoperable until repaired
- * - core-damage: roll 11-19 — chassis Damaged and inoperable; pilot reduced to
- *   0 HP unless they can escape the mech
- * - miraculous-survival: roll 20 — mech Intact at 1 SP, fully operational
- */
-
-const CriticalDamageOutcomeSchema = z.enum([
-  'catastrophic',
-  'system-destruction',
-  'module-destruction',
-  'core-damage',
-  'miraculous-survival',
-])
-
-// No `z.infer` type alias here: the only consumer (TakeDamageControl) was
-// dropped by the poster redesign's live-play-panel cut — the
-// schema stays (used inline below) for backward-tolerant reads.
-
-/**
- * Recorded result of a Critical Damage Table roll (rolled when the mech
- * reaches 0 SP). Snapshot-safe plain data stored on the mech so the sheet can
- * render the last outcome — same shape discipline as HeatCheckResult.
- */
-
-const CriticalDamageResultSchema = z
-  .object({
-    roll: z.number().int().min(1).max(20),
-    outcome: CriticalDamageOutcomeSchema,
-
-    /** ISO timestamp of when this result was rolled. */
-    rolledAt: z.string().datetime(),
-  })
-  .strict()
-
-/**
  * chassisRef / systems / modules store SLUG references into
  * salvageunion-reference (e.g. "ghost-chassis"), the same convention as
  * encounter `refSlug`. They resolve through `salvageunion-reference/rules`
@@ -154,32 +56,6 @@ export const MechSchema = z
     conditions: z.array(z.string()),
 
     // ---------------------------------------------------------------------------
-    // Manual adjustments.
-    //
-    // A signed amount the player entered by hand that CONTRIBUTES to the derived
-    // maximum: derived = chassis stat + Σ contributions + adjustment
-    // (lib/rules/derivedStats.ts). Absent means 0.
-    //
-    // These are NOT overrides. Until the ADR-022 amendment these fields carried
-    // both meanings at once — the Free-Edit cap pin AND the only channel any
-    // rules modifier had — and the sheets recovered the "derived baseline" by
-    // subtracting them back out. A pin now lives in max*Override below, so a
-    // hand adjustment keeps composing with real contributions instead of
-    // freezing the stat. See ADR-029.
-    // ---------------------------------------------------------------------------
-    /** Manual adjustment added to max Structure Points. */
-    maxSpModifier: z.number().int().optional(),
-
-    /** Manual adjustment added to max Energy Points. */
-    maxEpModifier: z.number().int().optional(),
-
-    /** Manual adjustment added to Heat Capacity. */
-    maxHeatModifier: z.number().int().optional(),
-
-    /** Manual adjustment added to Cargo Capacity. */
-    maxCargoModifier: z.number().int().optional(),
-
-    // ---------------------------------------------------------------------------
     // Cap overrides — absolute pins (ADR-022 amendment, Free Edit only).
     //
     // When present the stat SHOWS this value and stops tracking its derivation.
@@ -221,15 +97,6 @@ export const MechSchema = z
     // defaults as the display value; when set they represent the mech's current
     // live state (damage taken, resources spent, etc.).
     // ---------------------------------------------------------------------------
-    /** Current hull/structure points (falls back to chassis structurePoints) */
-    currentHP: z.number().int().min(0).optional(),
-
-    /** Current action points */
-    currentAP: z.number().int().min(0).optional(),
-
-    /** Current tech points */
-    currentTP: z.number().int().min(0).optional(),
-
     /** Current structure points */
     currentSP: z.number().int().min(0).optional(),
 
@@ -271,9 +138,8 @@ export const MechSchema = z
     itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
 
     // ---------------------------------------------------------------------------
-    // Heat Check / Reactor Overload live-play state.
-    // Core Book p.233-235. All optional — absent means the mech is operating
-    // normally and has not yet logged a Heat Check this session.
+    // Reactor Overload live-play state (Core Book p.233-235). All optional:
+    // absent means the mech is operating normally.
     // ---------------------------------------------------------------------------
     /**
      * Set true when a Reactor Overload result of 11-19 (reactor overheat) shuts
@@ -294,17 +160,6 @@ export const MechSchema = z
      */
     destroyed: z.boolean().optional(),
 
-    /**
-     * The most recent Heat Check / Reactor Overload result, recorded so the
-     * sheet can display it. Snapshot-safe (plain data).
-     */
-    lastHeatCheck: HeatCheckResultSchema.optional(),
-
-    /**
-     * The most recent Critical Damage Table result (rolled on reaching 0
-     * SP). Snapshot-safe plain data.
-     */
-    lastCriticalDamage: CriticalDamageResultSchema.optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

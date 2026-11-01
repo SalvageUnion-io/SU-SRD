@@ -4,13 +4,14 @@
  * "Many maxima are derived, not fixed" (rules digest): store modifiers,
  * compute totals. This module is the single source for those computations.
  *
- *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + maxHpModifier
+ *   Pilot:   maxHP = 10 + 2×(crawler tech − 1) + abilities
  *                     − Σ(minor injury: 1, major: 2)
- *            maxAP = 5 + 1×(crawler tech − 1) + maxApModifier
- *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + max*Modifier
+ *            maxAP = 5 + 1×(crawler tech − 1) + abilities
+ *   Mech:    max{SP,EP,Heat,Cargo} = chassis stat + abilities + installed items
  *   Crawler: maxSP = tech-level structurePoints (ORM) + the chosen TYPE's
- *            `max_sp_bonus` mutations (Battle +5, applied at
- *            read) + maxSpModifier (a pure hand-edit)
+ *            `max_sp_bonus` mutations (Battle +5, applied at read)
+ *
+ * A Free-Edit pin (`max*Override`) replaces any of them (ADR-029).
  *
  * All functions are pure — no side effects, no async, no React. Parameter
  * types are small structural shapes (not full persisted records) — a
@@ -129,9 +130,6 @@ type PilotDerivationInput = {
    */
   crawlerTechLevel?: number
   injuries?: Injury[]
-  maxHpModifier?: number
-  maxApModifier?: number
-  maxInventorySlotsModifier?: number
   maxHpOverride?: number
   maxApOverride?: number
   maxInventorySlotsOverride?: number
@@ -158,7 +156,7 @@ const STAT_TRAINING_AP_PER_TIER = 1
  * trained. A pilot aboard a Tech 3 crawler reads 14 HP / 7 AP whether or not
  * they spent a Downtime in its Pilot Bay, and moving to a lower-tier crawler
  * lowers the maximum again. A table that tracks training strictly can correct
- * it with the manual adjustment (`max*Modifier`) or the absolute pin.
+ * it with the absolute pin.
  *
  * Tech 1 (or no level) contributes nothing, so the line is omitted. A level
  * outside 1..6 is clamped into it rather than trusted.
@@ -200,7 +198,6 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
   const parts = breakdownOf(
     PILOT_BASE_HP,
     -injuryMaxHpPenalty(pilot.injuries),
-    pilot.maxHpModifier ?? 0,
     pilot.maxHpOverride,
     hpSources
   )
@@ -208,8 +205,7 @@ export function pilotMaxHPParts(pilot: PilotDerivationInput): StatBreakdown {
   // surfaced by isPilotDead() rather than clamped away. Recompute
   // unfloored so a lethal injury total is not hidden behind breakdownOf's floor.
   if (parts.overridden) return parts
-  const unfloored =
-    PILOT_BASE_HP + (pilot.maxHpModifier ?? 0) - injuryMaxHpPenalty(pilot.injuries) + sourcedHp
+  const unfloored = PILOT_BASE_HP - injuryMaxHpPenalty(pilot.injuries) + sourcedHp
   return { ...parts, derived: unfloored, total: unfloored }
 }
 
@@ -217,9 +213,9 @@ export function pilotMaxHP(pilot: PilotDerivationInput): number {
   return pilotMaxHPParts(pilot).total
 }
 
-/** Derived max AP: base 5 + Stat Training (crawler tier) + abilities + modifier. */
+/** Derived max AP: base 5 + Stat Training (crawler tier) + abilities. */
 export function pilotMaxAPParts(pilot: PilotDerivationInput): StatBreakdown {
-  return breakdownOf(PILOT_BASE_AP, 0, pilot.maxApModifier ?? 0, pilot.maxApOverride, [
+  return breakdownOf(PILOT_BASE_AP, 0, pilot.maxApOverride, [
     ...pilotStatTrainingContributions(pilot.crawlerTechLevel, 'maxAp'),
     ...abilityContributions(pilot.abilities, 'pilot', 'maxAp'),
   ])
@@ -230,8 +226,8 @@ export function pilotMaxAP(pilot: PilotDerivationInput): number {
 }
 
 /**
- * Derived pilot inventory capacity (6 base) + the hand-edited
- * `maxInventorySlotsModifier` + ability contributions (Beefcake +4), with the
+ * Derived pilot inventory capacity (6 base) + ability contributions
+ * (Beefcake +4), with the
  * same absolute `maxInventorySlotsOverride` pin HP and AP already honour.
  *
  * This lived in the app sheet as a bare number with no provenance and no
@@ -245,7 +241,6 @@ export function pilotMaxInventorySlotsParts(pilot: PilotDerivationInput): StatBr
   return breakdownOf(
     PILOT_BASE_INVENTORY_SLOTS,
     0,
-    pilot.maxInventorySlotsModifier ?? 0,
     pilot.maxInventorySlotsOverride,
     abilityContributions(pilot.abilities, 'pilot', 'inventorySlots')
   )
@@ -277,16 +272,12 @@ export type ChassisStats = {
 
 type MechDerivationInput = {
   chassisRef: string
-  maxSpModifier?: number
-  maxEpModifier?: number
-  maxHeatModifier?: number
-  maxCargoModifier?: number
   maxSpOverride?: number
   maxEpOverride?: number
   maxHeatOverride?: number
   maxCargoOverride?: number
   // Absent means "no installed bonuses to sum": the derivation falls back to
-  // chassis stat + modifier.
+  // the chassis stat.
   systems?: string[]
   modules?: string[]
 }
@@ -314,8 +305,7 @@ export type PilotingContext = {
 /**
  * How a derived maximum was arrived at (ADR-029).
  *
- * `derived` is what the rules produce: base + installed bonuses + the player's
- * manual adjustment, floored at 0. `override` is an absolute Free-Edit pin
+ * `derived` is what the rules produce: base + installed bonuses, floored at 0. `override` is an absolute Free-Edit pin
  * (ADR-022 amendment); when it differs from the derived value it REPLACES it
  * rather than adding to it, and `derived` is retained so the sheet can render
  * an "overridden from N" callout and revert to it.
@@ -339,9 +329,7 @@ export type StatBreakdown = {
    * installed hardware.
    */
   sources: ResolvedContribution[]
-  /** The player's hand-entered manual adjustment (`max*Modifier`). Contributes; never replaces. */
-  adjustment: number
-  /** base + installed + adjustment, floored at 0. Always computed, even when pinned. */
+  /** base + installed + sources, floored at 0. Always computed, even when pinned. */
   derived: number
   /** The absolute pin in effect — present exactly when `overridden` is. */
   override?: number
@@ -391,17 +379,15 @@ export function pinFor(next: number, parts: Pick<StatBreakdown, 'derived'>): num
 export function breakdownOf(
   base: number,
   installed: number,
-  adjustment: number,
   override?: number,
   sources: ResolvedContribution[] = []
 ): StatBreakdown {
-  const derived = Math.max(0, base + installed + sumContributions(sources) + adjustment)
+  const derived = Math.max(0, base + installed + sumContributions(sources))
   const overridden = typeof override === 'number' && pinModifies(override, derived)
   return {
     base,
     installed,
     sources,
-    adjustment,
     derived,
     ...(overridden ? { override } : {}),
     total: overridden ? Math.max(0, override) : derived,
@@ -414,7 +400,7 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
 }
 
 /**
- * Derived mech maxima: chassis stat + hand-edited modifier + every declared
+ * Derived mech maxima: chassis stat + every declared
  * `contribution` from the pilot's abilities and the mech's installed
  * systems/modules (heat sinks, capacitance banks, holds),
  * each counted per installed copy and attributed by name. Pass a pre-resolved
@@ -422,15 +408,15 @@ function resolveChassis(mech: MechDerivationInput, chassis?: ChassisStats | null
  * never produces a negative maximum. `contributions` is the only numeric
  * encoding.
  */
-/** The mech stats `mechStatParts` derives: chassis key, then its stored modifier and pin. */
+/** The mech stats `mechStatParts` derives: chassis key, then its stored pin. */
 const MECH_STAT_FIELDS = {
-  structurePoints: ['maxSpModifier', 'maxSpOverride'],
-  energyPoints: ['maxEpModifier', 'maxEpOverride'],
-  heatCapacity: ['maxHeatModifier', 'maxHeatOverride'],
-  cargoCapacity: ['maxCargoModifier', 'maxCargoOverride'],
+  structurePoints: 'maxSpOverride',
+  energyPoints: 'maxEpOverride',
+  heatCapacity: 'maxHeatOverride',
+  cargoCapacity: 'maxCargoOverride',
 } as const
 
-/** One table-driven mech breakdown: chassis stat, modifier, pin, ability and installed contributions. */
+/** One table-driven mech breakdown: chassis stat, pin, ability and installed contributions. */
 function mechStatParts(
   stat: keyof typeof MECH_STAT_FIELDS,
   mech: MechDerivationInput,
@@ -438,11 +424,11 @@ function mechStatParts(
   pilot?: PilotingContext
 ): StatBreakdown {
   const c = resolveChassis(mech, chassis)
-  const [modifier, override] = MECH_STAT_FIELDS[stat]
+  const override = MECH_STAT_FIELDS[stat]
   const { techLevel, active, abilities } = pilot ?? {}
   const installed = [...(mech.systems ?? []), ...(mech.modules ?? [])]
   const stats = { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 }
-  return breakdownOf(c[stat] ?? 0, 0, mech[modifier] ?? 0, mech[override], [
+  return breakdownOf(c[stat] ?? 0, 0, mech[override], [
     ...abilityContributions(abilities, 'pilotedMech', stat, techLevel, active),
     ...installedContributions(installed, stat, { techLevel, active, stats }),
   ])
@@ -549,7 +535,6 @@ type CrawlerDerivationInput = {
    * Absent/unresolvable = no type bonus.
    */
   type?: string
-  maxSpModifier?: number
 }
 
 /**
@@ -593,8 +578,7 @@ export type CrawlerMaxSPParts = StatBreakdown & {
  * Derived crawler max SP, decomposed: the tech level's structurePoints from
  * the reference ORM, plus the chosen TYPE's stored `max_sp_bonus` mutations
  * applied AT READ (Battle Crawler +5 — the record stores the BARE tech-level
- * value, so type swaps re-derive correctly both ways), plus the hand-edited
- * maxSpModifier. Base resolves to 0 when the techLevel slug cannot be parsed
+ * value, so type swaps re-derive correctly both ways). Base resolves to 0 when the techLevel slug cannot be parsed
  * — the caller should surface that as a data problem rather than rendering a
  * silent 0-pip track.
  */
@@ -606,8 +590,7 @@ export function crawlerMaxSPParts(crawler: CrawlerDerivationInput): CrawlerMaxSP
       : (SalvageUnionReference.CrawlerTechLevels.find((t) => t.techLevel === tl)?.structurePoints ??
         0)
   const typeBonus = crawlerTypeMaxSpBonus(crawler.type)
-  const modifier = crawler.maxSpModifier ?? 0
-  const parts = breakdownOf(base, typeBonus, modifier, crawler.maxSpOverride)
+  const parts = breakdownOf(base, typeBonus, crawler.maxSpOverride)
   // `typeBonus` is this stat's rules-sourced contribution, so it maps onto
   // `installed`; the named alias is kept for the wizard's SP breakdown copy.
   return { ...parts, typeBonus }

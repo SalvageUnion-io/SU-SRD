@@ -1,7 +1,9 @@
 import { z } from 'salvageunion-reference/zod'
 
 /**
- * A pilot's seat: its play state, in a Game (shared with the crew and saved on
+ * The vocabulary of a pilot's seat, whose rows the rooms keep (`rooms/seats.ts`).
+ *
+ * A seat is a pilot's play state, in a Game (shared with the crew and saved on
  * the Game, [ADR-038](../../../../docs/adr/038-dashboard-game-surface.md) §2)
  * or solo, on its owner's shelf (Play's solo screen).
  *
@@ -10,12 +12,10 @@ import { z } from 'salvageunion-reference/zod'
  * soft-link ends do, and is never a field on either record. That keeps mount
  * state out of sheets and public sheets.
  *
- * A Game seat carries `gameId`; a solo seat carries `ownerId` instead (the
- * shelf it sits on, as a shelf row is `gameId` null + `ownerId`), so it is one
- * per pilot. A Game seat has no "in Downtime": that is the Game's `downtime`
- * row. A solo seat runs its own (`downtime`), since nobody else is at the
- * table. The deck action being resolved is on it, as an optional field, so a
- * reload mid-roll keeps the roll and the crew watches it live.
+ * A Game seat has no "in Downtime": that is the Game's Downtime row. A solo
+ * seat runs its own, since nobody else is at the table. The deck action being
+ * resolved is on it, so a reload mid-roll keeps the roll and the crew watches
+ * it live.
  */
 
 /** Self-declared engagement range band. */
@@ -42,7 +42,7 @@ export const CORE_ROLL_BAND_NAMES = ['nailed', 'success', 'tough', 'failure', 'c
  * and Push replaces the roll. The rest of a resolve (a Hot X, the EP-or-AP
  * choice) stays on the screen that is showing it.
  */
-const SeatResolvingSchema = z.object({
+export const SeatResolvingSchema = z.object({
   ref: z.string().min(1),
   name: z.string(),
   activated: z.boolean(),
@@ -57,41 +57,3 @@ const SeatResolvingSchema = z.object({
   applied: z.boolean(),
 })
 export type SeatResolving = z.infer<typeof SeatResolvingSchema>
-
-/**
- * A solo seat's Downtime, absent while none is running: the step it is on
- * and when it began. Which steps are done, and whether its Upkeep is paid,
- * are read off their ops (ADR-063 §6); `doneSteps` and `upkeepSpent` are no
- * longer written, kept so seats written before still parse.
- */
-const SoloDowntimeSchema = z.object({
-  stepIndex: z.number().int().min(0),
-  startedAt: z.number(),
-  upkeepSpent: z.boolean().optional(),
-  doneSteps: z.array(z.number().int().min(0)).optional(),
-})
-
-export const SeatSchema = z.object({
-  /** The Game's id; absent on a solo seat. */
-  gameId: z.string().min(1).optional(),
-  /** A solo seat's owner (whose shelf it is on); absent on a Game seat. */
-  ownerId: z.string().min(1).optional(),
-  /** The pilot's app id. */
-  pilotId: z.string().min(1),
-  mount: SeatMountSchema,
-  range: RangeBandSchema,
-  /** Refs of the activated contributions that are switched on (ADR-029 §4). */
-  activeEffects: z.array(z.string()),
-  /** The deck action being resolved; absent when none is. */
-  resolving: SeatResolvingSchema.optional(),
-  /** Set by an Eject, cleared by the next Board or Dismount; absent when not ejected. */
-  ejected: z.boolean().optional(),
-  /** A solo seat's Downtime; absent on a Game seat and while none runs. */
-  downtime: SoloDowntimeSchema.optional(),
-  /**
-   * A retired presence stamp, kept so stored rows still parse; presence is
-   * the Game room's now. Not play state: it never moves `updatedAt`.
-   */
-  lastSeenAt: z.number().optional(),
-  updatedAt: z.number(),
-})

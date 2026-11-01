@@ -205,7 +205,6 @@ describe('the line', () => {
       chassisRef: 'scrapper',
       systems: [],
       modules: [],
-      cargoLots: [],
       createdAt: FIXTURE_NOW,
     })
     expect(patternReading(towRig)?.label).toBe('SYS')
