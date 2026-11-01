@@ -100,6 +100,10 @@ export const ContributionSchema = z
       .boolean()
       .describe('Applies once per installed copy (default true for installable items)')
       .optional(),
+    voidWhen: z
+      .enum(['damaged', 'destroyed'])
+      .describe('Never set and never read; kept because the Dataset API v1 only adds')
+      .optional(),
     duration: z
       .enum(['permanent', 'activated'])
       .describe(
