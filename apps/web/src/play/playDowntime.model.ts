@@ -10,7 +10,6 @@ import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { DowntimeStepKey, DowntimeSteps, MedBayStatus } from 'game-domain/rules/downtime'
 import {
   CRAFT_STEP_NAME,
-  DOWNTIME_UPKEEP_SCRAP,
   downtimeMechPatch,
   downtimePilotPatch,
   mechBayStatus,
@@ -23,6 +22,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import {
+  crawlerUpkeepCost,
   parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
@@ -276,7 +276,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       chips: [
         {
           label: 'Upkeep',
-          value: `${DOWNTIME_UPKEEP_SCRAP} Scrap · T${crawlerTl(crawler)}`,
+          value: `${crawlerUpkeepCost(crawlerTl(crawler))} Scrap · T${crawlerTl(crawler)}`,
         },
         { label: upkeep.spent ? 'Paid' : upkeep.canPay ? 'Outstanding' : 'The Mediator pays it' },
       ],

@@ -25,11 +25,11 @@
 import {
   CRAFT_STEP_NAME,
   currentDowntimeStep,
-  DOWNTIME_UPKEEP_SCRAP,
   isUpkeepStep,
   UPKEEP_STEP_NAME,
 } from 'game-domain/rules/downtime'
 import { useState } from 'react'
+import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import {
   Badge,
   Button,
@@ -207,7 +207,9 @@ export function PlayMediatorDowntime({
             state={
               <Stat
                 size="mini"
-                label={mediatorCopy('scrap', { downtimeUpkeepScrap: DOWNTIME_UPKEEP_SCRAP })}
+                label={mediatorCopy('scrap', {
+                  downtimeUpkeepScrap: crawlerUpkeepCost(unit === null ? 1 : crawlerTl(unit)),
+                })}
                 value={unit === null ? undefined : `T${crawlerTl(unit)}`}
               />
             }

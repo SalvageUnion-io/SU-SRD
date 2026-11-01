@@ -32,8 +32,6 @@ export type UpkeepState = {
 }
 
 export type UpkeepAction =
-  /** The pool emptied between opening the dialog and paying. Not terminal. */
-  | { type: 'payFailed' }
   | { type: 'paid'; message: string }
   | { type: 'deteriorated'; message: string; choosePrompt: boolean }
 
@@ -41,11 +39,6 @@ export const INITIAL_UPKEEP_STATE: UpkeepState = { result: null, choosePrompt: f
 
 export function upkeepReducer(state: UpkeepState, action: UpkeepAction): UpkeepState {
   switch (action.type) {
-    case 'payFailed':
-      return {
-        ...state,
-        result: 'The pool can no longer cover Upkeep — roll Deterioration instead.',
-      }
     case 'paid':
       return { ...state, result: action.message, done: true }
     case 'deteriorated':

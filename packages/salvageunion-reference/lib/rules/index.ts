@@ -29,7 +29,6 @@ export {
   describePushOutcome,
   performCoreRoll,
 } from './coreMechanic'
-export { computeCrawlerCapacity } from './crawlerCapacity'
 export { isWeaponSystem } from './crawlerSystems'
 export type { CrawlerMutationInput, MechCreationBudget } from './creation'
 export {
@@ -115,7 +114,7 @@ export {
   mechSalvageResult,
   mechSalvageScrap,
 } from './salvage'
-export { tierUpgradeCost } from './scrap'
+export { crawlerUpkeepCost, nextTierUpgradeCost, tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,

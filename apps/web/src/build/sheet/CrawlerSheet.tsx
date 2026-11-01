@@ -74,12 +74,8 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
-import { SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
-import {
-  bayRepairPatch,
-  bayRepairShortfall,
-  resolveCrawlerSystem,
-} from '../../lib/rules/crawlerItems'
+import { poolShortfall, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import { BAY_REPAIR_COST, bayRepairPatch, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import {
   addToExotic,
@@ -216,7 +212,7 @@ export function CrawlerSheet({
   const pool = crawler.scrapPool ?? {}
 
   // Repair affordability is advisory only — TL+ buckets count.
-  const repairShortfall = bayRepairShortfall(pool, tl)
+  const repairShortfall = poolShortfall(pool, tl, BAY_REPAIR_COST)
 
   /**
    * Repair a damaged bay (`bayRepairPatch`: 5 Scrap from the crawler-TL

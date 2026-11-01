@@ -25,7 +25,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { useState } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
-import { addToScrapPool } from '../../lib/cargo/cargoTransfer'
+import { drawFromPool } from '../../lib/rules/crawlerEconomy'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
@@ -52,7 +52,12 @@ export type MechSheetActions = {
   removeItem: (kind: ItemKind, index: number) => void
   cycleItemCondition: (kind: ItemKind, slug: string) => Promise<void>
   setItemUses: (slug: string, next: number) => Promise<void>
-  repairItem: (kind: ItemKind, slug: string, deductTl: number | null, cost: number) => Promise<void>
+  repairItem: (
+    kind: ItemKind,
+    slug: string,
+    payFromTl: number | null,
+    cost: number
+  ) => Promise<void>
   saveQuirk: (next: string) => void
   saveAppearance: (next: string) => void
   saveDescription: (next: string) => void
@@ -193,10 +198,11 @@ export function useMechSheetActions({
 
   /**
    * Repair to Intact (half SV in Scrap — the cost is shown on the button).
-   * `deductTl` is the optional crawler pool bucket to decrement; the repair
-   * itself never blocks on the pool.
+   * `payFromTl` (the item's Tech Level) draws the cost from the crawler pool at
+   * that Tech Level or higher; a short pool spends what it has (advisory), and
+   * null repairs without paying.
    */
-  async function repairItem(kind: ItemKind, slug: string, deductTl: number | null, cost: number) {
+  async function repairItem(kind: ItemKind, slug: string, payFromTl: number | null, cost: number) {
     const fresh = freshMech()
     const prev = (kind === 'system' ? fresh.systemConditions : fresh.moduleConditions) ?? {}
     const nextMap: Record<string, ItemCondition> = {
@@ -206,16 +212,10 @@ export function useMechSheetActions({
     await writeAwait(
       kind === 'system' ? { systemConditions: nextMap } : { moduleConditions: nextMap }
     )
-    if (deductTl !== null && crawler) {
+    if (payFromTl !== null && crawler) {
       const freshCrawler = freshEntity(storeState, 'crawler', crawler)
-      await storeState.update(
-        'crawler',
-        crawler.id,
-        {
-          scrapPool: addToScrapPool(freshCrawler.scrapPool ?? {}, deductTl, -cost),
-        },
-        LIVE_SHEET_MANUAL
-      )
+      const drawn = drawFromPool(freshCrawler.scrapPool ?? {}, payFromTl, cost, { partial: true })
+      await storeState.update('crawler', crawler.id, { scrapPool: drawn.pool }, LIVE_SHEET_MANUAL)
     }
   }
 

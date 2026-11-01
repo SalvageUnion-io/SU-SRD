@@ -117,7 +117,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       />
     )
 
-    expect(screen.queryByRole('button', { name: 'Pay Upkeep' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Pay Upkeep' })).toBeTruthy()
     expect(screen.getByRole('alert').textContent).toContain('2 scrap short')
 
     fireEvent.click(screen.getByRole('button', { name: 'Roll Deterioration (d20)' }))
@@ -134,6 +134,26 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
       ],
     ])
     expect(screen.getByRole('status').textContent).toContain('Med Bay is Damaged')
+  })
+
+  test('paying from a short pool is advisory: it spends what it has and still credits', async () => {
+    const crawler = makeCrawler({ scrapPool: { tl2: 3 }, upgradePool: 0 })
+    const { store, update } = makeStubStore(crawler)
+    render(
+      <CrawlerEconomyControl
+        crawler={crawler}
+        store={store}
+        open="upkeep"
+        onClose={() => {}}
+        rollFor={async () => seqRoll(1)}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Pay Upkeep' }))
+    await screen.findByRole('status')
+
+    expect(update.mock.calls[0]?.[2]).toEqual({ scrapPool: { tl2: 0 }, upgradePool: 5 })
+    expect(screen.getByRole('status').textContent).toContain('Paid 3 of 5 Scrap')
   })
 
   test('a 1 loses SP and damages a Bay in one write; a refusal applies neither', async () => {

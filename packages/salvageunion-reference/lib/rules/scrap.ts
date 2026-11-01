@@ -61,3 +61,23 @@ export function tierUpgradeCost(fromTL: TechLevel, toTL: TechLevel): number | nu
   }
   return total
 }
+
+/**
+ * Upkeep for a crawler at `tl`: Scrap of that Tech Level or higher per
+ * Downtime, from the tier's `upkeepCost` in `crawler-tech-levels.json`
+ * (SRD p.218). 0 when no tier matches.
+ */
+export function crawlerUpkeepCost(tl: number): number {
+  return SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)?.upkeepCost ?? 0
+}
+
+/**
+ * The cost to upgrade a crawler at `tl` to the next Tech Level: that tier's
+ * `upgradeCost` (SRD p.218). `null` at the top tier (the data's null) or for
+ * a Tech Level with no tier.
+ */
+export function nextTierUpgradeCost(tl: number): number | null {
+  return (
+    SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)?.upgradeCost ?? null
+  )
+}

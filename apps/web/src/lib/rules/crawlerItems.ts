@@ -8,7 +8,7 @@ import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { RefEntity } from 'salvageunion-reference'
 import { resolveSystemRef } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'
-import { drawFromPool, poolAvailableAtOrAbove } from './crawlerEconomy'
+import { drawFromPool } from './crawlerEconomy'
 
 /** Resolve a stored crawler-system slug to its SRD entity. */
 export function resolveCrawlerSystem(ref: string): RefEntity | null {
@@ -18,20 +18,8 @@ export function resolveCrawlerSystem(ref: string): RefEntity | null {
 /** Bay repair cost: 5 Scrap of crawler TL or higher. */
 export const BAY_REPAIR_COST = 5
 
-// The scrap tech-level list has one home, `lib/rules/crawlerEconomy.ts#SCRAP_TLS`,
-// beside the pool math that walks it.
-
 /** One crawler bay entry as the crawler record stores it. */
 type CrawlerBayEntry = NonNullable<Crawler['crawlerBays']>[number]
-
-/**
- * How much Scrap of the crawler's Tech Level or higher the pool is short of a
- * bay repair: 0 when it can pay. Advisory only — a short pool still repairs and
- * the shortfall is only named on the button.
- */
-export function bayRepairShortfall(pool: ScrapPool, crawlerTl: number): number {
-  return Math.max(0, BAY_REPAIR_COST - poolAvailableAtOrAbove(pool, crawlerTl))
-}
 
 /** The two writes one bay repair makes: the crawler's pool after paying, and the bay's patch. */
 export type BayRepairPatch = {

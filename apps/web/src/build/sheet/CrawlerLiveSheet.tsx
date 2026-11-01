@@ -16,13 +16,12 @@
 import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { useState } from 'react'
-import type { TechLevel } from 'salvageunion-reference/rules'
 import {
   crawlerMaxSPParts,
+  nextTierUpgradeCost,
   parseCrawlerTechLevel,
   pinFor,
   resolvePool,
-  tierUpgradeCost,
 } from 'salvageunion-reference/rules'
 import { linesFromBreakdown, Stat } from '../../components/index'
 import { bayGate, SCRAP_TLS, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -94,8 +93,7 @@ export function CrawlerLiveSheet({
   const tl = parseCrawlerTechLevel(crawler.techLevel)
   // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
   // is none (crawler-tech-levels.json), so no gauge.
-  const upgradeCost =
-    tl === undefined || tl >= 6 ? null : tierUpgradeCost(tl as TechLevel, (tl + 1) as TechLevel)
+  const upgradeCost = tl === undefined ? null : nextTierUpgradeCost(tl)
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },

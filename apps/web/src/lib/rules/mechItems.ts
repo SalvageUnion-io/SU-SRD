@@ -7,13 +7,11 @@
  * results to persistence, MechItemCard renders them.
  */
 
-import type { ScrapPool } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import { scrapPoolBucket } from '../cargo/cargoTransfer'
 
 export type MechItem = RefSystem | RefModule
 
@@ -83,24 +81,6 @@ export function itemUsesRemaining(maxUses: number, usesRemaining: number | undef
  */
 export function repairScrapCost(salvageValue: number | undefined): number {
   return Math.max(1, Math.floor((salvageValue ?? 1) / 2))
-}
-
-/**
- * The crawler scrap-pool bucket a repair could deduct from: the LOWEST tech
- * level ≥ the item's TL whose bucket holds at least `cost` (Scrap TL must be
- * ≥ item TL; higher-TL scrap is allowed). Returns null when no bucket
- * qualifies — the repair still proceeds without a deduction (advisory,
- * never a block).
- */
-export function repairPoolTl(
-  pool: ScrapPool,
-  itemTl: number | undefined,
-  cost: number
-): number | null {
-  for (let tl = Math.max(1, itemTl ?? 1); tl <= 6; tl++) {
-    if (scrapPoolBucket(pool, tl) >= cost) return tl
-  }
-  return null
 }
 
 /** Manual status-badge cycle: Intact → Damaged → Destroyed → Intact. */

@@ -19,13 +19,9 @@ import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { Button, DialogActions, Entity, ModalShell, tokens } from '../../components/index'
+import { poolShortfall } from '../../lib/rules/crawlerEconomy'
 import type { MechItem } from '../../lib/rules/mechItems'
-import {
-  itemEconomy,
-  itemUsesRemaining,
-  repairPoolTl,
-  repairScrapCost,
-} from '../../lib/rules/mechItems'
+import { itemEconomy, itemUsesRemaining, repairScrapCost } from '../../lib/rules/mechItems'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
@@ -111,17 +107,16 @@ export function MechItemMini({
   const cost = repairScrapCost(entity.salvageValue)
   // techLevel can be 'B'/'N' (Bio/Nano) — only numeric TLs map to pool buckets.
   const itemTl = typeof entity.techLevel === 'number' ? entity.techLevel : undefined
-  const deductTl =
-    scrapPool && scrapPoolLocked === null ? repairPoolTl(scrapPool, itemTl, cost) : null
+  // Scrap of the item's Tech Level or higher pays; a short pool is advisory.
+  const payFromTl = Math.max(1, itemTl ?? 1)
+  const canPay = scrapPool !== null && scrapPoolLocked === null
+  const short = scrapPool && canPay ? poolShortfall(scrapPool, payFromTl, cost) : 0
 
-  const deductDisabledReason =
-    deductTl !== null
-      ? null
-      : scrapPool && scrapPoolLocked !== null
-        ? scrapPoolLocked
-        : scrapPool
-          ? `Not enough TL ${itemTl ?? 1}+ scrap in the crawler pool`
-          : 'No crawler assigned — no pool to deduct from'
+  const deductDisabledReason = canPay
+    ? null
+    : scrapPool && scrapPoolLocked !== null
+      ? scrapPoolLocked
+      : 'No crawler assigned — no pool to deduct from'
 
   // Repair confirm — a modal (design: no inline confirm cluster / footer).
   const repairModal =
@@ -136,23 +131,26 @@ export function MechItemMini({
       >
         <div style={CONFIRM}>
           <p style={{ ...BODY_SM, margin: 0 }}>
-            {buildSheetCopy('repairingCostsScrapTechOr', { cost, max: Math.max(1, itemTl ?? 1) })}
+            {buildSheetCopy('repairingCostsScrapTechOr', { cost, max: payFromTl })}
           </p>
+          {short > 0 && (
+            <p style={{ ...BODY_SM, margin: 0 }}>{buildSheetCopy('repairPoolShort', { short })}</p>
+          )}
           <DialogActions>
             <Button
               size="compact"
               variant="primary"
-              disabled={deductTl === null}
+              disabled={!canPay}
               title={deductDisabledReason ?? undefined}
               aria-label={buildSheetCopy('repairAndDeductScrap', { name: entity.name })}
               onClick={() => {
-                onRepair(deductTl, cost)
+                onRepair(payFromTl, cost)
                 setConfirmingRepair(false)
               }}
             >
               {buildSheetCopy('deductFromTheTechPool', {
                 cost,
-                value: deductTl ?? Math.max(1, itemTl ?? 1),
+                value: payFromTl,
               })}
             </Button>
             <Button

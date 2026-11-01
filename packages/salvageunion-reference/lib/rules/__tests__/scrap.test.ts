@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import { scrapCostFor, tierUpgradeCost } from '../scrap'
+import { crawlerUpkeepCost, nextTierUpgradeCost, scrapCostFor, tierUpgradeCost } from '../scrap'
 import type { ScrapableItem } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -77,5 +77,21 @@ describe('tierUpgradeCost', () => {
       expect(record).toBeDefined()
       expect(record?.upgradeCost).not.toBeNull()
     }
+  })
+})
+
+describe('crawler tier costs from crawler-tech-levels.json (p.218)', () => {
+  it("reads each tier's Upkeep and next-tier Upgrade cost", () => {
+    for (const tl of [1, 2, 3, 4, 5, 6]) {
+      const tier = SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)
+      expect(crawlerUpkeepCost(tl)).toBe(tier?.upkeepCost ?? -1)
+      expect(nextTierUpgradeCost(tl)).toBe(tier === undefined ? -1 : tier.upgradeCost)
+    }
+  })
+
+  it('has no Upgrade above Tech 6 and nothing for an unknown tier', () => {
+    expect(nextTierUpgradeCost(6)).toBeNull()
+    expect(nextTierUpgradeCost(0)).toBeNull()
+    expect(crawlerUpkeepCost(0)).toBe(0)
   })
 })

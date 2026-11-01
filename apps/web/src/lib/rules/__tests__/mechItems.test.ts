@@ -2,8 +2,7 @@
  * mechItems — pure helper tests.
  *
  * itemEconomy mines EP cost / Hot heat / Uses from real reference data;
- * repairScrapCost is half SV rounded DOWN (min 1, Core Book p.233); repairPoolTl finds the
- * lowest qualifying TL bucket (Scrap TL ≥ item TL, higher allowed);
+ * repairScrapCost is half SV rounded DOWN (min 1, Core Book p.233);
  * mechConditionsPatch maps unified-list edits back onto conditions[] + the
  * boolean flags (removing a flag label clears the flag — the manual clear).
  */
@@ -15,7 +14,6 @@ import {
   itemEconomy,
   itemUsesRemaining,
   mechConditionsPatch,
-  repairPoolTl,
   repairScrapCost,
   resolveModule,
   resolveSystem,
@@ -85,24 +83,6 @@ describe('repairScrapCost', () => {
     expect(repairScrapCost(0)).toBe(1)
     expect(repairScrapCost(1)).toBe(1)
     expect(repairScrapCost(undefined)).toBe(1)
-  })
-})
-
-describe('repairPoolTl', () => {
-  test('picks the item-TL bucket when funded', () => {
-    expect(repairPoolTl({ tl2: 3 }, 2, 3)).toBe(2)
-  })
-
-  test('falls through to a HIGHER funded bucket (Scrap TL ≥ item TL)', () => {
-    expect(repairPoolTl({ tl2: 1, tl4: 5 }, 2, 3)).toBe(4)
-  })
-
-  test('never picks a bucket BELOW the item TL', () => {
-    expect(repairPoolTl({ tl1: 99 }, 3, 2)).toBeNull()
-  })
-
-  test('null when nothing is funded — repair still proceeds without deduction', () => {
-    expect(repairPoolTl({}, 1, 1)).toBeNull()
   })
 })
 

@@ -80,9 +80,6 @@ export function allDowntimeSteps(): DowntimeSteps {
   }
 }
 
-/** Upkeep cost: 5 Scrap of the crawler's Tech Level per Downtime. */
-export const DOWNTIME_UPKEEP_SCRAP = 5
-
 /**
  * The Crawler Downtime step Upkeep belongs to (p.227). Inside a Game's
  * Downtime, Upkeep is paid in this step and no other; the crawler sheet stays

@@ -9,10 +9,10 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { DOWNTIME_UPKEEP_SCRAP } from 'game-domain/rules/downtime'
 import type { ScrapPool } from 'game-domain/schemas/crawler'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
+import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
 import {
   bayGate,
   contributeToUpgradePool,
@@ -123,9 +123,9 @@ describe('drawFromPool', () => {
 describe('payUpkeep', () => {
   it('draws 5 TL scrap and credits the Upgrade Pool in full', () => {
     const payment = payUpkeep({ tl3: 7 }, 3)
-    expect(payment).not.toBeNull()
-    expect(payment?.pool).toEqual({ tl3: 2 })
-    expect(payment?.upgradeCredit).toBe(DOWNTIME_UPKEEP_SCRAP)
+    expect(payment.pool).toEqual({ tl3: 2 })
+    expect(payment.upgradeCredit).toBe(crawlerUpkeepCost(3))
+    expect(payment.short).toBe(0)
   })
 
   it('accepts higher-TL scrap when the exact bucket is short', () => {
@@ -137,8 +137,11 @@ describe('payUpkeep', () => {
     ])
   })
 
-  it('returns null when the pool cannot cover — lower-TL scrap never counts', () => {
-    expect(payUpkeep({ tl1: 50, tl3: 4 }, 3)).toBeNull()
+  it('a short pool spends what it has and names the rest; lower-TL scrap never counts', () => {
+    const payment = payUpkeep({ tl1: 50, tl3: 4 }, 3)
+    expect(payment.pool).toEqual({ tl1: 50, tl3: 0 })
+    expect(payment.short).toBe(1)
+    expect(payment.upgradeCredit).toBe(5)
   })
 })
 
@@ -146,7 +149,7 @@ describe('upkeepShortfall', () => {
   it('is 0 when covered and the missing amount when short', () => {
     expect(upkeepShortfall({ tl2: 5 }, 2)).toBe(0)
     expect(upkeepShortfall({ tl2: 3, tl5: 1 }, 2)).toBe(1)
-    expect(upkeepShortfall({}, 2)).toBe(DOWNTIME_UPKEEP_SCRAP)
+    expect(upkeepShortfall({}, 2)).toBe(crawlerUpkeepCost(2))
   })
 })
 

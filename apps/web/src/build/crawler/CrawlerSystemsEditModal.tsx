@@ -13,14 +13,13 @@ import { useMemo } from 'react'
 import type { RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import {
-  computeCrawlerCapacity,
   isWeaponSystem,
   parseCrawlerTechLevel,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
 import { EntitySearcher, ModalShell } from '../../components/index'
-import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { craftableAtTl } from '../../lib/rules/crafting'
+import { crawlerWeaponSlotsFor } from '../../lib/rules/creation'
 import { crawlerCopy } from '../../messages/build-crawler'
 
 type CrawlerSystemsEditModalProps = {
@@ -41,23 +40,16 @@ export function CrawlerSystemsEditModal({
   patch,
 }: CrawlerSystemsEditModalProps) {
   const tl = parseCrawlerTechLevel(crawler.techLevel) ?? null
-  const selectedType = crawler.type ? resolveCrawlerType(crawler.type) : null
-  // Battle Crawler mounts two systems (special ability "Improved Armour and
-  // Armaments", Core Book p. 216) — gate off the action name, not the label.
-  const isBattleCrawler = selectedType?.actions?.includes('Improved Armour and Armaments') ?? false
-
-  const capacity = useMemo(() => {
-    const weaponSystems = crawler.systems.filter((slug) => {
-      const system = resolveSystemRef(slug)
-      return system ? isWeaponSystem(system) : false
-    })
-    return computeCrawlerCapacity({
-      techLevel: tl ?? 0,
-      bays: [],
-      weaponSystems,
-      isBattleCrawler,
-    })
-  }, [crawler.systems, tl, isBattleCrawler])
+  // The type's weapon_slots mutations set the cap, as in the wizard.
+  const weaponSystemsMax = crawlerWeaponSlotsFor(crawler.type ?? null)
+  const weaponSystemsUsed = useMemo(
+    () =>
+      crawler.systems.filter((slug) => {
+        const system = resolveSystemRef(slug)
+        return system ? isWeaponSystem(system) : false
+      }).length,
+    [crawler.systems]
+  )
 
   return (
     <ModalShell
@@ -96,8 +88,8 @@ export function CrawlerSystemsEditModal({
         emptyMessage={crawlerCopy('noWeaponsSystemsAtThis')}
         budget={{
           label: crawlerCopy('weaponsSystems'),
-          used: capacity.weaponSystemsUsed,
-          max: capacity.weaponSystemsMax,
+          used: weaponSystemsUsed,
+          max: weaponSystemsMax,
         }}
         title={crawlerCopy('editWeaponsSystemsTechAnd', { value: tl ?? '—' })}
         onClose={onClose}
