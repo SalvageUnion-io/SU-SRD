@@ -21,7 +21,7 @@ describe('where a mech started', () => {
       name: 'Bessie',
       startingPatternRef: 'hauler',
     })
-    // A rename used to copy the name over it: that names no pattern, so nothing is kept.
+    // A name that names no pattern of its chassis (a copied mech name) keeps nothing.
     expect(withoutRetired('mech', { ...old, patternName: 'Bessie' })).toEqual({
       id: 'm1',
       chassisRef: 'mule',
