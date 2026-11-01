@@ -6,6 +6,7 @@
 
 import type { Profile } from '../../rooms/account/shelf'
 import type { SharedDb } from './db'
+import { playerGameIds } from './games'
 
 /** The account a Discord user signs in with: Discord's name and avatar. */
 export type DiscordAccount = {
@@ -51,9 +52,13 @@ export function signInProfile(
     .first()
 }
 
-/** What a player's account export carries from here: their Homebrew reports and their Games. */
-export async function exportedRows(db: SharedDb, discordId: string) {
-  const [reports, games] = await Promise.all([
+/**
+ * What a player's account export carries from here: their Homebrew reports
+ * and their Games, every one deletion would reach (`playerGameIds`), with the
+ * roles the shared database knows.
+ */
+export async function exportedRows(db: SharedDb, discordId: string, noted: readonly string[]) {
+  const [reports, roles, gameIds] = await Promise.all([
     db
       .prepare('select reason, at from homebrew_reports where reporter_id = ?1 order by at')
       .bind(discordId)
@@ -62,13 +67,15 @@ export async function exportedRows(db: SharedDb, discordId: string) {
       .prepare('select game_id, mediator, organizer from memberships where discord_id = ?1')
       .bind(discordId)
       .all<{ game_id: string; mediator: number; organizer: number }>(),
+    playerGameIds(db, discordId, noted),
   ])
+  const roleOf = new Map(roles.results.map((g) => [g.game_id, g]))
   return {
     homebrewReports: reports.results,
-    games: games.results.map((g) => ({
-      gameId: g.game_id,
-      mediator: g.mediator === 1,
-      organizer: g.organizer === 1,
+    games: gameIds.map((gameId) => ({
+      gameId,
+      mediator: roleOf.get(gameId)?.mediator === 1,
+      organizer: roleOf.get(gameId)?.organizer === 1,
     })),
   }
 }

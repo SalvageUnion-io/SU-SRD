@@ -40,6 +40,7 @@ type AccountRoomStub = {
     patch: { displayName?: string | null; avatarUrl?: string | null }
   ): Promise<void>
   exportFor(actor: string): Promise<ShelfExport | null>
+  gameIds(): Promise<string[]>
 }
 
 function accountRoom(discordId: string): AccountRoomStub {
@@ -204,9 +205,10 @@ async function showOnRosters(env: AccountEnv, who: Identity): Promise<void> {
 }
 
 async function exportOf(env: AccountEnv, who: Identity): Promise<AccountExport> {
+  const room = accountRoom(who.discordId)
   const [shelf, rows] = await Promise.all([
-    accountRoom(who.discordId).exportFor(who.discordId),
-    exportedRows(shared(env), who.discordId),
+    room.exportFor(who.discordId),
+    room.gameIds().then((noted) => exportedRows(shared(env), who.discordId, noted)),
   ])
   return {
     exportedAt: new Date().toISOString(),

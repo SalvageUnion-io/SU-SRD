@@ -232,7 +232,7 @@ export class AccountRoom extends Room {
     this.logic.games.left(gameId)
   }
 
-  /** Every Game this room has noted the player in, for account deletion. */
+  /** Every Game this room has noted the player in, for export and deletion. */
   gameIds(): string[] {
     return this.logic.games.list()
   }

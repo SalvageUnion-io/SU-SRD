@@ -3,9 +3,9 @@ import type { RoomSql } from '../sql'
 /**
  * The Games the player is in, as their own room keeps them: the Worker
  * notes a Game before a create or a join reaches it, and a Game that ends
- * drops itself from each member's list. Account deletion reads this beside
+ * drops itself from each member's list. Export and deletion read this beside
  * the shared database's `memberships`, which a Game writes only when its
- * publish lands. A room older than the list seeds it once from those rows.
+ * publish lands (`playerGameIds`). A room older than the list seeds it once from those rows.
  */
 export class AccountGames {
   constructor(private readonly sql: RoomSql) {}
