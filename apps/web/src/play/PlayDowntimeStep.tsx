@@ -17,11 +17,10 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * Back never applies a step twice (Train's +1 TP). A Game's "done" is per
  * member, the step per pilot: a member running two pilots applies it for each.
  *
- * Upkeep is spent once per Downtime: the claim (`spendUpkeep`) answers false
- * when it is already paid, and the Scrap is drawn only when it answers true.
- * Process Nanites (the Craft step, with a Nanite Processing Bay) goes to
- * whoever pays Upkeep, and is claimed once per Downtime the same way
- * (`spendNanites`, in `processDowntimeNanites`).
+ * Upkeep is paid once per Downtime: its draw is the run's one Upkeep op
+ * (`claim`), so a second press changes nothing. Process Nanites (the Craft
+ * step, with a Nanite Processing Bay) goes to whoever pays Upkeep, and is the
+ * run's one Nanites op the same way (`processDowntimeNanites`).
  * Restore never confirms: its patches only heal, repair and recharge, and
  * refuse a Destroyed mech: nothing destructive, so nothing to confirm (ADR-007).
  *
@@ -137,9 +136,9 @@ export function PlayDowntimeStep({
     markDone()
   }
 
-  /** Pay this Downtime's Upkeep: claim it, then draw the Scrap (`payDowntimeUpkeep`). */
+  /** Pay this Downtime's Upkeep (`payDowntimeUpkeep`). */
   function payTheUpkeep(): Promise<string | null> {
-    return payDowntimeUpkeep({ crawler, store, spendUpkeep: downtime.spendUpkeep })
+    return payDowntimeUpkeep({ crawler, store, claim: downtime.claim })
   }
 
   async function apply() {
@@ -177,7 +176,7 @@ export function PlayDowntimeStep({
           store,
           rollD20,
           label: step.name,
-          spendNanites: downtime.spendNanites,
+          claim: downtime.claim,
         })
       : null
     setNote(

@@ -73,7 +73,7 @@ replaces the deck), and each player marks their own step done.
 **A Game's crawler is the Mediator's:** only the table runner changes it
 (Salvage, Craft, Trade, Upkeep, Upgrade, damage, Scrap a mech), in Downtime and
 out; players see it read-only. Enforced by `assertMayEditCrawler` and
-`downtime.spendUpkeep`.
+`downtime.claim`.
 
 **Boarding never assigns:** it changes the seat, never the `mech-to-pilot` link.
 

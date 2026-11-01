@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { downtimeStepOpId } from 'game-domain/ops/downtimeStep'
+import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { bunSql } from '../../__tests__/bunSql'
 import { AT, bodies, op, PLAYER, STRANGER, stubApplyOp, table } from '../../game/__tests__/harness'
@@ -330,18 +330,28 @@ describe('the solo table’s seats and Downtime', () => {
     expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toBeNull()
   })
 
-  test('a solo Downtime claims its Nanites once, from a seat kept before the claim too', () => {
+  test('a solo Downtime processes its Nanites once, from a seat kept before the claim was an op too', () => {
     const { room } = shelf()
+    room.shelf.create(PLAYER, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
     const craft = downtimeStepNames().indexOf(CRAFT_STEP_NAME)
     room.solo.beginDowntime(PLAYER, 'p1', AT)
     room.solo.setDowntimeStep(PLAYER, 'p1', craft)
     room.shelf.store.rows(
       'update seats set downtime_state = ? where pilot_id = ?',
-      JSON.stringify({ runId: String(AT), stepIndex: craft, startedAt: AT, upkeepSpent: false }),
+      JSON.stringify({ runId: String(AT), stepIndex: craft, startedAt: AT, nanitesSpent: true }),
       'p1'
     )
-    expect(room.solo.spendNanites(PLAYER, 'p1')).toBe(true)
-    expect(room.solo.spendNanites(PLAYER, 'p1')).toBe(false)
+    const processed = op(
+      'c1',
+      { scrapPool: {} },
+      { id: downtimeClaimOpId(String(AT), 'nanites'), baseSeq: null }
+    )
+    expect(() => room.solo.claim(PLAYER, 'p1', 'nanites', { ...processed, unitId: 'm1' })).toThrow(
+      'not a crawler'
+    )
+    expect(room.solo.claim(PLAYER, 'p1', 'nanites', processed)).toBe(true)
+    expect(room.solo.claim(PLAYER, 'p1', 'nanites', processed)).toBe(false)
+    expect(room.solo.soloSeats(PLAYER)[0]?.downtime?.upkeepSpent).toBe(false)
   })
 })
 

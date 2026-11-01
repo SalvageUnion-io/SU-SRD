@@ -99,9 +99,7 @@ export function PlayMediatorDowntime({
     )
 
   async function pay() {
-    setUpkeepNote(
-      await payDowntimeUpkeep({ crawler: unit, store, spendUpkeep: downtime.spendUpkeep })
-    )
+    setUpkeepNote(await payDowntimeUpkeep({ crawler: unit, store, claim: downtime.claim }))
   }
 
   async function collect() {
@@ -128,7 +126,7 @@ export function PlayMediatorDowntime({
         store,
         rollD20,
         label: CRAFT_STEP_NAME,
-        spendNanites: downtime.spendNanites,
+        claim: downtime.claim,
       })
     )
   }

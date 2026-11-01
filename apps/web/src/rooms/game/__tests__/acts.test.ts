@@ -138,7 +138,7 @@ describe('every act reaches its part of the room', () => {
     ok(runAct(me, 'downtime.markStepDone', { done: true }))
     ok(runAct(med, 'downtime.advance', undefined as never))
     ok(runAct(med, 'downtime.setStep', { stepIndex: 0 }))
-    runAct(med, 'downtime.spendUpkeep', undefined as never)
+    runAct(med, 'downtime.claim', { claim: 'upkeep', op: op('c1', {}) })
     expect(ok(runAct(me, 'downtime.state', undefined as never))?.running).toBe(true)
     ok(runAct(med, 'downtime.end', undefined as never))
 

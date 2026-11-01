@@ -1,8 +1,8 @@
 /**
  * Processing Inert Meld Nanites from Play (`playNanites.model.ts`, False Flag
- * p.66): the write it makes, its words, and that it is claimed once per Downtime.
+ * p.66): the op it sends, its words, and that it lands once per Downtime.
  */
-import { afterEach, describe, expect, mock, spyOn, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import { crawlerFixture } from '../../components/__tests__/fixtures'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
@@ -31,12 +31,13 @@ const tenacity = (condition: 'intact' | 'damaged' = 'intact') =>
 
 const LABEL = 'Craft'
 
-/** The Downtime's claim, as the room answers it: true the first time only. */
-function onceClaim() {
+/** The Downtime's Nanites op, as the room answers it: applied the first time only. */
+function onceClaim(store: ReturnType<typeof memoryStore>) {
   let claimed = false
-  return async () => {
+  return async (_claim: string, id: string, patch: Partial<Crawler>) => {
     if (claimed) return false
     claimed = true
+    await store.update('crawler', id, patch)
     return true
   }
 }
@@ -58,7 +59,7 @@ describe('processDowntimeNanites', () => {
       store: store as never,
       rollD20: () => rolls.shift() ?? 1,
       label: LABEL,
-      spendNanites: onceClaim(),
+      claim: onceClaim(store),
     })
     expect(said).toBe('Processed 3 Inert Meld Nanite piles and found 1 Active Meld Nanites.')
     expect(store.read().scrapPool).toEqual({ tl1: 2, inertNanites: 0, activeNanites: 1 })
@@ -72,7 +73,7 @@ describe('processDowntimeNanites', () => {
         store: store as never,
         rollD20: () => 20,
         label: LABEL,
-        spendNanites: onceClaim(),
+        claim: onceClaim(store),
       })
     ).toBe('No Inert Meld Nanites to process.')
   })
@@ -80,35 +81,14 @@ describe('processDowntimeNanites', () => {
   test('a second claim this Downtime rolls nothing, even with piles back', async () => {
     const crawler = tenacity()
     const store = memoryStore(crawler)
-    const spendNanites = onceClaim()
-    const roll = { crawler, store: store as never, rollD20: () => 1, label: LABEL, spendNanites }
+    const claim = onceClaim(store)
+    const roll = { crawler, store: store as never, rollD20: () => 1, label: LABEL, claim }
     await processDowntimeNanites(roll)
     await store.update('crawler', 'c', { scrapPool: { inertNanites: 2 } })
     expect(await processDowntimeNanites(roll)).toBe(
       'The Nanites are already processed this Downtime.'
     )
     expect(store.read().scrapPool).toEqual({ inertNanites: 2 })
-  })
-
-  test('a refused write says nothing was processed', async () => {
-    const crawler = tenacity()
-    const store = {
-      ...memoryStore(crawler),
-      update: async () => {
-        throw new Error('refused')
-      },
-    }
-    const quiet = spyOn(console, 'error').mockImplementation(() => undefined)
-    expect(
-      await processDowntimeNanites({
-        crawler,
-        store: store as never,
-        rollD20: () => 20,
-        label: LABEL,
-        spendNanites: onceClaim(),
-      })
-    ).toBeNull()
-    quiet.mockRestore()
   })
 
   test('a Damaged bay or no crawler processes nothing', async () => {
@@ -120,7 +100,7 @@ describe('processDowntimeNanites', () => {
         store: store as never,
         rollD20: () => 20,
         label: LABEL,
-        spendNanites: onceClaim(),
+        claim: onceClaim(store),
       })
     ).toBeNull()
     expect(
@@ -129,7 +109,7 @@ describe('processDowntimeNanites', () => {
         store: store as never,
         rollD20: () => 20,
         label: LABEL,
-        spendNanites: onceClaim(),
+        claim: onceClaim(store),
       })
     ).toBeNull()
     expect(naniteStatus(crawler)).toEqual({

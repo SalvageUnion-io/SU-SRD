@@ -2,6 +2,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import type { JobTerms } from 'game-domain/games/ledger'
 import type { BoundaryKind } from 'game-domain/games/safety'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { Faction } from 'game-domain/schemas/ledger'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
@@ -108,8 +109,8 @@ const GAME_ACTS = {
   'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
   'downtime.markStepDone': (c: ActContext, a: { done: boolean }) =>
     c.room.play.markStepDone(c.actor, a.done),
-  'downtime.spendUpkeep': (c: ActContext) => c.room.play.spendUpkeep(c.actor),
-  'downtime.spendNanites': (c: ActContext) => c.room.play.spendNanites(c.actor),
+  'downtime.claim': (c: ActContext, a: { claim: DowntimeClaim; op: OpInput }) =>
+    c.room.play.claim(c.actor, a.claim, a.op),
 
   'changeLog.appendChangeLog': (c: ActContext, a: { entries: LogEntry[] }) =>
     c.room.log.append(c.actor, a.entries),

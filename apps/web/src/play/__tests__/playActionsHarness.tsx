@@ -41,7 +41,8 @@ type HarnessProps = {
     /** The steps the server already records taken for this pilot (as after a reload). */
     doneSteps?: number[]
   }
-  spendUpkeep?: () => Promise<boolean>
+  /** The room's answer to the Upkeep op: true when this press paid it. */
+  payUpkeep?: () => Promise<boolean>
   canWrite?: boolean
   /** The Game's Scene conditions; clear by default. */
   scene?: SceneState
@@ -64,7 +65,7 @@ export function useHarnessPlay({
   initialResolving = null,
   boardedMechId: boardedOverride,
   downtime,
-  spendUpkeep = async () => true,
+  payUpkeep = async () => true,
   canWrite = true,
   scene = CLEAR_SCENE,
   writes,
@@ -165,13 +166,10 @@ export function useHarnessPlay({
         setDoneSteps((d) => [...d, i])
         return true
       },
-      spendUpkeep: async () => {
-        record('downtime.spendUpkeep')
-        return spendUpkeep()
-      },
-      spendNanites: async () => {
-        record('downtime.spendNanites')
-        return true
+      // The Upkeep or Nanites op on the crawler (`downtime.claim`).
+      claim: async (claim, crawlerId, patch) => {
+        record('downtime.claim', { claim, crawlerId, patch })
+        return claim === 'upkeep' ? payUpkeep() : true
       },
     },
     canWrite,

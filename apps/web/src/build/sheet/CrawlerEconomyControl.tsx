@@ -172,7 +172,7 @@ type RollFor = { rollFor: (tableName: string) => Promise<Roll> }
 function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor) {
   const storeState = store()
   const [{ result, choosePrompt, done }, dispatch] = useReducer(upkeepReducer, INITIAL_UPKEEP_STATE)
-  // A running Downtime claims its Upkeep once (`downtime.spendUpkeep`), in Play.
+  // A running Downtime pays its Upkeep once (`downtime.claim`), in Play.
   const downtime = useTableRead(
     'downtime.state',
     crawler.gameId ? { gameId: crawler.gameId } : 'skip'

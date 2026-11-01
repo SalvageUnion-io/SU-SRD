@@ -1,7 +1,9 @@
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { DowntimePlace, Running } from '../downtime'
-import { beginDowntime, doneSteps, moveDowntime, spendNanites, spendUpkeep } from '../downtime'
+import { beginDowntime, claimed, claimInStep, doneSteps, moveDowntime } from '../downtime'
 import type { UnitRow } from '../game/store'
 import { fromJsonOrNull } from '../game/store'
+import type { OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { SeatRead } from '../seats'
 import { SeatTable } from '../seats'
@@ -13,19 +15,20 @@ import type { AccountShelf } from './shelf'
  * player writes them, and a seat plays only what is on their Shelf.
  */
 
-/** A solo Downtime as its seat keeps it; one copied from Convex has no `runId`. */
+/**
+ * A solo Downtime as its seat keeps it; one copied from Convex has no
+ * `runId`. `upkeepSpent` and `nanitesSpent` are no longer read: the claims
+ * are ops (`claimed`).
+ */
 type SoloDowntime = {
   runId?: string
   stepIndex: number
   startedAt: number
-  upkeepSpent: boolean
-  /** Absent on a seat kept before Nanite processing was claimed. */
-  nanitesSpent?: boolean
 }
 
 /** A solo seat as `seats.solo` answered: its Downtime, with the steps taken, beside it. */
 export type SoloSeatRead = SeatRead & {
-  downtime: (Omit<Running, 'completedBy' | 'nanitesSpent'> & { doneSteps: number[] }) | null
+  downtime: (Omit<Running, 'completedBy'> & { upkeepSpent: boolean; doneSteps: number[] }) | null
 }
 
 export class AccountSoloPlay extends SeatTable {
@@ -56,7 +59,7 @@ export class AccountSoloPlay extends SeatTable {
                 runId: running.runId,
                 stepIndex: running.stepIndex,
                 startedAt: running.startedAt,
-                upkeepSpent: running.upkeepSpent,
+                upkeepSpent: claimed(this.store, running.runId, 'upkeep'),
                 doneSteps: doneSteps(this.store, running.runId, seat.pilotId),
               },
       }
@@ -81,12 +84,14 @@ export class AccountSoloPlay extends SeatTable {
     this.asPilot(actor, pilotId, (place) => place.write(null))
   }
 
-  spendUpkeep(actor: string, pilotId: string): boolean {
-    return this.asPilot(actor, pilotId, (place) => spendUpkeep(place))
-  }
-
-  spendNanites(actor: string, pilotId: string): boolean {
-    return this.asPilot(actor, pilotId, (place) => spendNanites(place))
+  /** Pay the crawler's Upkeep or process its Nanites in the pilot's Downtime (`claimInStep`). */
+  claim(actor: string, pilotId: string, claim: DowntimeClaim, op: OpInput): boolean {
+    return this.asPilot(actor, pilotId, (place) => {
+      const crawler = this.shelf.writable(actor, op.unitId)
+      if (crawler.kind !== 'crawler') throw new RoomRefusal('That is not a crawler')
+      const room = { store: this.store, units: this.shelf.units, place }
+      return claimInStep(room, claim, op, actor, crawler)
+    })
   }
 
   private asPilot<T>(actor: string, pilotId: string, act: (place: DowntimePlace) => T): T {
@@ -104,10 +109,10 @@ export class AccountSoloPlay extends SeatTable {
         const kept = fromJsonOrNull<SoloDowntime>(row()?.downtime_state as string | null)
         if (kept === null) return null
         return {
-          ...kept,
           runId: kept.runId ?? String(kept.startedAt),
+          stepIndex: kept.stepIndex,
+          startedAt: kept.startedAt,
           completedBy: [],
-          nanitesSpent: kept.nanitesSpent ?? false,
         }
       },
       write: (next) => {
@@ -118,13 +123,7 @@ export class AccountSoloPlay extends SeatTable {
         const kept: SoloDowntime | null =
           next === null
             ? null
-            : {
-                runId: next.runId,
-                stepIndex: next.stepIndex,
-                startedAt: next.startedAt,
-                upkeepSpent: next.upkeepSpent,
-                nanitesSpent: next.nanitesSpent,
-              }
+            : { runId: next.runId, stepIndex: next.stepIndex, startedAt: next.startedAt }
         this.store.rows(
           'update seats set downtime_state = ? where pilot_id = ?',
           kept === null ? null : JSON.stringify(kept),

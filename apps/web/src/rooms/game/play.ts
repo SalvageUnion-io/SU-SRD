@@ -1,12 +1,14 @@
+import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { Running } from '../downtime'
 import {
   beginDowntime,
+  claimed,
+  claimInStep,
   doneSteps,
   moveDowntime,
   requireRunning,
-  spendNanites,
-  spendUpkeep,
 } from '../downtime'
+import type { OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { SeatTable } from '../seats'
 import type { GameStore, UnitRow } from './store'
@@ -75,6 +77,7 @@ export class GamePlay extends SeatTable {
     return {
       running: true,
       ...running,
+      upkeepSpent: claimed(this.store, running.runId, 'upkeep'),
       completedBy: running.completedBy.map((userId) => ({
         userId,
         displayName: this.store.member(userId)?.displayName ?? 'Crewmate',
@@ -113,14 +116,15 @@ export class GamePlay extends SeatTable {
     })
   }
 
-  /** The crawler's upkeep, the Mediator's as the crawler is (ADR-038 §5). */
-  spendUpkeep(actor: string): boolean {
-    return this.asMediator(actor, () => spendUpkeep(this.place))
-  }
-
-  /** The crawler's Nanite processing, the Mediator's as its Upkeep is. */
-  spendNanites(actor: string): boolean {
-    return this.asMediator(actor, () => spendNanites(this.place))
+  /** Pay the crawler's Upkeep or process its Nanites (`claimInStep`): the Mediator's, as the Downtime is. */
+  claim(actor: string, claim: DowntimeClaim, op: OpInput): boolean {
+    return this.asMediator(actor, () => {
+      const crawler = this.store.requireUnit(op.unitId)
+      if (crawler.kind !== 'crawler') throw new RoomRefusal('That is not a crawler')
+      this.units.assertMayWrite(actor, crawler)
+      const room = { store: this.store, units: this.units, place: this.place }
+      return claimInStep(room, claim, op, actor, crawler)
+    })
   }
 
   private asMediator<T>(actor: string, act: () => T): T {
@@ -139,8 +143,6 @@ export class GamePlay extends SeatTable {
         stepIndex: Number(row.step_index),
         startedAt: Number(row.started_at),
         completedBy: fromJson<string[]>(row.completed_by),
-        upkeepSpent: row.upkeep_spent === 1,
-        nanitesSpent: row.nanites_spent === 1,
       }
     },
     write: (next: Running | null): void => {
@@ -148,18 +150,16 @@ export class GamePlay extends SeatTable {
         this.store.rows('delete from downtime_run')
         return
       }
+      // `upkeep_spent` and `nanites_spent` are no longer read: the claims are ops (`claimed`).
       this.store.rows(
-        `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent, nanites_spent)
-         values (1, ?, ?, ?, ?, ?, ?)
+        `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent)
+         values (1, ?, ?, ?, ?, 0)
          on conflict (id) do update set run_id = excluded.run_id, step_index = excluded.step_index,
-           started_at = excluded.started_at, completed_by = excluded.completed_by,
-           upkeep_spent = excluded.upkeep_spent, nanites_spent = excluded.nanites_spent`,
+           started_at = excluded.started_at, completed_by = excluded.completed_by`,
         next.runId,
         next.stepIndex,
         next.startedAt,
-        JSON.stringify(next.completedBy),
-        next.upkeepSpent ? 1 : 0,
-        next.nanitesSpent ? 1 : 0
+        JSON.stringify(next.completedBy)
       )
     },
   }
