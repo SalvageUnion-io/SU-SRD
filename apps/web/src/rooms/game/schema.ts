@@ -137,7 +137,10 @@ export const GAME_ROOM_STAMPS: readonly string[] = [
   'alter table tray add column updated_at integer not null default 0',
 ]
 
-/** Step 5 of `GAME_ROOM`: whether a running Downtime's Nanites were processed (`../downtime.ts`). */
+/**
+ * Step 5 of `GAME_ROOM`: whether a running Downtime's Nanites were processed.
+ * No longer read, as `upkeep_spent` is not: each is an op (`../downtime.ts` `claimed`).
+ */
 export const GAME_ROOM_NANITES: readonly string[] = [
   'alter table downtime_run add column nanites_spent integer not null default 0',
 ]
