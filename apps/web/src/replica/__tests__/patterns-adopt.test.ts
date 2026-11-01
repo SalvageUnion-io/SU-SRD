@@ -33,7 +33,6 @@ function pattern(id: string, name = 'Mule Pattern'): MechPattern {
     chassisRef: 'mule',
     systems: [],
     modules: [],
-    cargoLots: [],
     createdAt: FIXTURE_NOW,
   }
 }

@@ -145,7 +145,6 @@ describe('the Opposition tray', () => {
     const body = newTrayNpc('squads', squad, [squad.name], NOW)
     expect(body).toMatchObject({
       refSchema: 'squads',
-      refName: squad.name,
       name: `${squad.name} 2`,
       statKind: 'hp',
       conditions: [],
@@ -184,7 +183,6 @@ describe('the Opposition tray', () => {
       refSchema: 'chassis',
       refSlug: 'mule',
       refPattern: 'hauler',
-      refName: 'Hauler',
       name: 'Hauler',
       maxHp: mule.structurePoints,
       statKind: 'sp',
@@ -260,7 +258,7 @@ describe('the Opposition tray', () => {
   test('a name the Mediator typed wins, trimmed and numbered like any other', () => {
     if (squad === undefined) throw new Error('no squads in the reference')
     const named = newTrayNpc('squads', squad, ['Red Leader'], NOW, { name: '  Red Leader ' })
-    expect(named).toMatchObject({ name: 'Red Leader 2', refName: squad.name })
+    expect(named.name).toBe('Red Leader 2')
     expect(newTrayNpc('squads', squad, [], NOW, { name: '   ' }).name).toBe(squad.name)
   })
 

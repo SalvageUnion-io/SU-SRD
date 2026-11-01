@@ -70,8 +70,8 @@ export const EncounterNpcSchema = z
     refSchema: EncounterRefSchemaSchema,
     /** Slug reference into salvageunion-reference (never a UUID). */
     refSlug: z.string(),
-    /** Reference entity name at add time — display fallback if lookup drifts. */
-    refName: z.string(),
+    /** Retired: never read, no longer written; kept optional so stored rows still parse. */
+    refName: z.string().optional(),
     /**
      * Slug of the host's pattern it was drawn as (a chassis's mech pattern, a
      * Bio-Titan's variant), when one was picked; absent for the bare entity.

@@ -22,8 +22,8 @@ describe('PhotoSchema', () => {
     }
   })
 
-  test('refuses an upload without a url, or with fields it does not define', () => {
-    expect(PhotoSchema.safeParse({ kind: 'upload', storageId: 'x' }).success).toBe(false)
+  test('takes an upload by its key alone, and refuses fields it does not define', () => {
+    expect(PhotoSchema.safeParse({ kind: 'upload', storageId: 'x' }).success).toBe(true)
     expect(PhotoSchema.safeParse({ ...UPLOAD, extra: 1 }).success).toBe(false)
   })
 

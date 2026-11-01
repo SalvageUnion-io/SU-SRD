@@ -13,7 +13,7 @@
  */
 
 import type { Photo } from 'game-domain/schemas/photo'
-import { PHOTOS_PATH, photoPath } from '../sharing/paths'
+import { PHOTOS_PATH } from '../sharing/paths'
 
 /**
  * A photo the browser or the server would not take, in words for the player:
@@ -76,8 +76,7 @@ export async function shrinkPhoto(file: Blob): Promise<Blob> {
  */
 export async function uploadPhoto(
   blob: Blob,
-  post: (url: string, body: Blob) => Promise<Response> = postPhoto,
-  origin = window.location.origin
+  post: (url: string, body: Blob) => Promise<Response> = postPhoto
 ): Promise<Photo> {
   const response = await post(PHOTOS_PATH, blob)
   if (response.status === 415)
@@ -86,7 +85,7 @@ export async function uploadPhoto(
     throw new PhotoRefused(`The photo upload failed (${response.status}). Try again.`)
   const { storageId } = (await response.json()) as { storageId?: unknown }
   if (typeof storageId !== 'string') throw new Error('The photo upload returned no file id.')
-  return { kind: 'upload', storageId, url: new URL(photoPath(storageId), origin).href }
+  return { kind: 'upload', storageId }
 }
 
 /** The browser's POST of a photo to the Worker's upload URL. */

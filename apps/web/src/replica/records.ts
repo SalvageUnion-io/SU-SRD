@@ -18,6 +18,7 @@ import { MechSchema } from 'game-domain/schemas/mech'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { PilotSchema } from 'game-domain/schemas/pilot'
+import { storedSchema } from 'game-domain/schemas/retired'
 import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import type { z } from 'salvageunion-reference/zod'
 
@@ -38,12 +39,12 @@ function kind<N extends string, T>(
 }
 
 export const RECORD_KINDS = {
-  pilot: kind('pilots', PilotSchema, true),
-  mech: kind('mechs', MechSchema, true),
-  crawler: kind('crawlers', CrawlerSchema, true),
+  pilot: kind('pilots', storedSchema('pilot', PilotSchema), true),
+  mech: kind('mechs', storedSchema('mech', MechSchema), true),
+  crawler: kind('crawlers', storedSchema('crawler', CrawlerSchema), true),
   npc: kind('npcs', NpcSchema, true),
   softLink: kind('softLinks', SoftLinkSchema, false),
-  mechPattern: kind('mechPatterns', MechPatternSchema, false),
+  mechPattern: kind('mechPatterns', storedSchema('pattern', MechPatternSchema), false),
   encounterNpc: kind('encounterNpcs', EncounterNpcSchema, true),
   encounter: kind('encounters', EncounterSchema, true),
 }

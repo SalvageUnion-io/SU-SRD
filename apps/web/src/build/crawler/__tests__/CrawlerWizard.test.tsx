@@ -271,7 +271,7 @@ describe('CrawlerWizard — create mode', () => {
       expect(c.upgradePool).toBe(0)
       // The record stores NO SP maximum and NO type bonus — max SP derives at
       // read. currentSP seeds at the DERIVED full (20 base + 5 Battle) = 25.
-      expect(c.maxSpModifier).toBeUndefined()
+      expect(c.maxSpOverride).toBeUndefined()
       expect(c.currentSP).toBe(25)
 
       // Base bay set seeded (expansion bays excluded), NPCs at max HP (4)

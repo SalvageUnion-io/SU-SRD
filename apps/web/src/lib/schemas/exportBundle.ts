@@ -4,6 +4,7 @@ import { MechSchema } from 'game-domain/schemas/mech'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { PilotSchema } from 'game-domain/schemas/pilot'
+import { storedSchema as stored } from 'game-domain/schemas/retired'
 import { SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
 
@@ -30,9 +31,9 @@ export const ExportBundleSchema = z.object({
   schemaVersion: z.literal(2),
   exportedAt: z.string(),
   entities: z.object({
-    pilots: z.array(PilotSchema),
-    mechs: z.array(MechSchema),
-    crawlers: z.array(CrawlerSchema),
+    pilots: z.array(stored('pilot', PilotSchema)),
+    mechs: z.array(stored('mech', MechSchema)),
+    crawlers: z.array(stored('crawler', CrawlerSchema)),
     /**
      * Built NPCs (ADR-044). Defaulted, as the arrays below are, so a bundle
      * written before NPCs existed still imports.
@@ -45,7 +46,7 @@ export const ExportBundleSchema = z.object({
    * not in an account — omitting patterns silently loses them). Defaulted so bundles
    * written before this field existed still import.
    */
-  mechPatterns: z.array(MechPatternSchema).default([]),
+  mechPatterns: z.array(stored('pattern', MechPatternSchema)).default([]),
   /**
    * GM encounter-tray NPC instances (durability audit finding: encounterNpcs
    * had NO representation in ExportBundleSchema at all, so a full backup

@@ -163,18 +163,10 @@ export const CrawlerSchema = z
      */
     cargoLots: z.array(CargoLotSchema).optional(),
     /**
-     * Hand-edited bonus to max SP on top of the tech-level base — the Battle
-     * Crawler type's +5 Max SP lives here. Derived max SP =
-     * tech-level structurePoints + this (lib/rules/derivedStats.ts). Absent = 0.
-     */
-    maxSpModifier: z.number().int().optional(),
-
-    /**
      * Absolute pinned max SP (ADR-022 amendment, Free Edit only). When present
      * the stat SHOWS this value and stops tracking its derivation; the derived
      * total is still computed underneath for the "overridden from N" callout and
-     * the revert, and is never persisted. Distinct from `maxSpModifier` above,
-     * which CONTRIBUTES to the derivation rather than replacing it. See ADR-029.
+     * the revert, and is never persisted. See ADR-029.
      */
     maxSpOverride: z.number().int().nonnegative().optional(),
     createdAt: z.string().datetime(),

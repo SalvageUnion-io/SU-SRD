@@ -13,14 +13,12 @@
  * every caller is an adapter around it.
  */
 
+import { parseUnit } from 'game-domain/ops/applyOp'
 import type { Crawler } from 'game-domain/schemas/crawler'
-import { CrawlerSchema } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import { MechSchema } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
 import { NpcSchema } from 'game-domain/schemas/npc'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { PilotSchema } from 'game-domain/schemas/pilot'
 import { isRecord } from '../isRecord'
 
 /** A parsed frozen entity, or the reason it could not be parsed. */
@@ -46,21 +44,21 @@ export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
   }
 
   if (kind === 'pilot') {
-    const parsed = PilotSchema.safeParse(entity)
+    const parsed = parseUnit('pilot', entity)
     return parsed.success
       ? { ok: true, kind: 'pilot', entity: parsed.data }
       : { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
   }
 
   if (kind === 'mech') {
-    const parsed = MechSchema.safeParse(entity)
+    const parsed = parseUnit('mech', entity)
     return parsed.success
       ? { ok: true, kind: 'mech', entity: parsed.data }
       : { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }
   }
 
   if (kind === 'crawler') {
-    const parsed = CrawlerSchema.safeParse(entity)
+    const parsed = parseUnit('crawler', entity)
     return parsed.success
       ? { ok: true, kind: 'crawler', entity: parsed.data }
       : { ok: false, reason: `Invalid crawler data: ${parsed.error.message}` }

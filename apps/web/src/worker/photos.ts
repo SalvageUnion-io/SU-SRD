@@ -93,7 +93,7 @@ export async function servePhotos(
       httpMetadata: { contentType: type },
       customMetadata: { owner: who.discordId },
     })
-    return json(200, { storageId: key, url: new URL(`${PHOTOS_PATH}/${key}`, url).href })
+    return json(200, { storageId: key })
   }
 
   const key = decodeSegment(url.pathname.slice(PHOTOS_PATH.length + 1))

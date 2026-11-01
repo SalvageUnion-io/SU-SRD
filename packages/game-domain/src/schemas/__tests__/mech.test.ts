@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { parseUnit } from '../../ops/applyOp'
 import { MechSchema } from '../mech'
 
 const validMech = {
@@ -58,24 +59,17 @@ describe('MechSchema', () => {
     expect(() => MechSchema.parse({ ...validMech, secretField: 'oops' })).toThrow()
   })
 
-  test('a Reactor Overload 20 is stored as overdrive; a stored legacy safe reads as overdrive', () => {
-    const lastHeatCheck = {
-      heatCheckRoll: 3,
-      heatAtCheck: 6,
-      overloaded: true,
-      overloadRoll: 20,
-      outcome: 'overdrive',
-      rolledAt: '2026-05-18T00:00:00.000Z',
+  test('a body saved with retired fields still parses, without them', () => {
+    const old = {
+      ...validMech,
+      maxSpModifier: 2,
+      currentTP: 1,
+      lastHeatCheck: { heatCheckRoll: 3, outcome: 'safe' },
+      lastCriticalDamage: { roll: 15 },
     }
-    expect(MechSchema.parse({ ...validMech, lastHeatCheck }).lastHeatCheck?.outcome).toBe(
-      'overdrive'
-    )
-    const legacy = { ...lastHeatCheck, outcome: 'safe' }
-    expect(MechSchema.parse({ ...validMech, lastHeatCheck: legacy }).lastHeatCheck?.outcome).toBe(
-      'overdrive'
-    )
-    expect(() =>
-      MechSchema.parse({ ...validMech, lastHeatCheck: { ...lastHeatCheck, outcome: 'calm' } })
-    ).toThrow()
+    expect(() => MechSchema.parse(old)).toThrow()
+    const parsed = parseUnit('mech', old)
+    expect(parsed.success).toBe(true)
+    expect(parsed.data).toEqual(MechSchema.parse(validMech))
   })
 })

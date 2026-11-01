@@ -9,7 +9,7 @@
 
 import { publicPath } from 'game-domain/entityKinds'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { parseMechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefObjectPattern } from 'salvageunion-reference'
 import {
   getEntitySlug,
@@ -40,7 +40,7 @@ export type HomebrewItem = {
  * such a row is left out rather than drawn broken.
  */
 export function homebrewItem(row: HomebrewRow): HomebrewItem | null {
-  const parsed = MechPatternSchema.safeParse(row.body)
+  const parsed = parseMechPattern(row.body)
   if (!parsed.success) return null
   const chassis = patternChassis(parsed.data)
   return chassis ? { appId: row.appId, madeBy: row.madeBy, pattern: parsed.data, chassis } : null

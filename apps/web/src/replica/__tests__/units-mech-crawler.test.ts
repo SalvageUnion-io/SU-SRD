@@ -140,17 +140,17 @@ describe('entityStore — mech update', () => {
     expect(held?.name).toBe('Renamed Mech')
   })
 
-  test('update with currentHP writes the stat through', async () => {
+  test('update with currentSP writes the stat through', async () => {
     await useUnits.getState().hydrate('mech')
     const created = await useUnits.getState().create('mech', baseMechInput)
 
-    await useUnits.getState().update('mech', created.id, { currentHP: 7 }, LIVE_SHEET_MANUAL)
+    await useUnits.getState().update('mech', created.id, { currentSP: 7 }, LIVE_SHEET_MANUAL)
 
     const inMemory = useUnits.getState().get('mech', created.id)
-    expect(inMemory?.currentHP).toBe(7)
+    expect(inMemory?.currentSP).toBe(7)
 
     const held = useUnits.getState().get('mech', created.id)
-    expect(held?.currentHP).toBe(7)
+    expect(held?.currentSP).toBe(7)
   })
 })
 

@@ -264,7 +264,6 @@ export function newTrayNpc(
     schemaVersion: 1,
     refSchema: schema,
     refSlug: slugOf({ name: hostName }),
-    refName: name,
     ...(saved
       ? {
           userPattern: {

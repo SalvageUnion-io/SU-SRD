@@ -12,6 +12,7 @@ import { CrawlerSchema } from '../schemas/crawler'
 import { MechSchema } from '../schemas/mech'
 import { NpcSchema } from '../schemas/npc'
 import { PilotSchema } from '../schemas/pilot'
+import { RETIRED_FIELDS, withoutRetired } from '../schemas/retired'
 import type { OpState } from './opState'
 
 /** A body field and its new value; a field named in `unset` is removed instead. */
@@ -80,6 +81,20 @@ export const UNIT_SCHEMAS = {
   npc: NpcSchema,
 } as const satisfies Record<EntityKind, unknown>
 
+/**
+ * Parse a stored body with its kind's schema, after dropping the fields the
+ * app no longer stores (`RETIRED_FIELDS`), so a body saved before one was
+ * retired still reads.
+ */
+export function parseUnit<K extends EntityKind>(
+  kind: K,
+  body: unknown
+): ReturnType<(typeof UNIT_SCHEMAS)[K]['safeParse']> {
+  return UNIT_SCHEMAS[kind].safeParse(withoutRetired(kind, body)) as ReturnType<
+    (typeof UNIT_SCHEMAS)[K]['safeParse']
+  >
+}
+
 /** Fields that only bookkeep: they change on every write, so they never conflict. */
 const BOOKKEEPING: ReadonlySet<string> = new Set(['updatedAt'])
 
@@ -95,7 +110,7 @@ export function unitOf(
 
 /**
  * Apply one op to a unit: merge its patch, drop its `unset` fields, and parse
- * the result with the kind's schema.
+ * the result with the kind's schema (`parseUnit`, which drops retired fields).
  *
  * Refused, with nothing changed, when a field it writes was written by an op
  * after the copy it was made against (`baseSeq`), or when the result does not
@@ -108,9 +123,13 @@ export function applyOp(unit: Unit, op: OpInput): OpResult {
   if (written.includes('id'))
     return { ok: false, reason: 'invalid', message: 'An op cannot change a unit’s id' }
 
-  // Only a field the schema defines can be unset, so an op cannot strip an arbitrary key.
+  // Only a field the schema defines (or one it retired) can be unset, so an op
+  // cannot strip an arbitrary key.
   const shape = (UNIT_SCHEMAS[unit.kind] as { shape?: Record<string, unknown> }).shape
-  const unknown = unset.find((field) => shape !== undefined && !Object.hasOwn(shape, field))
+  const retired: readonly string[] = RETIRED_FIELDS[unit.kind]
+  const unknown = unset.find(
+    (field) => shape !== undefined && !Object.hasOwn(shape, field) && !retired.includes(field)
+  )
   if (unknown !== undefined) {
     return { ok: false, reason: 'invalid', message: `cannot unset unknown field "${unknown}"` }
   }
@@ -130,7 +149,7 @@ export function applyOp(unit: Unit, op: OpInput): OpResult {
   const merged: Record<string, unknown> = { ...unit.body, ...op.patch }
   for (const field of unset) delete merged[field]
 
-  const parsed = UNIT_SCHEMAS[unit.kind].safeParse(merged)
+  const parsed = parseUnit(unit.kind, merged)
   if (!parsed.success) {
     return { ok: false, reason: 'invalid', message: parsed.error.issues[0]?.message ?? 'unknown' }
   }

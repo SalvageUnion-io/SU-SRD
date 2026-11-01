@@ -62,16 +62,6 @@ const validPatternBase = {
   chassisRef: 'mule',
   systems: ['targeting-system'],
   modules: ['armor-plating'],
-  cargoLots: [
-    {
-      id: 'lot-medkit',
-      kind: 'unit' as const,
-      name: 'medkit',
-      cat: 'SEALED' as const,
-      units: 1,
-      code: 'MED',
-    },
-  ],
 }
 
 describe('MechPatternSchema — valid input', () => {
@@ -84,7 +74,7 @@ describe('MechPatternSchema — valid input', () => {
     expect(result.success).toBe(true)
   })
 
-  test('accepts empty arrays for systems, modules, cargoLots', () => {
+  test('accepts empty arrays for systems and modules', () => {
     const result = MechPatternSchema.safeParse({
       id: 'pattern-2',
       createdAt: FIXTURE_NOW,
@@ -93,7 +83,6 @@ describe('MechPatternSchema — valid input', () => {
       chassisRef: 'iron-mongrel',
       systems: [],
       modules: [],
-      cargoLots: [],
     })
     expect(result.success).toBe(true)
   })
@@ -243,16 +232,6 @@ describe('instantiate from pattern — fresh mech with pattern fields', () => {
       chassisRef: 'mule',
       systems: ['sys-a', 'sys-b'],
       modules: ['mod-x'],
-      cargoLots: [
-        {
-          id: 'lot-fuel',
-          kind: 'unit' as const,
-          name: 'fuel-cell',
-          cat: 'SEALED' as const,
-          units: 1,
-          code: 'FUE',
-        },
-      ],
     })
 
     // Instantiate through the same builder InstantiateFromPattern uses

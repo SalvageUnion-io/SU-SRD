@@ -25,7 +25,6 @@ const pattern = (id: string, name = 'Tow Rig') => ({
   chassisRef: 'iron-mongrel',
   systems: [],
   modules: [],
-  cargoLots: [],
   createdAt: new Date(AT).toISOString(),
 })
 

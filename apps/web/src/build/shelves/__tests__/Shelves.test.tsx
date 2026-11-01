@@ -62,7 +62,6 @@ const PATTERN: MechPattern = {
   chassisRef: 'titan',
   systems: [],
   modules: [],
-  cargoLots: [],
   createdAt: FIXTURE_NOW,
 }
 

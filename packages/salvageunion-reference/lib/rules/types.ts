@@ -227,12 +227,8 @@ export type EditSnapshot<T> = {
 
 // ---------------------------------------------------------------------------
 // Heat Check / Reactor Overload structural types (moved with heatCheck.ts's
-// pure functions; see ./heatCheck.ts). These are "small outcome/result
-// record shapes, not full persisted records" (ADR-006) — a consumer's
-// Zod-inferred equivalents (e.g. The app's HeatCheckResultSchema /
-// ReactorOverloadOutcomeSchema in game-domain's src/schemas/mech.ts) satisfy them
-// structurally. The union literals are kept byte-identical to the app's Zod
-// enums so a drift fails typecheck rather than silently diverging.
+// pure functions; see ./heatCheck.ts). Small outcome shapes, never stored on
+// a unit (ADR-006).
 // ---------------------------------------------------------------------------
 
 /** A function that returns an integer die roll in [1, sides]. Injectable. */
@@ -276,9 +272,8 @@ type BioOverloadOutcome =
 export type OverloadTable = 'reactor' | 'bio'
 
 /**
- * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
- * Snapshot-safe plain data a consumer stores on the mech so the sheet can
- * render the last outcome.
+ * The result of a Heat Check (and any subsequent Reactor Overload roll), for
+ * the roll's own read-out.
  */
 type HeatCheckResult = {
   heatCheckRoll: number
@@ -297,7 +292,7 @@ type HeatCheckResult = {
  * (this module never auto-picks one).
  */
 export type HeatCheckEffect = {
-  /** The recorded result for display + persistence. */
+  /** The result, for display. */
   result: HeatCheckResult
   /** New SP after applying overheat damage (only changes on 11-19). */
   nextSP: number

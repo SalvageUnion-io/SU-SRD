@@ -1,6 +1,6 @@
 import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { RangeBand, SeatMount, SeatResolving } from 'game-domain/schemas/seat'
-import { RANGE_BANDS, SeatSchema } from 'game-domain/schemas/seat'
+import { RANGE_BANDS, SeatResolvingSchema } from 'game-domain/schemas/seat'
 import type { GameStore, UnitRow } from './game/store'
 import { bit, fromJson, fromJsonOrNull } from './game/store'
 import { RoomRefusal } from './refusal'
@@ -111,7 +111,7 @@ export abstract class SeatTable {
 
   /** The deck action being resolved, and how far it has got; each step replaces the last. */
   setResolving(actor: string, pilotId: string, resolving: unknown, at: number): void {
-    const parsed = SeatSchema.shape.resolving.unwrap().parse(resolving)
+    const parsed = SeatResolvingSchema.parse(resolving)
     this.write(actor, pilotId, at, () => ({ resolving: parsed }))
   }
 

@@ -88,17 +88,9 @@ const richPilotInput = {
   usedAbilities: ['first-aid'],
   trainingPoints: 2,
   injuries: [{ severity: 'minor' as const, note: 'Twisted ankle.' }],
-  maxHpModifier: 2,
-  maxApModifier: 1,
-  maxInventorySlotsModifier: 4,
   equipmentUses: { medkit: 1 },
   usedToggles: { background: true, keepsake: false, motto: true },
   genericInventory: [{ id: 'gi-1', name: 'Scrap', slotCost: 3, qty: 2, note: 'raw' }],
-  lastCriticalInjury: {
-    roll: 7,
-    outcome: 'minor-injury' as const,
-    rolledAt: FIXTURE_NOW,
-  },
 }
 
 const richMechInput = {
@@ -130,13 +122,7 @@ const richMechInput = {
   patternName: 'Scout Rig',
   appearance: 'Rust-streaked hull.',
   conditions: ['vulnerable'],
-  maxSpModifier: -5,
-  maxEpModifier: 2,
-  maxHeatModifier: 1,
-  maxCargoModifier: 2,
-  currentHP: 4,
-  currentAP: 3,
-  currentTP: 1,
+  maxSpOverride: 12,
   currentSP: 6,
   currentEP: 4,
   currentHeat: 5,
@@ -146,17 +132,6 @@ const richMechInput = {
   shutdown: true,
   vulnerable: true,
   destroyed: false,
-  lastHeatCheck: {
-    heatCheckRoll: 12,
-    heatAtCheck: 5,
-    overloaded: false,
-    rolledAt: FIXTURE_NOW,
-  },
-  lastCriticalDamage: {
-    roll: 15,
-    outcome: 'core-damage' as const,
-    rolledAt: FIXTURE_NOW,
-  },
 }
 
 const richCrawlerInput = {
@@ -197,7 +172,7 @@ const richCrawlerInput = {
       code: 'SPP',
     },
   ],
-  maxSpModifier: 5,
+  maxSpOverride: 30,
 }
 
 const richPatternInput = {
@@ -206,18 +181,6 @@ const richPatternInput = {
   chassisRef: 'mule-chassis',
   systems: ['sensor-suite', 'long-range-scanner'],
   modules: ['armor-plating'],
-  cargoLots: [
-    {
-      id: 'lot-p1',
-      kind: 'bulk' as const,
-      name: 'Tech 1 Scrap',
-      cat: 'SCRAP' as const,
-      tl: 1,
-      qty: 5,
-      units: 5,
-      code: 'SCR-T1',
-    },
-  ],
 }
 
 const richEncounterNpcInput = {
@@ -268,10 +231,10 @@ describe('export round-trip — field fidelity', () => {
     // Sanity: the exported bundle actually carried the rich fields (i.e. the
     // round trip exercised them, not an accidentally-empty pilot).
     expect(parsed.entities.pilots[0]?.injuries).toHaveLength(1)
-    expect(parsed.entities.pilots[0]?.lastCriticalInjury?.outcome).toBe('minor-injury')
+    expect(parsed.entities.pilots[0]?.genericInventory).toHaveLength(1)
   })
 
-  test('mech: bulk SCRAP + unit cargo lots, condition maps, heat/damage results all survive', async () => {
+  test('mech: bulk SCRAP + unit cargo lots, condition maps, Free-Edit pins all survive', async () => {
     const entityStore = useUnits.getState()
 
     await entityStore.hydrate('mech')

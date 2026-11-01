@@ -18,7 +18,7 @@ import { useCargo } from '../useCargo'
 
 // ---------------------------------------------------------------------------
 // Fixtures — chassisRef intentionally does not resolve, so the mech cargo cap
-// comes purely from maxCargoModifier (no reference preload needed).
+// comes purely from maxCargoOverride (no reference preload needed).
 // ---------------------------------------------------------------------------
 
 function makeMech(cargoLots: CargoLot[]): Mech {
@@ -31,7 +31,7 @@ function makeMech(cargoLots: CargoLot[]): Mech {
     modules: [],
     cargoLots,
     conditions: [],
-    maxCargoModifier: 6,
+    maxCargoOverride: 6,
     createdAt: FIXTURE_NOW,
     updatedAt: FIXTURE_NOW,
   }

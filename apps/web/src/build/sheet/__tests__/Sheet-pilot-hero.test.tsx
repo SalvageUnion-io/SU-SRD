@@ -117,11 +117,6 @@ describe('Pilot hero — HP/AP trackers', () => {
     // current clamps to the derived max for display
     expect(screen.getByRole('group', { name: 'HP 7 of 7' })).toBeTruthy()
   })
-
-  test('maxHpModifier raises the derived max', () => {
-    renderHero(makePilot({ currentHP: 12, maxHpModifier: 2 }))
-    expect(screen.getByRole('group', { name: 'HP 12 of 12' })).toBeTruthy()
-  })
 })
 
 // ---------------------------------------------------------------------------

@@ -95,7 +95,6 @@ describe('SavePatternDialog', () => {
       chassisRef: 'mule',
       systems: ['red-laser'],
       modules: ['comms-module'],
-      cargoLots: [],
     })
     expect(onSaved).toHaveBeenCalledWith(saved?.id)
     await waitFor(() => expect(screen.queryByRole('textbox', { name: 'Pattern name' })).toBeNull())

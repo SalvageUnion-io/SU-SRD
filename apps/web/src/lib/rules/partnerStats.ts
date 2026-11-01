@@ -177,7 +177,7 @@ export function partnerDerivedStatsParts(
     const pinField = PINS[key]
     // Tech-level scaling is an anonymous aggregate in `installed`; the
     // installed items' contributions are named sources.
-    out[key] = breakdownOf(base, scaled, 0, pinField ? partner[pinField] : undefined, sources)
+    out[key] = breakdownOf(base, scaled, pinField ? partner[pinField] : undefined, sources)
   }
   return out
 }

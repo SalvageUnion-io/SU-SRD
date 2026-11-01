@@ -7,7 +7,7 @@
  * ask the server.
  */
 
-import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { parseMechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
 import { Entity, quotePatternName, SlabSection, tokens } from '../../../components/index'
 import { AppLink } from '../../../components/shared/AppLink'
@@ -36,7 +36,7 @@ export function CrewPatterns() {
   const shared = useCrewPatterns(status === 'live')
 
   const rows = (shared ?? []).flatMap((row) => {
-    const parsed = MechPatternSchema.safeParse(row.body)
+    const parsed = parseMechPattern(row.body)
     if (!parsed.success) return []
     const chassis = patternChassis(parsed.data)
     return chassis ? [{ ...row, pattern: parsed.data, chassis }] : []

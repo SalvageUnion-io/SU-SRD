@@ -539,12 +539,11 @@ function crawlerSheet(body: EntityBody): RenderedSheet {
   const fields: CardField[] = []
 
   // The max is derived here (the server derives nothing for a crawler): the tech level’s SP, the type’s bonus,
-  // the modifier, or the override when one is set. An unresolvable tech level
+  // or the override when one is set. An unresolvable tech level
   // derives 0, which has no gauge to draw, so the current value stands alone.
   const maxSp = crawlerMaxSP({
     techLevel: techLevel ?? '',
     type: typeRef ?? undefined,
-    maxSpModifier: num(body, 'maxSpModifier') ?? undefined,
     maxSpOverride: num(body, 'maxSpOverride') ?? undefined,
   })
   const sp =

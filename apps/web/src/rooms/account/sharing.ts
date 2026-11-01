@@ -1,7 +1,8 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import { EncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema } from 'game-domain/schemas/encounterNpc'
-import { MechPatternSchema } from 'game-domain/schemas/pattern'
+import { MechPatternSchema, parseMechPattern } from 'game-domain/schemas/pattern'
+import { storedSchema } from 'game-domain/schemas/retired'
 import type { z } from 'salvageunion-reference/zod'
 import { fromJson } from '../game/store'
 import { parseUnitBody } from '../game/units'
@@ -46,7 +47,7 @@ type PatternExtra = {
 const TrayNpcSchema = EncounterNpcSchema.partial().extend({ name: EncounterNpcSchema.shape.name })
 
 const RECORD_SCHEMAS: Record<ShelfRecord, z.ZodType> = {
-  patterns: MechPatternSchema,
+  patterns: storedSchema('pattern', MechPatternSchema),
   encounters: EncounterSchema,
   npcTray: TrayNpcSchema,
 }
@@ -108,7 +109,7 @@ export class AccountSharing {
     if (visibility === 'game' && gameId === null) {
       throw new RoomRefusal('Choose which Game to share it with')
     }
-    if (visibility !== 'private' && !MechPatternSchema.safeParse(row.body).success) {
+    if (visibility !== 'private' && !parseMechPattern(row.body).success) {
       throw new RoomRefusal('This pattern cannot be shared: it is not a whole pattern')
     }
     const { homebrew, gameName: _copied, ...rest } = row.extra
