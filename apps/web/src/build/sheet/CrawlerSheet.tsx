@@ -1,3 +1,4 @@
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
@@ -74,7 +75,7 @@ import { useCargo } from '../../lib/cargo/useCargo'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
-import { poolShortfall, SCRAP_TLS } from '../../lib/rules/crawlerEconomy'
+import { poolShortfall } from '../../lib/rules/crawlerEconomy'
 import { BAY_REPAIR_COST, bayRepairPatch, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
 import type { ExoticKey } from '../../lib/rules/exoticSalvage'
 import {
@@ -302,7 +303,7 @@ export function CrawlerSheet({
 
   // Read leaves what is empty out (ruleset §1.2): an empty state only where
   // Edit can fill it.
-  const poolEmpty = SCRAP_TLS.every((t) => scrapPoolBucket(pool, t) === 0)
+  const poolEmpty = NUMERIC_TECH_LEVELS.every((t) => scrapPoolBucket(pool, t) === 0)
   const showExotic = !readOnly || hasExotic(pool)
   const holdEmpty = (crawler.cargoLots ?? []).length === 0
   const showPool = !readOnly || !poolEmpty
@@ -348,7 +349,7 @@ export function CrawlerSheet({
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
         <SlabSection title={buildSheetCopy('scrapPool')} size="mini" bodyStyle={POOL_ROW}>
-          {SCRAP_TLS.map((t) => (
+          {NUMERIC_TECH_LEVELS.map((t) => (
             <Stat
               key={t}
               label={buildSheetCopy('t', { t })}

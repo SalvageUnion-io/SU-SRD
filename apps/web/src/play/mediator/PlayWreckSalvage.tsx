@@ -16,10 +16,10 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { MechSalvageResult } from 'salvageunion-reference/rules'
 import {
+  halfSalvageValue,
   MECH_SALVAGE_TABLE as MECH_SALVAGE,
   mechSalvageAllows,
   mechSalvageResult,
-  mechSalvageScrap,
 } from 'salvageunion-reference/rules'
 import { Button, rollForTable, Text, Toggle, tokens } from '../../components/index'
 import { wreckSalvageOutcome, wreckScrapOutcome } from '../../lib/rules/downtimeEconomy'
@@ -135,7 +135,7 @@ export function PlayWreckSalvage({
           onClick={() => settle((crawler) => wreckSalvageOutcome(crawler, parts, 'nuts', []).patch)}
         >
           {mediatorCopy('wreckTakeScrap', {
-            count: mechSalvageScrap(chassis.salvageValue),
+            count: halfSalvageValue(chassis.salvageValue),
             tl: chassis.techLevel,
           })}
         </Button>

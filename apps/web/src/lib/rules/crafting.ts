@@ -1,3 +1,4 @@
+import { isNumericTechLevel } from 'salvageunion-reference/rules'
 /**
  * Crafting Bay rules.
  *
@@ -7,5 +8,5 @@
 
 /** True when an item of `itemTl` may be crafted on a Tech-`crawlerTl` crawler (p.222). */
 export function craftableAtTl(itemTl: number, crawlerTl: number): boolean {
-  return Number.isInteger(itemTl) && itemTl >= 1 && itemTl <= 6 && itemTl <= crawlerTl
+  return isNumericTechLevel(itemTl) && itemTl <= crawlerTl
 }

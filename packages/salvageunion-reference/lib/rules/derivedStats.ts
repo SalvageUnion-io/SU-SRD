@@ -23,6 +23,7 @@ import type { ActiveEffects, ResolvedContribution } from './contributions'
 import { abilityContributions, installedContributions, sumContributions } from './contributions'
 import { crawlerMaxSpBonus } from './creation'
 import { resolveChassisRef, resolveCrawlerRef } from './resolveRefs'
+import { TECH_LEVEL_MAX } from './types'
 
 // ---------------------------------------------------------------------------
 // Pilot
@@ -167,7 +168,7 @@ function pilotStatTrainingContributions(
   stat: 'maxHp' | 'maxAp'
 ): ResolvedContribution[] {
   if (crawlerTechLevel === undefined || !Number.isFinite(crawlerTechLevel)) return []
-  const tech = Math.min(6, Math.max(1, Math.trunc(crawlerTechLevel)))
+  const tech = Math.min(TECH_LEVEL_MAX, Math.max(1, Math.trunc(crawlerTechLevel)))
   const tiers = tech - 1
   if (tiers === 0) return []
   const perTier = stat === 'maxHp' ? STAT_TRAINING_HP_PER_TIER : STAT_TRAINING_AP_PER_TIER

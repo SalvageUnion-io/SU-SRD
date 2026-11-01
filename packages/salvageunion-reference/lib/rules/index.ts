@@ -109,16 +109,17 @@ export type {
 export {
   AREA_SALVAGE_TABLE,
   areaSalvageResult,
+  halfSalvageValue,
   MECH_SALVAGE_TABLE,
   mechSalvageAllows,
   mechSalvageResult,
-  mechSalvageScrap,
 } from './salvage'
 export { crawlerUpkeepCost, nextTierUpgradeCost, tierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,
   MechSnapshot,
+  NumericTechLevel,
   OverloadTable,
   PilotSnapshot,
   Roll,
@@ -126,3 +127,4 @@ export type {
   SoftWarningContext,
   TechLevel,
 } from './types'
+export { isNumericTechLevel, NUMERIC_TECH_LEVELS, TECH_LEVEL_MAX } from './types'

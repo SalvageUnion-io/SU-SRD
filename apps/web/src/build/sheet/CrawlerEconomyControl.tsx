@@ -1,4 +1,5 @@
 import { crawlerTechLevelSlug } from 'game-domain/crawlerLevel'
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerEconomyControl — the crawler-economy actions behind the hero's UPKEEP
@@ -72,7 +73,6 @@ import {
   performDeterioration,
   performTradingRoll,
   poolAvailableAtOrAbove,
-  SCRAP_TLS,
   TRADING_AVAILABILITY_LABEL,
   tradingSourceTl,
   upkeepShortfall,
@@ -506,7 +506,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     value={fromTl}
                     onChange={(e) => dispatch({ type: 'pickFrom', tl: Number(e.target.value) })}
                   >
-                    {SCRAP_TLS.map((t) => (
+                    {NUMERIC_TECH_LEVELS.map((t) => (
                       <option key={t} value={t}>
                         {buildSheetCopy('techInPool', {
                           t,
@@ -524,7 +524,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                     value={toTl}
                     onChange={(e) => dispatch({ type: 'pickTo', tl: Number(e.target.value) })}
                   >
-                    {SCRAP_TLS.map((t) => (
+                    {NUMERIC_TECH_LEVELS.map((t) => (
                       <option key={t} value={t}>
                         {buildSheetCopy('tech', { t })}
                       </option>

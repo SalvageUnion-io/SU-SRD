@@ -18,6 +18,20 @@
  */
 export type TechLevel = 1 | 2 | 3 | 4 | 5 | 6 | 'B' | 'N'
 
+/** The numeric Tech Levels, in order: the one home for the 1–6 range (Scrap pool buckets, steppers). */
+export const NUMERIC_TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
+
+/** One of the numeric Tech Levels. */
+export type NumericTechLevel = (typeof NUMERIC_TECH_LEVELS)[number]
+
+/** The highest numeric Tech Level. */
+export const TECH_LEVEL_MAX: NumericTechLevel = 6
+
+/** Whether `tl` is one of the numeric Tech Levels (an integer 1–6). */
+export function isNumericTechLevel(tl: number): tl is NumericTechLevel {
+  return NUMERIC_TECH_LEVELS.some((t) => t === tl)
+}
+
 /**
  * A system installed on a mech, identified by a name reference into the
  * `salvageunion-reference` Systems dataset.

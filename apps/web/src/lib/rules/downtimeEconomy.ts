@@ -18,7 +18,7 @@ import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { AreaSalvageResult, MechSalvageBand } from 'salvageunion-reference/rules'
-import { mechSalvageAllows, mechSalvageScrap } from 'salvageunion-reference/rules'
+import { halfSalvageValue, mechSalvageAllows } from 'salvageunion-reference/rules'
 import { addToScrapPool, carrierCargoUsage } from '../cargo/cargoTransfer'
 import type { PoolDraw } from './crawlerEconomy'
 import { pilotInventoryUsed } from './pilotInventory'
@@ -129,7 +129,7 @@ export function wreckSalvageOutcome(
   if (band === 'nuts') {
     const chassis = parts.find((p) => p.kind === 'chassis')
     if (chassis?.techLevel === undefined) return { patch: null, taken: [] }
-    const count = mechSalvageScrap(chassis.salvageValue)
+    const count = halfSalvageValue(chassis.salvageValue)
     return {
       patch: {
         scrapPool: depositScrapDeposits((crawler.scrapPool ?? {}) as ScrapPool, [

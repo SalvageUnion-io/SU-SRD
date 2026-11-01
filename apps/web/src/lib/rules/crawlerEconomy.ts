@@ -37,16 +37,13 @@
 
 import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
-import { crawlerUpkeepCost, nextTierUpgradeCost } from 'salvageunion-reference/rules'
+import {
+  crawlerUpkeepCost,
+  isNumericTechLevel,
+  NUMERIC_TECH_LEVELS,
+  nextTierUpgradeCost,
+} from 'salvageunion-reference/rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
-
-/**
- * The numeric scrap tech levels (pool bucket keys are tl1..tl6).
- *
- * Exported as the ONE home for this list: the crawler sheet's bucket steppers
- * and the exchange dialog's TL pickers read it.
- */
-export const SCRAP_TLS = [1, 2, 3, 4, 5, 6] as const
 
 // ---------------------------------------------------------------------------
 // Pool draws (TL-or-higher, lowest bucket first)
@@ -57,7 +54,10 @@ export type PoolDraw = { tl: number; count: number }
 
 /** Total scrap available at `tl` or any higher bucket. */
 export function poolAvailableAtOrAbove(pool: ScrapPool, tl: number): number {
-  return SCRAP_TLS.filter((t) => t >= tl).reduce((sum, t) => sum + scrapPoolBucket(pool, t), 0)
+  return NUMERIC_TECH_LEVELS.filter((t) => t >= tl).reduce(
+    (sum, t) => sum + scrapPoolBucket(pool, t),
+    0
+  )
 }
 
 /**
@@ -112,7 +112,7 @@ export function drawFromPool(
   let next = pool
   let remaining = amount
   const draws: PoolDraw[] = []
-  for (const t of SCRAP_TLS) {
+  for (const t of NUMERIC_TECH_LEVELS) {
     if (t < tl || remaining <= 0) continue
     const take = Math.min(scrapPoolBucket(next, t), remaining)
     if (take > 0) {
@@ -321,8 +321,7 @@ export function exchangeStep(fromTl: number, toTl: number): number {
  */
 export function convertedCount(fromTl: number, fromCount: number, toTl: number): number | null {
   if (fromCount <= 0 || fromTl === toTl) return null
-  if (!SCRAP_TLS.includes(fromTl as (typeof SCRAP_TLS)[number])) return null
-  if (!SCRAP_TLS.includes(toTl as (typeof SCRAP_TLS)[number])) return null
+  if (!isNumericTechLevel(fromTl) || !isNumericTechLevel(toTl)) return null
   const value = fromTl * fromCount // each piece of Scrap is worth its Tech Level (p.223)
   return value % toTl === 0 ? value / toTl : null
 }

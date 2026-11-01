@@ -17,7 +17,7 @@ export type Crew = { size: number; techLevel: number }
 export const CREW_DEFAULT: Crew = { size: 4, techLevel: 1 }
 /** The steppers' bounds: a crew of one to eight, Tech 1 to 6. */
 export const CREW_SIZE_MAX = 8
-export const TECH_LEVEL_MAX = 6
+export { TECH_LEVEL_MAX } from 'salvageunion-reference/rules'
 
 export type ThreatRead = {
   /** Those who meet the Pilots when it starts: alone, or in a wave 1 group. */

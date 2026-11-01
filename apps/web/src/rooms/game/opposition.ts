@@ -2,6 +2,7 @@ import { runningFrom, splitWaves, trayNpcsFor, waveOf } from 'game-domain/games/
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
 import { EncounterSchema, RunningEncounterSchema } from 'game-domain/schemas/encounter'
 import { EncounterNpcSchema, MediatorRollResultSchema } from 'game-domain/schemas/encounterNpc'
+import { isDown } from '../../lib/rules/opposition'
 import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 import { fromJson } from './store'
@@ -117,7 +118,7 @@ export class GameOpposition {
       if (patch.salvaged !== undefined) {
         // Claimed before the haul is written: a second press never pays out the same wreck twice.
         if (body.salvaged === true) throw new RoomRefusal('That wreck is already salvaged')
-        if (typeof next.currentHp === 'number' && next.currentHp > 0) {
+        if (!trayNpcDown(next)) {
           throw new RoomRefusal('Only a downed wreck can be salvaged')
         }
         next.salvaged = true
@@ -141,8 +142,7 @@ export class GameOpposition {
       for (const row of this.store.rows('select id, body from tray')) {
         const body = fromJson<Record<string, unknown>>(row.body)
         const group = body.group as { id?: unknown } | undefined
-        const hp = body.currentHp
-        if (group?.id !== groupId || (typeof hp === 'number' && hp <= 0)) continue
+        if (group?.id !== groupId || trayNpcDown(body)) continue
         this.write(String(row.id), { ...body, lastMediatorRoll: result }, at)
       }
     })
@@ -275,4 +275,10 @@ export class GameOpposition {
     )
     return id
   }
+}
+
+/** A tray NPC is down as the Mediator's screen reads it (`isDown`): unset HP is full. */
+function trayNpcDown(body: Record<string, unknown>): boolean {
+  const maxHp = typeof body.maxHp === 'number' ? body.maxHp : 0
+  return isDown(typeof body.currentHp === 'number' ? body.currentHp : maxHp, maxHp)
 }

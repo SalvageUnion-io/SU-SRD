@@ -11,7 +11,7 @@ import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { RefMetaAction, RefModule, RefSystem } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import { halfSalvageValue, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 
 export type MechItem = RefSystem | RefModule
 
@@ -95,7 +95,7 @@ export function itemUsesRemaining(maxUses: number, usesRemaining: number | undef
  * (p.233), immediately followed by "Specific beats general".
  */
 export function repairScrapCost(salvageValue: number | undefined): number {
-  return Math.max(1, Math.floor((salvageValue ?? 1) / 2))
+  return halfSalvageValue(salvageValue ?? 1)
 }
 
 /** Manual status-badge cycle: Intact → Damaged → Destroyed → Intact. */

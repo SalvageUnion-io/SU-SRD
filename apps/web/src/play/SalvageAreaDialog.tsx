@@ -1,3 +1,4 @@
+import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 /**
  * SalvageAreaDialog — name the area the table is salvaging (Core Book p.245):
  * what it is called, the Tech Level of what is found there, and its Supply,
@@ -12,8 +13,6 @@ import { DEFAULT_AREA_SUPPLY, MAX_AREA_SUPPLY } from 'game-domain/schemas/salvag
 import { useId, useState } from 'react'
 import { ConfirmDialog, Eyebrow, Input, Select, Stack } from '../components/index'
 import { playCopy } from '../messages/play'
-
-const TECH_LEVELS = [1, 2, 3, 4, 5, 6] as const
 
 type SalvageAreaDialogProps = {
   open: boolean
@@ -57,7 +56,7 @@ export function SalvageAreaDialog({ open, area, onClose, onSave }: SalvageAreaDi
             value={techLevel}
             onChange={(e) => setTechLevel(Number(e.target.value))}
           >
-            {TECH_LEVELS.map((tl) => (
+            {NUMERIC_TECH_LEVELS.map((tl) => (
               <option key={tl} value={tl}>
                 {playCopy('salvageAreaTech', { tl })}
               </option>
