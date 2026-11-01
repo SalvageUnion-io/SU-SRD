@@ -23,9 +23,9 @@ export type MechWizardFormState = {
   /** Chassis SLUG ref (matching Mech.chassisRef); '' while unchosen. */
   chassisName: string
   /**
-   * Loadout pattern name (maps to Mech.patternName): the chosen chassis
-   * pattern's name, or the user-supplied name for a custom build. '' while
-   * unchosen.
+   * The book pattern the loadout started from (maps to Mech.patternName,
+   * provenance never shown): the chosen chassis pattern's name; '' for a
+   * custom build or while unchosen.
    */
   patternName: string
   /** Installed system slug refs. */

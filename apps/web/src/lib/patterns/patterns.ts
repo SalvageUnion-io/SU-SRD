@@ -61,15 +61,13 @@ export function patternCopy(pattern: MechPattern): PatternInput {
 
 /**
  * A fresh mech built from a pattern: the chassis and loadout, SP, EP and Heat
- * unset (full and empty by the pool rules), an empty hold — and the pattern it came from. Its
- * name is the pattern's, written with `patternName` in lockstep, because a
- * mech's name IS its pattern.
+ * unset (full and empty by the pool rules), an empty hold — and the pattern it came from
+ * (`sourcePattern`). Its name is the pattern's: a mech's name IS its pattern's.
  */
 export function mechFromPattern(pattern: MechPattern): CreateInput<'mech'> {
   return {
     schemaVersion: 1,
     name: pattern.name,
-    patternName: pattern.name,
     chassisRef: pattern.chassisRef,
     systems: [...pattern.systems],
     modules: [...pattern.modules],

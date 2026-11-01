@@ -26,7 +26,6 @@ export const mechCopy = messages({
   noPrefillCraftYourSystems:
     'No prefill — craft your Systems and Modules by hand in the next steps.',
   name: 'Name',
-  pattern: 'Pattern',
   systems: 'Systems',
   modules: 'Modules',
   tech1ScrapBanksTo:

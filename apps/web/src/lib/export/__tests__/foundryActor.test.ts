@@ -237,7 +237,8 @@ describe('a mech as a Foundry Mech', () => {
   test('pools are current over max', () => {
     expect(actor.system.sp).toEqual({ value: 5, max: mechMaxSP(mech) })
     expect(actor.system.heat).toEqual({ value: 2, max: mechMaxHeat(mech) })
-    expect(String(actor.system.description)).toContain('&quot;Hauler&quot;')
+    // The book pattern it started from is provenance, never written out.
+    expect(String(actor.system.description)).not.toContain('Hauler')
   })
 
   test('each installed copy is its own Item, with its condition and no cargo', () => {

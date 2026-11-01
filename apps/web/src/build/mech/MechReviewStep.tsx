@@ -69,7 +69,6 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
           <Recap>
             <RecapStat label={mechCopy('name')} value={form.name.trim()} required />
             <RecapEntity label={mechCopy('chassis')} entity={chassis} required />
-            <RecapStat label={mechCopy('pattern')} value={form.patternName.trim()} />
             <RecapMinis label={mechCopy('systems')} entities={chosenSystems} />
             <RecapMinis label={mechCopy('modules')} entities={chosenModules} />
           </Recap>

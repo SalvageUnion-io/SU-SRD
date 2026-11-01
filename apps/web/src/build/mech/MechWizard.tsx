@@ -237,9 +237,9 @@ export function MechWizard({
     })
   }
 
-  /** Step 8 writes name + patternName in LOCKSTEP — a mech's name IS its pattern. */
+  /** Step 8 names the mech, and so its pattern; the book pattern it started from stays as provenance. */
   function setMechName(value: string) {
-    updateForm({ name: value, patternName: value })
+    updateForm({ name: value })
   }
 
   // Per-step RuleBrief: the Core Book's own Mech Workshop copy, pp.94–95,
