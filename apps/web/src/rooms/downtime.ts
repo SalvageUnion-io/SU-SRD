@@ -33,6 +33,8 @@ export type Running = {
   startedAt: number
   /** The Game's members done with the step; always empty solo. */
   completedBy: string[]
+  /** Claims a Downtime running at 4.5.33's deploy made under the old flags, before they were ops. */
+  legacyClaims: DowntimeClaim[]
 }
 
 /** Where a Downtime is kept: its running state, null when none runs, and the write that replaces it. */
@@ -47,7 +49,7 @@ export type DowntimePlace = {
  */
 export function beginDowntime(place: DowntimePlace, runId: string, at: number): boolean {
   if (place.running() !== null) return false
-  place.write({ runId, stepIndex: 0, startedAt: at, completedBy: [] })
+  place.write({ runId, stepIndex: 0, startedAt: at, completedBy: [], legacyClaims: [] })
   return true
 }
 
@@ -95,7 +97,7 @@ export function claimInStep(
   if (op.id !== downtimeClaimOpId(running.runId, claim) || op.unitId !== crawler.id) {
     throw new RoomRefusal('That is not this Downtime’s crawler')
   }
-  if (store.op(op.id) !== null) return false
+  if (running.legacyClaims.includes(claim) || store.op(op.id) !== null) return false
   try {
     units.applyTo(crawler, op, author)
   } catch (error) {
@@ -105,9 +107,10 @@ export function claimInStep(
   return true
 }
 
-/** Whether the run `runId` has made `claim`: its crawler op landed. */
-export function claimed(store: GameStore, runId: string, claim: DowntimeClaim): boolean {
-  return store.op(downtimeClaimOpId(runId, claim))?.state === 'applied'
+/** Whether the running Downtime has made `claim`: its crawler op landed (or an old flag says so). */
+export function claimed(store: GameStore, running: Running, claim: DowntimeClaim): boolean {
+  if (running.legacyClaims.includes(claim)) return true
+  return store.op(downtimeClaimOpId(running.runId, claim))?.state === 'applied'
 }
 
 export function requireRunning(place: DowntimePlace): Running {

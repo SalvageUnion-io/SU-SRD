@@ -17,18 +17,25 @@ import type { AccountShelf } from './shelf'
 
 /**
  * A solo Downtime as its seat keeps it; one copied from Convex has no
- * `runId`. `upkeepSpent` and `nanitesSpent` are no longer read: the claims
- * are ops (`claimed`).
+ * `runId`. `upkeepSpent` and `nanitesSpent` are no longer set: the claims are
+ * ops (`claimed`). A run kept from before keeps them until it ends.
  */
 type SoloDowntime = {
   runId?: string
   stepIndex: number
   startedAt: number
+  upkeepSpent?: boolean
+  nanitesSpent?: boolean
 }
 
 /** A solo seat as `seats.solo` answered: its Downtime, with the steps taken, beside it. */
 export type SoloSeatRead = SeatRead & {
-  downtime: (Omit<Running, 'completedBy'> & { upkeepSpent: boolean; doneSteps: number[] }) | null
+  downtime:
+    | (Omit<Running, 'completedBy' | 'legacyClaims'> & {
+        upkeepSpent: boolean
+        doneSteps: number[]
+      })
+    | null
 }
 
 export class AccountSoloPlay extends SeatTable {
@@ -59,7 +66,7 @@ export class AccountSoloPlay extends SeatTable {
                 runId: running.runId,
                 stepIndex: running.stepIndex,
                 startedAt: running.startedAt,
-                upkeepSpent: claimed(this.store, running.runId, 'upkeep'),
+                upkeepSpent: claimed(this.store, running, 'upkeep'),
                 doneSteps: doneSteps(this.store, running.runId, seat.pilotId),
               },
       }
@@ -113,6 +120,10 @@ export class AccountSoloPlay extends SeatTable {
           stepIndex: kept.stepIndex,
           startedAt: kept.startedAt,
           completedBy: [],
+          legacyClaims: [
+            ...(kept.upkeepSpent === true ? (['upkeep'] as const) : []),
+            ...(kept.nanitesSpent === true ? (['nanites'] as const) : []),
+          ],
         }
       },
       write: (next) => {
@@ -123,7 +134,13 @@ export class AccountSoloPlay extends SeatTable {
         const kept: SoloDowntime | null =
           next === null
             ? null
-            : { runId: next.runId, stepIndex: next.stepIndex, startedAt: next.startedAt }
+            : {
+                runId: next.runId,
+                stepIndex: next.stepIndex,
+                startedAt: next.startedAt,
+                ...(next.legacyClaims.includes('upkeep') ? { upkeepSpent: true } : {}),
+                ...(next.legacyClaims.includes('nanites') ? { nanitesSpent: true } : {}),
+              }
         this.store.rows(
           'update seats set downtime_state = ? where pilot_id = ?',
           kept === null ? null : JSON.stringify(kept),

@@ -126,6 +126,18 @@ describe('Downtime', () => {
     expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(true)
   })
 
+  test('a Downtime that paid its Upkeep under the old flag stays paid', () => {
+    const { room } = seated()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.play.beginDowntime(MEDIATOR, AT)
+    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep) ?? 0
+    room.play.setDowntimeStep(MEDIATOR, upkeep)
+    room.store.rows('update downtime_run set upkeep_spent = 1')
+    room.play.markStepDone(PLAYER, true)
+    expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(true)
+    expect(room.play.claim(MEDIATOR, 'upkeep', claimOp(room, 'upkeep'))).toBe(false)
+  })
+
   test('Nanites are processed once, in the Craft step, by the Mediator', () => {
     const { room } = seated()
     room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })

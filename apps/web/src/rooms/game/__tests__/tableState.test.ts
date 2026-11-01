@@ -173,6 +173,18 @@ describe('the ledger', () => {
     expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(false)
     expect(() => room.ledger.collectIncome(MEDIATOR, AT)).toThrow('no deals')
   })
+
+  test('a ledger that collected under the old key (the Downtime’s start) is collected', () => {
+    const { room } = crewed()
+    room.ledger.setFaction(MEDIATOR, faction, AT)
+    room.play.beginDowntime(MEDIATOR, AT)
+    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
+    room.play.setDowntimeStep(MEDIATOR, upkeep ?? 0)
+    const body = JSON.stringify({ ...room.ledger.read(), incomeCollectedFor: AT })
+    room.store.rows('update ledger set body = ? where id = 1', body)
+    expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(true)
+    expect(room.ledger.collectIncome(MEDIATOR, AT)).toBeNull()
+  })
 })
 
 describe('Safety Protocols', () => {

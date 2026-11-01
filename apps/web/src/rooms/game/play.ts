@@ -77,7 +77,7 @@ export class GamePlay extends SeatTable {
     return {
       running: true,
       ...running,
-      upkeepSpent: claimed(this.store, running.runId, 'upkeep'),
+      upkeepSpent: claimed(this.store, running, 'upkeep'),
       completedBy: running.completedBy.map((userId) => ({
         userId,
         displayName: this.store.member(userId)?.displayName ?? 'Crewmate',
@@ -143,6 +143,10 @@ export class GamePlay extends SeatTable {
         stepIndex: Number(row.step_index),
         startedAt: Number(row.started_at),
         completedBy: fromJson<string[]>(row.completed_by),
+        legacyClaims: [
+          ...(row.upkeep_spent === 1 ? (['upkeep'] as const) : []),
+          ...(row.nanites_spent === 1 ? (['nanites'] as const) : []),
+        ],
       }
     },
     write: (next: Running | null): void => {
@@ -150,7 +154,8 @@ export class GamePlay extends SeatTable {
         this.store.rows('delete from downtime_run')
         return
       }
-      // `upkeep_spent` and `nanites_spent` are no longer read: the claims are ops (`claimed`).
+      // `upkeep_spent` and `nanites_spent` are no longer written: the claims are ops
+      // (`claimed`). A run kept from before keeps its flags; a new one starts at 0.
       this.store.rows(
         `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent)
          values (1, ?, ?, ?, ?, 0)
