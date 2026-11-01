@@ -82,6 +82,8 @@ describe('the daily snapshot', () => {
       name: 'Alone',
       mediatedBy: null,
       members: [{ discordId: 'u-1', mediator: true, organizer: true }],
+      // A unit moved into a Game still counts.
+      units: { pilots: 1, mechs: 0, crawlers: 2, npcs: 0 },
     })
     await touchGuild(db, 'guild-old', now - 30 * DAY)
     await touchGuild(db, 'guild-new', now - DAY)
@@ -90,9 +92,9 @@ describe('the daily snapshot', () => {
     const counts = await takeSnapshot(db, now)
     expect(counts).toEqual({
       accounts: 2,
-      pilots: 3,
+      pilots: 4,
       mechs: 2,
-      crawlers: 1,
+      crawlers: 3,
       npcs: 4,
       patterns: 3,
       games: 2,

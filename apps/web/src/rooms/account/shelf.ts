@@ -6,6 +6,7 @@ import { fromJson, GameStore } from '../game/store'
 import type { SubmitResult } from '../game/units'
 import { crawlerHasSlot, GameUnits, parseUnitBody } from '../game/units'
 import type { ApplyOp, OpInput } from '../ops'
+import { unitTotals } from '../publish'
 import { RoomRefusal } from '../refusal'
 import type { RoomSql } from '../sql'
 
@@ -116,15 +117,8 @@ export class AccountShelf {
 
   /** How many of each the player keeps here: their row in the metrics' totals. */
   totals(): Record<'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'patterns', number> {
-    const count = (kind: EntityKind) => this.store.units().filter((u) => u.kind === kind).length
     const patterns = this.store.rows("select count(*) as n from records where tbl = 'patterns'")[0]
-    return {
-      pilots: count('pilot'),
-      mechs: count('mech'),
-      crawlers: count('crawler'),
-      npcs: count('npc'),
-      patterns: Number(patterns?.n ?? 0),
-    }
+    return { ...unitTotals(this.store.units()), patterns: Number(patterns?.n ?? 0) }
   }
 
   /**

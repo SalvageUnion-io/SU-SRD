@@ -10,6 +10,8 @@ The site counts what is used and stores nothing new about who used it.
   members, Discord servers) are tallied once a day, a page at a time, into a
   `metrics_snapshots` row (`takeSnapshot`, `apps/web/src/worker/shared/signals.ts`; Convex's `metrics.ts` before 4.5). Convex has no count, and a
   live count over growing tables would not stay inside a query's limits.
+  Sheets by kind sum every account room's `account_totals` row and every Game
+  room's `games` row, so a unit counts wherever it lives.
 - **Weekly signals** are counters bumped by the write that is the signal:
   `usage_counts` holds one row per key per week (Monday 00:00 UTC). A Downtime
   begun (`downtime:game`, `downtime:solo`) and a bot command answered

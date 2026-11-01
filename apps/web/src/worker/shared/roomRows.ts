@@ -193,11 +193,23 @@ function rosterStatements(db: SharedDb, roster: PublishedRoster, now: number): S
   return [
     db
       .prepare(
-        `insert into games (game_id, name, mediated_by, updated_at) values (?1, ?2, ?3, ?4)
+        `insert into games (game_id, name, mediated_by, updated_at, pilots, mechs, crawlers, npcs)
+         values (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
          on conflict (game_id) do update set
-           name = excluded.name, mediated_by = excluded.mediated_by, updated_at = excluded.updated_at`
+           name = excluded.name, mediated_by = excluded.mediated_by, updated_at = excluded.updated_at,
+           pilots = excluded.pilots, mechs = excluded.mechs, crawlers = excluded.crawlers,
+           npcs = excluded.npcs`
       )
-      .bind(gameId, game.name, game.mediatedBy, now),
+      .bind(
+        gameId,
+        game.name,
+        game.mediatedBy,
+        now,
+        game.units.pilots,
+        game.units.mechs,
+        game.units.crawlers,
+        game.units.npcs
+      ),
     ...clear,
     ...game.members.map((m) => member.bind(gameId, m.discordId, bit(m.mediator), bit(m.organizer))),
     ...(game.invite === null

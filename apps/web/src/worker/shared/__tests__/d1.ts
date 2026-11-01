@@ -89,6 +89,14 @@ export function publishGame(
     Partial<NonNullable<PublishedRoster['game']>>
 ) {
   return publish(db, `game:${gameId}`, {
-    roster: { gameId, game: { members: [], invite: null, ...game } },
+    roster: {
+      gameId,
+      game: {
+        members: [],
+        invite: null,
+        units: { pilots: 0, mechs: 0, crawlers: 0, npcs: 0 },
+        ...game,
+      },
+    },
   })
 }

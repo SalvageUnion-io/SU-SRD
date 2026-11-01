@@ -105,8 +105,10 @@ describe('what a Game room publishes', () => {
     })
   })
 
-  test('its roster: name, Mediator, members and the invite that opens it now', () => {
+  test('its roster: name, Mediator, members, the invite that opens it now and its units', () => {
     const { room, code } = table('g1')
+    put(room.store, 'pilot', 'p1', {})
+    put(room.store, 'crawler', 'c1', {})
     expect(gamePublished(room.store, 'g1').roster).toEqual({
       gameId: 'g1',
       game: {
@@ -118,6 +120,7 @@ describe('what a Game room publishes', () => {
           { discordId: MEDIATOR, mediator: true, organizer: false },
         ],
         invite: code,
+        units: { pilots: 1, mechs: 0, crawlers: 1, npcs: 0 },
       },
     })
     const { code: next } = room.roster.resetInvite(ORGANIZER, AT + 5)
