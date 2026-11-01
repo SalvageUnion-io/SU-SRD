@@ -27,7 +27,7 @@
  */
 
 import type { RefClass } from 'salvageunion-reference'
-import { isBaseAdvancedClass, isCoreClass } from 'salvageunion-reference'
+import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
 import type { AdvancementOption } from 'salvageunion-reference/rules'
 import {
   advancementOptionsFor,
@@ -217,4 +217,18 @@ export function classChangePatch(
     return { classRef: pendingRef, originClassRef: undefined }
   }
   return { classRef: pendingRef, originClassRef: answeredOrigin }
+}
+
+/**
+ * The class whose page draws a tree: the class whose Advanced or Legendary
+ * tree it is, or the advanceable Core class that owns it (never the Salvager,
+ * whose trees span every class). Undefined before the classes load.
+ */
+export function classDrawingTree(tree: string): RefClass | undefined {
+  if (!SalvageUnionReference.isLoaded('classes')) return undefined
+  return SalvageUnionReference.Classes.all().find((c) => {
+    if (c.advancedTree === tree || c.legendaryTree === tree) return true
+    const core: readonly string[] = isCoreClass(c) && c.advanceable ? c.coreTrees : []
+    return core.includes(tree)
+  })
 }

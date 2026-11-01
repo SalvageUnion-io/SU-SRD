@@ -38,7 +38,7 @@ const ReactorOverloadOutcomeSchema = z.preprocess(
 )
 
 // The outcome of `HeatCheckResultSchema` below, the shape of `lastHeatCheck`
-// that `heatCheckPatch` (lib/rules/heatCheck.ts) writes on every heat check.
+// that Play's `reactorPatch` (apps/web lib/rules/actionPatches.ts) writes on every heat check.
 
 /**
  * Recorded result of a Heat Check (and any subsequent Reactor Overload roll).
@@ -236,7 +236,7 @@ export const MechSchema = z
     /** Current energy points (falls back to chassis energyPoints) */
     currentEP: z.number().int().min(0).optional(),
 
-    /** Current heat level (falls back to chassis heatCapacity) */
+    /** Current heat level (absent means 0; see resolveGauge) */
     currentHeat: z.number().int().min(0).optional(),
 
     /**

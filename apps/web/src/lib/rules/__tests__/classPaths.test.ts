@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { must } from '../../components/__tests__/must'
+import { must } from '../../../components/__tests__/must'
 import { resolveClassPlan } from '../classPaths'
 
 const classNamed = (name: string) => must(SalvageUnionReference.Classes.getByName(name))

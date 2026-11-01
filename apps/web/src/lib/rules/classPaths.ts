@@ -11,6 +11,8 @@
  */
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvageunion-reference'
+import { advancementOptionsFor, liveAdvancementDataset } from 'salvageunion-reference/rules'
+import { classDrawingTree } from './classPath'
 
 export type AbilityTreeGroup = { tree: string; abilities: RefAbility[] }
 
@@ -70,15 +72,6 @@ function pathFor(
   }
 }
 
-/** The Core class that owns a tree: one that advances, so never the Salvager. */
-function treeOwner(tree: string): RefClass | undefined {
-  return SalvageUnionReference.Classes.all().find((c) => {
-    if (!isCoreClass(c) || !c.advanceable) return false
-    const trees: readonly string[] = c.coreTrees
-    return trees.includes(tree)
-  })
-}
-
 export function resolveClassPlan(classEntity: RefClass): ClassPlan {
   const requirements = requirementsByTree()
   if (isCoreClass(classEntity)) {
@@ -92,11 +85,14 @@ export function resolveClassPlan(classEntity: RefClass): ClassPlan {
         ? pathFor(requirements, classEntity.advancedTree, classEntity.legendaryTree)
         : null
       if (own) paths.push(own)
-      for (const hybrid of SalvageUnionReference.Classes.all().filter(isBaseAdvancedClass)) {
-        if (!hybrid.advancedTree) continue
+      // The ring (advancement.ts): each Hybrid on this class's edges, and the
+      // class's own tree that opens it.
+      const hybrids = SalvageUnionReference.Classes.all().filter(isBaseAdvancedClass)
+      for (const option of advancementOptionsFor(liveAdvancementDataset(), classEntity.name)) {
+        const hybrid = hybrids.find((c) => c.name === option.name)
+        if (option.kind !== 'hybrid' || !hybrid?.advancedTree) continue
         const path = pathFor(requirements, hybrid.advancedTree, hybrid.legendaryTree)
-        const via = path?.requirement.find((tree) => ownTrees.includes(tree))
-        if (path && via) paths.push({ ...path, hybrid, via })
+        if (path) paths.push({ ...path, hybrid, via: option.gateTree })
       }
     }
     return { kind: 'core', classEntity, coreTrees, paths }
@@ -110,7 +106,7 @@ export function resolveClassPlan(classEntity: RefClass): ClassPlan {
     const branches = path.requirement.map((tree) => ({
       tree,
       group: resolveTree(tree),
-      owner: treeOwner(tree),
+      owner: classDrawingTree(tree),
     }))
     return { kind: 'hybrid', classEntity, path: { ...path, hybrid: classEntity }, branches }
   }
