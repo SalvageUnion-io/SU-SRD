@@ -115,17 +115,15 @@ export {
   mechSalvageAllows,
   mechSalvageResult,
 } from './salvage'
-export { crawlerUpkeepCost, nextTierUpgradeCost, tierUpgradeCost } from './scrap'
+export { crawlerUpkeepCost, nextTierUpgradeCost } from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,
   MechSnapshot,
-  NumericTechLevel,
   OverloadTable,
   PilotSnapshot,
   Roll,
   SoftWarning,
   SoftWarningContext,
-  TechLevel,
 } from './types'
 export { isNumericTechLevel, NUMERIC_TECH_LEVELS, TECH_LEVEL_MAX } from './types'
