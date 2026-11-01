@@ -34,7 +34,6 @@ function seededMech(chassisRef: string, patternName: string, overrides: Partial<
     id: 'mech-partners-1',
     name: 'Custos',
     chassisRef,
-    patternName,
     ...(partners !== undefined ? { partners } : {}),
     ...overrides,
   })

@@ -34,8 +34,12 @@ export const MechSchema = z
     /** Cargo lots carried in the mech. */
     cargoLots: z.array(CargoLotSchema),
 
-    /** Optional: name of the paint/visual pattern applied */
-    patternName: z.string().optional(),
+    /**
+     * The chassis pattern this mech started from, as a slug within `chassisRef`
+     * (`startingPattern.ts`): provenance, never shown and never rewritten by a
+     * rename. The mech's own name is its pattern's name.
+     */
+    startingPatternRef: z.string().optional(),
 
     /** Short freeform quirk note (the poster's "Quirk"). */
     quirk: z.string().optional(),

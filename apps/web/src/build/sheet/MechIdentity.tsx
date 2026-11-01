@@ -6,9 +6,9 @@
  *
  * The PATTERN NAME is the band's title, so Read leaves it out and Edit shows
  * it as the name's edit surface, as the pilot's
- * Name. A mech's name and its pattern name are the same field, so it displays
- * the canonical `mech.name` and saving writes `name` and `patternName` in
- * lockstep.
+ * Name. A mech's name is its pattern's name, so it displays and saves
+ * `mech.name`; `patternName` is the book pattern it started from, provenance
+ * a rename never touches.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -35,15 +35,10 @@ type MechIdentityPanelProps = {
 }
 
 export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps) {
-  /**
-   * Persist the pattern name (required — never write empty). Name and pattern
-   * name are the same field per the redesign, so both stored fields are kept
-   * in lockstep: `name` stays the canonical identity every other surface
-   * (Play, rails, back links) reads.
-   */
+  /** Persist the mech's (and so its pattern's) name; never write empty. */
   function savePatternName(next: string) {
     const trimmed = next.trim()
-    if (trimmed) patch?.({ name: trimmed, patternName: trimmed })
+    if (trimmed) patch?.({ name: trimmed })
   }
 
   return (

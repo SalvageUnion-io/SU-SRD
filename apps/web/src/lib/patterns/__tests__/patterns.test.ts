@@ -63,7 +63,6 @@ describe('building a mech from a pattern', () => {
     const input = mechFromPattern(towRig)
     expect(input).toMatchObject({
       name: 'Tow Rig',
-      patternName: 'Tow Rig',
       chassisRef: 'scrapper',
       systems: ['rigging-arm', 'transport-hold'],
       modules: ['comms-module'],

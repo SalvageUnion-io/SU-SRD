@@ -13,6 +13,7 @@
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
+import { startingPatternRef } from 'game-domain/startingPattern'
 import type { RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
@@ -23,9 +24,9 @@ export type MechWizardFormState = {
   /** Chassis SLUG ref (matching Mech.chassisRef); '' while unchosen. */
   chassisName: string
   /**
-   * Loadout pattern name (maps to Mech.patternName): the chosen chassis
-   * pattern's name, or the user-supplied name for a custom build. '' while
-   * unchosen.
+   * The chassis pattern the loadout started from (stored as its slug,
+   * Mech.startingPatternRef, provenance never shown): the chosen pattern's
+   * name; '' for a custom build or while unchosen.
    */
   patternName: string
   /** Installed system slug refs. */
@@ -79,7 +80,7 @@ type MechWizardPatch = Pick<
   Mech,
   | 'name'
   | 'chassisRef'
-  | 'patternName'
+  | 'startingPatternRef'
   | 'systems'
   | 'modules'
   | 'cargoLots'
@@ -91,7 +92,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
   return {
     name: form.name.trim(),
     chassisRef: form.chassisName,
-    patternName: form.patternName.trim() || undefined,
+    startingPatternRef: startingPatternRef(form.chassisName, form.patternName),
     systems: form.systems,
     modules: form.modules,
     cargoLots: form.cargoLots,

@@ -79,7 +79,7 @@ function pilot(
 
 /** Build a mech record with the shared, always-present defaults. */
 function mech(
-  fields: Pick<Mech, 'id' | 'name' | 'chassisRef' | 'patternName' | 'systems' | 'modules'>
+  fields: Pick<Mech, 'id' | 'name' | 'chassisRef' | 'startingPatternRef' | 'systems' | 'modules'>
 ): Mech {
   return {
     schemaVersion: 1,
@@ -108,7 +108,7 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-scrapper',
       name: 'Scrapper',
       chassisRef: 'scrapper',
-      patternName: 'Swiss Cheese Pattern',
+      startingPatternRef: 'swiss-cheese',
       systems: [
         'cargo-pod',
         'chainsaw-arm',
@@ -135,7 +135,7 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-spectrum',
       name: 'Spectrum',
       chassisRef: 'spectrum',
-      patternName: 'Pyrotechnic Pattern',
+      startingPatternRef: 'pyrotechnic',
       systems: ['escape-hatch', 'locomotion-system', 'loudspeakers', 'fm-3-flamethrower'],
       modules: ['comms-module', 'firewall', 'a-little-bit-rude', 'eggs-mayhem'],
     }),
@@ -155,7 +155,7 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-mule',
       name: 'Mule',
       chassisRef: 'mule',
-      patternName: 'Survivor Pattern',
+      startingPatternRef: 'survivor',
       // Seven Systems, per Judge's Reclamation-of-the-Wastes pre-gen sheet. The
       // Starter Set Parts Catalogue's Survivor Pattern (p.13) prints an eighth,
       // High Pressure Hose, which the pre-gen sheet omits. The sheets are the
@@ -192,7 +192,6 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-bobcat',
       name: 'Mr Dig',
       chassisRef: 'bobcat',
-      patternName: 'Mr Dig Pattern',
       systems: [
         'escape-hatch',
         'riveting-gun',
@@ -223,7 +222,7 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-mazona',
       name: 'Mazona',
       chassisRef: 'mazona',
-      patternName: 'Pop Pattern',
+      startingPatternRef: 'pop',
       systems: ['escape-hatch', 'floodlights', 'mini-mortar'],
       modules: ['comms-module', 'survey-scanner', 'zoom-optics'],
     }),
@@ -243,7 +242,7 @@ const CREW: readonly CrewMember[] = [
       id: 'starter-mech-thresher',
       name: 'Thresher',
       chassisRef: 'thresher',
-      patternName: 'Slugger Pattern',
+      startingPatternRef: 'slugger',
       systems: ['chainsaw-arm', 'escape-hatch', 'locomotion-system', 'red-laser'],
       modules: ['comms-module', 'self-destruct'],
     }),

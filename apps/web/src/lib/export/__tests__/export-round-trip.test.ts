@@ -119,7 +119,7 @@ const richMechInput = {
       code: 'SCR-T2',
     },
   ],
-  patternName: 'Scout Rig',
+  startingPatternRef: 'scout-rig',
   appearance: 'Rust-streaked hull.',
   conditions: ['vulnerable'],
   maxSpOverride: 12,

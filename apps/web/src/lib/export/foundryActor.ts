@@ -471,14 +471,12 @@ export function mechToFoundry(mech: Mech, pilotAbilities: string[] | undefined):
     const item = installedItem(slug, 'module', mech)
     if (item) items.push(item)
   }
-  const pattern = mech.patternName
-    ? `<p><strong>Pattern:</strong> ${escapeHtml(`"${mech.patternName}"`)}</p>`
-    : ''
+  // The mech's name is its pattern's; the book pattern it started from is provenance, not shown.
   const description = mech.description ? `<p>${escapeHtml(mech.description)}</p>` : ''
   return {
     ...actorShell('mech', mech.name, mech.id),
     system: {
-      description: [pattern, description].join('\n').trim(),
+      description,
       quirk: mech.quirk ?? '',
       appearance: mech.appearance ?? '',
       sp: { value: resolvePool(mech.currentSP, maxSP), max: maxSP },
