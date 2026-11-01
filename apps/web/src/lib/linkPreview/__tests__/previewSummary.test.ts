@@ -140,7 +140,8 @@ describe('previewStats', () => {
   test("a pilot's TP is their training points, and their crawler's Tech Level raises max HP", () => {
     const trained = { ...PILOT, body: { ...(PILOT.body as object), trainingPoints: 4 } }
     expect(previewStats(trained)[2]).toEqual({ label: 'TP', value: '4' })
-    const max = (answer: PreviewAnswer) => Number(previewStats(answer)[0]?.value.split('/')[1])
+    const max = (answer: PreviewAnswer) =>
+      Number(String(previewStats(answer)[0]?.value).split('/')[1])
     expect(max({ ...PILOT, crawlerTechLevel: 'tech-3' }) - max(PILOT)).toBe(4)
   })
 

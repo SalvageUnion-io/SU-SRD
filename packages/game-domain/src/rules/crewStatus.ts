@@ -1,5 +1,6 @@
 import {
   isPilotDead,
+  mechHasCondition,
   mechMaxEPParts,
   mechMaxHeatParts,
   mechMaxSPParts,
@@ -122,8 +123,8 @@ function destroyedItems(
 
 export function mechStatus(mech: Mech, maxHeat: number): MechStatus {
   return {
-    destroyed: mech.destroyed === true,
-    shutdown: mech.shutdown === true,
+    destroyed: mechHasCondition(mech, 'Destroyed'),
+    shutdown: mechHasCondition(mech, 'Shutdown'),
     overheating: maxHeat > 0 && resolveGauge(mech.currentHeat) >= maxHeat,
     destroyedSystems: destroyedItems(mech.systemConditions, resolveSystemRef),
     destroyedModules: destroyedItems(mech.moduleConditions, resolveModuleRef),

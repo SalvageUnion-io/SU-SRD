@@ -14,6 +14,7 @@ import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import { CONDITION_LABELS } from 'salvageunion-reference'
 import {
+  mechHasCondition,
   mechMaxCargo,
   mechMaxEP,
   mechMaxHeat,
@@ -104,7 +105,7 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       out={
-        mech.destroyed
+        mechHasCondition(mech, 'Destroyed')
           ? {
               stamp: CONDITION_LABELS.destroyed,
               note: buildSheetCopy('thisMechIsDestroyedIts'),

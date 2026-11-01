@@ -34,6 +34,7 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
+  mechHasCondition,
   parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
@@ -317,7 +318,7 @@ export function downtimeMechPatch(
   steps: DowntimeSteps,
   mechBay?: Pick<MechBayStatus, 'operational'>
 ): Partial<Mech> {
-  if (mech.destroyed) return {}
+  if (mechHasCondition(mech, 'Destroyed')) return {}
   const patch: Partial<Mech> = {}
   const bayOperational = mechBay?.operational ?? true
 

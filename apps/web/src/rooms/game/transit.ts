@@ -1,6 +1,7 @@
 import type { HomeAddress, LeaseOutcome, ParcelSeat, UnitParcel } from '../handoff'
 import { Leases, MOVED_OFF } from '../leases'
 import { RoomRefusal } from '../refusal'
+import { isDestroyedMech } from '../seats'
 import type { GamePlay } from './play'
 import type { GameStore, UnitRow } from './store'
 import { fromJson } from './store'
@@ -149,7 +150,7 @@ export class GameTransit {
       const ok =
         mech?.kind === 'mech' &&
         mech.ownerId === pilot?.ownerId &&
-        mech.body.destroyed !== true &&
+        !isDestroyedMech(mech.body) &&
         !aboard
       if (!ok) mount = { kind: 'foot' }
     }

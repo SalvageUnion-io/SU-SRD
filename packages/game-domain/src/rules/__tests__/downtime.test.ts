@@ -286,6 +286,11 @@ describe('downtimeMechPatch', () => {
     expect(downtimeMechPatch(mech, ['beefcake'], 3, allDowntimeSteps()).currentSP).toBe(16)
   })
 
+  it('skips a mech whose conditions say Destroyed, as it skips the flag', () => {
+    const mech = makeMech({ currentSP: 2, conditions: ['destroyed'] })
+    expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})
+  })
+
   it('produces an empty patch when everything is already at rest', () => {
     const mech = makeMech()
     expect(downtimeMechPatch(mech, undefined, 3, allDowntimeSteps())).toEqual({})

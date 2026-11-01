@@ -24,6 +24,7 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
+import { mechHasCondition } from 'salvageunion-reference/rules'
 import type { HeaderMenuItem } from '../components/index'
 
 /** A pilot or mech row as `entities.listForGame` returns it. */
@@ -173,7 +174,7 @@ export function boardMenu(args: {
     serverId: null,
     name: mech.name,
     ...stateOf({
-      destroyed: mech.destroyed === true,
+      destroyed: mechHasCondition(mech, 'Destroyed'),
       aboard: aboard.get(mech.id) ?? null,
       owner: 'yours',
     }),
