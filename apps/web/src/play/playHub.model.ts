@@ -104,7 +104,7 @@ export function gameDoors(
 
 type ListedRow = { _id: string; appId: string | null; body: unknown }
 
-/** What a Game's card reads: its crawlers (`entities.listForGame`) and its crew (`crew.vitals`). */
+/** What a Game's card reads: its crawlers (`useGameListing`) and its crew (`crew.vitals`). */
 export type CrewSources = {
   crawlers: readonly ListedRow[]
   primaryCrawlerId: string | null

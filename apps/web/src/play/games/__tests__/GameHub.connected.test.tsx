@@ -130,7 +130,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
       { userId: 'u1', displayName: 'Ash', mediator: false, organizer: false, joinedAt: 1 },
       { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
     ],
-    'entities.listForGame': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
+    'games.listing': { pilots: [], mechs: [], crawlers: [], softLinks: [] },
     'crew.vitals': undefined,
     'ops.pending': [],
     'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
@@ -301,7 +301,7 @@ describe('the seats, on the Pilots rows', () => {
         { userId: 'u1', displayName: 'Ash', mediator: true, organizer: true, joinedAt: 1 },
         { userId: 'u2', displayName: 'Beefcake', mediator: false, organizer: false, joinedAt: 2 },
       ],
-      'entities.listForGame': {
+      'games.listing': {
         pilots: [
           { _id: 'p1', appId: 'a-p1', ownerId: 'u2', body: { id: 'a-p1', callsign: 'Pickle' } },
           { _id: 'p2', appId: 'a-p2', ownerId: null, body: { id: 'a-p2', callsign: 'Hotdog' } },
@@ -509,7 +509,7 @@ describe('Play from the Game page', () => {
   })
 
   test('a Game with no Mediator plays too', async () => {
-    await renderHub({ 'entities.listForGame': listing(PILOTS) })
+    await renderHub({ 'games.listing': listing(PILOTS) })
     const dialog = await openPicker()
     expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
     await act(async () => {
@@ -528,7 +528,7 @@ describe('Play from the Game page', () => {
   })
 
   test('asks only for the pilot, yours first, with your first one chosen; Play opens it', async () => {
-    await renderHub({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) })
+    await renderHub({ 'games.members': MEDIATED, 'games.listing': listing(PILOTS) })
     const dialog = await openPicker()
 
     // The pilot is the only choice on offer, and a crewmate's is not one.
@@ -546,7 +546,7 @@ describe('Play from the Game page', () => {
   })
 
   test('opened before the pilots answer, it says so, then chooses yours when they arrive', async () => {
-    answer(answers({ 'games.members': MEDIATED, 'entities.listForGame': undefined }))
+    answer(answers({ 'games.members': MEDIATED, 'games.listing': undefined }))
     let view: ReturnType<typeof render> | undefined
     await act(async () => {
       view = render(<GameHub gameId="g1" />)
@@ -555,7 +555,7 @@ describe('Play from the Game page', () => {
     expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
     expect(within(dialog).queryByText(/saved in this browser/)).toBeNull()
 
-    answer(answers({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) }))
+    answer(answers({ 'games.members': MEDIATED, 'games.listing': listing(PILOTS) }))
     await act(async () => {
       view?.rerender(<GameHub gameId="g1" />)
     })
@@ -566,7 +566,7 @@ describe('Play from the Game page', () => {
   test('a viewer who owns no pilot gets no pre-selection, and picks one', async () => {
     await renderHub({
       'games.members': MEDIATED,
-      'entities.listForGame': listing([THEIRS, PREGEN]),
+      'games.listing': listing([THEIRS, PREGEN]),
     })
     const dialog = await openPicker()
 
@@ -590,7 +590,7 @@ describe('Play from the Game page', () => {
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
     await renderHub({
       'games.members': MEDIATED,
-      'entities.listForGame': listing([THEIRS]),
+      'games.listing': listing([THEIRS]),
     })
     const dialog = await openPicker()
 
@@ -604,7 +604,7 @@ describe('Play from the Game page', () => {
   test('every pilot it offers opens Play at the gate, not "Pilot not found"', async () => {
     await renderHub({
       'games.members': MEDIATED,
-      'entities.listForGame': listing([...PILOTS, PREGEN]),
+      'games.listing': listing([...PILOTS, PREGEN]),
     })
     let dialog = await openPicker()
     const count = within(dialog).getAllByRole('radio').length
@@ -632,7 +632,7 @@ describe('Play from the Game page', () => {
   })
 
   test('the dialog takes focus, and Escape closes it without launching', async () => {
-    await renderHub({ 'games.members': MEDIATED, 'entities.listForGame': listing(PILOTS) })
+    await renderHub({ 'games.members': MEDIATED, 'games.listing': listing(PILOTS) })
     const dialog = await openPicker()
 
     await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))

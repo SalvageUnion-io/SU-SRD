@@ -4,7 +4,7 @@
  * column so all three read the same table.
  *
  * It reads the table live — the seats (`crew.vitals`, `seats.forGame`, in
- * `games.members` join order), the primary crawler (`entities.listForGame`;
+ * `games.members` join order), the primary crawler (`useGameListing`;
  * the Mediator's store holds it, so its box is live), the Game's Downtime
  * (`usePlayDowntime`, as the Mediator), the tray (`mediator.npcs`, through
  * `useTableRead`, so the Game room serves it once it feeds the replica), the saved
@@ -47,8 +47,8 @@ import { parseFrozenEntity } from '../../lib/schemas/frozenEntity'
 import { sharedPaths } from '../../lib/sharing/paths'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { useEncounters, usePatterns } from '../../replica/collections'
+import { useGameListing } from '../../replica/gameListing'
 import { PLAY_TXN } from '../../replica/provenance'
-import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { useTableAct, useTableRead } from '../../replica/useTable'
@@ -195,7 +195,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const members = useTableRead('games.members', { gameId })
   const crew = useTableRead('crew.vitals', { gameId })
   const seats = useTableRead('seats.forGame', { gameId })
-  const listing = useGamesQuery('entities.listForGame', { gameId: id })
+  const listing = useGameListing(id)
   const npcs = useTableRead('mediator.npcs', { gameId })
   const running = useTableRead('mediator.running', { gameId })
   const encounters = useEncounters((s) => s.encounters)

@@ -1,16 +1,16 @@
 /**
  * A Game's seats, which its page's Pilots rows carry
- * (docs/architecture/play.md §16), from `entities.listForGame`
+ * (docs/architecture/play.md §16), from `useGameListing`
  * and `games.members`. Pure, so the order and the open seats are testable.
  */
 
 import { sheetPath } from 'game-domain/entityKinds'
 import { resolvePool } from 'salvageunion-reference/rules'
-import type { GameCallResult } from '../../replica/roomCalls'
+import type { GameListing } from '../../replica/gameListing'
 import type { ReadAnswer } from '../../replica/useTable'
 import type { CrewVitals } from '../../rooms/vitals'
 
-type Listing = NonNullable<GameCallResult<'entities.listForGame'>>
+type Listing = GameListing
 type Members = ReadAnswer<'games.members'>
 /** `crew.vitals`: the server's derived maxima, which the seats' HP reads. */
 type Vitals = CrewVitals | null

@@ -27,7 +27,7 @@ import { ownerChipFor } from '../ownership/ownerChip'
 
 export type RosterKind = SheetKind
 
-/** A pilot or mech as `entities.listForGame` returns it. */
+/** A pilot or mech as `useGameListing` returns it. */
 export type ServerOwnable = {
   _id: string
   appId: string | null
@@ -35,7 +35,7 @@ export type ServerOwnable = {
   body: unknown
 }
 
-/** A crawler as `entities.listForGame` returns it — communal, so no owner. */
+/** A crawler as `useGameListing` returns it — communal, so no owner. */
 export type ServerCrawler = {
   _id: string
   appId: string | null
@@ -356,7 +356,7 @@ export function crawlerRows(args: {
   rows: readonly ServerCrawler[]
   tableRunner: boolean
   localIds: ReadonlySet<string>
-  /** `listForGame().primaryCrawlerId` — the Game's primary, or null. */
+  /** The listing's `primaryCrawlerId` — the Game's primary, or null. */
   primaryCrawlerId?: string | null
 }): RosterRow[] {
   return args.rows.map((row) => {

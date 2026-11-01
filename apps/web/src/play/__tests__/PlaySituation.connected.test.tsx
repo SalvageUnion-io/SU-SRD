@@ -95,7 +95,7 @@ function answer(name: string): unknown {
       return null
     case 'account.me':
       return { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }
-    case 'entities.listForGame':
+    case 'games.listing':
       return {
         pilots: [{ _id: 'r-rook', appId: 'pg-rook', ownerId: 'u-me', body: { name: 'Rook' } }],
         mechs: [

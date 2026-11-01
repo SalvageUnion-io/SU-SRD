@@ -28,7 +28,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import type { HeaderMenuItem } from '../components/index'
 
-/** A pilot or mech row as `entities.listForGame` returns it. */
+/** A pilot or mech row as `useGameListing` returns it. */
 export type CrewRow = {
   _id: string
   appId: string | null
@@ -36,7 +36,7 @@ export type CrewRow = {
   body: unknown
 }
 
-/** A soft link as `entities.listForGame` returns it. */
+/** A soft link as `useGameListing` returns it. */
 export type CrewLink = {
   type: string
   from: { type: string; id: string }
@@ -45,7 +45,7 @@ export type CrewLink = {
 
 /** What the menu reads from the Game, all of it from its room. */
 export type BoardSources = {
-  /** `entities.listForGame`, or null before it arrives. */
+  /** `useGameListing`, or null before it arrives. */
   listing: {
     pilots: readonly CrewRow[]
     mechs: readonly CrewRow[]

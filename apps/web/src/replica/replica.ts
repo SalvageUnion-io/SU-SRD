@@ -53,6 +53,8 @@ type Held = {
   version: number | undefined
   /** The unit's `headSeq` (ADR-063), when the server sent one. */
   headSeq: number | undefined
+  /** A served unit's owner or assignee (Discord id), kept beside its body, never in it. */
+  owner?: string | null
   scopes: ReadonlySet<Scope>
 }
 
@@ -62,6 +64,7 @@ export type Served<T extends Table = Table> = {
   row: unknown
   version: number
   headSeq?: number
+  owner?: string | null
 }
 
 /** A table's key in the view: its collection name, `pilots`, `softLinks`, … */
@@ -184,7 +187,7 @@ export function serve(scope: Scope, tables: readonly Table[], served: readonly S
       if (current !== undefined) put(s.table, id, { ...current, scopes })
       continue
     }
-    put(s.table, id, { row, version: s.version, headSeq: s.headSeq, scopes })
+    put(s.table, id, { row, version: s.version, headSeq: s.headSeq, owner: s.owner, scopes })
   }
   for (const table of tables) {
     const ids = seen.get(table) as Set<string>
@@ -233,6 +236,7 @@ export function hold<T extends Table>(
     row: row as { id: string },
     version: version?.version,
     headSeq: version?.headSeq ?? current?.headSeq,
+    owner: current?.owner,
     scopes,
   })
   commit()
@@ -250,6 +254,7 @@ export function holdAll(
       row: p.row,
       version: p.version,
       headSeq: p.headSeq ?? current?.headSeq,
+      owner: current?.owner,
       scopes,
     })
   }
@@ -272,6 +277,7 @@ export function restore(
     row: { id: string }
     version: number | undefined
     headSeq: number | undefined
+    owner?: string | null
     scopes: readonly Scope[]
   }>
 ): void {
@@ -285,6 +291,7 @@ export function restore(
       row: r.row,
       version: r.version,
       headSeq: r.headSeq,
+      owner: r.owner,
       scopes: new Set(scopes),
     })
     any = true
@@ -323,6 +330,16 @@ export function dropAll(rows: ReadonlyArray<{ table: Table; id: string }>): void
 /** The held row, or null. */
 export function row<T extends Table>(table: T, id: string): RowOf<T> | null {
   return (tableOf(table).get(id)?.row as RowOf<T> | undefined) ?? null
+}
+
+/** A scope's rows of `table`, in the order they were served, each with its owner as served. */
+export function rowsOf<T extends Table>(
+  scope: Scope,
+  table: T
+): { row: RowOf<T>; owner: string | null }[] {
+  return [...tableOf(table).values()]
+    .filter((h) => h.scopes.has(scope))
+    .map((h) => ({ row: h.row as RowOf<T>, owner: h.owner ?? null }))
 }
 
 /** The unit's `headSeq` as last served, for an op's `baseSeq` (ADR-063). */

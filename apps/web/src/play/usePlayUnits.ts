@@ -4,11 +4,9 @@
  * the first of their own), the pilot's crawler, the rest of their mechs for
  * the hangar, and which of these are live (`unitLiveness`).
  *
- * The store holds what this browser may write. In a Game the crawler is the
- * Mediator's, and a mech may be a crewmate's, so neither need be in the
- * store: the Game's listing (`entities.listForGame`, the subscription the
- * Board menu already holds) shows them, read-only. A unit only the listing
- * carries is never live.
+ * In a Game the crawler is the Mediator's, and a mech may be a crewmate's:
+ * the Game's listing (`useGameListing`, the replica's Game rows the Board
+ * menu reads too) shows them, read-only.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -16,7 +14,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { readReference } from '../lib/readReference'
 import { parseFrozenEntity } from '../lib/schemas/frozenEntity'
-import { useGamesQuery } from '../replica/roomCalls'
+import { useGameListing } from '../replica/gameListing'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
@@ -76,10 +74,7 @@ export function usePlayUnits(play: Play): PlayUnits {
   const store = useUnits()
   const { status } = useSync()
   const signedIn = isSignedIn(status)
-  const listing = useGamesQuery(
-    'entities.listForGame',
-    signedIn && target.gameId !== null ? { gameId: target.gameId } : 'skip'
-  )
+  const listing = useGameListing(signedIn ? target.gameId : null)
   const links: readonly ListedLink[] = [...store.softLinks, ...(listing?.softLinks ?? [])]
   const linked = (type: string, match: (l: ListedLink) => boolean) =>
     links.find((l) => l.type === type && match(l)) ?? null

@@ -124,7 +124,7 @@ type SheetProps = {
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `listForGame` (`readOnlySheetStore.model.ts`). Assigned units the store does not
+   * `useGameListing` (`readOnlySheetStore.model.ts`). Assigned units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
    * what only this holds (`holds` in `sheetViewProps.model.ts`).

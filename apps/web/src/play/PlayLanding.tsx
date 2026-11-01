@@ -13,7 +13,7 @@
  *    (`/play/games/$gameId`). Its chips are your role, how many are here now
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
- *    body the crew as header-only Minis (`entities.listForGame`, `gameCrew`);
+ *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
  *    its doors, last in the chip group: where you mediate it, Start group
  *    session (`useGameSession`) until one is live, then Mediate; then Play
  *    <pilot> (Join as <pilot> while a session is live) for each pilot of
@@ -67,6 +67,7 @@ import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
+import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
 import { useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
@@ -348,7 +349,7 @@ function PlayGameItem({
 }) {
   const gameId = game._id
   const downtime = useTableRead('downtime.state', { gameId }) ?? undefined
-  const listing = useGamesQuery('entities.listForGame', { gameId })
+  const listing = useGameListing(gameId)
   const vitals = useTableRead('crew.vitals', { gameId })
   const presence = useGamePresence(gameId, 'watch')
   const here = hereCount(vitals?.pilots, presence)

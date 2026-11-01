@@ -143,20 +143,17 @@ describe('the Games calls', () => {
   })
 
   test('a Game from the Starter Set lists its crew unassigned, aboard its crawler', async () => {
-    const { call } = world()
-    const templates = (await call('templates.list', {}, null)) as { id: string }[]
-    const gameId = (await call('templates.createGame', { templateId: templates[0]?.id })) as string
-    const listed = (await call('entities.listForGame', { gameId })) as {
-      pilots: { ownerId: string | null }[]
-      crawlers: { _id: string }[]
-      softLinks: { type: string }[]
-      primaryCrawlerId: string
-    }
+    const w = world()
+    const templates = (await w.call('templates.list', {}, null)) as { id: string }[]
+    const gameId = (await w.call('templates.createGame', {
+      templateId: templates[0]?.id,
+    })) as string
+    const listed = await listing(w, gameId)
     expect(listed.pilots).toHaveLength(6)
     expect(listed.pilots.every((p) => p.ownerId === null)).toBe(true)
     expect(listed.primaryCrawlerId).toBe(listed.crawlers[0]?._id as string)
     expect(listed.softLinks.filter((l) => l.type === 'pilot-to-crawler')).toHaveLength(6)
-    expect(await call('entities.listForGame', { gameId }, PLAYER)).toMatchObject({ pilots: [] })
+    expect(await listing(w, gameId, PLAYER.discordId)).toMatchObject({ pilots: [] })
   })
 
   test('signed out, only the preview and the templates answer; an unknown call is none', async () => {
@@ -185,17 +182,32 @@ describe('the Games calls', () => {
   })
 })
 
-type Listed = {
-  pilots: { _id: string; ownerId: string | null; body: Record<string, unknown> }[]
-  crawlers: { _id: string }[]
+/** What the Game's room shows `actor` of its units, links and primary crawler, as its snapshot carries them. */
+async function listing(w: ReturnType<typeof world>, gameId: string, actor = 'd-org') {
+  const room = w.game(gameId)
+  const [units, links, read] = await Promise.all(
+    (['units', 'links', 'read'] as const).map((name) => room.act(actor, name, undefined as never))
+  )
+  const value = <T>(answer: unknown) => (answer as { ok: boolean; value: T }).value
+  const listed =
+    value<{ id: string; kind: string; ownerId: string | null; body: Record<string, unknown> }[]>(
+      units
+    ) ?? []
+  return {
+    pilots: listed
+      .filter((u) => u.kind === 'pilot')
+      .map((u) => ({ _id: u.id, ownerId: u.ownerId, body: u.body })),
+    crawlers: listed.filter((u) => u.kind === 'crawler').map((u) => ({ _id: u.id })),
+    softLinks: value<{ type: string }[]>(links) ?? [],
+    primaryCrawlerId: value<{ primaryCrawlerId: string | null } | null>(read)?.primaryCrawlerId,
+  }
 }
 
 /** A Starter Set Game the Organiser runs, with the player joined. */
 async function starterGame(w: ReturnType<typeof world>) {
   const gameId = (await w.call('templates.createGame', { templateId: 'starter-set' })) as string
   await w.call('invites.redeem', { code: await w.call('invites.link', { gameId }) }, PLAYER)
-  const listed = (await w.call('entities.listForGame', { gameId })) as Listed
-  return { gameId, listed }
+  return { gameId, listed: await listing(w, gameId) }
 }
 
 describe('who holds what in a Game', () => {
@@ -205,9 +217,7 @@ describe('who holds what in a Game', () => {
     const [pilot, other] = listed.pilots
     const crawler = listed.crawlers[0]?._id as string
     const ownerOf = async (id: string | undefined) =>
-      ((await w.call('entities.listForGame', { gameId })) as Listed).pilots.find(
-        (p) => p._id === id
-      )?.ownerId
+      (await listing(w, gameId)).pilots.find((p) => p._id === id)?.ownerId
     await w.call('ownership.assign', { gameId, entityId: pilot?._id })
     expect(await ownerOf(pilot?._id)).toBe('d-org')
     await w.call('ownership.unassign', { gameId, entityId: pilot?._id })
@@ -219,7 +229,7 @@ describe('who holds what in a Game', () => {
     expect(await ownerOf(pilot?._id)).toBeUndefined()
     expect(await w.call('games.setPrimaryCrawler', { gameId, crawlerId: crawler })).toBeNull()
     expect(await w.call('entities.removeCrawler', { gameId, crawlerId: crawler })).toBeNull()
-    expect(await w.call('entities.listForGame', { gameId })).toMatchObject({ crawlers: [] })
+    expect(await listing(w, gameId)).toMatchObject({ crawlers: [] })
     expect(await w.call('invites.reset', { gameId })).toEqual(expect.any(String))
     expect(await gameCall('games.destroy', { gameId }, PLAYER, w.deps)).toEqual({
       ok: false,

@@ -102,6 +102,7 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *  - `boundaries`: one record per boundary, `{ kind, text, mine, mayRemove }`.
  *  - `safety`: `{ stop: { shownAt, mine, mayLift } | null, mayManage, postToChannel }`.
  *  - `session`: `{ live, startedAt }`, the group session (`session.state`).
+ *  - `game`: `{ primaryCrawlerId }`, the crawler the crew rides, or null.
  *  - `opposition`: one record per tray NPC, its body; the Mediator's only.
  *  - `mediator`: one record, `{ running }`, the encounter being run or null;
  *    served to the Mediator only, so a reader without it does not mediate.
@@ -131,6 +132,7 @@ export const RECORD_TABLES = [
   'boundaries',
   'safety',
   'session',
+  'game',
   'members',
   'seats',
   'downtime',

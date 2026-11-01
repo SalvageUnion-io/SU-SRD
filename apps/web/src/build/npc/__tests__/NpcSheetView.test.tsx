@@ -144,7 +144,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'games.listMine': [],
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities.listForGame': gameListing(),
+      'games.listing': gameListing(),
     })
     serve('g1', { members: [{ userId: 'u-sam', displayName: 'Sam' }] })
     await renderView('n-theirs')
@@ -164,7 +164,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'games.listMine': [],
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities.listForGame': gameListing(),
+      'games.listing': gameListing(),
     })
     serve('g1', { members: [] })
     await renderView('n-theirs')
@@ -175,7 +175,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
     setQueryAnswers({
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities.listForGame': gameListing({ name: 42 }),
+      'games.listing': gameListing({ name: 42 }),
     })
     serve('g1', { members: [] })
     await renderView('n-theirs')
@@ -186,7 +186,7 @@ describe('a crewmate’s, in a Game you belong to', () => {
     setQueryAnswers({
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
-      'entities.listForGame': undefined,
+      'games.listing': undefined,
     })
     await renderView('n-theirs')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()

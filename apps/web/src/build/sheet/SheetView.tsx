@@ -12,7 +12,7 @@
  *  - **Readable but not yours** — a crewmate's pilot or mech, an unassigned
  *    pre-gen, and for a player the Game's crawler, which is the Mediator's
  *    (ADR-038 §5) — the same `<Sheet>`, read-only, from a store built out of
- *    `entities.listForGame` (`readOnlySheetStore.model.ts`). Every body and link in
+ *    `useGameListing` (`readOnlySheetStore.model.ts`). Every body and link in
  *    the Game is in it, so the sheet shows their mech and crawler, and the query
  *    is reactive, so it stays current as they play. Nothing is adopted into the
  *    entity store: a crewmate's sheet there would be an editor whose every save

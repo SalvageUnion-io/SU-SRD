@@ -30,7 +30,7 @@ const ANSWERS = {
   // No area named to Area Salvage.
   'salvageAreas.here': null,
   'games.members': [],
-  'entities.listForGame': null,
+  'games.listing': null,
   'account.me': null,
   // The channel button, the Crew, Tables and Feed panes: no
   // channel bound, no crew read yet, nothing on the Game's log.

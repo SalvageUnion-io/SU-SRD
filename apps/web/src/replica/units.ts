@@ -1,6 +1,7 @@
 /**
- * units — the account's pilots, mechs, crawlers, NPCs and their links, as the
- * replica holds them, and every write to them.
+ * units — the pilots, mechs, crawlers, NPCs and links the replica holds (the
+ * account's, and every unit of the caller's Games, crewmates' included, kept on
+ * the device for offline play), and every write to them.
  *
  * Reads are the replica's (`replica.ts`): `useUnits(select)` in a component,
  * `units.get` / `units.list` anywhere else. `hydrate(type)` resolves once the

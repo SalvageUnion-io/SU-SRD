@@ -12,7 +12,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *
  * Queries are answered by name (`serverMock.ts`): `games.listMine` and
  * `channelBindings.mine`, then `downtime.state`,
- * `entities.listForGame` and `crew.vitals` once per Game. Without a router,
+ * `games.listing` and `crew.vitals` once per Game. Without a router,
  * so links are anchors.
  */
 
@@ -64,7 +64,7 @@ const IN_DOWNTIME = { running: true, stepIndex: 2, completedBy: [], upkeepSpent:
 /** No channel bound anywhere, and no crew: what most tests need answered. */
 const QUIET = {
   'channelBindings.mine': { personal: null, games: [] },
-  'entities.listForGame': {
+  'games.listing': {
     pilots: [],
     mechs: [],
     crawlers: [],
@@ -303,7 +303,7 @@ describe('the Play landing', () => {
       'games.listMine': [TENACITY],
       'downtime.state': IN_DOWNTIME,
       ...QUIET,
-      'entities.listForGame': {
+      'games.listing': {
         pilots: [],
         mechs: [],
         crawlers: [{ _id: 'c1', appId: 'a-c1', body: { id: 'a-c1', name: 'Big Sal' } }],

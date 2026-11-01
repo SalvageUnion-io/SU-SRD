@@ -16,7 +16,7 @@ export type CrawlerReading = {
   techLevel: number
 }
 
-/** A listing row (`entities.listForGame`) as the card reads it, or null. */
+/** A listing row (`useGameListing`) as the card reads it, or null. */
 export function readCrawler(row: { appId: string | null; body: unknown }): CrawlerReading | null {
   const parsed = parseUnit('crawler', row.body)
   if (!parsed.success) return null

@@ -170,7 +170,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.members': MEDIATOR_MEMBERS,
     'crew.vitals': mediatorCrewAt(),
     'seats.forGame': MEDIATOR_SEATS,
-    'entities.listForGame': {
+    'games.listing': {
       pilots: [],
       mechs: [],
       npcs: [],
@@ -878,7 +878,7 @@ describe('every Mediator capability is reachable here', () => {
 
   test('Crawler: no crawler says where to raise one', async () => {
     await renderCockpit({
-      'entities.listForGame': {
+      'games.listing': {
         pilots: [],
         mechs: [],
         npcs: [],

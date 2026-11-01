@@ -41,7 +41,8 @@ import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useGameListing } from '../../replica/gameListing'
+import { useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
 import { OwnerSeal } from './OwnerSeal'
 
@@ -74,7 +75,7 @@ export function LaunchPlay({
   // one subscription each.
   const viewerId = useViewerId()
   const members = useTableRead('games.members', { gameId })
-  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
+  const listing = useGameListing(gameId)
   // What this browser holds decides what may be offered: see the header.
   useHydrateEntities(['pilot'])
   const localPilots = usePilots()
