@@ -73,6 +73,7 @@ describe('what a Game room publishes', () => {
       ownerName: 'Player',
       gameName: 'Tenacity',
       mechChassisRef: 'iron-mongrel',
+      crawlerTechLevel: null,
     })
   })
 
