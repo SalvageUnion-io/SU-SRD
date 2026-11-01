@@ -72,6 +72,16 @@ describe('mediatorSeats', () => {
   test('"3 of 4 here"', () => {
     expect(hereOf(seats)).toEqual({ here: 3, of: 4 })
   })
+
+  test('a player with two pilots counts once, here and done', () => {
+    const two = [
+      { ownerId: 'u-a', present: true },
+      { ownerId: 'u-a', present: true },
+      { ownerId: 'u-b', present: false },
+    ]
+    expect(hereOf(two)).toEqual({ here: 1, of: 2 })
+    expect(doneOf(two, [{ userId: 'u-a' }])).toEqual({ done: 1, of: 2 })
+  })
 })
 
 describe('Downtime at the table', () => {

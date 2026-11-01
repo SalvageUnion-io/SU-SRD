@@ -109,11 +109,13 @@ export function crewDeriver<S extends CrewSeat>({
     }
     const mech = parsed.data
     const id = unit.id ?? null
-    // The pilot aboard it, else the pilot assigned to it, as Play
-    // reads its own mech: their abilities, and the effects their seat has on.
-    const pilotId = id === null ? undefined : (boarderOf.get(id) ?? pilotOfMech.get(id))
+    // The pilot aboard it, else the pilot assigned to it, as Play reads its
+    // own mech: their abilities. Switched-on effects belong to the mech the
+    // seat is boarded in, so only a boarder's count (Play's box agrees).
+    const boarder = id === null ? undefined : boarderOf.get(id)
+    const pilotId = boarder ?? (id === null ? undefined : pilotOfMech.get(id))
     const piloting = pilotId === undefined ? undefined : parsedPilots.get(pilotId)
-    const switchedOn = pilotId === undefined ? [] : (seatOf.get(pilotId)?.activeEffects ?? [])
+    const switchedOn = boarder === undefined ? [] : (seatOf.get(boarder)?.activeEffects ?? [])
     const { maxSP, maxEP, maxHeat } = mechMaxima(mech, piloting?.abilities, switchedOn)
     const status = mechStatus(mech, maxHeat)
     return { maxSP, maxEP, maxHeat, status, attention: mechNeedsAttention(status) }
