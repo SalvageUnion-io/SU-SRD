@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * Paying a Downtime's Upkeep from Play (play.md §6, §10): the player's step
  * box (`PlayDowntimeStep`) and the Mediator's Upkeep row both pay it here, in
@@ -16,7 +17,6 @@ import { reportWriteFailure } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import type { PlayStore } from './play.model'
-import { crawlerTl } from './playDowntime.model'
 
 /** What happened, in words, or null with no crawler to pay for. */
 export async function payDowntimeUpkeep({
@@ -30,7 +30,7 @@ export async function payDowntimeUpkeep({
   spendUpkeep: () => Promise<boolean>
 }): Promise<string | null> {
   if (crawler === null) return null
-  const tl = crawlerTl(crawler)
+  const tl = crawlerTechLevelOf(crawler)
   if (!(await spendUpkeep())) return 'Upkeep is already paid this Downtime.'
   const paid = payUpkeepPatch(store.get('crawler', crawler.id) ?? crawler, tl)
   try {

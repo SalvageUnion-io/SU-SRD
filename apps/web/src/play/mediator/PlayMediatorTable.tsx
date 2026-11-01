@@ -11,7 +11,7 @@
  */
 
 import { gamePath } from 'game-domain/entityKinds'
-import { downtimeStepCount } from 'game-domain/rules/downtime'
+import { currentDowntimeStep } from 'game-domain/rules/downtime'
 import { useState } from 'react'
 import { Button, EmptyState, Slab } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -35,7 +35,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
   const setSheet = useOpenSheet()
   const { seats, downtime, crawler, canWrite } = mediator
   const running = downtime.downtime.running
-  const stepIndex = Math.min(downtime.downtime.stepIndex ?? 0, downtimeStepCount() - 1)
+  const stepIndex = currentDowntimeStep(downtime.downtime.stepIndex).index
 
   return (
     <>

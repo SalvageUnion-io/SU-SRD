@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * The Units column's pure half (play.md §4): which units are live, what the
  * current Downtime step will restore on the mech, the crawler's bay chips,
@@ -19,7 +20,6 @@ import {
 } from 'game-domain/rules/downtime'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { BoardOption } from './boardMenu.model'
 import type { Situation } from './situation.model'
 import { bayConditions } from './unitStats.model'
@@ -79,7 +79,7 @@ export function mechRestorePreview(
   const patch = downtimeMechPatch(
     mech,
     pilotAbilities,
-    crawler === null ? 1 : (parseCrawlerTechLevel(crawler.techLevel) ?? 1),
+    crawlerTechLevelOf(crawler),
     allDowntimeSteps(),
     crawler === null ? undefined : mechBayStatus(crawler)
   )

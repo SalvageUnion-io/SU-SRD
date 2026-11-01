@@ -7,6 +7,7 @@
  * through-`unknown` casts from partial literals.
  */
 
+import { linkEnds } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
@@ -88,13 +89,6 @@ export function npcFixture(overrides: Partial<Npc> & { id: string }): Npc {
   }
 }
 
-const LINK_ENDS = {
-  'mech-to-pilot': ['mech', 'pilot'],
-  'pilot-to-crawler': ['pilot', 'crawler'],
-  'mech-to-crawler': ['mech', 'crawler'],
-  'npc-to-crawler': ['npc', 'crawler'],
-} as const
-
 /**
  * A soft link of `type` from `fromId` to `toId`; the link type fixes both end
  * types. An `npc-to-crawler` link takes its crew slot (the Med Bay by default).
@@ -106,7 +100,7 @@ export function softLinkFixture(
   id = `link-${fromId}-${toId}`,
   slot: CrewSlot = { kind: 'bay', bayRef: 'med-bay' }
 ): SoftLink {
-  const [fromType, toType] = LINK_ENDS[type]
+  const { from: fromType, to: toType } = linkEnds(type)
   return {
     id,
     from: { type: fromType, id: fromId },

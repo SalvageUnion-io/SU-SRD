@@ -1,7 +1,7 @@
 import type { EntityKind } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
 import type { LinkShape } from 'game-domain/links/linkRules'
-import { slotKey } from 'game-domain/links/linkRules'
+import { linkEnds, slotKey } from 'game-domain/links/linkRules'
 import type { CrewSlot } from 'game-domain/schemas/softLink'
 import type { Op, OpState, Unit } from '../ops'
 import { RoomRefusal } from '../refusal'
@@ -297,29 +297,15 @@ export class GameStore {
   }
 }
 
-const KIND_OF_END: Record<string, EntityKind> = {
-  pilot: 'pilot',
-  mech: 'mech',
-  crawler: 'crawler',
-  npc: 'npc',
-}
-
-/** The end types of each link type, so a stored row rebuilds its `LinkShape`. */
-const ENDS: Record<LinkShape['type'], [EntityKind, EntityKind]> = {
-  'mech-to-pilot': ['mech', 'pilot'],
-  'pilot-to-crawler': ['pilot', 'crawler'],
-  'mech-to-crawler': ['mech', 'crawler'],
-  'npc-to-crawler': ['npc', 'crawler'],
-}
-
+/** A stored link row as its `LinkShape`: the link type fixes both end types (`linkEnds`). */
 function linkOf(row: Row): LinkShape {
   const type = row.type as LinkShape['type']
-  const [from, to] = ENDS[type]
+  const { from, to } = linkEnds(type)
   const slot = fromJsonOrNull<CrewSlot>(row.slot)
   return {
     type,
-    from: { type: KIND_OF_END[from] ?? from, id: String(row.from_id) },
-    to: { type: KIND_OF_END[to] ?? to, id: String(row.to_id) },
+    from: { type: from, id: String(row.from_id) },
+    to: { type: to, id: String(row.to_id) },
     ...(slot === null ? {} : { slot }),
   }
 }

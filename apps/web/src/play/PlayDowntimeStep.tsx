@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * PlayDowntimeStep — the current Downtime step as one level-1 box (play.md §6): the step's name, who moves the table on, and exactly what
  * the step will apply (`playDowntime.model.ts`), each line untickable
@@ -48,7 +49,7 @@ import { playCopy } from '../messages/play'
 import { useViewerId } from '../replica/roomCalls'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
-import { crawlerTl, mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
+import { mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
 import { processDowntimeNanites } from './playNanites.model'
 import { recordPlayChange } from './playRolls.model'
 import { payDowntimeUpkeep } from './playUpkeep.model'
@@ -153,7 +154,7 @@ export function PlayDowntimeStep({
       ? downtimeMechPatch(
           freshMech,
           freshPilot?.abilities,
-          crawlerTl(crawler),
+          crawlerTechLevelOf(crawler),
           steps,
           mechBayOf(crawler)
         )

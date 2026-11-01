@@ -253,7 +253,7 @@ export const buildSheetCopy = messages({
   recharge: 'Recharge',
   markUsed2: 'Mark used',
   scrap2: '+ Scrap',
-  addScrap3Slots: 'Add Scrap (3 slots)',
+  addScrapSlots: 'Add Scrap ({slots} slots)',
   newItemName: 'New item name',
   itemName: 'Item name',
   newItemSlotCost: 'New item slot cost',

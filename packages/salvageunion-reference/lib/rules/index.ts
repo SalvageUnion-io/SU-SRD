@@ -55,6 +55,7 @@ export {
 } from './creation'
 export type { StatBreakdown } from './derivedStats'
 export {
+  breakdownOf,
   crawlerMaxSP,
   crawlerMaxSPParts,
   isPilotDead,

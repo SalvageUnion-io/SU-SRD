@@ -26,7 +26,7 @@ import { pilotInventoryUsed } from './pilotInventory'
 // ─── area salvage (F2) ───────────────────────────────────────────────────────
 
 /** Inventory Slots one Scrap takes on a pilot (Core Book p.20, p.249). */
-const PILOT_SCRAP_SLOTS = 3
+export const PILOT_SCRAP_SLOTS = 3
 
 export type AreaSalvageHaul<T> = {
   /** Scrap that fits, at the area's Tech Level. */

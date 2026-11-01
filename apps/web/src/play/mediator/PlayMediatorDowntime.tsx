@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
 /**
  * PlayMediatorDowntime — the Mediator's centre column while Downtime runs
  * (play.md §10): the ten guide steps as the
@@ -47,7 +48,6 @@ import { useUnits } from '../../replica/units'
 import { DowntimeStepNav } from '../DowntimeStepNav'
 import { PlayDowntimeActionRow } from '../PlayDowntimeActionRow'
 import { PlayDowntimeTrack } from '../PlayDowntimeTrack'
-import { crawlerTl } from '../playDowntime.model'
 import { playLineModel } from '../playLine.model'
 import { naniteStatus, processDowntimeNanites } from '../playNanites.model'
 import { reportingRoll } from '../playRolls.model'
@@ -208,9 +208,11 @@ export function PlayMediatorDowntime({
               <Stat
                 size="mini"
                 label={mediatorCopy('scrap', {
-                  downtimeUpkeepScrap: crawlerUpkeepCost(unit === null ? 1 : crawlerTl(unit)),
+                  downtimeUpkeepScrap: crawlerUpkeepCost(
+                    unit === null ? 1 : crawlerTechLevelOf(unit)
+                  ),
                 })}
-                value={unit === null ? undefined : `T${crawlerTl(unit)}`}
+                value={unit === null ? undefined : `T${crawlerTechLevelOf(unit)}`}
               />
             }
             controls={
@@ -256,7 +258,7 @@ export function PlayMediatorDowntime({
                 <Stat
                   size="mini"
                   label={mediatorCopy('dealScrap', { deals: income.deals })}
-                  value={unit === null ? undefined : `T${crawlerTl(unit)}`}
+                  value={unit === null ? undefined : `T${crawlerTechLevelOf(unit)}`}
                 />
               }
               controls={

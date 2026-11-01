@@ -27,6 +27,7 @@ import {
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { resolveAbilityApCost } from '../../lib/abilityCost'
+import { PILOT_SCRAP_SLOTS } from '../../lib/rules/downtimeEconomy'
 import {
   equipmentMaxUses,
   genericEntrySlots,
@@ -404,9 +405,9 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
     <AdderBox>
       <Button
         size="compact"
-        aria-label={buildSheetCopy('addScrap3Slots')}
+        aria-label={buildSheetCopy('addScrapSlots', { slots: PILOT_SCRAP_SLOTS })}
         onClick={() => {
-          onAdd({ id: crypto.randomUUID(), name: 'Scrap', slotCost: 3 })
+          onAdd({ id: crypto.randomUUID(), name: 'Scrap', slotCost: PILOT_SCRAP_SLOTS })
         }}
       >
         {buildSheetCopy('scrap2')}

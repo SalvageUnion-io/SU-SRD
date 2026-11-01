@@ -1,3 +1,4 @@
+import { crawlerTechLevelOf } from '../crawlerLevel'
 /**
  * Union Crawler Downtime Procedure.
  *
@@ -34,7 +35,6 @@
 
 import { SalvageUnionReference } from 'salvageunion-reference'
 import {
-  parseCrawlerTechLevel,
   pilotMaxAP,
   pilotMaxHP,
   resolveChassisRef,
@@ -171,7 +171,7 @@ export function medBayStatus(crawler: Pick<Crawler, 'crawlerBays' | 'techLevel'>
   const present = entry !== undefined
   const damaged = present && (entry.condition ?? 'intact') === 'damaged'
   const operational = present && !damaged
-  const tl = parseCrawlerTechLevel(crawler.techLevel) ?? 1
+  const tl = crawlerTechLevelOf(crawler)
   return {
     present,
     damaged,
