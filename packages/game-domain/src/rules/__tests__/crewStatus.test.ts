@@ -90,7 +90,11 @@ describe('statuses and attention', () => {
   })
 
   it('a pilot injured or ejected needs attention; a whole one does not', () => {
-    const hurt = pilotStatus(pilot({ injuries: [{ severity: 'minor' }] }), null, false)
+    const hurt = pilotStatus(
+      pilot({ injuries: [{ severity: 'minor', note: 'cracked rib' }] }),
+      null,
+      false
+    )
     expect(hurt).toEqual({ dead: false, injured: true, ejected: false })
     expect(pilotNeedsAttention(hurt)).toBe(true)
     expect(pilotNeedsAttention(pilotStatus(pilot(), null, true))).toBe(true)
