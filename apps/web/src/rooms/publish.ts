@@ -99,10 +99,13 @@ const KIND_NAMES: Record<EntityKind, string> = {
 
 /** What an account room publishes: its player's shared units and patterns; nothing before it is claimed. */
 export function shelfPublished(store: GameStore): Published {
-  const account = store.rows('select discord_id, display_name from account where id = 1')[0]
+  const account = store.rows(
+    'select discord_id, coalesce(display_name, discord_name) as shown from account where id = 1'
+  )[0]
   if (account === undefined) return { sheets: [], homebrew: [] }
   const owner = String(account.discord_id)
-  const name = account.display_name === null ? null : String(account.display_name)
+  // The name the player shows everywhere (`shownProfile`): their own, else Discord's.
+  const name = account.shown === null ? null : String(account.shown)
   return published(store, {
     place: { kind: 'shelf', owner },
     nameOf: (discordId) => (discordId === owner ? name : null),

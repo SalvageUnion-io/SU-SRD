@@ -211,6 +211,13 @@ export class AccountRoom extends Room {
     return this.logic.shelf.profile(actor)
   }
 
+  /** Note the player's Discord name from sign-in; their shared sheets follow. True when it changed. */
+  noteDiscordName(actor: string, name: string | null): boolean {
+    const changed = this.logic.shelf.noteDiscordName(actor, name)
+    if (changed) this.published()
+    return changed
+  }
+
   /** Set the player's name or avatar override; their shared sheets follow. */
   setProfile(actor: string, patch: Parameters<AccountShelf['setProfile']>[1]): void {
     this.logic.shelf.setProfile(actor, patch)

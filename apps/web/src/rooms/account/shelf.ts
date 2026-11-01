@@ -101,6 +101,19 @@ export class AccountShelf {
     )
   }
 
+  /**
+   * Note the player's Discord name as sign-in has it; true when it changed,
+   * so the caller republishes and refreshes their rosters. A room not yet
+   * theirs notes nothing.
+   */
+  noteDiscordName(actor: string, name: string | null): boolean {
+    if (this.owner() !== actor) return false
+    const row = this.store.rows('select discord_name from account where id = 1')[0]
+    if ((row?.discord_name ?? null) === name) return false
+    this.store.rows('update account set discord_name = ? where id = 1', name)
+    return true
+  }
+
   /** How many of each the player keeps here: their row in the metrics' totals. */
   totals(): Record<'pilots' | 'mechs' | 'crawlers' | 'npcs' | 'patterns', number> {
     const count = (kind: EntityKind) => this.store.units().filter((u) => u.kind === kind).length

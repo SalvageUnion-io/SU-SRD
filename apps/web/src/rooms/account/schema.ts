@@ -123,3 +123,12 @@ export const ACCOUNT_ROOM_GAMES: readonly string[] = [
       )`,
   'alter table account add column games_seeded integer not null default 0',
 ]
+
+/**
+ * Step 6 of `ACCOUNT_ROOM`: the player's Discord name, as sign-in last gave
+ * it (`AccountShelf.noteDiscordName`), so what the room publishes shows the
+ * name the rest of the site shows: the override where set, else this.
+ */
+export const ACCOUNT_ROOM_DISCORD_NAME: readonly string[] = [
+  'alter table account add column discord_name text',
+]

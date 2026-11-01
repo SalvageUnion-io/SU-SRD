@@ -177,4 +177,19 @@ describe('what an account room publishes', () => {
       },
     ])
   })
+
+  test('without a name of their own, the player shows their Discord name; with one, theirs', () => {
+    const sql = bunSql()
+    migrate(sql, ACCOUNT_ROOM)
+    const room = new AccountRoomLogic(sql, { applyOp: stubApplyOp })
+    seedShelf(room, { owner: PLAYER }, AT)
+    put(room.shelf.store, 'npc', 'n1', { publicRead: true })
+    const madeBy = () => shelfPublished(room.shelf.store).sheets[0]?.page
+    expect(room.shelf.noteDiscordName('someone-else', 'x')).toBe(false)
+    expect(room.shelf.noteDiscordName(PLAYER, 'rosa')).toBe(true)
+    expect(room.shelf.noteDiscordName(PLAYER, 'rosa')).toBe(false)
+    expect(madeBy()).toMatchObject({ madeBy: 'rosa' })
+    room.shelf.setProfile(PLAYER, { displayName: 'Bonesaw' })
+    expect(madeBy()).toMatchObject({ madeBy: 'Bonesaw' })
+  })
 })

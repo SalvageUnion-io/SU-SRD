@@ -41,6 +41,7 @@ type AccountRoomStub = {
   ): Promise<void>
   exportFor(actor: string): Promise<ShelfExport | null>
   gameIds(): Promise<string[]>
+  noteDiscordName(actor: string, name: string | null): Promise<boolean>
 }
 
 function accountRoom(discordId: string): AccountRoomStub {
@@ -178,10 +179,15 @@ export async function serveAccount(
 
 /** Their own name and avatar where they set one, else the Discord ones sign-in keeps. */
 async function me(env: AccountEnv, who: Identity): Promise<Me> {
+  const room = accountRoom(who.discordId)
   const [account, own] = await Promise.all([
     signInProfile(shared(env), who.accountId),
-    accountRoom(who.discordId).profile(who.discordId),
+    room.profile(who.discordId),
   ])
+  // Sign-in refreshes the Discord name; the room and the rosters follow when it changed.
+  if (await room.noteDiscordName(who.discordId, account?.name ?? null)) {
+    await showOnRosters(env, who)
+  }
   return {
     _id: who.accountId,
     discordId: who.discordId,

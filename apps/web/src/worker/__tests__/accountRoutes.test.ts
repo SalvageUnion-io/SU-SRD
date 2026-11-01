@@ -36,11 +36,15 @@ afterAll(() => {
   Object.assign(globalThis, happyDom)
 })
 let profile: Profile = { displayName: null, avatarUrl: null }
+let discordName: string | null = null
+let noted: string[] = []
 let db: ReturnType<typeof testDb>
 
 beforeEach(async () => {
   db = testDb()
   profile = { displayName: null, avatarUrl: null }
+  discordName = 'rosa'
+  noted = []
   await saveAccount(
     d1Sql(db as never),
     {
@@ -58,6 +62,12 @@ beforeEach(async () => {
       profile: async (actor: string) => (actor === name ? profile : null),
       setProfile: async (_actor: string, patch: Partial<Profile>) => {
         profile = { ...profile, ...patch }
+      },
+      gameIds: async () => noted,
+      noteDiscordName: async (_actor: string, name: string | null) => {
+        const changed = name !== discordName
+        discordName = name
+        return changed
       },
       exportFor: async () => ({
         pilots: [{ id: 'p1' }],
@@ -148,6 +158,39 @@ describe('the account’s routes', () => {
     ])
   })
 
+  test('a new Discord name at sign-in reaches the room and the rosters, once', async () => {
+    await publishGame(db, 'g-1', {
+      name: 'Reclamation',
+      mediatedBy: null,
+      members: [{ discordId: 'd-1', mediator: false, organizer: true }],
+    })
+    const acts: unknown[] = []
+    namespaces.GameRoom = {
+      getByName: () => ({
+        act: async (_actor: string, name: string, args: unknown) => {
+          acts.push({ name, args })
+          return { ok: true, value: null }
+        },
+      }),
+    }
+    try {
+      await call(ACCOUNT_PATHS.me, PLAYER)
+      expect(acts).toEqual([])
+      discordName = 'old rosa'
+      await call(ACCOUNT_PATHS.me, PLAYER)
+      await call(ACCOUNT_PATHS.me, PLAYER)
+    } finally {
+      delete namespaces.GameRoom
+    }
+    expect(discordName).toBe('rosa')
+    expect(acts).toEqual([
+      {
+        name: 'updateProfile',
+        args: { profile: { displayName: 'rosa', avatarUrl: 'https://cdn/discord.png' } },
+      },
+    ])
+  })
+
   test('a write from another origin, or signed out, is refused', async () => {
     const elsewhere = await call(
       ACCOUNT_PATHS.profile,
@@ -160,7 +203,7 @@ describe('the account’s routes', () => {
     expect((await call(ACCOUNT_PATHS.export, null)).status).toBe(401)
   })
 
-  test('export: the Shelf’s bodies, with the Games from the shared database', async () => {
+  test('export: the Shelf’s bodies, with every Game the player is in', async () => {
     await db
       .prepare(
         'insert into memberships (game_id, discord_id, mediator, organizer) values (?1, ?2, 1, 0)'
@@ -170,6 +213,13 @@ describe('the account’s routes', () => {
     const mine = (await (await call(ACCOUNT_PATHS.export, PLAYER)).json()) as AccountExport
     expect(mine.pilots).toEqual([{ id: 'p1' }])
     expect(mine.games).toEqual([{ gameId: 'g-1', mediator: true, organizer: false }])
+    // A Game the room noted whose publish has not landed is the player's too.
+    noted = ['g-2']
+    const both = (await (await call(ACCOUNT_PATHS.export, PLAYER)).json()) as AccountExport
+    expect(both.games).toEqual([
+      { gameId: 'g-2', mediator: false, organizer: false },
+      { gameId: 'g-1', mediator: true, organizer: false },
+    ])
     expect(mine.homebrewReports).toEqual([])
   })
 
