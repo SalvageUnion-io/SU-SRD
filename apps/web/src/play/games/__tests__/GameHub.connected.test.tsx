@@ -519,7 +519,11 @@ describe('Play from the Game page', () => {
   })
 
   test('nothing shows while the crew is still loading', async () => {
-    await renderHub({ 'games.members': undefined })
+    // The Games reads answered, but the Game's room has served nothing yet.
+    setQueryAnswers(answers())
+    await act(async () => {
+      render(<GameHub gameId="g1" />)
+    })
     expect(launcher()).toBeNull()
   })
 

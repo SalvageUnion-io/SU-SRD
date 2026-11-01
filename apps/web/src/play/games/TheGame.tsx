@@ -34,7 +34,7 @@ import {
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
+import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useTableRead } from '../../replica/useTable'
 import { pairedCrew } from '../playHub.model'
@@ -78,7 +78,7 @@ export function TheGame({
   onDelete: () => void
 }) {
   const id = useId()
-  const members = useGamesQuery('games.members', { gameId })
+  const members = useTableRead('games.members', { gameId })
   const vitals = useTableRead('crew.vitals', { gameId })
   const setMediator = useGamesCall('games.setMediator')
   const { canWrite } = useSync()

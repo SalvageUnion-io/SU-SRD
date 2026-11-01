@@ -14,6 +14,7 @@ import { useState } from 'react'
 import { acceptingRooms, roomAnswer } from '../../../../test/roomsStub'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { RoomDeclined } from '../../../replica/roomSocket'
 import type { SyncState } from '../../../replica/syncContext'
@@ -140,6 +141,7 @@ beforeEach(() => {
 afterEach(() => {
   toast.dismiss()
   acceptingRooms()
+  closeRooms()
 })
 
 describe('which crawler', () => {
@@ -249,8 +251,8 @@ describe('a Game crawler, crewed by its table runner', () => {
     setQueryAnswers({
       'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
       'entities.listForGame': gameListing(),
-      'games.members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
+    serve('g1', { members: [{ userId: 'u-sam', displayName: 'Sam' }] })
   })
 
   test('another member’s NPC in the Game is offered, and once assigned credited to them', async () => {
@@ -299,7 +301,6 @@ describe('a player in someone else’s Game', () => {
     setQueryAnswers({
       'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
       'entities.listForGame': gameListing(),
-      'games.members': [],
     })
     await renderBoard('c1', 'med-bay')
     expect(screen.getByText(/Old Mags, the Doc holds/)).toBeTruthy()

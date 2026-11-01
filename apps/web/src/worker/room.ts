@@ -35,7 +35,6 @@ declare const WebSocketPair: typeof import('@cloudflare/workers-types').WebSocke
 
 /** Set by the Worker, never by a client: `serveGameSocket` overwrites them. */
 export const MEMBER_HEADER = 'x-su-member'
-export const SEAT_HEADER = 'x-su-seat'
 
 /** workerd's `DurableObjectState` and `Env`, however the program types `cloudflare:workers`. */
 export type RoomState = ConstructorParameters<typeof DurableObject>[0]

@@ -71,6 +71,7 @@ import { npcCopy } from '../../messages/build-npc'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
+import { useTableRead } from '../../replica/useTable'
 import { npcStats } from '../roster/rowStats.model'
 import { rowAppId } from '../sheet/readOnlySheetStore.model'
 import { RollTableButton } from '../wizard/RollTableButton'
@@ -196,8 +197,7 @@ function CrewSlots({
   const where = containerOf(crawler)
   const gameId = where.kind === 'game' ? where.gameId : null
   const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
-  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
-
+  const members = useTableRead('games.members', gameId === null ? 'skip' : { gameId })
   /** Other members' NPCs in this Game, read live and never cached (ADR-037). */
   const theirs = useMemo<Npc[]>(() => {
     if (listing === undefined) return []

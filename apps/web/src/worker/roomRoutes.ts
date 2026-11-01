@@ -5,7 +5,7 @@
 
 import type { Identity } from './auth/index'
 import { identityOf } from './auth/index'
-import { MEMBER_HEADER, SEAT_HEADER } from './room'
+import { MEMBER_HEADER } from './room'
 import type { GameRoomStub } from './roomStubs'
 import { rooms } from './roomStubs'
 import type { SharedDb } from './shared/db'
@@ -46,10 +46,7 @@ async function signedInMember(
 /** Who signs the request in: `identityOf`, or a test's stand-in. */
 type Identify = (request: Request, env: { SHARED: SharedDb }) => Promise<Identity | null>
 
-/**
- * A member's socket to their Game's room (`?seat=1`: they count as here);
- * anyone else, or another site's page, a 403.
- */
+/** A member's socket to their Game's room; anyone else, or another site's page, a 403. */
 export async function serveGameSocket(
   request: Request,
   gameId: string,
@@ -60,8 +57,7 @@ export async function serveGameSocket(
   if (crossOrigin(request)) return new Response(null, { status: 403 })
   const member = await signedInMember(request, env, gameId, identify)
   if (member === null) return new Response(null, { status: 403 })
-  const seat = new URL(request.url).searchParams.get('seat') === '1' ? '1' : '0'
-  return forwardTo(rooms().GameRoom.getByName(gameId), request, member, { [SEAT_HEADER]: seat })
+  return forwardTo(rooms().GameRoom.getByName(gameId), request, member)
 }
 
 /** The signed-in player's socket to their own account room; signed out or another site's page, a 403. */
@@ -81,12 +77,10 @@ export async function serveAccountSocket(
 function forwardTo(
   room: { fetch: (...args: never) => unknown },
   request: Request,
-  member: string,
-  more: Record<string, string> = {}
+  member: string
 ): Promise<Response> {
   const headers = new Headers(request.headers)
   headers.set(MEMBER_HEADER, member)
-  for (const [name, value] of Object.entries(more)) headers.set(name, value)
   // The stub's fetch speaks workerd's Request and Response, the same objects at run time.
   const forward = room.fetch.bind(room) as unknown as (req: Request) => Promise<Response>
   return forward(new Request(request, { headers }))

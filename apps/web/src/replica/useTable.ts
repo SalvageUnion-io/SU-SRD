@@ -21,6 +21,7 @@ import type { DowntimeRead } from '../rooms/game/play'
 import type { ProposalRead, SentProposal } from '../rooms/game/proposals'
 import type { BoundaryRead } from '../rooms/game/safety'
 import type { ACCOUNT_SOCKET_ACTS, GAME_SOCKET_ACTS } from '../rooms/game/socketActs'
+import type { Member } from '../rooms/game/store'
 import type { SeatRead } from '../rooms/seats'
 import type { CrewVitals } from '../rooms/vitals'
 import type { Scope } from './replica'
@@ -86,8 +87,27 @@ function downtimeState(held: unknown, args: Args): DowntimeState | null {
   return seat.downtime === null ? NOT_RUNNING : { ...seat.downtime, running: true, completedBy: [] }
 }
 
+/** A Game's member as a screen names them: a member with no Discord name yet is a Crewmate. */
+type GameMemberRead = Omit<Member, 'displayName' | 'avatarUrl'> & {
+  displayName: string
+  avatarUrl?: string
+}
+
+function memberRead({ displayName, avatarUrl, ...member }: Member): GameMemberRead {
+  return {
+    ...member,
+    displayName: displayName ?? 'Crewmate',
+    ...(avatarUrl === null ? {} : { avatarUrl }),
+  }
+}
+
 /** Each read a screen makes, by name. */
 const ANSWERED_BY: Record<ReadName, Answer> = {
+  // The roster, in join order, off the Game's snapshot.
+  'games.members': {
+    table: 'members',
+    answer: (held) => (held as Member[]).map(memberRead),
+  },
   'scenes.current': { table: 'scene' },
   'salvageAreas.here': { table: 'salvageArea' },
   'ledger.get': { table: 'ledger' },
@@ -117,6 +137,7 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
 
 /** What each read answers, as its screen reads it. */
 type Reads = {
+  'games.members': GameMemberRead[]
   'scenes.current': GameActResult<'scenes.current'>
   'salvageAreas.here': GameActResult<'salvageAreas.here'>
   'ledger.get': GameActResult<'ledger.get'>

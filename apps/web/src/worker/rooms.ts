@@ -38,8 +38,8 @@ import {
 } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
-import type { PresenceMessage } from '../rooms/presence'
-import { presentMembers, SEAT_TAG, WATCH_TAG } from '../rooms/presence'
+import type { PresenceMessage, SocketSeat } from '../rooms/presence'
+import { HERE_ACT, presentMembers, seatOf } from '../rooms/presence'
 import type { ClientMessage, ServerMessage } from '../rooms/protocol'
 import { gamePublished, shelfPublished } from '../rooms/publish'
 import { answerOrRefuse } from '../rooms/refusal'
@@ -48,7 +48,7 @@ import { unitVitals } from '../rooms/vitals'
 import { reportError } from './errorReports'
 import { builtMech, countPatternBuild } from './patternBuilds'
 import type { RoomEnv, RoomState, RoomTransit } from './room'
-import { Room, SEAT_HEADER } from './room'
+import { Room } from './room'
 import { closeGone, sendEach, sendQuietly, snapshotEach } from './roomSockets'
 import { accountHome } from './roomStubs'
 import { membershipGameIds } from './shared/games'
@@ -402,13 +402,12 @@ export class GameRoom extends Room {
 
   /**
    * A socket for a member the Worker let through: hibernatable, tagged with
-   * who and whether it is a seat (here) or a watcher.
+   * who. It counts as here once it sits at the table (`HERE_ACT`).
    */
   override async fetch(request: Request): Promise<Response> {
     const member = this.socketMember(request)
     if (member === null) return new Response(null, { status: 400 })
-    const role = request.headers.get(SEAT_HEADER) === '1' ? SEAT_TAG : WATCH_TAG
-    const socket = this.openSocket([member, role], gameSnapshot(this.logic, member, this.gameId))
+    const socket = this.openSocket([member], gameSnapshot(this.logic, member, this.gameId))
     this.broadcastPresence()
     return socket
   }
@@ -418,6 +417,15 @@ export class GameRoom extends Room {
    * answered on its socket; every socket hears what changed.
    */
   protected heard(ws: RoomSocket, member: string, said: ClientMessage): void {
+    if (said.type === 'act' && said.name === HERE_ACT) {
+      const seat: SocketSeat = {
+        here: (said.args as { here?: unknown } | undefined)?.here === true,
+      }
+      ws.serializeAttachment(seat)
+      ws.send(JSON.stringify(actAnswer(said.id, { ok: true, value: null })))
+      this.broadcastPresence()
+      return
+    }
     if (said.type === 'act') {
       const act = socketAct(said, GAME_SOCKET_ACTS)
       const answer =
@@ -462,7 +470,12 @@ export class GameRoom extends Room {
     const open = this.ctx.getWebSockets().filter((ws) => ws !== gone)
     const message: PresenceMessage = {
       type: 'presence',
-      here: presentMembers(open.map((ws) => this.ctx.getTags(ws))),
+      here: presentMembers(
+        open.map((ws) => ({
+          member: this.ctx.getTags(ws)[0],
+          here: seatOf((ws as RoomSocket).deserializeAttachment()),
+        }))
+      ),
     }
     const text = JSON.stringify(message)
     for (const ws of open) sendQuietly(ws, text)

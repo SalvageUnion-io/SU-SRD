@@ -117,6 +117,35 @@ describe('a room’s rows in the shared database', () => {
     expect(await gameOfInvite(db, 'CODE2')).toBeNull()
   })
 
+  test('only a row that changed is written again; a change that moves none writes nothing', async () => {
+    const db = testDb()
+    const statements: number[] = []
+    const counting = {
+      ...db,
+      batch: (list: Parameters<typeof db.batch>[0]) => {
+        statements.push(list.length)
+        return db.batch(list)
+      },
+    }
+    let rows: Published = { sheets: [sheet('p1'), sheet('p2')], homebrew: [] }
+    const shelf = new RoomPublisher(counting, 'account:d-1', 'd-1', () => rows)
+    await shelf.changed()
+    // Two upserts and the three held sets' deletes.
+    expect(statements).toEqual([5])
+
+    await shelf.changed()
+    expect(statements).toEqual([5])
+
+    rows = { sheets: [sheet('p1', 'Renamed'), sheet('p2')], homebrew: [] }
+    await shelf.changed()
+    expect(statements).toEqual([5, 1])
+    expect(await publicPage(db, 'pilot', 'p1')).toMatchObject({ body: { name: 'Renamed' } })
+
+    // A republish writes the whole set again, whatever was written before.
+    expect(await shelf.republish()).toEqual({ sheets: 2, homebrew: 0 })
+    expect(statements).toEqual([5, 1, 5])
+  })
+
   test('a write that fails is handed back to the room to try again', async () => {
     const db = testDb()
     let failures = 0

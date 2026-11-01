@@ -10,6 +10,7 @@
  */
 
 import { act } from '@testing-library/react'
+import { HERE_ACT } from '../../rooms/presence'
 import { gameScope } from '../replica'
 import { openRoom } from '../roomSocket'
 import type { StateTable } from '../tableState'
@@ -29,7 +30,7 @@ class FakeSocket {
   readyState = 0
   onopen: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
-  onclose: (() => void) | null = null
+  onclose: ((event: { code: number }) => void) | null = null
   gameId: string | null = null
   constructor() {
     FakeSocket.last = this
@@ -55,6 +56,12 @@ class FakeSocket {
       return
     }
     const act: SentAct = { gameId: this.gameId, name: said.name ?? '', args: said.args ?? {} }
+    // Sitting at the table is the socket's own bookkeeping, kept apart from what a screen does.
+    if (act.name === HERE_ACT) {
+      seatActs.push(act)
+      reply({ type: 'answered', id: said.id, value: null })
+      return
+    }
     acts.push(act)
     try {
       reply({ type: 'answered', id: said.id, value: answer(act) ?? null })
@@ -65,13 +72,18 @@ class FakeSocket {
   close() {}
 }
 
-/** Every act sent since the last `closeRooms`, in order. */
+/** Every act sent since the last `closeRooms`, in order, but sitting at the table. */
 export const acts: SentAct[] = []
+/** Every `presence.here` sent since the last `closeRooms`, in order. */
+export const seatActs: SentAct[] = []
 /** Every ops batch sent since the last `closeRooms`. */
 export const batches: SentBatch[] = []
 
 /** An ops batch a screen sent, and the room it went to. */
 export type SentBatch = { gameId: string | null; ops: ({ id: string } & Body)[] }
+
+/** Each open room's socket, by Game id (`''`: the account room). */
+const sockets = new Map<string, FakeSocket>()
 
 let answer: Answer = () => undefined
 let takeOps: (batch: SentBatch) => void = () => undefined
@@ -88,9 +100,31 @@ export function openRooms(...gameIds: (string | null)[]): void {
     closers.push(openRoom(path, scope, gameId))
     const socket = FakeSocket.last as FakeSocket
     socket.gameId = gameId
-    socket.readyState = FakeSocket.OPEN
-    socket.onopen?.()
+    sockets.set(gameId ?? '', socket)
+    reopen(gameId)
   }
+}
+
+/** A message the room's socket hears, as it would land. */
+export function hear(gameId: string | null, message: object): void {
+  const socket = sockets.get(gameId ?? '')
+  act(() => socket?.onmessage?.({ data: JSON.stringify(message) }))
+}
+
+/** The room's socket drops, as a lost connection does; `reopen` stands in for its reconnect. */
+export function drop(gameId: string | null): void {
+  const socket = sockets.get(gameId ?? '')
+  if (socket === undefined) return
+  socket.readyState = 3
+  act(() => socket.onclose?.({ code: 1006 }))
+}
+
+/** The room's socket (dropped, or just made) opens. */
+export function reopen(gameId: string | null): void {
+  const socket = sockets.get(gameId ?? '')
+  if (socket === undefined) return
+  socket.readyState = FakeSocket.OPEN
+  socket.onopen?.()
 }
 
 /** How the rooms answer each act from now on. */
@@ -130,7 +164,9 @@ function appIdOf(body: Body, index: number): string {
 export function closeRooms(): void {
   for (const close of closers) close()
   closers = []
+  sockets.clear()
   acts.length = 0
+  seatActs.length = 0
   batches.length = 0
   answer = () => undefined
   takeOps = () => undefined
@@ -140,6 +176,7 @@ export function closeRooms(): void {
 
 /** The record table each read answers from, with how its answer becomes the records. */
 const READ_TABLES: Record<string, { table: StateTable; records: (answer: unknown) => Body[] }> = {
+  'games.members': { table: 'members', records: list },
   'scenes.current': { table: 'scene', records: one },
   'salvageAreas.here': { table: 'salvageArea', records: one },
   'ledger.get': { table: 'ledger', records: one },

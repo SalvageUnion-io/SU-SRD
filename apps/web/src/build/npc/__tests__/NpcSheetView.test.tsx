@@ -9,7 +9,7 @@
  * back to the Shelves.
  */
 
-import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { crawlerFixture, npcFixture, softLinkFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
@@ -18,6 +18,7 @@ import {
   accountApiStub,
   resetAccountApi,
 } from '../../../lib/account/__tests__/accountApiStub'
+import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -26,6 +27,7 @@ const serverMocks = await installServerMocks({
   router: true,
   also: { '../../lib/account/accountApi': accountApiStub },
 })
+afterEach(closeRooms)
 afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
@@ -143,8 +145,8 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities.listForGame': gameListing(),
-      'games.members': [{ userId: 'u-sam', displayName: 'Sam' }],
     })
+    serve('g1', { members: [{ userId: 'u-sam', displayName: 'Sam' }] })
     await renderView('n-theirs')
     expect(madeBy('Sam')).toBeTruthy()
     // A crewmate's NPC has no corner actions and no Read | Edit to switch.
@@ -163,8 +165,8 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities.listForGame': gameListing(),
-      'games.members': [],
     })
+    serve('g1', { members: [] })
     await renderView('n-theirs')
     expect(madeBy('a player')).toBeTruthy()
   })
@@ -174,8 +176,8 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities.listForGame': gameListing({ name: 42 }),
-      'games.members': [],
     })
+    serve('g1', { members: [] })
     await renderView('n-theirs')
     expect(screen.getByText('Could not show this NPC')).toBeTruthy()
   })
@@ -185,7 +187,6 @@ describe('a crewmate’s, in a Game you belong to', () => {
       'account.me': { displayName: 'alxjrvs' },
       'entities.locate': { id: 'n-theirs', gameId: 'g1', mayEdit: false },
       'entities.listForGame': undefined,
-      'games.members': undefined,
     })
     await renderView('n-theirs')
     expect(screen.getByRole('status', { name: 'Loading the sheet…' })).toBeTruthy()

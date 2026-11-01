@@ -19,9 +19,10 @@ import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { OpInput } from 'game-domain/ops/applyOp'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { captureException } from '../lib/observability'
-import { ROOM_PROTOCOL } from '../rooms/presence'
+import { HERE_ACT, ROOM_PROTOCOL } from '../rooms/presence'
 import type { RecordTable, RoomUnit, ServerMessage } from '../rooms/protocol'
 import { ROOM_GONE, ServerMessageSchema } from '../rooms/protocol'
+import { holdPresence } from './presence'
 import type { Scope, Served, Table } from './replica'
 import { release, serve } from './replica'
 import { noteRoomChange } from './roomChanges'
@@ -138,10 +139,12 @@ export function foldRoomMessage(scope: Scope, data: unknown): void {
     case 'links':
       serve(scope, ['softLink'], message.links.map(servedLink))
       return
-    // A batch's answer is its socket's (`openRoom`); who is here, `useGamePresence`'s.
+    case 'presence':
+      holdPresence(scope, message.here)
+      return
+    // A batch's answer is its socket's (`openRoom`).
     case 'ack':
     case 'declined':
-    case 'presence':
       return
   }
 }
@@ -171,6 +174,35 @@ type Room = {
 /** The open rooms, by Game id; the account room, which a Shelf unit writes through, under `ACCOUNT`. */
 const open = new Map<string, Room>()
 const ACCOUNT = ''
+
+/** How many screens of this tab sit at each Game's table (`sitAt`). */
+const seated = new Map<string, number>()
+
+/** Tell a Game's room whether this tab sits at its table; a closed socket is told when it opens. */
+function tellSeat(gameId: string): void {
+  void open
+    .get(gameId)
+    ?.act(HERE_ACT, { here: (seated.get(gameId) ?? 0) > 0 })
+    .catch(() => undefined)
+}
+
+/**
+ * Sit at a Game's table while a screen of it is open (a Cockpit), so its
+ * player counts as here; answers the stand. Several screens share one seat.
+ */
+export function sitAt(gameId: string): () => void {
+  const was = seated.get(gameId) ?? 0
+  seated.set(gameId, was + 1)
+  if (was === 0) tellSeat(gameId)
+  return () => {
+    const now = (seated.get(gameId) ?? 1) - 1
+    if (now > 0) seated.set(gameId, now)
+    else {
+      seated.delete(gameId)
+      tellSeat(gameId)
+    }
+  }
+}
 
 /** Who hears a room's socket open (`onRoomOpen`). */
 const opened = new Set<() => void>()
@@ -270,6 +302,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     socket.onopen = () => {
       attempt = 0
       open.set(gameId ?? ACCOUNT, room)
+      if (gameId !== null && seated.has(gameId)) tellSeat(gameId)
       for (const batch of waiting.values()) send(batch)
       for (const listener of opened) listener()
     }
@@ -307,6 +340,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     }
     socket.onclose = (event) => {
       if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
+      holdPresence(scope, null)
       dropActs()
       if (event.code === ROOM_GONE) {
         // Nothing here is the player's now: what waited fails as an offline
@@ -345,6 +379,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     closed = true
     clearTimeout(retry)
     if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
+    holdPresence(scope, null)
     socket?.close(1000)
     settleWaiting()
     dropActs()

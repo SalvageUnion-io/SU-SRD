@@ -38,6 +38,7 @@ import { areaTitle } from '../../lib/pageTitle'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
+import { useTableRead } from '../../replica/useTable'
 import type { GameListing } from './readOnlySheetStore.model'
 import { rowAppId } from './readOnlySheetStore.model'
 import { useSheetModeStore } from './sheetMode.model'
@@ -71,7 +72,7 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const located = useGamesQuery('entities.locate', online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
   const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
-  const members = useGamesQuery('games.members', gameId === null ? 'skip' : { gameId })
+  const members = useTableRead('games.members', gameId === null ? 'skip' : { gameId })
   const me = useMe(online)
   const viewerId = useViewerId()
 

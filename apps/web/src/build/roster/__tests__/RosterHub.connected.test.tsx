@@ -86,10 +86,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.listMine': GAMES,
     'games.get': GAME_G1,
     'account.me': { _id: 'u-me', displayName: 'Me' },
-    'games.members': [
-      { userId: 'u-me', displayName: 'Me', mediator: false, organizer: false },
-      { userId: 'u-bly', displayName: 'Bly', mediator: false, organizer: false },
-    ],
     'entities.listForGame': LISTING,
     'crew.vitals': undefined,
     'ops.pending': [],

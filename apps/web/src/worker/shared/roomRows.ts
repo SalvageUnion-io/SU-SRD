@@ -21,8 +21,10 @@ export function sharedDb(env: unknown): SharedDb | undefined {
  *
  * - **One write at a time.** A change while a write is out queues one more
  *   write, of whatever is true by then.
- * - **Nothing to say twice.** A room that published nothing, and still
- *   publishes nothing, writes nothing.
+ * - **Nothing to say twice.** Only a row that differs from what the room's
+ *   last write that landed held is written again, and the deletes run only
+ *   when the set held changed; a change that moves no row writes nothing.
+ *   The memory is the room object's, so a woken room writes its set once.
  * - **Not left behind.** A write that fails is reported and handed to
  *   `failed`, so the room can write its rows again later (its alarm): every
  *   reader, account deletion among them, trusts these rows.
@@ -36,7 +38,8 @@ export function sharedDb(env: unknown): SharedDb | undefined {
 export class RoomPublisher {
   private writing: Promise<void> | null = null
   private again = false
-  private wroteNone = false
+  /** Each row the last write that landed held, by key, as it was written. */
+  private written = new Map<string, string>()
 
   constructor(
     private readonly db: SharedDb | undefined,
@@ -63,7 +66,7 @@ export class RoomPublisher {
 
   /** Write the room's rows now, whatever was written before; the counts written. */
   async republish(): Promise<{ sheets: number; homebrew: number }> {
-    this.wroteNone = false
+    this.written.clear()
     const rows = this.rowsOf()
     await this.write(rows)
     return { sheets: rows.sheets.length, homebrew: rows.homebrew.length }
@@ -85,32 +88,71 @@ export class RoomPublisher {
     const db = this.db
     if (db === undefined) return
     const crew = rows.crew ?? []
-    const none =
-      rows.sheets.length === 0 &&
-      rows.homebrew.length === 0 &&
-      crew.length === 0 &&
-      !rows.roster?.game
-    if (none && this.wroteNone) return
-    const now = Date.now()
+    const now = new Map(rowKeys(rows, this.maker !== null))
+    const changed = (key: string) => this.written.get(key) !== now.get(key)
+    if (![...now.keys(), ...this.written.keys()].some(changed)) return
     await db.batch([
-      ...sheetStatements(db, this.room, rows.sheets, now),
+      ...sheetStatements(
+        db,
+        this.room,
+        rows.sheets.filter((row) => changed(sheetKey(row))),
+        changed(HELD_SHEETS) ? rows.sheets : null,
+        Date.now()
+      ),
       ...(this.maker === null
         ? []
         : [
-            ...homebrewStatements(db, this.maker, rows.homebrew),
-            ...crewStatements(db, this.maker, crew),
+            ...homebrewStatements(
+              db,
+              this.maker,
+              rows.homebrew.filter((row) => changed(`homebrew:${row.appId}`)),
+              changed(HELD_HOMEBREW) ? rows.homebrew : null
+            ),
+            ...crewStatements(
+              db,
+              this.maker,
+              crew.filter((row) => changed(`crew:${row.appId}`)),
+              changed(HELD_CREW) ? crew : null
+            ),
           ]),
-      ...(rows.roster === undefined ? [] : rosterStatements(db, rows.roster, now)),
+      ...(rows.roster === undefined || !changed(ROSTER)
+        ? []
+        : rosterStatements(db, rows.roster, Date.now())),
     ])
-    this.wroteNone = none
+    this.written = now
   }
 }
 
-/** Every public sheet the room holds written, tagged with the room; every other it wrote, deleted. */
+const HELD_SHEETS = 'held:sheets'
+const HELD_HOMEBREW = 'held:homebrew'
+const HELD_CREW = 'held:crew'
+const ROSTER = 'roster'
+
+const sheetKey = (row: PublishedSheet) => `sheet:${row.kind}:${row.appId}`
+
+/** Every row the room holds, by key, as it would be written; and each set held, as its keys. */
+function* rowKeys(rows: Published, maker: boolean): Generator<[string, string]> {
+  for (const row of rows.sheets) yield [sheetKey(row), JSON.stringify(row)]
+  yield [HELD_SHEETS, JSON.stringify(rows.sheets.map(sheetKey))]
+  if (maker) {
+    const crew = rows.crew ?? []
+    for (const row of rows.homebrew) yield [`homebrew:${row.appId}`, JSON.stringify(row)]
+    yield [HELD_HOMEBREW, JSON.stringify(rows.homebrew.map((row) => row.appId))]
+    for (const row of crew) yield [`crew:${row.appId}`, JSON.stringify(row)]
+    yield [HELD_CREW, JSON.stringify(crew.map((row) => row.appId))]
+  }
+  if (rows.roster !== undefined) yield [ROSTER, JSON.stringify(rows.roster)]
+}
+
+/**
+ * The public sheets to write, tagged with the room; with `held` (the whole set,
+ * when it changed), every other the room wrote, deleted.
+ */
 function sheetStatements(
   db: SharedDb,
   room: string,
   rows: readonly PublishedSheet[],
+  held: readonly PublishedSheet[] | null,
   now: number
 ): SharedStatement[] {
   const upsert = db.prepare(
@@ -120,7 +162,6 @@ function sheetStatements(
        owner_id = excluded.owner_id, page = excluded.page, preview = excluded.preview,
        updated_at = excluded.updated_at, room = excluded.room`
   )
-  const held = JSON.stringify(rows.map((row) => `${row.kind}:${row.appId}`))
   return [
     ...rows.map((row) =>
       upsert.bind(
@@ -133,20 +174,25 @@ function sheetStatements(
         room
       )
     ),
-    db
-      .prepare(
-        `delete from public_sheets where room = ?1
-         and kind || ':' || app_id not in (select value from json_each(?2))`
-      )
-      .bind(room, held),
+    ...(held === null
+      ? []
+      : [
+          db
+            .prepare(
+              `delete from public_sheets where room = ?1
+               and kind || ':' || app_id not in (select value from json_each(?2))`
+            )
+            .bind(room, JSON.stringify(held.map((row) => `${row.kind}:${row.appId}`))),
+        ]),
   ]
 }
 
-/** Every pattern the maker lists written; every other they listed, deleted. Its moderation stays. */
+/** The listings to write; with `held`, every other the maker listed, deleted. Moderation stays. */
 function homebrewStatements(
   db: SharedDb,
   maker: string,
-  rows: readonly PublishedPattern[]
+  rows: readonly PublishedPattern[],
+  held: readonly PublishedPattern[] | null
 ): SharedStatement[] {
   const upsert = db.prepare(
     `insert into homebrew_patterns (app_id, owner_id, chassis_ref, name, body, made_by, shared_at)
@@ -155,7 +201,6 @@ function homebrewStatements(
        owner_id = excluded.owner_id, chassis_ref = excluded.chassis_ref, name = excluded.name,
        body = excluded.body, made_by = excluded.made_by, shared_at = excluded.shared_at`
   )
-  const held = JSON.stringify(rows.map((row) => row.appId))
   return [
     ...rows.map((row) =>
       upsert.bind(
@@ -168,12 +213,7 @@ function homebrewStatements(
         row.sharedAt
       )
     ),
-    db
-      .prepare(
-        `delete from homebrew_patterns where owner_id = ?1
-         and app_id not in (select value from json_each(?2))`
-      )
-      .bind(maker, held),
+    ...deleteUnheld(db, 'homebrew_patterns', maker, held),
   ]
 }
 
@@ -222,11 +262,12 @@ function rosterStatements(db: SharedDb, roster: PublishedRoster, now: number): S
   ]
 }
 
-/** Every pattern the maker shares with a crew written; every other they shared, deleted. */
+/** The crew patterns to write; with `held`, every other the maker shared, deleted. */
 function crewStatements(
   db: SharedDb,
   maker: string,
-  rows: readonly PublishedCrewPattern[]
+  rows: readonly PublishedCrewPattern[],
+  held: readonly PublishedCrewPattern[] | null
 ): SharedStatement[] {
   const upsert = db.prepare(
     `insert into crew_patterns (app_id, owner_id, game_id, body, made_by, shared_at)
@@ -235,7 +276,6 @@ function crewStatements(
        owner_id = excluded.owner_id, game_id = excluded.game_id, body = excluded.body,
        made_by = excluded.made_by, shared_at = excluded.shared_at`
   )
-  const held = JSON.stringify(rows.map((row) => row.appId))
   return [
     ...rows.map((row) =>
       upsert.bind(
@@ -247,11 +287,24 @@ function crewStatements(
         row.sharedAt
       )
     ),
+    ...deleteUnheld(db, 'crew_patterns', maker, held),
+  ]
+}
+
+/** With the maker's whole set held (when it changed), the delete of every row of theirs outside it. */
+function deleteUnheld(
+  db: SharedDb,
+  table: 'homebrew_patterns' | 'crew_patterns',
+  maker: string,
+  held: readonly { appId: string }[] | null
+): SharedStatement[] {
+  if (held === null) return []
+  return [
     db
       .prepare(
-        `delete from crew_patterns where owner_id = ?1
+        `delete from ${table} where owner_id = ?1
          and app_id not in (select value from json_each(?2))`
       )
-      .bind(maker, held),
+      .bind(maker, JSON.stringify(held.map((row) => row.appId))),
   ]
 }

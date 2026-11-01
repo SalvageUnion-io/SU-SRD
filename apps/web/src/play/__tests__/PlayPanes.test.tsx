@@ -44,7 +44,6 @@ const serverMocks = await installServerMocks({
 setQueryAnswers({
   'account.me': null,
   'seats.forGame': [],
-  'games.members': [],
   'entities.listForGame': null,
   'channelBindings.current': null,
   'safety.stopSign': null,
