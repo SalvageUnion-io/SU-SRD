@@ -197,7 +197,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       () =>
         dispatch({
           type: 'paid',
-          message: `Paid ${paid.payment.upgradeCredit - paid.payment.short} of ${paid.payment.upgradeCredit} Scrap (${drawText || 'none'}) — Upgrade Pool now ${paid.patch.upgradePool}${
+          message: `Paid ${paid.payment.upgradeCredit} of ${paid.payment.cost} Scrap (${drawText || 'none'}) — Upgrade Pool now ${paid.patch.upgradePool}${
             quote ? ` of ${quote.cost}` : ''
           }.`,
         })

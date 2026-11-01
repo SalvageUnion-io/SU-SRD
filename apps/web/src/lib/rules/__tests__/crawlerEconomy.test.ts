@@ -141,7 +141,7 @@ describe('payUpkeep', () => {
     const payment = payUpkeep({ tl1: 50, tl3: 4 }, 3)
     expect(payment.pool).toEqual({ tl1: 50, tl3: 0 })
     expect(payment.short).toBe(1)
-    expect(payment.upgradeCredit).toBe(5)
+    expect(payment.upgradeCredit).toBe(4)
   })
 })
 

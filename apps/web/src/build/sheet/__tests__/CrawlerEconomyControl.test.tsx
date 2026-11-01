@@ -136,7 +136,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     expect(screen.getByRole('status').textContent).toContain('Med Bay is Damaged')
   })
 
-  test('paying from a short pool is advisory: it spends what it has and still credits', async () => {
+  test('paying from a short pool is advisory: it spends what it has and credits only that', async () => {
     const crawler = makeCrawler({ scrapPool: { tl2: 3 }, upgradePool: 0 })
     const { store, update } = makeStubStore(crawler)
     render(
@@ -152,7 +152,7 @@ describe('CrawlerEconomyControl — Pay Upkeep', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pay Upkeep' }))
     await screen.findByRole('status')
 
-    expect(update.mock.calls[0]?.[2]).toEqual({ scrapPool: { tl2: 0 }, upgradePool: 5 })
+    expect(update.mock.calls[0]?.[2]).toEqual({ scrapPool: { tl2: 0 }, upgradePool: 3 })
     expect(screen.getByRole('status').textContent).toContain('Paid 3 of 5 Scrap')
   })
 

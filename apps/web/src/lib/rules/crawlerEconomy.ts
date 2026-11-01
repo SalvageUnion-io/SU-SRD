@@ -133,7 +133,9 @@ export type UpkeepPayment = {
   pool: ScrapPool
   /** Which buckets paid (lowest qualifying first). */
   draws: PoolDraw[]
-  /** Scrap credited to the Upgrade Pool (paid Upkeep credits in full). */
+  /** The Upkeep due this Downtime. */
+  cost: number
+  /** Scrap credited to the Upgrade Pool: what was actually drawn. */
   upgradeCredit: number
   /** What the pool could not cover (0 = paid in full); advisory. */
   short: number
@@ -146,14 +148,15 @@ export function upkeepShortfall(pool: ScrapPool, crawlerTl: number): number {
 
 /**
  * Pay Upkeep: draw the tier's Upkeep (crawler TL or higher) from the pool and
- * credit the Upgrade Pool in full (p.218). A short pool spends what it has and
- * names the rest in `short` (advisory); the caller may offer Deterioration.
+ * credit what was drawn to the Upgrade Pool (p.218). A short pool spends what
+ * it has, credits only that, and names the rest in `short` (advisory: the
+ * payment still lands); the caller still offers Deterioration.
  */
 export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment {
   const cost = crawlerUpkeepCost(crawlerTl)
   const short = poolShortfall(pool, crawlerTl, cost)
   const drawn = drawFromPool(pool, crawlerTl, cost, { partial: true })
-  return { pool: drawn.pool, draws: drawn.draws, upgradeCredit: cost, short }
+  return { pool: drawn.pool, draws: drawn.draws, cost, upgradeCredit: cost - short, short }
 }
 
 /**
