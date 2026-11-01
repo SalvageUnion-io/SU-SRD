@@ -4,12 +4,14 @@
  * opponent's Tech Level read from its reference entity here.
  *
  * The spoils are what the opposition could leave behind: each Mech's Chassis,
- * Systems and Modules, its "loot table" (p.269), and each Vehicle or Meld's
- * Salvage Value in Scrap (p.246). Read-only: nothing here pays out.
+ * Systems and Modules, its "loot table" (p.269), and each Vehicle or Drone's
+ * Salvage Value in Scrap (p.246): Play's wreck rule (`wreckOf`), so Prep
+ * promises what Play pays. Read-only: nothing here pays out.
  */
 
 import type { Crew, ThreatRead } from 'game-domain/rules/threat'
 import { threatRead } from 'game-domain/rules/threat'
+import { wreckOf } from 'game-domain/rules/wreck'
 import type { Encounter, EncounterOpponent } from 'game-domain/schemas/encounter'
 import type { RefEntity } from 'salvageunion-reference'
 import { opponentAsTray } from './encounter.model'
@@ -49,7 +51,7 @@ export type Spoil =
       kind: 'scrap'
       opponent: EncounterOpponent
       salvageValue: number
-      techLevel: number | null
+      techLevel: number
     }
 
 const names = (value: unknown): string[] =>
@@ -61,15 +63,15 @@ const names = (value: unknown): string[] =>
 
 /**
  * The spoils, opponent by opponent, in the order the opposition lists them:
- * a Mech as its Chassis and the loadout it was drawn with, a Vehicle or Meld
- * as its Salvage Value. Those the data gives nothing to salvage are left out.
+ * a Mech as its Chassis and the loadout it was drawn with, a Vehicle or Drone
+ * as its Salvage Value. Those that leave nothing (`wreckOf`) are left out.
  */
 export function spoilsOf(encounter: Encounter): Spoil[] {
   return encounter.opposition.flatMap((opponent): Spoil[] => {
     const { entity, pattern } = opponentAsTray(opponent)
-    const salvageValue = salvageValueOf(entity)
-    const techLevel = techLevelOf(entity)
     if (opponent.refSchema === 'chassis' && entity !== null) {
+      const salvageValue = salvageValueOf(entity)
+      const techLevel = techLevelOf(entity)
       return [
         {
           kind: 'mech',
@@ -80,7 +82,10 @@ export function spoilsOf(encounter: Encounter): Spoil[] {
         },
       ]
     }
-    if (salvageValue === null) return []
-    return [{ kind: 'scrap', opponent, salvageValue, techLevel }]
+    const wreck = wreckOf(opponent.refSchema, entity as Record<string, unknown> | null, [])
+    if (wreck?.kind !== 'scrap') return []
+    return [
+      { kind: 'scrap', opponent, salvageValue: wreck.salvageValue, techLevel: wreck.techLevel },
+    ]
   })
 }

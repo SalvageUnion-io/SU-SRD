@@ -116,6 +116,12 @@ describe('spoilsOf (Core Book p.246, 269)', () => {
     expect(tank).toMatchObject({ kind: 'scrap', salvageValue: 4, techLevel: 3 })
   })
 
+  test('a Drone scraps too, as Play pays it (p.246); Meld leaves nothing', () => {
+    const [drone] = spoilsOf(encounter([opponent('d', 'drones', 'defacer-drone', 2)]))
+    expect(drone).toMatchObject({ kind: 'scrap', salvageValue: 1, techLevel: 1 })
+    expect(spoilsOf(encounter([opponent('x', 'meld', 'meld-drone', 2)]))).toEqual([])
+  })
+
   test('those the data gives nothing to salvage are left out', () => {
     expect(spoilsOf(encounter([opponent('r', 'npcs', 'raider', 3)]))).toEqual([])
   })
