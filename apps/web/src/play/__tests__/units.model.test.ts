@@ -70,12 +70,20 @@ describe('mechRestorePreview (play.md §6)', () => {
       techLevel: 'tech-2',
       crawlerBays: [{ bayRef: 'mech-bay' }],
     })
-    expect(mechRestorePreview(worn, crawler, RESTORE_STEP)).toEqual({ sp: 12, ep: 4, heat: 0 })
+    expect(mechRestorePreview(worn, undefined, crawler, RESTORE_STEP)).toEqual({
+      sp: 12,
+      ep: 4,
+      heat: 0,
+    })
+  })
+
+  test("restores to the max the pilot's Beefcake raises", () => {
+    expect(mechRestorePreview(worn, ['beefcake'], null, RESTORE_STEP).sp).toBe(16)
   })
 
   test('any other step, or no Downtime, restores nothing', () => {
-    expect(mechRestorePreview(worn, null, RESTORE_STEP + 1)).toEqual({})
-    expect(mechRestorePreview(worn, null, null)).toEqual({})
+    expect(mechRestorePreview(worn, undefined, null, RESTORE_STEP + 1)).toEqual({})
+    expect(mechRestorePreview(worn, undefined, null, null)).toEqual({})
   })
 
   test('a damaged Mech Bay restores nothing (p.221)', () => {
@@ -83,12 +91,12 @@ describe('mechRestorePreview (play.md §6)', () => {
       id: 'c',
       crawlerBays: [{ bayRef: 'mech-bay', condition: 'damaged' }],
     })
-    expect(mechRestorePreview(worn, crawler, RESTORE_STEP)).toEqual({})
+    expect(mechRestorePreview(worn, undefined, crawler, RESTORE_STEP)).toEqual({})
   })
 
   test('a mech already whole has nothing to restore', () => {
     const whole = mechFixture({ id: 'm', chassisRef: 'mule', currentSP: 12, currentEP: 4 })
-    expect(mechRestorePreview(whole, null, RESTORE_STEP)).toEqual({})
+    expect(mechRestorePreview(whole, undefined, null, RESTORE_STEP)).toEqual({})
   })
 })
 

@@ -22,14 +22,14 @@
  * Not on hand, it is its head alone, the need its chip.
  */
 
+import { mechMaxima } from 'game-domain/rules/crewStatus'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { useState } from 'react'
 import {
   canPush,
-  mechMaxHeat,
-  mechMaxSP,
   overloadTableName,
   overloadTableOf,
   resolveChassisRef,
@@ -63,6 +63,8 @@ type PlayReactorRowProps = {
   mech: Mech
   /** The pilot aboard, whom a Bio-Chassis's overload can hurt (WWHF p.79). */
   pilot: Pilot | null
+  /** The pilot's crawler: its Tech Level sets their max HP (Stat Training). */
+  crawler: Crawler | null
   store: PlayStore
   rollFor: PlayActions['rollFor']
   /** Why it is not on hand ("needs Boarded"), or null when it is. */
@@ -75,6 +77,7 @@ type PlayReactorRowProps = {
 export function PlayReactorRow({
   mech,
   pilot,
+  crawler,
   store,
   rollFor,
   need,
@@ -90,7 +93,7 @@ export function PlayReactorRow({
   const overloadTable = overloadTableOf(chassis)
   const overloadTableTitle = overloadTableName(overloadTable)
   const now = fresh()
-  const cap = mechMaxHeat(now, chassis)
+  const cap = mechMaxima(now, pilot?.abilities, []).maxHeat
   const heat = resolveGauge(now.currentHeat, cap)
   const pushHeat = pushHeatAt(heatScale)
   const pushLocked = !canPush(heat, cap, pushHeat)
@@ -106,7 +109,7 @@ export function PlayReactorRow({
       outcome: () => said,
     })
     const pushed = pushMech(
-      { store, mech, pilot, roll, heatScale },
+      { store, mech, pilot, crawler, roll, heatScale },
       ({ text, meltdown, overloadRoll }) =>
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
     )
@@ -120,10 +123,10 @@ export function PlayReactorRow({
       outcome: () => said,
     })
     const m = fresh()
-    const mcap = mechMaxHeat(m, chassis)
+    const { maxHeat, maxSP } = mechMaxima(m, pilot?.abilities, [])
     const { patch, effect, meltdown } = heatCheckOncePatch({
-      heat: resolveGauge(m.currentHeat, mcap),
-      currentSP: resolvePoolStart(m.currentSP, mechMaxSP(m, chassis)),
+      heat: resolveGauge(m.currentHeat, maxHeat),
+      currentSP: resolvePoolStart(m.currentSP, maxSP),
       roll,
       table: overloadTable,
     })
@@ -134,7 +137,7 @@ export function PlayReactorRow({
       () => store.update('mech', mech.id, patch, PLAY_TXN),
       () => {
         setLog({ text, meltdown, ...(overloadRoll === undefined ? {} : { overloadRoll }) })
-        hurtPilot(store, pilot, effect)
+        hurtPilot(store, { pilot, crawler }, effect)
       }
     )
   }

@@ -13,7 +13,9 @@
  * patch — it stays an explicit player call at the UI layer.
  */
 
+import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import { pushHeatAt, scaleHeat } from 'game-domain/rules/sceneConditions'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -33,13 +35,10 @@ import {
   clampHeat,
   describeOverloadOutcome,
   describePushOutcome,
-  mechMaxHeat,
-  mechMaxSP,
   overloadTableName,
   overloadTableOf,
   performHeatCheck,
   performPush,
-  pilotMaxHP,
   resolveChassisRef,
   resolveGauge,
   resolvePoolStart,
@@ -100,10 +99,12 @@ export function pushPatch(args: {
  * would pass the Heat Cap (Core Book p.234). The resolve's Push
  * (`useActionsDeck`) and `PlayReactorRow`'s both run it. Under a Scene's
  * conditions the Push's Heat is scaled (`heatScale`: 4 in a Radiation Storm,
- * 1 Freezing; `pushHeatAt`).
+ * 1 Freezing; `pushHeatAt`). The pilot's abilities raise the maxima the
+ * mech starts from (Beefcake, `mechMaxima`).
  */
 export function mechPush(
   mech: Mech,
+  pilotAbilities: string[] | undefined,
   roll: Roll,
   heatScale = 1
 ): {
@@ -115,8 +116,7 @@ export function mechPush(
   /** What the overload does to the Pilot (a Bio-Chassis's), for `pilotOverloadPatch`. */
   effect: HeatCheckEffect
 } | null {
-  const chassis = resolveChassisRef(mech.chassisRef)
-  const heatCap = mechMaxHeat(mech, chassis)
+  const { chassis, maxSP, maxHeat: heatCap } = mechMaxima(mech, pilotAbilities, [])
   const heat = resolveGauge(mech.currentHeat, heatCap)
   const gain = pushHeatAt(heatScale)
   if (!canPush(heat, heatCap, gain)) return null
@@ -127,7 +127,7 @@ export function mechPush(
     gain,
     // Unrecorded SP means undamaged. At 0 an Overheat wrote the mech straight
     // to SP 0 — one hit from destroyed — without it ever having taken damage.
-    currentSP: resolvePoolStart(mech.currentSP, mechMaxSP(mech, chassis)),
+    currentSP: resolvePoolStart(mech.currentSP, maxSP),
     roll,
     table,
   })
@@ -145,12 +145,17 @@ export function mechPush(
  * What a Bio-Chassis overload does to its Pilot (We Were Here First p.79): a
  * Bio-Overload's HP damage equal to the Heat, or a Pilot Overload's Minor or
  * Major Injury. Null when the overload leaves the Pilot alone, as every
- * Reactor Overload row does.
+ * Reactor Overload row does. The crawler the pilot crews sets their max HP
+ * (Stat Training, `pilotMaxima`).
  */
-export function pilotOverloadPatch(pilot: Pilot, effect: HeatCheckEffect): Partial<Pilot> | null {
+export function pilotOverloadPatch(
+  pilot: Pilot,
+  crawler: Pick<Crawler, 'techLevel'> | null,
+  effect: HeatCheckEffect
+): Partial<Pilot> | null {
   const patch: Partial<Pilot> = {}
   if (effect.pilotDamage !== undefined) {
-    const hp = resolvePoolStart(pilot.currentHP, pilotMaxHP(pilot))
+    const hp = resolvePoolStart(pilot.currentHP, pilotMaxima(pilot, crawler).maxHP)
     patch.currentHP = Math.max(0, hp - effect.pilotDamage)
   }
   if (effect.pilotInjury !== undefined) {

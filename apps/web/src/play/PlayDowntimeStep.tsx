@@ -148,7 +148,13 @@ export function PlayDowntimeStep({
       : {}
     const freshMech = mech ? (store.get('mech', mech.id) ?? mech) : null
     const mechPatch = freshMech
-      ? downtimeMechPatch(freshMech, crawlerTl(crawler), steps, mechBayOf(crawler))
+      ? downtimeMechPatch(
+          freshMech,
+          freshPilot?.abilities,
+          crawlerTl(crawler),
+          steps,
+          mechBayOf(crawler)
+        )
       : {}
     const mechShare =
       freshMech && Object.keys(mechPatch).length > 0

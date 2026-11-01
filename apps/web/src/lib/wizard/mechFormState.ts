@@ -15,7 +15,6 @@ import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
-import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
 
 /** Shape of form state carried through the mech wizard. */
@@ -107,23 +106,20 @@ function mechFormToPartners(form: MechWizardFormState) {
 }
 
 /**
- * Create payload for a fresh mech. Fresh mechs start at full SP/EP from the
- * chassis and Heat 0 — never Heat-at-capacity.
+ * Create payload for a fresh mech. Its SP, EP and Heat stay unset: an unset
+ * pool reads full and an unset gauge reads 0 (`resolvePool`, `resolveGauge`),
+ * so the fresh mech starts at its derived maxima, loadout included.
  *
  * Drones granted by the chassis ability (and kitted by the pattern) are seeded
  * here: they are part of the machine being built, not something the player adds
  * afterwards — there is no "add a drone" control, by design.
  */
 export function mechFormToCreateInput(form: MechWizardFormState) {
-  const chassis = resolveChassisRef(form.chassisName)
   const partners = mechFormToPartners(form)
   return {
     schemaVersion: 1 as const,
     ...mechFormToUpdatePatch(form),
     conditions: [],
-    currentSP: chassis?.structurePoints,
-    currentEP: chassis?.energyPoints,
-    currentHeat: 0,
     ...(partners !== undefined ? { partners } : {}),
   }
 }

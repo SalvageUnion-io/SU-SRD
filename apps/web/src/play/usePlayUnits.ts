@@ -90,6 +90,8 @@ export function usePlayUnits(play: Play): PlayUnits {
     play.mechs.find((o) => o.state === 'yours')?.mechId ??
     null
   const mechId = play.boardedMechId ?? assignedId
+  const pilotAbilities =
+    target.pilotId === null ? undefined : store.get('pilot', target.pilotId)?.abilities
   const heldMech = mechId === null ? null : store.get('mech', mechId)
   const mech = heldMech ?? (mechId === null ? null : listed(listing?.mechs, 'mech', mechId))
 
@@ -143,7 +145,12 @@ export function usePlayUnits(play: Play): PlayUnits {
             place,
             restore:
               place === 'downtime'
-                ? mechRestorePreview(mech, crawler, play.downtime.downtime.stepIndex)
+                ? mechRestorePreview(
+                    mech,
+                    pilotAbilities,
+                    crawler,
+                    play.downtime.downtime.stepIndex
+                  )
                 : {},
             held: heldMech !== null,
           },

@@ -111,19 +111,19 @@ describe('under a Scene’s conditions (Workshop Manual p.306, False Flag p.9)',
     mechFixture({ id: 'm-scene', name: 'Rig', chassisRef: 'mule', currentHeat })
 
   test('a Push in a Radiation Storm adds 4 Heat, and says so', () => {
-    const pushed = mechPush(mule(1), seqRoll([20]), 2)
+    const pushed = mechPush(mule(1), undefined, seqRoll([20]), 2)
     expect(pushed?.patch.currentHeat).toBe(5)
     expect(pushed?.text.startsWith('+4 Heat → 5.')).toBe(true)
   })
 
   test('Freezing halves it: a Push adds 1', () => {
-    expect(mechPush(mule(3), seqRoll([20]), 0.5)?.patch.currentHeat).toBe(4)
+    expect(mechPush(mule(3), undefined, seqRoll([20]), 0.5)?.patch.currentHeat).toBe(4)
   })
 
   test('no Push where the scaled Heat would pass the Heat Cap', () => {
     const hot = mule(4)
-    expect(mechPush(hot, seqRoll([20]))).not.toBeNull()
-    expect(mechPush(hot, seqRoll([20]), 2)).toBeNull()
+    expect(mechPush(hot, undefined, seqRoll([20]))).not.toBeNull()
+    expect(mechPush(hot, undefined, seqRoll([20]), 2)).toBeNull()
   })
 
   test('Hot Heat scales, rounded down; EP and uses do not', () => {
@@ -417,7 +417,7 @@ describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', (
   const fleshripper = mechFixture({ id: 'bio', chassisRef: 'fleshripper', currentHeat: 4 })
 
   test("a Push's Bio-Overload shuts the chassis down and leaves its SP", () => {
-    const pushed = mechPush(fleshripper, seqRoll([2, 12]))
+    const pushed = mechPush(fleshripper, undefined, seqRoll([2, 12]))
     expect(pushed?.effect.result.outcome).toBe('bio-overload')
     expect(pushed?.patch).toMatchObject({ currentHeat: 6, shutdown: true, vulnerable: true })
     // The Fleshripper's 50 SP, untouched: the Heat is the Pilot's.
@@ -427,16 +427,24 @@ describe('a Bio-Chassis overloads on its own table (We Were Here First p.79)', (
 
   test("the Heat burns the Pilot, and a Pilot Overload is the Pilot's Injury", () => {
     const pilot = pilotFixture({ id: 'p', currentHP: 10 })
-    const burnt = mechPush(fleshripper, seqRoll([2, 12]))
-    expect(burnt && pilotOverloadPatch(pilot, burnt.effect)).toEqual({ currentHP: 4 })
-    const hurt = mechPush(fleshripper, seqRoll([2, 4]))
-    expect(hurt && pilotOverloadPatch(pilot, hurt.effect)).toEqual({
+    const burnt = mechPush(fleshripper, undefined, seqRoll([2, 12]))
+    expect(burnt && pilotOverloadPatch(pilot, null, burnt.effect)).toEqual({ currentHP: 4 })
+    const hurt = mechPush(fleshripper, undefined, seqRoll([2, 4]))
+    expect(hurt && pilotOverloadPatch(pilot, null, hurt.effect)).toEqual({
       injuries: [{ severity: 'major', note: 'Bio-Chassis Overload Table' }],
     })
   })
 
+  test("an unhurt pilot's HP starts from their Stat Training max (Tech 3 crawler: +4)", () => {
+    const burnt = mechPush(fleshripper, undefined, seqRoll([2, 12]))
+    const fresh = pilotFixture({ id: 'p' })
+    const tl1 = burnt && pilotOverloadPatch(fresh, null, burnt.effect)
+    const tl3 = burnt && pilotOverloadPatch(fresh, { techLevel: 'tech-3' }, burnt.effect)
+    expect((tl3?.currentHP ?? 0) - (tl1?.currentHP ?? 0)).toBe(4)
+  })
+
   test("a mech's Reactor Overload leaves the Pilot alone", () => {
     const { effect } = heatCheckOncePatch({ heat: 6, currentSP: 10, roll: seqRoll([3, 15]) })
-    expect(pilotOverloadPatch(pilotFixture({ id: 'p' }), effect)).toBeNull()
+    expect(pilotOverloadPatch(pilotFixture({ id: 'p' }), null, effect)).toBeNull()
   })
 })

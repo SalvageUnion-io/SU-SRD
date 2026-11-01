@@ -61,7 +61,7 @@ describe('saving a mech as a pattern', () => {
 })
 
 describe('building a mech from a pattern', () => {
-  test('starts fresh — full SP and EP, Heat 0, an empty hold — and records its source', () => {
+  test('starts fresh — SP, EP and Heat unset, an empty hold — and records its source', () => {
     const input = mechFromPattern(towRig)
     expect(input).toMatchObject({
       name: 'Tow Rig',
@@ -71,11 +71,11 @@ describe('building a mech from a pattern', () => {
       modules: ['comms-module'],
       cargoLots: [],
       conditions: [],
-      currentHeat: 0,
       sourcePattern: 'pat-tow-rig',
     })
-    expect(input.currentSP).toBe(9)
-    expect(input.currentEP).toBe(9)
+    expect(input).not.toHaveProperty('currentSP')
+    expect(input).not.toHaveProperty('currentEP')
+    expect(input).not.toHaveProperty('currentHeat')
   })
 
   test('copies the loadout rather than sharing the arrays', () => {
