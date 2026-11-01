@@ -11,7 +11,12 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { RefChassis, RefEntity, RefObjectPattern } from 'salvageunion-reference'
-import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
+import {
+  computeMechCapacity,
+  resolveChassisRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
 import type { CreateInput } from '../../replica/types'
 
 /** What `patternStore.create` takes: the id and timestamp are minted on create. */
@@ -86,12 +91,17 @@ export function patternLoadout(pattern: Pick<MechPattern, 'systems' | 'modules'>
   }
 }
 
-/** Slots a loadout fills: a system or module's `slotsRequired`, one when unstated. */
-export function slotsUsed(items: RefEntity[]): number {
-  return items.reduce((sum, item) => {
-    const slots = 'slotsRequired' in item ? Number(item.slotsRequired) : Number.NaN
-    return sum + (Number.isFinite(slots) ? slots : 1)
-  }, 0)
+/**
+ * The slots a loadout fills and the budget it fills them from, as the mech
+ * sheet counts them (`computeMechCapacity`: a multi-headed chassis's heads
+ * add to the budget).
+ */
+export function loadoutSlots(unit: Pick<MechPattern, 'chassisRef' | 'systems' | 'modules'>) {
+  return computeMechCapacity({
+    chassisRef: unit.chassisRef,
+    systems: unit.systems.map((ref) => ({ ref })),
+    modules: unit.modules.map((ref) => ({ ref })),
+  })
 }
 
 /**

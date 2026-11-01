@@ -8,6 +8,7 @@
  */
 
 import { containerOf } from 'game-domain/container'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
@@ -155,9 +156,14 @@ export type SoloPilot = {
 export function soloPilots(
   pilots: readonly Pilot[],
   mechs: readonly Mech[],
+  crawlers: readonly Crawler[],
   softLinks: readonly SoftLink[]
 ): SoloPilot[] {
   const mechNames = new Map(mechs.map((m) => [m.id, m.name]))
+  const crawlerOf = (pilot: Pilot) => {
+    const link = softLinks.find((l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id)
+    return crawlers.find((c) => c.id === link?.to.id) ?? null
+  }
   return pilots
     .filter((pilot) => containerOf(pilot).kind === 'shelf')
     .map((pilot) => {
@@ -167,7 +173,7 @@ export function soloPilots(
         name: pilot.name,
         mechName: (link && mechNames.get(link.from.id)) ?? null,
         mechId: link && mechNames.has(link.from.id) ? link.from.id : null,
-        readings: rowStats(pilotRailItems(pilot)),
+        readings: rowStats(pilotRailItems(pilot, crawlerOf(pilot))),
       }
     })
 }

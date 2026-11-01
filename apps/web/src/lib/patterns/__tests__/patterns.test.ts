@@ -3,12 +3,12 @@ import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import { FIXTURE_NOW, mechFixture } from '../../../components/__tests__/fixtures'
 import {
   asReferencePattern,
+  loadoutSlots,
   mechFromPattern,
   patternCopy,
   patternFromMech,
   patternLoadout,
   savedPatternHref,
-  slotsUsed,
 } from '../patterns'
 
 /**
@@ -98,8 +98,12 @@ describe('a pattern in the reference shapes', () => {
     const { systems, modules } = patternLoadout(towRig)
     expect(systems.map((s) => s.name)).toEqual(['Rigging Arm', 'Transport Hold'])
     expect(modules.map((m) => m.name)).toEqual(['Comms Module'])
-    expect(slotsUsed(systems)).toBe(4)
-    expect(slotsUsed(modules)).toBe(1)
+    expect(loadoutSlots(towRig)).toMatchObject({ systemSlotsUsed: 4, moduleSlotsUsed: 1 })
+  })
+
+  test("a multi-headed chassis's budget counts its heads, as the sheet does (Cerberus)", () => {
+    const bare = loadoutSlots({ chassisRef: 'cerberus', systems: [], modules: [] })
+    expect(bare.systemSlotsMax).toBeGreaterThan(5)
   })
 
   test('renders as a reference pattern, by name', () => {

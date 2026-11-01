@@ -33,6 +33,10 @@ export type PublishedSheet = {
     ownerName: string | null
     gameName: string | null
     mechChassisRef?: string | null
+    /** A pilot's crawler's stored Tech Level: it sets their max HP/AP (Stat Training). */
+    crawlerTechLevel?: string | null
+    /** A mech's pilot's abilities, as its page carries them (Beefcake). */
+    pilotAbilities?: string[]
   }
 }
 
@@ -181,6 +185,10 @@ function sheetOf(
     }
   }
   const ownerName = unit.ownerId === null ? null : context.nameOf(unit.ownerId)
+  const flying =
+    unit.kind === 'mech'
+      ? { pilotAbilities: pilotAbilities(store, units, unit, context.place.kind === 'game') }
+      : {}
   return {
     kind: unit.kind,
     appId: unit.id,
@@ -189,9 +197,7 @@ function sheetOf(
       kind: unit.kind,
       appId: unit.id,
       body: unit.body,
-      ...(unit.kind === 'mech'
-        ? { pilotAbilities: pilotAbilities(store, units, unit, context.place.kind === 'game') }
-        : {}),
+      ...flying,
       ...(unit.kind === 'npc' ? { madeBy: ownerName ?? 'a player' } : {}),
       links,
       linked: [...linked.values()],
@@ -202,7 +208,13 @@ function sheetOf(
       body: unit.body,
       ownerName,
       gameName: context.place.kind === 'game' ? context.place.name : null,
-      ...(unit.kind === 'pilot' ? { mechChassisRef: sharedMechOf(store, units, unit) } : {}),
+      ...(unit.kind === 'pilot'
+        ? {
+            mechChassisRef: sharedMechOf(store, units, unit),
+            crawlerTechLevel: crawlerTechLevelOf(store, units, unit),
+          }
+        : {}),
+      ...flying,
     },
   }
 }
@@ -243,6 +255,21 @@ function sharedMechOf(
     if (mech === undefined || mech.kind !== 'mech' || !mech.publicRead) continue
     const chassisRef = mech.body.chassisRef
     if (typeof chassisRef === 'string' && chassisRef.length > 0) return chassisRef
+  }
+  return null
+}
+
+/** The stored Tech Level of the crawler a pilot crews (`pilot-to-crawler`), or null. */
+function crawlerTechLevelOf(
+  store: GameStore,
+  units: Map<string, UnitRow>,
+  pilot: UnitRow
+): string | null {
+  for (const link of store.linksTouching(pilot.id)) {
+    if (link.type !== 'pilot-to-crawler') continue
+    const crawler = units.get(link.from.id === pilot.id ? link.to.id : link.from.id)
+    const techLevel = crawler?.kind === 'crawler' ? crawler.body.techLevel : undefined
+    if (typeof techLevel === 'string') return techLevel
   }
   return null
 }

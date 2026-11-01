@@ -5,21 +5,12 @@
  * non-component exports breaks React Fast Refresh.
  */
 
-import type { pilotingContext } from 'game-domain/rules/pilotingContext'
+import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { CONDITION_LABELS } from 'salvageunion-reference'
-import {
-  crawlerMaxSP,
-  mechMaxEP,
-  mechMaxHeat,
-  mechMaxSP,
-  pilotMaxAP,
-  pilotMaxHP,
-  resolveGauge,
-  resolvePool,
-} from 'salvageunion-reference/rules'
+import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { StatState } from '../../components/index'
 import type { VitalReading } from '../../lib/units/readings'
 import { VITAL, vitalReading } from '../../lib/units/readings'
@@ -47,30 +38,18 @@ export type RailStat = {
   suffix?: string
 }
 
-/**
- * The piloting context a mech's maxima need, assembled by `pilotingContext`
- * (ADR-029). Typed off that helper rather than re-declared, so the rail can
- * never drift from the one place the context is built.
- */
-type Piloting = ReturnType<typeof pilotingContext>
-
 const { sp: SP, ep: EP, heat: HEAT, hp: HP, ap: AP } = VITAL
 
 /**
  * Mech rail vitals: "SP 9/13 · EP 6/11 · Heat 4/12".
  *
- * `piloting` is REQUIRED wherever a pilot is in scope: Beefcake is a pilot
- * ability that raises the piloted mech's Max SP by 3+TechLevel (ADR-029), so a
- * rail built without it reads a lower cap than the mech's own sheet — the
- * pilot's assigned-mech chip and the mech sheet disagreeing about the same
- * mech. Build it with `pilotingContext(mech, pilot?.abilities)`, never by hand.
- * Omit it only when there is genuinely no pilot (an unlinked mech), which is
- * the no-contribution reading an unlinked mech should show.
+ * `pilotAbilities` are the abilities of the pilot assigned to the mech, or
+ * undefined for an unlinked one: Beefcake raises the piloted mech's Max SP
+ * (ADR-029), so the rail reads the same maxima as the mech's sheet
+ * (`mechMaxima`). Required, so a caller cannot forget the pilot.
  */
-export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
-  const maxSP = mechMaxSP(mech, undefined, piloting)
-  const maxEP = mechMaxEP(mech, undefined, piloting)
-  const maxHeat = mechMaxHeat(mech, undefined, piloting)
+export function mechRailItems(mech: Mech, pilotAbilities: string[] | undefined): RailStat[] {
+  const { maxSP, maxEP, maxHeat } = mechMaxima(mech, pilotAbilities, [])
   return [
     { label: SP, value: resolvePool(mech.currentSP, maxSP), max: maxSP },
     { label: EP, value: resolvePool(mech.currentEP, maxEP), max: maxEP },
@@ -81,15 +60,15 @@ export function mechRailItems(mech: Mech, piloting?: Piloting): RailStat[] {
 /**
  * Pilot rail vitals: "HP 7/10 · AP 4/6".
  *
- * `crawlerTechLevel` is the pilot's EFFECTIVE crawler tier
- * (`resolveEffectiveCrawlerLevel(pilot, theirCrawler)`), which raises max HP/AP
- * via Stat Training. Omitting it reads a Tech 1 pilot — lower than their own
- * sheet whenever they are aboard a higher-tier crawler.
+ * `crawler` is the one the pilot crews (null for none): its Tech Level raises
+ * max HP/AP via Stat Training (`pilotMaxima`). Required, so a caller cannot
+ * read a Tech 1 pilot by omission.
  */
-export function pilotRailItems(pilot: Pilot, crawlerTechLevel?: number): RailStat[] {
-  const input = { ...pilot, crawlerTechLevel }
-  const maxHP = Math.max(0, pilotMaxHP(input))
-  const maxAP = Math.max(0, pilotMaxAP(input))
+export function pilotRailItems(
+  pilot: Pilot,
+  crawler: Pick<Crawler, 'techLevel'> | null
+): RailStat[] {
+  const { maxHP, maxAP } = pilotMaxima(pilot, crawler)
   return [
     { label: HP, value: resolvePool(pilot.currentHP, maxHP), max: maxHP },
     { label: AP, value: resolvePool(pilot.currentAP, maxAP), max: maxAP },

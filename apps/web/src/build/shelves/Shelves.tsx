@@ -182,9 +182,24 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Chip names from the WHOLE pile: a link names its other end either way.
   const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  // A linked unit's Mini carries its own stat chips.
-  const pilotReadings = new Map(allPilots.map((p) => [p.id, rowStats(pilotRailItems(p))]))
-  const mechReadings = new Map(allMechs.map((m) => [m.id, rowStats(mechRailItems(m))]))
+  // A unit's stat chips read as its sheet does: a pilot with the crawler they
+  // crew (Stat Training), a mech with its pilot's abilities (Beefcake).
+  const pilotById = new Map(allPilots.map((p) => [p.id, p]))
+  const crawlerById = new Map(allCrawlers.map((c) => [c.id, c]))
+  const linkedTo = (type: string, fromId: string) =>
+    softLinks.find((l) => l.type === type && l.from.id === fromId)?.to.id ?? ''
+  const pilotReadings = new Map(
+    allPilots.map((p) => [
+      p.id,
+      rowStats(pilotRailItems(p, crawlerById.get(linkedTo('pilot-to-crawler', p.id)) ?? null)),
+    ])
+  )
+  const mechReadings = new Map(
+    allMechs.map((m) => [
+      m.id,
+      rowStats(mechRailItems(m, pilotById.get(linkedTo('mech-to-pilot', m.id))?.abilities)),
+    ])
+  )
   const patternSource = allMechs.find((m) => m.id === savingPattern)
 
   // The Showing select: a Game you have since left falls back to Everything.
@@ -428,7 +443,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   kind="pilot"
                   note={pilotFact(p)}
                   name={p.name}
-                  reading={rowStats(pilotRailItems(p))[0]}
+                  reading={pilotReadings.get(p.id)?.[0]}
                   href={`/pilots/${p.id}`}
                   chips={linkChip(sharedByLink, p.id)}
                   linked={crewLinked({
@@ -457,7 +472,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   kind="mech"
                   note={chassisFact(m.chassisRef)}
                   name={m.name}
-                  reading={rowStats(mechRailItems(m))[0]}
+                  reading={mechReadings.get(m.id)?.[0]}
                   href={`/mechs/${m.id}`}
                   chips={linkChip(sharedByLink, m.id)}
                   linked={crewLinked({

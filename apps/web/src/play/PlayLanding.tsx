@@ -55,7 +55,13 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import { useHydrateEntities, useMechs, usePilots, useSoftLinkList } from '../lib/entities'
+import {
+  useCrawlers,
+  useHydrateEntities,
+  useMechs,
+  usePilots,
+  useSoftLinkList,
+} from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
@@ -154,9 +160,9 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot', 'mech', 'softLink'])
+  useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
   const pilots = usePilots()
-  const solo = soloPilots(pilots, useMechs(), useSoftLinkList())
+  const solo = soloPilots(pilots, useMechs(), useCrawlers(), useSoftLinkList())
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
