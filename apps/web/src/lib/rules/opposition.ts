@@ -10,21 +10,63 @@
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { RefEntity } from 'salvageunion-reference'
 import {
+  getEntitySlug,
   getHitPoints,
   getStructurePoints,
   NO_EFFECT,
+  nameToSlug,
   resultForTable,
   rollOnTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
-import { performHeatCheck } from 'salvageunion-reference/rules'
+import { mechMaxEP, mechMaxHeat, mechMaxSP, performHeatCheck } from 'salvageunion-reference/rules'
 
 /** One Morale roll, as an encounter NPC stores its last one. */
 export type MoraleRoll = NonNullable<EncounterNpc['lastMediatorRoll']>
 
-/** A reference entity's HP or SP, whichever it tracks. */
-export function trackOf(entity: RefEntity): { maxHp: number; statKind: 'hp' | 'sp' } {
+/** A drawn pattern, whose loadout (if it lists one) is item names. */
+export type DrawnLoadout = object | null
+
+/** The slugs of the items a drawn pattern lists under `key`. */
+function loadoutSlugs(loadout: DrawnLoadout, key: 'systems' | 'modules'): string[] {
+  const items = loadout !== null && key in loadout ? (loadout as Record<string, unknown>)[key] : []
+  return Array.isArray(items)
+    ? items.flatMap((item) =>
+        typeof item?.name === 'string' ? [nameToSlug(item.name as string)] : []
+      )
+    : []
+}
+
+/**
+ * A chassis drawn with a loadout reads the maxima a mech of that pattern
+ * would (its installed contributions included, `mechMax*`), so an NPC and a
+ * PC of one pattern agree. Null for anything that is not a chassis.
+ */
+function chassisMaxima(entity: RefEntity, loadout: DrawnLoadout) {
+  if (!('energyPoints' in entity) || !('heatCapacity' in entity)) return null
+  if (typeof entity.energyPoints !== 'number' || typeof entity.heatCapacity !== 'number')
+    return null
+  const mech = {
+    chassisRef: getEntitySlug(entity),
+    systems: loadoutSlugs(loadout, 'systems'),
+    modules: loadoutSlugs(loadout, 'modules'),
+  }
+  const chassis = entity as Parameters<typeof mechMaxSP>[1]
+  return {
+    sp: mechMaxSP(mech, chassis),
+    ep: mechMaxEP(mech, chassis),
+    heat: mechMaxHeat(mech, chassis),
+  }
+}
+
+/** A reference entity's HP or SP, whichever it tracks; a chassis's over its drawn loadout. */
+export function trackOf(
+  entity: RefEntity,
+  loadout: DrawnLoadout = null
+): { maxHp: number; statKind: 'hp' | 'sp' } {
+  const mech = chassisMaxima(entity, loadout)
+  if (mech !== null) return { maxHp: mech.sp, statKind: 'sp' }
   const structurePoints = getStructurePoints(entity)
   if (structurePoints !== undefined) return { maxHp: structurePoints, statKind: 'sp' }
   const hitPoints = getHitPoints(entity)
@@ -136,17 +178,12 @@ export type ImportantTrack = {
 export function importantTrackOf(
   schema: string | null,
   entity: RefEntity | null,
-  statKind: 'hp' | 'sp'
+  statKind: 'hp' | 'sp',
+  loadout: DrawnLoadout = null
 ): ImportantTrack | null {
   if (schema === 'bio-titans' || schema === 'meld') return null
-  const reactor =
-    entity !== null &&
-    'energyPoints' in entity &&
-    typeof entity.energyPoints === 'number' &&
-    'heatCapacity' in entity &&
-    typeof entity.heatCapacity === 'number'
-      ? { maxEp: entity.energyPoints, heatCap: entity.heatCapacity }
-      : null
+  const mech = entity === null ? null : chassisMaxima(entity, loadout)
+  const reactor = mech === null ? null : { maxEp: mech.ep, heatCap: mech.heat }
   return { reactor, critical: statKind === 'sp' ? 'critical-damage' : 'critical-injury' }
 }
 

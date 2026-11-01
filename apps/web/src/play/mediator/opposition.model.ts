@@ -97,7 +97,7 @@ export function readTrayNpc(row: { _id: string; body: unknown }): TrayNpc {
   const currentHp = num(body.currentHp, maxHp)
   const roll = body.lastMediatorRoll as MoraleRoll | undefined
   const statKind = body.statKind === 'sp' ? 'sp' : 'hp'
-  const track = importantTrackOf(refSchema, entity, statKind)
+  const track = importantTrackOf(refSchema, entity, statKind, picked)
   const important = body.important === true && track !== null
   const maxEp = num(body.maxEp, track?.reactor?.maxEp ?? 0)
   const heatCap = num(body.heatCap, track?.reactor?.heatCap ?? 0)
@@ -254,7 +254,12 @@ export function newTrayNpc(
   const hostName = 'name' in entity && typeof entity.name === 'string' ? entity.name : 'NPC'
   const name = saved?.name ?? pattern?.name ?? hostName
   const given = custom?.trim() ?? ''
-  const { maxHp, statKind } = trackOf(entity)
+  const { maxHp, statKind } = trackOf(
+    entity,
+    saved
+      ? asReferencePattern({ ...saved, systems: [...saved.systems], modules: [...saved.modules] })
+      : (pattern ?? null)
+  )
   return {
     schemaVersion: 1,
     refSchema: schema,

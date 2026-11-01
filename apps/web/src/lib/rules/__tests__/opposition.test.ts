@@ -105,6 +105,13 @@ const faces =
     rolls.shift() ?? 1
 
 describe('importantTrackOf (Workshop Manual p.255)', () => {
+  test('a chassis drawn with a loadout tracks what a mech of that pattern would (Composite Armour)', () => {
+    const chassis = SalvageUnionReference.Chassis.getByName('Mule')
+    if (!chassis) throw new Error('expected the Mule')
+    const bare = trackOf(chassis).maxHp
+    expect(trackOf(chassis, { systems: [{ name: 'Composite Armour' }] }).maxHp).toBe(bare + 5)
+  })
+
   test('a mech tracks its chassis EP and Heat, and rolls Critical Damage at 0', () => {
     const mule = SalvageUnionReference.Chassis.getByName('Mule')
     if (mule === undefined) throw new Error('no Mule in the reference')
