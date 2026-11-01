@@ -250,7 +250,7 @@ describe('a Game crawler, crewed by its table runner', () => {
   beforeEach(() => {
     setQueryAnswers({
       'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }],
-      'entities.listForGame': gameListing(),
+      'games.listing': gameListing(),
     })
     serve('g1', { members: [{ userId: 'u-sam', displayName: 'Sam' }] })
   })
@@ -300,7 +300,7 @@ describe('a player in someone else’s Game', () => {
     seed({ crawlers: [{ ...TENACITY, gameId: 'g1' }] })
     setQueryAnswers({
       'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities.listForGame': gameListing(),
+      'games.listing': gameListing(),
     })
     await renderBoard('c1', 'med-bay')
     expect(screen.getByText(/Old Mags, the Doc holds/)).toBeTruthy()

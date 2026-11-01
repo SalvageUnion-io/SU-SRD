@@ -154,6 +154,7 @@ export async function installServerMocks(options: InstallOptions = {}): Promise<
 
   // --- capture, before anything is mocked (rule 1) ---
   const realRoomCalls = { ...(await import('../../replica/roomCalls')) }
+  const realGameListing = { ...(await import('../../replica/gameListing')) }
   const realSession = { ...(await import('../../lib/auth/session')) }
   const realRouter = options.router ? { ...(await import('@tanstack/react-router')) } : null
   const realExtras = new Map<string, Record<string, unknown>>()
@@ -162,9 +163,17 @@ export async function installServerMocks(options: InstallOptions = {}): Promise<
   }
 
   // --- install ---
+  const query = options.query ?? mockUseQuery
   mock.module('../../replica/roomCalls', () =>
-    roomCallsMock(realRoomCalls, options.query ?? mockUseQuery, options.call ?? (() => undefined))
+    roomCallsMock(realRoomCalls, query, options.call ?? (() => undefined))
   )
+
+  // A Game's listing is the replica's, read here under the name `games.listing`.
+  mock.module('../../replica/gameListing', () => ({
+    ...realGameListing,
+    useGameListing: (gameId: string | null) =>
+      query('games.listing', gameId === null ? 'skip' : { gameId }),
+  }))
 
   mock.module('../../lib/auth/session', () => ({
     ...realSession,
@@ -196,6 +205,7 @@ export async function installServerMocks(options: InstallOptions = {}): Promise<
     signIns,
     restore() {
       mock.module('../../replica/roomCalls', () => realRoomCalls)
+      mock.module('../../replica/gameListing', () => realGameListing)
       mock.module('../../lib/auth/session', () => realSession)
       if (realRouter !== null) mock.module('@tanstack/react-router', () => realRouter)
       for (const [specifier, real] of realExtras) mock.module(specifier, () => real)

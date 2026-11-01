@@ -20,7 +20,7 @@ import { createElement } from 'react'
  *    app id.
  *
  * Queries are answered by name (`serverMock.ts`): `entities:locate`,
- * `entities:listForGame` and `games:get`.
+ * `games.listing` and `games:get`.
  */
 
 import { makeUnitLot } from 'game-domain/schemas/cargoLot'
@@ -102,7 +102,7 @@ function link(type: 'mech-to-pilot' | 'pilot-to-crawler', from: string, to: stri
   }
 }
 
-/** The Game, as `listForGame` serves it: the crewmate's pilot flies their mech and crews the crawler. */
+/** The Game, as its room serves it: the crewmate's pilot flies their mech and crews the crawler. */
 function listing(over: Record<string, unknown> = {}) {
   return {
     pilots: [
@@ -150,7 +150,7 @@ describe("a crewmate's sheet", () => {
     setQueryAnswers({
       'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
@@ -168,7 +168,7 @@ describe("a crewmate's sheet", () => {
     setQueryAnswers({
       'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
@@ -190,7 +190,7 @@ describe("a crewmate's sheet", () => {
     setQueryAnswers({
       'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
@@ -206,7 +206,7 @@ describe('your own sheet', () => {
     setQueryAnswers({
       'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', MY_PILOT.id)
@@ -244,7 +244,7 @@ describe('your own sheet', () => {
     setQueryAnswers({
       'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games.get': runsTable(false),
-      'entities.listForGame': listing({ softLinks: [] }),
+      'games.listing': listing({ softLinks: [] }),
       'account.me': ME,
     })
     await view('pilot', MY_PILOT.id)
@@ -286,7 +286,7 @@ describe('your own sheet', () => {
     setQueryAnswers({
       'entities.locate': { id: CRAWLER.id, gameId: GAME, mayEdit: true },
       'games.get': runsTable(true),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('crawler', CRAWLER.id)
@@ -324,7 +324,7 @@ describe("a player's view of the Game's crawler", () => {
     setQueryAnswers({
       'entities.locate': { id: CRAWLER.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('crawler', CRAWLER.id)
@@ -364,7 +364,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
     })
     setQueryAnswers({
       'entities.locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
       'games.get': runsTable(tableRunner),
     })
@@ -390,7 +390,7 @@ describe('the tab title', () => {
     setQueryAnswers({
       'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', MY_PILOT.id)
@@ -406,7 +406,7 @@ describe('the tab title', () => {
     setQueryAnswers({
       'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
@@ -419,7 +419,7 @@ describe('addresses', () => {
     setQueryAnswers({
       'entities.locate': { id: THEIR_PILOT.id, gameId: GAME, mayEdit: false },
       'games.get': runsTable(false),
-      'entities.listForGame': listing(),
+      'games.listing': listing(),
       'account.me': ME,
     })
     await view('pilot', 'row-theirs')

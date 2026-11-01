@@ -6,8 +6,8 @@
  * `useLocatedSheet`, worded the same (`SheetFallback`):
  *
  *  - **Yours** — the local copy, editable, unless the server says otherwise.
- *  - **A crewmate's, in a Game you belong to** — read live and read-only from
- *    `entities.listForGame`, never cached (ADR-037), under the crew sheet's
+ *  - **A crewmate's, in a Game you belong to** — read-only from the
+ *    Game's rows in the replica (`useGameListing`), under the crew sheet's
  *    caution banner (`CrewSheetBanner`).
  *  - **Neither** — not found.
  */

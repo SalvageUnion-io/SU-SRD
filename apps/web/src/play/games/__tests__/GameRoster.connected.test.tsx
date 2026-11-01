@@ -24,7 +24,7 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * keeps the dialog open with a reason.
  *
  * Queries are answered **by name** — see `serverMock.ts`.
- * This component asks for: account.me and entities.listForGame; the roster is the Game socket's.
+ * This component asks for: account.me and games.listing; the roster is the Game socket's.
  * Mutations are recorded by name the same way.
  */
 
@@ -122,7 +122,7 @@ async function renderAs(
   serve('g1', { members: members as Record<string, unknown>[] })
   setQueryAnswers({
     'account.me': me,
-    'entities.listForGame': rows,
+    'games.listing': rows,
     'crew.vitals': undefined,
     'games.listMine': MY_GAMES,
   })

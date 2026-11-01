@@ -68,6 +68,7 @@ import {
   crewDraftView,
 } from '../../lib/wizard/crewFormState'
 import { npcCopy } from '../../messages/build-npc'
+import { useGameListing } from '../../replica/gameListing'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -196,12 +197,11 @@ function CrewSlots({
   const links = useSoftLinkList()
   const where = containerOf(crawler)
   const gameId = where.kind === 'game' ? where.gameId : null
-  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const listing = useGameListing(gameId)
   const members = useTableRead('games.members', gameId === null ? 'skip' : { gameId })
-  /** Other members' NPCs in this Game, read live and never cached (ADR-037). */
+  /** Other members' NPCs in this Game, read-only from its rows. */
   const theirs = useMemo<Npc[]>(() => {
-    if (listing === undefined) return []
-    return listing.npcs.flatMap((row) => {
+    return (listing?.npcs ?? []).flatMap((row) => {
       const parsed = NpcSchema.safeParse(row.body)
       return parsed.success ? [{ ...parsed.data, id: rowAppId(row) ?? parsed.data.id }] : []
     })

@@ -96,7 +96,7 @@ function answers(over: Record<string, unknown> = {}) {
     'ops.pending': [PROPOSAL],
     'crew.vitals': crewAt(),
     'account.me': { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null },
-    'entities.listForGame': null,
+    'games.listing': null,
     'seats.forGame': [],
     'channelBindings.current': BOUND,
     'safety.stopSign': null,

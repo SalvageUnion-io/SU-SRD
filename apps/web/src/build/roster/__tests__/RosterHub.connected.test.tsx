@@ -60,7 +60,7 @@ const GAME_G1 = {
   mechCount: 0,
 }
 
-/** g1 as `listForGame` serves it: one pilot of mine, one of a crewmate's. */
+/** g1 as its room serves it: one pilot of mine, one of a crewmate's. */
 const LISTING = {
   pilots: [
     {
@@ -86,7 +86,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.listMine': GAMES,
     'games.get': GAME_G1,
     'account.me': { _id: 'u-me', displayName: 'Me' },
-    'entities.listForGame': LISTING,
+    'games.listing': LISTING,
     'crew.vitals': undefined,
     'ops.pending': [],
     'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },

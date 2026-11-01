@@ -4,7 +4,7 @@
  * Play stays where it was underneath.
  *
  * Built the way `SheetView` builds a crewmate's sheet, without its router
- * and tab-title side effects: the Game's listing (`entities.listForGame`) as a
+ * and tab-title side effects: the Game's listing (`useGameListing`) as a
  * read-only store, so the sheet shows their mech and crawler too and stays
  * live as they play. Nothing is adopted into the entity store (ADR-037).
  *
@@ -19,7 +19,7 @@ import {
 import { Sheet } from '../build/sheet/Sheet'
 import { Callout, ModalShell, Pending } from '../components/index'
 import { playCopy } from '../messages/play'
-import { useGamesQuery } from '../replica/roomCalls'
+import { useGameListing } from '../replica/gameListing'
 
 type PlayCrewSheetProps = {
   gameId: string
@@ -44,7 +44,7 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
 }
 
 function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string }) {
-  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
+  const listing = useGameListing(gameId)
   const store = useMemo(
     () => (listing ? makeReadOnlySheetStore(sheetDataFromListing(listing)) : null),
     [listing]

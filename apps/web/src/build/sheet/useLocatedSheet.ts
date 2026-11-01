@@ -9,11 +9,11 @@
  * because "held here" is not "yours" — a copy can outlive its ownership.
  *
  *  - **yours** — held here, and the server does not say otherwise.
- *  - **listed** — a Game the viewer belongs to lists it: a crewmate's, read
- *    live from `entities.listForGame` and never cached (ADR-037). Whether its
+ *  - **listed** — a Game the viewer belongs to lists it: a crewmate's, from
+ *    the Game's rows in the replica (`useGameListing`). Whether its
  *    body parses is the page's to say ("Could not show this …").
  *  - **missing** — not yours, not at a table of yours, or nothing at all: one
- *    answer for all three, as `listForGame` gives a non-member. Signed out
+ *    answer for all three, as `entities.locate` gives a non-member. Signed out
  *    with nothing held is the same answer.
  *  - **offline** — a Game is shared state, and it cannot be read without a
  *    connection.
@@ -35,6 +35,7 @@ import { useEffect, useMemo } from 'react'
 import { useMe } from '../../lib/account/accountApi'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
+import { useGameListing } from '../../replica/gameListing'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -71,7 +72,7 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const online = sync === 'live'
   const located = useGamesQuery('entities.locate', online ? { kind, id } : 'skip')
   const gameId = located?.gameId ?? null
-  const listing = useGamesQuery('entities.listForGame', gameId === null ? 'skip' : { gameId })
+  const listing = useGameListing(gameId)
   const members = useTableRead('games.members', gameId === null ? 'skip' : { gameId })
   const me = useMe(online)
   const viewerId = useViewerId()

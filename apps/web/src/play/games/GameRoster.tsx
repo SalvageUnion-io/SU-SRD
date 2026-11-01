@@ -61,7 +61,8 @@ import { gauge, pool } from '../../lib/units/crewPair'
 import { VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesCall, useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useGameListing } from '../../replica/gameListing'
+import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
@@ -101,7 +102,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const go = useGo()
 
   const members = useTableRead('games.members', { gameId })
-  const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
+  const listing = useGameListing(gameId)
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
   const vitals = useTableRead('crew.vitals', { gameId })
 

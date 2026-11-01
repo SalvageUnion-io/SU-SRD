@@ -31,8 +31,8 @@ export function gameSnapshot(room: GameRoomLogic, actor: string, gameId: string)
 
 /**
  * What the table plays under, as each member reads it: one record each for the
- * Scene, the area, the ledger, the Stop Sign and the group session, and one
- * per boundary. Who
+ * Scene, the area, the ledger, the Stop Sign, the group session and the
+ * primary crawler, and one per boundary. Who
  * added a boundary or showed the Stop Sign stays in the room (`safety.ts`).
  */
 function tableRecords(room: GameRoomLogic, actor: string) {
@@ -51,6 +51,7 @@ function tableRecords(room: GameRoomLogic, actor: string) {
       .map(({ id, addedAt, ...body }) => ({ appId: id, body, updatedAt: addedAt })),
     safety: one('safety', safety, room.safety.updatedAt()),
     session: one('session', session, session.startedAt ?? 0),
+    game: one('game', { primaryCrawlerId: room.units.primaryCrawler()?.id ?? null }, 0),
   }
 }
 

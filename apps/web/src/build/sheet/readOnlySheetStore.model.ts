@@ -7,10 +7,10 @@ import type { UnitsStore } from '../../replica/units'
  * ## What feeds it
  *
  * A store built from whatever the server says right now, rebuilt each time it
- * says something new. Both sources are live room reads, so a sheet
+ * says something new. Both sources follow their room, so a sheet
  * rendered from one is current, not frozen:
  *
- *  - **A Game's listing** (`entities.listForGame`, via `sheetDataFromListing`):
+ *  - **A Game's listing** (`useGameListing`, via `sheetDataFromListing`):
  *    every pilot, mech and crawler in the Game and every link between them. The
  *    live sheet route (`SheetView`) renders a crewmate's pilot or mech from it,
  *    so their sheet resolves their mech, their crawler and the crawler's whole
@@ -33,9 +33,9 @@ import type { UnitsStore } from '../../replica/units'
  * It never calls `entityStore.adopt`. Adopting a crewmate's pilot into the store
  * to render it would put somebody else's character among the viewer's own
  * builds, with a local copy that goes stale the moment its owner edits it and an
- * editor whose every save the server refuses (ADR-037: other members' pilots
- * and mechs are read live, never cached). Reading is not owning, so a read
- * leaves no trace.
+ * editor whose every save the server refuses. The replica holds the Game's
+ * rows already (`useGameListing`); reading them is not owning, so a read
+ * leaves no trace in the viewer's own builds.
  */
 
 import type { LinkShape } from 'game-domain/links/linkRules'
@@ -62,7 +62,7 @@ export type ReadOnlySheetData = {
   softLinks: SoftLink[]
 }
 
-/** A Game as `entities.listForGame` returns it, as far as a sheet reads it. */
+/** A Game as `useGameListing` returns it, as far as a sheet reads it. */
 export type GameListing = {
   pilots: readonly ServerOwnable[]
   mechs: readonly ServerOwnable[]

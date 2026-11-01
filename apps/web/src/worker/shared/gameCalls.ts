@@ -111,17 +111,6 @@ async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   return value
 }
 
-/** A Game's pilot, mech or NPC as `entities.listForGame` lists it: `_id` is its app id. */
-type ListedUnit = {
-  _id: string
-  appId: string
-  ownerId: string | null
-  body: Record<string, unknown>
-}
-
-/** A Game's crawler as listed: communal, so no holder. */
-type ListedCrawler = { _id: string; appId: string; body: Record<string, unknown> }
-
 type BindingView = { channelId: string; channelName: string | null; boundAt: number }
 
 /** A Game's binding, or the player's solo play's, as these calls answer it. */
@@ -295,27 +284,6 @@ const CALLS = {
     await act(deps.game(a.gameId), who.discordId, 'removeUnit', { unitId: a.crawlerId })
     return null
   },
-  'entities.listForGame': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
-    const room = deps.game(a.gameId)
-    const read = await act(room, who.discordId, 'read', undefined as never)
-    const lists = {
-      pilots: [] as ListedUnit[],
-      mechs: [] as ListedUnit[],
-      crawlers: [] as ListedCrawler[],
-      npcs: [] as ListedUnit[],
-    }
-    if (read === null) return { ...lists, softLinks: [], primaryCrawlerId: null }
-    const [units, links] = await Promise.all([
-      act(room, who.discordId, 'units', undefined as never),
-      act(room, who.discordId, 'links', undefined as never),
-    ])
-    for (const u of units) {
-      const row = { _id: u.id, appId: u.id, body: u.body }
-      if (u.kind === 'crawler') lists.crawlers.push(row)
-      else lists[`${u.kind}s`].push({ ...row, ownerId: u.ownerId })
-    }
-    return { ...lists, softLinks: links, primaryCrawlerId: read.primaryCrawlerId }
-  },
   'entities.locate': async (who: Caller, a: { kind: EntityKind; id: string }, deps: CallDeps) => {
     const found = await find(who, a.kind, a.id, deps)
     if (found === null) return null
@@ -480,7 +448,6 @@ const CALL_ARGS = {
   'ownership.unassign': GAME.extend({ entityId: z.string() }),
   'entities.remove': GAME.extend({ entityId: z.string() }),
   'entities.removeCrawler': GAME.extend({ crawlerId: z.string() }),
-  'entities.listForGame': GAME,
   'entities.locate': z.object({ kind: KIND, id: z.string() }),
   'entities.move': z.object({ kind: KIND, appId: z.string(), gameId: z.string().nullable() }),
   'channelBindings.mine': z.object({}),

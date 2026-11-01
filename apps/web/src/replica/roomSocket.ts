@@ -47,6 +47,7 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   boundaries: null,
   safety: null,
   session: null,
+  game: null,
   members: null,
   seats: null,
   downtime: null,
@@ -61,13 +62,14 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
 type RoomLink = Extract<ServerMessage, { type: 'links' }>['links'][number]
 type RoomRecord = Extract<ServerMessage, { type: 'record' }>['record']
 
-/** A unit as served: its Game is the room's column, the authority over its body. */
+/** A unit as served: its Game is the room's column, the authority over its body; its owner rides beside the body. */
 function servedUnit(unit: RoomUnit): Served {
   return {
     table: unit.kind,
     row: { ...unit.body, id: unit.appId, gameId: unit.gameId },
     version: unit.updatedAt,
     headSeq: unit.headSeq,
+    owner: unit.owner,
   }
 }
 

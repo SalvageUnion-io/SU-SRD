@@ -43,7 +43,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     `src/replica/persist.ts` keeps every held row in IndexedDB, stamped with the session's account, so an offline boot shows what the last load held, and beside them the outbox: one op per own unit made offline, replayed to its room once `live` (ADR-063 decision 9).
     Another account's copy is dropped unread; signing out drops it; `e2e/app-offline.e2e.ts` pins the shell, the copy and the outbox.
 13. **The replica** <a id="stores"></a>
-    `src/replica/` is the one holder of server rows, filled by the room sockets (`RoomFeed`) as scope snapshots; newer wins by `headSeq`. `update()` diffs into an op at its `headSeq` and holds the room's answer; a refused op changes nothing.
+    `src/replica/` is the one holder of server rows, filled by the room sockets (`RoomFeed`) as scope snapshots; newer wins by `headSeq`. A Game's rows, crewmates' included, are held and kept on the device with their owner beside the body (`gameListing.ts`). `update()` diffs into an op at its `headSeq` and holds the room's answer; a refused op changes nothing.
     No TanStack Query; reads: `useUnits` and kin, `src/lib/entities/`, the Games calls (`src/replica/roomCalls.ts`). `src/stores/` is UI state only.
 14. **Sharing** <a id="sharing"></a>
     The one account-free share is the public sheet `/p/:kind/:appId`, opt-in via the `publicRead` column (ADR-032).

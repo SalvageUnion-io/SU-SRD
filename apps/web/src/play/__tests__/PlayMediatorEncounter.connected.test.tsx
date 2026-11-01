@@ -136,7 +136,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'games.members': MEDIATOR_MEMBERS,
     'crew.vitals': mediatorCrewAt(),
     'seats.forGame': MEDIATOR_SEATS,
-    'entities.listForGame': {
+    'games.listing': {
       pilots: [],
       mechs: [],
       npcs: [],

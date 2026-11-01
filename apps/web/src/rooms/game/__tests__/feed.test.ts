@@ -32,6 +32,17 @@ describe('what a Game room tells a socket', () => {
     ])
     expect(Date.parse(snapshot.links[0]?.createdAt ?? '')).toBeGreaterThan(0)
     expect(snapshot.records).toMatchObject({ opposition: [], salvageArea: [], boundaries: [] })
+    expect(snapshot.records.game).toEqual([
+      { appId: 'game', body: { primaryCrawlerId: null }, updatedAt: 0 },
+    ])
+  })
+
+  test('the primary crawler rides as the `game` record', () => {
+    const { room } = wired()
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    const snapshot = gameSnapshot(room, PLAYER, 'g1')
+    if (snapshot.type !== 'snapshot') throw new Error(snapshot.type)
+    expect(snapshot.records.game?.[0]?.body).toEqual({ primaryCrawlerId: 'c1' })
   })
 
   test('the table’s state rides as records, each read for its reader, never naming who', () => {

@@ -324,7 +324,7 @@ describe('in a Game', () => {
   const rook = pilotFixture({ id: 'units-rook', name: 'Rook' })
 
   test('a player’s Game crawler comes from the listing, and is never theirs to write', async () => {
-    setQueryAnswers({ 'entities.listForGame': listing })
+    setQueryAnswers({ 'games.listing': listing })
     await renderColumn(
       playFor({ situation: 'downtime', gameId: GAME, stepIndex: 0, pilotRecord: rook }).play
     )
@@ -336,7 +336,7 @@ describe('in a Game', () => {
   })
 
   test('for the Mediator, the crawler the store holds is live', async () => {
-    setQueryAnswers({ 'entities.listForGame': listing })
+    setQueryAnswers({ 'games.listing': listing })
     await renderColumn(playFor({ situation: 'onFoot', gameId: GAME, mediator: true }).play)
     expect(
       within(box('Crawler: Tenacity')).getByRole('button', { name: 'Increase SP' })

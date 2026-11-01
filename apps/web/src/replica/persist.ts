@@ -22,6 +22,7 @@ export type KeptRow = {
   row: { id: string }
   version: number | undefined
   headSeq: number | undefined
+  owner?: string | null
   scopes: Scope[]
 }
 
@@ -144,6 +145,7 @@ function kept(changes: readonly Change[]): { puts: KeptRow[]; drops: string[] } 
         row: c.held.row,
         version: c.held.version,
         headSeq: c.held.headSeq,
+        owner: c.held.owner,
         scopes: [...c.held.scopes],
       })
   }

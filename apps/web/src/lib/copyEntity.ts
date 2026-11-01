@@ -68,8 +68,8 @@ export function copyName(name: string): string {
  * Build the create-input for a copy of `source`, destined for the copier's shelf.
  *
  * Takes an opaque body rather than a typed entity because both call sites hand
- * it one: a Game roster row carries the **server's** body (`listForGame`
- * returns `v.any()`), not a parsed local record. Validation is not skipped, it
+ * it one: a Game roster row carries the **room's** body (`useGameListing`
+ * types it `unknown`), not a parsed local record. Validation is not skipped, it
  * is deferred to where it already happens — `entityStore.create` Zod-parses
  * every write, so a malformed source fails there with the same error any other
  * bad write would produce.

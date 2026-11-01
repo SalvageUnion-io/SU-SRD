@@ -159,7 +159,7 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
     useUnits.setState({ crawlers: [{ ...SHELF_CRAWLER, gameId: 'g1' }] })
     setQueryAnswers({
       'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: false }],
-      'entities.listForGame': {
+      'games.listing': {
         pilots: [],
         mechs: [],
         crawlers: [],
