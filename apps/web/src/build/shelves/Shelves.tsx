@@ -568,7 +568,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   reading={patternReading(p)}
                   href={savedPatternHref(p.id)}
                   userMade
-                  chips={patternChips(sharing?.find((s) => s.appId === p.id))}
+                  chips={patternChips(
+                    sharing?.find((s) => s.appId === p.id),
+                    games
+                  )}
                   menu={patternMenu(p)}
                 />
               ))}

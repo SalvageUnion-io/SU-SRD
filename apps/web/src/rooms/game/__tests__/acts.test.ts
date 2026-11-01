@@ -94,8 +94,7 @@ describe('every act reaches its part of the room', () => {
 
     expect(ok(runAct(org, 'members', undefined as never))).toHaveLength(3)
     ok(runAct(me, 'updateProfile', { profile: profile('Renamed') }))
-    const code = ok(runAct(org, 'resetInvite', undefined as never)).code
-    expect(ok(runAct(as(STRANGER), 'invitePreview', { code }))?.gameName).toBe('Tenacity')
+    expect(ok(runAct(org, 'resetInvite', undefined as never)).code).toEqual(expect.any(String))
 
     ok(runAct(me, 'createUnit', { id: 'p1', kind: 'pilot', body: bodies.pilot('p1') }))
     ok(runAct(me, 'createUnit', { id: 'm1', kind: 'mech', body: bodies.mech('m1') }))

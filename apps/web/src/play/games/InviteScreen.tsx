@@ -14,9 +14,11 @@ import {
   tokens,
 } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import type { InvitePreviewAnswer } from '../../lib/linkPreview/previewSummary'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { useInvitePreview } from '../../lib/sharing/reads'
 import { playGamesCopy } from '../../messages/play-games'
-import { useGamesCall, useGamesQuery } from '../../replica/roomCalls'
+import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 
 /**
@@ -120,6 +122,19 @@ function DeadLink({
   )
 }
 
+/**
+ * What the link is for, in the words its unfurl uses (`inviteCard`): the
+ * Game and who mediates it, from the one preview a stranger may read.
+ */
+function InviteWords({ preview }: { preview: InvitePreviewAnswer }) {
+  return (
+    <Text style={WORDS}>
+      You're invited to <strong>{preview.gameName}</strong>
+      {preview.mediatedBy ? `, mediated by ${preview.mediatedBy}` : ''}.
+    </Text>
+  )
+}
+
 type InviteProps = {
   token: string
   /** Back from "Sign in to join": join without asking again. */
@@ -127,7 +142,7 @@ type InviteProps = {
 }
 
 function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
-  const preview = useGamesQuery('invites.preview', { code: token })
+  const preview = useInvitePreview(token)
   const redeem = useGamesCall('invites.redeem')
   const navigate = useNavigate()
 
@@ -159,9 +174,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
-      <Text style={WORDS}>
-        {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
-      </Text>
+      <InviteWords preview={preview} />
       <Text variant="hint" style={HINT}>
         {playGamesCopy('everyoneAtATableCan')}
       </Text>
@@ -177,20 +190,18 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
 
 /**
  * The signed-out view. It still previews the invite, because the point of a
- * link is that it means something before you have an account — `preview` is
- * unauthenticated for exactly this.
+ * link is that it means something before you have an account — the invite
+ * preview is a signed-out read for exactly this.
  */
 function SignedOutInvite({ token }: { token: string }) {
-  const preview = useGamesQuery('invites.preview', { code: token })
+  const preview = useInvitePreview(token)
 
   if (preview === undefined) return <Text>{playGamesCopy('checkingThatInvite')}</Text>
   if (preview === null) return <DeadLink headline={DEAD_HEADLINE} ask={DEAD_ASK} signIn />
 
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
-      <Text style={WORDS}>
-        {preview.invitedBy} invited you to <strong>{preview.gameName}</strong>.
-      </Text>
+      <InviteWords preview={preview} />
       <Text variant="hint" style={HINT}>
         {playGamesCopy('signInToJoinYour')}
       </Text>

@@ -14,11 +14,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
  *  - a signed-out visitor must still see what they were invited to
  *  - back from "Sign in to join", the page joins without asking again
  *
- * Queries are answered **by name** — see `serverMock.ts`.
- * This screen asks only `invites.preview`, from two components.
+ * Its one read is the invite preview, a Worker route (`answerRoutes`).
  */
 
-import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { answerRoutes, withWorkerRoutes } from '../../../lib/sharing/__tests__/workerRoutes'
+import { sharedPaths } from '../../../lib/sharing/paths'
 import { RoomDeclined } from '../../../replica/roomSocket'
 
 const redeemResult: unknown = { kind: 'joined', gameId: 'g1' }
@@ -44,6 +45,14 @@ const serverMocks = await installServerMocks({
 })
 
 const navigations = serverMocks.navigations
+withWorkerRoutes()
+
+const TOKEN = 'A1B2C3D4E5F6G7H8'
+
+/** The invite preview's answer; undefined leaves it loading. */
+function answerPreview(value: unknown): void {
+  answerRoutes(value === undefined ? {} : { [sharedPaths.invite(TOKEN)]: value })
+}
 
 const { InviteScreen } = await import('../InviteScreen')
 const { SyncProvider } = await import('../../../replica/SyncProvider')
@@ -51,7 +60,7 @@ const { SyncProvider } = await import('../../../replica/SyncProvider')
 function preview(over: Record<string, unknown> = {}) {
   return {
     gameName: 'Union Crawler #430',
-    invitedBy: 'Vex',
+    mediatedBy: 'Vex',
     ...over,
   }
 }
@@ -60,20 +69,20 @@ function preview(over: Record<string, unknown> = {}) {
 const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
 
 function renderJoin(value: unknown, joinOnArrival = false) {
-  setQueryAnswers({ 'invites.preview': value })
+  answerPreview(value)
   navigations.length = 0
   mutationCalls.length = 0
   redeemError = null
   isAuthenticated = true
   return render(
     <SyncProvider>
-      <InviteScreen token="A1B2C3D4E5F6G7H8" joinOnArrival={joinOnArrival} />
+      <InviteScreen token={TOKEN} joinOnArrival={joinOnArrival} />
     </SyncProvider>
   )
 }
 
 describe('a live invite', () => {
-  test('names the game and who invited you before asking for anything', () => {
+  test('names the game and who mediates it before asking for anything', () => {
     renderJoin(preview())
     expect(screen.getByText(/Vex/)).toBeTruthy()
     expect(screen.getByText('Union Crawler #430')).toBeTruthy()
@@ -136,10 +145,10 @@ describe('a visitor who is not signed in', () => {
     renderJoin(preview())
     isAuthenticated = false
     cleanup()
-    setQueryAnswers({ 'invites.preview': preview() })
+    answerPreview(preview())
     render(
       <SyncProvider>
-        <InviteScreen token="A1B2C3D4E5F6G7H8" />
+        <InviteScreen token={TOKEN} />
       </SyncProvider>
     )
 
@@ -152,10 +161,10 @@ describe('a visitor who is not signed in', () => {
 
   test('a dead code is refused without ever prompting a sign-in', () => {
     isAuthenticated = false
-    setQueryAnswers({ 'invites.preview': null })
+    answerPreview(null)
     render(
       <SyncProvider>
-        <InviteScreen token="A1B2C3D4E5F6G7H8" />
+        <InviteScreen token={TOKEN} />
       </SyncProvider>
     )
 

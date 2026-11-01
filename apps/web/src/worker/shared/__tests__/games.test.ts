@@ -39,7 +39,7 @@ describe('memberships', () => {
 describe('invites', () => {
   it('names the Game and its Mediator, never the crew', async () => {
     const db = await table()
-    expect(await invitePreview(db, 'K7QR2XA')).toEqual({
+    expect(await invitePreview(db, ' k7qr2xa ')).toEqual({
       gameName: 'Reclamation',
       mediatedBy: 'Jrvs',
     })

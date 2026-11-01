@@ -12,6 +12,7 @@ import { GAME_ROOM } from '../../../rooms/schemas'
 import type { GameRoomStub } from '../../roomStubs'
 import type { CallDeps } from '../gameCalls'
 import { gameCall } from '../gameCalls'
+import { invitePreview } from '../games'
 import { RoomPublisher } from '../roomRows'
 import { signedIn, testDb } from './d1'
 
@@ -109,9 +110,9 @@ describe('the Games calls', () => {
       expect.objectContaining({ _id: gameId, name: 'Tenacity', organizer: true, memberCount: 1 }),
     ])
     const code = (await call('invites.link', { gameId })) as string
-    expect(await call('invites.preview', { code: code.toLowerCase() }, null)).toEqual({
+    expect(await invitePreview(deps.db, code.toLowerCase())).toEqual({
       gameName: 'Tenacity',
-      invitedBy: 'Org',
+      mediatedBy: null,
     })
     expect(await call('invites.redeem', { code }, PLAYER)).toEqual({ kind: 'joined', gameId })
     expect(await call('games.listMine', {}, PLAYER)).toEqual([

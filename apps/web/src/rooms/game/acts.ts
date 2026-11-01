@@ -44,7 +44,6 @@ const GAME_ACTS = {
     c.room.roster.updateProfile(c.actor, a.profile),
   inviteCode: (c: ActContext) => c.room.roster.inviteCode(c.actor, c.at),
   resetInvite: (c: ActContext) => c.room.roster.resetInvite(c.actor, c.at),
-  invitePreview: (c: ActContext, a: { code: string }) => c.room.roster.invitePreview(a.code),
   redeem: (c: ActContext, a: { code: string; profile: Profile }) =>
     c.room.roster.redeem(c.actor, a.code, a.profile, c.at),
 
@@ -217,7 +216,6 @@ export type GameActResult<N extends GameActName> = ReturnType<Act<N>>
 export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'read',
   'members',
-  'invitePreview',
   'inviteCode',
   'units',
   'links',

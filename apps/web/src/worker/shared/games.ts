@@ -85,7 +85,7 @@ export async function invitePreview(
       `select g.name, g.mediated_by from invites i join games g on g.game_id = i.game_id
        where i.code = ?1`
     )
-    .bind(code)
+    .bind(code.trim().toUpperCase())
     .first<{ name: string; mediated_by: string | null }>()
   return row === null ? null : { gameName: row.name, mediatedBy: row.mediated_by }
 }

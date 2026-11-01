@@ -60,10 +60,9 @@ describe('the invite URL', () => {
     const { room, code } = table()
     expect(room.roster.inviteCode(ORGANIZER, AT)).toBe(code)
     expect(() => room.roster.inviteCode(PLAYER, AT)).toThrow('Only the Organiser')
-    expect(room.roster.invitePreview(` ${code.toLowerCase()} `)).toEqual({
-      gameName: 'Tenacity',
-      invitedBy: 'Org',
-    })
+    expect(room.roster.redeem(PLAYER, ` ${code.toLowerCase()} `, profile('Player'), AT)).toBe(
+      'already'
+    )
     expect(room.roster.redeem(PLAYER, code, profile('Player'), AT)).toBe('already')
   })
 
@@ -71,7 +70,6 @@ describe('the invite URL', () => {
     const { room, code } = table()
     const { code: next, revoked } = room.roster.resetInvite(ORGANIZER, AT + 10)
     expect(revoked).toEqual([code])
-    expect(room.roster.invitePreview(code)).toBeNull()
     expect(() => room.roster.redeem(STRANGER, code, profile('S'), AT)).toThrow('no longer works')
     expect(room.roster.redeem(PLAYER, code, profile('Player'), AT)).toBe('already')
     expect(room.roster.redeem(STRANGER, next, profile('S'), AT)).toBe('joined')
@@ -110,7 +108,6 @@ describe('ending a Game', () => {
     expect(() =>
       room.units.create(PLAYER, { id: 'p3', kind: 'pilot', body: bodies.pilot('p3'), at: AT })
     ).toThrow('This Game is ending')
-    expect(room.roster.invitePreview(room.roster.read(ORGANIZER)?.gameId ?? '')).toBeNull()
     // Asked again, it answers the same leases, so a retry delivers each once.
     expect(room.roster.disband(ORGANIZER, AT + 1).deliveries.map((d) => d.parcel.leaseId)).toEqual(
       first.deliveries.map((d) => d.parcel.leaseId)

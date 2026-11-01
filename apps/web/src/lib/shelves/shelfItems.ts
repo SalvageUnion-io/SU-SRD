@@ -58,7 +58,7 @@ export function shelfFilters(
 export type PatternSharing = {
   appId: string
   visibility: PatternVisibility
-  gameName: string | null
+  gameId: string | null
   builtCount: number
 }
 
@@ -204,18 +204,24 @@ export function crawlerChips(args: {
   return game?.mediator ? [{ key: 'role', label: 'You mediate' }] : []
 }
 
-/** Who can see a pattern. */
-export function patternChips(sharing: PatternSharing | undefined): ShelfChip[] {
+/**
+ * Who can see a pattern. A crew share names its Game from the player's own
+ * Games; one they are no longer in reaches nobody, so it reads as theirs alone.
+ */
+export function patternChips(
+  sharing: PatternSharing | undefined,
+  games: readonly ShelfGame[] | undefined
+): ShelfChip[] {
   if (sharing === undefined) return []
-  const who =
-    sharing.visibility === 'link'
-      ? WHO.link
-      : sharing.visibility === 'game'
-        ? sharing.gameName
-          ? `Shared with ${sharing.gameName}`
-          : 'Shared with a crew'
-        : WHO.me
-  return [{ key: 'who', label: who }]
+  return [{ key: 'who', label: patternWho(sharing, games) }]
+}
+
+function patternWho(sharing: PatternSharing, games: readonly ShelfGame[] | undefined): string {
+  if (sharing.visibility === 'link') return WHO.link
+  if (sharing.visibility !== 'game') return WHO.me
+  if (games === undefined) return 'Shared with a crew'
+  const game = games.find((g) => g._id === sharing.gameId)
+  return game === undefined ? WHO.me : `Shared with ${game.name}`
 }
 
 /** An NPC's reading is its hit (or structure) points: `HP 6/6`. */

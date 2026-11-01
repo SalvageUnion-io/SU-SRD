@@ -173,15 +173,21 @@ describe('shared by link', () => {
 
 describe('a pattern’s chips', () => {
   test('who can see it, never how often it has been built', () => {
-    const base = { appId: 'p', gameName: null, builtCount: 0 }
-    expect(chipLabels(patternChips({ ...base, visibility: 'private' }))).toEqual(['Only me'])
-    expect(chipLabels(patternChips({ ...base, visibility: 'link', builtCount: 2 }))).toEqual([
-      'Shared by link',
-    ])
-    expect(
-      chipLabels(patternChips({ ...base, visibility: 'game', gameName: 'Dustbowl Run' }))
-    ).toEqual(['Shared with Dustbowl Run'])
-    expect(patternChips(undefined)).toEqual([])
+    const base = { appId: 'p', gameId: null, builtCount: 0 }
+    const games = [{ _id: 'g1', name: 'Dustbowl Run', mediator: false }]
+    const crew = { ...base, visibility: 'game' as const, gameId: 'g1' }
+    expect(chipLabels(patternChips({ ...base, visibility: 'private' }, games))).toEqual(['Only me'])
+    expect(chipLabels(patternChips({ ...base, visibility: 'link', builtCount: 2 }, games))).toEqual(
+      ['Shared by link']
+    )
+    expect(chipLabels(patternChips(crew, games))).toEqual(['Shared with Dustbowl Run'])
+    expect(patternChips(undefined, games)).toEqual([])
+  })
+
+  test('a crew share names its Game from the player’s own, and reaches nobody once they left it', () => {
+    const crew = { appId: 'p', visibility: 'game' as const, gameId: 'g1', builtCount: 0 }
+    expect(chipLabels(patternChips(crew, undefined))).toEqual(['Shared with a crew'])
+    expect(chipLabels(patternChips(crew, []))).toEqual(['Only me'])
   })
 })
 

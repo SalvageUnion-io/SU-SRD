@@ -9,8 +9,8 @@ import type { GameActAnswer } from '../rooms/game/acts'
 import type { ACCOUNT_SOCKET_ACTS, socketAct } from '../rooms/game/socketActs'
 import { SHELF_ACTS } from '../rooms/game/socketActs'
 import { RoomRefusal } from '../rooms/refusal'
-import { memberGameName } from './shared/crewPatterns'
 import type { SharedDb } from './shared/db'
+import { membershipOf } from './shared/games'
 
 type AskedAct<A extends Parameters<typeof socketAct>[1]> = Exclude<
   ReturnType<typeof socketAct<A>>,
@@ -74,9 +74,9 @@ function done(value: unknown): GameActAnswer<unknown> {
 /** A Game the player is in, with its name, or a refusal. */
 async function gameOf(db: SharedDb | undefined, member: string, gameId: string | undefined) {
   if (gameId === undefined) throw new RoomRefusal('Choose which Game to share it with')
-  const name = db === undefined ? null : await memberGameName(db, gameId, member)
-  if (name === null) throw new RoomRefusal('You are not in that Game')
-  return { id: gameId, name }
+  const seat = db === undefined ? null : await membershipOf(db, gameId, member)
+  if (seat === null) throw new RoomRefusal('You are not in that Game')
+  return gameId
 }
 
 /** Run one Shelf act for the room's socket: `answered` with its answer, or `broken` on a defect. */
