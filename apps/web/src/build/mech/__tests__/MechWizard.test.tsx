@@ -144,7 +144,7 @@ describe('MechWizard — book-order happy path (custom build)', () => {
       const m = must(mechs[0])
       expect(m.name).toBe('Iron Fist')
       // A custom build started from no book pattern: the name is the pattern's, with no provenance.
-      expect(m.patternName).toBeUndefined()
+      expect(m.startingPatternRef).toBeUndefined()
       expect(m.chassisRef).toBe('mule')
       expect(m.systems).toEqual(['cargo-pod'])
       expect(m.modules).toEqual(['comms-module'])

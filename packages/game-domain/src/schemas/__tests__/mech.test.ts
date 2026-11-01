@@ -29,9 +29,9 @@ describe('MechSchema', () => {
     expect(result.schemaVersion).toBe(1)
   })
 
-  test('happy path: patternName is optional', () => {
-    const result = MechSchema.parse({ ...validMech, patternName: 'rust-tide' })
-    expect(result.patternName).toBe('rust-tide')
+  test('happy path: startingPatternRef is optional', () => {
+    const result = MechSchema.parse({ ...validMech, startingPatternRef: 'rust-tide' })
+    expect(result.startingPatternRef).toBe('rust-tide')
   })
 
   test('rejects missing required field: chassisRef', () => {

@@ -16,12 +16,16 @@ describe('mechFormToUpdatePatch', () => {
     expect(patch.name).toBe('Iron Fist')
   })
 
-  it('carries the pattern name (canonical or custom), undefined when blank', () => {
+  it('records the chassis pattern it started from as a ref; a custom build records none', () => {
+    const form = { ...EMPTY_MECH_FORM_STATE, chassisName: 'mule' }
     expect(
-      mechFormToUpdatePatch({ ...EMPTY_MECH_FORM_STATE, patternName: 'Hauler Pattern' }).patternName
-    ).toBe('Hauler Pattern')
+      mechFormToUpdatePatch({ ...form, patternName: 'Hauler Pattern' }).startingPatternRef
+    ).toBe('hauler')
+    expect(mechFormToUpdatePatch({ ...form, patternName: 'Iron Fist' }).startingPatternRef).toBe(
+      undefined
+    )
     expect(
-      mechFormToUpdatePatch({ ...EMPTY_MECH_FORM_STATE, patternName: '   ' }).patternName
+      mechFormToUpdatePatch({ ...form, patternName: '   ' }).startingPatternRef
     ).toBeUndefined()
   })
 })

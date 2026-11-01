@@ -31,7 +31,7 @@ function makeMech(systems: string[]): Mech {
     id: 'mech-as-printed-1',
     schemaVersion: 1,
     name: 'Manic Miner',
-    patternName: 'Manic Miner',
+    startingPatternRef: 'manic-miner',
     chassisRef: 'bobcat',
     systems,
     modules: ['comms-module', 'survey-scanner'],

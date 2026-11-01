@@ -1,6 +1,6 @@
 /**
  * The mech's identity panel: its name is its pattern's name, and a rename
- * writes `name` alone, so the book pattern it started from (`patternName`,
+ * writes `name` alone, so the pattern it started from (`startingPatternRef`,
  * provenance) survives it.
  */
 
@@ -12,7 +12,7 @@ import { MechIdentityPanel } from '../MechIdentity'
 describe('renaming a mech', () => {
   test('writes the name alone, keeping the book pattern it started from', async () => {
     const patches: object[] = []
-    const mech = mechFixture({ id: 'm1', name: 'Scrapper', patternName: 'Swiss Cheese Pattern' })
+    const mech = mechFixture({ id: 'm1', name: 'Scrapper', startingPatternRef: 'swiss-cheese' })
     render(<MechIdentityPanel mech={mech} patch={(p) => patches.push(p)} />)
     const control = () => screen.getByLabelText('Edit pattern name')
     fireEvent.click(control())

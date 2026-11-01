@@ -1,5 +1,6 @@
 import { z } from 'salvageunion-reference/zod'
 import { foldMechFlags } from '../mechConditions'
+import { foldPatternName } from '../startingPattern'
 
 /**
  * Body fields the app no longer stores. The schemas are strict, so a body
@@ -27,6 +28,8 @@ export const RETIRED_FIELDS = {
     'shutdown',
     'vulnerable',
     'destroyed',
+    // Resolved into `startingPatternRef` first (`foldPatternName`) when it names a book pattern.
+    'patternName',
   ],
   crawler: ['maxSpModifier'],
   npc: [],
@@ -42,7 +45,8 @@ export type RetiredKind = keyof typeof RETIRED_FIELDS
  */
 export function withoutRetired(kind: RetiredKind, rawBody: unknown): unknown {
   if (typeof rawBody !== 'object' || rawBody === null || Array.isArray(rawBody)) return rawBody
-  const body = kind === 'mech' ? foldMechFlags(rawBody as Record<string, unknown>) : rawBody
+  const body =
+    kind === 'mech' ? foldPatternName(foldMechFlags(rawBody as Record<string, unknown>)) : rawBody
   const fields: readonly string[] = RETIRED_FIELDS[kind]
   if (!fields.some((field) => Object.hasOwn(body, field))) return body
   const kept: Record<string, unknown> = { ...body }

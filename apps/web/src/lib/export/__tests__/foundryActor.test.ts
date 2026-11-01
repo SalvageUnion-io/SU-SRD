@@ -207,7 +207,7 @@ describe('a mech as a Foundry Mech', () => {
     id: 'm1',
     name: 'Iron Mongrel',
     chassisRef: mule,
-    patternName: 'Hauler',
+    startingPatternRef: 'hauler',
     systems: [cal50, cal50],
     modules: [comms],
     systemConditions: { [cal50]: 'damaged' },
@@ -238,7 +238,7 @@ describe('a mech as a Foundry Mech', () => {
     expect(actor.system.sp).toEqual({ value: 5, max: mechMaxSP(mech) })
     expect(actor.system.heat).toEqual({ value: 2, max: mechMaxHeat(mech) })
     // The book pattern it started from is provenance, never written out.
-    expect(String(actor.system.description)).not.toContain('Hauler')
+    expect(String(actor.system.description)).not.toContain('auler')
   })
 
   test('each installed copy is its own Item, with its condition and no cargo', () => {

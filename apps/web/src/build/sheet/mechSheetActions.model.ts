@@ -132,7 +132,7 @@ export function useMechSheetActions({
   // available, writes through immediately (The app auto-saves; no Save button).
   // Reads the FRESHEST record so rapid picker clicks don't race the async
   // store write. Duplicates are rules-legal; capacity stays soft.
-  // Hand-editing the loadout never clears patternName: it is where the mech
+  // Hand-editing the loadout never clears startingPatternRef: it is where the mech
   // started, not what it is now. Free Edit: add/remove is not rule-gated (ADR-021).
   function addItem(kind: ItemKind, slug: string) {
     const fresh = freshMech()

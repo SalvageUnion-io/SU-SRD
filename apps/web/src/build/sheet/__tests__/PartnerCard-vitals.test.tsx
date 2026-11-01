@@ -30,7 +30,7 @@ function sestra(over: Partial<PartnerInstance> = {}): { mech: Mech; partner: Par
   const mech = mechFixture({
     id: 'mech-sestra',
     chassisRef: 'little-sestra',
-    patternName: 'Surveyor',
+    startingPatternRef: 'surveyor',
     partners: [partner],
   })
   return { mech, partner }
