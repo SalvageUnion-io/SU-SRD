@@ -202,7 +202,7 @@ export const GAME_ROOM_TABLE_STATE: readonly string[] = [
 
 /**
  * Step 4 of `GAME_ROOM`: the table's own Change Log, what changes no unit
- * (ADR-063 §7): Play's and the bot's rolls (`field` 'roll') and the
+ * (ADR-063 §7): Play's rolls (`field` 'roll') and the
  * Mediator's alerts ('alert'). A unit's change is its op, in `ops`.
  */
 export const GAME_ROOM_CHANGE_LOG: readonly string[] = [

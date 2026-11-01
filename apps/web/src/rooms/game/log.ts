@@ -2,8 +2,8 @@ import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 
 /**
- * The table's Change Log, with its rules: rolls (Play's
- * and the bot's) and the Mediator's alerts, feed rows on the Game that
+ * The table's Change Log, with its rules: Play's rolls and the Mediator's
+ * alerts, feed rows on the Game that
  * change no unit (ADR-063 §7). Any member reads them; a member appends
  * their rolls, and only the Mediator sends an alert. A unit's change is its
  * op, so a row about a unit is not kept: its history is `units.history`.

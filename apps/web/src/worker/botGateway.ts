@@ -7,8 +7,7 @@
  * It answers from the shared database, in the wire bodies of
  * `game-domain/botWire`; `sheet` and `mine` read the rooms (`./botSheets.ts`).
  * When a room cannot answer it answers null, which the bot says as
- * unavailable. A sheet from the rooms carries no `vitals` yet, so the bot
- * shows current values without their maxima.
+ * unavailable. A sheet from the rooms carries its `vitals` (`unitVitals`).
  */
 
 import { exports, WorkerEntrypoint } from 'cloudflare:workers'

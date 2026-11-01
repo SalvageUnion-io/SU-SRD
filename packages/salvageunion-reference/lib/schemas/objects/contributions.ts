@@ -100,10 +100,6 @@ export const ContributionSchema = z
       .boolean()
       .describe('Applies once per installed copy (default true for installable items)')
       .optional(),
-    voidWhen: z
-      .enum(['damaged', 'destroyed'])
-      .describe('Condition at which this contribution stops applying')
-      .optional(),
     duration: z
       .enum(['permanent', 'activated'])
       .describe(
