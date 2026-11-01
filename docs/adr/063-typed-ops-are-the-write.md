@@ -40,7 +40,7 @@ offline queue would each be one more mechanism.
    | `at`      | When it was authored. |
    | `kind`    | ADR-022's `transaction`, `override` or `manual`. |
    | `source`  | The surface it came from (`surfaceProvenance.ts`). |
-   | `state`   | `applied`, `proposed`, `declined` or `superseded`. |
+   | `state`   | `applied`, `proposed` or `declined` (a replaced proposal is declined and names its successor in `supersededBy`). |
    | `patch`   | Top-level body fields and their new values. |
    | `before`  | The values those fields held, written when the op is applied. |
    | `reason`  | Optional, the Mediator's words on a proposal. |
