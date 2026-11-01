@@ -46,22 +46,30 @@ describe('rooms', () => {
 
   it('tells every socket who is here, and who has gone', async () => {
     const room = exports.GameRoom.getByName('table')
-    const open = async (member: string, seat: '0' | '1') => {
+    const open = async (member: string, sits: boolean) => {
       const res = await room.fetch('https://room/', {
-        headers: { upgrade: 'websocket', 'x-su-member': member, 'x-su-seat': seat },
+        headers: { upgrade: 'websocket', 'x-su-member': member },
       })
       const ws = res.webSocket
       if (ws === null) throw new Error('no socket')
       const heard: string[][] = []
-      ws.addEventListener('message', (e) => heard.push(JSON.parse(String(e.data)).here))
+      ws.addEventListener('message', (e) => {
+        const message = JSON.parse(String(e.data))
+        if (message.type === 'presence') heard.push(message.here)
+      })
       ws.accept()
+      if (sits) {
+        ws.send(
+          JSON.stringify({ type: 'act', id: 'sit', name: 'presence.here', args: { here: true } })
+        )
+      }
       return { ws, heard }
     }
     // Until each socket has heard it: a close reaches the room on its own time.
     const until = (check: () => void) => vi.waitFor(check, { timeout: 2000, interval: 20 })
 
-    const watcher = await open('mediator', '0')
-    const player = await open('player', '1')
+    const watcher = await open('mediator', false)
+    const player = await open('player', true)
     await until(() => {
       expect(watcher.heard.at(-1)).toEqual(['player'])
       expect(player.heard.at(-1)).toEqual(['player'])

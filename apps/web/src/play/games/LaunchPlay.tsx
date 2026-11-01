@@ -42,6 +42,7 @@ import { unitRowModel } from '../../lib/units/unitModel'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
+import { useTableRead } from '../../replica/useTable'
 import { OwnerSeal } from './OwnerSeal'
 
 /** The pilot a viewer is offered first: their own, in the roster's order. */
@@ -72,7 +73,7 @@ export function LaunchPlay({
   // The same three questions `GameRoster` asks, so the Worker answers both from
   // one subscription each.
   const viewerId = useViewerId()
-  const members = useGamesQuery('games.members', { gameId: gameId })
+  const members = useTableRead('games.members', { gameId })
   const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // What this browser holds decides what may be offered: see the header.
   useHydrateEntities(['pilot'])

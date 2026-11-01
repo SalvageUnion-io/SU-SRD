@@ -7,10 +7,11 @@
 import { sheetPath } from 'game-domain/entityKinds'
 import { resolvePool } from 'salvageunion-reference/rules'
 import type { GameCallResult } from '../../replica/roomCalls'
+import type { ReadAnswer } from '../../replica/useTable'
 import type { CrewVitals } from '../../rooms/vitals'
 
 type Listing = NonNullable<GameCallResult<'entities.listForGame'>>
-type Members = GameCallResult<'games.members'>
+type Members = ReadAnswer<'games.members'>
 /** `crew.vitals`: the server's derived maxima, which the seats' HP reads. */
 type Vitals = CrewVitals | null
 

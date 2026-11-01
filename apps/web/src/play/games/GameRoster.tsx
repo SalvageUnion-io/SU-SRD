@@ -100,7 +100,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const rowActions = useRowActions(confirm, gameId)
   const go = useGo()
 
-  const members = useGamesQuery('games.members', { gameId: gameId })
+  const members = useTableRead('games.members', { gameId })
   const listing = useGamesQuery('entities.listForGame', { gameId: gameId })
   // The pilots' HP: the server derives every crewmate's max (ADR-038 §4).
   const vitals = useTableRead('crew.vitals', { gameId })

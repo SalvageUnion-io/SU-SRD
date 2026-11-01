@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { RoomDeclined } from '../../../replica/roomSocket'
 
@@ -24,12 +24,13 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * keeps the dialog open with a reason.
  *
  * Queries are answered **by name** — see `serverMock.ts`.
- * This component asks for: account.me, games.members, entities.listForGame.
+ * This component asks for: account.me and entities.listForGame; the roster is the Game socket's.
  * Mutations are recorded by name the same way.
  */
 
 import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
 /** Every Games call the surface made, by name, with its args. */
 const mutations: { name: string; args: unknown }[] = []
@@ -117,9 +118,10 @@ async function renderAs(
   rows: ReturnType<typeof listing>,
   members: unknown = MEMBERS
 ): Promise<void> {
+  // The roster, as the Game's socket serves it.
+  serve('g1', { members: members as Record<string, unknown>[] })
   setQueryAnswers({
     'account.me': me,
-    'games.members': members,
     'entities.listForGame': rows,
     'crew.vitals': undefined,
     'games.listMine': MY_GAMES,
@@ -630,4 +632,5 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
   })
 })
 
+afterEach(closeRooms)
 afterAll(serverMocks.restore)

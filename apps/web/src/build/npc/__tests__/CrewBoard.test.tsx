@@ -167,7 +167,6 @@ describe('only whoever may write the crawler assigns its crew (D7)', () => {
         softLinks: [],
         primaryCrawlerId: null,
       },
-      'games.members': [],
     })
     await renderBoard('c1')
     expect(screen.queryByRole('button', { name: 'Design Med Bay crew' })).toBeNull()

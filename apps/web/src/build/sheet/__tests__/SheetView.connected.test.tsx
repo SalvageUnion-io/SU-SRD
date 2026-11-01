@@ -31,6 +31,7 @@ import {
   pilotFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
 /** Every `router.navigate` the view made. */
 const navigations: unknown[] = []
@@ -68,12 +69,14 @@ afterAll(() => {
 
 beforeEach(async () => {
   await hydrateStores()
+  serve(GAME, { members: MEMBERS })
   navigations.length = 0
   useSheetModeStore.setState({ editing: false })
 })
 
 afterEach(() => {
   cleanup()
+  closeRooms()
   useUnits.setState({ pilots: [], mechs: [], crawlers: [], softLinks: [] })
 })
 
@@ -121,7 +124,7 @@ function listing(over: Record<string, unknown> = {}) {
 /** The viewer, as `account.me` serves it. */
 const ME = { _id: 'u-me' }
 
-/** The Game's members, as `games.members` serves them: whose each unit is. */
+/** The Game's members, as its socket serves them (`games.members`): whose each unit is. */
 const MEMBERS = [
   { userId: 'u-me', displayName: 'Jrvs', mediator: true, organizer: true, joinedAt: 0 },
   { userId: 'u-them', displayName: 'Mara', mediator: false, organizer: false, joinedAt: 0 },
@@ -149,7 +152,6 @@ describe("a crewmate's sheet", () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -168,7 +170,6 @@ describe("a crewmate's sheet", () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -191,7 +192,6 @@ describe("a crewmate's sheet", () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
 
@@ -208,7 +208,6 @@ describe('your own sheet', () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -247,7 +246,6 @@ describe('your own sheet', () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing({ softLinks: [] }),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
 
@@ -290,7 +288,6 @@ describe('your own sheet', () => {
       'games.get': runsTable(true),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -329,7 +326,6 @@ describe("a player's view of the Game's crawler", () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('crawler', CRAWLER.id)
 
@@ -370,7 +366,6 @@ describe("your own mech's hold, against the Game's crawler", () => {
       'entities.locate': { id: MY_MECH.id, gameId: GAME, mayEdit: true },
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
       'games.get': runsTable(tableRunner),
     })
     await view('mech', MY_MECH.id)
@@ -397,7 +392,6 @@ describe('the tab title', () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', MY_PILOT.id)
     expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
@@ -414,7 +408,6 @@ describe('the tab title', () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', THEIR_PILOT.id)
     expect(document.title).toBe('Sheet · Training Bay · SalvageUnion.io')
@@ -428,7 +421,6 @@ describe('addresses', () => {
       'games.get': runsTable(false),
       'entities.listForGame': listing(),
       'account.me': ME,
-      'games.members': MEMBERS,
     })
     await view('pilot', 'row-theirs')
 

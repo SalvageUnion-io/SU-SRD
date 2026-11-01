@@ -95,9 +95,9 @@ describe('useGamesQuery', () => {
   })
 
   test('two screens on one read share one fetch', async () => {
-    renderHook(() => useGamesQuery('games.members', { gameId: 'g1' }))
-    const { result } = renderHook(() => useGamesQuery('games.members', { gameId: 'g1' }))
-    await waitFor(() => expect(result.current).toEqual([]))
+    renderHook(() => useGamesQuery('games.get', { gameId: 'g1' }))
+    const { result } = renderHook(() => useGamesQuery('games.get', { gameId: 'g1' }))
+    await waitFor(() => expect(result.current).toEqual([] as never))
     expect(sent.length).toBe(1)
   })
 

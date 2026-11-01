@@ -227,18 +227,6 @@ const CALLS = {
     await act(deps.game(a.gameId), who.discordId, 'setPrimaryCrawler', { crawlerId: a.crawlerId })
     return null
   },
-  'games.members': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
-    const members = await act(deps.game(a.gameId), who.discordId, 'members', undefined as never)
-    return members.map((m) => ({
-      userId: m.userId,
-      displayName: m.displayName ?? 'Crewmate',
-      ...(m.avatarUrl === null ? {} : { avatarUrl: m.avatarUrl }),
-      mediator: m.mediator,
-      organizer: m.organizer,
-      joinedAt: m.joinedAt,
-    }))
-  },
-
   'invites.link': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const room = deps.game(a.gameId)
     return republished(room, await act(room, who.discordId, 'inviteCode', undefined as never))
@@ -483,7 +471,6 @@ const CALL_ARGS = {
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
-  'games.members': GAME,
   'invites.link': GAME,
   'invites.reset': GAME,
   'invites.redeem': z.object({ code: z.string() }),

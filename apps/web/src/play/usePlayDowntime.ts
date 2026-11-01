@@ -29,7 +29,6 @@ import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeSte
 import { useGuardedWrite } from '../lib/connection/useGuardedWrite'
 import { sendStep } from '../replica/outbox'
 import { PLAY_TXN } from '../replica/provenance'
-import { useGamesQuery } from '../replica/roomCalls'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
@@ -55,7 +54,7 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const readable = signedIn && (gameId !== null || pilotId !== null)
 
   const state = useTableRead('downtime.state', readable ? { gameId, pilotId } : 'skip')
-  const members = useGamesQuery('games.members', signedIn && gameId !== null ? { gameId } : 'skip')
+  const members = useTableRead('games.members', signedIn && gameId !== null ? { gameId } : 'skip')
   const begin = useTableAct('downtime.begin', gameId)
   const advance = useTableAct('downtime.advance', gameId)
   const setStep = useTableAct('downtime.setStep', gameId)

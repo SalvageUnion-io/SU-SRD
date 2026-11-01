@@ -90,8 +90,6 @@ function changed(): void {
 /** The Games reads the Cockpit still makes. */
 function answer(name: string): unknown {
   switch (name) {
-    case 'games.members':
-      return []
     // The Play bar's channel button: nothing bound.
     case 'channelBindings.current':
       return null

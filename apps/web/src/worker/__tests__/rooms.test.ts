@@ -29,19 +29,28 @@ type Sock = {
   tags: string[]
   sent: string[]
   closed: number | null
+  attachment: unknown
   send: (text: string) => void
   close: (code: number) => void
+  serializeAttachment: (value: unknown) => void
+  deserializeAttachment: () => unknown
 }
 
-function sock(...tags: string[]): Sock {
+/** A member's socket; `seat` has it already sitting at the table (`presence.here`). */
+function sock(member?: string, seat?: 'seat' | 'watch'): Sock {
   const s: Sock = {
-    tags,
+    tags: member === undefined ? [] : [member],
     sent: [],
     closed: null,
+    attachment: seat === 'seat' ? { here: true } : null,
     send: (text) => s.sent.push(text),
     close: (code) => {
       s.closed = code
     },
+    serializeAttachment: (value) => {
+      s.attachment = value
+    },
+    deserializeAttachment: () => s.attachment,
   }
   return s
 }
@@ -379,6 +388,27 @@ describe('a Game room’s presence', () => {
     expect(wren.sent).toHaveLength(1)
   })
 
+  test('a socket sits and stands by act, and everyone hears who is here', () => {
+    const rook = sock('u1')
+    const wren = sock('u2')
+    const room = gameRoom([rook, wren])
+    const here = (who: Sock, id: string, value: boolean) =>
+      room.webSocketMessage(
+        who as never,
+        JSON.stringify({ type: 'act', id, name: 'presence.here', args: { here: value } })
+      )
+    here(rook, 'h-1', true)
+    here(wren, 'h-2', true)
+    here(rook, 'h-3', false)
+    expect(rook.sent.map((m) => JSON.parse(m))).toEqual([
+      { type: 'answered', id: 'h-1', value: null },
+      { type: 'presence', here: ['u1'] },
+      { type: 'presence', here: ['u1', 'u2'] },
+      { type: 'answered', id: 'h-3', value: null },
+      { type: 'presence', here: ['u2'] },
+    ])
+  })
+
   test('refuses a request the Worker did not let through', async () => {
     const res = await gameRoom([]).fetch(
       new Request('https://x/', { headers: { upgrade: 'websocket' } })
@@ -389,8 +419,8 @@ describe('a Game room’s presence', () => {
 
 describe('serveGameSocket', () => {
   const env = { SHARED: {} as never }
-  const upgrade = (seat: string, origin = 'https://salvageunion.io') =>
-    new Request(`https://salvageunion.io/__rooms/games/g1/socket?seat=${seat}`, {
+  const upgrade = (origin = 'https://salvageunion.io') =>
+    new Request('https://salvageunion.io/__rooms/games/g1/socket', {
       headers: { upgrade: 'websocket', origin },
     })
   const signedIn = async () => ({ accountId: 'a1', discordId: 'd-rook', admin: false })
@@ -421,31 +451,23 @@ describe('serveGameSocket', () => {
 
   test('refuses someone signed out, or outside the Game', async () => {
     room({ _id: 'g1' })
-    expect((await serveGameSocket(upgrade('1'), 'g1', env, async () => null)).status).toBe(403)
+    expect((await serveGameSocket(upgrade(), 'g1', env, async () => null)).status).toBe(403)
     room(null)
-    expect((await serveGameSocket(upgrade('1'), 'g1', env, signedIn)).status).toBe(403)
+    expect((await serveGameSocket(upgrade(), 'g1', env, signedIn)).status).toBe(403)
   })
 
   test('refuses a member’s socket opened by another site’s page', async () => {
     room({ _id: 'g1' })
-    const res = await serveGameSocket(
-      upgrade('1', 'https://elsewhere.example'),
-      'g1',
-      env,
-      signedIn
-    )
+    const res = await serveGameSocket(upgrade('https://elsewhere.example'), 'g1', env, signedIn)
     expect(res.status).toBe(403)
   })
 
-  test('hands a member to the Game’s room, saying who and how', async () => {
+  test('hands a member to the Game’s room, saying who', async () => {
     globalThis.Request = Request
     const seen = room({ _id: 'g1' })
-    const res = await serveGameSocket(upgrade('1'), 'g1', env, signedIn)
+    const res = await serveGameSocket(upgrade(), 'g1', env, signedIn)
     expect(await res.text()).toBe('g1')
     expect(seen.forwarded?.headers.get('x-su-member')).toBe('d-rook')
-    expect(seen.forwarded?.headers.get('x-su-seat')).toBe('1')
-    await serveGameSocket(upgrade('yes'), 'g1', env, signedIn)
-    expect(seen.forwarded?.headers.get('x-su-seat')).toBe('0')
   })
 })
 

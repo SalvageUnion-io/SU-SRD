@@ -104,7 +104,7 @@ function world(over: Partial<CallDeps> = {}) {
 
 describe('the Games calls', () => {
   test('a new Game is listed, its invite joins a player, and its roster names them', async () => {
-    const { call, deps } = world()
+    const { call, deps, game } = world()
     const gameId = (await call('games.create', { name: ' Tenacity ' })) as string
     expect(await call('games.listMine', {})).toEqual([
       expect.objectContaining({ _id: gameId, name: 'Tenacity', organizer: true, memberCount: 1 }),
@@ -118,10 +118,9 @@ describe('the Games calls', () => {
     expect(await call('games.listMine', {}, PLAYER)).toEqual([
       expect.objectContaining({ _id: gameId, organizer: false }),
     ])
-    const members = (await call('games.members', {
-      gameId,
-    })) as { userId: string; displayName: string }[]
-    expect(members.map((m) => [m.userId, m.displayName])).toEqual([
+    const members = await game(gameId).act('d-org', 'members', undefined as never)
+    if (!members.ok) throw new Error(members.refusal)
+    expect(members.value.map((m) => [m.userId, m.displayName])).toEqual([
       ['d-org', 'Org'],
       ['d-player', 'Rosa'],
     ])

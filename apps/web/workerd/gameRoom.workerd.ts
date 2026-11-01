@@ -219,7 +219,7 @@ describe('the Game room’s socket', () => {
       fetch(url: string, init: RequestInit): Promise<Response>
     }
     const res = await room.fetch('https://room/', {
-      headers: { upgrade: 'websocket', 'x-su-member': PLAYER, 'x-su-seat': '0' },
+      headers: { upgrade: 'websocket', 'x-su-member': PLAYER },
     })
     const ws = res.webSocket
     if (ws === null) throw new Error('no socket')

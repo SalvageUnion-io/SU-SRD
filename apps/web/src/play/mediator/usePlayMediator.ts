@@ -192,7 +192,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const store = useUnits()
   const [sentLimit, setSentLimit] = useState(PROPOSALS_PAGE)
 
-  const members = useGamesQuery('games.members', { gameId: id })
+  const members = useTableRead('games.members', { gameId })
   const crew = useTableRead('crew.vitals', { gameId })
   const seats = useTableRead('seats.forGame', { gameId })
   const listing = useGamesQuery('entities.listForGame', { gameId: id })
