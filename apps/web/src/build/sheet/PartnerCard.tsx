@@ -33,7 +33,12 @@ import type { UnitsStore } from '../../replica/units'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
-import { pinFor, resolveGauge, resolvePoolStart } from 'salvageunion-reference/rules'
+import {
+  installedSlots,
+  pinFor,
+  resolveGauge,
+  resolvePoolStart,
+} from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Field,
@@ -221,6 +226,7 @@ export function PartnerCard({
   // is fixed by the stat block (mech-granted). See `partnerTechLevel`.
   // The stat order every surface keeps (`STATS`, salvageunion-reference):
   // Tech Level, then SP / EP / Heat, then the slots and Cargo.
+  const slotsFilled = installedSlots(partner)
   const stats: StatItem[] = [
     { key: 'tech', label: buildSheetCopy('techLevel'), value: techLevel, group: 'provenance' },
     {
@@ -247,14 +253,14 @@ export function PartnerCard({
     {
       key: 'sys',
       label: buildSheetCopy('systemSlots'),
-      value: partner.systems.length,
+      value: slotsFilled.systems,
       outOfMax: max.systemSlots,
       group: 'capacity',
     },
     {
       key: 'mod',
       label: buildSheetCopy('moduleSlots'),
-      value: partner.modules.length,
+      value: slotsFilled.modules,
       outOfMax: max.moduleSlots,
       group: 'capacity',
     },

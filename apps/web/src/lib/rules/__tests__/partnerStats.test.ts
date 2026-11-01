@@ -115,6 +115,15 @@ describe('partnerTechLevel — override', () => {
 })
 
 describe('partnerDerivedStats', () => {
+  test("an installed item's contribution raises the partner's max, as on a mech (Cargo Pod)", () => {
+    const bare = partnerDerivedStats(partner({ hostRef: 'survey-drone' }), 1)
+    const podded = partnerDerivedStats(
+      partner({ hostRef: 'survey-drone', systems: ['cargo-pod'] }),
+      1
+    )
+    expect(podded.cargoCapacity - bare.cargoCapacity).toBe(1)
+  })
+
   test('Tech 1 is the printed base row — the bonus applies "for each level ABOVE the first"', () => {
     const stats = partnerDerivedStats(partner({ hostRef: 'survey-drone' }), 1)
     expect(stats.structurePoints).toBe(2)
