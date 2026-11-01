@@ -490,7 +490,7 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     })
     expect(batches[0]).toMatchObject({
       gameId: GAME_ID,
-      ops: [{ id: 'downtime:0:pg-rook:2', unitId: 'pg-rook', patch: { currentTP: 3 } }],
+      ops: [{ id: 'downtime::pg-rook:2', unitId: 'pg-rook', patch: { currentTP: 3 } }],
     })
   })
 
@@ -502,8 +502,8 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     expect(batches[0]).toMatchObject({
       gameId: GAME_ID,
       ops: [
-        { id: 'downtime:0:pg-rook:1', unitId: 'pg-rook', patch: {} },
-        { id: 'downtime:0:mg-rook:1', unitId: 'mg-rook', patch: { currentHeat: 0 } },
+        { id: 'downtime::pg-rook:1', unitId: 'pg-rook', patch: {} },
+        { id: 'downtime::mg-rook:1', unitId: 'mg-rook', patch: { currentHeat: 0 } },
       ],
     })
   })

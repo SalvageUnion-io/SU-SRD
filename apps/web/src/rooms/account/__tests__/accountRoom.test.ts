@@ -314,7 +314,7 @@ describe('the solo table’s seats and Downtime', () => {
     expect(room.solo.beginDowntime(PLAYER, 'p1', AT)).toBe(true)
     expect(room.solo.beginDowntime(PLAYER, 'p1', AT + 1)).toBe(false)
     room.shelf.submit(PLAYER, [
-      op('p1', {}, { id: downtimeStepOpId(AT, 'p1', 0), source: 'downtime' }),
+      op('p1', {}, { id: downtimeStepOpId(String(AT), 'p1', 0), source: 'downtime' }),
     ])
     room.solo.advanceDowntime(PLAYER, 'p1')
     expect(room.solo.soloSeats(PLAYER)[0]?.downtime).toEqual({

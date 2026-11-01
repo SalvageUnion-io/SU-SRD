@@ -21,8 +21,8 @@
  *    (`PlayMediatorProposeSection`), docked at the column's foot from `lg`.
  *
  * `usePlayMediator` reads the table once here and hands the same object to
- * every pane, and `usePlayMediatorSide` the side's shared state, so the roll
- * dispatch runs whichever pane is open. A seat tapped aims Propose and puts
+ * every pane, and the side's shared state (`useSideFeed`) is built here once,
+ * so the roll dispatch runs whichever pane is open. A seat tapped aims Propose and puts
  * focus in its To field (see the problem, propose the fix), opening its tab
  * first below `lg`. Pane headings are Slabs, never `TitledBox`es, so what a
  * pane lists stays level 1 (the Nested Frames Audit, play.md §12).
@@ -42,16 +42,16 @@ import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
 import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
 import { usePlayMediator } from './mediator/usePlayMediator'
-import { usePlayMediatorSide } from './mediator/usePlayMediatorSide'
 import { PlayBar } from './PlayBar'
 import { PlayChannelButton } from './PlayChannel'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
-import { PHASE_TONE } from './play.model'
+import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
 import { usePlayChannelBinding } from './usePlayChannel'
+import { useSideFeed } from './usePlaySide'
 import { usePlayWide } from './usePlayWide'
 import { useStopSign } from './useStopSign'
 
@@ -69,7 +69,19 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const { status } = useSync()
   const mediator = usePlayMediator(gameId, gameName)
   const binding = usePlayChannelBinding({ gameId })
-  const side = usePlayMediatorSide(mediator, binding)
+  // The Mediator's side (play.md §10): the Post toggle private by default and
+  // the Game's log left out of the roll dispatch (the log is the crew's; the
+  // Opposition reaches them only through what is posted). Nothing awaits the
+  // Mediator's answer, so no proposal is on its Feed.
+  const side = useSideFeed({
+    target: mediatorTarget(mediator.gameId),
+    rollerName: 'Mediator',
+    binding,
+    log: false,
+    rolls: mediator.rolls,
+    alerts: mediator.alerts,
+    proposals: [],
+  })
   const wide = usePlayWide()
   const [tab, setTab] = useState<MediatorPane>('table')
   const [picked, setPicked] = useState<string | null>(null)

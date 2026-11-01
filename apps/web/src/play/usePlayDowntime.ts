@@ -62,8 +62,8 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const markStepDone = useTableAct('downtime.markStepDone', gameId)
   const spendUpkeep = useTableAct('downtime.spendUpkeep', gameId)
   const spendNanites = useTableAct('downtime.spendNanites', gameId)
-  // A room names its run; a solo one copied from Convex is named by when it started.
-  const run = state?.runId ?? state?.startedAt ?? 0
+  // The room names the run (a solo one kept from Convex is named on the server).
+  const run = state?.runId ?? ''
 
   // `state` answers null for a solo pilot no longer on the shelf: not running.
   const downtime: DowntimeView =

@@ -69,10 +69,11 @@ export const LedgerSchema = z
     factions: z.array(FactionSchema).max(LEDGER_MAX_FACTIONS),
     jobs: z.array(JobSchema).max(LEDGER_MAX_JOBS),
     /**
-     * The `startedAt` of the Downtime whose deal income was collected, so it
-     * pays once per Downtime; absent before the first.
+     * The `runId` of the Downtime whose deal income was collected, so it pays
+     * once per Downtime; absent before the first. A ledger kept before runs
+     * were named holds that Downtime's `startedAt`, which no run id matches.
      */
-    incomeCollectedFor: z.number().optional(),
+    incomeCollectedFor: z.union([z.string(), z.number()]).optional(),
   })
   .strict()
 

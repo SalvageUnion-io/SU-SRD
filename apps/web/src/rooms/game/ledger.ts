@@ -50,7 +50,7 @@ export class GameLedger {
     const ledger = this.read()
     const downtime = this.play.downtime(actor)
     const incomeCollected =
-      downtime?.running === true && ledger.incomeCollectedFor === (downtime.startedAt ?? 0)
+      downtime?.running === true && ledger.incomeCollectedFor === downtime.runId
     return { ...ledger, incomeCollected }
   }
 
@@ -114,7 +114,7 @@ export class GameLedger {
       if (!isUpkeepStep(downtime.stepIndex)) {
         throw new RoomRefusal(`Deal income is collected in the ${UPKEEP_STEP_NAME} step`)
       }
-      const thisDowntime = downtime.startedAt ?? 0
+      const thisDowntime = downtime.runId ?? undefined
       const ledger = this.read()
       if (ledger.incomeCollectedFor === thisDowntime) return null
       const scrap = dealCount(ledger)

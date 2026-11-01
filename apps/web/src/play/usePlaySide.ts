@@ -9,7 +9,7 @@
  * runs exactly once whichever pane is open.
  *
  * The Tables and Feed half is `useSideFeed`, which the Mediator's side
- * (`usePlayMediatorSide`) calls too.
+ * (`PlayMediatorCockpit`) calls too.
  */
 
 import { useState } from 'react'
