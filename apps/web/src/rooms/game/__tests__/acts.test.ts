@@ -135,7 +135,6 @@ describe('every act reaches its part of the room', () => {
     expect(ok(runAct(me, 'seats.forGame', undefined as never))).toHaveLength(1)
 
     ok(runAct(med, 'downtime.begin', undefined as never))
-    ok(runAct(me, 'downtime.markStepDone', { done: true }))
     ok(runAct(med, 'downtime.advance', undefined as never))
     ok(runAct(med, 'downtime.setStep', { stepIndex: 0 }))
     runAct(med, 'downtime.claim', { claim: 'upkeep', op: op('c1', {}) })

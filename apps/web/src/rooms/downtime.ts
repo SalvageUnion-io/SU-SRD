@@ -31,8 +31,6 @@ export type Running = {
   runId: string
   stepIndex: number
   startedAt: number
-  /** The Game's members done with the step; always empty solo. */
-  completedBy: string[]
   /** Claims a Downtime running at 4.5.33's deploy made under the old flags, before they were ops. */
   legacyClaims: DowntimeClaim[]
 }
@@ -49,20 +47,20 @@ export type DowntimePlace = {
  */
 export function beginDowntime(place: DowntimePlace, runId: string, at: number): boolean {
   if (place.running() !== null) return false
-  place.write({ runId, stepIndex: 0, startedAt: at, completedBy: [], legacyClaims: [] })
+  place.write({ runId, stepIndex: 0, startedAt: at, legacyClaims: [] })
   return true
 }
 
 /**
  * Put the Downtime on a step, held to the guide's: the next one, or any (the
- * Mediator's Back). A move clears who is done, and never re-opens upkeep.
+ * Mediator's Back). A move never re-opens upkeep.
  */
 export function moveDowntime(place: DowntimePlace, next: (running: Running) => number): void {
   const running = requireRunning(place)
   const { index: stepIndex, count } = currentDowntimeStep(Math.trunc(next(running)))
   if (count === 0) throw new Error('The Crawler Downtime guide has no steps')
   if (stepIndex === running.stepIndex) return
-  place.write({ ...running, stepIndex, completedBy: [] })
+  place.write({ ...running, stepIndex })
 }
 
 /** The step each claim is made in, and the words for one made outside it. */
@@ -113,7 +111,7 @@ export function claimed(store: GameStore, running: Running, claim: DowntimeClaim
   return store.op(downtimeClaimOpId(running.runId, claim))?.state === 'applied'
 }
 
-export function requireRunning(place: DowntimePlace): Running {
+function requireRunning(place: DowntimePlace): Running {
   const running = place.running()
   if (running === null) throw new RoomRefusal('Downtime is not running')
   return running

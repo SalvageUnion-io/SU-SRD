@@ -151,19 +151,17 @@ export function useHarnessPlay({
           }
         : null,
       end: () => record('downtime.end'),
-      markDone: solo
-        ? null
-        : (isDone) => {
-            record('downtime.markDone', isDone)
-            const self = members.find((m) => m.userId === ME) ?? { userId: ME, displayName: 'Me' }
-            setDone((d) => (isDone ? [...d, self] : d.filter((m) => m.userId !== ME)))
-          },
       doneSteps,
       // The step's batch: what it applies to the pilot (`patch`), and the mech's share.
       markStepDone: async (i, patch, mech) => {
         record('downtime.markStepDone', { stepIndex: i, patch, ...(mech ? { mech } : {}) })
         if (doneSteps.includes(i)) return false
         setDoneSteps((d) => [...d, i])
+        // In a Game the room reads the member done off the step op they took.
+        if (!solo) {
+          const self = members.find((m) => m.userId === ME) ?? { userId: ME, displayName: 'Me' }
+          setDone((d) => [...d, self])
+        }
         return true
       },
       // The Upkeep or Nanites op on the crawler (`downtime.claim`).

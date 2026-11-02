@@ -66,8 +66,6 @@ export const playCopy = messages({
   appliesEachLineCanBe: 'Applies, each line can be unticked if your table rules it differently.',
   willApply: 'Will apply',
   done: 'Done ✓',
-  undo: 'Undo',
-  applied: 'Applied ✓',
   markDone: 'Mark done',
   skip: 'Skip',
   applyMarkDone: 'Apply & mark done',

@@ -64,7 +64,7 @@ export type DowntimeView = {
   running: boolean
   /** The step the table (or the solo pilot) is on, or null when Downtime is not running. */
   stepIndex: number | null
-  /** Who has finished the current step; a Game's only. Clears on every move. */
+  /** Who has taken the current step with every pilot of theirs; a Game's only. */
   completedBy: readonly DowntimeMember[]
   /** Upkeep is paid once per Downtime (`claim`). */
   upkeepSpent: boolean
@@ -85,12 +85,10 @@ export type PlayDowntime = {
   setStep: ((stepIndex: number) => void) | null
   /** End it: everyone goes back to their seat. */
   end: () => void
-  /** In a Game only: mark yourself done with the step; null solo. */
-  markDone: ((done: boolean) => void) | null
   /**
    * The steps this pilot has done this Downtime (applied or skipped), as the
-   * server records them (their step ops), so a reload,
-   * an Undo or the Mediator's Back never offers one again. Null on the
+   * server records them (their step ops), so a reload or the Mediator's
+   * Back never offers one again. Null on the
    * Mediator's own screen, which plays no pilot.
    */
   doneSteps: readonly number[] | null

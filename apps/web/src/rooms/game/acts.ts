@@ -107,8 +107,6 @@ const GAME_ACTS = {
   'downtime.setStep': (c: ActContext, a: { stepIndex: number }) =>
     c.room.play.setDowntimeStep(c.actor, a.stepIndex),
   'downtime.end': (c: ActContext) => c.room.play.endDowntime(c.actor),
-  'downtime.markStepDone': (c: ActContext, a: { done: boolean }) =>
-    c.room.play.markStepDone(c.actor, a.done),
   'downtime.claim': (c: ActContext, a: { claim: DowntimeClaim; op: OpInput }) =>
     c.room.play.claim(c.actor, a.claim, a.op),
 

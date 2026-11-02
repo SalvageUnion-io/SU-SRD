@@ -31,7 +31,7 @@ type SoloDowntime = {
 /** A solo seat as `seats.solo` answered: its Downtime, with the steps taken, beside it. */
 export type SoloSeatRead = SeatRead & {
   downtime:
-    | (Omit<Running, 'completedBy' | 'legacyClaims'> & {
+    | (Omit<Running, 'legacyClaims'> & {
         upkeepSpent: boolean
         doneSteps: number[]
       })
@@ -119,7 +119,6 @@ export class AccountSoloPlay extends SeatTable {
           runId: kept.runId ?? String(kept.startedAt),
           stepIndex: kept.stepIndex,
           startedAt: kept.startedAt,
-          completedBy: [],
           legacyClaims: [
             ...(kept.upkeepSpent === true ? (['upkeep'] as const) : []),
             ...(kept.nanitesSpent === true ? (['nanites'] as const) : []),

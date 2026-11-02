@@ -147,7 +147,6 @@ function playFor({
       advance: () => {},
       setStep: gameId === null ? () => {} : null,
       end: () => {},
-      markDone: gameId === null ? null : () => {},
       doneSteps: gameId === null ? [] : null,
       markStepDone: gameId === null ? async () => true : null,
       claim: async () => true,
