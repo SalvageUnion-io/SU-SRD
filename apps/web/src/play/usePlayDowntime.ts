@@ -8,14 +8,14 @@
  * `locked` for everyone else; the server refuses the writes whatever this
  * says. Solo, nobody else is at the table: the player runs it, and may put it
  * on any step (`setStep`); in a Game the Mediator may too (their Back). Every
- * member's Play follows the Game's through one `downtime.state` read;
- * each member marks themselves done with the step (`markStepDone`), and
+ * member's Play follows the Game's through one `downtime.state` read; a
+ * member is done with the step once every pilot of theirs has taken it, and
  * `games.members` names everyone the ready pips count.
  *
  * A step this pilot takes is one batch (`sendStep`): an op with a stable id
  * (`downtimeStepOpId`, ADR-063 §6) carrying what it applies to the pilot, and
  * one beside it for the mech's share, so it applies once however often the
- * screen reloads, a player presses Undo or the Mediator goes Back;
+ * screen reloads or the Mediator goes Back;
  * `doneSteps` reads them back, and the room's answer says whether this call
  * was the one that took it. The Upkeep and the Nanites are crawler ops named
  * by the run the same way (`claim`). The Mediator's own screen (no
@@ -59,7 +59,6 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
   const advance = useTableAct('downtime.advance', gameId)
   const setStep = useTableAct('downtime.setStep', gameId)
   const end = useTableAct('downtime.end', gameId)
-  const markStepDone = useTableAct('downtime.markStepDone', gameId)
   const claim = useTableAct('downtime.claim', gameId)
   // The room names the run (a solo one kept from Convex is named on the server).
   const run = state?.runId ?? ''
@@ -89,7 +88,6 @@ export function usePlayDowntime(target: PlayScreen): PlayDowntime {
     // Solo any step; in a Game the Mediator's Back.
     setStep: mayMove ? (stepIndex) => guarded.send(() => setStep({ ...place, stepIndex })) : null,
     end: () => guarded.send(() => end(place)),
-    markDone: gameId === null ? null : (done) => guarded.send(() => markStepDone({ done })),
     doneSteps: pilotId === null ? null : (state?.doneSteps ?? []),
     markStepDone:
       pilotId === null

@@ -280,7 +280,6 @@ describe('a solo Downtime, end to end', () => {
     )
     expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     expect(within(stepBox()).queryByRole('button', { name: 'Apply & mark done' })).toBeNull()
-    expect(within(stepBox()).queryByRole('button', { name: 'Undo' })).toBeNull()
     expect(calls).toHaveLength(0)
   })
 
@@ -392,13 +391,13 @@ describe('a Game’s step', () => {
       patch: { currentHP: expect.any(Number) },
       mech: { id: mech.id },
     })
-    expect(writes).toContainEqual({ name: 'downtime.markDone', args: true })
+    // Taking the step is what makes this member done: there is no Undo.
     expect(within(stepBox()).getByText('Mediator advances · 2 of 4 done')).toBeTruthy()
-    await click(button('Undo'))
-    expect(writes).toContainEqual({ name: 'downtime.markDone', args: false })
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
+    expect(within(stepBox()).queryByRole('button', { name: 'Undo' })).toBeNull()
   })
 
-  test('a taken step never applies twice: not after Undo, not after the Mediator’s Back', async () => {
+  test('a taken step never applies twice: not again, not after the Mediator’s Back', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
     const { store, calls } = stubStore(pilot, mech, crawler)
@@ -421,17 +420,13 @@ describe('a Game’s step', () => {
     })
     expect(calls).toEqual([])
 
-    // Undo unticks "done" only: the step stays applied, and Apply is not offered.
-    await click(button('Undo'))
-    expect(writes).toContainEqual({ name: 'downtime.markDone', args: false })
-    expect(within(stepBox()).getByText('Applied ✓')).toBeTruthy()
+    // Taken is done: neither Apply nor Skip is offered again.
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     expect(within(stepBox()).queryByRole('button', { name: 'Apply & mark done' })).toBeNull()
     expect(within(stepBox()).queryByRole('button', { name: 'Skip' })).toBeNull()
-    await click(button('Mark done'))
-    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     expect(writes.filter((w) => w.name === 'downtime.markStepDone')).toHaveLength(1)
 
-    // The Mediator goes Back to the step: `completedBy` is cleared, the step stays taken.
+    // The Mediator goes Back to the step: it stays taken.
     cleanup()
     render(
       <Harness
@@ -444,12 +439,12 @@ describe('a Game’s step', () => {
         downtime={{ stepIndex: train, members: MEMBERS, doneSteps: [train] }}
       />
     )
-    expect(within(stepBox()).getByText('Applied ✓')).toBeTruthy()
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     expect(within(stepBox()).queryByRole('button', { name: 'Apply & mark done' })).toBeNull()
     expect(calls).toHaveLength(0)
   })
 
-  test('done is per member, the step per pilot: a second pilot still applies its step', async () => {
+  test('the step is per pilot: a pilot that has not taken it still applies it', async () => {
     const { pilot, mech, crawler } = units()
     const train = STEPS.indexOf('Train your Pilot')
     const { store } = stubStore(pilot, mech, crawler)
@@ -463,7 +458,7 @@ describe('a Game’s step', () => {
         store={store}
         writes={writes}
         gameId="g1"
-        // This member is done (for their other pilot); this pilot has taken nothing.
+        // This pilot has taken nothing, whatever the member's other pilots did.
         downtime={{ stepIndex: train, members: MEMBERS, done: [me] }}
       />
     )
@@ -514,7 +509,12 @@ describe('a Game’s step', () => {
     expect(within(stepBox()).getByText('The Mediator pays it')).toBeTruthy()
     expect(within(stepBox()).queryByRole('checkbox')).toBeNull()
     await click(button('Mark done'))
-    expect(writes).toContainEqual({ name: 'downtime.markDone', args: true })
+    // Marking done takes the step for this pilot, applying nothing.
+    expect(writes).toContainEqual({
+      name: 'downtime.markStepDone',
+      args: { stepIndex: STEPS.indexOf('Upkeep & Upgrade'), patch: {} },
+    })
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
     expect(writes.some((w) => w.name === 'downtime.claim')).toBe(false)
     expect(calls).toHaveLength(0)
   })

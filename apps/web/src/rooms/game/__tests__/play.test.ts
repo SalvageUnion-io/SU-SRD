@@ -73,26 +73,43 @@ describe('seats', () => {
 })
 
 describe('Downtime', () => {
-  test('the Mediator runs it; anyone marks themselves done; a move clears who is done', () => {
+  test('the Mediator runs it; a member is done once their pilots took the step', () => {
     const { room } = seated()
     expect(room.play.downtime(PLAYER)?.running).toBe(false)
     expect(() => room.play.beginDowntime(PLAYER, AT)).toThrow('Only the Mediator')
     expect(room.play.beginDowntime(MEDIATOR, AT)).toBe(true)
-    const runId = room.play.downtime(PLAYER)?.runId
+    const runId = room.play.downtime(PLAYER)?.runId ?? ''
     expect(room.play.beginDowntime(MEDIATOR, AT + 1)).toBe(false)
     expect(room.play.downtime(PLAYER)?.runId).toBe(runId)
 
-    room.play.markStepDone(PLAYER, true)
-    room.play.markStepDone(PLAYER, true)
+    const take = (pilotId: string, stepIndex: number) =>
+      op(pilotId, {}, { id: downtimeStepOpId(runId, pilotId, stepIndex), source: 'downtime' })
+    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
+    room.units.submit(PLAYER, [take('p1', 0)])
     expect(room.play.downtime(PLAYER)?.completedBy).toEqual([
       { userId: PLAYER, displayName: 'Player' },
     ])
     room.play.advanceDowntime(MEDIATOR)
     expect(room.play.downtime(PLAYER)).toMatchObject({ stepIndex: 1, completedBy: [] })
+    // Back to a step already taken: still done, never offered again.
+    room.play.setDowntimeStep(MEDIATOR, 0)
+    expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
     room.play.setDowntimeStep(MEDIATOR, 999)
     expect(room.play.downtime(PLAYER)?.stepIndex).toBe(downtimeStepCount() - 1)
     room.play.endDowntime(MEDIATOR)
-    expect(() => room.play.markStepDone(PLAYER, true)).toThrow('Downtime is not running')
+  })
+
+  test('a member with two pilots is done once both took it; one with none never counts', () => {
+    const { room } = seated()
+    room.units.create(PLAYER, { id: 'p3', kind: 'pilot', body: bodies.pilot('p3'), at: AT })
+    room.play.beginDowntime(MEDIATOR, AT)
+    const runId = room.play.downtime(PLAYER)?.runId ?? ''
+    const take = (pilotId: string) =>
+      op(pilotId, {}, { id: downtimeStepOpId(runId, pilotId, 0), source: 'downtime' })
+    room.units.submit(PLAYER, [take('p1')])
+    expect(room.play.downtime(PLAYER)?.completedBy).toEqual([])
+    room.units.submit(PLAYER, [take('p3')])
+    expect(room.play.downtime(PLAYER)?.completedBy.map((m) => m.userId)).toEqual([PLAYER])
   })
 
   /** The run's claim op on the crawler: its id names the run and the claim. */
@@ -133,7 +150,8 @@ describe('Downtime', () => {
     const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep) ?? 0
     room.play.setDowntimeStep(MEDIATOR, upkeep)
     room.store.rows('update downtime_run set upkeep_spent = 1')
-    room.play.markStepDone(PLAYER, true)
+    room.play.advanceDowntime(MEDIATOR)
+    room.play.setDowntimeStep(MEDIATOR, upkeep)
     expect(room.play.downtime(PLAYER)?.upkeepSpent).toBe(true)
     expect(room.play.claim(MEDIATOR, 'upkeep', claimOp(room, 'upkeep'))).toBe(false)
   })

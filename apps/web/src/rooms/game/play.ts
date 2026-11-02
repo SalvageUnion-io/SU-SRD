@@ -1,18 +1,10 @@
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
 import type { Running } from '../downtime'
-import {
-  beginDowntime,
-  claimed,
-  claimInStep,
-  doneSteps,
-  moveDowntime,
-  requireRunning,
-} from '../downtime'
+import { beginDowntime, claimed, claimInStep, doneSteps, moveDowntime } from '../downtime'
 import type { OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import { SeatTable } from '../seats'
 import type { GameStore, UnitRow } from './store'
-import { fromJson } from './store'
 import type { GameUnits } from './units'
 
 /**
@@ -27,6 +19,10 @@ export type DowntimeRead = {
   runId: string | null
   stepIndex: number | null
   startedAt: number | null
+  /**
+   * The members done with the current step: each has a pilot here and every
+   * one of them took it (their step ops, `doneSteps`). Read, never stored.
+   */
   completedBy: { userId: string; displayName: string }[]
   upkeepSpent: boolean
   /** Each pilot's steps taken this Downtime, by pilot id. */
@@ -74,17 +70,21 @@ export class GamePlay extends SeatTable {
     if (this.store.member(actor) === null) return null
     const running = this.place.running()
     if (running === null) return NOT_RUNNING
+    const pilots = this.store.units('pilot')
+    const steps = new Map(pilots.map((p) => [p.id, doneSteps(this.store, running.runId, p.id)]))
+    const tookIt = (pilotId: string) => steps.get(pilotId)?.includes(running.stepIndex) ?? false
     return {
       running: true,
       ...running,
       upkeepSpent: claimed(this.store, running, 'upkeep'),
-      completedBy: running.completedBy.map((userId) => ({
-        userId,
-        displayName: this.store.member(userId)?.displayName ?? 'Crewmate',
-      })),
-      doneSteps: Object.fromEntries(
-        this.store.units('pilot').map((p) => [p.id, doneSteps(this.store, running.runId, p.id)])
-      ),
+      completedBy: this.store
+        .members()
+        .filter((m) => {
+          const own = pilots.filter((p) => p.ownerId === m.userId)
+          return own.length > 0 && own.every((p) => tookIt(p.id))
+        })
+        .map((m) => ({ userId: m.userId, displayName: m.displayName ?? 'Crewmate' })),
+      doneSteps: Object.fromEntries(steps),
     }
   }
 
@@ -104,16 +104,6 @@ export class GamePlay extends SeatTable {
   /** End the Downtime. Not running is not an error. */
   endDowntime(actor: string): void {
     this.asMediator(actor, () => this.place.write(null))
-  }
-
-  /** Mark yourself done with the current step, or not. Any member, for themselves only. */
-  markStepDone(actor: string, done: boolean): void {
-    this.store.sql.transaction(() => {
-      this.store.requireMember(actor)
-      const running = requireRunning(this.place)
-      const without = running.completedBy.filter((id) => id !== actor)
-      this.place.write({ ...running, completedBy: done ? [...without, actor] : without })
-    })
   }
 
   /** Pay the crawler's Upkeep or process its Nanites (`claimInStep`): the Mediator's, as the Downtime is. */
@@ -142,7 +132,6 @@ export class GamePlay extends SeatTable {
         runId: String(row.run_id),
         stepIndex: Number(row.step_index),
         startedAt: Number(row.started_at),
-        completedBy: fromJson<string[]>(row.completed_by),
         legacyClaims: [
           ...(row.upkeep_spent === 1 ? (['upkeep'] as const) : []),
           ...(row.nanites_spent === 1 ? (['nanites'] as const) : []),
@@ -156,15 +145,15 @@ export class GamePlay extends SeatTable {
       }
       // `upkeep_spent` and `nanites_spent` are no longer written: the claims are ops
       // (`claimed`). A run kept from before keeps its flags; a new one starts at 0.
+      // `completed_by` is read off the step ops (`downtime`), so it stays empty.
       this.store.rows(
         `insert into downtime_run (id, run_id, step_index, started_at, completed_by, upkeep_spent)
-         values (1, ?, ?, ?, ?, 0)
+         values (1, ?, ?, ?, '[]', 0)
          on conflict (id) do update set run_id = excluded.run_id, step_index = excluded.step_index,
-           started_at = excluded.started_at, completed_by = excluded.completed_by`,
+           started_at = excluded.started_at, completed_by = '[]'`,
         next.runId,
         next.stepIndex,
-        next.startedAt,
-        JSON.stringify(next.completedBy)
+        next.startedAt
       )
     },
   }

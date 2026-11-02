@@ -5,17 +5,17 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * (ADR-007), then Skip and Apply & mark done.
  *
  *  - **In a Game** the step is the Game's: the Mediator advances it
- *    ("Mediator advances · 2 of 4 done"), a player marks themselves done
- *    (`markDone`) and has no Next step. Undo unticks that "done" only.
+ *    ("Mediator advances · 2 of 4 done"), a player is done once they take the
+ *    step (applied, skipped or marked done) and has no Next step.
  *  - **Solo** the player runs it ("You run it"): Apply & mark done, then Next
  *    step (the last step ends Downtime).
  *
  * Either way the step is one batch with stable ids (`markStepDone`, ADR-063
  * §6) carrying what it applies to the pilot and the mech's share, so the
  * mech is never repaired twice for one step. A taken step
- * never offers Apply or Skip again, so a reload, an Undo or the Mediator's
- * Back never applies a step twice (Train's +1 TP). A Game's "done" is per
- * member, the step per pilot: a member running two pilots applies it for each.
+ * never offers Apply or Skip again, so a reload or the Mediator's Back never
+ * applies a step twice (Train's +1 TP). The step is per pilot: a member
+ * running two pilots takes it for each, and is done once both have.
  *
  * Upkeep is paid once per Downtime: its draw is the run's one Upkeep op
  * (`claim`), so a second press changes nothing. Process Nanites (the Craft
@@ -45,7 +45,6 @@ import {
 } from '../components/index'
 import { rollD20 } from '../lib/dice'
 import { playCopy } from '../messages/play'
-import { useViewerId } from '../replica/roomCalls'
 import { DowntimeStepNav } from './DowntimeStepNav'
 import type { PlanLine } from './playDowntime.model'
 import { mechBayOf, medBayOf, stepPlan, stepsFor } from './playDowntime.model'
@@ -75,7 +74,6 @@ export function PlayDowntimeStep({
 }: PlayDowntimeStepProps) {
   const { downtime } = play
   const inGame = play.target.gameId !== null
-  const viewer = useViewerId()
   const { pilot, mech, crawler, store } = actions
   const canPay = !downtime.locked
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
@@ -95,12 +93,8 @@ export function PlayDowntimeStep({
   const doneCount = downtime.downtime.completedBy.filter((m) =>
     members.some((member) => member.userId === m.userId)
   ).length
-  // This pilot's step is applied or skipped: never offered again this Downtime.
+  // This pilot's step is taken (applied, skipped or marked done): never offered again this Downtime.
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
-  // In a Game, whether this member has said they are done (`completedBy`).
-  const markedDone = inGame
-    ? viewer !== null && downtime.downtime.completedBy.some((m) => m.userId === viewer)
-    : claimed
   const off = !play.canWrite
 
   function toggle(key: string) {
@@ -110,14 +104,10 @@ export function PlayDowntimeStep({
     setUnticked(next)
   }
 
-  function markDone() {
-    downtime.markDone?.(true)
-  }
-
   /**
    * Take the step for this pilot, with what it applies to them and their
    * mech (one batch). False when it was already done (another tab, before a
-   * reload, before an Undo or a Back) or the write was refused: apply nothing
+   * reload, before a Back) or the write was refused: apply nothing
    * more.
    */
   async function take(
@@ -131,9 +121,9 @@ export function PlayDowntimeStep({
     return ok
   }
 
+  /** Skip the step, or mark one with nothing to apply done: the step op, applying nothing. */
   async function skip() {
-    if (!(await take({}))) return
-    markDone()
+    await take({})
   }
 
   /** Pay this Downtime's Upkeep (`payDowntimeUpkeep`). */
@@ -184,7 +174,6 @@ export function PlayDowntimeStep({
         .filter(Boolean)
         .join(' ') || 'Nothing to apply.'
     )
-    markDone()
   }
 
   const chip = inGame ? (
@@ -223,27 +212,8 @@ export function PlayDowntimeStep({
         </p>
       )}
       <div className="su-play-dt-controls">
-        {markedDone && (claimed || applicable.length === 0) ? (
-          <>
-            <span className="su-play-act__state">{playCopy('done')}</span>
-            {downtime.markDone && (
-              <Button
-                size="compact"
-                variant="ghost"
-                onClick={() => downtime.markDone?.(false)}
-                disabled={off}
-              >
-                {playCopy('undo')}
-              </Button>
-            )}
-          </>
-        ) : claimed ? (
-          <>
-            <span className="su-play-act__state">{playCopy('applied')}</span>
-            <Button size="compact" onClick={markDone} disabled={off}>
-              {playCopy('markDone')}
-            </Button>
-          </>
+        {claimed ? (
+          <span className="su-play-act__state">{playCopy('done')}</span>
         ) : applicable.length > 0 ? (
           <>
             <Button size="compact" onClick={() => void skip()} disabled={off}>
@@ -254,7 +224,7 @@ export function PlayDowntimeStep({
             </Button>
           </>
         ) : inGame ? (
-          <Button size="compact" onClick={markDone} disabled={off}>
+          <Button size="compact" onClick={() => void skip()} disabled={off}>
             {playCopy('markDone')}
           </Button>
         ) : null}

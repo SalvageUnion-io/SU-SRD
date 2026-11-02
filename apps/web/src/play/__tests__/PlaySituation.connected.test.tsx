@@ -436,7 +436,6 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
   test('solo: unlocked, with setStep, advance and upkeep bound to the solo writes', async () => {
     await renderPlay({ pilotId: 'ps-bonesaw', gameId: null })
     expect(play()?.downtime.locked).toBe(false)
-    expect(play()?.downtime.markDone).toBeNull()
     await act(async () => {
       play()?.downtime.setStep?.(3)
       play()?.downtime.advance()
@@ -473,16 +472,12 @@ describe('usePlayDowntime: one handle over the Game’s and the solo Downtime', 
     })
   })
 
-  test('in a Game: locked for a player; no setStep, and markDone on the Game', async () => {
+  test('in a Game: locked for a player, with no setStep', async () => {
     await renderPlay({ pilotId: 'pg-rook', gameId: GAME_ID })
     expect(play()?.downtime.locked).toBe(true)
     expect(play()?.canChangeDowntime).toBe(false)
     expect(play()?.downtime.setStep).toBeNull()
     expect(play()?.downtime.doneSteps).toEqual([])
-    await act(async () => {
-      play()?.downtime.markDone?.(true)
-    })
-    expect(acts).toEqual([{ gameId: GAME_ID, name: 'downtime.markStepDone', args: { done: true } }])
   })
 
   test('in a Game: a step is an op on this pilot, with what it applies', async () => {

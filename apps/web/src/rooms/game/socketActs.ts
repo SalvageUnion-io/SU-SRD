@@ -124,7 +124,6 @@ export const GAME_SOCKET_ACTS = {
 
   ...SEAT_ACTS,
   ...DOWNTIME_ACTS,
-  'downtime.markStepDone': z.object({ done: z.boolean() }),
   'ops.propose': z.object({
     entityId: z.string(),
     field: z.string(),
