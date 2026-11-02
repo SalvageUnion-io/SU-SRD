@@ -26,7 +26,7 @@ import { backUpRooms, restoreRoom } from './shared/backups'
 import type { SharedDb } from './shared/db'
 import { acceptFeedback } from './shared/feedback'
 import { gamesOf } from './shared/games'
-import { readMetrics, takeSnapshot } from './shared/signals'
+import { readMetrics } from './shared/signals'
 
 export type AccountEnv = { SHARED: SharedDb; ADMIN_DISCORD_IDS?: string; ARCHIVE?: ArchiveBucket }
 
@@ -153,11 +153,6 @@ export async function serveAccount(
     }
     case `GET ${ACCOUNT_PATHS.metrics}`:
       return json(who?.admin ? await readMetrics(shared(env)) : null)
-    case `POST ${ACCOUNT_PATHS.refreshMetrics}`:
-      if (who === null) return signedOut()
-      if (!who.admin) return new Response(null, { status: 403 })
-      await takeSnapshot(shared(env))
-      return json(null)
     case `POST ${ACCOUNT_PATHS.backup}`:
       if (who === null) return signedOut()
       if (!who.admin) return new Response(null, { status: 403 })

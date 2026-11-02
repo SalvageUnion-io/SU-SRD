@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import {
-  Button,
   ChapterBand,
   Cluster,
   EmptyState,
@@ -9,12 +8,10 @@ import {
   SlabSection,
   Stack,
   Stat,
-  Text,
   tokens,
 } from '../../components/index'
 import type { AdminMetrics as AdminMetricsRead } from '../../lib/account/accountApi'
-import { useAdminMetrics, useRefreshMetrics } from '../../lib/account/accountApi'
-import { useServerAction } from '../../lib/connection/useServerAction'
+import { useAdminMetrics } from '../../lib/account/accountApi'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { buildAccountCopy } from '../../messages/build-account'
 import { useSync } from '../../replica/syncContext'
@@ -24,12 +21,12 @@ import { useSync } from '../../replica/syncContext'
  * only, for the accounts `ADMIN_DISCORD_IDS` names. Everybody else, signed in
  * or not, is told there is nothing here; the query itself answers them null.
  *
- * The totals are the newest daily snapshot (`metrics.tally`), with a button to
- * take one now; the weekly table is the live tallies, newest week first.
+ * The totals are counted on every read; the weekly table is the live tallies,
+ * newest week first.
  */
 
 type Metrics = NonNullable<AdminMetricsRead>
-type Counts = NonNullable<Metrics['snapshot']>['counts']
+type Counts = Metrics['totals']
 
 /** The totals, in reading order, with the words each wears. */
 const TOTALS: ReadonlyArray<[keyof Counts, string]> = [
@@ -71,8 +68,6 @@ const CELL = {
 const LABEL_CELL = { ...CELL, textAlign: 'left' } satisfies CSSProperties
 
 const SCROLL = { overflowX: 'auto' } satisfies CSSProperties
-
-const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
 
 function weekLabel(weekStart: number): string {
   return new Date(weekStart).toLocaleDateString(undefined, {
@@ -123,44 +118,20 @@ function WeeklyTable({ weeks }: { weeks: Metrics['weeks'] }) {
 
 function AdminMetrics() {
   const metrics = useAdminMetrics()
-  const refresh = useServerAction(useRefreshMetrics(), {
-    failure: buildAccountCopy('aFreshSnapshotCouldNot'),
-  })
 
   if (metrics === undefined) return <Pending label={buildAccountCopy('theMetrics')} />
   if (metrics === null)
     return <EmptyState variant="quiet" body={buildAccountCopy('thereIsNothingHereFor')} />
 
-  const { snapshot, weeks } = metrics
+  const { totals, weeks } = metrics
   return (
     <Stack gap={32}>
       <SlabSection as="h2" id="metrics-totals" title={buildAccountCopy('totals')}>
-        <Stack gap={12}>
-          {snapshot === null ? (
-            <EmptyState variant="quiet" body={buildAccountCopy('noSnapshotYet')} />
-          ) : (
-            <>
-              <Cluster gap={8}>
-                {TOTALS.map(([key, label]) => (
-                  <Stat key={key} label={label} value={snapshot.counts[key]} size="mini" />
-                ))}
-              </Cluster>
-              <Text variant="hint" style={NOTE}>
-                {buildAccountCopy('takenAt', { when: new Date(snapshot.takenAt).toLocaleString() })}
-              </Text>
-            </>
-          )}
-          <Cluster gap={8}>
-            <Button
-              variant="primary"
-              size="compact"
-              disabled={refresh.pending}
-              onClick={() => void refresh.run()}
-            >
-              {buildAccountCopy('takeASnapshotNow')}
-            </Button>
-          </Cluster>
-        </Stack>
+        <Cluster gap={8}>
+          {TOTALS.map(([key, label]) => (
+            <Stat key={key} label={label} value={totals[key]} size="mini" />
+          ))}
+        </Cluster>
       </SlabSection>
       <SlabSection as="h2" id="metrics-weekly" title={buildAccountCopy('eachWeek')}>
         <WeeklyTable weeks={weeks} />

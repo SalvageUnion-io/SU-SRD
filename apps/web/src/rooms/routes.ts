@@ -42,7 +42,6 @@ export const ACCOUNT_PATHS = {
   /** `GET`: the usage metrics for an admin, `null` for anyone else. */
   metrics: `${ROOMS_PATH}/admin/metrics`,
   /** `POST`: take a fresh metrics snapshot now. Admins only. */
-  refreshMetrics: `${ROOMS_PATH}/admin/metrics/refresh`,
   /** `POST`: back up every room into R2 now, as the nightly run does. Admins only. */
   backup: `${ROOMS_PATH}/admin/backup`,
   /** `POST { day, kind, name }`: load that day's backup into one room. Admins only. */

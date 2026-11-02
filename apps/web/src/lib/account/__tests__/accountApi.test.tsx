@@ -93,18 +93,6 @@ describe('writes', () => {
     await waitFor(() => expect(me.result.current?.displayName).toBe('Bonesaw'))
   })
 
-  test('a refresh takes a snapshot, then the metrics are asked again', async () => {
-    person = 'd-admin'
-    answers[ACCOUNT_PATHS.metrics] = { body: { snapshot: null, weeks: [] } }
-    answers[ACCOUNT_PATHS.refreshMetrics] = { body: null }
-    const metrics = renderHook(() => api.useAdminMetrics())
-    await waitFor(() => expect(metrics.result.current).toEqual({ snapshot: null, weeks: [] }))
-    answers[ACCOUNT_PATHS.metrics] = { body: { snapshot: null, weeks: [{ counts: {} }] } }
-    const refresh = renderHook(() => api.useRefreshMetrics()).result.current
-    expect(await refresh()).toBeNull()
-    await waitFor(() => expect(metrics.result.current?.weeks).toHaveLength(1))
-  })
-
   test('a refusal throws in the Worker’s words; any other failure says which route', async () => {
     const submit = renderHook(() => api.useSubmitFeedback()).result.current
     answers[ACCOUNT_PATHS.feedback] = { status: 400, body: { refusal: 'Say a little more.' } }

@@ -2,7 +2,6 @@
  * The Worker's Cron Triggers (`triggers.crons` in wrangler.jsonc), over the
  * shared database (ADR-057):
  *
- *   - `METRICS_CRON`, daily: the usage totals into a snapshot (`takeSnapshot`).
  *   - `FEEDBACK_CRON`, hourly: waiting feedback filed as GitHub issues, and
  *     old rows deleted (`sweepFeedback`).
  *   - `BACKUP_CRON`, daily: every room's storage into R2 (`backUpRooms`).
@@ -15,10 +14,6 @@ import type { ArchiveBucket, BackupRooms } from './shared/backups'
 import { backUpRooms } from './shared/backups'
 import type { SharedDb } from './shared/db'
 import { sweepFeedback } from './shared/feedback'
-import { takeSnapshot } from './shared/signals'
-
-/** 05:13 UTC every day. */
-export const METRICS_CRON = '13 5 * * *'
 
 /** Twenty-three minutes past every hour. */
 export const FEEDBACK_CRON = '23 * * * *'
@@ -46,10 +41,6 @@ export async function runCron(
   rooms: () => BackupRooms = backupRooms
 ): Promise<void> {
   if (!env.SHARED) throw new Error('cron: no shared database bound')
-  if (cron === METRICS_CRON) {
-    await takeSnapshot(env.SHARED, now)
-    return
-  }
   if (cron === FEEDBACK_CRON) {
     const result = await sweepFeedback(env.SHARED, env.GITHUB_FEEDBACK_TOKEN, fetchImpl, now)
     if (result.failed > 0)
