@@ -61,6 +61,16 @@ describe('seats', () => {
     expect(room.play.seat('p1')?.ejected).toBe(false)
   })
 
+  test('switched-on effects last through a dismount, until switched off', () => {
+    const { room } = seated()
+    room.play.board(PLAYER, 'p1', 'm1', AT)
+    room.play.toggleEffect(PLAYER, 'p1', 'smoke', AT)
+    room.play.dismount(PLAYER, 'p1', AT)
+    expect(room.play.seat('p1')?.activeEffects).toEqual(['smoke'])
+    room.play.board(PLAYER, 'p1', 'm1', AT)
+    expect(room.play.seat('p1')?.activeEffects).toEqual(['smoke'])
+  })
+
   test('effects toggle; a bad range is a defect', () => {
     const { room } = seated()
     room.play.toggleEffect(PLAYER, 'p1', 'smoke', AT)

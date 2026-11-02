@@ -1,7 +1,7 @@
 /**
  * usePlayUnits — what the Units column shows (play.md §4): the pilot, the
- * mech (the one the seat is boarded in, else the pilot's assigned mech, else
- * the first of their own), the pilot's crawler, the rest of their mechs for
+ * mech (the one the seat is boarded in, else the pilot's assigned mech; an
+ * unlinked pilot on foot shows none, as the crew vitals do), the pilot's crawler, the rest of their mechs for
  * the hangar, and which of these are live (`unitLiveness`).
  *
  * In a Game the crawler is the Mediator's, and a mech may be a crewmate's:
@@ -79,11 +79,8 @@ export function usePlayUnits(play: Play): PlayUnits {
   const linked = (type: string, match: (l: ListedLink) => boolean) =>
     links.find((l) => l.type === type && match(l)) ?? null
 
-  // The mech: boarded, else assigned (`mech-to-pilot`), else the first of the pilot's own.
-  const assignedId =
-    linked('mech-to-pilot', (l) => l.to.id === target.pilotId)?.from.id ??
-    play.mechs.find((o) => o.state === 'yours')?.mechId ??
-    null
+  // The mech: boarded, else assigned (`mech-to-pilot`), else none.
+  const assignedId = linked('mech-to-pilot', (l) => l.to.id === target.pilotId)?.from.id ?? null
   const mechId = play.boardedMechId ?? assignedId
   const pilotAbilities =
     target.pilotId === null ? undefined : store.get('pilot', target.pilotId)?.abilities

@@ -33,6 +33,7 @@ const { Harness } = await import('./playActionsHarness')
 const { onPlayRoll } = await import('../playRolls.model')
 
 const LINK = 'dt-link'
+const MECH_LINK = 'dt-mech-link'
 
 beforeAll(async () => {
   await hydrateStores()
@@ -40,10 +41,15 @@ beforeAll(async () => {
   await useUnits
     .getState()
     .adopt('softLink', softLinkFixture('pilot-to-crawler', 'dt-p', 'dt-c', LINK))
+  // The pilot's assigned mech: on foot, Downtime restores it.
+  await useUnits
+    .getState()
+    .adopt('softLink', softLinkFixture('mech-to-pilot', 'dt-m', 'dt-p', MECH_LINK))
 })
 
 afterAll(async () => {
   await useUnits.getState().forget('softLink', LINK)
+  await useUnits.getState().forget('softLink', MECH_LINK)
   serverMocks.restore()
 })
 
