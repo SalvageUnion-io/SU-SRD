@@ -7,9 +7,10 @@ Decided and built for 4.1.0.
 The site counts what is used and stores nothing new about who used it.
 
 - **Totals** (accounts, sheets by kind, patterns, Games, Games with two or more
-  members, Discord servers) are tallied once a day, a page at a time, into a
-  `metrics_snapshots` row (`takeSnapshot`, `apps/web/src/worker/shared/signals.ts`; Convex's `metrics.ts` before 4.5). Convex has no count, and a
-  live count over growing tables would not stay inside a query's limits.
+  members, Discord servers) are counted on every read (`readMetrics`,
+  `apps/web/src/worker/shared/signals.ts`): one D1 statement over the rooms'
+  own rows, so no history is kept and nothing is stored twice (owner ruling,
+  2026-11-02).
   Sheets by kind sum every account room's `account_totals` row and every Game
   room's `games` row, so a unit counts wherever it lives.
 - **Weekly signals** are counters bumped by the write that is the signal:
@@ -24,8 +25,8 @@ The site counts what is used and stores nothing new about who used it.
 
 ### 2. One read, two readers
 
-`metrics.report` (internal) and `metrics.forAdmin` share one read: the newest
-snapshot and eight weeks of tallies. The admin page (`/build/admin/metrics`)
+`metrics.report` (internal) and `metrics.forAdmin` share one read: today's
+totals and eight weeks of tallies. The admin page (`/build/admin/metrics`)
 calls `forAdmin`; the Monday report runs `report` with the deployment key.
 
 ### 3. Admins are a deployment setting

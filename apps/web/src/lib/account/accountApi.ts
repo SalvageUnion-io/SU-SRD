@@ -136,15 +136,6 @@ export function useAdminMetrics(): AdminMetrics | undefined {
   return useWorkerRead<AdminMetrics>(ACCOUNT_PATHS.metrics, true)
 }
 
-/** Take a fresh metrics snapshot now. Admins only. */
-export function useRefreshMetrics(): () => Promise<null> {
-  return useCallback(async () => {
-    await ask(ACCOUNT_PATHS.refreshMetrics, { body: {} })
-    reload(ACCOUNT_PATHS.metrics)
-    return null
-  }, [])
-}
-
 /** The backend's build floor, from the Worker; `undefined` when it could not be asked. */
 export function askFloor(): Promise<number | undefined> {
   return ask<number>(ACCOUNT_PATHS.floor).then(

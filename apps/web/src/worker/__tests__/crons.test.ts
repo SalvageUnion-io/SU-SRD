@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'bun:test'
 import { join } from 'node:path'
-import { BACKUP_CRON, FEEDBACK_CRON, METRICS_CRON, runCron } from '../crons'
+import { BACKUP_CRON, FEEDBACK_CRON, runCron } from '../crons'
 import type { Env } from '../env'
 import { testDb } from '../shared/__tests__/d1'
 import { acceptFeedback } from '../shared/feedback'
-import { readMetrics } from '../shared/signals'
 import { worker } from './worker'
 
-/** The Worker's Cron Triggers: the daily snapshot, the hourly feedback sweep and the nightly backup. */
+/** The Worker's Cron Triggers: the hourly feedback sweep and the nightly backup. */
 
 const WRANGLER = (
   (await import(join(import.meta.dir, '../../../wrangler.jsonc'))) as {
@@ -16,15 +15,17 @@ const WRANGLER = (
 ).default
 
 describe('the Cron Triggers', () => {
-  it('are the three wrangler.jsonc schedules', () => {
-    expect(WRANGLER.triggers.crons).toEqual([METRICS_CRON, FEEDBACK_CRON, BACKUP_CRON])
+  it('are the two wrangler.jsonc schedules', () => {
+    expect(WRANGLER.triggers.crons).toEqual([FEEDBACK_CRON, BACKUP_CRON])
   })
 
-  it('take the snapshot through the Worker', async () => {
+  it('run through the Worker, and an unknown schedule throws there too', async () => {
     const SHARED = testDb()
-    expect((await readMetrics(SHARED)).snapshot).toBeNull()
-    await worker.scheduled({ cron: METRICS_CRON, scheduledTime: 5 }, { SHARED } as unknown as Env)
-    expect((await readMetrics(SHARED)).snapshot?.takenAt).toBe(5)
+    const env = { SHARED } as unknown as Env
+    await worker.scheduled({ cron: FEEDBACK_CRON, scheduledTime: 5 }, env)
+    await expect(worker.scheduled({ cron: '* * * * *', scheduledTime: 5 }, env)).rejects.toThrow(
+      'no job'
+    )
   })
 
   it('throw when GitHub refuses a note, so the run reaches Workers Issues', async () => {
@@ -41,7 +42,7 @@ describe('the Cron Triggers', () => {
       runCron(FEEDBACK_CRON, { SHARED, GITHUB_FEEDBACK_TOKEN: 't' }, Date.now(), refuse)
     ).rejects.toThrow('refused 1')
     await expect(runCron('* * * * *', { SHARED })).rejects.toThrow('no job')
-    await expect(runCron(METRICS_CRON, {})).rejects.toThrow('no shared database')
+    await expect(runCron(FEEDBACK_CRON, {})).rejects.toThrow('no shared database')
     await expect(runCron(BACKUP_CRON, { SHARED })).rejects.toThrow('no archive bucket')
   })
 

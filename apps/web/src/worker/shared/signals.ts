@@ -5,13 +5,12 @@
  * - **Weekly counters** are bumped by the write that is the signal (a Downtime
  *   begun, a bot command answered): `bumpUsage`, and `touchGuild` for the
  *   servers the bot answered in.
- * - **Totals** are each account room's own (`putAccountTotals`), summed once a
- *   day into a snapshot (`takeSnapshot`, from the Worker's cron) so no read
- *   walks the rooms. The reads take the newest snapshot.
+ * - **Totals** are each account room's own (`putAccountTotals`) and each Game
+ *   room's own (`games`), summed on every read (`readMetrics`), so no read
+ *   walks the rooms and nothing is stored twice.
  */
 
 import type { SharedDb } from './db'
-import { parseJson } from './db'
 
 const DAY = 86_400_000
 
@@ -20,8 +19,8 @@ const WEEK = 7 * DAY
 /** How many weeks of tallies the reads return, newest first. */
 const WEEKS = 8
 
-/** One snapshot's counts, as the admin page and the Monday report read them. */
-export type MetricsCounts = {
+/** The usage totals, as the admin page and the Monday report read them. */
+type MetricsCounts = {
   /** Accounts that have signed in. */
   accounts: number
   pilots: number
@@ -34,13 +33,13 @@ export type MetricsCounts = {
   sharedGames: number
   /** Discord servers the bot has answered a command in, ever. */
   botGuilds: number
-  /** Of those, the servers it answered in during the seven days before the snapshot. */
+  /** Of those, the servers it answered in during the seven days before the read. */
   botGuildsThisWeek: number
 }
 
-/** The newest snapshot and the last weeks' tallies: the one read both readers share. */
+/** Today's totals and the last weeks' tallies: the one read both readers share. */
 export type MetricsRead = {
-  snapshot: { takenAt: number; counts: MetricsCounts } | null
+  totals: MetricsCounts
   weeks: { weekStart: number; counts: Record<string, number> }[]
 }
 
@@ -113,8 +112,8 @@ export async function dropAccountTotals(db: SharedDb, discordId: string) {
   await db.prepare('delete from account_totals where discord_id = ?1').bind(discordId).run()
 }
 
-/** Sum today's totals into a snapshot taken at `now`: every unit, on a Shelf or in a Game. */
-export async function takeSnapshot(db: SharedDb, now = Date.now()): Promise<MetricsCounts> {
+/** Today's totals, counted at `now`: every unit, on a Shelf or in a Game. */
+async function countTotals(db: SharedDb, now: number): Promise<MetricsCounts> {
   const counts = await db
     .prepare(
       `select
@@ -137,23 +136,13 @@ export async function takeSnapshot(db: SharedDb, now = Date.now()): Promise<Metr
     .bind(now - WEEK)
     .first<MetricsCounts>()
   // One row of subqueries: there is always an answer.
-  const taken = counts as MetricsCounts
-  await db
-    .prepare(
-      `insert into metrics_snapshots (taken_at, counts) values (?1, ?2)
-       on conflict (taken_at) do update set counts = excluded.counts`
-    )
-    .bind(now, JSON.stringify(taken))
-    .run()
-  return taken
+  return counts as MetricsCounts
 }
 
-/** The newest snapshot and the last `WEEKS` weeks of tallies. */
-export async function readMetrics(db: SharedDb): Promise<MetricsRead> {
-  const [snapshot, latest] = await Promise.all([
-    db
-      .prepare('select taken_at, counts from metrics_snapshots order by taken_at desc limit 1')
-      .first<{ taken_at: number; counts: string }>(),
+/** Today's totals and the last `WEEKS` weeks of tallies. */
+export async function readMetrics(db: SharedDb, now = Date.now()): Promise<MetricsRead> {
+  const [totals, latest] = await Promise.all([
+    countTotals(db, now),
     db
       .prepare('select max(week_start) as week_start from usage_counts')
       .first<{ week_start: number | null }>(),
@@ -175,11 +164,7 @@ export async function readMetrics(db: SharedDb): Promise<MetricsRead> {
     }
     for (const [weekStart, counts] of byWeek) weeks.push({ weekStart, counts })
   }
-  const counts = snapshot ? parseJson<MetricsCounts>(snapshot.counts) : null
-  return {
-    snapshot: snapshot && counts ? { takenAt: snapshot.taken_at, counts } : null,
-    weeks,
-  }
+  return { totals, weeks }
 }
 
 /**

@@ -4,7 +4,6 @@ import {
   dropAccountTotals,
   putAccountTotals,
   readMetrics,
-  takeSnapshot,
   touchGuild,
   weekStartOf,
 } from '../signals'
@@ -32,8 +31,7 @@ describe('the weekly counters', () => {
     await bumpUsage(db, 'downtime:game', MONDAY + 3)
     await bumpUsage(db, 'bot:su roll', MONDAY + 7 * DAY)
     await bumpUsage(db, 'bot:su roll', MONDAY - 20 * 7 * DAY)
-    const { weeks, snapshot } = await readMetrics(db)
-    expect(snapshot).toBeNull()
+    const { weeks } = await readMetrics(db)
     expect(weeks).toEqual([
       { weekStart: MONDAY + 7 * DAY, counts: { 'bot:su roll': 1 } },
       { weekStart: MONDAY, counts: { 'bot:su roll': 2, 'downtime:game': 1 } },
@@ -41,8 +39,8 @@ describe('the weekly counters', () => {
   })
 })
 
-describe('the daily snapshot', () => {
-  it('sums the account rooms, the Games and the servers, and the newest is read', async () => {
+describe('the totals', () => {
+  it('sum the account rooms, the Games and the servers on every read', async () => {
     const db = testDb()
     const now = MONDAY + 3 * DAY
     await putAccountTotals(db, {
@@ -88,9 +86,8 @@ describe('the daily snapshot', () => {
     await touchGuild(db, 'guild-old', now - 30 * DAY)
     await touchGuild(db, 'guild-new', now - DAY)
 
-    await takeSnapshot(db, now - DAY)
-    const counts = await takeSnapshot(db, now)
-    expect(counts).toEqual({
+    const { totals } = await readMetrics(db, now)
+    expect(totals).toEqual({
       accounts: 2,
       pilots: 4,
       mechs: 2,
@@ -102,7 +99,6 @@ describe('the daily snapshot', () => {
       botGuilds: 2,
       botGuildsThisWeek: 1,
     })
-    expect((await readMetrics(db)).snapshot).toEqual({ takenAt: now, counts })
   })
 
   it("moves a server's last answer on by the hour, not by the command", async () => {

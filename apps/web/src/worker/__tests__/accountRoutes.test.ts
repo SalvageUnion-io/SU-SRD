@@ -239,16 +239,14 @@ describe('the account’s routes', () => {
     expect(row).toEqual({ sender: 'discord:d-1', source: 'app', page: '/play/' })
   })
 
-  test('metrics are an admin’s, and a refresh takes a snapshot', async () => {
+  test('metrics are an admin’s, with the totals counted on the read', async () => {
     await bumpUsage(db, 'downtime:game')
     expect(await (await call(ACCOUNT_PATHS.metrics, PLAYER)).json()).toBeNull()
-    expect((await call(ACCOUNT_PATHS.refreshMetrics, PLAYER, {})).status).toBe(403)
-    expect((await call(ACCOUNT_PATHS.refreshMetrics, ADMIN, {})).status).toBe(200)
     const read = (await (await call(ACCOUNT_PATHS.metrics, ADMIN)).json()) as {
-      snapshot: { counts: { accounts: number } } | null
+      totals: { accounts: number }
       weeks: { counts: Record<string, number> }[]
     }
-    expect(read.snapshot?.counts.accounts).toBe(0)
+    expect(read.totals.accounts).toBe(0)
     expect(read.weeks[0]?.counts['downtime:game']).toBe(1)
   })
 

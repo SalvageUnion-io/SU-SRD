@@ -77,7 +77,7 @@
 
   // The daily usage snapshot, the hourly feedback sweep and the nightly room
   // backup (src/worker/crons.ts, which names each schedule).
-  "triggers": { "crons": ["13 5 * * *", "23 * * * *", "43 4 * * *"] },
+  "triggers": { "crons": ["23 * * * *", "43 4 * * *"] },
 
   // A Worker Preview (deploy-preview.yml) inherits none of the vars and
   // bindings above: its own shared database and photos, so a Preview never
