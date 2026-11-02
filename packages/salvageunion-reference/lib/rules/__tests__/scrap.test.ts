@@ -6,7 +6,13 @@
  */
 import { describe, expect, it } from 'bun:test'
 import { SalvageUnionReference } from '../../index'
-import { crawlerUpkeepCost, nextTierUpgradeCost, scrapCostFor, tierUpgradeCost } from '../scrap'
+import {
+  crawlerTypeDowntimeUpgradeBonus,
+  crawlerUpkeepCost,
+  nextTierUpgradeCost,
+  scrapCostFor,
+  tierUpgradeCost,
+} from '../scrap'
 import type { ScrapableItem } from '../types'
 
 // ---------------------------------------------------------------------------
@@ -93,5 +99,21 @@ describe('crawler tier costs from crawler-tech-levels.json (p.218)', () => {
     expect(nextTierUpgradeCost(6)).toBeNull()
     expect(nextTierUpgradeCost(0)).toBeNull()
     expect(crawlerUpkeepCost(0)).toBe(0)
+  })
+})
+
+describe("Exceptional Engineering (p.216), from the type's stored mutations", () => {
+  it('the Engineering Crawler pays 2 less Upkeep and gets 2 free Upgrade Pool Scrap', () => {
+    for (const tl of [1, 2, 3, 4, 5, 6]) {
+      expect(crawlerUpkeepCost(tl, 'engineering')).toBe(crawlerUpkeepCost(tl) - 2)
+    }
+    expect(crawlerTypeDowntimeUpgradeBonus('engineering')).toBe(2)
+  })
+
+  it('every other type, no type and an unknown type change nothing', () => {
+    for (const type of ['battle', undefined, 'not-a-crawler']) {
+      expect(crawlerUpkeepCost(3, type)).toBe(crawlerUpkeepCost(3))
+      expect(crawlerTypeDowntimeUpgradeBonus(type)).toBe(0)
+    }
   })
 })

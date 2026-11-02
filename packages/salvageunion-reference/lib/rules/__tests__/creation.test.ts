@@ -302,7 +302,7 @@ describe('crawlerWeaponSlots / crawlerMaxSpBonus (stored mutations, never string
     expect(crawlerMaxSpBonus(battle?.mutations)).toBe(5)
   })
 
-  it('every non-Battle type has no mutations — 1 slot, +0 SP', () => {
+  it('every non-Battle type has no weapon or SP mutations — 1 slot, +0 SP', () => {
     const others = SalvageUnionReference.Crawlers.all().filter((c) => c.name !== 'Battle')
     expect(others.length).toBeGreaterThan(0)
     for (const type of others) {

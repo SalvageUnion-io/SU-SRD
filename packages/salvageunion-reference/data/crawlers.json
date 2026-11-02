@@ -255,6 +255,16 @@
       ]
     },
     "actions": ["Exceptional Engineering"],
+    "mutations": [
+      {
+        "type": "upkeep_reduction",
+        "value": 2
+      },
+      {
+        "type": "downtime_upgrade_pool",
+        "value": 2
+      }
+    ],
     "page": 216,
     "content": [
       {

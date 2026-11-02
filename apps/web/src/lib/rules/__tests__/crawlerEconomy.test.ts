@@ -143,6 +143,22 @@ describe('payUpkeep', () => {
     expect(payment.short).toBe(1)
     expect(payment.upgradeCredit).toBe(4)
   })
+
+  it('the Engineering Crawler draws 2 less and adds 2 free Scrap to the Upgrade Pool (p.216)', () => {
+    const payment = payUpkeep({ tl3: 7 }, 3, 'engineering')
+    expect(payment.cost).toBe(crawlerUpkeepCost(3) - 2)
+    expect(payment.pool).toEqual({ tl3: 7 - payment.cost })
+    expect(payment.drawn).toBe(payment.cost)
+    expect(payment.freeCredit).toBe(2)
+    expect(payment.upgradeCredit).toBe(payment.cost + 2)
+  })
+
+  it('the free Scrap lands even when the pool is empty', () => {
+    const payment = payUpkeep({}, 3, 'engineering')
+    expect(payment.drawn).toBe(0)
+    expect(payment.short).toBe(payment.cost)
+    expect(payment.upgradeCredit).toBe(2)
+  })
 })
 
 describe('upkeepShortfall', () => {

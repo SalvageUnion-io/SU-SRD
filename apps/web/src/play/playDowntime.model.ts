@@ -277,7 +277,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
       chips: [
         {
           label: 'Upkeep',
-          value: `${crawlerUpkeepCost(crawler.techLevel)} Scrap · T${crawler.techLevel}`,
+          value: `${crawlerUpkeepCost(crawler.techLevel, crawler.type)} Scrap · T${crawler.techLevel}`,
         },
         { label: upkeep.spent ? 'Paid' : upkeep.canPay ? 'Outstanding' : 'The Mediator pays it' },
       ],

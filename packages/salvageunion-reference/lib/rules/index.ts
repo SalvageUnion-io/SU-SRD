@@ -114,7 +114,11 @@ export {
   mechSalvageAllows,
   mechSalvageResult,
 } from './salvage'
-export { crawlerUpkeepCost, nextTierUpgradeCost } from './scrap'
+export {
+  crawlerTypeDowntimeUpgradeBonus,
+  crawlerUpkeepCost,
+  nextTierUpgradeCost,
+} from './scrap'
 export { evaluateSoftWarnings } from './softWarnings'
 export type {
   HeatCheckEffect,

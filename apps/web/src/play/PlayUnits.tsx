@@ -417,7 +417,7 @@ export function PlayCrawlerUnit({
         <div style={CHIPS}>
           <Stat
             label={playCopy('upkeep')}
-            value={`${crawlerUpkeepCost(tl)} Scrap · T${tl}`}
+            value={`${crawlerUpkeepCost(tl, crawler.type)} Scrap · T${tl}`}
             size="mini"
           />
         </div>

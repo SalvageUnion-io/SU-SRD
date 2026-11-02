@@ -33,7 +33,7 @@ export async function payDowntimeUpkeep({
     return 'Upkeep is already paid this Downtime.'
   const { short } = paid.payment
   if (short > 0) {
-    const scrap = crawlerUpkeepCost(tl)
+    const scrap = crawlerUpkeepCost(tl, crawler.type)
     return playCopy('upkeepShort', { scrap, tl, short, pool: paid.patch.upgradePool })
   }
   return `Paid the Upkeep. Upgrade Pool now ${paid.patch.upgradePool}.`

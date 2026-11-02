@@ -205,7 +205,7 @@ export function PlayMediatorDowntime({
               <Stat
                 size="mini"
                 label={mediatorCopy('scrap', {
-                  downtimeUpkeepScrap: crawlerUpkeepCost(unit?.techLevel ?? 1),
+                  downtimeUpkeepScrap: crawlerUpkeepCost(unit?.techLevel ?? 1, unit?.type),
                 })}
                 value={unit === null ? undefined : `T${unit.techLevel}`}
               />
