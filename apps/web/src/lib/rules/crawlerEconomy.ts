@@ -38,6 +38,7 @@
 import type { Crawler, ScrapPool } from 'game-domain/schemas/crawler'
 import type { Roll } from 'salvageunion-reference/rules'
 import {
+  crawlerTypeDowntimeUpgradeBonus,
   crawlerUpkeepCost,
   isNumericTechLevel,
   NUMERIC_TECH_LEVELS,
@@ -133,30 +134,45 @@ export type UpkeepPayment = {
   pool: ScrapPool
   /** Which buckets paid (lowest qualifying first). */
   draws: PoolDraw[]
-  /** The Upkeep due this Downtime. */
+  /** The Upkeep due this Downtime, after the type's reduction (Engineering −2). */
   cost: number
-  /** Scrap credited to the Upgrade Pool: what was actually drawn. */
+  /** Scrap actually drawn from the pool toward the Upkeep. */
+  drawn: number
+  /** Free Scrap the crawler type adds each Downtime (Engineering +2, p.216). */
+  freeCredit: number
+  /** Scrap credited to the Upgrade Pool: what was drawn plus the free Scrap. */
   upgradeCredit: number
   /** What the pool could not cover (0 = paid in full); advisory. */
   short: number
 }
 
 /** How much scrap the pool is short of this Downtime's Upkeep (0 = covered). */
-export function upkeepShortfall(pool: ScrapPool, crawlerTl: number): number {
-  return poolShortfall(pool, crawlerTl, crawlerUpkeepCost(crawlerTl))
+export function upkeepShortfall(pool: ScrapPool, crawlerTl: number, typeRef?: string): number {
+  return poolShortfall(pool, crawlerTl, crawlerUpkeepCost(crawlerTl, typeRef))
 }
 
 /**
- * Pay Upkeep: draw the tier's Upkeep (crawler TL or higher) from the pool and
- * credit what was drawn to the Upgrade Pool (p.218). A short pool spends what
- * it has, credits only that, and names the rest in `short` (advisory: the
- * payment still lands); the caller still offers Deterioration.
+ * Pay Upkeep: draw the tier's Upkeep (crawler TL or higher, less the type's
+ * reduction) from the pool and credit what was drawn to the Upgrade Pool
+ * (p.218), plus the type's free Scrap for the Downtime (p.216). A short pool
+ * spends what it has, credits only that, and names the rest in `short`
+ * (advisory: the payment still lands); the caller still offers Deterioration.
  */
-export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment {
-  const cost = crawlerUpkeepCost(crawlerTl)
+export function payUpkeep(pool: ScrapPool, crawlerTl: number, typeRef?: string): UpkeepPayment {
+  const cost = crawlerUpkeepCost(crawlerTl, typeRef)
   const short = poolShortfall(pool, crawlerTl, cost)
-  const drawn = drawFromPool(pool, crawlerTl, cost, { partial: true })
-  return { pool: drawn.pool, draws: drawn.draws, cost, upgradeCredit: cost - short, short }
+  const paid = drawFromPool(pool, crawlerTl, cost, { partial: true })
+  const drawn = cost - short
+  const freeCredit = crawlerTypeDowntimeUpgradeBonus(typeRef)
+  return {
+    pool: paid.pool,
+    draws: paid.draws,
+    cost,
+    drawn,
+    freeCredit,
+    upgradeCredit: drawn + freeCredit,
+    short,
+  }
 }
 
 /**
@@ -164,10 +180,10 @@ export function payUpkeep(pool: ScrapPool, crawlerTl: number): UpkeepPayment {
  * the drawn pool and the credited Upgrade Pool.
  */
 export function payUpkeepPatch(
-  crawler: Pick<Crawler, 'scrapPool' | 'upgradePool'>,
+  crawler: Pick<Crawler, 'scrapPool' | 'upgradePool' | 'type'>,
   crawlerTl: number
 ): { patch: { scrapPool: ScrapPool; upgradePool: number }; payment: UpkeepPayment } {
-  const payment = payUpkeep(crawler.scrapPool ?? {}, crawlerTl)
+  const payment = payUpkeep(crawler.scrapPool ?? {}, crawlerTl, crawler.type)
   const upgradePool = (crawler.upgradePool ?? 0) + payment.upgradeCredit
   return { patch: { scrapPool: payment.pool, upgradePool }, payment }
 }

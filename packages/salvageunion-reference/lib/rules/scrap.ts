@@ -14,6 +14,8 @@
  */
 
 import { SalvageUnionReference } from '../index'
+import type { CrawlerMutationInput } from './creation'
+import { resolveCrawlerRef } from './resolveRefs'
 import type { ScrapableItem, TechLevel } from './types'
 
 /**
@@ -63,12 +65,41 @@ export function tierUpgradeCost(fromTL: TechLevel, toTL: TechLevel): number | nu
 }
 
 /**
+ * The sum of the crawler type `typeRef`'s stored mutations of `kind`. An
+ * absent ref, an unresolvable one or a catalog not yet loaded sums to 0.
+ */
+function crawlerTypeMutationTotal(
+  typeRef: string | undefined,
+  kind: CrawlerMutationInput['type']
+): number {
+  if (!typeRef) return 0
+  let mutations: readonly CrawlerMutationInput[] | undefined
+  try {
+    mutations = resolveCrawlerRef(typeRef)?.mutations
+  } catch {
+    return 0
+  }
+  return (mutations ?? []).filter((m) => m.type === kind).reduce((sum, m) => sum + m.value, 0)
+}
+
+/**
  * Upkeep for a crawler at `tl`: Scrap of that Tech Level or higher per
  * Downtime, from the tier's `upkeepCost` in `crawler-tech-levels.json`
- * (SRD p.218). 0 when no tier matches.
+ * (SRD p.218), less its type's `upkeep_reduction` mutations (Engineering
+ * −2, p.216), never below 0. 0 when no tier matches.
  */
-export function crawlerUpkeepCost(tl: number): number {
-  return SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)?.upkeepCost ?? 0
+export function crawlerUpkeepCost(tl: number, typeRef?: string): number {
+  const base =
+    SalvageUnionReference.CrawlerTechLevels.find((r) => r.techLevel === tl)?.upkeepCost ?? 0
+  return Math.max(0, base - crawlerTypeMutationTotal(typeRef, 'upkeep_reduction'))
+}
+
+/**
+ * Free Scrap the crawler type `typeRef` adds to the Upgrade Pool at the start
+ * of each Downtime (Engineering +2, p.216); 0 for every other type.
+ */
+export function crawlerTypeDowntimeUpgradeBonus(typeRef?: string): number {
+  return crawlerTypeMutationTotal(typeRef, 'downtime_upgrade_pool')
 }
 
 /**

@@ -181,8 +181,8 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
   const tl = crawler.techLevel
   const pool = crawler.scrapPool ?? {}
   const available = poolAvailableAtOrAbove(pool, tl)
-  const shortfall = upkeepShortfall(pool, tl)
-  const upkeepCost = crawlerUpkeepCost(tl)
+  const shortfall = upkeepShortfall(pool, tl, crawler.type)
+  const upkeepCost = crawlerUpkeepCost(tl, crawler.type)
   const quote = crawlerUpgradeQuote(tl, crawler.upgradePool ?? 0)
 
   /** Pay: draw 5×TL+ scrap, credit the Upgrade Pool in full (auto-applies). */
@@ -196,7 +196,7 @@ function UpkeepDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFo
       () =>
         dispatch({
           type: 'paid',
-          message: `Paid ${paid.payment.upgradeCredit} of ${paid.payment.cost} Scrap (${drawText || 'none'}) — Upgrade Pool now ${paid.patch.upgradePool}${
+          message: `Paid ${paid.payment.drawn} of ${paid.payment.cost} Scrap (${drawText || 'none'})${paid.payment.freeCredit > 0 ? ` + ${paid.payment.freeCredit} free` : ''} — Upgrade Pool now ${paid.patch.upgradePool}${
             quote ? ` of ${quote.cost}` : ''
           }.`,
         })
@@ -364,7 +364,7 @@ function UpgradeDialog({ crawler, store, onClose }: DialogProps) {
               Upgrading from Tech {quote.fromTl} to Tech {quote.toTl} consumes{' '}
               <strong>{quote.cost}</strong> from the Upgrade Pool (currently{' '}
               <strong>{upgradePool}</strong>). Damaged Bays are repaired during the upgrade; Upkeep
-              rises to {crawlerUpkeepCost(quote.toTl)}× Tech {quote.toTl} Scrap.
+              rises to {crawlerUpkeepCost(quote.toTl, crawler.type)}× Tech {quote.toTl} Scrap.
             </p>
             {!quote.affordable && (
               <FieldError>
