@@ -93,15 +93,13 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
   })
   const pilot = store.get('pilot', target.pilotId) ?? play.pilot
   const crawler = composition.crawler
-  const firstYours = play.mechs.find((m) => m.state === 'yours')
   // Boarded, the mech is the one aboard or none: never another mech, whose EP
-  // and Heat a Push would write. On foot, the pilot's own (Downtime restores it).
+  // and Heat a Push would write. On foot, the pilot's assigned mech (Downtime
+  // restores it), or none for a pilot linked to no mech.
   const mech =
     play.boardedMechId !== null
       ? (play.boardedMech ?? store.get('mech', play.boardedMechId))
-      : (play.boardedMech ??
-        (firstYours === undefined ? null : store.get('mech', firstYours.mechId)) ??
-        composition.mech)
+      : (play.boardedMech ?? composition.mech)
 
   const [filter, setFilter] = useState<TypeFilter>('All')
   const [find, setFind] = useState('')

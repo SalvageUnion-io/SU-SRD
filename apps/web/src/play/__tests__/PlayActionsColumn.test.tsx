@@ -17,7 +17,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
-import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import { buildMechActions, hasCurrencyChoice } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
@@ -31,14 +31,21 @@ setQueryAnswers({ 'account.me': null })
 
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { Harness } = await import('./playActionsHarness')
+const { useUnits } = await import('../../replica/units')
 const { onPlayRoll } = await import('../playRolls.model')
 
 let costedSystem = ''
 let epApModule: { id: string; actionName: string } | null = null
 let pilotAbility: { id: string; actionNames: string[] } | null = null
 
+/** The pilot's assigned mech: on foot, the actions read it. */
+const MECH_LINK = 'pac-mech-link'
+
 beforeAll(async () => {
   await hydrateStores()
+  await useUnits
+    .getState()
+    .adopt('softLink', softLinkFixture('mech-to-pilot', 'm1', 'p1', MECH_LINK))
   for (const sys of SalvageUnionReference.Systems.all()) {
     const resolved = resolveSystem(getEntitySlug(sys))
     if (resolved && itemEconomy(resolved).epCost > 0) {
@@ -66,7 +73,10 @@ beforeAll(async () => {
   }
 })
 
-afterAll(() => serverMocks.restore())
+afterAll(async () => {
+  await useUnits.getState().forget('softLink', MECH_LINK)
+  serverMocks.restore()
+})
 
 /** The costed system's primary (EP-costed) action, and its cost. */
 function primary(): { name: string; epCost: number } {
@@ -206,6 +216,19 @@ describe('the list', () => {
     )
     expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Vent' })).toBeNull()
+  })
+
+  test('on foot, a pilot linked to no mech lists no mech’s actions, never their first mech’s', async () => {
+    const mech = makeMech()
+    const pilot = makePilot({ id: 'p-unlinked' })
+    const { store } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
+    const toggle = screen.queryByRole('button', { name: 'Expand Not on hand' })
+    if (toggle) await click(toggle)
+    const keys = screen
+      .queryAllByRole('listitem')
+      .map((li) => li.getAttribute('data-action-key') ?? '')
+    expect(keys.some((key) => key.startsWith('system:'))).toBe(false)
   })
 
   test('on foot: the mech’s actions wait, collapsed, each saying it needs Boarded', async () => {
