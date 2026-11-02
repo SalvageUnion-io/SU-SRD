@@ -69,6 +69,27 @@ describe('roomCall', () => {
     await expect(call).rejects.toBeInstanceOf(RoomUnreachable)
     await expect(call).rejects.toThrow('games.listMine did not reach the server')
   })
+
+  test('an answer cut off while its body is read is a RoomUnreachable', async () => {
+    globalThis.fetch = (async () => {
+      const body = new ReadableStream({
+        start(controller) {
+          controller.error(new DOMException('The operation was aborted. ', 'AbortError'))
+        },
+      })
+      return new Response(body, { status: 200 })
+    }) as unknown as typeof fetch
+    const call = roomCall('games.listMine', {})
+    await expect(call).rejects.toBeInstanceOf(RoomUnreachable)
+    await expect(call).rejects.toThrow("games.listMine's answer did not reach the page")
+  })
+
+  test('an answer that does not parse is still a bug, not a RoomUnreachable', async () => {
+    globalThis.fetch = (async () =>
+      new Response('<html>', { status: 200 })) as unknown as typeof fetch
+    const call = roomCall('games.listMine', {})
+    await expect(call).rejects.toBeInstanceOf(SyntaxError)
+  })
 })
 
 describe('useGamesQuery', () => {
