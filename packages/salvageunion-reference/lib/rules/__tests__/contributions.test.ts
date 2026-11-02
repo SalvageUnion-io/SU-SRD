@@ -8,6 +8,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
+import { computeMechCapacity } from '../capacity'
 import { abilityContributions, resolveAmount, sumContributions } from '../contributions'
 import {
   mechMaxCargoParts,
@@ -210,6 +211,16 @@ describe('activated contributions — manual expiry (F1)', () => {
     const on = mechMaxCargoParts(mech, chassis, { active: { 'hull-magnetiser': true } })
     expect(on.total).toBe(6 + 15)
     expect(on.sources[0]?.source).toBe('Hull Magnetiser')
+  })
+
+  it("System Slot Value is the bare chassis's, while the slot budget adds the heads", () => {
+    // A multi-headed chassis's heads widen what it can mount, never its System
+    // Slot Value. The Cerberus: 5 bare, 41 in all.
+    const cerberus = { chassisRef: 'cerberus', modules: ['hull-magnetiser'] }
+    const off = mechMaxCargoParts(cerberus)
+    const on = mechMaxCargoParts(cerberus, undefined, { active: { 'hull-magnetiser': true } })
+    expect(on.total - off.total).toBe(5)
+    expect(computeMechCapacity({ ...cerberus, systems: [], modules: [] }).systemSlotsMax).toBe(41)
   })
 
   it('a fromStat amount with no stat available resolves to 0, never a guess', () => {

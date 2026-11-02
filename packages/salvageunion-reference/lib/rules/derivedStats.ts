@@ -427,6 +427,8 @@ function mechStatParts(
   const override = MECH_STAT_FIELDS[stat]
   const { techLevel, active, abilities } = pilot ?? {}
   const installed = [...(mech.systems ?? []), ...(mech.modules ?? [])]
+  // The System Slot Value is the bare chassis's: heads widen the slot budget
+  // (`computeMechCapacity`), never this stat.
   const stats = { systemSlots: c.systemSlots ?? 0, moduleSlots: c.moduleSlots ?? 0 }
   return breakdownOf(c[stat] ?? 0, 0, mech[override], [
     ...abilityContributions(abilities, 'pilotedMech', stat, techLevel, active),
