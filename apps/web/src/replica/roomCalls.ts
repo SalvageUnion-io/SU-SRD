@@ -22,9 +22,11 @@ import { RoomDeclined } from './roomSocket'
 export type { GameCallArgs, GameCallResult } from '../worker/shared/gameCalls'
 
 /**
- * A call whose request never reached the Worker: the browser's own network
- * failure (`Failed to fetch`, `Load failed`, `NetworkError when attempting to
- * fetch resource.`), or a page unloading mid-request.
+ * A call whose request never reached the Worker, or whose answer never reached
+ * the page: the browser's own network failure (`Failed to fetch`, `Load
+ * failed`, `NetworkError when attempting to fetch resource.`), or a page
+ * unloading mid-request, which can land while the answer's body is still being
+ * read (Firefox: `AbortError: The operation was aborted.`).
  */
 export class RoomUnreachable extends Error {}
 
@@ -42,9 +44,11 @@ export async function roomCall<N extends GameCallName>(
     throw new RoomUnreachable(`${name} did not reach the server`, { cause })
   })
   if (!res.ok) throw new Error(`${name} answered ${res.status}`)
-  const answer = (await res.json()) as
-    | { ok: true; value: GameCallResult<N> }
-    | { ok: false; refusal: string }
+  const answer = (await res.json().catch((cause: unknown) => {
+    // An answer that does not parse is the Worker's bug; one cut off on the way is not.
+    if (cause instanceof SyntaxError) throw cause
+    throw new RoomUnreachable(`${name}'s answer did not reach the page`, { cause })
+  })) as { ok: true; value: GameCallResult<N> } | { ok: false; refusal: string }
   if (!answer.ok) throw new RoomDeclined(answer.refusal)
   return answer.value
 }
