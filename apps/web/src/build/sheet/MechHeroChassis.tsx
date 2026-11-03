@@ -7,8 +7,13 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Entity, StatColumn, tokens } from '../../components/index'
+import { useState } from 'react'
+import { entityRef, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import type { TagItem } from '../../components/index'
+import { Button, Entity, relation, StatColumn, tokens } from '../../components/index'
+import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { ChassisModderPickerModal } from './ChassisModderPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 
 /** One track the column's width: an `auto` track would take the Mini's widest chips. */
@@ -24,12 +29,33 @@ const ABILITY = {
 
 const LINK = { kind: 'link' } as const
 
+/** The added ability's relation chip: ABILITY | Chassis Modder, Peeking the ability. */
+function modderRelation(): TagItem[] {
+  const ability = SalvageUnionReference.Abilities.getBySlug(CHASSIS_MODDER)
+  if (!ability) return []
+  return [
+    relation(CHASSIS_MODDER, buildSheetCopy('ability'), ability.name, { ref: entityRef(ability) }),
+  ]
+}
+
 type MechHeroChassisProps = {
   stats: MechSheetModel['chassisStats']
   abilities: MechSheetModel['chassisAbilities']
+  /** The seated pilot's Chassis Modder pick; null when they are not one. */
+  chassisModder?: MechSheetModel['chassisModder']
+  /** Write the added Chassis Ability (null removes it); omit on read-only sheets. */
+  onModChassis?: (slug: string | null) => void
 }
 
-export function MechHeroChassis({ stats, abilities }: MechHeroChassisProps) {
+export function MechHeroChassis({
+  stats,
+  abilities,
+  chassisModder = null,
+  onModChassis,
+}: MechHeroChassisProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const added = chassisModder?.current ?? null
+  const canPick = chassisModder !== null && onModChassis !== undefined
   return (
     <div className="su-sheet-mech-hero-chassis">
       <StatColumn stats={stats} label={buildSheetCopy('chassisStats')} compact />
@@ -37,10 +63,39 @@ export function MechHeroChassis({ stats, abilities }: MechHeroChassisProps) {
         <ul aria-label={buildSheetCopy('chassisAbility')} style={ABILITY}>
           {abilities.map((ability) => (
             <li key={ability.id}>
-              <Entity size="mini" context="play" entity={ability} mode={LINK} body={{}} />
+              <Entity
+                size="mini"
+                context="play"
+                entity={ability}
+                mode={LINK}
+                body={{}}
+                relations={
+                  added !== null && nameToSlug(ability.name) === added
+                    ? modderRelation()
+                    : undefined
+                }
+              />
             </li>
           ))}
         </ul>
+      )}
+      {canPick && (
+        <>
+          <div>
+            <Button variant="default" size="mini" onClick={() => setPickerOpen(true)}>
+              {added
+                ? buildSheetCopy('changeAddedChassisAbility')
+                : buildSheetCopy('addChassisAbility')}
+            </Button>
+          </div>
+          <ChassisModderPickerModal
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            options={chassisModder.options}
+            current={added}
+            onApply={onModChassis}
+          />
+        </>
       )}
     </div>
   )

@@ -27,6 +27,11 @@ import {
 import type { ProvenanceLine } from '../../components/index'
 import { linesFromBreakdown } from '../../components/index'
 import { useCargo } from '../../lib/cargo/useCargo'
+import {
+  hasChassisModder,
+  moddableChassisAbilities,
+  moddedChassisAbility,
+} from '../../lib/rules/chassisModder'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
 type ChassisStat = { key: string; label: string; value: string; group: StatGroup }
@@ -84,6 +89,12 @@ export type MechSheetModel = {
   chassisStats: ChassisStat[]
   /** The linked crawler's scrap pool, or null when unlinked. */
   scrapPool: NonNullable<Crawler['scrapPool']> | null
+  /**
+   * Chassis Modder's pick (Core Book p.64) when the seated pilot holds it: the
+   * Chassis Ability slugs they may add, and the one added (null: none). Null
+   * when the pilot is not a Chassis Modder.
+   */
+  chassisModder: { options: string[]; current: string | null } | null
 }
 
 export function useMechSheetModel({
@@ -130,9 +141,13 @@ export function useMechSheetModel({
   // The book writes a chassis ability once for every chassis that has it, with
   // "[(CHASSIS)]" where it names the chassis; the hero's Compact leads with that
   // prose, so it reads "The Mazona has…".
-  const chassisAbilities = (
-    chassisEntity ? (SalvageUnionReference.resolveActions(chassisEntity) ?? []) : []
-  ).map((ability) => ({
+  const ownAbilities = chassisEntity
+    ? (SalvageUnionReference.resolveActions(chassisEntity) ?? [])
+    : []
+  // Chassis Modder (Core Book p.64): one added Chassis Ability, in effect while
+  // its Fabricator pilots the mech, reads after the chassis's own.
+  const modded = moddedChassisAbility(mech, pilotAbilities)
+  const chassisAbilities = [...ownAbilities, ...(modded ? [modded] : [])].map((ability) => ({
     ...ability,
     content: ability.content?.map((block) =>
       typeof block.value === 'string'
@@ -224,6 +239,13 @@ export function useMechSheetModel({
 
   const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null
 
+  const chassisModder = hasChassisModder(pilotAbilities)
+    ? {
+        options: moddableChassisAbilities(mech.chassisRef, crawler?.techLevel ?? null),
+        current: modded ? (mech.moddedChassisAbility ?? null) : null,
+      }
+    : null
+
   return {
     chassis,
     cargo,
@@ -245,5 +267,6 @@ export function useMechSheetModel({
     heatLines,
     chassisStats,
     scrapPool,
+    chassisModder,
   }
 }

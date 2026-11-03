@@ -41,6 +41,13 @@ export const MechSchema = z
      */
     startingPatternRef: z.string().optional(),
 
+    /**
+     * Slug of the one Chassis Ability a Fabricator's Chassis Modder (Core Book
+     * p.64) added to this mech, e.g. "fast". It belongs to the machine; it is
+     * in effect only while a pilot with Chassis Modder is seated. Absent: none.
+     */
+    moddedChassisAbility: z.string().optional(),
+
     /** Short freeform quirk note (the poster's "Quirk"). */
     quirk: z.string().optional(),
 

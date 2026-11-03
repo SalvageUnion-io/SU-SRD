@@ -344,7 +344,16 @@ export function MechSheet({
                       }
                     />
                   </div>
-                  <MechHeroChassis stats={model.chassisStats} abilities={model.chassisAbilities} />
+                  <MechHeroChassis
+                    stats={model.chassisStats}
+                    abilities={model.chassisAbilities}
+                    chassisModder={model.chassisModder}
+                    onModChassis={
+                      readOnly
+                        ? undefined
+                        : (slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })
+                    }
+                  />
                 </div>
               </PhotoBeside>
             }
