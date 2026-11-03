@@ -177,8 +177,9 @@ export function serve(scope: Scope, tables: readonly Table[], served: readonly S
     const scopes = new Set(current?.scopes)
     scopes.add(scope)
     if (!newer(s, current)) {
-      if (current !== undefined && !current.scopes.has(scope))
-        put(s.table, id, { ...current, scopes })
+      // The same version can still carry a new owner (a reassign is a room act).
+      if (current !== undefined && (!current.scopes.has(scope) || current.owner !== s.owner))
+        put(s.table, id, { ...current, owner: s.owner, scopes })
       continue
     }
     const row = parse(s.table, s.row)
@@ -347,6 +348,43 @@ export function headSeqOf(table: Table, id: string): number | undefined {
   return tableOf(table).get(id)?.headSeq
 }
 
+/**
+ * Whether a held row is the caller's own (`me`, their account id): everything
+ * the account room serves, a Game's unit the room serves as theirs (its owner
+ * or assignee, ADR-055), and a row this tab wrote that no room has served an
+ * owner for yet.
+ * A crewmate's unit, an unassigned one and a Game's crawler (the crew's) are not.
+ */
+function ownedBy(h: Held, me: string | null): boolean {
+  if (h.scopes.has('account') || h.owner === undefined) return true
+  return me !== null && h.owner === me
+}
+
+/** Each table's own rows as last read, for the view and caller they were read under. */
+const ownViews = new Map<
+  Table,
+  { base: readonly unknown[]; me: string | null; rows: readonly unknown[] }
+>()
+
+/**
+ * A table's rows that are the caller's own (`ownedBy`), newest first: what
+ * Build reads, so it never holds another player's unit (ADR-052 §2). The same
+ * array until the table or the caller changes.
+ */
+export function ownRows<T extends Table>(table: T, me: string | null): readonly RowOf<T>[] {
+  const base = getView()[RECORD_KINDS[table].name] as readonly unknown[]
+  const cached = ownViews.get(table)
+  if (cached !== undefined && cached.base === base && cached.me === me) {
+    return cached.rows as readonly RowOf<T>[]
+  }
+  const rows = [...tableOf(table).values()]
+    .filter((h) => ownedBy(h, me))
+    .map((h) => h.row)
+    .reverse()
+  ownViews.set(table, { base, me, rows })
+  return rows as unknown as readonly RowOf<T>[]
+}
+
 /** Every table's rows as one immutable view, rebuilt only after a change. */
 export function getView(): ReplicaView {
   if (view === null) {
@@ -480,6 +518,7 @@ export function setRows(
 export function resetReplica(): void {
   for (const table of TABLES) tableOf(table).clear()
   tableViews.clear()
+  ownViews.clear()
   arrived = Object.fromEntries(TABLES.map((t) => [t, false])) as Record<Table, boolean>
   pending = []
   view = null

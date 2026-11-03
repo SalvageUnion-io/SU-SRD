@@ -22,9 +22,11 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Npc } from 'game-domain/schemas/npc'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
+import { ownRows } from '../../replica/replica'
 import type { EntityForType } from '../../replica/types'
 import type { EntityType } from '../../replica/units'
 import { useUnits } from '../../replica/units'
+import { useMyPerson } from '../auth/session'
 
 /** Full entityStore state+actions shape (what selectors receive). */
 type EntityStoreState = UnitsState
@@ -100,4 +102,18 @@ export function useNpcs(): Npc[] {
  */
 export function useSoftLinkList(): SoftLink[] {
   return useEntityList('softLink')
+}
+
+type UnitType = Exclude<EntityType, 'softLink'>
+
+/**
+ * Reactive list of the signed-in player's OWN records of `type` (`ownRows`):
+ * the account's, and a Game's unit only when it is theirs. Build reads these,
+ * never the whole replica, which also holds every crewmate's unit for Play.
+ */
+export function useOwnUnits<T extends UnitType>(type: T): EntityForType<T>[] {
+  ensureHydrated(type)
+  const me = useMyPerson()
+  const read = (_: EntityStoreState) => ownRows(type, me) as unknown as EntityForType<T>[]
+  return useUnits(read)
 }

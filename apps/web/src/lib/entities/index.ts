@@ -6,5 +6,12 @@
  * `useUnits.getState()` imperatively.
  */
 
-export { useCrawlers, useMechs, useNpcs, usePilots, useSoftLinkList } from './entities'
+export {
+  useCrawlers,
+  useMechs,
+  useNpcs,
+  useOwnUnits,
+  usePilots,
+  useSoftLinkList,
+} from './entities'
 export { useHydrateEntities } from './useHydrateEntities'

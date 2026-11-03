@@ -29,11 +29,6 @@ export async function fromShelfMenu(page: Page, name: string, row: string): Prom
   await page.getByRole('menuitem', { name: row }).click()
 }
 
-/** The band's Showing select: `Everything`, `Not in a Game`, or a Game by name. */
-export async function showOnShelves(page: Page, option: string): Promise<void> {
-  await page.getByLabel('Showing').selectOption({ label: option })
-}
-
 /** Move an item into a Game, or out (`Not in a Game`, which asks first), from its ⋯ menu. */
 export async function moveToGame(page: Page, name: string, where: string): Promise<void> {
   await fromShelfMenu(page, name, 'Move to a Game…')
