@@ -33,9 +33,11 @@
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
+import type { Photo } from 'game-domain/schemas/photo'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import type { HeaderMenuItem } from '../../components/index'
+import { artOf, photoArt, sourceRelation } from '../../build/starterSet/starterShelves.model'
+import type { EntityFormModel, HeaderMenuItem, TagItem } from '../../components/index'
 import {
   Button,
   FieldError,
@@ -48,6 +50,7 @@ import {
 import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { resolveClass } from '../../lib/classRef'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -72,6 +75,21 @@ import type { SeatRow } from './seatRows.model'
 import { seatRows } from './seatRows.model'
 import { useRowActions } from './useRowActions'
 
+/**
+ * A pilot's face on the roster (E10, C11): their photo, else their Class's
+ * art, and their Class as a relation chip. Other rows draw as they were.
+ */
+function pilotLook(row: RosterRow): { art?: EntityFormModel['art']; relations?: TagItem[] } {
+  if (row.kind !== 'pilot') return {}
+  const classRef = typeof row.body.classRef === 'string' ? row.body.classRef : null
+  const pilotClass = classRef === null ? null : () => resolveClass(classRef)
+  const art =
+    photoArt(row.body.photo as Photo | undefined) ??
+    (pilotClass === null ? undefined : artOf('class', pilotClass))
+  const relations = pilotClass === null ? undefined : sourceRelation('Class', 'class', pilotClass)
+  return { ...(art ? { art } : {}), ...(relations ? { relations } : {}) }
+}
+
 type GameRosterProps = {
   gameId: string
   /** The Game's name, for the confirms that name it; null while unknown. */
@@ -80,16 +98,25 @@ type GameRosterProps = {
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
-const ITEM = { listStyle: 'none', minWidth: 0 } satisfies CSSProperties
-
+/* Masonry on desktop (two columns of at least 24rem, one on a phone): each
+   card sits right under the one above it in its column, so a short card
+   leaves no gap beside a tall one. The crawler spans both columns. */
 const LIST = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
+  columns: '2 24rem',
+  columnGap: tokens.space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
+
+const ITEM = {
+  listStyle: 'none',
+  minWidth: 0,
+  breakInside: 'avoid',
+  marginBlockEnd: tokens.space[12],
+} satisfies CSSProperties
+
+const CRAWLER_ITEM = { ...ITEM, columnSpan: 'all' } satisfies CSSProperties
 
 const BODY = {
   display: 'flex',
@@ -285,8 +312,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
 
   function renderRow(row: RosterRow): ReactNode {
     return (
-      <li key={row.serverId} style={ITEM}>
+      <li key={row.serverId} style={row.kind === 'crawler' ? CRAWLER_ITEM : ITEM}>
         <UnitRow
+          {...pilotLook(row)}
           kind={row.kind}
           name={row.name}
           /* The primary crawler is where new crew is assigned (ADR-037), so
@@ -299,7 +327,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           /* Who holds it sits right of the name, a label (ruleset §7.2):
              never a stamp riding the frame. */
           labels={
-            row.owner === null ? undefined : (
+            row.owner === null || !row.owner.unassigned ? undefined : (
               <OwnerSeal
                 owner={row.owner}
                 assignable={row.can.assignSelf}

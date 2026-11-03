@@ -22,6 +22,7 @@ import {
   Cluster,
   Entity,
   MiniGrid,
+  relation,
   SlabSection,
   Stat,
   tokens,
@@ -70,6 +71,9 @@ export function AssignedUnits({
                 model={unitRowModel({ kind: unit.kind, name: unit.name, note: unit.note })}
                 {...(unit.href ? { mode: { kind: 'link' as const, href: unit.href } } : {})}
                 {...(unit.owner ? { state: <Stat label={unit.owner} size="mini" /> } : {})}
+                {...(unit.flies
+                  ? { relations: [relation(`flies-${unit.key}`, 'Mech', unit.flies)] }
+                  : {})}
                 body={{
                   text: false,
                   children: unit.readings?.length ? (

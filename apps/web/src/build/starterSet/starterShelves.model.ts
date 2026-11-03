@@ -42,7 +42,7 @@ export type StarterShelf = { kind: SheetKind; title: string; builds: StarterBuil
 const NO_ART: EntityFormModel['art'] = { kind: 'none' }
 
 /** A build's own photo as row art. Every Starter Set photo is CDN artwork. */
-function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined {
+export function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined {
   return photo ? { kind: 'image', url: photoUrl(photo) } : undefined
 }
 
@@ -52,7 +52,7 @@ function photoArt(photo: Photo | undefined): EntityFormModel['art'] | undefined 
  * resolve a chassis's abilities from `actions`, a schema the front door does
  * not wait for (`roster/frontDoor.model.ts`).
  */
-function artOf(source: string, entity: () => RefMetaEntity | null | undefined) {
+export function artOf(source: string, entity: () => RefMetaEntity | null | undefined) {
   return readReference(
     `StarterCard.${source}`,
     (): EntityFormModel['art'] => {
@@ -82,7 +82,7 @@ function readings(stats: UnitReading[] | undefined) {
  * (`chips-and-actions.md` C11): it carries its ref, so it Peeks and opens the
  * entity. None when it cannot be read.
  */
-function sourceRelation(
+export function sourceRelation(
   label: string,
   source: string,
   entity: () => RefMetaEntity | null | undefined

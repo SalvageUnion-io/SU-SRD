@@ -306,12 +306,12 @@ describe('your own sheet', () => {
       '/mechs/m-theirs'
     )
     expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
-    // Each wears whose it is on its head: yours, or the crewmate's name.
+    // A crewmate's wears their name on its head; your own wears no chip.
     const ownerOf = (name: string) =>
       [...document.querySelectorAll('[data-assigned-unit]')]
         .find((unit) => unit.querySelector('.su-entity-mini__name')?.textContent?.startsWith(name))
         ?.querySelector('.su-entity-mini__pill')?.textContent ?? ''
-    expect(ownerOf('Roach-Boy')).toContain('You')
+    expect(ownerOf('Roach-Boy')).not.toContain('You')
     expect(ownerOf('Ash Vey')).toContain('Mara')
     expect(ownerOf('Iron Mongrel')).toContain('Mara')
   })

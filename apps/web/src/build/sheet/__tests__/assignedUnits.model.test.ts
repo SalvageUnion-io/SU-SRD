@@ -67,6 +67,28 @@ describe('assignedUnitsFor', () => {
     expect(onMech.units.map((u) => u.owner)).toEqual(['owner-p1', undefined])
   })
 
+  test('your own unit wears no owner chip: a crewmate is named, a free unit Unassigned', () => {
+    const chips = {
+      p1: { label: 'You', unassigned: false, mine: true },
+      p2: { label: 'Mara', unassigned: false, mine: false },
+      p3: { label: 'Unassigned', unassigned: true, mine: false },
+    } as const
+    const crew = ['p1', 'p2', 'p3'].map((id) => pilotFixture({ id, name: id }))
+    const { units } = assignedUnitsFor({
+      subject: { kind: 'crawler', entity: crawler },
+      composition: { ...empty, crawlerPilots: crew },
+      withheld: [],
+      softLinks: [],
+      holds: () => false,
+      hrefFor: () => undefined,
+      ownerOf: (_kind, id) => chips[id as keyof typeof chips],
+      editable: false,
+      unassign: () => undefined,
+      picker: () => null,
+    })
+    expect(units.map((u) => u.owner)).toEqual([undefined, 'Mara', 'Unassigned'])
+  })
+
   test('Unassign is offered only on a link whose from end this sheet holds', () => {
     const link = softLinkFixture('mech-to-pilot', 'm1', 'p1')
     const theirs = build(
@@ -116,6 +138,32 @@ describe('assignedUnitsFor', () => {
     ])
     expect(units[0]?.change).toBeUndefined()
     expect(slots.map((s) => s.placeholder)).toEqual(['Dock a Mech', 'Add a Pilot to the crew'])
+  })
+
+  test('in Read a crawler reads its crew as pairs: the pilot, with the mech they fly', () => {
+    const spare = mechFixture({ id: 'm2', name: 'Spare' })
+    const { units } = build(
+      { kind: 'crawler', entity: crawler },
+      { crawlerMechs: [mech, spare], crawlerPilots: [pilot], crawlerMechPilots: { m1: pilot } },
+      { editable: false }
+    )
+    // The pilot leads, wearing the mech they fly; the flown mech is no unit of
+    // its own; the spare nobody flies follows.
+    expect(units.map((u) => [u.name, u.flies])).toEqual([
+      ['Bonesaw', 'Scrapper'],
+      ['Spare', undefined],
+    ])
+    // A mech flown by someone not on this crew keeps its own Mini.
+    const visitor = pilotFixture({ id: 'p9' })
+    const away = build(
+      { kind: 'crawler', entity: crawler },
+      { crawlerMechs: [mech], crawlerPilots: [pilot], crawlerMechPilots: { m1: visitor } },
+      { editable: false }
+    )
+    expect(away.units.map((u) => [u.name, u.flies])).toEqual([
+      ['Bonesaw', undefined],
+      ['Scrapper', undefined],
+    ])
   })
 
   test("a docked mech reads its own pilot's piloting context (Beefcake)", () => {

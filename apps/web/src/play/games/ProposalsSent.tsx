@@ -5,7 +5,8 @@
  * Mediator handed the table inherits what is still pending.
  *
  * The Mediator never edits a player's sheet (ADR-030 §4); this is the record
- * of what they asked, and the players' answers.
+ * of what they asked, and the players' answers. Until they have sent one there
+ * is no section: Mediate, in Play, is where a proposal starts.
  */
 
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
@@ -19,6 +20,7 @@ import { HUB_BODY } from './hubStyles.model'
 export function ProposalsSent({ gameId }: { gameId: string }) {
   const [limit, setLimit] = useState(PROPOSALS_PAGE)
   const sent = useTableRead('ops.sent', { gameId, limit })
+  if (sent !== undefined && sent.length === 0) return null
   return (
     <SlabSection
       as="h2"

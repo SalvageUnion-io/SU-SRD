@@ -2,8 +2,8 @@
  * Who holds each unit a sheet lists (ADR-030 §6): a Game's pilots and mechs,
  * from its listing (`useGameListing`) and its members (`games.members`),
  * as the roster's owner seal reads them (`ownerChipFor`): YOU, a crewmate's
- * name, or UNASSIGNED. Every sheet's Assigned units wear it on each Mini's head
- * (R49).
+ * name, or UNASSIGNED. Every sheet's Assigned units wear it on each Mini's head,
+ * but for the viewer's own (R49).
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'

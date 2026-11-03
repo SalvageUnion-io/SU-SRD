@@ -112,7 +112,7 @@ export function LaunchPlay({
 
   return (
     <>
-      <Button variant="ink" size="compact" onClick={openPicker}>
+      <Button variant="default" size="compact" onClick={openPicker}>
         {live ? playCopy('joinSession') : playGamesCopy('play')}
       </Button>
       <PickDialog

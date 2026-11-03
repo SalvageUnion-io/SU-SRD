@@ -25,6 +25,7 @@ import {
   Entity,
   Field,
   HeaderMenu,
+  relation,
   Select,
   SlabSection,
   Stat,
@@ -33,6 +34,7 @@ import {
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
+import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useTableRead } from '../../replica/useTable'
@@ -76,6 +78,13 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useTableRead('games.members', { gameId })
+  // Who plays whom: each member's pilots, a relation chip on their Mini (C11).
+  const listing = useGameListing(gameId)
+  const pilotsOf = (userId: string) =>
+    (listing?.pilots ?? [])
+      .filter((p) => p.ownerId === userId)
+      .map((p) => ({ id: p._id, name: String((p.body as { name?: unknown }).name ?? '') }))
+      .filter((p) => p.name !== '')
   const setMediator = useGamesCall('games.setMediator')
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
@@ -135,6 +144,9 @@ export function TheGame({
               context="roster"
               model={memberModel(name(m))}
               omit={['kind']}
+              relations={pilotsOf(m.userId).map((pilot) =>
+                relation(`pilot-${pilot.id}`, 'Pilot', pilot.name)
+              )}
               state={
                 m.mediator || m.organizer ? (
                   <>
