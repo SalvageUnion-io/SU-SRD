@@ -16,7 +16,8 @@
  *
  * The crawler (★ Primary first), then the pilots, each with its seat (its HP)
  * and the mech assigned to it as a linked Mini, then the mechs, each its own
- * row so an unassigned one can be picked up. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
+ * row so an unassigned one can be picked up; an assigned mech a pilot flies
+ * rides its pilot's row only. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
  * an UNASSIGNED seal assigning it to you. The head counts the seats.
  *
  * ## What stays here
@@ -51,6 +52,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import {
+  bodyIdOf,
   crawlerRows,
   groupColumn,
   ownableRows,
@@ -58,7 +60,7 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { gauge, pool } from '../../lib/units/crewPair'
-import { VITAL } from '../../lib/units/readings'
+import { techLevelReading, VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
@@ -134,9 +136,16 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     members: roster,
     localIds: new Set(localPilots.map((p) => p.id)),
   })
+  // An assigned, piloted mech rides its pilot's row (`rowChips`) only; an
+  // unassigned one keeps its own so its seal can assign it.
+  const piloted = new Set(
+    (listing?.softLinks ?? []).flatMap((l) => (l.type === 'mech-to-pilot' ? [l.from.id] : []))
+  )
   const mechs = ownableRows({
     kind: 'mech',
-    rows: listing?.mechs ?? [],
+    rows: (listing?.mechs ?? []).filter(
+      (m) => m.ownerId === null || !piloted.has(m.appId ?? bodyIdOf(m.body) ?? '')
+    ),
     viewerId,
     members: roster,
     localIds: new Set(localMechs.map((m) => m.id)),
@@ -156,11 +165,19 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const seatOf = new Map<string, SeatRow>(seats?.rows.map((seat) => [seat.key, seat]) ?? [])
   const crawlerOf = new Map((listing?.crawlers ?? []).map((c) => [c._id as string, readCrawler(c)]))
 
-  /** A row's readings and linked units: a pilot's seat (HP, its mech), a crawler's vitals. */
+  /**
+   * A row's readings and linked units: a pilot's seat (HP, its mech), a
+   * crawler's vitals, a mech's Tech Level; an assigned mech or crawler always
+   * shows its TL.
+   */
   function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'> {
     if (row.kind === 'crawler') {
       const reading = crawlerOf.get(row.serverId)
       return reading ? { readings: crawlerVitals(reading) } : {}
+    }
+    if (row.kind === 'mech') {
+      const tl = vitals?.mechs.find((m) => m._id === row.serverId)?.techLevel
+      return tl == null ? {} : { readings: techLevelReading(tl) }
     }
     if (row.kind !== 'pilot') return {}
     const seat = seatOf.get(row.serverId)
@@ -187,6 +204,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 href: mechHref ?? undefined,
                 readings: mechLive
                   ? [
+                      ...techLevelReading(mechLive.techLevel),
                       ...pool(VITAL.sp, mechLive.currentSP, mechLive.maxSP),
                       ...pool(VITAL.ep, mechLive.currentEP, mechLive.maxEP),
                       ...gauge(VITAL.heat, mechLive.currentHeat, mechLive.maxHeat),

@@ -21,7 +21,6 @@
  * the roll's own Post says so.
  */
 
-import { dealCount } from 'game-domain/games/ledger'
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Encounter, RunningEncounter } from 'game-domain/schemas/encounter'
@@ -52,7 +51,6 @@ import { PLAY_TXN } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { useTableAct, useTableRead } from '../../replica/useTable'
-import type { GameActResult } from '../../rooms/game/acts'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -93,8 +91,6 @@ export type PlayMediator = {
   downtime: PlayDowntime
   /** The Scene's conditions, and the Mediator's writes to them (`scenes.ts`). */
   scene: MediatorScene
-  /** What the crew's faction deals pay this Downtime (`ledger.collectIncome`). */
-  income: DealIncome
   /** The tray, hidden from players; null while it loads. */
   npcs: TrayNpc[] | null
   savedPatterns: SavedPattern[]
@@ -132,16 +128,6 @@ type MediatorScene = SceneState & {
   set: (conditions: readonly SceneConditionId[]) => Promise<void>
   /** Count an hour passed; resolves to the hour it now is. */
   passHour: () => Promise<number>
-}
-
-/** The Game's deal income: a Scrap per deal, collected once per Downtime at Upkeep. */
-type DealIncome = {
-  /** The factions the crew has a deal with; 0 while the ledger loads. */
-  deals: number
-  /** This Downtime's is collected. */
-  collected: boolean
-  /** Collect it into the crawler: what it paid, or null when it already was. */
-  collect: () => Promise<GameActResult<'ledger.collectIncome'>>
 }
 
 /** The Mediator's encounters, and the one the Game is running (ADR-059). */
@@ -215,8 +201,6 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
-  const ledger = useTableRead('ledger.get', { gameId })
-  const collectIncome = useTableAct('ledger.collectIncome', gameId)
 
   const addNpc = useTableAct('mediator.addNpc', gameId)
   const updateNpc = useTableAct('mediator.updateNpc', gameId)
@@ -429,11 +413,6 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
           throw err
         }
       },
-    },
-    income: {
-      deals: ledger ? dealCount(ledger) : 0,
-      collected: ledger?.incomeCollected ?? false,
-      collect: () => collectIncome({}),
     },
     npcs: tray,
     savedPatterns: (patterns ?? []).flatMap((row) => readSavedPattern(row) ?? []),

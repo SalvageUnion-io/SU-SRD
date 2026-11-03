@@ -1,6 +1,6 @@
 /**
  * What a table plays under, read and written through its room: the Scene, the
- * salvage area, the ledger, the boundaries and the Stop Sign, the Mediator's
+ * salvage area and the Stop Sign, the Mediator's
  * Opposition tray and running encounter, the table in play: the seats, the
  * Downtime, the proposals, the feed and the crew's vitals; and who may read
  * each of the player's saved patterns.
@@ -19,7 +19,6 @@ import type { GameActName, GameActResult } from '../rooms/game/acts'
 import type { AlertRow, RollRow } from '../rooms/game/log'
 import type { DowntimeRead } from '../rooms/game/play'
 import type { ProposalRead, SentProposal } from '../rooms/game/proposals'
-import type { BoundaryRead } from '../rooms/game/safety'
 import type { ACCOUNT_SOCKET_ACTS, GAME_SOCKET_ACTS } from '../rooms/game/socketActs'
 import type { Member } from '../rooms/game/store'
 import type { SeatRead } from '../rooms/seats'
@@ -110,8 +109,6 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   },
   'scenes.current': { table: 'scene' },
   'salvageAreas.here': { table: 'salvageArea' },
-  'ledger.get': { table: 'ledger' },
-  'safety.boundaries': { table: 'boundaries' },
   'safety.stopSign': { table: 'safety' },
   'session.state': { table: 'session' },
   // The one `mediator` record is the running encounter, and having it at all is mediating.
@@ -140,8 +137,6 @@ type Reads = {
   'games.members': GameMemberRead[]
   'scenes.current': GameActResult<'scenes.current'>
   'salvageAreas.here': GameActResult<'salvageAreas.here'>
-  'ledger.get': GameActResult<'ledger.get'>
-  'safety.boundaries': (Omit<BoundaryRead, 'id' | 'addedAt'> & { _id: string })[]
   'safety.stopSign': GameActResult<'safety.stopSign'>
   'session.state': GameActResult<'session.state'>
   'mediator.npcs': { _id: string; body: Record<string, unknown> }[]

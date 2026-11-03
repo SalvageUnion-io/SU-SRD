@@ -1,5 +1,4 @@
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
-import { BOUNDARY_KINDS } from 'game-domain/games/safety'
 import { EntityRefSchema } from 'game-domain/schemas/entity'
 import { CrewSlotSchema, SoftLinkSchema } from 'game-domain/schemas/softLink'
 import { z } from 'salvageunion-reference/zod'
@@ -14,7 +13,6 @@ import type { GameActAnswer, GameActName } from './acts'
  * is the Worker's to call.
  */
 const NONE = z.unknown()
-const BY_ID = z.object({ id: z.string() })
 const ENTRY = z.looseObject({ id: z.string() })
 
 const SALVAGE_AREA_SET = z.object({
@@ -107,15 +105,6 @@ export const GAME_SOCKET_ACTS = {
   'scenes.passHour': NONE,
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
-  'ledger.setFaction': z.object({ faction: ENTRY }),
-  'ledger.removeFaction': BY_ID,
-  'ledger.setJob': z.object({ job: ENTRY }),
-  'ledger.setJobState': z.object({ id: z.string(), state: z.enum(['open', 'dropped']) }),
-  'ledger.removeJob': BY_ID,
-  'ledger.completeJob': BY_ID,
-  'ledger.collectIncome': NONE,
-  'safety.addBoundary': z.object({ kind: z.enum(BOUNDARY_KINDS), text: z.string() }),
-  'safety.removeBoundary': z.object({ boundaryId: z.string() }),
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
   'safety.setPostToChannel': z.object({ on: z.boolean() }),

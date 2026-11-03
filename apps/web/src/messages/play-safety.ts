@@ -4,19 +4,6 @@ import { messages } from './define'
 
 export const playSafetyCopy = messages({
   safety: 'Safety',
-  outOfBounds: 'Out of Bounds',
-  offCamera: 'Off Camera',
-  outOfBoundsMeans: 'Not used in the game at all, and not brought up during it.',
-  offCameraMeans: 'May happen, but only indirectly or in the background, never in detail.',
-  nothingYet: 'Nothing yet.',
-  add: 'Add',
-  addTo: 'Add to {list}',
-  boundary: 'Boundary',
-  remove: 'Take off {text}',
-  anyoneCanAdd:
-    'Anyone at the table can add a boundary, and nobody is named beside one. Tell the table before you play, and whenever something comes up.',
-  couldNotAdd: 'That boundary could not be added. Try again.',
-  couldNotRemove: 'That boundary could not be taken off. Try again.',
   stopSign: 'Stop Sign',
   stop: 'Stop',
   showTheStopSign: 'Show the Stop Sign',

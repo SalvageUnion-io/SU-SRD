@@ -11,18 +11,18 @@
  *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it, for a player and
  *     for a Mediator who also plays one here.
- *  1. Two columns of sections. **Every member:** the Crew (`GameRoster`):
+ *  1. A main column of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
  *     about building (ADR-052 §3: Play only plays). Then the proposals
- *     awaiting their answer. **The Mediator:** Proposals you sent. Then
- *     the Factions and Jobs (`GameLedger`), every member's to read and the
- *     Mediator's to write.
+ *     awaiting their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
- *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
- *     server refuses anyone else (`requireOrganizer`). **Every member**
- *     again: Safety (`GameSafety`: the boundaries and the Stop Sign, whose
- *     banner heads the page while it is up).
+ *     Invite link (copy and reset, chips on its head). **Every member**
+ *     again: Safety (`GameSafety`: the Stop Sign, whose banner heads the
+ *     page while it is up).
+ *  2. A small sidebar: The Game (`TheGame`), the table's people as small
+ *     cards, with the Organiser's Hand over, which the server refuses anyone
+ *     else (`requireOrganizer`). On a phone it drops below the main column.
  *
  * Moving between Games is Play's, and joining one is an invite link
  * (`InviteScreen`), so nothing here is about choosing a table. Nothing here
@@ -38,7 +38,6 @@ import { useState } from 'react'
 import {
   Button,
   Callout,
-  Grid,
   PageShell,
   Pending,
   SlabSection,
@@ -55,10 +54,9 @@ import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
-import { GameLedger } from './GameLedger'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
-import { GAME_BODY, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
+import { GAME_BODY, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
@@ -100,7 +98,7 @@ function NotInGame() {
   )
 }
 
-/** The page's sections, in two columns: the crew's, then the table's. */
+/** The page's sections in the main column, and the table's people in a small sidebar. */
 function GameSections({ game }: { game: Game }) {
   const gameId = game._id
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -117,17 +115,13 @@ function GameSections({ game }: { game: Game }) {
           <StopSignBanner sign={sign} />
         </div>
       )}
-      <Grid min={HUB_COLUMN_MIN} gap={24} style={HUB_COLUMNS}>
-        {/* A column with nothing in it takes no row on a phone (`.su-hub-column`). */}
-        <div className="su-hub-column" style={HUB_COLUMN}>
+      <div style={HUB_COLUMNS}>
+        <div style={HUB_MAIN}>
           <GameRoster gameId={gameId} gameName={game.name} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
-          <GameLedger gameId={gameId} mediator={game.mediator} />
-        </div>
-        <div className="su-hub-column" style={HUB_COLUMN}>
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
@@ -143,15 +137,17 @@ function GameSections({ game }: { game: Game }) {
               }
             />
           )}
+          <GameSafety gameId={gameId} sign={sign} />
+        </div>
+        <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame
             gameId={gameId}
             viewerId={viewerId}
             organizer={game.organizer}
             onDelete={() => setConfirmingDelete(true)}
           />
-          <GameSafety gameId={gameId} sign={sign} />
-        </div>
-      </Grid>
+        </aside>
+      </div>
 
       <DeleteGameDialog
         game={confirmingDelete ? game : null}

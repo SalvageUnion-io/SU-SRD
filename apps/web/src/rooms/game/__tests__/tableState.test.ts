@@ -1,25 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { downtimeStepCount, isUpkeepStep } from 'game-domain/rules/downtime'
-import { bunSql } from '../../__tests__/bunSql'
-import { migrate } from '../../migrate'
-import { GAME_ROOM } from '../../schemas'
 import { runAct } from '../acts'
-import { GameRoomLogic } from '../gameRoomLogic'
-import {
-  AT,
-  bodies,
-  MEDIATOR,
-  ORGANIZER,
-  op,
-  PLAYER,
-  profile,
-  STRANGER,
-  stubApplyOp,
-  table,
-} from './harness'
-
-const faction = { id: 'f1', name: 'Union', standing: 'friendly' as const, deal: true }
-const job = { id: 'j1', name: 'Haul', factionId: 'f1', pay: 3, payTl: 2 }
+import { AT, bodies, MEDIATOR, ORGANIZER, op, PLAYER, STRANGER, table } from './harness'
 
 /** A table with a primary crawler and the player's pilot. */
 function crewed() {
@@ -28,10 +9,6 @@ function crewed() {
   room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
   room.units.create(PLAYER, { id: 'p1', kind: 'pilot', body: bodies.pilot('p1'), at: AT })
   return made
-}
-
-function scrapOf(room: ReturnType<typeof table>['room']) {
-  return room.store.unit('c1')?.body.scrapPool
 }
 
 describe('the Scene', () => {
@@ -80,155 +57,16 @@ describe('the area being salvaged', () => {
   })
 })
 
-describe('the ledger', () => {
-  test('the Mediator keeps its factions and jobs; every member reads them', () => {
+describe('the retired ledger', () => {
+  test('its pay-out source stays one no client may send', () => {
     const { room } = crewed()
-    expect(room.ledger.ledger(STRANGER)).toBeNull()
-    expect(room.ledger.ledger(PLAYER)).toEqual({ factions: [], jobs: [], incomeCollected: false })
-    room.ledger.setFaction(MEDIATOR, faction, AT)
-    room.ledger.setJob(MEDIATOR, job, AT)
-    expect(room.ledger.ledger(PLAYER)).toMatchObject({
-      factions: [faction],
-      jobs: [{ ...job, state: 'open' }],
-    })
-    expect(() => room.ledger.setFaction(PLAYER, faction, AT)).toThrow()
-    expect(() => room.ledger.setJob(MEDIATOR, { ...job, pay: 100_000 }, AT)).toThrow(
-      'fit the ledger'
-    )
-    room.ledger.setJobState(MEDIATOR, 'j1', 'dropped', AT)
-    room.ledger.setJobState(MEDIATOR, 'j1', 'open', AT)
-    expect(() => room.ledger.setJobState(MEDIATOR, 'nope', 'open', AT)).toThrow('not in the ledger')
-    room.ledger.removeFaction(MEDIATOR, 'f1', AT)
-    expect(() => room.ledger.removeFaction(MEDIATOR, 'f1', AT)).toThrow('not in the ledger')
-    room.ledger.removeJob(MEDIATOR, 'j1', AT)
-    expect(room.ledger.ledger(PLAYER)).toMatchObject({ factions: [], jobs: [] })
-  })
-
-  test('a finished job pays the crawler once, as an op no client could send', () => {
-    const { room } = crewed()
-    room.ledger.setJob(MEDIATOR, job, AT)
-    expect(room.ledger.completeJob(MEDIATOR, 'j1', AT)).toEqual({
-      scrap: 3,
-      tl: 2,
-      crawlerName: 'Crawler c1',
-    })
-    expect(scrapOf(room)).toMatchObject({ tl2: 3 })
-    expect(room.ledger.completeJob(MEDIATOR, 'j1', AT)).toBeNull()
-    expect(scrapOf(room)).toMatchObject({ tl2: 3 })
-    expect(() => room.ledger.setJobState(MEDIATOR, 'j1', 'open', AT)).toThrow('it has paid')
-    expect(room.units.history(MEDIATOR, 'c1').at(-1)).toMatchObject({ source: 'ledger' })
     expect(() =>
       room.units.submit(MEDIATOR, [op('c1', { scrapPool: { tl1: 99 } }, { source: 'ledger' })])
     ).toThrow('only come from the Game')
   })
-
-  test('a crawler that refuses the pay leaves the job open and the ledger unpaid', () => {
-    const sql = bunSql()
-    migrate(sql, GAME_ROOM)
-    const room = new GameRoomLogic(sql, {
-      applyOp: (unit, input) =>
-        input.source === 'ledger'
-          ? { ok: false, reason: 'invalid', message: 'no' }
-          : stubApplyOp(unit, input),
-    })
-    room.roster.create(ORGANIZER, { gameId: 'g1', name: 'T', profile: profile('Org'), at: AT })
-    room.roster.setMediator(ORGANIZER, ORGANIZER, true)
-    room.units.create(ORGANIZER, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
-    room.ledger.setJob(ORGANIZER, job, AT)
-    expect(() => room.ledger.completeJob(ORGANIZER, 'j1', AT)).toThrow('could not take that pay')
-    expect(room.ledger.ledger(ORGANIZER)?.jobs[0]?.state).toBe('open')
-  })
-
-  test('a Game with no crawler has nowhere to pay', () => {
-    const { room } = table()
-    room.ledger.setJob(MEDIATOR, { ...job, pay: 0 }, AT)
-    expect(() => room.ledger.completeJob(MEDIATOR, 'j1', AT)).toThrow('no crawler')
-    expect(room.ledger.ledger(PLAYER)?.jobs[0]?.state).toBe('open')
-  })
-
-  test('deal income is collected once per Downtime, in the Upkeep step, at the crawler’s Tech Level', () => {
-    const { room } = crewed()
-    room.ledger.setFaction(MEDIATOR, faction, AT)
-    room.ledger.setFaction(MEDIATOR, { ...faction, id: 'f2', deal: false }, AT)
-    expect(() => room.ledger.collectIncome(MEDIATOR, AT)).toThrow('not running')
-    room.play.beginDowntime(MEDIATOR, AT)
-    if (!isUpkeepStep(0)) {
-      expect(() => room.ledger.collectIncome(MEDIATOR, AT)).toThrow('step')
-    }
-    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
-    room.play.setDowntimeStep(MEDIATOR, upkeep ?? 0)
-    expect(room.ledger.collectIncome(MEDIATOR, AT)).toEqual({
-      scrap: 1,
-      tl: 1,
-      crawlerName: 'Crawler c1',
-    })
-    expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(true)
-    expect(room.ledger.collectIncome(MEDIATOR, AT)).toBeNull()
-    expect(scrapOf(room)).toMatchObject({ tl1: 1 })
-
-    room.play.endDowntime(MEDIATOR)
-    room.ledger.removeFaction(MEDIATOR, 'f1', AT)
-    room.play.beginDowntime(MEDIATOR, AT + 1)
-    room.play.setDowntimeStep(MEDIATOR, upkeep ?? 0)
-    expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(false)
-    expect(() => room.ledger.collectIncome(MEDIATOR, AT)).toThrow('no deals')
-  })
-
-  test('a ledger that collected under the old key (the Downtime’s start) is collected', () => {
-    const { room } = crewed()
-    room.ledger.setFaction(MEDIATOR, faction, AT)
-    room.play.beginDowntime(MEDIATOR, AT)
-    const upkeep = Array.from({ length: downtimeStepCount() }, (_, i) => i).find(isUpkeepStep)
-    room.play.setDowntimeStep(MEDIATOR, upkeep ?? 0)
-    const body = JSON.stringify({ ...room.ledger.read(), incomeCollectedFor: AT })
-    room.store.rows('update ledger set body = ? where id = 1', body)
-    expect(room.ledger.ledger(PLAYER)?.incomeCollected).toBe(true)
-    expect(room.ledger.collectIncome(MEDIATOR, AT)).toBeNull()
-  })
 })
 
 describe('Safety Protocols', () => {
-  test('any member adds a boundary; whoever added it or the table runner takes it off', () => {
-    const { room } = table()
-    const mine = room.safety.addBoundary(PLAYER, 'outOfBounds', '  spiders   in   mechs ', AT)
-    room.safety.addBoundary(ORGANIZER, 'offCamera', 'Torture', AT + 1)
-    expect(room.safety.boundaries(PLAYER)).toEqual([
-      {
-        id: mine,
-        kind: 'outOfBounds',
-        text: 'spiders in mechs',
-        mine: true,
-        mayRemove: true,
-        addedAt: AT,
-      },
-      {
-        id: expect.any(String),
-        kind: 'offCamera',
-        text: 'Torture',
-        mine: false,
-        mayRemove: false,
-        addedAt: AT + 1,
-      },
-    ])
-    expect(room.safety.boundaries(MEDIATOR).every((b) => b.mayRemove)).toBe(true)
-    expect(room.safety.boundaries(STRANGER)).toEqual([])
-    expect(() => room.safety.addBoundary(PLAYER, 'outOfBounds', '   ', AT)).toThrow('some words')
-    expect(() => room.safety.addBoundary(STRANGER, 'offCamera', 'x', AT)).toThrow()
-    expect(() => room.safety.addBoundary(PLAYER, 'elsewhere' as never, 'x', AT)).toThrow()
-    const theirs = room.safety.boundaries(PLAYER)[1]?.id ?? ''
-    expect(() => room.safety.removeBoundary(PLAYER, theirs)).toThrow('Only whoever added')
-    room.safety.removeBoundary(PLAYER, mine)
-    room.safety.removeBoundary(MEDIATOR, theirs)
-    room.safety.removeBoundary(MEDIATOR, theirs)
-    expect(room.safety.boundaries(PLAYER)).toEqual([])
-  })
-
-  test('a Game keeps at most so many boundaries', () => {
-    const { room } = table()
-    for (let i = 0; i < 60; i++) room.safety.addBoundary(PLAYER, 'offCamera', `b${i}`, AT + i)
-    expect(() => room.safety.addBoundary(PLAYER, 'offCamera', 'one more', AT)).toThrow('at most')
-  })
-
   test('the Stop Sign pauses the game without saying who, and is lifted by them or the table runner', () => {
     const { room } = table()
     expect(room.safety.stopSign(STRANGER)).toBeNull()
@@ -289,24 +127,6 @@ describe('the table’s acts, by their Convex names', () => {
       value: { supply: 0 },
     })
 
-    runAct(med, 'ledger.setFaction', { faction })
-    runAct(med, 'ledger.setJob', { job })
-    runAct(med, 'ledger.setJobState', { id: 'j1', state: 'dropped' })
-    runAct(med, 'ledger.setJobState', { id: 'j1', state: 'open' })
-    expect(runAct(med, 'ledger.completeJob', { id: 'j1' })).toMatchObject({ value: { scrap: 3 } })
-    expect(runAct(med, 'ledger.collectIncome', undefined as never)).toEqual({
-      ok: false,
-      refusal: 'Downtime is not running',
-    })
-    runAct(med, 'ledger.removeJob', { id: 'j1' })
-    runAct(med, 'ledger.removeFaction', { id: 'f1' })
-    expect(runAct(me, 'ledger.get', undefined as never)).toMatchObject({ value: { jobs: [] } })
-
-    const added = runAct(me, 'safety.addBoundary', { kind: 'offCamera', text: 'Spiders' })
-    expect(runAct(me, 'safety.boundaries', undefined as never)).toMatchObject({
-      value: [{ text: 'Spiders', mayRemove: true }],
-    })
-    if (added.ok) runAct(me, 'safety.removeBoundary', { boundaryId: added.value })
     runAct(med, 'safety.setPostToChannel', { on: true })
     expect(runAct(me, 'safety.showStop', undefined as never)).toEqual({ ok: true, value: true })
     expect(runAct(me, 'safety.stopSign', undefined as never)).toMatchObject({

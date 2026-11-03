@@ -125,7 +125,14 @@ describe('assignedUnitsFor', () => {
       { crawlerMechs: [mech], crawlerMechPilots: { m1: beefy } }
     )
     const bare = rowStats(mechRailItems(mech, undefined))
-    expect(units[0]?.readings?.[0]?.label).toBe('SP')
-    expect(units[0]?.readings?.[0]?.value).not.toBe(bare[0]?.value)
+    const sp = units[0]?.readings?.find((r) => r.label === 'SP')
+    expect(sp?.value).not.toBe(bare[0]?.value)
+  })
+
+  test('an assigned mech or crawler leads with its Tech Level', () => {
+    const fromPilot = build({ kind: 'pilot', entity: pilot }, { mech, crawler })
+    const tl = (kind: string) => fromPilot.units.find((u) => u.kind === kind)?.readings?.[0]
+    expect(tl('mech')).toMatchObject({ label: 'TL', chip: 'rank' })
+    expect(tl('crawler')).toMatchObject({ label: 'TL', value: String(crawler.techLevel) })
   })
 })

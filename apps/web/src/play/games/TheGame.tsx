@@ -1,9 +1,8 @@
 /**
- * TheGame — "The Game" on a Game's own page (docs/architecture/play.md §16):
- * its people, each a social card (R50): a contentful
- * Compact in Discord's colour, their Discord picture and name, chips for
- * their roles, and the pilots and mechs they hold in this Game as header-only
- * Minis linking to them. And, for the Organizer, **Hand over** and **Delete this Game**: a chip and
+ * TheGame — "The Game", the sidebar of a Game's own page
+ * (docs/architecture/play.md §16): its people, each a small social card (R50):
+ * a header-only Mini in Discord's colour, their name and chips for their
+ * roles. What they hold rides the Crew list. And, for the Organizer, **Hand over** and **Delete this Game**: a chip and
  * the ⋯ menu on the section's head, as every contextual action is.
  *
  * Appointing the Mediator is the Organizer's (`games.setMediator`,
@@ -19,7 +18,7 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import type { EntityFormModel, LinkedUnit } from '../../components/index'
+import type { EntityFormModel } from '../../components/index'
 import {
   Button,
   ConfirmDialog,
@@ -37,12 +36,11 @@ import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useTableRead } from '../../replica/useTable'
-import { pairedCrew } from '../playHub.model'
 import { HUB_BODY } from './hubStyles.model'
 
 const { space } = tokens
 
-/** The members' cards, one a line. */
+/** The members' small cards, one a line. */
 const LINES = {
   display: 'flex',
   flexDirection: 'column',
@@ -52,8 +50,8 @@ const LINES = {
   padding: 0,
 } satisfies CSSProperties
 
-/** A member as an entity: their Discord name and picture, in Discord's colour. */
-function memberModel(name: string, avatarUrl: string | undefined): EntityFormModel {
+/** A member as an entity: their Discord name, in Discord's colour. */
+function memberModel(name: string): EntityFormModel {
   return syntheticModel({
     schemaName: 'classes',
     id: `member/${name}`,
@@ -61,7 +59,6 @@ function memberModel(name: string, avatarUrl: string | undefined): EntityFormMod
     name,
     kind: { label: playGamesCopy('member'), domain: 'pilot' },
     tone: 'discord',
-    ...(avatarUrl ? { art: { kind: 'image', url: avatarUrl } } : {}),
   })
 }
 
@@ -79,7 +76,6 @@ export function TheGame({
 }) {
   const id = useId()
   const members = useTableRead('games.members', { gameId })
-  const vitals = useTableRead('crew.vitals', { gameId })
   const setMediator = useGamesCall('games.setMediator')
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
@@ -90,14 +86,6 @@ export function TheGame({
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
-
-  // What each member holds here, by their id: each pilot paired with its mech
-  // (the mech while aboard, else the pilot), then spare mechs.
-  const held = new Map<string, LinkedUnit[]>()
-  for (const { ownerId, unit } of vitals ? pairedCrew(vitals) : []) {
-    if (ownerId === null) continue
-    held.set(ownerId, [...(held.get(ownerId) ?? []), unit])
-  }
 
   return (
     <SlabSection
@@ -139,15 +127,15 @@ export function TheGame({
       }
     >
       {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
-      <ul aria-label={playGamesCopy('members')} className="su-game-members" style={LINES}>
+      <ul aria-label={playGamesCopy('members')} style={LINES}>
         {members?.map((m) => (
           <li key={m.userId}>
             <Entity
-              size="compact"
+              size="mini"
               context="roster"
-              model={memberModel(name(m), m.avatarUrl)}
+              model={memberModel(name(m))}
               omit={['kind']}
-              labels={
+              state={
                 m.mediator || m.organizer ? (
                   <>
                     {m.mediator && <Stat label={playGamesCopy('mediator')} size="mini" />}
@@ -155,7 +143,6 @@ export function TheGame({
                   </>
                 ) : undefined
               }
-              {...(held.get(m.userId)?.length ? { linked: held.get(m.userId) } : {})}
             />
           </li>
         ))}

@@ -9,7 +9,8 @@
  *   mech     pilot (one), crawler (one)
  *   crawler  mech (many: its bay), pilot (many: its crew)
  *
- * A place holds its linked units, each a Mini with its vitals as they stand,
+ * A place holds its linked units, each a Mini with its Tech Level (a mech's
+ * or crawler's) and its vitals as they stand,
  * the owner chip of whoever holds it in the Game (`ownerOf`), its Change
  * picker (a place of one) and its Unassign; else the units a public sheet may
  * name but not read ("Not shared"); else, in Edit, its Assign. A place of many
@@ -28,6 +29,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactNode } from 'react'
+import { chassisTechLevel, techLevelReading } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import type { SheetComposition } from './composition.model'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from './railStats.model'
@@ -124,7 +126,8 @@ function placesOf(subject: AssignedSubject, composition: SheetComposition): Plac
 }
 
 /**
- * A unit's vitals as they stand, as its own sheet reads them: a mech with its
+ * A unit's Tech Level (a mech's chassis's, a crawler's own), then its vitals
+ * as they stand, as its own sheet reads them: a mech with its
  * pilot's piloting context (Beefcake raises its Max SP, ADR-029), a pilot
  * with its effective crawler tier (Stat Training).
  */
@@ -137,14 +140,18 @@ function readingsOf(
   if (kind === 'mech') {
     const mech = entity as Mech
     const pilot = subject.kind === 'pilot' ? subject.entity : composition.crawlerMechPilots[mech.id]
-    return rowStats(mechRailItems(mech, pilot?.abilities))
+    return [
+      ...techLevelReading(chassisTechLevel(mech.chassisRef)),
+      ...rowStats(mechRailItems(mech, pilot?.abilities)),
+    ]
   }
   if (kind === 'pilot') {
     const pilot = entity as Pilot
     const crawler = subject.kind === 'crawler' ? subject.entity : composition.crawler
     return rowStats(pilotRailItems(pilot, crawler))
   }
-  return rowStats(crawlerRailItems(entity as Crawler))
+  const crawler = entity as Crawler
+  return [...techLevelReading(crawler.techLevel), ...rowStats(crawlerRailItems(crawler))]
 }
 
 /** The link between the sheet's entity and one unit, whichever way it points. */

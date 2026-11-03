@@ -179,10 +179,8 @@ const READ_TABLES: Record<string, { table: StateTable; records: (answer: unknown
   'games.members': { table: 'members', records: list },
   'scenes.current': { table: 'scene', records: one },
   'salvageAreas.here': { table: 'salvageArea', records: one },
-  'ledger.get': { table: 'ledger', records: one },
   'safety.stopSign': { table: 'safety', records: one },
   'session.state': { table: 'session', records: one },
-  'safety.boundaries': { table: 'boundaries', records: list },
   'mediator.npcs': {
     table: 'opposition',
     records: (answer) => list(answer).map((npc) => ({ ...(npc.body as Body), id: npc._id })),
