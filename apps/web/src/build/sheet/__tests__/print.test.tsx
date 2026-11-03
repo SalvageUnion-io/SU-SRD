@@ -101,18 +101,16 @@ describe('Print markup — PilotSheet', () => {
   })
 
   /**
-   * Regression. A picker `Field` renders its VALUE *inside* the button
-   * rather than beside it, so the print rule `button:not([data-print='keep'])`
-   * hid the pilot's class on paper — the one field saying what the pilot IS.
-   * The sibling fields printed fine because a Field's edit state renders a
-   * `<span role="button">`, which that element selector never matched, so the
-   * loss looked like a quirk of one field instead of a rule hitting a whole
-   * variant. Same shape on the mech (chassis) and crawler (type) sheets.
+   * Regression. The print rule `button:not([data-print='keep'])` once hid the
+   * pilot's class on paper, because a picker `Field` renders its value INSIDE
+   * its button. In Edit the class now leads the card (R57) as text beside a
+   * Change Class button, so the value sits outside every button and prints,
+   * while the button itself is chrome and hides.
    *
-   * jsdom applies no `@media print` rules, so assert the opt-in attribute and
-   * the containment that makes it necessary — not a computed style.
+   * jsdom applies no `@media print` rules, so assert the containment, not a
+   * computed style.
    */
-  test('class picker opts into print, so its value survives the button-hide rule', () => {
+  test('the class prints: its name sits outside the Change Class button', () => {
     const { container } = render(
       <Sheet
         kind="pilot"
@@ -121,13 +119,14 @@ describe('Print markup — PilotSheet', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const picker = container.querySelector('button[aria-label="Change class"]')
-    expect(picker).toBeTruthy()
-    // The value is inside the button — this containment is why the hatch is
-    // required, so assert it too; if it ever moves out, this test should be
-    // revisited rather than silently passing on the attribute alone.
-    expect(picker?.textContent).toContain('Engineer')
-    expect(picker?.getAttribute('data-print')).toBe('keep')
+    const button = [...container.querySelectorAll('button')].find(
+      (b) => b.textContent === 'Change Class'
+    )
+    expect(button).toBeTruthy()
+    expect(button?.getAttribute('data-print')).toBeNull()
+    const name = [...(button?.parentElement?.children ?? [])].find((el) => el !== button)
+    expect(name?.textContent).toBe('Engineer')
+    expect(name?.closest('button')).toBeNull()
   })
 })
 
