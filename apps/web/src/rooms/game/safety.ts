@@ -1,21 +1,11 @@
-import type { BoundaryKind } from 'game-domain/games/safety'
-import {
-  BOUNDARIES_MAX,
-  BOUNDARY_KINDS,
-  boundaryRefusal,
-  normalizeBoundary,
-} from 'game-domain/games/safety'
 import { RoomRefusal } from '../refusal'
 import type { GameStore } from './store'
 import { bit } from './store'
 
 /**
- * A Game's Safety Protocols (Core Book pp.12-13),
+ * A Game's Safety Protocols (Core Book pp.12-13): the Stop Sign, with its
  * rules.
  *
- * - **Boundaries:** the Out of Bounds and Off Camera lists, which every member
- *   reads and adds to. Nobody is named beside one; whoever added it, or the
- *   table runner, takes it off.
  * - **The Stop Sign:** any member shows it, with no reason asked, and every
  *   screen shows the game is paused without saying who. Whoever showed it, or
  *   the table runner, lifts it.
@@ -26,16 +16,6 @@ import { bit } from './store'
 
 /** The least time between two Stop Sign posts to one Game's channel. */
 const POST_EVERY_MS = 60_000
-
-export type BoundaryRead = {
-  id: string
-  kind: BoundaryKind
-  text: string
-  /** Whether the reader added it: what lets them take it back, never who did. */
-  mine: boolean
-  mayRemove: boolean
-  addedAt: number
-}
 
 export type StopSignRead = {
   stop: { shownAt: number; mine: boolean } | null
@@ -54,64 +34,7 @@ type StopRow = {
 }
 
 export class GameSafety {
-  constructor(
-    private readonly store: GameStore,
-    private readonly newId: () => string
-  ) {}
-
-  /** The Game's boundaries, oldest first, each saying whether the caller may take it off. */
-  boundaries(actor: string): BoundaryRead[] {
-    const member = this.store.member(actor)
-    if (member === null) return []
-    const runner = this.store.isTableRunner(member)
-    return this.store.rows('select * from boundaries order by added_at, id').map((row) => ({
-      id: String(row.id),
-      kind: row.kind as BoundaryKind,
-      text: String(row.text),
-      mine: row.added_by === actor,
-      mayRemove: runner || row.added_by === actor,
-      addedAt: Number(row.added_at),
-    }))
-  }
-
-  /** Add one boundary to one of the lists: any member may. Answers its id. */
-  addBoundary(actor: string, kind: BoundaryKind, text: string, at: number): string {
-    return this.store.sql.transaction(() => {
-      this.store.requireMember(actor)
-      if (!(BOUNDARY_KINDS as readonly string[]).includes(kind)) {
-        throw new Error(`Not one of BOUNDARY_KINDS: ${kind}`)
-      }
-      const refused = boundaryRefusal(text)
-      if (refused !== null) throw new RoomRefusal(refused)
-      const [count] = this.store.rows('select count(*) as n from boundaries')
-      if (Number(count?.n ?? 0) >= BOUNDARIES_MAX) {
-        throw new RoomRefusal(`A Game keeps at most ${BOUNDARIES_MAX} boundaries.`)
-      }
-      const id = this.newId()
-      this.store.rows(
-        'insert into boundaries (id, kind, text, added_by, added_at) values (?, ?, ?, ?, ?)',
-        id,
-        kind,
-        normalizeBoundary(text),
-        actor,
-        at
-      )
-      return id
-    })
-  }
-
-  /** Take a boundary off: whoever added it, or the table runner. One already gone is not an error. */
-  removeBoundary(actor: string, boundaryId: string): void {
-    this.store.sql.transaction(() => {
-      const member = this.store.requireMember(actor)
-      const row = this.store.rows('select added_by from boundaries where id = ?', boundaryId)[0]
-      if (row === undefined) return
-      if (row.added_by !== actor && !this.store.isTableRunner(member)) {
-        throw new RoomRefusal('Only whoever added a boundary, or the Mediator, can take it off')
-      }
-      this.store.rows('delete from boundaries where id = ?', boundaryId)
-    })
-  }
+  constructor(private readonly store: GameStore) {}
 
   /** The Stop Sign as a member's screen reads it, never saying who showed it; null for a non-member. */
   stopSign(actor: string): StopSignRead | null {

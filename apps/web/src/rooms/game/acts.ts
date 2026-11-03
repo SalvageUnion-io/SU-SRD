@@ -1,9 +1,6 @@
 import type { EntityKind } from 'game-domain/entityKinds'
-import type { JobTerms } from 'game-domain/games/ledger'
-import type { BoundaryKind } from 'game-domain/games/safety'
 import type { LinkShape } from 'game-domain/links/linkRules'
 import type { DowntimeClaim } from 'game-domain/ops/downtimeStep'
-import type { Faction } from 'game-domain/schemas/ledger'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import type { OpInput } from '../ops'
 import { entityLog } from '../ops'
@@ -150,26 +147,6 @@ const GAME_ACTS = {
   'salvageAreas.spend': (c: ActContext, a: { pilotId: string }) =>
     c.room.scene.spendSupply(c.actor, a.pilotId, c.at),
 
-  'ledger.get': (c: ActContext) => c.room.ledger.ledger(c.actor),
-  'ledger.setFaction': (c: ActContext, a: { faction: Faction }) =>
-    c.room.ledger.setFaction(c.actor, a.faction, c.at),
-  'ledger.removeFaction': (c: ActContext, a: { id: string }) =>
-    c.room.ledger.removeFaction(c.actor, a.id, c.at),
-  'ledger.setJob': (c: ActContext, a: { job: JobTerms }) =>
-    c.room.ledger.setJob(c.actor, a.job, c.at),
-  'ledger.setJobState': (c: ActContext, a: { id: string; state: 'open' | 'dropped' }) =>
-    c.room.ledger.setJobState(c.actor, a.id, a.state, c.at),
-  'ledger.removeJob': (c: ActContext, a: { id: string }) =>
-    c.room.ledger.removeJob(c.actor, a.id, c.at),
-  'ledger.completeJob': (c: ActContext, a: { id: string }) =>
-    c.room.ledger.completeJob(c.actor, a.id, c.at),
-  'ledger.collectIncome': (c: ActContext) => c.room.ledger.collectIncome(c.actor, c.at),
-
-  'safety.boundaries': (c: ActContext) => c.room.safety.boundaries(c.actor),
-  'safety.addBoundary': (c: ActContext, a: { kind: BoundaryKind; text: string }) =>
-    c.room.safety.addBoundary(c.actor, a.kind, a.text, c.at),
-  'safety.removeBoundary': (c: ActContext, a: { boundaryId: string }) =>
-    c.room.safety.removeBoundary(c.actor, a.boundaryId),
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
@@ -232,8 +209,6 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'unit',
   'scenes.current',
   'salvageAreas.here',
-  'ledger.get',
-  'safety.boundaries',
   'safety.stopSign',
   'session.state',
 ])

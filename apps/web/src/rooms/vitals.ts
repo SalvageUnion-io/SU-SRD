@@ -2,6 +2,7 @@ import type { MechDerived, PilotDerived, SheetVitals } from 'game-domain/botWire
 import type { CrewUnit } from 'game-domain/rules/crewVitals'
 import { crewDeriver } from 'game-domain/rules/crewVitals'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import type { GameStore, UnitRow } from './game/store'
 import { unitName } from './game/units'
 import { seatOf } from './seats'
@@ -63,6 +64,8 @@ export type CrewVitals = {
       currentSP: number | null
       currentEP: number | null
       currentHeat: number | null
+      /** Its chassis's Tech Level; null for a chassis the reference does not hold. */
+      techLevel?: number | null
     })[]
 }
 
@@ -99,9 +102,15 @@ export function crewVitals(store: GameStore): CrewVitals {
       currentSP: num(m.body.currentSP),
       currentEP: num(m.body.currentEP),
       currentHeat: num(m.body.currentHeat),
+      techLevel: chassisTechLevel(m.body.chassisRef),
       ...deriveMech(crewUnit(m)),
     })),
   }
+}
+
+function chassisTechLevel(chassisRef: unknown): number | null {
+  if (typeof chassisRef !== 'string' || chassisRef === '') return null
+  return num((resolveChassisRef(chassisRef) as { techLevel?: unknown } | null)?.techLevel)
 }
 
 function num(value: unknown): number | null {

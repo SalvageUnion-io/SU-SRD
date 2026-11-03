@@ -270,7 +270,7 @@ function nameOf(body: unknown, fallback: string): string {
 }
 
 /** The id inside an opaque server body, when it carries one. */
-function bodyIdOf(body: unknown): string | null {
+export function bodyIdOf(body: unknown): string | null {
   const value = (body as Record<string, unknown> | null)?.id
   return typeof value === 'string' && value.length > 0 ? value : null
 }

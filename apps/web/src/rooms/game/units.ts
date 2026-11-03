@@ -24,9 +24,6 @@ import type { GameStore, Member, StoredOp, UnitRow } from './store'
 /** The source a Mediator's proposal carries; no client op may. */
 export const PROPOSAL_SOURCE = 'mediator-proposal'
 
-/** The source of a ledger pay-out into the crawler (`ledger.ts`). */
-export const LEDGER_SOURCE = 'ledger'
-
 /** A body parsed with its kind's schema, carrying `id`; or a defect thrown. */
 export function parseUnitBody(
   kind: EntityKind,
@@ -54,8 +51,12 @@ const UNASSIGNED = 'That entity is unassigned — it must be assigned before it 
 const NOT_YOURS = "You cannot edit another player's entity"
 const LEAVING = 'That is on its way somewhere else; try again in a moment'
 const SERVER_ONLY = 'That change can only come from the Game itself'
-/** Op sources only the room writes: a proposal (`propose`), an assignment (`reassign`) and a ledger pay-out. */
-const SERVER_SOURCES: ReadonlySet<string> = new Set([PROPOSAL_SOURCE, 'ownership', LEDGER_SOURCE])
+/**
+ * Op sources only the room writes: a proposal (`propose`) and an assignment
+ * (`reassign`). `ledger` marks the retired Factions and Jobs pay-outs still in
+ * older op logs, so no client may claim it either.
+ */
+const SERVER_SOURCES: ReadonlySet<string> = new Set([PROPOSAL_SOURCE, 'ownership', 'ledger'])
 const ONLINE_ONLY = 'That changes the whole table, so it needs a connection: try it again now'
 const CREW_REFUSAL =
   'Only whoever runs the table assigns crawler crew — design an NPC in your Training Bay and move it into this Game to offer it.'

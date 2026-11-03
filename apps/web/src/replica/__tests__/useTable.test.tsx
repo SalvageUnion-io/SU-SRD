@@ -54,11 +54,11 @@ describe('useTableRead', () => {
   })
 
   test('one row, or null once served without it', () => {
-    serve('g1', { scene: { conditions: ['fog'], hours: 2 }, ledger: null })
+    serve('g1', { scene: { conditions: ['fog'], hours: 2 }, salvageArea: null })
     const scene = renderHook(() => useTableRead('scenes.current', { gameId: 'g1' }))
     expect(scene.result.current).toEqual({ conditions: ['fog'], hours: 2 } as never)
-    const ledger = renderHook(() => useTableRead('ledger.get', { gameId: 'g1' }))
-    expect(ledger.result.current).toBeNull()
+    const area = renderHook(() => useTableRead('salvageAreas.here', { gameId: 'g1' }))
+    expect(area.result.current).toBeNull()
   })
 
   test('a Game’s Downtime answers the steps this pilot took', () => {

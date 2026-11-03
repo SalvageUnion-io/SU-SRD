@@ -98,15 +98,13 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *  - `scene`: `{ conditions, hours }`.
  *  - `salvageArea`: `{ name, techLevel, supply }`, none when unset; an
  *    account room keeps its player's solo table's.
- *  - `ledger`: `{ factions, jobs, incomeCollected }`.
- *  - `boundaries`: one record per boundary, `{ kind, text, mine, mayRemove }`.
  *  - `safety`: `{ stop: { shownAt, mine, mayLift } | null, mayManage, postToChannel }`.
  *  - `session`: `{ live, startedAt }`, the group session (`session.state`).
  *  - `game`: `{ primaryCrawlerId }`, the crawler the crew rides, or null.
  *  - `opposition`: one record per tray NPC, its body; the Mediator's only.
  *  - `mediator`: one record, `{ running }`, the encounter being run or null;
  *    served to the Mediator only, so a reader without it does not mediate.
- * Who added a boundary or showed the Stop Sign never reaches a socket: each
+ * Who showed the Stop Sign never reaches a socket: each
  * reader gets `mine` and what it may do, so these records are per reader.
  * @public And the table in play, each as its read answers:
  *  - `members`: one per member, by Discord id (`games.members`).
@@ -128,8 +126,6 @@ export const RECORD_TABLES = [
   'mediator',
   'scene',
   'salvageArea',
-  'ledger',
-  'boundaries',
   'safety',
   'session',
   'game',

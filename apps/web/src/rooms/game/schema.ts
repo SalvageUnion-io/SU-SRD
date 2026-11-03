@@ -162,9 +162,11 @@ export const GAME_ROOM_SESSION: readonly string[] = [
  *
  * - `scene`: the Scene's conditions and the hours passed under them.
  * - `salvage_area`: the area the table is salvaging, at most one.
- * - `ledger`: the Game's factions and jobs, one `LedgerSchema` body.
- * - `boundaries` and `stop_sign`: the Safety Protocols. Who added a boundary
- *   or showed the Stop Sign is kept so they can take it back, and never shown.
+ * - `ledger` and `boundaries`: the retired Factions and Jobs and the Out of
+ *   Bounds and Off Camera lists, written and read by nothing now; a table is
+ *   never dropped from a room.
+ * - `stop_sign`: the Safety Protocols. Who showed the Stop Sign is kept so
+ *   they can take it back, and never shown.
  */
 export const GAME_ROOM_TABLE_STATE: readonly string[] = [
   `create table scene (

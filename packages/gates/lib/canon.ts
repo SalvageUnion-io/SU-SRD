@@ -267,6 +267,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R54: ['hierarchy/bare-applink', 'hierarchy.test.ts'],
   R55: ['design-walk.e2e.ts#findHierarchy', '_hierarchy.ts'],
   R56: ['chipFill.test.ts', 'PlayLanding.connected.test.tsx'],
+  R57: ['Sheet-pilot-hero.test.tsx'],
 }
 
 /** A law's id as the canon and its citations spell it. */
