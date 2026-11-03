@@ -33,6 +33,8 @@ import type { UnitsStore } from '../../replica/units'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
+import { useState } from 'react'
+import { nameToSlug } from 'salvageunion-reference'
 import {
   installedSlots,
   pinFor,
@@ -41,6 +43,8 @@ import {
 } from 'salvageunion-reference/rules'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
+  Button,
+  EntitySearcher,
   Field,
   heatDangerFrom,
   linesFromBreakdown,
@@ -72,6 +76,7 @@ import { useUnits } from '../../replica/units'
 import { MechItemMini } from './MechItemMini'
 import { PartnerHold } from './PartnerHold'
 import { partnerDisplayName } from './partnerDisplay.model'
+import { SheetPickerModal } from './SheetPickerModal'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetVital } from './sheetVitals.model'
 
@@ -124,6 +129,9 @@ export function PartnerCard({
   const { partner, hostKind, host } = found
   const storeState = store()
   const editable = !readOnly
+  // Which loadout picker is open: a partner installs Systems and Modules by the
+  // same rules as a mech (Core Book p.68), so it gets the mech sheet's picker.
+  const [picker, setPicker] = useState<'system' | 'module' | null>(null)
 
   const statBlock = resolvePartnerStatBlock(partner)
   const techLevel = partnerTechLevel(partner, crawlerTechLevel)
@@ -311,7 +319,8 @@ export function PartnerCard({
 
   const renderItems = (kind: 'system' | 'module') => {
     const slugs = kind === 'system' ? partner.systems : partner.modules
-    if (slugs.length === 0) return null
+    // Read shows only what is installed; Edit always offers the Manage control.
+    if (slugs.length === 0 && readOnly) return null
     const conditions = conditionsFor(kind)
     // Keyed by occurrence, not index — see occurrenceKeys.
     const keys = occurrenceKeys(slugs)
@@ -319,96 +328,151 @@ export function PartnerCard({
       <SlabSection
         as="h4"
         title={kind === 'system' ? buildSheetCopy('systems') : buildSheetCopy('modules')}
+        actions={
+          editable ? (
+            <Button size="compact" onClick={() => setPicker(kind)}>
+              {kind === 'system'
+                ? buildSheetCopy('manageSystems')
+                : buildSheetCopy('manageModules')}
+            </Button>
+          ) : undefined
+        }
       >
         {/* Contentful Minis in a masonry grid, each Peeking its whole card. */}
-        <MiniGrid
-          label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
-          edit={!readOnly}
-        >
-          {slugs.map((slug, index) => (
-            <li key={keys[index]}>
-              <MechItemMini
-                slug={slug}
-                entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
-                condition={conditions[slug] ?? 'intact'}
-                usesRemaining={partner.itemUses?.[slug]}
-                scrapPool={null}
-                readOnly={readOnly}
-                onStatusCycle={() => cycleItemCondition(kind, slug)}
-                onUsesChange={(next) =>
-                  patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
-                }
-                // Repair means REPAIR: straight to Intact, not the next step of
-                // the cycle (which would destroy a Damaged item).
-                onRepair={() => setItemCondition(kind, slug, 'intact')}
-                onRemove={
-                  editable
-                    ? () =>
-                        patch(
-                          kind === 'system'
-                            ? { systems: partner.systems.filter((_, i) => i !== index) }
-                            : { modules: partner.modules.filter((_, i) => i !== index) }
-                        )
-                    : undefined
-                }
-              />
-            </li>
-          ))}
-        </MiniGrid>
+        {slugs.length > 0 && (
+          <MiniGrid
+            label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
+            edit={!readOnly}
+          >
+            {slugs.map((slug, index) => (
+              <li key={keys[index]}>
+                <MechItemMini
+                  slug={slug}
+                  entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
+                  condition={conditions[slug] ?? 'intact'}
+                  usesRemaining={partner.itemUses?.[slug]}
+                  scrapPool={null}
+                  readOnly={readOnly}
+                  onStatusCycle={() => cycleItemCondition(kind, slug)}
+                  onUsesChange={(next) =>
+                    patch({ itemUses: { ...(partner.itemUses ?? {}), [slug]: next } })
+                  }
+                  // Repair means REPAIR: straight to Intact, not the next step of
+                  // the cycle (which would destroy a Damaged item).
+                  onRepair={() => setItemCondition(kind, slug, 'intact')}
+                  onRemove={
+                    editable
+                      ? () =>
+                          patch(
+                            kind === 'system'
+                              ? { systems: partner.systems.filter((_, i) => i !== index) }
+                              : { modules: partner.modules.filter((_, i) => i !== index) }
+                          )
+                      : undefined
+                  }
+                />
+              </li>
+            ))}
+          </MiniGrid>
+        )}
       </SlabSection>
     )
   }
 
-  return (
-    <ReferenceEntityCard
-      data={statBlock ?? undefined}
-      size="compact"
-      titleOverride={partnerDisplayName(partner)}
-      statsOverride={stats}
-      // The installed Systems / Modules below are the loadout: the stat
-      // block's own (a drone's default) would list them a second time.
-      droneLoadout={NO_LOADOUT}
-      controls={controls.length > 0 ? controls : undefined}
-      afterExtraContent={
-        <Stack gap={16}>
-          <Stack gap={12}>{gauges}</Stack>
-          <Stack gap={12}>
-            <Field
-              label={buildSheetCopy('name')}
-              value={partner.name ?? ''}
-              placeholder={statBlock?.name ?? buildSheetCopy('unnamed')}
-              ariaLabel={buildSheetCopy('editName')}
-              onSave={editable ? (next) => patch({ name: next }) : undefined}
-            />
-            <Field
-              label={buildSheetCopy('aIPersonality')}
-              value={partner.aiPersonality ?? ''}
-              placeholder={buildSheetCopy('rollOnTheAI')}
-              ariaLabel={buildSheetCopy('editAIPersonality')}
-              onSave={editable ? (next) => patch({ aiPersonality: next }) : undefined}
-            />
-            <Field
-              label={buildSheetCopy('appearance')}
-              value={partner.appearance ?? ''}
-              multiline
-              fill
-              placeholder={buildSheetCopy('howeverYouWish')}
-              ariaLabel={buildSheetCopy('editAppearance')}
-              onSave={editable ? (next) => patch({ appearance: next }) : undefined}
-            />
-          </Stack>
+  /** The mech sheet's install picker, writing through the host like every edit here. */
+  const renderPicker = (kind: 'system' | 'module') => {
+    const isSystem = kind === 'system'
+    const slugs = isSystem ? partner.systems : partner.modules
+    const write = (next: string[]) => patch(isSystem ? { systems: next } : { modules: next })
+    return (
+      <SheetPickerModal
+        open={picker === kind}
+        onClose={() => setPicker(null)}
+        title={isSystem ? buildSheetCopy('addSystems') : buildSheetCopy('addModules')}
+        floating
+      >
+        <EntitySearcher
+          schema={isSystem ? 'systems' : 'modules'}
+          mode="count"
+          selected={slugs}
+          idOf={(item) => nameToSlug(item.name)}
+          onAdd={(slug) => write([...slugs, slug])}
+          onRemove={(index) => write(slugs.filter((_, i) => i !== index))}
+          railName={partnerDisplayName(partner)}
+          chosenLabel={buildSheetCopy('installed')}
+          emptyMessage={
+            isSystem
+              ? buildSheetCopy('noSystemsMatchThoseFilters')
+              : buildSheetCopy('noModulesMatchThoseFilters')
+          }
+          budget={[
+            {
+              label: isSystem ? buildSheetCopy('systemSlots') : buildSheetCopy('moduleSlots'),
+              used: isSystem ? slotsFilled.systems : slotsFilled.modules,
+              max: isSystem ? max.systemSlots : max.moduleSlots,
+            },
+            { label: buildSheetCopy('energy'), used: ep, max: max.energyPoints },
+          ]}
+        />
+      </SheetPickerModal>
+    )
+  }
 
-          {/* THE HOLD — absent, not empty, when the partner cannot carry.
+  return (
+    <>
+      <ReferenceEntityCard
+        data={statBlock ?? undefined}
+        size="compact"
+        titleOverride={partnerDisplayName(partner)}
+        statsOverride={stats}
+        // The installed Systems / Modules below are the loadout: the stat
+        // block's own (a drone's default) would list them a second time.
+        droneLoadout={NO_LOADOUT}
+        controls={controls.length > 0 ? controls : undefined}
+        afterExtraContent={
+          <Stack gap={16}>
+            <Stack gap={12}>{gauges}</Stack>
+            <Stack gap={12}>
+              <Field
+                label={buildSheetCopy('name')}
+                value={partner.name ?? ''}
+                placeholder={statBlock?.name ?? buildSheetCopy('unnamed')}
+                ariaLabel={buildSheetCopy('editName')}
+                onSave={editable ? (next) => patch({ name: next }) : undefined}
+              />
+              <Field
+                label={buildSheetCopy('aIPersonality')}
+                value={partner.aiPersonality ?? ''}
+                placeholder={buildSheetCopy('rollOnTheAI')}
+                ariaLabel={buildSheetCopy('editAIPersonality')}
+                onSave={editable ? (next) => patch({ aiPersonality: next }) : undefined}
+              />
+              <Field
+                label={buildSheetCopy('appearance')}
+                value={partner.appearance ?? ''}
+                multiline
+                fill
+                placeholder={buildSheetCopy('howeverYouWish')}
+                ariaLabel={buildSheetCopy('editAppearance')}
+                onSave={editable ? (next) => patch({ appearance: next }) : undefined}
+              />
+            </Stack>
+
+            {/* THE HOLD — absent, not empty, when the partner cannot carry.
               Auto-Turret has cargoCapacity 0 AND the Immobile trait: it is not
               a container with nothing in it, it is not a container. */}
-          {max.cargoCapacity > 0 && (
-            <PartnerHold cargo={cargo} crawlerLinked={Boolean(crawler)} readOnly={readOnly} />
-          )}
+            {max.cargoCapacity > 0 && (
+              <PartnerHold cargo={cargo} crawlerLinked={Boolean(crawler)} readOnly={readOnly} />
+            )}
 
-          {renderItems('system')}
-          {renderItems('module')}
-        </Stack>
-      }
-    />
+            {renderItems('system')}
+            {renderItems('module')}
+          </Stack>
+        }
+      />
+      {/* The pickers are modals beside the card, never boxes inside it (N5). */}
+      {editable && renderPicker('system')}
+      {editable && renderPicker('module')}
+    </>
   )
 }
