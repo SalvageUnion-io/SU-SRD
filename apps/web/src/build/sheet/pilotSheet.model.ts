@@ -24,7 +24,11 @@ import type { ProvenanceLine, TreeTrack } from '../../components/index'
 import { linesFromBreakdown, trackForTree } from '../../components/index'
 import { resolveClass } from '../../lib/classRef'
 import { readReference } from '../../lib/readReference'
-import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
+import {
+  grantedEquipment,
+  pilotInventoryCapacity,
+  pilotInventoryUsed,
+} from '../../lib/rules/pilotInventory'
 import type { UnitsState } from '../../replica/units'
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
@@ -114,8 +118,10 @@ export type PilotSheetModel = {
    */
   scalingParent: { techLevel: number } | undefined
   partners: NonNullable<Pilot['partners']>
-  /** Equipment slugs whose card is NOT replaced by a partner instance. */
+  /** Equipment slugs whose card is NOT replaced by a partner instance, the granted last. */
   ordinaryEquipment: string[]
+  /** The ones the pilot's abilities grant: carried while the ability is, never removed alone. */
+  granted: ReadonlySet<string>
   /** How many of each stat block is fielded, so a card can say "2 of 2". */
   fieldedByRef: Record<string, number>
   dead: boolean
@@ -196,7 +202,11 @@ export function usePilotSheetModel({
   const partnerSlugs = new Set(
     partners.filter((p) => p.hostSchema === 'equipment').map((p) => p.hostRef)
   )
-  const ordinaryEquipment = pilot.equipment.filter((slug) => !partnerSlugs.has(slug))
+  const granted = new Set(grantedEquipment(pilot))
+  const ordinaryEquipment = [
+    ...pilot.equipment.filter((slug) => !partnerSlugs.has(slug)),
+    ...granted,
+  ]
   // How many of each stat block is fielded, so a card can say "2 of 2".
   const fieldedByRef = partners.reduce<Record<string, number>>((acc, p) => {
     acc[p.hostRef] = (acc[p.hostRef] ?? 0) + 1
@@ -328,6 +338,7 @@ export function usePilotSheetModel({
     scalingParent,
     partners,
     ordinaryEquipment,
+    granted,
     fieldedByRef,
     dead,
     slotsUsed,

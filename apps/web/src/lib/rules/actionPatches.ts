@@ -52,7 +52,7 @@ import {
 } from 'salvageunion-reference/rules'
 import type { MechItemEconomy } from './mechItems'
 import { actionEconomy, resolveModule, resolveSystem } from './mechItems'
-import { resolveEquipment } from './pilotInventory'
+import { carriedEquipment, resolveEquipment } from './pilotInventory'
 
 // ---------------------------------------------------------------------------
 // Reactor — Push / Heat Check / Vent / Shutdown (play.md §14.1)
@@ -367,7 +367,7 @@ export function isAreaSalvage(action: RefMetaAction): boolean {
 export function buildPilotActions(pilot: Pilot): PlayAction[] {
   const out: PlayAction[] = []
   const owned = pilot.abilities ?? []
-  const carried = (pilot.equipment ?? []).flatMap((slug) => {
+  const carried = carriedEquipment(pilot).flatMap((slug) => {
     const equip = resolveEquipment(slug)
     return equip ? [{ slug, equip }] : []
   })
