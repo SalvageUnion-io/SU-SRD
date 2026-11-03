@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { crawlerFixture, FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import {
   chassisFact,
+  crawlerChips,
   crawlerReading,
   crewLinked,
   gameRelation,
@@ -93,6 +94,21 @@ describe('a unit’s crew link', () => {
   test('an unlinked unit, or one whose partner cannot be named, has none', () => {
     expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [], names: new Map() })).toEqual([])
     expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [LINK], names: new Map() })).toEqual([])
+  })
+})
+
+describe('a crawler’s chips', () => {
+  test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {
+    expect(
+      chipLabels(
+        crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g2' }), games: GAMES })
+      )
+    ).toEqual(['You mediate'])
+    expect(
+      chipLabels(
+        crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g1' }), games: GAMES })
+      )
+    ).toEqual([])
   })
 })
 

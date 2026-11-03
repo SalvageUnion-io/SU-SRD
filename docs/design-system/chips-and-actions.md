@@ -37,7 +37,7 @@ A strip is a Mini, a Compact or Full head, or a TitledBox or Slab header.
 - **C10** A header's summary never repeats a child's fact or its parent's summary; Slab and TitledBox take it as one `SlabCount` list.
 - **C11** A related entity is a relation chip (a player unit on a sheet is a Mini, R5), label first, its value Peeking and opening it (a Game, which has no Peek, links to its Play page): never a loose stamp ("Assigned: X") or a Mini beside the strip. Read and Edit show the same chip. An absent relation draws nothing (C6), never an "Unassigned" chip. An ability's tree is its one relation chip; its Preceding and Next abilities are its Page's nested references, never chips.
 - **C12** Only an entity's name flexes: a tool panel's title (Propose a change) wraps, never ends in "…".
-- **C13** Build shows only what is yours: the Training Bay lists your own units, in a Game or not, never a crewmate's, an unassigned one or a Game's crawler (its Game's page has those), and reads only own rows (`useOwnUnits`). A unit's Game is its `GAME | name` chip (C11), never a filter.
+- **C13** Build shows only what is yours: your own units, in a Game or not, and the crawler of a Game you run; never a crewmate's or an unassigned unit (the Game's page has those), read via `useOwnUnits`, `useKeptCrawlers`. A unit's Game is its `GAME | name` chip (C11), never a filter.
 
 ## Built as
 

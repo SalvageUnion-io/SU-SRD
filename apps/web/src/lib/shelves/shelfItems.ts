@@ -25,6 +25,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { resolveChassisRef, resolvePool } from 'salvageunion-reference/rules'
 import type { LinkedUnit } from '../../components/index'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 import { resolveClassName } from '../classRef'
 import { resolveCrawlerType } from '../crawlerRefs'
 import type { PatternVisibility } from '../patterns/patterns'
@@ -148,6 +149,19 @@ export function crewLinked(args: {
       readings: args.readings?.get(otherId),
     }),
   ]
+}
+
+/** A crawler in a Game you mediate says so. */
+export function crawlerChips(args: {
+  crawler: Crawler
+  games: readonly ShelfGame[] | undefined
+}): ShelfChip[] {
+  const { crawler } = args
+  const game =
+    typeof crawler.gameId === 'string'
+      ? args.games?.find((g) => g._id === crawler.gameId)
+      : undefined
+  return game?.mediator ? [{ key: 'role', label: buildShelvesCopy('youMediate') }] : []
 }
 
 /**

@@ -117,3 +117,20 @@ export function useOwnUnits<T extends UnitType>(type: T): EntityForType<T>[] {
   const read = (_: EntityStoreState) => ownRows(type, me) as unknown as EntityForType<T>[]
   return useUnits(read)
 }
+
+/**
+ * The crawlers a player keeps in Build: their own, and the crawler of each Game
+ * they run (`runs`, those Games' ids). A Game's crawler has no owner, it is the
+ * crew's, but the table runner keeps it, so their Training Bay lists it; no
+ * other Game's crawler is read.
+ */
+export function useKeptCrawlers(runs: readonly string[]): Crawler[] {
+  const own = useOwnUnits('crawler')
+  const all = useUnits((s) => s.crawlers)
+  if (runs.length === 0) return own
+  const ids = new Set(own.map((c) => c.id))
+  const kept = all.filter(
+    (c) => typeof c.gameId === 'string' && runs.includes(c.gameId) && !ids.has(c.id)
+  )
+  return kept.length === 0 ? own : [...own, ...kept]
+}

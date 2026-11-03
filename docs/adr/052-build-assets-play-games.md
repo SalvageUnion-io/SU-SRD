@@ -19,9 +19,9 @@ lane empty. The chip is the unit's tag: the Training Bay has no Showing filter
 
 ### 2. Build lists only what you own
 
-Unassigned units, a Game's units you do not own and a Game's crawler (the
-crew's, owned by nobody) appear only on that Game's page in Play. Build reads
-only your own rows (`ownRows` in the replica, which also holds every crewmate's
+Unassigned units, a Game's units you do not own and the crawler of a Game you
+do not run (the crew's, owned by nobody) appear only on that Game's page in
+Play; the table runner keeps their Game's crawler. Build reads only those rows (`ownRows` in the replica, which also holds every crewmate's
 unit for Play), so it never holds another player's unit at all: the Training
 Bay, its Export all and the wizards' counts included (chips-and-actions C13).
 
