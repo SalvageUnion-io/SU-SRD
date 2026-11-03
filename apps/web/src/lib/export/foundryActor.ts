@@ -30,7 +30,6 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RefEntity, RefObjectContentBlock, RefObjectTrait } from 'salvageunion-reference'
 import {
   getEntitySlug,
-  getInventorySlots,
   parseContentBlockString,
   plainTraitText,
   SalvageUnionReference,
@@ -46,6 +45,7 @@ import {
 import { SITE_URL } from '../constants'
 import { itemHref } from '../entityHref'
 import { loadoutSlots } from '../patterns/patterns'
+import { equipmentSlotCost } from '../rules/pilotInventory'
 import { fileStem } from './downloadJson'
 
 /** The Foundry system this file is written for, as its `system.json` names it. */
@@ -286,7 +286,7 @@ function equipmentItem(slug: string, pilot: Pilot): FoundryItem | null {
     system: {
       description: [rulesHtml(equipment, actions, 'AP'), sourceLine(equipment)].join('\n').trim(),
       techLevel: techLevelCode(equipment.techLevel),
-      inventorySlots: getInventorySlots(equipment),
+      inventorySlots: equipmentSlotCost(equipment),
       ap: fields.cost,
       action: fields.action,
       range: fields.range,

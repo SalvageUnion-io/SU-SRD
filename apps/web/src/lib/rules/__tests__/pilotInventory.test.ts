@@ -47,6 +47,15 @@ describe('equipmentSlotCost', () => {
     expect(equipmentSlotCost(resolveEquipment('rocket-launcher'))).toBe(2)
   })
 
+  test('a Mecha Companion fills no slot (Core Book p.68)', () => {
+    expect(equipmentSlotCost(resolveEquipment('mecha-companion'))).toBe(0)
+  })
+
+  test('the Auto-Turret (Portable) and Survey Drone (controller) still count', () => {
+    expect(equipmentSlotCost(resolveEquipment('auto-turret'))).toBe(2)
+    expect(equipmentSlotCost(resolveEquipment('survey-drone'))).toBe(1)
+  })
+
   test('unresolved equipment counts 1 slot (never undercounts to 0)', () => {
     expect(equipmentSlotCost(null)).toBe(1)
   })
