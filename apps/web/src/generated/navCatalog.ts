@@ -160,7 +160,7 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
       {
         "label": "Sources",
         "href": "/sources/",
-        "count": 10
+        "count": 9
       },
       {
         "label": "Tech Levels",
@@ -168,6 +168,6 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
         "count": 6
       }
     ],
-    "total": 231
+    "total": 230
   }
 ] as const

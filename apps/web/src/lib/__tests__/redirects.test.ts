@@ -100,6 +100,22 @@ describe('_redirects', () => {
     for (const rule of toImages) expect(images.has(rule.to)).toBe(true)
   })
 
+  it('sends Mech Monday’s old pages to pages that are still built', () => {
+    const pages = new Set([
+      ...getSchemaStaticPaths().map((p) => schemaHref(p.params.schemaId)),
+      ...getItemStaticPaths().map((p) => itemHref(p.params.schemaId, p.params.itemId)),
+    ])
+    const gone = rules.filter(
+      (r) => r.from.startsWith('/sources/mech-monday') || r.from.includes('/gatecrasher/pattern/')
+    )
+    expect(gone).toHaveLength(18)
+    for (const rule of gone) expect(pages.has(rule.to)).toBe(true)
+    expect(rules).toContainEqual({
+      from: '/chassis/gatecrasher/pattern/kam/',
+      to: '/chassis/gatecrasher/',
+    })
+  })
+
   it('writes one 301 line per rule', () => {
     const lines = redirectsEndpoint
       .body({} as RouteContext<Record<string, string>, unknown>)

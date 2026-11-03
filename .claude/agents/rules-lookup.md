@@ -18,7 +18,7 @@ itself (`findExtractDir` in `tools/extract-rules.ts`).
 
 - It searches the 2.0a books and Leyline's errata by default. Cite those
   first; an `Errata` hit corrects the page it names, so it outranks it. `--all` adds every other edition (the 1.1 `SUSS` books,
-  the Quickstart and quick-reference sheets, Mech Monday); flag any that
+  the Quickstart and quick-reference sheets); flag any that
   disagrees with 2.0a rather than reconciling them yourself.
 - Matching is case-insensitive and by prefix: `heat cap` also finds "Heat
   Capacity". Try singular and plural, hyphenated and spaced spellings, and the

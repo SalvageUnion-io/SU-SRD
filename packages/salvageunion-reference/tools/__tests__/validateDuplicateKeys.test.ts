@@ -26,7 +26,7 @@ describe('findSelfCitations', () => {
     const pc = { source: 'Salvage Union Starter Set', booklet: 'PC', page: 24 }
     const found = findSelfCitations({
       'chassis.json': [
-        { ...pc, additionalSources: [{ source: 'Mech Monday', page: 4 }, pc] },
+        { ...pc, additionalSources: [{ source: 'The Hive', page: 4 }, pc] },
         {
           source: 'X',
           page: 1,

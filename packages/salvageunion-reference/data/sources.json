@@ -44,19 +44,6 @@
     ]
   },
   {
-    "id": "0a8868a5-aaad-43ed-a936-94224b6543eb",
-    "name": "Mech Monday",
-    "source": "Mech Monday",
-    "page": 1,
-    "purchaseLink": "https://leyline.press/pages/mech-monday-spectrum",
-    "content": [
-      {
-        "type": "paragraph",
-        "value": "Mech Monday is a weekly event where we ask the Salvage Union community to submit a Mech Pattern of their own design."
-      }
-    ]
-  },
-  {
     "id": "8650c5f4-d662-4899-9d16-89ba811b6b29",
     "name": "We Were Here First!",
     "source": "We Were Here First!",

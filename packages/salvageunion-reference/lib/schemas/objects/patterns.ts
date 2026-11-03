@@ -70,23 +70,26 @@ export const PatternSchema = z
         hidden: z
           .boolean()
           .describe(
-            'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source. Independent of `homebrew`: whether a pattern is shown is a display decision, not a statement about where it came from.'
+            'Withhold this pattern from every rendered surface while keeping the record in the dataset. A stored data tag (mirrors the legalStarting convention) — never computed from source.'
           )
           .optional(),
+        // homebrew, author and origin: no record sets them since the community
+        // patterns left the data. Kept because the Dataset API v1 only adds
+        // (ADR-056).
         homebrew: z
           .boolean()
           .describe(
-            'Homebrew Pattern: community-designed, not printed in a Leyline Press book. A stored data tag (mirrors the legalStarting convention) — never computed from source. Set on every "Mech Monday" pattern.'
+            'Homebrew Pattern: community-designed, not printed in a book. No record sets it.'
           )
           .optional(),
         author: NameSchema.describe(
-          'Who designed this Homebrew Pattern, as its origin post credits them. Only on `homebrew` patterns.'
+          'Who designed a Homebrew Pattern. Only on `homebrew` patterns; no record sets it.'
         ).optional(),
         origin: z
           .string()
           .url()
           .describe(
-            'The post this Homebrew Pattern was published in (e.g. its Mech Monday blog post). Only on `homebrew` patterns.'
+            'The post a Homebrew Pattern was published in. Only on `homebrew` patterns; no record sets it.'
           )
           .optional(),
         source: SourceSchema.describe('Source book for this pattern').optional(),

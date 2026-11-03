@@ -296,6 +296,12 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'systems.json', name: 'AMS Micro Laser' },
   { file: 'systems.json', name: 'Power Transference Cable' },
   { file: 'systems.json', name: 'Water Purification System' },
+  { file: 'systems.json', name: 'Sandblaster' },
+  { file: 'systems.json', name: 'Aerosolised Nerve Gas Sprayer' },
+  { file: 'systems.json', name: 'Snub-Nosed Blue Laser' },
+  { file: 'systems.json', name: 'Executive Body Kit' },
+  { file: 'systems.json', name: 'Teleportation Pod' },
+  { file: 'systems.json', name: 'Hydrologic Locomotion System' },
 
   // Freely-installable catalog MODULES. Same rationale as systems above:
   // modules are installed into mech slots and need not appear in any pre-built
@@ -313,6 +319,10 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'modules.json', name: 'EM Counterpulse' },
   { file: 'modules.json', name: 'Adaptive Chassis Linkage' },
   { file: 'modules.json', name: "Mozart's Ghost" },
+  { file: 'modules.json', name: 'Reactor Transference' },
+  { file: 'modules.json', name: 'Goflow Plant Growing System' },
+  { file: 'modules.json', name: 'Pop Goes The Weasel' },
+  { file: 'modules.json', name: 'Meld Regenerator' },
 ]
 
 export type OrphanCheckResult = {

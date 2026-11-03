@@ -23,14 +23,6 @@ export type BookSpec = {
    * there is `unverified-source`, not drift.
    */
   answers: { source: string; booklet?: string; partial?: boolean }[]
-  /** Load every matching file (a series of one-off PDFs), not only the latest edition. */
-  series?: boolean
-  /**
-   * For a series whose files each cover one thing: the entity a file covers,
-   * from its name. A record of that series is verifiable only when a file
-   * covers it (or what owns it); the series' other files are still searched.
-   */
-  scopeOf?: (file: string) => string | undefined
 }
 
 const STARTER = 'Salvage Union Starter Set'
@@ -56,17 +48,6 @@ export const BOOK_SPECS: BookSpec[] = [
   // The Starter Set is five booklets, each paginated from 1, so `booklet` picks
   // the text. Its Asset Pack ("AP") holds the three adventure booklets, each
   // also sold on its own, and a deck of item cards that has no local text.
-  {
-    id: 'Mech Monday',
-    file: /^mech monday/i,
-    // One file per chassis ("Mech Monday Mule Patterns", "… Goliath Template"),
-    // plus the transcribed blog posts. A chassis with no file of its own (the
-    // Scrapper patterns survive only as an image) stays unverified-source.
-    answers: [{ source: 'Mech Monday' }],
-    series: true,
-    scopeOf: (file) =>
-      file.match(/^mech monday (.+?) (?:patterns|template)\b/i)?.[1]?.toLowerCase(),
-  },
   {
     id: 'SUSS Core Rulebook',
     file: /^suss core rulebook/i,
@@ -115,7 +96,7 @@ export const BOOK_SPECS: BookSpec[] = [
 
 /**
  * The extract(s) for each book present in `dir`: the latest edition (names
- * compared with numeric collation), or for a series every file.
+ * compared with numeric collation).
  */
 export function pickFiles(dir: string): Map<BookSpec, string[]> {
   return pickLatest(readdirSync(dir).filter((f) => f.endsWith('.txt')))
@@ -128,7 +109,7 @@ export function pickLatest(files: string[]): Map<BookSpec, string[]> {
     const found = files
       .filter((f) => spec.file.test(f))
       .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))
-    if (found.length) out.set(spec, spec.series ? found.reverse() : found.slice(0, 1))
+    if (found.length) out.set(spec, found.slice(0, 1))
   }
   return out
 }

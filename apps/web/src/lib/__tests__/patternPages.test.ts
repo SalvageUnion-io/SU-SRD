@@ -52,17 +52,6 @@ describe('getPatternStaticPaths', () => {
     expect(paths).toHaveLength(expected)
   })
 
-  it('emits no page for a hidden pattern', () => {
-    const hidden = SalvageUnionReference.Chassis.all().flatMap((c) =>
-      (c.patterns ?? []).filter((p) => p.hidden).map((p) => srdPatternHref(c, p))
-    )
-    expect(hidden.length).toBeGreaterThan(0)
-    const generated = new Set(
-      paths.map((p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`)
-    )
-    expect(hidden.filter((href) => generated.has(href))).toEqual([])
-  })
-
   it("nests every page under its host's schema", () => {
     expect(new Set(paths.map((p) => p.params.schemaId))).toEqual(new Set(['chassis', 'bio-titans']))
   })

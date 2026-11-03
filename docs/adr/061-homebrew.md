@@ -30,12 +30,10 @@ already make is in scope; new authoring surfaces still are not.
    (`homebrewModeration`, keyed by the pattern's row), which re-sharing does
    not undo. Admin is a site role, unrelated to a Game's Organizer.
 
-5. **Built-in homebrew.** Community designs Leyline Press published (Mech
-   Monday) can ship in the reference data as patterns tagged `homebrew`,
-   crediting their `author` and the `origin` post. They list with the
-   players' (behind "Show Homebrew" and at `/homebrew/`, first), never in the
-   book's patterns (`getBookPatterns`), and their own SRD page wears the
-   HOMEBREW stamp beside a `MECH MONDAY | <author>` chip linking the post.
+5. **No built-in homebrew.** The reference data holds only what the books
+   print. Community designs (the Mech Monday patterns once shipped tagged
+   `homebrew`) were removed in 4.5, with the `homebrew`, `author` and
+   `origin` pattern fields.
 
 ## Consequences
 

@@ -84,8 +84,6 @@ const NOT_PRINTED: Record<string, string> = {
   'abilities .activationCurrency': 'the action prints the cost',
   // The ability's paragraph is its self-action's three, merged; the page prints those.
   'abilities .content[].value': 'merged copy of the self-action prose',
-  // A homebrew pattern's credit is a link: its URL is the href, not the text.
-  'chassis .origin': 'the credit link',
   // Known gaps, kept loud: a pattern's chosen weapon ("Mech Melee Armament:
   // Blade") is read by nothing yet, and a source's edition and store link have
   // no place on its page.

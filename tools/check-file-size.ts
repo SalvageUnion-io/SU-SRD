@@ -49,7 +49,7 @@ export const OVER_BUDGET: Readonly<Record<string, number>> = {
   'packages/gates/lib/statFidelity.ts': 780,
   'packages/gates/rules/stylingOwnership.ts': 610,
   'tools/check-doc-drift.ts': 840,
-  'tools/check-rules-fidelity.ts': 1_003,
+  'tools/check-rules-fidelity.ts': 992,
   'tools/check-workflows.ts': 628,
 }
 

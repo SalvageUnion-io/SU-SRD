@@ -110,18 +110,18 @@ describe('findHits', () => {
   })
 
   test('reads the raw layer when asked, the flow layer when there is none', () => {
-    const blog = 'Mech Monday Blog Posts.txt'
+    const errata = 'Leyline Changelog Errata.txt'
     const dir = extract(
-      { [core]: ['Heat Check\ninterleaved'], [blog]: ['a Heat Check'] },
+      { [core]: ['Heat Check\ninterleaved'], [errata]: ['a Heat Check'] },
       { [core]: ['the Heat Check'] }
     )
     const searched = [
       { label: 'Core Book', file: core },
-      { label: 'Blog', file: blog },
+      { label: 'Errata', file: errata },
     ]
     expect(findHits(dir, searched, 'heat check', 'raw')).toEqual([
       'Core Book p.1: the Heat Check',
-      'Blog p.1: a Heat Check',
+      'Errata p.1: a Heat Check',
     ])
   })
 })

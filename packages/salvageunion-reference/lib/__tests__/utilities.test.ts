@@ -23,14 +23,7 @@ import {
 } from '../entityFields'
 import { SalvageUnionReference } from '../index'
 import { SRD_SITE_URL } from '../origin'
-import {
-  getBookPatterns,
-  getHomebrewPatterns,
-  getPatterns,
-  isHiddenPattern,
-  normalizePatternName,
-  visiblePatterns,
-} from '../patterns'
+import { getPatterns, isHiddenPattern, normalizePatternName, visiblePatterns } from '../patterns'
 import { getEntitySlug } from '../slug'
 import { defined } from '../testing'
 
@@ -683,61 +676,19 @@ describe('visiblePatterns (stored data tag — never computed)', () => {
     expect(isHiddenPattern(explicitFalse.hidden)).toBe(false)
   })
 
-  it('withholds the tagged patterns from the real catalog', () => {
-    const chassis = SalvageUnionReference.Chassis.all()
-    const all = chassis.flatMap((c) => c.patterns)
-    const hidden = all.filter((p) => p.hidden)
-    // The tag is a strict subset — the catalog keeps the records, hides some.
-    expect(hidden.length).toBeGreaterThan(0)
-    expect(visiblePatterns(all)).toHaveLength(all.length - hidden.length)
-    expect(visiblePatterns(all).some((p) => p.hidden)).toBe(false)
-  })
-
   it('getPatterns never returns a hidden pattern', () => {
     for (const chassis of SalvageUnionReference.Chassis.all()) {
       expect((getPatterns(chassis) ?? []).some((p) => p.hidden)).toBe(false)
     }
   })
 
-  it('every visible pattern carries its own source and page, or a homebrew credit', () => {
+  it('every visible pattern carries its own source and page', () => {
     for (const chassis of SalvageUnionReference.Chassis.all()) {
       for (const pattern of visiblePatterns(chassis.patterns ?? [])) {
         expect(pattern.source).toBeTruthy()
-        if (pattern.homebrew) {
-          // A built-in Homebrew Pattern has no book page: it credits its designer and post.
-          expect(pattern.author).toBeTruthy()
-          expect(pattern.origin).toMatch(/^https:\/\//)
-        } else {
-          expect(typeof pattern.page).toBe('number')
-        }
+        expect(typeof pattern.page).toBe('number')
       }
     }
-  })
-})
-
-describe('homebrew patterns (stored data tag — never computed)', () => {
-  // One-way: Mech Monday is homebrew, but a homebrew pattern may come from
-  // another community source, so the tag is not just a copy of `source`.
-  it('tags every Mech Monday pattern as homebrew', () => {
-    const mechMonday = SalvageUnionReference.Chassis.all()
-      .flatMap((c) => c.patterns)
-      .filter((p) => p.source === 'Mech Monday')
-    expect(mechMonday.length).toBeGreaterThan(0)
-    expect(mechMonday.every((p) => p.homebrew === true)).toBe(true)
-  })
-
-  it('splits a chassis’s visible patterns into the book’s and the built-in homebrew', () => {
-    const gatecrasher = defined(SalvageUnionReference.Chassis.getByName('Gatecrasher'))
-    expect((getBookPatterns(gatecrasher) ?? []).map((p) => p.name)).toEqual([
-      'Moth',
-      'Grond',
-      'APC',
-    ])
-    const homebrew = getHomebrewPatterns(gatecrasher)
-    expect(homebrew).toHaveLength(8)
-    expect(homebrew.length + (getBookPatterns(gatecrasher)?.length ?? 0)).toBe(
-      getPatterns(gatecrasher)?.length ?? 0
-    )
   })
 })
 
