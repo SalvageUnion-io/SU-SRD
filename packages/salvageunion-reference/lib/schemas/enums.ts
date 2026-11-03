@@ -15,9 +15,6 @@ export const SourceSchema = z
     'The Hive',
     "Thatcher's Mech Base",
     'Relics of a Time Gone By',
-    // No record cites it since Mech Monday left the data; kept because the
-    // Dataset API v1 only adds (ADR-056).
-    'Mech Monday',
     'We Were Here First!',
     'Rainmaker',
     'False Flag',
