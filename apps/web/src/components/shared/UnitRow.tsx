@@ -17,7 +17,7 @@ import { iconSize } from '../../design/tokens'
 import type { UnitKind, UnitReading } from '../../lib/units/unitModel'
 import { unitChipOf, unitRowModel } from '../../lib/units/unitModel'
 import { sharedCopy } from '../../messages/components-shared'
-import type { EntityMode, LinkedUnit, TagItem } from '../index'
+import type { EntityFormModel, EntityMode, LinkedUnit, TagItem } from '../index'
 import { Button, Entity, relation, Stat } from '../index'
 
 type UnitRowProps = {
@@ -44,6 +44,8 @@ type UnitRowProps = {
   controls?: ReactNode
   /** Default `read`: the controls are the Compact's doors. */
   mode?: EntityMode
+  /** The art window (E10): a pilot's photo or class art, a mech's chassis. */
+  art?: EntityFormModel['art']
 }
 
 export function UnitRow({
@@ -60,6 +62,7 @@ export function UnitRow({
   onUnassign,
   controls,
   mode,
+  art,
 }: UnitRowProps) {
   const all =
     controls || href !== undefined || onUnassign ? (
@@ -108,7 +111,14 @@ export function UnitRow({
     <Entity
       size="compact"
       context="roster"
-      model={unitRowModel({ kind, name, note, userMade, readings: readings ?? [] })}
+      model={unitRowModel({
+        kind,
+        name,
+        note,
+        userMade,
+        readings: readings ?? [],
+        ...(art ? { art } : {}),
+      })}
       mode={mode}
       labels={marks.length > 0 ? [...(labels ? [labels] : []), ...marks.map(cell)] : labels}
       {...(allRelations.length > 0 ? { relations: allRelations } : {})}

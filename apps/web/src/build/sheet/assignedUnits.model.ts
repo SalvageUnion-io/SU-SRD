@@ -49,8 +49,10 @@ export type AssignedUnit = {
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string | undefined
-  /** Who holds it in the Game (YOU, a crewmate, UNASSIGNED): a chip on its head. */
+  /** Who holds it in the Game (MINE, a crewmate, UNASSIGNED): a chip on its head. */
   owner?: string | undefined
+  /** On a crawler in Read, the mech this pilot flies: a MECH chip on their Mini. */
+  flies?: string | undefined
   /** Edit: Change, the picker that replaces it (before Unassign). */
   change?: ReactNode
   /** Edit: take the link off (never the unit). */
@@ -167,6 +169,29 @@ function linkBetween(
   )
 }
 
+/**
+ * A crawler's crew as pairs: each pilot with the mech they fly in this bay
+ * (`flies`), that mech no unit of its own; pilots first, then the mechs
+ * nobody here flies.
+ */
+function crewPairs(units: readonly AssignedUnit[], composition: SheetComposition): AssignedUnit[] {
+  const crew = new Set(composition.crawlerPilots.map((pilot) => pilot.id))
+  const flownBy = new Map<string, string>()
+  for (const [mechId, pilot] of Object.entries(composition.crawlerMechPilots)) {
+    if (crew.has(pilot.id)) flownBy.set(mechId, pilot.id)
+  }
+  const flies = new Map(
+    composition.crawlerMechs
+      .filter((mech) => flownBy.has(mech.id))
+      .map((mech) => [flownBy.get(mech.id) as string, mech.name] as const)
+  )
+  const pilots = units
+    .filter((unit) => unit.kind === 'pilot')
+    .map((unit) => (flies.has(unit.key) ? { ...unit, flies: flies.get(unit.key) } : unit))
+  const rest = units.filter((unit) => unit.kind !== 'pilot' && !flownBy.has(unit.key))
+  return [...pilots, ...rest]
+}
+
 export function assignedUnitsFor(args: {
   subject: AssignedSubject
   composition: SheetComposition
@@ -225,5 +250,9 @@ export function assignedUnitsFor(args: {
       })
     }
   }
+  // In Read, a crawler's crew reads as pairs: the pilot first, and the mech
+  // they fly a MECH chip on their Mini, not a Mini of its own.
+  if (subject.kind === 'crawler' && !editable)
+    return { units: crewPairs(units, composition), slots }
   return { units, slots }
 }

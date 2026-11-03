@@ -387,6 +387,43 @@ describe('the Mediator on the Game page', () => {
   })
 })
 
+describe('who plays whom', () => {
+  test('each person in The Game wears the pilots they play; a crew row wears its Class', async () => {
+    await renderHub({
+      'games.listing': {
+        pilots: [
+          {
+            _id: 'p1',
+            appId: 'a-p1',
+            ownerId: 'u2',
+            body: { id: 'a-p1', name: 'Pickle', classRef: 'hacker' },
+          },
+        ],
+        mechs: [],
+        crawlers: [],
+        softLinks: [],
+      },
+    })
+    const game = screen.getByRole('region', { name: 'The Game' })
+    const beefcake = [...game.querySelectorAll('li')].find((li) =>
+      li.textContent?.includes('Beefcake')
+    )
+    expect(beefcake?.textContent).toContain('Pickle')
+    // The crew row wears its Class; who holds it is The Game's to say, so no seal.
+    const crew = screen.getByRole('region', { name: 'Crew' })
+    expect(drawnText(crew)).toContain('Hacker')
+    expect(crew.textContent).not.toContain('Beefcake')
+  })
+})
+
+describe('the Mediator before they have proposed anything', () => {
+  test('has no empty Proposals you sent', async () => {
+    await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ops.sent': [] })
+    expect(screen.getByText('You mediate')).toBeTruthy()
+    expect(heading('Proposals you sent')).toBeNull()
+  })
+})
+
 describe('a game the viewer is not in', () => {
   test('explains itself, and offers the way back to your Games, instead of rendering the table', async () => {
     await renderHub({ 'games.get': null })
@@ -517,7 +554,7 @@ describe('Play from the Game page', () => {
   test('a Game with no Mediator plays too', async () => {
     await renderHub({ 'games.listing': listing(PILOTS) })
     const dialog = await openPicker()
-    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
@@ -541,7 +578,7 @@ describe('Play from the Game page', () => {
     const radios = within(dialog).getAllByRole('radio')
     expect(within(dialog).queryAllByRole('combobox')).toHaveLength(0)
     // The chosen Compact wears the "Selected" seal.
-    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {

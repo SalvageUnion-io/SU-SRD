@@ -15,14 +15,14 @@ describe('AssignedUnits', () => {
       <AssignedUnits
         editable={false}
         units={[
-          { key: 'p1', kind: 'pilot', name: 'Bonesaw', href: '/p1', owner: 'You' },
+          { key: 'p1', kind: 'pilot', name: 'Bonesaw', href: '/p1', owner: 'Mine' },
           { key: 'p2', kind: 'pilot', name: 'Mara', href: '/p2' },
         ]}
       />
     )
     const [mine, other] = screen.getAllByRole('listitem')
-    expect(mine?.querySelector('.su-entity-mini__pill')?.textContent).toContain('You')
-    expect(other?.textContent).not.toContain('You')
+    expect(mine?.querySelector('.su-entity-mini__pill')?.textContent).toContain('Mine')
+    expect(other?.textContent).not.toContain('Mine')
   })
 
   test('Read: a grid of Minis, each linking to its sheet, its vitals under its name', () => {

@@ -56,7 +56,7 @@ describe('owned-but-unresolved is not unassigned', () => {
 describe('your own entities', () => {
   test('read as You', () => {
     const chip = ownerChipFor('u1', lookup('u1', [['u1', 'Alex']]))
-    expect(chip.label).toBe('You')
+    expect(chip.label).toBe('Mine')
     expect(chip.mine).toBe(true)
   })
 

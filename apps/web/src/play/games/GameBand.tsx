@@ -73,13 +73,13 @@ export function GameBand({
                   {playGamesCopy('youMediate')}
                 </Badge>
                 {live || !session ? (
-                  <Button href={mediatePath(gameId)} variant="ink" size="compact">
+                  <Button href={mediatePath(gameId)} variant="default" size="compact">
                     {playGamesCopy('mediate')}
                   </Button>
                 ) : (
                   // Start the session, then open the Mediator's screen.
                   <Button
-                    variant="ink"
+                    variant="default"
                     size="compact"
                     disabled={!session.canWrite || session.pending}
                     onClick={() => {

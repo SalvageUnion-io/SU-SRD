@@ -27,7 +27,7 @@ describe('ownersFromListing', () => {
   )
 
   test('the viewer reads You, a crewmate their name, nobody Unassigned', () => {
-    expect(ownerOf('pilot', 'p1')?.label).toBe('You')
+    expect(ownerOf('pilot', 'p1')?.label).toBe('Mine')
     expect(ownerOf('pilot', 'p2')?.label).toBe('Mara')
     expect(ownerOf('pilot', 'p3')?.label).toBe('Unassigned')
   })
