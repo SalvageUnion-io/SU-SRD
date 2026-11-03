@@ -178,4 +178,26 @@ describe('PilotSheet — equipment choice cards', () => {
     expect(text).toContain('Energy')
     expect(text).not.toContain('Long')
   })
+
+  test('an item the ability grants is on the sheet, its picks saved, with no Remove of its own', async () => {
+    const pilot = makePilot({ abilities: ['custom-sniper-rifle'], equipment: [], crawlerLevel: 4 })
+    const { store, updateMock } = makePilotStubStore(pilot)
+    const { container } = render(<PilotSheet pilot={pilot} store={store} />)
+    const line = container.querySelector('[data-sheet-carried] li')
+    expect(line?.textContent ?? '').toContain(SNIPER_NAME)
+    expect(line?.textContent ?? '').toContain('5SP')
+    expect(
+      screen.queryByRole('button', { name: new RegExp(`remove ${SNIPER_NAME}`, 'i') })
+    ).toBeNull()
+    expandCards()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /Energy/i }))
+    })
+    expect(updateMock).toHaveBeenCalledWith(
+      'pilot',
+      pilot.id,
+      { equipmentChoices: { [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Energy'] } } },
+      LIVE_SHEET_MANUAL
+    )
+  })
 })

@@ -8,9 +8,11 @@
 import { describe, expect, test } from 'bun:test'
 import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import {
+  carriedEquipment,
   equipmentMaxUses,
   equipmentSlotCost,
   genericEntrySlots,
+  grantedEquipment,
   pilotInventoryCapacity,
   pilotInventoryUsed,
   resolveEquipment,
@@ -105,5 +107,25 @@ describe('pilotInventoryUsed / pilotInventoryCapacity', () => {
 
   test('empty inventory uses 0 slots', () => {
     expect(pilotInventoryUsed(inventory([]))).toBe(0)
+  })
+})
+
+describe('grantedEquipment / carriedEquipment', () => {
+  test('an ability that grants an item puts it in the pilot hands', () => {
+    const pilot = { abilities: ['spotter', 'custom-sniper-rifle'], equipment: ['first-aid-kit'] }
+    expect(grantedEquipment(pilot)).toEqual(['custom-sniper-rifle'])
+    expect(carriedEquipment(pilot)).toEqual(['first-aid-kit', 'custom-sniper-rifle'])
+  })
+
+  test('an item already carried is not granted twice', () => {
+    const pilot = { abilities: ['custom-sniper-rifle'], equipment: ['custom-sniper-rifle'] }
+    expect(grantedEquipment(pilot)).toEqual([])
+    expect(carriedEquipment(pilot)).toEqual(['custom-sniper-rifle'])
+  })
+
+  test("a partner's equipment is its partner, never carried gear", () => {
+    expect(
+      grantedEquipment({ abilities: ['survey-drone', 'mecha-packmaster'], equipment: [] })
+    ).toEqual([])
   })
 })

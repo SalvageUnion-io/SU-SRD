@@ -301,6 +301,21 @@ describe('buildPilotActions', () => {
     expect(lines[0]?.choices?.from).toBe(sniper.choices)
   })
 
+  test('an item the ability grants is dealt as carried, with its picks, though the record lacks it', () => {
+    const picks = { '8688eb63-550c-4d06-9b50-e1649c442da6': ['Silencer'] }
+    const pilot = pilotFixture({
+      id: 'p6',
+      name: 'Caligula',
+      abilities: ['custom-sniper-rifle'],
+      equipment: [],
+      equipmentChoices: { 'custom-sniper-rifle': picks },
+    })
+    const lines = buildPilotActions(pilot).filter((pa) => pa.name === 'Custom Sniper Rifle')
+    expect(lines).toHaveLength(1)
+    expect(lines[0]?.kind).toBe('equipment')
+    expect(lines[0]?.choices?.selections).toEqual(picks)
+  })
+
   test('a stored Area Salvage is dealt once, not twice', () => {
     const pilot = pilotFixture({ id: 'p4', name: 'Rook', abilities: ['area-salvage'] })
     expect(buildPilotActions(pilot).filter((pa) => pa.name === 'Area Salvage')).toHaveLength(1)
