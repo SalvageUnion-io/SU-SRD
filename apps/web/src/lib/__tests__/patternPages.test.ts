@@ -54,7 +54,7 @@ describe('getPatternStaticPaths', () => {
 
   it('emits no page for a hidden pattern', () => {
     // No record is hidden today, so the test hides one for the call.
-    const patterns = mule().patterns as unknown as Array<Record<string, unknown>>
+    const patterns = mule().patterns ?? []
     const first = patterns[0]
     if (!first) throw new Error('Mule has no pattern')
     patterns.push({ ...first, name: 'Ghost', hidden: true })
