@@ -265,7 +265,15 @@ export function PilotEquipmentItem({
       size="mini"
       context="inventory"
       entity={equipment}
-      instance={{ condition }}
+      // The player's picks and the crawler's Tech Level change its Range,
+      // Damage and traits (a Custom Sniper Rifle), as its Details card does.
+      instance={{
+        condition,
+        selections,
+        ...(typeof scalingParent?.techLevel === 'number'
+          ? { techLevel: scalingParent.techLevel }
+          : {}),
+      }}
       mode={{ kind: 'link' }}
       body={{}}
     />

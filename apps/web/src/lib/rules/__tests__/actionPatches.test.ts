@@ -280,6 +280,27 @@ describe('buildPilotActions', () => {
     expect(deck[0] && isAreaSalvage(deck[0].action)).toBe(true)
   })
 
+  test('a granted item is dealt once, as the item, carrying its picks', () => {
+    // Custom Sniper Rifle: the ability grants the item and both state the same
+    // action; the line is the item's, so its Modifications reach Play.
+    const sniper = SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle')
+    if (!sniper) throw new Error('reference equipment missing')
+    const slug = getEntitySlug(sniper)
+    const picks = { '8688eb63-550c-4d06-9b50-e1649c442da6': ['Rangefinder'] }
+    const pilot = pilotFixture({
+      id: 'p5',
+      name: 'Cali',
+      abilities: ['custom-sniper-rifle'],
+      equipment: [slug],
+      equipmentChoices: { [slug]: picks },
+    })
+    const lines = buildPilotActions(pilot).filter((pa) => pa.name === 'Custom Sniper Rifle')
+    expect(lines).toHaveLength(1)
+    expect(lines[0]?.kind).toBe('equipment')
+    expect(lines[0]?.choices?.selections).toEqual(picks)
+    expect(lines[0]?.choices?.from).toBe(sniper.choices)
+  })
+
   test('a stored Area Salvage is dealt once, not twice', () => {
     const pilot = pilotFixture({ id: 'p4', name: 'Rook', abilities: ['area-salvage'] })
     expect(buildPilotActions(pilot).filter((pa) => pa.name === 'Area Salvage')).toHaveLength(1)

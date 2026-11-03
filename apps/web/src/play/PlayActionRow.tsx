@@ -33,6 +33,8 @@ type PlayActionRowProps = {
   canWrite: boolean
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
   locked: string | null
+  /** The pilot's crawler Tech Level: an item's action scales with it (Custom Sniper Rifle damage). */
+  techLevel?: number
 }
 
 /** Why a line is not on hand ("needs Boarded"), as its state chip (C8). */
@@ -49,8 +51,31 @@ function lockChip(locked: string | null, condition: string | undefined) {
   return locked === null || condition === 'destroyed' ? {} : { state: <NeedChip need={locked} /> }
 }
 
-export function PlayActionRow({ entry, resolve, onUse, canWrite, locked }: PlayActionRowProps) {
-  const model = useMemo(() => toEntityModel(entry.action.action), [entry.action.action])
+export function PlayActionRow({
+  entry,
+  resolve,
+  onUse,
+  canWrite,
+  locked,
+  techLevel,
+}: PlayActionRowProps) {
+  // A carried item's picks and the crawler's Tech Level change its Range,
+  // Damage and traits, as on the sheet.
+  const { action } = entry.action
+  const from = entry.action.choices?.from
+  const selections = entry.action.choices?.selections
+  const model = useMemo(
+    () =>
+      toEntityModel(
+        action,
+        {
+          ...(selections ? { selections } : {}),
+          ...(techLevel !== undefined ? { techLevel } : {}),
+        },
+        from ? { choices: from } : undefined
+      ),
+    [action, from, selections, techLevel]
+  )
   const open = resolve !== null
   const away = entry.need !== null
   const controls = away ? undefined : open ? (
