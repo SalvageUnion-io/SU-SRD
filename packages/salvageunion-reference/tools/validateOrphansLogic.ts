@@ -297,7 +297,7 @@ const INTENTIONAL_ORPHANS: AllowlistEntry[] = [
   { file: 'systems.json', name: 'Power Transference Cable' },
   { file: 'systems.json', name: 'Water Purification System' },
   // Book systems only Mech Monday patterns installed, until those left the
-  // data (4.5.56): no printed pattern carries them.
+  // data: no printed pattern carries them.
   { file: 'systems.json', name: 'Sandblaster' },
   { file: 'systems.json', name: 'Aerosolised Nerve Gas Sprayer' },
   { file: 'systems.json', name: 'Snub-Nosed Blue Laser' },
