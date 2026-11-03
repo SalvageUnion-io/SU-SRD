@@ -32,8 +32,9 @@ already make is in scope; new authoring surfaces still are not.
 
 5. **No built-in homebrew.** The reference data holds only what the books
    print. Community designs (the Mech Monday patterns once shipped tagged
-   `homebrew`) were removed in 4.5, with the `homebrew`, `author` and
-   `origin` pattern fields.
+   `homebrew`) were removed in 4.5.57. The `homebrew`, `author` and `origin`
+   pattern fields stay in the schema, set by no record, because the Dataset
+   API v1 only adds (ADR-056).
 
 ## Consequences
 
