@@ -18,12 +18,47 @@
 
 import type { GenericInventoryEntry, Pilot } from 'game-domain/schemas/pilot'
 import type { RefEquipment } from 'salvageunion-reference'
-import { getInventorySlots, getTraits, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  getInventorySlots,
+  getTraits,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import { pilotMaxInventorySlots } from 'salvageunion-reference/rules'
+import { isPartnerEquipment } from './partnerGrants'
 
 /** Resolve a stored equipment slug (e.g. `remote-mine`) against the reference data. */
 export function resolveEquipment(slug: string): RefEquipment | null {
   return SalvageUnionReference.Equipment.getBySlug(slug) ?? null
+}
+
+/**
+ * The equipment the pilot's abilities grant and the record does not carry (a
+ * Custom Sniper Rifle, a Camo Suit): "You acquire …" puts it in their hands, so
+ * the sheet and Play show it as carried, its picks saved as any item's. A
+ * partner's equipment is not one: its partner is the entry (`pilotPartnerSeeds`).
+ */
+export function grantedEquipment(pilot: Pick<Pilot, 'abilities' | 'equipment'>): string[] {
+  const carried = new Set(pilot.equipment ?? [])
+  const out: string[] = []
+  for (const ref of pilot.abilities ?? []) {
+    const ability = SalvageUnionReference.Abilities.getBySlug(ref)
+    if (!ability) continue
+    for (const grant of ability.grants ?? []) {
+      if (grant.schema !== 'equipment') continue
+      const granted = SalvageUnionReference.Equipment.getByName(grant.name)
+      if (!granted) continue
+      const slug = getEntitySlug(granted)
+      if (carried.has(slug) || out.includes(slug) || isPartnerEquipment(slug)) continue
+      out.push(slug)
+    }
+  }
+  return out
+}
+
+/** What the pilot carries: the record's equipment, then what their abilities grant. */
+export function carriedEquipment(pilot: Pick<Pilot, 'abilities' | 'equipment'>): string[] {
+  return [...(pilot.equipment ?? []), ...grantedEquipment(pilot)]
 }
 
 /**

@@ -194,7 +194,8 @@ export function PilotSheet({
 
   const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
   const pilotClass = resolveClass(pilot.classRef)
-  const empty = pilot.equipment.length === 0 && model.genericInventory.length === 0
+  const empty =
+    pilot.equipment.length === 0 && model.granted.size === 0 && model.genericInventory.length === 0
 
   return (
     <section
@@ -381,7 +382,11 @@ export function PilotSheet({
                             onUsesChange={(itemSlug, next) => {
                               actions.handleUsesChange(itemSlug, next)
                             }}
-                            onRemove={readOnly ? undefined : () => actions.toggleEquipment(slug)}
+                            onRemove={
+                              readOnly || model.granted.has(slug)
+                                ? undefined
+                                : () => actions.toggleEquipment(slug)
+                            }
                             readOnly={readOnly}
                             scalingParent={model.scalingParent}
                             store={store}
