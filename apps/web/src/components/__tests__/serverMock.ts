@@ -27,7 +27,15 @@ export type QueryAnswers = Record<string, unknown>
 
 type QueryCall = { name: string; args: unknown }
 
-let answers: QueryAnswers = {}
+/**
+ * Reads a shared hook makes under every screen, not one the component asks:
+ * `useTableRead('games.members')` reads the members' names (`games.names`).
+ * Unanswered, they are not yet served, so the roster keeps the Game's names.
+ * A test answers one itself to read them.
+ */
+const UNDER_EVERY_SCREEN: QueryAnswers = { 'games.names': undefined }
+
+let answers: QueryAnswers = { ...UNDER_EVERY_SCREEN }
 let calls: QueryCall[] = []
 
 /**
@@ -36,7 +44,7 @@ let calls: QueryCall[] = []
  * sharing the process.
  */
 export function setQueryAnswers(next: QueryAnswers): void {
-  answers = next
+  answers = { ...UNDER_EVERY_SCREEN, ...next }
   calls = []
 }
 
