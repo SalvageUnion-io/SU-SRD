@@ -158,7 +158,7 @@ export const pagesCopy = messages({
   signIn: 'Sign in',
   goodToKnow: 'Good to know',
   theBotServesTheSame:
-    'The bot serves the same dataset as this site, including expansion content and the community Mech Monday patterns. It updates automatically when the reference does.',
+    'The bot serves the same dataset as this site, including expansion content. It updates automatically when the reference does.',
   itNeverReadsMessagesIts:
     'It never reads messages — its only Discord capability is answering slash commands.',
   runningACampaign: 'Running a campaign?',
@@ -177,8 +177,7 @@ export const pagesCopy = messages({
   homebrewDescription:
     'Mech patterns the Salvage Union community designed and shared: homebrew, not from the book.',
   homebrewLede:
-    'Mech patterns the community designed for Mech Monday, and patterns players built in the Training Bay and shared with everyone on the Reference. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. To add one of yours, make it Public, then share it with everyone on the Reference, from its Share settings.',
-  homebrewCredit: 'Homebrew // Made by {author}',
+    'Mech patterns players built in the Training Bay and shared with everyone on the Reference. They are homebrew, not the book’s: check with your Mediator before you bring one to the table. To add one of yours, make it Public, then share it with everyone on the Reference, from its Share settings.',
   roadmapFeedback: 'Suggest or report',
   roadmapCustomBays: 'Custom crawler bays',
   roadmapPrintableSheets: 'Printable sheets',

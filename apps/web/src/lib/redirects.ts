@@ -45,6 +45,21 @@ export const FIXED_MOVES: readonly Move[] = [
     '/systems/integrated-amphibious-locomotion-system/',
     '/systems/amphibious-locomotion-system/'
   ),
+  // Mech Monday, no longer a source: its page goes to the sources, and the
+  // Gatecrasher's Mech Monday patterns to their chassis.
+  ...bothSpellings('/sources/mech-monday/', '/sources/'),
+  ...[
+    'cornerstone',
+    'crash-cart',
+    'kam',
+    'one-punch',
+    'pioneer',
+    'the-quaestor',
+    'retiarius-terebro',
+    'tsunami',
+  ].flatMap((slug) =>
+    bothSpellings(`/chassis/gatecrasher/pattern/${slug}/`, '/chassis/gatecrasher/')
+  ),
 ]
 
 /** A page's move with and without its trailing slash: a hand-typed link may have either. */

@@ -296,7 +296,6 @@ export { EntityRollMini } from './referenceEntity/card/EntityRollMini'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'
 export { resolveEntityPageMeta } from './referenceEntity/card/entityPage'
-export type { HomebrewCredit } from './referenceEntity/card/HomebrewCreditChip'
 // HomebrewStamp — the dashed HOMEBREW stamp (ruleset §3.9) every player-made
 // thing wears: a card's labels, a Compact's marks, a saved pattern's page.
 export { HomebrewStamp } from './referenceEntity/card/HomebrewStamp'

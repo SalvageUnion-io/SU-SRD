@@ -53,14 +53,20 @@ describe('getPatternStaticPaths', () => {
   })
 
   it('emits no page for a hidden pattern', () => {
-    const hidden = SalvageUnionReference.Chassis.all().flatMap((c) =>
-      (c.patterns ?? []).filter((p) => p.hidden).map((p) => srdPatternHref(c, p))
-    )
-    expect(hidden.length).toBeGreaterThan(0)
-    const generated = new Set(
-      paths.map((p) => `/${p.params.schemaId}/${p.params.itemId}/pattern/${p.params.patternId}/`)
-    )
-    expect(hidden.filter((href) => generated.has(href))).toEqual([])
+    // No record is hidden today, so the test hides one for the call.
+    const patterns = mule().patterns ?? []
+    const first = patterns[0]
+    if (!first) throw new Error('Mule has no pattern')
+    patterns.push({ ...first, name: 'Ghost', hidden: true })
+    try {
+      const generated = getPatternStaticPaths().map(
+        (p) => `${p.params.itemId}/${p.params.patternId}`
+      )
+      expect(generated).toContain(`mule/${srdPatternHref(mule(), first).split('/').at(-2)}`)
+      expect(generated).not.toContain('mule/ghost')
+    } finally {
+      patterns.pop()
+    }
   })
 
   it("nests every page under its host's schema", () => {

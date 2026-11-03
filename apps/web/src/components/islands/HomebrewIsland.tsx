@@ -11,10 +11,8 @@
  *
  * Each is listed as the book's patterns are (`PatternListing`): its
  * description and loadout under a head with the HOMEBREW stamp and its
- * maker beside it (`MECH MONDAY | Murkdice`, `BY | Rosa`). The
- * reference's built-in ones (Mech Monday designs) come first and open their
- * SRD page, which links the post they came from; the players' follow, opening
- * their own page in the app (where they can be copied, reported or hidden).
+ * maker beside it (`BY | Rosa`), opening its own page in the app (where it
+ * can be copied, reported or hidden).
  * The players' rows come from the Worker (`lib/homebrew/homebrew.ts`); nothing
  * is fetched until the switch is on.
  */
@@ -23,7 +21,6 @@ import { useEffect, useState } from 'react'
 import type { HomebrewRow } from '../../lib/homebrew/endpoint'
 import type { HomebrewEntry } from '../../lib/homebrew/homebrew'
 import {
-  builtInHomebrewEntries,
   fetchHomebrewPatterns,
   homebrewItems,
   playerHomebrewEntry,
@@ -39,7 +36,6 @@ import { SlabSection } from '../containers/SlabSection'
 import { GameDataGate } from '../GameDataGate'
 import { Stat, Text } from '../index'
 import { ReferenceSurface } from '../ReferenceSurface'
-import { HomebrewCreditChip } from '../referenceEntity/card/HomebrewCreditChip'
 import { PatternListing, ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
 import { PATTERNS_ON_A_PHONE } from '../referenceEntity/card/patternsOnAPhone'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
@@ -88,30 +84,17 @@ function HomebrewListing({ entry }: { entry: HomebrewEntry }) {
       host={HOST}
       homebrew
       href={entry.href}
-      credit={
-        entry.source ? (
-          <HomebrewCreditChip
-            key="credit"
-            credit={{ source: entry.source, author: entry.madeBy }}
-            size="mini"
-          />
-        ) : (
-          <Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="mini" />
-        )
-      }
+      credit={<Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="mini" />}
     />
   )
 }
 
 function HomebrewList({
   load,
-  chassisRef,
   empty,
   shown = Number.POSITIVE_INFINITY,
 }: {
   load: Load
-  /** One chassis's, or every chassis's when absent. */
-  chassisRef?: string
   empty: string
   /** How many a phone shows before "Show all"; the rest wait for it. */
   shown?: number
@@ -124,7 +107,6 @@ function HomebrewList({
         <ReferenceSurface>
           <HomebrewGrid
             rows={load.state === 'ready' ? load.rows : []}
-            chassisRef={chassisRef}
             empty={load.state === 'ready' ? empty : null}
             shown={shown}
           />
@@ -141,26 +123,18 @@ function HomebrewList({
   )
 }
 
-/**
- * The rows that draw, once the reference data they resolve against is loaded:
- * the built-in ones, then the players'.
- */
+/** The rows that draw, once the reference data they resolve against is loaded. */
 function HomebrewGrid({
   rows,
-  chassisRef,
   empty,
   shown,
 }: {
   rows: HomebrewRow[]
-  chassisRef: string | undefined
   /** Said when there are none; null while the players' are still coming. */
   empty: string | null
   shown: number
 }) {
-  const entries = [
-    ...builtInHomebrewEntries(chassisRef),
-    ...homebrewItems(rows).map(playerHomebrewEntry),
-  ]
+  const entries = homebrewItems(rows).map(playerHomebrewEntry)
   if (entries.length === 0) return empty === null ? null : <Text variant="hint">{empty}</Text>
   return (
     <ul className="su-pattern-rows__list">
@@ -177,18 +151,16 @@ function HomebrewGrid({
 function ChassisHomebrew({
   chassisRef,
   bookPatterns,
-  builtInPatterns,
 }: {
   chassisRef: string
   bookPatterns: number
-  builtInPatterns: number
 }) {
   const [on, setOn] = useState(false)
   // After mount: the server's render has no storage to read.
   useEffect(() => setOn(readShowHomebrew()), [])
   const load = useHomebrew(on, chassisRef)
   // Counted as served: resolving them waits on the reference data (the gate below).
-  const homebrew = on ? builtInPatterns + (load.state === 'ready' ? load.rows.length : 0) : 0
+  const homebrew = on && load.state === 'ready' ? load.rows.length : 0
   return (
     <>
       <SlabSection
@@ -211,7 +183,6 @@ function ChassisHomebrew({
         {on ? (
           <HomebrewList
             load={load}
-            chassisRef={chassisRef}
             empty={islandsCopy('homebrewNoneOnChassis')}
             shown={Math.max(0, PATTERNS_ON_A_PHONE - bookPatterns)}
           />
@@ -230,13 +201,10 @@ function ChassisHomebrew({
 export function HomebrewIsland({
   chassisRef,
   bookPatterns = 0,
-  builtInPatterns = 0,
 }: {
   chassisRef?: string
   /** How many patterns the book prints for the chassis, listed above. */
   bookPatterns?: number
-  /** How many built-in Homebrew Patterns the reference holds for the chassis. */
-  builtInPatterns?: number
 }) {
   const all = useHomebrew(chassisRef === undefined, undefined)
   return (
@@ -244,11 +212,7 @@ export function HomebrewIsland({
       {chassisRef === undefined ? (
         <HomebrewList load={all} empty={islandsCopy('homebrewNone')} />
       ) : (
-        <ChassisHomebrew
-          chassisRef={chassisRef}
-          bookPatterns={bookPatterns}
-          builtInPatterns={builtInPatterns}
-        />
+        <ChassisHomebrew chassisRef={chassisRef} bookPatterns={bookPatterns} />
       )}
     </IslandErrorBoundary>
   )

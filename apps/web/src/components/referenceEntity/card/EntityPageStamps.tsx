@@ -2,8 +2,6 @@ import type { EntityRef } from 'salvageunion-reference'
 import { Chips, relation, Tag } from '../../entity'
 import { relationChips } from './abilityTreeRelations'
 import type { EntityPageMeta } from './entityPage'
-import type { HomebrewCredit } from './HomebrewCreditChip'
-import { HomebrewCreditChip } from './HomebrewCreditChip'
 import { labelChips } from './labelChips'
 
 /**
@@ -42,12 +40,6 @@ type EntityPageStampsProps = {
    * mark where a book pattern may wear Legal Starting Pattern (ruleset §3.9).
    */
   homebrew?: boolean
-  /**
-   * A built-in Homebrew Pattern's credit, beside its HOMEBREW stamp: where it
-   * was published and who designed it (`MECH MONDAY | Murkdice`), linking the
-   * post it came from.
-   */
-  credit?: HomebrewCredit
 }
 
 export function EntityPageStamps({
@@ -55,7 +47,6 @@ export function EntityPageStamps({
   legalStartingPattern = false,
   parent,
   homebrew = false,
-  credit,
 }: EntityPageStampsProps) {
   const cost = meta.cost
     ? meta.cost.currency
@@ -93,13 +84,10 @@ export function EntityPageStamps({
       }}
       marks={
         legalStartingPattern || homebrew
-          ? [
-              ...labelChips(
-                { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
-                'compact'
-              ),
-              credit && <HomebrewCreditChip key="credit" credit={credit} size="compact" linkable />,
-            ]
+          ? labelChips(
+              { seal: undefined, axisMarkers: [], legalStartingPattern, userMade: homebrew },
+              'compact'
+            )
           : undefined
       }
     />

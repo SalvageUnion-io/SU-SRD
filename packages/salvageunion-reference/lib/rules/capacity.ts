@@ -25,9 +25,6 @@ export type AsPrintedOverflow = {
   cite: string
 }
 
-const MM_GOLIATH = 'Mech Monday Goliath Patterns'
-const MM_GATECRASHER = 'Mech Monday Gatecrasher Patterns'
-const MM_BOBCAT = 'Mech Monday Bobcat Patterns'
 const SS_PARTS = 'Salvage Union Starter Set, Parts Catalogue'
 const WM = 'Salvage Union Workshop Manual'
 
@@ -38,45 +35,23 @@ const WM = 'Salvage Union Workshop Manual'
  * printed slot cost, and `patternFit.test.ts` fails on any overflow not listed
  * here, and on any entry listed here that fits.
  *
- * The Goliath and Bobcat entries share one cause. The Starter Set prints the
- * Goliath with 18 System Slots (Parts Catalogue p.24) and the Bobcat with 13
- * (p.10), but the Mech Monday sheets the patterns were drafted on print 20
- * (Mech Monday Goliath Template p.1) and 14 (Mech Monday Bobcat Patterns p.2),
- * and every pattern for both is sized to those. The slot costs are not the
- * cause: the Parts Catalogue prints the same costs as the Workshop Manual
- * (30mm Autocannon 5 and Riveting Gun 3 on p.53, Blue Mining Laser 7 on p.54,
- * Cargo Pod 1 on p.48). The data follows the Starter Set.
- *
- * The Gatecrasher's are the same story in Module Slots: the Starter Set prints
- * 3 (Parts Catalogue p.42), and the Mech Monday patterns carry 4 (K.A.M., 5).
+ * The Goliath and Bobcat entries are the Starter Set's own patterns: it prints
+ * the Goliath with 18 System Slots (Parts Catalogue p.24) and the Bobcat with
+ * 13 (p.10), and these loadouts sum to more. The slot costs are not the cause:
+ * the Parts Catalogue prints the same costs as the Workshop Manual (30mm
+ * Autocannon 5 and Riveting Gun 3 on p.53, Blue Mining Laser 7 on p.54, Cargo
+ * Pod 1 on p.48). The data follows the Starter Set.
  *
  * The Cerberus is modelled with its three heads (Rainmaker p.72–73), and TAC-OS
  * places each item on the head the book does (p.75). Kyrios and Phren fit;
  * Morphos carries 13 of its 12 System Slots and the chassis 6 of its 5.
  */
 export const AS_PRINTED_OVERFLOW: readonly AsPrintedOverflow[] = [
-  { chassis: 'Mule', pattern: 'Appleseed', cite: 'Mech Monday Mule Patterns p.1' },
-  { chassis: 'Mule', pattern: 'Party Bus', cite: 'Mech Monday Mule Patterns p.6' },
   { chassis: 'Mazona', pattern: 'Bomblebee', cite: 'The Hive p.1' },
   { chassis: 'Scrapper', pattern: 'Sakura', cite: `${WM} p.105` },
-  { chassis: 'Spectrum', pattern: 'Hedgehog Dilemma', cite: 'Mech Monday Spectrum Patterns p.3' },
   { chassis: 'Goliath', pattern: 'Scrapjack', cite: `${SS_PARTS} p.25` },
   { chassis: 'Goliath', pattern: 'Endeavour', cite: `${SS_PARTS} p.25` },
   { chassis: 'Goliath', pattern: 'Bio-Hunter', cite: `${SS_PARTS} p.25` },
-  { chassis: 'Goliath', pattern: 'Ant', cite: `${MM_GOLIATH} p.1` },
-  { chassis: 'Goliath', pattern: 'Atomiser', cite: `${MM_GOLIATH} p.2` },
-  { chassis: 'Goliath', pattern: 'Autogenous', cite: `${MM_GOLIATH} p.3` },
-  { chassis: 'Goliath', pattern: 'Doss', cite: `${MM_GOLIATH} p.4` },
-  { chassis: 'Goliath', pattern: 'Firefly', cite: `${MM_GOLIATH} p.5` },
-  { chassis: 'Goliath', pattern: 'Gridiron Webslinger', cite: `${MM_GOLIATH} p.6` },
-  { chassis: 'Goliath', pattern: 'Hellion', cite: `${MM_GOLIATH} p.7` },
-  { chassis: 'Goliath', pattern: 'King Crab', cite: `${MM_GOLIATH} p.8` },
-  { chassis: 'Goliath', pattern: 'Limpet Mine', cite: `${MM_GOLIATH} p.9` },
-  { chassis: 'Goliath', pattern: 'Orthrus', cite: `${MM_GOLIATH} p.10` },
-  { chassis: 'Goliath', pattern: 'Picket', cite: `${MM_GOLIATH} p.11` },
-  { chassis: 'Goliath', pattern: 'Riptide', cite: `${MM_GOLIATH} p.12` },
-  { chassis: 'Goliath', pattern: 'Tanks-A-Lot', cite: `${MM_GOLIATH} p.13` },
-  { chassis: 'Goliath', pattern: 'Tollmaster', cite: `${MM_GOLIATH} p.14` },
   { chassis: 'Kraken', pattern: 'Blackbeard', cite: `${WM} p.119` },
   { chassis: 'Kraken', pattern: 'Saboteur', cite: `${WM} p.119` },
   { chassis: 'Kraken', pattern: 'Aegean', cite: `${WM} p.119` },
@@ -94,20 +69,6 @@ export const AS_PRINTED_OVERFLOW: readonly AsPrintedOverflow[] = [
   { chassis: 'Stolas', pattern: 'B', cite: 'Rainmaker p.63' },
   { chassis: 'Cerberus', pattern: 'TAC-OS', cite: 'Rainmaker p.75' },
   { chassis: 'Bobcat', pattern: 'Manic Miner', cite: `${SS_PARTS} p.11` },
-  { chassis: 'Bobcat', pattern: 'Bill E', cite: `${MM_BOBCAT} p.1` },
-  { chassis: 'Bobcat', pattern: 'Court Cat', cite: `${MM_BOBCAT} p.2` },
-  { chassis: 'Bobcat', pattern: 'Guano', cite: `${MM_BOBCAT} p.3` },
-  { chassis: 'Bobcat', pattern: 'Mag-Train', cite: `${MM_BOBCAT} p.4` },
-  { chassis: 'Bobcat', pattern: 'Magic Bus', cite: `${MM_BOBCAT} p.5` },
-  { chassis: 'Bobcat', pattern: 'Nyaa~', cite: `${MM_BOBCAT} p.6` },
-  { chassis: 'Bobcat', pattern: 'Osiris', cite: `${MM_BOBCAT} p.7` },
-  { chassis: 'Gatecrasher', pattern: 'Cornerstone', cite: `${MM_GATECRASHER} p.1` },
-  { chassis: 'Gatecrasher', pattern: 'Crash Cart', cite: `${MM_GATECRASHER} p.2` },
-  { chassis: 'Gatecrasher', pattern: 'K.A.M.', cite: `${MM_GATECRASHER} p.3` },
-  { chassis: 'Gatecrasher', pattern: 'One-Punch', cite: `${MM_GATECRASHER} p.4` },
-  { chassis: 'Gatecrasher', pattern: 'Pioneer', cite: `${MM_GATECRASHER} p.5` },
-  { chassis: 'Gatecrasher', pattern: 'Tsunami', cite: `${MM_GATECRASHER} p.7` },
-  { chassis: 'Gatecrasher', pattern: 'The Quaestor', cite: `${MM_GATECRASHER} p.8` },
 ]
 
 /**

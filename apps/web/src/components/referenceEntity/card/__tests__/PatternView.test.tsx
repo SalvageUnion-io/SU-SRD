@@ -52,15 +52,17 @@ describe('chassis pattern rows', () => {
   })
 
   test('a hidden pattern gets no row', () => {
-    const chassis = mule()
-    const hidden = (chassis.patterns ?? []).filter((p) => p.hidden)
-    expect(hidden.length).toBeGreaterThan(0)
+    const real = mule()
+    const [first] = real.patterns ?? []
+    if (!first) throw new Error('Mule has no pattern')
+    const chassis = {
+      ...real,
+      patterns: [...(real.patterns ?? []), { ...first, name: 'Ghost', hidden: true }],
+    }
 
     render(withRoutes(testPatternHref, <ReferenceEntityCard data={chassis} />))
 
-    for (const pattern of hidden) {
-      expect(screen.queryByRole('link', { name: `${pattern.name} — Mule pattern` })).toBeNull()
-    }
+    expect(screen.queryByRole('link', { name: 'Ghost — Mule pattern' })).toBeNull()
   })
 
   test('without a href builder the row is not a link', () => {

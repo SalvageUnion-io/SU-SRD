@@ -112,7 +112,7 @@ export function findHits(
   const pattern = termPattern(term)
   const lines: string[] = []
   for (const { label, file } of searched) {
-    // a text with no PDF behind it (a transcribed blog post) has no raw layer
+    // a text with no PDF behind it (the errata) has no raw layer
     const layered = join(dir, LAYER_DIR[layer], file)
     const path = existsSync(layered) ? layered : join(dir, file)
     for (const [page, text] of readPages(path))

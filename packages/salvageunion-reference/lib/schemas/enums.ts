@@ -15,7 +15,6 @@ export const SourceSchema = z
     'The Hive',
     "Thatcher's Mech Base",
     'Relics of a Time Gone By',
-    'Mech Monday',
     'We Were Here First!',
     'Rainmaker',
     'False Flag',

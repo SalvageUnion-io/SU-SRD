@@ -10,26 +10,13 @@ afterAll(() => {
 })
 
 describe('pickLatest', () => {
-  test('takes the latest edition of a book, every file of a series', () => {
+  test('takes the latest edition of a book', () => {
     const picked = pickLatest([
       'Salvage Union Digital Edition 2.0.txt',
       'Salvage Union Digital Edition 2.0a.txt',
-      'Mech Monday Mule Patterns.txt',
-      'Mech Monday Blog Posts.txt',
     ])
     const byId = (id: string) => picked.get(BOOK_SPECS.find((s) => s.id === id) as never)
     expect(byId('Core Book')).toEqual(['Salvage Union Digital Edition 2.0a.txt'])
-    expect(byId('Mech Monday')).toHaveLength(2)
-  })
-})
-
-describe('Mech Monday scope', () => {
-  const spec = BOOK_SPECS.find((s) => s.id === 'Mech Monday')
-
-  test('a chassis file scopes to its chassis; the blog posts scope to none', () => {
-    expect(spec?.scopeOf?.('Mech Monday Mule Patterns.txt')).toBe('mule')
-    expect(spec?.scopeOf?.('Mech Monday Goliath Template.txt')).toBe('goliath')
-    expect(spec?.scopeOf?.('Mech Monday Blog Posts.txt')).toBeUndefined()
   })
 })
 

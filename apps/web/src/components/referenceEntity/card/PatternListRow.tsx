@@ -195,7 +195,7 @@ export function PatternListing({
   host: PatternRowsHost
   /** A player made it: the HOMEBREW stamp among its chips. */
   homebrew?: boolean
-  /** Who made it, a chip beside the HOMEBREW stamp (`MECH MONDAY | Murkdice`, `BY | Rosa`). */
+  /** Who made it, a chip beside the HOMEBREW stamp (`BY | Rosa`). */
   credit?: ReactNode
   /** Where the head opens, over the surface's own pattern page (a player's pattern's page in the app). */
   href?: string

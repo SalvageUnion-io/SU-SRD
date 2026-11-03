@@ -130,8 +130,6 @@ function view(s: string, v: View, bookSide: boolean): string {
 
 type Book = {
   spec: BookSpec
-  /** The entity this file covers, for a scoped series (`BookSpec.scopeOf`). */
-  scope?: string
   layer: Layer
   pages: Map<number, string>
   views: Map<View, { text: string; starts: number[]; nums: number[] }>
@@ -203,10 +201,8 @@ function loadBook(spec: BookSpec, layer: Layer, path: string): Book {
   rawTokens.forEach((r, i) => {
     if (isGlyph(r)) noise[i] = 1
   })
-  const scope = spec.scopeOf?.(basename(path))
   return {
     spec,
-    ...(scope ? { scope } : {}),
     layer,
     file: basename(path),
     pages,
@@ -279,21 +275,15 @@ class Library {
     return this.all.filter((b) => b.spec.answers.some((x) => x.source === a.source))
   }
 
-  /**
-   * Does local text cover everything this anchor can cite, for a record about
-   * `scopes` (its entity's name and its owners')?
-   */
-  isLocal(a: Anchor, scopes: string[]): boolean {
-    const wanted = new Set(scopes.map((s) => s.toLowerCase()))
-    return this.booksFor(a).some(
-      (b) =>
-        (!b.spec.scopeOf || (b.scope !== undefined && wanted.has(b.scope))) &&
-        b.spec.answers.some(
-          (x) =>
-            x.source === a.source &&
-            (x.booklet ?? '') === (a.booklet ?? x.booklet ?? '') &&
-            !x.partial
-        )
+  /** Does local text cover everything this anchor can cite? */
+  isLocal(a: Anchor): boolean {
+    return this.booksFor(a).some((b) =>
+      b.spec.answers.some(
+        (x) =>
+          x.source === a.source &&
+          (x.booklet ?? '') === (a.booklet ?? x.booklet ?? '') &&
+          !x.partial
+      )
     )
   }
 }
@@ -733,8 +723,7 @@ function verify(lib: Library, items: ProseItem[]): Result[] {
   const results: Result[] = []
 
   for (const item of items) {
-    const scopes = [item.entityName, ...item.owners]
-    const verifiable = item.anchors.some((a) => lib.isLocal(a, scopes))
+    const verifiable = item.anchors.some((a) => lib.isLocal(a))
     const citedBooks = new Set(item.anchors.flatMap((a) => lib.booksFor(a).map((b) => b.spec)))
     const cited = new Map<Book, number>()
     for (const a of item.anchors)
