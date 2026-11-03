@@ -1,7 +1,8 @@
 /**
- * The Game page's section layout: two columns of `SlabSection`s that
- * become one on a phone without a media query — `min(100%, 26rem)` is what
- * keeps a 390px screen from scrolling sideways — and the copy under a stamp.
+ * The Game page's section layout: a main column of `SlabSection`s and a
+ * small sidebar for the table's people, which drops below the main column
+ * once they no longer fit side by side, without a media query —
+ * `min(100%, 26rem)` is what keeps a 390px screen from scrolling sideways.
  */
 
 import type { CSSProperties } from 'react'
@@ -16,19 +17,27 @@ const { space } = tokens
  */
 export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties
 
-/** The two columns of sections under the roster. */
-export const HUB_COLUMNS = { alignItems: 'start', marginTop: space[24] } satisfies CSSProperties
+/** The main column and the sidebar, side by side while both fit. */
+export const HUB_COLUMNS = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[24],
+  marginTop: space[24],
+} satisfies CSSProperties
 
-/** `HUB_COLUMNS`' narrowest column (a `Grid`'s `min`). */
-export const HUB_COLUMN_MIN = '26rem'
-
-/** One column: its sections stacked. */
-export const HUB_COLUMN = {
+const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
   gap: space[24],
   minWidth: 0,
 } satisfies CSSProperties
+
+/** The main column: its sections stacked, taking every width the sidebar leaves. */
+export const HUB_MAIN = { ...COLUMN, flex: '999 1 min(100%, 26rem)' } satisfies CSSProperties
+
+/** The sidebar: the table's people, small. */
+export const HUB_SIDEBAR = { ...COLUMN, flex: '1 1 18rem' } satisfies CSSProperties
 
 /** A section's body: what it holds, 8px apart (its head is `SlabSection`'s 8px above). */
 export const HUB_BODY = {

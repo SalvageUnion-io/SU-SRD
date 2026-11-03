@@ -229,10 +229,13 @@ describe('the sections under the roster', () => {
     expect(screen.getByRole('button', { name: 'Appoint' })).toBeTruthy()
     await openGameMenu()
     expect(screen.getByRole('menuitem', { name: 'Delete this Game…' })).toBeTruthy()
-    // Each member is a social card: their name, their roles as chips.
-    const members = screen.getByRole('list', { name: 'Members' })
+    // Each member is a small social card in the page's sidebar (R50): their
+    // name, their roles as chips, none of their units.
+    const sidebar = screen.getByRole('complementary', { name: 'The Game' })
+    const members = within(sidebar).getByRole('list', { name: 'Members' })
     expect(within(members).getByText('Ash (you)')).toBeTruthy()
     expect(within(members).getByText('Beefcake')).toBeTruthy()
+    expect(members.querySelector('[data-entity-linked]')).toBeNull()
   })
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
