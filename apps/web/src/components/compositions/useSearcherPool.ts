@@ -6,8 +6,13 @@
  */
 
 import { useMemo, useState } from 'react'
-import type { EntitySchemaName, RefEnumSchemaName } from 'salvageunion-reference'
-import { SalvageUnionReference, searchIn, techLevelRank } from 'salvageunion-reference'
+import type { EntitySchemaName } from 'salvageunion-reference'
+import {
+  isSchemaName,
+  SalvageUnionReference,
+  searchIn,
+  techLevelRank,
+} from 'salvageunion-reference'
 import type {
   EntityLike,
   FacetConfig,
@@ -131,13 +136,16 @@ export function useSearcherPool({
   const searchOrder = useMemo(() => {
     const q = query.trim()
     if (!q) return null
-    const ranked: EntityLike[] = searchIn(schema as RefEnumSchemaName, q)
+    // A meta collection (the actions) is not in the search index: match its names.
+    const ranked: EntityLike[] = isSchemaName(schema)
+      ? searchIn(schema, q)
+      : pool.filter((item) => item.name.toLowerCase().includes(q.toLowerCase()))
     const order = new Map<string, number>()
     ranked.forEach((e, i) => {
       order.set(e.id, i)
     })
     return order
-  }, [schema, query])
+  }, [schema, query, pool])
 
   const categoryOf = facets?.category?.of
 
