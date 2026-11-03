@@ -7,8 +7,7 @@
  *
  * The band is Build's pilot orange (`tone="build"`, its `data-ground` paper,
  * chrome K1), so its controls are ink on colour: the ghost Button (Import,
- * Export all), reading the band's ground in CSS. The Showing select is the
- * shared `Select` (`.su-container-select`, controls.css).
+ * Export all), reading the band's ground in CSS.
  */
 
 /* The import result: its own line on the band above the title, never a flex

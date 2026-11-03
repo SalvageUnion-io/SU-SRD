@@ -126,7 +126,7 @@ Enforced in `convex/model/permissions.ts` (`requireTableRunner`) and
 ## 6. Surfaces
 
 `/` is the Hangar (the Shelf): everything the player owns, in a Game or not, a
-unit's Game a relation chip and a Showing filter, never a place
+unit's Game a relation chip, never a filter or a place
 ([ADR-052](052-build-assets-play-games.md)); Patterns, NPCs and the Starter Set
 are shelves of their own. A Game's page is Play's, `/play/games/:id`: its roster
 in the same ontology-toned columns of Rows (`UnitRow`), then the members',

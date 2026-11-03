@@ -14,13 +14,16 @@ Build manages everything the player owns, in a Game or not. A unit's Game is a
 detail it shows, never a place inside Build: Build has no Game page, no
 New Game and no Games ▾. On a Hangar Row the Game is a relation chip,
 `GAME | name`, linking to that Game's page in Play; a unit in no Game leaves the
-lane empty. The Hangar's Showing filter is a Select: Everything, Not in a Game,
-then one entry per Game.
+lane empty. The chip is the unit's tag: the Training Bay has no Showing filter
+(amended 2026-11-03; it was a Select of Everything, Not in a Game and each Game).
 
 ### 2. Build lists only what you own
 
-Unassigned units, and a Game's units you do not own, appear only on that Game's
-page in Play.
+Unassigned units, a Game's units you do not own and a Game's crawler (the
+crew's, owned by nobody) appear only on that Game's page in Play. Build reads
+only your own rows (`ownRows` in the replica, which also holds every crewmate's
+unit for Play), so it never holds another player's unit at all: the Training
+Bay, its Export all and the wizards' counts included (chips-and-actions C13).
 
 ### 3. Asset actions stay in Build
 

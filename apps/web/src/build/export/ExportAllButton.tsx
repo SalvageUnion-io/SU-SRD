@@ -1,19 +1,22 @@
 import { Button, FieldError, Stack, toast } from '../../components/index'
+import { useMyPerson } from '../../lib/auth/session'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { buildExportBundle } from '../../lib/export/buildExportBundle'
 import { downloadJson } from '../../lib/export/downloadJson'
 import { buildExportCopy } from '../../messages/build-export'
-import { useUnits } from '../../replica/units'
+import { ownUnits } from '../../replica/units'
 
 /**
  * "Export all" and its failure line. On an ink band (Shelves, the Roster)
  * the band's `data-ground` makes the button the on-ink ghost and the
- * line paper, in CSS (chrome K1).
+ * line paper, in CSS (chrome K1). The backup is your own units alone
+ * (`ownUnits`), never a crewmate's the device holds for Play.
  */
 export function ExportAllButton() {
+  const me = useMyPerson()
   const exportAll = useServerAction(
     async () => {
-      const bundle = await buildExportBundle(useUnits.getState())
+      const bundle = await buildExportBundle(ownUnits(me))
       const date = new Date().toISOString().slice(0, 10)
       downloadJson(`salvageunion-backup-${date}.json`, bundle)
     },

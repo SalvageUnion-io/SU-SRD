@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 import { MechPatternSchema } from 'game-domain/schemas/pattern'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { crawlerFixture, FIXTURE_NOW } from '../../../components/__tests__/fixtures'
+import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import {
   chassisFact,
-  crawlerChips,
-  crawlerIsKept,
   crawlerReading,
   crewLinked,
   gameRelation,
@@ -13,8 +11,6 @@ import {
   npcChips,
   patternChips,
   patternReading,
-  shelfFilters,
-  shownUnder,
 } from '../shelfItems'
 
 /**
@@ -37,45 +33,6 @@ const LINK: SoftLink = {
 
 const chipLabels = (chips: { label: string; value?: string }[]) =>
   chips.map((c) => (c.value ? `${c.label} | ${c.value}` : c.label))
-
-describe('the Showing select', () => {
-  test('Everything, Not in a Game, then one entry per Game', () => {
-    expect(shelfFilters(GAMES)).toEqual([
-      { value: 'everything', label: 'Everything' },
-      { value: 'not-in-game', label: 'Not in a Game' },
-      { value: 'game:g1', label: 'Reclamation of the Wastes' },
-      { value: 'game:g2', label: 'Dustbowl Run' },
-    ])
-    expect(shelfFilters(undefined).map((f) => f.value)).toEqual(['everything', 'not-in-game'])
-  })
-
-  test('Everything shows a unit in a Game; Not in a Game does not; a Game shows its own', () => {
-    expect(shownUnder('everything', { gameId: 'g1' })).toBe(true)
-    expect(shownUnder('not-in-game', { gameId: 'g1' })).toBe(false)
-    expect(shownUnder('not-in-game', { gameId: null })).toBe(true)
-    expect(shownUnder('not-in-game', {})).toBe(true)
-    expect(shownUnder('game:g1', { gameId: 'g1' })).toBe(true)
-    expect(shownUnder('game:g1', { gameId: 'g2' })).toBe(false)
-    expect(shownUnder('game:g1', { gameId: null })).toBe(false)
-  })
-})
-
-describe('which crawlers are yours to keep', () => {
-  const RUNS = [
-    { _id: 'g1', name: 'Reclamation of the Wastes', mediator: false, tableRunner: false },
-    { _id: 'g2', name: 'Dustbowl Run', mediator: true, tableRunner: true },
-  ]
-  test('on the shelf, or in a Game you run — not the crew’s crawler at a table you play at', () => {
-    expect(crawlerIsKept({ gameId: null }, RUNS)).toBe(true)
-    expect(crawlerIsKept({ gameId: 'g2' }, RUNS)).toBe(true)
-    expect(crawlerIsKept({ gameId: 'g1' }, RUNS)).toBe(false)
-  })
-
-  test('with no Game list to ask, nothing is hidden', () => {
-    expect(crawlerIsKept({ gameId: 'g1' }, undefined)).toBe(true)
-    expect(crawlerIsKept({ gameId: 'left' }, RUNS)).toBe(true)
-  })
-})
 
 describe('its Game', () => {
   test('GAME | its name, a relation opening the Game’s page in Play', () => {
@@ -136,21 +93,6 @@ describe('a unit’s crew link', () => {
   test('an unlinked unit, or one whose partner cannot be named, has none', () => {
     expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [], names: new Map() })).toEqual([])
     expect(crewLinked({ kind: 'mech', id: 'm1', softLinks: [LINK], names: new Map() })).toEqual([])
-  })
-})
-
-describe('a crawler’s chips', () => {
-  test('a crawler in a Game you mediate says so; in one you only play, it does not', () => {
-    expect(
-      chipLabels(
-        crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g2' }), games: GAMES })
-      )
-    ).toEqual(['You mediate'])
-    expect(
-      chipLabels(
-        crawlerChips({ crawler: crawlerFixture({ id: 'c1', gameId: 'g1' }), games: GAMES })
-      )
-    ).toEqual([])
   })
 })
 

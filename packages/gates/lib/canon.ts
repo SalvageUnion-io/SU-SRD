@@ -176,6 +176,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   C10: ['R4'],
   C11: ['R5', 'RelationTag.test.tsx'],
   C12: ['_hierarchy.ts#tool-title-clip'],
+  C13: ['Shelves.test.tsx', 'replica.test.ts'],
   // ── hard-rules.md ──
   R0: ['designRoutes.test.ts', 'design-walk.e2e.ts'],
   R1: ['chrome/slab-section', 'chrome/slab-style', 'SlabSection.test.tsx'],
