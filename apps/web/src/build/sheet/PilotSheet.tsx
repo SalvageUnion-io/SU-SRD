@@ -457,11 +457,15 @@ export function PilotSheet({
           onRemoveUnknown={(slug) => actions.toggleAbility(slug)}
         />
 
-        {/* Ability-granted PARTNERS. Each carries a nested loadout and a cargo
-          hold, and a partner acts on its own turn rather than being one item
-          among the pilot's carried gear. */}
+        {/* Ability-granted COMPANIONS (a pilot's partners). Each carries a
+          nested loadout and a cargo hold, and acts on its own turn rather than
+          being one item among the pilot's carried gear. */}
         {model.partners.length > 0 && (
-          <SlabSection fold="open" title={buildSheetCopy('partners')} count={model.partners.length}>
+          <SlabSection
+            fold="open"
+            title={buildSheetCopy(model.partners.length > 1 ? 'companions' : 'companion')}
+            count={model.partners.length}
+          >
             <Stack gap={12}>
               {model.partners.map((partner) => (
                 <PartnerCard

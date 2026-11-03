@@ -3,6 +3,7 @@
  *
  * Slot accounting:
  *   - reference equipment: 1 slot, 2 when Heavy/Portable (ORM getInventorySlots)
+ *   - uncarried equipment: 0 (a Mecha Companion walks beside you, see below)
  *   - unresolved slugs: counted at 1 so the total never lies low
  *   - generic entries: explicit slotCost × qty (Scrap = 3 per unit)
  *   - capacity: derived by `pilotMaxInventorySlots` (base 6 +
@@ -62,11 +63,21 @@ export function carriedEquipment(pilot: Pick<Pilot, 'abilities' | 'equipment'>):
 }
 
 /**
+ * Pilot Equipment a pilot never carries. A Mecha Companion (Core Book p.68)
+ * "acts independently of you, on its own turn" and "uses the same rules as
+ * Mechs", so it fills no Inventory Slot. Its siblings do: the Auto-Turret is
+ * Portable, 2 slots (p.30), and a Survey Drone's Drone Controller is carried
+ * Pilot Equipment (p.48), so both keep their trait-derived cost.
+ */
+const UNCARRIED_EQUIPMENT: ReadonlySet<string> = new Set(['mecha-companion'])
+
+/**
  * Inventory slots one equipment item occupies: 1, or 2 when it carries the
- * Heavy/Portable trait. Unresolved items count 1.
+ * Heavy/Portable trait, 0 when it is never carried. Unresolved items count 1.
  */
 export function equipmentSlotCost(equipment: RefEquipment | null): number {
   if (!equipment) return 1
+  if (UNCARRIED_EQUIPMENT.has(getEntitySlug(equipment))) return 0
   return getInventorySlots(equipment)
 }
 
