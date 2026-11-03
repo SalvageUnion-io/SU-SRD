@@ -67,9 +67,9 @@ describe('assignedUnitsFor', () => {
     expect(onMech.units.map((u) => u.owner)).toEqual(['owner-p1', undefined])
   })
 
-  test('your own unit wears no owner chip: a crewmate is named, a free unit Unassigned', () => {
+  test('every unit wears its owner chip: MINE, a crewmate by name, or Unassigned', () => {
     const chips = {
-      p1: { label: 'You', unassigned: false, mine: true },
+      p1: { label: 'Mine', unassigned: false, mine: true },
       p2: { label: 'Mara', unassigned: false, mine: false },
       p3: { label: 'Unassigned', unassigned: true, mine: false },
     } as const
@@ -86,7 +86,7 @@ describe('assignedUnitsFor', () => {
       unassign: () => undefined,
       picker: () => null,
     })
-    expect(units.map((u) => u.owner)).toEqual([undefined, 'Mara', 'Unassigned'])
+    expect(units.map((u) => u.owner)).toEqual(['Mine', 'Mara', 'Unassigned'])
   })
 
   test('Unassign is offered only on a link whose from end this sheet holds', () => {

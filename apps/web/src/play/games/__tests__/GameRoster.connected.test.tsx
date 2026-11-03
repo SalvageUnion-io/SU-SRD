@@ -355,7 +355,7 @@ describe('what the game will accept', () => {
 })
 
 describe('yours first, then everyone else', () => {
-  test('your rows lead; the rest follow, and only the unassigned one wears a seal', async () => {
+  test('your rows lead, wearing MINE; the rest follow, and only the unassigned one wears a seal', async () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT, MY_PILOT, PRE_GEN] }))
 
     // One list, no group headings: the seal says whose each row is.
@@ -367,6 +367,7 @@ describe('yours first, then everyone else', () => {
       .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
       .map((link) => link.getAttribute('aria-label'))
     expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
+    expect(screen.getByText('Mine')).toBeTruthy()
     expect(screen.queryByText('Mediator')).toBeNull()
     expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
   })

@@ -29,7 +29,6 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactNode } from 'react'
-import type { OwnerChip } from '../../lib/ownership/ownerChip'
 import { chassisTechLevel, techLevelReading } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import type { SheetComposition } from './composition.model'
@@ -50,7 +49,7 @@ export type AssignedUnit = {
   name: string
   /** Its sheet; without one the chip opens nothing (a withheld unit). */
   href?: string | undefined
-  /** Who holds it in the Game (YOU, a crewmate, UNASSIGNED): a chip on its head. */
+  /** Who holds it in the Game (MINE, a crewmate, UNASSIGNED): a chip on its head. */
   owner?: string | undefined
   /** On a crawler in Read, the mech this pilot flies: a MECH chip on their Mini. */
   flies?: string | undefined
@@ -170,11 +169,6 @@ function linkBetween(
   )
 }
 
-/** A crewmate's name or UNASSIGNED; your own units wear no chip, all else is theirs. */
-function ownerLabel(chip: OwnerChip | undefined): string | undefined {
-  return chip === undefined || chip.mine ? undefined : chip.label
-}
-
 /**
  * A crawler's crew as pairs: each pilot with the mech they fly in this bay
  * (`flies`), that mech no unit of its own; pilots first, then the mechs
@@ -229,7 +223,7 @@ export function assignedUnitsFor(args: {
         name: entity.name,
         readings: readingsOf(kind, entity, subject, composition),
         href: args.hrefFor(kind, entity.id),
-        owner: ownerLabel(args.ownerOf?.(kind, entity.id)),
+        owner: args.ownerOf?.(kind, entity.id)?.label,
         ...(place.many ? {} : { change: picker(kind, { filled: true, exclude: [entity.id] }) }),
         onUnassign: unassignable ? () => args.unassign(link.id) : undefined,
       })

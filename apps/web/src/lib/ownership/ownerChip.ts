@@ -26,7 +26,7 @@ export type OwnerChip = {
 export const UNASSIGNED_LABEL = 'Unassigned'
 
 export type OwnerLookup = {
-  /** The viewer, so their own entities can read as "You". */
+  /** The viewer, so their own entities can read as "Mine". */
   viewerId: string | null
   /** userId → display name, from the Game roster. */
   namesById: ReadonlyMap<string, string>
@@ -46,7 +46,7 @@ export function ownerChipFor(ownerId: string | null | undefined, lookup: OwnerLo
   }
 
   if (lookup.viewerId !== null && ownerId === lookup.viewerId) {
-    return { label: 'You', unassigned: false, mine: true }
+    return { label: 'Mine', unassigned: false, mine: true }
   }
 
   const name = lookup.namesById.get(ownerId)

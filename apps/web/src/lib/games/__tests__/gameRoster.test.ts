@@ -127,7 +127,7 @@ describe('rows carry ownership as a state, never a blank', () => {
 
   test('your own reads as You, opens, and can be handed back', () => {
     const [mine] = built('u-play')
-    expect(mine?.owner?.label).toBe('You')
+    expect(mine?.owner?.label).toBe('Mine')
     expect(mine?.can.openSheet).toBe(true)
     expect(mine?.can.unassign).toBe(true)
   })

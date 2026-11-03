@@ -324,10 +324,10 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
              the row is yours to edit, read-only when it is a crewmate's. */
           mode={{ kind: 'link', href: rosterSheetHref(row) }}
           {...rowChips(row)}
-          /* Who holds it sits right of the name, a label (ruleset §7.2):
-             never a stamp riding the frame. */
+          /* MINE or UNASSIGNED sits right of the name, a label (ruleset §7.2):
+             never a stamp riding the frame. A crewmate's is The Game's to name. */
           labels={
-            row.owner === null || !row.owner.unassigned ? undefined : (
+            row.owner === null || !(row.owner.unassigned || row.owner.mine) ? undefined : (
               <OwnerSeal
                 owner={row.owner}
                 assignable={row.can.assignSelf}

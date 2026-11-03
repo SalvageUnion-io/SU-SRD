@@ -554,7 +554,7 @@ describe('Play from the Game page', () => {
   test('a Game with no Mediator plays too', async () => {
     await renderHub({ 'games.listing': listing(PILOTS) })
     const dialog = await openPicker()
-    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
@@ -578,7 +578,7 @@ describe('Play from the Game page', () => {
     const radios = within(dialog).getAllByRole('radio')
     expect(within(dialog).queryAllByRole('combobox')).toHaveLength(0)
     // The chosen Compact wears the "Selected" seal.
-    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)YouSelected', 'Mira (Pilot)You'])
+    expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {
