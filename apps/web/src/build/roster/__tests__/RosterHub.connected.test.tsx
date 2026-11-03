@@ -9,6 +9,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *  - the Training Bay lists everything you own and nothing else: a unit in a
  *    Game stays in it, a `GAME | name` relation chip (its tag, never a filter)
  *    opening the Game's page in Play; a unit in no Game has no Game chip at all
+ *  - a crawler in a Game you mediate says so
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
  *  - a pattern's chips say who can see it and how often it has been built
@@ -164,6 +165,17 @@ describe('Training Bay: everything you own', () => {
     ])
     // A unit in no Game leaves the lane empty: never "Unassigned".
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
+  })
+
+  test('a crawler in a Game you mediate says so', async () => {
+    await useUnits
+      .getState()
+      .adopt('crawler', crawlerFixture({ id: 'c-g2', name: 'Long Hauler', gameId: 'g2' }))
+    await renderHub()
+
+    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
+    expect(within(crawlers).getByText('The Long Haul')).toBeTruthy()
+    expect(within(crawlers).getByText('You mediate')).toBeTruthy()
   })
 
   test('a pattern says who can see it and how often it has been built', async () => {

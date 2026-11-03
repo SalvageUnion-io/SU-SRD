@@ -7,9 +7,10 @@
  * browser holds, wherever it is, and a relation chip on each names its Game
  * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a tag here,
  * never a place and never a filter. The page reads only what is yours
- * (`useOwnUnits`): a crewmate's units, unassigned ones and a Game's crawler
- * (the crew's) show only on the Game's page, and a Game is started or joined
- * from the Play hub.
+ * (`useOwnUnits`), and the crawler of each Game you run (`useKeptCrawlers`):
+ * a crewmate's units, unassigned ones and the crawler of a Game you only play
+ * at show only on the Game's page, and a Game is started or joined from the
+ * Play hub.
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it on
  *    the band's foot, **Import** and **Export all**; what does not fit beside
@@ -57,7 +58,12 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
-import { useHydrateEntities, useOwnUnits, useSoftLinkList } from '../../lib/entities'
+import {
+  useHydrateEntities,
+  useKeptCrawlers,
+  useOwnUnits,
+  useSoftLinkList,
+} from '../../lib/entities'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
@@ -69,6 +75,7 @@ import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
+  crawlerChips,
   crawlerFact,
   crawlerReading,
   crewLinked,
@@ -161,7 +168,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const hydratedTray = useHydrateOnMount(() => useTray.getState().hydrate())
   const pilots = useOwnUnits('pilot')
   const mechs = useOwnUnits('mech')
-  const crawlers = useOwnUnits('crawler')
+  // A Game's crawler is the crew's: in your Training Bay only where you run the table.
+  const crawlers = useKeptCrawlers((games ?? []).filter((g) => g.tableRunner).map((g) => g._id))
   const npcs = useOwnUnits('npc')
   const softLinks = useSoftLinkList()
   const patterns = usePatterns((s) => s.mechPatterns)
@@ -438,7 +446,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={c.name}
                   reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
                   href={`/crawlers/${c.id}`}
-                  chips={linkChip(sharedByLink, c.id)}
+                  chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
                   relations={gameRelation(c, games)}
                   menu={unitMenu('crawler', c, c)}
                 />

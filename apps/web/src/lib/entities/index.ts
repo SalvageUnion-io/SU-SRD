@@ -8,6 +8,7 @@
 
 export {
   useCrawlers,
+  useKeptCrawlers,
   useMechs,
   useNpcs,
   useOwnUnits,

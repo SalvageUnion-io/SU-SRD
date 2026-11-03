@@ -231,7 +231,14 @@ describe('a unit’s Game', () => {
 })
 
 describe('Crawlers', () => {
-  test('a Game’s crawler is the crew’s, never in your Training Bay, even where you run the table', async () => {
+  test('a Game’s crawler is in your Training Bay only where you run the table', async () => {
+    await renderShelves()
+    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
+    expect(within(crawlers).getByText('Bulwark')).toBeTruthy()
+    expect(within(crawlers).queryByText('Table Crawler')).toBeNull()
+  })
+
+  test('as the table runner, the Game’s crawler is yours to keep; its crew’s units still are not', async () => {
     setQueryAnswers({
       'games.listMine': [
         { _id: 'g1', name: 'Tenacity', tableRunner: false },
@@ -240,8 +247,9 @@ describe('Crawlers', () => {
     })
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
-    expect(within(crawlers).getByText('Bulwark')).toBeTruthy()
-    expect(within(crawlers).queryByText('Table Crawler')).toBeNull()
+    expect(within(crawlers).getByText('Table Crawler')).toBeTruthy()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).queryByText('Crewmate Pilot')).toBeNull()
   })
 })
 
