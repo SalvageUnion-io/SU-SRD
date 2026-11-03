@@ -176,6 +176,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   C10: ['R4'],
   C11: ['R5', 'RelationTag.test.tsx'],
   C12: ['_hierarchy.ts#tool-title-clip'],
+  C13: ['Shelves.test.tsx', 'replica.test.ts'],
   // ── hard-rules.md ──
   R0: ['designRoutes.test.ts', 'design-walk.e2e.ts'],
   R1: ['chrome/slab-section', 'chrome/slab-style', 'SlabSection.test.tsx'],
@@ -266,6 +267,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R54: ['hierarchy/bare-applink', 'hierarchy.test.ts'],
   R55: ['design-walk.e2e.ts#findHierarchy', '_hierarchy.ts'],
   R56: ['chipFill.test.ts', 'PlayLanding.connected.test.tsx'],
+  R57: ['Sheet-pilot-hero.test.tsx'],
 }
 
 /** A law's id as the canon and its citations spell it. */

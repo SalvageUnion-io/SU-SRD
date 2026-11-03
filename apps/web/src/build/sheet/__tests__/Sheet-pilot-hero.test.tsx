@@ -284,6 +284,19 @@ describe('Pilot hero — readOnly identity', () => {
   test('Edit keeps both fields: they are where callsign and class are changed', () => {
     renderHero(makePilot({ name: 'Bonesaw', callsign: 'Bonesaw' }))
     expect(screen.getByText('Callsign')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Change class' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Change Class' })).toBeTruthy()
+  })
+
+  test('Edit leads the card with Class, ahead of the photo and the typed fields (R57)', () => {
+    renderHero(makePilot())
+    const change = screen.getByRole('button', { name: 'Change Class' })
+    const callsign = must(screen.getByText('Callsign').closest('div'))
+    const photo = must(document.querySelector('.su-photo-beside'))
+    const precedes = (a: Node, b: Node) =>
+      (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+    expect(precedes(change, photo)).toBe(true)
+    expect(precedes(change, callsign)).toBe(true)
+    // One control changes the class: the button, not a value box beside it.
+    expect(screen.getAllByRole('button', { name: /change class/i })).toHaveLength(1)
   })
 })

@@ -7,7 +7,7 @@
  *     inactive column (each changes at `md`, 48rem).
  *   - games/OwnerSeal.tsx — the claimable seal's lift on hover and fade when
  *     disabled.
- *   - shelves/Shelves.tsx (the Showing select), entityContainer/MoveToContainerControl.tsx —
+ *   - entityContainer/MoveToContainerControl.tsx —
  *     the compact select height from `sm` (40rem), the disabled fade, the error
  *     line's spacing (`FieldError` takes no style).
  *   - wiring/AssignPicker.tsx — the dialog's width cap (`ModalShell` takes a
@@ -73,10 +73,9 @@
   opacity: 50%;
 }
 
-/* ── The Training Bay's Showing select, MoveToContainerControl ── */
+/* ── MoveToContainerControl ── */
 
-/* The Showing select sits on a band beside its Compact buttons, so it is
-   Compact too. */
+/* The container select is Compact, beside Compact buttons. */
 select.su-container-select {
   height: var(--size-compact);
 }
