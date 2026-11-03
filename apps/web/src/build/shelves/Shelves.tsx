@@ -59,6 +59,7 @@ import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import {
+  useCrawlers,
   useHydrateEntities,
   useKeptCrawlers,
   useOwnUnits,
@@ -178,7 +179,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   // Chip names from your own units alone: a link to a crewmate's names nothing here.
   const pilotNames = new Map(pilots.map((p) => [p.id, p.name]))
   const mechNames = new Map(mechs.map((m) => [m.id, m.name]))
-  const { pilotReadings, mechReadings } = crewReadings(pilots, mechs, crawlers, softLinks)
+  // A pilot's max HP and AP follow the crawler they are aboard, a Game's
+  // crawler too, which is no shelf item of theirs (C13) but still read here.
+  const anyCrawlers = useCrawlers()
+  const { pilotReadings, mechReadings } = crewReadings(pilots, mechs, anyCrawlers, softLinks)
   const patternSource = mechs.find((m) => m.id === savingPattern)
   // The personal tray is in the Training Bay alone.
   const tray = trayNpcs.filter((n) => typeof n.gameId !== 'string')

@@ -8,7 +8,7 @@
 import { afterEach, describe, expect, test } from 'bun:test'
 import { act, cleanup, renderHook } from '@testing-library/react'
 import { WritesBlockedOffline } from '../sync'
-import { useTableAct, useTableRead } from '../useTable'
+import { namedMembers, useTableAct, useTableRead } from '../useTable'
 import { acts, answerActs, closeRooms, openRooms, serve } from './fakeRooms'
 
 afterEach(() => {
@@ -119,5 +119,31 @@ describe('useTableAct', () => {
   test('refused offline when the room is not open', async () => {
     const { result } = renderHook(() => useTableAct('seats.eject', 'g2'))
     await expect(result.current({ pilotId: 'p1' })).rejects.toBeInstanceOf(WritesBlockedOffline)
+  })
+})
+
+describe('namedMembers', () => {
+  const member = (userId: string, displayName: string) => ({
+    userId,
+    mediator: false,
+    organizer: false,
+    joinedAt: 0,
+    displayName,
+  })
+
+  test('a member’s account name, read fresh, outranks the one the Game holds', () => {
+    const roster = [member('d1', 'Crewmate'), member('d2', 'stumunculus'), member('d3', 'Crewmate')]
+    const names = { d1: 'Thicc Uotan', d2: 'stumunculus' }
+    expect(namedMembers(roster, names).map((m) => m.displayName)).toEqual([
+      'Thicc Uotan',
+      'stumunculus',
+      'Crewmate',
+    ])
+    // The same member is the same object when nothing changed.
+    expect(namedMembers(roster, names)[1]).toBe(roster[1])
+  })
+
+  test('until the names land, the Game’s own', () => {
+    expect(namedMembers([member('d1', 'Crewmate')], undefined)[0]?.displayName).toBe('Crewmate')
   })
 })

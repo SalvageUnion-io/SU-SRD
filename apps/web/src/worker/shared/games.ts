@@ -76,6 +76,25 @@ export async function membershipOf(
     : { gameId, discordId, mediator: row.mediator === 1, organizer: row.organizer === 1 }
 }
 
+/**
+ * The names a Game's members go by, read from their sign-in, never stored in
+ * the Game: by Discord id, Discord's name, null where the account has none.
+ */
+export async function memberAccountNames(
+  db: SharedDb,
+  gameId: string
+): Promise<{ discordId: string; name: string | null }[]> {
+  const { results } = await db
+    .prepare(
+      `select m.discord_id, a.name from memberships m
+       left join accounts a on a.discord_id = m.discord_id
+       where m.game_id = ?1`
+    )
+    .bind(gameId)
+    .all<{ discord_id: string; name: string | null }>()
+  return results.map((row) => ({ discordId: row.discord_id, name: row.name }))
+}
+
 /** The Game an invite code joins, or null for a code that is no Game's now. */
 export async function gameOfInvite(db: SharedDb, code: string): Promise<string | null> {
   const row = await db

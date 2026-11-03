@@ -93,6 +93,9 @@ function answer(name: string): unknown {
     // The Play bar's channel button: nothing bound.
     case 'channelBindings.current':
       return null
+    // The roster's account names: not yet read, so it keeps the Game's.
+    case 'games.names':
+      return undefined
     case 'account.me':
       return { _id: 'u-me', displayName: 'Me', avatarUrl: null, email: null }
     case 'games.listing':

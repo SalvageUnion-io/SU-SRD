@@ -35,7 +35,7 @@ import type { GameRoomStub } from '../roomStubs'
 import { shownProfile, signInProfile } from './accounts'
 import { bindingBy } from './channelBindings'
 import type { SharedDb } from './db'
-import { gameOfInvite, gamesOf } from './games'
+import { gameOfInvite, gamesOf, memberAccountNames, membershipOf } from './games'
 
 /** A player's account room, as these calls use it. */
 type AccountStub = UnitHome & {
@@ -181,6 +181,22 @@ const CALLS = {
   'games.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
     return read === null ? null : gameView(read)
+  },
+  /**
+   * What each member is called, read from their account (their own profile
+   * name, else Discord's) every time, so a roster never shows a stale or
+   * missing name. Members only; a name nobody has is left out.
+   */
+  'games.names': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
+    if ((await membershipOf(deps.db, a.gameId, who.discordId)) === null) return {}
+    const accounts = await memberAccountNames(deps.db, a.gameId)
+    const named = await Promise.all(
+      accounts.map(async ({ discordId, name }) => {
+        const own = await deps.account(discordId).profile(discordId)
+        return [discordId, shownProfile(own, { name, avatar_url: null }).displayName] as const
+      })
+    )
+    return Object.fromEntries(named.filter((entry): entry is [string, string] => entry[1] !== null))
   },
   'games.create': async (
     who: Caller,
@@ -435,6 +451,7 @@ const KIND = z.enum(ENTITY_KINDS)
 const CALL_ARGS = {
   'games.listMine': z.object({}),
   'games.get': GAME,
+  'games.names': GAME,
   'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),

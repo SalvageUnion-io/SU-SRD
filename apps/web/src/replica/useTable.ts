@@ -11,7 +11,7 @@
  */
 
 import type { RunningEncounter } from 'game-domain/schemas/encounter'
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import type { z } from 'salvageunion-reference/zod'
 import type { PatternSharing } from '../rooms/account/sharing'
 import type { SoloSeatRead } from '../rooms/account/soloPlay'
@@ -25,6 +25,7 @@ import type { SeatRead } from '../rooms/seats'
 import type { CrewVitals } from '../rooms/vitals'
 import type { Scope } from './replica'
 import { gameScope } from './replica'
+import { useGamesQuery } from './roomCalls'
 import { roomOf } from './roomSocket'
 import { WritesBlockedOffline } from './sync'
 import type { StateTable } from './tableState'
@@ -86,7 +87,11 @@ function downtimeState(held: unknown, args: Args): DowntimeState | null {
   return seat.downtime === null ? NOT_RUNNING : { ...seat.downtime, running: true, completedBy: [] }
 }
 
-/** A Game's member as a screen names them: a member with no Discord name yet is a Crewmate. */
+/**
+ * A Game's member as a screen names them: the name their account goes by
+ * (`games.names`, read fresh, never stored in the Game), else the one the
+ * Game last heard, else Crewmate.
+ */
 type GameMemberRead = Omit<Member, 'displayName' | 'avatarUrl'> & {
   displayName: string
   avatarUrl?: string
@@ -95,9 +100,23 @@ type GameMemberRead = Omit<Member, 'displayName' | 'avatarUrl'> & {
 function memberRead({ displayName, avatarUrl, ...member }: Member): GameMemberRead {
   return {
     ...member,
-    displayName: displayName ?? 'Crewmate',
+    displayName: displayName ?? CREWMATE,
     ...(avatarUrl === null ? {} : { avatarUrl }),
   }
+}
+
+const CREWMATE = 'Crewmate'
+
+/** The roster with each member's account name over the one the Game holds. */
+export function namedMembers(
+  members: readonly GameMemberRead[],
+  names: Readonly<Record<string, string>> | undefined
+): GameMemberRead[] {
+  if (names === undefined) return [...members]
+  return members.map((m) => {
+    const name = names[m.userId]
+    return name === undefined || name === m.displayName ? m : { ...m, displayName: name }
+  })
 }
 
 /** Each read a screen makes, by name. */
@@ -188,11 +207,21 @@ export function useTableRead<N extends ReadName>(
 ): ReadAnswer<N> | undefined {
   const how = ANSWERED_BY[name]
   const given = args === 'skip' ? null : args
-  return useSyncExternalStore(subscribeTableState, () => {
+  const held = useSyncExternalStore(subscribeTableState, () => {
     if (given === null) return undefined
     const table = typeof how.table === 'string' ? how.table : how.table(given)
     return answered(name, how, readTableState(scopeOf(given.gameId ?? null), table), given)
   }) as ReadAnswer<N> | undefined
+  // A roster's names are read from the members' accounts, not the Game.
+  const gameId = name === 'games.members' ? (given?.gameId ?? null) : null
+  const names = useGamesQuery('games.names', gameId === null ? 'skip' : { gameId })
+  return useMemo(
+    () =>
+      gameId === null || held === undefined
+        ? held
+        : (namedMembers(held as GameMemberRead[], names) as ReadAnswer<N>),
+    [gameId, held, names]
+  )
 }
 
 /** The act `name`, sent to `gameId`'s room (the account room's when null); refused offline. */
