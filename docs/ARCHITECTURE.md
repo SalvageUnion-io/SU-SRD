@@ -166,7 +166,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
     Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
-    Built: Build lists all you own, a Game a chip; Play has the hub, Game pages, invites, Cockpits.
+    Built: Build lists and reads only what you own, a Game a chip and never a filter; Play has the hub, Game pages, invites, Cockpits.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.

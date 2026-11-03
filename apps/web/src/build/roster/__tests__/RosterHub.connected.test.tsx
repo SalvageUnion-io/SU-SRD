@@ -6,11 +6,9 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
  *
  * What these pin:
  *
- *  - the Training Bay lists everything you own: a unit in a Game stays in it under
- *    Everything, with a `GAME | name` relation chip opening the Game's page in
- *    Play, and leaves it under Not in a Game; a unit in no Game has no Game
- *    chip at all; one Game's entry shows that Game's units alone
- *  - a crawler in a Game you mediate says so
+ *  - the Training Bay lists everything you own and nothing else: a unit in a
+ *    Game stays in it, a `GAME | name` relation chip (its tag, never a filter)
+ *    opening the Game's page in Play; a unit in no Game has no Game chip at all
  *  - "Move to a Game…" moves the same record into a Game, and back out again
  *    behind a confirm; it never copies
  *  - a pattern's chips say who can see it and how often it has been built
@@ -145,27 +143,13 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-const showing = () => screen.getByLabelText('Showing') as HTMLSelectElement
-
-async function show(value: string): Promise<void> {
-  await act(async () => {
-    fireEvent.change(showing(), { target: { value } })
-  })
-}
-
 describe('Training Bay: everything you own', () => {
-  test('the Showing select offers Everything, Not in a Game, then each Game', async () => {
+  test('there is no Showing filter: a unit’s Game is its tag', async () => {
     await renderHub()
-    expect(showing().value).toBe('everything')
-    expect([...showing().options].map((o) => o.textContent)).toEqual([
-      'Everything',
-      'Not in a Game',
-      'Union Crawler #430',
-      'The Long Haul',
-    ])
+    expect(screen.queryByLabelText('Showing')).toBeNull()
   })
 
-  test('a unit in a Game stays under Everything, its Game a relation chip that opens it in Play', async () => {
+  test('a unit in a Game stays, its Game a relation chip that opens it in Play', async () => {
     await useUnits
       .getState()
       .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
@@ -180,61 +164,6 @@ describe('Training Bay: everything you own', () => {
     ])
     // A unit in no Game leaves the lane empty: never "Unassigned".
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
-
-    await show('not-in-game')
-    expect(showing().value).toBe('not-in-game')
-    expect(within(pilots).queryByText('Roach-Boy')).toBeNull()
-    expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
-  })
-
-  test('one Game’s entry shows that Game’s units alone', async () => {
-    await useUnits
-      .getState()
-      .adopt('pilot', pilotFixture({ id: 'p-game', name: 'Roach-Boy', gameId: 'g1' }))
-    await renderHub()
-
-    await show('game:g1')
-    const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
-    expect(within(pilots).queryByText('Mira Cole')).toBeNull()
-    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
-    expect(within(crawlers).getByText('No crawler of yours is in this Game.')).toBeTruthy()
-  })
-
-  test('under Not in a Game, a Training Bay whose units are all in Games says so', async () => {
-    // The Training Bay's one pilot moves into a Game: every pilot is now in one.
-    await useUnits
-      .getState()
-      .adopt('pilot', pilotFixture({ id: 'p-shelf', name: 'Mira Cole', gameId: 'g1' }))
-    await renderHub()
-
-    await show('not-in-game')
-    const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).queryByText('Mira Cole')).toBeNull()
-    expect(within(pilots).getByText('Every pilot is in a Game.')).toBeTruthy()
-  })
-
-  test('under Not in a Game, a Training Bay with nothing in it at all is empty, not "in a Game"', async () => {
-    await renderHub()
-
-    await show('not-in-game')
-    const mechs = screen.getByRole('region', { name: 'Mechs' })
-    expect(within(mechs).getByText('No mechs yet.')).toBeTruthy()
-    expect(within(mechs).queryByText('Every mech is in a Game.')).toBeNull()
-    const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
-    expect(within(npcs).queryByText('Every NPC is in a Game.')).toBeNull()
-  })
-
-  test('a crawler in a Game you mediate says so', async () => {
-    await useUnits
-      .getState()
-      .adopt('crawler', crawlerFixture({ id: 'c-g2', name: 'Long Hauler', gameId: 'g2' }))
-    await renderHub()
-
-    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
-    expect(within(crawlers).getByText('The Long Haul')).toBeTruthy()
-    expect(within(crawlers).getByText('You mediate')).toBeTruthy()
   })
 
   test('a pattern says who can see it and how often it has been built', async () => {

@@ -3,9 +3,11 @@
  *
  * A short dialog that lists only where the server would accept this build
  * (`moveDestinations`, the client mirror of ADR-037): a pilot or mech into any
- * Game you are in, or out of one; a crawler only into a Game you run, or back
- * out of it. Out of a Game reads "Not in a Game", because in the Training Bay a unit in
- * a Game is still in your Training Bay — the move only changes where it plays.
+ * Game you are in, or out of one; a crawler only into a Game you run, where it
+ * becomes the crew's and leaves your Training Bay (C13; its Game's page in Play
+ * moves it back out). Out of a Game reads "Not in a Game", because in the
+ * Training Bay a pilot or mech in a Game is still in your Training Bay — the
+ * move only changes where it plays.
  *
  * Picking a destination closes the dialog and hands the move to `requestMove`,
  * which asks first when it should (always out of a Game; into one only when it
@@ -29,7 +31,7 @@ import { useUnits } from '../../replica/units'
 import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
 
-/** What "out of a Game" is called in the Training Bay, as its Showing select names it. */
+/** What "out of a Game" is called in the Training Bay. */
 const NOT_IN_A_GAME = 'Not in a Game'
 
 const BODY = {

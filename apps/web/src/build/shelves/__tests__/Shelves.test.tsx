@@ -1,5 +1,5 @@
 /**
- * Shelves — the paths `Roster.test.tsx` leaves open: the Showing toggle, the
+ * Shelves — the paths `Roster.test.tsx` leaves open: only your own units, the
  * Disconnected page that offers no writes, exporting a unit (and saying when
  * the download failed), the pattern shelf's verbs (open, copy, export,
  * delete, and "+ From a mech"), the personal encounter tray on the NPC shelf,
@@ -22,6 +22,7 @@ import {
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
+import { gameScope, serve } from '../../../replica/replica'
 import { holdSharedByLink } from '../../../replica/sharedByLink'
 import type { SyncState } from '../../../replica/syncContext'
 import { serveTableState } from '../../../replica/tableState'
@@ -53,7 +54,10 @@ const ROOK = pilotFixture({ id: 'p-rook', name: 'Rook', gameId: 'g1' })
 const IRON_JAW = mechFixture({ id: 'm-jaw', name: 'Iron Jaw', chassisRef: 'titan', gameId: null })
 
 const BULWARK = crawlerFixture({ id: 'c-bulwark', name: 'Bulwark', gameId: null })
-const TABLE_CRAWLER = crawlerFixture({ id: 'c-table', name: 'Table Crawler', gameId: 'g1' })
+// Another Game's room serves these: none of them is yours.
+const TABLE_CRAWLER = crawlerFixture({ id: 'c-table', name: 'Table Crawler', gameId: 'g2' })
+const CREWMATE = pilotFixture({ id: 'p-mate', name: 'Crewmate Pilot', gameId: 'g2' })
+const SPARE = mechFixture({ id: 'm-spare', name: 'Spare Mech', chassisRef: 'titan', gameId: 'g2' })
 
 const PATTERN: MechPattern = {
   id: 'pat-1',
@@ -123,7 +127,16 @@ beforeEach(async () => {
   await store.adopt('pilot', ROOK)
   await store.adopt('mech', IRON_JAW)
   await store.adopt('crawler', BULWARK)
-  await store.adopt('crawler', TABLE_CRAWLER)
+  // The Game room's answer: a crewmate's pilot, an unassigned mech and the crew's crawler.
+  serve(
+    gameScope('g2'),
+    ['pilot', 'mech', 'crawler'],
+    [
+      { table: 'pilot', row: CREWMATE, version: 1, owner: 'someone-else' },
+      { table: 'mech', row: SPARE, version: 1, owner: null },
+      { table: 'crawler', row: TABLE_CRAWLER, version: 1, owner: null },
+    ]
+  )
   usePatterns.setState({ mechPatterns: [PATTERN], hydrated: true })
   useTray.setState({ encounterNpcs: [GRUNT], hydrated: true })
 })
@@ -187,46 +200,21 @@ async function downloadedJson(index = 0): Promise<Record<string, unknown>> {
 
 // --- tests -----------------------------------------------------------------
 
-async function show(value: string) {
-  await act(async () => {
-    fireEvent.change(screen.getByLabelText('Showing'), { target: { value } })
-  })
-}
-
-describe('Showing', () => {
-  test('Not in a Game hides what is in one, and says why a Training Bay is empty', async () => {
+describe('only what is yours', () => {
+  test('lists your units, in a Game or not, and none of a Game’s that are not yours', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText('Rook')).toBeTruthy()
-    expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
-
-    await show('not-in-game')
-    expect((screen.getByLabelText('Showing') as HTMLSelectElement).value).toBe('not-in-game')
-    expect(within(pilots).queryByText('Rook')).toBeNull()
     expect(within(pilots).getByText('Nia Vale')).toBeTruthy()
-    // The personal tray is in no Game to filter by: it shows under Everything only.
-    expect(screen.queryByText(/Tray Grunt/)).toBeNull()
-  })
-
-  test('a Training Bay whose every unit is in a Game says so', async () => {
-    await useUnits.getState().forget('pilot', 'p-nia')
-    await renderShelves()
-    await show('not-in-game')
-    expect(screen.getByText('Every pilot is in a Game.')).toBeTruthy()
-  })
-
-  test('a Game’s entry shows its units alone', async () => {
-    await renderShelves()
-    await show('game:g1')
-    const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Rook')).toBeTruthy()
-    expect(within(pilots).queryByText('Nia Vale')).toBeNull()
+    expect(within(pilots).queryByText('Crewmate Pilot')).toBeNull()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByText('Spare Mech')).toBeNull()
+    expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
   })
 
-  test('Disconnected, with no Games to name, it offers Everything and Not in a Game', async () => {
-    await renderShelves('offline')
-    const select = screen.getByLabelText('Showing') as HTMLSelectElement
-    expect([...select.options].map((o) => o.textContent)).toEqual(['Everything', 'Not in a Game'])
+  test('has no Showing filter: a unit’s Game is its tag', async () => {
+    await renderShelves()
+    expect(screen.queryByLabelText('Showing')).toBeNull()
   })
 })
 
@@ -243,18 +231,17 @@ describe('a unit’s Game', () => {
 })
 
 describe('Crawlers', () => {
-  test('a Game’s crawler is in your Training Bay only where you run the table', async () => {
+  test('a Game’s crawler is the crew’s, never in your Training Bay, even where you run the table', async () => {
+    setQueryAnswers({
+      'games.listMine': [
+        { _id: 'g1', name: 'Tenacity', tableRunner: false },
+        { _id: 'g2', name: 'Long Haul', tableRunner: true },
+      ],
+    })
     await renderShelves()
     const crawlers = screen.getByRole('region', { name: 'Crawlers' })
     expect(within(crawlers).getByText('Bulwark')).toBeTruthy()
     expect(within(crawlers).queryByText('Table Crawler')).toBeNull()
-  })
-
-  test('as the table runner, the Game’s crawler is yours to keep', async () => {
-    setQueryAnswers({ 'games.listMine': [{ _id: 'g1', name: 'Tenacity', tableRunner: true }] })
-    await renderShelves()
-    const crawlers = screen.getByRole('region', { name: 'Crawlers' })
-    expect(within(crawlers).getByText('Table Crawler')).toBeTruthy()
   })
 })
 
@@ -316,6 +303,7 @@ describe('Patterns', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
     })
+    expect(screen.queryByRole('menuitem', { name: 'Spare Mech' })).toBeNull()
     await act(async () => {
       fireEvent.click(screen.getByRole('menuitem', { name: 'Iron Jaw' }))
     })

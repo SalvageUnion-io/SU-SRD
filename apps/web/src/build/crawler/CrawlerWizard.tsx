@@ -16,7 +16,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { toast, tokens } from '../../components/index'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
-import { useMechs, usePilots } from '../../lib/entities'
+import { useOwnUnits } from '../../lib/entities'
 import type { CrawlerWizardStepId } from '../../lib/rules/creation'
 import {
   clampCrawlerCreationDraft,
@@ -132,10 +132,10 @@ export function CrawlerWizard({
   const types = useMemo<RefCrawler[]>(() => SalvageUnionReference.Crawlers.all(), [])
 
   // Advisory prelude context (step 0): a gentle count of the pilots
-  // and mechs saved here — surfaced in step 1's RuleBrief, NEVER a blocker
+  // and mechs of yours saved here — surfaced in step 1's RuleBrief, NEVER a blocker
   // (the whole table's state can't be verified).
-  const pilotCount = usePilots().length
-  const mechCount = useMechs().length
+  const pilotCount = useOwnUnits('pilot').length
+  const mechCount = useOwnUnits('mech').length
 
   // The session draft (`useWizardDraft`): the deterministic clamp (§5.3)
   // drops illegal types/weapons, then clamps weapons NEWEST-first to the
