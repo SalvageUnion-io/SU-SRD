@@ -52,6 +52,23 @@ describe('getPatternStaticPaths', () => {
     expect(paths).toHaveLength(expected)
   })
 
+  it('emits no page for a hidden pattern', () => {
+    // No record is hidden today, so the test hides one for the call.
+    const patterns = mule().patterns as unknown as Array<Record<string, unknown>>
+    const first = patterns[0]
+    if (!first) throw new Error('Mule has no pattern')
+    patterns.push({ ...first, name: 'Ghost', hidden: true })
+    try {
+      const generated = getPatternStaticPaths().map(
+        (p) => `${p.params.itemId}/${p.params.patternId}`
+      )
+      expect(generated).toContain(`mule/${srdPatternHref(mule(), first).split('/').at(-2)}`)
+      expect(generated).not.toContain('mule/ghost')
+    } finally {
+      patterns.pop()
+    }
+  })
+
   it("nests every page under its host's schema", () => {
     expect(new Set(paths.map((p) => p.params.schemaId))).toEqual(new Set(['chassis', 'bio-titans']))
   })
