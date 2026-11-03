@@ -60,7 +60,7 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { gauge, pool } from '../../lib/units/crewPair'
-import { VITAL } from '../../lib/units/readings'
+import { techLevelReading, VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
@@ -165,11 +165,19 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const seatOf = new Map<string, SeatRow>(seats?.rows.map((seat) => [seat.key, seat]) ?? [])
   const crawlerOf = new Map((listing?.crawlers ?? []).map((c) => [c._id as string, readCrawler(c)]))
 
-  /** A row's readings and linked units: a pilot's seat (HP, its mech), a crawler's vitals. */
+  /**
+   * A row's readings and linked units: a pilot's seat (HP, its mech), a
+   * crawler's vitals, a mech's Tech Level; an assigned mech or crawler always
+   * shows its TL.
+   */
   function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'> {
     if (row.kind === 'crawler') {
       const reading = crawlerOf.get(row.serverId)
       return reading ? { readings: crawlerVitals(reading) } : {}
+    }
+    if (row.kind === 'mech') {
+      const tl = vitals?.mechs.find((m) => m._id === row.serverId)?.techLevel
+      return tl == null ? {} : { readings: techLevelReading(tl) }
     }
     if (row.kind !== 'pilot') return {}
     const seat = seatOf.get(row.serverId)
@@ -196,6 +204,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 href: mechHref ?? undefined,
                 readings: mechLive
                   ? [
+                      ...techLevelReading(mechLive.techLevel),
                       ...pool(VITAL.sp, mechLive.currentSP, mechLive.maxSP),
                       ...pool(VITAL.ep, mechLive.currentEP, mechLive.maxEP),
                       ...gauge(VITAL.heat, mechLive.currentHeat, mechLive.maxHeat),

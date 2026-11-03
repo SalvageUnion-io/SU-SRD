@@ -2,12 +2,13 @@ import { describe, expect, test } from 'bun:test'
 import { mechMaxima, pilotMaxima } from 'game-domain/rules/crewStatus'
 import { MechSchema } from 'game-domain/schemas/mech'
 import { PilotSchema } from 'game-domain/schemas/pilot'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { seedShelf } from '../account/__tests__/seedShelf'
 import { AccountRoomLogic } from '../account/accountRoomLogic'
-import { AT, bodies, PLAYER, stubApplyOp } from '../game/__tests__/harness'
+import { AT, bodies, MEDIATOR, PLAYER, stubApplyOp, table } from '../game/__tests__/harness'
 import { migrate } from '../migrate'
 import { ACCOUNT_ROOM } from '../schemas'
-import { unitVitals } from '../vitals'
+import { crewVitals, loadCrewReference, unitVitals } from '../vitals'
 import { bunSql } from './bunSql'
 
 /** A Shelf holding pilot p1, ejected and boarded in mech m1 which they fly, and crawler c1. */
@@ -64,5 +65,25 @@ describe('unitVitals', () => {
     const store = shelf()
     expect(await unitVitals(store, 'c1')).toBeNull()
     expect(await unitVitals(store, 'nope')).toBeNull()
+  })
+})
+
+describe('crewVitals', () => {
+  test('a mech carries its chassis’s Tech Level', async () => {
+    await loadCrewReference()
+    const { room } = table()
+    const mech = (id: string, chassisRef: string) =>
+      room.units.create(MEDIATOR, {
+        id,
+        kind: 'mech',
+        body: { ...bodies.mech(id), chassisRef },
+        at: AT,
+      })
+    mech('m1', 'mule')
+    // A chassis the reference does not hold has none to show.
+    mech('m2', 'nope')
+    const tl = (resolveChassisRef('mule') as { techLevel?: number } | null)?.techLevel
+    expect(tl).toBeNumber()
+    expect(crewVitals(room.store).mechs.map((m) => m.techLevel)).toEqual([tl as number, null])
   })
 })

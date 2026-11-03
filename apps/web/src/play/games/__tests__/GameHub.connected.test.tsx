@@ -318,9 +318,9 @@ describe('the seats, on the Pilots rows', () => {
       // The server's derived maxima; an absent current HP is full.
       'crew.vitals': {
         viewerId: 'u1',
-        mechs: [],
+        mechs: [{ _id: 'm1', linkId: 'a-m1', techLevel: 2 }],
         pilots: [
-          { _id: 'p1', currentHP: 4, maxHP: 10 },
+          { _id: 'p1', currentHP: 4, maxHP: 10, mechId: 'a-m1' },
           { _id: 'p2', currentHP: null, maxHP: 8 },
         ],
       },
@@ -333,6 +333,8 @@ describe('the seats, on the Pilots rows', () => {
     expect(text).toContain('HP4/10')
     expect(text).not.toContain('MechSpectrum')
     expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')
+    // An assigned mech always shows its Tech Level.
+    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('TL2')
     // A piloted mech rides its pilot's row only, never a row of its own.
     expect(pilots.querySelectorAll('[data-entity-linked]')).toHaveLength(1)
     expect(text.split('Spectrum')).toHaveLength(2)

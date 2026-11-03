@@ -8,10 +8,11 @@
  */
 
 import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
+import { parseCrawlerTechLevel } from 'salvageunion-reference/rules'
 import type { LinkedUnit } from '../components/entity/LinkedUnits'
 import type { PairSide } from '../lib/units/crewPair'
 import { crewPair, gauge, pool } from '../lib/units/crewPair'
-import { VITAL } from '../lib/units/readings'
+import { techLevelReading, VITAL } from '../lib/units/readings'
 import { playCopy } from '../messages/play'
 import type { CrewVitals } from './useGameFeed'
 
@@ -135,6 +136,7 @@ export type CrewSources = {
     | 'maxEP'
     | 'currentHeat'
     | 'maxHeat'
+    | 'techLevel'
   >[]
 }
 
@@ -158,6 +160,7 @@ export function pairedCrew(
     name: m.name,
     href: sheetPath('mech', m.linkId ?? m.appId ?? m._id),
     readings: [
+      ...techLevelReading(m.techLevel),
       ...pool(VITAL.sp, m.currentSP, m.maxSP),
       ...pool(VITAL.ep, m.currentEP, m.maxEP),
       ...gauge(VITAL.heat, m.currentHeat, m.maxHeat),
@@ -213,6 +216,9 @@ export function gameCrew(sources: CrewSources): LinkedUnit[] {
         kind: 'crawler',
         name: bodyText(c.body, 'name') ?? 'Crawler',
         href: sheetPath('crawler', c.appId ?? bodyText(c.body, 'id') ?? c._id),
+        readings: techLevelReading(
+          parseCrawlerTechLevel((c.body as Record<string, unknown> | null)?.techLevel)
+        ),
       })
     ),
     ...pairedCrew(sources).map((p) => p.unit),

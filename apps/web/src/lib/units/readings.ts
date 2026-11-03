@@ -2,11 +2,12 @@
  * A unit's vitals as `current/max` readings (`SP | 9/13`), built one way for
  * every surface: a sheet's Assigned units (`rowStats`), the Training Bay, the
  * Play hub and a Game's roster (`pool`, `gauge`). Labels are the reference
- * vocabulary's short names (`STAT_LABELS`); AP has none there.
+ * vocabulary's short names (`STAT_LABELS`); AP has none there. An assigned
+ * mech or crawler leads with its Tech Level (`techLevelReading`).
  */
 
 import { STAT_LABELS } from 'salvageunion-reference'
-import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { resolveChassisRef, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { UnitReading } from './unitModel'
 
 /** The vitals' printed short names. */
@@ -44,4 +45,18 @@ export function pool(label: string, current: number | null, max: number | null):
 export function gauge(label: string, current: number | null, max: number | null): VitalReading[] {
   if (max === null) return []
   return [vitalReading(label, resolveGauge(current ?? undefined, max), max)]
+}
+
+/** A unit's Tech Level, `TL | 2`, its first reading; none when it is unknown. */
+export function techLevelReading(techLevel: number | null | undefined): UnitReading[] {
+  return typeof techLevel === 'number'
+    ? [{ label: 'TL', value: String(techLevel), chip: 'rank' }]
+    : []
+}
+
+/** A mech's Tech Level: its chassis's, or null for a chassis the reference does not hold. */
+export function chassisTechLevel(chassisRef: unknown): number | null {
+  if (typeof chassisRef !== 'string' || chassisRef === '') return null
+  const tl = (resolveChassisRef(chassisRef) as { techLevel?: unknown } | null)?.techLevel
+  return typeof tl === 'number' ? tl : null
 }
