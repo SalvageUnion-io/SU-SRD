@@ -1,6 +1,5 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
-import { GameLedger } from './ledger'
 import { GameLog } from './log'
 import { GameOpposition } from './opposition'
 import { GamePlay } from './play'
@@ -26,7 +25,6 @@ export class GameRoomLogic {
   readonly opposition: GameOpposition
   readonly transit: GameTransit
   readonly scene: GameScene
-  readonly ledger: GameLedger
   readonly safety: GameSafety
   readonly session: GameSession
   readonly log: GameLog
@@ -48,8 +46,7 @@ export class GameRoomLogic {
     this.opposition = new GameOpposition(store, newId)
     this.transit = new GameTransit(store, this.units, this.play)
     this.scene = new GameScene(store, this.units)
-    this.ledger = new GameLedger(store, this.units, this.play, newId)
-    this.safety = new GameSafety(store, newId)
+    this.safety = new GameSafety(store)
     this.session = new GameSession(store)
     this.log = new GameLog(store, newId)
   }

@@ -206,12 +206,4 @@ export const mediatorCopy = messages({
   hourReason: '{conditions}, hour {hour}',
   hourLine: '{label}: {said}.',
   hourAlert: 'Hour {hour} under {conditions}.',
-  dealIncome: 'Deal income',
-  dealScrap: '{deals} Scrap',
-  collect: 'Collect',
-  collected: 'Collected',
-  incomeIsCollectedInThe: 'Deal income is collected in the {upkeepStepName} step',
-  collectedInto: 'Collected {scrap} Tech {tl} Scrap into {crawler}.',
-  incomeAlreadyCollected: 'Deal income is already collected this Downtime.',
-  theCrawler: 'the crawler',
 })

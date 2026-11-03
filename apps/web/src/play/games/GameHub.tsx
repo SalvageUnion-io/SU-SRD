@@ -15,13 +15,11 @@
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
  *     about building (ADR-052 §3: Play only plays). Then the proposals
- *     awaiting their answer. **The Mediator:** Proposals you sent. Then
- *     the Factions and Jobs (`GameLedger`), every member's to read and the
- *     Mediator's to write.
+ *     awaiting their answer. **The Mediator:** Proposals you sent.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head) and The Game's Hand over, which the
  *     server refuses anyone else (`requireOrganizer`). **Every member**
- *     again: Safety (`GameSafety`: the boundaries and the Stop Sign, whose
+ *     again: Safety (`GameSafety`: the Stop Sign, whose
  *     banner heads the page while it is up).
  *
  * Moving between Games is Play's, and joining one is an invite link
@@ -55,7 +53,6 @@ import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
 import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
-import { GameLedger } from './GameLedger'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
 import { GAME_BODY, HUB_COLUMN, HUB_COLUMN_MIN, HUB_COLUMNS } from './hubStyles.model'
@@ -125,7 +122,6 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
-          <GameLedger gameId={gameId} mediator={game.mediator} />
         </div>
         <div className="su-hub-column" style={HUB_COLUMN}>
           {/* The invite URL is administrative, so only the Organizer sees it

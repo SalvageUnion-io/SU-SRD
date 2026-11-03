@@ -341,12 +341,11 @@ describe('a Game room’s socket', () => {
 
   test('an act is answered to its sender, and every socket hears the Game change', () => {
     const { room, org, player } = seated()
-    const boundary = { kind: 'offCamera', text: 'Spiders' }
-    room.webSocketMessage(player as never, act('a-1', 'safety.addBoundary', boundary))
+    room.webSocketMessage(player as never, act('a-1', 'safety.showStop'))
     expect(received(player).map((m) => m.type)).toEqual(['snapshot', 'answered'])
     expect(received(player).at(-1)).toMatchObject({ type: 'answered', id: 'a-1' })
     expect(received(org)).toMatchObject([
-      { type: 'snapshot', records: { boundaries: [{ body: { text: 'Spiders', mine: false } }] } },
+      { type: 'snapshot', records: { safety: [{ body: { stop: { mine: false } } }] } },
     ])
   })
 

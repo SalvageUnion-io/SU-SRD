@@ -35,7 +35,7 @@ import type { QueryAnswers } from '../../../components/__tests__/serverMock'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { answerActs, closeRooms, openRooms, serveReads } from '../../../replica/__tests__/fakeRooms'
 
-/** Every Games call (`games:destroy`) and act on the Game's room (`ledger.setFaction`), in order. */
+/** Every Games call (`games:destroy`) and act on the Game's room (`safety.showStop`), in order. */
 const mutations: { name: string; args: unknown }[] = []
 /** Every `router.navigate(opts)` the hub made. */
 const navigations: unknown[] = []
@@ -135,11 +135,9 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'ops.pending': [],
     'downtime.state': { running: false, stepIndex: null, completedBy: [], upkeepSpent: false },
     'mediator.amMediator': false,
-    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
     'ops.sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games.listMine': [],
-    'safety.boundaries': [],
     'safety.stopSign': { stop: null, mayLift: false, mayManage: false, postToChannel: false },
     ...over,
   }
@@ -644,64 +642,6 @@ describe('Play from the Game page', () => {
   })
 })
 
-describe('Factions and Jobs', () => {
-  const LEDGER = {
-    factions: [{ id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true }],
-    jobs: [
-      { id: 'j1', name: 'Weapon Retrieval', factionId: 'f1', pay: 30, payTl: 3, state: 'open' },
-      { id: 'j2', name: 'Recruitment Drive', factionId: null, pay: 20, payTl: 1, state: 'done' },
-    ],
-    incomeCollected: false,
-  }
-
-  test('every member reads them: a faction’s standing and deal, a job’s faction and pay', async () => {
-    await renderHub({ 'ledger.get': LEDGER })
-
-    const factions = screen.getByRole('list', { name: 'Factions' })
-    expect(within(factions).getByText('Stefanus')).toBeTruthy()
-    expect(within(factions).getByText('Friendly')).toBeTruthy()
-    expect(within(factions).getByText('Deal')).toBeTruthy()
-    const jobs = screen.getByRole('list', { name: 'Jobs' })
-    expect(within(jobs).getByText('30 × T3')).toBeTruthy()
-    expect(within(jobs).getByText('Done')).toBeTruthy()
-    // A player writes none of it.
-    expect(screen.queryByRole('button', { name: 'Finish' })).toBeNull()
-    expect(screen.queryByRole('textbox', { name: 'New faction name' })).toBeNull()
-  })
-
-  test('the Mediator adds a faction, neutral and with no deal', async () => {
-    await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ledger.get': LEDGER })
-
-    fireEvent.change(screen.getByRole('textbox', { name: 'New faction name' }), {
-      target: { value: 'DronTek' },
-    })
-    await act(async () => {
-      fireEvent.click(screen.getAllByRole('button', { name: 'Add' })[0] as HTMLElement)
-    })
-    const added = mutations.find((m) => m.name === 'ledger.setFaction')
-    expect(added?.args).toMatchObject({
-      faction: { name: 'DronTek', standing: 'neutral', deal: false },
-    })
-  })
-
-  test('Finish asks first, then pays the open job once, on the server', async () => {
-    await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ledger.get': LEDGER })
-
-    // Only the open job offers it.
-    expect(screen.getAllByRole('button', { name: 'Finish' })).toHaveLength(1)
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Finish' }))
-    })
-    const dialog = screen.getByRole('alertdialog')
-    expect(within(dialog).getByText('It pays 30 Tech 3 Scrap into the crawler, once.')).toBeTruthy()
-    expect(mutations.some((m) => m.name === 'ledger.completeJob')).toBe(false)
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Finish' }))
-    })
-    expect(mutations.find((m) => m.name === 'ledger.completeJob')?.args).toEqual({ id: 'j1' })
-  })
-})
-
 describe('Safety (Core Book pp.12-13)', () => {
   /** The hub as `GamePage` mounts it: connected, so the Stop Sign is read. */
   async function renderConnected(over: QueryAnswers): Promise<void> {
@@ -719,22 +659,6 @@ describe('Safety (Core Book pp.12-13)', () => {
       )
     })
   }
-
-  test('both lists, each boundary without a name, and × only on what you may take off', async () => {
-    await renderHub({
-      'safety.boundaries': [
-        { _id: 'b1', kind: 'outOfBounds', text: 'Graphic torture', mayRemove: true },
-        { _id: 'b2', kind: 'offCamera', text: 'Gore', mayRemove: false },
-      ],
-    })
-    expect(heading('Safety')).not.toBeNull()
-    const outOfBounds = screen.getByRole('list', { name: 'Out of Bounds' })
-    expect(outOfBounds.textContent).toContain('Graphic torture')
-    expect(screen.getByRole('list', { name: 'Off Camera' }).textContent).toContain('Gore')
-    expect(screen.queryByRole('button', { name: 'Take off Graphic torture' })).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'Take off Gore' })).toBeNull()
-    expect(screen.getByRole('textbox', { name: 'Add to Out of Bounds' })).not.toBeNull()
-  })
 
   test('the Discord opt-in is the table runner’s alone', async () => {
     await renderHub()
@@ -774,26 +698,14 @@ describe('Safety (Core Book pp.12-13)', () => {
     ).toBe('true')
   })
 
-  test('every write is one call: add, take off, show, resume, opt in', async () => {
+  test('every write is one call: resume, opt in', async () => {
     await renderConnected({
-      'safety.boundaries': [{ _id: 'b1', kind: 'outOfBounds', text: 'Spiders', mayRemove: true }],
       'safety.stopSign': {
         stop: { shownAt: 1, mine: true },
         mayLift: true,
         mayManage: true,
         postToChannel: false,
       },
-    })
-    const field = screen.getByRole('textbox', { name: 'Add to Off Camera' })
-    await act(async () => {
-      fireEvent.change(field, { target: { value: 'Gore' } })
-    })
-    await act(async () => {
-      fireEvent.submit(field.closest('form') as HTMLFormElement)
-    })
-    expect((field as HTMLInputElement).value).toBe('')
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Take off Spiders' }))
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Resume play' }))
@@ -802,8 +714,6 @@ describe('Safety (Core Book pp.12-13)', () => {
       fireEvent.click(screen.getByRole('switch', { name: 'Post it to the Discord channel' }))
     })
     expect(mutations).toEqual([
-      { name: 'safety.addBoundary', args: { kind: 'offCamera', text: 'Gore' } },
-      { name: 'safety.removeBoundary', args: { boundaryId: 'b1' } },
       { name: 'safety.liftStop', args: {} },
       { name: 'safety.setPostToChannel', args: { on: true } },
     ])

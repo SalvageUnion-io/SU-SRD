@@ -149,7 +149,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'mediator.npcs': TRAY,
     'mediator.amMediator': true,
     'mediator.patterns': [],
-    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
     'mediator.running': RUNNING,
     'salvageAreas.here': null,
     'ops.sent': [],

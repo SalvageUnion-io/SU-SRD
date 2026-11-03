@@ -44,7 +44,6 @@ const postRoll = mock(async (_args: unknown) => ({
 function answerAct({ name }: { name: string }): unknown {
   if (name === 'mediator.runEncounter') return { added: 1 }
   if (name === 'scenes.passHour') return 3
-  if (name === 'ledger.collectIncome') return { scrap: 2, tl: 2, crawlerName: 'Tenacity' }
   return name === 'downtime.claim' ? true : null
 }
 
@@ -183,7 +182,6 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'mediator.npcs': NPCS,
     'mediator.amMediator': true,
     'mediator.patterns': [],
-    'ledger.get': { factions: [], jobs: [], incomeCollected: false },
     'mediator.running': null,
     'salvageAreas.here': null,
     'ops.sent': [SENT_PROPOSAL],
@@ -773,45 +771,6 @@ describe('Downtime', () => {
     await renderCockpit(downtimeAt(UPKEEP_STEP, true))
     expect(screen.queryByRole('button', { name: 'Pay' })).toBeNull()
     expect(screen.getByText('Paid')).toBeTruthy()
-  })
-
-  /** A ledger with two signed deals, collected this Downtime or not. */
-  const dealsLedger = (incomeCollected: boolean): QueryAnswers => ({
-    'ledger.get': {
-      factions: [
-        { id: 'f1', name: 'Stefanus', standing: 'friendly', deal: true },
-        { id: 'f2', name: 'Vornaya', standing: 'neutral', deal: true },
-        { id: 'f3', name: 'DronTek', standing: 'hostile', deal: false },
-      ],
-      jobs: [],
-      incomeCollected,
-    },
-  })
-
-  test('with no deal there is no Deal income line', async () => {
-    await renderCockpit(downtimeAt(UPKEEP_STEP))
-    expect(screen.queryByText('Deal income')).toBeNull()
-  })
-
-  test('Deal income is a Scrap per deal, collected in Upkeep & Upgrade on the server', async () => {
-    await renderCockpit({ ...downtimeAt(0), ...dealsLedger(false) })
-    expect(screen.getByText('2 Scrap')).toBeTruthy()
-    expect((named('Collect') as HTMLButtonElement).disabled).toBe(true)
-  })
-
-  test('in Upkeep & Upgrade, Collect pays it and says what it came to', async () => {
-    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(false) })
-    await click(named('Collect'))
-    await waitFor(() =>
-      expect(screen.getByText('Collected 2 Tech 2 Scrap into Tenacity.')).toBeTruthy()
-    )
-    expect(names()).toEqual(['ledger.collectIncome'])
-  })
-
-  test('collected, it says so', async () => {
-    await renderCockpit({ ...downtimeAt(UPKEEP_STEP), ...dealsLedger(true) })
-    expect(screen.queryByRole('button', { name: 'Collect' })).toBeNull()
-    expect(screen.getByText('Collected')).toBeTruthy()
   })
 
   test('with a Nanite Processing Bay, Process Nanites runs in the Craft step', async () => {

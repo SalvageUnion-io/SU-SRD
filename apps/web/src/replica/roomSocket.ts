@@ -9,7 +9,7 @@
  *    newer than the one held (`serve`).
  *  - `gone` and `recordGone` take the room's claim off one row.
  *  - `links` serves the room's whole link set.
- *  - The Scene, salvage area, ledger, boundaries, Stop Sign, Opposition and
+ *  - The Scene, salvage area, Stop Sign, Opposition and
  *    running-encounter records go to `tableState.ts` instead.
  *
  * Framework-free: `RoomFeed` mounts the sockets (`openRoom`).
@@ -43,8 +43,6 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   mediator: null,
   scene: null,
   salvageArea: null,
-  ledger: null,
-  boundaries: null,
   safety: null,
   session: null,
   game: null,

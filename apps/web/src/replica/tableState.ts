@@ -1,7 +1,6 @@
 /**
  * What a table plays under, as its room serves it (`rooms/protocol.ts`): the
- * Scene, the area being salvaged, the ledger, the boundaries and the Stop
- * Sign; the table in play: the roster, the seats, the Downtime, the
+ * Scene, the area being salvaged and the Stop Sign; the table in play: the roster, the seats, the Downtime, the
  * proposals, the rolls and alerts and the crew's vitals; for its Mediator only, the
  * Opposition tray and the encounter being run; and, from the account room, who
  * may read each saved pattern. Each record is per reader (who showed the Stop Sign never leaves the
@@ -19,8 +18,6 @@ import type { Scope } from './replica'
 const STATE_TABLES = [
   'scene',
   'salvageArea',
-  'ledger',
-  'boundaries',
   'safety',
   'session',
   'game',
@@ -42,7 +39,6 @@ export type StateTable = (typeof STATE_TABLES)[number]
 const ONE_ROW: ReadonlySet<StateTable> = new Set([
   'scene',
   'salvageArea',
-  'ledger',
   'safety',
   'session',
   'game',
@@ -102,8 +98,7 @@ export function forgetTableState(scope?: Scope): void {
 
 /**
  * The table as its read answers: undefined before the scope's
- * snapshot, then the one record or null, or every record (a boundary with
- * its id as `_id`; the Opposition, `{ _id, body }` per NPC as
+ * snapshot, then the one record or null, or every record (the Opposition, `{ _id, body }` per NPC as
  * `mediator.npcs` answered; sharing, each pattern's with its id as `appId`).
  * Stable between changes, for `useSyncExternalStore`.
  */
@@ -117,13 +112,11 @@ export function readTableState(scope: Scope, table: StateTable): unknown {
       : ONE_ROW.has(table)
         ? ([...rows.values()][0] ?? null)
         : [...rows].map(([id, body]) =>
-            table === 'boundaries'
-              ? { ...body, _id: id }
-              : table === 'opposition'
-                ? { _id: id, body }
-                : table === 'sharing'
-                  ? { ...body, appId: id }
-                  : body
+            table === 'opposition'
+              ? { _id: id, body }
+              : table === 'sharing'
+                ? { ...body, appId: id }
+                : body
           )
   answers.set(key, answer)
   return answer
