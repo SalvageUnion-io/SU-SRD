@@ -1,6 +1,6 @@
 /**
  * PilotIdentityPanel — the pilot poster's IDENTITY card body: the poster's
- * labeled fields — Name / Callsign / Class / Appearance
+ * labeled fields — Class (leading the card, in Edit) / Name / Callsign / Appearance
  * (left) and Motto / Keepsake / Background with their once-per-Downtime USED
  * toggles on the right, plus a folded-in Bio field (the Bio's home: the sheet
  * has no Bio section) — rendered via the
@@ -10,7 +10,8 @@
  * `SheetHero` panel's action row owns the section's Edit/Done button, so this
  * panel is CONTROLLED via the `editing` prop rather than owning its own toggle
  * state. Class is
- * picker-backed — its edit affordance opens the ONE shared picker modal
+ * picker-backed — its "Change Class" button, at the head of the card in Edit
+ * (hard rule R57), opens the ONE shared picker modal
  * (changing class KEEPS abilities).
  *
  * Its body is `ClassPathPicker`, NOT the shared `EntitySearcher` that every
@@ -82,6 +83,26 @@ const BIO = {
   flex: '1 1 0%',
   flexDirection: 'column',
   minHeight: 0,
+} satisfies CSSProperties
+
+/** Edit's leading Class row: the class's name, and the button that changes it. */
+const CLASS_ROW = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
+  justifyContent: 'space-between',
+  width: '100%',
+} satisfies CSSProperties
+
+/** The class's name, at a prominent field's rung (`Field`'s `prominent`). */
+const CLASS_NAME = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.title,
+  lineHeight: 1.5,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
 } satisfies CSSProperties
 
 const PICKER_ACTIONS = {
@@ -221,6 +242,24 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
     // vitals card beside it, so the panel spends that height on its fields
     // (the Bio grows into whatever is left) instead of leaving dead paper.
     <div style={PANEL}>
+      {/* Class leads the card in Edit (R57): what the pilot is built as, the
+          one identity fact that is not typed but chosen, said as a named
+          button the reader can find on a phone without scrolling past the
+          photo. Read leaves it to the band's stamp. */}
+      {canEdit && (
+        <Field
+          label={buildSheetCopy('class')}
+          value={resolveClassName(pilot.classRef)}
+          readValue={
+            <div style={CLASS_ROW}>
+              <span style={CLASS_NAME}>{resolveClassName(pilot.classRef)}</span>
+              <Button size="compact" onClick={openClassPicker}>
+                {buildSheetCopy('changeClass')}
+              </Button>
+            </div>
+          }
+        />
+      )}
       {/* In Edit the picture sits beside the field grid only; Appearance
           and the Bio run the card's full width under both, so no empty column
           stands under the photo. Read's fields are
@@ -265,34 +304,21 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
         >
           {leftColumn && (
             <div style={FIELD_COLUMN}>
-              {/* Callsign and Class lead TOGETHER, at the same prominence: what a
-                pilot is called and what they do are the two facts you identify
-                them by. Name lives here too, in Edit: this is the pilot's name edit
-                surface (the band's title mirrors it).
+              {/* Callsign leads, prominent: what a pilot is called. Name lives
+                here too, in Edit: this is the pilot's name edit surface (the
+                band's title mirrors it). Class is not here: in Edit it leads the
+                whole card, above the photo (R57).
 
-                Read prints only what the band does not: its eyebrow stamps the
-                class and its title is the name, so Class goes, and Callsign goes
-                when it is the name. Repeating them straight under the band read
-                as a subtitle saying the title twice. */}
-              {(canEdit || showCallsign) && (
-                <div className="su-sheet-pilot-split" style={FIELD_GRID}>
-                  {showCallsign && (
-                    <Field
-                      label={buildSheetCopy('callsign')}
-                      value={pilot.callsign}
-                      onSave={canEdit ? saveRequired('callsign') : undefined}
-                      prominent
-                    />
-                  )}
-                  {canEdit && (
-                    <Field
-                      label={buildSheetCopy('class')}
-                      value={resolveClassName(pilot.classRef)}
-                      onEditClick={openClassPicker}
-                      prominent
-                    />
-                  )}
-                </div>
+                Read prints only what the band does not: its title is the name,
+                so Callsign goes when it is the name. Repeating it straight under
+                the band read as a subtitle saying the title twice. */}
+              {showCallsign && (
+                <Field
+                  label={buildSheetCopy('callsign')}
+                  value={pilot.callsign}
+                  onSave={canEdit ? saveRequired('callsign') : undefined}
+                  prominent
+                />
               )}
               {/* Read omits the name: it is the band's title. */}
               {canEdit && (
