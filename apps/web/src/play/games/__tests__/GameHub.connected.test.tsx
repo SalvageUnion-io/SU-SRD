@@ -330,6 +330,9 @@ describe('the seats, on the Pilots rows', () => {
     expect(text).toContain('HP4/10')
     expect(text).not.toContain('MechSpectrum')
     expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')
+    // A piloted mech rides its pilot's row only, never a row of its own.
+    expect(pilots.querySelectorAll('[data-entity-linked]')).toHaveLength(1)
+    expect(text.split('Spectrum')).toHaveLength(2)
     expect(text).toContain('HP8/8')
     // The count is the label-first chip, `SEATS | 1/2`.
     expect(within(pilots).getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')

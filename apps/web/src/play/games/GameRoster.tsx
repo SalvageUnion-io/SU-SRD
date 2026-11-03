@@ -15,8 +15,9 @@
  * ## One list, the crawler first
  *
  * The crawler (★ Primary first), then the pilots, each with its seat (its HP)
- * and the mech assigned to it as a linked Mini, then the mechs, each its own
- * row so an unassigned one can be picked up. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
+ * and the mech assigned to it as a linked Mini, then the mechs no pilot flies,
+ * each its own row so an unassigned one can be picked up; a piloted mech rides
+ * its pilot's row only. Yours lead each kind; a seal says whose a row is (`OwnerSeal`),
  * an UNASSIGNED seal assigning it to you. The head counts the seats.
  *
  * ## What stays here
@@ -51,6 +52,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import {
+  bodyIdOf,
   crawlerRows,
   groupColumn,
   ownableRows,
@@ -134,9 +136,13 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     members: roster,
     localIds: new Set(localPilots.map((p) => p.id)),
   })
+  // A piloted mech rides its pilot's row (`rowChips`), so only the rest get one.
+  const piloted = new Set(
+    (listing?.softLinks ?? []).flatMap((l) => (l.type === 'mech-to-pilot' ? [l.from.id] : []))
+  )
   const mechs = ownableRows({
     kind: 'mech',
-    rows: listing?.mechs ?? [],
+    rows: (listing?.mechs ?? []).filter((m) => !piloted.has(m.appId ?? bodyIdOf(m.body) ?? '')),
     viewerId,
     members: roster,
     localIds: new Set(localMechs.map((m) => m.id)),
