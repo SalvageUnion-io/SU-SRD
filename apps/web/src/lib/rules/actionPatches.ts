@@ -21,7 +21,13 @@ import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
-import type { RefAbility, RefEquipment, RefMetaAction, RefMetaEntity } from 'salvageunion-reference'
+import type {
+  ChoiceSelections,
+  RefAbility,
+  RefMetaAction,
+  RefMetaEntity,
+  RefObjectChoice,
+} from 'salvageunion-reference'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
 import type {
   CoreRollBand,
@@ -260,6 +266,12 @@ export type PlayAction = {
   action: RefMetaAction
   /** Live condition of the owning item ('intact' for chassis/pilot abilities). */
   condition: ItemCondition
+  /**
+   * A carried item's choices and the player's picks on them (a Custom Sniper
+   * Rifle's Weapon Type and Modifications), which change its action's Range,
+   * Damage and traits. Absent for an item with no choices.
+   */
+  choices?: { from: RefObjectChoice[]; selections: ChoiceSelections }
 }
 
 function entityActions(entity: RefMetaEntity): RefMetaAction[] {
@@ -355,11 +367,21 @@ export function isAreaSalvage(action: RefMetaAction): boolean {
 export function buildPilotActions(pilot: Pilot): PlayAction[] {
   const out: PlayAction[] = []
   const owned = pilot.abilities ?? []
+  const carried = (pilot.equipment ?? []).flatMap((slug) => {
+    const equip = resolveEquipment(slug)
+    return equip ? [{ slug, equip }] : []
+  })
+  // An action a carried item states is that item's line: an ability that grants
+  // the item (Custom Sniper Rifle) does not deal it a second time.
+  const carriedActionIds = new Set(
+    carried.flatMap(({ equip }) => deckActions(equip).flatMap((a) => (a.id ? [a.id] : [])))
+  )
 
   for (const slug of [...owned, ...INTRINSIC_ABILITIES.filter((s) => !owned.includes(s))]) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
     deckActions(ability).forEach((action, i) => {
+      if (action.id && carriedActionIds.has(action.id)) return
       out.push({
         key: `ability:${slug}:${action.id ?? i}`,
         name: action.name,
@@ -375,10 +397,13 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
     })
   }
 
-  for (const slug of pilot.equipment ?? []) {
-    const equip: RefEquipment | null = resolveEquipment(slug)
-    if (!equip) continue
+  for (const { slug, equip } of carried) {
     const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
+    const itemChoices = equip.choices ?? []
+    const choices =
+      itemChoices.length > 0
+        ? { from: itemChoices, selections: pilot.equipmentChoices?.[slug] ?? {} }
+        : undefined
     deckActions(equip).forEach((action, i) => {
       out.push({
         key: `equipment:${slug}:${action.id ?? i}`,
@@ -391,6 +416,8 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
         economy: actionEconomy(action),
         action,
         condition,
+        // Only its self-action (named as the item) is the item the choices change.
+        ...(choices && action.name === equip.name ? { choices } : {}),
       })
     })
   }
