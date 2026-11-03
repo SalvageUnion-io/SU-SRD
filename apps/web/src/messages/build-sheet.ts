@@ -182,6 +182,8 @@ export const buildSheetCopy = messages({
   modules: 'Modules',
   manageModules: 'Manage Modules',
   partners: 'Partners',
+  companion: 'Companion',
+  companions: 'Companions',
   addSystems: 'Add Systems',
   installed: 'Installed',
   noSystemsMatchThoseFilters: 'No systems match those filters.',

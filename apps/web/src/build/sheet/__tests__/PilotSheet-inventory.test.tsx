@@ -295,7 +295,8 @@ describe('PilotSheet — inventory readOnly', () => {
 /**
  * A pilot equips N items at will. SOME of those grant a partner (Survey Drone,
  * Mecha Companion, Auto-Turret); the rest are ordinary gear. Both kinds live in
- * the same `equipment[]` and both occupy inventory slots.
+ * the same `equipment[]`; all but the uncarried Mecha Companion occupy
+ * inventory slots.
  *
  * ADR-028 renders a granting slug AS its partner: the grant and the granted
  * thing are one entry to the player, so one card, not two. The distinction that
@@ -326,6 +327,28 @@ describe('PilotSheet — a partner-granting slug renders as its partner', () => 
     expect(screen.getAllByText(/First Aid Kit/i).length).toBeGreaterThan(0)
     // The partner renders under its OWN name, titleOverride-style.
     expect(screen.getAllByText(/Custos/i).length).toBeGreaterThan(0)
+  })
+
+  test('a Mecha Companion lives in the Companion section, not Inventory', async () => {
+    const pilot = makePilot({
+      equipment: ['mecha-companion'],
+      partners: [
+        {
+          id: 'p-rex',
+          hostRef: 'mecha-companion',
+          hostSchema: 'equipment',
+          name: 'Rex',
+          systems: [],
+          modules: [],
+          conditions: [],
+        },
+      ],
+    })
+    render(<PilotSheet pilot={pilot} store={makeEntityStoreMock() as unknown as UnitsStore} />)
+    await expandCards()
+
+    expect(screen.getAllByText(/^Companion$/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Rex/i).length).toBeGreaterThan(0)
   })
 
   test('granting equipment still costs its inventory slot', () => {
