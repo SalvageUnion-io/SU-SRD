@@ -9,7 +9,8 @@ import type { Finding } from './_findings'
  *   band's corner holds the sheet's actions, and on a sheet the viewer may
  *   write the band offers Read | Edit.
  * - `hero` — the body opens on `SheetHero` (`.su-sheet-hero`), its vitals the
- *   one stack (`.su-sheet-vitals`).
+ *   one stack (`.su-sheet-vitals`): in the opening, or from the 64rem rung
+ *   heading the sidebar (`.su-sheet-aside-vitals`).
  * - `vitals` — every gauge in the opening but a Mini's own is a `SheetVitalGauge`
  *   (`[data-vital]`), captioned in full words from the one map
  *   (`SHEET_VITAL_WORDS`, kept equal to `sheetVitals.model.ts` by
@@ -24,7 +25,7 @@ import type { Finding } from './_findings'
  *   hold (`[data-storage-side]`) is in it, none of its sections folds (an
  *   entity's own sections, a bay's Bay Info, fold as R46 says), and it is
  *   under the opening: from the 64rem rung a column beside the main column
- *   (its top the main column's, its left past the main column's right), else
+ *   (its top the opening's, its left past the main column's right), else
  *   stacked straight under the opening and over the main column. A sheet that
  *   carries nothing (an NPC) has none.
  */
@@ -36,7 +37,6 @@ export const SHEET_VITAL_WORDS: Record<string, string> = {
   sp: 'Structure Points',
   ep: 'Energy Points',
   heat: 'Heat Capacity',
-  upgrade: 'Upgrade Pool',
 }
 
 /** What an empty section says when Edit could fill it; Read leaves the section out. */
@@ -97,16 +97,21 @@ export function scanSheetGrammar({
 
   const hero = body.querySelector('.su-sheet-hero')
   if (!hero) found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
-  const vitals = hero?.querySelector('.su-sheet-vitals')
+  // From the 64rem rung a sheet with a sidebar draws its vitals at its head.
+  const asideVitals = body.querySelector<HTMLElement>('.su-sheet-aside-vitals')
+  const vitalsHome = [hero, asideVitals].filter((el): el is Element => el !== null)
+  const vitals = vitalsHome.some((el) => el.querySelector('.su-sheet-vitals'))
   if (hero && !vitals) found.push({ rule: 'hero', detail: `${kind}: no vitals stack` })
-  for (const pip of hero?.querySelectorAll('[data-pip]') ?? []) {
+  const inVitals = (selector: string) =>
+    vitalsHome.flatMap((el) => [...el.querySelectorAll<HTMLElement>(selector)])
+  for (const pip of inVitals('[data-pip]')) {
     // A Mini's own gauge (a crew lead's HP cells, R46) is the entity's, not a sheet vital.
     if (!pip.closest('[data-vital]') && !pip.closest('.su-entity-mini')) {
       found.push({ rule: 'vitals', detail: `${kind}: a gauge that is no SheetVitalGauge` })
       break
     }
   }
-  for (const v of hero?.querySelectorAll<HTMLElement>('[data-vital]') ?? []) {
+  for (const v of inVitals('[data-vital]')) {
     const key = v.dataset.vital ?? ''
     const full = words[key]
     const text = (v.textContent ?? '').replace(/\s+/g, ' ')
@@ -143,13 +148,14 @@ export function scanSheetGrammar({
       found.push({ rule: 'aside', detail: `${kind}: the sidebar is collapsed` })
     } else if (!opening) {
       found.push({ rule: 'aside', detail: `${kind}: no opening over the sidebar` })
-    } else if (side.top < opening.bottom - 1) {
-      found.push({ rule: 'aside', detail: `${kind}: the sidebar is not under the opening` })
     } else if (window.matchMedia('(width >= 64rem)').matches && mainBox) {
-      // Page width: a column beside the main column, from its top.
-      if (Math.abs(side.top - mainBox.top) > 1 || side.left < mainBox.right - 1) {
+      // Page width: a column beside the opening and the main column, from the
+      // opening's top, its vitals at its head.
+      if (Math.abs(side.top - opening.top) > 1 || side.left < mainBox.right - 1) {
         found.push({ rule: 'aside', detail: `${kind}: the sidebar is not beside the sheet` })
       }
+    } else if (side.top < opening.bottom - 1) {
+      found.push({ rule: 'aside', detail: `${kind}: the sidebar is not under the opening` })
     } else if (
       Math.abs(side.left - opening.left) > 1 ||
       (mainBox && mainBox.top < side.bottom - 1)

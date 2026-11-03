@@ -122,6 +122,20 @@ export function CatalogChoiceListing({
       entities = []
     }
   }
+  // R60: a made choice reads as made. Read draws the pick as its Mini, with
+  // no Show options (Read has no controls).
+  if (chosen && !insidePeek) {
+    let picked: RefMetaEntity | undefined
+    try {
+      picked = resolveCatalogChoiceEntities(
+        choice,
+        typeof techLevel === 'number' ? { techLevel } : undefined
+      ).find((e) => (e as { name?: string }).name === chosen)
+    } catch {
+      picked = undefined
+    }
+    if (picked) return <EntityMiniList entities={[picked]} label={choice.name} />
+  }
   const label = chosen ? `${choice.name}: ${chosen}` : choice.name
   return (
     <Stack gap={6}>

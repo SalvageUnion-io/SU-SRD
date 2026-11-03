@@ -13,7 +13,7 @@ import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import { pilotingContext } from 'game-domain/rules/pilotingContext'
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
-import { CONDITION_LABELS } from 'salvageunion-reference'
+import { CONDITION_LABELS, STAT_LABELS } from 'salvageunion-reference'
 import {
   mechMaxCargo,
   mechMaxEP,
@@ -23,6 +23,7 @@ import {
   resolveGauge,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { Stat } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { assignedRail } from './assignedRail'
 import { mechStamp } from './bandStamps.model'
@@ -104,6 +105,7 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
+      rank={<MechBandRank chassisRef={mech.chassisRef} />}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {
@@ -126,5 +128,25 @@ export function MechLiveSheet({
         />
       )}
     />
+  )
+}
+
+/**
+ * The chassis's Tech Level and Salvage Value on the band (C2's rank), as a
+ * crawler's TL rides its band: the two chassis facts nothing else on the
+ * sheet says.
+ */
+function MechBandRank({ chassisRef }: { chassisRef: string }) {
+  const chassis = resolveChassisRef(chassisRef)
+  if (!chassis) return null
+  return (
+    <>
+      {typeof chassis.techLevel === 'number' && (
+        <Stat label={buildSheetCopy('tl')} value={chassis.techLevel} />
+      )}
+      {typeof chassis.salvageValue === 'number' && (
+        <Stat label={STAT_LABELS.salvageValue.short} value={chassis.salvageValue} />
+      )}
+    </>
   )
 }

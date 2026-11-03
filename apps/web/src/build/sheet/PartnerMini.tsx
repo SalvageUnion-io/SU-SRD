@@ -32,7 +32,10 @@ export function PartnerMini(props: PartnerCardProps & { found: PartnerWithHost }
       <Entity
         size="mini"
         context="inventory"
-        entity={statBlock}
+        // Its TL chip is the partner's Tech Level (its crawler's), not the host
+        // equipment's printed one: the model applies an instance's Tech Level
+        // only to an entry that scales, and a companion's printed TL does not.
+        entity={{ ...statBlock, techLevel: partnerTechLevel(partner, crawlerTechLevel) }}
         instance={{ title: name, techLevel: partnerTechLevel(partner, crawlerTechLevel) }}
         mode={{ kind: 'link' }}
         body={{}}

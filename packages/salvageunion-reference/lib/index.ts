@@ -242,6 +242,7 @@ export {
   facetCells,
   formatActionType,
   formatCost,
+  MEASURED_KEYWORD_SHORT,
 } from './view/parts/traits'
 export { entityRef, glossaryRef, toEntityModel } from './view/toEntityModel'
 export type {

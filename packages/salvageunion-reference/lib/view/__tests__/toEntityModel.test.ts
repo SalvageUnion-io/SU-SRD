@@ -336,10 +336,10 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
     model.traits.find((t) => t.name === label)?.param
   const traitNames = (model: ReturnType<typeof toEntityModel>) => model.traits.map((t) => t.name)
 
-  test('bare, it is the book: TL1, 2SP, Long', () => {
+  test('bare, it is the book: TL1, 2 SP, Long', () => {
     const model = toEntityModel(sniper)
     expect(fact(model, 'Tech Level')).toBe('1')
-    expect(fact(model, 'Damage')).toBe('2SP')
+    expect(fact(model, 'Damage')).toBe('2 SP')
     expect(fact(model, 'Range')).toBe('Long')
   })
 
@@ -347,7 +347,7 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
     const model = toEntityModel(sniper, { selections, techLevel: 3 })
     expect(fact(model, 'Tech Level')).toBe('3')
     // 2 SP, +1 per Tech Level after the first (Workshop Manual p.50), +1 High Calibre.
-    expect(fact(model, 'Damage')).toBe('5SP')
+    expect(fact(model, 'Damage')).toBe('5 SP')
     expect(fact(model, 'Range')).toBe('Far')
     expect(traitNames(model)).toEqual(expect.arrayContaining(['Energy', 'Silent']))
   })
@@ -355,7 +355,7 @@ describe('toEntityModel — a player copy with picks and a host Tech Level', () 
   test('its self-action takes the item choices it is handed', () => {
     const choices = need(getChoices(sniper), 'Custom Sniper Rifle choices')
     const model = toEntityModel(action, { selections, techLevel: 2 }, { choices })
-    expect(fact(model, 'Damage')).toBe('4SP')
+    expect(fact(model, 'Damage')).toBe('4 SP')
     expect(fact(model, 'Range')).toBe('Far')
     expect(traitNames(model)).toEqual(expect.arrayContaining(['Energy', 'Silent']))
   })

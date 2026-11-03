@@ -84,7 +84,7 @@ import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
-import { SheetHero } from './SheetHero'
+import { HeroMore, SheetHero } from './SheetHero'
 import { SheetPickerModal } from './SheetPickerModal'
 import { StorageManifest } from './StorageManifest'
 
@@ -344,16 +344,18 @@ export function MechSheet({
                       }
                     />
                   </div>
-                  <MechHeroChassis
-                    stats={model.chassisStats}
-                    abilities={model.chassisAbilities}
-                    chassisModder={model.chassisModder}
-                    onModChassis={
-                      readOnly
-                        ? undefined
-                        : (slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })
-                    }
-                  />
+                  {/* On a phone the chassis ability follows the Vitals (§1.10). */}
+                  <HeroMore>
+                    <MechHeroChassis
+                      abilities={model.chassisAbilities}
+                      chassisModder={model.chassisModder}
+                      onModChassis={
+                        readOnly
+                          ? undefined
+                          : (slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })
+                      }
+                    />
+                  </HeroMore>
                 </div>
               </PhotoBeside>
             }

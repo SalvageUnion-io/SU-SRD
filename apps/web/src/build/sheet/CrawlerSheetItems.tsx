@@ -257,20 +257,23 @@ export function CrawlerBayCard({
             text: false,
             children: (
               <>
-                <BayInfo subject={bay.name} fold={infoFold} size="mini">
-                  <Content body={normal as ComponentProps<typeof Content>['body']} />
-                </BayInfo>
-                {/* Bay Info and When Damaged first, then everything else (R46). */}
-                {damagedText && (
-                  <WhenDamaged
-                    key={condition}
-                    effect={damagedText}
-                    subject={bay.name}
-                    // Its When Damaged folds in the sidebar too (R46).
-                    fold={damaged ? 'open' : 'closed'}
-                    size="mini"
-                  />
-                )}
+                {/* Bay Info and When Damaged share one line, two folds side by side. */}
+                <div className="su-bay-folds">
+                  <BayInfo subject={bay.name} fold={infoFold} size="mini">
+                    <Content body={normal as ComponentProps<typeof Content>['body']} />
+                  </BayInfo>
+                  {/* Bay Info and When Damaged first, then everything else (R46). */}
+                  {damagedText && (
+                    <WhenDamaged
+                      key={condition}
+                      effect={damagedText}
+                      subject={bay.name}
+                      // Its When Damaged folds in the sidebar too (R46).
+                      fold={damaged ? 'open' : 'closed'}
+                      size="mini"
+                    />
+                  )}
+                </div>
                 <EntityChoices
                   entity={bay}
                   selections={selections}
@@ -307,12 +310,13 @@ export function CrawlerBayCard({
           >
             {functionLabel}
           </Button>
-          <Button
-            size="mini"
-            variant="ink"
-            title={
-              damaged
-                ? repairShortfall > 0
+          {/* Repair shows only on a damaged bay: an intact one has nothing to repair. */}
+          {damaged && (
+            <Button
+              size="mini"
+              variant="ink"
+              title={
+                repairShortfall > 0
                   ? buildSheetCopy('costsScrapTechOrHigher', {
                       bayRepairCost: BAY_REPAIR_COST,
                       crawlerTl,
@@ -322,13 +326,12 @@ export function CrawlerBayCard({
                       bayRepairCost: BAY_REPAIR_COST,
                       crawlerTl,
                     })
-                : buildSheetCopy('isIntactNothingToRepair', { name: bay.name })
-            }
-            disabled={!damaged}
-            onClick={() => onRepair(entry, index)}
-          >
-            {buildSheetCopy('repair')}
-          </Button>
+              }
+              onClick={() => onRepair(entry, index)}
+            >
+              {buildSheetCopy('repair')}
+            </Button>
+          )}
         </>
       }
     />

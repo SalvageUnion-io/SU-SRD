@@ -56,7 +56,8 @@
 /* Fields beside a 260px vitals column once the SHEET (its `@container`) is
    wide enough; stacked below that. */
 .su-sheet-hero {
-  gap: var(--space-24);
+  align-items: start;
+  gap: var(--space-16);
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
@@ -71,7 +72,6 @@
 .su-sheet-hero-fields {
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .su-sheet-hero-fields-body {
@@ -141,7 +141,8 @@
 .su-sheet-mech-hero-split > :first-child > * {
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: flex-start;
+  gap: var(--space-12);
 }
 
 .su-sheet-mech-hero-split > :first-child > * {

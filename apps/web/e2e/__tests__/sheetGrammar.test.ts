@@ -187,19 +187,19 @@ describe('the sidebar', () => {
     }).map((f) => `${f.rule}: ${f.detail}`)
   }
 
-  test('at page width it is a column beside the main column, under the opening', () => {
+  test('at page width it is a column beside the opening and the main column, from the top', () => {
     wide(true)
     const html = sheet({ body: columns(CARRIED) })
     const hero = {
-      '.su-sheet-columns__hero': [0, 0, 1276, 400],
+      '.su-sheet-columns__hero': [0, 0, 900, 400],
       '.su-sheet-columns__main': [0, 424, 900, 800],
     }
-    expect(laidOut(html, { ...hero, '[data-sheet-aside]': [924, 424, 352, 600] })).toEqual([])
+    expect(laidOut(html, { ...hero, '[data-sheet-aside]': [924, 0, 352, 600] })).toEqual([])
     expect(laidOut(html, { ...hero, '[data-sheet-aside]': [0, 1248, 900, 300] })).toEqual([
       'aside: pilot: the sidebar is not beside the sheet',
     ])
-    expect(laidOut(html, { ...hero, '[data-sheet-aside]': [924, 0, 352, 600] })).toEqual([
-      'aside: pilot: the sidebar is not under the opening',
+    expect(laidOut(html, { ...hero, '[data-sheet-aside]': [924, 424, 352, 600] })).toEqual([
+      'aside: pilot: the sidebar is not beside the sheet',
     ])
   })
 
@@ -234,7 +234,7 @@ describe('the sidebar', () => {
       laidOut(sheet({ body: columns(folding) }), {
         '.su-sheet-columns__hero': [0, 0, 900, 400],
         '.su-sheet-columns__main': [0, 424, 900, 800],
-        '[data-sheet-aside]': [924, 424, 352, 600],
+        '[data-sheet-aside]': [924, 0, 352, 600],
       })
     ).toEqual(['aside: pilot: a section in the sidebar folds'])
   })
@@ -246,7 +246,7 @@ describe('the sidebar', () => {
       laidOut(sheet({ body: columns(bay) }), {
         '.su-sheet-columns__hero': [0, 0, 900, 400],
         '.su-sheet-columns__main': [0, 424, 900, 800],
-        '[data-sheet-aside]': [924, 424, 352, 600],
+        '[data-sheet-aside]': [924, 0, 352, 600],
       })
     ).toEqual([])
   })
@@ -258,7 +258,7 @@ describe('the sidebar', () => {
       laidOut(sheet({ body: outside, kind: 'mech' }), {
         '.su-sheet-columns__hero': [0, 0, 900, 400],
         '.su-sheet-columns__main': [0, 424, 900, 800],
-        '[data-sheet-aside]': [924, 424, 352, 600],
+        '[data-sheet-aside]': [924, 0, 352, 600],
       })
     ).toEqual(['aside: mech: carried things outside the sidebar (mech)'])
     expect(laidOut(sheet({ body: columns(null), kind: 'npc' }), {}, false)).toEqual([])
@@ -266,9 +266,9 @@ describe('the sidebar', () => {
       laidOut(
         sheet({ body: columns('<p>Kit</p>'), kind: 'npc' }),
         {
-          '.su-sheet-columns__hero': [0, 0, 1276, 400],
+          '.su-sheet-columns__hero': [0, 0, 900, 400],
           '.su-sheet-columns__main': [0, 424, 900, 800],
-          '[data-sheet-aside]': [924, 424, 352, 600],
+          '[data-sheet-aside]': [924, 0, 352, 600],
         },
         false
       )

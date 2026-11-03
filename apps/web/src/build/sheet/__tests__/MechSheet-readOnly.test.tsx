@@ -155,34 +155,19 @@ describe('MechSheet — readOnly', () => {
   })
 })
 
-describe('MechSheet — the Chassis stats', () => {
-  test("print in the hero's top-right corner, in the official sheet's words and the stat order", () => {
-    // A real chassis, so every figure resolves from the reference data.
+describe('MechSheet — no chassis stat column (C10)', () => {
+  test("the opening prints no stat column: its facts are the band's, the gauges' and the Slabs'", () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
     )
-    const text = container.querySelector('ul[aria-label="Chassis stats"]')?.textContent ?? ''
-    // The machine's figures, in the stat order every surface keeps: capacities,
-    // not what is in use (the Systems and Modules counts and The Hold say that).
-    const pairs = [
-      'Tech Level 1',
-      'Salvage Value 10',
-      'Structure Points 17',
-      'Energy Points 11',
-      'System Slots 7',
-      'Module Slots 4',
-      'Heat Capacity 3',
-      'Cargo Capacity 6',
-    ]
-    const at = pairs.map((pair) => text.indexOf(pair.replace(/ (\d+)$/, '$1')))
-    expect(at.every((index) => index >= 0)).toBe(true)
-    expect([...at].sort((x, y) => x - y)).toEqual(at)
+    expect(container.querySelector('ul[aria-label="Chassis stats"]')).toBeNull()
+    expect(container.textContent).not.toContain('Salvage Value')
   })
 })
 
 describe('MechSheet — the hero and the Chassis card', () => {
-  test('the hero is image | text | stats + ability; the chassis callout leads the sidebar', () => {
+  test('the hero is image | text | ability; the chassis callout leads the sidebar', () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
@@ -192,9 +177,8 @@ describe('MechSheet — the hero and the Chassis card', () => {
     expect(hero).not.toBeNull()
     expect(card).not.toBeNull()
     // The hero: the player's photo (the chassis art until changed), what they
-    // wrote, then the chassis stats and the chassis ability as a library Compact.
+    // wrote, then the chassis ability as a library Compact.
     expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
-    expect(hero?.querySelector('ul[aria-label="Chassis stats"]')).not.toBeNull()
     const ability = hero?.querySelector('ul[aria-label="Chassis ability"] li')
     expect(ability?.textContent).toContain('Data Scanner')
     // Read leaves the pattern name out: it is the band's title.
@@ -205,10 +189,10 @@ describe('MechSheet — the hero and the Chassis card', () => {
     // beside its name.
     const aside = container.querySelector('[data-sheet-aside]')
     expect(hero?.contains(card ?? null)).toBe(false)
-    expect(aside?.firstElementChild).toBe(card)
+    // (After the slot the Vitals take from the 64rem rung.)
+    expect(aside?.querySelector(':scope > :not(.su-sheet-aside-vitals)')).toBe(card)
     expect(card?.querySelector('[data-chip-group]')?.textContent).toMatch(/chassis/i)
     expect(card?.querySelector('img')).not.toBeNull()
-    expect(card?.querySelector('ul[aria-label="Chassis stats"]')).toBeNull()
     expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
   })
 

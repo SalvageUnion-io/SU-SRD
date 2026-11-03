@@ -11,12 +11,13 @@ import type { GenericInventoryEntry } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
-import { extractVisibleActions } from 'salvageunion-reference'
+import { extractVisibleActions, toEntityModel } from 'salvageunion-reference'
 import type { ChoiceSelections } from '../../components/index'
 import {
   AdderBox,
   AdderField,
   Button,
+  Cluster,
   Content,
   Entity,
   EntityDetailDialog,
@@ -187,6 +188,11 @@ type PilotEquipmentItemProps = {
   scalingParent: Record<string, unknown> | undefined
   /** Injectable store — forwarded to useEntityChoices for tests. */
   store: UnitsStore
+  /**
+   * An ability grants it and prints its rules (R48), so here it is only what
+   * is this pilot's: its head, its picks and its Uses (R59).
+   */
+  granted?: boolean
 }
 
 /**
@@ -198,6 +204,7 @@ type PilotEquipmentItemProps = {
  */
 export function PilotEquipmentItem({
   slug,
+  granted = false,
   pilotId,
   seedSelections,
   condition,
@@ -237,6 +244,17 @@ export function PilotEquipmentItem({
     )
   }
 
+  // The player's picks and the crawler's Tech Level change its Range, Damage
+  // and traits (a Custom Sniper Rifle), as its Details card does.
+  const instance = {
+    condition,
+    selections,
+    ...(typeof scalingParent?.techLevel === 'number' ? { techLevel: scalingParent.techLevel } : {}),
+  }
+  // Every pick, named as one (R60): the options a player took read as taken.
+  const chosen = Object.values(selections ?? {})
+    .flat()
+    .filter((v): v is string => typeof v === 'string')
   const maxUses = equipmentMaxUses(equipment)
   const uses = maxUses !== null ? (usesLeft ?? maxUses) : null
 
@@ -264,18 +282,22 @@ export function PilotEquipmentItem({
     <Entity
       size="mini"
       context="inventory"
-      entity={equipment}
-      // The player's picks and the crawler's Tech Level change its Range,
-      // Damage and traits (a Custom Sniper Rifle), as its Details card does.
-      instance={{
-        condition,
-        selections,
-        ...(typeof scalingParent?.techLevel === 'number'
-          ? { techLevel: scalingParent.techLevel }
-          : {}),
-      }}
+      // R59: in Edit the live Uses slot says Uses, so the trait does not.
+      {...(!readOnly && maxUses !== null
+        ? { model: withoutUsesTrait(equipment, instance) }
+        : { entity: equipment })}
+      instance={instance}
       mode={{ kind: 'link' }}
-      body={{}}
+      body={{
+        ...(granted ? { text: false } : {}),
+        children: chosen.length > 0 && (
+          <Cluster gap={4}>
+            {chosen.map((name) => (
+              <Stat key={name} label={buildSheetCopy('chosen')} value={name} size="mini" />
+            ))}
+          </Cluster>
+        ),
+      }}
     />
   )
   // Only an item with choices opens its card under the line: its choices are
@@ -470,3 +492,12 @@ export function GenericEntryAdder({ onAdd }: GenericEntryAdderProps) {
 // Injuries have no slab on the pilot sheet body (the poster has none).
 // `Injury`/`injuries` and the max-HP derivation that reads them stay live in
 // lib/rules/derivedStats.ts.
+
+/** The equipment's model less its Uses trait (the live Uses slot says it, R59). */
+function withoutUsesTrait(
+  equipment: Parameters<typeof toEntityModel>[0],
+  instance: Parameters<typeof toEntityModel>[1]
+) {
+  const model = toEntityModel(equipment, instance)
+  return { ...model, traits: model.traits.filter((t) => t.name.toLowerCase() !== 'uses') }
+}

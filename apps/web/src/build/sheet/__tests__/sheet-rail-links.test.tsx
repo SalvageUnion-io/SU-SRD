@@ -8,7 +8,7 @@
  *   2. Entity-not-found — an id absent from the store renders the styled
  *      "{kind} not found" surface with a "Back to Shelves" exit link.
  *   3. Rail unassign availability — per the unified edit language the linked
- *      row's Unassign control is always available on editable sheets and
+ *      row's Unassign (in its ⋯, R62) is always available on editable sheets and
  *      never rendered on read-only (snapshot) sheets. It is "Unassign", not
  *      the trash Delete: it removes the link and leaves the entity alone.
  *   4. Every slot can be assigned and changed from its own sheet (ADR-037):
@@ -19,7 +19,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { SoftLink } from 'game-domain/schemas/softLink'
 import { hydrateStores } from '../../../components/__tests__/hydrateStores'
 import {
@@ -190,8 +190,12 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
 
     // The trash glyph means "destroy this mech" everywhere else it appears.
     expect(screen.queryByRole('button', { name: /^Delete Iron Fist$/i })).toBeNull()
+    // R62: Unassign rides the unit Mini's ⋯.
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Unassign Iron Fist$/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^Iron Fist actions$/i }))
+    })
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Unassign' }))
     })
 
     expect(deleteFn).toHaveBeenCalledTimes(1)
@@ -200,13 +204,13 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
 
   test('every filled slot can be unassigned: crew, bay, a mech’s pilot and crawler', () => {
     renderOver('crawler', 'crawler-1', [pilotToCrawler, mechToCrawler])
-    expect(screen.getByRole('button', { name: /^Unassign Yara Voss$/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /^Unassign Iron Fist$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Yara Voss actions$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Iron Fist actions$/i })).toBeTruthy()
     cleanup()
 
     renderOver('mech', 'mech-1', [mechToPilot, mechToCrawler])
-    expect(screen.getByRole('button', { name: /^Unassign Yara Voss$/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /^Unassign Iron Tortoise$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Yara Voss actions$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Iron Tortoise actions$/i })).toBeTruthy()
   })
 
   test('unassign is always available on an editable sheet, never on read-only', () => {
@@ -233,7 +237,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
 
     // Collection add/remove is ALWAYS available on editable sheets — no edit
     // mode gate (redesign archetype B).
-    expect(screen.getByRole('button', { name: /^Unassign Iron Fist$/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /^Iron Fist actions$/i })).toBeTruthy()
     unmount()
 
     // Read-only (snapshot) sheets never expose a write.
@@ -246,7 +250,7 @@ describe('Sheet — rail unassign availability (unified edit language)', () => {
         readOnly
       />
     )
-    expect(screen.queryByRole('button', { name: /^Unassign Iron Fist$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Iron Fist actions$/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Delete Iron Fist$/i })).toBeNull()
   })
 })
@@ -265,8 +269,9 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
     cleanup()
 
     renderOver('pilot', 'pilot-1', [mechToPilot, pilotToCrawler])
-    expect(button(/^Change mech for this pilot$/i)).toBeTruthy()
-    expect(button(/^Change crawler for this pilot$/i)).toBeTruthy()
+    // Filled, each changes from its Mini's ⋯ (R62).
+    expect(button(/^Iron Fist actions$/i)).toBeTruthy()
+    expect(button(/^Iron Tortoise actions$/i)).toBeTruthy()
     expect(button(/^Assign mech to pilot$/i)).toBeNull()
   })
 
@@ -279,12 +284,12 @@ describe('Sheet — every slot can be assigned from its own sheet (ADR-037)', ()
       screen.queryAllByRole('link').some((a) => a.getAttribute('href') === '/crawlers/crawler-1')
     ).toBe(false)
     expect(button(/^Assign crawler to mech$/i)).toBeTruthy()
-    expect(button(/^Change pilot for this mech$/i)).toBeTruthy()
+    expect(button(/^Yara Voss actions$/i)).toBeTruthy()
     cleanup()
 
     renderOver('mech', 'mech-1', [mechToCrawler])
     expect(linkTo('/crawlers/crawler-1')).toBeTruthy()
-    expect(button(/^Change crawler for this mech$/i)).toBeTruthy()
+    expect(button(/^Iron Tortoise actions$/i)).toBeTruthy()
     expect(button(/^Assign pilot to mech$/i)).toBeTruthy()
   })
 

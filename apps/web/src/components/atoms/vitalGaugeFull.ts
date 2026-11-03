@@ -31,11 +31,9 @@ export const STAMP = {
   fontSize: fontSize.caption,
   lineHeight: 1.5,
 } satisfies CSSProperties
+// The caption wraps between words, never ends in "…" (R11: full words).
 export const SUB_LABEL = {
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-  lineHeight: 1,
+  lineHeight: 1.1,
   color: color.wkMuted,
 } satisfies CSSProperties
 export const NUMERAL = {

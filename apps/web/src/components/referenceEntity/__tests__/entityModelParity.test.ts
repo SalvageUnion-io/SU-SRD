@@ -33,6 +33,7 @@ import {
   getTechLevel,
   isAbility,
   isTitanicAction,
+  MEASURED_KEYWORD_SHORT,
   plainTraitText,
   resolveGrantedEntities,
   resolveTable,
@@ -135,7 +136,7 @@ function pageMetaOf(model: EntityModel, relations: EntityRelation[] = []) {
       })),
     tags: model.traits.map((t) => ({
       key: `${t.schemaName}-${t.name}`,
-      name: t.name,
+      name: MEASURED_KEYWORD_SHORT[t.name] ?? t.name,
       ...(t.param !== undefined ? { param: t.param } : {}),
       ...(t.ref ? { ref: t.ref } : {}),
     })),

@@ -168,3 +168,33 @@
     height: var(--size-compact);
   }
 }
+
+/* The sidebar's top slot (`AsideVitalsSlot`): empty below the 64rem rung. From
+   it, the Vitals panel stands there, the sidebar runs the sheet's height beside
+   the opening and the main column, and the opening is its fields alone. */
+.su-sheet-aside-vitals:empty {
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-sheet-columns[data-vitals-aside]:has(> .su-sheet-columns__main:not(:empty)) {
+    grid-template-areas: 'hero aside' 'main aside';
+    grid-template-rows: auto 1fr;
+  }
+
+  .su-sheet-columns[data-vitals-aside] .su-sheet-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* SheetHero on a phone: the panel under the Vitals that the opening's longer
+   fields portal into (`HeroMore`); gone while nothing does. */
+.su-sheet-hero-more:has(.su-sheet-hero-more-body:empty) {
+  display: none;
+}
+
+.su-sheet-hero-more-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}

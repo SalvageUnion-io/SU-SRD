@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, mock, test } from 'bun:test'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { AssignedUnits } from '../AssignedUnits'
 import { LinkedUnitLink } from '../LinkedUnitLink'
 
@@ -78,12 +78,31 @@ describe('AssignedUnits', () => {
     expect(container.textContent).toBe('')
   })
 
-  test('Edit: Unassign rides the Mini and takes the link off', () => {
+  test("Edit: R62 Change and Unassign ride the Mini's ⋯; Unassign takes the link off", async () => {
     const onUnassign = mock(() => undefined)
+    const change = mock(({ open }: { open: boolean }) => (open ? <p>Change picker open</p> : null))
     render(
-      <AssignedUnits editable units={[{ key: 'p1', kind: 'pilot', name: 'Bonesaw', onUnassign }]} />
+      <AssignedUnits
+        editable
+        units={[{ key: 'p1', kind: 'pilot', name: 'Bonesaw', onUnassign, change }]}
+      />
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Unassign Bonesaw' }))
+    // No button of its own on the head but the ⋯ (R37: the head stays one line).
+    expect(screen.queryByRole('button', { name: /^Unassign/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Change/ })).toBeNull()
+    const menuFor = async () => {
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: 'Bonesaw actions' }))
+      })
+      return screen.getByRole('menu')
+    }
+    await act(async () => {
+      fireEvent.click(within(await menuFor()).getByRole('menuitem', { name: 'Change Pilot' }))
+    })
+    expect(screen.getByText('Change picker open')).toBeTruthy()
+    await act(async () => {
+      fireEvent.click(within(await menuFor()).getByRole('menuitem', { name: 'Unassign' }))
+    })
     expect(onUnassign).toHaveBeenCalledTimes(1)
   })
 })

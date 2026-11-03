@@ -317,7 +317,8 @@ export function PilotSheet({
                 )}
                 {/* The class, its header-only Mini under the stats, linking to
                     its Page (R49). */}
-                {pilotClass && (
+                {/* Read only: in Edit the R57 row is the class. */}
+                {pilotClass && readOnly && (
                   <div style={MIN_W_0}>
                     <Entity
                       size="mini"
@@ -374,6 +375,9 @@ export function PilotSheet({
                         <li key={slug}>
                           <PilotEquipmentItem
                             slug={slug}
+                            granted={
+                              model.granted.has(slug) || (pilot.abilities ?? []).includes(slug)
+                            }
                             pilotId={pilot.id}
                             seedSelections={pilot.equipmentChoices?.[slug]}
                             condition={pilot.equipmentConditions?.[slug] ?? 'intact'}

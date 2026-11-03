@@ -133,23 +133,27 @@ export function CrawlerLiveSheet({
           }
         : undefined,
     },
-    // Upgrade is NOT a flat readout: it FILLS toward a cap, which is what a
-    // gauge shows and a number cannot. It renders as one below the SP gauge —
-    // its Fund action still collects onto the Vitals card's head with the others.
-    ...(editable
-      ? [
+    // Upgrade is a counter toward its cap (§2.1, as Training Points), its Fund
+    // action with the others on the Vitals card's head.
+    ...(upgradeCost === null
+      ? []
+      : [
           {
             label: buildSheetCopy('upgrade'),
             value: crawler.upgradePool ?? 0,
-            actionOnly: true,
-            action: {
-              label: buildSheetCopy('fund'),
-              ariaLabel: buildSheetCopy('upgradeCrawler'),
-              onClick: () => setEconDialog('upgrade'),
-            },
+            max: upgradeCost,
+            ...(editable
+              ? {
+                  onChange: (v: number) => patch({ upgradePool: v }),
+                  action: {
+                    label: buildSheetCopy('fund'),
+                    ariaLabel: buildSheetCopy('upgradeCrawler'),
+                    onClick: () => setEconDialog('upgrade'),
+                  },
+                }
+              : {}),
           },
-        ]
-      : []),
+        ]),
     ...(trading.present
       ? [
           {
@@ -204,17 +208,6 @@ export function CrawlerLiveSheet({
           }
           readOnly={!editable}
         />
-      }
-      upgrade={
-        upgradeCost === null ? undefined : (
-          <SheetVitalGauge
-            vital="upgrade"
-            value={crawler.upgradePool ?? 0}
-            max={upgradeCost}
-            onChange={editable ? (v) => patch({ upgradePool: v }) : undefined}
-            readOnly={!editable}
-          />
-        )
       }
       items={econItems}
     />

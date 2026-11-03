@@ -46,7 +46,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, PickDialog } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
@@ -232,7 +232,15 @@ type AssignPickerProps = {
   /** Inject to avoid the Zustand global in tests. */
   store?: AssignPickerStore
   onAssigned?: () => void
+  /**
+   * Opened from elsewhere (a unit Mini's ⋯, R62): no trigger of its own, the
+   * dialog open while `open` is, `onClose` when it closes.
+   */
+  control?: PickerControl
 }
+
+/** A picker opened by another control: whether it is open, and how it closes. */
+export type PickerControl = { open: boolean; onClose: () => void }
 
 export function AssignPicker({
   subject,
@@ -243,8 +251,10 @@ export function AssignPicker({
   size = 'compact',
   store,
   onAssigned,
+  control,
 }: AssignPickerProps) {
-  const [open, setOpen] = useState(false)
+  const [ownOpen, setOwnOpen] = useState(false)
+  const open = control ? control.open : ownOpen
   const [selectedId, setSelectedId] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -281,11 +291,20 @@ export function AssignPicker({
   function openDialog() {
     setSelectedId('')
     setError(null)
-    setOpen(true)
+    setOwnOpen(true)
   }
 
+  // Opened from outside, it starts clean as its own trigger would.
+  const controlOpen = control?.open === true
+  useEffect(() => {
+    if (!controlOpen) return
+    setSelectedId('')
+    setError(null)
+  }, [controlOpen])
+
   function closeDialog() {
-    setOpen(false)
+    if (control) control.onClose()
+    else setOwnOpen(false)
     setError(null)
   }
 
@@ -299,7 +318,8 @@ export function AssignPicker({
     setError(null)
     try {
       await assignLink(from, to, store ?? useUnits.getState())
-      setOpen(false)
+      if (control) control.onClose()
+      else setOwnOpen(false)
       onAssigned?.()
     } catch (err) {
       setError(refusalCopy(err))
@@ -313,9 +333,11 @@ export function AssignPicker({
 
   return (
     <>
-      <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
-        {label}
-      </Button>
+      {!control && (
+        <Button size={size} onClick={openDialog} aria-label={ariaLabel}>
+          {label}
+        </Button>
+      )}
 
       <PickDialog
         open={open}

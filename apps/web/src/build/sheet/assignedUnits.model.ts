@@ -31,6 +31,7 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactNode } from 'react'
 import { chassisTechLevel, techLevelReading } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
+import type { PickerControl } from '../wiring/AssignPicker'
 import type { SheetComposition } from './composition.model'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from './railStats.model'
 import type { WithheldUnit } from './sheetViewProps.model'
@@ -53,8 +54,8 @@ export type AssignedUnit = {
   owner?: string | undefined
   /** On a crawler in Read, the mech this pilot flies: a MECH chip on their Mini. */
   flies?: string | undefined
-  /** Edit: Change, the picker that replaces it (before Unassign). */
-  change?: ReactNode
+  /** Edit: Change, the picker that replaces it, opened from the unit's ⋯ (R62). */
+  change?: (control: PickerControl) => ReactNode
   /** Edit: take the link off (never the unit). */
   onUnassign?: (() => void) | undefined
 }
@@ -85,7 +86,13 @@ export type AssignedSubject =
 /** The assign picker for one place: `AssignPicker` with this sheet as its subject. */
 export type PlacePicker = (
   pick: SheetKind,
-  options: { filled?: true; exclude?: readonly string[]; size?: 'mini' }
+  options: {
+    filled?: true
+    exclude?: readonly string[]
+    size?: 'mini'
+    /** Opened from the unit Mini's ⋯ (R62) rather than a trigger of its own. */
+    control?: PickerControl
+  }
 ) => ReactNode
 
 type LinkedEntity = Pilot | Mech | Crawler
@@ -224,7 +231,12 @@ export function assignedUnitsFor(args: {
         readings: readingsOf(kind, entity, subject, composition),
         href: args.hrefFor(kind, entity.id),
         owner: args.ownerOf?.(kind, entity.id)?.label,
-        ...(place.many ? {} : { change: picker(kind, { filled: true, exclude: [entity.id] }) }),
+        ...(place.many
+          ? {}
+          : {
+              change: (control: PickerControl) =>
+                picker(kind, { filled: true, exclude: [entity.id], control }),
+            }),
         onUnassign: unassignable ? () => args.unassign(link.id) : undefined,
       })
     }

@@ -18,7 +18,7 @@
  */
 
 import { afterEach, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
@@ -105,15 +105,15 @@ describe('CrawlerSheet — bay function/Repair actions', () => {
     restore?.()
   })
 
-  test('intact bay leads with its function action; Repair is disabled', async () => {
+  test('intact bay leads with its function action; Repair shows only on the damaged bay', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
 
-    // Mech Bay is intact: 'Dock' enabled, its Repair disabled.
+    // Mech Bay is intact: 'Dock' enabled, and nothing to repair, so no Repair.
     const dock = screen.getByRole('button', { name: 'Dock' })
     expect((dock as HTMLButtonElement).disabled).toBe(false)
     const repairs = screen.getAllByRole('button', { name: 'Repair' })
-    expect(repairs.length).toBe(2)
+    expect(repairs.length).toBe(1)
   })
 
   test('damaged bay disables its function action and promotes Repair', async () => {
@@ -342,8 +342,13 @@ describe('CrawlerSheet — Scrap Pool steppers', () => {
     const update = mock(async () => fakeCrawler)
     render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
 
-    // fakeCrawler.scrapPool = { tl2: 3, tl3: 4 } → step T2 up to 4. Each TL box
-    // labels its stepper `Increase T{n}`, so T2's increment is unique.
+    // fakeCrawler.scrapPool = { tl2: 3, tl3: 4 } → step T2 up to 4. The pool
+    // reads as counts until Adjust opens its steppers; each TL box labels its
+    // stepper `Increase T{n}`, so T2's increment is unique.
+    expect(screen.queryByRole('button', { name: /increase t2/i })).toBeNull()
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Adjust' }))
+    })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /increase t2/i }))
     })
@@ -376,6 +381,9 @@ describe('CrawlerSheet — Bio-Salvage and Nanites, expansion bays', () => {
     const update = mock(async () => fakeCrawler)
     render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />)
     await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Adjust' }))
+    })
+    await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /increase inert meld nanites/i }))
     })
     const call = update.mock.calls.at(-1) as [string, string, Record<string, unknown>] | undefined
@@ -398,10 +406,12 @@ describe('CrawlerSheet — Bio-Salvage and Nanites, expansion bays', () => {
     const { unmount } = render(
       <CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler, { update })} />
     )
+    // + Bay is a menu of the bays it can add.
     await act(async () => {
-      fireEvent.change(screen.getByRole('combobox', { name: 'Add an expansion bay' }), {
-        target: { value: 'nanite-processing-bay' },
-      })
+      fireEvent.click(screen.getByRole('button', { name: 'Add an expansion bay' }))
+    })
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole('menu')).getByRole('menuitem', { name: /nanite/i }))
     })
     const call = update.mock.calls.at(-1) as [string, string, Record<string, unknown>] | undefined
     expect(call?.[2]).toMatchObject({ crawlerBays: installed.crawlerBays })
@@ -412,7 +422,7 @@ describe('CrawlerSheet — Bio-Salvage and Nanites, expansion bays', () => {
       <CrawlerSheet crawler={installed} store={makeStubStore(installed, { update: removeSpy })} />
     )
     // Installed, it leaves the picker, and it alone offers Remove.
-    expect(screen.queryByRole('combobox', { name: 'Add an expansion bay' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Add an expansion bay' })).toBeNull()
     const removes = screen.getAllByRole('button', { name: /remove/i })
     expect(removes.length).toBe(1)
     await act(async () => {

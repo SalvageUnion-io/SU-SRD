@@ -11,3 +11,12 @@
     grid-template-columns: minmax(0, 1fr) 250px;
   }
 }
+
+/* CrawlerBayCard: a bay's Bay Info and When Damaged folds share one line,
+   stacking only where the bay is too narrow for both. */
+.su-bay-folds {
+  align-items: start;
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}

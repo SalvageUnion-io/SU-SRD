@@ -173,10 +173,39 @@ describe('PilotSheet — equipment choice cards', () => {
     const line = container.querySelector('[data-sheet-carried] li')
     const text = line?.textContent ?? ''
     // 2 SP + 1 per Tech Level after the first + 1 High Calibre = 5 SP.
-    expect(text).toContain('5SP')
+    expect(text).toContain('5 SP')
     expect(text).toContain('Far')
     expect(text).toContain('Energy')
     expect(text).not.toContain('Long')
+  })
+
+  test('R60: each pick reads as made, a CHOSEN chip naming it', () => {
+    const pilot = makePilot({
+      crawlerLevel: 3,
+      equipmentChoices: {
+        [SNIPER_ID]: {
+          [WEAPON_TYPE_CHOICE_ID]: ['Energy'],
+          [MODIFICATION_CHOICE_ID]: ['Rangefinder', 'High Calibre Rounds'],
+        },
+      },
+    })
+    const { store } = makePilotStubStore(pilot)
+    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const line = container.querySelector<HTMLElement>('[data-sheet-carried] li')
+    if (!line) throw new Error('no item line')
+    const chosen = [...line.querySelectorAll('.su-stat-cell')]
+      .map((cell) => cell.textContent ?? '')
+      .filter((text) => text.startsWith('Chosen'))
+    expect(chosen).toEqual(['ChosenEnergy', 'ChosenRangefinder', 'ChosenHigh Calibre Rounds'])
+  })
+
+  test('R59: gear an ability grants prints its rules once, under the ability', () => {
+    const pilot = makePilot({ abilities: ['custom-sniper-rifle'], equipment: [], crawlerLevel: 4 })
+    const { store } = makePilotStubStore(pilot)
+    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const line = container.querySelector('[data-sheet-carried] li')
+    expect(line?.textContent ?? '').toContain(SNIPER_NAME)
+    expect(line?.textContent ?? '').not.toContain('You acquire and train')
   })
 
   test('an item the ability grants is on the sheet, its picks saved, with no Remove of its own', async () => {
@@ -185,7 +214,7 @@ describe('PilotSheet — equipment choice cards', () => {
     const { container } = render(<PilotSheet pilot={pilot} store={store} />)
     const line = container.querySelector('[data-sheet-carried] li')
     expect(line?.textContent ?? '').toContain(SNIPER_NAME)
-    expect(line?.textContent ?? '').toContain('5SP')
+    expect(line?.textContent ?? '').toContain('5 SP')
     expect(
       screen.queryByRole('button', { name: new RegExp(`remove ${SNIPER_NAME}`, 'i') })
     ).toBeNull()

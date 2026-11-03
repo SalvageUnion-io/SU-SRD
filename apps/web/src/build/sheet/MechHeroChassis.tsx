@@ -1,16 +1,16 @@
 /**
  * MechHeroChassis — the mech hero's right column (the hero is image | text |
- * stats + ability): the mech's chassis stats in
- * the hero's top-right corner, the chassis ability under them as a
- * contentful Mini, its head and then its text, Peeking its whole card
- * (EDL E19 allows a contentful Mini anywhere).
+ * ability): the chassis ability as a contentful Mini, its head and then its
+ * text, Peeking its whole card (EDL E19 allows a contentful Mini anywhere).
+ * No stat column: its Tech Level and Salvage Value ride the band, and the
+ * rest are the gauges' maxima and the Slabs' and Hold's slot counts (C10).
  */
 
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { entityRef, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { TagItem } from '../../components/index'
-import { Button, Entity, relation, StatColumn, tokens } from '../../components/index'
+import { Button, Entity, relation, tokens } from '../../components/index'
 import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { ChassisModderPickerModal } from './ChassisModderPickerModal'
@@ -39,7 +39,6 @@ function modderRelation(): TagItem[] {
 }
 
 type MechHeroChassisProps = {
-  stats: MechSheetModel['chassisStats']
   abilities: MechSheetModel['chassisAbilities']
   /** The seated pilot's Chassis Modder pick; null when they are not one. */
   chassisModder?: MechSheetModel['chassisModder']
@@ -48,7 +47,6 @@ type MechHeroChassisProps = {
 }
 
 export function MechHeroChassis({
-  stats,
   abilities,
   chassisModder = null,
   onModChassis,
@@ -58,7 +56,6 @@ export function MechHeroChassis({
   const canPick = chassisModder !== null && onModChassis !== undefined
   return (
     <div className="su-sheet-mech-hero-chassis">
-      <StatColumn stats={stats} label={buildSheetCopy('chassisStats')} compact />
       {abilities.length > 0 && (
         <ul aria-label={buildSheetCopy('chassisAbility')} style={ABILITY}>
           {abilities.map((ability) => (

@@ -55,4 +55,13 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     expect(screen.getByLabelText('Search')).toBeTruthy()
     expect(screen.getByText('Red Laser')).toBeTruthy()
   })
+
+  test('R60: read-only with a pick, the pick reads as made: its Mini, no Show options', () => {
+    const bay = armamentBay()
+    const choice = bay.choices?.find((c) => c.name.includes('Weapons System'))
+    if (!choice) throw new Error('Armament Bay Weapons System choice missing')
+    render(<ReferenceEntityCard data={bay} selections={{ [choice.id]: ['Red Laser'] }} />)
+    expect(screen.getByText('Red Laser')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Show options' })).toBeNull()
+  })
 })

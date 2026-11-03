@@ -66,6 +66,9 @@ const NOT_TEXT = new Set([
  * A record path is the walk's: `.content[].value`, `.actions>.choices[].name`.
  */
 const NOT_PRINTED: Record<string, string> = {
+  // A measured keyword ("Damage", "Range") prints as its facet's label, DMG
+  // and RNG, as every attack's does (`MEASURED_KEYWORD_SHORT`).
+  'abilities .actions>.content[].value[].label': 'measured keyword, printed DMG / RNG',
   // Choices are the builder's prompts ("The name of your Auto-Turret."): the
   // Reference is read-only and prints the rule, not the form.
   'abilities .actions>.choices[].name': 'builder prompt',

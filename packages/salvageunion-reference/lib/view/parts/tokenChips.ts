@@ -1,5 +1,6 @@
 import type { EntityDomain, EntityModel, Fact } from '../types'
 import { splitStatLine } from './facts'
+import { MEASURED_KEYWORD_SHORT } from './traits'
 
 /**
  * Where a Mini is drawn, named by its container (`chips-and-actions.md`, C4):
@@ -92,7 +93,11 @@ export function tokenChips(
         .map((f) => ({ label: f.short, value: f.shortValue ?? f.value }))
     : []
   const traits = options.contentful
-    ? (model.traits ?? []).map((t) => ({ label: t.name, ...(t.param ? { value: t.param } : {}) }))
+    ? (model.traits ?? []).map((t) => ({
+        // A measured keyword wears its facet's label (DMG, RNG), as an action does.
+        label: MEASURED_KEYWORD_SHORT[t.name] ?? t.name,
+        ...(t.param ? { value: t.param } : {}),
+      }))
     : []
   return {
     ...(rank ? { rank } : {}),

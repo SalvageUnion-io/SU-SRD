@@ -63,11 +63,15 @@ export function StatusBadge({ status, onClick, subject, next }: StatusBadgeProps
     setAnnouncement(current)
   }, [current])
 
-  const badge = (
-    <Badge surface="tone" tone={tone}>
-      {label}
-    </Badge>
-  )
+  const badge =
+    // R58: Intact, the default, is quiet; a state that is news is toned.
+    status === 'intact' ? (
+      <Badge surface="quiet">{label}</Badge>
+    ) : (
+      <Badge surface="tone" tone={tone}>
+        {label}
+      </Badge>
+    )
   if (onClick) {
     return (
       <>

@@ -108,6 +108,11 @@
   color: var(--color-ink);
 }
 
+/* A quiet Toggle pressed (a pilot's Mark used): full ink; its glyph says the rest. */
+.su-btn--quiet[aria-pressed='true'] {
+  color: var(--color-ink);
+}
+
 /* Pencil: paper on a dashed ink edge, the control on an editable sheet line
    (dashed means editable, as the HOMEBREW stamp is dashed: ruleset §3.9). It
    inverts to ink under the pointer, and stays inverted while pressed (an
