@@ -82,6 +82,16 @@ const RANGE_CODES: Partial<Record<string, string>> = {
   Far: 'F',
 }
 
+/**
+ * A measured keyword's chip label, the one an action's own facet wears
+ * (`DMG`, `RNG`): a datavalue's `Damage | 6 SP` reads as every attack does,
+ * on a card's head and in its prose.
+ */
+export const MEASURED_KEYWORD_SHORT: Readonly<Record<string, string>> = {
+  Damage: 'DMG',
+  Range: 'RNG',
+}
+
 /** Range bands as their codes, for compact cells: ["Close", "Medium"] is "C/M". */
 function rangeCodes(range: readonly string[]): string {
   return range.map((band) => RANGE_CODES[band] ?? band).join('/')
@@ -168,7 +178,8 @@ export function populationRange(entity: RefMetaEntity): string | undefined {
 /** A datavalue as display text, with its unit. */
 function formatDataValue(dv: { value?: unknown; unit?: string }): string {
   const v = dv.value == null ? '' : String(dv.value)
-  return dv.unit ? `${v}${dv.unit}` : v
+  // "6 SP": the amount and its pool, spaced as an action's Damage is.
+  return dv.unit ? `${v} ${dv.unit}` : v
 }
 
 /**

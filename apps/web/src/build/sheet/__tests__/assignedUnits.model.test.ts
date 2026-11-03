@@ -114,7 +114,9 @@ describe('assignedUnitsFor', () => {
 
   test('a place of one: its unit with Change, else Not shared, else its Assign', () => {
     const filled = build({ kind: 'mech', entity: mech }, { pilot })
-    expect(filled.units[0]?.change).toBe('pilot:change')
+    expect(filled.units[0]?.change?.({ open: false, onClose: () => undefined })).toBe(
+      'pilot:change'
+    )
     expect(filled.slots.map((s) => s.kind)).toEqual(['crawler'])
     const withheld = build(
       { kind: 'mech', entity: mech },

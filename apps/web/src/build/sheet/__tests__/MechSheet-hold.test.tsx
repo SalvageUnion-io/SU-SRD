@@ -219,11 +219,17 @@ describe('MechSheet — The Hold panel', () => {
   })
 })
 
+/** An empty hold in Edit is one + Load cargo; its form opens on it. */
+function openEmptyHold() {
+  fireEvent.click(screen.getByRole('button', { name: '+ Load cargo' }))
+}
+
 describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => {
   test('Load adds a new lot to a standalone mech hold (no crawler linked)', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+    openEmptyHold()
 
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/new cargo name/i), {
@@ -248,6 +254,7 @@ describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => 
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+    openEmptyHold()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^scrap$/i }))
@@ -274,6 +281,7 @@ describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => 
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
+    openEmptyHold()
 
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/new cargo name/i), {

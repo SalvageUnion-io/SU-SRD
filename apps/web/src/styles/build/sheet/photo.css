@@ -42,6 +42,20 @@
   width: 100%;
 }
 
+/* Below 40rem of its own width the photo is a thumbnail beside the first
+   fields, so the name and the vitals reach a phone's first screen (§1.10). */
+@container not (width >= 40rem) {
+  .su-photo-beside-row {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: var(--space-12);
+  }
+
+  .su-photo-beside-slot {
+    flex: 0 0 8rem;
+  }
+}
+
 .su-photo-beside-slot:empty {
   display: none;
 }

@@ -45,8 +45,9 @@ const MED_BAY_LINK = softLinkFixture('npc-to-crawler', 'n1', 'c1')
 const store = () => makeSingleUnitStore('crawler', crawler)
 
 /** The name a crew lead's Mini head wears. */
+/** A crew lead's name: on a contentful Mini's head, or a header-only Mini's own. */
 function headName(crewLead: HTMLElement): string {
-  return crewLead.querySelector('.su-entity-mini__head .su-entity-mini__name')?.textContent ?? ''
+  return crewLead.querySelector('.su-entity-mini__name')?.textContent ?? ''
 }
 
 function assigned(npc: CrewAssignment['npc']): CrewAssignment[] {

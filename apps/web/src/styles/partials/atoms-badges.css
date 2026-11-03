@@ -388,3 +388,17 @@
     min-width: 0;
   }
 }
+
+/* A spent step (at its min or max) drains like a disabled rust button
+ * (`.su-btn--primary:disabled`): a 40% ink fade over a coloured head reads
+ * as a tinted live button, not an off one. */
+.su-step-btn:disabled {
+  background-color: var(--color-ink-8);
+  color: var(--color-ink-50);
+  opacity: 1;
+}
+
+[data-ground='ink'] .su-step-btn:disabled {
+  background-color: var(--color-paper-15);
+  color: var(--color-paper-60);
+}

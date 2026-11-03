@@ -178,7 +178,7 @@ describe("a crewmate's sheet", () => {
     // Only ever read: no Read | Edit on a sheet that is not yours.
     expect(screen.queryByRole('button', { name: 'Edit' })).toBeNull()
     // No unassign on a sheet that is not yours.
-    expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Iron Mongrel actions$/ })).toBeNull()
     // Nothing was cached: reading is not owning.
     expect(useUnits.getState().get('pilot', THEIR_PILOT.id)).toBeNull()
   })
@@ -251,7 +251,7 @@ describe('your own sheet', () => {
 
     expect(screen.getByRole('link', { name: /Iron Mongrel$/ })).toBeTruthy()
     // A mech link is undrawn from the mech, which is not yours.
-    expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Iron Mongrel actions$/ })).toBeNull()
   })
 
   test("the Mediator's crawler lists crewmates' pilots as read-only rows to their live view", async () => {
@@ -298,14 +298,14 @@ describe('your own sheet', () => {
       '/pilots/p-theirs'
     )
     // …read-only: their crew link is theirs to undraw.
-    expect(screen.queryByRole('button', { name: /^Unassign Ash Vey$/ })).toBeNull()
-    // Your own pilot keeps its unlink.
-    expect(screen.getByRole('button', { name: /^Unassign Roach-Boy$/ })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /^Ash Vey actions$/ })).toBeNull()
+    // Your own pilot keeps its unlink (in its ⋯, R62).
+    expect(screen.getByRole('button', { name: /^Roach-Boy actions$/ })).toBeTruthy()
     // A crewmate's mech docked here is in the bay too — and theirs to undock.
     expect(screen.getByRole('link', { name: /Iron Mongrel$/ }).getAttribute('href')).toBe(
       '/mechs/m-theirs'
     )
-    expect(screen.queryByRole('button', { name: /^Unassign Iron Mongrel$/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Iron Mongrel actions$/ })).toBeNull()
     // Each wears whose it is on its head: MINE, or the crewmate's name.
     const ownerOf = (name: string) =>
       [...document.querySelectorAll('[data-assigned-unit]')]

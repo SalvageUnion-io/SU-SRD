@@ -95,6 +95,23 @@ describe('Sheet — one unit, no links', () => {
 // wired mode: mech + pilot link
 // ---------------------------------------------------------------------------
 
+describe('Sheet — a mech band', () => {
+  test("its chassis's Tech Level and Salvage Value ride the band (C10)", () => {
+    const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum' }
+    render(
+      <Sheet
+        kind="mech"
+        id={spectrum.id}
+        entityStore={makeEntityLookupMock([spectrum])}
+        softLinkStore={makeSoftLinkStoreMock([])}
+      />
+    )
+    const band = screen.getByRole('heading', { level: 1 }).closest('.su-chapter-band__row')
+    expect(within(band as HTMLElement).getByText('TL')).toBeTruthy()
+    expect(within(band as HTMLElement).getByText('SV')).toBeTruthy()
+  })
+})
+
 describe('Sheet — wired (mech WITH pilot link)', () => {
   test('renders both units, and no Assign pilot control', () => {
     renderSheet('mech', { others: [fakePilot], links: [mechToPilot] })

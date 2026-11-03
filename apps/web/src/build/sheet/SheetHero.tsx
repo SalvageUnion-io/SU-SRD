@@ -9,10 +9,14 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { createContext, useContext, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Box } from '../../components/index'
-import { space } from '../../design/tokens'
+import { space, widthAtLeast } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { useMediaQuery } from '../../lib/useMediaQuery'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { useAsideVitalsSlot } from './useAsideVitalsSlot'
 
 /** The grid's columns and gap step up with the sheet's width (`.su-sheet-hero`). */
 const GRID = { display: 'grid' } satisfies CSSProperties
@@ -31,6 +35,23 @@ const PANEL_ACTIONS = {
 
 /** The vitals stack; the deep-tone rule between its rows is `.su-sheet-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
+
+/**
+ * On a phone, the panel under the Vitals: where an opening's longer fields go
+ * (`HeroMore`), so the name and the vitals share the first screen (ruleset
+ * §1.10). Null from the 40rem rung, where they stay in the fields panel.
+ */
+const HeroMoreSlot = createContext<HTMLElement | null>(null)
+
+/**
+ * The opening's longer fields (a pilot's Motto, Keepsake, Background and
+ * prose; a mech's chassis ability): in place in the fields panel from the
+ * 40rem rung; on a phone, a panel under the Vitals (a portal, one render).
+ */
+export function HeroMore({ children }: { children: ReactNode }) {
+  const slot = useContext(HeroMoreSlot)
+  return slot ? createPortal(children, slot) : children
+}
 
 type SheetHeroProps = {
   name: string
@@ -62,17 +83,28 @@ export function SheetHero({
   vitalsActions,
   fieldsTitle = 'Identity',
 }: SheetHeroProps) {
+  // From the 64rem rung, with a sidebar, the Vitals panel heads it (one
+  // render, wherever it stands).
+  const asideSlot = useAsideVitalsSlot()
+  const wide = useMediaQuery(widthAtLeast('lg'), false)
+  const inAside = wide && asideSlot !== null
+  const phone = !useMediaQuery(widthAtLeast('sm'), true)
+  const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null)
+  const vitalsPanel = vitals && (
+    <SheetPanel title={buildSheetCopy('vitals')} actions={vitalsActions}>
+      <div className="su-sheet-vitals" style={VITALS}>
+        {vitals}
+      </div>
+    </SheetPanel>
+  )
   return (
     <section
       aria-label={buildSheetCopy('sheetHeader', { name })}
       // The gauges card is content-width ("long" — a narrow tall column);
       // the fields card takes the rest ("thick"). They stack on narrow
-      // viewports so neither ever crushes.
-      //
-      // No `align-items: start`: grid items stretch by default, so the two
-      // cards are always the SAME height whichever one is taller. `Card` is a
-      // flex column with a growing body, so the shorter card grows its paper body
-      // rather than leaving the frame short and the row ragged.
+      // viewports so neither ever crushes. Each is as tall as its content
+      // (`align-items: start`, R61): a card stretched to its
+      // neighbour is paper with nothing on it.
       className="su-sheet-hero"
       style={GRID}
     >
@@ -87,13 +119,16 @@ export function SheetHero({
         className="su-sheet-hero-fields"
         stackClassName="su-sheet-hero-fields-body"
       >
-        {fields}
+        <HeroMoreSlot.Provider value={phone ? moreSlot : null}>{fields}</HeroMoreSlot.Provider>
       </SheetPanel>
-      {vitals && (
-        <SheetPanel title={buildSheetCopy('vitals')} actions={vitalsActions}>
-          <div className="su-sheet-vitals" style={VITALS}>
-            {vitals}
-          </div>
+      {vitalsPanel && !inAside && vitalsPanel}
+      {vitalsPanel && inAside && createPortal(vitalsPanel, asideSlot)}
+      {phone && (
+        <SheetPanel
+          title={buildSheetCopy('heroMore', { title: fieldsTitle })}
+          className="su-sheet-hero-more"
+        >
+          <div ref={setMoreSlot} className="su-sheet-hero-more-body" />
         </SheetPanel>
       )}
     </section>

@@ -14,9 +14,15 @@
  * container, so what is inside it queries its own width, not the sheet's.
  * With nothing carried (Read leaves an empty section out; an NPC carries
  * nothing) there is no sidebar, and the main column takes the width.
+ *
+ * With a sidebar, from the 64rem rung the Vitals panel heads it (beside the
+ * opening, `AsideVitalsSlot`) and the sidebar runs the page's height; the
+ * opening is then its fields alone.
  */
 
 import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { AsideVitalsSlot } from './useAsideVitalsSlot'
 
 type SheetColumnsProps = {
   /** The opening: `SheetHero`. */
@@ -31,15 +37,19 @@ type SheetColumnsProps = {
 
 export function SheetColumns({ hero, aside, asideLabel, children }: SheetColumnsProps) {
   const carries = aside !== null && aside !== undefined && aside !== false
+  const [slot, setSlot] = useState<HTMLElement | null>(null)
   return (
-    <div className="su-sheet-columns">
-      <div className="su-sheet-columns__hero">{hero}</div>
-      {carries && (
-        <aside aria-label={asideLabel} className="su-sheet-aside" data-sheet-aside="">
-          {aside}
-        </aside>
-      )}
-      <div className="su-sheet-columns__main">{children}</div>
-    </div>
+    <AsideVitalsSlot.Provider value={carries ? slot : null}>
+      <div className="su-sheet-columns" data-vitals-aside={carries ? '' : undefined}>
+        <div className="su-sheet-columns__hero">{hero}</div>
+        {carries && (
+          <aside aria-label={asideLabel} className="su-sheet-aside" data-sheet-aside="">
+            <div ref={setSlot} className="su-sheet-aside-vitals" />
+            {aside}
+          </aside>
+        )}
+        <div className="su-sheet-columns__main">{children}</div>
+      </div>
+    </AsideVitalsSlot.Provider>
   )
 }

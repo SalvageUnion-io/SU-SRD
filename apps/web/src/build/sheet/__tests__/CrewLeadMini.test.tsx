@@ -1,8 +1,9 @@
 /**
  * CrewLeadMini — a crawler bay's crew lead as a CONTENTFUL Mini (N3):
  * - the head names the NPC and chips the role it holds (`THE | Doc`) once it
- *   has a name of its own; its HP is Mini HP cells beside its lines, read
- *   live, set by its cells in Edit;
+ *   has a name of its own; with lines of its own its HP is Mini HP cells
+ *   beside them, read live, set by its cells in Edit; with none it is
+ *   header-only, its HP an `HP | 3/4` chip on its head;
  * - the body holds what the sheet tracks (Keepsake, Motto, Detail, Facts),
  *   each left out in Read when empty;
  * - the group is named for its bay, so several crew leads stay distinguishable;
@@ -28,15 +29,18 @@ const BASE = {
   facts: [] as string[],
 }
 
+/** The Mini's head: a contentful Mini's head, else the header-only Mini itself. */
 function head(group: HTMLElement): HTMLElement {
-  const found = group.querySelector<HTMLElement>('.su-entity-mini__head')
+  const found =
+    group.querySelector<HTMLElement>('.su-entity-mini__head') ??
+    group.querySelector<HTMLElement>('.su-entity-mini')
   if (!found) throw new Error('no Mini head')
   return found
 }
 
 describe('CrewLeadMini — the head and its HP', () => {
   test('a named crew lead: its role a THE chip, its HP a gauge beside its lines', () => {
-    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
+    render(<CrewLeadMini {...BASE} keepsake="A locket" name="Ambrose" model={crew('Ambrose')} />)
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     const band = head(group)
     // The role rides the head's chips, not a stamp before the name.
@@ -54,6 +58,15 @@ describe('CrewLeadMini — the head and its HP', () => {
     expect(group.querySelector('.su-box')).toBeNull()
   })
 
+  test('with nothing of its own to read it is header-only, its HP a chip', () => {
+    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} />)
+    const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
+    expect(group.querySelector('.su-entity-mini__body')).toBeNull()
+    expect(head(group).textContent).toContain('HP')
+    expect(head(group).textContent).toContain('3/4')
+    expect(group.querySelector('[data-pip]')).toBeNull()
+  })
+
   test('a crew lead with no name of its own chips no role: its title is the role', () => {
     render(<CrewLeadMini {...BASE} name="Doc" model={crew('Doc')} />)
     const band = head(screen.getByRole('group', { name: 'Med Bay crew lead' }))
@@ -61,7 +74,15 @@ describe('CrewLeadMini — the head and its HP', () => {
   })
 
   test('in Edit its HP gauge is the control, beside its lines', () => {
-    render(<CrewLeadMini {...BASE} name="Ambrose" model={crew('Ambrose')} onHpChange={() => {}} />)
+    render(
+      <CrewLeadMini
+        {...BASE}
+        keepsake="A locket"
+        name="Ambrose"
+        model={crew('Ambrose')}
+        onHpChange={() => {}}
+      />
+    )
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(head(group).textContent).not.toContain('HP')
     const body = group.querySelector<HTMLElement>('.su-entity-mini__body')
@@ -80,7 +101,15 @@ describe('CrewLeadMini — the head and its HP', () => {
     const npc = bay?.npc
     if (!npc) throw new Error('fixture missing: the Med Bay crew NPC')
     render(
-      <CrewLeadMini {...BASE} title={npc.position} name="" hp={2} maxHp={npc.hitPoints} npc={npc} />
+      <CrewLeadMini
+        {...BASE}
+        detail="Calm under fire"
+        title={npc.position}
+        name=""
+        hp={2}
+        maxHp={npc.hitPoints}
+        npc={npc}
+      />
     )
     const group = screen.getByRole('group', { name: 'Med Bay crew lead' })
     expect(within(group).getByRole('img', { name: `HP 2 of ${npc.hitPoints}` })).toBeTruthy()

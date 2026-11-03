@@ -53,7 +53,8 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     expect(screen.getByText('mystery-system')).toBeTruthy()
     // The Hold renders against a zero cargo cap.
     expect(screen.getByText(/the hold/i)).toBeTruthy()
-    expect(screen.getByText('Hold empty.')).toBeTruthy()
+    // Empty in Edit, it is one + Load cargo (its form opens on it).
+    expect(screen.getByRole('button', { name: '+ Load cargo' })).toBeTruthy()
   })
 
   test('no chassis-ability slab renders for an unknown chassis', () => {

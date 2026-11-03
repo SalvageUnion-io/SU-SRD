@@ -19,7 +19,7 @@ import { useMemo } from 'react'
 import type { EntityInstance, RefNPC } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { EntityFormModel, EntityMode } from '../../components/index'
-import { Entity, relation, Toggle, useDisclosure, VitalGauge } from '../../components/index'
+import { Entity, relation, Stat, Toggle, useDisclosure, VitalGauge } from '../../components/index'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import type { ReferenceNpc } from '../../lib/npcs/npcModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -113,6 +113,18 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
         />
       </div>
     ) : undefined
+  // With nothing of their own to read (no Keepsake, Motto, Detail or Facts)
+  // a crew lead is header-only, its HP a chip in the state slot: four pips in
+  // a card of air said less. In Edit, Details opens the body, where the HP
+  // is set; a stepper in the head would leave the name no room.
+  const bare =
+    props.keepsake.trim() === '' &&
+    props.motto.trim() === '' &&
+    props.detail.trim() === '' &&
+    props.facts.length === 0 &&
+    !details.open
+  const hpChip =
+    maxHp > 0 ? <Stat label={buildSheetCopy('hp')} value={hp} max={maxHp} size="mini" /> : undefined
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the crew lead so the several on one crawler stay distinguishable; a <section> here would become a region landmark once named
     <div role="group" aria-label={buildSheetCopy('crewLead', { bayName })}>
@@ -124,6 +136,7 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
         mode={mode}
         peekAt={peekAt}
         {...(relations ? { relations } : {})}
+        {...(bare ? { state: hpChip } : {})}
         {...(editing
           ? {
               controls: (
@@ -142,19 +155,23 @@ export function CrewLeadMini(props: CrewLeadMiniProps) {
               ),
             }
           : {})}
-        body={{
-          text: false,
-          children: (
-            <div className="su-crew-lead__body">
-              {editing && !details.open ? (
-                <NpcLines {...readLines(props)} />
-              ) : (
-                <NpcLines {...props} identity />
-              )}
-              {hpGauge}
-            </div>
-          ),
-        }}
+        body={
+          bare
+            ? undefined
+            : {
+                text: false,
+                children: (
+                  <div className="su-crew-lead__body">
+                    {editing && !details.open ? (
+                      <NpcLines {...readLines(props)} />
+                    ) : (
+                      <NpcLines {...props} identity />
+                    )}
+                    {hpGauge}
+                  </div>
+                ),
+              }
+        }
       />
     </div>
   )

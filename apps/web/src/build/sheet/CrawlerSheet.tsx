@@ -61,8 +61,8 @@ import {
   Button,
   EmptyState,
   Entity,
+  HeaderMenu,
   MiniGrid,
-  Select,
   SlabSection,
   Stack,
   Stat,
@@ -110,13 +110,6 @@ const ROOT = {
 } satisfies CSSProperties
 
 const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
-
-/** The "+ Bay" picker at a compact button's height, beside Crew. */
-const ADD_BAY = {
-  height: 'var(--size-compact)',
-  paddingInline: tokens.space[8],
-  fontSize: tokens.fontSize.chip,
-} satisfies CSSProperties
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -303,7 +296,11 @@ export function CrawlerSheet({
   // Read leaves what is empty out (ruleset §1.2): an empty state only where
   // Edit can fill it.
   const poolEmpty = NUMERIC_TECH_LEVELS.every((t) => scrapPoolBucket(pool, t) === 0)
-  const showExotic = !readOnly || hasExotic(pool)
+  // Edit reads the pool as six counts until Adjust opens their steppers, so
+  // the Storage Bay is not eighteen controls at rest.
+  const [adjustPool, setAdjustPool] = useState(false)
+  const poolEditing = !readOnly && adjustPool
+  const showExotic = poolEditing || hasExotic(pool)
   const holdEmpty = (crawler.cargoLots ?? []).length === 0
   const showPool = !readOnly || !poolEmpty
   const showHold = !readOnly || !holdEmpty
@@ -311,7 +308,9 @@ export function CrawlerSheet({
   /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */
   const armamentContents =
     crawler.systems.length === 0 ? (
-      readOnly ? undefined : (
+      // A weapon picked on the bay's own choice is mounted: no "No weapons
+      // mounted." under it.
+      readOnly || armamentPicked(crawler) ? undefined : (
         <EmptyState variant="quiet" body={buildSheetCopy('noWeaponsMounted')} />
       )
     ) : (
@@ -347,15 +346,27 @@ export function CrawlerSheet({
           a crawler stow arbitrary scrap by hand (Free Edit). The
           physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
       {showPool && (
-        <SlabSection title={buildSheetCopy('scrapPool')} size="mini" bodyStyle={POOL_ROW}>
+        <SlabSection
+          title={buildSheetCopy('scrapPool')}
+          size="mini"
+          bodyStyle={POOL_ROW}
+          actions={
+            readOnly ? undefined : (
+              <Button size="mini" onClick={() => setAdjustPool((v) => !v)}>
+                {adjustPool ? buildSheetCopy('done') : buildSheetCopy('adjust')}
+              </Button>
+            )
+          }
+        >
           {NUMERIC_TECH_LEVELS.map((t) => (
             <Stat
               key={t}
               label={buildSheetCopy('t', { t })}
               value={scrapPoolBucket(pool, t)}
               min={0}
-              mode={readOnly ? 'read' : 'edit'}
-              onChange={readOnly ? undefined : (next) => setScrapBucket(t, next)}
+              size={poolEditing ? undefined : 'mini'}
+              mode={poolEditing ? 'edit' : 'read'}
+              onChange={poolEditing ? (next) => setScrapBucket(t, next) : undefined}
             />
           ))}
         </SlabSection>
@@ -370,8 +381,8 @@ export function CrawlerSheet({
               label={EXOTIC_NAME[r.key]}
               value={exoticBucket(pool, r.key)}
               min={0}
-              mode={readOnly ? 'read' : 'edit'}
-              onChange={readOnly ? undefined : (next) => setExotic(r.key, next)}
+              mode={poolEditing ? 'edit' : 'read'}
+              onChange={poolEditing ? (next) => setExotic(r.key, next) : undefined}
             />
           ))}
         </SlabSection>
@@ -516,19 +527,20 @@ export function CrawlerSheet({
               crewHref === undefined && (readOnly || installable.length === 0) ? undefined : (
                 <>
                   {!readOnly && installable.length > 0 && (
-                    <Select
-                      aria-label={buildSheetCopy('addAnExpansionBay')}
-                      style={ADD_BAY}
-                      value=""
-                      onChange={(e) => addExpansionBay(e.target.value)}
-                    >
-                      <option value="">{buildSheetCopy('addBay')}</option>
-                      {installable.map((b) => (
-                        <option key={b.slug} value={b.slug}>
-                          {b.name}
-                        </option>
-                      ))}
-                    </Select>
+                    // + Bay: a menu of the bays it can add, one look with Crew beside it.
+                    <HeaderMenu
+                      variant="button"
+                      size="compact"
+                      trigger={buildSheetCopy('addBay')}
+                      label={buildSheetCopy('addAnExpansionBay')}
+                      sections={[
+                        installable.map((b) => ({
+                          id: b.slug,
+                          label: b.name,
+                          onSelect: () => addExpansionBay(b.slug),
+                        })),
+                      ]}
+                    />
                   )}
                   {crewHref !== undefined && (
                     <Button
@@ -573,5 +585,12 @@ export function CrawlerSheet({
         />
       )}
     </section>
+  )
+}
+
+/** The Armament Bay's own weapon choice holds a pick. */
+function armamentPicked(crawler: Crawler): boolean {
+  return Object.values(crawler.bayChoices?.['armament-bay'] ?? {}).some(
+    (picks) => Array.isArray(picks) && picks.length > 0
   )
 }

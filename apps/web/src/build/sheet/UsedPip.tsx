@@ -20,7 +20,7 @@ const PIP_SET = {
 /**
  * The pip that carries a once-per-something flag: hollow while it is free,
  * filled with the sheet's tone once it is used. The sheet's Mark used (a
- * pencil `Toggle`) leads with it, and a read-only sheet's static "Used" stamp
+ * quiet `Toggle`) leads with it, and a read-only sheet's static "Used" stamp
  * wears it too.
  */
 export function UsedPip({ used }: { used: boolean }) {

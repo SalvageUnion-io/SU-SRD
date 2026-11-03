@@ -9,10 +9,13 @@ import { buttonVariants } from './buttonVariants'
  * Shut down.
  *
  * `variant="pencil"` is the one on/off on an editable sheet line (dashed means
- * editable, ruleset §3.9): a pilot's Mark used. Its words never change, so a
+ * editable, ruleset §3.9): a crew lead's Details. Its words never change, so a
  * line's shape stays put; pressed, the pencil plate inverts to ink
- * (`.su-btn--pencil[aria-pressed]`). An optional leading `glyph` (the used
- * pip) carries the state beside the words.
+ * (`.su-btn--pencil[aria-pressed]`).
+ *
+ * `variant="quiet"` is a frameless on/off whose leading `glyph` carries the
+ * state (a pilot's Mark used: the used pip, hollow or filled, then "Used").
+ * The glyph is already a box, so a plate around it would be a box in a box.
  *
  * One control, one job. A row of options that sets a value (one of them, or a
  * set of them: a filter, a deck's effects) is a `Segmented`; a row that
@@ -30,9 +33,9 @@ export function Toggle({
   pressed: boolean
   /** The Size (`styles/sizing.ts`) of the line it sits on. */
   size?: 'mini' | 'compact' | 'full'
-  /** `pencil` on an editable sheet line; the default plate elsewhere. */
-  variant?: 'pencil'
-  /** A leading decorative glyph (the used pip), `aria-hidden` before the words. */
+  /** `pencil` on an editable sheet line; `quiet` when the glyph carries the state; the default plate elsewhere. */
+  variant?: 'pencil' | 'quiet'
+  /** A leading decorative glyph (the used pip), `aria-hidden` before the words: the state, with `quiet`. */
   glyph?: ReactNode
   children: ReactNode
 }) {

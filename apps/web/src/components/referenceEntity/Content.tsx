@@ -1,6 +1,10 @@
 import type { CSSProperties } from 'react'
 import type { RefObjectContentBlock, RefObjectDataValue } from 'salvageunion-reference'
-import { glossaryRef, parseContentBlockString } from 'salvageunion-reference'
+import {
+  glossaryRef,
+  MEASURED_KEYWORD_SHORT,
+  parseContentBlockString,
+} from 'salvageunion-reference'
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
 import { useParseTraitReferences } from '../../lib/useProseRefs'
@@ -57,10 +61,6 @@ const listItemStyle = {
 } satisfies CSSProperties
 
 const labelStampStyle = { display: 'block', marginBottom: space[4] } satisfies CSSProperties
-
-/** A measured keyword wears the chip label an action's own facet does
- *  (`traits.ts`), so "Damage | 5 SP" in prose reads DMG like every attack. */
-const MEASURED_KEYWORD_SHORT: Record<string, string> = { Damage: 'DMG', Range: 'RNG' }
 
 /**
  * A single `datavalues` item. A `cost` item ("3 AP") uses the ActivationCost

@@ -1,5 +1,5 @@
 import type { EntityRef, TraitMention } from 'salvageunion-reference'
-import { glossaryRef } from 'salvageunion-reference'
+import { glossaryRef, MEASURED_KEYWORD_SHORT } from 'salvageunion-reference'
 
 /** One trait as a Tag: its name, its parameter and the glossary entry it names. */
 export type TagItem = {
@@ -41,7 +41,7 @@ export function relation(
 export function traitTags(traits: readonly TraitMention[]): TagItem[] {
   return traits.map((trait) => ({
     key: `${trait.schemaName}-${trait.name}`,
-    name: trait.name,
+    name: MEASURED_KEYWORD_SHORT[trait.name] ?? trait.name,
     ...(trait.param !== undefined ? { param: trait.param } : {}),
     ...(trait.ref ? { ref: trait.ref } : {}),
   }))

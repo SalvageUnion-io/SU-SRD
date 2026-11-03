@@ -50,9 +50,10 @@
 
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import {
   Box,
+  Button,
   Chips,
   cn,
   EmptyState,
@@ -148,7 +149,17 @@ export function StorageManifest({
   const pad = HOLD_PAD[framed ? 'framed' : 'open']
   const targetLabel = side === 'mech' ? 'Stow target' : 'Load target'
 
-  const holdBody = (
+  // An empty hold in Edit is one button; its form opens on it, so an empty
+  // hold does not say "empty" four ways (slots, cells, "free", the form).
+  const [adding, setAdding] = useState(false)
+  const quietEmpty = !readOnly && lots.length === 0 && !adding
+  const holdBody = quietEmpty ? (
+    <div style={{ padding: pad.adder }}>
+      <Button variant="primary" size="mini" onClick={() => setAdding(true)}>
+        {buildSheetCopy(side === 'mech' ? 'loadCargo' : 'stowCargo')}
+      </Button>
+    </div>
+  ) : (
     <>
       {/* Capacity strip: label-first chips, as every count reads. */}
       <div style={{ ...STRIP, padding: pad.strip }}>

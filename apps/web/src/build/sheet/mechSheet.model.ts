@@ -15,8 +15,7 @@ import type { UnitsStore } from '../../replica/units'
 import { mechMaxima } from 'game-domain/rules/crewStatus'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { StatGroup } from 'salvageunion-reference'
-import { parseContentBlockString, SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
+import { parseContentBlockString, SalvageUnionReference } from 'salvageunion-reference'
 import type { mechMaxEPParts, mechMaxHeatParts, mechMaxSPParts } from 'salvageunion-reference/rules'
 import {
   computeMechCapacity,
@@ -34,7 +33,6 @@ import {
 } from '../../lib/rules/chassisModder'
 
 /** One chassis stat as the strip prints it: the numeral and its full name. */
-type ChassisStat = { key: string; label: string; value: string; group: StatGroup }
 
 /** Narrow subset of chassis data the stat derivations need. */
 export type ChassisLike = {
@@ -85,8 +83,6 @@ export type MechSheetModel = {
   spLines: ProvenanceLine[]
   epLines: ProvenanceLine[]
   heatLines: ProvenanceLine[]
-  /** The Chassis Stats strip, in the order and words of the official mech sheet. */
-  chassisStats: ChassisStat[]
   /** The linked crawler's scrap pool, or null when unlinked. */
   scrapPool: NonNullable<Crawler['scrapPool']> | null
   /**
@@ -173,69 +169,6 @@ export function useMechSheetModel({
     baseDetail: 'base',
     installed: 'Installed systems & modules',
   })
-  const techLevel =
-    typeof chassisEntity?.techLevel === 'number' ? chassisEntity.techLevel : undefined
-
-  // The Chassis Stats strip, in the stat order every surface keeps (`STATS`,
-  // salvageunion-reference): Tech Level and Salvage Value, then Structure
-  // and Energy Points, then System and Module Slots, Heat and Cargo Capacity,
-  // spelled out (`STAT_LABELS.label`), each group pairing off its own cells
-  // (`StatColumn`). Each is the machine's figure: SP/EP/Heat are the derived
-  // maxima, the slots and cargo the chassis's capacities. What is in use reads
-  // where it is used: the Systems and Modules counts and The Hold.
-  const chassisStats: ChassisStat[] = [
-    ...(techLevel !== undefined
-      ? [
-          {
-            key: 'tech-level',
-            label: 'Tech Level',
-            value: String(techLevel),
-            group: 'provenance' as const,
-          },
-        ]
-      : []),
-    ...(typeof chassisEntity?.salvageValue === 'number'
-      ? [
-          {
-            key: 'salvage-value',
-            label: STAT_LABELS.salvageValue.label,
-            value: String(chassisEntity.salvageValue),
-            group: 'provenance' as const,
-          },
-        ]
-      : []),
-    {
-      key: 'sp',
-      label: STAT_LABELS.structurePoints.label,
-      value: String(maxSP),
-      group: 'vitals',
-    },
-    { key: 'ep', label: STAT_LABELS.energyPoints.label, value: String(maxEP), group: 'vitals' },
-    {
-      key: 'system-slots',
-      label: STAT_LABELS.systemSlots.label,
-      value: String(capacity.systemSlotsMax),
-      group: 'capacity',
-    },
-    {
-      key: 'module-slots',
-      label: STAT_LABELS.moduleSlots.label,
-      value: String(capacity.moduleSlotsMax),
-      group: 'capacity',
-    },
-    {
-      key: 'heat',
-      label: STAT_LABELS.heatCapacity.label,
-      value: String(heatCap),
-      group: 'capacity',
-    },
-    {
-      key: 'cargo',
-      label: STAT_LABELS.cargoCapacity.label,
-      value: String(cargo.usage.cap),
-      group: 'capacity',
-    },
-  ]
 
   const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null
 
@@ -265,7 +198,6 @@ export function useMechSheetModel({
     spLines,
     epLines,
     heatLines,
-    chassisStats,
     scrapPool,
     chassisModder,
   }

@@ -92,14 +92,18 @@ async function seedCarried(
   await editSheet(page)
   await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
   await carried('Scrap').waitFor(LONG)
-  for (const [path, into, lot] of [
-    [sheets.mech, 'Load cargo into the mech hold', 'Salvaged Plating'],
-    [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
+  for (const [path, open, into, lot] of [
+    [sheets.mech, '+ Load cargo', 'Load cargo into the mech hold', 'Salvaged Plating'],
+    [sheets.crawler, '+ Stow cargo', 'Stow cargo into the Storage Bay', 'Sealed Crate'],
   ] as const) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle' })
     await waitForReady(page)
     await editSheet(page)
+    // An empty hold in Edit is one button until it is opened.
+    const opener = page.getByRole('button', { name: open, exact: true })
     const adder = page.getByRole('button', { name: into })
+    await opener.or(adder).first().waitFor(LONG)
+    if (await opener.isVisible()) await opener.click()
     await adder.scrollIntoViewIfNeeded()
     await adder
       .locator('xpath=ancestor::*[.//input[@aria-label="New cargo name"]][1]')

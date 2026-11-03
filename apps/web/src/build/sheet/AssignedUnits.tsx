@@ -3,8 +3,7 @@
  * contentful Mini of its kind in one masonry grid (`MiniGrid`), never a chip
  * (R5). Its name opens that unit's sheet
  * and Peeks nothing; its body is its status, its vitals as they stand (`SP |
- * 9/13`). Edit puts the link's controls in its chip group (C8: Change,
- * Unassign). In Edit each place still to fill is a placeholder Mini of its
+ * 9/13`). Edit puts the link's acts, Change and Unassign, in its ⋯ (R62). In Edit each place still to fill is a placeholder Mini of its
  * kind ("No Mech assigned") with the ways to fill it, Assign and + Create,
  * as its controls. Read leaves the section out when nothing is linked
  * (`hasAssignedUnits`).
@@ -15,17 +14,16 @@
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import { Unlink } from 'lucide-react'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import {
   Button,
   Cluster,
   Entity,
+  HeaderMenu,
   MiniGrid,
   relation,
   SlabSection,
   Stat,
-  tokens,
 } from '../../components/index'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -53,6 +51,8 @@ export function AssignedUnits({
   slots?: readonly AssignedSlot[]
   editable: boolean
 }) {
+  // The unit whose Change picker its ⋯ opened.
+  const [changing, setChanging] = useState<string | null>(null)
   if (!hasAssignedUnits(units, editable)) return null
   const open = editable ? slots : []
   return (
@@ -91,25 +91,43 @@ export function AssignedUnits({
                 }}
                 {...(editable && (unit.change || unit.onUnassign)
                   ? {
+                      // R62: a unit's acts ride its ⋯, so its head stays one line (R37).
                       controls: (
-                        <>
-                          {unit.change}
-                          {unit.onUnassign && (
-                            <Button
-                              variant="ghost"
-                              size="mini"
-                              aria-label={buildSheetCopy('unassign2', { name: unit.name })}
-                              onClick={unit.onUnassign}
-                              glyph={<Unlink size={tokens.iconSize.mini} aria-hidden="true" />}
-                            >
-                              {buildSheetCopy('unassign')}
-                            </Button>
-                          )}
-                        </>
+                        <HeaderMenu
+                          variant="overflow"
+                          trigger={null}
+                          label={buildSheetCopy('unitActions', { name: unit.name })}
+                          sections={[
+                            [
+                              ...(unit.change
+                                ? [
+                                    {
+                                      id: 'change',
+                                      label: buildSheetCopy('changeKind', {
+                                        kind: KIND_NAME[unit.kind],
+                                      }),
+                                      onSelect: () => setChanging(unit.key),
+                                    },
+                                  ]
+                                : []),
+                              ...(unit.onUnassign
+                                ? [
+                                    {
+                                      id: 'unassign',
+                                      label: buildSheetCopy('unassign'),
+                                      onSelect: unit.onUnassign,
+                                    },
+                                  ]
+                                : []),
+                            ],
+                          ]}
+                        />
                       ),
                     }
                   : {})}
               />
+              {editable &&
+                unit.change?.({ open: changing === unit.key, onClose: () => setChanging(null) })}
             </li>
           ))}
         </MiniGrid>

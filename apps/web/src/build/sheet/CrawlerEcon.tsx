@@ -1,15 +1,16 @@
 /**
- * CrawlerEcon — the crawler's VITALS column: the SP gauge, the Upgrade-pool
- * gauge and a 2-up grid of the remaining readouts (`CrawlerEconFrame`), and
- * the column's action chips (`CrawlerEconActions`).
+ * CrawlerEcon — the crawler's VITALS column: the SP gauge and a 2-up grid of
+ * the readouts under it (`CrawlerEconFrame`), and the column's action chips
+ * (`CrawlerEconActions`).
  *
  * There is no titled box around it any more. The column already sits in its own
  * section card, so the inset was a second frame inside the first, and its
  * "Crawler / Economy" head bar re-titled a column the section had just titled.
  *
- * The two GAUGES are the numbers that fill and empty (structure, and the pool
- * you fund toward its cap); everything left is a flat readout, so it sits in
- * the grid. Every action collects onto the Vitals card's HEAD as a Mini chip
+ * The GAUGE is the number that fills and empties (structure); everything
+ * else is a readout in the grid. The Upgrade Pool is a counter there,
+ * `UPGRADE | 0/30` beside Upkeep, as Training Points is (ruleset §2.1): thirty
+ * empty pips said less than the two numbers. Every action collects onto the Vitals card's HEAD as a Mini chip
  * (`SheetHero`'s `vitalsActions`) rather than hanging off its own stat or
  * sitting in a body row: a contextual action lives on its owner's head.
  *
@@ -32,12 +33,13 @@ export type EconLozItem = {
   /** The stat value. Paired with `max` for N/max readouts. */
   value: number
   max?: number
+  /** Edit: step the value (the Upgrade Pool), from 0 to `max`. */
+  onChange?: (value: number) => void
   /** Small caption under the stat box, e.g. 'T2+ Scrap'. */
   caption?: string
   /**
-   * Contribute ONLY this item's action to the head chips — no stat box. For a
-   * reading that is already shown as a gauge (the Upgrade pool) but whose
-   * action still belongs with the others.
+   * Contribute ONLY this item's action to the head chips — no stat box. For an
+   * action with no reading of its own (Trade).
    */
   actionOnly?: boolean
   /** Action button — omit for a read-only readout (e.g. Tech LVL). */
@@ -75,19 +77,16 @@ const LOZ = {
 type CrawlerEconFrameProps = {
   /** The SP `VitalGauge`. */
   gauge: ReactNode
-  /** The Upgrade-pool `VitalGauge` — a second thing that fills toward a cap. */
-  upgrade?: ReactNode
   items: EconLozItem[]
 }
 
-/** The vitals column: gauges, then a 2-up readout grid. */
-export function CrawlerEconFrame({ gauge, upgrade, items }: CrawlerEconFrameProps) {
+/** The vitals column: the gauge, then a 2-up readout grid. */
+export function CrawlerEconFrame({ gauge, items }: CrawlerEconFrameProps) {
   const readouts = items.filter((item) => !item.actionOnly)
   return (
     // biome-ignore lint/a11y/useSemanticElements: a labeled group (not a landmark) names the vitals column; a <section> here would become a region landmark once named
     <div role="group" aria-label={buildSheetCopy('crawlerVitals')} style={FRAME}>
       {gauge}
-      {upgrade}
       {readouts.length > 0 && (
         // One readout (the Upkeep) centres in the column.
         <div style={{ ...READOUTS, gridTemplateColumns: readoutColumns(readouts.length) }}>
@@ -124,7 +123,12 @@ function EconLoz({ item }: { item: EconLozItem }) {
   return (
     <div style={LOZ}>
       {/* A label-first chip, as every stat reads; `full` is the reading rung. */}
-      <Stat label={item.label} value={item.value} max={item.max} />
+      <Stat
+        label={item.label}
+        value={item.value}
+        max={item.max}
+        {...(item.onChange ? { mode: 'edit' as const, min: 0, onChange: item.onChange } : {})}
+      />
       {item.caption && <Eyebrow tone="muted">{item.caption}</Eyebrow>}
     </div>
   )

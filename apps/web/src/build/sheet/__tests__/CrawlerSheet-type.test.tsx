@@ -142,10 +142,11 @@ describe('CrawlerIdentityPanel — type + ability cards', () => {
     // The type's special ability renders as its own compact entity card.
     expect(screen.getByText('Improved Armour and Armaments')).toBeTruthy()
 
-    // A contentful Mini (N3), as a bay's crew lead: its name heads it, and in
-    // Edit its Name field holds it too.
+    // A Mini, as a bay's crew lead: its name heads it. With nothing of its
+    // own written yet it is header-only, its HP a chip.
     const inset = screen.getByLabelText('Battle crew lead')
-    expect(inset.querySelector('.su-entity-mini[data-contentful]')).not.toBeNull()
+    expect(inset.querySelector('.su-entity-mini')).not.toBeNull()
+    expect(inset.textContent).toContain('HP')
     expect(inset.querySelector('.su-entity-mini__name')?.textContent).toContain('Vex')
     expect(within(inset).getAllByText('Grizzled Veteran').length).toBeGreaterThan(0)
   })
