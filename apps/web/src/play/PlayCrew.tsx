@@ -4,7 +4,8 @@
  * (`MiniGrid`; ruleset §1.3: Play's lists are Minis), its Mini chips what
  * the table needs at a glance: the pair as `crewPair` draws it (aboard, the
  * mech with `PILOT | Rook`; on foot, the pilot with `MECH | Atlas` for theirs,
- * C11, R5, and "On foot"), whether they are here ("Here", or "Away" once their seat
+ * C11, R5; the pair's form says on foot or aboard, so no chip repeats it and
+ * the name keeps its room), whether they are here ("Here", or "Away" once their seat
  * stops beating), and one vital: the one that needs looking at (▲, critical,
  * as `crewLines()` decides), else, while they are here, their SP aboard or HP
  * on foot.
@@ -103,7 +104,6 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
       {...(pair.relations ? { relations: [...pair.relations] } : {})}
       state={
         <>
-          {line.boardedIn === null ? <Stat size="mini" label={playCopy('onFoot')} /> : null}
           <Stat size="mini" label={line.present ? playCopy('here') : playCopy('away')} />
           {vital.attention ? (
             <Stat

@@ -205,6 +205,9 @@ describe('the Crew (play.md §7)', () => {
     // Presence is a chip on each crewmate's Mini (ruleset §1.3): two here, one away.
     expect(crew.getAllByText('Here')).toHaveLength(2)
     expect(crew.getByText('Away')).toBeTruthy()
+    // On foot is the pair's form (the pilot's Mini, MECH chip), never a chip of its own,
+    // so a crewmate's name keeps its room beside their mech's.
+    expect(crew.queryByText('On foot')).toBeNull()
     // Each line is a Mini, never a listing Compact.
     expect(document.querySelectorAll('[data-play-list] .su-entity-compact')).toHaveLength(0)
     expect(crew.getAllByRole('listitem').every((li) => li.querySelector('.su-entity-mini'))).toBe(

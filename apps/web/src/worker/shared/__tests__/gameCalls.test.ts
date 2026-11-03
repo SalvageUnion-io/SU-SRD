@@ -130,6 +130,26 @@ describe('the Games calls', () => {
     expect(reset).toEqual({ ok: false, refusal: 'Only the Organiser can do that' })
   })
 
+  test('a roster’s names are read from each account, never from the Game', async () => {
+    const { call, db } = world()
+    const gameId = (await call('games.create', { name: 'Eldridge' })) as string
+    await call(
+      'invites.redeem',
+      { code: (await call('invites.link', { gameId })) as string },
+      PLAYER
+    )
+    // A profile name outranks Discord's; Discord's is read as it is now.
+    expect(await call('games.names', { gameId }, PLAYER)).toEqual({
+      'd-org': 'Org',
+      'd-player': 'Rosa',
+    })
+    await db.prepare("update accounts set name = 'Rosa B' where discord_id = 'd-player'").run()
+    expect(await call('games.names', { gameId })).toEqual({ 'd-org': 'Org', 'd-player': 'Rosa B' })
+    // Someone outside the Game reads nothing.
+    const outsider = { discordId: 'd-out', accountId: 'a-out' }
+    expect(await call('games.names', { gameId }, outsider)).toEqual({})
+  })
+
   test('each account room notes the Games its player starts or joins, and not a refused start', async () => {
     const { call, deps, notesOf } = world()
     const gameId = (await call('games.create', { name: 'Tenacity' })) as string
