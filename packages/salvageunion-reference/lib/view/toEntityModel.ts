@@ -10,16 +10,20 @@ import {
   getChassisAbilities,
   getChoices,
 } from '../actionResolution'
+import { resolveDataValueForTechLevel } from '../contentBlockHelpers'
 import { getReferenceEntityName, getTechLevel } from '../entityFields'
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
 import { actionCostCurrency } from '../helpers'
 import { SalvageUnionReference } from '../index'
 import { nameToSlug } from '../nameToSlug'
+import type { ChoiceSelections } from '../resolveChoiceView'
+import { resolveChoiceView } from '../resolveChoiceView'
 import type {
   RefEntity,
   RefEnumSchemaName,
   RefMetaEntity,
   RefObjectAnyPattern,
+  RefObjectChoice,
   RefObjectContentBlock,
 } from '../schemas/index'
 import { getEntitySlug } from '../slug'
@@ -154,6 +158,33 @@ function withRef(ref: EntityRef | undefined): { ref?: EntityRef } {
 }
 
 /**
+ * A player's copy's prose: its datavalues row as the picks and the Tech Level
+ * leave it (Custom Sniper Rifle "Damage 5 SP, Range Far"), so the text under
+ * its head never restates the book's TL1 row beside chips that say otherwise.
+ */
+function copyProse(
+  content: RefObjectContentBlock[],
+  choices: RefObjectChoice[],
+  selections: ChoiceSelections,
+  effTechLevel: number | undefined
+): RefObjectContentBlock[] {
+  const at = content.findIndex((c) => c.type === 'datavalues')
+  const block = content[at]
+  if (!block) return content
+  const { datavalues } = resolveChoiceView({ content, choices }, selections)
+  const row = datavalues.map(({ perTechLevel, ...dv }) =>
+    perTechLevel === undefined
+      ? dv
+      : {
+          ...dv,
+          value:
+            resolveDataValueForTechLevel({ ...dv, perTechLevel }, effTechLevel).value ?? dv.value,
+        }
+  )
+  return content.map((c, i) => (i === at ? { ...block, value: row } : c))
+}
+
+/**
  * Resolve an entity — or, with `view.pattern`, one of a chassis's patterns —
  * into its model. `instance` changes identity only where a player's copy
  * does: its title and whether it is user-made.
@@ -161,7 +192,15 @@ function withRef(ref: EntityRef | undefined): { ref?: EntityRef } {
 export function toEntityModel(
   entity: RefMetaEntity,
   instance?: EntityInstance,
-  view?: { pattern?: RefObjectAnyPattern }
+  view?: {
+    pattern?: RefObjectAnyPattern
+    /**
+     * The choices `instance.selections` answer, when they are not the entity's
+     * own: a carried item's self-action (Play's Custom Sniper Rifle line) is
+     * changed by its item's choices.
+     */
+    choices?: RefObjectChoice[]
+  }
 ): EntityModel {
   const pattern = view?.pattern
   const schemaName = (schemaNameOf(entity) ?? 'npcs') as RefEnumSchemaName | 'actions'
@@ -191,6 +230,19 @@ export function toEntityModel(
       : undefined
 
   const baseTechLevel = typeof techLevel === 'number' ? techLevel : undefined
+  const choices = view?.choices ?? getChoices(entity) ?? []
+  const scalingByLabel = perTechLevelByLabel(entity)
+  // A player's copy scales to its host's Tech Level, never below its own (as
+  // the Card's `resolveTechScaling`), and only where something scales with it.
+  const techScalable =
+    scalingByLabel.size > 0 || choices.some((c) => typeof c.cardinality?.max === 'object')
+  const hostTechLevel = techScalable ? instance?.techLevel : undefined
+  const effTechLevel =
+    hostTechLevel === undefined
+      ? baseTechLevel
+      : baseTechLevel === undefined
+        ? hostTechLevel
+        : Math.max(baseTechLevel, hostTechLevel)
   const facets = splitFacets(
     pattern
       ? []
@@ -199,14 +251,17 @@ export function toEntityModel(
           entityName,
           action,
           foldedAction: folded,
-          choices: getChoices(entity) ?? [],
-          perTechLevelByLabel: perTechLevelByLabel(entity),
-          effTechLevel: baseTechLevel,
+          choices,
+          ...(instance?.selections ? { selections: instance.selections } : {}),
+          perTechLevelByLabel: scalingByLabel,
+          effTechLevel,
         })
   )
   const stats = isAction ? [] : entityStats(entity, { schemaName, techLevel })
+  const shownTechLevel =
+    hostTechLevel !== undefined && effTechLevel !== undefined ? effTechLevel : techLevel
   const facts: Fact[] = [
-    ...(!isAction && techLevel != null ? [techLevelFact(techLevel)] : []),
+    ...(!isAction && shownTechLevel != null ? [techLevelFact(shownTechLevel)] : []),
     ...stats,
     ...facets.facts,
   ]
@@ -267,7 +322,11 @@ export function toEntityModel(
     bookStats: isAction ? [] : bookStats(entity, { schemaName, techLevel }),
     traits: facets.traits,
     ...(lead ? { lead } : {}),
-    prose: pattern ? (pattern.content ?? []) : ownContent,
+    prose: pattern
+      ? (pattern.content ?? [])
+      : instance?.selections || hostTechLevel !== undefined
+        ? copyProse(ownContent, choices, instance?.selections ?? {}, effTechLevel)
+        : ownContent,
     ...(folded ? { folded: entityRef(folded) } : {}),
     actions: others.map((a) => entityRef(a)),
     abilities: (getChassisAbilities(entity) ?? []).map((a) => entityRef(a)),

@@ -49,6 +49,7 @@ beforeAll(async () => {
 
 const SNIPER_NAME = 'Custom Sniper Rifle'
 const WEAPON_TYPE_CHOICE_ID = 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a'
+const MODIFICATION_CHOICE_ID = '8688eb63-550c-4d06-9b50-e1649c442da6'
 let SNIPER_ID = ''
 
 // ---------------------------------------------------------------------------
@@ -153,5 +154,28 @@ describe('PilotSheet — equipment choice cards', () => {
     expect(screen.getAllByText(SNIPER_NAME).length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /Ballistic/i })).toBeNull()
     expect(updateMock).not.toHaveBeenCalled()
+  })
+
+  test("the item line shows the picks and the crawler's Tech Level, not the book's TL1 rifle", () => {
+    // The line is the player's rifle: its head and its text both read the
+    // picks and the Tech Level, as its Details card does.
+    const pilot = makePilot({
+      crawlerLevel: 3,
+      equipmentChoices: {
+        [SNIPER_ID]: {
+          [WEAPON_TYPE_CHOICE_ID]: ['Energy'],
+          [MODIFICATION_CHOICE_ID]: ['Rangefinder', 'High Calibre Rounds'],
+        },
+      },
+    })
+    const { store } = makePilotStubStore(pilot)
+    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const line = container.querySelector('[data-sheet-carried] li')
+    const text = line?.textContent ?? ''
+    // 2 SP + 1 per Tech Level after the first + 1 High Calibre = 5 SP.
+    expect(text).toContain('5SP')
+    expect(text).toContain('Far')
+    expect(text).toContain('Energy')
+    expect(text).not.toContain('Long')
   })
 })

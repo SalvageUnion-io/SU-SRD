@@ -9,6 +9,7 @@
  */
 
 import type { EntitySchemaName } from '../generated/schemaRegistry.generated'
+import type { ChoiceSelections } from '../resolveChoiceView'
 import type { RefObjectContentBlock, RefObjectTable } from '../schemas/index'
 import type { TableRow } from '../utils/tableRows'
 
@@ -108,6 +109,17 @@ export type EntityInstance = {
   title?: string
   notes?: string
   userMade?: boolean
+  /**
+   * The player's picks on its choices (a Custom Sniper Rifle's Weapon Type and
+   * Modifications): their effects change its Range, Damage and traits.
+   */
+  selections?: ChoiceSelections
+  /**
+   * The Tech Level its host scales it to (a pilot's crawler Tech Level), for an
+   * entity whose datavalues or choice caps scale with Tech Level. Never below
+   * the entity's own.
+   */
+  techLevel?: number
 }
 
 export type EntityModel = {

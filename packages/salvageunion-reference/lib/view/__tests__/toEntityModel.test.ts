@@ -5,6 +5,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
+import { getChoices } from '../../actionResolution'
 import { getModel } from '../../helpers'
 import { EntitySchemaNames, SalvageUnionReference } from '../../index'
 import type { RefMetaEntity } from '../../schemas/index'
@@ -311,5 +312,56 @@ describe('a vehicle’s systems', () => {
       expect([v.name, items.length]).toEqual([v.name, listed])
       expect([v.name, model.actions.length]).toEqual([v.name, 0])
     }
+  })
+})
+
+describe('toEntityModel — a player copy with picks and a host Tech Level', () => {
+  const sniper = need(
+    SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle'),
+    'Custom Sniper Rifle'
+  ) as RefMetaEntity
+  const action = need(
+    SalvageUnionReference.Actions.getByName('Custom Sniper Rifle'),
+    'Custom Sniper Rifle action'
+  ) as RefMetaEntity
+  const WEAPON_TYPE = 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a'
+  const MODIFICATION = '8688eb63-550c-4d06-9b50-e1649c442da6'
+  const selections = {
+    [WEAPON_TYPE]: ['Energy'],
+    [MODIFICATION]: ['Rangefinder', 'High Calibre Rounds', 'Silencer'],
+  }
+  // Tech Level is a fact; Damage and Range are keyword datavalues, its traits.
+  const fact = (model: ReturnType<typeof toEntityModel>, label: string) =>
+    model.facts.find((f) => f.label === label)?.value ??
+    model.traits.find((t) => t.name === label)?.param
+  const traitNames = (model: ReturnType<typeof toEntityModel>) => model.traits.map((t) => t.name)
+
+  test('bare, it is the book: TL1, 2SP, Long', () => {
+    const model = toEntityModel(sniper)
+    expect(fact(model, 'Tech Level')).toBe('1')
+    expect(fact(model, 'Damage')).toBe('2SP')
+    expect(fact(model, 'Range')).toBe('Long')
+  })
+
+  test("the picks and the crawler's Tech Level change Range, Damage and traits", () => {
+    const model = toEntityModel(sniper, { selections, techLevel: 3 })
+    expect(fact(model, 'Tech Level')).toBe('3')
+    // 2 SP, +1 per Tech Level after the first (Workshop Manual p.50), +1 High Calibre.
+    expect(fact(model, 'Damage')).toBe('5SP')
+    expect(fact(model, 'Range')).toBe('Far')
+    expect(traitNames(model)).toEqual(expect.arrayContaining(['Energy', 'Silent']))
+  })
+
+  test('its self-action takes the item choices it is handed', () => {
+    const choices = need(getChoices(sniper), 'Custom Sniper Rifle choices')
+    const model = toEntityModel(action, { selections, techLevel: 2 }, { choices })
+    expect(fact(model, 'Damage')).toBe('4SP')
+    expect(fact(model, 'Range')).toBe('Far')
+    expect(traitNames(model)).toEqual(expect.arrayContaining(['Energy', 'Silent']))
+  })
+
+  test('a host Tech Level never changes what does not scale', () => {
+    const plain = need(SalvageUnionReference.Equipment.all()[0], 'equipment') as RefMetaEntity
+    expect(toEntityModel(plain, { techLevel: 6 }).facts).toEqual(toEntityModel(plain).facts)
   })
 })

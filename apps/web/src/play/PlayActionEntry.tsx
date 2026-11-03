@@ -53,6 +53,7 @@ export function PlayActionEntry({
           resolve={open && resolve.kind === 'resolve' ? resolve : null}
           onUse={() => actions.open(entry.key)}
           canWrite={play.canWrite}
+          techLevel={actions.crawlerTechLevel}
           locked={
             entry.need === null
               ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)
