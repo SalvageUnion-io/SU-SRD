@@ -83,7 +83,7 @@ import type { SheetVital } from './sheetVitals.model'
 /** No stat-block loadout: the partner's installed items are its loadout. */
 const NO_LOADOUT = { systems: [], modules: [] }
 
-type PartnerCardProps = {
+export type PartnerCardProps = {
   /**
    * The partner together with the host that owns it. Taken as the existing
    * `PartnerWithHost` union rather than three loose props so `hostKind` and
@@ -114,6 +114,8 @@ type PartnerCardProps = {
    */
   crawlerReadOnly?: boolean
   store?: UnitsStore
+  /** `page` when the card is its Page (a companion's Details dialog, `PartnerMini`). */
+  presentation?: 'card' | 'page'
 }
 
 export function PartnerCard({
@@ -125,6 +127,7 @@ export function PartnerCard({
   readOnly = false,
   crawlerReadOnly = false,
   store = useUnits,
+  presentation = 'card',
 }: PartnerCardProps) {
   const { partner, hostKind, host } = found
   const storeState = store()
@@ -422,7 +425,8 @@ export function PartnerCard({
     <>
       <ReferenceEntityCard
         data={statBlock ?? undefined}
-        size="compact"
+        size={presentation === 'page' ? 'full' : 'compact'}
+        presentation={presentation}
         titleOverride={partnerDisplayName(partner)}
         statsOverride={stats}
         // The installed Systems / Modules below are the loadout: the stat

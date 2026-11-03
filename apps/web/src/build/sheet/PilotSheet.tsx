@@ -63,9 +63,9 @@ import {
   EmptyState,
   EntitySearcher,
   Eyebrow,
+  MiniGrid,
   SlabSection,
   SlotGrid,
-  Stack,
   Stat,
   tokens,
 } from '../../components/index'
@@ -79,7 +79,7 @@ import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
 import { ChipListEditor } from './ChipListEditor'
 import { CONDITION_DRAFT } from './chipWell.model'
-import { PartnerCard } from './PartnerCard'
+import { PartnerMini } from './PartnerMini'
 import { PilotIdentityPanel } from './PilotIdentity'
 import { PilotSheetAbilities } from './PilotSheetAbilities'
 import { GenericEntryAdder, GenericEntryLine, PilotEquipmentItem } from './PilotSheetItems'
@@ -142,6 +142,8 @@ const TP_ROW = {
 } satisfies CSSProperties
 
 const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
+/** Companions are two columns at most, one where 18rem will not fit twice. */
+const COMPANION_COLUMNS = { columns: '18rem 2' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
 // PilotSheet
@@ -466,21 +468,28 @@ export function PilotSheet({
             title={buildSheetCopy(model.partners.length > 1 ? 'companions' : 'companion')}
             count={model.partners.length}
           >
-            <Stack gap={12}>
+            {/* Minis at level 2 (E6), two columns (Jrvs 2026-11-03); each
+              opens its whole card from Details. */}
+            <MiniGrid
+              label={buildSheetCopy('companions')}
+              edit={!readOnly}
+              style={COMPANION_COLUMNS}
+            >
               {model.partners.map((partner) => (
-                <PartnerCard
-                  key={partner.id}
-                  found={{ partner, hostKind: 'pilot', host: pilot }}
-                  crawler={model.linkedCrawler}
-                  crawlerTechLevel={model.effectiveCrawlerLevel}
-                  hostAbilityRefs={pilot.abilities}
-                  fielded={model.fieldedByRef[partner.hostRef] ?? 1}
-                  readOnly={readOnly}
-                  crawlerReadOnly={crawlerReadOnly}
-                  store={store}
-                />
+                <li key={partner.id}>
+                  <PartnerMini
+                    found={{ partner, hostKind: 'pilot', host: pilot }}
+                    crawler={model.linkedCrawler}
+                    crawlerTechLevel={model.effectiveCrawlerLevel}
+                    hostAbilityRefs={pilot.abilities}
+                    fielded={model.fieldedByRef[partner.hostRef] ?? 1}
+                    readOnly={readOnly}
+                    crawlerReadOnly={crawlerReadOnly}
+                    store={store}
+                  />
+                </li>
               ))}
-            </Stack>
+            </MiniGrid>
           </SlabSection>
         )}
       </SheetColumns>
