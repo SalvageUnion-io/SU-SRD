@@ -5,8 +5,8 @@
  * The Training Bay is everything a player owns, on their account (ADR-052 §1–2): a
  * unit in a Game stays in their Training Bay too, so the page lists every pilot,
  * mech and crawler of theirs this browser holds, wherever it is, and names its
- * Game in a relation chip. The "Showing" select narrows that to what is in no
- * Game, or to one Game's.
+ * Game in a relation chip: a tag, never a filter. Nothing here is another
+ * player's: the page reads its units through `useOwnUnits`.
  *
  * Each item is one line — the kind and its defining fact on a stamp, the name,
  * and one reading (`HP 8/10`) — with chips: for a pattern or NPC who can see
@@ -34,25 +34,8 @@ import { pairSide } from '../units/crewPair'
 import { VITAL, vitalReading } from '../units/readings'
 import type { UnitReading } from '../units/unitModel'
 
-/** The Showing select: everything you own, what is in no Game, or one Game's (`game:<id>`). */
-export type ShelfFilter = 'everything' | 'not-in-game' | `game:${string}`
-
 /** A Game the viewer is in, as `games.listMine` answers. */
 export type ShelfGame = { _id: string; name: string; mediator: boolean }
-
-/**
- * The Training Bay's "Showing" choices, in order: Everything, Not in a Game, then one
- * entry per Game (ADR-052 §1). With no Game list to ask, the first two alone.
- */
-export function shelfFilters(
-  games: readonly Pick<ShelfGame, '_id' | 'name'>[] | undefined
-): { value: ShelfFilter; label: string }[] {
-  return [
-    { value: 'everything', label: 'Everything' },
-    { value: 'not-in-game', label: 'Not in a Game' },
-    ...(games ?? []).map((g) => ({ value: `game:${g._id}` as const, label: g.name })),
-  ]
-}
 
 /** Who can read a pattern, and how often it has been built (`shelf.patternSharing`). */
 export type PatternSharing = {
@@ -79,29 +62,6 @@ export type ShelfRelation = {
 
 /** Who can see an item, in the words its chip wears. */
 const WHO = { link: 'Shared by link', me: 'Only me' } as const
-
-/** Whether an item shows under the Showing select. A unit in a Game shows under Everything. */
-export function shownUnder(filter: ShelfFilter, entity: ContainerFields): boolean {
-  if (filter === 'everything') return true
-  if (filter === 'not-in-game') return typeof entity.gameId !== 'string'
-  return entity.gameId === filter.slice('game:'.length)
-}
-
-/**
- * Whether a cached crawler is one you keep. A crawler in your Training Bay is; one in
- * a Game is the crew's, and this browser caches the crawler of every Game you
- * are in (`RoomFeed`), so it is yours to keep only where you run the table.
- * With no Game list to ask (offline, or still loading), it is shown rather
- * than hidden: hiding a build is the one mistake a Training Bay must not make.
- */
-export function crawlerIsKept(
-  crawler: ContainerFields,
-  games: readonly (ShelfGame & { tableRunner?: boolean })[] | undefined
-): boolean {
-  if (typeof crawler.gameId !== 'string' || games === undefined) return true
-  const game = games.find((g) => g._id === crawler.gameId)
-  return game === undefined || game.tableRunner === true
-}
 
 /** The class a pilot is, by the name the book gives it. */
 export function pilotFact(pilot: Pick<Pilot, 'classRef'>): string | undefined {
@@ -188,19 +148,6 @@ export function crewLinked(args: {
       readings: args.readings?.get(otherId),
     }),
   ]
-}
-
-/** A crawler in a Game you mediate says so. */
-export function crawlerChips(args: {
-  crawler: Crawler
-  games: readonly ShelfGame[] | undefined
-}): ShelfChip[] {
-  const { crawler } = args
-  const game =
-    typeof crawler.gameId === 'string'
-      ? args.games?.find((g) => g._id === crawler.gameId)
-      : undefined
-  return game?.mediator ? [{ key: 'role', label: 'You mediate' }] : []
 }
 
 /**

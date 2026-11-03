@@ -1,6 +1,6 @@
 import { buildPilot } from './_helpers'
 import { createGame } from './_table'
-import { fromShelfMenu, moveToGame, openTrainingBay, shelf, showOnShelves } from './_trainingBay'
+import { fromShelfMenu, moveToGame, openTrainingBay, shelf } from './_trainingBay'
 import { expect, test } from './fixtures'
 
 /**
@@ -35,13 +35,9 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
   await expect(chip).toBeAttached({ timeout: 15_000 })
   await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
 
-  // Still in the Training Bay under Everything and under its Game; under Not in a Game it is not.
-  await showOnShelves(page, 'Not in a Game')
-  await expect(pilots.getByText('Shelf Runner')).toHaveCount(0)
-  await showOnShelves(page, 'Dustbowl Run')
+  // Still in the Training Bay, its Game its tag: there is no Showing filter (C13).
   await expect(pilots.getByText('Shelf Runner')).toBeVisible()
-  await showOnShelves(page, 'Everything')
-  await expect(pilots.getByText('Shelf Runner')).toBeVisible()
+  await expect(page.getByLabel('Showing')).toHaveCount(0)
 
   // Out again: taking it off a table's roster always asks.
   await moveToGame(page, 'Shelf Runner', 'Not in a Game')
