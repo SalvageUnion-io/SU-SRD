@@ -25,7 +25,7 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'docs/architecture/play.md': 10_500,
   'docs/architecture/surfaces.md': 4_400,
   'docs/design-system/chrome.md': 3_250,
-  'docs/design-system/chips-and-actions.md': 7_800,
+  'docs/design-system/chips-and-actions.md': 8_100,
   'docs/design-system/entity-display-language.md': 6_250,
   'docs/design-system/hard-rules.md': 17_400,
   'docs/design-system/ruleset.md': 14_250,

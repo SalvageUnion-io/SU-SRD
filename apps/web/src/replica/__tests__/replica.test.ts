@@ -12,6 +12,7 @@ import {
   getView,
   headSeqOf,
   hold,
+  ownRows,
   resetReplica,
   restore,
   serve,
@@ -208,5 +209,46 @@ describe('arrival', () => {
   test('resolves at once when nothing is coming', async () => {
     setRowsComing(() => false)
     await untilArrived('pilot')
+  })
+})
+
+describe('the caller’s own rows (what Build reads)', () => {
+  const G = gameScope('g1')
+  const inGame = (id: string) => ({ ...pilot(id), gameId: 'g1' })
+
+  test('the account’s rows, and a Game’s unit only when it is served as theirs', () => {
+    serve('account', ['pilot'], [{ table: 'pilot', row: pilot('mine'), version: 1, owner: 'me' }])
+    serve(
+      G,
+      ['pilot'],
+      [
+        { table: 'pilot', row: inGame('mine-in-game'), version: 1, owner: 'me' },
+        { table: 'pilot', row: inGame('crewmate'), version: 1, owner: 'them' },
+        { table: 'pilot', row: inGame('spare'), version: 1, owner: null },
+      ]
+    )
+    expect(ids(getView().pilots)).toEqual(['crewmate', 'mine', 'mine-in-game', 'spare'])
+    expect(ids(ownRows('pilot', 'me'))).toEqual(['mine', 'mine-in-game'])
+    // Signed out, only what the account room served.
+    expect(ids(ownRows('pilot', null))).toEqual(['mine'])
+  })
+
+  test('a row this tab wrote that no room has served yet is its own', () => {
+    hold('pilot', inGame('new'))
+    expect(ids(ownRows('pilot', 'me'))).toEqual(['new'])
+  })
+
+  test('a reassign at the same version moves the unit in or out', () => {
+    serve(G, ['pilot'], [{ table: 'pilot', row: inGame('p1'), version: 3, owner: 'them' }])
+    expect(ownRows('pilot', 'me')).toEqual([])
+    serve(G, ['pilot'], [{ table: 'pilot', row: inGame('p1'), version: 3, owner: 'me' }])
+    expect(ids(ownRows('pilot', 'me'))).toEqual(['p1'])
+  })
+
+  test('the same array until the table or the caller changes', () => {
+    serve('account', ['pilot'], [{ table: 'pilot', row: pilot('p1'), version: 1, owner: 'me' }])
+    const first = ownRows('pilot', 'me')
+    expect(ownRows('pilot', 'me')).toBe(first)
+    expect(ownRows('pilot', 'other')).not.toBe(first)
   })
 })

@@ -206,17 +206,13 @@ describe('Roster — signed out, it is the front door', () => {
 // ---------------------------------------------------------------------------
 
 describe('Training Bay — the band', () => {
-  test('the notched title, the Showing select on Everything, Import and Export all', async () => {
+  test('the notched title, Import and Export all, and no Showing filter', async () => {
     await renderShelves()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
     expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
-    const showing = screen.getByLabelText('Showing') as HTMLSelectElement
-    expect(showing.value).toBe('everything')
-    expect([...showing.options].map((o) => o.textContent).slice(0, 2)).toEqual([
-      'Everything',
-      'Not in a Game',
-    ])
+    // A unit's Game is its chip, never a filter (chips-and-actions C13).
+    expect(screen.queryByLabelText('Showing')).toBeNull()
     expect(screen.getByRole('button', { name: 'Import' })).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Export all' })).toBeTruthy()
     // A Game is started on the Play hub, never in Build (ADR-052 §1).

@@ -5,14 +5,15 @@
  * A unit in a Game stays in your Training Bay too — it is one record whichever table
  * it plays at — so the page lists every pilot, mech and crawler of yours this
  * browser holds, wherever it is, and a relation chip on each names its Game
- * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a detail
- * here, never a place: unassigned units and other players' units show only on
- * the Game's page, and a Game is started or joined from the Play hub.
+ * (`GAME | Rust Run`), opening that Game's page in Play. A Game is a tag here,
+ * never a place and never a filter. The page reads only what is yours
+ * (`useOwnUnits`): a crewmate's units, unassigned ones and a Game's crawler
+ * (the crew's) show only on the Game's page, and a Game is started or joined
+ * from the Play hub.
  *
  *  - **The band** (ink, paper flecks): the notched title and, right of it on
- *    the band's foot, **Import**, **Export all** and the **Showing** select
- *    (Everything, Not in a Game, then one entry per Game); what does not fit
- *    beside the name wraps up over it (`asideAt="controls"`).
+ *    the band's foot, **Import** and **Export all**; what does not fit beside
+ *    the name wraps up over it (`asideAt="controls"`).
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers; then the user-made,
  *    dashed NPCs, Patterns and Encounters (ruleset §3.9, `EncounterShelf`); then,
  *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
@@ -24,7 +25,7 @@
  *
  * ## Modes
  *
- * Connected, the page reads your Games (for the chips and the move) and who can
+ * Connected, the page reads your Games (for the chips' names and the move) and who can
  * see each pattern. Disconnected it shows the cached pile with what it knows,
  * and offers no writes: `canWrite` gates every verb that changes something.
  *
@@ -50,21 +51,13 @@ import {
   HeaderMenu,
   PageShell,
   RosterSkeleton,
-  Select,
   toast,
 } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
-import {
-  useCrawlers,
-  useHydrateEntities,
-  useMechs,
-  useNpcs,
-  usePilots,
-  useSoftLinkList,
-} from '../../lib/entities'
+import { useHydrateEntities, useOwnUnits, useSoftLinkList } from '../../lib/entities'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { buildEntityExport, buildPatternExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
@@ -73,12 +66,10 @@ import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { patternCopy, savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
-import type { PatternSharing, ShelfFilter, ShelfGame } from '../../lib/shelves/shelfItems'
+import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
   chassisFact,
-  crawlerChips,
   crawlerFact,
-  crawlerIsKept,
   crawlerReading,
   crewLinked,
   encounterNpcChips,
@@ -90,8 +81,6 @@ import {
   patternChips,
   patternReading,
   pilotFact,
-  shelfFilters,
-  shownUnder,
 } from '../../lib/shelves/shelfItems'
 import { usePatterns, useTray } from '../../replica/collections'
 import { useGamesQuery } from '../../replica/roomCalls'
@@ -154,7 +143,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const { status, canWrite } = useSync()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
-  const [filter, setFilter] = useState<ShelfFilter>('everything')
   const [moving, setMoving] = useState<MoveSubject | null>(null)
   // The mech being saved as a pattern, in its dialog over the Hangar.
   const [savingPattern, setSavingPattern] = useState<string | null>(null)
@@ -171,44 +159,21 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
   const hydratedPatterns = useHydrateOnMount(() => usePatterns.getState().hydrate())
   const hydratedTray = useHydrateOnMount(() => useTray.getState().hydrate())
-  const allPilots = usePilots()
-  const allMechs = useMechs()
-  const allCrawlers = useCrawlers()
-  const allNpcs = useNpcs()
+  const pilots = useOwnUnits('pilot')
+  const mechs = useOwnUnits('mech')
+  const crawlers = useOwnUnits('crawler')
+  const npcs = useOwnUnits('npc')
   const softLinks = useSoftLinkList()
   const patterns = usePatterns((s) => s.mechPatterns)
   const trayNpcs = useTray((s) => s.encounterNpcs)
 
-  // Chip names from the WHOLE pile: a link names its other end either way.
-  const pilotNames = new Map(allPilots.map((p) => [p.id, p.name]))
-  const mechNames = new Map(allMechs.map((m) => [m.id, m.name]))
-  const { pilotReadings, mechReadings } = crewReadings(allPilots, allMechs, allCrawlers, softLinks)
-  const patternSource = allMechs.find((m) => m.id === savingPattern)
-
-  // The Showing select: a Game you have since left falls back to Everything.
-  const filters = shelfFilters(games)
-  const shown: ShelfFilter = filters.some((f) => f.value === filter) ? filter : 'everything'
-
-  const pilots = allPilots.filter((p) => shownUnder(shown, p))
-  const mechs = allMechs.filter((m) => shownUnder(shown, m))
-  // A Game's crawler is the crew's: in your Training Bay only where you run the table.
-  const keptCrawlers = allCrawlers.filter((c) => crawlerIsKept(c, games))
-  const crawlers = keptCrawlers.filter((c) => shownUnder(shown, c))
-  const npcs = allNpcs.filter((n) => shownUnder(shown, n))
-  // The personal tray is in the Training Bay alone: it is in no Game to filter by.
-  const tray = shown === 'everything' ? trayNpcs.filter((n) => typeof n.gameId !== 'string') : []
-
-  /**
-   * A filtered-out shelf says why: "Every pilot is in a Game." or "No pilot of
-   * yours is in this Game." only when there are pilots at all, and "No pilots
-   * yet." when there are none to filter.
-   */
-  const emptyText = (total: number, none: string, singular: string): string =>
-    shown === 'everything' || total === 0
-      ? none
-      : shown === 'not-in-game'
-        ? `Every ${singular} is in a Game.`
-        : `No ${singular} of yours is in this Game.`
+  // Chip names from your own units alone: a link to a crewmate's names nothing here.
+  const pilotNames = new Map(pilots.map((p) => [p.id, p.name]))
+  const mechNames = new Map(mechs.map((m) => [m.id, m.name]))
+  const { pilotReadings, mechReadings } = crewReadings(pilots, mechs, crawlers, softLinks)
+  const patternSource = mechs.find((m) => m.id === savingPattern)
+  // The personal tray is in the Training Bay alone.
+  const tray = trayNpcs.filter((n) => typeof n.gameId !== 'string')
 
   // -- the verbs ------------------------------------------------------------
 
@@ -358,9 +323,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     ) : undefined
 
   const fromAMech: HeaderMenuItem[] =
-    allMechs.length === 0
+    mechs.length === 0
       ? [{ id: 'none', label: 'Build a mech first' }]
-      : allMechs.map((m) => ({
+      : mechs.map((m) => ({
           id: m.id,
           label: m.name,
           onSelect: () => setSavingPattern(m.id),
@@ -388,19 +353,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             <>
               {canWrite && <ImportButton onResult={setImportResult} />}
               <ExportAllButton />
-              <Select
-                chevron
-                aria-label="Showing"
-                value={shown}
-                onChange={(e) => setFilter(e.target.value as ShelfFilter)}
-                className="su-container-select"
-              >
-                {filters.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
             </>
           }
         >
@@ -418,7 +370,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               title="Pilots"
               action={newLink('/pilots/new', '+ New pilot')}
               isEmpty={pilots.length === 0}
-              empty={emptyText(allPilots.length, 'No pilots yet.', 'pilot')}
+              empty="No pilots yet."
             >
               {pilots.map((p) => (
                 <ShelfItem
@@ -447,7 +399,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               title="Mechs"
               action={newLink('/mechs/new', '+ New mech')}
               isEmpty={mechs.length === 0}
-              empty={emptyText(allMechs.length, 'No mechs yet.', 'mech')}
+              empty="No mechs yet."
             >
               {mechs.map((m) => (
                 <ShelfItem
@@ -476,7 +428,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               title="Crawlers"
               action={newLink('/crawlers/new', '+ New crawler')}
               isEmpty={crawlers.length === 0}
-              empty={emptyText(keptCrawlers.length, 'No crawlers yet.', 'crawler')}
+              empty="No crawlers yet."
             >
               {crawlers.map((c) => (
                 <ShelfItem
@@ -486,7 +438,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   name={c.name}
                   reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
                   href={`/crawlers/${c.id}`}
-                  chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
+                  chips={linkChip(sharedByLink, c.id)}
                   relations={gameRelation(c, games)}
                   menu={unitMenu('crawler', c, c)}
                 />
@@ -502,11 +454,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               note="Your NPCs, ready to drop into a Game you mediate."
               action={newLink('/npcs/new', '+ Design an NPC')}
               isEmpty={npcs.length + tray.length === 0}
-              empty={emptyText(
-                allNpcs.length + tray.length,
-                'No NPCs yet. Design one and it is kept here.',
-                'NPC'
-              )}
+              empty="No NPCs yet. Design one and it is kept here."
             >
               {npcs.map((n) => (
                 <ShelfItem

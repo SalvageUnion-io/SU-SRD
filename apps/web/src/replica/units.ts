@@ -48,6 +48,7 @@ import {
   hold,
   holdAll,
   markArrived,
+  ownRows,
   row,
   setRows,
   subscribe,
@@ -393,6 +394,24 @@ export const units: UnitsApi = {
     }
     drop(type, id)
   },
+}
+
+/**
+ * The caller's own units (`ownRows`) behind the read half of `units`: what
+ * Build reads, a backup included. A link is theirs when both its ends are.
+ */
+export function ownUnits(me: string | null): Pick<UnitsApi, 'hydrate' | 'list'> {
+  const own = <T extends UnitType>(type: T) => ownRows(type, me) as unknown as EntityForType<T>[]
+  const list = <T extends EntityType>(type: T): EntityForType<T>[] => {
+    if (type !== 'softLink') return own(type as UnitType) as unknown as EntityForType<T>[]
+    const ids = new Set(
+      (['pilot', 'mech', 'crawler', 'npc'] as const).flatMap((t) => own(t).map((u) => u.id))
+    )
+    return listOf('softLink').filter(
+      (l) => ids.has(l.from.id) && ids.has(l.to.id)
+    ) as unknown as EntityForType<T>[]
+  }
+  return { hydrate: units.hydrate, list }
 }
 
 /** `units` with the replica's view, for a selector to read both. */
