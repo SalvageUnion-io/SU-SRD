@@ -351,7 +351,10 @@ describe('every page ends on one footer', () => {
     it(`${name} cites itself on one line in the one footer, in its band's colour`, () => {
       const html = page(path)
       expect(feet(html)).toHaveLength(1)
-      expect(html).toMatch(/<p class="su-footer__citation">[^<]+<\/p>/)
+      // One line of text; only a printing's bold `//` (CiteLine) breaks it.
+      expect(html).toMatch(
+        /<p class="su-footer__citation">(?:[^<]|<span style="font-weight:[^"]+">\/\/<\/span>)+<\/p>/
+      )
       expect(html).not.toContain('Also in')
       expect(html).not.toContain('su-footer__kind')
       expect(matched(html)).toBe(true)
