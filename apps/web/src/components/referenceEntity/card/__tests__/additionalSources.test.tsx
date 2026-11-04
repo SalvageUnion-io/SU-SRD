@@ -45,6 +45,19 @@ const patternOf = (chassis: string, pattern: string): RefObjectPattern => {
   return found
 }
 
+/**
+ * The citation line by its whole text: the line is split around each bold
+ * `//` (`CiteLine`), so it is the innermost element whose text is the line.
+ */
+const citeLine = (line: string | RegExp) =>
+  screen.getByText((_, el) => {
+    const matches = (node: Element | null) => {
+      const text = node?.textContent ?? ''
+      return typeof line === 'string' ? text === line : line.test(text)
+    }
+    return matches(el) && !Array.from(el?.children ?? []).some(matches)
+  })
+
 describe('the one citation line', () => {
   test('a reprinted entity names the book, booklet and page it was reprinted in', () => {
     // First Aid Kit: Workshop Manual p.80, condensed into the Starter Set's
@@ -57,9 +70,13 @@ describe('the one citation line', () => {
     render(<ReferenceEntityCard data={kit} />)
 
     // The PRIMARY source first, then the reprint, on ONE line, `//` between.
-    expect(
-      screen.getByText(`Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`)
-    ).toBeTruthy()
+    const line = citeLine(
+      `Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`
+    )
+    // The `//` between two printings is bold, so the books read apart.
+    const separators = Array.from(line.children).filter((el) => el.textContent === '//')
+    expect(separators).toHaveLength(1)
+    expect((separators[0] as HTMLElement).style.fontWeight).toBeTruthy()
     expect(screen.queryByText('Also in')).toBeNull()
   })
 
@@ -75,7 +92,7 @@ describe('the one citation line', () => {
     render(<ReferenceEntityCard data={drone} />)
 
     expect(
-      screen.getByText(
+      citeLine(
         `Workshop Manual · p.${drone.page} // Salvage Union Starter Set (AP) · p.2 // Reclamation of the Wastes · p.103`
       )
     ).toBeTruthy()
@@ -113,7 +130,7 @@ describe('a pattern reprints on its own provenance', () => {
 
     render(<ReferenceEntityCard data={chassisNamed('Spectrum')} pattern={operator} />)
 
-    expect(screen.getByText(/ \/\/ Thatcher's Mech Base · p\.1$/)).toBeTruthy()
+    expect(citeLine(/ \/\/ Thatcher's Mech Base · p\.1$/)).toBeTruthy()
   })
 
   test("a chassis's reprint never leaks onto a pattern that has none", () => {
@@ -136,7 +153,7 @@ describe('a pattern reprints on its own provenance', () => {
     // Proves the previous test is a real probe rather than a card that never
     // renders reprints at all.
     render(<ReferenceEntityCard data={chassisNamed('Mule')} />)
-    expect(screen.getByText(/ \/\/ Salvage Union Starter Set \(PC\) · p\.12$/)).toBeTruthy()
+    expect(citeLine(/ \/\/ Salvage Union Starter Set \(PC\) · p\.12$/)).toBeTruthy()
   })
 })
 

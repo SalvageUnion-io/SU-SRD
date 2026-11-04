@@ -41,6 +41,8 @@ export { ChapterBandTrail } from './atoms/ChapterBandTrail'
 export { Checkbox } from './atoms/Checkbox'
 // CloseButton — the one ×: every dialog, drawer and sheet closes on it.
 export { ChipButton } from './atoms/ChipButton'
+// CiteLine — a foot's citations, a bold `//` between two printings (ruleset Source 2).
+export { CiteLine } from './atoms/CiteLine'
 export { CloseButton } from './atoms/CloseButton'
 // Conditions — the entity-condition chip row. Public because the app's sheet
 // chip-well editor (`ChipListEditor`) composes it.

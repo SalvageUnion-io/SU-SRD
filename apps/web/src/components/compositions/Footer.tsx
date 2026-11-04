@@ -3,6 +3,7 @@ import { citeLine } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { ChapterFoot } from '../atoms/ChapterFoot'
+import { CiteLine } from '../atoms/CiteLine'
 import { FOCUS_RING } from '../atoms/interaction'
 
 /**
@@ -116,7 +117,8 @@ function End({
 
 export function Footer({ links, poweredBySalvageUrl, foot, LinkComponent = 'a' }: FooterProps) {
   const measure = foot?.measure ?? SITE_MEASURE
-  const citation = foot?.credit ?? citeLine(foot?.printings ?? [])
+  const printed = citeLine(foot?.printings ?? [])
+  const citation = foot?.credit ?? (printed ? <CiteLine text={printed} /> : undefined)
   return (
     <footer className="su-footer">
       <ChapterFoot

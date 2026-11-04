@@ -4,6 +4,7 @@ import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
 import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
+import { CiteLine } from '../../atoms/CiteLine'
 import { capsLabel } from '../../atoms/capsLabel'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
@@ -96,7 +97,8 @@ export function EntityCardIdentityFooter({
   band,
   grain,
 }: EntityCardIdentityFooterProps) {
-  const citation = credit ?? (provenance ? citeLine(provenancePrintings(provenance)) : undefined)
+  const printed = provenance ? citeLine(provenancePrintings(provenance)) : undefined
+  const citation = credit ?? (printed ? <CiteLine text={printed} /> : undefined)
   // Foot extras force the footer even without source/page data — they are
   // affordances, not source chrome.
   const hasFootExtras = (footMeta?.length ?? 0) > 0 || !!externalLink

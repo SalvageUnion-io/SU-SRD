@@ -99,6 +99,7 @@ const ROSTER = {
     'Footer',
     'ChapterBand',
     'CHAPTER_BAND_COLOR',
+    'CiteLine', // Source 2 the foot's citations, a bold `//` between
     'ToneStrip',
     'Speckle', // §3.5.1 the speckle on a band or an ink ground
     'PageShell',
