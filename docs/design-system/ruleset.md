@@ -6,7 +6,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers.
-2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: citations on one line, Workshop Manual first, `//` between (`Workshop Manual · p.65 // Starter Set · p.37`), no kind, the source cut out top right; a Page's is its one footer, the app's links under it.
+2. **Chapter band** — a band in the section colour across a paper page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: citations on one line, Workshop Manual first, a bold `//` between (`Workshop Manual · p.65 // Starter Set · p.37`), no kind, the source cut out top right; a Page's is its one footer, the app's links under it.
 3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, stat order (§2.6), two a row (SP | EP; lone cells span), full words on a Page, short labels smaller (prose: Tech Level).
 4. **The ink banner** — tier numeral, title, cost pennant, metadata on ink with a rounded tail; on screen, the card's ink header.
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//"; on screen, one chip group (E17).

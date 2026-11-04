@@ -3,6 +3,7 @@ import type { StaticEntitySummary } from 'salvageunion-reference'
 import { bookName, citeLine } from 'salvageunion-reference'
 import type { NameRefIndex, PageRefIndex } from '../components/index'
 import {
+  CiteLine,
   capsLabel,
   InlineRef,
   mentionRef,
@@ -157,7 +158,11 @@ export function StaticEntityContent({
         </p>
       )}
 
-      {cite && <p className="su-static__source">{cite}</p>}
+      {cite && (
+        <p className="su-static__source">
+          <CiteLine text={cite} />
+        </p>
+      )}
     </div>
   )
 }
