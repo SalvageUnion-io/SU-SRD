@@ -54,3 +54,6 @@ neutralised. The form says it goes public before anybody types.
 
 `/roadmap` is a static page with Now, Next and Later, edited in the repository
 with each release. No dates.
+
+Retired 2026-11-04 (4.5.63): the page and its footer link are gone; the
+changelog says what shipped.
