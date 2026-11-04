@@ -172,7 +172,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
-    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues, `/roadmap`.
+    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues; `/roadmap` retired (4.5.63).
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
     Built: offline, the player's own sheets come back from the device; Convex stays of record.
     Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
