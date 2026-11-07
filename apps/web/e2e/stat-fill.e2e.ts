@@ -10,10 +10,10 @@ import { test } from './fixtures'
  *
  * Each surface that draws one, the reference corpus's `stat-column` pages
  * (`_designTable.ts`): two chassis and a pattern (`CardPage`'s column; a
- * homebrew pattern's Page is the same one) and the mech sheet's hero (the
- * compact column, two a line), at R0's phone and page and the widths between
- * that give the page's column one to five cells a row. An NPC's or a
- * crawler's stats ride its band as chips, not a grid. There is no allowlist:
+ * homebrew pattern's Page is the same one), at R0's phone and page and the
+ * widths between that give the page's column one to five cells a row. An
+ * NPC's, a mech sheet's or a crawler's stats ride its band as chips, not a
+ * grid. There is no allowlist:
  * every finding fails, and each surface must draw a stat column.
  */
 test.use({ account: 'anonymous' })

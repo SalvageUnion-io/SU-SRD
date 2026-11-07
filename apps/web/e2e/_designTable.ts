@@ -139,7 +139,7 @@ export const designRoutes: readonly DesignRoute[] = [
  * - `header-mini`: a header-only Mini: a pattern's loadout, a bio-titan's
  *   part, a crawler sheet's crew (`token-cutout.e2e.ts`).
  * - `stat-column`: a `StatColumn` grid: two chassis and a pattern (`CardPage`'s
- *   column) and the mech sheet's hero, its compact column (`stat-fill.e2e.ts`).
+ *   column) (`stat-fill.e2e.ts`). The mech sheet has none: TL and SV ride its band.
  * - `search`: a search field on its own line: an SRD listing's rail
  *   (`search-width.e2e.ts`).
  * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
@@ -195,7 +195,6 @@ const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly C
   'pilot/starter-pilot-judge': ['ability-trees'],
   'pilot/starter-pilot-pickle': ['ability-trees'],
   'pilot/starter-pilot-razor': ['ability-trees'],
-  'mech/starter-mech-mazona': ['stat-column'],
   'mech/starter-mech-mule': ['contentful-mini'],
   'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
 }
