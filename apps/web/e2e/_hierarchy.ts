@@ -141,7 +141,9 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     (s) => drawn(s) && !s.closest('button, a') && dark(fill(s))
   )
   for (const c of controls) {
-    if (c.closest('.su-entity-compact__head, .su-entity-mini, .su-step-btn')) continue
+    // A head's strip that moved to its overflow row (C2b, R56) is still the head's.
+    if (c.closest('.su-entity-compact__head, .su-chip-overflow, .su-entity-mini, .su-step-btn'))
+      continue
     const cr = c.getBoundingClientRect()
     const cFill = fill(c)
     if (cFill === 'rgba(0, 0, 0, 0)') continue
