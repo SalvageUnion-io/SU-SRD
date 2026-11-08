@@ -16,6 +16,7 @@ import {
   openRoom,
   RoomDeclined,
   roomOf,
+  roomReady,
 } from '../roomSocket'
 import { WritesBlockedOffline } from '../sync'
 import { resetStores } from './resetStores'
@@ -232,6 +233,26 @@ describe('openRoom', () => {
     socket.onclose?.({ code: 1000 })
     expect(socket.closedWith).toBe(1000)
     expect(FakeSocket.all).toHaveLength(1)
+  })
+
+  test('a write made while the socket is still opening waits for it, not failing as offline', async () => {
+    const close = openRoom('/__rooms/account/socket', 'account')
+    const socket = FakeSocket.all[0] as FakeSocket
+    // The stand-in a unit test answers with is left out, so only the socket counts.
+    const ready = roomReady(null, { standIns: false })
+    socket.opens()
+    expect(await ready).toBe(roomOf(null))
+    expect(await ready).not.toBeNull()
+    close()
+  })
+
+  test('with no socket coming, or none opening in time, there is no room', async () => {
+    expect(await roomReady(null, { standIns: false })).toBeNull()
+    const close = openRoom('/__rooms/account/socket', 'account')
+    expect(await roomReady(null, { standIns: false, waitMs: 5 })).toBeNull()
+    close()
+    // Closed for good, nothing is coming: no wait at all.
+    expect(await roomReady(null, { standIns: false, waitMs: 60_000 })).toBeNull()
   })
 
   test('tells who listens each time a socket opens, until they stop', () => {

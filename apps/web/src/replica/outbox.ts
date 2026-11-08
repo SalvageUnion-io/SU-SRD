@@ -20,7 +20,7 @@ import { keepOutbox, readOutbox } from './persist'
 import { row } from './replica'
 import { roomCall } from './roomCalls'
 import { noteRoomChange } from './roomChanges'
-import { gameGone, RoomDeclined, roomOrStandIn } from './roomSocket'
+import { gameGone, RoomDeclined, roomOrStandIn, roomReady } from './roomSocket'
 import { mayQueue, WritesBlockedOffline, writable } from './sync'
 
 /** What the room answered for a unit it made: its version and `headSeq`. */
@@ -48,7 +48,7 @@ export async function sendRow(
   // Links are addressed by their endpoints rather than by an id, so they take
   // a different call shape — see `sendLink`.
   if (type === 'softLink') return
-  const room = roomFor(op.gameId)
+  const room = await roomFor(op.gameId)
   if (op.kind === 'delete') {
     await room.act('removeUnit', { unitId: op.appId })
     return
@@ -59,9 +59,12 @@ export async function sendRow(
   return { version: 0, headSeq: 0 }
 }
 
-/** The open room a unit in `gameId` is written through; none open, the write fails as offline. */
-function roomFor(gameId: string | null) {
-  const room = roomOrStandIn(gameId)
+/**
+ * The open room a unit in `gameId` is written through, once its socket is
+ * open (`roomReady`); none open or coming, the write fails as offline.
+ */
+async function roomFor(gameId: string | null) {
+  const room = await roomReady(gameId)
   if (room === null) throw new WritesBlockedOffline()
   return room
 }
@@ -92,7 +95,7 @@ export async function sendOp(
     noteRoomChange()
   }
   if (isEmptyOp(op)) return
-  await roomFor(move === undefined ? gameId : move).submit([op])
+  await (await roomFor(move === undefined ? gameId : move)).submit([op])
 }
 
 // ── The outbox: own units' ops made offline ──────────────────────────────
@@ -265,7 +268,7 @@ async function shelfAct(
   record: 'MechPattern' | 'EncounterNpc' | 'Encounter',
   idArg: string
 ): Promise<void> {
-  const room = roomFor(null)
+  const room = await roomFor(null)
   await (op.kind === 'delete'
     ? room.act(`shelf.remove${record}`, { [idArg]: op.id })
     : room.act(`shelf.upsert${record}`, { body: op.record }))
@@ -336,7 +339,7 @@ export async function sendLink(kind: 'upsert' | 'delete', link: SoftLink | null)
   }
   // The room holding its from end wires it (a link never crosses
   // containers); a unit with no copy here is on the Shelf.
-  const room = roomFor(gameOfUnit(link.from))
+  const room = await roomFor(gameOfUnit(link.from))
   await room.act(kind === 'upsert' ? 'drawLink' : 'removeLink', { link: args })
 }
 
@@ -367,7 +370,7 @@ export async function sendTransfer(writes: readonly TransferWrite[]): Promise<vo
   if (!writes.every((w) => w.gameId === gameId && w.move === undefined)) {
     throw new RoomDeclined('Both sides of a transfer must be at the same table')
   }
-  await roomFor(gameId).submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
+  await (await roomFor(gameId)).submit(writes.map((w) => w.op).filter((op) => !isEmptyOp(op)))
 }
 
 /**
@@ -386,6 +389,6 @@ export async function sendStep(
   step: OpInput,
   also: readonly OpInput[] = []
 ): Promise<boolean> {
-  const fresh = await roomFor(gameId).submit([step, ...also.filter((op) => !isEmptyOp(op))])
+  const fresh = await (await roomFor(gameId)).submit([step, ...also.filter((op) => !isEmptyOp(op))])
   return fresh.includes(step.id)
 }
