@@ -26,7 +26,7 @@ import type { CrewVitals } from '../rooms/vitals'
 import type { Scope } from './replica'
 import { gameScope } from './replica'
 import { useGamesQuery } from './roomCalls'
-import { roomOf } from './roomSocket'
+import { roomReady } from './roomSocket'
 import { WritesBlockedOffline } from './sync'
 import type { StateTable } from './tableState'
 import { readTableState, subscribeTableState } from './tableState'
@@ -230,11 +230,11 @@ export function useTableAct<N extends TableActName>(
   gameId: string | null
 ): (args: TableActArgs<N>) => Promise<TableActResult<N>> {
   return useCallback(
-    (args: TableActArgs<N>) => {
-      const room = roomOf(gameId)
-      return room === null
-        ? Promise.reject(new WritesBlockedOffline())
-        : (room.act(name, args) as Promise<TableActResult<N>>)
+    // A socket still opening is waited for (`roomReady`), as a unit write's is.
+    async (args: TableActArgs<N>) => {
+      const room = await roomReady(gameId, { standIns: false })
+      if (room === null) throw new WritesBlockedOffline()
+      return (await room.act(name, args)) as TableActResult<N>
     },
     [name, gameId]
   )

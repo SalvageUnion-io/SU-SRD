@@ -252,6 +252,40 @@ export function roomOrStandIn(gameId: string | null): Room | null {
   return roomOf(gameId) ?? standIn?.(gameId) ?? null
 }
 
+/** The rooms whose socket is opening or reopening (`openRoom`), by `open`'s key. */
+const coming = new Set<string>()
+
+/** How long a write waits for its room's socket to open before it fails as offline. */
+export const ROOM_OPEN_WAIT_MS = 10_000
+
+/**
+ * The room `gameId`'s writes go through, waiting up to `waitMs` while its
+ * socket is still opening: a page is `live` as soon as its session is, a
+ * moment before its sockets are, so a write made then waits for the socket
+ * instead of failing as offline. A unit test's stand-in answers too unless
+ * `standIns` is false (`useTableAct` takes only an open room). Null when the
+ * room is not open and none is coming.
+ */
+export async function roomReady(
+  gameId: string | null,
+  { standIns = true, waitMs = ROOM_OPEN_WAIT_MS }: { standIns?: boolean; waitMs?: number } = {}
+): Promise<Room | null> {
+  const now = standIns ? roomOrStandIn(gameId) : roomOf(gameId)
+  if (now !== null || !coming.has(gameId ?? ACCOUNT)) return now
+  return await new Promise((resolve) => {
+    const done = (room: Room | null) => {
+      clearTimeout(timer)
+      stop()
+      resolve(room)
+    }
+    const timer = setTimeout(() => done(roomOf(gameId)), waitMs)
+    const stop = onRoomOpen(() => {
+      const room = roomOf(gameId)
+      if (room !== null) done(room)
+    })
+  })
+}
+
 /** A batch or act the room declined: its reason is the refusal the player is shown. */
 export class RoomDeclined extends Error {}
 
@@ -298,9 +332,11 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
     batch.settle(refusal, fresh)
   }
   const connect = () => {
+    coming.add(gameId ?? ACCOUNT)
     socket = new WebSocket(url.href, [ROOM_PROTOCOL])
     socket.onopen = () => {
       attempt = 0
+      coming.delete(gameId ?? ACCOUNT)
       open.set(gameId ?? ACCOUNT, room)
       if (gameId !== null && seated.has(gameId)) tellSeat(gameId)
       for (const batch of waiting.values()) send(batch)
@@ -349,7 +385,10 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
         settleWaiting()
         noteRoomChange()
       }
-      if (closed) return
+      if (closed) {
+        coming.delete(gameId ?? ACCOUNT)
+        return
+      }
       retry = setTimeout(connect, RETRY_MS[Math.min(attempt++, RETRY_MS.length - 1)])
     }
   }
@@ -378,6 +417,7 @@ export function openRoom(path: string, scope: Scope, gameId: string | null = nul
   return () => {
     closed = true
     clearTimeout(retry)
+    coming.delete(gameId ?? ACCOUNT)
     if (open.get(gameId ?? ACCOUNT) === room) open.delete(gameId ?? ACCOUNT)
     holdPresence(scope, null)
     socket?.close(1000)
