@@ -175,7 +175,17 @@ describe('MarkdownSection', () => {
 
     const link = screen.getByRole('link', { name: 'the site' }) as HTMLAnchorElement
     expect(link.getAttribute('href')).toBe('https://alxjrvs.com')
-    expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+  })
+
+  test("hides the referrer from every outside link but the maker's own site", () => {
+    render(
+      <MarkdownSection markdown="[his site](https://alxjrvs.com/) and [the press](https://leyline.press) and [a lookalike](https://alxjrvs.com.example.org/)" />
+    )
+
+    const rel = (name: string) => screen.getByRole('link', { name }).getAttribute('rel')
+    expect(rel('his site')).toBe('noopener author')
+    expect(rel('the press')).toBe('noopener noreferrer')
+    expect(rel('a lookalike')).toBe('noopener noreferrer')
   })
 
   test('omits the heading element when the markdown has none', () => {
