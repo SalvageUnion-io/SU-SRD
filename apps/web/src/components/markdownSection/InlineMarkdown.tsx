@@ -14,6 +14,13 @@ function withOffsets(nodes: InlineNode[]): Array<{ node: InlineNode; offset: num
   })
 }
 
+/**
+ * The maker's own site is the one outside link that should know where its
+ * reader came from: `noreferrer` hides this site from its analytics. Every
+ * other outside link keeps it.
+ */
+const MAKER_SITE = /^https:\/\/alxjrvs\.com(\/|$)/
+
 type InlineMarkdownProps = {
   /** A single line of prose; `[label](href)` links are interpreted. */
   text: string
@@ -42,7 +49,7 @@ export function InlineMarkdown({ text }: InlineMarkdownProps) {
             key={`${offset}-${node.text}`}
             href={node.href}
             target="_blank"
-            rel="noopener noreferrer"
+            rel={MAKER_SITE.test(node.href) ? 'noopener author' : 'noopener noreferrer'}
             style={{ fontWeight: weight.semibold }}
           >
             {node.text}
