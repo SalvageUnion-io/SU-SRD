@@ -11,7 +11,7 @@
  */
 
 import { PRODUCT } from 'game-domain/product'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { SignInControl } from '../build/account/SignInControl'
 import { Button, ChapterBand, PageShell, Text, tokens } from '../components/index'
 
@@ -23,6 +23,8 @@ type PlayRefusalProps = {
   /** What is missing, as the heading under the band. */
   title: string
   body: string
+  /** What the screen shows under the way on (the hub's "At the table" steps). */
+  children?: ReactNode
 } & (
   | {
       /** The way on: back to a place (its name), or on to an act (`back: false`). */
@@ -36,7 +38,7 @@ type PlayRefusalProps = {
     }
 )
 
-export function PlayRefusal({ title, body, link, signInTo }: PlayRefusalProps) {
+export function PlayRefusal({ title, body, link, signInTo, children }: PlayRefusalProps) {
   return (
     <PageShell>
       <ChapterBand tone="play">{PRODUCT.play}</ChapterBand>
@@ -55,6 +57,7 @@ export function PlayRefusal({ title, body, link, signInTo }: PlayRefusalProps) {
           <SignInControl redirectTo={signInTo} />
         )}
       </div>
+      {children}
     </PageShell>
   )
 }

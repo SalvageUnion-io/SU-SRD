@@ -9,6 +9,7 @@ import {
   ChapterBand,
   ConfirmDialog,
   capsLabel,
+  HeaderMenu,
   NextLabel,
   Stat,
   slotPips,
@@ -68,6 +69,11 @@ type WizShellProps = {
    * Sheet (ADR-021). Rendered subordinate to the CTA; omit to hide.
    */
   escapeAction?: ReactNode
+  /**
+   * The same escape as a row of the phone's ⋯ menu, where the action bar is
+   * one line (Back, ⋯, the CTA) and has no room for `escapeAction`'s button.
+   */
+  onEscape?: (() => void) | undefined
   onBack?: () => void
   onCancel: () => void
   /**
@@ -132,25 +138,20 @@ const railTabStyle = {
   placeItems: 'center',
 } satisfies CSSProperties
 
-/** Its lg pull-left is `.su-wiz-rail-tab--active`. */
+/** A tab's size is `.su-wiz-rail-tab`'s: a notch on a phone, a number block
+ *  from sm. Its lg pull-left is `.su-wiz-rail-tab--active`. */
 const railTabActiveStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   boxShadow: '0 0 0 4px var(--tone)',
   color: tokens.color.paper,
-  fontSize: tokens.fontSize.title,
-  height: tokens.size.full,
   lineHeight: 1,
-  width: tokens.size.full,
-} satisfies CSSProperties satisfies CSSProperties
+} satisfies CSSProperties
 
 const railTabDoneStyle = {
   ...railTabStyle,
   backgroundColor: tokens.color.ink,
   color: tokens.color.pilot,
-  fontSize: tokens.fontSize.readout,
-  height: '34px',
-  width: '34px',
 } satisfies CSSProperties
 
 const railTabFutureStyle = {
@@ -158,9 +159,6 @@ const railTabFutureStyle = {
   backgroundColor: tokens.color.paper,
   boxShadow: 'inset 0 0 0 2.5px var(--color-ink)',
   color: tokens.color.ink,
-  fontSize: tokens.fontSize.readout,
-  height: '34px',
-  width: '34px',
 } satisfies CSSProperties
 
 /**
@@ -217,7 +215,7 @@ function RailStep({
           ring, future = hollow ink-outlined block (never opacity-faded). */}
       <span
         aria-hidden="true"
-        className={active ? 'su-wiz-rail-tab--active' : undefined}
+        className={cn('su-wiz-rail-tab', active && 'su-wiz-rail-tab--active')}
         style={active ? railTabActiveStyle : done ? railTabDoneStyle : railTabFutureStyle}
       >
         {done ? <Check size={tokens.iconSize.full} /> : index + 1}
@@ -257,7 +255,12 @@ const pillNoteStyle = {
 } satisfies CSSProperties satisfies CSSProperties
 const pillNoteCaps = capsLabel({ weight: 'semibold', tracking: 'caps' })
 
-const pillEscapeStyle = { display: 'flex', paddingInline: tokens.space[8] } satisfies CSSProperties
+/** Hidden on a phone, where the escape is a row of the ⋯ menu (`.su-wiz-pill-escape`). */
+const pillEscapeStyle = { paddingInline: tokens.space[8] } satisfies CSSProperties
+
+/** The phone's step line over the notch track: `STEP 2 OF 9 · CLASS & ABILITY`. */
+const railLineStyle = { color: tokens.color.ink, margin: 0 } satisfies CSSProperties
+const railLineCaps = capsLabel({ size: 'caption', tracking: 'snug' })
 
 /** A row on a phone, `display: contents` from sm (`.su-wiz-pill-nav`). */
 const pillNavStyle = {
@@ -397,8 +400,8 @@ const footerPillStyle = {
  * Back/Cancel + primary CTA + tracker tabs + gate text).
  * The shell is layout-only — all wizard state lives in the caller.
  *
- * Mobile (≤lg) stacks the panes full-width with a horizontal tab rail
- * (labels hidden ≤720px).
+ * Under lg the panes stack full-width with a horizontal tab rail (labels
+ * from md); on a phone the rail is one step line over a track of notches.
  */
 export function WizShell({
   kind,
@@ -413,6 +416,7 @@ export function WizShell({
   trackers,
   footerNote,
   escapeAction,
+  onEscape,
   onBack,
   onCancel,
   onNext,
@@ -424,6 +428,7 @@ export function WizShell({
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
   const ctaLabel = isLast ? submitLabel : <NextLabel to={steps[active + 1]} size="full" />
+  const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
   // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
   // It declares its ink ground (chrome K1), so its ghost buttons read paper.
   const actionPill = (
@@ -439,7 +444,7 @@ export function WizShell({
         </p>
       )}
       {escapeAction && (
-        <div className="su-wiz-pill-start" style={pillEscapeStyle}>
+        <div className="su-wiz-pill-escape" style={pillEscapeStyle}>
           {escapeAction}
         </div>
       )}
@@ -454,11 +459,29 @@ export function WizShell({
         <Button
           variant="ghost"
           size="full"
-          onClick={() => (confirmCancel ? setConfirmingCancel(true) : onCancel())}
+          className="su-wiz-pill-cancel"
+          onClick={askCancel}
           disabled={busy}
         >
           {buildWizardCopy('cancel')}
         </Button>
+        {/* A phone's bar is one line (hard rule R44: nothing scrolls sideways):
+            Cancel and the escape are the ⋯ menu's rows there. */}
+        <span className="su-wiz-pill-more">
+          <HeaderMenu
+            variant="overflow"
+            size="full"
+            trigger={null}
+            label={buildWizardCopy('moreActions')}
+            disabled={busy}
+            sections={[
+              onEscape
+                ? [{ id: 'escape', label: buildWizardCopy('offRulesRow'), onSelect: onEscape }]
+                : [],
+              [{ id: 'cancel', label: buildWizardCopy('cancel'), onSelect: askCancel }],
+            ]}
+          />
+        </span>
         <ConfirmDialog
           open={confirmingCancel}
           onOpenChange={setConfirmingCancel}
@@ -505,6 +528,15 @@ export function WizShell({
             pipe with an arrow-capped end runs behind the step tabs on lg;
             mobile keeps the horizontal wrap without the pipe. */}
         <aside className="su-wiz-rail">
+          {/* A phone's rail is one line and a track of notches; the h1 reads
+              the same count to a screen reader. */}
+          <p
+            aria-hidden="true"
+            className={cn('su-wiz-rail-line', railLineCaps)}
+            style={railLineStyle}
+          >
+            {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })} {steps[active]}
+          </p>
           <nav aria-label={buildWizardCopy('steps')} className="su-wiz-rail-nav">
             {/* The pipe — thick, runs behind the tabs (lg only). */}
             <span aria-hidden="true" className="su-wiz-rail-pipe" style={pipeStyle} />
@@ -554,9 +586,9 @@ export function WizShell({
               content scrolls, so confirm/nav stays reachable without a
               full-width bar eating vertical space. The footer itself is
               click-through (`pointer-events: none`); only the ink action pill
-              is interactive. Below the sm endpoint the pill stacks with a
-              full-width primary CTA on EVERY step — Back/Cancel share a row
-              above it. */}
+              is interactive. Below the sm endpoint the pill is one line: Back,
+              the ⋯ menu (Cancel, the escape) and the CTA filling the rest,
+              under the step's budgets and gate text when it has them. */}
           <footer style={footerPillStyle}>{actionPill}</footer>
         </div>
       </div>

@@ -77,8 +77,8 @@
   }
 }
 
-/* The index, then the aside: one stack on a phone, the catalogs first and
-   "Start here" (with the Discord button under it) below them. */
+/* Start Here, the index, then the Discord button: one stack under 64rem.
+   Start Here leads, so a phone's reader meets the way in before the catalogs. */
 .su-home__body {
   display: flex;
   flex-direction: column;
@@ -86,10 +86,18 @@
 }
 
 .su-home__aside {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-14);
   min-width: 0;
+}
+
+/* On a phone the steps are their heads alone: three lines, then the index. */
+@media not (width >= 40rem) {
+  .su-home__aside .su-entity-index__cells {
+    display: none;
+  }
+
+  .su-home__aside .su-start-here__steps {
+    gap: var(--space-8);
+  }
 }
 
 /* The index's sections in one flow: up to three columns of at least 16rem,
@@ -106,13 +114,16 @@
   margin-block-end: var(--space-24);
 }
 
-/* A desktop pins the aside to a 20rem sidebar at the right of the index. */
+/* A desktop pins Start Here and the Discord button to a 20rem sidebar at the
+   right of the index. */
 @media (width >= 64rem) {
   .su-home__body {
     align-items: start;
     column-gap: var(--space-28);
     display: grid;
     grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-rows: auto 1fr;
+    row-gap: var(--space-14);
   }
 
   .su-home__aside {
@@ -120,9 +131,14 @@
     grid-row: 1;
   }
 
+  .su-home__discord-slot {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
   .su-home__index {
     grid-column: 1;
-    grid-row: 1;
+    grid-row: 1 / span 2;
   }
 }
 

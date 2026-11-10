@@ -18,6 +18,7 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { layer, space } from '../../design/tokens'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
+import { PARAM_NAME } from '../../lib/listingParams'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
 import { useSearchIndex } from '../../lib/useSearchIndex'
@@ -63,6 +64,9 @@ const RELATIVE = { position: 'relative' } satisfies CSSProperties
 /** Site URL for a combobox result: category listing or entity item page. */
 function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'schema') return schemaHref(result.schemaId)
+  if (result.kind === 'more') {
+    return `${schemaHref(result.schemaId)}?${new URLSearchParams({ [PARAM_NAME]: result.query })}`
+  }
   return itemHref(result.schemaId, getEntitySlug(result.entity))
 }
 
@@ -112,6 +116,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     announcement,
   } = useSearchCombobox({
     ready,
+    moreRow: true,
     onSubmit: (result) => doNavigate(resultUrl(result)),
     searchFn,
   })
@@ -233,6 +238,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         selectedIndex={selectedIndex}
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
+        kinds
         target={{ href: resultUrl }}
         style={hero ? LISTBOX_HERO : LISTBOX_BAR}
       />

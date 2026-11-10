@@ -136,7 +136,7 @@ export function TheGame({
       }
     >
       {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
-      <ul aria-label={playGamesCopy('members')} style={LINES}>
+      <ul aria-label={playGamesCopy('members')} data-names-whole="" style={LINES}>
         {members?.map((m) => (
           <li key={m.userId}>
             <Entity

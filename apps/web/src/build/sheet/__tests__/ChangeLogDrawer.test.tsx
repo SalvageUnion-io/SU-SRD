@@ -156,7 +156,7 @@ describe('Sheet — Change Log menu wiring', () => {
       fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     })
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /change log for this pilot/i }))
+      fireEvent.click(await screen.findByRole('menuitem', { name: 'Change Log' }))
     })
 
     // The drawer (ModalShell dialog) mounts with the "Change Log" title.

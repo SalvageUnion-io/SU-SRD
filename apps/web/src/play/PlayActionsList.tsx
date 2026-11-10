@@ -10,6 +10,7 @@
  * the Downtime column, where the group is the Field actions.
  */
 
+import { useEffect } from 'react'
 import {
   Button,
   Callout,
@@ -71,13 +72,22 @@ export function PlayAwayGroup({
 
 /** The seat names an action this list no longer has: say so, and let it go. */
 export function PlayOrphanResolve({ actions }: { actions: PlayActions }) {
-  const { resolve, resolvingKey } = actions
+  const { resolve, resolvingKey, resolvingUntouched } = actions
+  const entry = actions.entries.find((e) => e.key === resolvingKey)
+  // A Use that was only opened, whose action then left the hand (the player
+  // switched to Downtime): nothing was rolled or spent, so there is nothing to
+  // say. It closes, where a note and a Clear button would stay for no reason.
+  const stale = resolve.kind === 'resolve' && entry !== undefined && entry.need !== null
+  const onBack = resolve.kind === 'resolve' ? resolve.onBack : undefined
+  useEffect(() => {
+    if (stale && resolvingUntouched) onBack?.()
+  }, [stale, resolvingUntouched, onBack])
   if (resolve.kind === 'idle') return null
   if (resolve.kind === 'orphan') return <OrphanNote text={resolve.text} onClear={resolve.onClear} />
   // Resolving an action this Situation does not put on hand (Downtime began
   // mid-roll): its Mini cannot open, so say so here, and let it go.
-  const entry = actions.entries.find((e) => e.key === resolvingKey)
   if (entry !== undefined && entry.need === null) return null
+  if (stale && resolvingUntouched) return null
   return (
     <OrphanNote
       text={`${entry?.name ?? 'An action'} is not on hand now.`}

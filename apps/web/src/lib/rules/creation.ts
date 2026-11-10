@@ -46,7 +46,6 @@ import type { PilotWizardFormState } from '../wizard/pilotFormState'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
 export type PilotWizardStepId =
-  | 'stats'
   | 'classAbility'
   | 'equipment'
   | 'callsign'
@@ -192,7 +191,6 @@ export function pilotCreationStepGate(
   form: PilotWizardFormState
 ): StepGateResult {
   switch (step) {
-    case 'stats':
     case 'background':
     case 'motto':
     case 'keepsake':

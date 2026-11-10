@@ -363,10 +363,10 @@ describe('Discord channels (play.md §9)', () => {
     expect(postLabel(true, { ...named, channelName: null })).toBe('Post rolls to my channel')
   })
 
-  test('the channel button: Connect, the channel by name, else whose it is', () => {
+  test('the channel control: Discord channel, the channel by name, else whose it is', () => {
     const game = { kind: 'game' as const, gameName: 'Rust Belt Run' }
     const named = { channelId: 'c1', channelName: 'salvage-run', boundAt: 1 }
-    expect(channelButtonLabel(game, null)).toBe('Connect')
+    expect(channelButtonLabel(game, null)).toBe('Discord channel')
     expect(channelButtonLabel(game, named)).toBe('#salvage-run')
     expect(channelButtonLabel(game, { ...named, channelName: null })).toBe('# Game channel')
     expect(channelButtonLabel({ kind: 'solo' }, { ...named, channelName: null })).toBe(

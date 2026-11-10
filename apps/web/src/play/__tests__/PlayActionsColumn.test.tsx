@@ -11,7 +11,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
@@ -422,7 +422,7 @@ describe('Use: the resolve, in the Compact', () => {
     expect(within(row).getByRole('button', { name: 'Activated ✓' })).toBeTruthy()
   })
 
-  test('resolving an action Downtime puts off hand: a note, and a way to let it go', async () => {
+  test('a Use only opened, whose action Downtime puts off hand, closes by itself', async () => {
     const mech = makeMech()
     const pilot = makePilot()
     const { store } = stubStore(mech, pilot)
@@ -439,6 +439,32 @@ describe('Use: the resolve, in the Compact', () => {
           ref: primaryKey(),
           name: primary().name,
           activated: false,
+          applied: false,
+        }}
+      />
+    )
+    // Nothing was rolled or spent, so there is nothing to say and no Clear to press.
+    await waitFor(() => expect(writes.at(-1)).toEqual({ name: 'seat.clearResolving' }))
+    expect(screen.queryByText(`${primary().name} is not on hand now.`)).toBeNull()
+  })
+
+  test('resolving an action Downtime puts off hand, once spent: a note, and a way to let it go', async () => {
+    const mech = makeMech()
+    const pilot = makePilot()
+    const { store } = stubStore(mech, pilot)
+    const writes: Write[] = []
+    render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={store}
+        writes={writes}
+        downtime={{ stepIndex: 0 }}
+        initialResolving={{
+          ref: primaryKey(),
+          name: primary().name,
+          activated: true,
           applied: false,
         }}
       />

@@ -33,7 +33,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 Each names its gate ([hard-rules.md](hard-rules.md)); breaking one needs an amendment here.
 
 - **E1** The form follows the job and room, never the app.
-- **E2** Every list of entities is Compacts (grid, masonry, columns), but an SRD index: the index layout, lines filled; abilities add a Tree (first).
+- **E2** Every list of entities is Compacts (grid, masonry, columns), but an SRD index: the index layout, lines filled, or its List; abilities add a Tree (first).
 - **E3** A Mini at level 2 (E6) or where a Compact will not fit: a long list, one a line (N4; a drone's parts two), a slot under 12rem.
 - **E4** An entity named in prose is a Mention, never a chip, Stat or raw markup.
 - **E5** The detail view is a Page, never a new tab.

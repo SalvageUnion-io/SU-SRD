@@ -35,7 +35,7 @@ type RailFacets = {
   techLevels: TechLevel[]
   sources: string[]
   trees: string[]
-  /** The views it offers (`listingViews`): a tree listing's Catalog | Tree. */
+  /** The views it offers (`listingViews`): Catalog | List, a tree listing's Catalog | Tree | List. */
   views: readonly ListingView[]
 }
 
@@ -46,7 +46,11 @@ type RailFilters = {
   name: string
 }
 
-const VIEW_LABELS: Record<ListingView, string> = { catalog: 'Catalog', tree: 'Tree' }
+const VIEW_LABELS: Record<ListingView, string> = {
+  catalog: 'Catalog',
+  tree: 'Tree',
+  list: 'List',
+}
 
 const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
 

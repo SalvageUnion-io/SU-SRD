@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { schemaLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
+import { Badge } from '../atoms/Badge'
 import { activateOnKey } from '../atoms/interaction'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
@@ -33,6 +35,12 @@ type SearchListboxProps = {
   optionId: (index: number) => string
   /** The model an entity result draws; none, and it is drawn as a category line. */
   modelOf: (result: SearchComboboxResult) => EntityFormModel | undefined
+  /**
+   * Stamp each Mini result with its kind (`ABILITY`, `SYSTEM`): a search's
+   * results mix kinds, and a name alone does not say which "Laser" this is
+   * (chips-and-actions C3's one added chip).
+   */
+  kinds?: boolean
   target: SearchTarget
   /** The host's placement: a popup under its field, or a scrolling panel. */
   style?: CSSProperties
@@ -88,6 +96,7 @@ export function SearchListbox({
   selectedIndex,
   optionId,
   modelOf,
+  kinds = false,
   target,
   style,
 }: SearchListboxProps) {
@@ -122,7 +131,20 @@ export function SearchListbox({
             if (model) {
               const mode = { kind: 'link', ...link, attrs: option } as const
               return size === 'mini' ? (
-                <Entity key={result.id} size="mini" context="browse" model={model} mode={mode} />
+                <Entity
+                  key={result.id}
+                  size="mini"
+                  context="browse"
+                  model={model}
+                  mode={mode}
+                  state={
+                    kinds ? (
+                      <Badge shape="stamp" size="mini" aria-hidden="true">
+                        {schemaLabel(result.schemaId)}
+                      </Badge>
+                    ) : undefined
+                  }
+                />
               ) : (
                 <Entity key={result.id} size="compact" model={model} mode={mode} />
               )

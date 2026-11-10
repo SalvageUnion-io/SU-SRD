@@ -18,6 +18,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { RefEntity, RefEnumSchemaName, SearchResult } from 'salvageunion-reference'
 import { getEntitySchemas, search } from 'salvageunion-reference'
 import { schemaPluralLabel } from '../../lib/schemaLabels'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { loadingCopy } from '../containers/loadingCopy'
 import { NO_RESULTS } from './searchCopy'
 
@@ -43,6 +44,21 @@ export type SearchComboboxResult =
       schemaId: RefEnumSchemaName
       entity: SearchResult['entity'] & RefEntity
     }
+  | {
+      /**
+       * The row after the last result when more matched than the list holds
+       * (`moreRow`): the kind with the most left out, opening its listing
+       * filtered by the query.
+       */
+      kind: 'more'
+      id: string
+      /** '12 more Abilities'. */
+      title: string
+      group: string
+      schemaId: RefEnumSchemaName
+      /** The query, for the listing's name filter. */
+      query: string
+    }
 
 export type UseSearchComboboxOptions = {
   /**
@@ -57,6 +73,11 @@ export type UseSearchComboboxOptions = {
   limit?: number
   /** Category rows reserved out of `limit`. Default 3. */
   schemaSlots?: number
+  /**
+   * End a list that leaves matches out with a row for them (`kind: 'more'`),
+   * inside `limit`. Default false: a host must know where that row goes.
+   */
+  moreRow?: boolean
   /** Invoked on Enter (highlighted row, else first row) — and by row clicks
    *  when the caller wires them through submit(). */
   onSubmit: (result: SearchComboboxResult) => void
@@ -91,6 +112,35 @@ function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
     }))
 }
 
+/** Every match is counted up to here; a search this wide is not a list anyone reads. */
+const COUNT_LIMIT = 200
+
+/**
+ * The row for the matches a full list left out: the kind with the most whose
+ * NAME holds the query (what its listing's filter matches), or none.
+ */
+function moreResult(hidden: readonly SearchResult[], query: string): SearchComboboxResult[] {
+  const q = query.toLowerCase().trim()
+  const counts = new Map<RefEnumSchemaName, number>()
+  for (const hit of hidden) {
+    if (!hit.entityName.toLowerCase().includes(q)) continue
+    counts.set(hit.schemaName, (counts.get(hit.schemaName) ?? 0) + 1)
+  }
+  const top = [...counts].sort((a, b) => b[1] - a[1])[0]
+  if (!top) return []
+  const [schemaId, count] = top
+  return [
+    {
+      kind: 'more',
+      id: `more:${schemaId}`,
+      title: `${count} more ${schemaPluralLabel(schemaId)}`,
+      group: compositionsCopy('openTheFilteredList'),
+      schemaId,
+      query: query.trim(),
+    },
+  ]
+}
+
 function toEntityResult(result: SearchResult): SearchComboboxResult {
   return {
     kind: 'entity',
@@ -107,6 +157,7 @@ export function useSearchCombobox({
   debounceMs = 150,
   limit = 10,
   schemaSlots = 3,
+  moreRow = false,
   onSubmit,
   searchFn = search,
 }: UseSearchComboboxOptions) {
@@ -133,14 +184,21 @@ export function useSearchCombobox({
         return
       }
       const schemaResults = matchSchemas(searchQuery, schemaSlots)
-      const hits = ready
-        ? searchFn({ query: searchQuery, limit: limit - schemaResults.length })
-        : []
-      setRawResults([...schemaResults, ...hits.map(toEntityResult)])
+      const room = limit - schemaResults.length
+      if (!moreRow) {
+        const hits = ready ? searchFn({ query: searchQuery, limit: room }) : []
+        setRawResults([...schemaResults, ...hits.map(toEntityResult)])
+      } else {
+        const all = ready ? searchFn({ query: searchQuery, limit: COUNT_LIMIT }) : []
+        // A full list gives its last line to the row for what it left out.
+        const more = all.length > room ? moreResult(all.slice(room - 1), searchQuery) : []
+        const hits = all.slice(0, room - more.length)
+        setRawResults([...schemaResults, ...hits.map(toEntityResult), ...more])
+      }
       setHasSearched(true)
       setSelectedIndex(-1)
     },
-    [ready, limit, schemaSlots, searchFn]
+    [ready, limit, schemaSlots, moreRow, searchFn]
   )
 
   const handleInput = useCallback(

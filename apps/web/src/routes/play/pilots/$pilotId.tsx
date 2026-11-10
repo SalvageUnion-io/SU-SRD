@@ -9,8 +9,8 @@
  * sheet route, so the pilot and its mech and crawler resolve synchronously.
  * Who may play is not decided here: loaders never read player entities
  * (`.claude/rules/tanstack-router.md`), and the check has to stay live, so
- * `PlayGate` decides it in the component. For the same reason the title
- * carries no pilot name.
+ * `PlayGate` decides it in the component. For the same reason the pilot's
+ * name reaches the title from the screen (`useTabTitle`), not from here.
  */
 
 import { createFileRoute } from '@tanstack/react-router'

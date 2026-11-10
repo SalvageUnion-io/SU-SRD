@@ -1,7 +1,9 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { useId, useState } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { Box, Eyebrow, tokens } from '../../components/index'
+import { Box, Button, Eyebrow, tokens } from '../../components/index'
+import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 /** Per-step rule metadata carried by each wizard's step table. */
@@ -14,7 +16,25 @@ export type StepRule = {
 
 type RuleBriefProps = StepRule & {
   className?: string
+  /**
+   * A wizard step's brief: on a phone a long rule shows its first two lines
+   * and a `Read the rule` toggle, so the step's picks start on the first
+   * screen. The cite always shows.
+   */
+  fold?: boolean
 }
+
+/** A rule shorter than this fits two phone lines: nothing to fold. */
+const FOLD_FROM = 120
+
+/** The cite and the fold's toggle on one line. */
+const footStyle = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[8],
+  justifyContent: 'space-between',
+} satisfies CSSProperties
 
 const ruleStyle = {
   color: tokens.color.ink,
@@ -35,14 +55,34 @@ const citeStyle = { margin: 0 } satisfies CSSProperties
  * box carries no title of its own, only the
  * landmark's name for a screen reader.
  */
-export function RuleBrief({ rule, cite, className }: RuleBriefProps) {
+export function RuleBrief({ rule, cite, className, fold = false }: RuleBriefProps) {
+  const [open, setOpen] = useState(false)
+  const ruleId = useId()
+  const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
   return (
     <Box as="section" label={buildWizardCopy('theRule')} className={className}>
-      <p style={ruleStyle}>{rule}</p>
-      {cite && (
-        <Eyebrow as="p" tone="muted" style={citeStyle}>
-          {formatCite(cite)}
-        </Eyebrow>
+      <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>
+        {rule}
+      </p>
+      {(cite || folds) && (
+        <div style={footStyle}>
+          {cite && (
+            <Eyebrow as="p" tone="muted" style={citeStyle}>
+              {formatCite(cite)}
+            </Eyebrow>
+          )}
+          {folds && (
+            <Button
+              size="mini"
+              className="su-wiz-rule-toggle"
+              aria-expanded={open}
+              aria-controls={ruleId}
+              onClick={() => setOpen((was) => !was)}
+            >
+              {buildWizardCopy(open ? 'foldTheRule' : 'readTheRule')}
+            </Button>
+          )}
+        </div>
       )}
     </Box>
   )

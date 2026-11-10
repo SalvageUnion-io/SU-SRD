@@ -63,10 +63,7 @@ describe('home: the manual’s Contents page', () => {
   })
 
   it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
-    const startHere = html.slice(
-      html.indexOf('su-home__aside'),
-      html.indexOf('<a href="https://discord.com/')
-    )
+    const startHere = html.slice(html.indexOf('su-home__aside'), html.indexOf('su-home__index'))
     expect(startHere).toContain('>Start here<')
     for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
       expect(startHere).toContain(`href="/guides/${guide}/"`)
@@ -77,13 +74,13 @@ describe('home: the manual’s Contents page', () => {
   })
 
   it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-home__aside'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-home__discord-slot'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     expect(index).not.toContain('On Discord')
   })
 
-  it('offers the Discord bot as one button straight under "Start here"', () => {
+  it('offers the Discord bot as one button, after "Start here" and the index', () => {
     const aside = html.slice(html.indexOf('su-home__aside'), html.indexOf('<footer'))
     const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
     expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
@@ -97,13 +94,13 @@ describe('home: the manual’s Contents page', () => {
     expect(index).not.toContain('<img')
   })
 
-  it('reads title, tagline, the index, then "Start here" and Discord below it', () => {
+  it('reads title, tagline, "Start here", the index, then Discord (a phone leads with the way in)', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     expect(at('<h1')).toBeLessThan(at('su-tagline'))
-    expect(at('su-tagline')).toBeLessThan(at('id="pilot-bay"'))
-    expect(at('id="pilot-bay"')).toBeLessThan(at('id="start-here"'))
-    expect(at('id="start-here"')).toBeLessThan(at('id="discord-bot"'))
+    expect(at('su-tagline')).toBeLessThan(at('id="start-here"'))
+    expect(at('id="start-here"')).toBeLessThan(at('id="pilot-bay"'))
+    expect(at('id="pilot-bay"')).toBeLessThan(at('id="discord-bot"'))
   })
 })
 

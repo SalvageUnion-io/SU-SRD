@@ -5,7 +5,6 @@ import { messages } from './define'
 export const playSafetyCopy = messages({
   safety: 'Safety',
   stopSign: 'Stop Sign',
-  stop: 'Stop',
   showTheStopSign: 'Show the Stop Sign',
   stopSignMeans:
     'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. The game pauses on every screen, without saying who.',

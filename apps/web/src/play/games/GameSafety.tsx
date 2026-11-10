@@ -27,7 +27,7 @@ export function GameSafety({ gameId, sign }: { gameId: string; sign: StopSign | 
       bodyStyle={HUB_BODY}
       id="safety-heading"
       title={playSafetyCopy('safety')}
-      actions={<StopSignButton sign={sign} label={playSafetyCopy('stopSign')} />}
+      actions={<StopSignButton sign={sign} />}
     >
       <Text variant="note">{playSafetyCopy('stopSignMeans')}</Text>
       {sign?.mayManage && (

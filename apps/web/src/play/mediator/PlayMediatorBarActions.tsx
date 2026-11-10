@@ -7,8 +7,8 @@
  *    in a dialog: one word to every player at once (`changeLog.broadcast`),
  *    which lands on each of their Feeds, with the last five sent under it.
  *  - **⋯**: Start or End group session (`useGameSession`, play.md §10), the
- *    Game's own page, and the reference (the SRD Explorer, `SrdExplorer`) in
- *    an overlay over Play.
+ *    Game's own page, the reference (the SRD Explorer, `SrdExplorer`) in
+ *    an overlay over Play, and the Discord channel while none is bound.
  *
  * Both Compact, as every control on the bar is (ruleset §4.7).
  */
@@ -16,6 +16,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
 import { useState } from 'react'
+import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -27,8 +28,11 @@ import type { PlayMediator } from './usePlayMediator'
 export function PlayMediatorBarActions({
   mediator,
   wide = true,
+  channel = null,
 }: {
   mediator: PlayMediator
+  /** The "Discord channel" row while none is bound (`usePlayChannelControls`). */
+  channel?: HeaderMenuItem | null
   /** From `lg`: Tell the table is a bar button; below it, the ⋯'s first item. */
   wide?: boolean
 }) {
@@ -97,6 +101,7 @@ export function PlayMediatorBarActions({
               onSelect: () => setReference(true),
             },
           ],
+          channel ? [channel] : [],
         ]}
       />
       <ModalShell

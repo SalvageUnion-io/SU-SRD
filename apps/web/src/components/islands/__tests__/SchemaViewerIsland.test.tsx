@@ -426,7 +426,7 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('one art-first CompactIndex per entity, in one flat grid with no group heading and no toggle', () => {
+    it('one art-first CompactIndex per entity, in one flat grid with no group heading, beside its List (E2)', () => {
       const { container } = renderChassis()
       expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
       expect(container.querySelector('.su-listing__cards')).toBeNull()
@@ -435,8 +435,15 @@ describe('SchemaViewerIsland', () => {
       expect(groups[0]?.getAttribute('aria-label')).toBeNull()
       const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-index')
       expect(tiles.length).toBe(chassisEntities().length)
-      expect(container.querySelector('.su-rail__view')).toBeNull()
-      expect(screen.queryByRole('button', { name: 'List' })).toBeNull()
+      const views = required(
+        container.querySelector<HTMLElement>('.su-rail__view'),
+        'the view toggle'
+      )
+      expect(
+        within(views)
+          .getAllByRole('button')
+          .map((b) => b.textContent)
+      ).toEqual(['Catalog', 'List'])
       // Art from the CDN's 440 derivative, its box sized before it loads.
       // The opening row's art loads at once and first (it is the page's
       // largest paint); every tile after it, lazily.
@@ -450,6 +457,16 @@ describe('SchemaViewerIsland', () => {
       )
       expect(img.getAttribute('fetchpriority')).toBe('high')
       expect(imgs[4]?.getAttribute('fetchpriority')).toBeNull()
+    })
+
+    it('the List is one header-only Compact per entity, each a link, its name whole (R56)', () => {
+      const { container } = renderChassis()
+      fireEvent.click(screen.getByRole('button', { name: 'List' }))
+      expect(container.querySelector('.su-listing[data-view="list"]')).toBeTruthy()
+      const rows = container.querySelectorAll('.su-listing__cards > li')
+      expect(rows.length).toBe(chassisEntities().length)
+      expect(container.querySelector('.su-listing__tiles')).toBeNull()
+      expect(container.querySelector('.su-listing__cards a[href="/chassis/gopher/"]')).toBeTruthy()
     })
 
     it('carries each entity’s lore under its cells', () => {
@@ -520,7 +537,7 @@ describe('SchemaViewerIsland', () => {
         />
       )
 
-    it('offers Catalog | Tree and opens on the Tree', () => {
+    it('offers Catalog | Tree | List and opens on the Tree', () => {
       const { container } = renderAbilities()
       const views = required(
         container.querySelector<HTMLElement>('.su-rail__view'),
@@ -530,7 +547,7 @@ describe('SchemaViewerIsland', () => {
         within(views)
           .getAllByRole('button')
           .map((b) => b.textContent)
-      ).toEqual(['Catalog', 'Tree'])
+      ).toEqual(['Catalog', 'Tree', 'List'])
       expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })

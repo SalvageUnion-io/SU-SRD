@@ -1,7 +1,13 @@
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
+import {
+  EmptyState,
+  Entity,
+  MasonryColumns,
+  ReferenceEntityCard,
+  Slab,
+} from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { selectableClasses } from './classOptions.model'
 import { fullWidthStyle } from './wizardStyles.model'
@@ -53,18 +59,34 @@ export function ClassAbilityStep({
   // properly-typed ability then flows into the card with no further forcing.
   const allAbilities = surAbilities.findAll(() => true) as RefAbility[]
 
-  const renderClassCard = (cls: RefClass) => (
-    <ReferenceEntityCard
-      key={cls.id}
-      data={cls}
-      size="compact"
-      selected={cls.id === classId}
-      selectionRole="radio"
-      cardClickLabel={cls.name}
-      onCardClick={() => onSelectClass(cls.id)}
-      hide={{ actions: true, choices: true }}
-    />
-  )
+  // Only the pick is contentful: the other five are header-only Compacts, so
+  // six class cards do not run nine phone screens before the abilities.
+  const renderClassCard = (cls: RefClass) =>
+    cls.id !== classId ? (
+      <Entity
+        key={cls.id}
+        size="compact"
+        entity={cls}
+        mode={{
+          kind: 'select',
+          role: 'radio',
+          selected: false,
+          onSelect: () => onSelectClass(cls.id),
+          label: cls.name,
+        }}
+      />
+    ) : (
+      <ReferenceEntityCard
+        key={cls.id}
+        data={cls}
+        size="compact"
+        selected={cls.id === classId}
+        selectionRole="radio"
+        cardClickLabel={cls.name}
+        onCardClick={() => onSelectClass(cls.id)}
+        hide={{ actions: true, choices: true }}
+      />
+    )
 
   const renderAbilityCard = (ability: RefAbility) => (
     <ReferenceEntityCard

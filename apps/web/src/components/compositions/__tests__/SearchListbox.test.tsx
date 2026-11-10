@@ -80,4 +80,23 @@ describe('SearchListbox', () => {
     list({ results: [] })
     expect(screen.getByText(NO_RESULTS)).toBeTruthy()
   })
+
+  test('kinds: a Mini result says what kind of thing it is, a stamp beside its name', () => {
+    list({ size: 'mini', kinds: true })
+    const mule = screen.getAllByRole('option')[0]
+    expect(mule?.textContent).toContain('Chassis')
+  })
+
+  test('the row for what a full list left out is an option like any other', () => {
+    const more: SearchComboboxResult = {
+      kind: 'more',
+      id: 'more:chassis',
+      title: '12 more Chassis',
+      group: 'Open the filtered list',
+      schemaId: 'chassis',
+      query: 'mu',
+    }
+    list({ results: [MULE, more] })
+    expect(screen.getAllByRole('option')[1]?.textContent).toContain('12 more Chassis')
+  })
 })

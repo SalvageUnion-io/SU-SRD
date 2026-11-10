@@ -137,8 +137,8 @@ export function unselectedOptions(page: Page): Locator {
  *
  * A spec that wants to exercise ONE step must not `goto('/<kind>/new')` and
  * assume that step is the landing step: a `CreateModeChooser` gate stands in
- * front of every wizard (hence `?mode=guided`), and the pilot wizard has a
- * "Your Stats" step ahead of "Class & Ability". A spec that assumed either sat
+ * front of every wizard (hence `?mode=guided`), and a wizard may
+ * gain a step ahead of the one a spec wants. A spec that assumed either sat
  * waiting for an element that was one
  * click away until it burned its whole timeout.
  *

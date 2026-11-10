@@ -52,7 +52,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
-  const description = `Browse all ${schemaName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
+  const description = `Browse all ${pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
 
   // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
   // handful of tiles, so it has no TL facet.
@@ -86,7 +86,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: {
-      title: pageTitle(schemaName),
+      title: pageTitle(pluralName),
       description,
       canonical: canonicalUrl,
       structuredData: {

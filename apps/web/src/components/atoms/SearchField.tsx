@@ -74,7 +74,7 @@ export function SearchField({
         {...inputProps}
       />
       {shortcut && (
-        <span aria-hidden="true" style={SHORTCUT}>
+        <span aria-hidden="true" className="su-search-field__shortcut" style={SHORTCUT}>
           <kbd style={KEY_CAP}>{shortcut}</kbd>
         </span>
       )}

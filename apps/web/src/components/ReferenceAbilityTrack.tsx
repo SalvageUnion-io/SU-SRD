@@ -64,6 +64,7 @@ export function ReferenceAbilityTrack({
             lead
             peek
             titleAs={titleAs}
+            wholeName
           />
         )
       }

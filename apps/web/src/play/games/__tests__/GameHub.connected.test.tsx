@@ -236,6 +236,8 @@ describe('the sections under the roster', () => {
     expect(within(members).getByText('Ash (you)')).toBeTruthy()
     expect(within(members).getByText('Beefcake')).toBeTruthy()
     expect(members.querySelector('[data-entity-linked]')).toBeNull()
+    // R56: a person's name is never cut; the list wraps their chips under it.
+    expect(members.hasAttribute('data-names-whole')).toBe(true)
   })
 
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {

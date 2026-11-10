@@ -18,25 +18,35 @@ import type { UnitsStore } from '../../replica/units'
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
-import { sheetPath } from 'game-domain/entityKinds'
+import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { Button, tokens } from '../../components/index'
+import type { HeaderMenuItem } from '../../components/index'
+import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
+import { useServerAction } from '../../lib/connection/useServerAction'
+import { copyForShelf } from '../../lib/copyEntity'
+import { buildEntityExport } from '../../lib/export/buildExportBundle'
+import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
+import type { MoveTargetGame } from '../../lib/games/gameRoster'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
+import { buildExportCopy } from '../../messages/build-export'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
-import { MoveToContainerControl } from '../entityContainer/MoveToContainerControl'
-import { ExportEntityButton } from '../export/ExportEntityButton'
-import { ExportToFoundryButton } from '../export/ExportToFoundryButton'
+import { exportToFoundry } from '../export/exportToFoundry.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { ShareStatusDialog } from '../sharing/ShareStatusDialog'
+import type { MoveSubject } from '../shelves/MoveToGameDialog'
+import { MoveToGameDialog } from '../shelves/MoveToGameDialog'
 import type { SoftLinkStore } from '../wiring/useSoftLinks'
 import { ChangeLogDrawer } from './ChangeLogDrawer'
 import { CrawlerLiveSheet } from './CrawlerLiveSheet'
@@ -45,7 +55,6 @@ import { resolveSheetComposition } from './composition.model'
 import type { LiveSheetSegment } from './LiveSheet'
 import { MechLiveSheet } from './MechLiveSheet'
 import { PilotLiveSheet } from './PilotLiveSheet'
-import { SheetActionsMenu } from './SheetActionsMenu'
 import { SheetFallback } from './SheetFallback'
 import { SheetModeToggle } from './SheetModeToggle'
 import { useSheetMode } from './sheetMode.model'
@@ -142,7 +151,25 @@ type SheetProps = {
 
 const NONE_WITHHELD: readonly WithheldUnit[] = []
 
-/** The bar's trailing cluster: Share (while this sheet can write) and ⋯. */
+/**
+ * "Move to a Game…" over a sheet: the Bay's dialog, with the server's list of
+ * your Games. Mounted only while it is open and the session is live, so the
+ * Games call has a server to ask.
+ */
+function SheetMove({
+  subject,
+  onClose,
+  confirm,
+}: {
+  subject: MoveSubject
+  onClose: () => void
+  confirm: ReturnType<typeof useConfirm>['confirm']
+}) {
+  const games = useGamesQuery('games.listMine', {}) as readonly MoveTargetGame[] | undefined
+  return <MoveToGameDialog subject={subject} onClose={onClose} games={games} confirm={confirm} />
+}
+
+/** The bar's trailing cluster: Play, Share (while this sheet can write) and ⋯. */
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -169,8 +196,18 @@ export function Sheet({
   const [changeLogOpen, setChangeLogOpen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const [savePatternOpen, setSavePatternOpen] = useState(false)
-  // The container move's confirm. Owned here, not by the control, because the
-  // control lives in the ⋯ menu, which unmounts on the press that answers it.
+  const [moving, setMoving] = useState<MoveSubject | null>(null)
+  const go = useGo()
+  // A menu row has no line of its own, so a failed export is a toast.
+  const exportOne = useServerAction(
+    async (name: string) => {
+      const bundle = await buildEntityExport(kind, id, useUnits.getState())
+      downloadJson(exportFileName(kind, name), bundle)
+    },
+    { failure: buildSheetCopy('exportFailed'), toastId: 'sheet-export' }
+  )
+  // The menu's confirms (a move, a copy, a delete). Owned here, not by the
+  // menu, which closes on the press that asks.
   const { confirm, dialog: confirmDialog } = useConfirm()
   const { canWrite, canEditOwn = canWrite, status } = useSync()
   // Read | Edit (`sheetMode.model.ts`): the route's choice, or always writable when
@@ -231,55 +268,123 @@ export function Sheet({
   // Read | Edit is the band's (`sheetMode.model.ts`): Read withdraws every write
   // affordance; Edit gives back the unified edit language (in-place fields,
   // collection add/remove, live pips).
-  // Print/PDF export: the print stylesheet (`styles/build/print.css`)
-  // turns the live sheet into a clean paper layout; "Save as PDF"
-  // in the browser dialog covers the PDF ask without a rendering dep.
-  const printButton = (
-    <Button
-      variant="ghost"
-      aria-label={buildSheetCopy('printThisSheet', { kind })}
-      onClick={() => window.print()}
-    >
-      {buildSheetCopy('print')}
-    </Button>
-  )
-  // Entity-level admin affordances: single-entity JSON export + container
-  // move. Unassigning a linked entity
-  // lives on the rail chip, not here — it's contextual to the link.
-  const exportButton = <ExportEntityButton type={kind} id={id} name={entity.name} />
-  // A pilot or mech also leaves as a Foundry VTT actor, with the maxima this
-  // sheet derives (the crawler's Stat Training, the pilot's Beefcake).
-  const foundryButton =
-    resolved.kind === 'pilot' ? (
-      <ExportToFoundryButton kind="pilot" entity={resolved.entity} crawler={composition.crawler} />
-    ) : resolved.kind === 'mech' ? (
-      <ExportToFoundryButton
-        kind="mech"
-        entity={resolved.entity}
-        pilotAbilities={pilotAbilities ?? composition.pilot?.abilities}
-      />
-    ) : null
-  const containerControl = (
-    <MoveToContainerControl entityType={kind} entityId={id} entity={entity} confirm={confirm} />
-  )
-  // The per-entity Change Log (provenance) opens from the overflow menu, never
-  // inline on the sheet body (ADR-022). Its open-state lives here, on the
-  // always-mounted Sheet, because the menu unmounts its children when closed.
-  const changeLogButton = (
-    <Button
-      variant="ghost"
-      aria-label={buildSheetCopy('viewTheChangeLogFor', { kind })}
-      onClick={() => setChangeLogOpen(true)}
-    >
-      {buildSheetCopy('changeLog')}
-    </Button>
-  )
-  // A mech saves as a pattern in a dialog over its sheet: a write,
-  // so it is offered only where this sheet can write.
-  const savePatternLink =
-    kind === 'mech' && !writesBlocked ? (
-      <Button variant="ghost" size="compact" onClick={() => setSavePatternOpen(true)}>
-        {buildSheetCopy('saveAsPattern')}
+  // The sheet's "⋯" is the Training Bay's menu for the same unit (R62: a
+  // unit's acts ride its ⋯): rows, not stacked buttons. Print is the print
+  // stylesheet's paper layout (`styles/build/print.css`; "Save as PDF" in the
+  // browser's dialog covers the PDF ask). The reads (Print, the exports, the
+  // Change Log) stay while a write could not land; the writes need one.
+  const writable = (run: () => void): (() => void) | undefined => (writesBlocked ? undefined : run)
+  const inGame = typeof entity.gameId === 'string'
+  const foundry =
+    resolved.kind === 'pilot'
+      ? () =>
+          exportToFoundry({ kind: 'pilot', entity: resolved.entity, crawler: composition.crawler })
+      : resolved.kind === 'mech'
+        ? () =>
+            exportToFoundry({
+              kind: 'mech',
+              entity: resolved.entity,
+              pilotAbilities: pilotAbilities ?? composition.pilot?.abilities,
+            })
+        : undefined
+  const menu: HeaderMenuItem[][] = [
+    [
+      { id: 'print', label: buildSheetCopy('print'), onSelect: () => window.print() },
+      {
+        id: 'export',
+        label: buildExportCopy('export'),
+        onSelect: () => {
+          void exportOne.run(entity.name).then((result) => {
+            if (result.ok) toast.success(buildExportCopy('exported', { name: entity.name }))
+          })
+        },
+      },
+      ...(foundry
+        ? [{ id: 'foundry', label: buildExportCopy('exportToFoundry'), onSelect: foundry }]
+        : []),
+      // The per-entity Change Log (provenance) opens from the menu, never
+      // inline on the sheet body (ADR-022).
+      {
+        id: 'change-log',
+        label: buildSheetCopy('changeLog'),
+        onSelect: () => setChangeLogOpen(true),
+      },
+    ],
+    [
+      {
+        id: 'move',
+        label: buildSheetCopy('moveToAGame'),
+        // Moves need the server's list of Games.
+        onSelect:
+          !writesBlocked && status === 'live'
+            ? () => setMoving({ type: kind, id, entity })
+            : undefined,
+      },
+      {
+        id: 'copy',
+        label: buildSheetCopy('makeACopy'),
+        onSelect: writable(() =>
+          confirm({
+            ...ROW_ACTION_COPY.copyOnShelf(entity.name),
+            onConfirm: async () => {
+              const created = await storeState.create(
+                kind,
+                copyForShelf(entity, entity.name) as never
+              )
+              toast.success(buildSheetCopy('made', { name: created.name }))
+            },
+          })
+        ),
+      },
+      // A mech saves as a pattern in a dialog over its sheet.
+      ...(kind === 'mech'
+        ? [
+            {
+              id: 'pattern',
+              label: buildSheetCopy('saveAsPattern'),
+              onSelect: writable(() => setSavePatternOpen(true)),
+            },
+          ]
+        : []),
+    ],
+    [
+      {
+        id: 'delete',
+        label: buildSheetCopy('delete'),
+        tone: 'danger',
+        onSelect: writable(() =>
+          confirm({
+            ...(inGame
+              ? ROW_ACTION_COPY.deleteFromGame(entity.name)
+              : ROW_ACTION_COPY.deleteBuild(entity.name)),
+            onConfirm: async () => {
+              await storeState.delete(kind, id)
+              go(back.href)
+            },
+          })
+        ),
+      },
+    ],
+  ]
+  // The sheet's door into Play (ruleset §1.9: rust is the door into play): a
+  // pilot's own Play screen, in its Game or solo, the address the Play hub
+  // opens; a mech's goes through the pilot assigned to it, when this session
+  // holds that pilot. Signed out there is no Play.
+  const playPilot =
+    resolved.kind === 'pilot'
+      ? resolved.entity
+      : resolved.kind === 'mech' && composition.pilot && holds('pilot', composition.pilot.id)
+        ? composition.pilot
+        : null
+  const playDoor =
+    playPilot && status !== 'signedOut' ? (
+      <Button
+        href={cockpitPath(playPilot.id)}
+        variant="primary"
+        aria-label={buildSheetCopy('playAs', { name: playPilot.name })}
+        className="su-page-action"
+      >
+        {buildSheetCopy('play')}
       </Button>
     ) : null
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
@@ -295,6 +400,7 @@ export function Sheet({
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div style={ACTIONS}>
+      {playDoor}
       {!writesBlocked && (
         <Button
           aria-label={buildSheetCopy('shareThis', { kind })}
@@ -304,14 +410,14 @@ export function Sheet({
           {buildSheetCopy('share')}
         </Button>
       )}
-      <SheetActionsMenu>
-        {printButton}
-        {exportButton}
-        {foundryButton}
-        {containerControl}
-        {savePatternLink}
-        {changeLogButton}
-      </SheetActionsMenu>
+      <HeaderMenu
+        variant="overflow"
+        size="compact"
+        className="su-page-action"
+        trigger={null}
+        label={buildSheetCopy('moreActions')}
+        sections={menu}
+      />
     </div>
   ) : undefined
 
@@ -430,6 +536,9 @@ export function Sheet({
               open={savePatternOpen}
               onOpenChange={setSavePatternOpen}
             />
+          )}
+          {moving && status === 'live' && (
+            <SheetMove subject={moving} onClose={() => setMoving(null)} confirm={confirm} />
           )}
           {confirmDialog}
         </>

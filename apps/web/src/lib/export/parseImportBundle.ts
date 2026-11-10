@@ -4,7 +4,7 @@ import { ExportBundleSchema } from '../schemas/exportBundle'
 
 /**
  * A file that is not a backup this build can read. Its message is written for
- * the player — the file is theirs to fix — so `ImportButton` shows it rather
+ * the player — the file is theirs to fix — so `BackupMenu` shows it rather
  * than treating it as a defect.
  */
 export class ImportRefused extends Error {

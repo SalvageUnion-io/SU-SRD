@@ -17,7 +17,7 @@ test('save a pattern, read it signed out, and build a mech from it', async ({ pa
 
   // --- P1: Save as pattern, from the mech sheet's ⋯ menu, in its dialog ---
   await page.getByRole('button', { name: 'More actions' }).click()
-  await page.getByRole('button', { name: 'Save as pattern' }).click()
+  await page.getByRole('menuitem', { name: 'Save as pattern' }).click()
   const dialog = page.getByRole('dialog', { name: 'Save as pattern' })
   // The pattern as its chassis lists it, in Edit: homebrew, the name in its cut-out.
   await expect(dialog.getByText('Homebrew', { exact: true }).first()).toBeVisible()

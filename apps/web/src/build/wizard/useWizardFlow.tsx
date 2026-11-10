@@ -91,6 +91,7 @@ type WizardShellProps = {
   active: number
   onStepClick: (index: number) => void
   escapeAction: ReactNode
+  onEscape: (() => void) | undefined
   onBack: (() => void) | undefined
   onCancel: () => void
   confirmCancel: boolean
@@ -203,6 +204,7 @@ export function useWizardFlow<
         if (s) setStep(s)
       },
       escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
+      onEscape: !gate.ok && onOffRules ? onOffRules : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {
         clearWizardDraft(draftKey)

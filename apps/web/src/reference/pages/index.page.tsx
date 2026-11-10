@@ -92,6 +92,11 @@ function page(): PageResult {
           </ChapterBand>
         </div>
         <div className="su-home__body su-page-body">
+          {/* Start Here leads the page's source and a phone's stack; a desktop
+              places it in the sidebar, the Discord button under it. */}
+          <aside className="su-home__aside" aria-label={pagesCopy('gettingStarted')}>
+            <HomeStartHere guideHrefs={guideHrefs} />
+          </aside>
           <div className="su-home__index">
             {chapters.map((chapter) => (
               <ContentsChapter
@@ -118,10 +123,9 @@ function page(): PageResult {
               rows={atTheTable}
             />
           </div>
-          <aside className="su-home__aside" aria-label={pagesCopy('gettingStarted')}>
-            <HomeStartHere guideHrefs={guideHrefs} />
+          <div className="su-home__discord-slot">
             <DiscordButton installHref={DISCORD_INSTALL_URL} />
-          </aside>
+          </div>
         </div>
       </div>
     ),

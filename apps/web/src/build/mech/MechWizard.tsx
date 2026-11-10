@@ -17,6 +17,7 @@ import {
 } from '../../lib/wizard/mechFormState'
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import { mechCopy } from '../../messages/build-mech'
+import { routesCopy } from '../../messages/routes'
 import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -412,14 +413,14 @@ export function MechWizard({
     <WizShell
       gameId={gameId}
       kind="mech"
-      eyebrow={mechCopy('mechWorkshop')}
+      eyebrow={routesCopy('newMech')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
       submitLabel={mechCopy('createMech')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
       {step === 'scrap' && <GainScrapStep />}
       {step === 'chassis' && (
         <MechChassisStep

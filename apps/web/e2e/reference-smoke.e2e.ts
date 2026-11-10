@@ -168,7 +168,7 @@ for (const [schema, part] of [
 // (f) A roll table rolling on its own page: `roll-instrument.e2e.ts`.
 
 // (g) Every listing is the Catalog at every width: one flat grid of CompactIndexes, no
-// group headings and no view toggle, each art box 3:4 before its image loads
+// group headings, its List one press away (E2), each art box 3:4 before its image loads
 // (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, { tag: '@pr' }, async ({ page }) => {
@@ -178,7 +178,7 @@ for (const width of [1440, 390]) {
     await expect(tile).toBeVisible({ timeout: 30_000 })
     await expect(page.locator('.su-listing__group')).toHaveCount(1)
     await expect(page.locator('.su-listing__group[aria-label]')).toHaveCount(0)
-    await expect(page.locator('.su-rail__view')).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'List' }).first()).toBeVisible()
     // boundingBox() does not wait, so wait for the art box to lay out first.
     const art = tile.locator('.su-entity-index__art')
     await expect(art).toBeVisible()

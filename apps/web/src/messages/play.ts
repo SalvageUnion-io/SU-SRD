@@ -22,6 +22,7 @@ export const playCopy = messages({
   notOnHand: 'Not on hand',
   connectADiscordChannel: 'Connect a Discord channel',
   discordChannel: 'Discord channel',
+  noneBoundYet: 'None bound yet',
   noDiscordChannelIsBound: 'No Discord channel is bound to {whose} yet, so its rolls stay in Play.',
   rollsFromPostToIts:
     'Rolls from {whose} post to its bound Discord channel, as the bot’s roll card. Bound {dateTime}.',
@@ -81,6 +82,16 @@ export const playCopy = messages({
   posted: 'Posted',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',
+  atTheTable: 'At the table',
+  runYourPilot: 'Run your Pilot',
+  runYourPilotBody:
+    'Your Pilot and Mech on one screen: roll, spend AP and EP, take damage. Solo, or seated in a Game.',
+  shareOneTable: 'Share one table',
+  shareOneTableBody:
+    'A Game seats the crew at one table. Every roll and change shows on every screen, and in your Discord channel if you bind one.',
+  mediate: 'Mediate',
+  mediateBody:
+    'The Mediator runs the opposition, Downtime and the Union Crawler, and anyone can show the Stop Sign.',
   yourSession: 'your session',
   pilotNotFound: 'Pilot not found',
   hasNoPilot: '{name} has no Pilot',

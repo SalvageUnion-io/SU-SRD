@@ -9,20 +9,20 @@ afterEach(() => {
 })
 
 describe('useListingView', () => {
-  test('every listing but the abilities is the Catalog, with nothing to choose', () => {
+  test('every listing but the abilities opens on the Catalog, with Catalog | List (E2)', () => {
     for (const schemaId of ['chassis', 'keywords', 'factions']) {
       expect(renderHook(() => useListingView(schemaId)).result.current).toMatchObject({
         view: 'catalog',
-        views: ['catalog'],
+        views: ['catalog', 'list'],
         fromUrl: false,
       })
     }
   })
 
-  test('the abilities open on their Tree, with Catalog | Tree', () => {
+  test('the abilities open on their Tree, with Catalog | Tree | List', () => {
     expect(renderHook(() => useListingView('abilities')).result.current).toMatchObject({
       view: 'tree',
-      views: ['catalog', 'tree'],
+      views: ['catalog', 'tree', 'list'],
     })
   })
 
@@ -43,10 +43,17 @@ describe('useListingView', () => {
 
   test('a view the listing does not offer is ignored, from the URL or storage', () => {
     window.localStorage.setItem('srd:listing-view:chassis', 'tree')
-    window.location.href = 'http://localhost/chassis/?view=list'
+    window.location.href = 'http://localhost/chassis/?view=grid'
     const { result } = renderHook(() => useListingView('chassis'))
     expect(result.current.view).toBe('catalog')
     expect(result.current.fromUrl).toBe(false)
+  })
+
+  test('a ?view=list link opens any listing on its List', () => {
+    window.location.href = 'http://localhost/chassis/?view=list'
+    const { result } = renderHook(() => useListingView('chassis'))
+    expect(result.current.view).toBe('list')
+    expect(result.current.fromUrl).toBe(true)
   })
 
   test('storage that throws (a private window) falls back to the default, and a choice still takes', () => {

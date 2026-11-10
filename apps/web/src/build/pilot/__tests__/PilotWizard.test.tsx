@@ -2,7 +2,7 @@
  * Integration tests for PilotWizard on the WizShell skeleton, in the Pilot
  * Bay's book order:
  *
- *   Stats → Class & Ability (merged) → Equipment → Callsign → Background →
+ *   Class & Ability (merged, under the fixed stats) → Equipment → Callsign → Background →
  *   Motto → Keepsake → Appearance → Review → submit
  *
  * Creation is HARD-enforced (1 ability radio, exactly 2 Tech-1 equipment
@@ -59,18 +59,14 @@ async function fillCallsign(name: string, callsign: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 describe('PilotWizard — happy path (book order, hard enforcement)', () => {
-  it('walks Stats → Class & Ability → Equipment → Callsign → flavor → Review and creates a legal pilot', async () => {
+  it('walks Class & Ability → Equipment → Callsign → flavor → Review and creates a legal pilot', async () => {
     const onComplete = mock(() => {})
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={onComplete} onCancel={onCancel} />)
 
-    // --- Step 1: Your Stats — display-only, Next always enabled ---
-    // The fixed pilot stats render as read-only chips (HP | 10/10, …).
+    // --- Step 1: Class & First Ability (merged, both gates hard) ---
+    // The fixed pilot stats lead the step as read-only chips (HP | 10/10, …).
     expect(screen.getByText('HP')).toBeTruthy()
-    expect(getNextButton().disabled).toBe(false)
-    await clickNext()
-
-    // --- Step 2: Class & First Ability (merged, both gates hard) ---
     // Next locked until class + exactly 1 legal ability.
     expect(getNextButton().disabled).toBe(true)
     await pickByName('Engineer')
@@ -141,7 +137,6 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
 describe('PilotWizard — hard creation enforcement', () => {
   it('ability pick is a RADIO: a new pick replaces the old, never a second slot', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext() // Stats → Class & Ability
     await pickByName('Engineer')
     await pickByName('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
@@ -154,7 +149,6 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext()
     await pickByName('Engineer')
     await pickByName('Engineering Expertise') // Mechanical Knowledge L1
     await pickByName('Soldier') // Mechanical Knowledge ∉ Soldier trees
@@ -164,7 +158,6 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext()
     await pickByName('Engineer')
     await pickByName('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
     await pickByName('Salvager')
@@ -173,7 +166,6 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('offers the Salvager all 15 core-tree Level-1 abilities and no specialisation classes', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext()
     // Non-core classes are filtered OUT of guided create entirely.
     expect(screen.queryByRole('radio', { name: 'Cyborg' })).toBeNull()
     expect(screen.queryByRole('radio', { name: 'Fabricator' })).toBeNull()
@@ -203,7 +195,6 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('equipment Qty stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext()
     await pickByName('Engineer')
     await pickByName('Engineering Expertise')
     await clickNext()
@@ -223,7 +214,6 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('slot preview uses pilotInventory math, not pick count', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext()
     await pickByName('Engineer')
     await pickByName('Engineering Expertise')
     await clickNext()
@@ -260,7 +250,6 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
     )
 
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext() // Stats → Class & Ability
 
     // Oldest-first removal keeps the NEWEST ability pick (a3).
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
@@ -278,7 +267,6 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
 describe('PilotWizard — session drafts', () => {
   it('restores in-progress state after unmount and clears it on confirmed cancel', async () => {
     const { unmount } = render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await clickNext() // Stats → Class & Ability
     await pickByName('Engineer')
 
     // Simulate a refresh/navigation: unmount, then mount a fresh wizard.

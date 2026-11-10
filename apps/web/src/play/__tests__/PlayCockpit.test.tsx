@@ -88,10 +88,10 @@ describe('the Cockpit frame', () => {
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
     expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
-    // Nothing bound: the channel button is Connect.
-    expect(bar.getByRole('button', { name: 'Connect a Discord channel' })).toBeTruthy()
-    // Solo there is nothing for ⋯ to open, so there is none.
-    expect(bar.queryByRole('button', { name: 'More' })).toBeNull()
+    // Nothing bound: no channel button; the way to bind one is the ⋯'s row.
+    expect(bar.queryByRole('button', { name: /Discord channel/ })).toBeNull()
+    fireEvent.click(bar.getByRole('button', { name: 'More' }))
+    expect(await screen.findByRole('menuitem', { name: /Discord channel/ })).toBeTruthy()
   })
 
   test('on foot the bar and the foot wear the pilot’s orange, ink on it', async () => {

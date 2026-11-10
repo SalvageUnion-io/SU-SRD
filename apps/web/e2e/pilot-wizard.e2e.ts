@@ -39,17 +39,14 @@ import { expect, test } from './fixtures'
 test('build a pilot from scratch, then edit to add a second ability', async ({ page }) => {
   await openWizard(page, 'pilots')
 
-  // Step 1: Your Stats — derived starting values, nothing to choose.
-  await clickNext(page)
-
-  // Step 2: Class & Ability — the class, then exactly one Ability from the
-  // trees that class reveals. Both halves gate Next.
+  // Step 1: Class & Ability, under the fixed starting stats — the class, then
+  // exactly one Ability from the trees that class reveals. Both halves gate Next.
   await pickByName(page, 'Engineer')
   await pickByName(page, 'Engineering Expertise')
   await expect(page.getByTestId('ability-count')).toContainText('1/1')
   await clickNext(page)
 
-  // Step 3: Equipment — exactly two Tech 1 picks.
+  // Step 2: Equipment — exactly two Tech 1 picks.
   const equipmentOptions = unselectedOptions(page)
   await expect(equipmentOptions.first()).toBeVisible()
   await equipmentOptions.first().click()
@@ -57,7 +54,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByTestId('equipment-count')).toContainText('2/2')
   await clickNext(page)
 
-  // Step 4: identity — name + callsign both required before Next opens.
+  // Step 3: identity — name + callsign both required before Next opens.
   await page.getByLabel(/^Name/).fill('Mira Voss')
   await page.getByLabel(/Callsign/).fill('Sparks')
 
@@ -110,7 +107,7 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
 
 test('every base class renders a selectable row', async ({ page }) => {
   await openWizard(page, 'pilots')
-  // "Your Stats" precedes the Class step, so walk to the class cards first.
+  // Walk to the class cards, whichever step they stand on.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Each base class is a selectable entity card. SU core book has 6 base
@@ -146,7 +143,7 @@ test('every base class renders a selectable row', async ({ page }) => {
  */
 test('selecting a class marks it selected and reveals its trees', async ({ page }) => {
   await openWizard(page, 'pilots')
-  // "Your Stats" precedes the Class step, so walk to the class cards first.
+  // Walk to the class cards, whichever step they stand on.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   // Pre-selection: nothing is chosen.
@@ -168,7 +165,7 @@ test('selecting a class marks it selected and reveals its trees', async ({ page 
 
 test('switching class moves the selection', async ({ page }) => {
   await openWizard(page, 'pilots')
-  // "Your Stats" precedes the Class step, so walk to the class cards first.
+  // Walk to the class cards, whichever step they stand on.
   await advanceUntilVisible(page, choiceCardByName(page, 'Engineer'))
 
   await pickByName(page, 'Engineer')
