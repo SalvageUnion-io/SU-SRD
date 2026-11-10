@@ -55,7 +55,6 @@ export const mechCopy = messages({
   scrap: 'Scrap',
   systemSlots: 'System Slots',
   moduleSlots: 'Module Slots',
-  mechWorkshop: 'Mech Workshop',
   createMech: 'Create Mech ✦',
   quirk: 'Quirk',
   eGRattletrapSoundsLike: "e.g. Rattletrap — sounds like it's dying even when it's fine.",

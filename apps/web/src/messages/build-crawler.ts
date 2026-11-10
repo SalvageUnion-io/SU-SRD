@@ -55,6 +55,5 @@ export const crawlerCopy = messages({
   theSystemList: 'The System list',
   theCrawlerBayList: 'The Crawler Bay list',
   theCrawlerNamesTable: 'The Crawler Names Table',
-  unionCrawler: 'Union Crawler',
   createCrawler: 'Create Crawler ✦',
 })

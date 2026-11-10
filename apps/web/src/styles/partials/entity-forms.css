@@ -1574,3 +1574,23 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   outline: var(--bw-chrome) solid currentcolor;
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
 }
+
+/* A list that keeps its Minis' names whole (`data-names-whole`: a Game's
+   people, R50; R56). The pill wraps, so the role and pilot chips take the row beneath the name when
+   the two do not share a line. */
+[data-names-whole] .su-entity-mini__pill {
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+[data-names-whole] .su-entity-mini__name {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+[data-names-whole] .su-entity-mini__chips {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+}

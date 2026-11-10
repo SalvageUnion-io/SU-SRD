@@ -63,7 +63,7 @@ function legalForm(): PilotWizardFormState {
 
 describe('pilotCreationStepGate', () => {
   it('always passes briefing/flavor steps', () => {
-    for (const step of ['stats', 'background', 'motto', 'keepsake', 'appearance'] as const) {
+    for (const step of ['background', 'motto', 'keepsake', 'appearance'] as const) {
       expect(pilotCreationStepGate(step, EMPTY_PILOT_FORM_STATE).ok).toBe(true)
     }
   })

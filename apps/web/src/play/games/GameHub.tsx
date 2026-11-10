@@ -33,6 +33,7 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import {
@@ -45,7 +46,10 @@ import {
   tokens,
 } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
+import { areaTitle } from '../../lib/pageTitle'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { playGamesCopy } from '../../messages/play-games'
+import { routesCopy } from '../../messages/routes'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { StopSignBanner } from '../StopSign'
@@ -169,6 +173,7 @@ export function GameHub({ gameId }: GameHubProps) {
   // loading" from "not a member" without fetching every table you are in.
   const game = useGamesQuery('games.get', { gameId: gameId })
   const session = useGameSession(gameId)
+  useTabTitle(game ? areaTitle(PRODUCT.play, `${game.name} · ${routesCopy('game')}`) : null)
 
   return (
     <PageShell

@@ -160,6 +160,7 @@ describe('Play opens', () => {
       gameId: GAME_ID,
       gameName: 'Tenacity',
       mediator: false,
+      organizer: false,
     })
     // No roster is asked for: Play does not wait on a Mediator.
     expect(queryCalls().map((c) => c.name)).toEqual(['games.get'])

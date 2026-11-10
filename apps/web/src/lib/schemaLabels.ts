@@ -28,3 +28,13 @@ export function schemaPluralLabel(schemaId: string): string {
   }
   return pluralLabels.get(schemaId) ?? schemaId
 }
+
+let singularLabels: Map<string, string> | undefined
+
+/** Authored singular label for a schema id — 'crawler-bays' → 'Crawler Bay'. */
+export function schemaLabel(schemaId: string): string {
+  if (!singularLabels) {
+    singularLabels = new Map(getSchemaCatalog().schemas.map((s) => [s.id, s.displayName]))
+  }
+  return singularLabels.get(schemaId) ?? schemaId
+}

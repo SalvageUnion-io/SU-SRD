@@ -267,8 +267,9 @@ function SchemaViewer({
 
   const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   // The Catalog is one flat grid, no group headings (a tree listing's by
-  // name), but for the classes' Core and Hybrid headings; the Tree groups.
-  const flat = view === 'catalog'
+  // name), but for the classes' Core and Hybrid headings, and the List is the
+  // same entities a line each; the Tree groups.
+  const flat = view !== 'tree'
   const groupBy: GroupBy = flat
     ? catalogGroupBy(schemaId)
     : resolveGroupBy(initialData, trees, orderedTechLevels, schemaId)
@@ -449,6 +450,22 @@ function SchemaViewer({
                         </li>
                       ))}
                     </ul>
+                  ) : view === 'list' ? (
+                    // The List (E2): the Catalog's entities header-only, a
+                    // name and its chips a line, each name whole (R56).
+                    <ul className="su-listing__cards" data-entity-fit="">
+                      {group.items.map((item: RefEntity) => (
+                        <li key={item.id}>
+                          <Entity
+                            size="compact"
+                            entity={item}
+                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
+                            omit={omit}
+                            wholeName
+                          />
+                        </li>
+                      ))}
+                    </ul>
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack
                       abilities={group.items as RefAbility[]}
@@ -502,10 +519,10 @@ function ListingSkeleton({
   views: readonly ListingView[]
 }) {
   const catalog = view === 'catalog'
-  // The shape is the default view's groups; the Catalog is one, but for the
-  // classes' headings.
+  // The shape is the default view's groups; the Catalog and the List are one,
+  // but for the classes' headings.
   const groups =
-    shape && (!catalog || catalogGroupBy(schemaId) !== 'none')
+    shape && (view === 'tree' || catalogGroupBy(schemaId) !== 'none')
       ? shape.groups
       : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
   const rail = shape && (

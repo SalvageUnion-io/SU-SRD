@@ -5,6 +5,11 @@ type PendingProps = {
   /** What is loading, e.g. `the crew` → "Loading the crew…". Omit it for the
    * bare "Loading…" where the surrounding section already names the subject. */
   label?: string
+  /**
+   * `span` where its host already draws the paragraph (an `EmptyState`'s
+   * body): a `<p>` cannot hold another.
+   */
+  as?: 'p' | 'span'
 }
 
 /**
@@ -12,9 +17,9 @@ type PendingProps = {
  * a muted hint announced politely as a status, in `loadingCopy`'s words. A
  * shape known ahead is a `Skeleton`; a route's wait is `RoutePending`.
  */
-export function Pending({ label }: PendingProps) {
+export function Pending({ label, as = 'p' }: PendingProps) {
   return (
-    <Text variant="hint" role="status" aria-live="polite">
+    <Text as={as} variant="hint" role="status" aria-live="polite">
       {loadingCopy(label)}
     </Text>
   )

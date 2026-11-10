@@ -61,12 +61,12 @@ describe('SchemaViewerIsland skeleton', () => {
     expect(listing.getAttribute('data-view')).toBe('catalog')
     const rail = listing.querySelector('.su-rail')
     expect(rail).not.toBeNull()
-    // No view toggle; the Tech Level toggle in the book's order whatever
+    // The view toggle, then the Tech Level toggle in the book's order whatever
     // order it was handed.
     const toggles = [...(rail?.querySelectorAll('button[aria-pressed]') ?? [])].map(
       (b) => b.textContent
     )
-    expect(toggles).toEqual(['All', '1', '2'])
+    expect(toggles).toEqual(['Catalog', 'List', 'All', '1', '2'])
 
     // The Catalog has no group headings: one run of the shape's count.
     const groups = [...listing.querySelectorAll('.su-listing__group')]

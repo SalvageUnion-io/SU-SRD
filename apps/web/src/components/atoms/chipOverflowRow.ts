@@ -19,8 +19,9 @@ const FIT_ATTRIBUTES = ['data-fill-item', 'data-fill-line', 'data-fill-corner', 
  */
 export function writeOverflowRow(row: HTMLElement, out: readonly HTMLElement[]): void {
   const drawn = drawnRow.get(row)
-  // A stepped value reads anew: the same items, their text changed.
-  const said = out.map((item) => item.textContent ?? '').join('\u0000')
+  // A stepped value reads anew: the same items, their text changed, or which
+  // of their options is pressed (a listing's Catalog | List).
+  const said = out.map((item) => `${item.textContent ?? ''}\u0001${pressedOf(item)}`).join('\u0000')
   if (
     drawn &&
     drawn.said === said &&
@@ -53,6 +54,16 @@ export function writeOverflowRow(row: HTMLElement, out: readonly HTMLElement[]):
   }
   row.replaceChildren(...lanes)
   row.hidden = out.length === 0
+}
+
+/** Which of an item's toggles are pressed, as one string: a copy shows the same. */
+function pressedOf(item: HTMLElement): string {
+  return [
+    ...(item.matches('[aria-pressed]') ? [item] : []),
+    ...item.querySelectorAll('[aria-pressed]'),
+  ]
+    .map((el) => (el.getAttribute('aria-pressed') === 'true' ? '1' : '0'))
+    .join('')
 }
 
 /**

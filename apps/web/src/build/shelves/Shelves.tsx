@@ -12,9 +12,8 @@
  * at show only on the Game's page, and a Game is started or joined from the
  * Play hub.
  *
- *  - **The band** (ink, paper flecks): the notched title and, right of it on
- *    the band's foot, **Import** and **Export all**; what does not fit beside
- *    the name wraps up over it (`asideAt="controls"`).
+ *  - **The band** (ink, paper flecks): the notched title and, in the band's
+ *    top-right corner, one "⋯" (`BackupMenu`: **Import…** and **Export all**).
  *  - **Three rows of shelves**: Pilots, Mechs and Crawlers; then the user-made,
  *    dashed NPCs, Patterns and Encounters (ruleset §3.9, `EncounterShelf`); then,
  *    folded, the read-only Starter Set, as the front door shows it (`StarterShelf`).
@@ -94,8 +93,7 @@ import { usePatterns, useTray } from '../../replica/collections'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
-import { ExportAllButton } from '../export/ExportAllButton'
-import { ImportButton } from '../export/ImportButton'
+import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { EncounterShelf } from './EncounterShelf'
@@ -358,15 +356,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               {importResult}
             </p>
           }
-          // Beside the name while they fit, wrapping up over it when they do
-          // not: the first in the list sit nearest the name.
-          asideAt="controls"
-          aside={
-            <>
-              {canWrite && <ImportButton onResult={setImportResult} />}
-              <ExportAllButton />
-            </>
-          }
+          corner={<BackupMenu canImport={canWrite} onResult={setImportResult} />}
         >
           {PRODUCT.build}
         </ChapterBand>

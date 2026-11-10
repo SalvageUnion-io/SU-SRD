@@ -4,13 +4,15 @@ import { messages } from './define'
 
 export const buildExportCopy = messages({
   backupDownloaded: 'Backup downloaded.',
-  exporting: 'Exporting…',
   exportAll: 'Export all',
   exported: 'Exported {name}.',
   export: 'Export',
   exportedToFoundry: 'Exported {name}. In Foundry, make an empty {kind} and choose Import Data.',
-  exportToFoundryLabel: 'Export this {kind} to Foundry VTT',
   exportToFoundry: 'Export to Foundry',
-  importing: 'Importing…',
-  import: 'Import',
+  import: 'Import…',
+  importFailed: 'That backup could not be imported. Try again.',
+  backupFailed: 'The backup could not be downloaded. Try again.',
+  importCompleteOne: 'Import complete — {count} entity created.',
+  importCompleteMany: 'Import complete — {count} entities created.',
+  backups: 'Backups: import and export',
 })

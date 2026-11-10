@@ -61,6 +61,12 @@ export type PlayActions = {
   resolve: ResolveModel
   /** The entry the seat is resolving, or null. */
   resolvingKey: string | null
+  /**
+   * The resolve was opened and nothing done with it (no roll, not activated,
+   * not applied), on a screen that can write: one the list lets go without a
+   * word when its action leaves the hand (`PlayOrphanResolve`).
+   */
+  resolvingUntouched: boolean
   /** Open an on-hand action's resolve in its row (Use). */
   open: (key: string) => void
   /**
@@ -169,6 +175,13 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     away,
     resolve: deck.resolve,
     resolvingKey: resolving?.ref ?? null,
+    resolvingUntouched:
+      resolving != null &&
+      play.readOnly === null &&
+      resolving.roll === undefined &&
+      resolving.salvage === undefined &&
+      !resolving.activated &&
+      !resolving.applied,
     open: deck.open,
     heatScale,
     closeOnly: closeRangeOnly(play.scene.conditions),

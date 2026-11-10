@@ -18,6 +18,7 @@ import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { pilotCopy } from '../../messages/build-pilot'
+import { routesCopy } from '../../messages/routes'
 import { BackgroundStep } from '../wizard/BackgroundStep'
 import { CallsignStep } from '../wizard/CallsignStep'
 import { ClassAbilityStep } from '../wizard/ClassAbilityStep'
@@ -32,9 +33,9 @@ import { WizShell, WizTracker } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 
-/** Book-order steps (Pilot Bay pp.18–19 + Review). */
+/** Book-order steps (Pilot Bay pp.18–19 + Review). The book's first, the
+ *  fixed starting stats, asks nothing: it leads the class step. */
 const STEPS: readonly PilotWizardStepId[] = [
-  'stats',
   'classAbility',
   'equipment',
   'callsign',
@@ -47,7 +48,6 @@ const STEPS: readonly PilotWizardStepId[] = [
 
 /** Stepper-rail labels. */
 const STEP_LABELS: Record<PilotWizardStepId, string> = {
-  stats: 'Your stats',
   classAbility: 'Class & Ability',
   equipment: 'Equipment',
   callsign: 'Callsign',
@@ -60,7 +60,6 @@ const STEP_LABELS: Record<PilotWizardStepId, string> = {
 
 /** Step headings — the book's own step names (pp.18–19). */
 const STEP_TITLES: Record<PilotWizardStepId, string> = {
-  stats: 'Fill out your Stats',
   classAbility: 'Choose your Pilot and your first Ability',
   equipment: 'Choose your Equipment',
   callsign: 'Choose your Callsign',
@@ -109,7 +108,7 @@ type PilotWizardProps = {
 
 /**
  * Multi-step pilot wizard on the shared WizShell skeleton, restructured to
- * the Pilot Bay's 8 book steps + Review with HARD creation enforcement (§5):
+ * the Pilot Bay's book steps + Review with HARD creation enforcement (§5):
  *
  *   - illegal options are FILTERED OUT (core classes only, legal Level-1
  *     abilities only, Tech 1 equipment only) — never rendered;
@@ -158,7 +157,7 @@ export function PilotWizard({
     steps: STEPS,
     stepLabels: STEP_LABELS,
     gateFor: (s) => pilotCreationStepGate(s, form),
-    initialStep: 'stats',
+    initialStep: 'classAbility',
     submitStep: 'review',
     form,
     draftKey,
@@ -244,18 +243,6 @@ export function PilotWizard({
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
   const stepRule: StepRule = (() => {
     switch (step) {
-      case 'stats':
-        return {
-          rule: bookQuote(
-            { source: 'Salvage Union Workshop Manual', page: 18 },
-            'Make a copy of the Character Sheet; your Pilot starts with 10 Hit Points, 5 Ability Points, and 6 Inventory Slots.'
-          ),
-          cite: {
-            source: 'Salvage Union Workshop Manual',
-            page: 18,
-            see: [{ label: pilotCopy('pilotStats'), page: 20 }],
-          },
-        }
       case 'classAbility':
         return {
           rule: bookQuote(
@@ -393,15 +380,19 @@ export function PilotWizard({
     <WizShell
       gameId={gameId}
       kind="pilot"
-      eyebrow={pilotCopy('pilotBay')}
+      eyebrow={routesCopy('newPilot')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
       submitLabel={pilotCopy('createPilot')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
-      {step === 'stats' && <StatsStep />}
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
+      {step === 'classAbility' && (
+        // Every pilot's starting stats (p.18) are fixed, so they lead the
+        // first step that asks for something instead of being a step.
+        <StatsStep />
+      )}
       {step === 'classAbility' && (
         <ClassAbilityStep
           classId={form.classId}

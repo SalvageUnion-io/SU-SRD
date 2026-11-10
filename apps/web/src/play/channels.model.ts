@@ -5,6 +5,8 @@
  * binding made before names were kept is named by whose it is.
  */
 
+import { playCopy } from '../messages/play'
+
 /** A bound channel as the web reads it (`channelBindings.current`, `.mine`). */
 export type PlayBinding = {
   channelId: string
@@ -28,14 +30,15 @@ export function channelTag(binding: PlayBinding | null | undefined): string | nu
 }
 
 /**
- * The Play bar's channel button: Connect with nothing bound, else the
- * channel's name, or whose it is where the name was never kept.
+ * The Play bar's channel button: the channel's name, or whose it is where the
+ * name was never kept. With nothing bound there is no button (the ⋯'s
+ * "Discord channel" row, for whoever may bind one).
  */
 export function channelButtonLabel(
   owner: ChannelOwner,
   binding: PlayBinding | null | undefined
 ): string {
-  if (binding == null) return 'Connect'
+  if (binding == null) return playCopy('discordChannel')
   return channelTag(binding) ?? (owner.kind === 'solo' ? '# My channel' : '# Game channel')
 }
 

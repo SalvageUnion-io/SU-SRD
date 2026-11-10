@@ -12,12 +12,13 @@ const STAT_ROW = {
   display: 'flex',
   flexWrap: 'wrap',
   gap: tokens.space[16],
+  marginBottom: tokens.space[20],
 } satisfies CSSProperties
 
 /**
- * Step 1 · Your Stats (Pilot Bay p.18) — display-only briefing step. Every
- * pilot starts with 10 HP, 5 AP, and 6 Inventory Slots; the values are fixed
- * by the rules, so NO inputs exist and Next is always enabled. Renders the
+ * Your Stats (Pilot Bay p.18), display-only, leading the wizard's first step.
+ * Every pilot starts with 10 HP, 5 AP, and 6 Inventory Slots; the values are
+ * fixed by the rules, so there is nothing to choose and no step. Renders the
  * sheets' StatBlock lozenges so the wizard previews exactly what the live
  * sheet will show.
  */

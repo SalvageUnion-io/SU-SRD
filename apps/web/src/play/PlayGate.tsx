@@ -126,7 +126,13 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
 
   return (
     <PlayCockpit
-      target={{ pilotId: pilot.id, gameId, gameName: game.name, mediator: game.mediator }}
+      target={{
+        pilotId: pilot.id,
+        gameId,
+        gameName: game.name,
+        mediator: game.mediator,
+        organizer: game.organizer,
+      }}
     />
   )
 }

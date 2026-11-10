@@ -97,14 +97,15 @@ type HeaderMenuProps = {
    * `pressed`.
    */
   variant?: 'masthead' | 'overflow' | 'button' | 'segment'
-  /** Extra classes for the trigger of the `button` variant. */
+  /** Extra classes for the trigger of the `button` and `overflow` variants. */
   className?: string
   /**
    * The `button` and `overflow` variants' Size: `mini` (default), an action
    * chip; `compact` where it sits on a line of Compact controls (Play's bar,
-   * ruleset §4.7). Its glyphs take the same Size (`iconSize`, hard rule R23).
+   * ruleset §4.7); `full` on a line of Full ones (a wizard's action bar). Its
+   * glyphs take the same Size (`iconSize`, hard rule R23).
    */
-  size?: 'mini' | 'compact'
+  size?: 'mini' | 'compact' | 'full'
   /** The `segment` trigger is pressed (its `SegmentedOption`'s): its option is the chosen one. */
   pressed?: boolean
   /** The trigger opens nothing (a `segment` with nothing to choose). */
@@ -130,7 +131,7 @@ const TRIGGER_CAPS = capsLabel({ size: 'lede' })
 // The overflow trigger is an action chip, Button's `mini` rung, so it
 // sits among a Compact's chips at their height. Only its open state, the inverse
 // plate, is `.su-header-menu-trigger--overflow`'s.
-const overflowTriggerClass = (size: 'mini' | 'compact') =>
+const overflowTriggerClass = (size: 'mini' | 'compact' | 'full') =>
   cn(buttonVariants({ size }), 'su-header-menu-trigger--overflow')
 
 const POSITIONER = {
@@ -197,7 +198,7 @@ export function HeaderMenu({
       : variant === 'segment'
         ? undefined
         : overflow
-          ? overflowTriggerClass(size)
+          ? cn(overflowTriggerClass(size), className)
           : `su-header-menu-trigger ${FOCUS_RING}`
   const triggerStyle = variant === 'masthead' ? TRIGGER : undefined
 

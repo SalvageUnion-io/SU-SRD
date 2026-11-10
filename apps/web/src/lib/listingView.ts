@@ -3,11 +3,12 @@ import { listingViewStorageKey, PARAM_VIEW } from './listingParams'
 
 /**
  * How a listing lays its entities out: `catalog`, one flat grid of CompactIndexes with
- * no group headings, or `tree` (a `TREE_LISTINGS` schema only), each tree
- * under its heading on its class-page track. Every listing is a Catalog; only
- * a tree listing has a choice, and it opens on its Tree.
+ * no group headings; `list`, the same entities as header-only Compacts, a name
+ * and its chips a line, for scanning a long listing (EDL E2); or `tree` (a
+ * `TREE_LISTINGS` schema only), each tree under its heading on its class-page
+ * track. Every listing opens on its Catalog, a tree listing on its Tree.
  */
-export type ListingView = 'catalog' | 'tree'
+export type ListingView = 'catalog' | 'tree' | 'list'
 
 /**
  * Listings whose entities have no artwork and whose lead is the content: a
@@ -30,10 +31,10 @@ export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
  */
 export const TREE_LISTINGS: ReadonlySet<string> = new Set(['abilities'])
 
-const VIEWS: readonly ListingView[] = ['catalog']
-const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree']
+const VIEWS: readonly ListingView[] = ['catalog', 'list']
+const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree', 'list']
 
-/** The views a listing offers, in the rail's order: one means no toggle. */
+/** The views a listing offers, in the rail's order. */
 function listingViews(schemaId: string): readonly ListingView[] {
   return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
 }

@@ -84,13 +84,19 @@
 .su-wiz-rail {
   border-bottom: var(--bw-chrome) solid var(--color-ink);
   flex-shrink: 0;
-  padding: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+}
+
+/* A phone's rail: the step line, then one notch a step on a single track. */
+.su-wiz-rail-line {
+  display: block;
+  margin-bottom: var(--space-8);
 }
 
 .su-wiz-rail-nav {
   display: flex;
-  flex-flow: row wrap;
-  gap: var(--space-8) var(--space-12);
+  flex-flow: row nowrap;
+  gap: var(--space-4);
   position: relative;
 }
 
@@ -100,8 +106,67 @@
   display: none;
 }
 
+.su-wiz-rail-step {
+  flex: 1 1 0%;
+  min-width: 0;
+  padding-block: var(--space-8);
+}
+
 .su-wiz-rail-step:disabled {
   pointer-events: none;
+}
+
+/* A step's tab: a notch on a phone (its number and check are not drawn), the
+   34px number block from sm, the active one a Full 44px. */
+.su-wiz-rail-tab {
+  flex: 1 1 0%;
+  height: var(--space-8);
+  overflow: hidden;
+  text-indent: 100%;
+  white-space: nowrap;
+}
+
+.su-wiz-rail-tab > svg {
+  display: none;
+}
+
+@media (width >= 40rem) {
+  .su-wiz-rail {
+    padding: var(--space-16);
+  }
+
+  .su-wiz-rail-line {
+    display: none;
+  }
+
+  .su-wiz-rail-nav {
+    flex-wrap: wrap;
+    gap: var(--space-8) var(--space-12);
+  }
+
+  .su-wiz-rail-step {
+    flex: none;
+    padding-block: 0;
+  }
+
+  .su-wiz-rail-tab {
+    flex: none;
+    font-size: var(--text-readout);
+    height: 34px;
+    overflow: visible;
+    text-indent: 0;
+    width: 34px;
+  }
+
+  .su-wiz-rail-tab > svg {
+    display: block;
+  }
+
+  .su-wiz-rail-tab--active {
+    font-size: var(--text-title);
+    height: var(--size-full);
+    width: var(--size-full);
+  }
 }
 
 /* The step labels show from `md`; under it each is read, not drawn (as
@@ -132,18 +197,31 @@
   padding: var(--space-20);
 }
 
-/* The action bar: a flat ink card, stacked on a phone, one row from sm. */
+/* The action bar: a flat ink card. On a phone its budgets and gate text sit
+   over one line of Back, the ⋯ menu and the CTA; one row from sm. */
 .su-wiz-pill {
-  align-items: stretch;
+  align-items: center;
   border-radius: var(--radius-card);
-  flex-direction: column;
+  flex-flow: row wrap;
   gap: var(--space-8);
-  padding: var(--space-12);
+  padding: var(--space-8);
   width: 100%;
 }
 
+/* The budgets and the gate text share the line over the buttons. */
+.su-wiz-pill:has(.su-wiz-pill-start, .su-wiz-pill-note)::before {
+  content: '';
+  flex-basis: 100%;
+  order: 1;
+}
+
+.su-wiz-pill-nav,
+.su-wiz-pill-cta {
+  order: 2;
+}
+
 .su-wiz-pill-start {
-  justify-content: center;
+  flex: none;
 }
 
 /* A budget (`WizTracker`) stands as tall as the Full buttons beside it. */
@@ -153,7 +231,19 @@
 }
 
 .su-wiz-pill-note {
-  text-align: center;
+  flex: 1 1 0%;
+  min-width: 0;
+  text-align: left;
+}
+
+/* The escape's button and Cancel are the ⋯ menu's rows on a phone. */
+.su-wiz-pill-escape,
+.su-wiz-pill-cancel {
+  display: none;
+}
+
+.su-wiz-pill-more {
+  display: flex;
 }
 
 .su-wiz-pill-nav {
@@ -161,24 +251,42 @@
 }
 
 .su-wiz-pill-cta {
-  width: 100%;
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 @media (width >= 40rem) {
   .su-wiz-pill {
-    align-items: center;
-    flex-direction: row;
+    flex-wrap: nowrap;
     gap: var(--space-12);
+    padding: var(--space-12);
     padding-left: var(--space-16);
     width: auto;
   }
 
-  .su-wiz-pill-start {
-    justify-content: flex-start;
+  .su-wiz-pill:has(.su-wiz-pill-start, .su-wiz-pill-note)::before {
+    content: none;
+  }
+
+  .su-wiz-pill-nav,
+  .su-wiz-pill-cta {
+    order: 0;
   }
 
   .su-wiz-pill-note {
-    text-align: left;
+    flex: none;
+  }
+
+  .su-wiz-pill-escape {
+    display: flex;
+  }
+
+  .su-wiz-pill-cancel {
+    display: inline-flex;
+  }
+
+  .su-wiz-pill-more {
+    display: none;
   }
 
   .su-wiz-pill-nav {
@@ -186,7 +294,7 @@
   }
 
   .su-wiz-pill-cta {
-    width: auto;
+    flex: none;
   }
 }
 
@@ -234,6 +342,26 @@
    A class, not a style object: RuleBrief takes no `style`. */
 .su-wiz-rule-brief {
   margin-bottom: var(--space-20);
+}
+
+/* RuleBrief `fold`: a phone shows a long rule's first two lines until its
+   toggle opens it; from sm the rule is whole and the toggle is gone. */
+.su-wiz-rule-toggle {
+  display: none;
+}
+
+@media not (width >= 40rem) {
+  .su-wiz-rule--folded {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+
+  .su-wiz-rule-toggle {
+    display: inline-flex;
+  }
 }
 
 /* CrawlerCrewStep: an open crew row's fields, one column, two from sm. */

@@ -31,6 +31,7 @@ import {
 } from '../../lib/wizard/crawlerFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
 import { crawlerCopy } from '../../messages/build-crawler'
+import { routesCopy } from '../../messages/routes'
 import { CrawlerStatsStep } from '../wizard/CrawlerStatsStep'
 import { CrawlerTypeSelectStep } from '../wizard/CrawlerTypeStep'
 import type { StepRule } from '../wizard/RuleBrief'
@@ -348,14 +349,14 @@ export function CrawlerWizard({
     <WizShell
       gameId={gameId}
       kind="crawler"
-      eyebrow={crawlerCopy('unionCrawler')}
+      eyebrow={routesCopy('newCrawler')}
       {...shell}
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
       submitLabel={crawlerCopy('createCrawler')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" />
+      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
       {step === 'type' && (
         <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
       )}

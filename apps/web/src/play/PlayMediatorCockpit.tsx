@@ -29,10 +29,14 @@
  */
 
 import { gamePath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
+import { areaTitle } from '../lib/pageTitle'
+import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
+import { routesCopy } from '../messages/routes'
 import { useSync } from '../replica/syncContext'
 import { hereOf } from './mediator/mediatorTable.model'
 import { PlayGameStateSwitch } from './mediator/PlayGameStateSwitch'
@@ -43,7 +47,6 @@ import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/Pl
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
 import { usePlayMediator } from './mediator/usePlayMediator'
 import { PlayBar } from './PlayBar'
-import { PlayChannelButton } from './PlayChannel'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
 import { mediatorTarget, PHASE_TONE } from './play.model'
@@ -51,6 +54,7 @@ import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
 import { usePlayChannelBinding } from './usePlayChannel'
+import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
 import { usePlayWide } from './usePlayWide'
 import { useStopSign } from './useStopSign'
@@ -68,6 +72,7 @@ type PlayMediatorCockpitProps = {
 export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorCockpitProps) {
   const { status } = useSync()
   const mediator = usePlayMediator(gameId, gameName)
+  useTabTitle(areaTitle(PRODUCT.play, `${routesCopy('mediate')} ${gameName}`))
   const binding = usePlayChannelBinding({ gameId })
   // The Mediator's side (play.md §10): the Post toggle private by default and
   // the Game's log left out of the roll dispatch (the log is the crew's; the
@@ -83,6 +88,13 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     proposals: [],
   })
   const wide = usePlayWide()
+  // The Mediator may bind the Game's channel (`mayBindChannel`).
+  const channel = usePlayChannelControls({
+    owner: { kind: 'game', gameName },
+    binding,
+    mayBind: true,
+    compact: !wide,
+  })
   const [tab, setTab] = useState<MediatorPane>('table')
   const [picked, setPicked] = useState<string | null>(null)
   // A seat was tapped: focus To once Propose is showing.
@@ -150,16 +162,11 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
                 <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} />
               ) : undefined
             }
-            channel={
-              <PlayChannelButton
-                owner={{ kind: 'game', gameName }}
-                binding={binding}
-                compact={!wide}
-              />
-            }
+            channel={channel.button}
             stop={<StopSignButton sign={sign} compact={!wide} />}
-            menu={<PlayMediatorBarActions mediator={mediator} wide={wide} />}
+            menu={<PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />}
           />
+          {channel.dialog}
           <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
       }

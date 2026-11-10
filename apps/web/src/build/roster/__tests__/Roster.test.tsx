@@ -153,7 +153,7 @@ describe('Roster — signed out, it is the front door', () => {
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
     expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Import' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Backups: import and export' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
 
@@ -206,15 +206,22 @@ describe('Roster — signed out, it is the front door', () => {
 // ---------------------------------------------------------------------------
 
 describe('Training Bay — the band', () => {
-  test('the notched title, Import and Export all, and no Showing filter', async () => {
+  test('the notched title, the backups menu, and no Showing filter', async () => {
     await renderShelves()
 
     expect(screen.getByRole('heading', { level: 1, name: 'Training Bay' })).toBeTruthy()
     expect(screen.queryByText(/Units in a Game stay on your shelf too\./)).toBeNull()
     // A unit's Game is its chip, never a filter (chips-and-actions C13).
     expect(screen.queryByLabelText('Showing')).toBeNull()
-    expect(screen.getByRole('button', { name: 'Import' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Export all' })).toBeTruthy()
+    // Import… and Export all are the band's one "⋯".
+    fireEvent.click(screen.getByRole('button', { name: 'Backups: import and export' }))
+    const backups = await screen.findByRole('menu')
+    expect(
+      within(backups)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent)
+    ).toEqual(['Import…', 'Export all'])
+    fireEvent.keyDown(backups, { key: 'Escape' })
     // A Game is started on the Play hub, never in Build (ADR-052 §1).
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
     // "My Stuff" is gone: the page is Shelves.
@@ -327,7 +334,8 @@ describe('Training Bay — items', () => {
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
-    expect(line?.textContent).toContain('HP')
+    // The defining fact takes the vital's place on a shelf (C4).
+    expect(line?.textContent).not.toContain('HP')
     // In no Game: no Game chip, and never an "Unassigned" one (C11).
     expect(line?.querySelector('[data-chip-class="relation"] a[data-tag]')).toBeNull()
     expect(line?.textContent).not.toContain('Unassigned')

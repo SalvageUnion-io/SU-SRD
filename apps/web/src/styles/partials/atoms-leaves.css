@@ -61,6 +61,14 @@
   outline: 3px solid transparent;
 }
 
+/* The shortcut's key cap is for a keyboard: a touch device, which has no
+   Ctrl or ⌘ to press, does not draw it. */
+@media (hover: none) and (pointer: coarse) {
+  .su-search-field__shortcut {
+    display: none;
+  }
+}
+
 /* ── Toaster ── */
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule

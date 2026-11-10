@@ -14,7 +14,7 @@ A strip is a Mini, a Compact or Full head, or a TitledBox or Slab header.
 3. **Budgets** — Mention: none. Mini: rank, one context lane, cost, state; its relations are its Peek's.
    Compact (and a contentful Mini): rank, the context lane, the economy (action type, facets), traits, relations, cost, state; other measures are Full's.
    Full, Page and Peek: every class (in a Peek, relation and action chips are inert, ruleset §1.6). TitledBox and Slab: at most two summary chips, totals and caps of what they hold.
-4. **Contexts** — a Mini's or Compact's container names one (else its kind's own: gear `loadout`, a thing you do `play`, an actor `roster`): `loadout` (Slots; a unit's SP), `play` (action type, or `ACTIONS | n`), `inventory` (quantity above 1), `roster` (the lead vital, `HP | 10/10`), `browse` (none).
+4. **Contexts** — a Mini's or Compact's container names one (else its kind's: gear `loadout`, a thing you do `play`, an actor `roster`): `loadout` (Slots; a unit's SP), `play` (action type or `ACTIONS | n`), `inventory` (quantity over 1), `roster` (the vital, `HP | 10/10`; a shelf: what it is), `browse` (none).
    The model maps a context to a fact per kind; no component branches on schema.
 
 ## Rules

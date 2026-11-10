@@ -26,18 +26,24 @@
  * outdated (`play.readOnly`).
  * In a Game, Stop shows the Stop Sign, and while it is up a banner under the
  * bar says the game is paused (`StopSign.tsx`).
- * The channel button shows where rolls post, or Connect (`PlayChannelButton`,
+ * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
  * §5–§6); solo, "‹ Play" goes back to the Play hub and there is no ⋯.
  */
 
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
+import { mayBindChannel } from 'game-domain/games/discord'
+import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import type { HeaderMenuItem } from '../components/index'
 import { HeaderMenu, tokens } from '../components/index'
+import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
+import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
+import { routesCopy } from '../messages/routes'
 import { PLAY_TXN } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
@@ -45,7 +51,6 @@ import { useTableRead } from '../replica/useTable'
 import { hereCount } from './crew.model'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
-import { PlayChannelButton } from './PlayChannel'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
 import { PlayPinnedVitals } from './PlayPinnedVitals'
@@ -62,6 +67,7 @@ import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
+import { usePlayChannelControls } from './usePlayChannelControls'
 import { usePlaySide } from './usePlaySide'
 import { usePlaySituation } from './usePlaySituation'
 import { usePlayUnits } from './usePlayUnits'
@@ -89,6 +95,8 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
+  const pilotName = play.pilot?.name
+  useTabTitle(pilotName ? areaTitle(PRODUCT.play, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
@@ -101,6 +109,15 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const side = usePlaySide({ target, play })
   const units = usePlayUnits(play)
   const solo = target.gameId === null
+  // A Game's channel is its Mediator's or Organiser's to bind
+  // (`mayBindChannel`); solo, the channel is the player's own.
+  const channel = usePlayChannelControls({
+    owner: solo ? { kind: 'solo' } : { kind: 'game', gameName: target.gameName },
+    binding,
+    mayBind:
+      solo || mayBindChannel({ mediator: target.mediator, organizer: target.organizer === true }),
+    compact: !wide,
+  })
   const [tableOn] = useTableMode()
   const table = tableOn && !wide
   useWakeLock(table)
@@ -139,23 +156,24 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             backLabel={solo ? playCopy('play') : playCopy('game')}
             live={status === 'live' && !solo}
             here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
-            short={!wide}
+            // A phone's bar is one line: with no channel button on it, the
+            // stamp has the room to say "Online" as the canvas's does.
+            short={!wide && channel.button !== null}
             readOnly={play.readOnly}
             situation={wide ? <PlaySituationSwitch play={play} /> : undefined}
-            channel={
-              <PlayChannelButton
-                owner={solo ? { kind: 'solo' } : { kind: 'game', gameName: target.gameName }}
-                binding={binding}
-                compact={!wide}
-              />
-            }
+            channel={channel.button}
             stop={<StopSignButton sign={sign} compact={!wide} />}
             menu={
-              target.gameId === null ? undefined : (
-                <CockpitMenu gameId={target.gameId} gameName={target.gameName} />
+              target.gameId === null && channel.row === null ? undefined : (
+                <CockpitMenu
+                  gameId={target.gameId}
+                  gameName={target.gameName}
+                  channel={channel.row}
+                />
               )
             }
           />
+          {channel.dialog}
           <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
       }
@@ -194,8 +212,20 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   )
 }
 
-/** The bar's ⋯ in a Game: the Game's page (ADR-052 §5), as the Mediator's ⋯ offers it. */
-function CockpitMenu({ gameId, gameName }: { gameId: string; gameName: string | null }) {
+/**
+ * The bar's ⋯: in a Game, the Game's page (ADR-052 §5), as the Mediator's ⋯
+ * offers it; and, for whoever may bind one while none is bound, the Discord
+ * channel (`usePlayChannelControls`), which is all a solo screen's ⋯ holds.
+ */
+function CockpitMenu({
+  gameId,
+  gameName,
+  channel,
+}: {
+  gameId: string | null
+  gameName: string | null
+  channel: HeaderMenuItem | null
+}) {
   const router = useRouter({ warn: false })
   return (
     <HeaderMenu
@@ -204,17 +234,21 @@ function CockpitMenu({ gameId, gameName }: { gameId: string; gameName: string | 
       label={playCopy('more')}
       trigger={null}
       sections={[
-        [
-          {
-            id: 'game',
-            label: playCopy('gamePage'),
-            hint: gameName ?? undefined,
-            onSelect: () => {
-              if (router) void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
-              else window.location.assign(gamePath(gameId))
-            },
-          },
-        ],
+        gameId === null
+          ? []
+          : [
+              {
+                id: 'game',
+                label: playCopy('gamePage'),
+                hint: gameName ?? undefined,
+                onSelect: () => {
+                  if (router)
+                    void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
+                  else window.location.assign(gamePath(gameId))
+                },
+              },
+            ],
+        channel ? [channel] : [],
       ]}
     />
   )

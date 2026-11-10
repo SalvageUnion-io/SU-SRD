@@ -12,7 +12,6 @@
 
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { pilotMaxima } from 'game-domain/rules/crewStatus'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import {
@@ -20,7 +19,6 @@ import {
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
-  softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
@@ -255,22 +253,13 @@ describe('Crawlers', () => {
   })
 })
 
-describe('Pilot vitals', () => {
-  test('a pilot aboard a Game’s crawler reads its max HP from that crawler’s Tech Level', async () => {
-    const aboard = crawlerFixture({ id: 'c-haven', name: 'Haven', gameId: 'g2', techLevel: 4 })
-    serve(
-      gameScope('g2'),
-      ['crawler'],
-      [{ table: 'crawler', row: aboard, version: 1, owner: null }]
-    )
-    await useUnits
-      .getState()
-      .adopt('softLink', softLinkFixture('pilot-to-crawler', NIA.id, aboard.id))
-    const { maxHP } = pilotMaxima(NIA, aboard)
-    expect(maxHP).toBeGreaterThan(pilotMaxima(NIA, null).maxHP)
+describe('What a shelf says of a unit (C4)', () => {
+  test('a pilot is named by its class; its vital is its sheet’s to show', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText(`${maxHP}/${maxHP}`, { exact: false })).toBeTruthy()
+    const line = within(pilots).getByText('Nia Vale').closest('.su-entity-compact')
+    expect(line?.textContent).toContain('Class')
+    expect(line?.textContent).not.toContain('HP')
   })
 })
 

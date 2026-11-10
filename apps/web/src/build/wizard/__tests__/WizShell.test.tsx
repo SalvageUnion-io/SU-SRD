@@ -4,8 +4,8 @@
  * step's entities.
  */
 
-import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { describe, expect, mock, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { WizShell } from '../WizShell'
 
 function renderStep() {
@@ -49,5 +49,35 @@ describe('WizShell', () => {
     expect(frame).toBeTruthy()
     expect(frame?.querySelector('.su-entity-compact__head')).toBeNull()
     expect(container.querySelector('.su-entity-compact__head')).toBeNull()
+  })
+
+  test("a phone's rail says the step in words: its number, the count and its name", () => {
+    const { container } = renderStep()
+    expect(container.querySelector('.su-wiz-rail-line')?.textContent).toBe('Step 2 of 3 · Chassis')
+  })
+
+  test("the dock's ⋯ holds Cancel and the off-rules way out, a phone's rows (R44)", async () => {
+    const onEscape = mock(() => {})
+    render(
+      <WizShell
+        kind="mech"
+        eyebrow="New Mech"
+        steps={['Chassis', 'Review']}
+        active={0}
+        title="Choose your Chassis"
+        onCancel={() => {}}
+        onNext={() => {}}
+        onEscape={onEscape}
+        submitLabel="Create Mech"
+      >
+        <p>Step content</p>
+      </WizShell>
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    expect(await screen.findByRole('menuitem', { name: 'Cancel' })).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'Off-rules build? Build it on the Live Sheet' })
+    )
+    expect(onEscape).toHaveBeenCalledTimes(1)
   })
 })

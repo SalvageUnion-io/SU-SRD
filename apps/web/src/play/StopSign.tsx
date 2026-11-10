@@ -15,18 +15,16 @@ import { playSafetyCopy } from '../messages/play-safety'
 import type { StopSign } from './useStopSign'
 
 /**
- * The control: **Stop**, rust, the one press anyone may make. Pressed while
+ * The control: **Stop Sign**, by the one name on the bar and the Game page, rust, the one press anyone may make. Pressed while
  * the sign is up it does nothing more, so it says so by being disabled. On
  * the phone's bar, where a word would push ⋯ off the line, it is the
  * octagon alone.
  */
 export function StopSignButton({
   sign,
-  label = playSafetyCopy('stop'),
   compact = false,
 }: {
   sign: StopSign | null
-  label?: string
   compact?: boolean
 }) {
   if (sign === null) return null
@@ -39,7 +37,11 @@ export function StopSignButton({
       disabled={!sign.canWrite || sign.shown || sign.pending}
       onClick={sign.show}
     >
-      {compact ? <OctagonPause size={tokens.iconSize.compact} aria-hidden="true" /> : label}
+      {compact ? (
+        <OctagonPause size={tokens.iconSize.compact} aria-hidden="true" />
+      ) : (
+        playSafetyCopy('stopSign')
+      )}
     </Button>
   )
 }

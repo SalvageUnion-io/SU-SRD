@@ -51,7 +51,7 @@ Index: [Coverage](#coverage) R0 · [Strips and chips](#strips-and-chips) R2–R6
 - **R53 One sub-section rung** (§4.9, E25) — a section inside a section is the Mini Slab (`SlabSection size="mini"`), at chip size; no eyebrow, coloured bar or sentence-case head stands in for a section head, bar the book's contents chapters on the Reference home (`ContentsChapter`).
 - **R54 A link looks like a link** — a standalone link is `Button href` or `InlineRef`, never bare `AppLink` text, and never larger than the note beside it.
 - **R55 Hierarchy at render** (§1.10, §3.13, §4.8, §4.9, E24, E25, C12) — `_hierarchy.ts`: every drawn size a rung, titles and Slabs at their form's rung, headings neither skipped nor at their section's level, no stray head (R53), a nested Slab Mini, every + New rust, no button twin of a stamp on its line, no clipped tool title, Reference and Manage on the measure, a phone's content on its first screen.
-- **R56 A Game's name is never cut** (C2b) — on the Play hub (`wholeName`) its doors drop to the body's first row instead.
+- **R56 A Game's, a person's, an index's name is never cut** (C2b) — the hub's doors drop to the body; people's chips wrap under.
 - **R57 Class leads the pilot's Edit card** (§1.2) — its first row, above the photo: the name and a Change Class button.
 - **R58 Intact is quiet** (C8) — only Damaged and Destroyed wear a tone; Repair shows only while damaged.
 - **R59 A fact prints once** (C10) — no Uses trait beside a live Uses slot; granted gear's rules print under its ability only.

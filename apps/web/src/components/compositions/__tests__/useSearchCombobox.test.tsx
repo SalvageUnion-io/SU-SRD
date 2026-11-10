@@ -50,6 +50,25 @@ describe('useSearchCombobox', () => {
     )
   })
 
+  test('moreRow: a full list ends in the row for what it left out, by kind', async () => {
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+    await typeAndSettle(result, 'laser')
+
+    expect(result.current.results.length).toBeLessThanOrEqual(10)
+    const last = must(result.current.results.at(-1))
+    expect(last.kind).toBe('more')
+    if (last.kind !== 'more') return
+    expect(last.title).toMatch(/^\d+ more /)
+    expect(last.title).toContain(schemaPluralLabel(last.schemaId))
+    expect(last.query).toBe('laser')
+  })
+
+  test('moreRow: a list with room for every match has no such row', async () => {
+    const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {}, moreRow: true }))
+    await typeAndSettle(result, 'mining laser')
+    expect(result.current.results.some((r) => r.kind === 'more')).toBe(false)
+  })
+
   test('multi-token queries match ("mining laser")', async () => {
     const { result } = renderHook(() => useSearchCombobox({ onSubmit: () => {} }))
     await typeAndSettle(result, 'mining laser')

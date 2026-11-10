@@ -88,4 +88,8 @@ export const buildWizardCopy = messages({
   steps: 'Steps',
   stepOf: 'Step {value} of {count} ·',
   saved: 'Saved {value}.',
+  readTheRule: 'Read the rule',
+  foldTheRule: 'Fold the rule',
+  moreActions: 'More actions',
+  offRulesRow: 'Off-rules build? Build it on the Live Sheet',
 })

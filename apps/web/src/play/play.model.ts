@@ -38,6 +38,8 @@ export type PlayTarget = {
   gameName: string | null
   /** The viewer mediates the pilot's Game (`games.get`'s membership flag). */
   mediator: boolean
+  /** The viewer organises the Game: with the Mediator, who may bind its channel. */
+  organizer?: boolean
 }
 
 /** The Mediator's screen, as the hooks it shares with a player's take it: their Game, no pilot. */

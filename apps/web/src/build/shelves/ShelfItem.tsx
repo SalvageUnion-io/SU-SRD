@@ -2,7 +2,7 @@
  * ShelfItem — one thing on a shelf (the Training Bay): the library Compact a
  * Game's roster draws the same units with (`UnitRow`), the whole Compact opening
  * it. Its chips are the defining fact (never its kind, EDL E9) and one
- * reading, label-first (`CLASS | ENGINEER`, `HP | 8/10`), led by this item's
+ * reading, label-first (`CLASS | ENGINEER`; with no such fact, its vital, `HP | 8/10`), led by this item's
  * own chips (for a pattern or NPC, who can see it) as label-only chips, the
  * way a Game's Compact leads with its owner chip (never boxes under the card,
  * R6); then its relations, the units linked to it and
@@ -74,7 +74,9 @@ export function ShelfItem({
         kind={kind}
         note={fact ? undefined : note}
         name={name}
-        readings={[fact, reading].filter((r) => r !== undefined)}
+        // A shelf is where a unit is picked by what it is: its defining fact
+        // takes the roster lane (C4), and its vital is its sheet's.
+        readings={[fact ?? reading].filter((r) => r !== undefined)}
         // A line with nowhere to open is not a link.
         mode={href === undefined ? { kind: 'read' } : { kind: 'link', href }}
         userMade={userMade}

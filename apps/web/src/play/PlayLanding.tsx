@@ -37,6 +37,7 @@ import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
+import type { StartHereStep } from '../components/index'
 import {
   Badge,
   Button,
@@ -48,6 +49,7 @@ import {
   ModalShell,
   PageShell,
   Pending,
+  StartHere,
   Stat,
   tokens,
 } from '../components/index'
@@ -129,6 +131,32 @@ const JOIN_FIELD = {
 
 const JOIN_INPUT = { height: 'var(--size-compact)', width: '100%' } satisfies CSSProperties
 
+/**
+ * What Play is, for a visitor who has not signed in: the front door's Start
+ * Here tiles (`StartHere`), saying what happens at the table. No tile is a
+ * link: each opens only once you are signed in.
+ */
+const AT_THE_TABLE: readonly StartHereStep[] = [
+  {
+    key: 'pilot',
+    title: playCopy('runYourPilot'),
+    tone: 'pilot',
+    body: playCopy('runYourPilotBody'),
+  },
+  {
+    key: 'table',
+    title: playCopy('shareOneTable'),
+    tone: 'crawler',
+    body: playCopy('shareOneTableBody'),
+  },
+  {
+    key: 'mediate',
+    title: playCopy('mediate'),
+    tone: 'ink',
+    body: playCopy('mediateBody'),
+  },
+]
+
 export function PlayLanding() {
   const { status } = useSync()
   if (status === 'signedOut') {
@@ -137,7 +165,9 @@ export function PlayLanding() {
         title={playCopy('signInToPlay')}
         body={playCopy('playRunsYourPilotsSolo2')}
         signInTo="/play/"
-      />
+      >
+        <StartHere id="play-at-the-table" title={playCopy('atTheTable')} steps={AT_THE_TABLE} />
+      </PlayRefusal>
     )
   }
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
@@ -200,7 +230,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             games !== undefined ? (
               'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
             ) : connected ? (
-              <Pending label={playCopy('yourGames2')} />
+              <Pending as="span" label={playCopy('yourGames2')} />
             ) : (
               'Your Games list once the connection returns.'
             )
@@ -268,7 +298,8 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
         <Button
           href={cockpitPath(pilot.pilotId)}
           aria-label={playCopy('playSolo2', { name: pilot.name })}
-          variant="ink"
+          // A door, so never a stamp's ink block (ruleset §3.13): the paper plate.
+          variant="default"
           size="mini"
         >
           {playCopy('playSolo')}
@@ -383,15 +414,16 @@ function PlayGameItem({
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           doors.length > 0
-            ? // Ink on the Game's pink, as its stamps are (R44: a control on a
-              // pink band is ink), a chip's height.
+            ? // A chip's height (C8), and a door's look, never a stamp's ink
+              // block (ruleset §3.13): Play is the paper plate, Start session
+              // the outline beside it, both ink on the Game's pink (R44).
               doors.map((door) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
                   <Button
                     key={door.href}
                     aria-label={door.ariaLabel}
-                    variant="ink"
+                    variant="ghost"
                     size="mini"
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
@@ -407,7 +439,7 @@ function PlayGameItem({
                     key={door.href}
                     href={door.href}
                     aria-label={door.ariaLabel}
-                    variant="ink"
+                    variant="default"
                     size="mini"
                   >
                     {door.label}
