@@ -143,20 +143,22 @@ export const widthAtLeast = (rung: keyof typeof breakpoint): string =>
  *   hero      38px   a phone's chapter title
  *   chapter   64px   the ChapterBand's notched page title (≥ sm)
  *
- * Nothing sits under 11px (ruleset §4.6, `tokens/type-floor`).
+ * Each rung is written in rem (the px above is its size at the browser's
+ * default 16px), so a reader who sets a larger text size gets a larger
+ * ladder (§4.8). Nothing sits under 11px (ruleset §4.6, `tokens/type-floor`).
  */
 export const fontSize = {
-  badge: '11px',
-  chip: '12px',
-  caption: '13px',
-  body: '14px',
-  lede: '16px',
-  readout: '17px',
-  title: '22px',
-  displayLg: '31px',
-  hero: '38px',
+  badge: '0.6875rem',
+  chip: '0.75rem',
+  caption: '0.8125rem',
+  body: '0.875rem',
+  lede: '1rem',
+  readout: '1.0625rem',
+  title: '1.375rem',
+  displayLg: '1.9375rem',
+  hero: '2.375rem',
   /** The ChapterBand's notched title at desktop width (phones take `hero`). */
-  chapter: '64px',
+  chapter: '4rem',
 } as const
 
 /** Font weights in use. Barlow ships the whole range; these are the rungs used. */

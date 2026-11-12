@@ -160,4 +160,14 @@ describe('design token parity', () => {
       .map((name) => `--${name} is declared in styles/theme.css but is not a token`)
     expect(orphans, 'delete the property, or add the token it belongs to').toEqual([])
   })
+
+  // Ruleset §4.8: the ladder is in rem, so a reader's own text size (the
+  // browser's setting, the OS text scale through `<meta name="text-scale">`)
+  // scales every rung; a px rung would stay put. 16px is the browser default.
+  test('every rung of the type ladder is rem, at or over the 11px floor', () => {
+    const off = Object.entries(fontSize).filter(
+      ([, value]) => !/^\d*\.?\d+rem$/.test(value) || Number.parseFloat(value) * 16 < 11
+    )
+    expect(off, 'write the rung in rem: its px at the default 16px, divided by 16').toEqual([])
+  })
 })

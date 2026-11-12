@@ -54,7 +54,7 @@ describe('the page shells', () => {
     expect(html).toStartWith('<!doctype html>')
     // A page's only inline script is its speculation rules, which the build
     // hashes into the CSP with Astro's island scripts (`inlineScripts.ts`).
-    const own = executableInlineScripts(html).filter((body) => !body.startsWith('{"prefetch"'))
+    const own = executableInlineScripts(html).filter((body) => !body.startsWith('{"prerender"'))
     expect(own).toEqual([])
   })
 

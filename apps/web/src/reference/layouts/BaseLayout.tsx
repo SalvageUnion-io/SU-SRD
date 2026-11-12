@@ -115,6 +115,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {/* Before the stylesheet: the site is light-only (`reset.css`). */}
         <meta name="color-scheme" content="light" />
+        <meta name="text-scale" content="scale" />
         <title>{title}</title>
         {/* The link-preview block every document carries (`metaTags`). All OG
             images the site emits are 1200×630 (the default banner). With it,

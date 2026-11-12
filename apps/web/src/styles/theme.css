@@ -37,19 +37,21 @@
   --page-measure: 75rem;
 
   /* The type ladder (ruleset §4.8): every font size is one of these rungs
-     (`fontSize` in design/tokens.ts says what each is for). Nothing renders
-     under 11px (ruleset §4.6, R12). */
-  --text-badge: 11px;
-  --text-chip: 12px;
-  --text-caption: 13px;
-  --text-body: 14px;
-  --text-lede: 16px;
-  --text-readout: 17px;
-  --text-title: 22px;
-  --text-display-lg: 31px;
-  --text-hero: 38px;
+     (`fontSize` in design/tokens.ts says what each is for), in rem, so a
+     reader's own text size scales the whole ladder; the px beside each is its
+     size at the browser default (16px). Nothing renders under 11px (ruleset
+     §4.6, R12). */
+  --text-badge: 0.6875rem; /* 11px */
+  --text-chip: 0.75rem; /* 12px */
+  --text-caption: 0.8125rem; /* 13px */
+  --text-body: 0.875rem; /* 14px */
+  --text-lede: 1rem; /* 16px */
+  --text-readout: 1.0625rem; /* 17px */
+  --text-title: 1.375rem; /* 22px */
+  --text-display-lg: 1.9375rem; /* 31px */
+  --text-hero: 2.375rem; /* 38px */
   /* The ChapterBand's notched page title, at sm and up; a phone sets it at hero. */
-  --text-chapter: 64px;
+  --text-chapter: 4rem; /* 64px */
 
   /* Font weights in use. */
   --font-weight-normal: 400;

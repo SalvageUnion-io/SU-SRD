@@ -273,7 +273,6 @@
       "apps/web/src/reference/pages/discord.page.tsx": 21,
       "apps/web/src/reference/pages/index.page.tsx": 8,
       "apps/web/src/reference/pages/og-card.page.tsx": 4,
-      "apps/web/src/reference/StaticEntityContent.tsx": 1,
       "apps/web/src/replica/sync.ts": 4,
       "apps/web/src/runtime/interaction.ts": 1,
       "apps/web/src/runtime/offlineWarm.client.ts": 2,

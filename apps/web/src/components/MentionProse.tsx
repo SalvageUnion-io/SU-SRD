@@ -10,7 +10,7 @@ const SRD_SURFACE: Partial<EntitySurfaceValue> = { hrefFor: srdHrefFor }
  * Prose whose references were resolved at build time (`refText`), each drawn
  * as a `Mention`: a link to its page with its Peek, or inert where it names
  * nothing. The same Mention every card's prose draws, so a roll table's bands
- * and the static fallback read as the card does, while the island that mounts
+ * and the server-rendered stand-ins read as the card does, while the island that mounts
  * them carries only the refs, never the glossary.
  */
 export function MentionProse({ parts }: { parts: RefText }) {

@@ -252,7 +252,7 @@ describe('head assembly from DocumentMeta', () => {
   it('emits a preload link only when the page asks for one', () => {
     expect(renderAbout()).not.toContain('/hero.webp')
     expect(renderAbout({ preloadImage: '/hero.webp' })).toContain(
-      '<link rel="preload" href="/hero.webp" as="image"/>'
+      '<link rel="preload" href="/hero.webp" as="image" fetchPriority="high"/>'
     )
   })
 })

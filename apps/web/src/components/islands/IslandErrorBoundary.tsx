@@ -23,7 +23,7 @@ type State = { error: Error | null }
  * React error boundaries have no hooks equivalent.
  *
  * Without this, a render error inside an island leaves the page blank
- * (the static fallback is removed once data is ready, and the island is
+ * (the server-rendered stand-in is replaced once data is ready, and the island is
  * the only remaining content).
  *
  * The recovery UI is the shared src/components `RecoveryPanel` (also used by

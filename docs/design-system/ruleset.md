@@ -70,7 +70,7 @@ Every law names the gate that holds it: [hard-rules.md](hard-rules.md).
    6. **§4.6 The floors: type and touch** — nothing under 11px as seen (a 1200px link preview: 34px). Touch takes a bigger Size, never a hidden hit area; nothing floats over content.
    7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`), every button and chip, every screen.
       A line's controls share one Size; chip values match labels, one gap apart, filled as C2b. A Button beside Tabs is their Size.
-   8. **§4.8 The type ladder** — every font size is a `--text-*` rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64; no other size, alias or literal (a link preview's own, K12).
+   8. **§4.8 The type ladder** — every font size is a `--text-*` rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64; no other size, alias or literal (a link preview's own, K12). Rungs are rem: the reader's text size scales them.
    9. **§4.9 Rank rides the container** — band, then Slab, then frame, then Mini, as in the book: a Slab's 14px stamp may sit over 22px titles; hierarchy is never fixed by enlarging a stamp.
 5. **§5 The irreducible set** — 11 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.

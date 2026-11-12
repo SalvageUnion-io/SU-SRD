@@ -45,6 +45,13 @@
   # default-src does not stand in for base-uri or form-action: without them
   # an injected <base> repoints every relative script, and a form may post
   # anywhere. The site's forms are its own search and script-handled ones.
+  #
+  # Trusted Types, report-only: a DOM sink fed a plain string (innerHTML,
+  # eval, a script src) still runs, but the browser fires a
+  # securitypolicyviolation that browserObservability reports to /__errors
+  # (fingerprint trusted-types-report). Enforce it, in the policy above, once
+  # those reports stay empty; Ko-fi's widget is the known string sink.
+  Content-Security-Policy-Report-Only: require-trusted-types-for 'script'
   Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self';
 
 # The production Worker's own workers.dev address serves the same pages as
