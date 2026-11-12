@@ -76,7 +76,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Writes only channel bindings; the site unreachable: every Game command answers `unavailable`. Each interaction logs its command.
 24. **SEO** <a id="seo"></a>
     One site name (`pageTitle`), one WebSite JSON-LD (`WEBSITE`), one sitemap; heads: `BaseLayout.tsx`; shared sheets: ADR-032; `/llms.txt` exact; SW: `src/pwa.ts`.
-    No-JS fallback: `StaticEntityContent` and each island's stand-in, which the island swaps in over (`clientSwap`); an `<Island hydrate>` Astro renders and hydrates itself.
+    No-JS fallback: each island's stand-in (an interactive entity card's is the static card itself), which the island swaps in over (`clientSwap`); an `<Island hydrate>` Astro renders and hydrates itself.
 25. **Accessibility** <a id="a11y"></a>
     Biome's a11y rules plus axe (WCAG 2.2 AA) specs over `PAGES`, the app signed in.
     Contrast is held by `apps/web/src/design/__tests__/contrast.test.ts`; coarse-pointer touch targets are 44px.

@@ -39,7 +39,7 @@ const SLAB_CARD = {
   backgroundColor: tokens.color.paper,
 } satisfies CSSProperties
 
-const ROOT = { minHeight: '100vh', backgroundColor: tokens.color.wkBg } satisfies CSSProperties
+const ROOT = { minHeight: '100dvh', backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 
 const BAR = {
   display: 'flex',

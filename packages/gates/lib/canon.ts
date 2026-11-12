@@ -87,7 +87,11 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§4.5': ['pipRows.test.ts'],
   '§4.6': ['R12', 'tokens/type-floor', 'sizeHeights.test.ts'],
   '§4.7': ['R12', 'R41'],
-  '§4.8': ['hierarchy/font-size-rung', '_hierarchy.ts#type-ladder'],
+  '§4.8': [
+    'hierarchy/font-size-rung',
+    '_hierarchy.ts#type-ladder',
+    'tokens.parity.test.ts#type ladder is rem',
+  ],
   '§4.9': ['_hierarchy.ts#slab-size', 'R53'],
   '§5': ['roster.test.ts'],
   '§5.1': ['roster.test.ts'],

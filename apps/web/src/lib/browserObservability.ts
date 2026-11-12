@@ -395,11 +395,26 @@ export function createBrowserObservability(
           tags: { handler: 'unhandledrejection' },
         })
       }
+      // `_headers` asks for Trusted Types in report-only mode: a sink fed a
+      // plain string (`innerHTML = …`) is let through and reported here, so
+      // the site can see what enforcing would break before it does.
+      const onViolation = (event: Event) => {
+        const violation = event as SecurityPolicyViolationEvent
+        if (violation.disposition !== 'report') return
+        if (!violation.effectiveDirective.startsWith('require-trusted-types-for')) return
+        captureException(
+          `${violation.effectiveDirective} ${violation.sample} ${violation.sourceFile}:${violation.lineNumber}`,
+          undefined,
+          { fingerprint: ['trusted-types-report'], tags: { handler: 'securitypolicyviolation' } }
+        )
+      }
       target.addEventListener('error', onError)
       target.addEventListener('unhandledrejection', onRejection)
+      target.addEventListener('securitypolicyviolation', onViolation)
       return () => {
         target.removeEventListener('error', onError)
         target.removeEventListener('unhandledrejection', onRejection)
+        target.removeEventListener('securitypolicyviolation', onViolation)
         endpoint = null
       }
     },

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, spyOn } from 'bun:test'
 import { render, waitFor } from '@testing-library/react'
 import { getEntitySchemas, getModel, getName, SalvageUnionReference } from 'salvageunion-reference'
 import { resetPreloadForTests } from '../../../lib/useGameData'
-import { ReferenceEntityIsland } from '../ReferenceEntityIsland'
+import { ReferenceEntityIsland, ReferenceEntityIslandClient } from '../ReferenceEntityIsland'
 
 const entitySchemas = getEntitySchemas()
 
@@ -59,7 +59,7 @@ for (const schema of entitySchemas) {
   })
 }
 
-describe('static fallback stripping', () => {
+describe('the swap over the server card', () => {
   const sampleEntity = (() => {
     for (const schema of entitySchemas) {
       const model = getModel(schema.id)
@@ -72,44 +72,44 @@ describe('static fallback stripping', () => {
   let isLoadedSpy: Mock<typeof SalvageUnionReference.isLoaded> | undefined
   let preloadSpy: Mock<typeof SalvageUnionReference.preload> | undefined
 
-  function insertStaticFallback(): HTMLElement {
-    const el = document.createElement('div')
-    el.setAttribute('data-static-fallback', '')
-    el.innerHTML = '<h1>Static name</h1>'
-    document.body.appendChild(el)
-    return el
-  }
-
   afterEach(() => {
     isLoadedSpy?.mockRestore()
     preloadSpy?.mockRestore()
     resetPreloadForTests()
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
-      el.remove()
-    })
   })
 
-  it('swaps the fallback for the card in one step once data is ready', async () => {
-    insertStaticFallback()
-    const { container } = render(<ReferenceEntityIsland item={sampleEntity} />)
+  const served = () => (
+    <ReferenceEntityIslandClient item={sampleEntity}>
+      <p data-served="">Served card</p>
+    </ReferenceEntityIslandClient>
+  )
+
+  it('swaps the card in over the stand-in once data is ready', async () => {
+    const { container } = render(served())
     await waitFor(() => {
-      expect(document.querySelector('[data-static-fallback]')).toBeNull()
+      expect(container.querySelector('.su-entity-page')).not.toBeNull()
     })
-    expect(container.querySelector('.su-entity-page')).not.toBeNull()
+    expect(container.querySelector('[data-served]')).toBeNull()
   })
 
-  it('leaves the fallback on screen, with no skeleton, while data is loading', () => {
+  it('keeps the stand-in, with no skeleton, while data is loading', () => {
     isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
     preloadSpy = spyOn(SalvageUnionReference, 'preload').mockReturnValue(new Promise(() => {}))
     resetPreloadForTests()
 
-    const el = insertStaticFallback()
-    const { container } = render(<ReferenceEntityIsland item={sampleEntity} />)
+    const { container } = render(served())
+    expect(container.querySelector('[data-served]')).not.toBeNull()
+    expect(container.querySelector('.su-entity-page')).toBeNull()
+  })
 
-    // The served text is what the reader reads until the card can replace it…
-    expect(el.isConnected).toBe(true)
-    expect(el.hasAttribute('hidden')).toBe(false)
-    // …and the island draws nothing beside it in the meantime.
-    expect(container.innerHTML).toBe('')
+  it('keeps the stand-in readable when the data fails to load', async () => {
+    isLoadedSpy = spyOn(SalvageUnionReference, 'isLoaded').mockReturnValue(false)
+    preloadSpy = spyOn(SalvageUnionReference, 'preload').mockRejectedValue(new Error('offline'))
+    resetPreloadForTests()
+
+    const { container } = render(served())
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(container.querySelector('[data-served]')).not.toBeNull()
+    expect(container.textContent).not.toContain('Try again')
   })
 })

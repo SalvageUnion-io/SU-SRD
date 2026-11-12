@@ -161,7 +161,7 @@ type LiveSheetProps = {
 /** Sticky bar height (design: 58/66px). */
 const BAR_HEIGHT_PX = 58
 
-const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100vh' } satisfies CSSProperties
+const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100dvh' } satisfies CSSProperties
 
 /**
  * The sticky bar's anchor: sticky at the top, but no height, so at rest the

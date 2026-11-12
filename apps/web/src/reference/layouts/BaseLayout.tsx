@@ -25,9 +25,30 @@ import { Island } from '../../runtime/Island'
 import { TopNavigation } from '../TopNavigation'
 import type { DocumentMeta } from '../types'
 
-/** Prefetch same-site links on hover via Speculation Rules. Browser-native, zero JS. */
+/**
+ * The app's halves: single-page routes that a speculation would fetch as a
+ * shell (or run signed-in), and the Worker's API and sign-in. Never speculated.
+ */
+const NOT_SPECULATED = ['/build', '/build/*', '/play', '/play/*', '/api/*', '/auth/*']
+
+/** The same-site links a speculation may load: the reference, not the app. */
+const SPECULATED_LINKS = {
+  and: [
+    { href_matches: '/*' },
+    ...NOT_SPECULATED.map((href_matches) => ({ not: { href_matches } })),
+  ],
+}
+
+/**
+ * Speculation Rules, browser-native and zero JS: a hovered reference link is
+ * prerendered (static and edge-cached, so cheap), and the same links are
+ * prefetched for browsers that prerender less. With the cross-document view
+ * transition (`base.css`) the click lands on a page that is already drawn.
+ * `islands.client.ts` holds a prerendered page's background work until shown.
+ */
 const SPECULATION_RULES = JSON.stringify({
-  prefetch: [{ source: 'document', where: { href_matches: '/*' }, eagerness: 'moderate' }],
+  prerender: [{ source: 'document', where: SPECULATED_LINKS, eagerness: 'moderate' }],
+  prefetch: [{ source: 'document', where: SPECULATED_LINKS, eagerness: 'moderate' }],
 })
 
 /** The page column: the bar, the content, the footer, at least a screen tall. */
@@ -92,6 +113,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {/* Before the stylesheet: the site is light-only (`reset.css`). */}
+        <meta name="color-scheme" content="light" />
+        <meta name="text-scale" content="scale" />
         <title>{title}</title>
         {/* The link-preview block every document carries (`metaTags`). All OG
             images the site emits are 1200×630 (the default banner). With it,
@@ -134,6 +158,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             rel="preload"
             href={preloadImage}
             as="image"
+            fetchPriority="high"
             imageSrcSet={preloadImageSrcSet}
             imageSizes={preloadImageSizes}
           />

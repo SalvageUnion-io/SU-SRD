@@ -74,8 +74,22 @@ if (guidePages.length > 0) {
     })
 }
 
+/**
+ * Run `work` once the reader is looking at this page: now, or, for a page the
+ * browser prerendered from a hovered link (`BaseLayout`'s speculation rules),
+ * when it is shown. A prerender the reader never opens does no background work.
+ */
+function whenShown(work: () => void): void {
+  const doc = document as Document & { prerendering?: boolean }
+  if (doc.prerendering) {
+    doc.addEventListener('prerenderingchange', work, { once: true })
+  } else {
+    work()
+  }
+}
+
 // The site's one service worker, which keeps visited pages readable offline.
-registerSiteWorker()
+whenShown(registerSiteWorker)
 
 /**
  * Fill the offline page cache — but only for an installed app, and only once
@@ -96,8 +110,10 @@ function startOfflineWarm(): void {
     })
 }
 
-if (document.readyState === 'complete') {
-  startOfflineWarm()
-} else {
-  window.addEventListener('load', startOfflineWarm, { once: true })
-}
+whenShown(() => {
+  if (document.readyState === 'complete') {
+    startOfflineWarm()
+  } else {
+    window.addEventListener('load', startOfflineWarm, { once: true })
+  }
+})

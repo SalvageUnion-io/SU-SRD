@@ -213,6 +213,33 @@ describe('createBrowserObservability', () => {
     ])
   })
 
+  test('init reports a Trusted Types report-only violation, and no other', () => {
+    const { sent, transport } = recorder()
+    const target = new EventTarget()
+    createBrowserObservability({ transport }).init({ endpoint: ENDPOINT, target })
+    const violation = (disposition: string, effectiveDirective: string) => {
+      const event = new Event('securitypolicyviolation')
+      Object.assign(event, {
+        disposition,
+        effectiveDirective,
+        sample: 'Element innerHTML|<p>',
+        sourceFile: '/assets/kofi.js',
+        lineNumber: 3,
+      })
+      target.dispatchEvent(event)
+    }
+    violation('report', 'require-trusted-types-for')
+    violation('enforce', 'script-src-elem')
+    violation('report', 'script-src')
+
+    expect(sent.map((s) => [s.report.message, s.report.tags])).toEqual([
+      [
+        'require-trusted-types-for Element innerHTML|<p> /assets/kofi.js:3',
+        { handler: 'securitypolicyviolation' },
+      ],
+    ])
+  })
+
   test('teardown stops reporting and removes the window listeners', () => {
     const { sent, transport } = recorder()
     const target = new EventTarget()

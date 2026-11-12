@@ -94,7 +94,7 @@ const POPUP = {
   inset: 0,
   zIndex: layer.overlay,
   height: 'fit-content',
-  maxHeight: 'calc(100vh - 4rem)',
+  maxHeight: 'calc(100dvh - 4rem)',
   width: '100%',
   backgroundColor: 'transparent',
   outline: 'none',

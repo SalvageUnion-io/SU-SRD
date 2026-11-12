@@ -403,7 +403,7 @@ describe('VitalGauge — mini HP cells', () => {
     // The value sits under the cells, a rung smaller.
     const value = must(grid.nextElementSibling as HTMLElement | null)
     expect(value.textContent).toBe('3/9')
-    expect(value.style.fontSize).toBe('11px')
+    expect(value.style.fontSize).toBe('0.6875rem')
   })
 
   test('editable: the cells are one slider, a click sets the value', () => {

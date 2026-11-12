@@ -66,9 +66,9 @@ describe('rendered pages', () => {
     ],
     ['a two-roll columns table', '/roll-tables/callsign-table', 'data-island="ColumnsTableIsland"'],
     [
-      'a static fallback with a Traits line',
+      'a server-rendered card with its trait chips',
       '/abilities/auto-turret',
-      'su-static__label su-caps su-caps--w-bold su-caps--t-snug">Traits:',
+      'data-chip-class="traits"',
     ],
   ])('renders %s without raw markup', (_label, route, marker) => {
     const html = renderRoute(route)

@@ -275,6 +275,9 @@ export function AppBar({
               alt={compositionsCopy('salvageUnion')}
               width={40}
               height={40}
+              // A 40px mark: low priority also stops React's SSR hoisting a
+              // `<link rel="preload">` for it ahead of the hero art and fonts.
+              fetchPriority="low"
               className="su-union-bar__mark"
               style={MARK}
             />

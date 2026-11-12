@@ -204,38 +204,6 @@ a.su-home__discord:hover {
 }
 
 /*
- * The SEO / no-JS entity fallback (`StaticEntityContent`): reading prose,
- * `Stat` chips, the roll instrument and named sections (R18). Its
- * references are src/components `InlineRef`s.
- */
-.su-static {
-  color: var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  font-size: var(--text-lede);
-  gap: var(--space-12);
-  line-height: 1.6;
-  max-width: 52rem;
-}
-
-.su-static__stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-}
-
-.su-static__section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.su-static__source {
-  color: var(--color-wk-muted);
-  font-size: var(--text-caption);
-}
-
-/*
  * The roll-table page (`RollTableView`): the table's prose, the
  * table, then the Randsum credit. A roll's result is a toast, not a panel.
  */

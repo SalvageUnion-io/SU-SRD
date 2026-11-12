@@ -6,17 +6,17 @@
  * no JS at all — the real `ReferenceEntityCard`, not a simplified stand-in.
  *
  * A minority embed something genuinely interactive (a roll table's Table toggle,
- * a disclosure, a nested-entity click target). Those keep an island:
- * a `client="visible"` card gated on a browser-side preload, paired with
- * `StaticEntityContent` so crawlers, no-JS readers and a reader waiting on the
- * preload all get the text.
+ * a disclosure, a nested-entity click target). Those keep an island: a
+ * `client="visible"` card that swaps in over its stand-in, the very same
+ * `EntityCardStatic` drawn here, once its data is loaded. Crawlers, no-JS
+ * readers and a reader waiting on the preload all get the whole card, and the
+ * swap moves nothing (a summary stand-in once grew the page under the reader:
+ * CLS 0.65 on /chassis/jackhammer/).
  *
- * The island cannot simply be dropped for them. `useGameData`'s server snapshot
- * is hardcoded `false` on purpose, so the card the browser renders on its first
- * pass is empty, not the entity — server-rendering the island would put
- * nothing in the HTML. Hence `ssr={false}` (and therefore no
- * children: the island component never enters the SSR module graph), with
- * `StaticEntityContent` as the SEO / no-JS path beside it.
+ * The island cannot simply be dropped for them, nor hydrated: `useGameData`'s
+ * server snapshot is hardcoded `false` on purpose, so the card the browser
+ * renders on its first pass is empty, not the entity. Hence a swap
+ * (`clientSwap`), never a hydration of the island itself.
  *
  * The ORM is already loaded: `../lib/gameData` runs `preload('all')` at module
  * scope, a superset of every `getSchemaPreloadList` answer, so the ORM lookups
@@ -27,24 +27,13 @@
 
 import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import {
-  citeLine,
-  getEntitySlug,
-  provenancePrintings,
-  resolveProvenance,
-} from 'salvageunion-reference'
+import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
-import { itemHref } from '../lib/entityHref'
-import { extractStaticEntitySummary } from '../lib/gameData'
 import { nameRefIndexWithout, nameRefsFor } from '../lib/nameRefIndex'
 import { pageRefsFor } from '../lib/pageRefIndex'
-import { patternStaticSummary } from '../lib/patternSummary'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
-import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
-import { StaticEntityContent } from './StaticEntityContent'
 
 /**
  * A card's words as the server draws them: the prose its island resolves names
@@ -78,41 +67,21 @@ export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
     cardText(<EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} />),
   ])
 
-  // The fallback draws its references as Mentions, so it keeps their markup.
-  const staticSummary = pattern
-    ? patternStaticSummary(item, pattern, { keepReferences: true })
-    : extractStaticEntitySummary(item, { keepReferences: true })
-
+  // The stand-in is the card the island draws, with the same names linked.
   return (
-    <>
-      <Island
-        name="ReferenceEntityIsland"
-        client="visible"
-        ssr={false}
-        props={{
-          item,
-          pattern,
-          preloadSchemas: getSchemaPreloadList(schemaId),
-          pageRefs,
-          nameRefs,
-        }}
-      />
-      <StaticEntityContent
-        summary={staticSummary}
-        nameRefs={names}
-        pageRefs={pageRefs}
-        // Every printing on the foot's one line, as the card and the Page cite it.
-        cite={citeLine(provenancePrintings(resolveProvenance(item as RefMetaEntity, pattern)))}
-        parent={
-          pattern
-            ? {
-                label: referenceCopy('patternOf'),
-                name: item.name,
-                href: itemHref(schemaId, getEntitySlug(item)),
-              }
-            : undefined
-        }
-      />
-    </>
+    <Island
+      name="ReferenceEntityIsland"
+      client="visible"
+      ssr
+      props={{
+        item,
+        pattern,
+        preloadSchemas: getSchemaPreloadList(schemaId),
+        pageRefs,
+        nameRefs,
+      }}
+    >
+      <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={nameRefs} />
+    </Island>
   )
 }

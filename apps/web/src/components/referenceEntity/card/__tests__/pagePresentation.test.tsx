@@ -194,8 +194,8 @@ describe('the card as a page', () => {
     const sizes = [...(lead?.querySelectorAll<HTMLElement>('[style]') ?? [])].map(
       (el) => el.style.fontSize
     )
-    expect(sizes).toContain('14px')
-    expect(sizes).not.toContain('12px')
+    expect(sizes).toContain('0.875rem')
+    expect(sizes).not.toContain('0.75rem')
   })
 
   test('a pattern page lists its loadout after its chassis ability, as contentful Minis in a grid', () => {
@@ -447,7 +447,7 @@ describe('nested cards read at one body size, their host’s', () => {
     const battle = SalvageUnionReference.getByNameIn('crawlers', 'Battle')
     if (!battle) throw new Error('fixture missing: Battle')
     const { container } = render(<ReferenceEntityCard data={battle} presentation="page" />)
-    expect(nestedProseSizes(container)).toEqual(new Set(['14px']))
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
   })
 
   test('a crawler page: its ability and NPC chip what they are, under no band', () => {
@@ -475,7 +475,7 @@ describe('nested cards read at one body size, their host’s', () => {
     const drone = SalvageUnionReference.getByNameIn('drones', 'Combat Drone')
     if (!drone) throw new Error('fixture missing: Combat Drone')
     const { container } = render(<ReferenceEntityCard data={drone} presentation="page" />)
-    expect(nestedProseSizes(container)).toEqual(new Set(['14px']))
+    expect(nestedProseSizes(container)).toEqual(new Set(['0.875rem']))
   })
 })
 

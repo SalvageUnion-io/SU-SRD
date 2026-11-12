@@ -18,6 +18,7 @@ import { assertNoDeadLinks } from './deadLinks'
 import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
 import { assertNoRawMarkup, findRawMarkup } from './rawMarkup'
+import { blockRenderOnEntry, entryImports, entryOf } from './renderBlockingEntry'
 
 /** The app's generated route tree, which names every route its links may open. */
 const ROUTE_TREE = fileURLToPath(new URL('../../src/routeTree.gen.ts', import.meta.url))
@@ -53,10 +54,21 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
           )
         }
 
+        // The page script paints with the page (`./renderBlockingEntry`):
+        // every reference page names the same chunk, so its imports are read once.
+        const entry = entryOf(home)
+        if (!entry) {
+          throw new Error("[build] refusing to finish: the home page's head has no page script.")
+        }
+        const imports = await entryImports(distDir, entry)
+
         const raw: string[] = []
         const inline = new Set<string>()
         for (const route of routes) {
-          const html = await readFile(join(distDir, fileOf(route)), 'utf-8')
+          const file = join(distDir, fileOf(route))
+          const built = await readFile(file, 'utf-8')
+          const html = blockRenderOnEntry(built, imports)
+          if (html !== built) await writeFile(file, html)
           const found = findRawMarkup(html)
           if (found !== undefined) raw.push(`${route}: ${found}`)
           for (const script of executableInlineScripts(html)) inline.add(script)

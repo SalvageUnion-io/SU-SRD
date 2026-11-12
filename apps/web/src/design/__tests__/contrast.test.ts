@@ -157,10 +157,11 @@ const LARGE_TEXT_PX = 24
 const LARGE_BOLD_TEXT_PX = 18.66
 const TITLE_WEIGHT = weight.extrabold
 
+/** A rung in px at the browser's default 16px root (the ladder is rem). */
 const px = (size: string): number => {
-  const m = size.match(/^([\d.]+)px$/)
-  if (!m) throw new Error(`not a px size: ${size}`)
-  return Number(m[1])
+  const m = size.match(/^([\d.]+)(px|rem)$/)
+  if (!m) throw new Error(`not a px or rem size: ${size}`)
+  return m[2] === 'rem' ? Number(m[1]) * 16 : Number(m[1])
 }
 
 /** The ratio WCAG 1.4.3 asks of a title set at this `fontSize`. */

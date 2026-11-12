@@ -9,7 +9,7 @@ describe('PageShell', () => {
     expect(main.className).toBe('su-page-shell')
     expect(main.style.flexDirection).toBe('column')
     expect(main.style.gap).toBe('24px')
-    expect(main.style.minHeight).toBe('100vh')
+    expect(main.style.minHeight).toBe('100dvh')
   })
 
   test('padded without the stack: no column', () => {

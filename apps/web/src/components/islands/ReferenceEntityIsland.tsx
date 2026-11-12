@@ -1,6 +1,7 @@
-import { Suspense, useLayoutEffect } from 'react'
+import { Suspense } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import type { SchemaList } from '../../lib/useGameData'
+import { isSchemaListLoaded, preloadGameData } from '../../lib/useGameData'
 import { clientSwap } from '../../runtime/clientSwap'
 import { EntityCardStatic } from '../EntityCardStatic'
 import { GameDataGate } from '../GameDataGate'
@@ -22,21 +23,6 @@ type ReferenceEntityIslandProps = {
   nameRefs?: NameRefIndex
 }
 
-/**
- * Removes the page's static fallback when the card commits, before paint: it
- * sits beside the card inside the Suspense boundary, so it commits only with
- * it. View transitions swap in fresh HTML and remount the island, so it runs
- * again per page.
- */
-function DropStaticFallback() {
-  useLayoutEffect(() => {
-    document.querySelectorAll('[data-static-fallback]').forEach((el) => {
-      el.remove()
-    })
-  }, [])
-  return null
-}
-
 export function ReferenceEntityIsland({
   item,
   pattern,
@@ -44,16 +30,13 @@ export function ReferenceEntityIsland({
   pageRefs,
   nameRefs,
 }: ReferenceEntityIslandProps) {
-  // The static SEO/no-JS fallback (`StaticEntityContent`) stays on screen,
-  // for JS readers too, until the card can draw: the gate and the Suspense
-  // boundary render nothing rather than a skeleton, and the card's commit drops
-  // the fallback in the same step (`DropStaticFallback`). A failed preload
-  // leaves the static content readable instead of a blank page.
+  // The server draws this same card as the island's stand-in (`EntityView`),
+  // and the island swaps in over it only once its data is loaded (`prepare`,
+  // below), so the swap repaints the card it replaces and nothing moves.
   return (
     <IslandErrorBoundary>
       <GameDataGate schemas={preloadSchemas} fallback={null}>
         <Suspense fallback={null}>
-          <DropStaticFallback />
           <EntityCardStatic item={item} pattern={pattern} pageRefs={pageRefs} nameRefs={nameRefs} />
           {/* Where a roll on the card's tables lands (`toastRoll`): the
               page's one toaster. */}
@@ -64,8 +47,26 @@ export function ReferenceEntityIsland({
   )
 }
 
+/** Never settles: what `prepare` returns to keep the stand-in up. */
+const KEEP_STAND_IN = new Promise<void>(() => {
+  // Unresolved on purpose: the swap never comes.
+})
+
+/**
+ * The card's data, loaded before the swap. A load that fails keeps the
+ * server's card on the page, readable, rather than swapping in a retry panel
+ * over it.
+ */
+function prepareReferenceEntityIsland(props: ReferenceEntityIslandProps): Promise<void> {
+  const schemas = props.preloadSchemas ?? 'all'
+  return preloadGameData(schemas, 'full').then(() =>
+    isSchemaListLoaded(schemas, 'full') ? undefined : KEEP_STAND_IN
+  )
+}
+
 /** The island as Astro hydrates it: `ReferenceEntityIsland` swapped in over its stand-in (`clientSwap`). */
 export const ReferenceEntityIslandClient = clientSwap(
   'ReferenceEntityIsland',
-  ReferenceEntityIsland
+  ReferenceEntityIsland,
+  { prepare: prepareReferenceEntityIsland }
 )
