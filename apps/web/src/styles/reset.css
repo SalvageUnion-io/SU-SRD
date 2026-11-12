@@ -24,6 +24,10 @@
 
 html,
 :host {
+  /* The site has one palette, a light one. Saying so keeps the browser's own
+     parts (scrollbars, native controls, the canvas before CSS) light in a dark
+     OS, and stops a browser's auto-dark from repainting the page. */
+  color-scheme: light;
   line-height: 1.5;
   -webkit-text-size-adjust: 100%;
   tab-size: 4;

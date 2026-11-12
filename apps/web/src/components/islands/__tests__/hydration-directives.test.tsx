@@ -148,20 +148,17 @@ describe('hydration directives', () => {
       expect(markup).not.toContain('data-island')
     })
 
-    it('the interactive path keeps client="visible" and its no-JS fallback', () => {
-      const { markup, islands } = renderIslands(
-        <EntityView item={firstEntity('roll-tables', true)} schemaId="roll-tables" />
-      )
+    it('the interactive path keeps client="visible", the static card its stand-in', () => {
+      const item = firstEntity('roll-tables', true)
+      const { markup, islands } = renderIslands(<EntityView item={item} schemaId="roll-tables" />)
 
       const island = onlyIsland(islands)
       expect(island.name).toBe('ReferenceEntityIsland')
       expect(island.client).toBe('visible')
-      // The marker must stay EMPTY. Server-rendering this island would
-      // emit `useGameData`'s hardcoded-false skeleton rather than the entity,
-      // which is why `StaticEntityContent` — not the island — is the SEO / no-JS
-      // path, and why it must be there beside it.
-      expect(island.inner).toBe('')
-      expect(markup).toContain('data-static-fallback')
+      // The stand-in is the whole card, drawn as the island will draw it, so
+      // crawlers and no-JS readers get it and the swap moves nothing.
+      expect(island.inner).toContain(item.name)
+      expect(markup).not.toContain('data-static-fallback')
 
       expect(Object.keys(island.props)).toEqual([
         'item',

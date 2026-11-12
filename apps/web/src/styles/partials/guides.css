@@ -491,7 +491,7 @@
     grid-column: 2;
     grid-row: 1 / -1;
     line-height: 1.4;
-    max-height: calc(100vh - var(--space-48));
+    max-height: calc(100dvh - var(--space-48));
     overflow-y: auto;
     position: sticky;
     top: var(--space-24);

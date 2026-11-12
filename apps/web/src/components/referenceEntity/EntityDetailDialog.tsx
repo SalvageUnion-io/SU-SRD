@@ -67,9 +67,9 @@ const pageStyle = {
   borderWidth: borderWidth.chrome,
   display: 'flex',
   flexDirection: 'column',
-  // The popup's cap (`ModalShell`'s 100vh - 4rem) less its 12px gutters above
+  // The popup's cap (`ModalShell`'s 100dvh - 4rem) less its 12px gutters above
   // and below (`.su-entity-dialog`), which hold the close stamp's straddle.
-  maxHeight: 'calc(100vh - 5.5rem)',
+  maxHeight: 'calc(100dvh - 5.5rem)',
   overflowY: 'auto',
 } satisfies CSSProperties
 

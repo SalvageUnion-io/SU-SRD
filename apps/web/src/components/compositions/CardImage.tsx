@@ -110,6 +110,9 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
         alt={alt}
         className={crop ? 'su-entity-hero__img su-entity-hero__img--crop' : 'su-entity-hero__img'}
         style={{ ...crop?.image, opacity: loaded ? 1 : 0 }}
+        // The page's hero is its largest paint: ask for it ahead of the
+        // stylesheet-discovered fonts and the rest of the art. Only the hero.
+        fetchPriority="high"
         decoding="async"
         onLoad={() => setLoaded(true)}
         onError={() => setShowImage(false)}

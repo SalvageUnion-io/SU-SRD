@@ -211,11 +211,12 @@ describe('a pattern page names and links its base chassis', () => {
     expect(chassisProse).toBeGreaterThan(chassisSlab)
   })
 
-  it('links the chassis from the no-JS fallback too, as an inline reference', () => {
-    const fallback = page('/chassis/jackhammer/pattern/auger')
-    expect(fallback).toContain('data-static-fallback')
-    expect(fallback).toMatch(
-      /<a href="\/chassis\/jackhammer\/" class="su-inline-ref su-inline-ref--link su-focus-ring">Jackhammer<\/a>/
+  it('serves an interactive pattern its whole card, the chassis linked, with no JS', () => {
+    const served = page('/chassis/jackhammer/pattern/auger')
+    expect(served).not.toContain('data-static-fallback')
+    expect(served).toContain('su-entity-page')
+    expect(served).toMatch(
+      /<a href="\/chassis\/jackhammer\/" class="su-crumbs__link[^"]*">Jackhammer<\/a>/
     )
   })
 

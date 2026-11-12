@@ -39,7 +39,7 @@ const idle = { timeout: 2000 }
 {name === 'PeekIsland' && <PeekIslandClient client:interaction={wake} {...p} />}
 {name === 'AccountIsland' && <AccountIslandClient client:signedIn {...p} />}
 {name === 'AccountAvatarIsland' && <AccountAvatarIslandClient client:signedIn {...p} />}
-{name === 'ReferenceEntityIsland' && <ReferenceEntityIslandClient client:visible {...p} />}
+{name === 'ReferenceEntityIsland' && <ReferenceEntityIslandClient client:visible {...p}><Fragment set:html={standIn} /></ReferenceEntityIslandClient>}
 {name === 'KofiIsland' && <KofiIslandClient client:visible {...p}><Fragment set:html={standIn} /></KofiIslandClient>}
 {name === 'DidYouMeanIsland' && <DidYouMeanIslandClient client:idle={idle} {...p} />}
 {name === 'HomebrewIsland' && client === 'visible' && <HomebrewIslandClient client:visible {...p}><Fragment set:html={standIn} /></HomebrewIslandClient>}

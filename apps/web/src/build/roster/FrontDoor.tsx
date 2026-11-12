@@ -44,7 +44,7 @@ const STEP_HREFS = {
 /** The page: the band runs full-bleed, so this is not a padded `PageShell`. */
 const PAGE = {
   backgroundColor: tokens.color.wkBg,
-  minHeight: '100vh',
+  minHeight: '100dvh',
 } satisfies CSSProperties
 
 // Its side padding and centring are `.su-page-body`'s: the band's row padding.

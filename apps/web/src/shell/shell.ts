@@ -77,6 +77,7 @@ function headTags(): string {
       null,
       meta({ charSet: 'UTF-8' }),
       meta({ name: 'viewport', content: 'width=device-width, initial-scale=1.0' }),
+      meta({ name: 'color-scheme', content: 'light' }),
       ...SITE_ICONS.map((icon) => createElement('link', { key: icon.href, ...icon })),
       createElement('title', null, SHELL_TITLE)
     )

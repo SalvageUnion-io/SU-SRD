@@ -70,7 +70,7 @@ function subscribeReady(key: string, onChange: () => void): () => void {
  * True once every schema in the list has been preloaded (in that projection);
  * `'all'` means every schema in the catalog, never a sample of it.
  */
-function isSchemaListLoaded(schemas: SchemaList, projection: Projection): boolean {
+export function isSchemaListLoaded(schemas: SchemaList, projection: Projection): boolean {
   const ids = schemas === 'all' ? getSchemaCatalog().schemas.map((schema) => schema.id) : schemas
   return ids.every((schema) => SalvageUnionReference.isLoaded(schema, { projection }))
 }

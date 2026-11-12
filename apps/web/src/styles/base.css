@@ -26,9 +26,15 @@
  * Load-bearing and easy to lose: without it navigations stop animating, which
  * no test asserts on, and a transition one page starts is aborted by a page
  * that has not opted in (`ViewTransition opt-in disabled`).
+ *
+ * Only for readers who have not asked for less motion: the reduced-motion
+ * backstop in `theme.css` matches `*`, `::before` and `::after`, never the
+ * `::view-transition-*` tree, so it cannot stop the cross-fade itself.
  */
-@view-transition {
-  navigation: auto;
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
 }
 
 /* The face is the package's (foundation.css); the site adds macOS's grayscale

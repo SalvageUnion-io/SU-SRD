@@ -2,7 +2,9 @@
 /**
  * The one document shell: a page module's head and body, around the
  * stylesheets and the fonts, with each island Astro renders where the body marks it
- * (`components/Islands.astro`), and the page script every page loads.
+ * (`components/Islands.astro`), and the page script every page loads. That
+ * script sits in the head, where the build marks it render-blocking
+ * (`build/renderBlockingEntry.ts`); as a module it still runs after parsing.
  */
 import '../../src/styles/global.css'
 import Fonts from '../components/Fonts.astro'
@@ -15,6 +17,6 @@ const { doc } = Astro.props
 const parts = islandParts(doc.body, doc.islands)
 ---
 <html lang="en">
-  <head><Fragment set:html={doc.head} /><Fonts scriptFont={doc.scriptFont} /></head>
-  <body>{parts.map((part) => ('html' in part ? <Fragment set:html={part.html} /> : <Islands island={part.island} />))}<script>import '../../src/runtime/islands.client'</script></body>
+  <head><Fragment set:html={doc.head} /><Fonts scriptFont={doc.scriptFont} /><script>import '../../src/runtime/islands.client'</script></head>
+  <body>{parts.map((part) => ('html' in part ? <Fragment set:html={part.html} /> : <Islands island={part.island} />))}</body>
 </html>
