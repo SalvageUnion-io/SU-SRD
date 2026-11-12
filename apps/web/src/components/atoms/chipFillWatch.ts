@@ -244,6 +244,35 @@ function fitInTurns(containers: HTMLElement[]): void {
   schedule()
 }
 
+/** Heads asked for in this task, fitted together once it ends (`watchChipFillTogether`). */
+const asked = new Set<HTMLElement>()
+let askedFlush = false
+
+/**
+ * Watch a head like `watchChipFill`, but fit it with every other head a render
+ * asks for in the same task: those on screen at once, the rest in turns
+ * (`fitInTurns`). A React commit mounts its heads' effects one by one, and each
+ * fitting at once measured and wrote the page in turn, one forced layout per
+ * head: a third of a second at boot on a throttled phone (INP).
+ */
+export function watchChipFillTogether(container: HTMLElement): () => void {
+  const stop = watchQuietly(container, fitChipFill, undefined)
+  asked.add(container)
+  if (!askedFlush) {
+    askedFlush = true
+    queueMicrotask(() => {
+      askedFlush = false
+      const heads = [...asked].filter((head) => head.isConnected)
+      asked.clear()
+      fitInTurns(heads)
+    })
+  }
+  return () => {
+    asked.delete(container)
+    stop()
+  }
+}
+
 /**
  * A static page's heads (server-rendered, no React) that `selector` finds:
  * each watched, fitted with `fit` (or `many` at once) in turns, and on resize.

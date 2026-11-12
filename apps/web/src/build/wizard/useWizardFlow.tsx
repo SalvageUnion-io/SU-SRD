@@ -20,7 +20,7 @@
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
-import { useState } from 'react'
+import { startTransition, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
@@ -174,19 +174,26 @@ export function useWizardFlow<
     onComplete(result.value.id)
   }
 
+  // A step change is a transition: the next step (a class's ability tree, the
+  // systems list) renders in slices behind the pressed button, so the press
+  // paints at once rather than after one long render (INP).
+  function goTo(next: TStep) {
+    startTransition(() => setStep(next))
+  }
+
   function goNext() {
     if (step === submitStep) {
       void handleSubmit()
       return
     }
     const next = steps[currentIndex + 1]
-    if (next) setStep(next)
+    if (next) goTo(next)
   }
 
   function goBack() {
     const prev = steps[currentIndex - 1]
     if (currentIndex > 0 && prev) {
-      setStep(prev)
+      goTo(prev)
     }
   }
 
@@ -201,7 +208,7 @@ export function useWizardFlow<
       active: currentIndex,
       onStepClick: (i) => {
         const s = steps[i]
-        if (s) setStep(s)
+        if (s) goTo(s)
       },
       escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
       onEscape: !gate.ok && onOffRules ? onOffRules : undefined,

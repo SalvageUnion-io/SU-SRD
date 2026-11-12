@@ -1,6 +1,6 @@
 import { registerSW } from 'virtual:pwa-register'
 import { createRouter, RouterProvider } from '@tanstack/react-router'
-import { StrictMode } from 'react'
+import { StrictMode, startTransition } from 'react'
 import { createRoot } from 'react-dom/client'
 import { firstPaintSchemas, SIGNED_OUT_VIEW_ATTRIBUTE } from './build/account/signedOutView.model'
 import { RouteErrorComponent } from './components/shared/RouteErrors'
@@ -73,12 +73,21 @@ if (!rootEl) throw new Error('Root element not found')
 
 // The error hooks are how a render crash gets reported: an error a boundary
 // catches never reaches the window's `error` event, which is all the reporter hears.
-const renderApp = (root: HTMLElement) =>
-  createRoot(root, reactRootErrorHandlers).render(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>
-  )
+//
+// The first render is a transition: React renders it in slices that yield to
+// the browser every few milliseconds, so a tap during boot (the Union bar, a
+// signed-out view the shell already shows) answers at once rather than waiting
+// out one long task (half a second on a throttled phone at /build/).
+const renderApp = (root: HTMLElement) => {
+  const reactRoot = createRoot(root, reactRootErrorHandlers)
+  startTransition(() => {
+    reactRoot.render(
+      <StrictMode>
+        <RouterProvider router={router} />
+      </StrictMode>
+    )
+  })
+}
 
 // Opening on a signed-out view the shell already shows (`SIGNED_OUT_VIEW_ATTRIBUTE`),
 // the first render, which replaces it, waits until the live one can draw in
