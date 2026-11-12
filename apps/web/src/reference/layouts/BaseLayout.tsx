@@ -27,9 +27,9 @@ import type { DocumentMeta } from '../types'
 
 /**
  * The app's halves: single-page routes that a speculation would fetch as a
- * shell (or run signed-in), and the Worker's API. Never speculated.
+ * shell (or run signed-in), and the Worker's API and sign-in. Never speculated.
  */
-const NOT_SPECULATED = ['/build', '/build/*', '/play', '/play/*', '/api/*']
+const NOT_SPECULATED = ['/build', '/build/*', '/play', '/play/*', '/api/*', '/auth/*']
 
 /** The same-site links a speculation may load: the reference, not the app. */
 const SPECULATED_LINKS = {
