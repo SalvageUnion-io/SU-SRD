@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'bun:test'
-import { blockRenderOnEntry, entryOf, fitsBeforePaint, staticImports } from '../renderBlockingEntry'
+import {
+  blockRenderOnEntry,
+  entryOf,
+  fitsBeforePaint,
+  PHONE_RELEASE,
+  staticImports,
+} from '../renderBlockingEntry'
 
 const ENTRY = '/assets/Page.astro_astro_type_script_index_0_lang-CYMtF3nq.js'
 const TAG = `<script type="module" src="${ENTRY}"></script>`
@@ -29,9 +35,14 @@ describe('renderBlockingEntry', () => {
     expect(blockRenderOnEntry(html, ['/assets/a.js', '/assets/b.js'])).toBe(
       '<html><head><title>x</title>' +
         '<link rel="modulepreload" href="/assets/a.js"><link rel="modulepreload" href="/assets/b.js">' +
-        `<script type="module" blocking="render" src="${ENTRY}"></script>` +
+        `<script type="module" blocking="render" src="${ENTRY}"></script>${PHONE_RELEASE}` +
         `</head><body>${BAND}</div>${TAG}</body></html>`
     )
+  })
+
+  it('releases the hold under the sm rung, by the entry it follows', () => {
+    expect(PHONE_RELEASE).toContain('matchMedia("(width >= 40rem)")')
+    expect(PHONE_RELEASE).toContain('previousElementSibling.removeAttribute("blocking")')
   })
 
   it('leaves a page with no head entry as it is', () => {

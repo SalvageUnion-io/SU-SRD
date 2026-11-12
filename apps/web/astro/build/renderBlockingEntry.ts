@@ -17,12 +17,21 @@
  * layout writes it. The module's own imports get a `modulepreload` beside it,
  * so they load with it rather than after it, and the wait stays one round trip.
  *
+ * Only at a phone's width or wider than it, too (`PHONE_RELEASE`): a phone's
+ * band barely moves unheld (CLS 0.02 on /abilities/ at 412px), but holding
+ * its paint cost a throttled phone 1.6 s of LCP. An inline script right after
+ * the entry takes the token off below the `sm` rung, which releases the hold.
+ *
  * Astro leaves a `<script>` with any attribute but `src` unprocessed, so the
  * attribute cannot be written in the layout: this step adds it to the files.
  */
 
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { widthAtLeast } from '../../src/design/tokens'
+
+/** Releases the entry's hold on paint under the `sm` rung, where heads barely move. */
+export const PHONE_RELEASE = `<script>matchMedia("${widthAtLeast('sm')}").matches||document.currentScript.previousElementSibling.removeAttribute("blocking")</script>`
 
 /** The layout's processed script tag, by Astro's chunk name for it. */
 const ENTRY_TAG =
@@ -65,7 +74,7 @@ export function blockRenderOnEntry(html: string, imports: readonly string[]): st
   const match = head.match(ENTRY_TAG)
   if (!match) return html
   const preloads = imports.map((href) => `<link rel="modulepreload" href="${href}">`).join('')
-  const tag = `${preloads}<script type="module" blocking="render" src="${match[1]}"></script>`
+  const tag = `${preloads}<script type="module" blocking="render" src="${match[1]}"></script>${PHONE_RELEASE}`
   return head.replace(match[0], tag) + html.slice(end)
 }
 
