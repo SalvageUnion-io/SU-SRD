@@ -16,6 +16,7 @@ import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
+import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
 initBrowserObservability()
@@ -72,20 +73,6 @@ if (guidePages.length > 0) {
     .catch((error: unknown) => {
       console.warn('[guide] could not watch the contents', error)
     })
-}
-
-/**
- * Run `work` once the reader is looking at this page: now, or, for a page the
- * browser prerendered from a hovered link (`BaseLayout`'s speculation rules),
- * when it is shown. A prerender the reader never opens does no background work.
- */
-function whenShown(work: () => void): void {
-  const doc = document as Document & { prerendering?: boolean }
-  if (doc.prerendering) {
-    doc.addEventListener('prerenderingchange', work, { once: true })
-  } else {
-    work()
-  }
 }
 
 // The site's one service worker, which keeps visited pages readable offline.
