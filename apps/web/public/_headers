@@ -50,7 +50,9 @@
   # eval, a script src) still runs, but the browser fires a
   # securitypolicyviolation that browserObservability reports to /__errors
   # (fingerprint trusted-types-report). Enforce it, in the policy above, once
-  # those reports stay empty; Ko-fi's widget is the known string sink.
+  # those reports stay empty; Ko-fi's widget is the known string sink. The
+  # service worker's register('/sw.js') passes through the page's default
+  # policy (src/lib/trustedTypes.ts), which lets only that URL through.
   Content-Security-Policy-Report-Only: require-trusted-types-for 'script'
   Content-Security-Policy: default-src 'self'; script-src 'self' https://storage.ko-fi.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.salvageunion.io https://cdn.discordapp.com https://storage.ko-fi.com; font-src 'self'; connect-src 'self' https://cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self';
 
