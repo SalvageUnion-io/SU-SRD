@@ -45,6 +45,7 @@ export const playGamesCopy = messages({
   crew: 'Crew',
   seats: 'Seats',
   newPilot: '+ New Pilot',
+  newMech: '+ New Mech',
   newCrawler: '+ New Crawler',
   manageInBuild: 'Manage in Build',
   theCrew: 'the crew',

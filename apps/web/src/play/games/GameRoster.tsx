@@ -373,6 +373,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 {playGamesCopy('newPilot')}
               </Button>
             )}
+            {caps.canAddCrew && (
+              <Button href={newInGameHref('/mechs/new', gameId)} variant="primary" size="compact">
+                {playGamesCopy('newMech')}
+              </Button>
+            )}
             {caps.canRaiseCrawler && !caps.hasCrawler && (
               <Button
                 href={newInGameHref('/crawlers/new', gameId)}

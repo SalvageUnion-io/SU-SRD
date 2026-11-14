@@ -60,6 +60,16 @@ function build(
 }
 
 describe('assignedUnitsFor', () => {
+  test("+ Create makes the unit in the sheet's own Game, so it can be assigned there", () => {
+    const inGame = build({ kind: 'pilot', entity: { ...pilot, gameId: 'g1' } }, {})
+    expect(inGame.slots.map((s) => s.createHref)).toEqual([
+      '/mechs/new?game=g1',
+      '/crawlers/new?game=g1',
+    ])
+    const onShelf = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
+    expect(onShelf.slots.map((s) => s.createHref)).toEqual(['/mechs/new', '/pilots/new'])
+  })
+
   test('a pilot and a mech sheet wear owner chips, as a crawler sheet does', () => {
     const onPilot = build({ kind: 'pilot', entity: pilot }, { mech })
     expect(onPilot.units.map((u) => u.owner)).toEqual(['owner-m1'])

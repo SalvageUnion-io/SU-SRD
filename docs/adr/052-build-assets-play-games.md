@@ -30,8 +30,10 @@ Bay, its Export all and the wizards' counts included (chips-and-actions C13).
 Move to a Game… and Move to your Hangar stay on the Hangar Row and the sheet,
 beside the Game chip. Wizards, sheets, Patterns, the Starter Set, Import and
 Export stay. Units are made only in Build's wizards: a wizard started from a
-Game's page preselects that Game (`?game=<id>`) and returns there; any other
-lands the new unit in the Hangar. There is no active container: a unit's Game
+Game's page (+ New Pilot, Mech or Crawler) preselects that Game (`?game=<id>`)
+and returns there; so does a sheet's Assigned units + Create when that sheet's
+unit is in a Game, since a link never crosses containers; any other lands the
+new unit in the Hangar. There is no active container: a unit's Game
 comes from the unit, or from `?game=`.
 
 ### 4. Play owns Games and the dashboards
