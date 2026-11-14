@@ -40,6 +40,10 @@
     "workbox-build": {
       "glob": "14.0.3"
     },
+    "@rolldown/binding-wasm32-wasi": {
+      "@emnapi/core": "1.11.3",
+      "@emnapi/runtime": "1.11.3"
+    },
     "salvageunion-reference": "workspace:*",
     "sharp": ">=0.35.5"
   },
