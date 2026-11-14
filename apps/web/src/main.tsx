@@ -14,6 +14,7 @@ import {
 import { preloadScriptFont, SCRIPT_FONT_VARIABLE } from './lib/scriptFont'
 import { registerServiceWorker } from './lib/sw/register'
 import { installSoftUpdate, newBuild } from './lib/sw/softUpdate'
+import { installTrustedTypesPolicy } from './lib/trustedTypes'
 import { preloadGameData } from './lib/useGameData'
 import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
@@ -125,6 +126,9 @@ if (document.documentElement.hasAttribute(SIGNED_OUT_VIEW_ATTRIBUTE)) {
 // A breaking deploy's build floor reloads an open tab at once
 // (lib/connection/buildFloor.ts); a compatible one waits for its next page
 // change (lib/sw/softUpdate.ts).
+// workbox-window hands register() a plain string: the default policy lets
+// `/sw.js` through (lib/trustedTypes.ts).
+installTrustedTypesPolicy()
 registerServiceWorker(registerSW, {
   // This module IS the entry chunk, so its URL carries this build's content
   // hash — which is what the server's current shell is compared against.

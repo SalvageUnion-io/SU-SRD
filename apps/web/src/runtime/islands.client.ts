@@ -14,6 +14,7 @@ import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
+import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
 import { whenShown } from './whenShown'
@@ -24,6 +25,9 @@ initBrowserObservability()
 // An island's chunk is the first import to fail on a page older than the
 // deploy. See `installChunkRecovery` in lib/browserObservability.ts.
 installChunkRecovery()
+
+// The Trusted Types default policy, before anything registers the service worker.
+installTrustedTypesPolicy()
 
 // Sign in hides while somebody is signed in (`lib/accountBar.ts`); the
 // account islands read the same hint (`directives/signedIn.ts`).
