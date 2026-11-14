@@ -625,6 +625,7 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     await renderAs(mediator, listing())
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
     expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
     expect(hrefOf('Manage in Build')).toBe('/')
     // Nothing that builds lives here.

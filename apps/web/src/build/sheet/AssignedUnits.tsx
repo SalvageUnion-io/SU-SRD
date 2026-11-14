@@ -30,12 +30,6 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import type { AssignedSlot, AssignedUnit } from './assignedUnits.model'
 import { hasAssignedUnits } from './assignedUnits.model'
 
-const NEW_PATH: Record<SheetKind, string> = {
-  pilot: '/pilots/new',
-  mech: '/mechs/new',
-  crawler: '/crawlers/new',
-}
-
 const KIND_NAME: Record<SheetKind, string> = {
   pilot: 'Pilot',
   mech: 'Mech',
@@ -148,7 +142,7 @@ export function AssignedUnits({
             controls={
               <>
                 {slot.assign}
-                <Button href={NEW_PATH[slot.kind]} size="mini">
+                <Button href={slot.createHref} size="mini">
                   {buildSheetCopy('create')}
                 </Button>
               </>

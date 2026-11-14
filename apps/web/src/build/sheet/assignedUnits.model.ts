@@ -22,6 +22,7 @@
  * this pilot is theirs to unassign.
  */
 
+import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
@@ -31,6 +32,7 @@ import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { ReactNode } from 'react'
 import { chassisTechLevel, techLevelReading } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
+import { newInGameHref } from '../../lib/wizard/fromGame'
 import type { PickerControl } from '../wiring/AssignPicker'
 import type { SheetComposition } from './composition.model'
 import { crawlerRailItems, mechRailItems, pilotRailItems, rowStats } from './railStats.model'
@@ -66,10 +68,29 @@ export type AssignedSlot = {
   kind: SheetKind
   /** Assign one that exists (`AssignPicker`). */
   assign: ReactNode
+  /**
+   * + Create's wizard: in the sheet's own Game when it is in one, so the new
+   * unit can be assigned here (a link never crosses containers); else the Hangar.
+   */
+  createHref: string
   /** What stands in while it is empty (a pilot's mock crawler level): its placeholder's body. */
   extra?: ReactNode
   /** The placeholder's name; `No <Kind> assigned` by default. */
   placeholder?: string
+}
+
+const NEW_PATH = {
+  pilot: '/pilots/new',
+  mech: '/mechs/new',
+  crawler: '/crawlers/new',
+} as const satisfies Record<SheetKind, string>
+
+/** The wizard that makes a `kind` in the subject's container (ADR-052 §3). */
+function createHrefFor(kind: SheetKind, subject: AssignedSubject): string {
+  const container = containerOf(subject.entity)
+  return container.kind === 'game'
+    ? newInGameHref(NEW_PATH[kind], container.gameId)
+    : NEW_PATH[kind]
 }
 
 /** Whether the section draws at all: Read leaves it out with nothing linked. */
@@ -250,6 +271,7 @@ export function assignedUnitsFor(args: {
         key: kind,
         kind,
         assign: picker(kind, { exclude: place.linked.map((e) => e.id), size: 'mini' }),
+        createHref: createHrefFor(kind, subject),
         ...(place.placeholder ? { placeholder: place.placeholder } : {}),
       })
     } else if (place.linked.length === 0 && named.length === 0) {
@@ -258,6 +280,7 @@ export function assignedUnitsFor(args: {
         key: kind,
         kind,
         assign: picker(kind, { size: 'mini' }),
+        createHref: createHrefFor(kind, subject),
         ...(extra ? { extra } : {}),
       })
     }

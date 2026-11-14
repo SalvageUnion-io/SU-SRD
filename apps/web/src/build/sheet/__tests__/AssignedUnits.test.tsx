@@ -63,6 +63,7 @@ describe('AssignedUnits', () => {
             key: 'crawler',
             kind: 'crawler',
             assign: <button type="button">Assign</button>,
+            createHref: '/crawlers/new?game=g1',
             extra: <span>Mock Crawler Level</span>,
           },
         ]}
@@ -71,6 +72,9 @@ describe('AssignedUnits', () => {
     const body = document.querySelector('.su-entity-mini__body')
     expect(body?.textContent).toContain('Mock Crawler Level')
     expect(screen.getByText('No Crawler assigned')).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Create/ }).getAttribute('href')).toContain(
+      '/crawlers/new?game=g1'
+    )
   })
 
   test('Read leaves the section out with nothing linked', () => {
