@@ -1,8 +1,8 @@
 /**
  * LinkQr — renders a share URL as a scannable QR code: a public sheet's `/p/:kind/:appId`.
  *
- * SVG output (not canvas): deterministic under happy-dom tests and crisp at
- * any DPI. The tile is the house `Box` (its paper body, ink frame) with an
+ * SVG output (not canvas): drawn synchronously from the encoder's module grid,
+ * deterministic under happy-dom tests and crisp at any DPI. The tile is the house `Box` (its paper body, ink frame) with an
  * encoder quiet zone — QR readers need dark-on-light regardless of app theme.
  *
  * Lives in the app, not src/components: the app is its only renderer, and keeping it
@@ -10,11 +10,11 @@
  * sake. Covered by `__tests__/ShareStatusDialog.connected.test.tsx`.
  */
 
-import QRCode from 'qrcode'
 import type { CSSProperties } from 'react'
-import { useEffect, useState } from 'react'
-import { Box, SkeletonFrame, tokens } from '../../components/index'
+import { useMemo } from 'react'
+import { Box, tokens } from '../../components/index'
 import { buildSharingCopy } from '../../messages/build-sharing'
+import { qrGeometry } from './qrGeometry.model'
 
 type LinkQrProps = {
   /** Absolute URL to encode. */
@@ -35,33 +35,7 @@ const CODE_BODY = { padding: tokens.space[4] } satisfies CSSProperties
 const CODE = { height: '100%' } satisfies CSSProperties
 
 export function LinkQr({ url }: LinkQrProps) {
-  const [svg, setSvg] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-    QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' }) // design-tokens-ignore(raw-spacing): the QR quiet zone in modules, a library option, not CSS
-      .then((markup) => {
-        if (!cancelled) setSvg(markup)
-      })
-      .catch((err: unknown) => {
-        // Encoding a URL cannot realistically fail; degrade to no tile.
-        console.error('[app] QR generation failed.', err)
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [url])
-
-  if (svg === null) {
-    return (
-      <SkeletonFrame label={buildSharingCopy('theQrCode')} style={TILE}>
-        <Box fill body="flush" bodyStyle={CODE_BODY} className="su-sheet-qr-tile">
-          <div style={CODE} />
-        </Box>
-      </SkeletonFrame>
-    )
-  }
-
+  const { size, path } = useMemo(() => qrGeometry(url), [url])
   return (
     <div style={TILE}>
       <Box fill body="flush" bodyStyle={CODE_BODY} className="su-sheet-qr-tile">
@@ -71,11 +45,17 @@ export function LinkQr({ url }: LinkQrProps) {
           data-testid="share-qr"
           className="su-sheet-qr"
           style={CODE}
-          // Trusted markup: generated locally by the qrcode encoder from module
-          // geometry — the URL is encoded as QR modules, never interpolated as HTML.
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG string is produced locally by the qrcode encoder from module geometry; no user-controlled HTML can reach it
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox={`0 0 ${size} ${size}`}
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            <rect width={size} height={size} fill={tokens.color.paper} />
+            <path d={path} fill={tokens.color.ink} />
+          </svg>
+        </div>
       </Box>
     </div>
   )

@@ -3,7 +3,6 @@
 import { messages } from './define'
 
 export const buildSharingCopy = messages({
-  theQrCode: 'the QR code',
   qrCodeLinkingToThis: 'QR code linking to this sheet',
   whichGame: 'Which Game',
   copyPublicLink: 'Copy public link',

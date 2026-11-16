@@ -240,6 +240,31 @@ describe('createBrowserObservability', () => {
     ])
   })
 
+  test('a Trusted Types report from a script inline in the page is dropped', () => {
+    const { sent, transport } = recorder()
+    const target = new EventTarget()
+    createBrowserObservability({ transport }).init({ endpoint: ENDPOINT, target })
+    const violation = (sourceFile: string, sample: string) => {
+      const event = new Event('securitypolicyviolation')
+      Object.assign(event, {
+        disposition: 'report',
+        effectiveDirective: 'require-trusted-types-for',
+        documentURI: 'https://salvageunion.io/systems/red-laser/',
+        sample,
+        sourceFile,
+        lineNumber: 1,
+      })
+      target.dispatchEvent(event)
+    }
+    violation('https://salvageunion.io/systems/red-laser/', 'Element innerHTML|Skip to content')
+    violation('https://salvageunion.io/systems/red-laser/?x=1', 'Element innerHTML|⌘K')
+    violation('https://salvageunion.io/assets/KofiButton.js', 'Element innerHTML|<style>')
+
+    expect(sent.map((s) => s.report.message)).toEqual([
+      'require-trusted-types-for Element innerHTML|<style> https://salvageunion.io/assets/KofiButton.js:1',
+    ])
+  })
+
   test('teardown stops reporting and removes the window listeners', () => {
     const { sent, transport } = recorder()
     const target = new EventTarget()

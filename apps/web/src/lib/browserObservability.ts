@@ -191,6 +191,25 @@ function isExtensionStack(stack: string | undefined): boolean {
   )
 }
 
+/** A URL without its query or hash. */
+function bare(url: string): string {
+  return url.replace(/[?#].*$/, '')
+}
+
+/**
+ * Whether a Trusted Types violation came from a script inline in the page
+ * (its `sourceFile` is the document itself). The site's inline scripts are
+ * all data (JSON-LD, the speculation rules, the embed JSON) and never reach a
+ * sink, so such a report is a browser's own injected script: Edge on iOS
+ * reads the page through `innerHTML` (samples like `Skip to content`, `⌘K`,
+ * the page's `<head>`), with `sourceFile` the page and line 1. Not ours to
+ * fix, and it would bury the sinks enforcing Trusted Types has to clear.
+ */
+function isInlineViolation(violation: SecurityPolicyViolationEvent): boolean {
+  const page = violation.documentURI || currentPage()
+  return !!violation.sourceFile && !!page && bare(violation.sourceFile) === bare(page)
+}
+
 /** Long enough for any real message and a deep minified stack; the Worker reads 16 KB. */
 const MAX_MESSAGE_CHARS = 1_000
 const MAX_STACK_CHARS = 8_000
@@ -402,6 +421,7 @@ export function createBrowserObservability(
         const violation = event as SecurityPolicyViolationEvent
         if (violation.disposition !== 'report') return
         if (!violation.effectiveDirective.startsWith('require-trusted-types-for')) return
+        if (isInlineViolation(violation)) return
         captureException(
           `${violation.effectiveDirective} ${violation.sample} ${violation.sourceFile}:${violation.lineNumber}`,
           undefined,
