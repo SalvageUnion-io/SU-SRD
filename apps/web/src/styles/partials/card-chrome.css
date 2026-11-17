@@ -39,8 +39,9 @@
 
 /* The card's frame box (`card/ReferenceEntityCard.tsx`): the frame lives on
  * this INNER clipping element; its weight, dash and selection ring are the
- * card's own. */
+ * card's own. Its foot's source cut-out wears its paper (`--su-foot-ground`). */
 .su-ec-frame {
+  --su-foot-ground: var(--color-paper);
   background-color: var(--color-paper);
   display: flex;
   flex: 1 1 auto;

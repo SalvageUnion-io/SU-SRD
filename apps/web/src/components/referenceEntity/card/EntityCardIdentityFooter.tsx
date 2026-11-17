@@ -71,8 +71,14 @@ const truncate = {
  */
 const CITE = { display: 'inline-block', overflowWrap: 'break-word' } satisfies CSSProperties
 
+/**
+ * The cut-out wears the ground of the body above it (ruleset Source 2), so the
+ * source reads cut into the band, not laid on it: `--su-foot-ground`, a
+ * card's paper (`.su-ec-frame`) or a Page's ground (the detail dialog, the
+ * picker's middle column).
+ */
 const CUTOUT = {
-  backgroundColor: 'var(--color-paper)',
+  backgroundColor: 'var(--su-foot-ground)',
   color: 'var(--color-ink)',
   padding: `${space[4]} ${space[8]} ${space[6]}`,
   textAlign: 'left',
@@ -160,7 +166,7 @@ export function EntityCardIdentityFooter({
             ...(onBand ? CUTOUT_SLOT : {}),
           }}
         >
-          {/* On a band the source sits on its own cut-out: the card's paper
+          {/* On a band the source sits on its own cut-out: the body's ground
               hanging from the band's top edge, ink on it, the head's notch
               mirrored at the foot. */}
           <span style={onBand ? { ...CITE, ...CUTOUT } : CITE}>{citation}</span>
