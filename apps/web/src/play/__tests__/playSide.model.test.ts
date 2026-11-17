@@ -5,7 +5,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
-import { channelButtonLabel, channelTag, postLabel } from '../channels.model'
+import { channelButtonLabel, channelTag, postsToLabel } from '../channels.model'
 import { crewLineLabel, crewSeatLines, hereCount, pairedMech } from '../crew.model'
 import { mineText, playFeedEntries } from '../feed.model'
 import { liveLabel, playReadOnly } from '../play.model'
@@ -355,12 +355,14 @@ describe('the Tables (play.md §8)', () => {
 })
 
 describe('Discord channels (play.md §9)', () => {
-  test('the Post toggle says where: the channel by name, else whose it is', () => {
-    expect(postLabel(true)).toBe('Post rolls to my channel')
-    expect(postLabel(false)).toBe('Post rolls to the Game’s channel')
+  test('the Tables say where rolls post: the channel by name, else whose it is', () => {
+    expect(postsToLabel(true)).toBe('Rolls post to my channel')
+    expect(postsToLabel(false)).toBe('Rolls post to the Game’s channel')
     const named = { channelId: 'c1', channelName: 'salvage-run', boundAt: 1 }
-    expect(postLabel(false, named)).toBe('Post rolls to #salvage-run')
-    expect(postLabel(true, { ...named, channelName: null })).toBe('Post rolls to my channel')
+    expect(postsToLabel(false, named)).toBe('Rolls post to #salvage-run')
+    expect(postsToLabel(true, { ...named, channelName: null })).toBe('Rolls post to my channel')
+    const own = { ...named, channelName: null, own: true as const }
+    expect(postsToLabel(false, own)).toBe('Rolls post to my channel')
   })
 
   test('the channel control: Discord channel, the channel by name, else whose it is', () => {

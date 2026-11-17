@@ -74,9 +74,9 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const mediator = usePlayMediator(gameId, gameName)
   useTabTitle(areaTitle(PRODUCT.play, `${routesCopy('mediate')} ${gameName}`))
   const binding = usePlayChannelBinding({ gameId })
-  // The Mediator's side (play.md §10): the Post toggle private by default and
-  // the Game's log left out of the roll dispatch (the log is the crew's; the
-  // Opposition reaches them only through what is posted). Nothing awaits the
+  // The Mediator's side (play.md §10): every roll posts while a channel is
+  // bound, and the Game's log is left out of the roll dispatch (the log is the
+  // crew's; the Opposition reaches them only through what is posted). Nothing awaits the
   // Mediator's answer, so no proposal is on its Feed.
   const side = useSideFeed({
     target: mediatorTarget(mediator.gameId),

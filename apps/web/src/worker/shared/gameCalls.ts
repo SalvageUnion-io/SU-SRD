@@ -111,7 +111,13 @@ async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   return value
 }
 
-type BindingView = { channelId: string; channelName: string | null; boundAt: number }
+type BindingView = {
+  channelId: string
+  channelName: string | null
+  boundAt: number
+  /** The roller's own channel, standing in for a Game that has none bound (`rollChannel`). */
+  own?: true
+}
 
 /** A Game's binding, or the player's solo play's, as these calls answer it. */
 async function bindingView(
@@ -127,6 +133,23 @@ async function bindingView(
 
 const gameBinding = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
 const soloBinding = (db: SharedDb, discordId: string) => bindingView(db, 'solo', discordId)
+
+/**
+ * Where this caller's rolls post: solo, their own channel; in a Game, the
+ * Game's, or their own where the Game has none bound, so a channel someone
+ * bound always gets their rolls until it is unbound.
+ */
+async function rollChannel(
+  db: SharedDb,
+  discordId: string,
+  gameId: string | null
+): Promise<BindingView | null> {
+  if (gameId === null) return soloBinding(db, discordId)
+  const game = await gameBinding(db, gameId)
+  if (game !== null) return game
+  const own = await soloBinding(db, discordId)
+  return own === null ? null : { ...own, own: true }
+}
 
 /** Where a unit the player may see lives, and whether they may write it; null when nowhere. */
 async function find(who: Caller, kind: EntityKind, id: string, deps: CallDeps) {
@@ -361,7 +384,7 @@ const CALLS = {
   'channelBindings.current': async (who: Caller, a: { gameId?: string }, deps: CallDeps) => {
     if (a.gameId === undefined) return soloBinding(deps.db, who.discordId)
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
-    return read === null ? null : gameBinding(deps.db, a.gameId)
+    return read === null ? null : rollChannel(deps.db, who.discordId, a.gameId)
   },
   'channelBindings.postRoll': async (
     who: Caller,
@@ -369,20 +392,15 @@ const CALLS = {
       gameId?: string
       pilotId?: string
       roll: { tableName: string; rolls: number[] }
-      post: boolean
     },
     deps: CallDeps
   ): Promise<PostRollResult> => {
-    if (!a.post) return { kind: 'skipped' }
     const gameId = a.gameId ?? null
     if (gameId !== null) {
       const read = await act(deps.game(gameId), who.discordId, 'read', undefined as never)
       if (read === null) throw new RoomRefusal('Not a member of this Game')
     }
-    const binding =
-      gameId === null
-        ? await soloBinding(deps.db, who.discordId)
-        : await gameBinding(deps.db, gameId)
+    const binding = await rollChannel(deps.db, who.discordId, gameId)
     if (binding === null) return { kind: 'unbound' }
     const { channelId } = binding
     const { tableName, rolls } = a.roll
@@ -473,7 +491,6 @@ const CALL_ARGS = {
     gameId: z.string().optional(),
     pilotId: z.string().optional(),
     roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
-    post: z.boolean(),
   }),
 } satisfies Record<GameCallName, z.ZodType>
 

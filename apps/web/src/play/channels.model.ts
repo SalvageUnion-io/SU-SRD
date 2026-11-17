@@ -1,7 +1,7 @@
 /**
  * Play's Discord channels as the screens read them (play.md §9), pure: whose a
  * channel is, a Game's channel chip on the landing (`channelBindings.mine`)
- * and what the Post toggle says. A channel is named as it was when bound (`#salvage-run`); a
+ * and where the Tables say rolls post. A channel is named as it was when bound (`#salvage-run`); a
  * binding made before names were kept is named by whose it is.
  */
 
@@ -13,6 +13,8 @@ export type PlayBinding = {
   /** The channel's name when bound (no `#`); null where it was never kept. */
   channelName: string | null
   boundAt: number
+  /** In a Game with no channel bound: my own channel, which my rolls post to instead. */
+  own?: true
 }
 
 /** Whose channel: a Game's (by name), or my own for solo play. */
@@ -39,12 +41,15 @@ export function channelButtonLabel(
   binding: PlayBinding | null | undefined
 ): string {
   if (binding == null) return playCopy('discordChannel')
-  return channelTag(binding) ?? (owner.kind === 'solo' ? '# My channel' : '# Game channel')
+  return (
+    channelTag(binding) ??
+    (owner.kind === 'solo' || binding.own ? '# My channel' : '# Game channel')
+  )
 }
 
-/** What the Post toggle says it does: "Post rolls to #salvage-run", or whose channel. */
-export function postLabel(solo: boolean, binding?: PlayBinding | null): string {
+/** Where the screen's rolls post: "Rolls post to #salvage-run", or whose channel. */
+export function postsToLabel(solo: boolean, binding?: PlayBinding | null): string {
   const tag = channelTag(binding)
-  if (tag !== null) return `Post rolls to ${tag}`
-  return solo ? 'Post rolls to my channel' : 'Post rolls to the Game’s channel'
+  if (tag !== null) return `Rolls post to ${tag}`
+  return solo || binding?.own ? 'Rolls post to my channel' : 'Rolls post to the Game’s channel'
 }

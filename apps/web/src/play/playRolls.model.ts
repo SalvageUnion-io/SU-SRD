@@ -8,9 +8,8 @@
  *
  *  - in a Game, writes it to the Game's log (`changeLog`, the row
  *    `rollLogEntry` makes), so the crew's Feeds show it;
- *  - posts it to the bound Discord channel (`channelBindings.postRoll`, §9)
- *    when the screen's Post toggle, or the roll's own `post`, says so, and
- *    shows what happened on its Feed line, a failure included.
+ *  - posts it to the bound Discord channel (`channelBindings.postRoll`, §9),
+ *    and shows what happened on its Feed line, a failure included.
  *
  * A roll with no dice (`rolls: []`) is an applied change ("Vent · Heat 6→0,
  * Vulnerable", an accepted proposal): it lists on the Feed and goes nowhere
@@ -39,8 +38,6 @@ export type PlayRoll = {
   outcome?: string
   /** When, in ms. */
   at: number
-  /** This roll's own Post choice, over the screen's toggle; absent follows the toggle. */
-  post?: boolean
 }
 
 /** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
@@ -114,7 +111,7 @@ export function usePlayRollLog(): readonly PlayRoll[] {
 }
 
 /** What a reported roll says about itself besides its table and dice, read when it lands. */
-export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'post'>
+export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome'>
 
 /** The Core Mechanic's band for a die ("Success"), the outcome a Core roll reports. */
 function coreOutcome(die: number | undefined): string | undefined {
@@ -146,7 +143,6 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
           rolls: read,
           label: said.label,
           ...(outcome === undefined ? {} : { outcome }),
-          ...(said.post === undefined ? {} : { post: said.post }),
         })
       })
     }

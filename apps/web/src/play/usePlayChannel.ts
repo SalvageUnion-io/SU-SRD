@@ -1,24 +1,23 @@
 /**
  * Play's Discord channel (play.md §9): which channel this screen's rolls post
- * to, the screen's one Post toggle, and the dispatch that sends each roll
- * recorded in Play (`playRolls`) where it goes.
+ * to, and the dispatch that sends each roll recorded in Play (`playRolls`)
+ * there.
  *
  *  - `usePlayChannelBinding(target)`: the bound channel
- *    (`channelBindings.current`), the Game's or, solo, my own; undefined while
- *    it loads or with no server to ask, null when nothing is bound.
+ *    (`channelBindings.current`): the Game's, or my own where the Game has
+ *    none and solo; undefined while it loads or with no server to ask, null
+ *    when nothing is bound.
  *  - `usePlayRollDispatch(...)`: for every roll recorded while the screen is
  *    open, the Game's log row (in a Game, but never the Mediator's) and the
- *    post (`postRoll`), with
- *    each roll's post state for its Feed line. A failure is shown, never
- *    swallowed; a roll the toggle kept private can still be posted from its
- *    line (`postNow`), and a failed one tried again.
+ *    post (`postRoll`), with each roll's post state for its Feed line. A
+ *    failure is shown, never swallowed, and a failed one can be tried again
+ *    from its line (`postNow`).
  *
- * The Post toggle's default is `postsByDefault`: a player's rolls post, the
- * Mediator's stay private; solo posts to my own channel.
+ * Every roll posts while a channel is bound, the Mediator's too: there is no
+ * opt-in. `/su unbind` is how rolls stop posting.
  */
 
 import type { PostRollResult } from 'game-domain/games/discord'
-import { postsByDefault } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { failureMessage } from '../lib/connection/useServerAction'
 import { sendChangeLog } from '../replica/outbox'
@@ -43,17 +42,10 @@ export function usePlayChannelBinding(
   ) as PlayBinding | null | undefined
 }
 
-/** The Post toggle's default for this screen: private for the Mediator. */
-export function postDefault(target: Pick<PlayTarget, 'gameId' | 'mediator'>): boolean {
-  return postsByDefault(target.gameId === null ? null : { mediator: target.mediator })
-}
-
 type DispatchArgs = {
   target: Pick<PlayScreen, 'gameId' | 'pilotId'>
   /** Who the Game's log says rolled: the pilot's name. */
   rollerName: string
-  /** The screen's Post toggle. */
-  post: boolean
   /** The bound channel, as `usePlayChannelBinding` read it. */
   binding: PlayBinding | null | undefined
   /**
@@ -67,14 +59,13 @@ type DispatchArgs = {
 export type PlayRollDispatch = {
   /** Each roll's post, by roll id; absent for a change, or before it is sent. */
   posts: ReadonlyMap<string, PlayPostState>
-  /** Post this roll now, whatever the toggle said: the per-roll override, and Try again. */
+  /** Post this roll again: a failed one's Try again. */
   postNow: (roll: PlayRoll) => void
 }
 
 export function usePlayRollDispatch({
   target,
   rollerName,
-  post,
   binding,
   log = true,
 }: DispatchArgs): PlayRollDispatch {
@@ -83,8 +74,8 @@ export function usePlayRollDispatch({
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
   // The listener reads the latest of these, so it subscribes once.
-  const latest = useRef({ target, rollerName, post, binding, canWrite, postRoll, log })
-  latest.current = { target, rollerName, post, binding, canWrite, postRoll, log }
+  const latest = useRef({ target, rollerName, binding, canWrite, postRoll, log })
+  latest.current = { target, rollerName, binding, canWrite, postRoll, log }
 
   const settle = useCallback((id: string, state: PlayPostState) => {
     setPosts((prev) => new Map(prev).set(id, state))
@@ -111,7 +102,6 @@ export function usePlayRollDispatch({
         // The Mediator's screen plays no pilot: the card names the account.
         ...(t.pilotId === null ? {} : { pilotId: t.pilotId }),
         roll: { tableName: roll.tableName || roll.label, rolls: roll.rolls },
-        post: true,
       })
         .then((result: PostRollResult) => settle(roll.id, result))
         .catch((err: unknown) =>
@@ -129,13 +119,7 @@ export function usePlayRollDispatch({
     () =>
       onPlayRoll((roll) => {
         if (!isDiceRoll(roll)) return
-        const {
-          target: t,
-          rollerName: name,
-          post: toggle,
-          canWrite: writable,
-          log: toLog,
-        } = latest.current
+        const { target: t, rollerName: name, canWrite: writable, log: toLog } = latest.current
         if (t.gameId !== null && writable && toLog) {
           void sendChangeLog([
             rollLogEntry(
@@ -152,10 +136,9 @@ export function usePlayRollDispatch({
             ),
           ])
         }
-        if (roll.post ?? toggle) send(roll)
-        else settle(roll.id, { kind: 'skipped' })
+        send(roll)
       }),
-    [send, settle]
+    [send]
   )
 
   return { posts, postNow: send }
