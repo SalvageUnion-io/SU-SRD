@@ -10,8 +10,8 @@
  * as `crewLines()` decides), else, while they are here, their SP aboard or HP
  * on foot.
  *
- * Tapping a line opens that crewmate's sheet read-only over Play
- * (`PlayCrewSheet`). What they are resolving is the Mini's contentful body
+ * Tapping a line puts that crewmate's pilot sheet on the screen, read-only
+ * (`useOpenSheet`, play.md §18). What they are resolving is the Mini's contentful body
  * while there is one (N3: plain words, no entity), announced politely as it
  * changes.
  *
@@ -20,7 +20,6 @@
  */
 
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
 import { EmptyState, Entity, MiniGrid, Stat, tokens } from '../components/index'
 import { crewPair } from '../lib/units/crewPair'
 import { unitRowModel } from '../lib/units/unitModel'
@@ -28,9 +27,9 @@ import { playCopy } from '../messages/play'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewSeatLine } from './crew.model'
 import { crewLineLabel, crewSeatLines, pairedMech } from './crew.model'
-import { PlayCrewSheet } from './PlayCrewSheet'
 import type { CrewVitals } from './useGameFeed'
 import { useGamePresence } from './useGamePresence'
+import { useOpenSheet } from './useOpenSheet'
 
 const RESOLVING = {
   color: tokens.color.ink,
@@ -51,7 +50,7 @@ type PlayCrewProps = {
 
 export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
   const here = useGamePresence(gameId, 'seat')
-  const [open, setOpen] = useState<CrewSeatLine | null>(null)
+  const openSheet = useOpenSheet()
   const lines = crewSeatLines(crew, seats, selfPilotId, here)
 
   return (
@@ -64,7 +63,10 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
         <MiniGrid label={playCopy('crew')} play>
           {lines.map((line) => (
             <li key={line.pilotId}>
-              <CrewLine line={line} onOpen={() => setOpen(line)} />
+              <CrewLine
+                line={line}
+                onOpen={() => openSheet({ kind: 'pilot', id: line.pilotId, name: line.name })}
+              />
               <span role="status" className="su-sr-only">
                 {line.resolving ?? ''}
               </span>
@@ -72,12 +74,6 @@ export function PlayCrew({ gameId, selfPilotId, crew, seats }: PlayCrewProps) {
           ))}
         </MiniGrid>
       )}
-      <PlayCrewSheet
-        gameId={gameId}
-        pilotId={open?.pilotId ?? null}
-        name={open?.name ?? ''}
-        onClose={() => setOpen(null)}
-      />
     </>
   )
 }

@@ -2,7 +2,8 @@
  * The Units column (play.md §4) in each Situation: which
  * unit is live (− / +) and which is for reference (dashed, read-only, Board
  * its one control), the hangar's Minis, the mech's Downtime restore preview,
- * a Game crawler read from the listing, and Sheet, which opens the sheet in Build.
+ * a Game crawler read from the listing, and Sheet, which puts the sheet on the screen
+ * (in Build where no screen holds one).
  *
  * The column is handed a `Play` built here, as `PlayCockpit` hands it the one
  * from `usePlaySituation` (tested in `PlaySituation.connected.test.tsx`).
@@ -32,6 +33,7 @@ const { useUnits } = await import('../../replica/units')
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { SyncContext } = await import('../../replica/syncContext')
 const { PlayUnitsColumn } = await import('../PlayUnitsColumn')
+const { ShowSheetContext } = await import('../useOpenSheet')
 
 const PILOT = 'units-bonesaw'
 const MECH = 'units-buzzard'
@@ -163,11 +165,16 @@ const CONNECTED = {
   outdated: false,
 } as const
 
-async function renderColumn(play: Play) {
+async function renderColumn(
+  play: Play,
+  show?: (target: { kind: 'pilot' | 'mech' | 'crawler'; id: string; name: string }) => void
+) {
   await act(async () => {
     render(
       <SyncContext.Provider value={CONNECTED}>
-        <PlayUnitsColumn target={play.target} play={play} />
+        <ShowSheetContext.Provider value={show ?? null}>
+          <PlayUnitsColumn target={play.target} play={play} />
+        </ShowSheetContext.Provider>
       </SyncContext.Provider>
     )
   })
@@ -344,7 +351,16 @@ describe('in a Game', () => {
 })
 
 describe('Sheet', () => {
-  test('opens the unit’s sheet in Build: Play carries no sheet of its own', async () => {
+  test('on the player’s screen, puts the unit’s sheet on the screen (play.md §18)', async () => {
+    const shown: { kind: string; id: string; name: string }[] = []
+    await renderColumn(playFor({ situation: 'onFoot' }).play, (t) => shown.push(t))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Open Bonesaw’s sheet' }))
+    })
+    expect(shown).toEqual([{ kind: 'pilot', id: expect.any(String), name: 'Bonesaw' }])
+  })
+
+  test('with no screen to hold it, opens the unit’s sheet in Build', async () => {
     const assigned: string[] = []
     const assign = spyOn(window.location, 'assign').mockImplementation((to: string | URL) => {
       assigned.push(String(to))

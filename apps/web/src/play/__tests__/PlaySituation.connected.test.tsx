@@ -105,6 +105,8 @@ function answer(name: string): unknown {
           { _id: 'r-atlas', appId: 'pg-atlas', ownerId: 'u-me', body: { name: 'Atlas' } },
           { _id: 'r-mule', appId: 'pg-mule', ownerId: null, body: { name: 'Mule' } },
         ],
+        crawlers: [],
+        npcs: [],
         // Rook rides crawler c-1, which carries the spare.
         softLinks: [
           {
