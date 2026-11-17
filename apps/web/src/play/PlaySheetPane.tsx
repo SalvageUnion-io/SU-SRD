@@ -5,6 +5,7 @@
  * the foot. Its head is a Slab, "Sheet", then the picker (every
  * sheet the screen may show: yours, then the table's), "Edit in Build" on a
  * unit you hold, and × back to Actions; the sheet's own band names the unit.
+ * A companion shows its card, named in its head, read off its host pilot or mech.
  *
  * Read-only, as Play only plays (ADR-052 §3): in a Game the sheet reads the
  * Game's listing (`useGameListing`) through a read-only store, as the crew
@@ -15,9 +16,13 @@
  * own band and boxes below it.
  */
 
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { sheetPath } from 'game-domain/entityKinds'
+import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
+import { PartnerCard } from '../build/sheet/PartnerCard'
 import {
   makeReadOnlySheetStore,
   sheetDataFromListing,
@@ -26,6 +31,8 @@ import { Sheet } from '../build/sheet/Sheet'
 import { Button, CloseButton, HeaderMenu, Pending, Slab, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
+import type { UnitsStore } from '../replica/units'
+import { useUnits } from '../replica/units'
 import type { SheetChoice } from './sheetOnScreen.model'
 
 const TOOLS = {
@@ -40,6 +47,7 @@ const KIND_LABEL = {
   pilot: playCopy('kindPilot'),
   mech: playCopy('kindMech'),
   crawler: playCopy('kindCrawler'),
+  partner: playCopy('kindCompanion'),
 } as const
 
 type PlaySheetPaneProps = {
@@ -79,7 +87,15 @@ export function PlaySheetPane({ shown, sections, gameId, onShow, onClose }: Play
               )}
             />
             {shown.yours ? (
-              <Button href={sheetPath(shown.kind, shown.id)} variant="ghost" size="mini">
+              <Button
+                href={
+                  shown.kind === 'partner'
+                    ? sheetPath(shown.host.kind, shown.host.id)
+                    : sheetPath(shown.kind, shown.id)
+                }
+                variant="ghost"
+                size="mini"
+              >
                 {playCopy('editInBuild')}
               </Button>
             ) : null}
@@ -88,7 +104,7 @@ export function PlaySheetPane({ shown, sections, gameId, onShow, onClose }: Play
         }
       />
       {gameId === null ? (
-        <Sheet key={`${shown.kind}:${shown.id}`} kind={shown.kind} id={shown.id} readOnly />
+        <ShownSheetBody key={`${shown.kind}:${shown.id}`} shown={shown} store={useUnits} />
       ) : (
         <ListedSheet key={`${shown.kind}:${shown.id}`} gameId={gameId} shown={shown} />
       )}
@@ -104,7 +120,44 @@ function ListedSheet({ gameId, shown }: { gameId: string; shown: SheetChoice }) 
     [listing]
   )
   if (store === null) return <Pending label={playCopy('theirSheet')} />
-  if (store.getState().get(shown.kind, shown.id) === null && shown.yours)
-    return <Sheet kind={shown.kind} id={shown.id} readOnly />
-  return <Sheet kind={shown.kind} id={shown.id} store={store} readOnly />
+  const [kind, id] =
+    shown.kind === 'partner' ? [shown.host.kind, shown.host.id] : [shown.kind, shown.id]
+  if (store.getState().get(kind, id) === null && shown.yours)
+    return <ShownSheetBody shown={shown} store={useUnits} />
+  return <ShownSheetBody shown={shown} store={store} />
+}
+
+/**
+ * The sheet itself: a unit's `Sheet`, or a companion's `PartnerCard` (as the
+ * mech sheet lists its drones), read off its host.
+ */
+function ShownSheetBody({ shown, store }: { shown: SheetChoice; store: UnitsStore }) {
+  const state = store()
+  if (shown.kind !== 'partner')
+    return <Sheet kind={shown.kind} id={shown.id} store={store} readOnly />
+  const host = state.get(shown.host.kind, shown.host.id)
+  const partner = host?.partners?.find((p) => p.id === shown.id)
+  if (!host || !partner) return <Pending label={playCopy('theirSheet')} />
+  if (shown.host.kind === 'mech')
+    return (
+      <PartnerCard
+        found={{ partner, hostKind: 'mech', host: host as Mech }}
+        readOnly
+        store={store}
+      />
+    )
+  const pilot = host as Pilot
+  const link = state.softLinks.find((l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id)
+  const crawler = link ? state.get('crawler', link.to.id) : null
+  return (
+    <PartnerCard
+      found={{ partner, hostKind: 'pilot', host: pilot }}
+      crawler={crawler}
+      crawlerTechLevel={resolveEffectiveCrawlerLevel(pilot, crawler)}
+      hostAbilityRefs={pilot.abilities}
+      readOnly
+      crawlerReadOnly
+      store={store}
+    />
+  )
 }
