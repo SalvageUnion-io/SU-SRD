@@ -103,6 +103,19 @@ describe('the detail dialog is the Page', () => {
     expect(foot.getAttribute('data-grain')).not.toBeNull()
   })
 
+  // Source 2 (Jrvs 2026-11-17): the source is CUT into the foot band, so its
+  // cut-out wears the Page's ground, never a paper tab laid on the band.
+  test("the source's cut-out wears the Page's ground", () => {
+    const dialog = openPage(redLaser())
+    const foot = dialog.querySelector('article')?.lastElementChild as HTMLElement | null
+    const cutout = within(foot ?? dialog)
+      .getByText(/· p\.\d+/)
+      .closest<HTMLElement>('[style*="background-color"]')
+    expect(cutout?.style.backgroundColor).toBe('var(--su-foot-ground)')
+    const page = dialog.querySelector<HTMLElement>('article')
+    expect(page?.style.getPropertyValue('--su-foot-ground')).toBe('var(--color-wk-bg)')
+  })
+
   test('the foot carries the app\'s cross-link ("View in the Reference")', () => {
     render(
       <EntitySurfaceProvider
