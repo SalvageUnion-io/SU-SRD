@@ -13,8 +13,10 @@ import { sheetPath } from 'game-domain/entityKinds'
 import { createContext, useContext } from 'react'
 import { useGo } from '../components/shared/useGo'
 
-/** The unit a Sheet control opens. */
-export type SheetTarget = { kind: SheetKind; id: string; name: string }
+/** The unit a Sheet control opens: a companion names its host, whose sheet holds it in Build. */
+export type SheetTarget =
+  | { kind: SheetKind; id: string; name: string }
+  | { kind: 'partner'; id: string; name: string; host: { kind: 'pilot' | 'mech'; id: string } }
 
 /** Puts a unit's sheet on the player's screen; null where the screen has no room for one. */
 export const ShowSheetContext = createContext<((target: SheetTarget) => void) | null>(null)
@@ -22,5 +24,13 @@ export const ShowSheetContext = createContext<((target: SheetTarget) => void) | 
 export function useOpenSheet(): (target: SheetTarget) => void {
   const go = useGo()
   const show = useContext(ShowSheetContext)
-  return show ?? ((target) => go(sheetPath(target.kind, target.id)))
+  return (
+    show ??
+    ((target) =>
+      go(
+        target.kind === 'partner'
+          ? sheetPath(target.host.kind, target.host.id)
+          : sheetPath(target.kind, target.id)
+      ))
+  )
 }

@@ -44,6 +44,8 @@ export const playCopy = messages({
   kindPilot: 'Pilot',
   kindMech: 'Mech',
   kindCrawler: 'Crawler',
+  kindCompanion: 'Companion',
+  companionsOf: '{name}’s companions',
   kindYours: '{kind} · yours',
   editInBuild: 'Edit in Build',
   backToActions: 'Back to Actions',

@@ -24,6 +24,7 @@ import {
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
 import type { BoardOption } from '../boardMenu.model'
 import type { Play, Situation } from '../situation.model'
+import type { SheetTarget } from '../useOpenSheet'
 import { fakeSeat } from './seatFixture'
 
 // Module scope, before the imports below — see `serverMock.ts`.
@@ -165,10 +166,7 @@ const CONNECTED = {
   outdated: false,
 } as const
 
-async function renderColumn(
-  play: Play,
-  show?: (target: { kind: 'pilot' | 'mech' | 'crawler'; id: string; name: string }) => void
-) {
+async function renderColumn(play: Play, show?: (target: SheetTarget) => void) {
   await act(async () => {
     render(
       <SyncContext.Provider value={CONNECTED}>
@@ -352,12 +350,32 @@ describe('in a Game', () => {
 
 describe('Sheet', () => {
   test('on the player’s screen, puts the unit’s sheet on the screen (play.md §18)', async () => {
-    const shown: { kind: string; id: string; name: string }[] = []
+    const shown: SheetTarget[] = []
     await renderColumn(playFor({ situation: 'onFoot' }).play, (t) => shown.push(t))
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Open Bonesaw’s sheet' }))
     })
     expect(shown).toEqual([{ kind: 'pilot', id: expect.any(String), name: 'Bonesaw' }])
+  })
+
+  test('a pilot’s companion is a Mini under the pilot; tapping it puts its card on the screen', async () => {
+    const withCompanion = {
+      ...pilot,
+      partners: [
+        { id: 'pt-rex', hostRef: 'mecha-companion', hostSchema: 'equipment', name: 'Rex' },
+      ],
+    } as Pilot
+    const shown: SheetTarget[] = []
+    await renderColumn(playFor({ situation: 'onFoot', pilotRecord: withCompanion }).play, (t) =>
+      shown.push(t)
+    )
+    const list = screen.getByRole('list', { name: 'Bonesaw’s companions' })
+    await act(async () => {
+      fireEvent.click(within(list).getByRole('button', { name: 'Open Rex’s sheet' }))
+    })
+    expect(shown).toEqual([
+      { kind: 'partner', id: 'pt-rex', name: 'Rex', host: { kind: 'pilot', id: PILOT } },
+    ])
   })
 
   test('with no screen to hold it, opens the unit’s sheet in Build', async () => {

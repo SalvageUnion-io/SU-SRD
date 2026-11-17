@@ -7,6 +7,8 @@
  *   only while Boarded: SP, EP, Heat and the range band (`seats.setRange`).
  *   Parked it is for reference, with Board. In Downtime it is in the Mech Bay
  *   and says what the current step restores.
+ * - **Companions** — the pilot's partners under its box, the mech's drones
+ *   under its: Minis whose tap puts the companion's card on the screen.
  * - **Hangar** — the pilot's other mechs, Minis in the Mini grid.
  * - **Crawler** — SP, TL and its bays; live in solo Downtime (or for the
  *   Mediator, whose screen draws the same box), otherwise for reference.
@@ -17,8 +19,10 @@
  * and what is inside one is a Mini or plain content (play.md §12).
  */
 
+import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { EmptyState, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
+import { PlayCompanions } from './PlayCompanions'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from './PlayUnits'
 import type { PlayColumnProps } from './situation.model'
 import { useOpenSheet } from './useOpenSheet'
@@ -44,6 +48,13 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
       ) : (
         <EmptyState variant="inline" body={playCopy('thePilotIsOnIts')} />
       )}
+      {pilot ? (
+        <PlayCompanions
+          host={{ kind: 'pilot', id: pilot.id, name: pilot.name }}
+          partners={pilot.partners}
+          crawlerTechLevel={resolveEffectiveCrawlerLevel(pilot, crawler)}
+        />
+      ) : null}
       {units.mech ? (
         <PlayMechUnit
           mech={units.mech.mech}
@@ -61,6 +72,12 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
               ? () => setSheet({ kind: 'mech', id: mech.id, name: mech.name })
               : undefined
           }
+        />
+      ) : null}
+      {mech ? (
+        <PlayCompanions
+          host={{ kind: 'mech', id: mech.id, name: mech.name }}
+          partners={mech.partners}
         />
       ) : null}
       {units.hangar.length > 0 ? (
