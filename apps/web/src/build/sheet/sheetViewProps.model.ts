@@ -42,6 +42,12 @@ export type SheetViewCommonProps = {
   segments?: LiveSheetSegment[]
   editable: boolean
   readOnly: boolean
+  /**
+   * MOCK (Working Manual, principle 2): the viewer may write this sheet, in
+   * Read as in Edit, so session state (a mech's SP, EP and Heat) is live in
+   * Read. False on a public, crewmate's or Starter Set sheet.
+   */
+  liveInRead?: boolean
   /** Who holds each unit in the Game (`unitOwners.model.ts`); absent outside one. */
   ownerOf?: OwnerOf
   /**

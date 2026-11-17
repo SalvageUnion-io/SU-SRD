@@ -188,6 +188,14 @@ export function PlayFrame<Value extends string>({
                       style={TAB}
                     >
                       {p.label}
+                      {/* MOCK (Working Manual, attention law): a pending item marks its tab. */}
+                      {p.dot ? (
+                        <span
+                          className="su-play-tab-dot"
+                          role="img"
+                          aria-label="Something is waiting"
+                        />
+                      ) : null}
                     </Tab>
                   ))}
                 </TabList>

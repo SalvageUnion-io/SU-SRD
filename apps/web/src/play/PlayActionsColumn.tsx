@@ -28,19 +28,27 @@ import { PlayScene } from './PlayScene'
 import type { PlayColumnProps } from './situation.model'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayActions } from './usePlayActions'
+import { usePlayWide } from './usePlayWide'
 
 export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActionsDeps) {
   const actions = usePlayActions(play, deps)
+  const wide = usePlayWide()
   if (play.situation === 'downtime') return <PlayDowntimeColumn play={play} actions={actions} />
   return (
     <>
       <PlayScene scene={play.scene} />
-      <Slab
-        as="h2"
-        label={playCopy('actions')}
-        className="su-play-act-head"
-        actions={<PlayActionsTools actions={actions} />}
-      />
+      {/* MOCK (Working Manual E): the phone's "Actions" head is its tab; the
+          type filter leads the pane (`.su-play-act-head--tools`). */}
+      {wide ? (
+        <Slab
+          as="h2"
+          label={playCopy('actions')}
+          className="su-play-act-head"
+          actions={<PlayActionsTools actions={actions} />}
+        />
+      ) : (
+        <PlayActionsTools actions={actions} />
+      )}
       <PlayActionsList play={play} actions={actions} />
     </>
   )

@@ -24,7 +24,7 @@ import {
 } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayActionEntry } from './PlayActionEntry'
-import type { ListEntry } from './playActions.model'
+import type { ActionTypeKey, ListEntry } from './playActions.model'
 import { TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
@@ -138,22 +138,48 @@ export function PlayActionsTools({ actions }: { actions: PlayActions }) {
   )
 }
 
+/**
+ * MOCK (Working Manual, the timing law): what is on hand, grouped by when it
+ * can be used, in the book's action types; the Reactor and Mount, which are
+ * controls, close the list. Empty groups are left out.
+ */
+const TIMING: readonly { type: ActionTypeKey | 'controls'; label: string }[] = [
+  { type: 'Turn', label: 'Turn' },
+  { type: 'Short', label: 'Short' },
+  { type: 'Long', label: 'Long' },
+  { type: 'Free', label: 'Free' },
+  { type: 'Reaction', label: 'Reaction' },
+  { type: 'Passive', label: 'Passive' },
+  { type: 'Other', label: 'Other' },
+  { type: 'controls', label: 'Reactor and mount' },
+]
+
+function timingOf(entry: ListEntry): ActionTypeKey | 'controls' {
+  return entry.kind === 'action' ? entry.type : 'controls'
+}
+
 export function PlayActionsList({ play, actions }: { play: Play; actions: PlayActions }) {
-  const where =
-    play.situation === 'boarded' && actions.mech !== null ? `In ${actions.mech.name}` : 'On foot'
+  const groups = TIMING.map((group) => ({
+    ...group,
+    entries: actions.onHand.filter((entry) => timingOf(entry) === group.type),
+  })).filter((group) => group.entries.length > 0)
   return (
     <>
       <PlayOrphanResolve actions={actions} />
-      <Slab label={playCopy('onHand', { where })} />
-      {actions.onHand.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <PlayEntryList
-          entries={actions.onHand}
-          play={play}
-          actions={actions}
-          label={playCopy('onHand2')}
-        />
+        groups.map((group) => (
+          <section key={group.type} className="su-play-timing" aria-label={group.label}>
+            <Slab as="h3" size="mini" label={group.label} count={group.entries.length} />
+            <PlayEntryList
+              entries={group.entries}
+              play={play}
+              actions={actions}
+              label={group.label}
+            />
+          </section>
+        ))
       )}
       <PlayAwayGroup
         title={playCopy('notOnHand')}

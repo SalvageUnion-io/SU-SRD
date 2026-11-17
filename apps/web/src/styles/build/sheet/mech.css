@@ -172,3 +172,17 @@
   gap: var(--space-24);
   grid-template-columns: minmax(0, 1fr);
 }
+
+/*
+ * MOCK (Working Manual D): a phone's live vitals. The rows sit closer than
+ * the poster gauges', and the − / + are a phone's primary controls: 44px
+ * (principle 8).
+ */
+.su-sheet-vitals--live > * + * {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+}
+.su-sheet-vitals--live button {
+  height: var(--size-full) !important;
+  width: var(--size-full) !important;
+}

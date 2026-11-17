@@ -6,6 +6,8 @@
  */
 
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
+import type { CSSVarStyle } from '../components/index'
 import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
@@ -94,6 +96,77 @@ export function PlayPinnedVitals({
           </ul>
         </Box>
       ))}
+    </section>
+  )
+}
+
+/** MOCK: the opened vital's line, its − / + at the phone's 44px (`.su-play-pins__pad`). */
+const PAD = { padding: `${tokens.space[6]} ${tokens.space[8]}` } satisfies CSSProperties
+
+/**
+ * MOCK (Working Manual E): the phone's pinned vitals as ONE row of framed
+ * numbers, the pilot's HP and AP then the mech's SP, EP and Heat, each the
+ * compact `VitalGauge` read-out (`PlayVital`) in a frame of its unit's tone.
+ * Tapping one opens its − / + under the row (one at a time), so five vitals
+ * take one line of the screen until a number has to change.
+ */
+export function PlayPinnedStrip({
+  units,
+  live,
+  onWrite,
+  initialOpen = null,
+}: {
+  units: readonly PinnedUnit[]
+  live: Record<PinnedUnit['kind'], boolean>
+  onWrite: (kind: PinnedUnit['kind'], field: string, next: number, label: string) => void
+  /** The vital open at first, by its label. */
+  initialOpen?: string | null
+}) {
+  const [open, setOpen] = useState<string | null>(initialOpen)
+  if (units.length === 0) return null
+  const cells = tableUnits(units).flatMap((unit) => unit.vitals.map((v) => ({ unit, v })))
+  const picked = cells.find(({ v, unit }) => v.label === open && live[unit.kind])
+  const danger = (v: { label: string; max: number }) =>
+    v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined
+  return (
+    <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
+      <ul className="su-play-pins__row">
+        {cells.map(({ unit, v }) => (
+          <li key={v.label}>
+            <button
+              type="button"
+              className="su-play-pin"
+              style={{ '--pin': `var(--color-${unit.kind})` } as CSSVarStyle}
+              aria-expanded={picked?.v.label === v.label}
+              aria-label={`${unit.name} ${v.label} ${v.value} of ${v.max}. Change`}
+              disabled={!live[unit.kind]}
+              onClick={() => setOpen(open === v.label ? null : v.label)}
+            >
+              <PlayVital
+                label={v.label}
+                value={v.value}
+                max={v.max}
+                tone={unit.kind}
+                danger={danger(v)}
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {picked ? (
+        <div className="su-play-pins__pad">
+          <Box frameColor={`var(--color-${picked.unit.kind})`} body="flush" bodyStyle={PAD}>
+            <PlayVital
+              label={`${picked.unit.name} · ${picked.v.label}`}
+              value={picked.v.value}
+              max={picked.v.max}
+              tone={picked.unit.kind}
+              danger={danger(picked.v)}
+              onChange={(next) => onWrite(picked.unit.kind, picked.v.field, next, picked.v.label)}
+            />
+          </Box>
+        </div>
+      ) : null}
     </section>
   )
 }

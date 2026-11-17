@@ -121,6 +121,13 @@ export type PlayBarProps = {
   menu?: ReactNode
   /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
+  /**
+   * MOCK (Working Manual E): a phone's band. One crumb line on the band (the
+   * Game · the phase · whose turn), then the controls' line with `title` (who
+   * is playing: "Bonesaw in Mazona") on its cut-out. The ONLINE stamp and the
+   * Situation switch are not drawn: the foot and ⋯ hold them.
+   */
+  line?: { game: string | null; phase: string; turn?: string }
 }
 
 export function PlayBar({
@@ -138,8 +145,59 @@ export function PlayBar({
   channel,
   menu,
   tone = 'play',
+  line,
 }: PlayBarProps) {
   const band = phaseBand(tone)
+  // MOCK (Working Manual E): the phone's one-line band, the title kept on its cut-out.
+  if (line) {
+    return (
+      <header
+        data-ground={band.ground}
+        className="su-play-bar su-play-bar--line su-play-band"
+        style={{ ...BAR, ...band.style }}
+      >
+        <Speckle grain="ink" />
+        <p className="su-play-bar__crumb">
+          {line.game !== null && <span className="su-play-bar__crumb-game">{line.game}</span>}
+          <span>
+            {line.game !== null && ' · '}
+            {line.phase}
+            {line.turn ? ` · ${line.turn}` : ''}
+          </span>
+        </p>
+        <Button
+          href={backHref}
+          back
+          surface="instrument"
+          variant="ghost"
+          size="compact"
+          style={BACK}
+        >
+          {backLabel}
+        </Button>
+        <h1 className={cn(NOTCH, TITLE_CAPS)} style={TITLE}>
+          {title}
+        </h1>
+        {readOnly !== null && (
+          <Badge
+            shape="stamp"
+            size="compact"
+            surface="inverse"
+            className={STAMP}
+            style={ONLINE}
+            role="status"
+            title={readOnly.says}
+          >
+            {readOnly.stamp}
+          </Badge>
+        )}
+        <span style={SPACER} />
+        {stop}
+        {channel}
+        {menu}
+      </header>
+    )
+  }
   return (
     <header
       data-ground={band.ground}

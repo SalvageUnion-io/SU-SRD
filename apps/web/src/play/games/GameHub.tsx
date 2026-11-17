@@ -190,6 +190,8 @@ export function GameHub({ gameId }: GameHubProps) {
                 gameId={gameId}
                 onlyWithPilots={game.mediator}
                 live={session?.live === true}
+                // MOCK (Working Manual F): a player's door is Play; the Mediator's is Mediate.
+                door={!game.mediator}
               />
             ) : undefined
           }

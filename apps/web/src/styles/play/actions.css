@@ -194,3 +194,20 @@ button.su-play-dt-track__step:disabled {
 .su-play-act .su-select-dim {
   opacity: 0.75;
 }
+
+/*
+ * MOCK (Working Manual E): compact action rows grouped by timing. A group is
+ * its Slab and its list on a tight gap; below `lg` the "Actions" head gives
+ * its line to the type filter (the tab already says Act) and Find is the
+ * wide screen's.
+ */
+.su-play-timing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+@container play not (width >= 64rem) {
+  .su-play-act-tools .su-play-act-find {
+    display: none;
+  }
+}

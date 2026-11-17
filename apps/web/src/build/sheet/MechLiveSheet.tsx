@@ -50,6 +50,7 @@ export function MechLiveSheet({
   band,
   editable,
   readOnly,
+  liveInRead = false,
   crawlerReadOnly,
   ownerOf,
   store,
@@ -120,6 +121,7 @@ export function MechLiveSheet({
           mech={mech}
           store={store}
           readOnly={readOnly}
+          live={liveInRead}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
           crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}

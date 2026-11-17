@@ -30,6 +30,9 @@ import type { GameSession } from '../useGameSession'
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
  * Size's height, its words centred, and lifts with it on touch.
  */
+/** MOCK (Working Manual F): Mediate is the door whether or not a session is live. */
+const MOCK_DOOR = true
+
 const STAMP_AT_COMPACT = {
   alignItems: 'center',
   boxSizing: 'border-box',
@@ -72,8 +75,12 @@ export function GameBand({
                 <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
                   {playGamesCopy('youMediate')}
                 </Badge>
-                {live || !session ? (
-                  <Button href={mediatePath(gameId)} variant="default" size="compact">
+                {/* MOCK (Working Manual F, principle 9): the Mediator's door is the
+                    band's one rust button, there before a session starts (the
+                    screen opens; the session starts from it). Bends R44 (a
+                    control on a pink band is ink). */}
+                {live || !session || MOCK_DOOR ? (
+                  <Button href={mediatePath(gameId)} variant="primary" size="compact">
                     {playGamesCopy('mediate')}
                   </Button>
                 ) : (

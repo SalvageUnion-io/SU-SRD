@@ -22,8 +22,16 @@ import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
 import type { ResolveModel } from './useActionsDeck'
+import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
+
+/**
+ * MOCK (Working Manual E): a closed row keeps the contentful head's chips
+ * (range, damage, traits, cost) and prints no text (`.su-play-act` closes the
+ * empty body's box).
+ */
+const CLOSED_BODY = { text: false } as const
 
 type PlayActionRowProps = {
   entry: ActionEntry
@@ -78,25 +86,31 @@ export function PlayActionRow({
   )
   const open = resolve !== null
   const away = entry.need !== null
-  const controls = away ? undefined : open ? (
-    <Button
-      size="mini"
-      onClick={resolve.onBack}
-      aria-label={playCopy('cancel2', { name: entry.name })}
-    >
-      {playCopy('cancel')}
-    </Button>
-  ) : (
-    <Button
-      size="mini"
-      variant="ink"
-      onClick={onUse}
-      disabled={!canWrite}
-      aria-label={playCopy('use2', { name: entry.name })}
-    >
-      {playCopy('use')}
-    </Button>
-  )
+  // MOCK (Working Manual E): a phone's Use is a 44px target (principle 8); a
+  // Passive is always on and carries no Use (the timing law).
+  const size = usePlayWide() ? 'mini' : 'full'
+  const passive = entry.type === 'Passive'
+  const controls =
+    away || passive ? undefined : open ? (
+      <Button
+        size={size}
+        onClick={resolve.onBack}
+        aria-label={playCopy('cancel2', { name: entry.name })}
+      >
+        {playCopy('cancel')}
+      </Button>
+    ) : (
+      <Button
+        size={size}
+        // MOCK: Use steps down to outline; the open row's next step is the one rust door.
+        variant="default"
+        onClick={onUse}
+        disabled={!canWrite}
+        aria-label={playCopy('use2', { name: entry.name })}
+      >
+        {playCopy('use')}
+      </Button>
+    )
   return (
     <li
       className="su-play-act"
@@ -116,8 +130,12 @@ export function PlayActionRow({
           ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> }
           : lockChip(locked, entry.action.condition))}
         {...(controls ? { controls } : {})}
-        // Contentful (N3): the action's own text, then, while it resolves, its steps.
-        body={open ? { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}}
+        // MOCK (Working Manual E): a compact row, its head alone (name, traits,
+        // cost, Use); opened, it is contentful in place (N3): the action's own
+        // text, then its steps. Its name still Peeks its rules.
+        body={
+          open ? { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : CLOSED_BODY
+        }
       />
     </li>
   )

@@ -20,6 +20,9 @@ const TOAST = {
   fontSize: fontSize.caption,
 } satisfies CSSProperties
 
+/** MOCK: a phone's toast clears the foot's tabs (the Compact Size and its rule). */
+const MOBILE_OFFSET = { bottom: '3.5rem' } as const
+
 /**
  * The toast region, as configured. Render it only through `ToasterMount`,
  * which keeps it to one per document (chrome K5); a test may render it beside
@@ -29,6 +32,8 @@ function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
+      // MOCK (Working Manual, the Undo law): a phone's line sits above Play's tab row.
+      mobileOffset={MOBILE_OFFSET}
       style={TOASTER}
       toastOptions={{
         style: TOAST,

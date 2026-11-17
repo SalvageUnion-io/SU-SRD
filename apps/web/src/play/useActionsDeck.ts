@@ -60,6 +60,7 @@ import {
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import { rollForTable } from '../components/index'
+import { changeUndoToast } from '../lib/changeUndoToast'
 import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionPatches'
 import {
   activationHeatGate,
@@ -314,22 +315,31 @@ export function useActionsDeck({
       // empty pool and wrote AP 0 on the first activation. The stored value stays
       // authoritative when present: never clamp it here, since an unresolved ref
       // makes the max 0.
-      const patch = pilotActivationPatch({
-        apCost: economy.epCost,
-        currentAP: resolvePoolStart(
-          fresh.currentAP,
-          pilotMaxAP({
-            ...fresh,
-            crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler),
-          })
-        ),
-      })
+      const apBefore = resolvePoolStart(
+        fresh.currentAP,
+        pilotMaxAP({
+          ...fresh,
+          crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler),
+        })
+      )
+      const patch = pilotActivationPatch({ apCost: economy.epCost, currentAP: apBefore })
       // The resolve moves on to Roll only once the spend has landed.
       if (Object.keys(patch).length > 0) {
         runWrite(
           () => s.update('pilot', pilot.id, patch, meta),
           () => step(current, { activated: true })
         )
+        // MOCK (Working Manual, the Undo law): the spend says itself; Undo refunds it.
+        if (typeof patch.currentAP === 'number' && patch.currentAP !== apBefore)
+          changeUndoToast({
+            id: `pilot:${pilot.id}:currentAP`,
+            label: 'AP',
+            did: `Used ${action.name}`,
+            from: apBefore,
+            to: patch.currentAP,
+            undo: (value) =>
+              runWrite(() => s.update('pilot', pilot.id, { currentAP: value }, meta)),
+          })
       } else step(current, { activated: true })
       return
     }
@@ -352,6 +362,17 @@ export function useActionsDeck({
         () => s.update('mech', mech.id, patch, meta),
         () => step(current, { activated: true })
       )
+      // MOCK (Working Manual, the Undo law): the spend says itself; Undo refunds it.
+      const before = resolvePoolStart(fresh.currentEP, mechMaxEP(fresh, chassis))
+      if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
+        changeUndoToast({
+          id: `mech:${mech.id}:currentEP`,
+          label: 'EP',
+          did: `Used ${action.name}`,
+          from: before,
+          to: patch.currentEP,
+          undo: (value) => runWrite(() => s.update('mech', mech.id, { currentEP: value }, meta)),
+        })
     } else step(current, { activated: true })
   }
 
