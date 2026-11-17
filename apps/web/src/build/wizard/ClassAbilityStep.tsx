@@ -1,14 +1,11 @@
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import {
-  EmptyState,
-  Entity,
-  MasonryColumns,
-  ReferenceEntityCard,
-  Slab,
-} from '../../components/index'
+import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import type { CompareColumn } from './CompareTable'
+import { CompareTable } from './CompareTable'
+import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
 import { fullWidthStyle } from './wizardStyles.model'
 
@@ -19,6 +16,27 @@ type SURClassesAccessor = {
 type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
 }
+
+/**
+ * MOCK (Working Manual, "Compare in columns"): what tells the six classes
+ * apart is their trees, so those are the table's columns. The Salvager's row
+ * says what the book says of it (p.18): any Core tree, never beyond them.
+ */
+const CLASS_COLUMNS: readonly CompareColumn<SelectableBaseClass>[] = [
+  {
+    key: 'core',
+    label: 'Core trees',
+    text: true,
+    value: (c) => (c.coreTrees.length > 3 ? 'Any Core tree' : c.coreTrees.join(' · ')),
+  },
+  {
+    key: 'advanced',
+    label: 'Advances to',
+    text: true,
+    wideOnly: true,
+    value: (c) => (c.advanceable && c.advancedTree ? c.advancedTree : 'Core trees only'),
+  },
+]
 
 type ClassAbilityStepProps = {
   classId: string
@@ -59,35 +77,6 @@ export function ClassAbilityStep({
   // properly-typed ability then flows into the card with no further forcing.
   const allAbilities = surAbilities.findAll(() => true) as RefAbility[]
 
-  // Only the pick is contentful: the other five are header-only Compacts, so
-  // six class cards do not run nine phone screens before the abilities.
-  const renderClassCard = (cls: RefClass) =>
-    cls.id !== classId ? (
-      <Entity
-        key={cls.id}
-        size="compact"
-        entity={cls}
-        mode={{
-          kind: 'select',
-          role: 'radio',
-          selected: false,
-          onSelect: () => onSelectClass(cls.id),
-          label: cls.name,
-        }}
-      />
-    ) : (
-      <ReferenceEntityCard
-        key={cls.id}
-        data={cls}
-        size="compact"
-        selected={cls.id === classId}
-        selectionRole="radio"
-        cardClickLabel={cls.name}
-        onCardClick={() => onSelectClass(cls.id)}
-        hide={{ actions: true, choices: true }}
-      />
-    )
-
   const renderAbilityCard = (ability: RefAbility) => (
     <ReferenceEntityCard
       key={ability.id}
@@ -109,17 +98,39 @@ export function ClassAbilityStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('pilotClass2')}>
-        {legalClasses.map(renderClassCard)}
-      </MasonryColumns>
+      {/* MOCK: the classes as one compare table; the pick's card beside it. */}
+      <div className="su-wiz-compare-layout">
+        <div>
+          <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
+          <CompareTable
+            ariaLabel={buildWizardCopy('pilotClass2')}
+            nameLabel="Class"
+            rows={legalClasses}
+            rowKey={(c) => c.id}
+            rowName={(c) => c.name}
+            columns={CLASS_COLUMNS}
+            selected={classId || undefined}
+            onSelect={onSelectClass}
+          />
+        </div>
+        <div className="su-wiz-compare-detail">
+          {selectedClass === undefined ? (
+            <EmptyState
+              variant="quiet"
+              body={buildWizardCopy('pickAClassToReveal')}
+              bodyInk="inherit"
+            />
+          ) : (
+            <ReferenceEntityCard
+              data={selectedClass as RefClass}
+              size="compact"
+              hide={{ actions: true, choices: true }}
+            />
+          )}
+        </div>
+      </div>
 
-      {selectedClass === undefined ? (
-        <EmptyState
-          headline={buildWizardCopy('noClassSelected')}
-          body={buildWizardCopy('pickAClassToReveal')}
-        />
-      ) : (
+      {selectedClass === undefined ? null : (
         <>
           <Slab
             label={buildWizardCopy('firstAbilityTreesLevel1', { name: selectedClass.name })}

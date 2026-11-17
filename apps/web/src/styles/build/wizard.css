@@ -197,31 +197,28 @@
   padding: var(--space-20);
 }
 
-/* The action bar: a flat ink card. On a phone its budgets and gate text sit
-   over one line of Back, the ⋯ menu and the CTA; one row from sm. */
+/* MOCK (Working Manual, mockup C): the action bar's budget. One line at every
+   width: the trackers, ghost Back and Cancel, the rust Next. On a phone it is
+   docked to the screen's foot, edge to edge (chrome, not a card floating over
+   the step's cards), and holds the Scrap budget, the ⋯ menu (Back, Cancel, the
+   escape) and the Next; from sm it is the flat ink card at the pane's corner. */
+.su-wiz-footer {
+  bottom: 0;
+  margin-block-end: calc(-1 * var(--space-20));
+  margin-inline: calc(-1 * var(--space-20));
+}
+
 .su-wiz-pill {
   align-items: center;
-  border-radius: var(--radius-card);
-  flex-flow: row wrap;
+  flex-flow: row nowrap;
   gap: var(--space-8);
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-12);
   width: 100%;
-}
-
-/* The budgets and the gate text share the line over the buttons. */
-.su-wiz-pill:has(.su-wiz-pill-start, .su-wiz-pill-note)::before {
-  content: '';
-  flex-basis: 100%;
-  order: 1;
-}
-
-.su-wiz-pill-nav,
-.su-wiz-pill-cta {
-  order: 2;
 }
 
 .su-wiz-pill-start {
   flex: none;
+  flex-wrap: nowrap;
 }
 
 /* A budget (`WizTracker`) stands as tall as the Full buttons beside it. */
@@ -230,15 +227,12 @@
   height: var(--size-full);
 }
 
-.su-wiz-pill-note {
-  flex: 1 1 0%;
-  min-width: 0;
-  text-align: left;
-}
-
-/* The escape's button and Cancel are the ⋯ menu's rows on a phone. */
-.su-wiz-pill-escape,
-.su-wiz-pill-cancel {
+/* Back, Cancel and the escape are the ⋯ menu's rows on a phone; a budget the
+   step already shows (the slot counts on its tabs) stays off the phone's bar. */
+.su-wiz-pill-back,
+.su-wiz-pill-cancel,
+.su-wiz-pill-wide,
+.su-wiz-pill-next {
   display: none;
 }
 
@@ -248,6 +242,7 @@
 
 .su-wiz-pill-nav {
   display: flex;
+  flex: none;
 }
 
 .su-wiz-pill-cta {
@@ -256,37 +251,42 @@
 }
 
 @media (width >= 40rem) {
+  .su-wiz-footer {
+    bottom: var(--space-16);
+    margin-block-end: 0;
+    margin-inline: 0;
+  }
+
   .su-wiz-pill {
-    flex-wrap: nowrap;
+    border-radius: var(--radius-card);
     gap: var(--space-12);
+    max-width: 100%;
     padding: var(--space-12);
     padding-left: var(--space-16);
     width: auto;
   }
 
-  .su-wiz-pill:has(.su-wiz-pill-start, .su-wiz-pill-note)::before {
-    content: none;
-  }
-
-  .su-wiz-pill-nav,
-  .su-wiz-pill-cta {
-    order: 0;
-  }
-
-  .su-wiz-pill-note {
-    flex: none;
-  }
-
-  .su-wiz-pill-escape {
-    display: flex;
-  }
-
+  .su-wiz-pill-back,
   .su-wiz-pill-cancel {
     display: inline-flex;
   }
 
+  .su-wiz-pill-wide {
+    display: inline-flex;
+  }
+
+  .su-wiz-pill-next {
+    display: inline;
+    margin-inline-end: 0.3em;
+  }
+
+  /* From sm the ⋯ menu shows only when it holds the off-rules escape. */
   .su-wiz-pill-more {
     display: none;
+  }
+
+  .su-wiz-pill-more--escape {
+    display: flex;
   }
 
   .su-wiz-pill-nav {
@@ -423,4 +423,172 @@
 /* ClassPathPicker: the gap under each class Compact, on its wrapper. */
 .su-wiz-class-card {
   margin-bottom: var(--space-4);
+}
+
+/* — MOCK (Working Manual): the compare-table picker (`CompareTable`) — */
+
+/* The table, with the picked row's detail beside it from lg. */
+.su-wiz-compare-layout {
+  display: grid;
+  gap: var(--space-24);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-wiz-compare-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+@media (width >= 64rem) {
+  .su-wiz-compare-layout {
+    align-items: start;
+    gap: var(--space-32);
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+
+  /* The detail rides the scroll beside a long table. */
+  .su-wiz-compare-detail {
+    position: sticky;
+    top: var(--space-16);
+  }
+}
+
+.su-wiz-compare__scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.su-wiz-compare {
+  border-collapse: collapse;
+  color: var(--color-ink);
+  font-family: var(--font-barlow);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  line-height: calc(1.25 / 0.875);
+  width: 100%;
+}
+
+.su-wiz-compare th,
+.su-wiz-compare td {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+  padding: var(--space-12) var(--space-6);
+  text-align: right;
+  vertical-align: middle;
+}
+
+/* The heads: sentence case, semibold, on the table's one ink rule. */
+.su-wiz-compare thead th {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold, 600);
+  padding-block: var(--space-6);
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.su-wiz-compare thead abbr {
+  text-decoration: none;
+}
+
+.su-wiz-compare .su-wiz-compare__name,
+.su-wiz-compare .su-wiz-compare__text {
+  text-align: left;
+}
+
+.su-wiz-compare .su-wiz-compare__name {
+  padding-inline-start: var(--space-12);
+}
+
+.su-wiz-compare tbody .su-wiz-compare__name {
+  font-size: var(--text-lede);
+  font-weight: var(--weight-bold, 700);
+}
+
+/* The row is the radio's target; the picked row stands on the kind's ground
+   under a bar of its tone. */
+.su-wiz-compare__row {
+  cursor: pointer;
+}
+
+.su-wiz-compare__row:hover {
+  background-color: var(--color-ink-5);
+}
+
+.su-wiz-compare__row--selected,
+.su-wiz-compare__row--selected:hover {
+  background-color: var(--ground);
+  box-shadow: inset var(--space-4) 0 0 var(--tone);
+}
+
+.su-wiz-compare__row--selected td {
+  font-weight: var(--weight-bold, 700);
+}
+
+.su-wiz-compare__row--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.su-wiz-compare__pick {
+  align-items: center;
+  cursor: inherit;
+  display: flex;
+  gap: var(--space-8);
+  min-height: var(--space-24);
+}
+
+.su-wiz-compare__pick input {
+  accent-color: var(--color-ink);
+  flex: none;
+  height: var(--space-16);
+  margin: 0;
+  width: var(--space-16);
+}
+
+.su-wiz-compare__reason {
+  color: var(--color-wk-muted);
+  display: block;
+  font-size: var(--text-chip);
+  font-weight: 400;
+}
+
+/* A phone keeps the figures that decide; the rest are the detail's. */
+@media not (width >= 40rem) {
+  .su-wiz-compare .su-wiz-compare__wide {
+    display: none;
+  }
+
+  /* The table takes the step's side padding back, so seven figures fit 390. */
+  .su-wiz-compare__scroll {
+    margin-inline: calc(-1 * var(--space-12));
+    max-width: none;
+  }
+
+  .su-wiz-compare th,
+  .su-wiz-compare td {
+    padding-inline: var(--space-2);
+  }
+
+  .su-wiz-compare thead th {
+    font-size: var(--text-chip);
+  }
+
+  .su-wiz-compare th:last-child,
+  .su-wiz-compare td:last-child {
+    padding-inline-end: var(--space-8);
+  }
+
+  .su-wiz-compare .su-wiz-compare__name {
+    padding-inline-start: var(--space-8);
+  }
+
+  .su-wiz-compare__pick {
+    gap: var(--space-6);
+  }
+
+  .su-wiz-compare tbody .su-wiz-compare__name {
+    font-size: var(--text-body);
+  }
 }

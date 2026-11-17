@@ -245,19 +245,6 @@ const pillTrackersStyle = {
   gap: tokens.space[8],
 } satisfies CSSProperties satisfies CSSProperties
 
-/** Centred on a phone, left-aligned from sm (`.su-wiz-pill-note`). */
-const pillNoteStyle = {
-  color: tokens.color.pilot,
-  fontSize: tokens.fontSize.chip,
-  lineHeight: 'calc(1 / 0.75)',
-  margin: 0,
-  paddingInline: tokens.space[8],
-} satisfies CSSProperties satisfies CSSProperties
-const pillNoteCaps = capsLabel({ weight: 'semibold', tracking: 'caps' })
-
-/** Hidden on a phone, where the escape is a row of the ⋯ menu (`.su-wiz-pill-escape`). */
-const pillEscapeStyle = { paddingInline: tokens.space[8] } satisfies CSSProperties
-
 /** The phone's step line over the notch track: `STEP 2 OF 9 · CLASS & ABILITY`. */
 const railLineStyle = { color: tokens.color.ink, margin: 0 } satisfies CSSProperties
 const railLineCaps = capsLabel({ size: 'caption', tracking: 'snug' })
@@ -380,8 +367,19 @@ const stepTitleCaps = capsLabel({ size: 'title', weight: 'inherit' })
 /** The step's paper body, a plain block (not the box's flex column): 20px in. */
 const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
 
+/** MOCK: the gate's reason under the step's content. */
+const stepNoteStyle = {
+  borderTop: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.body,
+  fontWeight: tokens.weight.semibold,
+  margin: `${tokens.space[20]} 0 0`,
+  paddingTop: tokens.space[12],
+} satisfies CSSProperties
+
+/** Its bottom offset and bleed are `.su-wiz-footer`'s: docked on a phone. */
 const footerPillStyle = {
-  bottom: tokens.space[16],
   display: 'flex',
   justifyContent: 'flex-end',
   marginTop: tokens.space[24],
@@ -415,7 +413,6 @@ export function WizShell({
   children,
   trackers,
   footerNote,
-  escapeAction,
   onEscape,
   onBack,
   onCancel,
@@ -427,7 +424,17 @@ export function WizShell({
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
-  const ctaLabel = isLast ? submitLabel : <NextLabel to={steps[active + 1]} size="full" />
+  // MOCK: the Next names its step in words from sm ("Next: Systems & modules").
+  const ctaLabel = isLast ? (
+    submitLabel
+  ) : (
+    <>
+      <span aria-hidden="true" className="su-wiz-pill-next">
+        Next:
+      </span>
+      <NextLabel to={steps[active + 1]} size="full" />
+    </>
+  )
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
   // The ink action pill: trackers + gate note + escape + nav buttons + CTA.
   // It declares its ink ground (chrome K1), so its ghost buttons read paper.
@@ -438,21 +445,21 @@ export function WizShell({
           {trackers}
         </div>
       )}
-      {footerNote && (
-        <p role="status" className={cn('su-wiz-pill-note', pillNoteCaps)} style={pillNoteStyle}>
-          {footerNote}
-        </p>
-      )}
-      {escapeAction && (
-        <div className="su-wiz-pill-escape" style={pillEscapeStyle}>
-          {escapeAction}
-        </div>
-      )}
+      {/* MOCK (Working Manual, mockup C): the bar's budget is its trackers,
+          ghost Back and Cancel, and the one rust Next. The gate's reason is on
+          the step (`stepNote`), and the off-rules escape is a row of the ⋯
+          menu at every width, so nothing in the bar outgrows the Next. */}
       {/* Ghost nav row on phones; dissolves into the pill row ≥ sm. Back and
           Cancel take the CTA's Full Size: one Size per line (§4.7). */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
-          <Button variant="ghost" size="full" onClick={onBack} disabled={busy}>
+          <Button
+            variant="ghost"
+            size="full"
+            className="su-wiz-pill-back"
+            onClick={onBack}
+            disabled={busy}
+          >
             {buildWizardCopy('back')}
           </Button>
         )}
@@ -467,7 +474,7 @@ export function WizShell({
         </Button>
         {/* A phone's bar is one line (hard rule R44: nothing scrolls sideways):
             Cancel and the escape are the ⋯ menu's rows there. */}
-        <span className="su-wiz-pill-more">
+        <span className={cn('su-wiz-pill-more', onEscape && 'su-wiz-pill-more--escape')}>
           <HeaderMenu
             variant="overflow"
             size="full"
@@ -475,6 +482,16 @@ export function WizShell({
             label={buildWizardCopy('moreActions')}
             disabled={busy}
             sections={[
+              // MOCK: a phone's bar is its budget, ⋯ and Next; Back is a row here.
+              onBack
+                ? [
+                    {
+                      id: 'back',
+                      label: buildWizardCopy('back'),
+                      onSelect: onBack,
+                    },
+                  ]
+                : [],
               onEscape
                 ? [{ id: 'escape', label: buildWizardCopy('offRulesRow'), onSelect: onEscape }]
                 : [],
@@ -577,7 +594,15 @@ export function WizShell({
                 </h1>
               </div>
               <Box body="flush">
-                <div style={stepBodyStyle}>{children}</div>
+                <div style={stepBodyStyle}>
+                  {children}
+                  {/* MOCK: why Next is locked, on the step it locks. */}
+                  {footerNote && (
+                    <p role="status" style={stepNoteStyle}>
+                      {footerNote}
+                    </p>
+                  )}
+                </div>
               </Box>
             </article>
           </div>
@@ -589,7 +614,9 @@ export function WizShell({
               is interactive. Below the sm endpoint the pill is one line: Back,
               the ⋯ menu (Cancel, the escape) and the CTA filling the rest,
               under the step's budgets and gate text when it has them. */}
-          <footer style={footerPillStyle}>{actionPill}</footer>
+          <footer className="su-wiz-footer" style={footerPillStyle}>
+            {actionPill}
+          </footer>
         </div>
       </div>
     </div>
