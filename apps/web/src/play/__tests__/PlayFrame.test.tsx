@@ -9,6 +9,7 @@
 
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import { EntitySurfaceProvider } from '../../components/entity/EntitySurface'
 import { useEntitySurface } from '../../components/entity/entitySurfaceContext'
 import { PlayFrame } from '../PlayFrame'
@@ -31,9 +32,10 @@ const PANES = [
   { value: 'end', label: 'End', column: 'end', node: <SurfaceProbe id="end" /> },
 ] as const
 
-const frame = (wide = true) => (
+const frame = (wide = true, sheet?: ReactNode) => (
   <PlayFrame
     wide={wide}
+    sheet={sheet}
     bar={<SurfaceProbe id="bar" />}
     pinned={<SurfaceProbe id="pinned" />}
     panes={PANES}
@@ -90,5 +92,25 @@ describe('PlayFrame — one layout, its panes regions from `lg` and tabs below i
     expect(open.map((p) => p.getAttribute('aria-labelledby'))).toEqual([tabs[0]?.id ?? ''])
     expect(tabs[0]?.getAttribute('aria-controls')).toBe(open[0]?.id ?? '')
     expect(getByRole('tab', { name: 'Centre' }).getAttribute('aria-selected')).toBe('true')
+  })
+})
+
+describe('PlayFrame — a sheet on the screen (play.md §18)', () => {
+  const sheet = <span data-testid="sheet">sheet</span>
+  test('wide: it stands in the centre column, the centre pane kept mounted and hidden', () => {
+    const { getByRole, getByTestId } = render(frame(true, sheet))
+    const region = getByRole('region', { name: 'Sheet' })
+    expect(region.dataset.column).toBe('centre')
+    expect(region.classList.contains('su-play-sheet')).toBe(true)
+    expect(getByTestId('centre').closest('section')?.hidden).toBe(true)
+    expect(getByTestId('start').closest('section')?.hidden).toBe(false)
+    expect(getByTestId('end').closest('section')?.hidden).toBe(false)
+  })
+
+  test('narrow: it takes the open pane’s place, the tabs kept', () => {
+    const { getByRole, getByTestId } = render(frame(false, sheet))
+    expect(getByTestId('sheet')).toBeTruthy()
+    expect(getByTestId('centre').closest('section')?.hidden).toBe(true)
+    expect(getByRole('tablist')).toBeTruthy()
   })
 })

@@ -9,11 +9,13 @@
  *    switch), and the tabs along the foot at thumb height, in the order the
  *    screen gives them. Closed panes stay mounted, `hidden`, so a
  *    half-typed Find, an open filter or a resolve in hand survives a switch.
- *    Table mode's `focus` takes the panes' place, the panes kept under it.
+ *    Table mode's `focus` takes the panes' place, the panes kept under it;
+ *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
  *    table | Opposition | Tables, Feed and Propose), then the foot. The end
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
+ *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
  * The arrangement is CSS (`styles/play/frame.css`); `wide` (`usePlayWide`,
  * the same rung) decides only what a reader is told, so crossing it re-lays
@@ -102,6 +104,8 @@ type PlayFrameProps<Value extends string> = {
   onTab: (tab: Value) => void
   /** Below `lg`, table mode's screen, shown in the panes' place while set. */
   focus?: ReactNode
+  /** A unit's sheet on the screen (play.md §18): the centre column from `lg`, the open pane's place below it. */
+  sheet?: ReactNode
   /** The foot (`PlayFoot`), from `lg`. */
   foot: ReactNode
 }
@@ -116,12 +120,14 @@ export function PlayFrame<Value extends string>({
   tab,
   onTab,
   focus,
+  sheet,
   foot,
 }: PlayFrameProps<Value>) {
   const id = useId()
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
   const focused = !wide && focus !== undefined && focus !== null
+  const sheetOn = !focused && sheet !== undefined && sheet !== null
   const tabbed = tabs ? tabs.flatMap((value) => panes.filter((p) => p.value === value)) : panes
   const open = panes.some((p) => p.value === tab) ? tab : tabbed[0]?.value
   const tabId = (value: string) => `${id}-tab-${value}`
@@ -136,7 +142,7 @@ export function PlayFrame<Value extends string>({
       className="su-play-pane"
       data-column={p.column}
       data-dock={p.dock ? '' : undefined}
-      hidden={!wide && (focused || p.value !== open)}
+      hidden={wide ? sheetOn && p.column === 'centre' : focused || sheetOn || p.value !== open}
       role={wide ? undefined : 'tabpanel'}
       aria-label={wide ? (region ?? undefined) : undefined}
       aria-labelledby={wide ? undefined : tabId(p.value)}
@@ -156,6 +162,15 @@ export function PlayFrame<Value extends string>({
             {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
             {inColumn('start').map((p) => pane(p, labels[0]))}
             {inColumn('centre').map((p) => pane(p, labels[1]))}
+            {sheetOn ? (
+              <section
+                className="su-play-pane su-play-sheet"
+                data-column="centre"
+                aria-label={playCopy('sheet')}
+              >
+                {sheet}
+              </section>
+            ) : null}
             <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
               {inColumn('end').map((p) => pane(p, null))}
             </section>

@@ -112,7 +112,7 @@ function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: 
     runWrite(() => store.getState().update(kind, id, patch, PLAY_TXN))
 }
 
-/** "Sheet", opening the unit’s sheet in Build (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
+/** "Sheet", putting the unit’s sheet on the screen (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
 function SheetButton({ name, onOpen }: { name: string; onOpen: () => void }) {
   return (
     <Button

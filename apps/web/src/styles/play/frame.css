@@ -154,3 +154,23 @@
     grid-template-columns: 300px minmax(0, 1fr) 320px;
   }
 }
+
+/*
+ * A sheet on the screen (`PlaySheetPane`, play.md §18) asks its own pane's
+ * width: the sheet's columns rung (64rem, K2) is the viewport's on a Build
+ * page, but here the sheet has only the centre column. Below 64rem of it the
+ * sheet stays one column, the sidebar under the opening, as on a phone.
+ */
+.su-play-sheet {
+  container: play-sheet / inline-size;
+}
+
+@container play-sheet not (width >= 64rem) {
+  .su-play-sheet
+    .su-sheet-columns:has(> .su-sheet-aside):has(> .su-sheet-columns__main:not(:empty)),
+  .su-play-sheet .su-sheet-columns[data-vitals-aside]:has(> .su-sheet-columns__main:not(:empty)) {
+    grid-template-areas: 'hero' 'aside' 'main';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+}

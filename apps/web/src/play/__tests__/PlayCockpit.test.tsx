@@ -94,6 +94,26 @@ describe('the Cockpit frame', () => {
     expect(await screen.findByRole('menuitem', { name: /Discord channel/ })).toBeTruthy()
   })
 
+  test('⋯ › Show a sheet puts the pilot’s sheet on the screen; × brings the pane back (play.md §18)', async () => {
+    await renderCockpit({ gameId: null, gameName: null })
+    const bar = within(screen.getByRole('banner'))
+    await act(async () => {
+      fireEvent.click(bar.getByRole('button', { name: 'More' }))
+    })
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('menuitem', { name: /Show a sheet/ }))
+    })
+    const pane = within(screen.getByRole('region', { name: 'Sheet' }))
+    expect(pane.getByRole('button', { name: 'Show a sheet' })).toBeTruthy()
+    expect(pane.getByRole('link', { name: 'Edit in Build' }).getAttribute('href')).toMatch(
+      /^\/pilots\/cockpit-wren/
+    )
+    await act(async () => {
+      fireEvent.click(pane.getByRole('button', { name: 'Back to Actions' }))
+    })
+    expect(screen.queryByRole('region', { name: 'Sheet' })).toBeNull()
+  })
+
   test('on foot the bar and the foot wear the pilot’s orange, ink on it', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     for (const band of [screen.getByRole('banner'), screen.getByRole('contentinfo')]) {

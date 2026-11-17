@@ -29,6 +29,7 @@ import { acts, closeRooms, openRooms, serveReads } from '../../replica/__tests__
 import type { SyncStatus } from '../../replica/sync'
 import type { PlayTarget } from '../play.model'
 import type { Play } from '../situation.model'
+import type { SheetTarget } from '../useOpenSheet'
 import { CREW_HERE, crewAt } from './crewFixture'
 
 let postResult: () => Promise<PostRollResult> = async () => ({
@@ -59,6 +60,7 @@ function SideColumn({ target, play }: { target: PlayTarget; play: Play }) {
   )
 }
 const { SyncContext } = await import('../../replica/syncContext')
+const { ShowSheetContext } = await import('../useOpenSheet')
 const { recordPlayRoll, recordPlayChange, clearPlayRolls, reportingRoll } = await import(
   '../playRolls.model'
 )
@@ -124,7 +126,8 @@ function playFor(target: PlayTarget, canWrite: boolean): Play {
 
 async function renderSide(
   { gameId = GAME, mediator = false }: { gameId?: string | null; mediator?: boolean } = {},
-  status: SyncStatus = 'live'
+  status: SyncStatus = 'live',
+  show: (target: SheetTarget) => void = () => {}
 ) {
   const canWrite = status === 'live'
   const target: PlayTarget = {
@@ -141,7 +144,9 @@ async function renderSide(
         outdated: false,
       }}
     >
-      <SideColumn target={target} play={playFor(target, canWrite)} />
+      <ShowSheetContext.Provider value={show}>
+        <SideColumn target={target} play={playFor(target, canWrite)} />
+      </ShowSheetContext.Provider>
     </SyncContext.Provider>
   )
   let view: ReturnType<typeof render> | null = null
@@ -260,12 +265,14 @@ describe('the Crew (play.md §7)', () => {
     }
   })
 
-  test('tapping a crewmate opens their sheet read-only over Play', async () => {
+  test('tapping a crewmate puts their pilot’s sheet on the screen (play.md §18)', async () => {
     answers()
-    await renderSide()
+    const shown: SheetTarget[] = []
+    await renderSide({}, 'live', (t) => shown.push(t))
     const mags = screen.getByRole('button', { name: /^Mags, here/ })
     await act(async () => mags.click())
-    expect(screen.getByRole('dialog', { name: 'Mags · read-only' })).toBeTruthy()
+    expect(shown).toEqual([{ kind: 'pilot', id: expect.any(String), name: 'Mags' }])
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   test('solo has no Crew', async () => {

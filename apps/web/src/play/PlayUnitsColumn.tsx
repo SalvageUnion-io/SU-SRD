@@ -11,7 +11,7 @@
  * - **Crawler** — SP, TL and its bays; live in solo Downtime (or for the
  *   Mediator, whose screen draws the same box), otherwise for reference.
  *
- * "Sheet ⤢" on a box opens that unit's sheet over Play (`PlaySheetOverlay`).
+ * "Sheet" on a box puts that unit's sheet on the screen (`useOpenSheet`, play.md §18).
  *
  * Its heading is a Slab, never a `TitledBox`, so each unit's box is level 1
  * and what is inside one is a Mini or plain content (play.md §12).
