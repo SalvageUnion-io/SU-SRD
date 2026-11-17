@@ -11,8 +11,8 @@
  * NPC Action table, whose stamp is the roll
  * and whose marked row is what it came to (ruleset §1.4, as a player's
  * action resolves). Every roll goes on Play's roll log (`reportingRoll`),
- * which keeps the Mediator's rolls off the Game's log and posts one only when
- * the Post toggle or the roll's own Post says so. The Morale check is the
+ * which keeps the Mediator's rolls off the Game's log and posts each to the
+ * bound Discord channel. The Morale check is the
  * tray's own (`TrayWrites.morale`): the Morale table, open, its stamp the
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
  */

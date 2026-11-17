@@ -1,11 +1,11 @@
 /**
  * usePlaySide — what the player's side sections share (play.md §7–§9): the
- * Game's feed and seats, the bound channel, the screen's one Post toggle, the
- * roll dispatch and the Feed's lines.
+ * Game's feed and seats, the bound channel, the roll dispatch and the Feed's
+ * lines.
  *
  * Called once per screen, by `PlayCockpit`, which hands it to the Crew and
  * Tables panes, so the dispatch (`usePlayRollDispatch`), which writes every
- * roll recorded in Play to the Game's log and, per the toggle, to Discord,
+ * roll recorded in Play to the Game's log and to the bound Discord channel,
  * runs exactly once whichever pane is open.
  *
  * The Tables and Feed half is `useSideFeed`, which the Mediator's side
@@ -23,24 +23,20 @@ import { useGameBoardSources } from './useBoardSources'
 import type { GameFeed } from './useGameFeed'
 import { useGameFeed } from './useGameFeed'
 import type { PlayRollDispatch } from './usePlayChannel'
-import { postDefault, usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
+import { usePlayChannelBinding, usePlayRollDispatch } from './usePlayChannel'
 
 /** What a screen's Tables and Feed share, the player's or the Mediator's. */
 export type SideFeed = {
   /** The Game the Feed is of; null at the solo table. */
   gameId: string | null
   binding: PlayBinding | null | undefined
-  /** The screen's one Post toggle. */
-  post: boolean
-  setPost: (post: boolean) => void
   dispatch: PlayRollDispatch
   /** The Feed's lines, newest first. */
   entries: ReturnType<typeof playFeedEntries>
 }
 
 /**
- * The screen's Post toggle (`postDefault`: the Mediator's private), its roll
- * dispatch, and the Feed's lines: the Game's rolls, alerts and proposals with
+ * The screen's roll dispatch and the Feed's lines: the Game's rolls, alerts and proposals with
  * this screen's own entries, those recorded since it opened.
  */
 export function useSideFeed({
@@ -59,12 +55,11 @@ export function useSideFeed({
   /** Write each roll to the Game's log; the Mediator's screen does not. */
   log?: boolean
 }): SideFeed {
-  const [post, setPost] = useState(() => postDefault(target))
-  const dispatch = usePlayRollDispatch({ target, rollerName, post, binding, log })
+  const dispatch = usePlayRollDispatch({ target, rollerName, binding, log })
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
   const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })
-  return { gameId: target.gameId, binding, post, setPost, dispatch, entries }
+  return { gameId: target.gameId, binding, dispatch, entries }
 }
 
 export type PlaySide = SideFeed & {
