@@ -76,7 +76,7 @@ export function CompareTable<T>({
             const reason = disabledReason?.(row)
             const isSelected = key === selected
             return (
-              // biome-ignore lint/a11y/useKeyWithClickEvents: MOCK: the row's radio carries the keys; the click widens its target to the row
+              // MOCK: the row's radio carries the keys; the click widens its target to the row.
               <tr
                 key={key}
                 className={cn(
