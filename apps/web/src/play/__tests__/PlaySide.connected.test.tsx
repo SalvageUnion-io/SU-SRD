@@ -167,14 +167,13 @@ const feedLines = () =>
     .getAllByRole('listitem')
     .map((li) => li.textContent ?? '')
 
-async function roll(rolls: number[], post?: boolean) {
+async function roll(rolls: number[]) {
   await act(async () => {
     recordPlayRoll({
       tableName: 'Core Mechanic',
       rolls,
       label: 'Core Mechanic',
       outcome: 'Success',
-      ...(post === undefined ? {} : { post }),
     })
   })
 }
@@ -324,7 +323,6 @@ describe('Discord (play.md §9)', () => {
       gameId: GAME,
       pilotId: 'bonesaw',
       roll: { tableName: 'Core Mechanic', rolls: [14] },
-      post: true,
     })
     await waitFor(() => expect(feed().getByText('Posted')).toBeTruthy())
   })
@@ -396,39 +394,23 @@ describe('Discord (play.md §9)', () => {
     )
   })
 
-  test('the toggle off keeps a roll private; its line can still post it', async () => {
+  test('there is no opt-in: the Tables say where rolls post, and none is a checkbox', async () => {
     answers()
     await renderSide()
-    const toggle = screen.getByRole('checkbox', { name: 'Post rolls to #salvage-run' })
-    expect((toggle as HTMLInputElement).checked).toBe(true)
-    await act(async () => toggle.click())
+    expect(screen.getByText('Rolls post to #salvage-run')).toBeTruthy()
+    expect(screen.queryByRole('checkbox', { name: /Post rolls/ })).toBeNull()
+  })
+
+  test('the Mediator’s rolls post too', async () => {
+    answers()
+    await renderSide({ mediator: true })
     await roll([3])
-    expect(postRoll).not.toHaveBeenCalled()
-    await act(async () => {
-      feed().getByRole('button', { name: 'Post Core Mechanic to Discord' }).click()
-    })
     expect(postRoll).toHaveBeenCalledTimes(1)
   })
 
-  test('a roll’s own choice beats the toggle', async () => {
-    answers()
-    await renderSide()
-    await roll([3], false)
-    expect(postRoll).not.toHaveBeenCalled()
-  })
-
-  test('the Mediator’s rolls default to private', async () => {
-    answers()
-    await renderSide({ mediator: true })
-    const toggle = screen.getByRole('checkbox', { name: 'Post rolls to #salvage-run' })
-    expect((toggle as HTMLInputElement).checked).toBe(false)
-  })
-
-  test('nothing bound: the toggle is off and says rolls stay in Play; nothing is sent', async () => {
+  test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
-    const toggle = screen.getByRole('checkbox', { name: 'Post rolls to the Game’s channel' })
-    expect((toggle as HTMLInputElement).disabled).toBe(true)
     expect(screen.getByText(/No channel is bound yet/)).toBeTruthy()
     await roll([3])
     expect(postRoll).not.toHaveBeenCalled()

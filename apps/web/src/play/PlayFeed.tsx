@@ -153,7 +153,7 @@ function PostState({
     )
   }
   if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
-  const label = post.kind === 'skipped' ? 'Post' : 'Try again'
+  const label = 'Try again'
   return (
     <Button
       variant="default"

@@ -6,15 +6,14 @@
  *  - **Crew** (`PlayCrewSection`): one line per other seat, from `crew.vitals`
  *    (`useGameFeed`) and the seats (`useGameBoardSources`).
  *  - **Tables** (`PlayTablesSection`): pinned for the Situation, Find for the
- *    rest, and the screen's one Post toggle, defaulting to `postsByDefault`
- *    (the Mediator private).
+ *    rest, and where the screen's rolls post.
  *  - **Feed** (`PlayFeedSection`): the crew's rolls, alerts and proposals with
  *    my own rolls and changes (`playRolls`), newest first; solo only my own.
  *
  * What the three share is `usePlaySide`, called once per screen by
  * `PlayCockpit`: the roll dispatch lives there (`usePlayRollDispatch`), so
- * every roll recorded anywhere in Play is written to the Game's log and, per
- * the toggle, posted to Discord, its result on its Feed line.
+ * every roll recorded anywhere in Play is written to the Game's log and posted
+ * to the bound Discord channel, its result on its Feed line.
  *
  * Each section's heading is a Slab, never a `TitledBox`, so what a section
  * lists stays level 1 (play.md §12). The Tables and Feed sections are the
@@ -50,7 +49,7 @@ export function PlayCrewSection({ target, side }: PlayColumnProps & { side: Play
 /** A Tables or Feed section: the screen's shared side, and its Slab ids' prefix. */
 type SideSectionProps = { side: SideFeed; idPrefix: 'play' | 'mediate' }
 
-/** The roll Tables, pinned for the Situation (or the Game's state), and the Post toggle. */
+/** The roll Tables, pinned for the Situation (or the Game's state), and where rolls post. */
 export function PlayTablesSection({
   side,
   idPrefix,
@@ -73,8 +72,6 @@ export function PlayTablesSection({
         downtime={downtime}
         mechTables={mechTables}
         solo={solo}
-        post={side.post}
-        onPostChange={side.setPost}
         binding={side.binding}
         prepared={prepared}
         onField={onField}

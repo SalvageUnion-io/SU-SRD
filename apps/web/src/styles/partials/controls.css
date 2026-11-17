@@ -351,6 +351,7 @@
    with the column's top, the body taking the height between and centring
    its content in it, the foot flat on the column's base. */
 .su-searcher__page {
+  --su-foot-ground: var(--color-wk-bg);
   display: flex;
   flex-direction: column;
   background-color: var(--color-wk-bg);

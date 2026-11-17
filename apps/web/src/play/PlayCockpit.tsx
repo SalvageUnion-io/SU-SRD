@@ -10,7 +10,7 @@
  * own file. Each is handed the `PlayTarget` and the one `Play` object
  * `usePlaySituation` returns here (the seat, the Downtime and the Situation
  * they make), so all of them read the same thing. The side's shared state
- * (`usePlaySide`: the roll dispatch, the Post toggle) is read here once too,
+ * (`usePlaySide`: the roll dispatch, the bound channel) is read here once too,
  * so every roll made in any pane is dispatched whichever pane is open.
  *
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's

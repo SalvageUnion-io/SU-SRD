@@ -8,8 +8,8 @@
  *    shown only while one with notes is running.
  *
  *  - **Tables** (`PlayTablesSection`, the player's): the running encounter's,
- *    then those pinned for the Game's state, Find for the rest, and the screen's Post toggle, private by
- *    default for the Mediator (`postDefault`, `postsByDefault`).
+ *    then those pinned for the Game's state, Find for the rest, and where the
+ *    screen's rolls post: every roll, while a channel is bound.
  *  - **Feed** (`PlayFeedSection`, the player's): the crew's rolls and the alerts
  *    sent, with this screen's own rolls (Opposition, Morale, tables), newest
  *    first. Nothing awaits the Mediator's answer, so no proposal waits here.

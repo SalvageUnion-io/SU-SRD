@@ -17,8 +17,7 @@
  *
  * A Morale roll is kept on the NPC (`lastMediatorRoll`) and goes on Play's
  * roll log (`recordPlayRoll`), which keeps the Mediator's rolls off the
- * Game's log and posts one only when the Post toggle (private by default) or
- * the roll's own Post says so.
+ * Game's log and posts each to the bound Discord channel.
  */
 
 import { PROPOSALS_PAGE } from 'game-domain/games/proposals'

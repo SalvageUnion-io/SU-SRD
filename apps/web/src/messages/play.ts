@@ -26,6 +26,8 @@ export const playCopy = messages({
   noDiscordChannelIsBound: 'No Discord channel is bound to {whose} yet, so its rolls stay in Play.',
   rollsFromPostToIts:
     'Rolls from {whose} post to its bound Discord channel, as the bot’s roll card. Bound {dateTime}.',
+  yourRollsPostToYourOwn:
+    'No channel is bound to {whose}, so your rolls post to your own channel, the one you bound for solo play. Bound {dateTime}.',
   toConnectOneRun: 'To connect one, run ',
   toMoveItRun: 'To move it, run ',
   suBind: '/su bind',

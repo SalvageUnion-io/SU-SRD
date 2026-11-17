@@ -5,14 +5,14 @@
  * (`pinnedTables`), each a list of roll table Minis
  * in the Mini grid (`MiniGrid`; ruleset §1.3: Play's lists are Minis), the open table drawn by
  * the shared roll instrument (`PlayRollTable`, `RollTableInstrument`
- * underneath), and the screen's one Post toggle (§9).
+ * underneath), and where the screen's rolls post (§9).
  *
  * Choosing a table's Mini opens it (R8: the instrument, open, its stamp the
  * one roll); the open one is the pressed toggle Mini (EDL Modes), the rest
  * dimmed beside it, and choosing it again closes it.
  *
  * Every roll goes through `recordPlayRoll`, so it lands on the Feed, the
- * Game's log and, when the toggle says so, the bound Discord channel.
+ * Game's log and, while one is bound, the Discord channel.
  *
  * The open table sits directly in the column (level 1, play.md §12).
  */
@@ -27,7 +27,6 @@ import { RollMini } from '../components/entity/forms/RollMini'
 import {
   Button,
   CHAPTER_BAND_COLOR,
-  Checkbox,
   MiniGrid,
   SearchField,
   Text,
@@ -35,7 +34,7 @@ import {
 } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PlayBinding } from './channels.model'
-import { postLabel } from './channels.model'
+import { postsToLabel } from './channels.model'
 import { readRoster } from './mediator/encounterRoster.model'
 import { PlayRollTable } from './PlayRollTable'
 import { recordPlayRoll } from './playRolls.model'
@@ -64,9 +63,6 @@ type PlayTablesProps = {
   mechTables?: OverloadTable | undefined
   /** Solo: rolls post to my own channel. */
   solo: boolean
-  /** The screen's Post toggle. */
-  post: boolean
-  onPostChange: (post: boolean) => void
   /** The bound channel: undefined while unknown, null when none. */
   binding: PlayBinding | null | undefined
   /** The Mediator's running encounter's own tables (ADR-059), above the Situation's. */
@@ -82,8 +78,6 @@ export function PlayTables({
   downtime,
   mechTables = 'reactor',
   solo,
-  post,
-  onPostChange,
   binding,
   prepared = [],
   onField,
@@ -91,7 +85,6 @@ export function PlayTables({
   const [open, setOpen] = useState<string | null>(null)
   // The row the open table last landed on, by its range key.
   const [landed, setLanded] = useState<string | null>(null)
-  const postId = useId()
   const [query, setQuery] = useState('')
   const findId = useId()
   const tables = SalvageUnionReference.RollTables.all()
@@ -161,18 +154,7 @@ export function PlayTables({
       {onField && roster.length > 0 && (
         <FieldRoster key={`${open}:${landed}`} lines={roster} onField={onField} />
       )}
-      <div style={POST}>
-        {/* Named by the words beside it, never a hand-rolled <label> (R16). */}
-        <Checkbox
-          id={postId}
-          checked={post && binding != null}
-          disabled={binding == null}
-          onChange={(e) => onPostChange(e.target.checked)}
-          aria-labelledby={`${postId}-label`}
-          hitArea
-        />
-        <span id={`${postId}-label`}>{postLabel(solo, binding)}</span>
-      </div>
+      {binding != null && <div style={POST}>{postsToLabel(solo, binding)}</div>}
       {binding === null && <Text variant="note">{playCopy('noChannelIsBoundYet')}</Text>}
     </div>
   )

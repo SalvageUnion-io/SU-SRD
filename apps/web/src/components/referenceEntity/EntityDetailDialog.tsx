@@ -5,6 +5,7 @@ import { resolveProvenance, toEntityModel } from 'salvageunion-reference'
 import { foregroundOn } from '../../design/contrast'
 import { borderWidth, color, layer, shadow, space } from '../../design/tokens'
 import { referenceEntityCopy } from '../../messages/components-reference-entity'
+import type { CSSVarStyle } from '../../styles/cssVars'
 import { ChapterBand } from '../atoms/ChapterBand'
 import { CloseButton } from '../atoms/CloseButton'
 import type { ChapterTone } from '../atoms/chapterBandColor'
@@ -61,6 +62,8 @@ const closeStyle = {
  * foot together) when it outgrows the viewport.
  */
 const pageStyle = {
+  // The foot's source cut-out wears this ground too (Source 2).
+  '--su-foot-ground': 'var(--color-wk-bg)',
   backgroundColor: color.wkBg,
   borderColor: color.ink,
   borderStyle: 'solid',
@@ -71,7 +74,7 @@ const pageStyle = {
   // and below (`.su-entity-dialog`), which hold the close stamp's straddle.
   maxHeight: 'calc(100dvh - 5.5rem)',
   overflowY: 'auto',
-} satisfies CSSProperties
+} satisfies CSSVarStyle
 
 /**
  * The band a Page wears: the entity's own tone, as its card's head and Compact

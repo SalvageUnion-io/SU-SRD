@@ -383,12 +383,30 @@ describe("Discord's channels", () => {
     expect(await w.call('channelBindings.current', { gameId: 'g-elsewhere' })).toBeNull()
   })
 
-  test('a roll that is not posted, or cannot be', async () => {
+  test('a Game with no channel bound falls back to the roller’s own', async () => {
+    const w = world()
+    const { gameId } = await starterGame(w)
+    expect(await w.call('channelBindings.current', { gameId })).toBeNull()
+    bind(w, 'c-solo', null)
+    expect(await w.call('channelBindings.current', { gameId })).toEqual({
+      channelId: 'c-solo',
+      channelName: '#c-solo',
+      boundAt: 5,
+      own: true,
+    })
+    bind(w, 'c-game', gameId)
+    expect(await w.call('channelBindings.current', { gameId })).toEqual({
+      channelId: 'c-game',
+      channelName: '#c-game',
+      boundAt: 5,
+    })
+  })
+
+  test('a roll that cannot be posted', async () => {
     const w = world()
     const { gameId } = await starterGame(w)
     const post = (args: object, who = ORG) =>
-      gameCall('channelBindings.postRoll', { roll, post: true, ...args }, who, w.deps)
-    expect(await post({ post: false })).toEqual({ ok: true, value: { kind: 'skipped' } })
+      gameCall('channelBindings.postRoll', { roll, ...args }, who, w.deps)
     expect(await post({ gameId: 'g-elsewhere' })).toEqual({
       ok: false,
       refusal: 'Not a member of this Game',
@@ -421,7 +439,7 @@ describe("Discord's channels", () => {
     bind(w, 'c-game', gameId)
     bind(w, 'c-solo', null)
     const post = (args: object) =>
-      gameCall('channelBindings.postRoll', { roll, post: true, ...args }, ORG, w.deps)
+      gameCall('channelBindings.postRoll', { roll, ...args }, ORG, w.deps)
     expect(await post({ gameId, pilotId: pilot?._id })).toEqual({
       ok: true,
       value: { kind: 'posted', channelId: 'c-game', messageId: 'm-1' },
@@ -445,5 +463,11 @@ describe("Discord's channels", () => {
     expect(await post({})).toMatchObject({ value: { message: 'The bot did not answer.' } })
     reply = () => Promise.reject(new Error('down'))
     expect(await post({})).toMatchObject({ value: { message: 'The bot could not be reached.' } })
+    reply = async () => Response.json({ ok: true, messageId: 'm-2' })
+    w.db.sqlite.query('delete from channel_bindings where channel_id = ?1').run('c-game')
+    expect(await post({ gameId })).toEqual({
+      ok: true,
+      value: { kind: 'posted', channelId: 'c-solo', messageId: 'm-2' },
+    })
   })
 })

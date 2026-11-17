@@ -5,7 +5,7 @@
  *
  *  - **Roll the die**: one Full button, a d20 on the Core Mechanic
  *    (`TABLE_ROLL`), recorded through `recordPlayRoll` like every roll in Play,
- *    so it reaches the Feed, the Game's log and, per the Post toggle, Discord.
+ *    so it reaches the Feed, the Game's log and the bound Discord channel.
  *    The last roll reads under it, its figure and its band.
  *  - **The vitals**: the pinned units (`tableUnits`), each vital the Full
  *    `VitalGauge` with its − / + under the track, written through the field
