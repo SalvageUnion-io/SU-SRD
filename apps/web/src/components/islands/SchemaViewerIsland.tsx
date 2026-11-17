@@ -44,6 +44,7 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
+import { CompareTable } from './CompareTable'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -433,7 +434,14 @@ function SchemaViewer({
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
                   {group.label && <Slab label={group.label} />}
-                  {view === 'catalog' ? (
+                  {view === 'table' ? (
+                    // MOCK (Working Manual, B): the index as a compare table.
+                    <CompareTable
+                      schemaId={schemaId}
+                      noun={band?.title ?? ''}
+                      items={group.items}
+                    />
+                  ) : view === 'catalog' ? (
                     <ul className="su-listing__tiles">
                       {group.items.map((item: RefEntity, index) => (
                         <li key={item.id}>

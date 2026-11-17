@@ -110,6 +110,14 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
     : []
 }
 
+/**
+ * MOCK (Working Manual, A): every book stat of a chassis in §2.6 order (TL, SV,
+ * SP, EP, Sys, Mod, Heat, Cargo), for the page's one ruled stat line.
+ */
+export function pageStatLine(entity: RefMetaEntity): BookStat[] {
+  return isChassis(entity) ? bookStatsOf(toEntityModel(entity), entity) : []
+}
+
 /** What an entity's page says around its body, read off its entity model. */
 export function resolveEntityPageMeta(
   entity: RefMetaEntity,
@@ -120,8 +128,12 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
+    // MOCK (Working Manual, A): a chassis page's TL and SV join its stat line,
+    // so its band carries no stamps; a pattern page keeps them.
     stats: statsInBody(entity)
-      ? bookStatsOf(model, entity).filter(isBandStat)
+      ? pattern
+        ? bookStatsOf(model, entity).filter(isBandStat)
+        : []
       : bookStatsOf(model, entity),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),

@@ -1,0 +1,300 @@
+/* MOCK — the Working Manual direction's reading register (mockups A and B).
+ * Not shipped code: a chassis Page (`CardPage`'s `.su-manual`) and a Reference
+ * index as a compare table (`CompareTable`). Tokens only.
+ */
+
+/* ══ A · the chassis Page ══════════════════════════════════════════════════
+ * One DOM order at every width: stats, art, rules, lore. On a phone that is
+ * the reading order (the art after the numbers); from `lg` the art is a side
+ * column and the reading column hugs the band's gutter.
+ */
+.su-manual {
+  gap: var(--space-16);
+}
+
+.su-manual__rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+@media (width >= 64rem) {
+  .su-manual--art {
+    column-gap: var(--space-32);
+    display: grid;
+    grid-template-areas:
+      'stats art'
+      'rules art';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    grid-template-rows: auto 1fr;
+    row-gap: var(--space-24);
+  }
+
+  .su-manual--art > .su-manual__stats {
+    grid-area: stats;
+  }
+
+  .su-manual--art > .su-manual__art {
+    align-self: start;
+    grid-area: art;
+  }
+
+  .su-manual--art > .su-manual__rules {
+    grid-area: rules;
+  }
+}
+
+/* The stat line: eight cells on one ruled line, two rows of four on a phone. */
+.su-manual-statline {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-manual-statline > li {
+  border-right: var(--bw-hairline) solid var(--color-ink-15);
+  min-width: 0;
+  padding: var(--space-8) var(--space-12);
+}
+
+.su-manual-statline > li:nth-child(4n) {
+  border-right: 0;
+}
+
+.su-manual-statline > li:nth-child(-n + 4) {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+}
+
+@media (width >= 40rem) {
+  .su-manual-statline {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  .su-manual-statline > li:nth-child(4n) {
+    border-right: var(--bw-hairline) solid var(--color-ink-15);
+  }
+
+  .su-manual-statline > li:nth-child(-n + 4) {
+    border-bottom: 0;
+  }
+
+  .su-manual-statline > li:last-child {
+    border-right: 0;
+  }
+}
+
+/* `Stat surface="plain"`: its label over its reading. */
+.su-manual-statline__stat {
+  color: var(--color-wk-muted);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-2);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.su-manual-statline__stat > b {
+  color: var(--color-ink);
+  font-size: var(--text-display-lg);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+/* The phone's "Show all patterns" jump has no pattern rows to open here. */
+.su-entity:has(.su-manual) .su-pattern-rows__more {
+  display: none;
+}
+
+/* The lore: last, quieter, italic, on a measure. */
+.su-manual__lore {
+  color: var(--color-ink-2);
+  font-size: var(--text-lede);
+  font-style: italic;
+  max-width: 66ch;
+}
+
+/* ══ The table (A's patterns, B's index) ═══════════════════════════════════ */
+.su-mock-table {
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: 1.45;
+  width: 100%;
+}
+
+.su-mock-table :is(th, td) {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+  font-weight: var(--font-weight-normal);
+  padding: var(--space-8) var(--space-12);
+  text-align: left;
+  vertical-align: top;
+}
+
+.su-mock-table thead th {
+  border-bottom-color: var(--color-ink);
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  vertical-align: bottom;
+  white-space: nowrap;
+}
+
+.su-mock-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.su-mock-table tbody tr:hover {
+  background-color: var(--color-ink-5);
+}
+
+.su-mock-table tbody .su-mock-table__name {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.su-mock-table__name > .su-badge-stamp {
+  margin-left: var(--space-8);
+  vertical-align: middle;
+}
+
+.su-mock-table__cite {
+  color: var(--color-wk-muted);
+  white-space: nowrap;
+}
+
+.su-mock-table__none {
+  color: var(--color-ink-35);
+}
+
+.su-mock-table [data-numeric] {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-mock-table tbody [data-numeric] {
+  font-size: var(--text-lede);
+}
+
+.su-mock-table__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/* A sortable column's head: the header's own words, as a button. */
+.su-mock-table__sort {
+  align-items: baseline;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--space-4);
+  padding: 0;
+}
+
+.su-mock-table__sort:hover {
+  color: var(--color-ink);
+}
+
+.su-mock-table__arrow {
+  font-size: 0.6em;
+  opacity: 0;
+}
+
+.su-mock-table__sort:hover > .su-mock-table__arrow {
+  opacity: 0.5;
+}
+
+.su-mock-table__arrow[data-on] {
+  color: var(--color-ink);
+  opacity: 1;
+}
+
+/* A's patterns on a phone: each row a block, its cells labelled lines. */
+@media not (width >= 40rem) {
+  .su-mock-table--stack thead {
+    display: none;
+  }
+
+  .su-mock-table--stack :is(tr, th, td) {
+    display: block;
+  }
+
+  .su-mock-table--stack tr {
+    border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .su-mock-table--stack tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .su-mock-table--stack :is(th, td) {
+    border-bottom: 0;
+    padding: var(--space-2) 0;
+  }
+
+  .su-mock-table--stack td::before {
+    color: var(--color-wk-muted);
+    content: attr(data-label) ' · ';
+    font-size: var(--text-caption);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+/* ══ B · the index as a compare table ══════════════════════════════════════ */
+.su-mock-compare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-mock-compare .su-box__body {
+  overflow-x: auto;
+}
+
+.su-mock-compare__count {
+  color: var(--color-wk-muted);
+  display: flex;
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.su-mock-compare__count > b {
+  color: var(--color-ink);
+}
+
+.su-mock-compare__count > span {
+  margin-left: auto;
+}
+
+.su-mock-table--compare :is(th, td) {
+  vertical-align: middle;
+}
+
+.su-mock-table--compare [data-numeric] {
+  padding-inline: var(--space-14);
+}
+
+/* On a phone the table keeps Name, TL and two stats. */
+@media not (width >= 40rem) {
+  .su-mock-table--compare :is(th, td):not(:first-child, [data-phone]) {
+    display: none;
+  }
+
+  .su-mock-table--compare tbody .su-mock-table__name {
+    white-space: normal;
+  }
+}

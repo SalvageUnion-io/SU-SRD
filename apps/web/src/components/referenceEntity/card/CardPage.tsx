@@ -1,16 +1,20 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
+import { isChassis } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
+import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
+import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
-import { pageBodyStats } from './entityPage'
+import { pageBodyStats, pageStatLine } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
+import { PatternTable } from './PatternTable'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
@@ -33,6 +37,18 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 const NEIGHBOUR_OMIT = ['kind'] as const
 /** A neighbour opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
 const LINK = { kind: 'link' } as const
+
+/** MOCK: the stat line's short labels, sentence case (principle 7: no caps on labels). */
+const MANUAL_STAT_LABEL: Readonly<Record<string, string>> = {
+  'Tech Level': 'TL',
+  'Salvage Value': 'SV',
+  'Structure Points': 'SP',
+  'Energy Points': 'EP',
+  'System Slots': 'Sys slots',
+  'Module Slots': 'Mod slots',
+  'Heat Capacity': 'Heat',
+  'Cargo Capacity': 'Cargo',
+}
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -162,6 +178,69 @@ export function CardPage({
 
   // Preceding and Next side by side on one row, Next's label at its end.
   const neighbours = abilityTreeNeighbours(entity)
+
+  // MOCK (Working Manual, A): a chassis page in the reading register. The
+  // numbers first, as one ruled stat line in §2.6 order; then the rules (the
+  // chassis ability, the patterns as a table); the lore last, quieter, on a
+  // measure. The art is a side column from `lg`, and follows the stats on a
+  // phone (the DOM order: stats, art, rules, lore).
+  if (isChassis(entity) && !opening) {
+    const line = pageStatLine(entity)
+    return (
+      <div className={cn('su-entity-page su-manual', !!hero && 'su-manual--art')}>
+        <Box frame="hairline" body="flush" className="su-manual__stats">
+          <ul className="su-manual-statline" aria-label={`${action.hostName} stats`}>
+            {line.map((stat) => (
+              <li key={stat.key} title={stat.hoverText}>
+                <Stat
+                  surface="plain"
+                  label={MANUAL_STAT_LABEL[stat.label] ?? stat.label}
+                  value={stat.value}
+                  className="su-manual-statline__stat"
+                />
+              </li>
+            ))}
+          </ul>
+        </Box>
+        {hero && <div className="su-manual__art">{hero}</div>}
+        <div className="su-manual__rules">
+          {leadActions.length > 0 && (
+            <SlabSection
+              as={sectionAs}
+              title="Chassis ability"
+              page
+              bodyClassName="su-entity-page__section-body"
+            >
+              {leadActions.map((data, index) =>
+                actionCard(data, index, nestedTitleLevel(!!sectionAs))
+              )}
+            </SlabSection>
+          )}
+          {beside}
+          {table && <div className="su-entity-page__table">{table}</div>}
+          {patterns.length > 0 && (
+            <SlabSection
+              as={sectionAs}
+              title={referenceEntityCopy('patterns')}
+              count={String(patterns.length)}
+              page
+            >
+              <PatternTable chassis={entity} patterns={patterns} />
+            </SlabSection>
+          )}
+          {(subLine || body) && (
+            <SlabSection as={sectionAs} title="From the manual" page>
+              <div className="su-entity-page__prose su-manual__lore">
+                {subLine}
+                {body}
+              </div>
+            </SlabSection>
+          )}
+          {after}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div

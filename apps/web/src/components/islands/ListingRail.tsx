@@ -50,6 +50,7 @@ const VIEW_LABELS: Record<ListingView, string> = {
   catalog: 'Catalog',
   tree: 'Tree',
   list: 'List',
+  table: 'Table', // MOCK
 }
 
 const NO_FILTERS: RailFilters = { techLevels: new Set(), source: '', tree: '', name: '' }
