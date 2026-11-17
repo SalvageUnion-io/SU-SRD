@@ -557,7 +557,7 @@ describe('the Opposition', () => {
     expect(names()).toEqual(['salvageAreas.set'])
   })
 
-  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed, private and off the log', async () => {
+  test('the chosen NPC’s actions, flattened; Use opens the NPC Action table, its roll lands on the Feed and in Discord, off the log', async () => {
     await renderCockpit()
     const list = within(screen.getByRole('list', { name: 'Strikebreaker’s actions' }))
     await click(
@@ -568,7 +568,7 @@ describe('the Opposition', () => {
     await waitFor(() =>
       expect(feedLines().some((l) => /^You · Strikebreaker · .* · 14 · Success/.test(l))).toBe(true)
     )
-    expect(postRoll).not.toHaveBeenCalled()
+    expect(postRoll).toHaveBeenCalledTimes(1)
     expect(sent().map((a) => a.name)).not.toContain('changeLog.appendChangeLog')
   })
 
@@ -876,10 +876,9 @@ describe('every Mediator capability is reachable here', () => {
     expect(dialog.getByText(/^Rook · HP → 6/)).toBeTruthy()
   })
 
-  test('the roll tables are the Tables section, private by default', async () => {
+  test('the roll tables are the Tables section, and its rolls post', async () => {
     await renderCockpit()
-    const post = screen.getByLabelText('Post rolls to the Game’s channel') as HTMLInputElement
-    expect(post.checked).toBe(false)
+    expect(screen.getByText('Rolls post to the Game’s channel')).toBeTruthy()
     expect(screen.getByRole('list', { name: 'Pinned tables' })).toBeTruthy()
   })
 

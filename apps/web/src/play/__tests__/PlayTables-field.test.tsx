@@ -37,16 +37,7 @@ afterAll(async () => {
 const TABLE = 'Arid Steppes Encounters'
 
 async function rollTraders(onField?: (lines: readonly RosterLine[]) => Promise<number>) {
-  render(
-    <PlayTables
-      downtime={false}
-      solo={false}
-      post={false}
-      onPostChange={() => {}}
-      binding={null}
-      onField={onField}
-    />
-  )
+  render(<PlayTables downtime={false} solo={false} binding={null} onField={onField} />)
   fireEvent.change(screen.getByRole('searchbox', { name: 'Roll a table' }), {
     target: { value: 'Arid Steppes' },
   })

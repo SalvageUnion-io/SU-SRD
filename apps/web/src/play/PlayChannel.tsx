@@ -57,13 +57,22 @@ export function PlayChannelDialog({ open, onClose, owner, binding }: PlayChannel
       <div style={BODY}>
         {binding === null ? (
           <p style={P}>{playCopy('noDiscordChannelIsBound', { whose })}</p>
+        ) : binding.own === true && owner.kind === 'game' ? (
+          <p style={P}>
+            {playCopy('yourRollsPostToYourOwn', {
+              whose,
+              dateTime: formatDateTime(binding.boundAt),
+            })}
+          </p>
         ) : (
           <p style={P}>
             {playCopy('rollsFromPostToIts', { whose, dateTime: formatDateTime(binding.boundAt) })}
           </p>
         )}
         <p style={P}>
-          {binding === null ? playCopy('toConnectOneRun') : playCopy('toMoveItRun')}
+          {binding === null || binding.own === true
+            ? playCopy('toConnectOneRun')
+            : playCopy('toMoveItRun')}
           <code style={CODE}>{playCopy('suBind')}</code>
           {owner.kind === 'solo'
             ? playCopy('inTheDiscordChannelYou')
