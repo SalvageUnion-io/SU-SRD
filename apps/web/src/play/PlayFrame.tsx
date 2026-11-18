@@ -72,7 +72,7 @@ const TAB_LIST = {
  * R29). A label too long for its share widens its tab (no `minWidth: 0`) or
  * wraps between its words, never "…". The Compact Size, the Size of the
  * Play bar's buttons and the pinned switch that share the screen with it
- * (R41).
+ * (§4.7).
  */
 const TAB = {
   border: 0,

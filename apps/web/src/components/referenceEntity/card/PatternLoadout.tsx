@@ -14,13 +14,6 @@ import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
 
-/** The loadout grid's static half; its column count is `.su-pattern-loadout`. */
-const gridStyle = {
-  display: 'grid',
-  columnGap: space[12],
-  rowGap: space[6],
-} satisfies CSSProperties
-
 /**
  * `minWidth: 0` is load-bearing: a grid item defaults to `min-width: auto`, so
  * a column refuses to shrink below its widest badge and the card's
@@ -80,7 +73,7 @@ export function PatternLoadout({
   owner?: string
 }) {
   return (
-    <div className="su-pattern-loadout" style={gridStyle}>
+    <div className="su-grid su-pattern-loadout">
       {groups.map((group) => (
         <div
           key={group.label}
@@ -149,7 +142,7 @@ function PatternDrones({
               {parts.length > 0 && (
                 <ul
                   aria-label={`${name} loadout`}
-                  className="su-entity-mini-list su-entity-mini-list--two-up"
+                  className="su-grid su-entity-mini-list su-entity-mini-list--two-up"
                 >
                   {parts.map((part, partIndex) => (
                     <li key={cardKey(part, partIndex)}>

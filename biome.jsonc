@@ -90,7 +90,7 @@
       ]
     },
     {
-      // The detail view is a Page, never a new tab (hard rule R34).
+      // The detail view is a Page, never a new tab (EDL E5).
       "path": "./packages/gates/biome/noWindowOpen.grit",
       "includes": ["**/apps/web/src/**"]
     },

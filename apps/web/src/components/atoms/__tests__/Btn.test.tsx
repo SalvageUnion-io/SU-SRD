@@ -69,7 +69,7 @@ describe('Button', () => {
     )
   })
 
-  test('there is no danger variant: no state colour fills a button (R9)', () => {
+  test('there is no danger variant: no state colour fills a button (§3.1)', () => {
     // @ts-expect-error a destructive act is rust (`primary`) behind ConfirmDialog
     const cls = buttonVariants({ variant: 'danger' })
     expect(cls).not.toContain('su-btn--danger')

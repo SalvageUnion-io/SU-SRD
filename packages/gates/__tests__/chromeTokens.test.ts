@@ -84,6 +84,44 @@ describe('parseCss', () => {
   })
 })
 
+describe('chrome-tokens/item-grid', () => {
+  test('a CSS grid of repeated equal tracks fails, in CSS and a style object (R68)', () => {
+    const css = scan(
+      'apps/web/src/styles/x.css',
+      [
+        '.a { grid-template-columns: repeat(3, minmax(0, 1fr)); }',
+        '.b { grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); }',
+        '.c { grid-template-columns: 1fr auto; }',
+        '.d { grid-template-columns: repeat(1, 1fr); }',
+      ].join('\n')
+    )
+    expect(lines(css, 'item-grid')).toEqual([1, 2])
+    const tsx = scan(
+      'apps/web/src/X.tsx',
+      "const A = { gridTemplateColumns: 'repeat(2, 1fr)' }\nconst B = { gridTemplateColumns: '1fr auto' }"
+    )
+    expect(lines(tsx, 'item-grid')).toEqual([1])
+  })
+
+  test('the one item grid, a gauge and a named matrix pass', () => {
+    const home = scan(
+      'apps/web/src/styles/partials/foundation.css',
+      '.su-x { grid-template-columns: repeat(2, 1fr); }'
+    )
+    expect(home['item-grid']).toEqual([])
+    const gauge = scan(
+      'apps/web/src/components/atoms/VitalGauge.tsx',
+      "const PIPS = { gridTemplateColumns: 'repeat(6, 1fr)' }"
+    )
+    expect(gauge['item-grid']).toEqual([])
+    const named = scan(
+      'apps/web/src/styles/x.css',
+      '.t { grid-template-columns: repeat(10, 1fr); } /* design-tokens-ignore(item-grid): ten steps */'
+    )
+    expect(named['item-grid']).toEqual([])
+  })
+})
+
 describe('chrome-tokens/left-rail', () => {
   test('a left or inline-start border with a width fails, in CSS and a style object', () => {
     const css = scan(

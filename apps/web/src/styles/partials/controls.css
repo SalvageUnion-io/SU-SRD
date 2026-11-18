@@ -303,9 +303,11 @@
   gap: var(--space-6);
 }
 
+/* Browsing, the list is the item grid (`.su-grid`): 16rem lines, the last row filled. */
 .su-searcher--browse .su-searcher__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  --su-grid-gap: var(--space-6);
+  --su-grid-min: 16rem;
+  flex-direction: row;
 }
 
 /* One line per entity: the Mini filling it, and once chosen its label.

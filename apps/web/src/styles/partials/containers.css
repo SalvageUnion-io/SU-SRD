@@ -165,6 +165,15 @@
   .su-masonry:not(.su-masonry--max-1, .su-masonry--max-2) {
     columns: 3;
   }
+
+  /* Never more columns than cards: no column stands empty (R68). */
+  .su-masonry:has(> :nth-child(2):last-child) {
+    columns: 2;
+  }
+}
+
+.su-masonry:has(> :only-child) {
+  columns: 1;
 }
 
 /* Each card whole in its column, a gap under it; a gap at a column's foot
@@ -193,6 +202,15 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* Never more columns than Minis: no column stands empty (R68). */
+.su-mini-grid:has(> li:nth-child(2):last-child) {
+  columns: 18rem 2;
+}
+
+.su-mini-grid:has(> li:only-child) {
+  columns: auto 1;
 }
 
 .su-mini-grid > li {
@@ -228,13 +246,12 @@
   }
 }
 
-/* RosterSkeleton (`components/containers/RosterSkeleton.tsx`): one column on a
-   phone, the hydrated roster's three from `md`. */
+/* RosterSkeleton (`components/containers/RosterSkeleton.tsx`), on the item
+   grid (`.su-grid`): one column on a phone, three from `md`. */
 .su-roster-skeleton {
+  --su-grid-gap: var(--space-32);
+  --su-grid-max: 3;
   margin-top: var(--space-20);
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: var(--space-32);
 }
 
 .su-roster-skeleton-wide {
@@ -244,7 +261,6 @@
 @media (width >= 48rem) {
   .su-roster-skeleton {
     margin-top: var(--space-24);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .su-roster-skeleton-wide {

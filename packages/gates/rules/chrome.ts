@@ -2,7 +2,7 @@
  * Chrome laws — the `chrome` rule set of `tools/check-rule-sets.ts`, the
  * machine-checkable laws of `docs/design-system/chrome.md`.
  *
- * ## One ground signal (hard rule R19, chrome K1)
+ * ## One ground signal (chrome K1)
  *
  * A surface declares its ground once, `data-ground="paper" | "ink"` on its
  * frame, as `data-grain` declares its texture, and every component inside
@@ -67,6 +67,8 @@
  *
  * - `raw-field`: a JSX `<input>` or `<textarea>` only in an atom
  *   (`components/atoms/`); a hidden file picker (`type="file"`) is no field.
+ *   The Ledger (`ROLE_HOMES.ledger`) holds its own row pick, a radio in its
+ *   label (ledger.md L7), and an SRD index's sorting head stamp (L2).
  * - `raw-label`: a JSX `<label>` only in an atom (`Field`, `Eyebrow`,
  *   `Checkbox`'s hit area, `Radio`'s row).
  * - `breadcrumb-nav`: `aria-label="Breadcrumb"` only in `BreadcrumbTrail`,
@@ -354,6 +356,8 @@ const ATOMS = 'apps/web/src/components/atoms/'
 const ROLE_HOMES = {
   breadcrumb: 'apps/web/src/components/atoms/BreadcrumbTrail.tsx',
   step: 'apps/web/src/build/wizard/WizShell.tsx',
+  // Its row's pick (a radio whose label is the row's name, L7) and an index's sorting head stamp (L2).
+  ledger: 'apps/web/src/components/entity/Ledger.tsx',
 } as const
 
 /** A JSX field element, to its self-closing end (`=>` in a handler holds no `/>`). */
@@ -378,7 +382,7 @@ function jsxSources(root: string): [string, string][] {
 function scanRawFields(root: string): Finding[] {
   const out: Finding[] = []
   for (const [rel, text] of jsxSources(root)) {
-    if (rel.startsWith(ATOMS)) continue
+    if (rel.startsWith(ATOMS) || rel === ROLE_HOMES.ledger) continue
     for (const m of text.matchAll(RAW_FIELD)) {
       if (/\btype=["']file["']/.test(m[0])) continue
       const line = lineAt(text, m.index ?? 0)
@@ -392,11 +396,11 @@ function scanRawFields(root: string): Finding[] {
   return out
 }
 
-/** Lines matching `pattern` in `.tsx` sources, but in `home` (or under it). */
-function scanOutside(root: string, pattern: RegExp, home: string): Finding[] {
+/** Lines matching `pattern` in `.tsx` sources, but in a `home` (or under one). */
+function scanOutside(root: string, pattern: RegExp, ...homes: string[]): Finding[] {
   const out: Finding[] = []
   for (const [rel, text] of jsxSources(root)) {
-    if (rel.startsWith(home)) continue
+    if (homes.some((home) => rel.startsWith(home))) continue
     text.split('\n').forEach((line, i) => {
       if (pattern.test(line)) out.push({ file: rel, line: i + 1, detail: line.trim() })
     })
@@ -460,14 +464,14 @@ const RULES: ChromeRule[] = [
   {
     id: 'ground-signal',
     mode: 'zero',
-    rule: 'hard rule R19 (chrome K1) — a surface declares its ground once, `data-ground` on its frame; components read it in CSS, never through a prop',
+    rule: 'chrome K1 — a surface declares its ground once, `data-ground` on its frame; components read it in CSS, never through a prop',
     fix: "Drop the prop: style the component for paper, and add its ink look as `[data-ground='ink'] .su-…` in its stylesheet. A new frame (a band, plate or pill that IS a ground) sets `data-ground` and joins FRAMES in packages/gates/rules/chrome.ts.",
     scan: scanGroundSignal,
   },
   {
     id: 'paper-mix',
     mode: 'zero',
-    rule: 'hard rule R19 (chrome K1) — paper on ink is `--color-paper-NN` alone, never a `color-mix()` of paper',
+    rule: 'chrome K1 — paper on ink is `--color-paper-NN` alone, never a `color-mix()` of paper',
     fix: 'Use the paper step: `var(--color-paper-85|70|60|30|15)` in CSS, `color.paper85|70|60|30|15` in a style object.',
     scan: scanPaperMix,
   },
@@ -509,16 +513,16 @@ const RULES: ChromeRule[] = [
   {
     id: 'raw-field',
     mode: 'zero',
-    rule: 'hard rule R16 (chrome Roles) — a field is `Input` or `Textarea` (16px, so an iPhone never zooms), never a raw <input> or <textarea> outside the atoms',
+    rule: 'hard rule R16 (chrome Roles) — a field is `Input` or `Textarea` (16px, so an iPhone never zooms), never a raw <input> or <textarea> outside the atoms and the Ledger’s row pick (L7)',
     fix: 'Render `Input` (`size="compact"` beside Compact buttons) or `Textarea` from components/index, labelled by `Field` or an `aria-label`; a check is `Checkbox`, a choice `Radio`, a search `SearchField`.',
     scan: scanRawFields,
   },
   {
     id: 'raw-label',
     mode: 'zero',
-    rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label>",
+    rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label> (the Ledger's row pick aside, L7)",
     fix: 'Wrap the control in `Field label="…" htmlFor={id}`; a lone check takes `Checkbox hitArea` for its 44px square.',
-    scan: (root) => scanOutside(root, RAW_LABEL, ATOMS),
+    scan: (root) => scanOutside(root, RAW_LABEL, ATOMS, ROLE_HOMES.ledger),
   },
   {
     id: 'breadcrumb-nav',
@@ -550,9 +554,9 @@ const RULES: ChromeRule[] = [
   {
     id: 'raw-button',
     mode: 'zero',
-    rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms',
+    rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms and an index Ledger’s sorting head (L2)',
     fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws is an atom in components/atoms/ (`ChipButton`, `TrackStep`, `ToggleCard`, or a new one named in its law).',
-    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS),
+    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS, ROLE_HOMES.ledger),
   },
   {
     id: 'stat-text',

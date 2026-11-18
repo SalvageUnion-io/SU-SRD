@@ -5,12 +5,11 @@
 
 /* ══ The stat column (`components/atoms/StatColumn.tsx`) ═══════════════════
  *
- * The book's framed numeral beside its ink stamp, two cells to a row at every
- * width, in pairs: each part of the stat order pairs off its own cells, so a
- * mech reads Structure | Energy, System | Module Slots, Heat | Cargo, and a
- * cell without a partner (`--lone`) spans its row. Every row fills the
- * column's width: there is never an empty cell or a ragged edge (ruleset,
- * "The source" 3).
+ * The book's framed numeral beside its ink stamp, on the item grid
+ * (`.su-grid`, R68), two cells to a row at every width, in pairs: each part of
+ * the stat order pairs off its own cells, so a mech reads Structure | Energy,
+ * System | Module Slots, Heat | Cargo, and a cell without a partner (`--lone`)
+ * takes its row. Every row fills the column's width.
  * Each cell is a `Stat` (ruleset §3.7: the column is a layout of Stats), its
  * plates set at the book's scale here: the label 14px (§1.3, R17), the
  * numeral in the title face, the 1px frame the Stat cell's own (§7.1).
@@ -20,20 +19,19 @@
  * is narrower than its label.
  */
 .su-stat-column {
-  display: grid;
-  gap: var(--space-6) var(--space-8);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  --su-grid-gap: var(--space-8);
+  --su-grid-max: 2;
+  --su-grid-row-gap: var(--space-6);
   margin: 0;
 }
 
 .su-stat-column__cell {
   display: flex;
   min-height: 40px;
-  min-width: 0;
 }
 
 .su-stat-column__cell--lone {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 /* Two classes: `.su-stat-cell` (atoms.css) comes later and sizes a Stat to its content. */
@@ -73,7 +71,7 @@
 
 @media (width >= 40rem) {
   .su-stat-column {
-    column-gap: var(--space-14);
+    --su-grid-gap: var(--space-14);
   }
 
   .su-stat-column__stat > .su-stat-plate--value {
@@ -89,7 +87,8 @@
    as the column's, for a narrow column beside other content (the app mech
    sheet's hero, beside the player's fields). */
 .su-stat-column.su-stat-column--compact {
-  gap: var(--space-4) var(--space-6);
+  --su-grid-gap: var(--space-6);
+  --su-grid-row-gap: var(--space-4);
 }
 
 .su-stat-column--compact .su-stat-column__cell {
@@ -323,14 +322,9 @@
 /* An ability's Preceding and Next, siblings on one row, Next's label at the
    row's end; one under the other where they do not fit. */
 .su-entity-page__neighbour-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-12) var(--space-32);
-}
-
-.su-entity-page__neighbour-row > .su-entity-page__section {
-  flex: 1 1 20rem;
-  min-width: 0;
+  --su-grid-gap: var(--space-32);
+  --su-grid-min: 20rem;
+  --su-grid-row-gap: var(--space-12);
 }
 
 .su-entity-page__section--end > .su-slab-section__head {

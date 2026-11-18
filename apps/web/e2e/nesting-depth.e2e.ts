@@ -3,7 +3,7 @@ import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { expectCorpusClean } from './_designRoutes'
 import { findFrames } from './_entityFrames'
 import { place } from './_findings'
-import { editSheet, openPeekFromSearch, openSheetFor, runWizard, waitForReady } from './_helpers'
+import { editSheet, openPeek, openSheetFor, runWizard, waitForReady } from './_helpers'
 import { findNesting } from './_nestingDepth'
 import { findPageWhole } from './_pageWhole'
 import { expect, test } from './fixtures'
@@ -75,7 +75,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
     const failures: string[] = []
     for (const peek of PEEKS) {
       await page.goto('/chassis/', { waitUntil: 'networkidle' })
-      await openPeekFromSearch(page, peek)
+      await openPeek(page, peek)
       failures.push(...(await scan(page, `the ${peek.name} Peek`)))
     }
     expect(failures, 'entities nested past the three levels in a Peek').toEqual([])

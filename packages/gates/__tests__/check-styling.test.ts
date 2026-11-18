@@ -853,7 +853,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('ground-signal: every ground prop, and data-ground off a frame, is found (R19)', () => {
+  test('ground-signal: every ground prop, and data-ground off a frame, is found (K1)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -1099,6 +1099,21 @@ describe('chrome rule set', () => {
       'apps/web/src/play/games/A.tsx:2',
       'apps/web/src/play/games/A.tsx:3',
       'apps/web/src/play/games/A.tsx:4',
+    ])
+  })
+
+  test('raw-table: a <table> outside the Ledger and the roll instrument is found (R63)', () => {
+    const found = chromeLaws.scan(
+      fixture({
+        ...CHROME_BASE,
+        'apps/web/src/play/games/A.tsx':
+          'export const A = () => (\n  <table>\n    <tbody />\n  </table>\n)\n',
+        'apps/web/src/components/entity/Ledger.tsx': '<table><tbody /></table>\n',
+        'apps/web/src/play/games/__tests__/A.test.tsx': '<table />\n',
+      })
+    )
+    expect(found['raw-table']?.map((f) => `${f.file}:${f.line}`)).toEqual([
+      'apps/web/src/play/games/A.tsx:2',
     ])
   })
 

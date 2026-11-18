@@ -8,9 +8,11 @@
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { MouseEvent, ReactNode } from 'react'
 import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
 import { capsLabel } from '../atoms/capsLabel'
@@ -83,6 +85,12 @@ const TITLE_LINE = cn('su-ledger__title-line', CAPS)
 const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }))
 
 export type LedgerSort = { key: string; descending: boolean }
+
+/** The sorted column's mark: a chevron at the Mini Size (K11), up for ascending. */
+function sortMark(sort: LedgerSort): ReactNode {
+  const Mark = sort.descending ? ChevronDown : ChevronUp
+  return <Mark aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" />
+}
 
 /** A cell with nothing to say draws `—` (L5); a `0` is a value. */
 const isEmpty = (cell: ReactNode) =>
@@ -160,11 +168,7 @@ export function Ledger({
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
         {text}
-        {sort?.key === key && (
-          <span aria-hidden="true" className="su-ledger__arrow">
-            {sort.descending ? '▼' : '▲'}
-          </span>
-        )}
+        {sort?.key === key && sortMark(sort)}
       </Badge>
     )
     return onSort ? (
@@ -213,11 +217,7 @@ export function Ledger({
                       onClick={() => onSort('name')}
                     >
                       {nameLabel}
-                      {sort?.key === 'name' && (
-                        <span aria-hidden="true" className="su-ledger__arrow">
-                          {sort.descending ? '▼' : '▲'}
-                        </span>
-                      )}
+                      {sort?.key === 'name' && sortMark(sort)}
                     </button>
                   ) : (
                     <span className="su-entity-compact__title">{nameLabel}</span>

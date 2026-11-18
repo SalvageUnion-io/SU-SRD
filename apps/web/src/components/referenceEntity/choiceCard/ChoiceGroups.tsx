@@ -113,12 +113,8 @@ const chosenValueStyle = {
   color: color.ink,
 } satisfies CSSProperties
 
-/** One masonry cell: never split across columns; room above for the top rail. */
-const optionCellStyle = {
-  marginBottom: space[6],
-  breakInside: 'avoid',
-  paddingTop: space[12],
-} satisfies CSSProperties
+/** One option's cell: room above for the top rail. */
+const optionCellStyle = { paddingTop: space[12] } satisfies CSSProperties
 
 /** An editable option's name off a Page, over its text in the plain box. */
 const optionNameStyle = {
@@ -393,13 +389,9 @@ function ChoiceOptionGroup({
           {counter}
         </div>
       )}
-      {/* Masonry columns: one, or two from `sm` unless compact or a Page's
-          entity options — a class
-          (`.su-choice-options`), since the column count is responsive. */}
-      <div
-        className={cn('su-choice-options', split && 'su-choice-options--split')}
-        style={{ gap: space[6] }}
-      >
+      {/* The item grid (`.su-grid`): one a row, or two from `sm` unless compact
+          or a Page's entity options (`.su-choice-options`). */}
+      <div className={cn('su-grid su-choice-options', split && 'su-choice-options--split')}>
         {options.map((option, index) => {
           const chosen = selected.includes(option.value)
           const disabled = !readOnly && atCap && !chosen
