@@ -105,7 +105,10 @@ export function actionsOnHand(page: Page): Locator {
  * phone, the same move in ⋯. A spare is claimed first, behind its confirm.
  */
 export async function board(page: Page, mech: string): Promise<void> {
-  const phone = (await layoutOf(page)) === 'tabs'
+  // The viewport says which layout this is; the frame redraws a beat after a
+  // resize, so wait for it rather than reading the layout mid-redraw.
+  const phone = (page.viewportSize()?.width ?? WIDE.width) < MID.width
+  await expect.poll(() => layoutOf(page), { timeout: 10_000 }).toBe(phone ? 'tabs' : 'columns')
   if (phone) {
     const menu = await moreMenu(page)
     await menu
@@ -190,5 +193,6 @@ export async function axeViolations(page: Page, state: string): Promise<string[]
     for (const id of ids) found.push(`${state} (${viewport.name}): ${id}`)
   }
   await page.setViewportSize({ width: WIDE.width, height: WIDE.height })
+  await expect.poll(() => layoutOf(page), { timeout: 10_000 }).toBe('columns')
   return found
 }
