@@ -10,13 +10,6 @@ import { tokens } from '../../components/index'
 
 const { space } = tokens
 
-/**
- * The page body under the band (`PageShell`'s measured body, at
- * `PAGE_MEASURE`): its height reserves a stable footprint, so the roster
- * replacing the skeleton does not shift the page.
- */
-export const GAME_BODY = { minHeight: '60vh' } satisfies CSSProperties
-
 /** The main column and the sidebar, side by side while both fit. */
 export const HUB_COLUMNS = {
   alignItems: 'flex-start',

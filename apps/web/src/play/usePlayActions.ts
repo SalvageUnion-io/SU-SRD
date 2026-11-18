@@ -21,11 +21,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import { useRef, useState } from 'react'
 import { resolveSheetComposition } from '../build/sheet/composition.model'
 import { rollForTable } from '../components/index'
-import {
-  buildCompanionActions,
-  buildMechActions,
-  buildPilotActions,
-} from '../lib/rules/actionPatches'
+import { buildCompanionActions, buildMechActions, buildPilotActions } from '../lib/rules/actionList'
 import { useUnits } from '../replica/units'
 import type { PlayStore } from './play.model'
 import type { ListEntry, TypeFilter } from './playActions.model'
@@ -119,7 +115,7 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
     pilotActions: pilot ? buildPilotActions(pilot) : [],
     mechActions: mech ? buildMechActions(mech) : [],
     hasMech: mech !== null,
-    // MOCK (wave 2): the companions' actions join the board.
+    // The companions' actions join the board (R65).
     companionActions: [
       ...(pilot ? buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners) : []),
       ...(mech ? buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners) : []),

@@ -74,8 +74,8 @@ export { useModKeyHint } from './atoms/modKeyHint'
 export { NextLabel } from './atoms/NextLabel'
 // slotPips — a slot count as a line of pips, for a wizard's tracker tab.
 // MOCK (wave 2): a phone's vitals block, for the sheets and Play.
-export type { PhoneVital } from './atoms/PhoneVitals'
-export { PhoneVitals } from './atoms/PhoneVitals'
+export type { PhoneVital, PhoneVitalCell } from './atoms/PhoneVitals'
+export { PhoneVitals, PhoneVitalsGlance } from './atoms/PhoneVitals'
 export { slotPips } from './atoms/pipRows'
 export { linesFromBreakdown, summarizeBreakdown } from './atoms/provenanceLines'
 export { Radio } from './atoms/Radio'

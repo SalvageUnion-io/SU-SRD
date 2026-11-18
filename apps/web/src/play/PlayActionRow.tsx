@@ -1,19 +1,35 @@
 /**
- * PlayActionRow — one action in the Actions list (play.md §5): the action's
- * contentful Mini, its text under its head, in the list's Mini grid
- * (ruleset §1.3: Play's lists are Minis), its Mini chips in the
- * shared stat order with the cost last. On hand it carries Use, after the cost
- * in its chip group (C8, ruleset §1.4), which opens the resolve in place in
- * the Mini's body (N3: the action's own text, then `PlayResolveSteps`), with
- * Cancel in Use's slot; not on hand it is dimmed, and says what it needs as a
- * chip ("needs Boarded"). Its band is its source unit's tone dulled (pilot or
- * mech, never black), and Use is a filled button; an action
- * it cannot use now (locked, or read-only) is faded too.
+ * PlayActionRow — one action in the Actions list (play.md §5, R65): the
+ * action's contentful Mini in the list's Mini grid (ruleset §1.3: Play's
+ * lists are Minis), its Mini chips in the shared stat order with the cost
+ * last. Its row is the shared one (`actionRow`): the owner's picks and the
+ * crawler's Tech Level applied, its text the action's effect alone.
+ *
+ *  - **Closed** it says its effect in at most two short lines
+ *    (`.su-play-act__effect`); an action whose chips say it all is its head
+ *    alone. Its name Peeks the whole card.
+ *  - **On hand** it carries a rust Use (ruleset §1.4), which opens the resolve
+ *    in place in the Mini's body (N3): the whole effect, its picks as CHOSEN
+ *    chips (R60), then `PlayResolveSteps`, with Cancel in Use's place. A
+ *    Passive is always on and carries none.
+ *  - **Not on hand** it is dimmed, and says what it needs as a chip ("needs
+ *    Boarded"); an action it cannot use now (locked, or read-only) is faded
+ *    too.
+ *
+ * From `lg` Use sits after the cost in the head's chip group (C8). Below it
+ * the head is the name's and the chips' alone, so a long name is never cut
+ * for a button: Use ends the body's line, beside the effect, a Compact button
+ * pressed through a Full Size (44px) target (`.su-play-act__use`).
+ *
+ * Its band is its source unit's tone dulled (pilot or mech, never black); a
+ * companion's rows wear its own Mini's tone, as the Units column draws it,
+ * and name it as a relation chip (C11).
  *
  * A Mini nests nothing (E6): the resolve inside it, its roll instrument (R8)
  * and its steps, is plain content, never an entity of its own (play.md §12).
  */
 
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { Button, Entity, Stat, TraitProse } from '../components/index'
 import { actionRow } from '../lib/rules/actionRow'
@@ -26,21 +42,6 @@ import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
 
-/**
- * MOCK (Working Manual E): a closed row keeps the contentful head's chips
- * (range, damage, traits, cost) and prints no text (`.su-play-act` closes the
- * empty body's box).
- */
-const CLOSED_BODY = { text: false } as const
-
-/**
- * MOCK (wave 2, the actions board): what a row's band wears. A companion's
- * rows wear its own Mini's tone, as the Units column draws it.
- */
-function tintOf(entry: ActionEntry): string {
-  return entry.action.companion?.tone ?? entry.source
-}
-
 type PlayActionRowProps = {
   entry: ActionEntry
   /** The seat's resolve, when it is this action's; null otherwise. */
@@ -50,7 +51,9 @@ type PlayActionRowProps = {
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
   locked: string | null
   /** The pilot's crawler Tech Level: an item's action scales with it (Custom Sniper Rifle damage). */
-  techLevel?: number
+  techLevel?: number | undefined
+  /** The row sits under its action type's heading, so its head leaves the type out (C10). */
+  grouped?: boolean
 }
 
 /** Why a line is not on hand ("needs Boarded"), as its state chip (C8). */
@@ -74,24 +77,22 @@ export function PlayActionRow({
   canWrite,
   locked,
   techLevel,
+  grouped = false,
 }: PlayActionRowProps) {
-  // MOCK (wave 2): the row's model is the shared one (`actionRow`): the picks
-  // and the crawler's Tech Level applied, its text the effect alone.
   const { model, summary, picks } = useMemo(
-    () => actionRow(entry.action, techLevel),
-    [entry.action, techLevel]
+    () => actionRow(entry.action, { techLevel, grouped }),
+    [entry.action, techLevel, grouped]
   )
+  const wide = usePlayWide()
   const companion = entry.action.companion
   const open = resolve !== null
   const away = entry.need !== null
-  // MOCK (Working Manual E): a phone's Use is a 44px target (principle 8); a
-  // Passive is always on and carries no Use (the timing law).
-  const size = usePlayWide() ? 'mini' : 'full'
-  const passive = entry.type === 'Passive'
-  const controls =
-    away || passive ? undefined : open ? (
+  const size = wide ? 'mini' : 'compact'
+  const control =
+    away || entry.type === 'Passive' ? null : open ? (
       <Button
         size={size}
+        className="su-play-act__use"
         onClick={resolve.onBack}
         aria-label={playCopy('cancel2', { name: entry.name })}
       >
@@ -100,8 +101,8 @@ export function PlayActionRow({
     ) : (
       <Button
         size={size}
-        // MOCK (wave 2): every Use is rust, the action colour (the owner's ruling).
         variant="primary"
+        className="su-play-act__use"
         onClick={onUse}
         disabled={!canWrite}
         aria-label={playCopy('use2', { name: entry.name })}
@@ -109,6 +110,35 @@ export function PlayActionRow({
         {playCopy('use')}
       </Button>
     )
+  const effect =
+    !open && summary ? <TraitProse as="p" className="su-play-act__effect" text={summary} /> : null
+  // Below `lg` the control ends the body's line, beside the closed row's effect.
+  const line: ReactNode =
+    !wide && control ? (
+      <div className="su-play-act__line">
+        {effect}
+        {control}
+      </div>
+    ) : (
+      effect
+    )
+  const steps = open ? (
+    <>
+      {picks.length > 0 && (
+        <div className="su-play-act__picks">
+          {picks.map((pick) => (
+            <Stat
+              key={`${pick.choice}-${pick.label}`}
+              size="mini"
+              label={playCopy('chosen')}
+              value={pick.label}
+            />
+          ))}
+        </div>
+      )}
+      <PlayResolveSteps view={resolve} canWrite={canWrite} />
+    </>
+  ) : null
   return (
     <li
       className="su-play-act"
@@ -122,8 +152,7 @@ export function PlayActionRow({
         context="play"
         model={model}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
-        tint={tintOf(entry)}
-        // MOCK (wave 2): a companion's row names it, lightly, as a relation chip (C11).
+        tint={companion?.tone ?? entry.source}
         {...(companion
           ? { relations: [{ key: `companion-${companion.id}`, name: companion.name }] }
           : {})}
@@ -131,41 +160,18 @@ export function PlayActionRow({
         {...(away
           ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> }
           : lockChip(locked, entry.action.condition))}
-        {...(controls ? { controls } : {})}
-        // MOCK (Working Manual E): a compact row, its head alone (name, traits,
-        // cost, Use); opened, it is contentful in place (N3): the action's own
-        // text, then its steps. Its name still Peeks its rules.
-        // MOCK (wave 2): closed, it says its effect in one short line (two on a
-        // phone, `.su-play-act__effect`); opened, the whole effect, its picks
-        // named (R60), then its steps.
-        body={
-          open
-            ? {
-                children: (
-                  <>
-                    {picks.length > 0 && (
-                      <div className="su-play-act__picks">
-                        {picks.map((pick) => (
-                          <Stat
-                            key={`${pick.choice}-${pick.label}`}
-                            size="mini"
-                            label={playCopy('chosen')}
-                            value={pick.label}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    <PlayResolveSteps view={resolve} canWrite={canWrite} />
-                  </>
-                ),
-              }
-            : summary
-              ? {
-                  text: false,
-                  children: <TraitProse as="p" className="su-play-act__effect" text={summary} />,
-                }
-              : CLOSED_BODY
-        }
+        {...(wide && control ? { controls: control } : {})}
+        // Open, the Mini prints the whole effect (its model's prose), then
+        // the steps; closed, the short line alone.
+        body={{
+          text: open,
+          children: (
+            <>
+              {line}
+              {steps}
+            </>
+          ),
+        }}
       />
     </li>
   )

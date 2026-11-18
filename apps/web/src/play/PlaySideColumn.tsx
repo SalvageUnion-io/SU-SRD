@@ -107,7 +107,7 @@ export function PlayerTablesAndFeed({
   feed = true,
 }: PlayColumnProps & {
   side: SideFeed
-  /** MOCK: false from `lg`, where the Feed sits under the Units so both side columns end together. */
+  /** False from `lg`, where the Feed sits under the Units so both side columns end together. */
   feed?: boolean
 }) {
   return (

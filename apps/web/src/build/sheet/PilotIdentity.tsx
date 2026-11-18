@@ -175,7 +175,7 @@ type PilotIdentityPanelProps = {
   patch?: SheetPatch
   /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
   photo?: ReactNode
-  /** MOCK (wave 2): a phone's About tab runs the Bio under the photo, the card's width. */
+  /** A phone's About tab runs the Bio under the photo, the card's width. */
   proseUnder?: boolean
 }
 

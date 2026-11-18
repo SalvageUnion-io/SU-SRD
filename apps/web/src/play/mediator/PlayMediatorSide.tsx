@@ -92,7 +92,7 @@ export function MediatorTablesAndFeed({
         prepared={running?.tables}
         onField={mediator.canWrite ? mediator.tray.field : undefined}
       />
-      {/* MOCK (wave 2): the Feed sits under the Table (`PlayMediatorCockpit`), where the
+      {/* The Feed sits under the Table (`PlayMediatorCockpit`), where the
           column was empty, so Tables runs straight into Propose. */}
     </>
   )

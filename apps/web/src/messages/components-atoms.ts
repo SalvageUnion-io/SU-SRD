@@ -20,6 +20,8 @@ export const atomsCopy = messages({
   activateToMark: '{current}. Activate to mark {value}',
   decrease2: 'Decrease {label}',
   increase2: 'Increase {label}',
+  valueOfMax: '{name} {value} of {max}',
+  changeValueOfMax: '{name} {value} of {max}. Change',
   setMax: 'Set {label} max',
   overrideMaxCurrently: 'Override {label} max (currently {max})',
   max: 'Max {label}',

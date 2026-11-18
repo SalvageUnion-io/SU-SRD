@@ -169,6 +169,7 @@ const ROSTER = {
     'ContentsChapter',
     'CardImage', // an entity's art plate, the home page's hero
     'PhoneVitals', // a phone sheet's and Play's pinned vitals block
+    'PhoneVitalsGlance', // the same block at a glance row's size: Play's pinned cells
     'FrontPitch', // the home page's pitch
     'EntitySearcher',
     'SearchListbox',

@@ -19,9 +19,11 @@ import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { mechMaxHeat, pilotMaxAP, resolveChassisRef } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture, softLinkFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
-import { buildMechActions, hasCurrencyChoice } from '../../lib/rules/actionPatches'
+import { buildMechActions } from '../../lib/rules/actionList'
+import { hasCurrencyChoice } from '../../lib/rules/actionPatches'
 import { itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PLAY_TXN } from '../../replica/provenance'
+import { ACTION_TYPE_ORDER } from '../playActions.model'
 import type { PlayRoll } from '../playRolls.model'
 import type { Write } from './playActionsHarness'
 import { stubStore } from './stubStore'
@@ -124,7 +126,14 @@ async function click(element: Element) {
   })
 }
 
-const onHand = () => screen.getByRole('list', { name: 'On hand' })
+/** What is on hand: the groups by action type, then the Reactor and Mount. */
+function onHand(): HTMLElement {
+  const groups = document.querySelector<HTMLElement>('.su-play-timings')
+  if (!groups) throw new Error('nothing on hand')
+  return groups
+}
+/** The rows on hand, across every group. */
+const onHandRows = () => [...onHand().querySelectorAll('li[data-action-key]')]
 /** The `<li>` of the action named `name`: the one whose Use or Cancel names it. */
 function rowFor(name: string): HTMLElement {
   const button =
@@ -196,7 +205,32 @@ describe('the list', () => {
     }
     expect(list.getByRole('button', { name: 'Vent' })).toBeTruthy()
     expect(list.getByRole('button', { name: 'Dismount' })).toBeTruthy()
-    expect(screen.getByText('On hand · In Buzzard')).toBeTruthy()
+  })
+
+  test('on hand is grouped by action type, in the order of a turn; the Reactor and Mount close it', () => {
+    renderBoarded()
+    const headings = within(onHand())
+      .getAllByRole('heading', { level: 3 })
+      .map((h) => h.textContent?.replace(/\d+$/, '') ?? '')
+    expect(headings.at(-1)).toBe('Reactor and mount')
+    const types = headings.slice(0, -1)
+    expect(types.length).toBeGreaterThan(0)
+    const order = ACTION_TYPE_ORDER as readonly string[]
+    expect(types.every((type) => order.includes(type))).toBe(true)
+    expect(types).toEqual([...types].sort((a, b) => order.indexOf(a) - order.indexOf(b)))
+    // Each group's list is named for its type, and holds its rows.
+    for (const type of types) {
+      const rows = within(screen.getByRole('list', { name: type })).getAllByRole('listitem')
+      expect(rows.length).toBeGreaterThan(0)
+    }
+  })
+
+  test('under its type’s heading a row leaves its type chip out (C10)', () => {
+    renderBoarded()
+    const row = rowFor(primary().name)
+    const group = row.closest('ul')?.getAttribute('aria-label') ?? ''
+    expect((ACTION_TYPE_ORDER as readonly string[]).includes(group)).toBe(true)
+    expect(within(row).queryByText(group)).toBeNull()
   })
 
   test('Boarded in a mech that is gone: no mech’s actions, never another mech’s', () => {
@@ -237,7 +271,6 @@ describe('the list', () => {
     const { store } = stubStore(mech, pilot)
     render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
     expect(screen.queryByRole('button', { name: `Use ${primary().name}` })).toBeNull()
-    expect(screen.getByText('On hand · On foot')).toBeTruthy()
     const toggle = screen.getByRole('button', { name: 'Expand Not on hand' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
     await click(toggle)
@@ -265,16 +298,15 @@ describe('the list', () => {
     renderBoarded()
     const filter = within(screen.getByRole('group', { name: 'Filter actions by type' }))
     expect(filter.getByRole('button', { name: 'All' }).getAttribute('aria-pressed')).toBe('true')
-    const before = within(onHand()).getAllByRole('listitem').length
+    const before = onHandRows().length
     await click(filter.getByRole('button', { name: 'Reaction' }))
     expect(filter.getByRole('button', { name: 'Reaction' }).getAttribute('aria-pressed')).toBe(
       'true'
     )
-    const reaction = screen.queryByRole('list', { name: 'On hand' })
-    const after = reaction ? within(reaction).getAllByRole('listitem').length : 0
+    const after = document.querySelector('.su-play-timings') ? onHandRows().length : 0
     expect(after).toBeLessThan(before)
     await click(filter.getByRole('button', { name: 'All' }))
-    expect(within(onHand()).getAllByRole('listitem').length).toBe(before)
+    expect(onHandRows().length).toBe(before)
   })
 
   test('Find narrows to the matching action', async () => {
@@ -292,7 +324,7 @@ describe('the list', () => {
 
   test('each action is a contentful Mini in the Mini grid, its text under its head', () => {
     renderBoarded()
-    const list = onHand()
+    const list = rowFor(primary().name).closest('ul') as HTMLElement
     expect(list.classList.contains('su-mini-grid')).toBe(true)
     expect(list.hasAttribute('data-play-list')).toBe(true)
     const token = rowFor(primary().name).querySelector('[data-contentful]')
@@ -301,6 +333,8 @@ describe('the list', () => {
     const useButton = use(primary().name)
     expect(useButton.closest('[data-chip-group]')).not.toBeNull()
     expect(useButton.classList.contains('su-btn--mini')).toBe(true)
+    // Every Use is rust (ruleset §1.4).
+    expect(useButton.classList.contains('su-btn--primary')).toBe(true)
   })
 
   test('nesting: no titled box, Compact or Card head sits inside another', () => {

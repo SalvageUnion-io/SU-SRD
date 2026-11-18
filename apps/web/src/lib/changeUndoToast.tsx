@@ -1,5 +1,5 @@
 /**
- * MOCK (Working Manual, the Undo law): every change of a live number on a
+ * Every change of a live number on a
  * sheet or in Play shows one line with Undo ("EP 10 → 8 · Undo"), on the
  * document's one toaster (`ToasterMount`), as `destroyedUndoToast` does for a
  * destroyed item.

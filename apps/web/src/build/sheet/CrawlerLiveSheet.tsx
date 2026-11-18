@@ -190,34 +190,8 @@ export function CrawlerLiveSheet({
   // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
   // the econDialog state, which CrawlerSheet does not own; handed down as
   // `economy` and rendered inside the body's Identity card.
-  const economy = (
-    <CrawlerEconFrame
-      gauge={
-        <SheetVitalGauge
-          vital="sp"
-          value={sp}
-          max={maxSP}
-          onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-          onMaxChange={
-            editable
-              ? (next) => overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) })
-              : undefined
-          }
-          breakdown={editable ? spParts : undefined}
-          provenance={editable ? spLines : undefined}
-          onRevertOverride={
-            editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
-          }
-          readOnly={!editable}
-        />
-      }
-      items={econItems}
-    />
-  )
-  // MOCK (wave 2, phone vitals): the phone's block (`PhoneVitals`): SP, the
-  // Upgrade pool toward its cost, and Upkeep as a counter; Pay / Fund / Trade
-  // are its foot, rust (the action colour). Live in Read where the viewer may
-  // write the sheet (`liveCondition`), each change said with Undo.
+  // SP and the Upgrade pool are live in Read where the viewer may write the
+  // sheet (`liveCondition`, R11), each change said with Undo (K5).
   const liveNumber = (field: 'currentSP' | 'upgradePool', label: string, from: number) =>
     liveCondition
       ? (next: number) => {
@@ -231,6 +205,34 @@ export function CrawlerLiveSheet({
           })
         }
       : undefined
+  const economy = (
+    <CrawlerEconFrame
+      gauge={
+        <SheetVitalGauge
+          vital="sp"
+          value={sp}
+          max={maxSP}
+          onChange={liveNumber('currentSP', SHEET_VITALS.sp.short, sp)}
+          steppers={liveCondition ? 'end' : false}
+          onMaxChange={
+            editable
+              ? (next) => overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) })
+              : undefined
+          }
+          breakdown={editable ? spParts : undefined}
+          provenance={editable ? spLines : undefined}
+          onRevertOverride={
+            editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
+          }
+          readOnly={!liveCondition}
+        />
+      }
+      items={econItems}
+    />
+  )
+  // The phone's block (`PhoneVitals`): SP, the Upgrade pool toward its cost,
+  // and Upkeep as a counter; Pay / Fund / Trade are its foot, rust (the action
+  // colour).
   const phoneActions: { label: string; dialog: CrawlerEconomyDialog }[] = liveCondition
     ? [
         { label: buildSheetCopy('payUpkeep'), dialog: 'upkeep' },
@@ -242,7 +244,7 @@ export function CrawlerLiveSheet({
     : []
   const phoneVitals = (
     <PhoneVitals
-      label={`${crawler.name} vitals`}
+      label={buildSheetCopy('unitVitals', { name: crawler.name })}
       vitals={[
         {
           key: 'sp',
@@ -250,7 +252,7 @@ export function CrawlerLiveSheet({
           name: SHEET_VITALS.sp.label,
           value: sp,
           max: maxSP,
-          onChange: liveNumber('currentSP', 'SP', sp),
+          onChange: liveNumber('currentSP', SHEET_VITALS.sp.short, sp),
         },
         ...(upgradeCost === null
           ? []
@@ -258,17 +260,21 @@ export function CrawlerLiveSheet({
               {
                 key: 'upgrade',
                 label: buildSheetCopy('upgrade'),
-                name: 'Upgrade Pool',
+                name: buildSheetCopy('upgradePool'),
                 value: crawler.upgradePool ?? 0,
                 max: upgradeCost,
-                onChange: liveNumber('upgradePool', 'Upgrade', crawler.upgradePool ?? 0),
+                onChange: liveNumber(
+                  'upgradePool',
+                  buildSheetCopy('upgrade'),
+                  crawler.upgradePool ?? 0
+                ),
               },
             ]),
         {
           key: 'upkeep',
           label: buildSheetCopy('upkeep'),
           name: buildSheetCopy('upkeep'),
-          note: `${buildSheetCopy('tScrap', { tl })} each Downtime`,
+          note: buildSheetCopy('tScrapEachDowntime', { tl }),
           value: 5,
         },
       ]}

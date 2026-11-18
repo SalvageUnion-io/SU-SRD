@@ -32,7 +32,6 @@
  * Situation) decides what an activation spends and whether it touches Heat.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -48,48 +47,38 @@ import {
   canPush,
   coreRollBandLabel,
   mechMaxCargo,
-  mechMaxEP,
   mechMaxHeat,
   overloadTableName,
   overloadTableOf,
   performCoreRoll,
-  pilotMaxAP,
   pilotMaxInventorySlots,
   resolveChassisRef,
   resolveGauge,
-  resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import { rollForTable } from '../components/index'
-import { changeUndoToast } from '../lib/changeUndoToast'
-import { replacePartner } from '../lib/partnerLookup'
-import type {
-  PlayAction,
-  PlayActionCompanion,
-  PlayActionCurrency,
-} from '../lib/rules/actionPatches'
+import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionList'
 import {
-  activationHeatGate,
-  activationPatch,
   buildCompanionActions,
   buildMechActions,
   buildPilotActions,
+  isAreaSalvage,
+} from '../lib/rules/actionList'
+import {
+  activationHeatGate,
   coreMechanicRowText,
   economyForActivation,
   economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
-  isAreaSalvage,
   isDestructiveOutcome,
-  pilotActivationPatch,
 } from '../lib/rules/actionPatches'
 import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEconomy'
-import type { MechItemEconomy } from '../lib/rules/mechItems'
-import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
+import { companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
@@ -238,9 +227,9 @@ export function useActionsDeck({
   // equipment in the cockpit).
   const onFoot = situation === 'onFoot'
   const pilotDeck = pilot ? buildPilotActions(pilot) : []
-  // MOCK (wave 2, the actions board): the companions' actions are in the deck
-  // too. A pilot's companion acts on its own turn, on foot or Boarded; a
-  // mech's drone is reached from its mech.
+  // The companions' actions are in the deck too (R65). A pilot's companion
+  // acts on its own turn, on foot or Boarded; a mech's drone is reached from
+  // its mech.
   const companionDeck = [
     ...(pilot ? buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners) : []),
     ...(!onFoot && mech ? buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners) : []),
@@ -250,28 +239,7 @@ export function useActionsDeck({
     ...companionDeck,
   ]
 
-  /**
-   * MOCK (wave 2): a companion as its host's record holds it now, with its EP
-   * and Heat maxima. "Uses the same rules as Mechs": its actions spend its
-   * own EP, make its own Heat and tick its own Uses.
-   */
-  function companionNow(c: PlayActionCompanion) {
-    const host = c.host.kind === 'pilot' ? s.get('pilot', c.host.id) : s.get('mech', c.host.id)
-    const partner = host?.partners?.find((p) => p.id === c.id)
-    if (!host || !partner) return null
-    const techLevel = partnerTechLevel(
-      partner,
-      c.host.kind === 'pilot' && pilot ? resolveEffectiveCrawlerLevel(pilot, crawler) : undefined
-    )
-    const max = partnerDerivedStats(partner, techLevel)
-    return {
-      host,
-      partner,
-      maxEP: max.energyPoints,
-      heatCap: max.heatCapacity,
-      currentHeat: resolveGauge(partner.currentHeat),
-    }
-  }
+  const units = { store: s, pilot, mech, crawler }
 
   // Heat context for the heat-lock (pilots carry no heat).
   const heatCtx = (() => {
@@ -333,128 +301,6 @@ export function useActionsDeck({
   /** Replace the seat's resolve with a new step of the same action. */
   function step(current: SeatResolving, next: Partial<SeatResolving>) {
     onResolving({ ...current, ...next })
-  }
-
-  /**
-   * Pay one activation in `effCurrency`, spending the (possibly Hot-X-adjusted)
-   * `economy`. EP writes the mech patch (EP + Hot Heat + uses); AP writes the
-   * pilot's AP spend. This is the single non-destructive ADR-007 bookkeeping
-   * write; the Apply step never adds a destructive one.
-   */
-  function activate(
-    current: SeatResolving,
-    action: PlayAction,
-    effCurrency: PlayActionCurrency,
-    economy: MechItemEconomy
-  ) {
-    if (effCurrency === 'AP') {
-      if (!pilot) return
-      const fresh = s.get('pilot', pilot.id) ?? pilot
-      // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
-      // spent AP is at full AP. Defaulting to 0 here banked the spend against an
-      // empty pool and wrote AP 0 on the first activation. The stored value stays
-      // authoritative when present: never clamp it here, since an unresolved ref
-      // makes the max 0.
-      const apBefore = resolvePoolStart(
-        fresh.currentAP,
-        pilotMaxAP({
-          ...fresh,
-          crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler),
-        })
-      )
-      const patch = pilotActivationPatch({ apCost: economy.epCost, currentAP: apBefore })
-      // The resolve moves on to Roll only once the spend has landed.
-      if (Object.keys(patch).length > 0) {
-        runWrite(
-          () => s.update('pilot', pilot.id, patch, meta),
-          () => step(current, { activated: true })
-        )
-        // MOCK (Working Manual, the Undo law): the spend says itself; Undo refunds it.
-        if (typeof patch.currentAP === 'number' && patch.currentAP !== apBefore)
-          changeUndoToast({
-            id: `pilot:${pilot.id}:currentAP`,
-            label: 'AP',
-            did: `Used ${action.name}`,
-            from: apBefore,
-            to: patch.currentAP,
-            undo: (value) =>
-              runWrite(() => s.update('pilot', pilot.id, { currentAP: value }, meta)),
-          })
-      } else step(current, { activated: true })
-      return
-    }
-    // MOCK (wave 2): a companion's action spends the companion's own EP, Heat and Uses.
-    if (action.companion) {
-      const c = action.companion
-      const now = companionNow(c)
-      if (!now) return
-      const before = resolvePoolStart(now.partner.currentEP, now.maxEP)
-      const patch = activationPatch({
-        slug: action.slug,
-        economy,
-        currentEP: before,
-        currentHeat: now.currentHeat,
-        heatCap: now.heatCap,
-        prevUses: now.partner.itemUses,
-      })
-      if (Object.keys(patch).length === 0) {
-        step(current, { activated: true })
-        return
-      }
-      const write = (fields: typeof patch) => {
-        const fresh = companionNow(c)
-        if (!fresh) return Promise.resolve()
-        const partners = replacePartner(fresh.host.partners, c.id, fields)
-        return c.host.kind === 'pilot'
-          ? s.update('pilot', c.host.id, { partners }, meta)
-          : s.update('mech', c.host.id, { partners }, meta)
-      }
-      runWrite(
-        () => write(patch),
-        () => step(current, { activated: true })
-      )
-      if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
-        changeUndoToast({
-          id: `partner:${c.id}:currentEP`,
-          label: `${c.name} EP`,
-          did: `Used ${action.name}`,
-          from: before,
-          to: patch.currentEP,
-          undo: (value) => runWrite(() => write({ currentEP: value })),
-        })
-      return
-    }
-    // EP is the mech's: only a boarded deck offers it.
-    if (!mech) return
-    const chassis = resolveChassisRef(mech.chassisRef)
-    const fresh = s.get('mech', mech.id) ?? mech
-    const heatCap = mechMaxHeat(fresh, chassis)
-    const patch = activationPatch({
-      slug: action.slug,
-      economy,
-      // Unrecorded EP means a mech that has never spent any — full, not empty.
-      currentEP: resolvePoolStart(fresh.currentEP, mechMaxEP(fresh, chassis)),
-      currentHeat: resolveGauge(fresh.currentHeat),
-      heatCap,
-      prevUses: fresh.itemUses,
-    })
-    if (Object.keys(patch).length > 0) {
-      runWrite(
-        () => s.update('mech', mech.id, patch, meta),
-        () => step(current, { activated: true })
-      )
-      // MOCK (Working Manual, the Undo law): the spend says itself; Undo refunds it.
-      const before = resolvePoolStart(fresh.currentEP, mechMaxEP(fresh, chassis))
-      if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
-        changeUndoToast({
-          id: `mech:${mech.id}:currentEP`,
-          label: 'EP',
-          did: `Used ${action.name}`,
-          from: before,
-          to: patch.currentEP,
-          undo: (value) => runWrite(() => s.update('mech', mech.id, { currentEP: value }, meta)),
-        })
-    } else step(current, { activated: true })
   }
 
   /**
@@ -584,8 +430,8 @@ export function useActionsDeck({
         : selected.currency
 
     // Heat projection + cap gate (EP activations only; pilots carry no Heat).
-    // MOCK (wave 2): a companion's Heat is its own, on foot or Boarded.
-    const companion = selected.companion ? companionNow(selected.companion) : null
+    // A companion's Heat is its own, on foot or Boarded.
+    const companion = selected.companion ? companionNow(units, selected.companion) : null
     const actionHeat = companion
       ? { currentHeat: companion.currentHeat, heatCap: companion.heatCap }
       : heatCtx
@@ -642,7 +488,10 @@ export function useActionsDeck({
           : heatOk
             ? undefined
             : 'Activating would exceed the Heat Capacity',
-        onActivate: () => activate(current, selected, effCurrency, eco),
+        onActivate: () =>
+          payActivation(units, selected, effCurrency, eco, () =>
+            step(current, { activated: true })
+          ),
         activated,
         onRoll: () => void (salvaging ? doSalvageRoll(current) : doRoll(current)),
         push:

@@ -3,11 +3,12 @@
  * 390px phone over a stand-in `Play` (`useHarnessPlay`, in place of
  * `usePlaySituation`).
  *
- *  - The tabs: Act, Units, Tables, Crew, in that order (Crew a Game's only);
- *    a switch opens one pane and keeps the others mounted, hidden.
+ *  - The tabs: Act, Crew, Rolls, Rules, in that order (Crew a Game's only);
+ *    a switch opens one pane and keeps the others mounted, hidden. Units has
+ *    no tab: the bar's ⋯ opens its pane.
  *  - Pinned above every tab, per Situation: on foot the pilot's HP and AP,
- *    Boarded the mech's SP, EP and Heat too, in Downtime nothing; the
- *    Situation switch under them.
+ *    Boarded the mech's SP, EP and Heat too, in Downtime nothing.
+ *  - The Situation is the bar's ⋯: On foot, Board, Downtime, Table mode.
  *  - Resolve stays inline in Act: Use opens the action's Compact in place, and a
  *    full turn (Activate, Roll, Apply) never leaves the tab.
  *  - A Downtime step is played on Act: the track, the step box, Apply.
@@ -58,7 +59,9 @@ setQueryAnswers({
 const { hydrateStores } = await import('../../components/__tests__/hydrateStores')
 const { rollFourteen, useHarnessPlay } = await import('./playActionsHarness')
 const { PlayCockpit } = await import('../PlayCockpit')
-const { PLAYER_TABS, mediatorPanes, pinnedUnits, playerPanes } = await import('../playPanes.model')
+const { PLAYER_TABS, mediatorPanes, pinnedUnits, playerPanes, playerPhonePanes } = await import(
+  '../playPanes.model'
+)
 
 /** A system with an action that rolls: the turn's action. */
 let system = ''
@@ -102,6 +105,12 @@ function makeMech(): Mech {
   })
 }
 
+/** What the stand-in `Play` was asked to do. */
+const writes: { name: string; args?: unknown }[] = []
+beforeEach(() => {
+  writes.length = 0
+})
+
 /** The stand-in `Play` for `current`, as `usePlaySituation` would answer. */
 function useScreenPlay() {
   const { situation, solo = false, stepIndex = 0 } = current
@@ -110,7 +119,7 @@ function useScreenPlay() {
     mech: makeMech(),
     situation,
     gameId: solo ? null : 'g-phone',
-    writes: [],
+    writes,
     downtime: { stepIndex },
   })
 }
@@ -150,25 +159,47 @@ function openPanel(): HTMLElement {
   return open[0] as HTMLElement
 }
 
-/** The pinned vitals, by unit: "Bonesaw: HP 7/10 · AP 3/5". */
+/** The pinned cells' labels, in order: "HP", "AP", "SP", … */
 function pinned(): string[] {
   const section = screen.queryByRole('region', { name: 'Pinned vitals' })
   if (section === null) return []
   return within(section)
-    .getAllByRole('list')
-    .map((list) => list.getAttribute('aria-label') ?? '')
+    .getAllByRole('button', { name: /\. Change$/ })
+    .map((cell) => cell.querySelector('.su-phone-glance__label')?.textContent ?? '')
+}
+
+/** The bar's ⋯, opened. */
+async function openMore() {
+  await click(within(screen.getByRole('banner')).getByRole('button', { name: 'More' }))
 }
 
 describe('the model', () => {
-  test('the player’s four panes in reading order, their tabs in a fixed order; solo has no Crew', () => {
+  test('the player’s panes in reading order, their tabs in a fixed order; solo has no Crew', () => {
     expect(playerPanes(false).map((p) => [p.label, p.column])).toEqual([
       ['Units', 'start'],
       ['Act', 'centre'],
       ['Crew', 'end'],
       ['Tables', 'end'],
     ])
-    expect(PLAYER_TABS).toEqual(['act', 'units', 'tables', 'crew'])
+    expect(PLAYER_TABS).toEqual(['act', 'crew', 'tables', 'rules'])
     expect(playerPanes(true).map((p) => p.label)).toEqual(['Units', 'Act', 'Tables'])
+    // Below `lg` Tables reads Rolls, and the Reference is a pane of its own.
+    expect(playerPhonePanes(false, null).map((p) => p.label)).toEqual([
+      'Units',
+      'Act',
+      'Crew',
+      'Rolls',
+      'Rules',
+    ])
+  })
+
+  test('the pane with a proposal waiting wears the dot', () => {
+    const dotted = (waiting: 'tables' | null) =>
+      playerPhonePanes(false, waiting)
+        .filter((p) => p.dot)
+        .map((p) => p.value)
+    expect(dotted('tables')).toEqual(['tables'])
+    expect(dotted(null)).toEqual([])
   })
 
   test('the Mediator’s four, Propose docked; in Downtime the second says so, in its place', () => {
@@ -217,76 +248,101 @@ describe('the model', () => {
 })
 
 describe('the tabs', () => {
-  test('Act, Units, Tables, Crew along the foot; Act opens first', async () => {
+  test('Act, Crew, Rolls, Rules along the foot; Act opens first', async () => {
     await renderPhone({ situation: 'boarded' })
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Rolls', 'Rules'])
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
-    expect(within(openPanel()).getByRole('heading', { name: 'Actions' })).toBeTruthy()
+    expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
   })
 
   test('a tab opens its pane; the others stay mounted, hidden', async () => {
     await renderPhone({ situation: 'boarded' })
-    await click(tab('Units'))
-    expect(tab('Units').getAttribute('aria-selected')).toBe('true')
-    expect(within(openPanel()).getByRole('heading', { name: 'Units' })).toBeTruthy()
-    // The Act panel is still there, hidden: its Find and filters survive.
-    expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(4)
-
-    await click(tab('Tables'))
+    await click(tab('Rolls'))
+    expect(tab('Rolls').getAttribute('aria-selected')).toBe('true')
     expect(
       within(openPanel())
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
     ).toEqual(['Tables', 'Feed'])
+    // The Act panel is still there, hidden: its filters survive.
+    expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(5)
 
     await click(tab('Crew'))
     expect(within(openPanel()).getByRole('heading', { name: 'Crew' })).toBeTruthy()
 
+    await click(tab('Rules'))
+    expect(tab('Rules').getAttribute('aria-selected')).toBe('true')
+    expect(openPanel().id).toMatch(/-pane-rules$/)
+
     await click(tab('Act'))
-    expect(within(openPanel()).getByRole('heading', { name: 'Actions' })).toBeTruthy()
+    expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
+  })
+
+  test('Units has no tab: the bar’s ⋯ opens its pane, and a tab leaves it', async () => {
+    await renderPhone({ situation: 'boarded' })
+    expect(screen.queryByRole('tab', { name: 'Units' })).toBeNull()
+    await openMore()
+    await click(await screen.findByRole('menuitem', { name: 'Units' }))
+    expect(within(openPanel()).getByRole('heading', { name: 'Units' })).toBeTruthy()
+    await click(tab('Act'))
+    expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
   })
 
   test('solo: no Crew tab', async () => {
     await renderPhone({ situation: 'onFoot', solo: true })
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Rolls', 'Rules'])
   })
 })
 
 describe('pinned above every pane', () => {
-  test('on foot: the pilot’s HP and AP, then the Situation switch', async () => {
+  test('on foot: the pilot’s HP and AP', async () => {
     await renderPhone({ situation: 'onFoot' })
-    expect(pinned()).toEqual(['Bonesaw’s vitals'])
-    const vitals = screen.getByRole('list', { name: 'Bonesaw’s vitals' })
-    expect(vitals.textContent).toContain('HP')
-    expect(vitals.textContent).toContain('AP')
-    expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
+    expect(pinned()).toEqual(['HP', 'AP'])
+    expect(screen.getByRole('button', { name: 'Bonesaw HP 7 of 10. Change' })).toBeTruthy()
   })
 
-  test('Boarded: the mech’s SP, EP and Heat too; the option says Boarded, its name still read', async () => {
+  test('Boarded: the mech’s SP, EP and Heat too, and the band says who is in what', async () => {
     await renderPhone({ situation: 'boarded' })
-    expect(pinned()).toEqual(['Bonesaw’s vitals', 'Buzzard’s vitals'])
-    const mech = screen.getByRole('list', { name: 'Buzzard’s vitals' })
-    for (const label of ['SP', 'EP', 'Heat']) expect(mech.textContent).toContain(label)
-    const option = within(screen.getByRole('group', { name: 'Situation' })).getByRole('button', {
-      name: 'Boarded · Buzzard',
-    })
-    expect(option.textContent).toBe('Boarded')
+    expect(pinned()).toEqual(['HP', 'AP', 'SP', 'EP', 'Heat'])
+    const bar = within(screen.getByRole('banner'))
+    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Bonesaw in Buzzard')
+    expect(bar.getByText(/Boarded/)).toBeTruthy()
   })
 
-  test('in Downtime nothing is pinned but the switch', async () => {
+  test('in Downtime nothing is pinned', async () => {
     await renderPhone({ situation: 'downtime', solo: true })
     expect(pinned()).toEqual([])
-    expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
+    expect(screen.queryByRole('region', { name: 'Pinned vitals' })).toBeNull()
   })
 
   test('the pinned row sits outside every pane, so it shows on each tab', async () => {
     await renderPhone({ situation: 'boarded' })
     const section = screen.getByRole('region', { name: 'Pinned vitals' })
     expect(section.closest('[role="tabpanel"]')).toBeNull()
-    await click(tab('Tables'))
+    await click(tab('Rolls'))
     expect(screen.getByRole('region', { name: 'Pinned vitals' })).toBe(section)
+  })
+})
+
+describe('the Situation, in the bar’s ⋯', () => {
+  test('no switch on a phone: On foot, Board, Downtime and Table mode are rows', async () => {
+    await renderPhone({ situation: 'boarded' })
+    expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()
+    await openMore()
+    expect(await screen.findByRole('menuitem', { name: /^On foot/ })).toBeTruthy()
+    // The row that is so now says so.
+    expect(screen.getByRole('menuitem', { name: /Board Buzzard.*Now/ })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: /^Downtime/ })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Table mode' })).toBeTruthy()
+  })
+
+  test('solo, the Downtime row starts Downtime', async () => {
+    await renderPhone({ situation: 'onFoot', solo: true })
+    await openMore()
+    await click(await screen.findByRole('menuitem', { name: /^Downtime/ }))
+    expect(writes).toEqual([{ name: 'startDowntime' }])
   })
 })
 
@@ -329,7 +385,7 @@ describe('Act: resolve stays inline', () => {
 })
 
 describe('table mode', () => {
-  test('its one screen in place of the tabs, which stay mounted; only the switch stays pinned', async () => {
+  test('its one screen in place of the tabs, which stay mounted; nothing stays pinned', async () => {
     localStorage.setItem('su:play-table-mode', 'on')
     const { resetTableMode } = await import('../useTableMode')
     resetTableMode()
@@ -340,8 +396,7 @@ describe('table mode', () => {
       expect(screen.getByRole('button', { name: 'Roll the die' })).toBeTruthy()
       expect(screen.getByRole('list', { name: 'Buzzard’s vitals' })).toBeTruthy()
       expect(screen.queryByRole('region', { name: 'Pinned vitals' })).toBeNull()
-      expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
-      expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(4)
+      expect(screen.getAllByRole('tabpanel', { hidden: true })).toHaveLength(5)
     } finally {
       localStorage.removeItem('su:play-table-mode')
       resetTableMode()

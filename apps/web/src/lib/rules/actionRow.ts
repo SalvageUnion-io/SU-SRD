@@ -1,7 +1,7 @@
 /**
- * MOCK (Working Manual wave 2, the actions board): what one actions row
- * draws, shared by Play's board (`PlayActionRow`) and the Live Sheet's Actions
- * tab, so the two never disagree.
+ * actionRow — what one actions row draws, shared by Play's board
+ * (`PlayActionRow`) and a Live Sheet's Actions list (`SheetActions`), so the
+ * two never disagree (R65).
  *
  *  - Its head is the action with the owner's picks and the crawler's Tech
  *    Level applied (R60: a Custom Sniper Rifle with High Calibre Rounds at
@@ -10,16 +10,18 @@
  *    on-choose text, no flavour.
  *  - Its picks are named, and a pick that gives you something to do at the
  *    table says so in its own line.
+ *  - Under its action type's heading (`grouped`) its head drops the type,
+ *    which the heading has said (C10).
  */
 
 import type { EntityModel, RefObjectContentBlock } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
 import type { ActionPick } from './actionEffect'
 import { actionEffect, actionPicks } from './actionEffect'
-import type { PlayAction } from './actionPatches'
+import type { PlayAction } from './actionList'
 
-/** Trait chips that say where an action comes from, which its row's band already says. */
-const SOURCE_TRAITS = new Set(['pilot equipment'])
+/** A trait chip that says where an action comes from, which its row's band already says. */
+const SOURCE_TRAIT = /^pilot equipment$/i
 
 export type ActionRow = {
   model: EntityModel
@@ -30,7 +32,17 @@ export type ActionRow = {
   picks: ActionPick[]
 }
 
-export function actionRow(pa: PlayAction, techLevel?: number): ActionRow {
+export type ActionRowOptions = {
+  /** The pilot's crawler Tech Level: an item's action scales with it (Custom Sniper Rifle damage). */
+  techLevel?: number | undefined
+  /** The row sits under its action type's heading, so its head leaves the type out. */
+  grouped?: boolean
+}
+
+export function actionRow(
+  pa: PlayAction,
+  { techLevel, grouped = false }: ActionRowOptions = {}
+): ActionRow {
   const selections = pa.choices?.selections
   const base = toEntityModel(
     pa.action,
@@ -65,12 +77,18 @@ export function actionRow(pa: PlayAction, techLevel?: number): ActionRow {
       : undefined
   return {
     model: {
-      ...base,
-      traits: base.traits.filter((trait) => !SOURCE_TRAITS.has(trait.name.toLowerCase())),
+      ...(grouped ? withoutType(base) : base),
+      traits: base.traits.filter((trait) => !SOURCE_TRAIT.test(trait.name)),
       prose: effect,
     },
     effect,
     summary,
     picks,
   }
+}
+
+/** The model less its action type, the one fact its group's heading carries. */
+function withoutType(model: EntityModel): EntityModel {
+  const { actionType: _actionType, mechActionType: _mechActionType, ...rest } = model
+  return rest
 }

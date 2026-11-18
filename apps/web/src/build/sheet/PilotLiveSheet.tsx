@@ -97,7 +97,7 @@ export function PilotLiveSheet({
           pilot={pilot}
           store={store}
           readOnly={readOnly}
-          // MOCK (wave 2): Read keeps HP, AP and TP live on a phone.
+          // Read keeps HP, AP and TP live on a phone.
           live={liveInRead}
           crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}

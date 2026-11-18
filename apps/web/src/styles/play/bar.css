@@ -94,9 +94,9 @@
 }
 
 /*
- * MOCK (Working Manual E): a phone's band is one controls line, the title on
+ * A phone's band is one controls line, the title on
  * its cut-out notched into the band's foot, under one crumb line on the band
- * (the Game · the phase · whose turn). Sentence case: capitals are the
+ * (the Game · the phase). Sentence case: capitals are the
  * title's (principle 7).
  */
 .su-play-bar--line {
@@ -126,9 +126,10 @@
   padding: 0 var(--space-12);
 }
 
-/* MOCK (Working Manual, attention law): the dot on a tab with something waiting. */
+/* The dot on a tab with something waiting, in the tab's own ink: it marks, it
+   is no action (ruleset §3.1). */
 .su-play-tab-dot {
-  background: var(--color-rust);
+  background: currentColor;
   border-radius: 50%;
   display: inline-block;
   height: var(--space-8);

@@ -20,8 +20,11 @@ const TOAST = {
   fontSize: fontSize.caption,
 } satisfies CSSProperties
 
-/** MOCK: a phone's toast clears the foot's tabs (the Compact Size and its rule). */
-const MOBILE_OFFSET = { bottom: '3.5rem' } as const
+/**
+ * A phone's toast stands clear of a tab row at the screen's foot and of the
+ * home indicator: `--su-toast-bottom` (`styles/partials/atoms-leaves.css`).
+ */
+const MOBILE_OFFSET = { bottom: 'var(--su-toast-bottom)' } as const
 
 /**
  * The toast region, as configured. Render it only through `ToasterMount`,
@@ -32,7 +35,6 @@ function Toaster() {
   return (
     <SonnerToaster
       position="bottom-right"
-      // MOCK (Working Manual, the Undo law): a phone's line sits above Play's tab row.
       mobileOffset={MOBILE_OFFSET}
       style={TOASTER}
       toastOptions={{

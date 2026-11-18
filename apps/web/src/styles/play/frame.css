@@ -82,6 +82,11 @@
   min-width: 0;
 }
 
+/* A toast stands clear of the tab row (`Toaster` reads `--su-foot-clear`). */
+:root:has(.su-play-frame__tabs:not([hidden])) {
+  --su-foot-clear: var(--size-full);
+}
+
 /*
  * From `lg`: the bar across the top, bled to the edges out of the frame's
  * padding, three columns, the foot along the bottom. Each column is a paper

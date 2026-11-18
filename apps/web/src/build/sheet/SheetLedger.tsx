@@ -1,5 +1,5 @@
 /**
- * MOCK (wave 2, phone sheets): SheetLedger, a sheet's list in the Ledger form
+ * SheetLedger, a sheet's list in the Ledger form
  * (`components/entity/Ledger.tsx`): one framed table in the list's band paint,
  * its title a cut-out tab with the count, a Mini-height line per entity whose
  * name Peeks its card, its values in fixed columns, and the books it is
@@ -10,9 +10,10 @@
 
 import type { ReactNode } from 'react'
 import type { EntityModel, RefMetaEntity } from 'salvageunion-reference'
-import { toEntityModel } from 'salvageunion-reference'
+import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import type { LedgerColumn } from '../../components/index'
 import { CiteLine, Ledger } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 type Column = LedgerColumn & { value: (model: EntityModel, line: SheetLedgerLine) => string }
 
@@ -52,8 +53,8 @@ const fact = (label: string, title: string, key: string): Column => ({
 
 const COST: Column = {
   key: 'cost',
-  label: 'Cost',
-  title: 'Activation cost',
+  label: buildSheetCopy('cost'),
+  title: buildSheetCopy('activationCost'),
   kind: 'figure',
   phone: true,
   value: (model) => model.cost ?? '',
@@ -61,7 +62,7 @@ const COST: Column = {
 
 const ACTION: Column = {
   key: 'action',
-  label: 'Action',
+  label: buildSheetCopy('action'),
   kind: 'text',
   phone: true,
   value: (model) => model.actionType ?? '',
@@ -78,22 +79,26 @@ const own = (label: string, key: string, kind: Column['kind'] = 'figure'): Colum
 
 const COLUMNS = {
   loadout: [
-    book('Slots', 'Slots Required', 'book-Slots Required'),
-    fact('RNG', 'Range', 'range'),
-    fact('DMG', 'Damage', 'damage'),
+    book(
+      STAT_LABELS.slotsRequired.short,
+      STAT_LABELS.slotsRequired.label,
+      `book-${STAT_LABELS.slotsRequired.label}`
+    ),
+    fact(buildSheetCopy('rng'), buildSheetCopy('range'), 'range'),
+    fact(buildSheetCopy('dmg'), buildSheetCopy('damage'), 'damage'),
     COST,
   ],
   equipment: [
-    book('TL', 'Tech Level', 'tech-level'),
-    fact('RNG', 'Range', 'range'),
-    fact('DMG', 'Damage', 'damage'),
-    own('Uses', 'uses'),
+    book(buildSheetCopy('tl'), buildSheetCopy('techLevel'), 'tech-level'),
+    fact(buildSheetCopy('rng'), buildSheetCopy('range'), 'range'),
+    fact(buildSheetCopy('dmg'), buildSheetCopy('damage'), 'damage'),
+    own(buildSheetCopy('uses'), 'uses'),
   ],
   abilities: [
     {
       key: 'level',
-      label: 'LVL',
-      title: 'Level',
+      label: buildSheetCopy('lvl'),
+      title: buildSheetCopy('level'),
       kind: 'figure',
       phone: true,
       value: (model) => String(model.tier ?? ''),
@@ -101,7 +106,7 @@ const COLUMNS = {
     ACTION,
     COST,
   ],
-  bays: [own('Crew lead', 'lead', 'text'), own('HP', 'hp')],
+  bays: [own(buildSheetCopy('crewLeadColumn'), 'lead', 'text'), own(buildSheetCopy('hp'), 'hp')],
 } as const satisfies Record<string, readonly Column[]>
 
 const EMPTY_MODEL = { bookStats: [], facts: [] } as unknown as EntityModel

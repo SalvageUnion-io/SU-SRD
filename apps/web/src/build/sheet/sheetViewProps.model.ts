@@ -43,7 +43,7 @@ export type SheetViewCommonProps = {
   editable: boolean
   readOnly: boolean
   /**
-   * MOCK (Working Manual, principle 2): the viewer may write this sheet, in
+   * The viewer may write this sheet, in
    * Read as in Edit, so session state (a mech's SP, EP and Heat) is live in
    * Read. False on a public, crewmate's or Starter Set sheet.
    */

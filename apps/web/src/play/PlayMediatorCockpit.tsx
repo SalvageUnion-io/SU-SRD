@@ -112,7 +112,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   }, [focusTo, tab, wide])
 
   const nodes: Record<MediatorPane, ReactNode> = {
-    // MOCK (wave 2): the Feed under the Table, on a phone and a desk alike:
+    // The Feed under the Table, on a phone and a desk alike:
     // the Mediator's landing pane reads who is here and what just happened,
     // and the column under the seats is never empty.
     table: (

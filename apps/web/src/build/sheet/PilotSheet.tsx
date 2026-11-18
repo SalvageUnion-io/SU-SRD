@@ -1,4 +1,3 @@
-import type { UnitsStore } from '../../replica/units'
 /**
  * PilotSheet — the pilot body for the LiveSheet shell (Workshop-Manual pilot
  * sheet, region-for-region).
@@ -6,7 +5,10 @@ import type { UnitsStore } from '../../replica/units'
  * One grammar with every sheet (hard rule R11), in this reading order:
  *   - the opening, `SheetHero`: the Identity card (the portrait, else the
  *     class's art, beside fields typeset in Read) beside the Vitals card
- *     (HP/AP gauges named from the one vitals map, TP and Conditions);
+ *     (`PilotVitals`: HP/AP gauges named from the one vitals map, TP and
+ *     Conditions, live in Read for whoever may write the sheet);
+ *   - in Read, Actions: every action the pilot has, by action type (R65,
+ *     `PilotActionsList`), the rows Play's board draws;
  *   - Abilities, two folding masonry grids (`PilotSheetAbilities`): each
  *     tree the pilot trained in, its taken Abilities as Compacts on the SRD's
  *     track, open; then the Generic tree as Minis, folded; each with Spend AP
@@ -18,6 +20,11 @@ import type { UnitsStore } from '../../replica/units'
  *     SlotGrid under them; in Edit each item's controls in its chip group;
  *     then Assigned Units, the mech and crawler they field.
  * Read leaves an empty section out (ruleset §1.2).
+ *
+ * A phone in Read is `PhoneSheet` (R11): the vitals as `PhoneVitals`, then the
+ * tabs Actions, Abilities, Gear, About. Its lists are Ledgers: one per tree
+ * the pilot has trained in (the taken abilities only), then Generic, and one
+ * Inventory.
  *
  * Read | Edit (`sheetMode.model.ts`) reaches here as `readOnly`: Read withdraws every
  * write affordance exactly as a sheet the viewer cannot write does.
@@ -54,79 +61,31 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { RefAbility } from 'salvageunion-reference'
-import { nameToSlug } from 'salvageunion-reference'
-import { pinFor } from 'salvageunion-reference/rules'
 import { Entity } from '../../components/entity/Entity'
-import {
-  Button,
-  Conditions,
-  EmptyState,
-  EntitySearcher,
-  Eyebrow,
-  MiniGrid,
-  PhoneVitals,
-  SlabSection,
-  SlotGrid,
-  Stat,
-  tokens,
-} from '../../components/index'
+import { MiniGrid, SlabSection, Stat, tokens } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
-import { changeUndoToast } from '../../lib/changeUndoToast'
 import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
-import { resolveEquipment } from '../../lib/rules/pilotInventory'
-import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
-import { ChipListEditor } from './ChipListEditor'
-import { CONDITION_DRAFT } from './chipWell.model'
-import { PilotSheetActions } from './MechSheetActions'
 import { PartnerMini } from './PartnerMini'
 import { PhoneSheet } from './PhoneSheet'
 import { PilotIdentityPanel } from './PilotIdentity'
+import { PilotGearLedger, PilotInventory } from './PilotInventory'
 import { PilotSheetAbilities } from './PilotSheetAbilities'
-import { GenericEntryAdder, GenericEntryLine, PilotEquipmentItem } from './PilotSheetItems'
-import { usePilotSheetModel } from './pilotSheet.model'
+import type { PilotPicker } from './PilotSheetPickers'
+import { PilotSheetPickers } from './PilotSheetPickers'
+import { PilotVitals } from './PilotVitals'
+import { inventoryEmpty, usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
+import { PilotActionsList } from './SheetActions'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { SheetLedger } from './SheetLedger'
-import { SheetPickerModal } from './SheetPickerModal'
-import { SheetVitalGauge } from './SheetVitalGauge'
-import { SHEET_VITALS } from './sheetVitals.model'
 import { usePhoneRead } from './usePhoneRead'
-
-// ---------------------------------------------------------------------------
-// TpBlock — pilot Training Points, straight under the AP gauge.
-//
-// A counter, not a gauge (ruleset §2.1: no cap, no track): the label-first
-// chip (`TRAINING POINTS | 3`), with the +/- steppers while the sheet writes
-// it, as every stat reads.
-// ---------------------------------------------------------------------------
-
-function TpBlock({
-  value,
-  onChange,
-  editable,
-}: {
-  value: number
-  onChange?: (next: number) => void
-  editable: boolean
-}) {
-  return (
-    <Stat
-      label={buildSheetCopy('trainingPoints')}
-      value={value}
-      mode={editable ? 'edit' : 'read'}
-      onChange={editable ? onChange : undefined}
-    />
-  )
-}
-
-/** The inventory's slots under its pills: the SlotGrid, set to the left. */
-const SLOTS = { display: 'flex', marginTop: tokens.space[8] } satisfies CSSProperties
 
 /** The sheet body; `container-type` scopes the region grid to its own width. */
 const BODY = {
@@ -136,21 +95,6 @@ const BODY = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
-const MIN_W_0 = { minWidth: 0 } satisfies CSSProperties
-
-/** The Conditions label's place over the chip row. */
-const CONDITIONS_LABEL = { display: 'block', marginBottom: tokens.space[8] } satisfies CSSProperties
-
-/** TP under the AP gauge: the vitals' own row, no rule between them. */
-const TP_ROW = {
-  borderTopWidth: 0,
-  display: 'flex',
-  marginTop: tokens.space[8],
-  paddingTop: 0,
-} satisfies CSSProperties
-
-const ADDER_ROW = { marginTop: tokens.space[12] } satisfies CSSProperties
-/** Companions are two columns at most, one where 18rem will not fit twice. */
 const COMPANION_COLUMNS = { columns: '18rem 2' } satisfies CSSProperties
 
 // ---------------------------------------------------------------------------
@@ -178,7 +122,7 @@ type PilotSheetProps = {
    * when Read has nothing linked.
    */
   linkedUnits?: ReactNode
-  /** MOCK (wave 2): the viewer may write it, so a phone's Read keeps HP, AP and TP live. */
+  /** The viewer may write it, so Read keeps HP, AP and Training Points live (R11). */
   live?: boolean
 }
 
@@ -195,7 +139,7 @@ export function PilotSheet({
   // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
   // Identity is a FIELD section (unified edit language archetype A): its own
   // Edit/Done toggle, rendered in the `SheetHero` panel's action row.
-  const [picker, setPicker] = useState<'abilities' | 'equipment' | null>(null)
+  const [picker, setPicker] = useState<PilotPicker | null>(null)
 
   const model = usePilotSheetModel({ pilot, storeState, picker })
   const actions = usePilotSheetActions({
@@ -204,32 +148,21 @@ export function PilotSheet({
     storeState,
     crawlerTechLevel: model.effectiveCrawlerLevel,
   })
-
-  const { hpParts, apParts, maxHP, maxAP, hp, ap, tp } = model
   const pilotClass = resolveClass(pilot.classRef)
-  const empty =
-    pilot.equipment.length === 0 && model.granted.size === 0 && model.genericInventory.length === 0
-
-  // MOCK (wave 2, phone sheets): a phone in Read is the numbers, then tabs
-  // (`PhoneSheet`), as the mech's is: Actions, Abilities, Gear, About.
+  const empty = inventoryEmpty(pilot, model)
+  // A phone in Read is the numbers, then tabs (`PhoneSheet`), as the mech's is.
   const phoneRead = usePhoneRead(readOnly)
-  const liveChange = (
-    field: 'currentHP' | 'currentAP' | 'trainingPoints',
-    label: string,
-    from: number
-  ) =>
-    live
-      ? (next: number) => {
-          actions.patchPilot({ [field]: next })
-          changeUndoToast({
-            id: `pilot:${pilot.id}:${field}`,
-            label,
-            from,
-            to: next,
-            undo: (value) => actions.patchPilot({ [field]: value }),
-          })
-        }
-      : undefined
+  const vitals = (phone: boolean) => (
+    <PilotVitals
+      pilot={pilot}
+      model={model}
+      actions={actions}
+      readOnly={readOnly}
+      live={live}
+      phone={phone}
+    />
+  )
+  /** A tree's taken abilities, as a phone's Ledger lists them: a used one says so. */
   const learned = (entries: readonly { slug: string; ability: RefAbility; unlearned?: true }[]) =>
     entries
       .filter((entry) => !entry.unlearned)
@@ -237,176 +170,44 @@ export function PilotSheet({
         id: entry.slug,
         entity: entry.ability,
         stamp: (pilot.usedAbilities ?? []).includes(entry.slug) ? (
-          <Stat label="Used" size="mini" />
+          <Stat label={buildSheetCopy('used')} size="mini" />
         ) : undefined,
       }))
-  const phoneSheet = phoneRead && (
-    <PhoneSheet
-      name={pilot.name}
-      vitals={
-        <PhoneVitals
-          label={`${pilot.name} vitals`}
-          vitals={[
-            {
-              key: 'hp',
-              label: SHEET_VITALS.hp.short,
-              name: SHEET_VITALS.hp.label,
-              value: hp,
-              max: maxHP,
-              onChange: liveChange('currentHP', 'HP', hp),
-            },
-            {
-              key: 'ap',
-              label: SHEET_VITALS.ap.short,
-              name: SHEET_VITALS.ap.label,
-              value: ap,
-              max: maxAP,
-              onChange: liveChange('currentAP', 'AP', ap),
-            },
-            {
-              key: 'tp',
-              label: 'TP',
-              name: buildSheetCopy('trainingPoints'),
-              note: buildSheetCopy('trainingPoints'),
-              value: tp,
-              onChange: liveChange('trainingPoints', 'TP', tp),
-            },
-          ]}
-          foot={
-            pilot.conditions.length > 0 ? (
-              <Conditions conditions={[...pilot.conditions]} />
-            ) : undefined
-          }
-        />
-      }
-      tabs={[
-        { value: 'actions', label: 'Actions', panel: <PilotSheetActions pilot={pilot} /> },
-        {
-          value: 'abilities',
-          label: 'Abilities',
-          count: String(pilot.abilities.length),
-          panel: (
-            <>
-              {model.classTrees.map((group) => (
-                <SheetLedger
-                  key={group.tree}
-                  kind="abilities"
-                  title={group.tree}
-                  tone="pilot"
-                  count={learned(group.abilities).length}
-                  lines={learned(group.abilities)}
-                />
-              ))}
-              <SheetLedger
-                kind="abilities"
-                title="Generic"
-                tone="pilot"
-                count={learned(model.genericAbilities).length}
-                lines={learned(model.genericAbilities)}
+  /**
+   * Ability-granted COMPANIONS (a pilot's partners). Each carries a nested
+   * loadout and a cargo hold, and acts on its own turn rather than being one
+   * item among the pilot's carried gear. Minis at level 2 (E6), two columns
+   * on the page; each opens its whole card from Details.
+   */
+  const companions = (fold: boolean) =>
+    model.partners.length > 0 && (
+      <SlabSection
+        {...(fold ? { fold: 'open' as const } : {})}
+        title={buildSheetCopy(model.partners.length > 1 ? 'companions' : 'companion')}
+        count={model.partners.length}
+      >
+        <MiniGrid
+          label={buildSheetCopy('companions')}
+          edit={!readOnly}
+          {...(fold ? { style: COMPANION_COLUMNS } : {})}
+        >
+          {model.partners.map((partner) => (
+            <li key={partner.id}>
+              <PartnerMini
+                found={{ partner, hostKind: 'pilot', host: pilot }}
+                crawler={model.linkedCrawler}
+                crawlerTechLevel={model.effectiveCrawlerLevel}
+                hostAbilityRefs={pilot.abilities}
+                fielded={model.fieldedByRef[partner.hostRef] ?? 1}
+                readOnly={readOnly}
+                crawlerReadOnly={crawlerReadOnly}
+                store={store}
               />
-              {model.partners.length > 0 && (
-                <SlabSection
-                  title={buildSheetCopy(model.partners.length > 1 ? 'companions' : 'companion')}
-                  count={model.partners.length}
-                >
-                  <MiniGrid label={buildSheetCopy('companions')}>
-                    {model.partners.map((partner) => (
-                      <li key={partner.id}>
-                        <PartnerMini
-                          found={{ partner, hostKind: 'pilot', host: pilot }}
-                          crawler={model.linkedCrawler}
-                          crawlerTechLevel={model.effectiveCrawlerLevel}
-                          hostAbilityRefs={pilot.abilities}
-                          fielded={model.fieldedByRef[partner.hostRef] ?? 1}
-                          readOnly={readOnly}
-                          crawlerReadOnly={crawlerReadOnly}
-                          store={store}
-                        />
-                      </li>
-                    ))}
-                  </MiniGrid>
-                </SlabSection>
-              )}
-            </>
-          ),
-        },
-        {
-          value: 'gear',
-          label: 'Gear',
-          count: `${model.slotsUsed}/${model.slotsCap}`,
-          panel: empty ? (
-            <EmptyState variant="quiet" body={buildSheetCopy('nothingCarried')} />
-          ) : (
-            <>
-              <SheetLedger
-                kind="equipment"
-                title={buildSheetCopy('inventory')}
-                count={`${model.slotsUsed}/${model.slotsCap}`}
-                lines={[
-                  ...model.ordinaryEquipment.map((slug) => {
-                    const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
-                    const uses = pilot.equipmentUses?.[slug]
-                    return {
-                      id: slug,
-                      entity: resolveEquipment(slug),
-                      name: resolveEquipment(slug) ? undefined : slug,
-                      stamp:
-                        condition !== 'intact' ? (
-                          <Stat label={condition} size="mini" state="critical" />
-                        ) : undefined,
-                      cells: uses !== undefined ? { uses: String(uses) } : undefined,
-                    }
-                  }),
-                  ...model.genericInventory.map((entry) => ({
-                    id: entry.id,
-                    name: entry.qty && entry.qty > 1 ? `${entry.name} ×${entry.qty}` : entry.name,
-                    stamp: (
-                      <Stat label={buildSheetCopy('slots')} value={entry.slotCost} size="mini" />
-                    ),
-                  })),
-                ]}
-              />
-              <SlotGrid
-                used={model.slotsUsed}
-                cap={model.slotsCap}
-                label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled`}
-                readOnly
-              />
-            </>
-          ),
-        },
-        {
-          value: 'about',
-          label: 'About',
-          panel: (
-            <>
-              <SheetHero
-                flat
-                name={pilot.name}
-                fields={
-                  <PilotIdentityPanel
-                    pilot={pilot}
-                    proseUnder
-                    photo={
-                      <EntityPhoto
-                        photo={pilot.photo}
-                        fallback={classArt(pilot.classRef)}
-                        name={pilot.callsign || pilot.name}
-                      />
-                    }
-                  />
-                }
-              />
-              {pilotClass && (
-                <Entity size="mini" context="browse" entity={pilotClass} mode={{ kind: 'link' }} />
-              )}
-              {linkedUnits}
-            </>
-          ),
-        },
-      ]}
-    />
-  )
+            </li>
+          ))}
+        </MiniGrid>
+      </SlabSection>
+    )
 
   return (
     <section
@@ -417,11 +218,88 @@ export function PilotSheet({
       className="su-sheet-section"
       style={BODY}
     >
-      {/* The opening (`SheetHero`, as every sheet opens): the identity
-          fields beside the vitals. HP, AP and TP are what a player reaches for
-          mid-session, so on a phone they come straight after the identity. */}
-      {phoneSheet}
-      {!phoneSheet && (
+      {phoneRead ? (
+        <PhoneSheet
+          name={pilot.name}
+          vitals={vitals(true)}
+          tabs={[
+            {
+              value: 'actions',
+              label: buildSheetCopy('actions'),
+              panel: <PilotActionsList pilot={pilot} />,
+            },
+            {
+              value: 'abilities',
+              label: buildSheetCopy('abilities'),
+              count: String(pilot.abilities.length),
+              panel: (
+                <>
+                  {model.classTrees.map((group) => (
+                    <SheetLedger
+                      key={group.tree}
+                      kind="abilities"
+                      title={group.tree}
+                      tone="pilot"
+                      count={learned(group.abilities).length}
+                      lines={learned(group.abilities)}
+                    />
+                  ))}
+                  <SheetLedger
+                    kind="abilities"
+                    title={buildSheetCopy('generic')}
+                    tone="pilot"
+                    count={learned(model.genericAbilities).length}
+                    lines={learned(model.genericAbilities)}
+                  />
+                  {companions(false)}
+                </>
+              ),
+            },
+            {
+              value: 'gear',
+              label: buildSheetCopy('gear'),
+              count: `${model.slotsUsed}/${model.slotsCap}`,
+              panel: <PilotGearLedger pilot={pilot} model={model} />,
+            },
+            {
+              value: 'about',
+              label: buildSheetCopy('about'),
+              panel: (
+                <>
+                  <SheetHero
+                    flat
+                    name={pilot.name}
+                    fields={
+                      <PilotIdentityPanel
+                        pilot={pilot}
+                        proseUnder
+                        photo={
+                          <EntityPhoto
+                            photo={pilot.photo}
+                            fallback={classArt(pilot.classRef)}
+                            name={pilot.callsign || pilot.name}
+                          />
+                        }
+                      />
+                    }
+                  />
+                  {pilotClass && (
+                    <Entity
+                      size="mini"
+                      context="browse"
+                      entity={pilotClass}
+                      mode={{ kind: 'link' }}
+                    />
+                  )}
+                  {linkedUnits}
+                </>
+              ),
+            },
+          ]}
+        />
+      ) : (
+        // The opening (`SheetHero`, as every sheet opens): the identity fields
+        // beside the vitals.
         <SheetColumns
           asideLabel={buildSheetCopy('whatCarries', { name: pilot.name })}
           hero={
@@ -451,214 +329,33 @@ export function PilotSheet({
                   }
                 />
               }
-              vitals={
-                <>
-                  <SheetVitalGauge
-                    vital="hp"
-                    value={hp}
-                    max={maxHP}
-                    onChange={readOnly ? undefined : (v) => actions.patchPilot({ currentHP: v })}
-                    onMaxChange={
-                      readOnly
-                        ? undefined
-                        : (next) =>
-                            actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) })
-                    }
-                    breakdown={readOnly ? undefined : hpParts}
-                    provenance={readOnly ? undefined : model.hpLines}
-                    onRevertOverride={
-                      readOnly
-                        ? undefined
-                        : () => actions.overridePilotMax({ maxHpOverride: undefined })
-                    }
-                    readOnly={readOnly}
-                  />
-                  <SheetVitalGauge
-                    vital="ap"
-                    value={ap}
-                    max={maxAP}
-                    onChange={readOnly ? undefined : (v) => actions.patchPilot({ currentAP: v })}
-                    onMaxChange={
-                      readOnly
-                        ? undefined
-                        : (next) =>
-                            actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) })
-                    }
-                    breakdown={readOnly ? undefined : apParts}
-                    provenance={readOnly ? undefined : model.apLines}
-                    onRevertOverride={
-                      readOnly
-                        ? undefined
-                        : () => actions.overridePilotMax({ maxApOverride: undefined })
-                    }
-                    readOnly={readOnly}
-                  />
-                  {/* TP stands right under AP, in the same row of the vitals. */}
-                  <div style={TP_ROW}>
-                    <TpBlock
-                      value={tp}
-                      onChange={
-                        readOnly ? undefined : (v) => actions.patchPilot({ trainingPoints: v })
-                      }
-                      editable={!readOnly}
-                    />
-                  </div>
-                  {/* Read leaves an empty field out: Conditions prints only
-                    when there is one to read. */}
-                  {readOnly ? (
-                    pilot.conditions.length > 0 && (
-                      <div style={MIN_W_0}>
-                        <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
-                          {buildSheetCopy('conditions')}
-                        </Eyebrow>
-                        <Conditions conditions={[...pilot.conditions]} />
-                      </div>
-                    )
-                  ) : (
-                    <div style={MIN_W_0}>
-                      <Eyebrow tone="toneDeep" style={CONDITIONS_LABEL}>
-                        {buildSheetCopy('conditions')}
-                      </Eyebrow>
-                      <ChipListEditor
-                        items={pilot.conditions}
-                        onChange={actions.handleConditionsChange}
-                        noun="condition"
-                        draftWidth={CONDITION_DRAFT}
-                        unique
-                      />
-                    </div>
-                  )}
-                  {/* The class, its header-only Mini under the stats, linking to
-                    its Page (R49). */}
-                  {/* Read only: in Edit the R57 row is the class. */}
-                  {pilotClass && readOnly && (
-                    <div style={MIN_W_0}>
-                      <Entity
-                        size="mini"
-                        context="browse"
-                        entity={pilotClass}
-                        mode={{ kind: 'link' }}
-                      />
-                    </div>
-                  )}
-                </>
-              }
+              vitals={vitals(false)}
             />
           }
           // ===== Inventory, the sidebar (ruleset §1.2) ===== None in Read
           // when nothing is carried: an empty section is left out, as an empty
-          // field is.
-          // Assigned Units follow it there (R49): what the pilot carries, then
-          // what they field.
+          // field is. Assigned Units follow it there (R49): what the pilot
+          // carries, then what they field.
           aside={
             readOnly && empty && !linkedUnits ? undefined : (
               <>
                 {!(readOnly && empty) && (
-                  <SlabSection
-                    title={buildSheetCopy('inventory')}
-                    count={{
-                      label: buildSheetCopy('slots'),
-                      value: model.slotsUsed,
-                      max: model.slotsCap,
-                      state: model.overCapacity ? 'critical' : undefined,
-                    }}
-                    actions={
-                      readOnly ? undefined : (
-                        <Button size="compact" onClick={() => setPicker('equipment')}>
-                          {buildSheetCopy('manageEquipment')}
-                        </Button>
-                      )
-                    }
-                  >
-                    {empty ? (
-                      <EmptyState variant="quiet" body={buildSheetCopy('nothingCarried')} />
-                    ) : (
-                      // One item a line, in Read and Edit alike: each piece of
-                      // equipment a contentful Mini (its head, then its text), a
-                      // generic entry its Mini; in Edit their controls ride the
-                      // chip group (`SheetItemLine`), as a mech's Systems do.
-                      <ul
-                        aria-label={buildSheetCopy('sEquipment', { name: pilot.name })}
-                        data-sheet-carried=""
-                        className={
-                          readOnly ? 'su-entity-mini-list' : 'su-entity-mini-list su-sheet-items'
-                        }
-                      >
-                        {model.ordinaryEquipment.map((slug) => (
-                          <li key={slug}>
-                            <PilotEquipmentItem
-                              slug={slug}
-                              granted={
-                                model.granted.has(slug) || (pilot.abilities ?? []).includes(slug)
-                              }
-                              pilotId={pilot.id}
-                              seedSelections={pilot.equipmentChoices?.[slug]}
-                              condition={pilot.equipmentConditions?.[slug] ?? 'intact'}
-                              usesLeft={pilot.equipmentUses?.[slug]}
-                              onConditionChange={(itemSlug, next) => {
-                                runWrite(() =>
-                                  actions.handleEquipmentConditionChange(itemSlug, next)
-                                )
-                              }}
-                              onUsesChange={(itemSlug, next) => {
-                                actions.handleUsesChange(itemSlug, next)
-                              }}
-                              onRemove={
-                                readOnly || model.granted.has(slug)
-                                  ? undefined
-                                  : () => actions.toggleEquipment(slug)
-                              }
-                              readOnly={readOnly}
-                              scalingParent={model.scalingParent}
-                              store={store}
-                            />
-                          </li>
-                        ))}
-                        {model.genericInventory.map((entry, index) => (
-                          <li key={entry.id}>
-                            <GenericEntryLine
-                              entry={entry}
-                              readOnly={readOnly}
-                              onRemove={
-                                readOnly
-                                  ? undefined
-                                  : () => {
-                                      actions.handleGenericInventoryChange(
-                                        model.genericInventory.filter((_, i) => i !== index)
-                                      )
-                                    }
-                              }
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {!empty && (
-                      <div style={SLOTS}>
-                        <SlotGrid
-                          used={model.slotsUsed}
-                          cap={model.slotsCap}
-                          label={`Inventory: ${model.slotsUsed} of ${model.slotsCap} slots filled${model.overCapacity ? ' — over capacity' : ''}`}
-                          readOnly
-                        />
-                      </div>
-                    )}
-                    {!readOnly && (
-                      <div style={ADDER_ROW}>
-                        <GenericEntryAdder
-                          onAdd={(entry) => {
-                            actions.handleGenericInventoryChange([...model.genericInventory, entry])
-                          }}
-                        />
-                      </div>
-                    )}
-                  </SlabSection>
+                  <PilotInventory
+                    pilot={pilot}
+                    model={model}
+                    actions={actions}
+                    readOnly={readOnly}
+                    store={store}
+                    onManage={() => setPicker('equipment')}
+                  />
                 )}
                 {linkedUnits}
               </>
             )
           }
         >
+          {/* Read lists what the pilot does first (R65); Edit is their build. */}
+          {readOnly && <PilotActionsList pilot={pilot} section />}
           {/* ===== Abilities — the trees this pilot trained in, then the Generic
           tree (`PilotSheetAbilities`) ===== */}
           <PilotSheetAbilities
@@ -666,7 +363,7 @@ export function PilotSheet({
             genericAbilities={model.genericAbilities}
             unresolvedAbilities={model.unresolvedAbilities}
             usedAbilities={pilot.usedAbilities}
-            currentAP={ap}
+            currentAP={model.ap}
             readOnly={readOnly}
             onManage={() => setPicker('abilities')}
             onSpend={(cost) => {
@@ -677,90 +374,17 @@ export function PilotSheet({
             }}
             onRemoveUnknown={(slug) => actions.toggleAbility(slug)}
           />
-
-          {/* Ability-granted COMPANIONS (a pilot's partners). Each carries a
-          nested loadout and a cargo hold, and acts on its own turn rather than
-          being one item among the pilot's carried gear. */}
-          {model.partners.length > 0 && (
-            <SlabSection
-              fold="open"
-              title={buildSheetCopy(model.partners.length > 1 ? 'companions' : 'companion')}
-              count={model.partners.length}
-            >
-              {/* Minis at level 2 (E6), two columns (Jrvs 2026-11-03); each
-              opens its whole card from Details. */}
-              <MiniGrid
-                label={buildSheetCopy('companions')}
-                edit={!readOnly}
-                style={COMPANION_COLUMNS}
-              >
-                {model.partners.map((partner) => (
-                  <li key={partner.id}>
-                    <PartnerMini
-                      found={{ partner, hostKind: 'pilot', host: pilot }}
-                      crawler={model.linkedCrawler}
-                      crawlerTechLevel={model.effectiveCrawlerLevel}
-                      hostAbilityRefs={pilot.abilities}
-                      fielded={model.fieldedByRef[partner.hostRef] ?? 1}
-                      readOnly={readOnly}
-                      crawlerReadOnly={crawlerReadOnly}
-                      store={store}
-                    />
-                  </li>
-                ))}
-              </MiniGrid>
-            </SlabSection>
-          )}
+          {companions(true)}
         </SheetColumns>
       )}
 
-      {/* The ONE shared picker modal — abilities & equipment '+ Add' both open
-          it (multi-select grids write through on toggle; no Save button). */}
-      <SheetPickerModal
-        open={picker === 'abilities'}
+      <PilotSheetPickers
+        picker={picker}
         onClose={() => setPicker(null)}
-        title={buildSheetCopy('addAbilities')}
-        floating
-      >
-        <EntitySearcher
-          schema="abilities"
-          selected={pilot.abilities}
-          onToggle={actions.toggleAbility}
-          idOf={(item) => nameToSlug(item.name)}
-          filter={
-            model.abilityTrees
-              ? (item) => model.abilityTrees?.has((item as RefAbility).tree) ?? false
-              : undefined
-          }
-          facets={{
-            category: { label: buildSheetCopy('tree'), of: (item) => (item as RefAbility).tree },
-          }}
-          railName={pilot.name}
-          chosenLabel={buildSheetCopy('learned')}
-          emptyMessage={buildSheetCopy('noAbilitiesMatchThoseFilters')}
-        />
-      </SheetPickerModal>
-      <SheetPickerModal
-        open={picker === 'equipment'}
-        onClose={() => setPicker(null)}
-        title={buildSheetCopy('addEquipment')}
-        floating
-      >
-        <EntitySearcher
-          schema="equipment"
-          selected={pilot.equipment}
-          onToggle={actions.toggleEquipment}
-          idOf={(item) => nameToSlug(item.name)}
-          railName={pilot.name}
-          chosenLabel={buildSheetCopy('equipped')}
-          emptyMessage={buildSheetCopy('noEquipmentMatchesThoseFilters')}
-          budget={{
-            label: buildSheetCopy('inventorySlots'),
-            used: model.slotsUsed,
-            max: model.slotsCap,
-          }}
-        />
-      </SheetPickerModal>
+        pilot={pilot}
+        model={model}
+        actions={actions}
+      />
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
       <SoftWarningDialog

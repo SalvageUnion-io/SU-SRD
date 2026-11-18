@@ -203,7 +203,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       return reading ? { readings: crawlerVitals(reading) } : {}
     }
     if (row.kind === 'mech') {
-      // MOCK (Working Manual F): a mech on its own row reads its vitals as one
+      // A mech on its own row reads its vitals as one
       // riding its pilot's row does, in the same order: TL, SP, EP, Heat.
       const live = vitals?.mechs.find((m) => m._id === row.serverId)
       return live == null
@@ -377,9 +377,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         {...(seats !== null && seats.total > 0
           ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
           : {})}
-        // MOCK (Working Manual F, principle 9): + New steps down to outline; the
-        // page's one rust button is the role's door on the band. Bends R55
-        // (every + New rust).
+        // + New is outlined here: the page's one rust button is the role's
+        // door on the band (ruleset §3.13).
         actions={
           <>
             {caps.canAddCrew && (

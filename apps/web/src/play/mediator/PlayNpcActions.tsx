@@ -122,7 +122,7 @@ function NpcActionRow({
   onOpen: (open: boolean) => void
   rollFor: typeof rollForTable
 }) {
-  // MOCK (wave 2): the same row text as the player's board: the effect alone.
+  // The same row text as the player's board: the effect alone.
   const effect = useMemo(() => actionEffect(entry.action), [entry.action])
   const model = useMemo(
     () => ({ ...toEntityModel(entry.action), prose: effect }),
@@ -162,7 +162,7 @@ function NpcActionRow({
             </Button>
           ) : (
             <Button
-              // MOCK (wave 2): every Use is rust; a phone's is a 44px target.
+              // Every Use is rust; a phone's is a 44px target.
               size={wide ? 'mini' : 'full'}
               variant="primary"
               disabled={!live}

@@ -933,6 +933,8 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     const state = screen.getByRole('group', { name: 'Game state' })
     expect(state.closest('[role="tabpanel"]')).toBeNull()
     expect(openPanel().getByRole('heading', { name: 'The table' })).toBeTruthy()
+    // The Feed, the table's log, runs under the Table.
+    expect(openPanel().getByRole('heading', { name: 'Feed' })).toBeTruthy()
     await click(phoneTab('Opposition'))
     expect(openPanel().getAllByText('Strikebreaker').length).toBeGreaterThan(0)
     await click(phoneTab('Tables'))
@@ -940,7 +942,7 @@ describe('below `lg`, on a phone (play.md §11)', () => {
       openPanel()
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-    ).toEqual(['Tables', 'Feed'])
+    ).toEqual(['Tables'])
     await click(phoneTab('Propose'))
     expect(openPanel().getByRole('region', { name: 'Propose' })).toBeTruthy()
   })
