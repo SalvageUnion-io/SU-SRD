@@ -175,7 +175,7 @@ export function CardPage({
   if (isChassis(entity) && !opening) {
     const line = pageStatLine(entity)
     const lore = (subLine || body) && (
-      <SlabSection as={sectionAs} title="From the manual" page className="su-manual__lore">
+      <SlabSection as={sectionAs} title="Description" page className="su-manual__lore">
         <div className="su-entity-page__prose su-manual__lore-prose">
           {subLine}
           {body}
