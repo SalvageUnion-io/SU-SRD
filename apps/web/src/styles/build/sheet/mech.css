@@ -172,3 +172,43 @@
   gap: var(--space-24);
   grid-template-columns: minmax(0, 1fr);
 }
+
+/*
+ * MOCK (Working Manual D): the sheet's vitals are live in Read, so the poster
+ * gauge takes its − / + under the track. On a phone they keep the gauge's own
+ * Full Size (44px, principle 8); from `sm` they are the Compact Size, a pair
+ * of squares at the track's end, over the gauge's inline stepper size.
+ */
+@media (width >= 40rem) {
+  .su-sheet-vitals [data-vital] span:has(> .su-step-btn) {
+    gap: var(--space-4);
+    justify-content: flex-end;
+  }
+  .su-sheet-vitals [data-vital] .su-step-btn {
+    /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
+    flex: 0 0 auto !important;
+    /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
+    font-size: var(--text-readout) !important;
+    /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
+    height: var(--size-compact) !important;
+    /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
+    width: var(--size-compact) !important;
+  }
+}
+
+/*
+ * MOCK (Working Manual D): the sheet's actions by timing. The action-type
+ * chip under its timing heading says nothing new (C10); the rows keep a Mini
+ * list's own gaps. (Play's twin: `styles/play/actions.css`.)
+ */
+.su-sheet-live-body
+  .su-timing-rows
+  [data-chip-class='economy']
+  > .su-stat-cell:first-child:not(:has(.su-stat-plate--value)) {
+  display: none;
+}
+.su-sheet-live-body
+  .su-timing-rows
+  .su-entity-mini__body:not(:has(.su-stat-plate--value, .su-cost, p, button, table)) {
+  display: none;
+}

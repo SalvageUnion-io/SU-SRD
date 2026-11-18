@@ -53,22 +53,31 @@ import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import type { SlabCount } from '../../components/index'
 import {
+  Box,
   Button,
   EmptyState,
   EntitySearcher,
+  Eyebrow,
   Field,
   FieldError,
   MiniGrid,
   SlabSection,
+  SlotGrid,
   Stack,
+  Tab,
+  TabList,
+  TabPanel,
+  Tabs,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
+import { widthAtLeast } from '../../design/tokens'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
+import { useMediaQuery } from '../../lib/useMediaQuery'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useUnits } from '../../replica/units'
@@ -76,6 +85,7 @@ import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from './MechIdentity'
 import { MechItemMini } from './MechItemMini'
+import { MechSheetActions } from './MechSheetActions'
 import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
@@ -102,6 +112,51 @@ const FIELDS = {
   gap: tokens.space[16],
   height: '100%',
   minWidth: 0,
+} satisfies CSSProperties
+
+/** MOCK (Working Manual D): the phone's Vitals panel, the opening panel's own body and stack (`SheetHero`). */
+const VITALS_BODY = {
+  padding: `${tokens.space[16]} ${tokens.space[20]}`,
+} satisfies CSSProperties
+const VITALS_STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+} satisfies CSSProperties
+
+/** MOCK: the phone's section tabs share one row, each a 44px target (principle 8). */
+const SHEET_TABS = { flexWrap: 'nowrap', gap: tokens.space[4] } satisfies CSSProperties
+const SHEET_TAB = {
+  flex: '1 1 auto',
+  minHeight: tokens.size.full,
+  padding: `0 ${tokens.space[6]}`,
+} satisfies CSSProperties
+const SHEET_PANEL = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+  paddingTop: tokens.space[16],
+} satisfies CSSProperties
+
+/** MOCK: the phone's numbers, then its tabs, a section's gap apart as the sheet's sections are. */
+const PHONE_READ = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** MOCK: the loadout's slots as filled boxes, Systems beside Modules. */
+const SLOTS_BODY = {
+  display: 'grid',
+  gap: tokens.space[16],
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  padding: `${tokens.space[16]} ${tokens.space[20]}`,
+} satisfies CSSProperties
+const SLOTS = {
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
@@ -150,6 +205,8 @@ type MechSheetProps = {
    * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: UnitsStore
+  /** MOCK (Working Manual, principle 2): the viewer may write it, so Read keeps the vitals live. */
+  live?: boolean
   /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
   /**
@@ -185,6 +242,7 @@ export function MechSheet({
   chassis: chassisOverride,
   store = useUnits,
   readOnly = false,
+  live = false,
   crawler = null,
   crawlerReadOnly = false,
   crawlerHref,
@@ -213,6 +271,10 @@ export function MechSheet({
   const showModules = !readOnly || mech.modules.length > 0
 
   const { chassis, cargo, capacity, maxEP } = model
+  // MOCK (Working Manual D): a phone in Read leads with the numbers, then tabs.
+  const phone = !useMediaQuery(widthAtLeast('sm'), true)
+  const phoneRead = phone && readOnly
+  const [tab, setTab] = useState<'actions' | 'loadout' | 'hold' | 'about'>('actions')
 
   function renderItems(kind: ItemKind, slugs: string[]) {
     const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
@@ -293,9 +355,11 @@ export function MechSheet({
 
       {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
           Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
-      <SheetColumns
-        asideLabel={buildSheetCopy('whatCarries', { name: mech.name })}
-        hero={
+      {/* MOCK (Working Manual D): the sheet's regions, named once, so a phone in
+          Read can order them number first (`phoneRead`); every other width and
+          Edit keep the opening, the sidebar and the main column as they were. */}
+      {(() => {
+        const heroNode = (
           <SheetHero
             name={mech.name}
             fields={
@@ -360,22 +424,20 @@ export function MechSheet({
               </PhotoBeside>
             }
             vitals={
-              <MechVitals
-                mech={mech}
-                model={model}
-                actions={actions}
-                readOnly={readOnly}
-                store={store}
-              />
+              phoneRead ? undefined : (
+                <MechVitals
+                  mech={mech}
+                  model={model}
+                  actions={actions}
+                  readOnly={readOnly}
+                  store={store}
+                  live={live}
+                />
+              )
             }
           />
-        }
-        // ===== The sidebar (ruleset §1.2) =====
-        // The chassis callout under the vitals, then what the mech carries
-        // (its cargo), then its Assigned Units:
-        // beside the sheet from the 64rem rung and straight under the opening
-        // on a phone, so the hold is the next thing a crew reaches for.
-        aside={
+        )
+        const asideNode = (
           <>
             <MechChassisCard
               mech={mech}
@@ -405,80 +467,172 @@ export function MechSheet({
             )}
             {linkedUnits}
           </>
-        }
-      >
-        {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
-        {(showSystems || showModules) && (
-          <div className="su-sheet-mech-loadout">
-            {showSystems && (
-              <SlabSection
-                fold="open"
-                title={buildSheetCopy('systems')}
-                count={slotCount(
-                  capacity.systemSlotsUsed,
-                  capacity.systemSlotsMax,
-                  capacity.asPrinted
+        )
+        const mainNode = (
+          <>
+            {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
+            {(showSystems || showModules) && (
+              <div className="su-sheet-mech-loadout">
+                {showSystems && (
+                  <SlabSection
+                    fold="open"
+                    title={buildSheetCopy('systems')}
+                    count={slotCount(
+                      capacity.systemSlotsUsed,
+                      capacity.systemSlotsMax,
+                      capacity.asPrinted
+                    )}
+                    actions={
+                      readOnly ? undefined : (
+                        <Button size="compact" onClick={() => setPicker('system')}>
+                          {buildSheetCopy('manageSystems')}
+                        </Button>
+                      )
+                    }
+                  >
+                    {renderItems('system', mech.systems)}
+                  </SlabSection>
                 )}
-                actions={
-                  readOnly ? undefined : (
-                    <Button size="compact" onClick={() => setPicker('system')}>
-                      {buildSheetCopy('manageSystems')}
-                    </Button>
-                  )
-                }
-              >
-                {renderItems('system', mech.systems)}
-              </SlabSection>
+
+                {showModules && (
+                  <SlabSection
+                    fold="open"
+                    title={buildSheetCopy('modules')}
+                    count={slotCount(
+                      capacity.moduleSlotsUsed,
+                      capacity.moduleSlotsMax,
+                      capacity.asPrinted
+                    )}
+                    actions={
+                      readOnly ? undefined : (
+                        <Button size="compact" onClick={() => setPicker('module')}>
+                          {buildSheetCopy('manageModules')}
+                        </Button>
+                      )
+                    }
+                  >
+                    {renderItems('module', mech.modules)}
+                  </SlabSection>
+                )}
+              </div>
             )}
 
-            {showModules && (
-              <SlabSection
-                fold="open"
-                title={buildSheetCopy('modules')}
-                count={slotCount(
-                  capacity.moduleSlotsUsed,
-                  capacity.moduleSlotsMax,
-                  capacity.asPrinted
-                )}
-                actions={
-                  readOnly ? undefined : (
-                    <Button size="compact" onClick={() => setPicker('module')}>
-                      {buildSheetCopy('manageModules')}
-                    </Button>
-                  )
-                }
-              >
-                {renderItems('module', mech.modules)}
-              </SlabSection>
-            )}
-          </div>
-        )}
-
-        {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
+            {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
           Sestra's Sestra Drone, Big Brother's four). Its own region rather than
           a Assigned Units row: a partner is not a linked roster entity, it is part
           of this mech's own kit — and it renders full width because it carries a
           nested loadout and a hold. No crawler tech level is threaded: a
           mech-granted drone is fixed by its stat block and never tracks the
           Union Crawler, unlike a pilot's ability-granted partners. ===== */}
-        {(mech.partners ?? []).length > 0 && (
-          <SlabSection fold="open" title={buildSheetCopy('partners')}>
-            <Stack gap={12}>
-              {(mech.partners ?? []).map((partner) => (
-                <PartnerCard
-                  key={partner.id}
-                  found={{ partner, hostKind: 'mech', host: mech }}
-                  fielded={
-                    (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
-                  }
+            {(mech.partners ?? []).length > 0 && (
+              <SlabSection fold="open" title={buildSheetCopy('partners')}>
+                <Stack gap={12}>
+                  {(mech.partners ?? []).map((partner) => (
+                    <PartnerCard
+                      key={partner.id}
+                      found={{ partner, hostKind: 'mech', host: mech }}
+                      fielded={
+                        (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
+                      }
+                      readOnly={readOnly}
+                      store={store}
+                    />
+                  ))}
+                </Stack>
+              </SlabSection>
+            )}
+          </>
+        )
+        // The actions by timing: a phone's first tab. From `sm` the sheet is laid out as it was.
+        const actionsNode = <MechSheetActions mech={mech} />
+        if (!phoneRead)
+          return (
+            <SheetColumns
+              asideLabel={buildSheetCopy('whatCarries', { name: mech.name })}
+              hero={heroNode}
+              aside={asideNode}
+            >
+              {mainNode}
+            </SheetColumns>
+          )
+        const slotsUsed = capacity.systemSlotsUsed + capacity.moduleSlotsUsed
+        const slotsMax = capacity.systemSlotsMax + capacity.moduleSlotsMax
+        return (
+          <div style={PHONE_READ}>
+            {/* 1. The numbers, first under the band, live in Read. */}
+            <Box
+              as="section"
+              label={buildSheetCopy('vitals')}
+              frame="hairline"
+              bodyStyle={VITALS_BODY}
+            >
+              <div className="su-sheet-vitals" style={VITALS_STACK}>
+                <MechVitals
+                  mech={mech}
+                  model={model}
+                  actions={actions}
                   readOnly={readOnly}
                   store={store}
+                  live={live}
                 />
-              ))}
-            </Stack>
-          </SlabSection>
-        )}
-      </SheetColumns>
+              </div>
+            </Box>
+            {/* 2. What the mech does, has and carries; who it is comes last. */}
+            <Tabs value={tab} onValueChange={setTab}>
+              <TabList label={`${mech.name} sheet`} style={SHEET_TABS}>
+                <Tab value="actions" style={SHEET_TAB}>
+                  Actions
+                </Tab>
+                <Tab value="loadout" style={SHEET_TAB}>
+                  Loadout {slotsUsed}/{slotsMax}
+                </Tab>
+                <Tab value="hold" style={SHEET_TAB}>
+                  Hold {cargo.usage.used}/{cargo.usage.cap}
+                </Tab>
+                <Tab value="about" style={SHEET_TAB}>
+                  About
+                </Tab>
+              </TabList>
+              <TabPanel value="actions" style={SHEET_PANEL}>
+                {actionsNode}
+              </TabPanel>
+              <TabPanel value="loadout" style={SHEET_PANEL}>
+                <Box as="section" label="Slots" frame="hairline" bodyStyle={SLOTS_BODY}>
+                  <div style={SLOTS}>
+                    <Eyebrow tone="toneDeep">
+                      {buildSheetCopy('systems')} {capacity.systemSlotsUsed}/
+                      {capacity.systemSlotsMax}
+                    </Eyebrow>
+                    <SlotGrid
+                      used={capacity.systemSlotsUsed}
+                      cap={capacity.systemSlotsMax}
+                      readOnly
+                    />
+                  </div>
+                  <div style={SLOTS}>
+                    <Eyebrow tone="toneDeep">
+                      {buildSheetCopy('modules')} {capacity.moduleSlotsUsed}/
+                      {capacity.moduleSlotsMax}
+                    </Eyebrow>
+                    <SlotGrid
+                      used={capacity.moduleSlotsUsed}
+                      cap={capacity.moduleSlotsMax}
+                      readOnly
+                    />
+                  </div>
+                </Box>
+                {mainNode}
+              </TabPanel>
+              <TabPanel value="hold" style={SHEET_PANEL}>
+                {asideNode}
+              </TabPanel>
+              <TabPanel value="about" style={SHEET_PANEL}>
+                {heroNode}
+              </TabPanel>
+            </Tabs>
+          </div>
+        )
+      })()}
 
       {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
           (the wizard's install grid writes through on click; no Save button). */}

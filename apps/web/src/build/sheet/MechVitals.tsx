@@ -11,6 +11,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { pinFor } from 'salvageunion-reference/rules'
 import { Conditions, Eyebrow, heatDangerFrom, tokens } from '../../components/index'
+import { changeUndoToast } from '../../lib/changeUndoToast'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import type { MechSheetModel } from './mechSheet.model'
@@ -30,9 +31,39 @@ type MechVitalsProps = {
   actions: ReturnType<typeof useMechSheetActions>
   readOnly: boolean
   store: UnitsStore
+  /**
+   * MOCK (Working Manual D, principle 2): the viewer may write the sheet, so
+   * in Read the three gauges keep their value live: − / + steppers
+   * (`VitalGauge`'s `steppers`: under the track; the Compact Size from `sm`,
+   * `.su-sheet-vitals`), each change said with Undo. Edit keeps the
+   * maxima and their provenance.
+   */
+  live?: boolean
 }
 
-export function MechVitals({ mech, model, actions, readOnly, store }: MechVitalsProps) {
+export function MechVitals({
+  mech,
+  model,
+  actions,
+  readOnly,
+  store,
+  live = false,
+}: MechVitalsProps) {
+  // MOCK: session state writes in Read too, and every change shows its line with Undo.
+  const writes = !readOnly || live
+  const change = (field: 'currentSP' | 'currentEP' | 'currentHeat', label: string, from: number) =>
+    writes
+      ? (next: number) => {
+          actions.patchMech({ [field]: next })
+          changeUndoToast({
+            id: `mech:${mech.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => actions.patchMech({ [field]: value }),
+          })
+        }
+      : undefined
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
   // The conditions Read prints: the same list the Edit chips write.
   const readConditions = readOnly ? mech.conditions : []
@@ -42,7 +73,8 @@ export function MechVitals({ mech, model, actions, readOnly, store }: MechVitals
         vital="sp"
         value={model.currentSP}
         max={maxSP}
-        onChange={readOnly ? undefined : (v) => actions.patchMech({ currentSP: v })}
+        onChange={change('currentSP', 'SP', model.currentSP)}
+        steppers={writes}
         onMaxChange={
           readOnly
             ? undefined
@@ -53,13 +85,14 @@ export function MechVitals({ mech, model, actions, readOnly, store }: MechVitals
         onRevertOverride={
           readOnly ? undefined : () => actions.overrideMechMax({ maxSpOverride: undefined })
         }
-        readOnly={readOnly}
+        readOnly={!writes}
       />
       <SheetVitalGauge
         vital="ep"
         value={model.currentEP}
         max={maxEP}
-        onChange={readOnly ? undefined : (v) => actions.patchMech({ currentEP: v })}
+        onChange={change('currentEP', 'EP', model.currentEP)}
+        steppers={writes}
         onMaxChange={
           readOnly
             ? undefined
@@ -70,14 +103,15 @@ export function MechVitals({ mech, model, actions, readOnly, store }: MechVitals
         onRevertOverride={
           readOnly ? undefined : () => actions.overrideMechMax({ maxEpOverride: undefined })
         }
-        readOnly={readOnly}
+        readOnly={!writes}
       />
       <SheetVitalGauge
         vital="heat"
         value={model.currentHeat}
         max={heatCap}
         danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
-        onChange={readOnly ? undefined : (v) => actions.patchMech({ currentHeat: v })}
+        onChange={change('currentHeat', 'Heat', model.currentHeat)}
+        steppers={writes}
         onMaxChange={
           readOnly
             ? undefined
@@ -88,7 +122,7 @@ export function MechVitals({ mech, model, actions, readOnly, store }: MechVitals
         onRevertOverride={
           readOnly ? undefined : () => actions.overrideMechMax({ maxHeatOverride: undefined })
         }
-        readOnly={readOnly}
+        readOnly={!writes}
       />
       {/* Read leaves an empty field out and draws no control: Conditions
           prints as chips only when there is one to read. */}

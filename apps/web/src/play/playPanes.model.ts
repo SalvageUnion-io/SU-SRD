@@ -37,9 +37,12 @@ export type PaneSpec<Value extends string> = {
   column: PlayColumn
   /** From `lg`, sits at the foot of its column (the Mediator's Propose dock). */
   dock?: boolean
+  /** MOCK (Working Manual, attention law): something on this pane is pending; its tab wears a dot. */
+  dot?: boolean
 }
 
-export type PlayerPane = 'act' | 'units' | 'tables' | 'crew'
+// MOCK (Working Manual E): `rules`, the Reference inside Play, a player's tab below `lg`.
+export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'rules'
 
 export type MediatorPane = 'table' | 'opposition' | 'tables' | 'propose'
 
@@ -55,6 +58,26 @@ const PLAYER_PANES: readonly PaneSpec<PlayerPane>[] = [
 export function playerPanes(solo: boolean): readonly PaneSpec<PlayerPane>[] {
   return solo ? PLAYER_PANES.filter((p) => p.value !== 'crew') : PLAYER_PANES
 }
+
+/**
+ * MOCK (Working Manual E): the phone's panes. Tables reads "Rolls" (one
+ * meaning for "Table"), Rules is the Reference, and Units has no tab: its
+ * vitals are pinned and Board / On foot are in the bar's ⋯. `pending` is the
+ * pane with something waiting (a Mediator's proposal), which wears the dot.
+ */
+export function playerPhonePanes(
+  solo: boolean,
+  pending: PlayerPane | null
+): readonly PaneSpec<PlayerPane>[] {
+  const panes: readonly PaneSpec<PlayerPane>[] = [
+    ...playerPanes(solo).map((p) => (p.value === 'tables' ? { ...p, label: 'Rolls' } : p)),
+    { value: 'rules', label: 'Rules', column: 'end' },
+  ]
+  return panes.map((p) => (p.value === pending ? { ...p, dot: true } : p))
+}
+
+/** MOCK (Working Manual E): the phone's tabs, Act · Crew · Rolls · Rules. */
+export const PLAYER_PHONE_TABS: readonly PlayerPane[] = ['act', 'crew', 'tables', 'rules']
 
 /** The player's tabs below `lg`, in a fixed order a thumb learns: what a turn uses first. */
 export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'units', 'tables', 'crew']

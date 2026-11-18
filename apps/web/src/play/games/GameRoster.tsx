@@ -203,8 +203,19 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       return reading ? { readings: crawlerVitals(reading) } : {}
     }
     if (row.kind === 'mech') {
-      const tl = vitals?.mechs.find((m) => m._id === row.serverId)?.techLevel
-      return tl == null ? {} : { readings: techLevelReading(tl) }
+      // MOCK (Working Manual F): a mech on its own row reads its vitals as one
+      // riding its pilot's row does, in the same order: TL, SP, EP, Heat.
+      const live = vitals?.mechs.find((m) => m._id === row.serverId)
+      return live == null
+        ? {}
+        : {
+            readings: [
+              ...techLevelReading(live.techLevel),
+              ...pool(VITAL.sp, live.currentSP, live.maxSP),
+              ...pool(VITAL.ep, live.currentEP, live.maxEP),
+              ...gauge(VITAL.heat, live.currentHeat, live.maxHeat),
+            ],
+          }
     }
     if (row.kind !== 'pilot') return {}
     const seat = seatOf.get(row.serverId)
@@ -366,22 +377,25 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         {...(seats !== null && seats.total > 0
           ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
           : {})}
+        // MOCK (Working Manual F, principle 9): + New steps down to outline; the
+        // page's one rust button is the role's door on the band. Bends R55
+        // (every + New rust).
         actions={
           <>
             {caps.canAddCrew && (
-              <Button href={newInGameHref('/pilots/new', gameId)} variant="primary" size="compact">
+              <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
                 {playGamesCopy('newPilot')}
               </Button>
             )}
             {caps.canAddCrew && (
-              <Button href={newInGameHref('/mechs/new', gameId)} variant="primary" size="compact">
+              <Button href={newInGameHref('/mechs/new', gameId)} variant="default" size="compact">
                 {playGamesCopy('newMech')}
               </Button>
             )}
             {caps.canRaiseCrawler && !caps.hasCrawler && (
               <Button
                 href={newInGameHref('/crawlers/new', gameId)}
-                variant="primary"
+                variant="default"
                 size="compact"
               >
                 {playGamesCopy('newCrawler')}

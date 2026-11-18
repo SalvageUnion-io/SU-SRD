@@ -15,15 +15,31 @@
  */
 
 import { useMemo } from 'react'
-import { toEntityModel } from 'salvageunion-reference'
-import { Button, Entity, Stat } from '../components/index'
+import { Button, Entity, Stat, TraitProse } from '../components/index'
+import { actionRow } from '../lib/rules/actionRow'
 import { playCopy } from '../messages/play'
 import { PlayResolveSteps } from './PlayResolveSteps'
 import type { ListEntry } from './playActions.model'
 import { NEED_TEXT } from './playActions.model'
 import type { ResolveModel } from './useActionsDeck'
+import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
+
+/**
+ * MOCK (Working Manual E): a closed row keeps the contentful head's chips
+ * (range, damage, traits, cost) and prints no text (`.su-play-act` closes the
+ * empty body's box).
+ */
+const CLOSED_BODY = { text: false } as const
+
+/**
+ * MOCK (wave 2, the actions board): what a row's band wears. A companion's
+ * rows wear its own Mini's tone, as the Units column draws it.
+ */
+function tintOf(entry: ActionEntry): string {
+  return entry.action.companion?.tone ?? entry.source
+}
 
 type PlayActionRowProps = {
   entry: ActionEntry
@@ -59,44 +75,40 @@ export function PlayActionRow({
   locked,
   techLevel,
 }: PlayActionRowProps) {
-  // A carried item's picks and the crawler's Tech Level change its Range,
-  // Damage and traits, as on the sheet.
-  const { action } = entry.action
-  const from = entry.action.choices?.from
-  const selections = entry.action.choices?.selections
-  const model = useMemo(
-    () =>
-      toEntityModel(
-        action,
-        {
-          ...(selections ? { selections } : {}),
-          ...(techLevel !== undefined ? { techLevel } : {}),
-        },
-        from ? { choices: from } : undefined
-      ),
-    [action, from, selections, techLevel]
+  // MOCK (wave 2): the row's model is the shared one (`actionRow`): the picks
+  // and the crawler's Tech Level applied, its text the effect alone.
+  const { model, summary, picks } = useMemo(
+    () => actionRow(entry.action, techLevel),
+    [entry.action, techLevel]
   )
+  const companion = entry.action.companion
   const open = resolve !== null
   const away = entry.need !== null
-  const controls = away ? undefined : open ? (
-    <Button
-      size="mini"
-      onClick={resolve.onBack}
-      aria-label={playCopy('cancel2', { name: entry.name })}
-    >
-      {playCopy('cancel')}
-    </Button>
-  ) : (
-    <Button
-      size="mini"
-      variant="ink"
-      onClick={onUse}
-      disabled={!canWrite}
-      aria-label={playCopy('use2', { name: entry.name })}
-    >
-      {playCopy('use')}
-    </Button>
-  )
+  // MOCK (Working Manual E): a phone's Use is a 44px target (principle 8); a
+  // Passive is always on and carries no Use (the timing law).
+  const size = usePlayWide() ? 'mini' : 'full'
+  const passive = entry.type === 'Passive'
+  const controls =
+    away || passive ? undefined : open ? (
+      <Button
+        size={size}
+        onClick={resolve.onBack}
+        aria-label={playCopy('cancel2', { name: entry.name })}
+      >
+        {playCopy('cancel')}
+      </Button>
+    ) : (
+      <Button
+        size={size}
+        // MOCK (wave 2): every Use is rust, the action colour (the owner's ruling).
+        variant="primary"
+        onClick={onUse}
+        disabled={!canWrite}
+        aria-label={playCopy('use2', { name: entry.name })}
+      >
+        {playCopy('use')}
+      </Button>
+    )
   return (
     <li
       className="su-play-act"
@@ -110,14 +122,50 @@ export function PlayActionRow({
         context="play"
         model={model}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
-        tint={entry.source}
+        tint={tintOf(entry)}
+        // MOCK (wave 2): a companion's row names it, lightly, as a relation chip (C11).
+        {...(companion
+          ? { relations: [{ key: `companion-${companion.id}`, name: companion.name }] }
+          : {})}
         dim={away || locked !== null || !canWrite}
         {...(away
           ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> }
           : lockChip(locked, entry.action.condition))}
         {...(controls ? { controls } : {})}
-        // Contentful (N3): the action's own text, then, while it resolves, its steps.
-        body={open ? { children: <PlayResolveSteps view={resolve} canWrite={canWrite} /> } : {}}
+        // MOCK (Working Manual E): a compact row, its head alone (name, traits,
+        // cost, Use); opened, it is contentful in place (N3): the action's own
+        // text, then its steps. Its name still Peeks its rules.
+        // MOCK (wave 2): closed, it says its effect in one short line (two on a
+        // phone, `.su-play-act__effect`); opened, the whole effect, its picks
+        // named (R60), then its steps.
+        body={
+          open
+            ? {
+                children: (
+                  <>
+                    {picks.length > 0 && (
+                      <div className="su-play-act__picks">
+                        {picks.map((pick) => (
+                          <Stat
+                            key={`${pick.choice}-${pick.label}`}
+                            size="mini"
+                            label={playCopy('chosen')}
+                            value={pick.label}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <PlayResolveSteps view={resolve} canWrite={canWrite} />
+                  </>
+                ),
+              }
+            : summary
+              ? {
+                  text: false,
+                  children: <TraitProse as="p" className="su-play-act__effect" text={summary} />,
+                }
+              : CLOSED_BODY
+        }
       />
     </li>
   )

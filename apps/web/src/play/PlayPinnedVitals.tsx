@@ -6,7 +6,9 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
+import { useState } from 'react'
+import type { CSSVarStyle } from '../components/index'
+import { Box, capsLabel, heatDangerFrom, PhoneVitals, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PinnedUnit } from './playPanes.model'
@@ -94,6 +96,97 @@ export function PlayPinnedVitals({
           </ul>
         </Box>
       ))}
+    </section>
+  )
+}
+
+/** Each vital's words in full, for assistive tech (`PhoneVitals`' `name`). */
+const VITAL_NAME: Record<string, string> = {
+  HP: 'Hit Points',
+  AP: 'Ability Points',
+  SP: 'Structure Points',
+  EP: 'Energy Points',
+  Heat: 'Heat',
+}
+
+/**
+ * MOCK (Working Manual wave 2, phone vitals): the phone's pinned vitals in the
+ * sheets' phone idiom (`PhoneVitals`, the owner's phone-vitals ruling): ONE
+ * quiet card of five cells, the pilot's HP and AP then the mech's SP, EP and
+ * Heat, each a short label, the value over its max in plain numerals and a
+ * slim meter in its unit's colour. Tapping a cell opens that unit's
+ * `PhoneVitals` block under the strip (its rows with their − | + at 44px,
+ * the tapped one marked), so the five take one 52px line of the screen until
+ * a number has to change. A second tap closes it.
+ */
+export function PlayPinnedStrip({
+  units,
+  live,
+  onWrite,
+  initialOpen = null,
+}: {
+  units: readonly PinnedUnit[]
+  live: Record<PinnedUnit['kind'], boolean>
+  onWrite: (kind: PinnedUnit['kind'], field: string, next: number, label: string) => void
+  /** The vital open at first, by its label. */
+  initialOpen?: string | null
+}) {
+  const [open, setOpen] = useState<string | null>(initialOpen)
+  if (units.length === 0) return null
+  const cells = tableUnits(units).flatMap((unit) => unit.vitals.map((v) => ({ unit, v })))
+  const picked = cells.find(({ v, unit }) => v.label === open && live[unit.kind])
+  const danger = (v: { label: string; max: number }) =>
+    v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined
+  const tone = (kind: PinnedUnit['kind']) => ({ '--tone': `var(--color-${kind})` }) as CSSVarStyle
+  return (
+    <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
+      <ul className="su-play-pins__row">
+        {cells.map(({ unit, v }) => {
+          const redline = danger(v)
+          const hot = redline !== undefined && v.value > redline
+          return (
+            <li key={v.label}>
+              <button
+                type="button"
+                className="su-play-pin"
+                style={tone(unit.kind)}
+                aria-expanded={picked?.v.label === v.label}
+                aria-label={`${unit.name} ${v.label} ${v.value} of ${v.max}. Change`}
+                disabled={!live[unit.kind]}
+                data-hot={hot || undefined}
+                onClick={() => setOpen(open === v.label ? null : v.label)}
+              >
+                <span className="su-play-pin__label">{v.label}</span>
+                <span className="su-play-pin__value">
+                  <b>{v.value}</b>
+                  <i>/{v.max}</i>
+                </span>
+                <span className="su-play-pin__meter" aria-hidden="true">
+                  <span
+                    style={{ width: `${v.max > 0 ? Math.min(100, (v.value / v.max) * 100) : 0}%` }}
+                  />
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+      {picked ? (
+        <PhoneVitals
+          label={playCopy('sVitals', { name: picked.unit.name })}
+          className="su-play-pins__pad"
+          style={tone(picked.unit.kind)}
+          vitals={picked.unit.vitals.map((v) => ({
+            key: v.label.toLowerCase(),
+            label: v.label,
+            name: `${picked.unit.name} ${VITAL_NAME[v.label] ?? v.label}`,
+            value: v.value,
+            max: v.max,
+            ...(danger(v) !== undefined ? { danger: danger(v) } : {}),
+            onChange: (next: number) => onWrite(picked.unit.kind, v.field, next, v.label),
+          }))}
+        />
+      ) : null}
     </section>
   )
 }
