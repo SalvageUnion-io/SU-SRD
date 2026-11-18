@@ -8,11 +8,13 @@ import { expectWithinBaseline, visitDesignViews, walkDesignRoutes } from './_des
 import type { DesignDebt, DesignFamily, DesignFinding } from './_designTable'
 import { corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
 import { findFrames } from './_entityFrames'
+import { findFillGrid } from './_fillGrid'
 import type { Placed } from './_findings'
 import { place } from './_findings'
 import { chassisAbilityNames, findFormFits } from './_formFits'
 import { waitForReady } from './_helpers'
 import { findHierarchy } from './_hierarchy'
+import { findLedgers } from './_ledger'
 import { findNesting } from './_nestingDepth'
 import { findRelationChips } from './_relationChips'
 import { findSheetGrammar } from './_sheetGrammar'
@@ -142,6 +144,32 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
+       * Hard rule R63, a compared or picked list is one Ledger (ledger.md L1
+       * to L9, `_ledger.ts`): one frame, the title on its tab with no Slab
+       * over it, head stamps in the stat order (§2.6), `—` for none, a picked
+       * row inked; a head stamp sorts only on an SRD index.
+       */
+      gate: 'ledger',
+      scan: async ({ family, where }) =>
+        // A Peek opens over an index (`designRoutes`), whose head stamps sort.
+        place(
+          where,
+          await findLedgers(page, { index: family === 'reference-index' || family === 'peek' })
+        ),
+      baseline: [],
+    },
+    {
+      /**
+       * Hard rule R68, a grid of items fills its rows (`_fillGrid.ts`): the
+       * item grid (`.su-grid`) runs every row edge to edge, no hand-built
+       * grid leaves an orphan cell, no masonry an empty column.
+       */
+      gate: 'fill-grid',
+      scan: async ({ where }) => place(where, await findFillGrid(page)),
+      baseline: [],
+    },
+    {
+      /**
        * Hard rule R5, a linked unit is a relation chip (C11,
        * `_relationChips.ts`): no entity in a Compact's body and no Mini hung
        * under a Compact. Its copy half is the `copy` gate's banned role stamps
@@ -183,7 +211,7 @@ function designGates(page: Page): Gate[] {
        *   computed size times every scale above it. Play is swept again in a
        *   mid-size window (`MID`, 1024 × 700), on the `lg` rung, where its
        *   three columns are at their narrowest.
-       * - `tab-size`: a Button beside Tabs is the Tabs' Size (R41).
+       * - `tab-size`: a Button beside Tabs is the Tabs' Size (§4.7).
        * Then, under a coarse pointer (a touch phone), every menu item a seeded
        * page opens is on the 44px floor (§4.6): the Training Bay's ⋯ and the
        * Play bar's.

@@ -66,7 +66,6 @@
 }
 
 .su-ledger__arrow {
-  font-size: 0.7em;
   margin-left: var(--space-4);
 }
 
@@ -242,18 +241,23 @@
   color: var(--color-paper);
 }
 
-/* A count picker's selected row (the one the detail shows) is ringed in ink;
-   set in ink already, the ring is paper. Keyboard focus draws the same ring. */
-.su-ledger__table tbody tr[data-focused],
-.su-ledger__table tbody tr:has(.su-ledger__pick:focus-within) {
+/* A count picker's selected row (the one the detail shows) is lined in ink;
+   set in ink already, the line is paper. */
+.su-ledger__table tbody tr[data-focused] {
   outline: var(--bw-pill) solid var(--color-ink);
   outline-offset: calc(-1 * var(--bw-pill));
 }
 
-.su-ledger__table tbody tr[data-picked][data-focused],
-.su-ledger__table tbody tr[data-picked]:has(.su-ledger__pick:focus-within) {
+.su-ledger__table tbody tr[data-picked][data-focused] {
   outline-color: var(--color-paper);
   outline-offset: calc(-2 * var(--bw-pill));
+}
+
+/* Keyboard focus is the one ring (K9), on the frame: a row is clipped by it,
+   and the row the keys are on is the selected one. */
+.su-ledger:has(.su-ledger__pick :focus-visible, .su-ledger__sort:focus-visible) {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
 }
 
 /* A row that does not fit the budget now: the one select dim (`SELECT_DIM`). */

@@ -80,6 +80,13 @@
   border-color: var(--color-rust-hi); /* design-tokens-ignore(rust-allowlist): Button's rust */
 }
 
+/* On a band rust wears an ink keyline (ruleset §3.13): no band's colour
+   reaches 3 : 1 against rust, and ink does against every one. A Mini's
+   strip control wears its own in `entity-forms.css`. */
+:is(.su-chapter-band, .su-play-bar) .su-btn--primary:not(:disabled) {
+  border-color: var(--color-ink);
+}
+
 /* Filled ink: the close stamp on a lifted plate (the detail dialog, the /about
    lightbox) and every other ink-plate control. Paper text; the fill lifts to
    the second ink step under the pointer. */

@@ -10,13 +10,16 @@ import type { Finding } from './_findings'
  *   write the band offers Read | Edit.
  * - `hero` — the body opens on `SheetHero` (`.su-sheet-hero`), its vitals the
  *   one stack (`.su-sheet-vitals`): in the opening, or from the 64rem rung
- *   heading the sidebar (`.su-sheet-aside-vitals`).
+ *   heading the sidebar (`.su-sheet-aside-vitals`). A phone in Read opens on
+ *   its plain vitals (`.su-phone-vitals`, ruleset §2.1) and then its tabs
+ *   (`phone-tabs`).
  * - `vitals` — every gauge in the opening but a Mini's own is a `SheetVitalGauge`
  *   (`[data-vital]`), captioned in full words from the one map
  *   (`SHEET_VITAL_WORDS`, kept equal to `sheetVitals.model.ts` by
  *   `sheetVitals.test.ts`).
- * - `read` — Read is typeset: no field, slider or stepper in the body, and no
- *   empty section's "nothing here" line.
+ * - `read` — Read is typeset: no field, slider or stepper in the body but
+ *   session state's (a vital's, `[data-vital]`), and no empty section's
+ *   "nothing here" line.
  * - `remove` — in Edit every remove control in the body is the one
  *   `SheetRemoveButton` (a photo's own control aside).
  * - `aside` — what the unit carries is the permanent right sidebar
@@ -27,7 +30,8 @@ import type { Finding } from './_findings'
  *   under the opening: from the 64rem rung a column beside the main column
  *   (its top the opening's, its left past the main column's right), else
  *   stacked straight under the opening and over the main column. A sheet that
- *   carries nothing (an NPC) has none.
+ *   carries nothing (an NPC) has none. A phone in Read has none either: what
+ *   the unit carries is a tab.
  */
 
 /** Each vital's full words, by its `data-vital` key (`SHEET_VITALS`' labels). */
@@ -96,7 +100,14 @@ export function scanSheetGrammar({
   }
 
   const hero = body.querySelector('.su-sheet-hero')
-  if (!hero) found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
+  // A phone in Read: the plain vitals, then the tabs.
+  const plain = edit ? null : body.querySelector('.su-phone-vitals')
+  if (!hero && !plain) {
+    found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
+  }
+  if (plain && !body.querySelector('[role="tablist"]')) {
+    found.push({ rule: 'phone-tabs', detail: `${kind}: no tabs under the vitals` })
+  }
   // From the 64rem rung a sheet with a sidebar draws its vitals at its head.
   const asideVitals = body.querySelector<HTMLElement>('.su-sheet-aside-vitals')
   const vitalsHome = [hero, asideVitals].filter((el): el is Element => el !== null)
@@ -123,7 +134,7 @@ export function scanSheetGrammar({
 
   // The sidebar: what the unit carries, beside the sheet or under its opening.
   const aside = body.querySelector<HTMLElement>('[data-sheet-aside]')
-  if (carries && !aside) found.push({ rule: 'aside', detail: `${kind}: no sidebar` })
+  if (carries && !aside && !plain) found.push({ rule: 'aside', detail: `${kind}: no sidebar` })
   if (!carries && aside) {
     found.push({ rule: 'aside', detail: `${kind}: a sidebar on a sheet that carries nothing` })
   }
@@ -170,12 +181,13 @@ export function scanSheetGrammar({
       'input:not([type="hidden"]), textarea, select, [role="slider"], [contenteditable="true"]'
     )
     for (const f of fields) {
+      if (f.closest('[data-vital]')) continue
       const name = f.getAttribute('aria-label') ?? f.getAttribute('name') ?? f.tagName
       found.push({ rule: 'read', detail: `${kind}: a field in Read (${name})` })
     }
     for (const b of body.querySelectorAll('button')) {
       const name = b.getAttribute('aria-label') ?? ''
-      if (/^(Increase|Decrease) /.test(name)) {
+      if (/^(Increase|Decrease) /.test(name) && !b.closest('[data-vital]')) {
         found.push({ rule: 'read', detail: `${kind}: a stepper in Read (${name})` })
       }
     }
