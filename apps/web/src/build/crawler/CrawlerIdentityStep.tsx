@@ -12,9 +12,6 @@ const COLUMN = { maxWidth: '48rem' } satisfies CSSProperties
 
 const SCRAP_HINT = { marginBottom: tokens.space[12] } satisfies CSSProperties
 
-/** The bucket inputs; the column count is `.su-wiz-scrap-grid`. */
-const SCRAP_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
-
 const SCRAP_BUCKETS = ['tl1', 'tl2', 'tl3', 'tl4', 'tl5', 'tl6'] as const
 
 type CrawlerIdentityStepProps = {
@@ -80,7 +77,7 @@ export function CrawlerIdentityStep({
           {crawlerCopy('theGroupsBankedScrapBucketed')}
         </Text>
 
-        <div className="su-wiz-scrap-grid" style={SCRAP_GRID}>
+        <div className="su-wiz-scrap-grid">
           {SCRAP_BUCKETS.map((bucket, i) => {
             const id = `crawler-scrap-${bucket}`
             return (

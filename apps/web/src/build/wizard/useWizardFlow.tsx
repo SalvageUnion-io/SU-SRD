@@ -19,7 +19,6 @@
 
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import type { ReactNode } from 'react'
 import { startTransition, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
@@ -28,7 +27,6 @@ import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
-import { OffRulesEscape } from './OffRulesEscape'
 
 /**
  * The slice of a Zod object schema this hook uses.
@@ -90,7 +88,6 @@ type WizardShellProps = {
   steps: readonly string[]
   active: number
   onStepClick: (index: number) => void
-  escapeAction: ReactNode
   onEscape: (() => void) | undefined
   onBack: (() => void) | undefined
   onCancel: () => void
@@ -210,7 +207,6 @@ export function useWizardFlow<
         const s = steps[i]
         if (s) goTo(s)
       },
-      escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
       onEscape: !gate.ok && onOffRules ? onOffRules : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {

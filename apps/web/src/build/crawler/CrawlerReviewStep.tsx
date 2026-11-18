@@ -24,8 +24,6 @@ const CHIPS = {
   gap: tokens.space[6],
 } satisfies CSSProperties
 
-/** The empty-weapons line, in the surrounding text colour. */
-
 type CrawlerReviewStepProps = {
   form: CrawlerWizardFormState
   /** Resolved tech-level entity for the form's chosen level. */
@@ -95,8 +93,8 @@ export function CrawlerReviewStep({
   const crew = crewNames.map((name) => unitRowModel({ kind: 'npc', name }))
 
   return (
-    // MOCK (wave 2): the review's one form: the recap and the weapons as a
-    // Ledger down the main column, the type as its card beside them.
+    // The review's one form: the recap and the weapons as a Ledger down the
+    // main column, the type as its card beside them.
     <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
       <div className="su-wiz-compare-main">
         <Box bodyClassName="su-wiz-review-panel">
@@ -106,10 +104,7 @@ export function CrawlerReviewStep({
             <RecapEntity label={crawlerCopy('type')} entity={selectedType} required />
             <RecapStat label={crawlerCopy('tl')} value={techLevel?.techLevel} required />
             {spChip ?? <RecapStat label={crawlerCopy('sp')} value={null} required />}
-            <RecapStat
-              label={crawlerCopy('bays')}
-              value="Full base set, seeded automatically · all Intact"
-            />
+            <RecapStat label={crawlerCopy('bays')} value={crawlerCopy('fullBaseSetAllIntact')} />
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
             <RecapMinis label={crawlerCopy('ability')} entities={abilities} />
             <RecapMinis

@@ -30,7 +30,7 @@ type CrawlerStatsStepProps = {
 }
 
 /**
- * Step 2 · Note your Crawler Statistics (Union Crawler p.212) — display only.
+ * Note your Crawler Statistics (Union Crawler p.212) — display only.
  * A new crawler is FIXED at Tech Level 1 (a Hamlet Crawler): no input exists.
  * Max SP renders through the derived-at-read arithmetic (`crawlerMaxSPParts`)
  * so a Battle crawler shows its breakdown — `20 + 5 type bonus = 25` — while
@@ -62,8 +62,7 @@ export function CrawlerStatsStep({ techLevel, selectedType }: CrawlerStatsStepPr
         {sp.typeBonus > 0 && selectedType ? (
           <p style={paragraphStyle} data-testid="sp-breakdown">
             {sp.base} + {sp.typeBonus} type bonus ({selectedType.name}) ={' '}
-            <strong>{sp.total}</strong> Structure Points — the bonus derives from your Crawler type,
-            so it follows a type change automatically.
+            <strong>{sp.total}</strong> Structure Points.
           </p>
         ) : (
           <p style={paragraphStyle} data-testid="sp-breakdown">

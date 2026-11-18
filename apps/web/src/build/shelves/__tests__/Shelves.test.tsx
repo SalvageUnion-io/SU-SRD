@@ -169,7 +169,7 @@ async function renderShelves(status: SyncState['status'] = 'live') {
       </SyncContext.Provider>
     )
   })
-  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
+  await settle(() => screen.queryByRole('region', { name: 'Pilots' }) !== null)
 }
 
 async function openMenu(name: string): Promise<HTMLElement> {
@@ -219,13 +219,14 @@ describe('only what is yours', () => {
 })
 
 describe('a unit’s Game', () => {
-  test('is a GAME relation chip opening the Game’s page in Play; in no Game, none', async () => {
+  test('is a link in its Game column, opening the Game’s page in Play; in no Game, none', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const chips = [...pilots.querySelectorAll('[data-chip-class="relation"] a[data-tag]')]
-    expect(chips.map((c) => [c.textContent, c.getAttribute('href')])).toEqual([
-      ['GameTenacity', '/play/games/g1'],
+    const games = [...pilots.querySelectorAll('a[href^="/play/games/"]')]
+    expect(games.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Tenacity', '/play/games/g1'],
     ])
+    expect(within(pilots).getByText('Tenacity').closest('tr')?.textContent).toContain('Rook')
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
   })
 })
@@ -254,12 +255,18 @@ describe('Crawlers', () => {
 })
 
 describe('What a shelf says of a unit (C4)', () => {
-  test('a pilot is named by its class; its vital is its sheet’s to show', async () => {
+  test('a pilot’s line reads its class and its live HP and AP, a column each', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const line = within(pilots).getByText('Nia Vale').closest('.su-entity-compact')
-    expect(line?.textContent).toContain('Class')
-    expect(line?.textContent).not.toContain('HP')
+    const columns = within(pilots)
+      .getAllByRole('columnheader')
+      .map((th) => th.textContent)
+    expect(columns.slice(1, 6)).toEqual(['Class', 'Mech', 'Game', 'HP', 'AP'])
+    const cells = within(within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement)
+      .getAllByRole('cell')
+      .map((td) => td.textContent)
+    // Its class, no Mech, no Game, then HP and AP as its sheet reads them.
+    expect(cells.slice(0, 5)).toEqual(['scavenger', '—', '—', '10/10', '5/5'])
   })
 })
 

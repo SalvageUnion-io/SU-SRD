@@ -74,7 +74,6 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
   }
 
   return (
-    // MOCK (wave 2 build): the Encounters shelf in the Ledger form too.
     <ShelfLedger
       id="shelf-encounters"
       title={buildPrepCopy('encounters')}

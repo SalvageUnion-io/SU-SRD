@@ -89,7 +89,7 @@ async function renderShelves() {
       </SyncContext.Provider>
     )
   })
-  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
+  await settle(() => screen.queryByRole('region', { name: 'Pilots' }) !== null)
 }
 
 /** Seed one entity the way a signed-in player builds it: a store create. */
@@ -265,7 +265,7 @@ describe('Training Bay — one shelf per kind', () => {
     )
   })
 
-  test('a designed NPC is a dashed line with who can see it, in a Training Bay marked yours', async () => {
+  test('a designed NPC is a line that opens its sheet, with who can see it', async () => {
     const store = useUnits.getState()
     await store.hydrate('npc')
     const npc = await store.create('npc', {
@@ -280,17 +280,18 @@ describe('Training Bay — one shelf per kind', () => {
     await renderShelves()
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
-    expect(within(npcs).getByText('Yours')).toBeTruthy()
-    // Its chips lead the Compact's chip group, so the link is the Compact's cover and
-    // the Compact (`.su-entity-compact`) holds what it reads.
-    const line = within(npcs)
-      .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/npcs/${npc.id}`)
-      ?.closest('.su-entity-compact')
-    expect(line?.querySelector('[data-user-made]')).not.toBeNull()
-    // The HOMEBREW stamp says it in a word.
-    expect(line?.textContent).toContain('Homebrew')
-    expect(within(npcs).getByText('Only me')).toBeTruthy()
+    // Its name is the link to its sheet; its line reads its position, who can
+    // see it and its HP, a column each.
+    const line = within(npcs).getByRole('link', { name: 'Doc Marrow' }).closest('tr')
+    expect(within(npcs).getByRole('link', { name: 'Doc Marrow' }).getAttribute('href')).toBe(
+      `/npcs/${npc.id}`
+    )
+    expect(
+      within(line as HTMLElement)
+        .getAllByRole('cell')
+        .map((td) => td.textContent)
+        .slice(0, 4)
+    ).toEqual(['Doc', 'Only me', '—', '6/6'])
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
@@ -325,23 +326,18 @@ describe('Training Bay — items', () => {
     await renderShelves()
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const link = within(pilots)
-      .getAllByRole('link')
-      .find((a) => a.getAttribute('href') === `/pilots/${id}`)
-    expect(link?.getAttribute('aria-label')).toContain('Nia Vale')
-    const line = link?.closest('.su-entity-compact')
-    expect(line?.textContent).toContain('Nia Vale')
+    const link = within(pilots).getByRole('link', { name: 'Nia Vale' })
+    expect(link.getAttribute('href')).toBe(`/pilots/${id}`)
+    const line = link.closest('tr')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
-    // The defining fact takes the vital's place on a shelf (C4).
-    expect(line?.textContent).not.toContain('HP')
-    // In no Game: no Game chip, and never an "Unassigned" one (C11).
-    expect(line?.querySelector('[data-chip-class="relation"] a[data-tag]')).toBeNull()
+    // In no Game: its Game column is empty, never "Unassigned" (C11).
+    expect(line?.querySelector('a[href^="/play/games/"]')).toBeNull()
     expect(line?.textContent).not.toContain('Unassigned')
   })
 
-  test('linked units are each other’s header-only Minis, never chips', async () => {
+  test('linked units name each other on their lines, each a link to the other’s sheet', async () => {
     const store = useUnits.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -354,15 +350,17 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    // Each a header-only Mini in the other's body, never a chip.
-    const linked = Array.from(document.querySelectorAll('[data-entity-linked]')).map((el) =>
-      (el.textContent ?? '').trim()
-    )
-    // Each opens on its name; its stat chips follow (`Iron Fist (Mech)SP0/0`).
-    expect(linked.some((text) => text.startsWith('Iron Fist (Mech)'))).toBe(true)
-    expect(linked.some((text) => text.startsWith('Mara Vex (Pilot)'))).toBe(true)
-    const chips = Array.from(document.querySelectorAll('[data-tag]')).map((el) => el.textContent)
-    expect(chips.some((text) => /Iron Fist|Mara Vex/.test(text ?? ''))).toBe(false)
+    // The pilot's line names its Mech, and the mech's its Pilot.
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const itsMech = within(
+      within(pilots).getByRole('link', { name: 'Mara Vex' }).closest('tr') as HTMLElement
+    ).getByRole('link', { name: 'Iron Fist' })
+    expect(itsMech.getAttribute('href')).toBe(`/mechs/${mech.id}`)
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    const itsPilot = within(
+      within(mechs).getByRole('link', { name: 'Iron Fist' }).closest('tr') as HTMLElement
+    ).getByRole('link', { name: 'Mara Vex' })
+    expect(itsPilot.getAttribute('href')).toBe(`/pilots/${pilot.id}`)
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 

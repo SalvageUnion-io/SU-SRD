@@ -211,6 +211,15 @@
   justify-content: flex-end;
 }
 
+/* The list's name keeps to one line from sm (in a Box a title wraps): it
+   stands over the name column, which its rows' names set. */
+@media (width >= 40rem) {
+  .su-box.su-ledger .su-ledger__head .su-ledger__title-line > span > :first-child {
+    min-width: auto;
+    white-space: nowrap;
+  }
+}
+
 /* ── A picker (L7): the same Ledger in select ───────────────────────────────
  * Each row is a radio; the picked row is set in ink, as a rolled row is, its
  * name on a paper cut-out, as a card's head carries its name. No ring, seal
@@ -261,50 +270,24 @@
   opacity: 0.45;
 }
 
-/* The count's own stepper (ruleset §6.2), a Mini pair about its figure. */
-.su-ledger__stepper {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--space-2);
-}
-
-.su-ledger__copies {
-  min-width: 1.5ch;
-  text-align: center;
-}
-
-.su-ledger__copies[data-empty] {
-  font-weight: var(--font-weight-normal);
-  opacity: 0.45;
-}
-
-.su-ledger__step {
-  align-items: center;
-  background-color: var(--color-paper);
-  border: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-ink);
-  cursor: pointer;
-  display: inline-flex;
-  font: inherit;
-  height: var(--space-20);
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-  width: var(--space-20);
-}
-
-.su-ledger__step:hover:not(:disabled) {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-ledger__table tbody tr[data-picked] .su-ledger__step {
+/* A picked row is an ink ground: its count's stepper (`Stat` in edit) takes
+   the on-ink plate, as under `[data-ground='ink']` (chrome K1). */
+.su-ledger__table tbody tr[data-picked] .su-stat-cell {
   border-color: var(--color-paper);
 }
 
-.su-ledger__step:disabled {
-  cursor: default;
-  opacity: 0.3;
+.su-ledger__table tbody tr[data-picked] .su-step-btn {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-step-btn:hover {
+  background-color: var(--color-wk-bg);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-step-btn:disabled {
+  background-color: var(--color-paper-15);
+  color: var(--color-paper-60);
 }
 
 /* The selected row's card under its line: where no column stands beside the
@@ -377,36 +360,45 @@
     display: none;
   }
 
-  /* Touch takes a taller picker row and a bigger stepper (§4.6). */
+  /* A count's label is its column's stamp on a phone: the row keeps the
+     figure and its steps, and its cells sit closer, so the list keeps to its
+     frame. */
+  .su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper .su-stat-plate--label {
+    display: none;
+  }
+
+  .su-ledger__table tbody tr:has(.su-stat-stepper) > * {
+    padding-inline: var(--space-4);
+  }
+
+  /* Touch takes a taller picker row (§4.6). */
   .su-ledger__table tbody tr:has(.su-ledger__pick) > * {
     height: var(--space-40);
   }
 
-  .su-ledger__step {
-    height: var(--space-28);
-    width: var(--space-28);
-  }
-
-  /* A column of words (a bay's crew lead) is caption size on its one line;
-     the name beside it wraps first. */
+  /* A column of words (a bay's crew lead, an ability's tree) is caption
+     size, and wraps where the list would run wider than its frame. */
   .su-ledger__table tbody [data-kind='text'] {
     font-size: var(--text-caption);
+    white-space: normal;
   }
 }
 
-/* The Training Bay's shelves as Ledgers. Units on the
-   left, Games and what you made on the right; one column under 64rem. */
+/* The Training Bay's shelves as Ledgers. Units and Games in one column, what
+   you made in the other where both fit; the columns wrap and grow to fill. */
 .su-shelf-ledgers {
-  align-items: start;
-  display: grid;
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-24);
-  grid-template-columns: minmax(0, 1fr);
 }
 
-@media (width >= 64rem) {
-  .su-shelf-ledgers {
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  }
+.su-shelf-ledgers__col {
+  flex: 1 1 24rem;
+}
+
+.su-shelf-ledgers__col:first-child {
+  flex: 1.35 1 30rem;
 }
 
 .su-shelf-ledgers__col,

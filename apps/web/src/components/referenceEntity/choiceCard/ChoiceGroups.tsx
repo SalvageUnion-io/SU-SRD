@@ -120,22 +120,6 @@ const optionCellStyle = {
   paddingTop: space[12],
 } satisfies CSSProperties
 
-/**
- * The toggle around an option's box: it fills its cell, and pressed it wears
- * select's ring on the box's square frame (`SELECTED_RING`), as a selected
- * Box does.
- */
-const TOGGLE = {
-  background: 'none',
-  border: 0,
-  color: 'inherit',
-  display: 'block',
-  font: 'inherit',
-  padding: 0,
-  textAlign: 'left',
-  width: '100%',
-} satisfies CSSProperties
-
 /** An editable option's name off a Page, over its text in the plain box. */
 const optionNameStyle = {
   color: color.ink,
@@ -164,7 +148,10 @@ const optionTextStyle = {
  * editable it is an unheaded `Box`, its name and text on the paper, pressed
  * and ringed when chosen, in the one dim until then, with no band or seal.
  *
- * Editable, the box sits in a `ToggleCard`, the one control (`aria-pressed`).
+ * Editable, a `ToggleCard` lies over the box, the one control
+ * (`aria-pressed`), named by the option and described by its text. The box's
+ * own links (a term in its text) are raised above it (`.su-choice-toggle`),
+ * never nested in it: a link in a button is no link to a keyboard.
  */
 function ChoiceOption({
   label,
@@ -189,6 +176,7 @@ function ChoiceOption({
 }): ReactNode {
   const parsedDescription = useParseTraitReferences(description ?? '')
   const insidePeek = useContext(InsidePeekContext)
+  const textId = useId()
   if (insidePeek || (!onPage && readOnly)) {
     return (
       <SlabSection title={label} style={chosen ? SELECTED_RING : undefined}>
@@ -198,7 +186,11 @@ function ChoiceOption({
       </SlabSection>
     )
   }
-  const text = description ? <p style={optionTextStyle}>{parsedDescription}</p> : null
+  const text = description ? (
+    <p id={textId} style={optionTextStyle}>
+      {parsedDescription}
+    </p>
+  ) : null
   // Level 1 on its Page: a titled box, select mode's seal on the band's right
   // (R15); unchosen, the CHOICE chip says it is one to pick.
   const box = onPage ? (
@@ -228,20 +220,22 @@ function ChoiceOption({
     return <div style={chosen ? SELECTED_RING : undefined}>{box}</div>
   }
   return (
-    <ToggleCard
-      pressed={chosen}
-      disabled={disabled}
-      onClick={onToggle}
+    <div
       // The one select dim (R15): unchosen, whether or not the cap allows it.
-      className={cn(!chosen && SELECT_DIM)}
-      style={{
-        ...TOGGLE,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        ...(chosen ? SELECTED_RING : {}),
-      }}
+      className={cn('su-choice-toggle', !chosen && SELECT_DIM)}
+      style={chosen ? SELECTED_RING : undefined}
     >
+      <ToggleCard
+        pressed={chosen}
+        disabled={disabled}
+        onClick={onToggle}
+        aria-label={label}
+        aria-describedby={description ? textId : undefined}
+        className="su-choice-toggle__hit"
+        style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
+      />
       {box}
-    </ToggleCard>
+    </div>
   )
 }
 

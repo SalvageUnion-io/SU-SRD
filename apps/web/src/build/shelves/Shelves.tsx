@@ -42,9 +42,8 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
+import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
   ChapterBand,
@@ -90,7 +89,7 @@ import {
   pilotFact,
 } from '../../lib/shelves/shelfItems'
 import { VITAL } from '../../lib/units/readings'
-import type { UnitReading } from '../../lib/units/unitModel'
+import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns, useTray } from '../../replica/collections'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -101,94 +100,23 @@ import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.mod
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { ShelfLedger, ShelfLink } from './ShelfLedger'
+import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
-
-// ---------------------------------------------------------------------------
-// Layout
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// MOCK (wave 2 build): the shelves' columns and cells, in the Ledger form
-// ---------------------------------------------------------------------------
-
-const fig = (key: string, title: string, phone = false): LedgerColumn => ({
-  key,
-  label: key,
-  title,
-  kind: 'figure',
-  phone,
-})
-const word = (key: string, label: string, phone = false): LedgerColumn => ({
-  key,
-  label,
-  kind: 'text',
-  phone,
-})
-const GAME = word('game', 'Game')
-// The one column order (ruleset §2.6): the words that place a row (its class,
-// its crew, its Game) follow its name, then its figures in the stat order.
-const PILOT_COLUMNS = [
-  word('class', 'Class', true),
-  word('mech', 'Mech'),
-  GAME,
-  fig(VITAL.hp, 'Hit Points', true),
-  fig(VITAL.ap, 'Ability Points'),
-]
-const MECH_COLUMNS = [
-  word('chassis', 'Chassis', true),
-  word('pilot', 'Pilot'),
-  GAME,
-  fig(VITAL.sp, 'Structure Points', true),
-  fig(VITAL.ep, 'Energy Points'),
-  fig(VITAL.heat, 'Heat'),
-]
-const CRAWLER_COLUMNS = [
-  word('type', 'Type', true),
-  GAME,
-  fig('TL', 'Tech Level'),
-  fig(VITAL.sp, 'Structure Points'),
-  fig('Bays', 'Bays intact'),
-]
-const GAME_COLUMNS = [
-  word('role', 'You are', true),
-  fig('Pilots', 'Your pilots in it'),
-  fig('Mechs', 'Your mechs in it'),
-]
-const NPC_COLUMNS = [
-  word('position', 'Position'),
-  word('who', 'Seen by'),
-  GAME,
-  fig('HP', 'Hit or Structure Points', true),
-]
-const PATTERN_COLUMNS = [
-  word('chassis', 'Chassis', true),
-  word('who', 'Seen by'),
-  fig('Sys', 'System slots used'),
-]
-
-/** One reading's figure (`8/10`) by its label; none draws the dash. */
-const read = (readings: readonly UnitReading[] | undefined, label: string): string =>
-  String(readings?.find((r) => String(r.label) === label)?.value ?? '')
-
-/** The unit it is crewed with, as a link to its sheet. */
-const paired = (linked: readonly { name: string; href?: string | undefined }[]): ReactNode =>
-  linked[0] ? <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink> : ''
-
-/** The Game it is in, as a link to that Game's page. */
-const inGame = (relations: readonly { value: string; href: string }[]): ReactNode =>
-  relations[0] ? <ShelfLink href={relations[0].href}>{relations[0].value}</ShelfLink> : ''
-
-/** Who can see it, in words. */
-const who = (chips: readonly { label: string }[]): string => chips.map((c) => c.label).join(', ')
-
-/** A unit's own labels (`Shared by link`), under its name. */
-const under = (chips: readonly { label: string }[]): string | undefined =>
-  chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
-
-/** How many of your units sit in a Game. */
-const count = (units: readonly { gameId?: string | null }[], gameId: string): string =>
-  String(units.filter((u) => u.gameId === gameId).length)
+import {
+  BAYS,
+  CRAWLER_COLUMNS,
+  count,
+  GAME_COLUMNS,
+  inGame,
+  MECH_COLUMNS,
+  NPC_COLUMNS,
+  PATTERN_COLUMNS,
+  PILOT_COLUMNS,
+  paired,
+  read,
+  under,
+  who,
+} from './shelfColumns'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -442,9 +370,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <RosterSkeleton />
       ) : (
         <>
-          {/* MOCK (wave 2 build): every shelf is a Ledger, one framed list a kind,
-              not a stack of banded Compacts. Units on the left, what you run and
-              what you made on the right; one column on a phone. */}
+          {/* Every shelf is a Ledger, one framed list a kind. Units and Games
+              on the left, what you made on the right; one column on a phone. */}
           <div className="su-shelf-ledgers">
             <div className="su-shelf-ledgers__col">
               <ShelfLedger
@@ -520,7 +447,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                       inGame(gameRelation(c, games)),
                       String(crawlerReading(c).value),
                       read(r, VITAL.sp),
-                      read(r, 'Bays'),
+                      read(r, BAYS),
                     ],
                     menu: unitMenu('crawler', c, c),
                   }
@@ -528,17 +455,17 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               />
               <ShelfLedger
                 id="shelf-games"
-                title="Games"
+                title={buildShelvesCopy('games')}
                 tone="ink"
                 columns={GAME_COLUMNS}
-                action={newLink('/play/', 'Start or join')}
-                empty="No Games yet. Start or join one in Play."
+                action={newLink('/play/', buildShelvesCopy('startOrJoin'))}
+                empty={buildShelvesCopy('noGamesYet')}
                 rows={(games ?? []).map((g) => ({
                   id: g._id,
                   name: g.name,
                   href: gamePath(g._id),
                   cells: [
-                    g.mediator ? 'Mediator' : 'Player',
+                    g.mediator ? buildShelvesCopy('mediator') : buildShelvesCopy('player'),
                     count(pilots, g._id),
                     count(mechs, g._id),
                   ],
@@ -554,7 +481,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 columns={NPC_COLUMNS}
                 action={newLink('/npcs/new', '+ Design an NPC')}
                 empty="No NPCs yet. Design one and it is kept here."
-                note="Your NPCs, ready to drop into a Game you mediate."
+                note={buildShelvesCopy('yourNpcsReadyToDrop')}
                 rows={[
                   ...npcs.map((n) => ({
                     id: n.id,
@@ -574,7 +501,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     id: n.id,
                     name: n.name,
                     cells: [
-                      'Tray',
+                      buildShelvesCopy('tray'),
                       who(encounterNpcChips()),
                       '',
                       String(encounterNpcReading(n).value),
@@ -601,7 +528,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   ) : undefined
                 }
                 empty="No patterns yet. Save one from a mech."
-                note="Your patterns, ready to build a Mech from."
+                note={buildShelvesCopy('yourPatternsReadyToBuild')}
                 rows={patterns.map((p) => ({
                   id: p.id,
                   name: p.name,

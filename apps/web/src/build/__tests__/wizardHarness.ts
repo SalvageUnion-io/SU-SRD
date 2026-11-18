@@ -48,29 +48,39 @@ export async function clickNext(): Promise<void> {
   })
 }
 
-/** Exactly-one picks (class, ability, chassis, pattern, crawler type) are radios. */
+/** Exactly-one picks (class, ability, chassis, pattern, crawler type) are radios, a row each. */
 export async function pickRadio(name: string): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByRole('radio', { name }))
   })
 }
 
-/**
- * A pick by its entity name: a radio card, or a toggle SelCard (div[role="button"]).
- * An exact aria-label wins over a card whose text holds the name.
- */
-export function getPickByName(name: string): HTMLElement {
-  const candidates = [...screen.queryAllByRole('radio'), ...screen.getAllByRole('button')]
-  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (exact) return exact
-  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No radio or button pick for "${name}"`)
-  return row
+/** A picker's row (`PickList`): the radio its name labels. */
+function getPick(name: string): HTMLInputElement {
+  return screen.getByRole<HTMLInputElement>('radio', { name })
 }
 
-export async function pickByName(name: string): Promise<void> {
+/** Whether a picker's row is the picked one. */
+export function isPicked(name: string): boolean {
+  return getPick(name).checked
+}
+
+/** A count pick's stepper (`Stat` in edit): the `+` and `−` of the row named `name`. */
+export function getStep(name: string, way: 'Increase' | 'Decrease'): HTMLButtonElement {
+  return screen.getByRole<HTMLButtonElement>('button', { name: `${way} ${name} count` })
+}
+
+/** One more copy of a count pick. */
+export async function addOne(name: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(getPickByName(name))
+    fireEvent.click(getStep(name, 'Increase'))
+  })
+}
+
+/** One copy fewer of a count pick. */
+export async function removeOne(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(getStep(name, 'Decrease'))
   })
 }
 

@@ -61,7 +61,7 @@ const PAGE = {
 const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
-  // MOCK (front): level-1 blocks 24px apart, as the home's.
+  // Level-1 blocks 24px apart, as the home's.
   gap: tokens.space[24],
   maxWidth: PAGE_MEASURE,
 } satisfies CSSProperties
@@ -90,21 +90,21 @@ export function FrontDoor() {
       </ChapterBand>
 
       <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[20] }}>
-        {/* MOCK (front): the pitch, as the home's: what Build is, the page's
-            one rust action (sign in) and the outline beside it. */}
+        {/* The pitch, as the home's: what Build is, the page's one rust action
+            (sign in) and the outline beside it. */}
         <FrontPitch
-          value="Build your Pilot, your Mech and your Union Crawler."
+          value={rosterCopy('buildYourPilotYourMech')}
           actions={
             <>
               <SignInControl size="full" redirectTo="/" />
               <Button href="#front-door-starter" variant="default" size="full">
-                Meet the Starter crew
+                {rosterCopy('meetTheStarterCrew')}
               </Button>
             </>
           }
-          note="Free with a Discord sign-in. Your sheets save to your account and open on any device."
+          note={rosterCopy('freeWithADiscordSignIn')}
         >
-          A guided build, one choice at a time, with every option cited to its page in the book.
+          {rosterCopy('aGuidedBuildOneChoice')}
         </FrontPitch>
         <StartHere id="front-door-start" hrefs={STEP_HREFS} />
 

@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import type { RefSystem } from 'salvageunion-reference'
+import type { BookCite, RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
 import { weaponColumns } from './pickColumns'
-import { WizMeter } from './WizShell'
+import { WizMeter } from './WizBudget'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -24,13 +24,14 @@ type SystemsListProps = {
    */
   installedWeaponCount: number
   onChange: (slugs: string[]) => void
+  /** Where the book prints the step's rule, on the list's foot. */
+  cite: BookCite | undefined
 }
 
 const COLUMNS = weaponColumns<RefSystem>()
 
 /**
- * MOCK (Working Manual, wave 2) · Arm the Armament Bay (Union Crawler p.213),
- * as a picker in the Ledger form (`PickList`, its count pick): the Tech 1
+ * Arm the Armament Bay (Union Crawler p.213), as a picker in the Ledger form (`PickList`, its count pick): the Tech 1
  * weapons a line each (timing, range, damage, traits), a mount's stepper at
  * the line's end, the bay's mounts a meter over the list. The line in focus is
  * its contentful card beside the list (under its line on a phone). The parent
@@ -43,6 +44,7 @@ export function SystemsList({
   maxSelectable,
   installedWeaponCount,
   onChange,
+  cite,
 }: SystemsListProps) {
   const atCap = installedWeaponCount >= maxSelectable
   const [focus, setFocus] = useState<string | undefined>(undefined)
@@ -60,29 +62,32 @@ export function SystemsList({
   const focused = systems.find((system) => getEntitySlug(system) === shown)
   const full = buildWizardCopy('armamentBayFullMounted', { installedWeaponCount })
   const card = (system: RefSystem) => (
-    <div className="su-wiz-own-rules">
-      <ReferenceEntityCard
-        data={system}
-        size="compact"
-        selected={mounted(system)}
-        hide={{ actions: true, choices: true }}
-      />
-    </div>
+    <ReferenceEntityCard
+      data={system}
+      size="compact"
+      selected={mounted(system)}
+      // A pick's card says its own rules: no lead line, no flavour.
+      hide={{ lead: true, flavor: true, actions: true, choices: true }}
+    />
   )
 
   return (
     <div className="su-wiz-stack su-wiz-stack--12">
       <div className="su-wiz-budget">
-        <WizMeter label="Weapons mounted" value={installedWeaponCount} max={maxSelectable} />
+        <WizMeter
+          label={buildWizardCopy('weaponsMounted')}
+          value={installedWeaponCount}
+          max={maxSelectable}
+        />
       </div>
       <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
         <div className="su-wiz-compare-main">
           <div>
             <PickList
-              title="Tech 1 Weapons Systems"
+              title={buildWizardCopy('tech1WeaponsSystems')}
               note={
                 <Stat
-                  label="Mounted"
+                  label={buildWizardCopy('mounted')}
                   value={installedWeaponCount}
                   max={maxSelectable}
                   size="mini"
@@ -95,7 +100,7 @@ export function SystemsList({
               selected={shown}
               onSelect={setFocus}
               count={{
-                label: 'Mount',
+                label: buildWizardCopy('mount'),
                 value: (system) => (mounted(system) ? 1 : 0),
                 max: (system) => (mounted(system) || !atCap ? 1 : 0),
                 onChange: (system, next) => {
@@ -110,7 +115,7 @@ export function SystemsList({
               }}
               disabled={(system) => (atCap && !mounted(system) ? full : undefined)}
               detail={card}
-              foot={{ cite: 'Workshop Manual · p.213 · Systems pp.162–187' }}
+              {...(cite ? { foot: { cite } } : {})}
             />
           </div>
         </div>

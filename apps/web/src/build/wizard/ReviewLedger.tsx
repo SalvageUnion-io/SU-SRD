@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import type { ChoiceSelections, RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { CiteLine, Ledger } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import { chosenChips, modelOf } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
 import { ledgerColumns, WIZ_PAINT } from './pickLedger.model'
@@ -54,7 +55,7 @@ export function ReviewLedger<T extends RefMetaEntity>({
         trailing: count > 1 ? `×${count}` : '',
         under: chosenChips(entity, choices?.[nameToSlug(entity.name)]),
       }))}
-      trailingLabel="Qty"
+      trailingLabel={buildWizardCopy('qty')}
       empty={empty}
       {...(total ? { total: { label: 'Total', cells: total(rows) } } : {})}
       {...(cite ? { foot: <CiteLine text={cite} /> } : {})}

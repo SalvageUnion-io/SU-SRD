@@ -1,4 +1,4 @@
-import type { ChoiceSelections, RefAbility, RefClass } from 'salvageunion-reference'
+import type { BookCite, RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard } from '../../components/index'
@@ -6,7 +6,7 @@ import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
 import { PickList } from './PickList'
-import { abilityColumns, choicesOf, chosenChips } from './pickColumns'
+import { abilityColumns } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
 
 type SURClassesAccessor = {
@@ -18,21 +18,22 @@ type SURAbilitiesAccessor = {
 }
 
 /**
- * MOCK (Working Manual, "compare at a glance"): what tells the six classes
- * apart is their trees, so that is the picker's column, as plain text in the
- * book's order. The Salvager's says what the book says of it (p.18).
+ * What tells the six classes apart is their trees, so that is the picker's
+ * column, as plain text in the book's order. The Salvager's says what the
+ * book says of it (p.18).
  */
 const CLASS_COLUMNS: readonly PickColumn<SelectableBaseClass>[] = [
   {
     key: 'core',
-    label: 'Core trees',
+    label: buildWizardCopy('coreTrees'),
     kind: 'line',
     phone: true,
-    value: (c) => (c.coreTrees.length > 3 ? 'Any Core tree' : c.coreTrees.join(' · ')),
+    value: (c) =>
+      c.coreTrees.length > 3 ? buildWizardCopy('anyCoreTree') : c.coreTrees.join(' · '),
   },
 ]
 
-/** MOCK (wave 2): what tells the Level-1 abilities apart, a line each. */
+/** What tells the Level-1 abilities apart, a line each. */
 const ABILITY_COLUMNS = abilityColumns<RefAbility>()
 
 type ClassAbilityStepProps = {
@@ -42,31 +43,30 @@ type ClassAbilityStepProps = {
   onSelectClass: (classId: string) => void
   /** Radio semantics — the pick REPLACES the current ability. Emits its slug. */
   onSelectAbility: (slug: string) => void
-  /** MOCK (wave 2): each pick's chosen options, by slug, and their setter. */
-  choices?: Record<string, ChoiceSelections>
-  onChoices?: (slug: string, next: ChoiceSelections) => void
+  /** Where the book prints the step's rule, on the lists' feet. */
+  cite: BookCite | undefined
   /** Injectable SUR for testing. */
   _sur?: { Classes: SURClassesAccessor; Abilities: SURAbilitiesAccessor }
 }
 
 /**
- * MOCK (Working Manual, wave 2) · Step 1 · Class and first Ability, both
- * pickers in the Ledger form (`PickList`). The six core classes are one list,
+ * Step 1 · Class and first Ability (Workshop Manual p.18), both pickers in the
+ * Ledger form (`PickList`, ledger.md L7). The six core classes are one list,
  * their trees the column that tells them apart; the pick's Level-1 abilities
- * are the second, a line each: its tree, its timing, its AP, its range and
- * what it does, exactly one picked (radio). The picked class and the picked
- * ability stand beside the lists as their contentful cards; the ability's card
- * says its own rules only (no lead, no flavour) and is where an option it asks
- * for is chosen (Bionic Senses' optics), the choice then a chip under its
- * line (hard rule R60). Only LEGAL abilities render (`legalCreationAbilities`).
+ * are the second, a line each: its tree, its timing, its range, what it does
+ * and its AP, exactly one picked (radio). The picked class stands beside the
+ * lists as its contentful card, and the picked ability under its list (under
+ * its line on a phone) as its own: its rules only, no lead and no flavour. An
+ * option an ability asks (Bionic Senses' optics) is made on the pilot's
+ * sheet: a pilot keeps no choice of an ability's yet, so the step asks none.
+ * Only LEGAL abilities render (`legalCreationAbilities`).
  */
 export function ClassAbilityStep({
   classId,
   selectedAbilities,
   onSelectClass,
   onSelectAbility,
-  choices = {},
-  onChoices,
+  cite,
   _sur,
 }: ClassAbilityStepProps) {
   const surClasses: SURClassesAccessor = _sur?.Classes ?? SalvageUnionReference.Classes
@@ -87,25 +87,14 @@ export function ClassAbilityStep({
   )
   const pickedAbility = legalPool.find((a) => selectedAbilities.includes(getEntitySlug(a)))
 
-  const abilityCard = (ability: RefAbility) => {
-    const slug = getEntitySlug(ability)
-    const asks = choicesOf(ability).length > 0 && onChoices !== undefined
-    return (
-      <div className="su-wiz-own-rules su-wiz-own-rules--ability">
-        <ReferenceEntityCard
-          data={ability}
-          size="compact"
-          selected
-          {...(asks
-            ? {
-                selections: choices[slug] ?? {},
-                onSelectionChange: (next: ChoiceSelections) => onChoices(slug, next),
-              }
-            : { hide: { choices: true } })}
-        />
-      </div>
-    )
-  }
+  const abilityCard = (ability: RefAbility) => (
+    <ReferenceEntityCard
+      data={ability}
+      size="compact"
+      selected
+      hide={{ lead: true, flavor: true, choices: true }}
+    />
+  )
 
   return (
     <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
@@ -113,33 +102,39 @@ export function ClassAbilityStep({
         <div>
           <PickList
             title={buildWizardCopy('pilotClass')}
-            note="Choose 1"
+            note={buildWizardCopy('choose1')}
             rows={legalClasses}
             rowKey={(c) => c.id}
             rowName={(c) => c.name}
             columns={CLASS_COLUMNS}
             selected={classId || undefined}
             onSelect={onSelectClass}
-            foot={{ cite: 'Workshop Manual · p.18 · Pilot Classes pp.26–77' }}
+            {...(cite ? { foot: { cite } } : {})}
           />
         </div>
         {selectedClass !== undefined && (
           <div>
             <PickList
               title={buildWizardCopy('firstAbility')}
-              note="Choose 1"
+              note={buildWizardCopy('choose1')}
               rows={legalPool}
               rowKey={getEntitySlug}
               rowName={(a) => a.name}
               columns={ABILITY_COLUMNS}
               selected={pickedAbility ? getEntitySlug(pickedAbility) : undefined}
               onSelect={onSelectAbility}
-              under={(a) => chosenChips(a, choices[getEntitySlug(a)])}
               detail={abilityCard}
-              foot={{
-                cite: 'Workshop Manual · p.18',
-                meta: { label: selectedClass.name, value: 'Level 1 of its Core trees' },
-              }}
+              {...(cite
+                ? {
+                    foot: {
+                      cite: { source: cite.source, page: cite.page },
+                      meta: {
+                        label: selectedClass.name,
+                        value: buildWizardCopy('level1OfItsCore'),
+                      },
+                    },
+                  }
+                : {})}
             />
             {/* The picked ability's own rules under its list from lg (under
                 its line on a phone, `detail`), so the class's card beside the

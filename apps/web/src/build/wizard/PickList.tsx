@@ -5,9 +5,12 @@
 //  - one of the rows (the default): each row is a radio, the picked row inked.
 //  - `count`: any number of copies of any rows. The row's radio is then what
 //    the detail beside the list shows, and its last cell is the count's own
-//    stepper (ruleset §6.2). A row with a copy is inked.
+//    stepper (`Stat` in edit, ruleset §6.2). A row with a copy is inked.
 import type { ReactNode } from 'react'
-import { CiteLine, Ledger } from '../../components/index'
+import type { BookCite } from 'salvageunion-reference'
+import { formatCite } from 'salvageunion-reference'
+import { CiteLine, Ledger, Stat } from '../../components/index'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import type { PickColumn } from './pickLedger.model'
 import { ledgerColumns, WIZ_PAINT } from './pickLedger.model'
 
@@ -44,8 +47,8 @@ type PickListProps<T> = {
   detail?: (row: T) => ReactNode
   /** `always`: the detail opens under its line at every width (a row's own fields). */
   detailAt?: 'narrow' | 'always'
-  /** The foot: the source on its cut-out, a plain fact left of it (`COSTS | …`). */
-  foot?: { cite: string; meta?: { label: string; value: string } }
+  /** The foot: where the book prints it, on its cut-out, a plain fact left of it (`COSTS | …`). */
+  foot?: { cite: BookCite; meta?: { label: string; value: string } }
 }
 
 export function PickList<T>({
@@ -98,7 +101,6 @@ export function PickList<T>({
                     label={count.label}
                     copies={copies}
                     most={count.max(row)}
-                    blocked={blocked}
                     onChange={(next) => count.onChange(row, next)}
                   />
                 ),
@@ -106,53 +108,38 @@ export function PickList<T>({
             : {}),
         }
       })}
-      {...(foot ? { foot: <CiteLine text={foot.cite} /> } : {})}
+      {...(foot ? { foot: <CiteLine text={formatCite(foot.cite)} /> } : {})}
       {...(foot?.meta ? { footMeta: [foot.meta] } : {})}
     />
   )
 }
 
-/** A row's count, a − and + about its figure (ruleset §6.2). */
+/**
+ * A row's count: the one stepper for a count (`Stat` in edit, ruleset §6.2).
+ * On a picked row, an ink ground, the ledger's stylesheet gives it the on-ink plate.
+ */
 function PickStepper({
   name,
   label,
   copies,
   most,
-  blocked,
   onChange,
 }: {
   name: string
   label: string
   copies: number
   most: number
-  blocked: string | undefined
   onChange: (next: number) => void
 }) {
   return (
-    <span className="su-ledger__stepper">
-      <button
-        type="button"
-        className="su-ledger__step"
-        aria-label={`Remove ${name}`}
-        disabled={copies === 0}
-        onClick={() => onChange(copies - 1)}
-      >
-        −
-      </button>
-      <span className="su-ledger__copies" data-empty={copies === 0 || undefined}>
-        <span className="su-sr-only">{label} </span>
-        {copies}
-      </span>
-      <button
-        type="button"
-        className="su-ledger__step"
-        aria-label={`Add ${name}`}
-        title={copies >= most ? blocked : undefined}
-        disabled={copies >= most}
-        onClick={() => onChange(copies + 1)}
-      >
-        +
-      </button>
-    </span>
+    <Stat
+      label={label}
+      value={copies}
+      size="mini"
+      mode="edit"
+      ceiling={most}
+      stepperLabel={buildWizardCopy('count', { name })}
+      onChange={onChange}
+    />
   )
 }

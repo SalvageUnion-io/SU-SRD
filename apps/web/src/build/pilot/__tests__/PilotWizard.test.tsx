@@ -22,8 +22,8 @@ import {
   clickButton,
   clickNext,
   getNextButton,
-  getPickByName,
-  pickByName,
+  isPicked,
+  pickRadio,
   withWizardStore,
 } from '../../__tests__/wizardHarness'
 import { PilotWizard } from '../PilotWizard'
@@ -59,7 +59,7 @@ async function fillCallsign(name: string, callsign: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 describe('PilotWizard — happy path (book order, hard enforcement)', () => {
-  it('walks Class & Ability → Equipment → Callsign → flavor → Review and creates a legal pilot', async () => {
+  it('walks Class & Ability → Equipment → Who They Are → Review and creates a legal pilot', async () => {
     const onComplete = mock(() => {})
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={onComplete} onCancel={onCancel} />)
@@ -69,18 +69,18 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     expect(screen.getByText('HP')).toBeTruthy()
     // Next locked until class + exactly 1 legal ability.
     expect(getNextButton().disabled).toBe(true)
-    await pickByName('Engineer')
+    await pickRadio('Engineer')
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
-    await pickByName('Engineering Expertise')
+    await pickRadio('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
-    // --- Step 3: Equipment — exactly 2 Tech 1 picks (duplicates allowed) ---
+    // --- Step 2: Equipment — exactly 2 Tech 1 picks (duplicates allowed) ---
     expect(getNextButton().disabled).toBe(true)
     expect(screen.getByText(/Choose 2 more equipment items to continue/i)).toBeTruthy()
     const item = firstTech1Equipment()
-    await pickByName(item.name) // card click adds copy #1
+    await clickButton(`Increase ${item.name} count`) // copy #1
     expect(screen.getByText(/Choose 1 more equipment item to continue/i)).toBeTruthy()
     await clickButton(`Increase ${item.name} count`) // copy #2
     expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
@@ -94,21 +94,18 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
     }
     await clickNext()
 
-    // --- Step 4: Callsign (Name + Callsign required) ---
+    // --- Step 3: Who They Are (Name + Callsign required; the rest optional) ---
     expect(getNextButton().disabled).toBe(true)
     await fillCallsign('Mira Voss', '')
     expect(getNextButton().disabled).toBe(true) // a name alone does not open it
     await fillCallsign('Mira Voss', 'Sparks')
     await clickNext()
 
-    // --- Steps 5–8: Background, Motto, Keepsake, Appearance — optional ---
-    await clickNext() // Background
-    await clickNext() // Motto
-    await clickNext() // Keepsake
-    await clickNext() // Appearance
-
-    // --- Review → submit ('Create Pilot ✦'), recap present, no soft banner ---
-    expect(screen.getByText(/1 class · 1 ability · 2 Tech 1 items/i)).toBeTruthy()
+    // --- Review → submit ('Create Pilot ✦'): the picks as lists, no soft banner ---
+    expect(screen.getByRole('table', { name: 'Abilities' }).textContent).toContain(
+      'Engineering Expertise'
+    )
+    expect(screen.getByRole('table', { name: 'Equipment' }).textContent).toContain(item.name)
     expect(screen.queryByRole('alert')).toBeNull()
     await clickButton(/Create Pilot/i)
 
@@ -137,30 +134,30 @@ describe('PilotWizard — happy path (book order, hard enforcement)', () => {
 describe('PilotWizard — hard creation enforcement', () => {
   it('ability pick is a RADIO: a new pick replaces the old, never a second slot', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
-    await pickByName('Engineering Expertise')
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
-    await pickByName('Jury Rig')
+    await pickRadio('Jury Rig')
     // Still exactly one pick — replaced, not added.
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
-    expect(getPickByName('Jury Rig').getAttribute('aria-checked')).toBe('true')
-    expect(getPickByName('Engineering Expertise').getAttribute('aria-checked')).toBe('false')
+    expect(isPicked('Jury Rig')).toBe(true)
+    expect(isPicked('Engineering Expertise')).toBe(false)
   })
 
   it('changing class clears a now-illegal ability (cross-step invalidation)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
-    await pickByName('Engineering Expertise') // Mechanical Knowledge L1
-    await pickByName('Soldier') // Mechanical Knowledge ∉ Soldier trees
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise') // Mechanical Knowledge L1
+    await pickRadio('Soldier') // Mechanical Knowledge ∉ Soldier trees
     expect(screen.getByTestId('ability-count').textContent).toContain('0/1')
     expect(getNextButton().disabled).toBe(true)
   })
 
   it('keeps a still-legal ability across a class change (Salvager shares core trees)', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
-    await pickByName('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
-    await pickByName('Salvager')
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise') // Mechanical Knowledge L1 — also a Salvager tree
+    await pickRadio('Salvager')
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
   })
 
@@ -169,7 +166,7 @@ describe('PilotWizard — hard creation enforcement', () => {
     // Non-core classes are filtered OUT of guided create entirely.
     expect(screen.queryByRole('radio', { name: 'Cyborg' })).toBeNull()
     expect(screen.queryByRole('radio', { name: 'Fabricator' })).toBeNull()
-    await pickByName('Salvager')
+    await pickRadio('Salvager')
     const level1 = SalvageUnionReference.Abilities.findAll(
       (a) => (a as { level: number | string }).level === 1
     )
@@ -195,8 +192,8 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('equipment Qty stepper supports duplicates and the − removes a copy', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
-    await pickByName('Engineering Expertise')
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
     await clickNext()
 
     const item = firstTech1Equipment()
@@ -214,11 +211,72 @@ describe('PilotWizard — hard creation enforcement', () => {
 
   it('slot preview uses pilotInventory math, not pick count', async () => {
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
-    await pickByName('Engineering Expertise')
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
     await clickNext()
     // 0 picks → 0 / 6 slots (base capacity).
     expect(screen.getByTestId('slot-preview').textContent).toContain('/6')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// A choice made at creation is the pilot's (`Pilot.equipmentChoices`)
+// ---------------------------------------------------------------------------
+
+describe('PilotWizard — an option chosen at creation', () => {
+  it('is saved on the pilot, by the item\u2019s slug and its choice\u2019s id', async () => {
+    const rifle = must(SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle'))
+    const choice = must(must(rifle.choices).find((c) => c.name === 'Weapon Type'))
+    render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
+    await clickNext()
+
+    // The rifle's card asks its choice where it is picked.
+    await clickButton(`Increase ${rifle.name} count`)
+    await act(async () => {
+      fireEvent.click(must(screen.getAllByRole('button', { name: /Ballistic/, pressed: false })[0]))
+    })
+    await clickButton(`Increase ${firstTech1Equipment().name} count`)
+    await clickNext()
+    await fillCallsign('Mira Voss', 'Sparks')
+    await clickNext()
+    await clickButton(/Create Pilot/i)
+
+    await waitFor(() => {
+      const p = must(useUnits.getState().list('pilot')[0])
+      expect(p.equipment).toContain(nameToSlug(rifle.name))
+      expect(p.equipmentChoices).toEqual({
+        [nameToSlug(rifle.name)]: { [choice.id]: ['Ballistic'] },
+      })
+    })
+  })
+
+  it('goes with its item: an option on an item no longer held is not saved', async () => {
+    const rifle = must(SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle'))
+    const other = firstTech1Equipment()
+    render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
+    await clickNext()
+
+    await clickButton(`Increase ${rifle.name} count`)
+    await act(async () => {
+      fireEvent.click(must(screen.getAllByRole('button', { name: /Ballistic/, pressed: false })[0]))
+    })
+    await clickButton(`Decrease ${rifle.name} count`)
+    await clickButton(`Increase ${other.name} count`)
+    await clickButton(`Increase ${other.name} count`)
+    await clickNext()
+    await fillCallsign('Mira Voss', 'Sparks')
+    await clickNext()
+    await clickButton(/Create Pilot/i)
+
+    await waitFor(() => {
+      const p = must(useUnits.getState().list('pilot')[0])
+      expect(p.equipment).not.toContain(nameToSlug(rifle.name))
+      expect(p.equipmentChoices).toBeUndefined()
+    })
   })
 })
 
@@ -253,7 +311,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
 
     // Oldest-first removal keeps the NEWEST ability pick (a3).
     expect(screen.getByTestId('ability-count').textContent).toContain('1/1')
-    expect(getPickByName('Mass Field Maintenance').getAttribute('aria-checked')).toBe('true')
+    expect(isPicked('Mass Field Maintenance')).toBe(true)
     await clickNext() // → Equipment
     expect(screen.getByTestId('equipment-count').textContent).toContain('2/2')
   })
@@ -267,7 +325,7 @@ describe('PilotWizard — draft restore clamps to the 1/2 budgets', () => {
 describe('PilotWizard — session drafts', () => {
   it('restores in-progress state after unmount and clears it on confirmed cancel', async () => {
     const { unmount } = render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickByName('Engineer')
+    await pickRadio('Engineer')
 
     // Simulate a refresh/navigation: unmount, then mount a fresh wizard.
     await act(async () => {
@@ -277,10 +335,8 @@ describe('PilotWizard — session drafts', () => {
 
     const onCancel = mock(() => {})
     render(<PilotWizard onComplete={() => {}} onCancel={onCancel} />)
-    // The class pick survived: after advancing to Class & Ability, Engineer's
-    // SelCard ring is the active selection.
-    await clickNext()
-    expect(getPickByName('Engineer').getAttribute('aria-checked')).toBe('true')
+    // The class pick survived: Engineer's row is the picked one.
+    expect(isPicked('Engineer')).toBe(true)
 
     // Cancel on a dirty form asks first; confirming discards the draft.
     await clickButton('Cancel')
@@ -299,8 +355,7 @@ describe('PilotWizard — preselected class', () => {
         preselectClassId={idOf('Engineer', SalvageUnionReference.Classes)}
       />
     )
-    await clickNext() // Stats → Class & Ability
-    expect(getPickByName('Engineer').getAttribute('aria-checked')).toBe('true')
+    expect(isPicked('Engineer')).toBe(true)
     // The ability is still the player's pick.
     expect(screen.getByText('Choose your first Ability to continue')).toBeTruthy()
   }, 30000)

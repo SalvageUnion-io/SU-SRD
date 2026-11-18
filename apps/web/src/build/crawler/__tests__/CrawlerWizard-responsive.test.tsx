@@ -32,11 +32,11 @@ describe('CrawlerWizard — responsive wizard layout', () => {
     expect(shell).toBeTruthy()
   })
 
-  test('renders a stepper navigation rail with all six book-order steps', async () => {
+  test('renders a stepper navigation rail with its four steps', async () => {
     const { container } = await renderBuilder()
     const stepper = container.querySelector('nav[aria-label="Steps"]')
     expect(stepper).toBeTruthy()
-    for (const label of ['Crawler Type', 'Statistics', 'Armament Bay', 'Crew', 'Name', 'Review']) {
+    for (const label of ['Crawler Type', 'Armament Bay', 'Name & Crew', 'Review']) {
       expect(stepper?.textContent).toContain(label)
     }
   })

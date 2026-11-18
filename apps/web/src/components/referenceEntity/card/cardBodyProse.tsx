@@ -182,7 +182,11 @@ export function resolveBodyProse(input: CardBodyInput) {
     grantedText,
   })
   // NO REPEATED PROSE: a nested child hides what its parent already prints.
-  const bodyBlocks = hideShownProse(resolvedBody.bodyBlocks, shownProse, resolvedChassisName)
+  const bodyBlocks = hideShownProse(
+    resolvedBody.bodyBlocks,
+    shownProse,
+    resolvedChassisName
+  ).filter((block) => !(hide?.flavor && block.type === 'flavor'))
   const showBody = resolvedBody.showBody && bodyBlocks.length > 0
 
   const choiceIsEmpty = (c: RefObjectChoice) => choiceRendersNothing(c, editableChoices, selections)
@@ -252,7 +256,10 @@ export function resolveBodyProse(input: CardBodyInput) {
   // The LEAD — the hint as the body's first paragraph (unless the body
   // already opens with it).
   const leadBlocks: RefObjectContentBlock[] =
-    leadHint && !hide?.content && !bodyBlocks.some((b) => blockPlainText(b).startsWith(leadHint))
+    leadHint &&
+    !hide?.content &&
+    !hide?.lead &&
+    !bodyBlocks.some((b) => blockPlainText(b).startsWith(leadHint))
       ? [{ type: 'paragraph', value: leadHint }]
       : []
 

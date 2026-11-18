@@ -48,9 +48,14 @@
 
 /* The two doors: stacked on a phone, side by side from sm. */
 .su-wiz-chooser-doors {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-24);
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.su-wiz-chooser-doors > * {
+  flex: 1 1 18rem;
+  min-width: 0;
 }
 
 /* The mech-only "Instantiate from Pattern" door dims on hover. */
@@ -69,7 +74,6 @@
 
   .su-wiz-chooser-doors {
     gap: var(--space-20);
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -197,7 +201,7 @@
   padding: var(--space-20);
 }
 
-/* MOCK (Working Manual, mockup C): the action bar's budget. One line at every
+/* The action bar's budget. One line at every
    width: the trackers, ghost Back and Cancel, the rust Next. On a phone it is
    docked to the screen's foot, edge to edge (chrome, not a card floating over
    the step's cards), and holds the Scrap budget, the ⋯ menu (Back, Cancel, the
@@ -279,7 +283,7 @@
 
   .su-wiz-pill-next {
     display: inline;
-    margin-inline-end: 0.3em;
+    margin-inline-end: var(--space-4);
   }
 
   /* From sm the ⋯ menu shows only when it holds the off-rules escape. */
@@ -352,8 +356,8 @@
   margin-bottom: var(--space-16);
 }
 
-/* MOCK: a step's brief wears the card's foot: the cite on a paper cut-out
-   hanging from a foot band in the kind's paint. */
+/* A step's brief wears the card's foot: the cite on a paper cut-out hanging
+   from a foot band in the kind's paint. */
 .su-wiz-rule-brief__text {
   display: flex;
   flex-direction: column;
@@ -387,37 +391,29 @@
   }
 }
 
-/* CrawlerCrewStep: an open crew row's fields, one column, two from sm. */
+/* CrawlerCrewStep: an open crew row's fields, as many across as fit, the
+   last row filling the line. */
 .su-wiz-crew-fields {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
 }
 
-@media (width >= 40rem) {
-  .su-wiz-crew-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.su-wiz-crew-fields > * {
+  flex: 1 1 14rem;
+  min-width: 0;
 }
 
-/* CrawlerIdentityStep: the six scrap buckets, three across, six from md. */
+/* CrawlerIdentityStep: the six scrap buckets, as many across as fit. */
 .su-wiz-scrap-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
 }
 
-@media (width >= 48rem) {
-  .su-wiz-scrap-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-}
-
-/* CrawlerReviewStep, pilot and MechReviewStep: recap left, cards right from lg. */
-.su-wiz-review-grid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
-
-@media (width >= 64rem) {
-  .su-wiz-review-grid {
-    grid-template-columns: 1.1fr 1fr;
-  }
+.su-wiz-scrap-grid > * {
+  flex: 1 1 5rem;
+  min-width: 0;
 }
 
 /* The review steps' recap (pilot, mech, crawler): the type of the Box's
@@ -425,11 +421,6 @@
 .su-wiz-review-panel {
   font-size: var(--text-body);
   line-height: calc(1.25 / 0.875);
-}
-
-/* Pilot ReviewStep: its kv-panel is itself the grid item, aligned to the start. */
-.su-wiz-review-panel--start {
-  align-self: start;
 }
 
 /* ClassPathPicker: the class list, with the consequences beside it from sm. */
@@ -448,13 +439,23 @@
   margin-bottom: var(--space-4);
 }
 
-/* — MOCK (Working Manual): the pickers (`PickList`, the pick beside it) — */
+/* — The pickers (`PickList`, the pick beside it) — */
 
-/* The picker's grid, with the picked one's contentful card beside it from lg. */
-.su-wiz-compare-layout {
-  display: grid;
+/* A step of more than one block (its budgets, then a picker a list). */
+.su-wiz-step {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-16);
-  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+/* The picker's list with the picked one's contentful card beside it where
+   both fit, under it where they do not; each grows to fill its line. */
+.su-wiz-compare-layout {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
 }
 
 .su-wiz-compare-main,
@@ -465,17 +466,32 @@
   min-width: 0;
 }
 
-@media (width >= 64rem) {
-  .su-wiz-compare-layout {
-    align-items: start;
-    gap: var(--space-24);
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-  }
+.su-wiz-compare-main {
+  flex: 1.2 1 26rem;
+}
 
+.su-wiz-compare-detail {
+  flex: 1 1 18rem;
+}
+
+/* A list of many columns takes more of the pane than its detail. */
+.su-wiz-compare-layout--wide > .su-wiz-compare-main {
+  flex-grow: 3;
+}
+
+@media (width >= 64rem) {
   /* Beside a long column the pick's card rides the scroll. */
   .su-wiz-compare-detail--sticky {
     position: sticky;
     top: var(--space-16);
+  }
+}
+
+/* Beside a list of many columns the detail keeps to a card's width, and the
+   list takes the rest (its Traits read whole). */
+@media (width >= 64rem) {
+  .su-wiz-compare-layout--wide > .su-wiz-compare-detail {
+    max-width: 21rem;
   }
 }
 
@@ -485,8 +501,6 @@
     display: none;
   }
 }
-
-/* — MOCK (Working Manual, wave 2): the finishing pass — */
 
 /* A step's part: what it asks (a field with its Roll) over the book's words
    for it, in the brief's own frame, the cite on its foot (`RuleBrief`). */
@@ -498,12 +512,18 @@
   padding-top: var(--space-8);
 }
 
-/* A step's parts: side by side from lg, so a step of fields fills the pane. */
+/* A step's parts: side by side where they fit, so a step of fields fills the
+   pane; the last row grows to fill its line. */
 .su-wiz-parts {
-  align-items: start;
-  display: grid;
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-16);
-  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-wiz-parts > * {
+  flex: 1 1 24rem;
+  min-width: 0;
 }
 
 /* A column of parts, where the parts' heights differ: two columns pack with
@@ -512,7 +532,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-16);
-  min-width: 0;
 }
 
 /* A part's long field is three lines, not five: the step is fields, not a page. */
@@ -524,33 +543,11 @@
   margin-bottom: 0;
 }
 
-@media (width >= 64rem) {
-  .su-wiz-parts {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .su-wiz-part--wide {
-    grid-column: 1 / -1;
-  }
-
-  /* A list of many columns takes more of the pane than its detail. */
-  .su-wiz-compare-layout--wide {
-    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
-  }
-}
-
 /* The step's budgets, a line of pip trackers. */
 .su-wiz-budget {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
-}
-
-/* A pick's card says its own rules: no lead line, no flavour. MOCK: the real
-   build gives the card `hide.lead` and `hide.flavor`. */
-.su-wiz-own-rules :is(.su-ec-lead, [data-prose='flavor']),
-.su-wiz-own-rules--ability div:not([class]):has(+ .su-ec-block) {
-  display: none;
 }
 
 /* A review's lists, a Ledger each, 12px apart (R17). */
