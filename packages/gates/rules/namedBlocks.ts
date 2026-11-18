@@ -1,7 +1,7 @@
 /**
  * R18, same content, same block — the `named-block` rule of the
  * `entity-nesting` rule set (`entityNesting.ts`). A named rules block (When
- * Damaged) has one renderer in every context (EDL E15), so its field is read
+ * Damaged) has one renderer in every context (hard rule R7), so its field is read
  * off an entity in one module only, the block's own (`x.damagedEffect`,
  * `'damagedEffect' in x`); everyone else asks it (`damagedEffectOf`). A
  * card's `hide` flag of the same name is not a read, nor is a key, a comment

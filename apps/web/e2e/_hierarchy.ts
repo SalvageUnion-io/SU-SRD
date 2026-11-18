@@ -4,7 +4,7 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * Hierarchy at render (hard rule R55): what the eye ranks, read off the page.
+ * Hierarchy at render (ruleset §4.8): what the eye ranks, read off the page.
  * Each fault is `<rule>: <detail>`, its rule one of
  *
  * - `type-ladder` (§4.8): a drawn font size that is no `--text-*` rung;
@@ -22,7 +22,7 @@ import { fromFaults } from './_findings'
  *   that is not rust; `band-keyline`: a rust control on a colour band without
  *   its ink keyline; `stamp-twin`: a button painted like a read stamp beside
  *   it on its line;
- * - `tool-title-clip` (C12): a TitledBox's title clipped to "…";
+ * - `tool-title-clip` (C5): a TitledBox's title clipped to "…";
  * - `measure` (§1.10): a Reference or Manage band title off the page measure's
  *   left edge; `first-screen`: a phone page whose first content starts below
  *   its first screen.
@@ -248,7 +248,7 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
   return out
 }
 
-/** Every hierarchy fault on the page as it stands (R55). */
+/** Every hierarchy fault on the page as it stands (§4.8). */
 export async function findHierarchy(page: Page, at: Context): Promise<Finding[]> {
   return fromFaults(await page.evaluate(scan, { ...at, ladder: LADDER }))
 }

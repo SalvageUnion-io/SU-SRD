@@ -843,7 +843,7 @@
   }
 }
 
-/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7, R37): a band's
+/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7, C2b): a band's
    controls (the Training Bay's and a Game's buttons,
    an index's search) are laid by CSS alone, never by the fill's measure, so
    nothing moves when the script lands. They read in source order on lines
@@ -982,7 +982,7 @@
 
 /* Under the band on a phone the aside sits on the page ground, so an ink
    band's chips and outlined controls there are the paper ground's again
-   (chrome K1, hard rule R31): an ink rule and an ink outline, never the
+   (chrome K1, ruleset §7.1): an ink rule and an ink outline, never the
    band's paper rule on paper. */
 @media not (width >= 40rem) {
   .su-chapter-band[data-ground='ink'][data-aside='notch']
@@ -1257,7 +1257,7 @@
   }
 }
 
-/* A Page band's overflow row (C2b, R37 4.): the page's first row, on the
+/* A Page band's overflow row (C2b): the page's first row, on the
    page body's measure and gutter, so its chips start on the content's line,
    never at the window's edge (a Sestra Drone's Heat and
    Cargo Capacity). The body under it closes the gap the row opened. */

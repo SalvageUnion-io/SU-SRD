@@ -103,7 +103,7 @@ type HeaderMenuProps = {
    * The `button` and `overflow` variants' Size: `mini` (default), an action
    * chip; `compact` where it sits on a line of Compact controls (Play's bar,
    * ruleset §4.7); `full` on a line of Full ones (a wizard's action bar). Its
-   * glyphs take the same Size (`iconSize`, hard rule R23).
+   * glyphs take the same Size (`iconSize`, chrome K11).
    */
   size?: 'mini' | 'compact' | 'full'
   /** The `segment` trigger is pressed (its `SegmentedOption`'s): its option is the chosen one. */
@@ -191,7 +191,7 @@ export function HeaderMenu({
   const overflow = variant === 'overflow'
   // The button variant is the shared Button's own classes, focus ring included;
   // the segment variant IS a `SegmentedOption` (its `render`), so `aria-pressed`
-  // stays Segmented's (hard rule R29).
+  // stays Segmented's (chrome K10).
   const triggerClass =
     variant === 'button'
       ? `${buttonVariants({ size })}${className ? ` ${className}` : ''}`

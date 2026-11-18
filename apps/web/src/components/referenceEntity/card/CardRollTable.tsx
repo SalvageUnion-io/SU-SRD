@@ -21,7 +21,7 @@ export type CardRoll = { roll: number; key: string }
 type ColumnsRoll = { column: string; entry: string; roll: number; value: string }
 
 /**
- * An entity's own ROLL TABLE (EDL E14, R8): the shared `RollTableInstrument`,
+ * An entity's own ROLL TABLE (hard rule R8): the shared `RollTableInstrument`,
  * OPEN on its Page or guide step, flush under the rule above its bar, its
  * bands showing without a click, on the server as in the browser. Its ROLL
  * THE DIE stamp is the one roll control (press it again to reroll).

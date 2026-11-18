@@ -6,9 +6,9 @@ import { capsLabel } from './capsLabel'
 
 /**
  * Tabs — a row of tabs that switches what one region shows, over Base UI's
- * Tabs (chrome K10, hard rule R29): the only `role="tablist"` in the app. A
+ * Tabs (chrome K10): the only `role="tablist"` in the app. A
  * row that sets a value is a `Segmented`; one on/off is a `Toggle`. A tab's
- * label is never cut to "…" (EDL E18): it wraps or the tab widens.
+ * label is never cut to "…" (C5): it wraps or the tab widens.
  *
  * It brings the WAI-ARIA tabs keyboard model with it, which is why it exists
  * rather than a row of buttons wearing `role="tab"`: ArrowLeft/ArrowRight move

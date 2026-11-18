@@ -101,7 +101,7 @@ width calls the same handler under the same rules.
 ### 11. Play follows the nesting rules
 
 Play sits in the canon's nesting rules N1–N8 (the entity display
-language's E6, with E3 and E18) and their gates. Its own frames place as follows:
+language's E6, with E3 and C5) and their gates. Its own frames place as follows:
 
 1. **Level 0 is the Play canvas**, a dialog or an overlay (N1). What sits
    directly in a column is level 1: a Compact or contentful card, or a unit

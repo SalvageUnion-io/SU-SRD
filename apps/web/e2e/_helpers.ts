@@ -528,7 +528,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 
 /**
  * A linked unit on the open sheet's Assigned units: its relation chip
- * (`PILOT | Bonesaw`, hard rule R5), a link to its sheet.
+ * (`PILOT | Bonesaw`, C11), a link to its sheet.
  */
 export function assignedUnit(page: Page, name: string) {
   return page.locator('[data-assigned-unit]').getByRole('link', { name: new RegExp(name) })

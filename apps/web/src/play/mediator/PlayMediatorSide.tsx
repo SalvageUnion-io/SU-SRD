@@ -121,7 +121,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
         canWrite={mediator.canWrite}
         onPropose={mediator.propose}
         toRef={toRef}
-        // The dock's last chip (C8, hard rule R6), never a line under it.
+        // The dock's last chip (C8), never a line under it.
         controls={
           <Button size="mini" onClick={() => setAllOpen(true)}>
             {mediatorCopy('allProposals')}

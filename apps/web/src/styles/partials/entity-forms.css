@@ -114,7 +114,7 @@
 
 /* The title: one line, and short of room it ends in "…" rather than wrap
    (ruleset §4.7). Beside its labels it gives way first (a
-   high shrink); its chips are never cut (R3). The whole name is the Peek's. */
+   high shrink); its chips are never cut (C5). The whole name is the Peek's. */
 .su-entity-compact__title {
   display: block;
   flex: 0 100 auto;
@@ -149,7 +149,7 @@
 }
 
 /* A TitledBox's title names no entity, so it never gives way to its chips:
-   it wraps at spaces, as a Peek's does (C12). */
+   it wraps at spaces, as a Peek's does (C5). */
 .su-box .su-entity-compact__title:not(.su-entity-compact:not(.su-box) *) {
   min-width: min-content;
   overflow: visible;
@@ -302,7 +302,7 @@
 }
 
 /* CHIPS (`entity/parts/Chips.tsx`): every chip of an entity, one group, one
-   style, wrapping; never a chip cut to "…" (E18). */
+   style, wrapping; never a chip cut to "…" (C5). */
 .su-chips {
   align-items: center;
   display: flex;
@@ -340,7 +340,7 @@
   align-self: flex-start;
 }
 
-/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b, R37):
+/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b):
    every head whose name and chips share a line (a Compact's or
    Card's heading, a CompactIndex's band, a Page's chapter band: `[data-chip-fill]`).
    Chips sit only beside the name, on its line, the last chip (the cost) in
@@ -430,7 +430,7 @@
 }
 
 /* A chip wider than the head itself (a Game's long name) wraps its value on
-   a line of its own, never past the Compact's edge (R3, E18: it wraps, never
+   a line of its own, never past the Compact's edge (C5: it wraps, never
    clipped). */
 [data-chip-fill] .su-stat-cell {
   max-width: 100%;
@@ -452,7 +452,7 @@
   overflow-wrap: anywhere;
 }
 
-/* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2a). In a
+/* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2). In a
    strip it draws no box, so its chips are the strip's flex items. Its
    `--su-lane-end` counts the chips after it, so each chip knows its place
    from the strip's end (`--su-fill`, the cost's 1): a strip that fills from
@@ -1007,7 +1007,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 
 /* TOKEN (`entity/forms/Mini.tsx`): the pill, `[note] [tier] name [chips]`,
    its name on the cut-out (below), the Mini's full
-   width. Always one row (E18): short of room the name ends in "…", and the
+   width. Always one row (C5): short of room the name ends in "…", and the
    chips keep their whole width (below), held at its right end by the
    cut-out's margin. */
 .su-entity-mini__pill {
@@ -1099,7 +1099,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* The name gives way first: it takes the room the chips leave and ends in
-   "…" when that is too little (E18's Mini exception). */
+   "…" when that is too little (C5's Mini exception). */
 .su-entity-mini__name {
   flex: 1 1 auto;
   min-width: 0;
@@ -1445,7 +1445,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A card's name as the link to its own Page (`CardTitleLink`): a nested
-   card's, and the Peek's one link (R33). It reads as the name, and underlines
+   card's, and the Peek's one link (E16). It reads as the name, and underlines
    under the pointer; inline, as the opener's `div` sits in the name's line. */
 .su-card-title-link {
   color: inherit;

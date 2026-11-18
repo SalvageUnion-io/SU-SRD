@@ -68,7 +68,7 @@ describe('Sheet — one unit, no links', () => {
     if (ref) expect(screen.getAllByText(ref).length).toBeGreaterThan(0)
   })
 
-  test('a mech with no pilot offers its Assign control (R5), not a role stamp', () => {
+  test('a mech with no pilot offers its Assign control (C11), not a role stamp', () => {
     renderSheet('mech')
     expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
     expect(screen.queryByText(/Yara Voss/)).toBeNull()

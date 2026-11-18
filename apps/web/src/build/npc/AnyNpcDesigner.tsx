@@ -175,7 +175,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
                 <span className={CAPS_LABEL} style={CAPS}>
                   {npcCopy('template')}
                 </span>
-                {/* Change is the template Mini's last chip (C8, hard rule R6). */}
+                {/* Change is the template Mini's last chip (C8). */}
                 {template ? (
                   <Entity
                     size="mini"

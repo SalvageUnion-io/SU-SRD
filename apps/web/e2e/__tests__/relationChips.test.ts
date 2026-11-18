@@ -1,5 +1,5 @@
 /**
- * The relation scan (`_relationChips.ts`, hard rule R5) on hand-written markup
+ * The relation scan (`_relationChips.ts`, C11) on hand-written markup
  * in the forms' class names: an entity in a Compact's body, a Mini hung under a
  * Compact, and what passes (a list of Compacts, a Mini in a Compact's head, a TitledBox).
  */

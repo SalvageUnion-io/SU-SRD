@@ -1,5 +1,5 @@
 /**
- * PickDialog — the one pick dialog (ruleset §6.6, hard rule R24): one radio
+ * PickDialog — the one pick dialog (ruleset §6.6, chrome K7): one radio
  * group of Compacts, a titled group under its Slab, one empty state, and the act
  * off until something is picked.
  */

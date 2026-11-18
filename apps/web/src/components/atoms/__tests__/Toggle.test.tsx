@@ -1,5 +1,5 @@
 /**
- * Toggle — one on/off (chrome K10, hard rule R29): a Button that stays
+ * Toggle — one on/off (chrome K10): a Button that stays
  * pressed, `aria-pressed` its state, pressed the ink plate.
  */
 import { describe, expect, it } from 'bun:test'

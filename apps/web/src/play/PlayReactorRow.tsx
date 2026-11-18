@@ -17,7 +17,7 @@
  * or a Shut down is an applied change on the Feed (`recordPlayChange`).
  *
  * A Mini one a line in the list (ruleset §1.3; `playLineModel`, the Reactor
- * being no reference entity), its controls in its chip group (R6); the table
+ * being no reference entity), its controls in its chip group (C8); the table
  * and the result are its contentful body, plain content (N3, play.md §12).
  * Not on hand, it is its head alone, the need its chip.
  */

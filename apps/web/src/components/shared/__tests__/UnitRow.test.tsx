@@ -166,7 +166,7 @@ describe('UnitRow', () => {
     render(<UnitRow kind="pilot" name="Yara Voss" href="/pilots/yara" />)
     const view = screen.getByRole('link', { name: 'View Yara Voss' })
     expect(view.getAttribute('href')).toContain('/pilots/yara')
-    // In the chip group's last slot, never beside the strip (C8, R6).
+    // In the chip group's last slot, never beside the strip (C8).
     expect(view.closest('[data-chip-class]')?.getAttribute('data-chip-class')).toBe('menu')
   })
 

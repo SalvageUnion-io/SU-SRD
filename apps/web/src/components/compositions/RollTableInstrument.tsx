@@ -16,7 +16,7 @@ const LABEL = cn('su-roll__label', capsLabel())
 const TAG = cn('su-roll__tag', capsLabel({ weight: 'inherit' }))
 
 /**
- * RollTableInstrument — THE roll table, wherever one is drawn (EDL E14,
+ * RollTableInstrument — THE roll table, wherever one is drawn (hard rule R8,
  * ruleset §2 "RollTable banded d20"): an entity card's own table, a guide
  * step's, and the SRD's roll-table page all draw this, so they cannot drift.
  * The book prints one table, however it is reached (pp. 88, 232).

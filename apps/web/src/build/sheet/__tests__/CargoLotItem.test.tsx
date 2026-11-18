@@ -3,7 +3,7 @@
  *
  *  - Both sides draw the one lot line (`CargoLotLine`): a Mini, its name,
  *    then `TL | n` where the lot has one and `UNITS | n`, a bulk lot's other
- *    count as its quantity (`× | n`), the moves in its chip group (R6, R35).
+ *    count as its quantity (`× | n`), the moves in its chip group (C8, R35).
  *  - The crawler's Storage Bay: a cap-checked **Load** that partial-fills a
  *    bulk lot to the mech's free slots and refuses what does not fit with the
  *    reason, and **Unstow**.
@@ -185,7 +185,7 @@ describe("the crawler's Storage Bay", () => {
     const token = item.querySelector('.su-entity-mini')
     expect(token).not.toBeNull()
     expect(chips()).toEqual(['Units 2', '× 6'])
-    // R6: the move sits inside the Mini's own strip, never beside it.
+    // C8: the move sits inside the Mini's own strip, never beside it.
     expect(token?.contains(tile.getByRole('button', { name: 'Load Fuel Cells' }))).toBe(true)
   })
 

@@ -23,7 +23,7 @@ const EFFECT_CARD = { ...EFFECT, fontSize: fontSize.chip } satisfies CSSProperti
 
 /**
  * WHEN DAMAGED — a crawler bay's rules block, one renderer in every context
- * (hard rule R18, EDL E15): a section of the bay, so a Slab over its effect
+ * (hard rule R18): a section of the bay, so a Slab over its effect
  * (ruleset §5, N5), on the bay's own Page, in its card, in a Peek and in the
  * live sheet's bay alike. It is the bay's last section, under its Bay Info
  * and its crew NPC. On a live sheet it folds

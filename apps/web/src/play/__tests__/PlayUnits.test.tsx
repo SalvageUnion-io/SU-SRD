@@ -228,7 +228,7 @@ describe('a live crawler', () => {
 })
 
 describe('the Downtime restore preview', () => {
-  test('each vital the step changes reads "→ N" (ArrowRight, R23) after its gauge, still showing now', () => {
+  test('each vital the step changes reads "→ N" (ArrowRight, K11) after its gauge, still showing now', () => {
     const { store } = recordingStore()
     render(
       <PlayMechUnit

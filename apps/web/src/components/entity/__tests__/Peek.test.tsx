@@ -95,7 +95,7 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
-    // Its one link is its name, to its Page, out of the tab order (R33).
+    // Its one link is its name, to its Page, out of the tab order (E16).
     expect(peek.querySelector('a:not([data-peek-open]), button')).toBeNull()
     expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
   })

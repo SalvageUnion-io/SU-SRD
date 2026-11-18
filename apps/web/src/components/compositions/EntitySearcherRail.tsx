@@ -179,7 +179,7 @@ export function SelectionRail({
   const listNode = (
     <div id={list.panelId} hidden={!expanded} className="su-searcher__rail-list" style={LIST_STYLE}>
       {entries.map((entry, position) => (
-        // The ✕ is the Mini's last chip (C8, hard rule R6): a Mini with
+        // The ✕ is the Mini's last chip (C8): a Mini with
         // controls is a `div` whose name is the link, so no button nests in
         // it. The Tech level is the list's to say.
         <div

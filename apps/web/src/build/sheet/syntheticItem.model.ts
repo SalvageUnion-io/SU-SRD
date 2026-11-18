@@ -3,7 +3,7 @@
  * not hold (ruleset §6.6: a carried thing, entity or not, is a Mini in
  * `SheetItemLine`): an unknown slug, a pilot's generic inventory entry, a cargo
  * lot. Its name, its facts as label-first chips in the stat order (so they
- * take the list's R2 lanes), its note as the stamp before the name; ink, as
+ * take the list's lanes, C6), its note as the stamp before the name; ink, as
  * the sheet's unknown items always were, and linked nowhere (`synthetic`).
  */
 

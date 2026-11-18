@@ -259,7 +259,7 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
     expect(bar().queryByRole('link', { name: /Mara Vex/ })).toBeNull()
   })
 
-  test('the condensed name wraps rather than cutting to "…" (E18)', () => {
+  test('the condensed name wraps rather than cutting to "…" (C5)', () => {
     renderShell()
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)

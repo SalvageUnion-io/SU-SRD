@@ -74,7 +74,7 @@ export type BoxProps = {
  * BOX — the house container: the Compact's square 2px frame around a paper body
  * (ruleset §4.3), with an optional head band. It stands in the
  * Compact's own frame (`CompactFrame`), so it draws no entity markup of its own (EDL
- * E15, hard rule R7). Its named
+ * hard rule R7). Its named
  * variants: `TitledBox` (the cut-out head: dialogs, briefs, notices), and on
  * that `RecoveryPanel`; a `Callout` is the bare box in its accent. A box with
  * nothing below its head closes on it. No headed box sits inside an entity or around

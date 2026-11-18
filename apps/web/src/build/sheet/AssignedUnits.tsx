@@ -1,7 +1,7 @@
 /**
  * AssignedUnits — a sheet's Assigned units section: each linked unit is a
  * contentful Mini of its kind in one masonry grid (`MiniGrid`), never a chip
- * (R5). Its name opens that unit's sheet
+ * (C11). Its name opens that unit's sheet
  * and Peeks nothing; its body is its status, its vitals as they stand (`SP |
  * 9/13`). Edit puts the link's acts, Change and Unassign, in its ⋯ (R62). In Edit each place still to fill is a placeholder Mini of its
  * kind ("No Mech assigned") with the ways to fill it, Assign and + Create,
@@ -85,7 +85,7 @@ export function AssignedUnits({
                 }}
                 {...(editable && (unit.change || unit.onUnassign)
                   ? {
-                      // R62: a unit's acts ride its ⋯, so its head stays one line (R37).
+                      // R62: a unit's acts ride its ⋯, so its head stays one line (C2b).
                       controls: (
                         <HeaderMenu
                           variant="overflow"

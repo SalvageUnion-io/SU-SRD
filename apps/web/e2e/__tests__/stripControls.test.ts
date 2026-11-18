@@ -1,5 +1,5 @@
 /**
- * The strip-control scan (`_stripControls.ts`, hard rule R6) on hand-written
+ * The strip-control scan (`_stripControls.ts`, C8) on hand-written
  * markup in the forms' class names: a control in the chip group passes; one
  * on the head outside it is `beside`, one in the body `under`; and a control
  * drawn as the sibling of an entity's list item (or of the entity in a slot)

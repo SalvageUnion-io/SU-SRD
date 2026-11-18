@@ -96,7 +96,7 @@ export function PlayVital({
           role="note"
           aria-label={playCopy('restoresTo', { label, restoresTo })}
         >
-          {/* A value's change, a glyph at the line's Size (R23), never a text arrow. */}
+          {/* A value's change, a glyph at the line's Size (K11), never a text arrow. */}
           <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
           {restoresTo}
         </span>

@@ -3,7 +3,7 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * The frame-colour law (ruleset §4.3, EDL E21) as the
+ * The frame-colour law (ruleset §4.3, hard rule R38) as the
  * rendered page draws it: every entity's frame (a Compact's, CompactIndex's, Card's,
  * a contentful Mini's pill and body) wears its head's band paint (`--su-band`),
  * never the old neutral grey; a frame with no band (a `Box`, a MiniGroup) wears

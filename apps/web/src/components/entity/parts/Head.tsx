@@ -43,7 +43,7 @@ export type HeadProps = {
   tierChip?: boolean
   /**
    * The entity's chip group (`Chips`, E17): right of the name, or under it.
-   * Anything else a host passes is drawn by `Chips` as its marks (C2a).
+   * Anything else a host passes is drawn by `Chips` as its marks (C2).
    */
   chips?: ReactNode
   /**
@@ -88,7 +88,7 @@ export type HeadProps = {
  * right, the chip group (from the bottom right of the name's line, leftward,
  * on that line alone: ruleset §4.7's bottom-right fill; what does not fit goes
  * to the body's first row, or behind +MORE, C2b), the host's controls its last
- * slot, so nothing sits beside the strip (C8, R6), and the mode's affordance, in
+ * slot, so nothing sits beside the strip (C8), and the mode's affordance, in
  * that order; the affordance stays on the band's right, centred on it, never
  * alone on a line. The band wears the
  * paint (`paintFor`): the tone or ink, grey when down.
@@ -214,10 +214,10 @@ type ChipsProps = Parameters<typeof Chips>[0]
 const none = (node: ReactNode) => node === undefined || node === null || node === false
 
 /**
- * A head's chips as one `Chips` strip (C2a): a strip passes through; any
+ * A head's chips as one `Chips` strip (C2): a strip passes through; any
  * other chip a host hands the head (a label-only `Stat`, a stamp) is drawn by
  * `Chips` as its marks, so every head strip names its classes. The host's
- * controls are the strip's last slot (C8, hard rule R6): the menu lane, ahead
+ * controls are the strip's last slot (C8): the menu lane, ahead
  * of a "⋯" already there, so nothing sits beside the strip; a header-only
  * head's +MORE ends it.
  */

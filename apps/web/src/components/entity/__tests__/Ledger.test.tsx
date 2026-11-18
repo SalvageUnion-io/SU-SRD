@@ -1,5 +1,5 @@
 /**
- * The Ledger (ledger.md L1 to L9, hard rule R63): a compared or picked list
+ * The Ledger (ledger.md L1 to L9): a compared or picked list
  * as one framed table. This file pins the drawing: one frame in the band's
  * paint, the title on the head strip's cut-out tab, mini ink stamps over the
  * columns, `—` for none, the sources on the cite foot, and in select a radio

@@ -92,7 +92,7 @@ function stamp(text: string) {
 }
 
 /**
- * A box's relation chips (chips-and-actions C11, R5): what the unit is built
+ * A box's relation chips (chips-and-actions C11): what the unit is built
  * on or linked to, label first (`CHASSIS | Scrapper`), drawn by `Chips` in
  * the relation lane, never a loose stamp.
  */

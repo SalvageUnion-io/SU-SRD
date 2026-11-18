@@ -91,7 +91,7 @@ describe('AssignedUnits', () => {
         units={[{ key: 'p1', kind: 'pilot', name: 'Bonesaw', onUnassign, change }]}
       />
     )
-    // No button of its own on the head but the ⋯ (R37: the head stays one line).
+    // No button of its own on the head but the ⋯ (C2b: the head stays one line).
     expect(screen.queryByRole('button', { name: /^Unassign/ })).toBeNull()
     expect(screen.queryByRole('button', { name: /^Change/ })).toBeNull()
     const menuFor = async () => {

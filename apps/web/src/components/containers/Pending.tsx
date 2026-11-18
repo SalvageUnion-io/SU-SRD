@@ -13,7 +13,7 @@ type PendingProps = {
 }
 
 /**
- * Pending — the loading line inside an already-rendered screen (chrome.md K6):
+ * Pending — the loading line inside an already-rendered screen (chrome K6):
  * a muted hint announced politely as a status, in `loadingCopy`'s words. A
  * shape known ahead is a `Skeleton`; a route's wait is `RoutePending`.
  */

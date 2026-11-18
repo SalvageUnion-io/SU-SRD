@@ -207,9 +207,8 @@
   --color-caution: rgb(215, 195, 125); /* #d7c37d */
   --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
 
-  /* Cargo (storage) accent pair */
+  /* Cargo (storage) accent */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
-  --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
   /* Sheet tones (live sheets) — base + deep pairs */
   --color-sheet-pilot: var(--color-pilot); /* #ef894f */
@@ -241,7 +240,7 @@
      makes the guarantee true, and it holds for a call site nobody remembered
      to mark. */
 
-  /* === Motion (chrome.md K3) === the only durations and the one easing:
+  /* === Motion (chrome K3) === the only durations and the one easing:
      `--dur-fast` for a state change (colour, opacity, a shadow), `--dur-base`
      for a move (transform, a slide, a float), `--dur-phase` a screen's phase
      changing (Play's bar and foot recolouring with the Situation), `--dur-loop`
