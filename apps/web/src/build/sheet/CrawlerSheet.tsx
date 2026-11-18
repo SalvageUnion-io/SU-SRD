@@ -71,6 +71,7 @@ import {
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
+import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
@@ -93,8 +94,10 @@ import { CrawlerIdentityPanel } from './CrawlerIdentity'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { EXOTIC_NAME } from './exoticNames.model'
+import { PhoneSheet, usePhoneRead } from './PhoneSheet'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
+import { SheetLedger } from './SheetLedger'
 import { StorageManifest } from './StorageManifest'
 import { UnknownItemLine } from './UnknownItemLine'
 
@@ -145,6 +148,8 @@ type CrawlerSheetProps = {
    * beside `economy` and set on the vitals card's head, not in its body.
    */
   economyActions?: ReactNode
+  /** MOCK (wave 2): the phone's vitals block (`PhoneVitals`), built beside `economy`. */
+  phoneVitals?: ReactNode
   /**
    * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
@@ -173,6 +178,7 @@ export function CrawlerSheet({
   liveCondition = false,
   economy,
   economyActions,
+  phoneVitals,
   linkedUnits,
   crew,
   crewHref,
@@ -444,6 +450,104 @@ export function CrawlerSheet({
     )
   }
 
+  // MOCK (wave 2, phone sheets): a phone in Read is the numbers, then tabs
+  // (`PhoneSheet`): Bays, Storage, About. The bays are one Ledger, a
+  // line a bay with its crew lead and their HP; a damaged bay says so on its
+  // stamp. The Armament Bay's weapons are a second Ledger under it.
+  const phoneRead = usePhoneRead(readOnly)
+  const phoneSheet = phoneRead && (
+    <PhoneSheet
+      name={crawler.name}
+      vitals={phoneVitals}
+      tabs={[
+        {
+          value: 'bays',
+          label: buildSheetCopy('bays'),
+          count: `${intactBays}/${bays.length}`,
+          panel: (
+            <>
+              <SheetLedger
+                kind="bays"
+                tone="crawler"
+                title={buildSheetCopy('bays')}
+                count={`${intactBays}/${bays.length} ${buildSheetCopy('intact')}`}
+                lines={bays.map((entry, i) => {
+                  const bay = resolveCrawlerBay(entry.bayRef)
+                  const built = assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef })?.npc
+                  const maxHp = bay?.npc?.hitPoints ?? 0
+                  return {
+                    id: `${entry.bayRef}-${i}`,
+                    entity: bay,
+                    name: bay ? undefined : entry.bayRef,
+                    stamp:
+                      (entry.condition ?? 'intact') === 'damaged' ? (
+                        <Stat label="Damaged" size="mini" state="critical" />
+                      ) : undefined,
+                    cells: {
+                      lead: built?.name ?? entry.npcName?.trim() ?? bay?.npc?.position ?? '',
+                      hp: maxHp > 0 ? `${entry.npcCurrentHP ?? maxHp}/${maxHp}` : '',
+                    },
+                  }
+                })}
+              />
+              {crawler.systems.length > 0 && (
+                <SheetLedger
+                  kind="loadout"
+                  title="Weapons"
+                  count={crawler.systems.length}
+                  lines={crawler.systems.map((slug) => ({
+                    id: slug,
+                    entity: resolveCrawlerSystem(slug),
+                    name: resolveCrawlerSystem(slug) ? undefined : slug,
+                  }))}
+                />
+              )}
+            </>
+          ),
+        },
+        {
+          value: 'storage',
+          label: 'Storage',
+          // What the crawler holds, then who it homes (the Assigned Units).
+          panel: (
+            <>
+              {storageContents ?? <EmptyState variant="quiet" body="Nothing stored." />}
+              {linkedUnits}
+            </>
+          ),
+        },
+        {
+          value: 'about',
+          label: 'About',
+          panel: (
+            <SheetHero
+              flat
+              name={crawler.name}
+              fields={
+                <CrawlerIdentityPanel
+                  crawler={crawler}
+                  store={store}
+                  storeState={storeState}
+                  patch={undefined}
+                  readOnly
+                  proseUnder
+                  typeCrew={assignmentFor(crew, { kind: 'type' })}
+                  photo={
+                    <EntityPhoto
+                      photo={crawler.photo}
+                      fallback={crawlerTypeArt(crawler.type)}
+                      name={crawler.name}
+                    />
+                  }
+                />
+              }
+            />
+          ),
+        },
+      ]}
+    />
+  )
+
   /** The Storage Bay(s), by their place in the bay list: the sidebar's. */
   const storageBays = bays.flatMap((entry, i) =>
     bayKind(entry) === 'storage' ? [{ entry, i }] : []
@@ -462,117 +566,120 @@ export function CrawlerSheet({
           every sheet shares (`SheetColumns`): Identity → Bays (Armament
           weapons inside their bay) → Assigned Units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
-      <SheetColumns
-        asideLabel={buildSheetCopy('whatCarries', { name: crawler.name })}
-        hero={
-          // ===== Identity Band (Workshop-Manual crawler sheet top region) =====
-          // Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
-          // rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
-          // toned frame — no name pseudoheader stamp.
-          <SheetHero
-            name={crawler.name}
-            fields={
-              <CrawlerIdentityPanel
-                crawler={crawler}
-                store={store}
-                storeState={storeState}
-                patch={readOnly ? undefined : patchCrawler}
-                readOnly={readOnly}
-                typeCrew={assignmentFor(crew, { kind: 'type' })}
-                photo={
-                  <EntityPhoto
-                    photo={crawler.photo}
-                    fallback={crawlerTypeArt(crawler.type)}
-                    name={crawler.name}
-                    onChange={
-                      readOnly
-                        ? undefined
-                        : (photo) =>
-                            storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
-                    }
-                  />
-                }
-              />
-            }
-            vitals={economy}
-            vitalsActions={economyActions}
-          />
-        }
-        // ----- The Storage Bay, the sidebar: the crawler's own BAY, its
-        // card (the hold IS a bay, Core Book p.213), holding the scrap pool
-        // and the crawler hold. With no Storage Bay installed both still have
-        // to go somewhere: they are crawler-level data (the pool is what bay
-        // REPAIRS spend), so hiding them with the bay would strand them; they
-        // render under a Storage Bay Slab instead. -----
-        aside={
-          storageBays.length > 0
-            ? storageBays.map(({ entry, i }) => (
-                <div key={`storage-${i}`} style={SHRINK}>
-                  {renderBay(entry, i)}
-                </div>
-              ))
-            : storageContents && (
-                <SlabSection title={buildSheetCopy('storageBay')}>{storageContents}</SlabSection>
-              )
-        }
-      >
-        {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
-            the sidebar's (no crew/functional split). */}
-        {bays.length > storageBays.length && (
-          <SlabSection
-            fold="open"
-            title={buildSheetCopy('bays')}
-            count={{ label: buildSheetCopy('intact'), value: intactBays, max: bays.length }}
-            actions={
-              crewHref === undefined && (readOnly || installable.length === 0) ? undefined : (
-                <>
-                  {!readOnly && installable.length > 0 && (
-                    // + Bay: a menu of the bays it can add, one look with Crew beside it.
-                    <HeaderMenu
-                      variant="button"
-                      size="compact"
-                      trigger={buildSheetCopy('addBay')}
-                      label={buildSheetCopy('addAnExpansionBay')}
-                      sections={[
-                        installable.map((b) => ({
-                          id: b.slug,
-                          label: b.name,
-                          onSelect: () => addExpansionBay(b.slug),
-                        })),
-                      ]}
+      {phoneSheet}
+      {!phoneSheet && (
+        <SheetColumns
+          asideLabel={buildSheetCopy('whatCarries', { name: crawler.name })}
+          hero={
+            // ===== Identity Band (Workshop-Manual crawler sheet top region) =====
+            // Edge wordmark ∥ Name/Type/Ability/Description fields ∥ the Economy
+            // rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts), in one
+            // toned frame — no name pseudoheader stamp.
+            <SheetHero
+              name={crawler.name}
+              fields={
+                <CrawlerIdentityPanel
+                  crawler={crawler}
+                  store={store}
+                  storeState={storeState}
+                  patch={readOnly ? undefined : patchCrawler}
+                  readOnly={readOnly}
+                  typeCrew={assignmentFor(crew, { kind: 'type' })}
+                  photo={
+                    <EntityPhoto
+                      photo={crawler.photo}
+                      fallback={crawlerTypeArt(crawler.type)}
+                      name={crawler.name}
+                      onChange={
+                        readOnly
+                          ? undefined
+                          : (photo) =>
+                              storeState.update('crawler', crawler.id, { photo }, LIVE_SHEET_MANUAL)
+                      }
                     />
-                  )}
-                  {crewHref !== undefined && (
-                    <Button
-                      href={crewHref}
-                      size="compact"
-                      aria-label={buildSheetCopy('crewDesignAndAssignCrawler', {
-                        name: crawler.name,
-                      })}
-                    >
-                      {buildSheetCopy('crew')}
-                    </Button>
-                  )}
-                </>
-              )
-            }
-          >
-            {/* Each bay a contentful Mini and what belongs to it, in one
-                subtle border (`MiniGroup`), a cell of the masonry grid. */}
-            <MiniGrid label={buildSheetCopy('bays')}>
-              {bays.map((entry, i) =>
-                bayKind(entry) === 'storage' ? null : (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
-                  <li key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</li>
+                  }
+                />
+              }
+              vitals={economy}
+              vitalsActions={economyActions}
+            />
+          }
+          // ----- The Storage Bay, the sidebar: the crawler's own BAY, its
+          // card (the hold IS a bay, Core Book p.213), holding the scrap pool
+          // and the crawler hold. With no Storage Bay installed both still have
+          // to go somewhere: they are crawler-level data (the pool is what bay
+          // REPAIRS spend), so hiding them with the bay would strand them; they
+          // render under a Storage Bay Slab instead. -----
+          aside={
+            storageBays.length > 0
+              ? storageBays.map(({ entry, i }) => (
+                  <div key={`storage-${i}`} style={SHRINK}>
+                    {renderBay(entry, i)}
+                  </div>
+                ))
+              : storageContents && (
+                  <SlabSection title={buildSheetCopy('storageBay')}>{storageContents}</SlabSection>
                 )
-              )}
-            </MiniGrid>
-          </SlabSection>
-        )}
-        {/* Assigned Units — under the Bays: a crawler's crew is every pilot
+          }
+        >
+          {/* Bays — ONE unified grid, every bay but the Storage Bay, which is
+            the sidebar's (no crew/functional split). */}
+          {bays.length > storageBays.length && (
+            <SlabSection
+              fold="open"
+              title={buildSheetCopy('bays')}
+              count={{ label: buildSheetCopy('intact'), value: intactBays, max: bays.length }}
+              actions={
+                crewHref === undefined && (readOnly || installable.length === 0) ? undefined : (
+                  <>
+                    {!readOnly && installable.length > 0 && (
+                      // + Bay: a menu of the bays it can add, one look with Crew beside it.
+                      <HeaderMenu
+                        variant="button"
+                        size="compact"
+                        trigger={buildSheetCopy('addBay')}
+                        label={buildSheetCopy('addAnExpansionBay')}
+                        sections={[
+                          installable.map((b) => ({
+                            id: b.slug,
+                            label: b.name,
+                            onSelect: () => addExpansionBay(b.slug),
+                          })),
+                        ]}
+                      />
+                    )}
+                    {crewHref !== undefined && (
+                      <Button
+                        href={crewHref}
+                        size="compact"
+                        aria-label={buildSheetCopy('crewDesignAndAssignCrawler', {
+                          name: crawler.name,
+                        })}
+                      >
+                        {buildSheetCopy('crew')}
+                      </Button>
+                    )}
+                  </>
+                )
+              }
+            >
+              {/* Each bay a contentful Mini and what belongs to it, in one
+                subtle border (`MiniGroup`), a cell of the masonry grid. */}
+              <MiniGrid label={buildSheetCopy('bays')}>
+                {bays.map((entry, i) =>
+                  bayKind(entry) === 'storage' ? null : (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: a crawler may install the same bay type more than once, so bayRef alone is not unique; bays are addressed positionally throughout the sheet
+                    <li key={`${entry.bayRef}-${i}`}>{renderBay(entry, i)}</li>
+                  )
+                )}
+              </MiniGrid>
+            </SlabSection>
+          )}
+          {/* Assigned Units — under the Bays: a crawler's crew is every pilot
             and mech it homes, a list that grows down the content column. */}
-        {linkedUnits}
-      </SheetColumns>
+          {linkedUnits}
+        </SheetColumns>
+      )}
 
       {/* The weapons picker — the existing master-detail modal, mounted
           lazily so its reference preload only runs once '+ Add' opens it. */}

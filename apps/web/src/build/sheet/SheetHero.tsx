@@ -74,6 +74,11 @@ type SheetHeroProps = {
   vitalsActions?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
+  /**
+   * MOCK (wave 2): a phone's About tab: the longer fields stay in the fields
+   * panel, beside and under the photo, so the photo's panel has no empty half.
+   */
+  flat?: boolean
 }
 
 export function SheetHero({
@@ -82,13 +87,14 @@ export function SheetHero({
   vitals,
   vitalsActions,
   fieldsTitle = 'Identity',
+  flat = false,
 }: SheetHeroProps) {
   // From the 64rem rung, with a sidebar, the Vitals panel heads it (one
   // render, wherever it stands).
   const asideSlot = useAsideVitalsSlot()
   const wide = useMediaQuery(widthAtLeast('lg'), false)
   const inAside = wide && asideSlot !== null
-  const phone = !useMediaQuery(widthAtLeast('sm'), true)
+  const phone = !useMediaQuery(widthAtLeast('sm'), true) && !flat
   const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null)
   const vitalsPanel = vitals && (
     <SheetPanel title={buildSheetCopy('vitals')} actions={vitalsActions}>

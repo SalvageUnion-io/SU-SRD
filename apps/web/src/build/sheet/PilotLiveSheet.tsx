@@ -38,6 +38,7 @@ export function PilotLiveSheet({
   hrefFor,
   withheld,
   patch,
+  liveInRead = false,
 }: PilotLiveSheetProps) {
   // Stat Training follows the pilot's crawler tier (linked crawler, else the
   // manual `crawlerLevel`) — the same level the body sheet derives from.
@@ -96,6 +97,8 @@ export function PilotLiveSheet({
           pilot={pilot}
           store={store}
           readOnly={readOnly}
+          // MOCK (wave 2): Read keeps HP, AP and TP live on a phone.
+          live={liveInRead}
           crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}
         />

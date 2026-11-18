@@ -48,3 +48,5 @@
 @import './partials/reference-card.css';
 @import './partials/footer.css';
 @import './partials/card-chrome.css';
+/* MOCK: the Ledger (the reading lane's form), for the sheets' lists. */
+@import './partials/mock-ledger.css';

@@ -9,11 +9,12 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
 import { EmptyState, Entity, MiniGrid, Slab, Stat, tokens } from '../../components/index'
 import type { PlayAction } from '../../lib/rules/actionPatches'
-import { buildMechActions } from '../../lib/rules/actionPatches'
+import { buildMechActions, buildPilotActions } from '../../lib/rules/actionPatches'
 import type { ActionTypeKey } from '../../play/playActions.model'
 import { actionTypeOf } from '../../play/playActions.model'
 
@@ -29,8 +30,8 @@ const GROUP = {
   gap: tokens.space[8],
 } satisfies CSSProperties
 
-/** The rows print no text: the head carries the facts, the Peek the rules. */
-const HEAD_ONLY = { text: false } as const
+/** The rows print the action's text under the head; the Peek has the whole card. */
+const ROW_TEXT = {} as const
 
 const TIMING: readonly ActionTypeKey[] = [
   'Turn',
@@ -43,27 +44,48 @@ const TIMING: readonly ActionTypeKey[] = [
   'Other',
 ]
 
-function ActionRow({ action }: { action: PlayAction }) {
-  const model = toEntityModel(action.action)
+/** The Mini's tint: the unit's kind on the colour map. */
+type Tint = 'mech' | 'pilot'
+
+function ActionRow({ action, tint }: { action: PlayAction; tint: Tint }) {
+  // MOCK (wave 2): a carried item's picks change its text, cost, Range and
+  // Damage here as they do in Play (`PlayActionRow`).
+  const from = action.choices?.from
+  const selections = action.choices?.selections
+  const model = toEntityModel(
+    action.action,
+    selections ? { selections } : {},
+    from ? { choices: from } : undefined
+  )
   return (
     <li>
       <Entity
         size="mini"
         context="play"
         model={model}
-        tint="mech"
+        tint={tint}
         instance={action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         {...(action.ownerName !== action.name
           ? { state: <Stat size="mini" label={action.ownerName} /> }
           : {})}
-        body={HEAD_ONLY}
+        // MOCK (wave 2): the row prints the action's own text under its head.
+        body={ROW_TEXT}
       />
     </li>
   )
 }
 
 export function MechSheetActions({ mech }: { mech: Mech }) {
-  const actions = buildMechActions(mech)
+  return <SheetActions actions={buildMechActions(mech)} tint="mech" />
+}
+
+/** MOCK (wave 2): the pilot's twin: abilities and equipment, by timing. */
+export function PilotSheetActions({ pilot }: { pilot: Pilot }) {
+  return <SheetActions actions={buildPilotActions(pilot)} tint="pilot" />
+}
+
+/** MOCK (wave 2): any unit's actions by timing, the one list both sheets draw. */
+function SheetActions({ actions, tint }: { actions: readonly PlayAction[]; tint: Tint }) {
   const groups = TIMING.map((type) => ({
     type,
     actions: actions.filter((a) => actionTypeOf(a.action) === type),
@@ -76,7 +98,7 @@ export function MechSheetActions({ mech }: { mech: Mech }) {
           <Slab as="h3" size="mini" label={group.type} count={group.actions.length} />
           <MiniGrid label={`${group.type} actions`}>
             {group.actions.map((action) => (
-              <ActionRow key={action.key} action={action} />
+              <ActionRow key={action.key} action={action} tint={tint} />
             ))}
           </MiniGrid>
         </section>

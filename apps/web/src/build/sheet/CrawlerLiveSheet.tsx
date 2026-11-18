@@ -22,7 +22,8 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { linesFromBreakdown, Stat } from '../../components/index'
+import { Button, linesFromBreakdown, PhoneVitals, Stat } from '../../components/index'
+import { changeUndoToast } from '../../lib/changeUndoToast'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -40,6 +41,7 @@ import { LiveSheet } from './LiveSheet'
 import { bayStates } from './railStats.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
+import { SHEET_VITALS } from './sheetVitals.model'
 
 type CrawlerLiveSheetProps = SheetViewCommonProps & {
   crawler: Crawler
@@ -212,6 +214,80 @@ export function CrawlerLiveSheet({
       items={econItems}
     />
   )
+  // MOCK (wave 2, phone vitals): the phone's block (`PhoneVitals`): SP, the
+  // Upgrade pool toward its cost, and Upkeep as a counter; Pay / Fund / Trade
+  // are its foot, rust (the action colour). Live in Read where the viewer may
+  // write the sheet (`liveCondition`), each change said with Undo.
+  const liveNumber = (field: 'currentSP' | 'upgradePool', label: string, from: number) =>
+    liveCondition
+      ? (next: number) => {
+          patch({ [field]: next })
+          changeUndoToast({
+            id: `crawler:${crawler.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => patch({ [field]: value }),
+          })
+        }
+      : undefined
+  const phoneActions: { label: string; dialog: CrawlerEconomyDialog }[] = liveCondition
+    ? [
+        { label: buildSheetCopy('payUpkeep'), dialog: 'upkeep' },
+        ...(upgradeCost === null
+          ? []
+          : [{ label: buildSheetCopy('fund'), dialog: 'upgrade' as const }]),
+        ...(trading.present ? [{ label: buildSheetCopy('trade'), dialog: 'trade' as const }] : []),
+      ]
+    : []
+  const phoneVitals = (
+    <PhoneVitals
+      label={`${crawler.name} vitals`}
+      vitals={[
+        {
+          key: 'sp',
+          label: SHEET_VITALS.sp.short,
+          name: SHEET_VITALS.sp.label,
+          value: sp,
+          max: maxSP,
+          onChange: liveNumber('currentSP', 'SP', sp),
+        },
+        ...(upgradeCost === null
+          ? []
+          : [
+              {
+                key: 'upgrade',
+                label: buildSheetCopy('upgrade'),
+                name: 'Upgrade Pool',
+                value: crawler.upgradePool ?? 0,
+                max: upgradeCost,
+                onChange: liveNumber('upgradePool', 'Upgrade', crawler.upgradePool ?? 0),
+              },
+            ]),
+        {
+          key: 'upkeep',
+          label: buildSheetCopy('upkeep'),
+          name: buildSheetCopy('upkeep'),
+          note: `${buildSheetCopy('tScrap', { tl })} each Downtime`,
+          value: 5,
+        },
+      ]}
+      foot={
+        phoneActions.length > 0
+          ? phoneActions.map((action) => (
+              <Button
+                key={action.dialog}
+                variant="primary"
+                size="compact"
+                onClick={() => setEconDialog(action.dialog)}
+              >
+                {action.label}
+              </Button>
+            ))
+          : undefined
+      }
+    />
+  )
   // Pay / Fund / Trade: chips on the Vitals card's head, not a row in its body.
   const economyActions = econItems.some((item) => item.action) ? (
     <CrawlerEconActions items={econItems} />
@@ -252,6 +328,7 @@ export function CrawlerLiveSheet({
             liveCondition={liveCondition}
             economy={economy}
             economyActions={economyActions}
+            phoneVitals={phoneVitals}
             linkedUnits={rail}
             crew={composition.crew}
             crewHref={
@@ -260,7 +337,7 @@ export function CrawlerLiveSheet({
           />
         )}
       />
-      {editable && (
+      {(editable || liveCondition) && (
         <CrawlerEconomyControl
           crawler={crawler}
           store={store}

@@ -1,0 +1,192 @@
+/* MOCK (Working Manual): the Ledger's rules, brought over from the reading lane's mock-working-manual.css for the sheets. */
+/* ══ The Ledger (`entity/Ledger.tsx`): A's patterns, B's index ═════════════
+ * One framed block a list: the Compact's frame in the band's colour, one
+ * column-head strip on the band, its labels the site's stamps, then a
+ * Mini-height line an entity: its name the link, one stamp at most, and its
+ * values in fixed columns as plain condensed numerals. Rows band paper and
+ * cream, hairline-ruled, as the roll table's.
+ */
+.su-ledger__table {
+  background-color: var(--color-paper);
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: 1.3;
+  width: 100%;
+}
+
+.su-ledger__table :is(th, td) {
+  font-weight: var(--font-weight-normal);
+  padding: var(--space-4) var(--space-8);
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* The foot's cite cut-out wears the table's paper, as a card's does. */
+.su-ledger {
+  --su-foot-ground: var(--color-paper);
+}
+
+/* The head strip: the band, its labels stamps. */
+.su-ledger__head > th {
+  padding-block: var(--space-6);
+  white-space: nowrap;
+}
+
+/* The title's cell: the Compact head's notch (`.su-entity-compact__notch`),
+   its tab on the strip's foot, opening into the first paper row. */
+.su-ledger__head > th:first-child {
+  padding: var(--space-8) var(--space-8) 0;
+  vertical-align: bottom;
+}
+
+.su-ledger__title-line {
+  align-items: flex-end;
+  display: flex;
+  font-family: var(--font-cond);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-ledger__title-line .su-ledger__sort {
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.su-ledger__count {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-ledger__sort {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
+}
+
+.su-ledger__arrow {
+  font-size: 0.7em;
+  margin-left: var(--space-4);
+}
+
+.su-ledger__table tbody tr:nth-child(even) {
+  background-color: var(--color-band-cream);
+}
+
+.su-ledger__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-ledger__table tbody tr:hover {
+  background-color: var(--color-wk-bg);
+}
+
+/* The name's cell: the name, then its one stamp at the cell's end. */
+.su-ledger__name-line {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-ledger__name {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-ledger__table tbody th {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* A figure: a plain tabular numeral, condensed bold, centred under its stamp. */
+.su-ledger__table [data-kind='figure'] {
+  text-align: center;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='figure'] {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-ledger__table [data-kind='text'] {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='text'] {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A quiet line of words: one line, muted, taking the room left. */
+.su-ledger__table tbody [data-kind='quiet'] {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.su-ledger__table tbody [data-empty] {
+  color: var(--color-ink-35);
+  font-weight: var(--font-weight-normal);
+}
+
+/* On a phone a row keeps its name, its stamp and the columns marked for it;
+   a quiet line drops under the name when it is the row's only column. */
+@media not (width >= 40rem) {
+  .su-ledger__table :is(th, td):not(:first-child, [data-phone]) {
+    display: none;
+  }
+
+  .su-ledger__table tbody th {
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-ledger__table tr > [data-kind='quiet']:nth-child(2):last-child {
+    display: block;
+    max-width: none;
+    padding-top: 0;
+    white-space: normal;
+  }
+
+  /* The dropped line needs no label of its own. */
+  .su-ledger__table thead tr > [data-kind='quiet']:nth-child(2):last-child {
+    display: none;
+  }
+
+  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) {
+    display: block;
+  }
+
+  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) > th:first-child {
+    display: block;
+    border-bottom: 0;
+  }
+
+  .su-ledger__table tbody tr + tr > td[data-kind='quiet']:nth-child(2):last-child {
+    border-top: 0;
+  }
+}
+
+/* MOCK (wave 2, phone sheets): on a phone a column of words (a bay's crew
+   lead) is caption size on its one line; the name beside it wraps first. */
+@media not (width >= 40rem) {
+  .su-ledger__table tbody [data-kind='text'] {
+    font-size: var(--text-caption);
+  }
+}
