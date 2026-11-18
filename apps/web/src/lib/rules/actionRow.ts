@@ -41,7 +41,15 @@ export function actionRow(pa: PlayAction, techLevel?: number): ActionRow {
     pa.choices ? { choices: pa.choices.from } : undefined
   )
   const picks = pa.choices ? actionPicks(pa.choices.from, pa.choices.selections) : []
-  const own = actionEffect(pa.action)
+  // A chassis ability's text names its chassis by a token (`[(CHASSIS)]`): the
+  // row reads the chassis's own name, in the short line and the whole effect.
+  const named = (text: string) =>
+    pa.kind === 'chassis' ? text.replaceAll('[(CHASSIS)]', pa.ownerName) : text
+  const own = actionEffect(pa.action).map((block) =>
+    typeof block.value === 'string' && block.value.includes('[(CHASSIS)]')
+      ? { ...block, value: named(block.value) }
+      : block
+  )
   const effect: RefObjectContentBlock[] = [
     ...own,
     ...picks.flatMap((pick): RefObjectContentBlock[] =>
