@@ -44,7 +44,7 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { INDEX_COLUMNS, IndexLedger } from './IndexLedger'
+import { IndexLedger } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -433,7 +433,7 @@ function SchemaViewer({
             <div className="su-listing__groups">
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
-                  {group.label && <Slab label={group.label} />}
+                  {group.label && view !== 'list' && <Slab label={group.label} />}
                   {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
                       {group.items.map((item: RefEntity, index) => (
@@ -451,30 +451,15 @@ function SchemaViewer({
                         </li>
                       ))}
                     </ul>
-                  ) : view === 'list' && schemaId in INDEX_COLUMNS ? (
-                    // MOCK (Working Manual, B): a compare listing's List is
-                    // one Ledger, a line an entity.
+                  ) : view === 'list' ? (
+                    // MOCK (Working Manual, B; wave 2: every listing): the
+                    // List is one Ledger, a line an entity; a group's name
+                    // (Core classes) is its title tab.
                     <IndexLedger
                       schemaId={schemaId}
-                      noun={band?.title ?? ''}
+                      noun={group.label || band?.title || ''}
                       items={group.items}
                     />
-                  ) : view === 'list' ? (
-                    // The List (E2): the Catalog's entities header-only, a
-                    // name and its chips a line, each name whole (R56).
-                    <ul className="su-listing__cards" data-entity-fit="">
-                      {group.items.map((item: RefEntity) => (
-                        <li key={item.id}>
-                          <Entity
-                            size="compact"
-                            entity={item}
-                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
-                            omit={omit}
-                            wholeName
-                          />
-                        </li>
-                      ))}
-                    </ul>
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack
                       abilities={group.items as RefAbility[]}

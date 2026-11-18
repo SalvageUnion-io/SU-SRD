@@ -185,6 +185,7 @@
 }
 
 .su-ledger__title-line {
+  white-space: nowrap;
   align-items: flex-end;
   display: flex;
   font-family: var(--font-cond);
@@ -302,28 +303,25 @@
     width: auto;
   }
 
-  .su-ledger__table tr > [data-kind='quiet']:nth-child(2):last-child {
+  /* A list with no phone column: its quiet line drops under the name. */
+  .su-ledger__table[data-phone-line] tr {
+    display: block;
+  }
+
+  .su-ledger__table[data-phone-line] tr > th:first-child {
+    border-bottom: 0;
+    display: block;
+  }
+
+  .su-ledger__table[data-phone-line] tbody td[data-line] {
+    border-top: 0;
     display: block;
     max-width: none;
     padding-top: 0;
     white-space: normal;
   }
 
-  /* The dropped line needs no label of its own. */
-  .su-ledger__table thead tr > [data-kind='quiet']:nth-child(2):last-child {
+  .su-ledger__table[data-phone-line] tbody td[data-line][data-empty] {
     display: none;
-  }
-
-  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) {
-    display: block;
-  }
-
-  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) > th:first-child {
-    display: block;
-    border-bottom: 0;
-  }
-
-  .su-ledger__table tbody tr + tr > td[data-kind='quiet']:nth-child(2):last-child {
-    border-top: 0;
   }
 }

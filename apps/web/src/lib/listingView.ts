@@ -16,6 +16,7 @@ export type ListingView = 'catalog' | 'tree' | 'list'
  */
 export const COMPARE_LISTINGS: ReadonlySet<string> = new Set(['chassis', 'systems', 'modules'])
 const COMPARE_VIEWS: readonly ListingView[] = ['list', 'catalog']
+const TREE_LEDGER_VIEWS: readonly ListingView[] = ['list', 'tree', 'catalog']
 
 /**
  * Listings whose entities have no artwork and whose lead is the content: a
@@ -38,19 +39,17 @@ export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
  */
 export const TREE_LISTINGS: ReadonlySet<string> = new Set(['abilities'])
 
-const VIEWS: readonly ListingView[] = ['catalog', 'list']
-const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree', 'list']
 
 /** The views a listing offers, in the rail's order. */
 function listingViews(schemaId: string): readonly ListingView[] {
-  if (COMPARE_LISTINGS.has(schemaId)) return COMPARE_VIEWS // MOCK
-  return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
+  // MOCK (wave 2): every listing leads with its List, the Ledger.
+  return TREE_LISTINGS.has(schemaId) ? TREE_LEDGER_VIEWS : COMPARE_VIEWS
 }
 
 /** The view a listing opens on: a tree listing's Tree, every other's Catalog. */
 export function defaultListingView(schemaId: string): ListingView {
-  if (COMPARE_LISTINGS.has(schemaId)) return 'list' // MOCK
-  return TREE_LISTINGS.has(schemaId) ? 'tree' : 'catalog'
+  // MOCK (wave 2): every listing opens on its Ledger.
+  return schemaId ? 'list' : 'catalog'
 }
 
 /** `raw` if it names one of `views`, else null. */

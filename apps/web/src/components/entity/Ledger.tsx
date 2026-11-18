@@ -94,11 +94,20 @@ export function Ledger({
       <span title={title}>{mark}</span>
     )
   }
+  // A phone keeps the columns marked for it; a list with none keeps its first
+  // quiet line instead, dropped under the name.
+  const phoneLine = columns.some((column) => column.phone)
+    ? undefined
+    : columns.find((column) => column.kind === 'quiet')?.key
   const ariaSort = (key: string) =>
     sort?.key === key ? (sort.descending ? 'descending' : 'ascending') : undefined
   return (
     <Box frameColor={paint.background} body="flush" className="su-ledger">
-      <table className="su-ledger__table" aria-label={label}>
+      <table
+        className="su-ledger__table"
+        aria-label={label}
+        data-phone-line={phoneLine ? '' : undefined}
+      >
         <thead>
           <tr
             className={cn('su-ledger__head', grainClass(paint.grain))}
@@ -136,6 +145,7 @@ export function Ledger({
                 scope="col"
                 data-kind={column.kind}
                 data-phone={column.phone || undefined}
+                data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
                 {stamp(column.key, column.label, column.title)}
@@ -159,6 +169,7 @@ export function Ledger({
                   key={column.key}
                   data-kind={column.kind}
                   data-phone={column.phone || undefined}
+                  data-line={column.key === phoneLine || undefined}
                   data-empty={!row.cells[index] || undefined}
                   title={column.kind === 'quiet' ? row.cells[index] : undefined}
                 >
