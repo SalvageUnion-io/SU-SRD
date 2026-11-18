@@ -94,40 +94,40 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
     const showKeepsake = findNpcChoiceByName(source.npc, 'Keepsake') !== undefined
     const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
     return (
-        <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
+      <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
+        <Field
+          label={crawlerCopy('name')}
+          value={value.name ?? ''}
+          onSave={(next) => updateNpc(source.ref, { name: next })}
+          placeholder={crawlerCopy('nameThisCrewLead')}
+          ariaLabel={`${source.npc.position ?? 'crew'} name`}
+        />
+        <Field
+          label={crawlerCopy('background')}
+          value={value.description ?? ''}
+          onSave={(next) => updateNpc(source.ref, { description: next })}
+          placeholder={crawlerCopy('appearanceAndPersonality')}
+          ariaLabel={`${source.npc.position ?? 'crew'} background`}
+        />
+        {showKeepsake && (
           <Field
-            label={crawlerCopy('name')}
-            value={value.name ?? ''}
-            onSave={(next) => updateNpc(source.ref, { name: next })}
-            placeholder={crawlerCopy('nameThisCrewLead')}
-            ariaLabel={`${source.npc.position ?? 'crew'} name`}
+            label={crawlerCopy('keepsake')}
+            value={value.keepsake ?? ''}
+            onSave={(next) => updateNpc(source.ref, { keepsake: next })}
+            placeholder={crawlerCopy('aPersonalItem')}
+            ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
           />
+        )}
+        {showMotto && (
           <Field
-            label={crawlerCopy('background')}
-            value={value.description ?? ''}
-            onSave={(next) => updateNpc(source.ref, { description: next })}
-            placeholder={crawlerCopy('appearanceAndPersonality')}
-            ariaLabel={`${source.npc.position ?? 'crew'} background`}
+            label={crawlerCopy('motto')}
+            value={value.motto ?? ''}
+            onSave={(next) => updateNpc(source.ref, { motto: next })}
+            placeholder={crawlerCopy('aPersonalSaying')}
+            ariaLabel={`${source.npc.position ?? 'crew'} motto`}
           />
-          {showKeepsake && (
-            <Field
-              label={crawlerCopy('keepsake')}
-              value={value.keepsake ?? ''}
-              onSave={(next) => updateNpc(source.ref, { keepsake: next })}
-              placeholder={crawlerCopy('aPersonalItem')}
-              ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
-            />
-          )}
-          {showMotto && (
-            <Field
-              label={crawlerCopy('motto')}
-              value={value.motto ?? ''}
-              onSave={(next) => updateNpc(source.ref, { motto: next })}
-              placeholder={crawlerCopy('aPersonalSaying')}
-              ariaLabel={`${source.npc.position ?? 'crew'} motto`}
-            />
-          )}
-        </div>
+        )}
+      </div>
     )
   }
   return (
@@ -150,9 +150,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
 }
 
 /** A crew line's columns: who leads the Bay, their HP, the name given so far. */
-const CREW_COLUMNS = (
-  crew: Record<string, CrewNpcForm>
-): readonly PickColumn<NpcSource>[] => [
+const CREW_COLUMNS = (crew: Record<string, CrewNpcForm>): readonly PickColumn<NpcSource>[] => [
   {
     key: 'lead',
     label: 'Lead',

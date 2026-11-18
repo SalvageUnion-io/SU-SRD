@@ -1,22 +1,15 @@
 import type { CSSProperties } from 'react'
 import type { RefCrawler, RefMetaCrawlerTechLevel, RefSystem } from 'salvageunion-reference'
 import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
-import {
-  Box,
-  Callout,
-  FieldError,
-  ReferenceEntityCard,
-  Stat,
-  tokens,
-} from '../../components/index'
+import { Box, Callout, FieldError, ReferenceEntityCard, Stat, tokens } from '../../components/index'
 import { resolveCrawlerTypeAbilities } from '../../lib/crawlerRefs'
 import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { weaponColumns } from '../wizard/pickColumns'
-import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 import { ReviewLedger } from '../wizard/ReviewLedger'
+import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
 
 const WEAPON_COLUMNS = weaponColumns<RefSystem>()
 
