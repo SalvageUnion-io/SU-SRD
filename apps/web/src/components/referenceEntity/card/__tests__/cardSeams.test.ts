@@ -104,6 +104,29 @@ describe('bodyBlocks', () => {
     ])
   })
 
+  test('an entity paragraph its self-action says in other words is dropped; one it does not say stays', () => {
+    const { bodyBlocks } = resolveBodyBlocks({
+      content: [
+        paragraph(
+          'Choose if your Long Rifle is a loud or quiet weapon. It gains the matching trait.'
+        ),
+        paragraph('Your Long Rifle has the Hover trait.'),
+      ],
+      damagedEffect: undefined,
+      isGrantContext: false,
+      selfActionContent: [
+        paragraph('Choose if it is a loud or quiet weapon and it gains the matching trait.'),
+      ],
+      alwaysShow: false,
+      isGrantingAbility: false,
+      entityName: 'Long Rifle',
+    })
+    expect(bodyBlocks).toEqual([
+      paragraph('Your Long Rifle has the Hover trait.'),
+      paragraph('Choose if it is a loud or quiet weapon and it gains the matching trait.'),
+    ])
+  })
+
   test('a granting ability shows only the prose its granted card does not print', () => {
     const args = {
       content: [paragraph('Grants a thing.')],

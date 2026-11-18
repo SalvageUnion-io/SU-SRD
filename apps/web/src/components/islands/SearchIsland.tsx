@@ -238,7 +238,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         selectedIndex={selectedIndex}
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
-        kinds
         target={{ href: resultUrl }}
         style={hero ? LISTBOX_HERO : LISTBOX_BAR}
       />

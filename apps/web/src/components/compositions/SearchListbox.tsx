@@ -2,7 +2,6 @@ import type { CSSProperties } from 'react'
 import { color, fontSize, space, weight } from '../../design/tokens'
 import { schemaLabel } from '../../lib/schemaLabels'
 import { compositionsCopy } from '../../messages/components-compositions'
-import { Badge } from '../atoms/Badge'
 import { activateOnKey } from '../atoms/interaction'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
@@ -19,17 +18,13 @@ type SearchTarget =
   | { href: (result: SearchComboboxResult) => string }
   | { open: (result: SearchComboboxResult) => void }
 
+type LinkTarget = Extract<SearchTarget, { href: unknown }>
+
 type SearchListboxProps = {
   /** The combobox's `aria-controls`. */
   id: string
   /** Names the list where nothing else does. */
   label?: string
-  /**
-   * The entity results' form (EDL "Which form, where"): `mini` in a dropdown
-   * hung under a field (the Union bar's), `row` where the results have the
-   * room of a panel (the Mediator's Reference).
-   */
-  size: 'compact' | 'mini'
   /** The index is loaded; until then the list pends. */
   ready: boolean
   results: readonly SearchComboboxResult[]
@@ -38,25 +33,26 @@ type SearchListboxProps = {
   optionId: (index: number) => string
   /** The model an entity result draws; none, and it is drawn as a category line. */
   modelOf: (result: SearchComboboxResult) => EntityFormModel | undefined
-  /**
-   * Stamp each Mini result with its kind (`ABILITY`, `SYSTEM`): a search's
-   * results mix kinds, and a name alone does not say which "Laser" this is
-   * (chips-and-actions C3's one added chip).
-   */
-  kinds?: boolean
-  target: SearchTarget
   /** The host's placement: a popup under its field, or a scrolling panel. */
   style?: CSSProperties
-}
+} & (
+  | {
+      /** In a dropdown hung under a field (the Union bar's): the entity results are a Ledger, each a link. */
+      size: 'mini'
+      target: LinkTarget
+    }
+  | {
+      /** Where the results have the room of a panel (the Mediator's Reference): each entity a Compact. */
+      size: 'compact'
+      target: SearchTarget
+    }
+)
 
 /** The loading and empty lines' place in the list. */
 const STATUS = {
   paddingBlock: space[12],
   paddingInline: space[16],
 } satisfies CSSProperties
-
-/** Minis one a line, full width (`.su-entity-mini-list`), inset in the popup. */
-const TOKENS = { padding: space[8] } satisfies CSSProperties
 
 /** Compacts one a line, 8px apart. */
 const ROWS = { display: 'flex', flexDirection: 'column', gap: space[8] } satisfies CSSProperties
@@ -81,28 +77,103 @@ const CATEGORY_GROUP = {
   marginTop: space[2],
 } satisfies CSSProperties
 
+type Indexed = { result: SearchComboboxResult; index: number }
+
+type Run = { entities: Indexed[] }
+
+/** The results in their own order, each unbroken run of entities one group: a Ledger draws a run. */
+function runs(
+  results: readonly SearchComboboxResult[],
+  isEntity: (result: SearchComboboxResult) => boolean
+): readonly (Indexed | Run)[] {
+  const out: (Indexed | Run)[] = []
+  results.forEach((result, index) => {
+    const last = out.at(-1)
+    if (!isEntity(result)) out.push({ result, index })
+    else if (last && 'entities' in last) last.entities.push({ result, index })
+    else out.push({ entities: [{ result, index }] })
+  })
+  return out
+}
+
 /**
  * SearchListbox — the one list a search's results hang in, under the Union
- * bar's field and in the Mediator's Reference alike: each entity a Mini or a
- * Compact in link mode (`size`), each schema hit a category line, the option the
- * arrow keys reach marked `aria-selected`; the index pending, then a search
- * that matched nothing saying so in the searcher's words (`searchCopy`, chrome
- * K8). Every result is a link to its page, or, where the host drills in place,
- * an act.
+ * bar's field and in the Mediator's Reference alike: the entities a Ledger
+ * (a line each, its kind, Tech Level and cost in columns) or a Compact each
+ * (`size`), each schema hit a category line, all in the search's own order,
+ * the option the arrow keys reach marked `aria-selected`; the index pending,
+ * then a search that matched nothing saying so in the searcher's words
+ * (`searchCopy`, chrome K8). Every result is a link to its page, or, where the
+ * host drills in place, an act.
  */
 export function SearchListbox({
   id,
   label,
-  size,
   ready,
   results,
   selectedIndex,
   optionId,
   modelOf,
-  kinds = false,
-  target,
   style,
+  ...form
 }: SearchListboxProps) {
+  const { target } = form
+  const option = (index: number) =>
+    ({
+      id: optionId(index),
+      role: 'option',
+      'aria-selected': index === selectedIndex,
+      // A link stays a link; an act is reached through the combobox alone.
+      ...('open' in target ? { tabIndex: -1 } : {}),
+    }) as const
+  const line = ({ result, index }: Indexed) => {
+    const body = (
+      <>
+        <div style={CATEGORY_TITLE}>{result.title}</div>
+        <div style={CATEGORY_GROUP}>{result.group}</div>
+      </>
+    )
+    return 'href' in target ? (
+      <a
+        key={result.id}
+        {...option(index)}
+        href={target.href(result)}
+        className="su-search__category"
+        style={CATEGORY}
+      >
+        {body}
+      </a>
+    ) : (
+      <div
+        key={result.id}
+        {...option(index)}
+        role="option"
+        tabIndex={-1}
+        className="su-search__category"
+        style={CATEGORY_ACT}
+        onClick={() => target.open(result)}
+        onKeyDown={activateOnKey(() => target.open(result))}
+      >
+        {body}
+      </div>
+    )
+  }
+  const entity = ({ result, index }: Indexed) => {
+    const model = modelOf(result)
+    if (!model) return line({ result, index })
+    const link =
+      'href' in target ? { href: target.href(result) } : { onOpen: () => target.open(result) }
+    return (
+      <Entity
+        key={result.id}
+        size="compact"
+        model={model}
+        mode={{ kind: 'link', ...link, attrs: option(index) }}
+      />
+    )
+  }
+  const isEntity = (result: SearchComboboxResult) =>
+    result.kind === 'entity' && modelOf(result) !== undefined
   return (
     <div id={id} role="listbox" aria-label={label} style={style}>
       {!ready ? (
@@ -113,102 +184,42 @@ export function SearchListbox({
         <div style={STATUS}>
           <EmptyState variant="inline" body={NO_RESULTS} />
         </div>
-      ) : (
-        <>
-          {/* MOCK (wave 2): the dropdown's entity results are one Ledger, as
-              every list is: a title tab with the count, a line a result, its
-              kind and Tech Level in columns, the highlighted row filled with
-              ink. The category lines follow it. */}
-          {size === 'mini' && (
+      ) : form.size === 'mini' ? (
+        runs(results, isEntity).map((run) =>
+          'entities' in run ? (
             <SearchLedger
-              results={results}
+              key={run.entities[0]?.result.id}
+              run={run.entities}
               selectedIndex={selectedIndex}
               optionId={optionId}
               modelOf={modelOf}
-              target={target}
+              target={form.target}
             />
+          ) : (
+            line(run)
+          )
+        )
+      ) : (
+        <div style={ROWS}>
+          {results.map((result, index) =>
+            isEntity(result) ? entity({ result, index }) : line({ result, index })
           )}
-          <div
-            className={size === 'mini' ? 'su-entity-mini-list' : undefined}
-            style={size === 'mini' ? TOKENS : ROWS}
-          >
-            {results.map((result, index) => {
-              // A link stays a link; an act is reached through the combobox alone.
-              const option = {
-                id: optionId(index),
-                role: 'option',
-                'aria-selected': index === selectedIndex,
-                ...('open' in target ? { tabIndex: -1 } : {}),
-              } as const
-              const model = result.kind === 'entity' ? modelOf(result) : undefined
-              if (model && size === 'mini') return null
-              const link =
-                'href' in target
-                  ? { href: target.href(result) }
-                  : { onOpen: () => target.open(result) }
-              if (model) {
-                const mode = { kind: 'link', ...link, attrs: option } as const
-                return size === 'mini' ? (
-                  <Entity
-                    key={result.id}
-                    size="mini"
-                    context="browse"
-                    model={model}
-                    mode={mode}
-                    state={
-                      kinds ? (
-                        <Badge shape="stamp" size="mini" aria-hidden="true">
-                          {schemaLabel(result.schemaId)}
-                        </Badge>
-                      ) : undefined
-                    }
-                  />
-                ) : (
-                  <Entity key={result.id} size="compact" model={model} mode={mode} />
-                )
-              }
-              const body = (
-                <>
-                  <div style={CATEGORY_TITLE}>{result.title}</div>
-                  <div style={CATEGORY_GROUP}>{result.group}</div>
-                </>
-              )
-              return 'href' in link ? (
-                <a
-                  key={result.id}
-                  {...option}
-                  href={link.href}
-                  className="su-search__category"
-                  style={CATEGORY}
-                >
-                  {body}
-                </a>
-              ) : (
-                <div
-                  key={result.id}
-                  {...option}
-                  role="option"
-                  tabIndex={-1}
-                  className="su-search__category"
-                  style={CATEGORY_ACT}
-                  onClick={link.onOpen}
-                  onKeyDown={activateOnKey(link.onOpen)}
-                >
-                  {body}
-                </div>
-              )
-            })}
-          </div>
-        </>
+        </div>
       )}
     </div>
   )
 }
 
 const SEARCH_COLUMNS: readonly LedgerColumn[] = [
-  { key: 'kind', label: 'Kind', kind: 'text', phone: true },
-  { key: 'tl', label: 'TL', title: 'Tech Level', kind: 'figure', phone: true },
-  { key: 'cost', label: 'Cost', kind: 'text' },
+  { key: 'kind', label: compositionsCopy('kind'), kind: 'text', phone: true },
+  {
+    key: 'tl',
+    label: compositionsCopy('tl'),
+    title: compositionsCopy('techLevel'),
+    kind: 'figure',
+    phone: true,
+  },
+  { key: 'cost', label: compositionsCopy('cost'), kind: 'text' },
 ]
 
 /** Chrome's paint: the dropdown mixes kinds, so its band is ink. */
@@ -219,16 +230,20 @@ const INK_PAINT: Paint = {
   ink: true,
 }
 
+/** A run of entity results as one Ledger: the highlighted row filled with ink (`.su-search-ledger`). */
 function SearchLedger({
-  results,
+  run,
   selectedIndex,
   optionId,
   modelOf,
   target,
-}: Pick<SearchListboxProps, 'results' | 'selectedIndex' | 'optionId' | 'modelOf' | 'target'>) {
-  const rows = results.flatMap((result, index) => {
-    const model = result.kind === 'entity' ? modelOf(result) : undefined
-    if (!model || !('href' in target)) return []
+}: Pick<SearchListboxProps, 'selectedIndex' | 'optionId' | 'modelOf'> & {
+  run: readonly Indexed[]
+  target: LinkTarget
+}) {
+  const rows = run.flatMap(({ result, index }) => {
+    const model = modelOf(result)
+    if (!model) return []
     return [
       {
         id: result.id,
@@ -248,13 +263,12 @@ function SearchLedger({
       },
     ]
   })
-  if (rows.length === 0) return null
   return (
     <div className="su-search-ledger">
       <Ledger
-        label="Results"
+        label={compositionsCopy('results')}
         paint={INK_PAINT}
-        nameLabel="Results"
+        nameLabel={compositionsCopy('results')}
         count={rows.length}
         columns={SEARCH_COLUMNS}
         rows={rows}

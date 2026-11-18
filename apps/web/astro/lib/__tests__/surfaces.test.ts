@@ -29,11 +29,11 @@ const ldCrumbs = (html: string) =>
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
-describe('home: the manual’s Contents page', () => {
+describe('home: the front door, then the manual’s Contents', () => {
   const html = page('/')
 
-  it('is titled "The Salvage Union SRD", in the Contents band', () => {
-    expect(h1s(html)).toEqual(['The Salvage Union SRD'])
+  it('is titled with the site’s name, in the front doors’ band', () => {
+    expect(h1s(html)).toEqual(['SalvageUnion.io'])
     expect(html).toContain('su-chapter-band')
   })
 
@@ -43,10 +43,27 @@ describe('home: the manual’s Contents page', () => {
   })
 
   it('quotes the legacy tagline on the band, credited to Stumpy', () => {
-    const band = html.slice(html.indexOf('su-home__band'), html.indexOf('su-home__body'))
+    const band = html.slice(html.indexOf('su-chapter-band'), html.indexOf('su-front__body'))
     expect(band).toContain('su-tagline')
     expect(band).toContain('You’re in The Union, now!')
     expect(band).toContain('Lester “Stumpy” Owens')
+  })
+
+  it('pitches the site with one rust action, beside the art plate', () => {
+    const hero = html.slice(html.indexOf('su-front__hero'), html.indexOf('id="three-ways-in"'))
+    expect(hero.match(/su-btn--primary/g)).toHaveLength(1)
+    expect(hero).toContain('href="#contents"')
+    expect(hero).toContain('su-front__plate')
+    expect(html.match(/su-btn--primary/g)).toHaveLength(1)
+  })
+
+  it('opens three ways in: the Reference below, Build and Play in the app', () => {
+    const doors = html.slice(html.indexOf('id="three-ways-in"'), html.indexOf('id="contents"'))
+    expect(doors.match(/class="su-start-here__item"/g)).toHaveLength(3)
+    for (const href of ['#contents', '/build/', '/play/']) {
+      expect(doors).toContain(`<a href="${href}" class="su-entity-index su-start-here__step`)
+    }
+    expect(doors).not.toContain('target="_blank"')
   })
 
   it('indexes the book’s five chapters, with counts', () => {
@@ -62,49 +79,50 @@ describe('home: the manual’s Contents page', () => {
     expect(html).toContain('href="/chassis/"')
   })
 
-  it('starts a new player on the shared "Start here" block, each step opening its guide', () => {
-    const startHere = html.slice(html.indexOf('su-home__aside'), html.indexOf('su-home__index'))
-    expect(startHere).toContain('>Start here<')
-    for (const guide of ['create-a-pilot', 'create-a-mech', 'create-a-crawler']) {
-      expect(startHere).toContain(`href="/guides/${guide}/"`)
-    }
-    expect(startHere).not.toContain('Ready to build')
-    expect(startHere).not.toContain('Build a pilot')
-    expect(startHere).not.toContain('target="_blank"')
-  })
-
   it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-home__discord-slot'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-front__buy'))
     expect(index).toContain('<span>At the table</span>')
     expect(index).toContain('href="/roll-tables/core-mechanic/"')
     expect(index).not.toContain('On Discord')
   })
 
-  it('offers the Discord bot as one button, after "Start here" and the index', () => {
-    const aside = html.slice(html.indexOf('su-home__aside'), html.indexOf('<footer'))
-    const discord = aside.slice(aside.indexOf('<a href="https://discord.com/'))
-    expect(aside.indexOf('id="start-here"')).toBeLessThan(aside.indexOf('id="discord-bot"'))
-    expect(discord).toContain('SalvageUnion.io On Discord')
-    expect(discord).toContain('<svg')
-    expect(discord).toContain('href="https://discord.com/oauth2/authorize?client_id=')
-  })
-
   it('opens each chapter on its band alone, with no artwork', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-front__buy'))
     expect(index).not.toContain('<img')
   })
 
-  it('reads title, tagline, "Start here", the index, then Discord (a phone leads with the way in)', () => {
+  it('lists the books it cites as one Ledger, each opening its page', () => {
+    const buy = html.slice(html.indexOf('su-front__buy'), html.indexOf('su-front__bot'))
+    expect(buy.match(/<table/g)).toHaveLength(1)
+    expect(buy).toContain('href="/sources/salvage-union-workshop-manual/"')
+    expect(buy).toContain('href="/starter/"')
+  })
+
+  it('offers the Discord bot as one button, after the index', () => {
+    const bot = html.slice(html.indexOf('su-front__bot'), html.indexOf('<footer'))
+    expect(bot.match(/<a /g)).toHaveLength(1)
+    expect(bot).toContain('id="discord-bot"')
+    expect(bot).toContain('<svg')
+    expect(bot).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+  })
+
+  it('reads title, tagline, the pitch, the three ways in, the index, the books, then Discord', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
-    expect(at('<h1')).toBeLessThan(at('su-tagline'))
-    expect(at('su-tagline')).toBeLessThan(at('id="start-here"'))
-    expect(at('id="start-here"')).toBeLessThan(at('id="pilot-bay"'))
-    expect(at('id="pilot-bay"')).toBeLessThan(at('id="discord-bot"'))
+    const order = [
+      '<h1',
+      'su-tagline',
+      'su-front__hero',
+      'id="three-ways-in"',
+      'id="pilot-bay"',
+      'su-front__buy',
+      'id="discord-bot"',
+    ].map(at)
+    expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 })
 
-describe('a listing (compact cards under a visible heading)', () => {
+describe('a listing (a Ledger under a visible heading)', () => {
   const html = page('/chassis')
 
   it('has a visible heading — the chapter band — and no count stamp beside it', () => {
@@ -114,18 +132,19 @@ describe('a listing (compact cards under a visible heading)', () => {
   })
 
   it('first paints the listing itself, so the mount draws nothing new', () => {
-    // The island's own cards from build-time data, not a stand-in: one tile
-    // per chassis, each linking to its page.
+    // The island's own List from build-time data, not a stand-in: one Ledger,
+    // a line per chassis, each linking to its page.
     expect(html).not.toContain('su-listing__fallback-row')
-    expect(html.match(/class="su-entity-index[ "]/g)?.length).toBeGreaterThan(40)
+    expect(html.match(/su-ledger__table/g)).toHaveLength(1)
+    expect(html.match(/<tr\b/g)?.length).toBeGreaterThan(40)
     expect(html).toContain('href="/chassis/mule/"')
   })
 
-  it('first paints the island’s rail and its one flat Catalog, so the mount moves nothing', () => {
-    // The Catalog has one group, with no heading.
+  it('first paints the island’s rail and its one flat List, so the mount moves nothing', () => {
+    // The List has one group, with no heading.
     expect(html.match(/class="su-listing__group"/g)).toHaveLength(1)
     expect(html).not.toMatch(/class="su-listing__group" aria-label=/)
-    expect(html).toContain('data-view="catalog"')
+    expect(html).toContain('data-view="list"')
     // The rail is the island's, without its actions, above the group. It is
     // not inert: a press on it wakes the island, which plays the press back.
     expect(html).toContain('<div class="su-rail">')
@@ -163,8 +182,10 @@ describe('an entity page', () => {
     expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis', 'Gopher'])
   })
 
-  it('lists its patterns as link rows, and cites its page on the foot band', () => {
-    expect(html).toContain('su-pattern-rows')
+  it('lists its patterns as one Ledger, each a link, and cites its page on the foot band', () => {
+    expect(html.match(/su-ledger__table/g)).toHaveLength(1)
+    expect(html).toContain('aria-label="Gopher patterns"')
+    expect(html.match(/href="\/chassis\/gopher\/pattern\/[a-z-]+\/"/g)).toHaveLength(5)
     expect(html).toContain('su-chapter-foot')
     expect(html).toContain('p.112')
   })

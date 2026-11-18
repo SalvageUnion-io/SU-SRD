@@ -1,8 +1,8 @@
-// MOCK (front): the front door's PITCH, the block under a front page's band:
-// one value line in the title's condensed face, one sentence under it, the
-// page's one rust action and one outline beside it, and a caption. The home,
+// The front door's PITCH, the block under a front page's band: one value line
+// in the title's condensed face, one sentence under it, the page's one rust
+// action and one outline beside it (ruleset §3.13), and a caption. The home,
 // Build's front door and Play's signed-out hub all open on it, so the three
-// sell themselves in one voice. Needed for a real build; not shipped code.
+// sell themselves in one voice. Styles: `styles/partials/front.css`.
 import type { ReactNode } from 'react'
 
 type FrontPitchProps = {

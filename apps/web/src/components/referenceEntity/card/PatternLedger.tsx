@@ -1,8 +1,10 @@
-// MOCK (Working Manual, A): a chassis page's patterns as one Ledger: a line
-// per pattern, its name the link to its Page, Starting its only stamp, its
-// loadout one quiet line, and the patterns' sources once, on the foot's
+// A host's patterns on its Page as one Ledger (ledger.md L1): a line a
+// pattern, its name the link to its Page, Starting its only stamp, what it
+// changes said whole (a mech's loadout, each drone by the name the pattern
+// gives it; the actions a Bio-Titan's pattern adds: rules text is never cut,
+// only a name may end in "…"), and the patterns' sources once, on the foot's
 // cut-out (a citation is text, never a chip: E9). Its title tab names the
-// section and carries the count, so no Slab heads it. Not shipped code.
+// section and carries the count, so no Slab heads it.
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { entityRef, isBioTitanPattern, toEntityModel } from 'salvageunion-reference'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
@@ -16,16 +18,28 @@ import { quotePatternName } from '../pattern/quotePatternName'
 import { isLegalStartingPatternOf, LEGAL_STARTING_PATTERN_NOTE } from './legalStartingPattern'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 
-const COLUMNS: readonly LedgerColumn[] = [{ key: 'loadout', label: 'Loadout', kind: 'quiet' }]
+const LOADOUT: readonly LedgerColumn[] = [
+  { key: 'loadout', label: referenceEntityCopy('loadout'), kind: 'line' },
+]
+const ACTIONS: readonly LedgerColumn[] = [
+  { key: 'actions', label: referenceEntityCopy('actions'), kind: 'line' },
+]
 
-type Named = { name: string; quantity?: number }
-
-/** A loadout's names as running text: "Escape Hatch, Rigging Arm ×2". */
-function namesOf(list: unknown): string[] {
-  if (!Array.isArray(list)) return []
-  return (list as Named[]).map((entry) =>
-    entry.quantity && entry.quantity > 1 ? `${entry.name} ×${entry.quantity}` : entry.name
+/** Installed parts as running text, a multiple counted: "Escape Hatch, Rigging Arm ×2". */
+function partsOf(list: readonly { name: string; count?: number }[] | undefined): string[] {
+  return (list ?? []).map((part) =>
+    part.count && part.count > 1 ? `${part.name} ×${part.count}` : part.name
   )
+}
+
+/** What a pattern changes on its host, as one line. */
+function changesOf(pattern: RefObjectAnyPattern): string {
+  if (isBioTitanPattern(pattern)) return (pattern.actions ?? []).join(', ')
+  return [
+    ...partsOf(pattern.systems),
+    ...partsOf(pattern.modules),
+    ...(pattern.drones ?? []).map((drone) => drone.name),
+  ].join(', ')
 }
 
 /** "Workshop Manual · p.101": the book's name less the game's, and the page. */
@@ -48,11 +62,11 @@ export function PatternLedger({
   const cites = [...new Set(patterns.map(citeOf).filter(Boolean))]
   return (
     <Ledger
-      label={`${model.title} patterns`}
+      label={referenceEntityCopy('patternsOf', { name: model.title })}
       paint={paintFor(model.tone, { texture: surface.texture })}
       nameLabel={referenceEntityCopy('patterns')}
       count={patterns.length}
-      columns={COLUMNS}
+      columns={patterns.every(isBioTitanPattern) ? ACTIONS : LOADOUT}
       rows={patterns.map((pattern) => ({
         id: pattern.name,
         name: quotePatternName(pattern.name),
@@ -62,14 +76,13 @@ export function PatternLedger({
           pattern: pattern.name,
         },
         stamp: isLegalStartingPatternOf(pattern) ? (
-          <Stat label="Starting" hoverText={LEGAL_STARTING_PATTERN_NOTE} size="mini" />
+          <Stat
+            label={referenceEntityCopy('starting')}
+            hoverText={LEGAL_STARTING_PATTERN_NOTE}
+            size="mini"
+          />
         ) : undefined,
-        cells: [
-          [
-            ...namesOf('systems' in pattern ? pattern.systems : undefined),
-            ...namesOf('modules' in pattern ? pattern.modules : undefined),
-          ].join(', '),
-        ],
+        cells: [changesOf(pattern)],
       }))}
       foot={<CiteLine text={cites.join(' // ')} />}
     />

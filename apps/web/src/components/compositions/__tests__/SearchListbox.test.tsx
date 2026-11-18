@@ -1,5 +1,5 @@
 /**
- * SearchListbox — the one list a search's results hang in: Minis or Compacts by
+ * SearchListbox — the one list a search's results hang in: a Ledger or Compacts by
  * `size`, a category line that links or acts by `target`, and the searcher's
  * empty line (chrome K8).
  */
@@ -53,13 +53,20 @@ describe('SearchListbox', () => {
     expect(options[1]?.getAttribute('aria-selected')).toBe('true')
   })
 
-  test('size picks the entity form: a Compact or a Mini', () => {
+  test('size picks the entity form: a Compact each, or one Ledger', () => {
     const { container, unmount } = list({ size: 'compact' })
     expect(container.querySelector('.su-entity-compact')).not.toBeNull()
+    expect(container.querySelector('.su-search-ledger')).toBeNull()
     unmount()
-    const tokens = list({ size: 'mini' })
-    expect(tokens.container.querySelector('.su-entity-mini-list')).not.toBeNull()
-    expect(tokens.container.querySelector('.su-entity-compact')).toBeNull()
+    const ledger = list({ size: 'mini' })
+    expect(ledger.container.querySelectorAll('.su-search-ledger tbody tr')).toHaveLength(1)
+  })
+
+  test('a Ledger keeps the search’s order: a category first stays first', () => {
+    list({ size: 'mini', results: [CHASSIS, MULE], selectedIndex: 0 })
+    const options = screen.getAllByRole('option')
+    expect(options.map((o) => o.id)).toEqual(['opt-0', 'opt-1'])
+    expect(options[0]?.textContent).toContain('Category')
   })
 
   test('a link target makes the category a link; an act target, an act', () => {
@@ -81,10 +88,10 @@ describe('SearchListbox', () => {
     expect(screen.getByText(NO_RESULTS)).toBeTruthy()
   })
 
-  test('kinds: a Mini result says what kind of thing it is, a stamp beside its name', () => {
-    list({ size: 'mini', kinds: true })
+  test('a Ledger row says what kind of thing it is, in a column beside its name', () => {
+    list({ size: 'mini' })
     const mule = screen.getAllByRole('option')[0]
-    expect(mule?.textContent).toContain('Chassis')
+    expect(mule?.closest('tr')?.textContent).toContain('Chassis')
   })
 
   test('the row for what a full list left out is an option like any other', () => {

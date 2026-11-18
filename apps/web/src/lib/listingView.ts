@@ -2,21 +2,13 @@ import { useCallback, useState } from 'react'
 import { listingViewStorageKey, PARAM_VIEW } from './listingParams'
 
 /**
- * How a listing lays its entities out: `catalog`, one flat grid of CompactIndexes with
- * no group headings; `list`, the same entities as header-only Compacts, a name
- * and its chips a line, for scanning a long listing (EDL E2); or `tree` (a
+ * How a listing lays its entities out: `list`, the Ledger, a line an entity
+ * with its stats in fixed columns (`IndexLedger`, ledger.md L1); `catalog`, one
+ * flat grid of CompactIndexes with no group headings; or `tree` (a
  * `TREE_LISTINGS` schema only), each tree under its heading on its class-page
- * track. Every listing opens on its Catalog, a tree listing on its Tree.
+ * track. Every listing opens on its List.
  */
 export type ListingView = 'catalog' | 'tree' | 'list'
-
-/**
- * MOCK (Working Manual, B): the listings a reader compares, which open on
- * their List (E2), its chips in one fixed order (`FIXED_CHIPS`).
- */
-export const COMPARE_LISTINGS: ReadonlySet<string> = new Set(['chassis', 'systems', 'modules'])
-const COMPARE_VIEWS: readonly ListingView[] = ['list', 'catalog']
-const TREE_LEDGER_VIEWS: readonly ListingView[] = ['list', 'tree', 'catalog']
 
 /**
  * Listings whose entities have no artwork and whose lead is the content: a
@@ -33,23 +25,22 @@ export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
 ])
 
 /**
- * Listings grouped by ability tree, which open on the Tree: each tree under
- * its heading on its track, as a class page draws it. Their Catalog is flat,
- * by name.
+ * Listings grouped by ability tree, which offer the Tree: each tree under its
+ * heading on its track, as a class page draws it. Their List and Catalog are
+ * flat, by name.
  */
 export const TREE_LISTINGS: ReadonlySet<string> = new Set(['abilities'])
 
-/** The views a listing offers, in the rail's order. */
+const VIEWS: readonly ListingView[] = ['list', 'catalog']
+const TREE_VIEWS: readonly ListingView[] = ['list', 'tree', 'catalog']
+
+/** The views a listing offers, in the rail's order: its List leads. */
 function listingViews(schemaId: string): readonly ListingView[] {
-  // MOCK (wave 2): every listing leads with its List, the Ledger.
-  return TREE_LISTINGS.has(schemaId) ? TREE_LEDGER_VIEWS : COMPARE_VIEWS
+  return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
 }
 
-/** The view a listing opens on: a tree listing's Tree, every other's Catalog. */
-export function defaultListingView(schemaId: string): ListingView {
-  // MOCK (wave 2): every listing opens on its Ledger.
-  return schemaId ? 'list' : 'catalog'
-}
+/** The view every listing opens on: its List, the Ledger. */
+const DEFAULT_LISTING_VIEW: ListingView = 'list'
 
 /** `raw` if it names one of `views`, else null. */
 function parseView(
@@ -84,7 +75,7 @@ function storeView(schemaId: string, view: ListingView) {
 
 /**
  * The listing's view. A reader's choice wins — a shared link's `?view=`, then
- * the one they last made on this listing — and otherwise `defaultListingView`.
+ * the one they last made on this listing — and otherwise `DEFAULT_LISTING_VIEW`.
  *
  * `fromUrl` says whether the view should ride the URL: only once the reader
  * chose it on this page, or arrived on a link that named it.
@@ -111,5 +102,5 @@ export function useListingView(schemaId: string): {
     [schemaId]
   )
 
-  return { view: choice ?? defaultListingView(schemaId), views, setView, fromUrl }
+  return { view: choice ?? DEFAULT_LISTING_VIEW, views, setView, fromUrl }
 }

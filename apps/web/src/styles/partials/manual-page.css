@@ -41,11 +41,6 @@
   order: 4;
 }
 
-/* A short Page starts under its band, as a long one does: no centring. */
-.su-page-body:has(> .su-manual) {
-  justify-content: flex-start !important;
-}
-
 /* With no side column the rules run the page's measure; a line of prose
    keeps a reading measure. */
 .su-entity-page.su-manual:not(.su-entity-page--art) > * {
@@ -64,10 +59,10 @@
     display: flow-root;
   }
 
-  /* `!important`: the class page's own rule (`pages.css`) is unlayered. */
-  .su-manual > .su-manual__after,
-  .su-manual > .su-manual__after > .su-ability-tree {
-    display: contents !important;
+  /* What a Page appends joins the flow, block by block (a class's trees
+     step aside with it: `pages.css`). */
+  .su-manual > .su-manual__after {
+    display: contents;
   }
 
   .su-manual > *,
@@ -95,10 +90,17 @@
 /* The stat column (`.su-stat-column`, its Stats' plates), four to a row: all
    eight stats in two tight rows. A phone reads the short labels. */
 .su-stat-column.su-manual__stats {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-6);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   list-style: none;
   padding: 0;
+}
+
+/* A last row of fewer than four fills the line. */
+.su-manual__stats > .su-stat-column__cell {
+  flex: 1 1 calc((100% - 3 * var(--space-8)) / 4);
+  min-width: 0;
 }
 
 @media (width >= 40rem) {
@@ -134,9 +136,4 @@
   font-style: italic;
   line-height: 1.5;
   max-width: 66ch;
-}
-
-/* The phone's "Show all patterns" jump has no pattern rows to open here. */
-.su-entity:has(.su-manual) .su-pattern-rows__more {
-  display: none;
 }

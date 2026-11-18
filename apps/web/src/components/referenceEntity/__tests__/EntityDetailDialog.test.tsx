@@ -1,8 +1,8 @@
 /**
  * The app's detail dialog IS the Page (EDL Form 5, E5): the chapter band with the
  * title notched in and the chips clustered beside it (E20), the card at
- * `presentation="page"` as its body (a chassis's stats leading it, the art its
- * hero), and the foot's citation in the card footer's plain text. Never a
+ * `presentation="page"` as its body (its stats leading it as the stat column,
+ * the art its hero), and the foot's citation in the card footer's plain text. Never a
  * framed card. Both openers draw it: `useDetailModal` and a
  * level-2 Mini (N1). A pattern's Page links its chassis (`PATTERN OF | Mule`)
  * through the surface's Page opener, as the SRD's pattern page does.
@@ -53,10 +53,15 @@ describe('the detail dialog is the Page', () => {
     expect(title.classList.contains('su-chapter-band__title')).toBe(true)
     // The band wears the entity's tone (a gear's tech level), as its card's head does.
     expect(band.style.backgroundColor).toContain('--color-tl-')
-    // Every chip the entity carries rides the band, its Tech Level among them.
+    // The entity's chips ride the band; its stats, Tech Level first, lead
+    // the body as the stat column.
     const stamps = band.querySelector<HTMLElement>('.su-entity-stamps')
     if (!stamps) throw new Error('no band stamps')
-    expect(within(stamps).getByText('Tech Level')).toBeTruthy()
+    expect(within(stamps).getByText('Turn Action')).toBeTruthy()
+    expect(within(stamps).queryByText('Tech Level')).toBeNull()
+    const stats = dialog.querySelector<HTMLElement>('.su-manual__stats')
+    if (!stats) throw new Error('no stat column')
+    expect(stats.querySelector('.su-stat-label--long')?.textContent).toBe('Tech Level')
   })
 
   test('its body is the card at presentation="page", not the framed card', () => {
@@ -70,22 +75,29 @@ describe('the detail dialog is the Page', () => {
 
   test("a chassis's stats lead its body, and its art is the hero", () => {
     const dialog = openPage(mule())
-    const page = dialog.querySelector<HTMLElement>('.su-entity-page')
+    const page = dialog.querySelector<HTMLElement>('.su-entity-page.su-manual')
     if (!page) throw new Error('no page')
-    const side = page.querySelector<HTMLElement>('.su-entity-page__side')
-    expect(side?.firstElementChild?.classList.contains('su-entity-page__stats')).toBe(true)
-    // With art the page flows round it from 64rem (`.su-entity-page--art`).
-    expect(page.classList.contains('su-entity-page--art')).toBe(true)
-    expect(page.querySelector('.su-entity-page__art')).toBeTruthy()
-    // A chassis's stats are its body's, but for its Tech Level and Salvage
-    // Value, the band's (E20): the only stats on the band's `Chips` strip.
-    const stamps = dialog.querySelector<HTMLElement>('.su-entity-stamps')
-    const bandStats = [
-      ...(stamps?.querySelectorAll(
-        ':is([data-chip-class="rank"], [data-chip-class="measure"]) .su-stat-plate--label .su-stat-label--long'
-      ) ?? []),
-    ]
-    expect(bandStats.map((label) => label.textContent)).toEqual(['Tech Level', 'Salvage Value'])
+    // The art heads the side column, which floats beside the rules from 64rem.
+    expect(page.querySelector('.su-manual__side > .su-manual__art img')).toBeTruthy()
+    // All eight of the book's stats, in its order, in the stat column: none on the band.
+    const labels = [...page.querySelectorAll('.su-manual__stats .su-stat-label--long')].map(
+      (label) => label.textContent
+    )
+    expect(labels).toEqual([
+      'Tech Level',
+      'Salvage Value',
+      'Structure Points',
+      'Energy Points',
+      'System Slots',
+      'Module Slots',
+      'Heat Capacity',
+      'Cargo Capacity',
+    ])
+    expect(
+      dialog.querySelector(
+        '.su-chapter-band :is([data-chip-class="rank"], [data-chip-class="measure"])'
+      )
+    ).toBeNull()
   })
 
   // Rulings 2026-10-19: no kind on the foot; the foot wears the band, edge to edge.

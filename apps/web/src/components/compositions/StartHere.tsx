@@ -8,24 +8,26 @@ import { FOCUS_RING } from '../atoms/interaction'
 import { SlabSection } from '../containers/SlabSection'
 import { INDEX_NAME, INDEX_NAME_CAPS, Lead, paintFor } from '../entity'
 import { grainClass } from '../referenceEntity/card/cardGrain'
+import { tileImageSizes } from './cardImageSizes'
 
 /**
- * StartHere — the one onboarding both fronts show: the SRD's home and the app's
- * front door. Three steps in the order a new crew walks them, each a catalog
- * tile (`.su-entity-index`): its chapter's tone band
- * with the step's number at its left, as a tree ability's tier numeral,
- * and the title notched into
- * its foot, then one line on what the step is, framed in the band's colour
- * (R51: a step is no entity, so not R38's subtle ink-40). The steps' words are `START_HERE_STEPS`,
- * spelled once here, so the two tools cannot drift into two onboardings again.
+ * StartHere — a front page's row of tiles: the onboarding path Build's front
+ * door shows, and the doors the home and Play's front door open on. Each is a
+ * catalog tile (`.su-entity-index`): its tone band with the title notched into
+ * its foot, then one line on what it is, framed in the band's colour (R51: a
+ * step is no entity, so not R38's subtle ink-40). A step wears its number at
+ * the band's left, as a tree ability's tier numeral; a door (`numbered` off)
+ * wears none, and may carry its art in the tile's art place and one read
+ * stamp at the band's right. The onboarding's words are `START_HERE_STEPS`,
+ * spelled once here.
  *
- * What each tool adds is a prop: an `href` per step (the SRD opens the book's
- * creation guide; the app's front door its builders). The SRD's Starter Set
- * landing passes its own `steps` and `title` for a box owner's way in.
+ * What each page adds is a prop: an `href` per tile (the app's front door
+ * opens its builders), or its own `steps` and `title` (the home's three ways
+ * in, Play's "At the table", the Starter Set landing's way in for a box owner).
  *
- * The tiles stack in the SRD's 20rem sidebar and on a phone, and run three
- * across once the block is 48rem wide (The app's front door) — the
- * `.su-start-here__steps` container query.
+ * The tiles wrap, each at least 14rem and growing to fill its line, so a last
+ * line never ends on an empty track (the fill-grid ruling): one a line in a
+ * sidebar and on a phone, three across from a 48rem block.
  */
 
 /** One step: its key (what `hrefs` is keyed by), title, one line, and the tone its band wears. */
@@ -34,9 +36,9 @@ export type StartHereStep = {
   title: string
   body: string
   tone: string
-  // MOCK (front): a door's art (R2, never committed), drawn in the index
-  // tile's own art place over the band, and one read stamp on the band.
+  /** A door's art (from R2), drawn in the catalog tile's art place over the band. */
   art?: { url: string; srcSet?: string; alt: string }
+  /** A door's one read stamp, at the band's right on the name's line (`Free`). */
   stamp?: string
 }
 
@@ -73,7 +75,7 @@ type StartHereProps = {
    */
   steps?: readonly StartHereStep[]
   title?: string
-  // MOCK (front): doors, not steps, carry no number.
+  /** Steps are numbered in order; doors (the home's, Play's) are not. */
   numbered?: boolean
 }
 
@@ -99,13 +101,12 @@ function StepFace({
   const paint = paintFor(step.tone, { texture: true })
   return (
     <div className="su-entity-index__frame" style={frameIn(paint.background)}>
-      {/* MOCK (front): the door's art, in the catalog tile's art place. */}
       {step.art && (
         <div className="su-entity-index__art su-start-here__art">
           <img
             src={step.art.url}
             srcSet={step.art.srcSet}
-            sizes={step.art.srcSet ? '(width >= 64rem) 24rem, 100vw' : undefined}
+            sizes={step.art.srcSet ? tileImageSizes() : undefined}
             alt={step.art.alt}
             loading="lazy"
             decoding="async"
@@ -131,7 +132,6 @@ function StepFace({
             {step.title}
           </h3>
         </span>
-        {/* MOCK (front): one read stamp at the band's right, on the name's line. */}
         {step.stamp && (
           <span className="su-start-here__stamp">
             <Badge shape="stamp" size="mini" surface="solid">

@@ -9,20 +9,20 @@ afterEach(() => {
 })
 
 describe('useListingView', () => {
-  test('every listing but the abilities opens on the Catalog, with Catalog | List (E2)', () => {
+  test('every listing opens on its List, with List | Catalog', () => {
     for (const schemaId of ['chassis', 'keywords', 'factions']) {
       expect(renderHook(() => useListingView(schemaId)).result.current).toMatchObject({
-        view: 'catalog',
-        views: ['catalog', 'list'],
+        view: 'list',
+        views: ['list', 'catalog'],
         fromUrl: false,
       })
     }
   })
 
-  test('the abilities open on their Tree, with Catalog | Tree | List', () => {
+  test('the abilities open on their List too, with List | Tree | Catalog', () => {
     expect(renderHook(() => useListingView('abilities')).result.current).toMatchObject({
-      view: 'tree',
-      views: ['catalog', 'tree', 'list'],
+      view: 'list',
+      views: ['list', 'tree', 'catalog'],
     })
   })
 
@@ -45,14 +45,14 @@ describe('useListingView', () => {
     window.localStorage.setItem('srd:listing-view:chassis', 'tree')
     window.location.href = 'http://localhost/chassis/?view=grid'
     const { result } = renderHook(() => useListingView('chassis'))
-    expect(result.current.view).toBe('catalog')
+    expect(result.current.view).toBe('list')
     expect(result.current.fromUrl).toBe(false)
   })
 
-  test('a ?view=list link opens any listing on its List', () => {
-    window.location.href = 'http://localhost/chassis/?view=list'
+  test('a ?view=catalog link opens any listing on its Catalog', () => {
+    window.location.href = 'http://localhost/chassis/?view=catalog'
     const { result } = renderHook(() => useListingView('chassis'))
-    expect(result.current.view).toBe('list')
+    expect(result.current.view).toBe('catalog')
     expect(result.current.fromUrl).toBe(true)
   })
 
@@ -69,7 +69,7 @@ describe('useListingView', () => {
     try {
       const { result } = renderHook(() => useListingView('abilities'))
       expect(reads).toBe(1)
-      expect(result.current.view).toBe('tree')
+      expect(result.current.view).toBe('list')
       act(() => result.current.setView('catalog'))
       expect(reads).toBe(2)
       expect(result.current.view).toBe('catalog')

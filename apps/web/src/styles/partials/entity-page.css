@@ -323,9 +323,14 @@
 /* An ability's Preceding and Next, siblings on one row, Next's label at the
    row's end; one under the other where they do not fit. */
 .su-entity-page__neighbour-row {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-12) var(--space-32);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.su-entity-page__neighbour-row > .su-entity-page__section {
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
 .su-entity-page__section--end > .su-slab-section__head {

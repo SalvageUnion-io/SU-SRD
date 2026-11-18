@@ -180,6 +180,7 @@ export function resolveBodyProse(input: CardBodyInput) {
     alwaysShow: isPattern || isTitanicMeta,
     isGrantingAbility,
     grantedText,
+    entityName,
   })
   // NO REPEATED PROSE: a nested child hides what its parent already prints.
   const bodyBlocks = hideShownProse(resolvedBody.bodyBlocks, shownProse, resolvedChassisName)

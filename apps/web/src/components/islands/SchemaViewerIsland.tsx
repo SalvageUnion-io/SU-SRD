@@ -17,7 +17,6 @@ import {
   orderTechLevels,
   resolveGroupBy,
   tlName,
-  WIDE_LISTINGS,
 } from '../../lib/listingGroups'
 import {
   PARAM_NAME,
@@ -99,8 +98,8 @@ type SchemaViewerIslandProps = {
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
-  /** Whether any entity in the schema has artwork: then the Catalog is the
-   *  default at a desktop measure (`listingView.ts`). */
+  /** Whether any entity in the schema has artwork: its Catalog keeps every
+   *  tile's art place; without, the Catalog takes the wider art-less columns. */
   hasArt?: boolean
   /** The unfiltered listing's size and groups, from build-time data: the
    *  skeleton sets the rail and the group headings where the grid will put
@@ -410,7 +409,6 @@ function SchemaViewer({
     <ListingFrame band={band} rail={rail}>
       <div
         className="su-listing"
-        data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
       >
@@ -452,9 +450,8 @@ function SchemaViewer({
                       ))}
                     </ul>
                   ) : view === 'list' ? (
-                    // MOCK (Working Manual, B; wave 2: every listing): the
-                    // List is one Ledger, a line an entity; a group's name
-                    // (Core classes) is its title tab.
+                    // The List is one Ledger (ledger.md L1), a line an
+                    // entity; a group's name (Core Classes) is its title tab.
                     <IndexLedger
                       schemaId={schemaId}
                       noun={group.label || band?.title || ''}
@@ -466,11 +463,11 @@ function SchemaViewer({
                       track={treeTracks.get(group.key) ?? 'core'}
                     />
                   ) : (
-                    <ul className="su-listing__cards" data-entity-fit="">
+                    <ul className="su-listing__cards">
                       {group.items.map((item: RefEntity) => (
                         <li key={item.id}>
-                          {/* One card, one click (ruleset §1, E2, E11): a
-                              Compact in link mode, the whole row an `<a>`. */}
+                          {/* A tree with no track: one card, one click
+                              (ruleset §1, E2, E11), a Compact in link mode. */}
                           <Entity
                             size="compact"
                             entity={item}
@@ -492,14 +489,16 @@ function SchemaViewer({
   )
 }
 
+/** A key per placeholder: a static run, never reordered. */
+const placeholders = (count: number) => Array.from({ length: count }, (_, i) => `placeholder-${i}`)
+
 /**
  * The listing while its schema loads: the rail as its inert placeholder, then
- * the default groups under their headings, a placeholder per entity in the
- * view's shape — the server render's layout, so neither the gate opening nor
- * the mount before it moves the grid.
+ * a placeholder per entity in the view's shape (the List's lines in their
+ * frame, the Catalog's tiles, a Tree's cards) — the server render's layout, so
+ * neither the gate opening nor the mount before it moves the listing.
  */
 function ListingSkeleton({
-  schemaId,
   band,
   techLevels,
   sources,
@@ -508,15 +507,15 @@ function ListingSkeleton({
   shape,
   view,
   views,
-}: Omit<SchemaViewerIslandProps, 'preloadSchemas'> & {
+}: Omit<SchemaViewerIslandProps, 'preloadSchemas' | 'schemaId' | 'entryIds'> & {
   view: ListingView
   views: readonly ListingView[]
 }) {
   const catalog = view === 'catalog'
-  // The shape is the default view's groups; the Catalog and the List are one,
-  // but for the classes' headings.
+  // The shape is the List's groups, the Catalog's too (one run, but for the
+  // classes' headings); a Tree's groups are not known until its schema loads.
   const groups =
-    shape && (view === 'tree' || catalogGroupBy(schemaId) !== 'none')
+    shape && view !== 'tree'
       ? shape.groups
       : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
   const rail = shape && (
@@ -535,7 +534,6 @@ function ListingSkeleton({
     <ListingFrame band={band} rail={rail}>
       <div
         className="su-listing"
-        data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(catalog && !hasArt) || undefined}
         data-view={view}
         aria-hidden="true"
@@ -544,19 +542,24 @@ function ListingSkeleton({
         <div className="su-listing__groups">
           {groups.map((group) => (
             <section key={group.key} className="su-listing__group">
-              {group.label && <Slab label={group.label} />}
+              {group.label && catalog && <Slab label={group.label} />}
               {catalog ? (
                 <ul className="su-listing__tiles">
-                  {Array.from({ length: group.count }, (_, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
-                    <li key={i} className="su-listing__tile-skeleton" />
+                  {placeholders(group.count).map((key) => (
+                    <li key={key} className="su-listing__tile-skeleton" />
+                  ))}
+                </ul>
+              ) : view === 'list' ? (
+                // The Ledger's frame and its lines, a line an entity.
+                <ul className="su-listing__lines">
+                  {placeholders(group.count).map((key) => (
+                    <li key={key} />
                   ))}
                 </ul>
               ) : (
-                <ul className="su-listing__cards" data-entity-grid="">
-                  {Array.from({ length: group.count }, (_, i) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton placeholder list, never reordered — index is stable
-                    <li key={i}>
+                <ul className="su-listing__cards">
+                  {placeholders(group.count).map((key) => (
+                    <li key={key}>
                       <Skeleton />
                     </li>
                   ))}

@@ -44,3 +44,11 @@ export function cardImageSizes(compact?: boolean): string {
 export function heroImageSizes(): string {
   return `${widthAtLeast('lg')} 560px, 100vw`
 }
+
+/**
+ * The `sizes` of a door tile's art (`StartHere`): a third of the page's
+ * measure from `lg`, the column's width below.
+ */
+export function tileImageSizes(): string {
+  return `${widthAtLeast('lg')} 24rem, 100vw`
+}

@@ -14,7 +14,7 @@
  *    never on any other card or a nested card.
  */
 import { describe, expect, test } from 'bun:test'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type { EntityRef, RefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
@@ -87,7 +87,11 @@ describe('the chassis ability shows only on a page', () => {
   test('the chassis page shows it once', () => {
     const { container } = render(<ReferenceEntityCard data={mule()} presentation="page" />)
     expect(abilityCount(container)).toBe(1)
-    expect(container.querySelector('.su-entity-page__lead')).not.toBeNull()
+    // Under its own section, as a Mini with its rules text.
+    const section = screen.getByRole('heading', { name: 'Chassis Ability', level: 2 })
+    expect(
+      section.closest('section')?.querySelectorAll('.su-entity-mini[data-contentful]')
+    ).toHaveLength(1)
   })
 
   test('the pattern page shows it once, ahead of its Systems and Modules', () => {
@@ -446,11 +450,17 @@ describe('legal starting pattern stamp', () => {
     expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
   })
 
-  test("a chassis PAGE's pattern rows stamp exactly its tagged patterns", () => {
+  test("a chassis PAGE's pattern lines stamp exactly its tagged patterns, Starting", () => {
     const chassis = mule()
     render(<ReferenceEntityCard data={chassis} presentation="page" />)
     const tagged = (chassis.patterns ?? []).filter((p) => p.legalStarting === true)
-    expect(screen.getAllByText('Legal Starting Pattern').length).toBe(tagged.length)
+    const ledger = screen.getByRole('table', { name: 'Mule patterns' })
+    const stamped = [...ledger.querySelectorAll('tbody tr')].filter((row) =>
+      within(row as HTMLElement).queryByText('Starting')
+    )
+    expect(stamped.map((row) => row.querySelector('.su-ledger__name')?.textContent)).toEqual(
+      tagged.map((p) => `“${p.name}”`)
+    )
   })
 
   for (const presentation of ['card', 'page'] as const) {
@@ -479,41 +489,42 @@ describe('legal starting pattern stamp', () => {
 })
 
 /**
- * A HOST'S PATTERN ROWS SHOW WHAT EACH PATTERN CHANGES. The host's stats and
- * abilities are shared by every pattern, so a row carries only the difference:
- * a mech pattern's loadout by name and TL, a Bio-Titan pattern's added
- * actions as contentful Minis (N3: the row is level 1 at most, so they are
- * level 2). Both sit beside the row's link, never inside it —
- * they are links and controls of their own.
+ * A HOST'S PATTERN LINES SAY WHAT EACH PATTERN CHANGES. The host's stats and
+ * abilities are shared by every pattern, so a line carries only the
+ * difference: a mech pattern's loadout by name, the actions a Bio-Titan
+ * pattern adds. The line's one link is the pattern's name.
  */
-describe('pattern rows show what each pattern changes', () => {
+describe('pattern lines say what each pattern changes', () => {
   const typhon = () => {
-    const found = SalvageUnionReference.BioTitans.getByName('Typhon')
-    if (!found) throw new Error('Typhon fixture missing')
-    return found
+    const titan = SalvageUnionReference.BioTitans.getByName('Typhon')
+    if (!titan) throw new Error('Typhon fixture missing')
+    return titan
   }
   const testHref = (ref: EntityRef) =>
     ref.pattern ? `/${nameToSlug(ref.name)}/pattern/${nameToSlug(ref.pattern)}` : undefined
+  const lineOf = (table: HTMLElement, pattern: string) => {
+    const link = within(table).getByRole('link', { name: `“${pattern}”` })
+    const row = link.closest('tr')
+    if (!row) throw new Error(`no line for ${pattern}`)
+    return { link, row }
+  }
 
-  test('a mech pattern row on the Page lists its loadout by name', () => {
-    render(<ReferenceEntityCard data={mule()} presentation="page" />)
-    // A page's row splits Systems from Modules, each list named for its pattern.
-    const systems = screen.getByRole('list', { name: 'Hauler Systems installed' })
-    const modules = screen.getByRole('list', { name: 'Hauler Modules installed' })
-    expect(systems.textContent).toContain('Transport Hold')
-    expect(modules.textContent).toContain('Reactor Flare')
+  test('a mech pattern line on the Page lists its loadout by name', () => {
+    render(withRoutes(testHref, <ReferenceEntityCard data={mule()} presentation="page" />))
+    const { link, row } = lineOf(screen.getByRole('table', { name: 'Mule patterns' }), 'Hauler')
+    expect(link.getAttribute('href')).toBe('/mule/pattern/hauler')
+    expect(row.textContent).toContain('Transport Hold')
+    expect(row.textContent).toContain('Reactor Flare')
   })
 
-  test('a Bio-Titan pattern row on the Page embeds the action it adds', () => {
+  test('a Bio-Titan pattern line on the Page names the action it adds', () => {
     render(withRoutes(testHref, <ReferenceEntityCard data={typhon()} presentation="page" />))
-    const row = screen.getByRole('link', { name: 'Hill Worm — Typhon pattern' })
-    const added = screen.getByText('Metallic Reconstitution')
-    // A contentful Mini, its rules under its head; never a framed card.
-    const token = added.closest('.su-entity-mini[data-contentful]')
-    expect(token?.querySelector('.su-entity-mini__body')?.textContent).not.toBe('')
-    expect(added.closest('.su-ec-frame .su-ec-frame')).toBeNull()
-    // It is not nested inside the row's link.
-    expect(row.contains(added)).toBe(false)
+    const table = screen.getByRole('table', { name: 'Typhon patterns' })
+    expect(within(table).getByRole('columnheader', { name: 'Actions' })).toBeTruthy()
+    const { link, row } = lineOf(table, 'Hill Worm')
+    expect(row.textContent).toContain('Metallic Reconstitution')
+    // It is not inside the line's link.
+    expect(link.textContent).not.toContain('Metallic Reconstitution')
   })
 
   test("in a card a pattern is a Mini with its description only: what it changes is its Peek's and Page's (E6)", () => {

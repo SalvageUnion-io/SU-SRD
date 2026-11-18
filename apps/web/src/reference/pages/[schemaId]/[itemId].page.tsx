@@ -10,7 +10,7 @@
  */
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { getPatterns, truncate } from 'salvageunion-reference'
+import { truncate } from 'salvageunion-reference'
 import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
@@ -148,16 +148,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ))}
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
-          <Island
-            name="HomebrewIsland"
-            client="visible"
-            ssr
-            props={{
-              chassisRef: itemId,
-              bookPatterns: getPatterns(item)?.length ?? 0,
-            }}
-          >
-            <HomebrewIsland chassisRef={itemId} bookPatterns={getPatterns(item)?.length ?? 0} />
+          <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
+            <HomebrewIsland chassisRef={itemId} />
           </Island>
         )}
       </EntityPageFrame>

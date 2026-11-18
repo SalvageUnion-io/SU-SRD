@@ -87,6 +87,9 @@ const NOT_PRINTED: Record<string, string> = {
   'abilities .activationCurrency': 'the action prints the cost',
   // The ability's paragraph is its self-action's three, merged; the page prints those.
   'abilities .content[].value': 'merged copy of the self-action prose',
+  // A custom weapon states a rule on the equipment and again, reworded, on its
+  // self-action; the page prints the action's (`resolveBodyBlocks`).
+  'equipment .content[].value': 'said in other words by the self-action prose',
   // Known gaps, kept loud: a pattern's chosen weapon ("Mech Melee Armament:
   // Blade") is read by nothing yet, and a source's edition and store link have
   // no place on its page.

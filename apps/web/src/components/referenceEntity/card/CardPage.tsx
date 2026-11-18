@@ -15,23 +15,32 @@ import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
 import { pageBodyStats, pageStatLine } from './entityPage'
 import { ActionMinis } from './NestedCards'
 import { PatternLedger } from './PatternLedger'
-import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
  * CardPage — the card when it IS the page (`presentation="page"`). No frame,
- * header or footer: the page's `ChapterBand` carries
- * the title and stamps, its `ChapterFoot` the citation. The line art is the
- * hero on the left; beside it a chassis's stats, inline and first, then the
- * prose and the chassis ability (every other entity's stats ride the band:
- * `EntityPageStamps`); then everything
- * the entity carries, full width — its table, its other actions, its nested cards and its patterns as
- * link rows. A pattern page leads the right column with the pattern itself
- * (`opening`), then the base chassis's prose under its own slab.
+ * header or footer: the page's `ChapterBand` carries the title and stamps, its
+ * `ChapterFoot` the citation. The card decides what each part is
+ * (`ReferenceEntityCardInner`); this lays the parts out as a page.
  *
- * The card decides what each part is (`ReferenceEntityCardInner`); this lays
- * the parts out as a page. Layout is `.su-entity-page*` (`styles/partials/entity-page.css`), which
- * keeps this DOM order at every width, so tab order matches what you see.
+ * **Every entity's Page** (`ManualPage`, `.su-manual`, ruleset §1.7): the
+ * numbers first, every book stat in the stat order (§2.6) as the book's stat
+ * column, four to a row. Then the rules: the chassis ability and the actions
+ * as the app's action Minis (`ActionMinis`: an action's own rules text), the
+ * nested cards, the table, the patterns as one Ledger (`PatternLedger`). The
+ * side column (from `lg`, floated right so the rules run the full measure
+ * once it ends) is the art with the entity's own words under it, headed
+ * Description; with no art it is the Description alone. Words that hold the
+ * entity's choices are rules, so they lead the rules column instead. A phone
+ * reads stats, art, rules, Description.
+ *
+ * **A pattern's page and a guide's** keep the art-led layout
+ * (`.su-entity-page*`, `styles/partials/entity-page.css`): the line art as the
+ * hero on the left; beside it the chassis's stats, the pattern itself
+ * (`opening`), the base chassis's prose under its own slab, the chassis
+ * ability and the pattern's loadout; a guide's steps follow its prose.
+ *
+ * Both keep their DOM order at every width, so tab order matches what you see.
  */
 
 /** A neighbour's Section names its relation, so its Mini drops the type stamp. */
@@ -60,7 +69,7 @@ type CardPageProps = {
   subLine: ReactNode
   /** The prose body (`bodyContent`), or null when there is none. */
   body: ReactNode
-  /** MOCK (wave 2): the body holds the entity's choices, so it is rules, not a description. */
+  /** The body holds the entity's choices, so it is rules, not a description: it leads the rules column. */
   bodyRules?: boolean
   /** The entity's own roll table, framed on the page. */
   table: ReactNode
@@ -171,17 +180,8 @@ export function CardPage({
   // Preceding and Next side by side on one row, Next's label at its end.
   const neighbours = abilityTreeNeighbours(entity)
 
-  // MOCK (Working Manual, wave 2): EVERY entity Page wears the Mule's anatomy
-  // (a pattern's and a guide's keep today's). The numbers first: every book
-  // stat in §2.6 order as the book's stat column (ink stamp, framed numeral),
-  // four to a row. Then the rules: the chassis ability, the actions as the
-  // app's action Minis (`ActionMinis`: an action's own rules text, nothing
-  // else), the nested cards, the table, the patterns as a Ledger. The side
-  // column (from `lg`, floated so the rules run full width once it ends) is
-  // the art with the entity's own words under it, headed Description; with no
-  // art it is the Description alone. A Description that holds the entity's
-  // choices is rules, so it leads the rules column instead. On a phone: stats,
-  // art, rules, Description.
+  // Every entity's Page is the manual's; a pattern's and a guide's keep the
+  // art-led layout below.
   if (!opening && !guide) {
     const line = pageStatLine(entity)
     // The app's action Minis (`MiniGrid`: two or three across by the room),
@@ -229,7 +229,7 @@ export function CardPage({
     const words = (subLine || body) && (
       <SlabSection
         as={sectionAs}
-        title="Description"
+        title={referenceEntityCopy('description')}
         page
         className={cn('su-manual__lore', bodyRules && 'su-manual__lore--rules')}
       >
@@ -266,7 +266,7 @@ export function CardPage({
         {leadActions.length > 0 && (
           <SlabSection
             as={sectionAs}
-            title="Chassis ability"
+            title={referenceEntityCopy('chassisAbility')}
             page
             bodyClassName="su-entity-page__section-body"
           >
@@ -372,51 +372,6 @@ export function CardPage({
       )}
       {table && <div className="su-entity-page__table">{table}</div>}
       {!hero && beside}
-      {/* An ability's neighbours in its tree, under the rest,
-          each a collapsed header a line wide that links to its Page, never
-          its full content (R43), at the Page's nested level, a Compact
-          (ruleset N1), a named N8 exception
-          (`.su-entity-page__neighbours`). */}
-      {neighbours.length > 0 && (
-        <div className="su-entity-page__neighbour-row">
-          {neighbours.map(({ label, abilities }) => (
-            <SlabSection
-              key={label}
-              as={sectionAs}
-              title={label}
-              page
-              className={cn(
-                'su-entity-page__section',
-                label === 'Next' && 'su-entity-page__section--end'
-              )}
-              bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
-            >
-              {abilities.map((ability) => (
-                <Entity
-                  key={ability.id}
-                  size="compact"
-                  context="play"
-                  entity={ability}
-                  mode={LINK}
-                  omit={NEIGHBOUR_OMIT}
-                />
-              ))}
-            </SlabSection>
-          ))}
-        </div>
-      )}
-      <div className="su-entity-page__wide">
-        <PatternLinkRows
-          chassis={entity}
-          chassisName={action.hostName}
-          patterns={patterns}
-          sectionAs={sectionAs}
-          host={{
-            hostDown: action.hostDown,
-            chassisName: action.chassisName,
-          }}
-        />
-      </div>
       <div className="su-entity-page__wide">{after}</div>
     </div>
   )

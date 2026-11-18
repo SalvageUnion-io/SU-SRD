@@ -555,40 +555,10 @@
   position: absolute;
 }
 
-/* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Each pattern is a card in the Compact's language: its host's tone in the head
- * (the link), a paper body with the pattern's opening as a
- * clamped lead and its loadout, Systems beside Modules, one full-width Mini
- * a line (links of their own, so outside the head's anchor). One card a line.
- * On a phone only two show until "Show all" targets the section's heading
- * (`:target`), which needs no script. The section is a `SlabSection` on the
- * Page (12px under its Slab); its body spaces the list and "Show all".
+/* ── A pattern's card (`PatternListing`) ──────────────────────────────────
+ * The pattern in the Compact's language: its host's tone in the head, a paper
+ * body with the pattern's opening and its loadout.
  */
-.su-pattern-rows [id='patterns'] {
-  scroll-margin-top: var(--space-64);
-}
-
-.su-pattern-rows__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-}
-
-.su-pattern-rows__list {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: minmax(0, 1fr);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-pattern-rows__head {
-  color: inherit;
-  display: block;
-  text-decoration: none;
-}
-
 /* The pattern's opening paragraph, at the head of the box's body. */
 .su-pattern-rows__prose {
   color: var(--color-ink);
@@ -610,37 +580,6 @@
    card: the gap between blocks (R17). */
 .su-homebrew {
   margin-top: var(--space-12);
-}
-
-.su-pattern-rows__more {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--space-12);
-}
-
-@media not (width >= 40rem) {
-  .su-pattern-rows:not(:has(:target)) .su-pattern-rows__list > li:nth-child(n + 3) {
-    display: none;
-  }
-
-  .su-pattern-rows:has(:target) .su-pattern-rows__more {
-    display: none;
-  }
-
-  /* A chassis page's one "Show all" sits under its Homebrew, counting both, so
-     the book's own steps aside; the Homebrew rows past the first two wait for
-     it too (HomebrewIsland). */
-  :root:has([id='homebrew-patterns']) .su-pattern-rows .su-pattern-rows__more,
-  :root:has([id='patterns']:target, [id='homebrew-patterns']:target) .su-pattern-rows__more,
-  :root:not(:has([id='patterns']:target, [id='homebrew-patterns']:target)) .su-homebrew__more {
-    display: none;
-  }
-}
-
-@media (width >= 40rem) {
-  .su-pattern-rows__more {
-    display: none;
-  }
 }
 
 /* The link-preview scale (`scale="og"`, OgCard): a band drawn at

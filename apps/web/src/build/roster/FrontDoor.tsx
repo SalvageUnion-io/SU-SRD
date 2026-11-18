@@ -5,18 +5,17 @@
  * visitor's to list, so `/` is the front door instead —
  *
  *  - **Build's name** on its chapter band (`PRODUCT.build`, the Training Bay)
- *    in Build's pilot-orange tone,
- *    under `PRODUCT.descriptor`, with the legacy tagline quoted beside the
- *    name (under it on a phone). No intro band under it:
- *    signing in is the header's, and the Starter Set is the header's tab and
- *    this page's own section;
- *  - **Start here**, the onboarding the SRD's home shows too (`StartHere`):
- *    Create a Pilot → Create a Mech → Join or make a Crawler, each opening its
- *    builder (signed out, its sign-in prompt). Playing a Game happens from the
- *    Crawler, so it is not a step of its own;
- *  - **the Starter Set** as `StarterCard`s (the card `/starter` lists them
- *    with), one column per kind, each opening its read-only sheet, with one
- *    Leyline Press credit for the section rather than a stamp on every card.
+ *    in Build's pilot-orange tone, under `PRODUCT.descriptor`, with the legacy
+ *    tagline quoted beside the name (under it on a phone);
+ *  - **the pitch** (`FrontPitch`), as the home's and Play's: what Build is,
+ *    the page's one rust action (sign in) and one outline beside it;
+ *  - **Start here**, the onboarding path (`StartHere`): Create a Pilot →
+ *    Create a Mech → Join or make a Crawler, each opening its builder (signed
+ *    out, its sign-in prompt). Playing a Game happens from the Crawler, so it
+ *    is not a step of its own;
+ *  - **the Starter Set** (`StarterSetCrew`): the pre-generated crew as one
+ *    Ledger, each line opening its read-only sheet, with one Leyline Press
+ *    credit for the section.
  *
  * Style objects and tokens only (ADR-046).
  */
@@ -28,18 +27,15 @@ import {
   ChapterBand,
   capsLabel,
   FrontPitch,
-  Slab,
-  Stack,
   StartHere,
   tokens,
 } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { rosterCopy } from '../../messages/build-roster'
 import { SignInControl } from '../account/SignInControl'
-import { StarterSetGrid } from '../starterSet/StarterSetGrid'
+import { StarterSetCrew } from '../starterSet/StarterSetCrew'
 
 /**
  * Each step opens its builder; signed out, the builder's own sign-in prompt
@@ -61,7 +57,7 @@ const PAGE = {
 const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
-  // MOCK (front): level-1 blocks 24px apart, as the home's.
+  // Level-1 blocks 24px apart, as the home's.
   gap: tokens.space[24],
   maxWidth: PAGE_MEASURE,
 } satisfies CSSProperties
@@ -69,12 +65,8 @@ const COLUMN = {
 /** The kicker: brand caps, the eyebrow's tracking. */
 const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 
-const CREDIT = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.lede,
-  margin: 0,
-} satisfies CSSProperties
+/** The Starter Set section: the pitch's second action jumps to it. */
+const STARTER_ID = 'front-door-starter'
 
 export function FrontDoor() {
   return (
@@ -90,32 +82,24 @@ export function FrontDoor() {
       </ChapterBand>
 
       <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[20] }}>
-        {/* MOCK (front): the pitch, as the home's: what Build is, the page's
-            one rust action (sign in) and the outline beside it. */}
+        {/* The pitch, as the home's: what Build is, the page's one rust
+            action (sign in) and the outline beside it (ruleset §3.13). */}
         <FrontPitch
-          value="Build your Pilot, your Mech and your Union Crawler."
+          value={rosterCopy('pitchValue')}
           actions={
             <>
               <SignInControl size="full" redirectTo="/" />
-              <Button href="#front-door-starter" variant="default" size="full">
-                Meet the Starter crew
+              <Button href={`#${STARTER_ID}`} variant="default" size="full">
+                {rosterCopy('meetTheStarterCrew')}
               </Button>
             </>
           }
-          note="Free with a Discord sign-in. Your sheets save to your account and open on any device."
+          note={rosterCopy('pitchNote')}
         >
-          A guided build, one choice at a time, with every option cited to its page in the book.
+          {rosterCopy('pitchLede')}
         </FrontPitch>
         <StartHere id="front-door-start" hrefs={STEP_HREFS} />
-
-        <Stack as="section" gap={16} aria-labelledby="front-door-starter">
-          <Slab label={rosterCopy('starterSet')} id="front-door-starter" as="h2" />
-          <p style={CREDIT}>
-            The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
-            Open any sheet to read it; sign in to copy one.
-          </p>
-          <StarterSetGrid />
-        </Stack>
+        <StarterSetCrew id={STARTER_ID} note={rosterCopy('starterNote')} />
       </div>
     </main>
   )

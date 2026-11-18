@@ -183,21 +183,24 @@ describe('Roster — signed out, it is the front door', () => {
     ])
   })
 
-  test('the Starter Set is clickable rows, with one Leyline Press credit', async () => {
+  test('the Starter Set crew is one Ledger, a line a build that opens its sheet, credited once', async () => {
     await act(async () => {
       render(<Roster />)
     })
 
     const starter = screen.getByRole('region', { name: 'Starter Set' })
-    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+    const crew = within(starter).getByRole('table', { name: 'Starter Set crew' })
+    expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
+    // Pilots, their Mechs and the Crawler, in one list: each line says its kind.
+    const kinds = [...crew.querySelectorAll('tbody tr')].map(
+      (row) => row.querySelector('td')?.textContent
+    )
+    expect(new Set(kinds)).toEqual(new Set(['Pilot', 'Mech', 'Crawler']))
+    // Whose crew it is, said once over the list (the Ledger's foot cites the book).
+    expect(within(starter).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
     expect(within(starter).getByText(/sign in to copy one/)).toBeTruthy()
-    // A shelf per kind, each counting its rows.
-    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
   })
 })
 

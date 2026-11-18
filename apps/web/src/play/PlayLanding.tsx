@@ -24,7 +24,9 @@
  *  - **Play solo**, under the Games: each pilot you own that is in no Game,
  *    with its mech or "No Mech", and Play solo.
  *
- * Signed out there is nothing to play, so it asks you to sign in. The store
+ * Signed out there is nothing to play, so it is Play's front door
+ * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
+ * and the Starter Set's crew. The store
  * holds only your own pilots, so every pilot it lists is yours to play.
  * Disconnected, your pilots still list from the store; the Game list, New
  * Game and Join wait for the connection.
@@ -39,7 +41,7 @@ import { assetUrl } from 'salvageunion-reference'
 import { SignInControl } from '../build/account/SignInControl'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
-import { StarterSetGrid } from '../build/starterSet/StarterSetGrid'
+import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
@@ -54,8 +56,6 @@ import {
   ModalShell,
   PageShell,
   Pending,
-  Slab,
-  Stack,
   StartHere,
   Stat,
   tokens,
@@ -74,7 +74,6 @@ import {
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../lib/starterSet/starterTemplates'
 import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
@@ -164,18 +163,35 @@ const AT_THE_TABLE: readonly StartHereStep[] = [
   },
 ]
 
-/** MOCK (front): R2 art for a tile, by its object key. */
+/** A tile's art from R2, by its object key. */
 function tileArt(key: string, alt: string) {
   const url = assetUrl(key)
   const srcSet = assetSrcSetFor(url)
   return srcSet ? { url, srcSet, alt } : { url, alt }
 }
 
+/** Each "At the table" tile's art, in the tiles' order. */
+const AT_THE_TABLE_ART = [
+  tileArt('classes/scout.webp', playCopy('artScout')),
+  tileArt('chassis/mazona.webp', playCopy('artMazona')),
+  tileArt('bio-titans/scylla.webp', playCopy('artScylla')),
+]
+
+const FRONT_BODY = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** The Starter Set section: the pitch's second action jumps to it. */
+const STARTER_ID = 'play-starter'
+
 /**
- * MOCK (front): Play signed out. The band on the page measure with its kicker
- * and tagline, as Build's front door; the pitch (`FrontPitch`) with the page's
- * one rust action; "At the table" with art; then the Starter Set's crew, so a
- * visitor with no Pilot has something to open.
+ * Play signed out: its front door. The band on the page measure with its
+ * kicker and tagline, as Build's front door; the pitch (`FrontPitch`) with
+ * the page's one rust action (ruleset §3.13); "At the table" with art; then
+ * the Starter Set's crew (`StarterSetCrew`), so a visitor with no Pilot has
+ * something to open.
  */
 function PlayFrontDoor() {
   const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
@@ -196,19 +212,18 @@ function PlayFrontDoor() {
     >
       <div style={FRONT_BODY}>
         <FrontPitch
-          value="Run your crew at the table, on every screen at once."
+          value={playCopy('pitchValue')}
           actions={
             <>
               <SignInControl size="full" redirectTo="/play/" />
-              <Button href="#play-starter" variant="default" size="full">
-                Meet the Starter crew
+              <Button href={`#${STARTER_ID}`} variant="default" size="full">
+                {playCopy('meetTheStarterCrew')}
               </Button>
             </>
           }
-          note="Free with a Discord sign-in. No Pilot yet? Build one first, or copy the Starter Set crew."
+          note={playCopy('pitchNote')}
         >
-          Play runs your Pilots and Mechs, solo or in a shared Game: rolls, damage, Heat and the
-          crew’s log, live for everyone at the table.
+          {playCopy('pitchLede')}
         </FrontPitch>
         <StartHere
           id="play-at-the-table"
@@ -216,42 +231,15 @@ function PlayFrontDoor() {
           steps={steps}
           numbered={false}
         />
-        <Stack as="section" gap={16} aria-labelledby="play-starter">
-          <Slab label="Starter Set" id="play-starter" as="h2" />
-          <p style={FRONT_CREDIT}>
-            The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
-            Open any sheet to read it; sign in to copy one and play it.
-          </p>
-          <StarterSetGrid />
-        </Stack>
+        <StarterSetCrew id={STARTER_ID} note={playCopy('starterNote')} />
       </div>
     </PageShell>
   )
 }
 
-const FRONT_BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[24],
-} satisfies CSSProperties
-
-const FRONT_CREDIT = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.lede,
-  margin: 0,
-} satisfies CSSProperties
-
-/** MOCK (front): each "At the table" tile's art, in the tiles' order. */
-const AT_THE_TABLE_ART = [
-  tileArt('classes/scout.webp', 'A Scout pilot'),
-  tileArt('chassis/mazona.webp', 'The Mazona chassis'),
-  tileArt('bio-titans/scylla.webp', 'The Bio-Titan Scylla'),
-]
-
 export function PlayLanding() {
   const { status } = useSync()
-  // MOCK (front): signed out, the hub is Play's front door, in the home's dress.
+  // Signed out, the hub is Play's front door, in the home's dress.
   if (status === 'signedOut') return <PlayFrontDoor />
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
   if (status === 'live') return <ConnectedPlayLanding />

@@ -1,5 +1,5 @@
-/* The front door: the home page as a product page, and the pitch Build's and
- * Play's signed-out pages open on.
+/* The front doors: the home page (`index.page.tsx`, `HomeFront.tsx`), and the
+ * pitch Build's and Play's signed-out pages open on (`FrontPitch`).
  */
 
 /* ── The pitch (`FrontPitch`) ──────────────────────────────────────────────
@@ -31,12 +31,19 @@
   max-width: 34rem;
 }
 
-/* On a phone the two actions stack, each the column's width: a label is
-   never squeezed ("Sign in with Discord" beside "Meet the Starter crew"). */
+/* The two actions on a wrapping line. On a phone each takes a line of its
+   own, the column's width: a label is never squeezed ("Sign in with Discord"
+   beside "Meet the Starter crew"). */
 .su-front-pitch__actions {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-8);
-  grid-template-columns: minmax(0, 1fr);
+}
+
+@media not (width >= 40rem) {
+  .su-front-pitch__actions > * {
+    flex: 1 1 100%;
+  }
 }
 
 .su-front-pitch__note {
@@ -50,11 +57,6 @@
   .su-front-pitch__value {
     font-size: var(--text-display-lg);
   }
-
-  .su-front-pitch__actions {
-    display: flex;
-    flex-wrap: wrap;
-  }
 }
 
 @media (width >= 64rem) {
@@ -65,7 +67,7 @@
 
 /* ── The home (`index.page.tsx`, `HomeFront.tsx`) ─────────────────────────── */
 
-/* Level-1 blocks 24px apart, as the Contents home's. */
+/* Level-1 blocks 24px apart. */
 .su-front__body {
   display: flex;
   flex-direction: column;
@@ -149,29 +151,30 @@
   margin-left: auto;
 }
 
-/* Buy the game, and the Discord bot's button beside it. */
-.su-front__close {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-14);
-}
-
+/* Buy the game: the words and the store's button beside the books' Ledger,
+   on one wrapping line, each at least 20rem and growing to fill it. */
 .su-front__buy {
   --su-foot-ground: var(--color-paper);
 }
 
 .su-front__buy-body {
+  align-items: flex-start;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-28);
   padding: var(--space-12);
+}
+
+.su-front__buy-copy,
+.su-front__books {
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
 .su-front__buy-copy {
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  min-width: 0;
 }
 
 .su-front__buy-copy p {
@@ -193,55 +196,37 @@
   margin-top: var(--space-4);
 }
 
-/* The books the site cites: a banded list, as a roll table's rows. */
-.su-front__books {
-  border: var(--bw-hairline) solid var(--color-ink-20);
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-semibold);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-front__books > li {
-  padding: var(--space-4) var(--space-8);
-}
-
-.su-front__books > li:nth-child(even) {
-  background-color: var(--color-band-cream);
-}
-
-/* The Discord bot's panel: a sentence over its button. */
+/* The Discord bot's panel: its sentence, then its button at the line's end;
+   the button drops under the sentence where the two do not fit. */
 .su-front__bot {
+  align-items: center;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  justify-content: space-between;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-28);
 }
 
 .su-front__bot p {
+  flex: 1 1 20rem;
   font-size: var(--text-body);
   line-height: 1.5;
   margin: 0;
 }
 
-@media (width >= 64rem) {
-  .su-front__close {
-    align-items: start;
-    display: grid;
-    gap: var(--space-28);
-    grid-template-columns: minmax(0, 1fr) 20rem;
-  }
+/* The bot's button: Discord's blurple (a one-off exception to the tone
+   palette) with Discord's mark. */
+a.su-front__discord {
+  background-color: var(--color-discord);
+  border-color: var(--color-discord);
+  color: var(--color-paper);
+}
 
-  .su-front__buy-body {
-    align-items: start;
-    display: grid;
-    gap: var(--space-28);
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
+a.su-front__discord:hover {
+  filter: brightness(0.9);
+}
 
-  .su-front__close > * {
-    height: 100%;
-  }
+.su-front__discord-mark {
+  flex: none;
+  height: 1.25em;
+  width: 1.25em;
 }

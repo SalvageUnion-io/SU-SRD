@@ -1,9 +1,9 @@
-// MOCK (Working Manual, B; wave 2: every listing): a listing's List as one
-// Ledger: its entities a line each, their stats in §2.6 order in fixed
-// columns (`indexColumns`). Not shipped code.
+// A listing's List: one Ledger, its entities a line each, their stats in
+// §2.6 order in fixed columns.
 import { useMemo, useState } from 'react'
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { islandsCopy } from '../../messages/components-islands'
 import { CiteLine } from '../atoms/CiteLine'
 import { Stat } from '../atoms/Stat'
 import { paintFor } from '../entity'
@@ -14,7 +14,7 @@ import { Ledger } from '../entity/Ledger'
 type IndexColumn = LedgerColumn & { value: (item: RefEntity, model: EntityModel) => string }
 
 /** A book stat's column, by the model's key (`book-Structure Points`). */
-function stat(label: string, title: string, key: string, phone = false): IndexColumn {
+function stat(label: string, title: string, key: string, phone: boolean): IndexColumn {
   return {
     key,
     label,
@@ -42,45 +42,23 @@ function fact(label: string, title: string, key: string): IndexColumn {
   }
 }
 
-const SV = stat('SV', 'Salvage Value', 'book-Salvage Value')
-
-/** A chassis's columns: its stat line, then its ability. */
-const CHASSIS_COLUMNS: readonly IndexColumn[] = [
-  SV,
-  stat('SP', 'Structure Points', 'book-Structure Points', true),
-  stat('EP', 'Energy Points', 'book-Energy Points', true),
-  stat('Sys', 'System Slots', 'book-System Slots'),
-  stat('Mods', 'Module Slots', 'book-Module Slots'),
-  stat('Heat', 'Heat Capacity', 'book-Heat Capacity'),
-  stat('Cargo', 'Cargo Capacity', 'book-Cargo Capacity'),
-  {
-    key: 'ability',
-    label: 'Chassis ability',
-    kind: 'quiet',
-    value: (item) =>
-      'chassisAbilities' in item && Array.isArray(item.chassisAbilities)
-        ? item.chassisAbilities.join(', ')
-        : '',
-  },
-]
-
 const ACTION: IndexColumn = {
   key: 'action',
-  label: 'Action',
+  label: islandsCopy('action'),
   kind: 'text',
   value: (_item, model) => model.actionType ?? model.mechActionType ?? '',
 }
 
 const COST: IndexColumn = {
   key: 'cost',
-  label: 'Cost',
+  label: islandsCopy('cost'),
   kind: 'text',
   value: (_item, model) => model.cost ?? '',
 }
 
 const TRAITS: IndexColumn = {
   key: 'traits',
-  label: 'Traits',
+  label: islandsCopy('traits'),
   kind: 'quiet',
   value: (_item, model) =>
     model.traits
@@ -118,7 +96,7 @@ function word(label: string, field: string): IndexColumn {
 
 const LEAD: IndexColumn = {
   key: 'lead',
-  label: 'Description',
+  label: islandsCopy('description'),
   kind: 'quiet',
   value: (item, model) =>
     'description' in item && typeof item.description === 'string'
@@ -126,19 +104,22 @@ const LEAD: IndexColumn = {
       : (model.lead ?? ''),
 }
 
+const ACTIONS = names(islandsCopy('actions'), 'actions')
+
 /** The quiet line a kind's rows end on; every other kind's is its opening words. */
 const QUIET: Readonly<Record<string, IndexColumn>> = {
+  chassis: names(islandsCopy('chassisAbility'), 'chassisAbilities'),
   systems: TRAITS,
   modules: TRAITS,
   equipment: TRAITS,
   vehicles: TRAITS,
-  npcs: names('Actions', 'actions'),
-  'bio-titans': names('Actions', 'actions'),
-  creatures: names('Actions', 'actions'),
-  squads: names('Actions', 'actions'),
-  meld: names('Actions', 'actions'),
-  drones: names('Systems', 'systems'),
-  classes: names('Core trees', 'coreTrees'),
+  npcs: ACTIONS,
+  'bio-titans': ACTIONS,
+  creatures: ACTIONS,
+  squads: ACTIONS,
+  meld: ACTIONS,
+  drones: names(islandsCopy('systems'), 'systems'),
+  classes: names(islandsCopy('coreTrees'), 'coreTrees'),
 }
 
 /** The words a kind's rows carry before their stats. */
@@ -146,18 +127,18 @@ const WORDS: Readonly<Record<string, readonly IndexColumn[]>> = {
   abilities: [
     {
       key: 'level',
-      label: 'Lvl',
-      title: 'Level in its tree',
+      label: islandsCopy('lvl'),
+      title: islandsCopy('levelInItsTree'),
       kind: 'figure',
       phone: true,
       value: (_item, model) => model.tier ?? '',
     },
-    word('Tree', 'tree'),
+    word(islandsCopy('tree'), 'tree'),
   ],
   classes: [
     {
       key: 'kind',
-      label: 'Advances into',
+      label: islandsCopy('advancesInto'),
       kind: 'text',
       value: (item) =>
         ['advancedTree', 'legendaryTree']
@@ -169,19 +150,19 @@ const WORDS: Readonly<Record<string, readonly IndexColumn[]>> = {
   crawlers: [
     {
       key: 'npc',
-      label: 'NPC',
+      label: islandsCopy('npc'),
       kind: 'text',
       value: (item) =>
         'npc' in item && item.npc && typeof item.npc === 'object' && 'position' in item.npc
           ? String(item.npc.position)
           : '',
     },
-    names('Ability', 'actions'),
+    names(islandsCopy('ability'), 'actions'),
   ],
   'crawler-bays': [
     {
       key: 'npc',
-      label: 'Crew',
+      label: islandsCopy('crew'),
       kind: 'text',
       value: (item) =>
         'npc' in item && item.npc && typeof item.npc === 'object' && 'position' in item.npc
@@ -189,11 +170,6 @@ const WORDS: Readonly<Record<string, readonly IndexColumn[]>> = {
           : '',
     },
   ],
-}
-
-/** A short label for a book stat, as the stat column's own short form. */
-function short(label: string, shortLabel: string | undefined): string {
-  return shortLabel ?? label
 }
 
 /**
@@ -202,28 +178,34 @@ function short(label: string, shortLabel: string | undefined): string {
  * economy (action type, RNG, DMG) where any row has one, the quiet line, and
  * the cost last. A column no row fills is not drawn.
  */
-export function indexColumns(
+function indexColumns(
   schemaId: string,
   models: readonly { item: RefEntity; model: EntityModel }[]
 ): readonly IndexColumn[] {
-  if (schemaId === 'chassis') return CHASSIS_COLUMNS
-  const stats = new Map<string, IndexColumn>()
+  // Every book stat any row carries, in the model's order; a phone keeps the
+  // two vitals (SP, EP) where the kind has them, its first two stats otherwise.
+  const found = new Map<string, EntityModel['bookStats'][number]>()
   for (const { model } of models) {
     for (const entry of model.bookStats) {
-      if (entry.key === 'tech-level' || stats.has(entry.key)) continue
-      stats.set(
-        entry.key,
-        stat(short(entry.label, entry.short), entry.label, entry.key, stats.size < 2)
-      )
+      if (entry.key !== 'tech-level' && !found.has(entry.key)) found.set(entry.key, entry)
     }
   }
+  const entries = [...found.values()]
+  const vitals = entries.filter((entry) => entry.group === 'vitals')
+  const phone = new Set((vitals.length > 0 ? vitals : entries).slice(0, 2).map((e) => e.key))
+  const stats = new Map(
+    entries.map((entry) => [
+      entry.key,
+      stat(entry.short ?? entry.label, entry.label, entry.key, phone.has(entry.key)),
+    ])
+  )
   const quiet = QUIET[schemaId] ?? LEAD
   const all = [
     ...(WORDS[schemaId] ?? []),
     ...stats.values(),
     ACTION,
-    fact('RNG', 'Range', 'range'),
-    fact('DMG', 'Damage', 'damage'),
+    fact(islandsCopy('rng'), islandsCopy('range'), 'range'),
+    fact(islandsCopy('dmg'), islandsCopy('damage'), 'damage'),
     ...(WORDS[schemaId]?.some((column) => column.kind === 'quiet') ? [] : [quiet]),
     COST,
   ]
@@ -318,7 +300,9 @@ export function IndexLedger({
         id: row.id,
         name: row.name,
         entityRef: row.entityRef,
-        stamp: row.techLevel ? <Stat label="TL" value={row.techLevel} size="mini" /> : undefined,
+        stamp: row.techLevel ? (
+          <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
+        ) : undefined,
         cells: row.cells,
       }))}
       foot={books.length > 0 ? <CiteLine text={books.join(' // ')} /> : undefined}

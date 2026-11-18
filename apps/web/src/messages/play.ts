@@ -95,6 +95,16 @@ export const playCopy = messages({
   posted: 'Posted',
   toDiscord: '{label} {label2} to Discord',
   signInToPlay: 'Sign in to play',
+  pitchValue: 'Run your crew at the table, on every screen at once.',
+  pitchLede:
+    'Play runs your Pilots and Mechs, solo or in a shared Game: rolls, damage, Heat and the crew’s log, live for everyone at the table.',
+  pitchNote:
+    'Free with a Discord sign-in. No Pilot yet? Build one first, or copy the Starter Set crew.',
+  meetTheStarterCrew: 'Meet the Starter crew',
+  starterNote: 'Open any sheet to read it; sign in to copy one and play it.',
+  artScout: 'A Scout Pilot',
+  artMazona: 'The Mazona Chassis',
+  artScylla: 'The Bio-Titan Scylla',
   atTheTable: 'At the table',
   runYourPilot: 'Run your Pilot',
   runYourPilotBody:

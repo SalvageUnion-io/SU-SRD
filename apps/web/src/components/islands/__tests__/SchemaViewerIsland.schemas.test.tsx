@@ -67,8 +67,10 @@ describe('SchemaViewerIsland — the classes index', () => {
       'Core Classes',
       'Hybrid Classes',
     ])
+    // Each its own Ledger, a line a class.
     for (const section of sections) {
-      expect(section.querySelectorAll('.su-listing__tiles > li').length).toBeGreaterThan(0)
+      expect(section.querySelectorAll('table')).toHaveLength(1)
+      expect(section.querySelectorAll('tbody tr').length).toBeGreaterThan(0)
     }
   })
 })

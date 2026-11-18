@@ -111,8 +111,8 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
 }
 
 /**
- * MOCK (Working Manual, A): every book stat of a chassis in §2.6 order (TL, SV,
- * SP, EP, Sys, Mod, Heat, Cargo), for the page's one ruled stat line.
+ * Every book stat of an entity in the stat order (§2.6: a chassis reads TL, SV,
+ * SP, EP, Sys, Mod, Heat, Cargo), for its Page's stat column (`CardPage`).
  */
 export function pageStatLine(entity: RefMetaEntity): BookStat[] {
   // The numeral's frame holds a letter, not a word: a Bio-Chassis reads `B`.
@@ -131,11 +131,9 @@ export function resolveEntityPageMeta(
   return {
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // MOCK (Working Manual, A): a chassis page's TL and SV join its stat line,
-    // so its band carries no stamps; a pattern page keeps them.
-    // MOCK (wave 2): every Page's stats lead its body as the stat column
-    // (`pageStatLine`), so its band carries no stat stamps; a pattern's page
-    // keeps today's.
+    // Every Page's stats lead its body as the stat column (`pageStatLine`), so
+    // its band carries no stat stamps. A pattern's page keeps them on its
+    // band: a chassis's TL and SV (the rest lead its body), another host's all.
     stats: !pattern
       ? []
       : statsInBody(entity)

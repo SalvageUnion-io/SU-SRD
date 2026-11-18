@@ -36,4 +36,12 @@ export const buildStarterSetCopy = messages({
   copyTheCrew: 'Copy the crew',
   theCrewCouldNotBe: 'The crew could not be copied. Try again.',
   copiedBuildsTo: 'Copied {builds} builds to {label}.',
+  starterSetCrew: 'Starter Set crew',
+  crew: 'Crew',
+  kind: 'Kind',
+  builtOn: 'Built on',
+  tl: 'TL',
+  techLevel: 'Tech Level',
+  thePreGeneratedCrewOf: 'The pre-generated crew of',
+  byPublisher: ', by {publisher}.',
 })

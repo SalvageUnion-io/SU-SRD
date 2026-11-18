@@ -137,7 +137,7 @@ describe('SchemaViewerIsland', () => {
     const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
     fireEvent.click(clearBtn)
 
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     expect(links.length).toBe(entities.length)
     cleanup()
   })
@@ -161,7 +161,7 @@ describe('SchemaViewerIsland', () => {
     })
     fireEvent.change(nameInput, { target: { value: knownName } })
 
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     const matching = entities.filter((e) => e.name.toLowerCase().includes(knownName.toLowerCase()))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -195,7 +195,7 @@ describe('SchemaViewerIsland', () => {
       const clearBtn = screen.getByRole('button', { name: 'Clear filters' })
       fireEvent.click(clearBtn)
 
-      const links = document.querySelectorAll('a[aria-label]')
+      const links = document.querySelectorAll('.su-listing__groups a')
       expect(links.length).toBe(entities.length)
     },
     HEAVY
@@ -218,7 +218,7 @@ describe('SchemaViewerIsland', () => {
         sources={getUniqueSources(systems)}
       />
     )
-    expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(inTheBox.length)
+    expect(container.querySelectorAll('tbody tr').length).toBe(inTheBox.length)
     const select = screen.getByRole('combobox', { name: 'Source' }) as HTMLSelectElement
     expect(select.value).toBe(starter)
   })
@@ -242,7 +242,7 @@ describe('SchemaViewerIsland', () => {
     expect(nameInput.value).toBe(knownName)
 
     // Only the matching card(s) render — the shared view was restored.
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     const matching = entities.filter((e) => e.name.toLowerCase().includes(knownName.toLowerCase()))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -270,7 +270,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     const matching = entities.filter((e) => getTechLevel(e)?.toString() === String(level))
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -297,6 +297,7 @@ describe('SchemaViewerIsland', () => {
   it('draws each ability tree on its track: Compacts numbered 1-2-3, a Legendary tree its "or"', () => {
     const abilitiesModel = required(getModel('abilities'), 'abilities model')
     const entities = abilitiesModel.all()
+    window.location.href = 'http://localhost/abilities/?view=tree'
 
     const { container } = render(
       <SchemaViewerIsland
@@ -351,7 +352,7 @@ describe('SchemaViewerIsland', () => {
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Tree' }), { target: { value: tree } })
 
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     const matching = entities.filter((e) => getTree(e) === tree)
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -375,7 +376,7 @@ describe('SchemaViewerIsland', () => {
       />
     )
 
-    const links = document.querySelectorAll('a[aria-label]')
+    const links = document.querySelectorAll('.su-listing__groups a')
     const matching = entities.filter((e) => getTree(e) === tree)
     expect(links.length).toBe(matching.length)
     expect(links.length).toBeGreaterThan(0)
@@ -410,9 +411,9 @@ describe('SchemaViewerIsland', () => {
     }
   })
 
-  // Every listing is the Catalog: one flat grid of CompactIndexes, no group headings,
-  // at every width, with no toggle (`listingView.ts`).
-  describe('the Catalog', () => {
+  // Every listing opens on its List, one Ledger; its Catalog is one flat grid
+  // of CompactIndexes with no group headings (`listingView.ts`).
+  describe('the List and the Catalog', () => {
     const chassisEntities = () => required(getModel('chassis'), 'chassis model').all()
     const renderChassis = () => {
       const entities = chassisEntities()
@@ -425,16 +426,15 @@ describe('SchemaViewerIsland', () => {
         />
       )
     }
+    const openCatalog = () => fireEvent.click(screen.getByRole('button', { name: 'Catalog' }))
 
-    it('one art-first CompactIndex per entity, in one flat grid with no group heading, beside its List (E2)', () => {
+    it('opens on the List: one Ledger, a line per entity, each a link, beside its Catalog', () => {
       const { container } = renderChassis()
-      expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
-      expect(container.querySelector('.su-listing__cards')).toBeNull()
-      const groups = container.querySelectorAll('.su-listing__group')
-      expect(groups.length).toBe(1)
-      expect(groups[0]?.getAttribute('aria-label')).toBeNull()
-      const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-index')
-      expect(tiles.length).toBe(chassisEntities().length)
+      expect(container.querySelector('.su-listing[data-view="list"]')).toBeTruthy()
+      expect(container.querySelectorAll('table')).toHaveLength(1)
+      expect(container.querySelectorAll('tbody tr').length).toBe(chassisEntities().length)
+      expect(container.querySelector('.su-listing__tiles')).toBeNull()
+      expect(container.querySelector('tbody a[href="/chassis/gopher/"]')).toBeTruthy()
       const views = required(
         container.querySelector<HTMLElement>('.su-rail__view'),
         'the view toggle'
@@ -443,7 +443,34 @@ describe('SchemaViewerIsland', () => {
         within(views)
           .getAllByRole('button')
           .map((b) => b.textContent)
-      ).toEqual(['Catalog', 'List'])
+      ).toEqual(['List', 'Catalog'])
+    })
+
+    it('the List’s columns are the stat line in the book’s order, then the chassis ability', () => {
+      const { container } = renderChassis()
+      const heads = [...container.querySelectorAll('thead th')].map((th) => th.textContent)
+      expect(heads.slice(1)).toEqual([
+        'SV',
+        'SP',
+        'EP',
+        'SYS',
+        'MODS',
+        'Heat',
+        'Cargo',
+        'Chassis Ability',
+      ])
+    })
+
+    it('the Catalog is one art-first CompactIndex per entity, in one flat grid with no group heading (E2)', () => {
+      const { container } = renderChassis()
+      openCatalog()
+      expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
+      expect(container.querySelector('table')).toBeNull()
+      const groups = container.querySelectorAll('.su-listing__group')
+      expect(groups.length).toBe(1)
+      expect(groups[0]?.getAttribute('aria-label')).toBeNull()
+      const tiles = container.querySelectorAll('.su-listing__tiles > li > a.su-entity-index')
+      expect(tiles.length).toBe(chassisEntities().length)
       // Art from the CDN's 440 derivative, its box sized before it loads.
       // The opening row's art loads at once and first (it is the page's
       // largest paint); every tile after it, lazily.
@@ -459,18 +486,9 @@ describe('SchemaViewerIsland', () => {
       expect(imgs[4]?.getAttribute('fetchpriority')).toBeNull()
     })
 
-    it('the List is one header-only Compact per entity, each a link, its name whole (R56)', () => {
+    it('a Catalog tile carries its entity’s lore under its cells', () => {
       const { container } = renderChassis()
-      fireEvent.click(screen.getByRole('button', { name: 'List' }))
-      expect(container.querySelector('.su-listing[data-view="list"]')).toBeTruthy()
-      const rows = container.querySelectorAll('.su-listing__cards > li')
-      expect(rows.length).toBe(chassisEntities().length)
-      expect(container.querySelector('.su-listing__tiles')).toBeNull()
-      expect(container.querySelector('.su-listing__cards a[href="/chassis/gopher/"]')).toBeTruthy()
-    })
-
-    it('carries each entity’s lore under its cells', () => {
-      const { container } = renderChassis()
+      openCatalog()
       const gopher = required(
         container.querySelector<HTMLElement>('.su-listing__tiles a[aria-label="Gopher"]'),
         'the Gopher tile'
@@ -487,14 +505,15 @@ describe('SchemaViewerIsland', () => {
       const status = required(container.querySelector('.su-rail__status'), 'the status line')
       const matching = chassisEntities().filter((e) => getTechLevel(e) === 2)
       expect(status.textContent).toContain(`${matching.length} of ${chassisEntities().length}`)
-      expect(container.querySelectorAll('.su-listing__tiles > li').length).toBe(matching.length)
+      expect(container.querySelectorAll('tbody tr').length).toBe(matching.length)
       fireEvent.click(screen.getByRole('button', { name: 'Remove Tech Level 2' }))
       expect(container.querySelector('.su-rail__status')).toBeNull()
     })
 
     it(
-      'a schema with no art takes the wider art-less columns',
+      'a schema with no art takes the Catalog’s wider art-less columns',
       () => {
+        window.location.href = 'http://localhost/systems/?view=catalog'
         const systems = required(getModel('systems'), 'systems model').all()
         const { container } = render(
           <SchemaViewerIsland
@@ -509,7 +528,7 @@ describe('SchemaViewerIsland', () => {
       HEAVY
     )
 
-    it('a ?view=list or ?view=tree link elsewhere is ignored', () => {
+    it('a ?view=tree link elsewhere is ignored', () => {
       window.location.href = 'http://localhost/systems/?view=tree'
       const systems = required(getModel('systems'), 'systems model').all()
       const { container } = render(
@@ -519,12 +538,13 @@ describe('SchemaViewerIsland', () => {
           sources={getUniqueSources(systems)}
         />
       )
-      expect(container.querySelector('.su-listing[data-view="catalog"]')).toBeTruthy()
+      expect(container.querySelector('.su-listing[data-view="list"]')).toBeTruthy()
+      expect(container.querySelector('.su-listing[data-catalog]')).toBeNull()
     })
   })
 
-  // The abilities open on their Tree (each tree under its heading on its
-  // track); their Catalog is flat, by name.
+  // The abilities offer their Tree (each tree under its heading on its
+  // track) beside the List; their Catalog is flat, by name.
   describe('the abilities’ Tree', () => {
     const abilities = () => required(getModel('abilities'), 'abilities model').all()
     const renderAbilities = () =>
@@ -537,7 +557,7 @@ describe('SchemaViewerIsland', () => {
         />
       )
 
-    it('offers Catalog | Tree | List and opens on the Tree', () => {
+    it('offers List | Tree | Catalog, opens on the List, and the Tree heads each tree', () => {
       const { container } = renderAbilities()
       const views = required(
         container.querySelector<HTMLElement>('.su-rail__view'),
@@ -547,8 +567,10 @@ describe('SchemaViewerIsland', () => {
         within(views)
           .getAllByRole('button')
           .map((b) => b.textContent)
-      ).toEqual(['Catalog', 'Tree', 'List'])
-      expect(screen.getByRole('button', { name: 'Tree' }).getAttribute('aria-pressed')).toBe('true')
+      ).toEqual(['List', 'Tree', 'Catalog'])
+      expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true')
+      expect(container.querySelectorAll('tbody tr').length).toBe(abilities().length)
+      fireEvent.click(screen.getByRole('button', { name: 'Tree' }))
       expect(container.querySelector('section[aria-label="Forging Tree"]')).toBeTruthy()
     })
 
@@ -596,7 +618,7 @@ describe('SchemaViewerIsland', () => {
   })
 
   // The page hands the roll tables their top-level ids (`listingEntries`): the
-  // island lists those, in one flat Catalog, each CompactIndex with its lead.
+  // island lists those alone, in its List and in its Catalog.
   describe('the roll tables', () => {
     const tables = () => required(getModel('roll-tables'), 'roll-tables model').all()
     const listed = ['Core Mechanic', 'Callsign Table', 'Meteor Encounter']
@@ -614,16 +636,23 @@ describe('SchemaViewerIsland', () => {
       )
     }
 
-    it('lists only the ids it is handed, with no book headings, each with its lead', () => {
+    it('lists only the ids it is handed, with no book headings', () => {
+      const { container } = renderTables()
+      const names = [...container.querySelectorAll('tbody a')].map((a) => a.textContent)
+      expect(names.sort()).toEqual([...listed].sort())
+      expect(container.querySelectorAll('.su-listing__group').length).toBe(1)
+      // The rail counts what the listing lists.
+      expect(screen.queryByRole('searchbox', { name: 'Filter items by name' })).toBeNull()
+    })
+
+    it('its Catalog lists the same, each with its lead', () => {
+      window.location.href = 'http://localhost/roll-tables/?view=catalog'
       const { container } = renderTables()
       const tiles = [...container.querySelectorAll('.su-listing__tiles > li > a[aria-label]')]
       expect(tiles.map((tile) => tile.getAttribute('aria-label')).sort()).toEqual(
         [...listed].sort()
       )
-      expect(container.querySelectorAll('.su-listing__group').length).toBe(1)
       for (const tile of tiles) expect(tile.querySelector('p')?.textContent).toBeTruthy()
-      // The rail counts what the listing lists.
-      expect(screen.queryByRole('searchbox', { name: 'Filter items by name' })).toBeNull()
     })
   })
 })

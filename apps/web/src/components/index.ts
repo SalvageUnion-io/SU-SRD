@@ -145,7 +145,7 @@ export {
 export { EntitySearcher } from './compositions/EntitySearcher'
 export type { FooterFoot } from './compositions/Footer'
 export { Footer } from './compositions/Footer'
-// MOCK (front): the front door's pitch.
+// FrontPitch — a front page's pitch under its band: a value line, a sentence, its two actions.
 export { FrontPitch } from './compositions/FrontPitch'
 export type { NavDrawerCategory, NavDrawerItem } from './compositions/NavDrawer'
 export { NavDrawer } from './compositions/NavDrawer'

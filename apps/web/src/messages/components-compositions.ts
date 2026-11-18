@@ -56,4 +56,9 @@ export const compositionsCopy = messages({
   step: 'Step',
   openTheFilteredList: 'Open the filtered list',
   startHere: 'Start here',
+  results: 'Results',
+  kind: 'Kind',
+  tl: 'TL',
+  techLevel: 'Tech Level',
+  cost: 'Cost',
 })
