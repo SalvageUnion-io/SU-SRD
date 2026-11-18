@@ -3,8 +3,8 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * Nothing beside or under a strip (hard rule R6; `chips-and-actions.md` C1,
- * C8; EDL E8) as the rendered page draws it. In every entity list item, every
+ * Nothing beside or under a strip (C8,
+ * C8; ruleset §1.5) as the rendered page draws it. In every entity list item, every
  * control belongs to an entity and sits in that entity's chip group
  * (`[data-chip-group]`, `Chips`): its state, uses and actions inlined last,
  * after the cost. `findStripControls` returns one per control that does

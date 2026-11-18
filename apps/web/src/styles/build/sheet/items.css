@@ -1,5 +1,5 @@
 /* ── A sheet item's state, uses and actions (`SheetItemLine`) ride its
-      Mini's chip group (C8, hard rule R6), at the Mini's Mini Size; a
+      Mini's chip group (C8), at the Mini's Mini Size; a
       Mini button there is drawn a chip's height (`entity-forms.css`). ── */
 
 /* The condition is the tri-state `StatusBadge`, drawn at the chip's height;
@@ -93,7 +93,7 @@
 }
 
 /* Each ability fills its column and never widens it: its head's chips fill
-   or overflow beside its name, as anywhere (R37). */
+   or overflow beside its name, as anywhere (C2b). */
 .su-pilot-trees .su-ability-track > li,
 .su-pilot-trees .su-ability-track__tier > * {
   flex: 1 1 auto;

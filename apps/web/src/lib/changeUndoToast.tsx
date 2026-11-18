@@ -16,7 +16,7 @@ import { toast, tokens } from '../components/index'
 /** The value each number's open line started from, by its key. */
 const origins = new Map<string, number>()
 
-/** A value's change is a glyph at the line's Size (R23), never a text arrow. */
+/** A value's change is a glyph at the line's Size (K11), never a text arrow. */
 const GLYPH = {
   display: 'inline-block',
   margin: `0 ${tokens.space[4]}`,

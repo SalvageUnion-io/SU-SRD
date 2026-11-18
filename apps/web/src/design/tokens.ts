@@ -58,7 +58,7 @@ export const size = {
 } as const
 
 /**
- * The icon Sizes (chrome K11, hard rule R23): a glyph is its line's Size, Mini
+ * The icon Sizes (chrome K11): a glyph is its line's Size, Mini
  * 12px on a chip line, Compact 14px on a button or bar line, Full 18px on a
  * page field or primary action, always at lucide's default stroke (2). Numbers,
  * since lucide's `size` takes one. No stylesheet twin: an icon's size is its
@@ -94,7 +94,7 @@ export const shadow = {
 } as const
 
 /**
- * Motion (chrome.md K3): `fast` for a state change (colour, opacity, a
+ * Motion (chrome K3): `fast` for a state change (colour, opacity, a
  * shadow), `base` for a move (transform, a slide, a float), `phase` a screen's
  * phase changing (Play's bar and foot recolouring with the Situation), `loop`
  * the period of a loading loop (`--dur-*`).
@@ -110,7 +110,7 @@ export const duration = {
 export const ease = 'cubic-bezier(0.4, 0, 0.2, 1)'
 
 /**
- * The breakpoint ladder (chrome.md K2), phone-first: a stylesheet writes
+ * The breakpoint ladder (chrome K2), phone-first: a stylesheet writes
  * `(width >= 40rem)` and its complement `not (width >= 40rem)`, media and
  * container queries alike; a script builds its query here (`widthAtLeast`).
  * No stylesheet twin: a custom property cannot stand in a query.
@@ -195,7 +195,7 @@ export const tracking = {
  *
  * The radius ladder is a *closed* role vocabulary: 3px is `card`, the one
  * rounding for a frame; there is no second (`tokens/radius-panel`, hard rule
- * R13). A new radius names its role here rather than a raw value.
+ * §4.4). A new radius names its role here rather than a raw value.
  */
 export const radius = {
   pip: '1px',
@@ -352,9 +352,8 @@ const base = {
   /** Banner's caution wash — the advisory fill behind its caution border. */
   caution25: 'rgb(215 195 125 / 0.25)',
 
-  // — Cargo (storage) accent pair —
+  // — Cargo (storage) accent —
   cargo: 'rgb(156, 122, 62)',
-  cargoPale: 'rgb(239, 230, 212)',
 
   // — Sheet "deep" tones that are literals rather than aliases —
   /** A LITERAL holding ink's value, never an alias of `rust`: rust means "do

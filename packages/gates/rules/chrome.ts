@@ -1,6 +1,6 @@
 /**
  * Chrome laws — the `chrome` rule set of `tools/check-rule-sets.ts`, the
- * machine-checkable laws of `docs/design-system/chrome.md`.
+ * machine-checkable laws of `docs/design-system/hard-rules.md`'s chrome.
  *
  * ## One ground signal (chrome K1)
  *
@@ -20,7 +20,7 @@
  * - `paper-mix`: paper on ink is `--color-paper-NN` alone, never a
  *   `color-mix()` fading paper into transparent (a second, unlisted palette).
  *
- * ## One focus ring (hard rule R28, chrome K9)
+ * ## One focus ring (chrome K9)
  *
  * Every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in
  * ink, Play included. Six variants grew beside it (an offset outline, a
@@ -34,7 +34,7 @@
  *   link, a search field's width) but paints no indicator of its own. A
  *   focused element's sibling (`:focus ~ label`) is not its indicator.
  *
- * ## Three dialog widths (hard rule R24, chrome K7)
+ * ## Three dialog widths (chrome K7)
  *
  * `ModalShell` is narrow (28rem), default (48rem) or page (72rem), chosen by
  * its `width` prop, which takes only those three (the type system holds
@@ -44,7 +44,7 @@
  *   naming a `dialog`, `modal` or `popup`, or `[role=dialog]`) sets a
  *   `max-width` / `max-inline-size`.
  *
- * ## A notice has one job (hard rule R20, chrome K5)
+ * ## A notice has one job (chrome K5)
  *
  * A toast reports an act, from the one toaster per document; a `Banner` holds
  * a lasting condition, and offline is one notice in one wording (the bar's
@@ -75,7 +75,7 @@
  *   which owns its nav.
  * - `step-current`: `aria-current="step"` only in `WizShell`.
  *
- * ## Stats render through Stat (hard rule R36, ruleset §3.7)
+ * ## Stats render through Stat (ruleset §3.7)
  *
  * Every `label | value` is a `Stat`, never hand-assembled text.
  *
@@ -99,7 +99,7 @@
  * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
  *
  * `slab-section` and `slab-style`, read off the JSX's shape: `chromeMarkup.ts`,
- * as is `raw-dl` (hard rule R36): a JSX `<dl>`, `<dt>` or `<dd>` outside the
+ * as is `raw-dl` (ruleset §3.7): a JSX `<dl>`, `<dt>` or `<dd>` outside the
  * Stat atoms.
  *
  * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
@@ -478,35 +478,35 @@ const RULES: ChromeRule[] = [
   {
     id: 'focus-ring',
     mode: 'zero',
-    rule: 'hard rule R28 (chrome K9) — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
+    rule: 'chrome K9 — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
     fix: 'Give the element `FOCUS_RING` (`su-focus-ring`), or make the rule `outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow)` and nothing else; move a hover colour, underline or border to a `:hover` rule of its own. A clipped element draws the ring on its frame with `:has(… :focus-visible)`.',
     scan: scanFocusRing,
   },
   {
     id: 'dialog-width',
     mode: 'zero',
-    rule: "hard rule R24 (chrome K7) — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
+    rule: "chrome K7 — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
     fix: 'Delete the cap and pass `ModalShell` `width="narrow"` (a confirm, a short prompt, a picker of one thing), `"default"` (the rest) or `"page"` (the detail Page, or a searcher that shows one).',
     scan: scanDialogWidth,
   },
   {
     id: 'one-toaster',
     mode: 'zero',
-    rule: 'hard rule R20 (chrome K5) — one toaster per document: the one `<Toaster` is the one `ToasterMount` draws',
+    rule: 'chrome K5 — one toaster per document: the one `<Toaster` is the one `ToasterMount` draws',
     fix: "Render `<ToasterMount />` where a surface needs toasts (the app root, an SRD island that toasts); it shares the document's one toaster. Never render `<Toaster` outside components/containers/Toaster.tsx.",
     scan: scanOneToaster,
   },
   {
     id: 'offline-copy',
     mode: 'zero',
-    rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `SyncBadge` in the bar',
+    rule: 'chrome K5 — offline is one notice in one wording, `SyncBadge` in the bar',
     fix: 'Withdraw the control or say the consequence here ("That change was not saved") and leave the condition to `SyncBadge`, which is in the bar whenever the app is offline.',
     scan: scanOfflineCopy,
   },
   {
     id: 'roll-tier',
     mode: 'zero',
-    rule: "hard rule R20 (ruleset §3.4, chrome K5) — the roll tiers are the Discord bot's; no web surface or notice wears one",
+    rule: "chrome K5 (ruleset §3.4) — the roll tiers are the Discord bot's; no web surface or notice wears one",
     fix: 'A state is `statusOk` / `statusWarn` / `statusBad` (`--color-status-*`); a roll result is the readout and the row mark, the same for every outcome; a notice is in ink. The bot reads `DISCORD_ROLL_ACCENT`.',
     scan: scanRollTier,
   },
@@ -561,7 +561,7 @@ const RULES: ChromeRule[] = [
   {
     id: 'stat-text',
     mode: 'zero',
-    rule: 'hard rule R36 (ruleset §3.7) — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
+    rule: 'ruleset §3.7 — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
     fix: 'Render `<Stat label="SP" value={n} />` (with `max` for a reading out of a maximum, `size` for the line); in a sentence, say it in words around the number ("4 Hit Points"), never as a label and a value.',
     scan: (root) => jsxSources(root).flatMap(([rel, text]) => statTextFindings(rel, text)),
   },

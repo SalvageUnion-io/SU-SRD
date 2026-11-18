@@ -9,7 +9,7 @@
  * A bay that blocks one is named on its line (Pilot Bay, Trading Bay), never a
  * gate: the table rules it. A Mini one a line in the list (ruleset §1.3;
  * `playLineModel`, these being no reference entity), its chips and controls
- * in its chip group (R6); the Rumour table rolled is its contentful body,
+ * in its chip group (C8); the Rumour table rolled is its contentful body,
  * plain content (N3, play.md §12).
  */
 

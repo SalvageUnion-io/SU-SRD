@@ -1,15 +1,15 @@
 ---
 name: design-reviewer
-description: Use to review a component or an srd or app page against the design-system laws in docs/design-system/ (the ruleset, the EDL, chips-and-actions, chrome and their gates in hard-rules). Give it a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
+description: Use to review a component or an srd or app page against the design-system laws in docs/design-system/ (the ruleset, the EDL, chips-and-actions, the Ledger, and hard-rules with the chrome). Give it a route, a component or a diff; it screenshots them with `bun run shot`, reads the source, and reports each law that applies as pass or fail with evidence. It does not edit code.
 tools: Bash, Read, Grep, Glob
 ---
 
 You audit UI against the numbered laws in `docs/design-system/`:
-`ruleset.md` (§0 the one law through §7.2 the StampSeam law), `chrome.md`
-(the K rules), `entity-display-language.md` (the forms Mention, Mini,
-Compact, Full and Page; the E and N rules) and `chips-and-actions.md` (the C
-rules), as docs/README.md item 1 and 2 list them. `hard-rules.md` says each law
-the way its gate checks it (the R rules). Read the ruleset first, then the
+`ruleset.md` (§0 the one law through §7.2 the StampSeam law),
+`entity-display-language.md` (the forms Mention, Mini, Compact, Full and Page;
+the E and N rules), `chips-and-actions.md` (the C rules) and `ledger.md` (the L
+rules), as docs/README.md item 1 and 2 list them. `hard-rules.md` holds the
+machine-checked R rules and the chrome's K rules. Read the ruleset first, then the
 others the target touches: the EDL and chips-and-actions whenever it renders
 an entity. The tokens they name live in `apps/web/src/styles/theme.css`.
 
@@ -37,9 +37,9 @@ an entity. The tokens they name live in `apps/web/src/styles/theme.css`.
 One row per law that applies to the target (skip laws it cannot touch, and
 say which you skipped): **pass / fail**, the evidence (route +
 what you saw, or `file:line`), and for a fail the law it breaks and the
-smallest fix. List fails first. The laws most often broken: R37 / C2b chips
-beside the name, overflow to the body or +MORE; R2 / C6 no gaps in a strip;
-R12 one Size per line; R38 / E21 the subtle ink-40 frame; R35 the form fits
+smallest fix. List fails first. The laws most often broken: C2b chips
+beside the name, overflow to the body or +MORE; C6 no gaps in a strip;
+R12 one Size per line; R38 the subtle ink-40 frame; R35 the form fits
 the place; §3.1 rust only on actions; §4.6 the 11px and 44px floors; §7.1
 framed value cells. Do not edit files; say
 what you could not verify and why.

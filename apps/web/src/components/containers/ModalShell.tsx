@@ -42,7 +42,7 @@ type ModalShellProps = {
    */
   tone?: 'action' | 'danger'
   /**
-   * One of the three dialog widths (chrome K7, hard rule R24), and nothing
+   * One of the three dialog widths (chrome K7), and nothing
    * else: `'narrow'` (28rem) for a confirm, a short prompt or a picker of one
    * thing; `'default'` (48rem) for the rest; `'page'` (72rem) for the detail
    * Page and the searcher that shows one. There is no class or style escape:

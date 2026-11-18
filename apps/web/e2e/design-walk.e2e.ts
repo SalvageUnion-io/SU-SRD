@@ -82,7 +82,7 @@ function designGates(page: Page): Gate[] {
        * The chip-strip law (ruleset §4.7, `_chipStrips.ts`). A fault's rule is
        * its kind: `size`, `gap`, `flush`, `cost`, `clip` or `lines`. The seeded
        * Game's long name holds a Training Bay Compact's Game chip inside its
-       * Compact at a page's three columns (R3).
+       * Compact at a page's three columns (C5).
        */
       gate: 'chip-strips',
       scan: async ({ where }) => place(where, await findChipStrips(page)),
@@ -129,10 +129,10 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R55, hierarchy at render (`_hierarchy.ts`): the type ladder
+       * Ruleset §4.8, hierarchy at render (`_hierarchy.ts`): the type ladder
        * (§4.8), each form's title and Slab rung (E24, §4.9), the heading
        * outline (E25), one sub-section rung (R53), the emphasis ladder
-       * (§3.13), a TitledBox's whole title (C12) and the two measures (§1.10).
+       * (§3.13), a TitledBox's whole title (C5) and the two measures (§1.10).
        */
       gate: 'hierarchy',
       scan: async ({ family, width, where }) =>
@@ -144,7 +144,7 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R63, a compared or picked list is one Ledger (ledger.md L1
+       * Ledger L9, a compared or picked list is one Ledger (ledger.md L1
        * to L9, `_ledger.ts`): one frame, the title on its tab with no Slab
        * over it, head stamps in the stat order (§2.6), `—` for none, a picked
        * row inked; a head stamp sorts only on an SRD index.
@@ -170,7 +170,7 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R5, a linked unit is a relation chip (C11,
+       * C11, a linked unit is a relation chip (C11,
        * `_relationChips.ts`): no entity in a Compact's body and no Mini hung
        * under a Compact. Its copy half is the `copy` gate's banned role stamps
        * ("Assigned Mech", "Assigned Pilot").
@@ -233,8 +233,8 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R6, nothing beside or under a strip (`chips-and-actions.md`
-       * C1, C8; EDL E8, `_stripControls.ts`): every control in an entity list
+       * C8, nothing beside or under a strip (`chips-and-actions.md`
+       * C8; ruleset §1.5, `_stripControls.ts`): every control in an entity list
        * item is inside its entity's chip group, its state, uses and actions
        * inlined last after the cost; none sits beside the strip (`beside`) or
        * in the body under it (`under`). A sheet item's state, uses, actions and
@@ -245,7 +245,7 @@ function designGates(page: Page): Gate[] {
       baseline: [],
     },
     {
-      /** Hard rule R29: no tab or segment label overflows (`_tabLabels.ts`). */
+      /** Chrome K10: no tab or segment label overflows (`_tabLabels.ts`). */
       gate: 'tab-labels',
       scan: async ({ where }) => {
         labels += await countTabLabels(page)
@@ -259,7 +259,7 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R31, "Value cells and seams" (ruleset §7.1, §7.2,
+       * Ruleset §7.1 and §7.2, value cells and seams (
        * `_valueCells.ts`): every `Stat` value cell is paper with a 1px ink
        * frame (`fill`, `frame`), and every border-riding stamp centres on its
        * frame's border line (`seam`). The one seam stamp lives outside

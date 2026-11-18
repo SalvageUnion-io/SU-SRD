@@ -32,7 +32,7 @@ export function Tag({
   size?: Size
   /**
    * Alone on its line in a wrapping row, the chip narrows and its value wraps
-   * rather than being cut (E18): a relation in a Page's band or a sheet's
+   * rather than being cut (C5): a relation in a Page's band or a sheet's
    * stamps, whose value is a name of any length.
    */
   wrap?: boolean

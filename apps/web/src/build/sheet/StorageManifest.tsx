@@ -17,7 +17,7 @@
  * crawler's Hold sits inside the Storage Bay's card, so it is a section of
  * that bay: a Slab over its content, never a titled box (ruleset N5). The
  * counterpart is a `Box` holding the linked unit's relation chip
- * (`LinkedUnitLink`, R5), or, with none linked, the `EmptyState` that says why
+ * (`LinkedUnitLink`, C11), or, with none linked, the `EmptyState` that says why
  * the move waits.
  *
  * All transfer semantics live in the useCargo reducer — this component only

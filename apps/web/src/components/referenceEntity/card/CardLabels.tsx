@@ -11,7 +11,7 @@ import { LEGAL_STARTING_PATTERN, LEGAL_STARTING_PATTERN_NOTE } from './legalStar
  *
  * - `.su-ec-labels`: the stamps, then the HOMEBREW stamp.
  * - `__stamps`: short of room they wrap onto a second line; no stamp is ever
- *   cut to "…" (entity display language E18).
+ *   cut to "…" (C5).
  * - `__truncate` / `__lead`: a stamp that keeps its whole word (the Legal
  *   Starting Pattern; the seal or the caller's note).
  */

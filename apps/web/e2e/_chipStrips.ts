@@ -26,12 +26,12 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  *   item (the cost, the action) on the name's line and rightmost there. A
  *   head the fill never measured (no `data-fill-item`) fails too.
  * - **unclassed** a chip in no class lane: the strip is not drawn by `Chips`
- *   (`chips-and-actions.md` C2a, hard rule R4).
+ *   (C2).
  * - **order** a chip whose class comes before the one ahead of it: the strip
  *   goes back in the class order (C2: mark, rank, measure, economy, traits,
  *   relation, cost; then state, uses, menu), so a read chip follows the cost.
  * - **foot** a chip in a foot band (`[data-foot-band]`): a foot is text.
- * - **clip** a chip not whole inside its strip's visible box (R3, C3, C5):
+ * - **clip** a chip not whole inside its strip's visible box (C5, C3):
  *   the strip's own box, cut by its entity's frame and by every ancestor that
  *   hides its overflow. A chip past its Compact's edge, or cut by a Mini's pill,
  *   fails; only the name may give way.
@@ -39,7 +39,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **more** a +MORE chip that is not its strip's last chip, at the end of its
  *   lowest line (the visual bottom), or one that dropped the strip's cost (C5).
  *
- * Hard rule R37 (C2b, C5), every one failing:
+ * C2b (C5), every one failing:
  *
  * - **taller** a head whose chips make it taller: laid on one line beside its
  *   name (the name held at its width, so its own wrap is not counted), the
@@ -52,7 +52,7 @@ const READ_CHIP_CLASSES = CHIP_CLASSES.slice(0, CHIP_CLASSES.indexOf('cost') + 1
  * - **more-contentful** a +MORE on a contentful rendering (a contentful
  *   Mini, a head with an overflow row): its overflow is its body's first row.
  *
- * Hard rule R40 (E22), failing:
+ * EDL E22, failing:
  *
  * - **align** a head's name not at its left: room before it, on its line,
  *   that nothing (the art, the tier) fills (EDL E22).
@@ -75,11 +75,11 @@ const CHIP = [
   '.su-cost-edge',
   '.su-cost',
   // An action chip in the group (C8): a Compact's "⋯", and whatever fills its
-  // last slot (a Compact's Use, a host's controls; hard rule R6).
+  // last slot (a Compact's Use, a host's controls; C8).
   '.su-header-menu-trigger--overflow',
   '[data-chip-class="menu"] > *',
   // A live sheet item's condition and uses stepper, in the state and uses
-  // slots (C8, hard rule R6): each one chip.
+  // slots (C8): each one chip.
   '[data-chip-class="state"] > .su-sheet-item__condition',
   '[data-chip-class="uses"] > *',
 ].join(',')
@@ -342,7 +342,7 @@ function scan({
       }
     }
 
-    // CLIP: every chip whole inside what of its strip can be seen (R3).
+    // CLIP: every chip whole inside what of its strip can be seen (C5).
     const seen = visibleBox(root)
     for (const b of boxes) {
       const out =

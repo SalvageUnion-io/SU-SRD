@@ -103,7 +103,7 @@
 /* The index's sections on a wrapping line, each at least 15rem and growing
    to fill it (three across beside the sidebar), so a last line's sections
    take the whole line and none ends on an empty track (the fill-grid ruling).
-   Each keeps its own height: none is stretched to a taller neighbour (R64). */
+   Each keeps its own height: none is stretched to a taller neighbour (R61). */
 .su-home__index {
   align-items: flex-start;
   display: flex;
@@ -680,7 +680,7 @@
 }
 
 /* Under the band on a phone the rail is on the page ground, so an ink band's
-   controls there are the paper ground's again (chrome K1, hard rule R31): the
+   controls there are the paper ground's again (chrome K1, ruleset §7.1): the
    status in ink, and each `Segmented` (the view toggle, the open facets' Tech
    Level) its paper frame, ink rule and ink pressed plate, never the band's
    paper-on-ink on paper. */
@@ -789,10 +789,10 @@
 }
 
 /* The tier cards: side by side while each keeps 12.5rem, the widest tier's
-   head (LEGENDARY and its 3 TP, which never clip: R3; a card's container
+   head (LEGENDARY and its 3 TP, which never clip: C5; a card's container
    query hides its content's width from the row), stacked on a phone.
    A wrapping flex row, not a grid: the cards on a line share it evenly, each
-   as tall as its own text (R64: none stretches to its neighbour), and a card
+   as tall as its own text (R61: none stretches to its neighbour), and a card
    alone on the last line (Legendary under Core and Advanced, the Salvager's
    lone Core) grows to the full width rather than leaving half a row empty. */
 .su-class-brief__cards {

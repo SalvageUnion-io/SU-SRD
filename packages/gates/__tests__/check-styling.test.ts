@@ -798,7 +798,7 @@ describe('chrome rule set', () => {
     for (const rule of chromeLaws.rules) expect(found[rule.id]).toEqual([])
   })
 
-  test('one-toaster: a second `<Toaster`, or none, is found; a test may render its own (R20)', () => {
+  test('one-toaster: a second `<Toaster`, or none, is found; a test may render its own (K5)', () => {
     const second = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -816,7 +816,7 @@ describe('chrome rule set', () => {
     expect(none['one-toaster']).toHaveLength(1)
   })
 
-  test('offline-copy: the offline wording outside SyncBadge is found (R20)', () => {
+  test('offline-copy: the offline wording outside SyncBadge is found (K5)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -835,7 +835,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('roll-tier: a roll-tier token in a style object, a stylesheet or a test is found (R20)', () => {
+  test('roll-tier: a roll-tier token in a style object, a stylesheet or a test is found (K5)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -918,7 +918,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('focus-ring: every variant beside the one ring is found; the ring, a moved skip link and a sibling are not (R28)', () => {
+  test('focus-ring: every variant beside the one ring is found; the ring, a moved skip link and a sibling are not (K9)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -951,7 +951,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('dialog-width: a cap on a dialog, modal or popup is found; its parts and other caps are not (R24)', () => {
+  test('dialog-width: a cap on a dialog, modal or popup is found; its parts and other caps are not (K7)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...STYLING_BASE,
@@ -1057,7 +1057,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('stat-text: JSX text of a stat label before an expression is found, outside Stat (R36)', () => {
+  test('stat-text: JSX text of a stat label before an expression is found, outside Stat (§3.7)', () => {
     const lines = (rel: string, text: string) => statTextFindings(rel, text).map((f) => f.line)
     expect(
       lines(
@@ -1077,7 +1077,7 @@ describe('chrome rule set', () => {
     expect(lines('apps/web/src/components/atoms/Stat.tsx', '<span>SP {sp}</span>')).toEqual([])
   })
 
-  test('raw-dl: a <dl>, <dt> or <dd> outside the Stat atoms is found (R36)', () => {
+  test('raw-dl: a <dl>, <dt> or <dd> outside the Stat atoms is found (§3.7)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
@@ -1102,7 +1102,7 @@ describe('chrome rule set', () => {
     ])
   })
 
-  test('raw-table: a <table> outside the Ledger and the roll instrument is found (R63)', () => {
+  test('raw-table: a <table> outside the Ledger and the roll instrument is found (L9)', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,

@@ -3,7 +3,7 @@
  *
  * Each pattern is a user-made Compact (`<Entity size="compact">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, its "Build With This" the
- * Compact's last chip (C8, hard rule R6), also where its chassis is missing.
+ * Compact's last chip (C8), also where its chassis is missing.
  *
  * Data fetching: subscribes to usePatterns — patterns get
  * the same lazy hydration as every other collection.

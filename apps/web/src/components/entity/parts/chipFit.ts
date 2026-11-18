@@ -1,5 +1,5 @@
 /**
- * A CONTENTFUL MINI'S OVERFLOW (`chips-and-actions.md` C2b, C5, R37): its
+ * A CONTENTFUL MINI'S OVERFLOW (`chips-and-actions.md` C2b, C5): its
  * head is one line, its chips beside the name and
  * never on a line of their own, so they never make the head taller. What
  * does not fit there leaves the head for its body's first row (the body's
@@ -8,7 +8,7 @@
  * +MORE: its body has the room.
  *
  * The name keeps at least `min(9rem, 40%)` of the pill (ending in "…" past
- * that, E18's Mini exception); the chips take the rest. The plan is the
+ * that, C5's Mini exception); the chips take the rest. The plan is the
  * head's (`overflowPlan`, `chipFill.ts`), and so is the row's drawing
  * (`writeOverflowRow`). Plain DOM, no React: the client entry
  * (`islands.client.ts`) runs it on a static page, and `Mini` on the ones it

@@ -358,7 +358,7 @@ function ReferenceEntityCardInner({
   const hasSubLine = onPage && !!suggestedNode
 
   // The head's chip group carries the condition and every control, in its
-  // state and last slots (C8, hard rule R6), and the select seal on the
+  // state and last slots (C8), and the select seal on the
   // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
   const slots = cardStripSlots({ controls, status, subject: entityName })
   // A selected Card always wears the "Selected" seal. A Mini (level 2) is ring only.

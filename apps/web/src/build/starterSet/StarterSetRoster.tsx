@@ -154,7 +154,7 @@ function CrewColumns({ roster, confirm }: { roster: StarterRosterId; confirm: Co
             <RosterList>
               {builds.map((build) => (
                 <li key={build.id} style={ROW}>
-                  {/* Signed in, "Copy to…" is the Compact's last chip (C8, hard rule R6). */}
+                  {/* Signed in, "Copy to…" is the Compact's last chip (C8). */}
                   <StarterCard
                     kind={kind}
                     build={build}

@@ -494,7 +494,7 @@
 }
 
 /* A row of many options (a filter's chips, Play's effects) wraps onto more
-   lines inside its frame rather than scrolling them out of sight (EDL E18). */
+   lines inside its frame rather than scrolling them out of sight (C5). */
 .su-seg[data-wrap] {
   flex-wrap: wrap;
   overflow-x: visible;

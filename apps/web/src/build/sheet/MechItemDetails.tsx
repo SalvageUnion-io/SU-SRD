@@ -1,7 +1,7 @@
 /**
  * MechItemDetails — the Details control of an installed System or Module that
  * asks a choice (a turret's weapon, a body kit's fitting). It opens the item's
- * Page (E5, hard rule R6), where the options are chosen, and saves them on the
+ * Page (E5, C8), where the options are chosen, and saves them on the
  * mech by the item's slug (`Mech.itemChoices`), where Play reads them.
  */
 

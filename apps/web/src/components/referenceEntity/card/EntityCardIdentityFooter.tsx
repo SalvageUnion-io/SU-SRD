@@ -121,7 +121,7 @@ export function EntityCardIdentityFooter({
 
   return (
     <div
-      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      // A foot band is text, never chips (C10): `chip-strips.e2e.ts` reads it.
       data-foot-band=""
       // The head's speckle, on the band only (never on paper, R10).
       data-grain={onBand ? grain : undefined}

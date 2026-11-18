@@ -1,8 +1,8 @@
 /**
  * Control laws — the `controls` rule set of `tools/check-rule-sets.ts`: the
- * icons and the switching controls of `docs/design-system/chrome.md`.
+ * icons and the switching controls of `docs/design-system/hard-rules.md`'s chrome.
  *
- * ## Icons take their Size (hard rule R23, chrome K11)
+ * ## Icons take their Size (chrome K11)
  *
  * A glyph is its line's Size: Mini 12px, Compact 14px, Full 18px (`iconSize`
  * in `apps/web/src/design/tokens.ts`), at lucide's default stroke. Before this
@@ -20,7 +20,7 @@
  * where it is drawn only when that file imports it; the drawing component
  * passes `iconSize` itself.
  *
- * ## Tabs, Segmented, Toggle by job (hard rule R29, chrome K10)
+ * ## Tabs, Segmented, Toggle by job (chrome K10)
  *
  * `Tabs` switch what a region shows, `Segmented` sets a value, `Toggle` is one
  * on/off. Six controls overlapped before this: Tabs, a Tab-look `Toggle` in a
@@ -258,21 +258,21 @@ const RULES: ControlRule[] = [
   {
     id: 'icon-size',
     mode: 'zero',
-    rule: "hard rule R23 (chrome K11) — an icon is its line's Size, `iconSize` (Mini 12, Compact 14, Full 18), at lucide's stroke 2",
+    rule: "chrome K11 — an icon is its line's Size, `iconSize` (Mini 12, Compact 14, Full 18), at lucide's stroke 2",
     fix: 'Pass `size={iconSize.mini|compact|full}` (`tokens.iconSize` through the components index), the Size of the line the glyph sits on, and drop `strokeWidth`, `width`, `height` and any style-object width.',
     scan: scanIconSize,
   },
   {
     id: 'tab-role',
     mode: 'zero',
-    rule: 'hard rule R29 (chrome K10) — a row of tabs switches what a region shows, and is `Tabs`: `role="tablist"` and `role="tab"` live only in Tabs.tsx',
+    rule: 'chrome K10 — a row of tabs switches what a region shows, and is `Tabs`: `role="tablist"` and `role="tab"` live only in Tabs.tsx',
     fix: 'Compose `Tabs` › `TabList` › `Tab`, one `TabPanel` per tab. If the row sets a value rather than switching a region, it is a `Segmented`.',
     scan: (root) => scanSwitching(root)['tab-role'],
   },
   {
     id: 'pressed',
     mode: 'zero',
-    rule: 'hard rule R29 (chrome K10) — `aria-pressed` lives only in `Segmented` (options that set a value) and `Toggle` (one on/off)',
+    rule: 'chrome K10 — `aria-pressed` lives only in `Segmented` (options that set a value) and `Toggle` (one on/off)',
     fix: 'A row of options is `Segmented` › `SegmentedOption` (`wrap` for many); one on/off is `Toggle`. A single control another rule owns goes in ONE_ON_OFF (packages/gates/rules/controls.ts) with that rule named.',
     scan: (root) => scanSwitching(root).pressed,
   },

@@ -4,8 +4,8 @@ import { tablePeekAddress } from '../../entity/peekContext'
 import { CardRollTable } from './CardRollTable'
 
 /**
- * An entity's own ROLL TABLE as its Mini (EDL E14: Mini, Table, Roll the
- * Die), for a host that draws the entity as a Mini rather than a Card: a
+ * An entity's own ROLL TABLE as its Mini (hard rule R8: nested in a card, a
+ * Mini), for a host that draws the entity as a Mini rather than a Card: a
  * crawler bay's Trading Bay Table, on the line under the bay's Mini in its
  * `MiniGroup`, never inside the Mini (E6). Its name Peeks the rows; its
  * roll is in its strip, off while the entity is down. Nothing when the

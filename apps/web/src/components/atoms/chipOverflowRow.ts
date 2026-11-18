@@ -12,7 +12,7 @@ const FIT_ATTRIBUTES = ['data-fill-item', 'data-fill-line', 'data-fill-corner', 
 
 /**
  * Lay what left a contentful head in its body's first row (C2b): a copy of
- * each item that is out, in class order, each in a lane of its class (C2a),
+ * each item that is out, in class order, each in a lane of its class (C2),
  * so the row reads as a strip of its own; hidden while nothing is out. The
  * copies carry no ids, and nothing a fit wrote: what they link or Peek is
  * the document's (a link, the Peek's attributes), so they work as the chip.

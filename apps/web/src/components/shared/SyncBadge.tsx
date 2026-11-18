@@ -6,7 +6,7 @@ import { tokens } from '../index'
 
 /**
  * The sync badge (ADR-030 §1): the bar's one word on the connection, and the
- * only place the app words being offline (chrome K5, hard rule R20).
+ * only place the app words being offline (chrome K5).
  *
  * Shown only while a signed-in session is cut off: `offline` (the server
  * unreachable; own units still edit, into the outbox, and Games are

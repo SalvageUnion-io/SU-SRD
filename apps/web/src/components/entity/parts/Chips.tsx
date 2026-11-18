@@ -13,7 +13,7 @@ import { Tags } from './Tags'
 import type { TagItem } from './tagItems'
 
 /**
- * CHIPS — every chip strip (`chips-and-actions.md` C2a): a Mini's, a Compact's
+ * CHIPS — every chip strip (C2): a Mini's, a Compact's
  * or a contentful's head, a Page's band, an index Compact's, a TitledBox's or Slab's summary.
  * ONE group (E17), in THE class order (C2): the host's marks (a note,
  * HOMEBREW, Suggested), the rank (`TL | 2`), the measures in the stat order
@@ -30,7 +30,7 @@ import type { TagItem } from './tagItems'
  * neighbours, groups included. A lane carries how many
  * chips follow it (`--su-lane-end`), so a strip that fills from its
  * bottom-right corner orders its chips from the end (`--su-fill`). The group
- * wraps; it never clips a chip (E18).
+ * wraps; it never clips a chip (C5).
  *
  * One look on every band: an action's chips on the ink banner are the same
  * plates, size and cost box as an entity's on its tone band. There (the

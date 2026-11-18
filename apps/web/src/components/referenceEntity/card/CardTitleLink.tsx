@@ -9,11 +9,11 @@ import type { EntityLinkAttrs } from '../../entity/types'
 import { InsidePickContext } from './insidePick'
 
 const LINK = { kind: 'link' } as const
-/** In a Peek: the plate's one link (`data-peek-open`, R33), never a tab stop. */
+/** In a Peek: the plate's one link (`data-peek-open`, E16), never a tab stop. */
 const IN_PEEK = { 'data-peek-open': '', tabIndex: -1 } as EntityLinkAttrs
 
 /**
- * A card's NAME as the link to its own Page (R33), as a Mini's name is
+ * A card's NAME as the link to its own Page (E16), as a Mini's name is
  * (`.su-entity-mini__link`), stretched over its whole head in CSS (EDL E6) so the
  * band opens it and the body still reads: a nested card's,
  * and the Peek's, so an entity met inside another opens where it lives without
@@ -25,7 +25,7 @@ const IN_PEEK = { 'data-peek-open': '', tabIndex: -1 } as EntityLinkAttrs
  * surface has routes (the SRD); the app's patterns have no Page, so there it
  * stays text rather than opening the chassis's.
  *
- * In a Peek (`inPeek`) it is the plate's one link (R33, `data-peek-open`), out
+ * In a Peek (`inPeek`) it is the plate's one link (E16, `data-peek-open`), out
  * of the tab order: focus never moves into a Peek, and the trigger that opened
  * it is the keyboard's link to the same Page.
  */

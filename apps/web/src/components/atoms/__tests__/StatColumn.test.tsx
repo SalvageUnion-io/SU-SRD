@@ -16,7 +16,7 @@ describe('StatColumn', () => {
     )
     expect(pairs).toEqual(['Structure Points 12', 'Energy Points 4'])
     expect(list?.children[1]?.getAttribute('title')).toBe('Energy')
-    // No hand-built description list (ruleset §6.2, hard rule R36).
+    // No hand-built description list (ruleset §6.2, §3.7).
     expect(container.querySelector('dl, dt, dd')).toBeNull()
   })
 

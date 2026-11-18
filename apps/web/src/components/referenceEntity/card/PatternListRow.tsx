@@ -157,7 +157,7 @@ export function PatternList({
 }
 
 /**
- * One pattern at level 1, through the forms (EDL E15, hard rule R7): the
+ * One pattern at level 1, through the forms (hard rule R7): the
  * Compact's frame (`Box`, which stands in `CompactFrame`) under the Compact's
  * `Head` in the host's tone, the pattern's quoted name on its cut-out, then
  * the paper body: the pattern's opening paragraph as prose (a lead is an

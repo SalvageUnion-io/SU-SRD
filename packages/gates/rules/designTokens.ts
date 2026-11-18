@@ -19,7 +19,7 @@
  * ## Every rule is zero
  *
  * Every rule here is `zero`: any finding fails, and none has a baseline entry.
- * `raw-spacing` and `off-scale-space` (R13) were ratchets, burned to zero
+ * `raw-spacing` and `off-scale-space` (§4.4) were ratchets, burned to zero
  * before 4.0.0; the 10px rung `off-scale-space` counted is gone from the scale.
  * `rust-allowlist` (§3.1), `type-floor` (§4.6) and `texture-placement` (§3.5)
  * hold the Workshop Manual canon the ruleset ratifies. The Discord bot's
@@ -297,7 +297,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-tracking',
     mode: 'zero',
-    rule: 'ruleset §4.2 — the tracking ladder is tokens only (R13)',
+    rule: 'ruleset §4.2 — the tracking ladder is tokens only (§4.4)',
     // Letter-spacing is a five-rung ladder; a literal `0.1em` is a sixth rung
     // nobody chose. `0`, `normal` and the CSS-wide keywords are not tracking.
     fix: 'Use a rung of the ladder: `tracking.<rung>` in a style object, `var(--tracking-<rung>)` in a stylesheet — `capsTight` (0.04em) the label default, `capsSnug` (0.06em) at the 11px floor, `caps` (0.08em) chips, `capsWide` (0.12em) header stamps, `eyebrow` (0.22em) the brand caption. Body text takes no tracking (`normal`).',
@@ -307,7 +307,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'size-literal',
     mode: 'zero',
-    rule: 'ruleset §4.7 — a control height is a Size token (R13)',
+    rule: 'ruleset §4.7 — a control height is a Size token (§4.4)',
     // 44, 32 and 18px (2.75, 2 and 1.125rem) are the Full, Compact and Mini
     // Sizes. Spelled as a literal, a height stops following the Size: the
     // control drifts from its siblings when the token moves.
@@ -328,7 +328,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'ink-mix',
     mode: 'zero',
-    rule: 'ruleset §4.1 — the ink ramp is warm ink at opacity, one rung per shade (R13)',
+    rule: 'ruleset §4.1 — the ink ramp is warm ink at opacity, one rung per shade (§4.4)',
     // A `color-mix()` of ink is a shade the ramp does not list: a second
     // spelling of `--color-ink-NN`, or an opaque grey, which §4.1 rules out.
     fix: 'Use a rung of the ink ramp: `color.ink<NN>` / `var(--color-ink-<NN>)` (85, 75, 60, 55, 50, 40, 35, 30, 20, 15, 10, 8, 5). It is translucent over whatever ground it sits on; a shade with no rung takes the nearest one.',
@@ -338,9 +338,9 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-border-width',
     mode: 'zero',
-    rule: 'ruleset §4.3 — the border map, one meaning per weight (R13)',
+    rule: 'ruleset §4.3 — the border map, one meaning per weight (§4.4)',
     // Outlines are not on the map: the forced-colours fallback is a
-    // transparent outline, and focus is R28's ring.
+    // transparent outline, and focus is K9's ring.
     fix: 'Use the weight for the role: `borderWidth.entity` / `var(--bw-entity)` (3px, a full card), `entityCompact` / `--bw-entity-compact` (2px, a Card below full, a Compact), `pill` / `--bw-pill` (2px), `chrome` / `--bw-chrome` (1.5px, controls), `hairline` / `--bw-hairline` (1px, value-cell frames and table rules).',
     pattern: declaration(
       'border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:start|end))?)?(?:-width)?',
@@ -351,7 +351,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-radius',
     mode: 'zero',
-    rule: 'ruleset §4.4 — square entity frames, 3px for everything that frames or floats (R13)',
+    rule: 'ruleset §4.4 — square entity frames, 3px for everything that frames or floats',
     fix: 'Use `radius.card` / `var(--radius-card)` (3px: a button, field, Box, dialog, popup, toast), `calc(var(--radius-card) - <frame>)` inside a frame; an entity frame or stamp sets none (square); `pip` and `badge` for those two.',
     pattern: declaration(
       'border(?:-(?:top|bottom|start|end)-(?:left|right|start|end))?-radius',
@@ -362,7 +362,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'radius-panel',
     mode: 'zero',
-    rule: 'ruleset §4.4 — one rounding for a frame: 3px, `radius.card` (R13)',
+    rule: 'ruleset §4.4 — one rounding for a frame: 3px, `radius.card`',
     // The 6px `panel` rung was a second frame rounding: a Panel, a pick card
     // and a doc page's aside wore it while every other frame was 3px. Its
     // token is deleted; this keeps a spelling of it from coming back, in a
@@ -373,7 +373,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-shadow',
     mode: 'zero',
-    rule: 'chrome K4 / ruleset §4.4 — one lift, in warm ink, for whatever floats (R26)',
+    rule: 'chrome K4 / ruleset §4.4 — one lift, in warm ink, for whatever floats',
     // Four hand-rolled lifts (two of them neutral black) were four depths of
     // "floating". The focus ring is `--focus-ring-shadow`, a custom property,
     // so it never reaches this pattern; rings and inset frames cast nothing
@@ -387,7 +387,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-z-index',
     mode: 'zero',
-    rule: 'chrome K4 — above the page, z-index comes from `layer` (R26)',
+    rule: 'chrome K4 — above the page, z-index comes from `layer`',
     // 0–3 is a component's own stacking (a stamp over the frame it rides);
     // anything above competes with the page's layers and belongs to one.
     fix: 'Above the page, use a layer: `layer.<name>` / `var(--z-<name>)` — sticky (40), popover (45), overlay (50), menu (60), skip (100). Within a component, stack with 0–3.',
@@ -400,7 +400,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'raw-spacing',
     mode: 'zero',
-    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between (R13)',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block, 16 or 24px between',
     // A literal off the scale (3px, 7px, 22px, 0.6em…) is a layout move to
     // review, not a find-and-replace. A fit that is not spacing (a -1px
     // overlap, a face's side bearing, room under a pinned bar) takes a
@@ -415,7 +415,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'off-scale-space',
     mode: 'zero',
-    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block; `space[10]` is off it (R13)',
+    rule: 'ruleset §4.4 — spacing on the scale: {2, 4, 6, 8, 12}px inside a block; `space[10]` is off it',
     // The token scale named a 10px rung (`space[10]`, `--space-10`), which
     // `raw-spacing`, reading literals, never saw: the chip wells drew 10px of
     // padding beside 8px through a token. Burned to zero, the rung is gone;

@@ -225,7 +225,7 @@ export function PilotEquipmentItem({
     seedSelections,
     store
   )
-  // Edit: Details opens the item's Page (E5, hard rule R6), where its choices
+  // Edit: Details opens the item's Page (E5, C8), where its choices
   // are made; nothing expands under the line.
   const [detailsOpen, setDetailsOpen] = useState(false)
 

@@ -4,7 +4,7 @@ import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
 /**
- * The Ledger at render (ledger.md L1 to L9, hard rule R63): every `.su-ledger`
+ * The Ledger at render (ledger.md L1 to L9): every `.su-ledger`
  * on the page. Each fault is `<rule>: <detail>`, its rule one of
  *
  * - `frame` (L1): a Ledger inside a Ledger's row, or a row that frames or

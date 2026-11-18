@@ -265,7 +265,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
       chips={
         // The kind and whose it is are marks; what it opens from, its relation (C2).
         // The paths are one list of Compacts (Compact frames, one width): its lines
-        // share every class's lane (C6, R2).
+        // share every class's lane (C6).
         <Chips
           size="mini"
           chips={{ durations: [], facts: [], tags: [] }}
@@ -283,7 +283,7 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   return (
     <li className="su-class-path" data-kind={kind.toLowerCase()}>
       {/* The Compact's frame (`Box`, standing in `CompactFrame`) under the Compact's
-          `Head`: drawn through the forms (EDL E15), never a frame of its own.
+          `Head`: drawn through the forms (hard rule R7), never a frame of its own.
           Flush, so the foot's rule spans the frame. */}
       <Box
         body="flush"

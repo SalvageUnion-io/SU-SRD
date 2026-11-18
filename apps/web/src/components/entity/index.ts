@@ -1,5 +1,5 @@
 /**
- * The entity module's face (hard rule R7, EDL E15): the parts of the forms
+ * The entity module's face (hard rule R7): the parts of the forms
  * that the rest of the library composes into its own strips and heads. A
  * Slab's summary and a titled box's band are `Chips`, a titled container's band
  * is the Compact's `Head` and its art window the Compact's `Art`, a dialog wears an

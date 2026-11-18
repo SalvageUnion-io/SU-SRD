@@ -6,7 +6,7 @@
  * where it has one, `UNITS | 3` in the loadout lane, and a bulk lot whose
  * count is not its units its quantity as the state (`× | 6`). The host's moves
  * (Stow, Load, Unload, Unstow) are the chip group's last slot, at the Mini's
- * Size (R6); in Read there are none.
+ * Size (C8); in Read there are none.
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'

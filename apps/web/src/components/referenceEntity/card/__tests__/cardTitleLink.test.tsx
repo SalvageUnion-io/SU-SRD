@@ -1,7 +1,7 @@
 /**
  * Linked names: a card met inside another, nested or the
  * Peek's, names its own Page, as a Mini's name does. The Peek's is its
- * plate's one link (R33), out of the tab order.
+ * plate's one link (E16), out of the tab order.
  */
 import { describe, expect, mock, test } from 'bun:test'
 import { fireEvent, render, screen } from '@testing-library/react'

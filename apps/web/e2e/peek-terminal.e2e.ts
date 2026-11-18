@@ -5,14 +5,14 @@ import { searchPeekTrigger } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Hard rule R33, "A Peek is terminal" (ruleset §1.6; EDL E16), on the rendered
+ * EDL E16, "A Peek is terminal" (ruleset §1.6), on the rendered
  * page: open a Peek of every kind that has one and read its plate
  * (`[data-peek-popup]`). A finding's rule is one of:
  *
  * - `control`: a button, a link (`a[href]`), a field (`input`, `select`,
  *   `textarea`), a `role="button"` or `role="link"`, or anything else in the
  *   tab order: nothing on a Peek acts, but its name.
- * - `open`: the one exception (R33), the
+ * - `open`: the one exception (E16), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.

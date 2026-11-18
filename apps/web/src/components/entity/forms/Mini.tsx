@@ -43,7 +43,7 @@ export type MiniSlots = {
   tint?: string
   /**
    * What it is linked to, as relation chips before the cost (C11): a crewmate's
-   * `MECH | Scrapper`. Where its host names it (Play's Crew, R5), never a stamp.
+   * `MECH | Scrapper`. Where its host names it (Play's Crew, C11), never a stamp.
    */
   relations?: TagItem[]
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
@@ -132,7 +132,7 @@ function ToggleSurface({
  * MINI — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
  * a slot under 12rem (E3). Its chips are the budget its container's context
  * names (`tokenChips`, C3 and C4), then the cost box; an ability's tier numeral sits before
- * its name, as on its band. Its head is always one row (E18): every chip of
+ * its name, as on its band. Its head is always one row (C5): every chip of
  * its static budget whole (C3), never dropped or clipped, and the name takes
  * the rest, ending in "…" when that is too little (C5). Its kind is never
  * stamped (E9): screen readers hear it after the name (`KindLabel`); a player
@@ -266,7 +266,7 @@ export function Mini({
           from a thin strip of paint to its foot (a Compact's head, at Mini size). */}
       <span className="su-entity-mini__notch">
         {acts ? (
-          // The name is the link and the Peek trigger (C8, R6): the controls
+          // The name is the link and the Peek trigger (C8): the controls
           // sit beside it in the chip group, never inside a link.
           surface(
             'su-entity-mini__name su-entity-mini__link',

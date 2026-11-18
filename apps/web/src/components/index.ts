@@ -49,7 +49,7 @@ export { CloseButton } from './atoms/CloseButton'
 export { Conditions } from './atoms/Conditions'
 // Copied — a copy control's own Check swap and polite status (chrome K5).
 export { CopiedIcon, CopiedStatus } from './atoms/Copied'
-// capsLabel — the one caps recipe (R14): a label in caps asks it for its class.
+// capsLabel — the one caps recipe (§3.12): a label in caps asks it for its class.
 export type { CapsLabelProps } from './atoms/capsLabel'
 export { capsLabel } from './atoms/capsLabel'
 export type { ChapterTone } from './atoms/chapterBandColor'
@@ -164,7 +164,7 @@ export {
 } from './compositions/ogCardText'
 // PickDialog — the one pick dialog (ruleset §6.6): Compacts in select mode, one radio group.
 export { PickDialog } from './compositions/PickDialog'
-// RollTableInstrument — THE roll table (EDL E14): a card's, a guide step's and
+// RollTableInstrument — THE roll table (hard rule R8): a card's, a guide step's and
 // the SRD roll-table page's bands and the app's Play tables, banded in the
 // surface tone
 export { RollTableInstrument } from './compositions/RollTableInstrument'
@@ -202,7 +202,7 @@ export { Grid } from './containers/Grid'
 // and Games menus, and the "⋯" overflow on a row.
 export type { HeaderMenuItem } from './containers/HeaderMenu'
 export { HeaderMenu } from './containers/HeaderMenu'
-// loadingCopy — the one "Loading <thing>…" wording Pending, Skeleton and RoutePending share (R22)
+// loadingCopy — the one "Loading <thing>…" wording Pending, Skeleton and RoutePending share (K6)
 export { loadingCopy } from './containers/loadingCopy'
 export { MasonryColumns } from './containers/MasonryColumns'
 // MiniGrid — contentful Minis as a masonry grid by the room it has (a sheet's
@@ -232,13 +232,13 @@ export type { StatItem } from './containers/statsBarTypes'
 // dialogs, wizard briefs, notices, a sheet's panels; RecoveryPanel is its
 // named variant.
 export { TitledBox } from './containers/TitledBox'
-// ToasterMount — the document's one Toaster (R20); `toast` raises an act's notice
+// ToasterMount — the document's one Toaster (K5); `toast` raises an act's notice
 export { ToasterMount, toast } from './containers/Toaster'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,
 // never taken by their paths.
-// - `Chips`: every chip strip, in the class order (C2a), a host's own strip
+// - `Chips`: every chip strip, in the class order (C2), a host's own strip
 //   (a Play unit box's relation chips, C11) included.
 // - `Art`: a Compact's art window in its head, a `TitledBox`'s `art` (a sheet's chassis callout).
 // - `Head`: a Compact's band, cut out, the name on a paper tab and the
@@ -276,7 +276,7 @@ export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one subtle border (a crawler bay and its crew), no nesting
 export { MiniGroup } from './entity/forms/MiniGroup'
-// Ledger — a compared or picked list's one framed table (ledger.md L1 to L9, R63).
+// Ledger — a compared or picked list's one framed table (ledger.md L1 to L9).
 export type { LedgerColumn, LedgerRow, LedgerSelect, LedgerSort } from './entity/Ledger'
 export { Ledger } from './entity/Ledger'
 export type { LinkedUnit } from './entity/LinkedUnits'
@@ -306,7 +306,7 @@ export { EntityChoices } from './referenceEntity/card/EntityChoices'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity
 // pages and the app's detail dialog.
 export { EntityPageStamps } from './referenceEntity/card/EntityPageStamps'
-// EntityRollMini — an entity's own roll table as a Mini, under the entity's Mini (E14).
+// EntityRollMini — an entity's own roll table as a Mini, under the entity's Mini (R8).
 export { EntityRollMini } from './referenceEntity/card/EntityRollMini'
 // What an entity PAGE's chapter band and foot band say (`presentation="page"`)
 export type { EntityPageMeta } from './referenceEntity/card/entityPage'

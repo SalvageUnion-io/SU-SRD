@@ -68,8 +68,8 @@ const TAB_LIST = {
 } satisfies CSSProperties
 
 /**
- * A tab: an equal share of the row, its label whole (EDL E18, hard rule
- * R29). A label too long for its share widens its tab (no `minWidth: 0`) or
+ * A tab: an equal share of the row, its label whole (C5, hard rule
+ * K10). A label too long for its share widens its tab (no `minWidth: 0`) or
  * wraps between its words, never "…". The Compact Size, the Size of the
  * Play bar's buttons and the pinned switch that share the screen with it
  * (§4.7).

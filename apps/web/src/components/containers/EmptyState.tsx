@@ -105,7 +105,7 @@ const BODY_INHERIT = { ...BODY, color: 'currentcolor' } satisfies CSSProperties
 
 /**
  * EmptyState — the one empty state, its variant chosen by its place
- * (chrome.md K8), its copy "No <things> yet.":
+ * (chrome K8), its copy "No <things> yet.":
  *
  * - 'stamp' (default), on a Page or a sheet section: a **dashed** off-white
  *   panel (`dashed = fillable`), a **Stamp** headline, an explainer and **one

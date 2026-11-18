@@ -231,7 +231,7 @@ const STRIP_HIDDEN = {
   visibility: 'hidden',
 } satisfies CSSProperties
 
-/** The condensed name wraps rather than cutting to "…" (EDL E18). */
+/** The condensed name wraps rather than cutting to "…" (C5). */
 const NAME_STAMP = {
   display: 'block',
   maxWidth: '100%',
@@ -401,7 +401,7 @@ export function LiveSheet({
             )}
           </div>
 
-          {/* Each LINKED UNIT as its header-only Mini, never a chip (R5), on
+          {/* Each LINKED UNIT as its header-only Mini, never a chip (C11), on
             the right beside the sheet actions: a
             hop straight to that pilot / mech / crawler, not a jump link to a
             section at the foot of the page. They ride the condensed state with
@@ -452,7 +452,7 @@ export function LiveSheet({
         }
         aside={
           <>
-            {/* One `Chips` strip (C2a), each stamp in its class's lane: the
+            {/* One `Chips` strip (C2), each stamp in its class's lane: the
                 marks, the rank, what it is built as and who made it (the
                 relations), then the unit-out state. Nothing to stamp, none. */}
             <Chips
