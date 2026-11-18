@@ -33,13 +33,13 @@
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
+import type { Photo } from 'game-domain/schemas/photo'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
-import type { HeaderMenuItem } from '../../components/index'
+import { artOf, photoArt, sourceRelation } from '../../build/starterSet/starterShelves.model'
+import type { EntityFormModel, HeaderMenuItem, TagItem } from '../../components/index'
 import {
   Button,
-  capsLabel,
-  Entity,
   FieldError,
   HeaderMenu,
   RosterSkeleton,
@@ -47,8 +47,10 @@ import {
   Text,
   tokens,
 } from '../../components/index'
+import { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { resolveClass } from '../../lib/classRef'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -61,24 +63,32 @@ import {
   tableCapabilities,
 } from '../../lib/games/gameRoster'
 import { gauge, pool } from '../../lib/units/crewPair'
-import { VITAL } from '../../lib/units/readings'
-import { unitRowModel } from '../../lib/units/unitModel'
+import { techLevelReading, VITAL } from '../../lib/units/readings'
 import { newInGameHref } from '../../lib/wizard/fromGame'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
-import { readCrawler } from './crawlerReading.model'
+import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
 import { seatRows } from './seatRows.model'
 import { useRowActions } from './useRowActions'
 
-/** MOCK: the crew table's head row, paper caps on ink (the roll table's). */
-const HEAD_CAPS = capsLabel({ size: 'note' })
-
-/** MOCK (Working Manual F): the crew table's vitals, the Mediator screen's columns. */
-const CREW_VITALS = ['HP', 'SP', 'EP', 'Heat'] as const
+/**
+ * A pilot's face on the roster (E10, C11): their photo, else their Class's
+ * art, and their Class as a relation chip. Other rows draw as they were.
+ */
+function pilotLook(row: RosterRow): { art?: EntityFormModel['art']; relations?: TagItem[] } {
+  if (row.kind !== 'pilot') return {}
+  const classRef = typeof row.body.classRef === 'string' ? row.body.classRef : null
+  const pilotClass = classRef === null ? null : () => resolveClass(classRef)
+  const art =
+    photoArt(row.body.photo as Photo | undefined) ??
+    (pilotClass === null ? undefined : artOf('class', pilotClass))
+  const relations = pilotClass === null ? undefined : sourceRelation('Class', 'class', pilotClass)
+  return { ...(art ? { art } : {}), ...(relations ? { relations } : {}) }
+}
 
 type GameRosterProps = {
   gameId: string
@@ -87,6 +97,26 @@ type GameRosterProps = {
 }
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
+
+/* Masonry on desktop (two columns of at least 24rem, one on a phone): each
+   card sits right under the one above it in its column, so a short card
+   leaves no gap beside a tall one. The crawler spans both columns. */
+const LIST = {
+  columns: '2 24rem',
+  columnGap: tokens.space[12],
+  listStyle: 'none',
+  margin: 0,
+  padding: 0,
+} satisfies CSSProperties
+
+const ITEM = {
+  listStyle: 'none',
+  minWidth: 0,
+  breakInside: 'avoid',
+  marginBlockEnd: tokens.space[12],
+} satisfies CSSProperties
+
+const CRAWLER_ITEM = { ...ITEM, columnSpan: 'all' } satisfies CSSProperties
 
 const BODY = {
   display: 'flex',
@@ -163,6 +193,68 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const crawlerOf = new Map((listing?.crawlers ?? []).map((c) => [c._id as string, readCrawler(c)]))
 
   /**
+   * A row's readings and linked units: a pilot's seat (HP, its mech), a
+   * crawler's vitals, a mech's Tech Level; an assigned mech or crawler always
+   * shows its TL.
+   */
+  function rowChips(row: RosterRow): Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'> {
+    if (row.kind === 'crawler') {
+      const reading = crawlerOf.get(row.serverId)
+      return reading ? { readings: crawlerVitals(reading) } : {}
+    }
+    if (row.kind === 'mech') {
+      // MOCK (Working Manual F): a mech on its own row reads its vitals as one
+      // riding its pilot's row does, in the same order: TL, SP, EP, Heat.
+      const live = vitals?.mechs.find((m) => m._id === row.serverId)
+      return live == null
+        ? {}
+        : {
+            readings: [
+              ...techLevelReading(live.techLevel),
+              ...pool(VITAL.sp, live.currentSP, live.maxSP),
+              ...pool(VITAL.ep, live.currentEP, live.maxEP),
+              ...gauge(VITAL.heat, live.currentHeat, live.maxHeat),
+            ],
+          }
+    }
+    if (row.kind !== 'pilot') return {}
+    const seat = seatOf.get(row.serverId)
+    if (!seat?.pilot) return {}
+    const { mech, mechHref } = seat.pilot
+    const live = vitals?.pilots.find((p) => p._id === row.serverId)
+    const mechLive =
+      live?.mechId == null
+        ? undefined
+        : vitals?.mechs.find((m) => (m.linkId ?? m._id) === live.mechId)
+    return {
+      ...(seat.hp === null ? {} : { readings: [{ label: playGamesCopy('hp'), value: seat.hp }] }),
+      // The mech the pilot is assigned, its header-only Mini opening its sheet,
+      // never a chip, its live readings its chips;
+      // on foot there is none.
+      ...(mech === null
+        ? {}
+        : {
+            linked: [
+              {
+                key: 'mech',
+                kind: 'mech' as const,
+                name: mech,
+                href: mechHref ?? undefined,
+                readings: mechLive
+                  ? [
+                      ...techLevelReading(mechLive.techLevel),
+                      ...pool(VITAL.sp, mechLive.currentSP, mechLive.maxSP),
+                      ...pool(VITAL.ep, mechLive.currentEP, mechLive.maxEP),
+                      ...gauge(VITAL.heat, mechLive.currentHeat, mechLive.maxHeat),
+                    ]
+                  : [],
+              },
+            ],
+          }),
+    }
+  }
+
+  /**
    * A row's verbs about its place at this table, in its ⋯ menu: the Compact
    * itself opens the sheet in Build, where everything else about a unit is done.
    */
@@ -229,94 +321,42 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return [verbs, assign, danger]
   }
 
-  /**
-   * MOCK (Working Manual F): a unit's line of the crew table. The name is its
-   * header-only Mini, the door to its sheet; a pilot's mech is a Mini beside
-   * it, and the mech's SP, EP and Heat ride the pilot's line (`crew.vitals`).
-   */
-  function renderTableRow(row: RosterRow): ReactNode {
-    const seat = row.kind === 'pilot' ? seatOf.get(row.serverId) : undefined
-    const live = vitals?.pilots.find((p) => p._id === row.serverId)
-    const mechLive =
-      row.kind === 'mech'
-        ? vitals?.mechs.find((m) => m._id === row.serverId)
-        : live?.mechId == null
-          ? undefined
-          : vitals?.mechs.find((m) => (m.linkId ?? m._id) === live.mechId)
-    const crawler = row.kind === 'crawler' ? crawlerOf.get(row.serverId) : undefined
-    const of = (readings: readonly { value: string }[]) => readings[0]?.value ?? null
-    const cells: Record<(typeof CREW_VITALS)[number], string | null> = {
-      HP: seat?.hp ?? null,
-      SP: crawler
-        ? `${crawler.sp}/${crawler.maxSP}`
-        : mechLive
-          ? of(pool(VITAL.sp, mechLive.currentSP, mechLive.maxSP))
-          : null,
-      EP: mechLive ? of(pool(VITAL.ep, mechLive.currentEP, mechLive.maxEP)) : null,
-      Heat: mechLive ? of(gauge(VITAL.heat, mechLive.currentHeat, mechLive.maxHeat)) : null,
-    }
-    const mech = seat?.pilot?.mech ?? null
+  function renderRow(row: RosterRow): ReactNode {
     return (
-      <tr key={row.serverId}>
-        <th scope="row">
-          <Entity
-            size="mini"
-            context="roster"
-            model={unitRowModel({ kind: row.kind, name: row.name })}
-            mode={{ kind: 'link', href: rosterSheetHref(row) }}
-          />
-        </th>
-        <td>
-          {mech !== null ? (
-            <Entity
-              size="mini"
-              context="roster"
-              model={unitRowModel({ kind: 'mech', name: mech })}
-              mode={
-                seat?.pilot?.mechHref
-                  ? { kind: 'link', href: seat.pilot.mechHref }
-                  : { kind: 'read' }
-              }
+      <li key={row.serverId} style={row.kind === 'crawler' ? CRAWLER_ITEM : ITEM}>
+        <UnitRow
+          {...pilotLook(row)}
+          kind={row.kind}
+          name={row.name}
+          /* The primary crawler is where new crew is assigned (ADR-037), so
+             the list says which one it is. */
+          note={row.primary ? playGamesCopy('primary') : undefined}
+          /* The Compact is the door to the live sheet in Build: editable when
+             the row is yours to edit, read-only when it is a crewmate's. */
+          mode={{ kind: 'link', href: rosterSheetHref(row) }}
+          {...rowChips(row)}
+          /* MINE or UNASSIGNED sits right of the name, a label (ruleset §7.2):
+             never a stamp riding the frame. A crewmate's is The Game's to name. */
+          labels={
+            row.owner === null || !(row.owner.unassigned || row.owner.mine) ? undefined : (
+              <OwnerSeal
+                owner={row.owner}
+                assignable={row.can.assignSelf}
+                disabled={busy}
+                onAssign={() => rowActions.assignSelf(row)}
+              />
+            )
+          }
+          trailing={
+            <HeaderMenu
+              variant="overflow"
+              trigger={null}
+              label={playGamesCopy('moreFor', { name: row.name })}
+              sections={rowMenu(row)}
             />
-          ) : row.kind === 'pilot' ? (
-            <Text variant="hint">No mech</Text>
-          ) : null}
-        </td>
-        {CREW_VITALS.map((label) => (
-          <td key={label} data-num="" data-empty={cells[label] === null ? '' : undefined}>
-            {cells[label] === null ? (
-              '–'
-            ) : (
-              <span className="su-crew-table__num">{cells[label]}</span>
-            )}
-          </td>
-        ))}
-        <td>
-          {row.owner === null ? (
-            row.kind === 'crawler' ? (
-              <Text variant="hint">The crew's</Text>
-            ) : null
-          ) : row.owner.unassigned || row.owner.mine ? (
-            <OwnerSeal
-              owner={row.owner}
-              assignable={row.can.assignSelf}
-              disabled={busy}
-              onAssign={() => rowActions.assignSelf(row)}
-            />
-          ) : (
-            row.owner.label
-          )}
-        </td>
-        <td data-menu="">
-          <HeaderMenu
-            variant="overflow"
-            size="compact"
-            trigger={null}
-            label={playGamesCopy('moreFor', { name: row.name })}
-            sections={rowMenu(row)}
-          />
-        </td>
-      </tr>
+          }
+        />
+      </li>
     )
   }
 
@@ -381,34 +421,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             {playGamesCopy('nobodyHasBroughtAUnit')}
           </Text>
         ) : (
-          // MOCK (Working Manual F, principle 5): the crew reads as a table, a
-          // row a unit, its vitals in the Mediator screen's columns.
-          <div className="su-crew-table-scroll">
-            <table className="su-crew-table" aria-labelledby="crew-heading">
-              <thead>
-                <tr>
-                  <th scope="col" className={HEAD_CAPS}>
-                    Unit
-                  </th>
-                  <th scope="col" className={HEAD_CAPS}>
-                    Mech
-                  </th>
-                  {CREW_VITALS.map((label) => (
-                    <th key={label} scope="col" data-num="" className={HEAD_CAPS}>
-                      {label}
-                    </th>
-                  ))}
-                  <th scope="col" className={HEAD_CAPS}>
-                    Player
-                  </th>
-                  <th scope="col">
-                    <span className="su-sr-only">More</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>{rows.map(renderTableRow)}</tbody>
-            </table>
-          </div>
+          <ul aria-labelledby="crew-heading" style={LIST}>
+            {rows.map(renderRow)}
+          </ul>
         )}
       </SlabSection>
 
