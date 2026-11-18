@@ -5,7 +5,7 @@ import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/ru
 import { Callout, EmptyState, ReferenceEntityCard, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
-import type { PickColumn } from './pickLedger'
+import type { PickColumn } from './pickLedger.model'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 

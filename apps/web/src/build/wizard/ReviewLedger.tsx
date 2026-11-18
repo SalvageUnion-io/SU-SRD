@@ -7,8 +7,8 @@ import type { ChoiceSelections, RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { CiteLine, Ledger } from '../../components/index'
 import { chosenChips, modelOf } from './pickColumns'
-import type { PickColumn } from './pickLedger'
-import { ledgerColumns, WIZ_PAINT } from './pickLedger'
+import type { PickColumn } from './pickLedger.model'
+import { ledgerColumns, WIZ_PAINT } from './pickLedger.model'
 
 type ReviewLedgerProps<T extends RefMetaEntity> = {
   title: string

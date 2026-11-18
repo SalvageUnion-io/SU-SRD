@@ -11,7 +11,7 @@ import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
-import type { PickColumn } from '../wizard/pickLedger'
+import type { PickColumn } from '../wizard/pickLedger.model'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]

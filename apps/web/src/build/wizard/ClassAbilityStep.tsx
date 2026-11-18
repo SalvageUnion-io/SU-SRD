@@ -7,7 +7,7 @@ import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
 import { PickList } from './PickList'
 import { abilityColumns, choicesOf, chosenChips } from './pickColumns'
-import type { PickColumn } from './pickLedger'
+import type { PickColumn } from './pickLedger.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]

@@ -8,8 +8,8 @@
 //    stepper (ruleset §6.2). A row with a copy is inked.
 import type { ReactNode } from 'react'
 import { CiteLine, Ledger } from '../../components/index'
-import type { PickColumn } from './pickLedger'
-import { ledgerColumns, WIZ_PAINT } from './pickLedger'
+import type { PickColumn } from './pickLedger.model'
+import { ledgerColumns, WIZ_PAINT } from './pickLedger.model'
 
 type PickCount<T> = {
   /** The trailing column's stamp (`Qty`). */

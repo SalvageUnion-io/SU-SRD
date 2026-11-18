@@ -13,6 +13,7 @@ import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
+import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
@@ -75,6 +76,11 @@ export type LedgerSelect = {
   /** `always`: a row's detail opens under its line at every width; `narrow` (the default): only where no column stands beside the list. */
   detailAt?: 'narrow' | 'always'
 }
+
+/** The condensed caps a title, a name and the sums' label wear (`capsLabel`, R14). */
+const CAPS = capsLabel({ weight: 'inherit' })
+const TITLE_LINE = cn('su-ledger__title-line', CAPS)
+const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }))
 
 export type LedgerSort = { key: string; descending: boolean }
 
@@ -197,7 +203,7 @@ export function Ledger({
           >
             <th scope="col" aria-sort={ariaSort('name')}>
               {/* The title's cut-out: the Compact head's paper tab. */}
-              <span className="su-ledger__title-line">
+              <span className={TITLE_LINE}>
                 <span className="su-entity-compact__notch">
                   {onSort ? (
                     <button
@@ -286,10 +292,10 @@ export function Ledger({
                             checked={selected}
                             onChange={() => select.onSelect(row.id)}
                           />
-                          <span className="su-ledger__name">{row.name}</span>
+                          <span className={NAME}>{row.name}</span>
                         </label>
                       ) : (
-                        <span className="su-ledger__name">
+                        <span className={NAME}>
                           {row.href ? (
                             <InlineRef href={row.href} {...row.linkAttrs}>
                               {row.name}
@@ -340,7 +346,9 @@ export function Ledger({
         {total && rows.length > 0 && (
           <tfoot>
             <tr className="su-ledger__total">
-              <th scope="row">{total.label}</th>
+              <th scope="row" className={CAPS}>
+                {total.label}
+              </th>
               {columns.map((column, index) => (
                 <td key={column.key} data-kind={column.kind} data-phone={column.phone || undefined}>
                   {total.cells[index]}

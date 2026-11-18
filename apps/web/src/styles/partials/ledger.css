@@ -42,9 +42,6 @@
   white-space: nowrap;
   align-items: flex-end;
   display: flex;
-  font-family: var(--font-cond);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }
 
 .su-ledger__sort {
@@ -94,11 +91,7 @@
 }
 
 .su-ledger__name {
-  font-family: var(--font-cond);
-  font-size: var(--text-lede);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }
 
 .su-ledger__table tbody th {
@@ -207,8 +200,6 @@
 
 .su-ledger__table .su-ledger__total > th {
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
 }
 
 /* The head strip's end: what a pick asks or its budget, then the trailing
@@ -412,7 +403,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 64rem) {
+@media (width >= 64rem) {
   .su-shelf-ledgers {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   }

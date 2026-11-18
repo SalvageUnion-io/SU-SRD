@@ -8,7 +8,7 @@ import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { PickList } from '../wizard/PickList'
-import type { PickColumn } from '../wizard/pickLedger'
+import type { PickColumn } from '../wizard/pickLedger.model'
 
 /** The step's lede, in the surrounding text colour. */
 const LEDE = {

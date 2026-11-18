@@ -14,7 +14,7 @@ import type {
 import { resolveChoiceView, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Stat } from '../../components/index'
 import { readReference } from '../../lib/readReference'
-import type { PickColumn } from './pickLedger'
+import type { PickColumn } from './pickLedger.model'
 
 const models = new WeakMap<object, EntityModel>()
 
