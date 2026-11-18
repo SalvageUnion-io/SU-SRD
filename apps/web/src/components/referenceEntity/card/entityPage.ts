@@ -115,7 +115,11 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
  * SP, EP, Sys, Mod, Heat, Cargo), for the page's one ruled stat line.
  */
 export function pageStatLine(entity: RefMetaEntity): BookStat[] {
-  return isChassis(entity) ? bookStatsOf(toEntityModel(entity), entity) : []
+  if (!isChassis(entity)) return []
+  // The numeral's frame holds a letter, not a word: a Bio-Chassis reads `B`.
+  return bookStatsOf(toEntityModel(entity), entity).map((stat) =>
+    stat.key === 'tech-level' ? { ...stat, value: String(stat.value).charAt(0) } : stat
+  )
 }
 
 /** What an entity's page says around its body, read off its entity model. */

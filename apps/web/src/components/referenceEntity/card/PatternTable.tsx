@@ -66,7 +66,7 @@ export function PatternTable({
   patterns: RefObjectAnyPattern[]
 }) {
   return (
-    <Box frame="hairline" body="flush">
+    <Box frameColor="var(--color-ink)" body="flush">
       <table className="su-mock-table su-mock-table--stack">
         <thead>
           <tr>

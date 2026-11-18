@@ -177,7 +177,7 @@ export function CompareTable({
             : `Sorted by ${sorted?.title ?? sorted?.label ?? 'name'}, then name`}
         </span>
       </p>
-      <Box frame="hairline" body="flush">
+      <Box frameColor="var(--color-ink)" body="flush">
         <table className="su-mock-table su-mock-table--compare">
           <thead>
             <tr>
@@ -212,7 +212,7 @@ export function CompareTable({
                     {column.chips && cells[index] ? (
                       <span className="su-mock-table__chips">
                         {(cells[index] ?? '').split(', ').map((chip) => (
-                          <Badge key={chip} shape="chip" surface="quiet">
+                          <Badge key={chip} shape="stamp" size="mini" surface="inverse">
                             {chip}
                           </Badge>
                         ))}

@@ -6,7 +6,6 @@ import { referenceEntityCopy } from '../../../messages/components-reference-enti
 import { Slab } from '../../atoms/Slab'
 import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
-import { Box } from '../../containers/Box'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
@@ -37,18 +36,6 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
 const NEIGHBOUR_OMIT = ['kind'] as const
 /** A neighbour opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
 const LINK = { kind: 'link' } as const
-
-/** MOCK: the stat line's short labels, sentence case (principle 7: no caps on labels). */
-const MANUAL_STAT_LABEL: Readonly<Record<string, string>> = {
-  'Tech Level': 'TL',
-  'Salvage Value': 'SV',
-  'Structure Points': 'SP',
-  'Energy Points': 'EP',
-  'System Slots': 'Sys slots',
-  'Module Slots': 'Mod slots',
-  'Heat Capacity': 'Heat',
-  'Cargo Capacity': 'Cargo',
-}
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -179,30 +166,42 @@ export function CardPage({
   // Preceding and Next side by side on one row, Next's label at its end.
   const neighbours = abilityTreeNeighbours(entity)
 
-  // MOCK (Working Manual, A): a chassis page in the reading register. The
-  // numbers first, as one ruled stat line in §2.6 order; then the rules (the
-  // chassis ability, the patterns as a table); the lore last, quieter, on a
-  // measure. The art is a side column from `lg`, and follows the stats on a
-  // phone (the DOM order: stats, art, rules, lore).
+  // MOCK (Working Manual, A): a chassis page, reordered in today's dress. The
+  // numbers first: all eight stats in §2.6 order as the book's stat column
+  // (ink stamp, framed numeral), four to a row. Then the rules: the chassis
+  // ability and the patterns as a table. The art is a side column from `lg`
+  // with the lore under it, quieter; on a phone the art follows the stats and
+  // the lore comes last (`order`, `.su-manual`).
   if (isChassis(entity) && !opening) {
     const line = pageStatLine(entity)
+    const lore = (subLine || body) && (
+      <SlabSection as={sectionAs} title="From the manual" page className="su-manual__lore">
+        <div className="su-entity-page__prose su-manual__lore-prose">
+          {subLine}
+          {body}
+        </div>
+      </SlabSection>
+    )
     return (
       <div className={cn('su-entity-page su-manual', !!hero && 'su-manual--art')}>
-        <Box frame="hairline" body="flush" className="su-manual__stats">
-          <ul className="su-manual-statline" aria-label={`${action.hostName} stats`}>
-            {line.map((stat) => (
-              <li key={stat.key} title={stat.hoverText}>
-                <Stat
-                  surface="plain"
-                  label={MANUAL_STAT_LABEL[stat.label] ?? stat.label}
-                  value={stat.value}
-                  className="su-manual-statline__stat"
-                />
-              </li>
-            ))}
-          </ul>
-        </Box>
-        {hero && <div className="su-manual__art">{hero}</div>}
+        <ul className="su-stat-column su-manual__stats" aria-label={`${action.hostName} stats`}>
+          {line.map((stat) => (
+            <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+              <Stat
+                label={stat.label}
+                shortLabel={stat.shortLabel}
+                value={stat.value}
+                className="su-stat-column__stat"
+              />
+            </li>
+          ))}
+        </ul>
+        {hero && (
+          <div className="su-manual__side">
+            <div className="su-manual__art">{hero}</div>
+            {lore}
+          </div>
+        )}
         <div className="su-manual__rules">
           {leadActions.length > 0 && (
             <SlabSection
@@ -228,14 +227,7 @@ export function CardPage({
               <PatternTable chassis={entity} patterns={patterns} />
             </SlabSection>
           )}
-          {(subLine || body) && (
-            <SlabSection as={sectionAs} title="From the manual" page>
-              <div className="su-entity-page__prose su-manual__lore">
-                {subLine}
-                {body}
-              </div>
-            </SlabSection>
-          )}
+          {!hero && lore}
           {after}
         </div>
       </div>

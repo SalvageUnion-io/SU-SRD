@@ -1,43 +1,62 @@
-/* MOCK — the Working Manual direction's reading register (mockups A and B).
- * Not shipped code: a chassis Page (`CardPage`'s `.su-manual`) and a Reference
- * index as a compare table (`CompareTable`). Tokens only.
+/* MOCK — the Working Manual direction's reading register (mockups A and B),
+ * in today's dress. Not shipped code: a chassis Page (`CardPage`'s
+ * `.su-manual`) and a Reference index as a compare table (`CompareTable`).
+ * The structure is the direction's (numbers first, rules before lore, tables
+ * to compare); the materials are the site's own: the stat column's ink stamp
+ * and framed numeral, the roll table's ink head and banded rows, the Compact
+ * frame, R17's 12px rhythm. Tokens only.
  */
 
 /* ══ A · the chassis Page ══════════════════════════════════════════════════
- * One DOM order at every width: stats, art, rules, lore. On a phone that is
- * the reading order (the art after the numbers); from `lg` the art is a side
- * column and the reading column hugs the band's gutter.
+ * A phone reads stats, art, rules, lore. From `lg` the art is a side column
+ * with the lore under it, so nothing stands empty beside the rules.
  */
-.su-manual {
-  gap: var(--space-16);
+.su-manual__side {
+  display: contents;
+}
+
+.su-manual > .su-manual__stats {
+  order: 0;
+}
+
+.su-manual__art {
+  order: 1;
 }
 
 .su-manual__rules {
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
+  gap: var(--space-12);
   min-width: 0;
+  order: 2;
+}
+
+.su-manual__lore {
+  order: 3;
 }
 
 @media (width >= 64rem) {
   .su-manual--art {
-    column-gap: var(--space-32);
+    column-gap: var(--space-24);
     display: grid;
     grid-template-areas:
-      'stats art'
-      'rules art';
-    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+      'stats side'
+      'rules side';
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
     grid-template-rows: auto 1fr;
-    row-gap: var(--space-24);
+    row-gap: var(--space-12);
   }
 
   .su-manual--art > .su-manual__stats {
     grid-area: stats;
   }
 
-  .su-manual--art > .su-manual__art {
-    align-self: start;
-    grid-area: art;
+  .su-manual--art > .su-manual__side {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    grid-area: side;
+    min-width: 0;
   }
 
   .su-manual--art > .su-manual__rules {
@@ -45,65 +64,48 @@
   }
 }
 
-/* The stat line: eight cells on one ruled line, two rows of four on a phone. */
-.su-manual-statline {
-  display: grid;
+/* The stat column (`.su-stat-column`, its Stats' plates), four to a row: all
+   eight stats in two tight rows. A phone reads the short labels. */
+.su-stat-column.su-manual__stats {
+  gap: var(--space-6);
   grid-template-columns: repeat(4, minmax(0, 1fr));
   list-style: none;
-  margin: 0;
   padding: 0;
 }
 
-.su-manual-statline > li {
-  border-right: var(--bw-hairline) solid var(--color-ink-15);
-  min-width: 0;
-  padding: var(--space-8) var(--space-12);
-}
-
-.su-manual-statline > li:nth-child(4n) {
-  border-right: 0;
-}
-
-.su-manual-statline > li:nth-child(-n + 4) {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
-}
-
 @media (width >= 40rem) {
-  .su-manual-statline {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+  .su-stat-column.su-manual__stats {
+    gap: var(--space-6) var(--space-8);
   }
 
-  .su-manual-statline > li:nth-child(4n) {
-    border-right: var(--bw-hairline) solid var(--color-ink-15);
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+    padding: 0 var(--space-8);
   }
 
-  .su-manual-statline > li:nth-child(-n + 4) {
-    border-bottom: 0;
-  }
-
-  .su-manual-statline > li:last-child {
-    border-right: 0;
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--value {
+    width: 44px;
   }
 }
 
-/* `Stat surface="plain"`: its label over its reading. */
-.su-manual-statline__stat {
-  color: var(--color-wk-muted);
-  display: flex;
-  flex-direction: column;
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-semibold);
-  gap: var(--space-2);
-  line-height: 1.3;
-  white-space: nowrap;
+@media not (width >= 40rem) {
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+    font-size: var(--text-chip);
+    justify-content: center;
+    padding: 0 var(--space-4);
+  }
+
+  .su-manual__stats .su-stat-column__stat > .su-stat-plate--value {
+    width: 36px;
+  }
 }
 
-.su-manual-statline__stat > b {
-  color: var(--color-ink);
-  font-size: var(--text-display-lg);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
+/* The lore: quieter than the rules it follows. */
+.su-manual__lore-prose {
+  color: var(--color-ink-2);
+  font-size: var(--text-lede);
+  font-style: italic;
+  line-height: 1.5;
+  max-width: 66ch;
 }
 
 /* The phone's "Show all patterns" jump has no pattern rows to open here. */
@@ -111,60 +113,63 @@
   display: none;
 }
 
-/* The lore: last, quieter, italic, on a measure. */
-.su-manual__lore {
-  color: var(--color-ink-2);
-  font-size: var(--text-lede);
-  font-style: italic;
-  max-width: 66ch;
-}
-
-/* ══ The table (A's patterns, B's index) ═══════════════════════════════════ */
+/* ══ The table (A's patterns, B's index) ═══════════════════════════════════
+ * The book's table as the roll table draws it: an ink head in paper caps,
+ * banded rows, the numerals in the title face, in the Compact's frame.
+ */
 .su-mock-table {
+  background-color: var(--color-paper);
   border-collapse: collapse;
   font-size: var(--text-body);
-  line-height: 1.45;
+  line-height: 1.35;
   width: 100%;
 }
 
 .su-mock-table :is(th, td) {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
   font-weight: var(--font-weight-normal);
-  padding: var(--space-8) var(--space-12);
+  padding: var(--space-4) var(--space-8);
   text-align: left;
   vertical-align: top;
 }
 
 .su-mock-table thead th {
-  border-bottom-color: var(--color-ink);
-  color: var(--color-wk-muted);
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-semibold);
-  vertical-align: bottom;
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  padding-block: var(--space-6);
+  text-transform: uppercase;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
-.su-mock-table tbody tr:last-child > * {
-  border-bottom: 0;
+.su-mock-table tbody tr:nth-child(even) {
+  background-color: var(--color-band-cream);
+}
+
+.su-mock-table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
 }
 
 .su-mock-table tbody tr:hover {
-  background-color: var(--color-ink-5);
+  background-color: var(--color-wk-bg);
 }
 
 .su-mock-table tbody .su-mock-table__name {
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
 }
 
 .su-mock-table__name > .su-badge-stamp {
-  margin-left: var(--space-8);
+  margin-left: var(--space-6);
   vertical-align: middle;
 }
 
 .su-mock-table__cite {
   color: var(--color-wk-muted);
+  font-size: var(--text-caption);
   white-space: nowrap;
 }
 
@@ -173,14 +178,24 @@
 }
 
 .su-mock-table [data-numeric] {
-  font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: center;
   white-space: nowrap;
   width: 1%;
 }
 
+/* A numeral: the stat column's, a size down. */
 .su-mock-table tbody [data-numeric] {
-  font-size: var(--text-lede);
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+/* The first numeral column is ruled off as the roll table's range cell is. */
+.su-mock-table--compare tbody td:nth-child(2) {
+  background-color: var(--color-wk-bg);
+  border-inline: var(--bw-hairline) solid var(--color-ink);
 }
 
 .su-mock-table__chips {
@@ -199,11 +214,9 @@
   display: inline-flex;
   font: inherit;
   gap: var(--space-4);
+  letter-spacing: inherit;
   padding: 0;
-}
-
-.su-mock-table__sort:hover {
-  color: var(--color-ink);
+  text-transform: inherit;
 }
 
 .su-mock-table__arrow {
@@ -212,11 +225,10 @@
 }
 
 .su-mock-table__sort:hover > .su-mock-table__arrow {
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .su-mock-table__arrow[data-on] {
-  color: var(--color-ink);
   opacity: 1;
 }
 
@@ -231,24 +243,25 @@
   }
 
   .su-mock-table--stack tr {
-    border-bottom: var(--bw-hairline) solid var(--color-ink-15);
-    padding: var(--space-8) var(--space-12);
+    padding: var(--space-6) var(--space-8);
   }
 
-  .su-mock-table--stack tbody tr:last-child {
-    border-bottom: 0;
+  .su-mock-table--stack tbody tr + tr {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
   }
 
-  .su-mock-table--stack :is(th, td) {
-    border-bottom: 0;
-    padding: var(--space-2) 0;
+  .su-mock-table--stack tbody tr > :is(th, td) {
+    border-top: 0;
+    padding: 0;
   }
 
   .su-mock-table--stack td::before {
-    color: var(--color-wk-muted);
-    content: attr(data-label) ' · ';
+    content: attr(data-label) ' ';
+    font-family: var(--font-cond);
     font-size: var(--text-caption);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: var(--tracking-caps-tight);
+    text-transform: uppercase;
   }
 }
 
@@ -256,7 +269,7 @@
 .su-mock-compare {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-6);
 }
 
 .su-mock-compare .su-box__body {
@@ -266,8 +279,8 @@
 .su-mock-compare__count {
   color: var(--color-wk-muted);
   display: flex;
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
   gap: var(--space-4);
   margin: 0;
 }
@@ -285,7 +298,7 @@
 }
 
 .su-mock-table--compare [data-numeric] {
-  padding-inline: var(--space-14);
+  padding-inline: var(--space-12);
 }
 
 /* On a phone the table keeps Name, TL and two stats. */
