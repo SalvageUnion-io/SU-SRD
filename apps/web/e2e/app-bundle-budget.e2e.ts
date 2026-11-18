@@ -106,12 +106,13 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     const totals = await captureRouteJs(page, '/')
     report('/ (roster)', totals, CEILING)
 
-    // The single-largest-chunk tripwire (~511 KB measured, see the table
-    // above). Turning either splitting mechanism off re-forms a chunk well
+    // The single-largest-chunk tripwire (~511 KB measured at 4.5.0, ~531 KB at
+    // 4.10.0 once the Working Manual's Ledger, PhoneVitals and front-door
+    // compositions joined the component barrel; raised on purpose then). Turning either splitting mechanism off re-forms a chunk well
     // past it (a ~615 KB shared chunk before the `codeSplitting` groups, one
     // ~1.24 MB entry before autoCodeSplitting), so it asserts against the app
     // bundle without classifying chunks by name.
-    expect(totals.largest).toBeLessThan(530_000)
+    expect(totals.largest).toBeLessThan(540_000)
 
     // Other routes' component chunks must not ride along on the roster.
     // These two route chunks have unambiguous names, so a future eager
