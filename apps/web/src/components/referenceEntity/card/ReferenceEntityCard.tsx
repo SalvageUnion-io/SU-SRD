@@ -472,6 +472,8 @@ function ReferenceEntityCardInner({
           )
         }
         body={bodyHasContent ? bodyContent : null}
+        // MOCK (wave 2): a body that holds choices is rules, not a description.
+        bodyRules={entityChoices.length > 0 && !hide?.choices}
         opening={patternSection}
         loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={

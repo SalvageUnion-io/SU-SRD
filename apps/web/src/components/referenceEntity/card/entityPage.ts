@@ -115,7 +115,6 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
  * SP, EP, Sys, Mod, Heat, Cargo), for the page's one ruled stat line.
  */
 export function pageStatLine(entity: RefMetaEntity): BookStat[] {
-  if (!isChassis(entity)) return []
   // The numeral's frame holds a letter, not a word: a Bio-Chassis reads `B`.
   return bookStatsOf(toEntityModel(entity), entity).map((stat) =>
     stat.key === 'tech-level' ? { ...stat, value: String(stat.value).charAt(0) } : stat
@@ -134,11 +133,14 @@ export function resolveEntityPageMeta(
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // MOCK (Working Manual, A): a chassis page's TL and SV join its stat line,
     // so its band carries no stamps; a pattern page keeps them.
-    stats: statsInBody(entity)
-      ? pattern
+    // MOCK (wave 2): every Page's stats lead its body as the stat column
+    // (`pageStatLine`), so its band carries no stat stamps; a pattern's page
+    // keeps today's.
+    stats: !pattern
+      ? []
+      : statsInBody(entity)
         ? bookStatsOf(model, entity).filter(isBandStat)
-        : []
-      : bookStatsOf(model, entity),
+        : bookStatsOf(model, entity),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

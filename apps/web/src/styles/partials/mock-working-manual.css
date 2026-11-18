@@ -11,7 +11,18 @@
  * A phone reads stats, art, rules, lore. From `lg` the art is a side column
  * with the lore under it, so nothing stands empty beside the rules.
  */
-.su-manual__side {
+.su-manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-manual > * {
+  min-width: 0;
+  order: 2;
+}
+
+.su-manual > .su-manual__side {
   display: contents;
 }
 
@@ -23,44 +34,64 @@
   order: 1;
 }
 
-.su-manual__rules {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-  min-width: 0;
-  order: 2;
-}
-
-.su-manual__lore {
+.su-manual__side > .su-manual__lore {
   order: 3;
 }
 
+/* What a Page appends (a class's trees, a chassis's homebrew) follows the
+   Description on a phone. */
+.su-manual > .su-manual__after {
+  order: 4;
+}
+
+/* A short Page starts under its band, as a long one does: no centring. */
+.su-page-body:has(> .su-manual) {
+  justify-content: flex-start !important;
+}
+
+/* With no side column the rules run the page's measure; a line of prose
+   keeps a reading measure. */
+.su-entity-page.su-manual:not(.su-entity-page--art) > * {
+  max-width: none;
+}
+
+.su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip) {
+  max-width: 52rem;
+}
+
+/* From `lg` the side column floats right; every block beside it is its own
+   formatting context, so it narrows beside the column and runs the full
+   measure once the column ends: nothing stands empty under the art. */
 @media (width >= 64rem) {
-  .su-manual--art {
-    column-gap: var(--space-24);
-    display: grid;
-    grid-template-areas:
-      'stats side'
-      'rules side';
-    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
-    grid-template-rows: auto 1fr;
-    row-gap: var(--space-12);
+  .su-manual {
+    display: flow-root;
   }
 
-  .su-manual--art > .su-manual__stats {
-    grid-area: stats;
+  /* `!important`: the class page's own rule (`pages.css`) is unlayered. */
+  .su-manual > .su-manual__after,
+  .su-manual > .su-manual__after > .su-ability-tree {
+    display: contents !important;
   }
 
-  .su-manual--art > .su-manual__side {
+  .su-manual > *,
+  .su-manual__after > *,
+  .su-manual__after > .su-ability-tree > * {
+    contain: layout;
+    margin-top: var(--space-12);
+  }
+
+  .su-manual > :first-child,
+  .su-manual > .su-manual__side + * {
+    margin-top: 0;
+  }
+
+  .su-manual > .su-manual__side {
     display: flex;
     flex-direction: column;
+    float: right;
     gap: var(--space-12);
-    grid-area: side;
-    min-width: 0;
-  }
-
-  .su-manual--art > .su-manual__rules {
-    grid-area: rules;
+    margin: 0 0 var(--space-12) var(--space-24);
+    width: 24rem;
   }
 }
 
