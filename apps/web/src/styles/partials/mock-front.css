@@ -1,0 +1,257 @@
+/* MOCK (front): the front door. The home page as a product page, and the
+ * pitch Build's and Play's signed-out pages open on. Not shipped code.
+ */
+
+/* ── The pitch (`FrontPitch`) ──────────────────────────────────────────────
+ * The value line in the title's condensed face, a sentence, the page's one
+ * rust action beside one outline, a caption. Blocks 12px apart, as a card's.
+ */
+.su-front-pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+.su-front-pitch__value {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.08;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.su-front-pitch__lede {
+  color: var(--color-ink);
+  font-size: var(--text-lede);
+  line-height: 1.45;
+  margin: 0;
+  max-width: 34rem;
+}
+
+/* On a phone the two actions stack, each the column's width: a label is
+   never squeezed ("Sign in with Discord" beside "Meet the Starter crew"). */
+.su-front-pitch__actions {
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.su-front-pitch__note {
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  margin: 0;
+}
+
+@media (width >= 40rem) {
+  .su-front-pitch__value {
+    font-size: var(--text-display-lg);
+  }
+
+  .su-front-pitch__actions {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+@media (width >= 64rem) {
+  .su-front-pitch__value {
+    font-size: var(--text-hero);
+  }
+}
+
+/* ── The home (`index.page.tsx`, `HomeFront.tsx`) ─────────────────────────── */
+
+/* Level-1 blocks 24px apart, as the Contents home's. */
+.su-front__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-front__hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+.su-front__pitch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+/* The art plate: the entity page's hero plate, its cite under its foot. */
+.su-front__plate {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.su-front__plate .su-entity-hero {
+  --su-hero-max-h: 16rem;
+}
+
+.su-front__plate-cite {
+  align-self: flex-end;
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  border-top: 0;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
+  margin: 0;
+  padding: var(--space-4) var(--space-8);
+}
+
+/* The mech page's model: the stat block at the left, the art plate at the
+   right, the plate as tall as the column beside it. */
+@media (width >= 64rem) {
+  .su-front__hero {
+    align-items: stretch;
+    display: grid;
+    gap: var(--space-28);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .su-front__pitch {
+    gap: var(--space-24);
+    justify-content: space-between;
+  }
+
+  .su-front__plate .su-entity-hero {
+    --su-hero-max-h: 20rem;
+  }
+
+  /* What's inside: four framed numerals a row, as the mech page's stats. */
+  .su-front__inside .su-stat-column {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* A three-figure count keeps its room on a phone's half-width cell. */
+.su-front__inside .su-stat-column__stat > .su-stat-plate--value {
+  min-width: 3.25rem;
+}
+
+/* A door's art place: shorter than a catalog tile's 3:4, so three doors and
+   their words sit on one screen. */
+.su-start-here__art.su-entity-index__art {
+  aspect-ratio: 2 / 1;
+  container-type: normal;
+}
+
+@container (width >= 48rem) {
+  .su-start-here__art.su-entity-index__art {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* A door's stamp sits at the band's right, on the name's line. */
+.su-start-here__stamp {
+  align-self: flex-end;
+  display: flex;
+  margin-bottom: var(--space-6);
+  margin-left: auto;
+}
+
+/* Buy the game, and the Discord bot's button beside it. */
+.su-front__close {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-14);
+}
+
+.su-front__buy {
+  --su-foot-ground: var(--color-paper);
+}
+
+.su-front__buy-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-12);
+}
+
+.su-front__buy-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.su-front__buy-copy p {
+  font-size: var(--text-body);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 40rem;
+}
+
+.su-front__buy-copy .su-front__buy-lede {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-front__buy-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  margin-top: var(--space-4);
+}
+
+/* The books the site cites: a banded list, as a roll table's rows. */
+.su-front__books {
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-semibold);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-front__books > li {
+  padding: var(--space-4) var(--space-8);
+}
+
+.su-front__books > li:nth-child(even) {
+  background-color: var(--color-band-cream);
+}
+
+/* The Discord bot's panel: a sentence over its button. */
+.su-front__bot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  justify-content: space-between;
+}
+
+.su-front__bot p {
+  font-size: var(--text-body);
+  line-height: 1.5;
+  margin: 0;
+}
+
+@media (width >= 64rem) {
+  .su-front__close {
+    align-items: start;
+    display: grid;
+    gap: var(--space-28);
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+
+  .su-front__buy-body {
+    align-items: start;
+    display: grid;
+    gap: var(--space-28);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .su-front__close > * {
+    height: 100%;
+  }
+}

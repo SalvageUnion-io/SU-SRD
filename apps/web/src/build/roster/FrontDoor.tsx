@@ -23,12 +23,22 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { ChapterBand, capsLabel, Slab, Stack, StartHere, tokens } from '../../components/index'
+import {
+  Button,
+  ChapterBand,
+  capsLabel,
+  FrontPitch,
+  Slab,
+  Stack,
+  StartHere,
+  tokens,
+} from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { STARTER_SET_ADVENTURE, STARTER_SET_PUBLISHER } from '../../lib/starterSet/starterTemplates'
 import { rosterCopy } from '../../messages/build-roster'
+import { SignInControl } from '../account/SignInControl'
 import { StarterSetGrid } from '../starterSet/StarterSetGrid'
 
 /**
@@ -51,7 +61,8 @@ const PAGE = {
 const COLUMN = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[40],
+  // MOCK (front): level-1 blocks 24px apart, as the home's.
+  gap: tokens.space[24],
   maxWidth: PAGE_MEASURE,
 } satisfies CSSProperties
 
@@ -78,7 +89,23 @@ export function FrontDoor() {
         {PRODUCT.build}
       </ChapterBand>
 
-      <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[32] }}>
+      <div className="su-page-body" style={{ ...COLUMN, paddingBlock: tokens.space[20] }}>
+        {/* MOCK (front): the pitch, as the home's: what Build is, the page's
+            one rust action (sign in) and the outline beside it. */}
+        <FrontPitch
+          value="Build your Pilot, your Mech and your Union Crawler."
+          actions={
+            <>
+              <SignInControl size="full" redirectTo="/" />
+              <Button href="#front-door-starter" variant="default" size="full">
+                Meet the Starter crew
+              </Button>
+            </>
+          }
+          note="Free with a Discord sign-in. Your sheets save to your account and open on any device."
+        >
+          A guided build, one choice at a time, with every option cited to its page in the book.
+        </FrontPitch>
         <StartHere id="front-door-start" hrefs={STEP_HREFS} />
 
         <Stack as="section" gap={16} aria-labelledby="front-door-starter">

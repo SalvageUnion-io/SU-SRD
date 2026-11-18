@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { compositionsCopy } from '../../messages/components-compositions'
+import { Badge } from '../atoms/Badge'
 import { FOCUS_RING } from '../atoms/interaction'
 import { SlabSection } from '../containers/SlabSection'
 import { INDEX_NAME, INDEX_NAME_CAPS, Lead, paintFor } from '../entity'
@@ -33,6 +34,10 @@ export type StartHereStep = {
   title: string
   body: string
   tone: string
+  // MOCK (front): a door's art (R2, never committed), drawn in the index
+  // tile's own art place over the band, and one read stamp on the band.
+  art?: { url: string; srcSet?: string; alt: string }
+  stamp?: string
 }
 
 /** The three steps, in order. Playing a Game happens from the Crawler, so it is not a step. */
@@ -68,6 +73,8 @@ type StartHereProps = {
    */
   steps?: readonly StartHereStep[]
   title?: string
+  // MOCK (front): doors, not steps, carry no number.
+  numbered?: boolean
 }
 
 const STEPS = {
@@ -80,19 +87,42 @@ const STEPS = {
 const frameIn = (band: string) =>
   ({ '--su-compact-frame': band, borderColor: 'var(--su-compact-frame)' }) as CSSProperties
 
-function StepFace({ step, index }: { step: StartHereStep; index: number }) {
+function StepFace({
+  step,
+  index,
+  numbered,
+}: {
+  step: StartHereStep
+  index: number
+  numbered: boolean
+}) {
   const paint = paintFor(step.tone, { texture: true })
   return (
     <div className="su-entity-index__frame" style={frameIn(paint.background)}>
+      {/* MOCK (front): the door's art, in the catalog tile's art place. */}
+      {step.art && (
+        <div className="su-entity-index__art su-start-here__art">
+          <img
+            src={step.art.url}
+            srcSet={step.art.srcSet}
+            sizes={step.art.srcSet ? '(width >= 64rem) 24rem, 100vw' : undefined}
+            alt={step.art.alt}
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      )}
       <div
         className={cn('su-entity-index__band su-start-here__band', grainClass(paint.grain))}
         data-grain={paint.grain}
         style={{ backgroundColor: paint.background, color: paint.color, columnGap: space[6] }}
       >
-        <span className="su-start-here__number">
-          <span className="su-sr-only">{compositionsCopy('step')} </span>
-          {index + 1}
-        </span>
+        {numbered && (
+          <span className="su-start-here__number">
+            <span className="su-sr-only">{compositionsCopy('step')} </span>
+            {index + 1}
+          </span>
+        )}
         <span className="su-entity-index__notch">
           <h3
             className={cn('su-entity-index__name su-start-here__title', INDEX_NAME_CAPS)}
@@ -101,6 +131,14 @@ function StepFace({ step, index }: { step: StartHereStep; index: number }) {
             {step.title}
           </h3>
         </span>
+        {/* MOCK (front): one read stamp at the band's right, on the name's line. */}
+        {step.stamp && (
+          <span className="su-start-here__stamp">
+            <Badge shape="stamp" size="mini" surface="solid">
+              {step.stamp}
+            </Badge>
+          </span>
+        )}
       </div>
       <div className="su-entity-index__cells">
         <Lead text={step.body} />
@@ -114,6 +152,7 @@ export function StartHere({
   hrefs = {},
   steps = START_HERE_STEPS,
   title = compositionsCopy('startHere'),
+  numbered = true,
 }: StartHereProps) {
   return (
     <SlabSection title={title} id={id} as="h2" className="su-start-here" page>
@@ -126,15 +165,16 @@ export function StartHere({
                 <a
                   href={href}
                   className={cn(
-                    'su-entity-index su-entity-index--bare su-start-here__step',
+                    'su-entity-index su-start-here__step',
+                    !step.art && 'su-entity-index--bare',
                     FOCUS_RING
                   )}
                 >
-                  <StepFace step={step} index={index} />
+                  <StepFace step={step} index={index} numbered={numbered} />
                 </a>
               ) : (
-                <div className="su-entity-index su-entity-index--bare">
-                  <StepFace step={step} index={index} />
+                <div className={cn('su-entity-index', !step.art && 'su-entity-index--bare')}>
+                  <StepFace step={step} index={index} numbered={numbered} />
                 </div>
               )}
             </li>
