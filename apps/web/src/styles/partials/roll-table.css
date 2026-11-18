@@ -372,10 +372,12 @@
   color: var(--color-ink);
 }
 
+/* A split table is two column-major halves, a fixed matrix and no list of
+   items (hard rule R68): here and on its bar and bands below. */
 .su-roll__stack-list {
   display: grid;
   grid-auto-flow: column;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
   grid-template-rows: repeat(var(--su-roll-half), auto);
   list-style: none;
   margin: 0;
@@ -436,7 +438,7 @@
   .su-roll__bar[data-split] {
     --su-roll-range: 3.5rem;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
   }
 
   .su-roll__bar[data-split] .su-roll__col-text {
@@ -461,7 +463,7 @@
     --su-roll-range: 3.5rem;
     --su-roll-value-size: var(--text-body);
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* design-tokens-ignore(item-grid): split */
   }
 
   /* Each half spans every row track and borrows it, so the rows pair up

@@ -478,6 +478,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 id="shelf-npcs"
                 title="NPCs"
                 tone="adversary"
+                homebrew
                 columns={NPC_COLUMNS}
                 action={newLink('/npcs/new', '+ Design an NPC')}
                 empty="No NPCs yet. Design one and it is kept here."
@@ -514,6 +515,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 id="shelf-patterns"
                 title="Patterns"
                 tone="mech"
+                homebrew
                 columns={PATTERN_COLUMNS}
                 action={
                   canWrite ? (

@@ -31,12 +31,12 @@
 
 /* One column on a phone, three from `md` up. */
 .su-roster-grid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  --su-grid-max: 1;
   margin-top: var(--space-20);
 }
 @media (width >= 48rem) {
   .su-roster-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --su-grid-max: 3;
     margin-top: var(--space-24);
   }
 }

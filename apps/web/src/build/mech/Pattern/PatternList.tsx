@@ -31,16 +31,15 @@ import {
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
+  '--su-grid-min': '18rem',
   listStyle: 'none',
   margin: 0,
   padding: 0,
-} satisfies CSSProperties
+} satisfies CSSVarStyle
 
 const ROW = {
   display: 'flex',
@@ -79,7 +78,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   }
 
   return (
-    <ul style={LIST} aria-label={mechCopy('savedMechPatterns')}>
+    <ul className="su-grid" style={LIST} aria-label={mechCopy('savedMechPatterns')}>
       {patterns.map((pattern) => {
         const chassis = patternChassis(pattern)
         return (

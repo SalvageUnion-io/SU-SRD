@@ -4,10 +4,12 @@
 // (`+ New pilot`, rust) on a second cut-out at the strip's end, then a
 // Mini-height line a unit: its name the link to its sheet, what it is and its
 // live readings in fixed columns, the unit it is paired with and its Game as
-// links, and its ⋯ menu at the line's end.
+// links, and its ⋯ menu at the line's end. A shelf of things a player made
+// that could pass for canon (patterns, NPCs) wears the one dashed HOMEBREW
+// stamp beside its tab (ruleset §3.9, ledger.md L9).
 import type { ReactNode } from 'react'
 import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
-import { HeaderMenu, InlineRef, Ledger, Text } from '../../components/index'
+import { HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 
 type ShelfLedgerRow = {
@@ -32,6 +34,8 @@ type ShelfLedgerProps = {
   tone: string
   columns: readonly LedgerColumn[]
   rows: readonly ShelfLedgerRow[]
+  /** A shelf of player-made designs: the dashed HOMEBREW stamp beside its tab. */
+  homebrew?: boolean
   /** The shelf's one make, at the head strip's end. */
   action?: ReactNode
   /** Said when the shelf is bare (`No pilots yet.`). */
@@ -52,6 +56,7 @@ export function ShelfLedger({
   tone,
   columns,
   rows,
+  homebrew,
   action,
   empty,
   note,
@@ -63,6 +68,7 @@ export function ShelfLedger({
         tone={tone}
         nameLabel={title}
         count={rows.length}
+        {...(homebrew ? { mark: <HomebrewStamp size="mini" /> } : {})}
         columns={columns}
         rows={rows.map((row) => ({
           id: row.id,

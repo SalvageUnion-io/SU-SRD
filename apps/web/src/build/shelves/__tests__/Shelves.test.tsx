@@ -254,7 +254,7 @@ describe('Crawlers', () => {
   })
 })
 
-describe('What a shelf says of a unit (C4)', () => {
+describe('What a shelf says of a unit (L9)', () => {
   test('a pilot’s line reads its class and its live HP and AP, a column each', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
@@ -267,6 +267,18 @@ describe('What a shelf says of a unit (C4)', () => {
       .map((td) => td.textContent)
     // Its class, no Mech, no Game, then HP and AP as its sheet reads them.
     expect(cells.slice(0, 5)).toEqual(['scavenger', '—', '—', '10/10', '5/5'])
+  })
+})
+
+describe('Homebrew on a shelf (ruleset §3.9, L9)', () => {
+  test('the pattern and NPC shelves wear the one HOMEBREW stamp; a shelf of your units wears none', async () => {
+    await renderShelves()
+    const stamped = (id: string) =>
+      /homebrew/i.test(document.querySelector(`#${id} thead`)?.textContent ?? '')
+    expect(stamped('shelf-patterns')).toBe(true)
+    expect(stamped('shelf-npcs')).toBe(true)
+    expect(stamped('shelf-pilots')).toBe(false)
+    expect(stamped('shelf-mechs')).toBe(false)
   })
 })
 

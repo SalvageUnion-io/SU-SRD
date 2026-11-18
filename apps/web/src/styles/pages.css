@@ -897,14 +897,25 @@
 
 /* A path's trees split the card in equal columns, the same in every path
    card on the page (its own Advanced and Legendary trees, each Hybrid
-   Class's): as many as fit at 16rem, three at most, one each on a phone. */
+   Class's): as many as fit at 16rem, three at most, one each on a phone.
+   A grid, not the item grid: the trees share its rows (subgrid, below). */
 .su-class-path__trees {
+  --su-tree-min: max(min(100%, 16rem), calc((100% - 3 * var(--space-24)) / 4 + 1px));
+  --su-tr: minmax(var(--su-tree-min), 1fr); /* one tree's track */
+
   display: grid;
   gap: var(--space-12) var(--space-24);
-  grid-template-columns: repeat(
-      auto-fit,
-      minmax(max(min(100%, 16rem), calc((100% - 3 * var(--space-24)) / 4 + 1px)), 1fr)
-    );
+  grid-template-columns: repeat(auto-fit, var(--su-tr)); /* design-tokens-ignore(item-grid): rows */
+}
+
+/* Three trees stand three across or one each, never two and an orphan
+   (hard rule R68): short of three 16rem columns the track is the full width. */
+.su-class-path__trees:has(> :nth-child(3):last-child) {
+  --su-tree-three: calc(48rem + 2 * var(--space-24));
+  --su-tree-min: max(
+    calc((100% - 2 * var(--space-24)) / 3),
+    min(100%, calc((var(--su-tree-three) - 100%) * 999))
+  );
 }
 
 /* Side by side (from `sm`, where two 16rem columns and their gap fit), the
@@ -919,7 +930,7 @@
 /* A class's Core trees: two across, never more. */
 @media (width >= 40rem) {
   .su-class-path__trees--pair {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --su-tree-min: calc((100% - var(--space-24)) / 2);
   }
 
   /* A third tree, alone on its row, fills it. */
@@ -1017,12 +1028,12 @@
 
 /* The About page's colophon (`components/Colophon.tsx`): one column, two from `md` (48rem) up. */
 .su-colophon {
-  grid-template-columns: none;
+  --su-grid-max: 1;
 }
 
 @media (width >= 48rem) {
   .su-colophon {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --su-grid-max: 2;
   }
 }
 

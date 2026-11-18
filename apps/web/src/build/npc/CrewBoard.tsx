@@ -36,6 +36,7 @@ import {
   Entity,
   Field,
   FieldError,
+  Grid,
   Input,
   ModalShell,
   Select,
@@ -136,7 +137,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
 
   if (crawler === undefined) {
     return (
-      <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
+      <Grid min="26rem" gap={32} style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
         <SlabSection as="h2" id="crew-pick" title={npcCopy('whichCrawler')} bodyStyle={COLUMN}>
           {crawlerId !== undefined ? (
             <EmptyState variant="quiet" body={npcCopy('thatCrawlerIsNotOne')} />
@@ -159,7 +160,7 @@ export function CrewBoard({ crawlerId, slot: slotArg, madeBy, onSelect }: CrewBo
             </Field>
           )}
         </SlabSection>
-      </div>
+      </Grid>
     )
   }
 
@@ -251,7 +252,7 @@ function CrewSlots({
     )
 
   return (
-    <div style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
+    <Grid min="26rem" gap={32} style={{ ...COLUMNS, paddingTop: tokens.space[24] }}>
       <SlabSection as="h2" id="crew-slots" title={npcCopy('crewSlots')} bodyStyle={COLUMN}>
         <p style={HINT}>
           {typeName ? npcCopy('oneSlotForTheCrawler') : npcCopy('oneSlotPerBay')}
@@ -290,7 +291,7 @@ function CrewSlots({
           <div style={MODAL_BODY}>{panel(true)}</div>
         </ModalShell>
       )}
-    </div>
+    </Grid>
   )
 }
 

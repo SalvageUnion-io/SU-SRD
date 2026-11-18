@@ -28,6 +28,7 @@ import {
   Entity,
   Field,
   FieldError,
+  Grid,
   Input,
   ModalShell,
   RadioCardGroup,
@@ -35,7 +36,6 @@ import {
   Select,
   Textarea,
   TitledBox,
-  tokens,
 } from '../../components/index'
 import { npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
@@ -75,18 +75,7 @@ const STEP_INTRO: Record<NpcStepId, string> = {
 }
 
 /** The step beside its live preview, where there is room for both; stacked where not. */
-const STEP_COLUMNS = {
-  alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 24rem), 1fr))',
-} satisfies CSSProperties
-
-const STAT_GRID = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(9rem, 1fr))',
-} satisfies CSSProperties
+const STEP_COLUMNS = { alignItems: 'start' } satisfies CSSProperties
 
 /** A match: the outlined `Button` (R16), the row's width, its kind at the far end. */
 const RESULT_BUTTON = { justifyContent: 'space-between', width: '100%' } satisfies CSSProperties
@@ -179,7 +168,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         footerNote={!gate.ok ? gate.reason : undefined}
         submitLabel={npcCopy('saveNpc')}
       >
-        <div style={STEP_COLUMNS}>
+        <Grid min="24rem" gap={32} style={STEP_COLUMNS}>
           <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
             {step !== 'template' && form.templateChosen && (
               <div style={ROW}>
@@ -246,7 +235,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
               It can go in your Training Bay, into a Game, or into a crawler&rsquo;s crew.
             </p>
           </section>
-        </div>
+        </Grid>
       </WizShell>
 
       <ModalShell
@@ -364,7 +353,7 @@ function StatsStep({
   onChange: (patch: Partial<NpcFormState>) => void
 }) {
   return (
-    <div style={STAT_GRID}>
+    <Grid min="9rem" gap={12}>
       <Field label={npcCopy('hitPoints')} htmlFor="npc-hp" required>
         <Input
           id="npc-hp"
@@ -395,7 +384,7 @@ function StatsStep({
           style={PENCIL}
         />
       </Field>
-    </div>
+    </Grid>
   )
 }
 

@@ -132,9 +132,7 @@
 }
 
 .su-not-found__chapter-list {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  --su-grid-min: 16rem;
 }
 
 /* A chapter as the home index opens one: its colour band on top

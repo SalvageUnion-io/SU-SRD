@@ -36,9 +36,6 @@ type ColumnCreate = { href: string; label: string; onClick?: () => void }
 /** The switch spans the row: each segment takes its share. */
 const FILL = { width: '100%' } satisfies CSSProperties
 
-/** The grid's gutter; its columns and top margin change at `md` (`.su-roster-grid`). */
-const GRID = { display: 'grid', gap: space[32] } satisfies CSSProperties
-
 const LIST = { display: 'flex', flexDirection: 'column', gap: space[12] } satisfies CSSProperties
 
 /**
@@ -72,7 +69,7 @@ export function SegmentSwitch({
 /** One column on a phone, three from `md` up. */
 export function RosterGrid({ children }: { children: ReactNode }) {
   return (
-    <div className="su-roster-grid" style={GRID}>
+    <div className="su-grid su-roster-grid" data-gap={32}>
       {children}
     </div>
   )
