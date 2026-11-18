@@ -62,7 +62,11 @@ type Tint = 'mech' | 'pilot'
 function ActionRow({ action, tint }: { action: PlayAction; tint: Tint }) {
   // MOCK (wave 2, the actions board): the row Play's board draws (`actionRow`):
   // the picks applied, the effect alone as its text, a companion's row named.
-  const { model, summary } = actionRow(action)
+  const row = actionRow(action)
+  const { model } = row
+  // MOCK (wave 2, sheets): a chassis ability's `[(CHASSIS)]` token reads as its
+  // chassis (`actionRow` leaves it raw; noted to the play lane).
+  const summary = row.summary?.replaceAll('[(CHASSIS)]', `The ${action.ownerName}`)
   const companion = action.companion
   return (
     <li>
