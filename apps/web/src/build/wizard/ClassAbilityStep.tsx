@@ -100,20 +100,42 @@ export function ClassAbilityStep({
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
       {/* MOCK: the classes as one compare table; the pick's card beside it. */}
       <div className="su-wiz-compare-layout">
-        <div>
-          <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
-          <CompareTable
-            ariaLabel={buildWizardCopy('pilotClass2')}
-            nameLabel="Class"
-            rows={legalClasses}
-            rowKey={(c) => c.id}
-            rowName={(c) => c.name}
-            columns={CLASS_COLUMNS}
-            selected={classId || undefined}
-            onSelect={onSelectClass}
-          />
+        <div className="su-wiz-compare-main">
+          <div>
+            <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
+            <CompareTable
+              ariaLabel={buildWizardCopy('pilotClass2')}
+              nameLabel="Class"
+              rows={legalClasses}
+              rowKey={(c) => c.id}
+              rowName={(c) => c.name}
+              columns={CLASS_COLUMNS}
+              selected={classId || undefined}
+              onSelect={onSelectClass}
+            />
+          </div>
+          {/* MOCK: the pick's Level-1 pool under the table, so the class's card
+              rides beside both and the column has no dead room. */}
+          {selectedClass !== undefined && (
+            <div>
+              <Slab
+                label={buildWizardCopy('firstAbilityTreesLevel1', { name: selectedClass.name })}
+                count="Choose 1"
+                countInk="inherit"
+              />
+              <MasonryColumns maxColumns={1} radio ariaLabel={buildWizardCopy('firstAbility')}>
+                {legalPool.map(renderAbilityCard)}
+              </MasonryColumns>
+              {legalPool.length === 0 && (
+                <EmptyState
+                  headline={buildWizardCopy('noAbilities')}
+                  body={buildWizardCopy('noLevel1AbilitiesFound')}
+                />
+              )}
+            </div>
+          )}
         </div>
-        <div className="su-wiz-compare-detail">
+        <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky">
           {selectedClass === undefined ? (
             <EmptyState
               variant="quiet"
@@ -129,25 +151,6 @@ export function ClassAbilityStep({
           )}
         </div>
       </div>
-
-      {selectedClass === undefined ? null : (
-        <>
-          <Slab
-            label={buildWizardCopy('firstAbilityTreesLevel1', { name: selectedClass.name })}
-            count="Choose 1"
-            countInk="inherit"
-          />
-          <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('firstAbility')}>
-            {legalPool.map(renderAbilityCard)}
-          </MasonryColumns>
-          {legalPool.length === 0 && (
-            <EmptyState
-              headline={buildWizardCopy('noAbilities')}
-              body={buildWizardCopy('noLevel1AbilitiesFound')}
-            />
-          )}
-        </>
-      )}
     </div>
   )
 }

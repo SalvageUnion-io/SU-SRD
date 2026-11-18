@@ -40,7 +40,7 @@ const COST_LINE = {
   flexWrap: 'wrap',
   gap: tokens.space[8],
   justifyContent: 'space-between',
-  marginTop: tokens.space[12],
+  marginTop: tokens.space[8],
 } satisfies CSSProperties
 
 const NO_MARGIN = { margin: 0 } satisfies CSSProperties
@@ -132,71 +132,71 @@ export function MechChassisStep({
 
   return (
     <div className="su-wiz-compare-layout">
-      <div>
-        <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
-        <CompareTable
-          ariaLabel={mechCopy('chassis')}
-          nameLabel={mechCopy('chassis')}
-          rows={chassisPool}
-          rowKey={(c) => nameToSlug(c.name)}
-          rowName={(c) => c.name}
-          columns={CHASSIS_COLUMNS}
-          selected={chassisName || undefined}
-          onSelect={onSelectChassis}
-          disabledReason={(c) =>
-            chassisFitsCreationBudget(c.salvageValue)
-              ? undefined
-              : `Costs ${c.salvageValue} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-          }
-        />
-        <div style={COST_LINE}>
-          <p style={HINT}>A chassis costs its Salvage Value in Tech 1 Scrap.</p>
-          <Eyebrow as="p" tone="muted" style={NO_MARGIN}>
-            Workshop Manual · p.94 · Mech Chassis pp.100–159
-          </Eyebrow>
+      <div className="su-wiz-compare-main">
+        <div>
+          <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
+          <CompareTable
+            ariaLabel={mechCopy('chassis')}
+            nameLabel={mechCopy('chassis')}
+            rows={chassisPool}
+            rowKey={(c) => nameToSlug(c.name)}
+            rowName={(c) => c.name}
+            columns={CHASSIS_COLUMNS}
+            selected={chassisName || undefined}
+            onSelect={onSelectChassis}
+            disabledReason={(c) =>
+              chassisFitsCreationBudget(c.salvageValue)
+                ? undefined
+                : `Costs ${c.salvageValue} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
+            }
+          />
+          <div style={COST_LINE}>
+            <p style={HINT}>A chassis costs its Salvage Value in Tech 1 Scrap.</p>
+            <Eyebrow as="p" tone="muted" style={NO_MARGIN}>
+              Workshop Manual · p.94 · Mech Chassis pp.100–159
+            </Eyebrow>
+          </div>
         </div>
+        {selectedChassis !== undefined && (
+          <div>
+            <Slab label="Or start from a pattern" count="Optional" countInk="inherit" />
+            <div role="radiogroup" aria-label={mechCopy('startingPattern')} style={PATTERNS}>
+              {patternPool.map((pattern) => (
+                <Radio
+                  key={pattern.name}
+                  name="mech-starting-pattern"
+                  stacked
+                  label={`${pattern.name} pattern`}
+                  description={loadoutLine(pattern)}
+                  checked={normalizePatternName(pattern.name) === normalizePatternName(patternName)}
+                  onChange={() => onSelectPattern(pattern)}
+                />
+              ))}
+              <Radio
+                name="mech-starting-pattern"
+                stacked
+                label={mechCopy('customBuild')}
+                description={mechCopy('noPrefillCraftYourSystems')}
+                checked={isCustom}
+                onChange={onSelectCustom}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="su-wiz-compare-detail">
         {selectedChassis === undefined ? (
           <EmptyState variant="quiet" body={mechCopy('pickAChassisToReveal')} bodyInk="inherit" />
         ) : (
-          <>
-            <ReferenceEntityCard
-              data={selectedChassis}
-              size="compact"
-              hide={{ actions: true, choices: true, patterns: true }}
-              // Choosing a chassis needs its ability: nested in the pick, a
-              // contentful Mini (N3, E19).
-              showChassisAbility
-            />
-            <div>
-              <Slab label="Or start from a pattern" count="Optional" countInk="inherit" />
-              <div role="radiogroup" aria-label={mechCopy('startingPattern')} style={PATTERNS}>
-                {patternPool.map((pattern) => (
-                  <Radio
-                    key={pattern.name}
-                    name="mech-starting-pattern"
-                    stacked
-                    label={`${pattern.name} pattern`}
-                    description={loadoutLine(pattern)}
-                    checked={
-                      normalizePatternName(pattern.name) === normalizePatternName(patternName)
-                    }
-                    onChange={() => onSelectPattern(pattern)}
-                  />
-                ))}
-                <Radio
-                  name="mech-starting-pattern"
-                  stacked
-                  label={mechCopy('customBuild')}
-                  description={mechCopy('noPrefillCraftYourSystems')}
-                  checked={isCustom}
-                  onChange={onSelectCustom}
-                />
-              </div>
-            </div>
-          </>
+          <ReferenceEntityCard
+            data={selectedChassis}
+            size="compact"
+            hide={{ actions: true, choices: true, patterns: true }}
+            // Choosing a chassis needs its ability: nested in the pick, a
+            // contentful Mini (N3, E19).
+            showChassisAbility
+          />
         )}
       </div>
     </div>

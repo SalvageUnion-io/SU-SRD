@@ -333,7 +333,7 @@ const fillStyle = { flex: '1 1 0%', minHeight: 0 } satisfies CSSProperties
 /** The step's frame: it reserves scroll room under the pinned footer, which overlaps it. */
 const stepFrameStyle = {
   ...fillStyle,
-  paddingBottom: '6rem', // design-tokens-ignore(raw-spacing): a fit, the pinned footer's room, not spacing
+  paddingBottom: tokens.space[24], // MOCK: the foot is a reserved strip, so only a block gap
 } satisfies CSSProperties
 
 /** The step's head: its number stamp and its title on one line, over the frame. */
@@ -382,8 +382,6 @@ const stepNoteStyle = {
 const footerPillStyle = {
   display: 'flex',
   justifyContent: 'flex-end',
-  marginTop: tokens.space[24],
-  pointerEvents: 'none',
   position: 'sticky',
   zIndex: tokens.layer.sticky,
 } satisfies CSSProperties
