@@ -262,13 +262,28 @@ export type PostRollRelayResponse =
 
 /**
  * The same door for a Stop Sign (`worker/shared/stopSign.ts`): a Game room
- * tells its bound channel that the game is paused, on a table that opted in. The message is the Worker's own fixed words, so nothing a
- * player typed reaches Discord this way. It answers as the roll relay does.
+ * tells its bound channel that the game is paused. The message is the bot's
+ * own fixed words, so nothing a player typed reaches Discord this way. It
+ * answers as the roll relay does.
  */
 export const BOT_RELAY_POST_STOP_PATH = '/relay/post-stop'
 
 /** Where the Stop Sign posts. */
 export type PostStopRelayRequest = { channelId: string }
+
+/**
+ * The same door for the Mediator's alert to the table (Tell the table,
+ * `changeLog.broadcast`): its words, as the crew's Feeds show them, posted to
+ * the bound channel. The bot pings nobody with them (`toWire`). It answers as
+ * the roll relay does.
+ */
+export const BOT_RELAY_POST_ALERT_PATH = '/relay/post-alert'
+
+/** The alert's channel and words. */
+export type PostAlertRelayRequest = { channelId: string; message: string }
+
+/** The longest alert the relay posts; longer is cut, with an ellipsis. */
+export const ALERT_POST_MAX = 2000
 
 /**
  * Whether a roll is one the card can replay: a named table and one die (two on

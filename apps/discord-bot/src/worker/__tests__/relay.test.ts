@@ -1,7 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 import { MessageFlags } from 'discord-api-types/v10'
 import type { PostRollRelayResponse } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ALERT_PATH,
+  BOT_RELAY_POST_ROLL_PATH,
+  BOT_RELAY_POST_STOP_PATH,
+} from 'game-domain/botWire'
 import { Relay } from '../relay'
 import { withFetchStub } from './stubFetch'
 
@@ -207,5 +211,29 @@ describe('the post-stop relay', () => {
       await relay(stop({ channelId: ROLL.channelId }))
     ).json()) as PostRollRelayResponse
     expect(body).toMatchObject({ ok: false, status: 403 })
+  })
+})
+
+describe('the post-alert relay', () => {
+  const alert = (body: unknown) => relayRequest(body, BOT_RELAY_POST_ALERT_PATH)
+
+  test('posts the Mediator’s words, pinging nobody', async () => {
+    let sent: Record<string, unknown> | null = null
+    stubFetch(async (_input, init) => {
+      sent = JSON.parse(String(init?.body)) as Record<string, unknown>
+      return Response.json({ id: 'msg-3' }, { status: 200 })
+    })
+    const res = await relay(alert({ channelId: ROLL.channelId, message: 'Dust storm @everyone' }))
+    expect((await res.json()) as PostRollRelayResponse).toEqual({ ok: true, messageId: 'msg-3' })
+    if (sent === null) throw new Error('nothing was posted')
+    const body = sent as Record<string, unknown>
+    expect(JSON.stringify(body.components)).toContain('Dust storm @everyone')
+    expect(JSON.stringify(body.components)).toContain('From the Mediator')
+    expect(body.allowed_mentions).toEqual({ parse: [] })
+  })
+
+  test('refuses an empty alert or a channel that is not a snowflake', async () => {
+    expect((await relay(alert({ channelId: ROLL.channelId, message: '  ' }))).status).toBe(400)
+    expect((await relay(alert({ channelId: 'general', message: 'Hi' }))).status).toBe(400)
   })
 })

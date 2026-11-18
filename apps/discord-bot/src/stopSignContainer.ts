@@ -1,7 +1,6 @@
 /**
  * The Stop Sign's post: what a Game's bound channel reads when someone at the
- * table shows the Stop Sign in Play, on a table that opted in
- * (`src/worker/relay.ts#handlePostStop`).
+ * table shows the Stop Sign in Play (`src/worker/relay.ts#handlePostStop`).
  *
  * Fixed words, never a player's: who showed it is not said, as Play does not
  * say it either, and no reason is asked for (Core Book p.13). Pure.

@@ -153,8 +153,6 @@ const GAME_ACTS = {
   'session.end': (c: ActContext) => c.room.session.end(c.actor),
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
   'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),
-  'safety.setPostToChannel': (c: ActContext, a: { on: boolean }) =>
-    c.room.safety.setPostToChannel(c.actor, a.on, c.at),
 
   'publicSheet.setPublic': (
     c: ActContext,

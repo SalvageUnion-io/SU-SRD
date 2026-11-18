@@ -107,7 +107,6 @@ export const GAME_SOCKET_ACTS = {
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   'safety.showStop': NONE,
   'safety.liftStop': NONE,
-  'safety.setPostToChannel': z.object({ on: z.boolean() }),
   'session.start': NONE,
   'session.end': NONE,
 

@@ -151,7 +151,7 @@ function GameSections({ game }: { game: Game }) {
           />
           {/* Safety
               runs under The Game, so the two columns end together. */}
-          <GameSafety gameId={gameId} sign={sign} />
+          <GameSafety sign={sign} />
         </aside>
       </div>
 

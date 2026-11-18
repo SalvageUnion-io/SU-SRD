@@ -151,8 +151,6 @@ describe('the Cockpit frame', () => {
       'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
-        mayManage: false,
-        postToChannel: false,
       },
     })
     try {

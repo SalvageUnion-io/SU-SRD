@@ -1,7 +1,8 @@
 /**
  * The relay: the site Worker asking the bot to post a Play roll into a bound
  * channel (`channelBindings.postRoll`, wire shapes in `game-domain/botWire`),
- * or a Stop Sign (`handlePostStop`).
+ * a Stop Sign (`handlePostStop`) or the Mediator's alert to the table
+ * (`handlePostAlert`).
  *
  * The bot is the one place holding both the bot token and the roll card, so
  * the site sends the roll and the bot renders it with `buildPostedRollMessage`:
@@ -20,11 +21,13 @@ import { WorkerEntrypoint } from 'cloudflare:workers'
 import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import type {
+  PostAlertRelayRequest,
   PostRollRelayRequest,
   PostRollRelayResponse,
   PostStopRelayRequest,
 } from 'game-domain/botWire'
 import {
+  BOT_RELAY_POST_ALERT_PATH,
   BOT_RELAY_POST_ROLL_PATH,
   BOT_RELAY_POST_STOP_PATH,
   isPostableRoll,
@@ -34,6 +37,7 @@ import { v2Reply } from '../container'
 import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'
 import { stopSignContainer } from '../stopSignContainer'
+import { tableAlertContainer } from '../tableAlertContainer'
 import type { MessagePayload } from '../wire'
 import { toWire } from '../wire'
 import { oneShotRest } from './oneShotRest'
@@ -141,6 +145,17 @@ async function handlePostStop(request: Request, env: Env): Promise<Response> {
   return postToChannel(env, channelId, v2Reply(stopSignContainer()), 'handlePostStop')
 }
 
+/** Handle `POST BOT_RELAY_POST_ALERT_PATH`: the Mediator's words (`tableAlertContainer`). */
+async function handlePostAlert(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as Partial<PostAlertRelayRequest> | null
+  const channelId = body !== null && typeof body === 'object' ? body.channelId : undefined
+  const message = body !== null && typeof body === 'object' ? body.message : undefined
+  if (!isChannelId(channelId) || typeof message !== 'string' || message.trim().length === 0) {
+    return answer({ ok: false, status: null, message: 'That alert cannot be posted.' }, 400)
+  }
+  return postToChannel(env, channelId, v2Reply(tableAlertContainer(message)), 'handlePostAlert')
+}
+
 /** @public The site's way to post (its `BOT` service binding names it as its `entrypoint`). */
 export class Relay extends WorkerEntrypoint<Env> {
   override fetch(request: Request): Promise<Response> {
@@ -149,6 +164,8 @@ export class Relay extends WorkerEntrypoint<Env> {
       return handlePostRoll(request, this.env)
     if (request.method === 'POST' && pathname === BOT_RELAY_POST_STOP_PATH)
       return handlePostStop(request, this.env)
+    if (request.method === 'POST' && pathname === BOT_RELAY_POST_ALERT_PATH)
+      return handlePostAlert(request, this.env)
     return Promise.resolve(answer({ error: 'not found' }, 404))
   }
 }

@@ -209,13 +209,9 @@ describe('the Game room Durable Object', () => {
     ])
   })
 
-  test('a Stop Sign on a table that opted in is posted after the act', async () => {
+  test('a Stop Sign is posted after the act, at most once a minute', async () => {
     const made = await seeded('g-stop')
     const { game, waiting } = made
-    game.act(PLAYER, 'safety.showStop', undefined as never)
-    expect(waiting).toHaveLength(0)
-    game.act(PLAYER, 'safety.liftStop', undefined as never)
-    game.act(ORGANIZER, 'safety.setPostToChannel', { on: true })
     expect(game.act(PLAYER, 'safety.showStop', undefined as never)).toEqual({
       ok: true,
       value: true,
@@ -227,11 +223,25 @@ describe('the Game room Durable Object', () => {
       value: { stop: { mine: true } },
     })
     game.act(PLAYER, 'safety.liftStop', undefined as never)
-    game.act(ORGANIZER, 'safety.setPostToChannel', { on: false })
     expect(game.act(PLAYER, 'safety.showStop', undefined as never)).toEqual({
       ok: true,
       value: false,
     })
+    expect(waiting).toHaveLength(1)
+  })
+
+  test('the Mediator’s alert is posted after the act; a refused one is not', async () => {
+    const { game, waiting } = await seeded('g-alert')
+    expect(game.act(PLAYER, 'changeLog.broadcast', { message: 'Dust storm' })).toMatchObject({
+      ok: false,
+    })
+    expect(waiting).toHaveLength(0)
+    game.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
+    expect(game.act(ORGANIZER, 'changeLog.broadcast', { message: 'Dust storm' })).toMatchObject({
+      ok: true,
+    })
+    expect(waiting).toHaveLength(1)
+    await Promise.all(waiting)
   })
 
   test('a lease the alarm cannot settle is logged and tried again; a socket needs the Worker’s headers', async () => {
