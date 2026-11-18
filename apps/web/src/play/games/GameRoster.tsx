@@ -38,6 +38,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
+  capsLabel,
   Entity,
   FieldError,
   HeaderMenu,
@@ -72,6 +73,9 @@ import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
 import { seatRows } from './seatRows.model'
 import { useRowActions } from './useRowActions'
+
+/** MOCK: the crew table's head row, paper caps on ink (the roll table's). */
+const HEAD_CAPS = capsLabel({ size: 'note' })
 
 /** MOCK (Working Manual F): the crew table's vitals, the Mediator screen's columns. */
 const CREW_VITALS = ['HP', 'SP', 'EP', 'Heat'] as const
@@ -280,7 +284,11 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         </td>
         {CREW_VITALS.map((label) => (
           <td key={label} data-num="" data-empty={cells[label] === null ? '' : undefined}>
-            {cells[label] ?? '–'}
+            {cells[label] === null ? (
+              '–'
+            ) : (
+              <span className="su-crew-table__num">{cells[label]}</span>
+            )}
           </td>
         ))}
         <td>
@@ -379,14 +387,20 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             <table className="su-crew-table" aria-labelledby="crew-heading">
               <thead>
                 <tr>
-                  <th scope="col">Unit</th>
-                  <th scope="col">Mech</th>
+                  <th scope="col" className={HEAD_CAPS}>
+                    Unit
+                  </th>
+                  <th scope="col" className={HEAD_CAPS}>
+                    Mech
+                  </th>
                   {CREW_VITALS.map((label) => (
-                    <th key={label} scope="col" data-num="">
+                    <th key={label} scope="col" data-num="" className={HEAD_CAPS}>
                       {label}
                     </th>
                   ))}
-                  <th scope="col">Player</th>
+                  <th scope="col" className={HEAD_CAPS}>
+                    Player
+                  </th>
                   <th scope="col">
                     <span className="su-sr-only">More</span>
                   </th>

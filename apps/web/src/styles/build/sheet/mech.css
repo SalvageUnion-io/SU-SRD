@@ -174,15 +174,49 @@
 }
 
 /*
- * MOCK (Working Manual D): a phone's live vitals. The rows sit closer than
- * the poster gauges', and the − / + are a phone's primary controls: 44px
- * (principle 8).
+ * MOCK (Working Manual D): a phone's live vitals, SP, EP and Heat as three
+ * cells of one row in the Vitals panel.
  */
-.su-sheet-vitals--live > * + * {
-  margin-top: var(--space-8);
-  padding-top: var(--space-8);
+.su-sheet-vitals-row {
+  display: grid;
+  gap: var(--space-8);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.su-sheet-vitals--live button {
+/* The deep-tone rule the vitals stack draws between rows, between cells here. */
+.su-sheet-vitals-row > [data-vital] + [data-vital] {
+  border-left: var(--bw-hairline) solid color-mix(in srgb, var(--tone-deep) 40%, transparent);
+  padding-left: var(--space-8);
+}
+/* Conditions, when there are any, under the three. */
+.su-sheet-vitals-row > :not([data-vital]) {
+  grid-column: 1 / -1;
+}
+/* − / + share the cell's width at the phone's 44px (principle 8); the inline
+   Compact square is the gauge's own (`vitalGaugeCompact`). */
+.su-sheet-vitals-row button {
+  flex: 1 1 0%;
+  /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
   height: var(--size-full) !important;
-  width: var(--size-full) !important;
+  /* biome-ignore lint/complexity/noImportantStyles: MOCK, over the gauge's inline stepper size */
+  width: auto !important;
+}
+
+/*
+ * MOCK (Working Manual D): the sheet's actions by timing. The action-type
+ * chip under its timing heading says nothing new (C10), and the rows sit a
+ * chip's gap apart. (Play's twin: `styles/play/actions.css`.)
+ */
+.su-sheet-live-body
+  .su-timing-rows
+  [data-chip-class='economy']
+  > .su-stat-cell:first-child:not(:has(.su-stat-plate--value)) {
+  display: none;
+}
+.su-sheet-live-body
+  .su-timing-rows
+  .su-entity-mini__body:not(:has(.su-stat-plate--value, .su-cost, p, button, table)) {
+  display: none;
+}
+.su-sheet-live-body .su-timing-rows .su-mini-grid > li {
+  margin-bottom: var(--space-4);
 }

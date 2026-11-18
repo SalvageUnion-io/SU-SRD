@@ -201,10 +201,46 @@ button.su-play-dt-track__step:disabled {
  * its line to the type filter (the tab already says Act) and Find is the
  * wide screen's.
  */
+.su-play-timings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
 .su-play-timing {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
+}
+/* The rows of a group sit a chip's gap apart, tighter than a list of contentful Minis. */
+.su-play-timing .su-mini-grid > li {
+  margin-bottom: var(--space-4);
+}
+.su-play-timing .su-mini-grid > li:last-child {
+  margin-bottom: 0;
+}
+/*
+ * Under its timing heading a row's action-type chip says nothing new (C10):
+ * the economy lane's label-only first cell, in the head and in the overflow.
+ */
+.su-timing-rows
+  [data-chip-class='economy']
+  > .su-stat-cell:first-child:not(:has(.su-stat-plate--value)) {
+  display: none;
+}
+/* An overflow row that held only that chip leaves no body behind. */
+.su-timing-rows
+.su-entity-mini__body:not(
+  :has(
+    .su-stat-plate--value,
+    .su-cost,
+    p,
+    button,
+    table,
+    [data-chip-class='traits'],
+    [data-chip-class='keyword']
+  )
+) {
+  display: none;
 }
 @container play not (width >= 64rem) {
   .su-play-act-tools .su-play-act-find {

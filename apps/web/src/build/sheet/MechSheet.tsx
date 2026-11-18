@@ -115,12 +115,7 @@ const FIELDS = {
 } satisfies CSSProperties
 
 /** MOCK (Working Manual D): the phone's live vitals panel and its stack. */
-const VITALS_BODY = { padding: `${tokens.space[12]} ${tokens.space[12]}` } satisfies CSSProperties
-const VITALS_STACK = {
-  display: 'flex',
-  flexDirection: 'column',
-  width: '100%',
-} satisfies CSSProperties
+const VITALS_BODY = { padding: tokens.space[8] } satisfies CSSProperties
 
 /** MOCK: the phone's section tabs share one row, each a 44px target (principle 8). */
 const SHEET_TABS = { flexWrap: 'nowrap', gap: tokens.space[4] } satisfies CSSProperties
@@ -132,22 +127,29 @@ const SHEET_TAB = {
 const SHEET_PANEL = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[24],
-  paddingTop: tokens.space[16],
+  gap: tokens.space[16],
+  paddingTop: tokens.space[8],
+} satisfies CSSProperties
+
+/** MOCK: the phone's numbers and tabs are one block, a card gutter apart (§4.4). */
+const PHONE_READ = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[12],
 } satisfies CSSProperties
 
 /** MOCK: the loadout's slots as filled boxes, Systems beside Modules. */
 const SLOTS_BODY = {
   display: 'grid',
-  gap: tokens.space[16],
+  gap: tokens.space[12],
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  padding: tokens.space[12],
+  padding: tokens.space[8],
 } satisfies CSSProperties
 const SLOTS = {
   alignItems: 'flex-start',
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[8],
+  gap: tokens.space[6],
 } satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
@@ -554,7 +556,7 @@ export function MechSheet({
         const slotsUsed = capacity.systemSlotsUsed + capacity.moduleSlotsUsed
         const slotsMax = capacity.systemSlotsMax + capacity.moduleSlotsMax
         return (
-          <>
+          <div style={PHONE_READ}>
             {/* 1. The numbers, first under the band, live in Read. */}
             <Box
               as="section"
@@ -562,7 +564,7 @@ export function MechSheet({
               frame="hairline"
               bodyStyle={VITALS_BODY}
             >
-              <div className="su-sheet-vitals su-sheet-vitals--live" style={VITALS_STACK}>
+              <div className="su-sheet-vitals-row">
                 <MechVitals
                   mech={mech}
                   model={model}
@@ -627,7 +629,7 @@ export function MechSheet({
                 {heroNode}
               </TabPanel>
             </Tabs>
-          </>
+          </div>
         )
       })()}
 

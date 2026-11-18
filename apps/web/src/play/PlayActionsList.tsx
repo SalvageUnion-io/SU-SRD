@@ -169,17 +169,19 @@ export function PlayActionsList({ play, actions }: { play: Play; actions: PlayAc
       {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        groups.map((group) => (
-          <section key={group.type} className="su-play-timing" aria-label={group.label}>
-            <Slab as="h3" size="mini" label={group.label} count={group.entries.length} />
-            <PlayEntryList
-              entries={group.entries}
-              play={play}
-              actions={actions}
-              label={group.label}
-            />
-          </section>
-        ))
+        <div className="su-play-timings su-timing-rows">
+          {groups.map((group) => (
+            <section key={group.type} className="su-play-timing" aria-label={group.label}>
+              <Slab as="h3" size="mini" label={group.label} count={group.entries.length} />
+              <PlayEntryList
+                entries={group.entries}
+                play={play}
+                actions={actions}
+                label={group.label}
+              />
+            </section>
+          ))}
+        </div>
       )}
       <PlayAwayGroup
         title={playCopy('notOnHand')}

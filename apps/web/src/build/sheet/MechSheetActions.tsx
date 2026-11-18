@@ -20,13 +20,13 @@ import { actionTypeOf } from '../../play/playActions.model'
 const GROUPS = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[16],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 const GROUP = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[6],
+  gap: tokens.space[4],
 } satisfies CSSProperties
 
 /** The rows print no text: the head carries the facts, the Peek the rules. */
@@ -70,7 +70,7 @@ export function MechSheetActions({ mech }: { mech: Mech }) {
   })).filter((group) => group.actions.length > 0)
   if (groups.length === 0) return <EmptyState variant="quiet" body="No actions yet." />
   return (
-    <div style={GROUPS}>
+    <div className="su-timing-rows" style={GROUPS}>
       {groups.map((group) => (
         <section key={group.type} aria-label={group.type} style={GROUP}>
           <Slab as="h3" size="mini" label={group.type} count={group.actions.length} />

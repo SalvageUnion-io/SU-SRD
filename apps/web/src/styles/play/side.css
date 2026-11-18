@@ -27,18 +27,19 @@
 }
 
 /*
- * MOCK (Working Manual F, principle 5): the Game page's crew as a table. A
- * row a unit, numbers in tabular figures at the row's end of their column,
- * sentence-case column heads (principle 7), a hairline between rows. On a
- * phone it scrolls inside itself, never the page (R44).
+ * MOCK (Working Manual F, principle 5): the Game page's crew as a table in
+ * the book's table dress (the roll table's): an ink head row with paper caps,
+ * rows banded paper and page ground, each number a framed numeral (the Stat's
+ * value plate: a hairline cell, §4.3), the whole framed in its head's paint
+ * (ink, `--bw-entity-compact`). Tight: 4px rows on the {2,4,6,8,12} scale. On
+ * a phone it scrolls inside itself, never the page (R44).
  */
 .su-crew-table-scroll {
   max-width: 100%;
   overflow-x: auto;
 }
 .su-crew-table {
-  background: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink-40);
+  border: var(--bw-entity-compact) solid var(--color-ink);
   border-collapse: collapse;
   font-family: var(--font-body);
   font-size: var(--text-body);
@@ -46,34 +47,51 @@
 }
 .su-crew-table th,
 .su-crew-table td {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
-  padding: var(--space-6) var(--space-12);
+  padding: var(--space-4) var(--space-8);
   text-align: start;
   vertical-align: middle;
   white-space: nowrap;
 }
 .su-crew-table thead th {
-  border-bottom: var(--bw-chrome) solid var(--color-ink);
-  color: var(--color-wk-muted);
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-semibold);
+  background: var(--color-ink);
+  color: var(--color-paper);
+  padding-block: var(--space-6);
+}
+.su-crew-table tbody tr:nth-child(odd) > * {
+  background: var(--color-paper);
+}
+.su-crew-table tbody tr:nth-child(even) > * {
+  background: var(--color-wk-bg);
+}
+.su-crew-table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
 }
 .su-crew-table tbody th {
   font-weight: var(--font-weight-normal);
-  width: 30%;
+  width: 34%;
 }
 .su-crew-table [data-num] {
-  font-variant-numeric: tabular-nums;
-  text-align: end;
+  text-align: center;
+  width: 1%;
 }
-.su-crew-table tbody [data-num] {
+/* The framed numeral: the Stat's value plate, a hairline cell. */
+.su-crew-table__num {
+  background: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink);
+  border-radius: var(--radius-badge);
+  box-sizing: border-box;
+  display: inline-block;
   font-family: var(--font-cond);
-  font-size: var(--text-readout);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-bold);
+  line-height: calc(var(--size-mini) + var(--space-4));
+  min-width: 3.25rem;
+  padding: 0 var(--space-6);
+  text-align: center;
 }
-.su-crew-table tbody [data-empty] {
+.su-crew-table [data-empty] {
   color: var(--color-ink-40);
-  font-weight: var(--font-weight-normal);
 }
 .su-crew-table [data-menu] {
   text-align: end;
@@ -84,15 +102,15 @@
   flex-shrink: 0;
   max-width: none;
 }
-.su-crew-table tbody tr:last-child > * {
-  border-bottom: 0;
-}
 @media not (width >= 40rem) {
   .su-crew-table th,
   .su-crew-table td {
-    padding: var(--space-6) var(--space-8);
+    padding-inline: var(--space-6);
   }
   .su-crew-table tbody th {
     width: auto;
+  }
+  .su-crew-table__num {
+    min-width: 0;
   }
 }

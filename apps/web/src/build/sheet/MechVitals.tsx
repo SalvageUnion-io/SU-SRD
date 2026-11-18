@@ -25,6 +25,14 @@ const CONDITIONS = {
   width: '100%',
 } satisfies CSSProperties
 
+/** MOCK: the compact gauge's shell as a cell: read-out over steppers, the steppers at its foot. */
+const CELL = {
+  alignItems: 'stretch',
+  flexDirection: 'column',
+  gap: tokens.space[4],
+  height: '100%',
+} satisfies CSSProperties
+
 type MechVitalsProps = {
   mech: Mech
   model: MechSheetModel
@@ -66,7 +74,9 @@ export function MechVitals({
           })
         }
       : undefined
-  const rung = compact ? ({ size: 'compact' } as const) : {}
+  // MOCK: on a phone a vital is a cell of one row: the instrument read-out
+  // (label · value/max over the pips), its − / + under it sharing the cell.
+  const rung = compact ? ({ size: 'compact', style: CELL } as const) : {}
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
   // The conditions Read prints: the same list the Edit chips write.
   const readConditions = readOnly ? mech.conditions : []
