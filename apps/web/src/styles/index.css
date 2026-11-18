@@ -39,6 +39,8 @@
 @import './partials/atoms-fields.css';
 @import './partials/atoms-badges.css';
 @import './partials/atoms-leaves.css';
+/* MOCK (wave 2): a phone's vitals block (`PhoneVitals`). */
+@import './partials/phone-vitals.css';
 @import './partials/containers.css';
 @import './partials/roll-table.css';
 @import './partials/compositions.css';
