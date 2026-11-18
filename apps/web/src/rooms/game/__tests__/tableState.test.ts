@@ -70,13 +70,11 @@ describe('Safety Protocols', () => {
   test('the Stop Sign pauses the game without saying who, and is lifted by them or the table runner', () => {
     const { room } = table()
     expect(room.safety.stopSign(STRANGER)).toBeNull()
-    expect(room.safety.showStop(PLAYER, AT)).toBe(false)
+    expect(room.safety.showStop(PLAYER, AT)).toBe(true)
     expect(room.safety.showStop(ORGANIZER, AT + 5)).toBe(false)
     expect(room.safety.stopSign(PLAYER)).toEqual({
       stop: { shownAt: AT, mine: true },
       mayLift: true,
-      mayManage: false,
-      postToChannel: false,
     })
     expect(room.safety.stopSign(ORGANIZER)).toMatchObject({
       stop: { shownAt: AT, mine: false },
@@ -89,10 +87,8 @@ describe('Safety Protocols', () => {
     room.safety.liftStop(PLAYER, AT)
   })
 
-  test('with the opt-in, showing it posts at most once a minute, while it is still up', () => {
+  test('showing it always posts, at most once a minute, while it is still up', () => {
     const { room } = table()
-    expect(() => room.safety.setPostToChannel(PLAYER, true, AT)).toThrow()
-    room.safety.setPostToChannel(MEDIATOR, true, AT)
     expect(room.safety.showStop(PLAYER, AT)).toBe(true)
     expect(room.safety.stillPosting()).toBe(true)
     room.safety.liftStop(PLAYER, AT)
@@ -100,8 +96,6 @@ describe('Safety Protocols', () => {
     expect(room.safety.showStop(PLAYER, AT + 30_000)).toBe(false)
     room.safety.liftStop(PLAYER, AT)
     expect(room.safety.showStop(PLAYER, AT + 60_000)).toBe(true)
-    room.safety.setPostToChannel(MEDIATOR, false, AT)
-    expect(room.safety.stillPosting()).toBe(false)
   })
 })
 
@@ -127,10 +121,9 @@ describe('the table’s acts, by their Convex names', () => {
       value: { supply: 0 },
     })
 
-    runAct(med, 'safety.setPostToChannel', { on: true })
     expect(runAct(me, 'safety.showStop', undefined as never)).toEqual({ ok: true, value: true })
     expect(runAct(me, 'safety.stopSign', undefined as never)).toMatchObject({
-      value: { stop: { mine: true }, postToChannel: true },
+      value: { stop: { mine: true }, mayLift: true },
     })
     runAct(me, 'safety.liftStop', undefined as never)
   })

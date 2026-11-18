@@ -138,7 +138,7 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     'ops.sent': [],
     // A column's "Move in…" checks its moves against your Games.
     'games.listMine': [],
-    'safety.stopSign': { stop: null, mayLift: false, mayManage: false, postToChannel: false },
+    'safety.stopSign': { stop: null, mayLift: false },
     ...over,
   }
 }
@@ -707,9 +707,9 @@ describe('Safety (Core Book pp.12-13)', () => {
     })
   }
 
-  test('the Discord opt-in is the table runner’s alone', async () => {
+  test('there is no Discord opt-in: a bound channel always gets the Stop Sign', async () => {
     await renderHub()
-    expect(screen.queryByRole('switch', { name: 'Post it to the Discord channel' })).toBeNull()
+    expect(screen.queryByRole('switch')).toBeNull()
   })
 
   test('while the Stop Sign is up, the page says the game is paused, without who', async () => {
@@ -717,8 +717,6 @@ describe('Safety (Core Book pp.12-13)', () => {
       'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
-        mayManage: false,
-        postToChannel: false,
       },
     })
     expect(screen.getByText('Stop Sign: the game is paused')).not.toBeNull()
@@ -733,37 +731,19 @@ describe('Safety (Core Book pp.12-13)', () => {
       'safety.stopSign': {
         stop: { shownAt: 1, mine: true },
         mayLift: true,
-        mayManage: true,
-        postToChannel: true,
       },
     })
     expect(screen.queryByRole('button', { name: 'Resume play' })).not.toBeNull()
-    expect(
-      screen
-        .getByRole('switch', { name: 'Post it to the Discord channel' })
-        .getAttribute('aria-checked')
-    ).toBe('true')
   })
 
-  test('every write is one call: resume, opt in', async () => {
+  test('Resume play is one call', async () => {
     await renderConnected({
-      'safety.stopSign': {
-        stop: { shownAt: 1, mine: true },
-        mayLift: true,
-        mayManage: true,
-        postToChannel: false,
-      },
+      'safety.stopSign': { stop: { shownAt: 1, mine: true }, mayLift: true },
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Resume play' }))
     })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('switch', { name: 'Post it to the Discord channel' }))
-    })
-    expect(mutations).toEqual([
-      { name: 'safety.liftStop', args: {} },
-      { name: 'safety.setPostToChannel', args: { on: true } },
-    ])
+    expect(mutations).toEqual([{ name: 'safety.liftStop', args: {} }])
   })
 
   test('Stop Sign on the section’s head shows it', async () => {

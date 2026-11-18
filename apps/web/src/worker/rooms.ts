@@ -336,9 +336,15 @@ export class GameRoom extends Room {
     return answer
   }
 
-  /** The Stop Sign to the bound channel, while it is still up and the table still opted in. */
+  /** The Stop Sign to the bound channel, while it is still up. */
   private async postStop(): Promise<void> {
-    if (this.logic.safety.stillPosting()) await postStopSign(this.env as StopSignEnv, this.gameId)
+    if (!this.logic.safety.stillPosting()) return
+    const { store } = this.logic
+    const runners = store
+      .members()
+      .filter((m) => store.isTableRunner(m))
+      .map((m) => m.userId)
+    await postStopSign(this.env as StopSignEnv, this.gameId, runners)
   }
 
   /** The actor's own units and the primary crawler, for the bot's sheets. */

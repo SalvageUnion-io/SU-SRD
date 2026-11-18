@@ -49,6 +49,24 @@ describe('posting the Stop Sign', () => {
     expect(calls).toEqual([])
   })
 
+  test('an unbound Game falls back to a table runner’s own channel, never the shower’s', async () => {
+    const db = bound()
+    db.sqlite
+      .query(
+        `insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at)
+         values ('c-player', null, 'd-player', 'mine', 0), ('c-med', null, 'd-med', 'haven', 0)`
+      )
+      .run()
+    const { calls, BOT } = relay(ok)
+    await postStopSign({ SHARED: db, BOT }, 'g-2')
+    await postStopSign({ SHARED: db, BOT }, 'g-2', ['d-nobody', 'd-med'])
+    await postStopSign({ SHARED: db, BOT }, 'g-1', ['d-med'])
+    expect(calls.map((c) => JSON.parse(String(c.init?.body)))).toEqual([
+      { channelId: 'c-med' },
+      { channelId: 'c-1' },
+    ])
+  })
+
   test('a refusal or an unreachable bot is only logged', async () => {
     const warn = spyOn(console, 'warn').mockImplementation(() => undefined)
     try {

@@ -16,9 +16,6 @@ export type StopSign = {
   mine: boolean
   /** The caller may lift it: they showed it, or they run the table. */
   mayLift: boolean
-  /** The caller may change whether it posts to Discord. */
-  mayManage: boolean
-  postToChannel: boolean
   /** Writes reach the server. */
   canWrite: boolean
   show: () => void
@@ -46,8 +43,6 @@ export function useStopSign(gameId: string | null): StopSign | null {
     shown: read.stop !== null,
     mine: read.stop?.mine === true,
     mayLift: read.mayLift,
-    mayManage: read.mayManage,
-    postToChannel: read.postToChannel,
     canWrite,
     show: () => void showStop.run({}),
     lift: () => void liftStop.run({}),
