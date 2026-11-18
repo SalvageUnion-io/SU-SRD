@@ -33,7 +33,8 @@ type EntityCardIdentityFooterProps = {
    * citation takes on a canon card. It replaces the citation: a homebrew card
    * has no page to cite, and the card passes no source with it.
    */
-  credit?: string
+  // MOCK (Working Manual): a node too, a Ledger's merged sources.
+  credit?: ReactNode
   /**
    * The head band's colours (`resolveCardColors`): the foot wears the same
    * ground and foreground (ruleset Source 2), so a card and a Peek read as one

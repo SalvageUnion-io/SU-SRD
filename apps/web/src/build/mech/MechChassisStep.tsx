@@ -21,18 +21,31 @@ export type ChassisPattern = RefChassis['patterns'][number]
  * book's order (ruleset §2.6), then, set apart, what it costs to craft.
  */
 const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
-  { key: 'sp', label: 'SP', title: 'Structure Points', value: (c) => c.structurePoints },
-  { key: 'ep', label: 'EP', title: 'Energy Points', value: (c) => c.energyPoints },
-  { key: 'sys', label: 'Sys', title: 'System slots', value: (c) => c.systemSlots },
-  { key: 'mod', label: 'Mods', title: 'Module slots', value: (c) => c.moduleSlots },
-  { key: 'heat', label: 'Heat', title: 'Heat Capacity', value: (c) => c.heatCapacity },
-  { key: 'cargo', label: 'Cargo', title: 'Cargo Capacity', value: (c) => c.cargoCapacity },
+  {
+    key: 'sp',
+    label: 'SP',
+    title: 'Structure Points',
+    phone: true,
+    value: (c) => c.structurePoints,
+  },
+  { key: 'ep', label: 'EP', title: 'Energy Points', phone: true, value: (c) => c.energyPoints },
+  { key: 'sys', label: 'Sys', title: 'System slots', phone: true, value: (c) => c.systemSlots },
+  { key: 'mod', label: 'Mods', title: 'Module slots', phone: true, value: (c) => c.moduleSlots },
+  { key: 'heat', label: 'Heat', title: 'Heat Capacity', phone: true, value: (c) => c.heatCapacity },
+  {
+    key: 'cargo',
+    label: 'Cargo',
+    title: 'Cargo Capacity',
+    phone: true,
+    value: (c) => c.cargoCapacity,
+  },
   {
     key: 'cost',
     label: 'Scrap',
     title: 'Cost in Tech 1 Scrap',
     value: (c) => c.salvageValue,
     apart: true,
+    phone: true,
   },
 ]
 
@@ -40,7 +53,7 @@ const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
 type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }
 
 const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
-  { key: 'loadout', label: 'Loadout', text: true, value: (row) => row.line },
+  { key: 'loadout', label: 'Loadout', kind: 'line', value: (row) => row.line },
 ]
 
 const CUSTOM_KEY = 'custom-build'

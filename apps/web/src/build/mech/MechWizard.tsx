@@ -1,9 +1,9 @@
 import { MechSchema } from 'game-domain/schemas/mech'
-import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
-import { Tab, TabList, TabPanel, Tabs, toast, tokens } from '../../components/index'
+import { toast } from '../../components/index'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
@@ -24,9 +24,9 @@ import { RuleBrief } from '../wizard/RuleBrief'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
-import { CraftItemsStep } from './CraftItemsStep'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'
+import { MechLoadoutStep } from './MechLoadoutStep'
 import { MechReviewStep } from './MechReviewStep'
 
 /**
@@ -55,16 +55,6 @@ const STEP_TITLES: Record<MockMechStep, string> = {
   look: 'Give it a Quirk and a look',
   review: 'Name your Mech and review',
 }
-
-/** MOCK: a merged step's parts, each under its own rule. */
-const PARTS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[24],
-} satisfies CSSProperties
-
-/** MOCK: the Systems | Modules tab row over its list. */
-const LOADOUT_TABS = { marginBottom: tokens.space[16] } satisfies CSSProperties
 
 type MechWizardProps = {
   /** Called on successful create with the mech's id. */
@@ -153,9 +143,6 @@ export function MechWizard({
     gameId,
   })
 
-  // MOCK: which list step 2 shows.
-  const [loadoutTab, setLoadoutTab] = useState<'systems' | 'modules'>('systems')
-
   function updateForm(patch: Partial<MechWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
   }
@@ -175,8 +162,6 @@ export function MechWizard({
       }),
     [form.chassisName, form.systems, form.modules]
   )
-  const systemSlotsRemaining = Math.max(0, capacity.systemSlotsMax - capacity.systemSlotsUsed)
-  const moduleSlotsRemaining = Math.max(0, capacity.moduleSlotsMax - capacity.moduleSlotsUsed)
 
   /**
    * Chassis pick (radio). Changing the chassis REFUNDS its scrap and wipes
@@ -371,6 +356,16 @@ export function MechWizard({
     return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
   }
 
+  /** MOCK (wave 2): a part of a step: its field in the brief's frame, over its rule. */
+  const part = (bookStep: BookStep, field: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {field}
+      </RuleBrief>
+    )
+  }
+
   // Tracker tabs in the action pill: the SCRAP tab debuts on step 1 and rides
   // along wherever scrap can move; the slot pip chips join on their own
   // crafting steps.
@@ -445,41 +440,26 @@ export function MechWizard({
         </>
       )}
       {step === 'loadout' && (
-        <Tabs value={loadoutTab} onValueChange={setLoadoutTab}>
-          <TabList label="Systems and modules" style={LOADOUT_TABS}>
-            <Tab value="systems">
-              Systems · {capacity.systemSlotsUsed}/{capacity.systemSlotsMax} slots
-            </Tab>
-            <Tab value="modules">
-              Modules · {capacity.moduleSlotsUsed}/{capacity.moduleSlotsMax} slots
-            </Tab>
-          </TabList>
-          <TabPanel value="systems">
-            {brief('systems')}
-            <CraftItemsStep
-              kind="systems"
-              selected={form.systems}
-              onCountChange={(name, next) => setInstallCount('systems', name, next)}
-              scrapRemaining={budget.remaining}
-              slotsRemaining={systemSlotsRemaining}
-            />
-          </TabPanel>
-          <TabPanel value="modules">
-            {brief('modules')}
-            <CraftItemsStep
-              kind="modules"
-              selected={form.modules}
-              onCountChange={(name, next) => setInstallCount('modules', name, next)}
-              scrapRemaining={budget.remaining}
-              slotsRemaining={moduleSlotsRemaining}
-            />
-          </TabPanel>
-        </Tabs>
+        <>
+          {brief('systems')}
+          <MechLoadoutStep
+            systems={form.systems}
+            modules={form.modules}
+            onCountChange={setInstallCount}
+            scrapRemaining={budget.remaining}
+            slots={{
+              systems: { used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+              modules: { used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+            }}
+          />
+        </>
       )}
       {step === 'look' && (
-        <div style={PARTS}>
-          <div>
-            {brief('quirk')}
+        // MOCK (wave 2): each part is one box, the field over the book's words
+        // for it, the two side by side from lg.
+        <div className="su-wiz-parts">
+          {part(
+            'quirk',
             <MechFlavorStep
               field="quirk"
               label={mechCopy('quirk')}
@@ -487,9 +467,9 @@ export function MechWizard({
               onChange={(quirk) => updateForm({ quirk })}
               placeholder={mechCopy('eGRattletrapSoundsLike')}
             />
-          </div>
-          <div>
-            {brief('appearance')}
+          )}
+          {part(
+            'appearance',
             <MechFlavorStep
               field="appearance"
               label={mechCopy('appearance')}
@@ -498,28 +478,26 @@ export function MechWizard({
               placeholder={mechCopy('howItLooksPlatingPaint')}
               multiline
             />
-          </div>
+          )}
         </div>
       )}
       {step === 'review' && (
-        <div style={PARTS}>
-          <div>
-            {brief('pattern')}
+        <MechReviewStep
+          form={form}
+          submitError={submitError}
+          bankedScrap={Math.max(0, budget.remaining)}
+          capacity={capacity}
+          namePart={part(
+            'pattern',
             <MechFlavorStep
               field="patternName"
               label={mechCopy('namePattern')}
               value={form.name}
               onChange={setMechName}
               placeholder={mechCopy('eGBullseyePatternMule')}
-              note={mechCopy('aMechsNameIsIts')}
             />
-          </div>
-          <MechReviewStep
-            form={form}
-            submitError={submitError}
-            bankedScrap={Math.max(0, budget.remaining)}
-          />
-        </div>
+          )}
+        />
       )}
     </WizShell>
   )

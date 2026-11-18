@@ -46,3 +46,5 @@
 @import './partials/reference-card.css';
 @import './partials/footer.css';
 @import './partials/card-chrome.css';
+/* MOCK: the Ledger (reading lane's form), for the Build home and the review steps. */
+@import './partials/mock-ledger.css';

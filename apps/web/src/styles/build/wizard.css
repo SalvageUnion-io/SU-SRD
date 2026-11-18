@@ -479,11 +479,12 @@
   }
 }
 
-/* The picker (`PickList`): one frame in the kind's band paint; a head strip in
-   the band colour, the title's paper cut-out on its foot and its columns' ink
-   stamps right of it; Mini-height select rows banded paper and page ground,
-   their figures in fixed columns; the card's own foot. Every line is a subgrid
-   of the frame's one track list, so a column is one width throughout. */
+/* The picker (`PickList`), the Ledger form with a pick a line: one frame in
+   the kind's band paint; a head strip in the band colour, the title's paper
+   cut-out on its foot and its columns' ink stamps right of it; Mini-height
+   rows banded paper and cream, hairline-ruled, their figures in fixed columns;
+   the card's own foot. Every line is a subgrid of the frame's one track list,
+   so a column is one width throughout. Its metrics are `.su-ledger`'s. */
 .su-wiz-pick {
   --su-foot-ground: var(--color-paper);
 
@@ -491,6 +492,7 @@
   border: var(--bw-entity-compact) solid var(--tone);
   column-gap: var(--space-8);
   display: grid;
+  grid-template-columns: var(--su-pick-cols);
 }
 
 /* The band spans the head's two lines: the ask on the first, the stamps on
@@ -513,52 +515,58 @@
   margin-left: 0;
 }
 
-.su-wiz-pick__tab > .su-entity-compact__title {
-  font-size: var(--text-readout);
-}
-
 .su-wiz-pick__note {
   align-self: flex-start;
+  display: inline-flex;
   flex: none;
+  gap: var(--space-4);
+}
+
+.su-wiz-pick__cols,
+.su-wiz-pick__line,
+.su-wiz-pick__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
 .su-wiz-pick__cols,
 .su-wiz-pick__row {
   align-items: center;
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
   padding-inline: var(--space-8);
 }
 
 /* The stamps ride the band's second line, over it. */
 .su-wiz-pick__cols {
   grid-row: 2;
-  padding-block: var(--space-2) var(--space-4);
+  padding-block: var(--space-2) var(--space-6);
   pointer-events: none;
   position: relative;
+}
+
+.su-wiz-pick__line + .su-wiz-pick__line {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
 }
 
 .su-wiz-pick__row {
   color: var(--color-ink);
   cursor: pointer;
   min-height: var(--space-28);
-  padding-block: var(--space-4);
+  padding-block: var(--space-2);
 }
 
-.su-wiz-pick__row:nth-child(odd) {
-  background-color: var(--color-wk-bg);
-}
-
-.su-wiz-pick__row:hover {
+.su-wiz-pick__line[data-band] > .su-wiz-pick__row {
   background-color: var(--color-band-cream);
+}
+
+.su-wiz-pick__line > .su-wiz-pick__row:hover {
+  background-color: var(--color-wk-bg);
 }
 
 /* The picked row is set in ink, as a rolled row is, its name on a paper
    cut-out, as a card's head carries its name. */
-.su-wiz-pick__row--selected,
-.su-wiz-pick__row--selected:nth-child(odd),
-.su-wiz-pick__row--selected:hover {
+.su-wiz-pick .su-wiz-pick__line > .su-wiz-pick__row--selected,
+.su-wiz-pick .su-wiz-pick__line > .su-wiz-pick__row--selected:hover {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
@@ -574,13 +582,23 @@
   padding: var(--space-2) var(--space-4) 0;
 }
 
+/* A count picker's focused row (the one the detail shows) is ringed in ink;
+   set in ink already, the ring is paper. Keyboard focus draws the same ring. */
+.su-wiz-pick__row--focused,
 .su-wiz-pick__row:focus-within {
   outline: var(--bw-pill) solid var(--color-ink);
   outline-offset: calc(-1 * var(--bw-pill));
 }
 
+.su-wiz-pick__row--selected.su-wiz-pick__row--focused,
 .su-wiz-pick__row--selected:focus-within {
   outline-color: var(--color-paper);
+  outline-offset: calc(-2 * var(--bw-pill));
+}
+
+/* A row that does not fit the budget now: the one select dim. */
+.su-wiz-pick__row--blocked > .su-wiz-pick__cell {
+  opacity: 0.45;
 }
 
 /* A figure: plain condensed tabular numerals, centred under its stamp. */
@@ -589,9 +607,10 @@
   font-size: var(--text-readout);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-extrabold);
-  line-height: 1.15;
+  line-height: 1.1;
   min-width: 0;
   text-align: center;
+  white-space: nowrap;
 }
 
 .su-wiz-pick__cols .su-wiz-pick__cell {
@@ -599,26 +618,127 @@
   justify-content: center;
 }
 
-/* The name, in the Mini's caps face. */
+.su-wiz-pick__cell[data-empty] {
+  color: var(--color-ink-35);
+  font-weight: var(--font-weight-normal);
+}
+
+.su-wiz-pick__row--selected .su-wiz-pick__cell[data-empty] {
+  color: var(--color-paper-35, rgb(250 248 243 / 0.45));
+}
+
+/* The name, in the Ledger's caps face, its one stamp at the cell's end. */
 .su-wiz-pick .su-wiz-pick__cell--name {
+  align-items: center;
+  display: flex;
+  font-size: var(--text-lede);
+  gap: var(--space-8);
   justify-content: flex-start;
   letter-spacing: var(--tracking-caps-tight);
   text-align: left;
   text-transform: uppercase;
 }
 
+/* A word (an action's timing, a range). */
 .su-wiz-pick .su-wiz-pick__cell--text {
+  font-family: var(--font-barlow);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* A quiet line of words: one line, muted, taking the room left. */
+.su-wiz-pick .su-wiz-pick__cell--quiet {
+  color: var(--color-wk-muted);
+  font-family: var(--font-barlow);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-normal);
+  justify-content: flex-start;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+}
+
+.su-wiz-pick__row--selected .su-wiz-pick__cell--quiet {
+  color: inherit;
+}
+
+/* Body copy that wraps (a pattern's loadout, a class's trees). */
+.su-wiz-pick .su-wiz-pick__cell--line {
   font-family: var(--font-barlow);
   font-size: var(--text-caption);
   font-weight: 500;
   justify-content: flex-start;
   line-height: 1.35;
   text-align: left;
+  white-space: normal;
 }
 
 /* Set apart: the cost after the stats. */
 .su-wiz-pick__cell--apart {
-  margin-inline-start: var(--space-12);
+  margin-inline-start: var(--space-8);
+}
+
+/* The count's own stepper (ruleset §6.2), a Mini pair about its figure. */
+.su-wiz-pick .su-wiz-pick__cell--count {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.su-wiz-pick__copies {
+  min-width: 1.5ch;
+  text-align: center;
+}
+
+.su-wiz-pick__step {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  height: var(--space-20);
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: var(--space-20);
+}
+
+.su-wiz-pick__step:hover:not(:disabled) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-wiz-pick__row--selected .su-wiz-pick__step {
+  border-color: var(--color-paper);
+}
+
+.su-wiz-pick__step:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+/* A picked row's made choices, on their own line under its name. */
+.su-wiz-pick__under {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  grid-column: 1 / -1;
+  padding-block: var(--space-2) var(--space-4);
+}
+
+/* The focused row's card under its line: a phone's and a tablet's, where no
+   column stands beside the list. */
+.su-wiz-pick__inline {
+  background-color: var(--color-wk-bg);
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: var(--space-8);
 }
 
 .su-wiz-pick__foot {
@@ -647,14 +767,44 @@
   }
 }
 
-/* A phone: the frame takes the step's side padding back, so seven figures fit
-   390. The band is the head's first line alone (the tab and the ask), and the
-   stamps drop to the paper line under it; a text column's line sits under its
-   name. */
+@media (width >= 64rem) {
+  .su-wiz-pick__inline:not(.su-wiz-pick__inline--always) {
+    display: none;
+  }
+}
+
+/* The title tab's unseen twin in the name track: the track is never narrower
+   than the tab over it, so no stamp sits under the tab. */
+.su-wiz-pick__sizer {
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.su-wiz-pick__sizer > .su-wiz-pick__tab {
+  padding-inline-end: var(--space-8);
+}
+
+/* Beside the list only from lg: under it the same card opens in the list. */
+@media not (width >= 64rem) {
+  .su-wiz-compare-detail--desk {
+    display: none;
+  }
+}
+
+/* A phone: the frame takes the step's side padding back; it keeps the columns
+   marked for it. The band is the head's first line alone (the tab and the
+   ask), and the stamps drop to the paper line under it; a text column's line
+   sits under its name. Touch takes a taller row and a bigger stepper (§4.6). */
 @media not (width >= 40rem) {
   .su-wiz-pick {
-    column-gap: var(--space-2);
+    column-gap: var(--space-6);
+    grid-template-columns: var(--su-pick-cols-phone);
     margin-inline: calc(-1 * var(--space-12));
+  }
+
+  .su-wiz-pick__cell--desk {
+    display: none !important;
   }
 
   .su-wiz-pick__band {
@@ -671,13 +821,22 @@
     padding-block: var(--space-4) var(--space-2);
   }
 
+  .su-wiz-pick__row {
+    min-height: var(--space-40);
+  }
+
+  .su-wiz-pick__step {
+    height: var(--space-28);
+    width: var(--space-28);
+  }
+
   .su-wiz-pick__note {
     align-self: center;
   }
 
   .su-wiz-pick .su-wiz-pick__cell--name {
-    font-size: var(--text-lede);
     letter-spacing: 0;
+    white-space: normal;
   }
 
   .su-wiz-pick__cell--apart {
@@ -689,11 +848,20 @@
     display: block;
   }
 
+  .su-wiz-pick--text .su-wiz-pick__line {
+    display: block;
+  }
+
   .su-wiz-pick--text .su-wiz-pick__row {
     align-items: flex-start;
     display: flex;
     flex-direction: column;
     gap: var(--space-2);
+    padding-block: var(--space-6);
+  }
+
+  .su-wiz-pick--text .su-wiz-pick__cell--desk {
+    display: block !important;
   }
 
   /* The foot is the source alone: its cut-out takes the line. */
@@ -702,4 +870,119 @@
        foot a prop for this. */
     display: none !important;
   }
+}
+
+/* — MOCK (Working Manual, wave 2): the finishing pass — */
+
+/* A step's part: what it asks (a field with its Roll) over the book's words
+   for it, in the brief's own frame, the cite on its foot (`RuleBrief`). */
+.su-wiz-rule-brief__ask {
+  padding: var(--space-12) var(--space-12) 0;
+}
+
+.su-wiz-rule-brief__text--under {
+  padding-top: var(--space-8);
+}
+
+/* A step's parts: side by side from lg, so a step of fields fills the pane. */
+.su-wiz-parts {
+  align-items: start;
+  display: grid;
+  gap: var(--space-16);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A column of parts, where the parts' heights differ: two columns pack with
+   no hole under a short part. */
+.su-wiz-parts__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  min-width: 0;
+}
+
+/* A part's long field is three lines, not five: the step is fields, not a page. */
+.su-wiz-parts textarea {
+  height: 5.5rem;
+}
+
+.su-wiz-parts .su-wiz-rule-brief {
+  margin-bottom: 0;
+}
+
+@media (width >= 64rem) {
+  .su-wiz-parts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .su-wiz-part--wide {
+    grid-column: 1 / -1;
+  }
+
+  /* A list of many columns takes more of the pane than its detail. */
+  .su-wiz-compare-layout--wide {
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  }
+}
+
+/* The step's budgets, a line of pip trackers. */
+.su-wiz-budget {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+/* A pick's card says its own rules: no lead line, no flavour. MOCK: the real
+   build gives the card `hide.lead` and `hide.flavor`. */
+.su-wiz-own-rules :is(.su-ec-lead, [data-prose='flavor']),
+.su-wiz-own-rules--ability div:not([class]):has(+ .su-ec-block) {
+  display: none;
+}
+
+/* A review's lists, a Ledger each, 12px apart (R17). */
+.su-wiz-ledgers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* A budget as a meter (`WizMeter`): its reading, then a cell a point, the
+   filled cells the number it reads. */
+.su-wiz-meter {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-6);
+}
+
+.su-wiz-meter__cells {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.su-wiz-meter__cells > span {
+  border: var(--bw-chrome) solid var(--color-ink-35);
+  box-sizing: border-box;
+  height: var(--space-14);
+  width: var(--space-6);
+}
+
+.su-wiz-meter__cells > [data-filled] {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+/* Beside a long list the detail column rides the scroll, and scrolls in
+   itself where it outgrows the screen over the action bar. */
+@media (width >= 64rem) {
+  .su-wiz-compare-detail--scroll {
+    max-height: calc(100dvh - var(--space-64) - var(--space-48));
+    overflow-y: auto;
+  }
+}
+
+/* A pick's card under its list, 12px off it (R17). */
+.su-wiz-pick-under {
+  margin-top: var(--space-12);
 }

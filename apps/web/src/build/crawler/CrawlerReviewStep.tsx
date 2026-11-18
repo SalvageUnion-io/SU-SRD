@@ -4,7 +4,6 @@ import { crawlerMaxSPParts } from 'salvageunion-reference/rules'
 import {
   Box,
   Callout,
-  EmptyState,
   FieldError,
   ReferenceEntityCard,
   Stat,
@@ -15,13 +14,11 @@ import { unitRowModel } from '../../lib/units/unitModel'
 import type { CrawlerWizardFormState } from '../../lib/wizard/crawlerFormState'
 import { toScrapPoolPatch } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
+import { weaponColumns } from '../wizard/pickColumns'
 import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
+import { ReviewLedger } from '../wizard/ReviewLedger'
 
-/** Recap and cards; the column split is `.su-wiz-review-grid`. */
-const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
-
-/** The recap column sits at the top of its row. */
-const RECAP = { alignSelf: 'start' } satisfies CSSProperties
+const WEAPON_COLUMNS = weaponColumns<RefSystem>()
 
 /** The Augmented reminder's body copy. */
 const REMINDER = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
@@ -105,8 +102,10 @@ export function CrawlerReviewStep({
   const crew = crewNames.map((name) => unitRowModel({ kind: 'npc', name }))
 
   return (
-    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
-      <div className="su-wiz-stack su-wiz-stack--12" style={RECAP}>
+    // MOCK (wave 2): the review's one form: the recap and the weapons as a
+    // Ledger down the main column, the type as its card beside them.
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+      <div className="su-wiz-compare-main">
         <Box bodyClassName="su-wiz-review-panel">
           {/* The recap: Stats, the type as its chip, the rest as Minis. */}
           <Recap>
@@ -121,11 +120,6 @@ export function CrawlerReviewStep({
             {scrapChips.length > 0 && <span style={CHIPS}>{scrapChips}</span>}
             <RecapMinis label={crawlerCopy('ability')} entities={abilities} />
             <RecapMinis
-              label={crawlerCopy('weapons')}
-              entities={systems}
-              empty={crawlerCopy('required')}
-            />
-            <RecapMinis
               label={crawlerCopy('crew')}
               models={crew}
               empty={crawlerCopy('unnamedFillInDuringPlay')}
@@ -133,6 +127,12 @@ export function CrawlerReviewStep({
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>
+        <ReviewLedger
+          title={crawlerCopy('weapons')}
+          entities={systems}
+          columns={WEAPON_COLUMNS}
+          empty={crawlerCopy('noWeaponsMounted')}
+        />
         {isAugmented && (
           <Callout tone="crawler">
             <span style={REMINDER}>
@@ -143,22 +143,9 @@ export function CrawlerReviewStep({
         )}
       </div>
 
-      {/* chosen cards */}
-      <div className="su-wiz-stack su-wiz-stack--12">
+      <div className="su-wiz-compare-detail">
         {selectedType && (
           <ReferenceEntityCard data={selectedType} size="compact" hide={{ choices: true }} />
-        )}
-        {systems.map((system) => (
-          <ReferenceEntityCard
-            key={system.id}
-            data={system}
-            size="compact"
-            status="intact"
-            hide={{ actions: true, choices: true }}
-          />
-        ))}
-        {systems.length === 0 && (
-          <EmptyState variant="quiet" body={crawlerCopy('noWeaponsMounted')} bodyInk="inherit" />
         )}
       </div>
     </div>

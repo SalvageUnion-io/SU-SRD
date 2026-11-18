@@ -1,32 +1,22 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
+import type { RefModule, RefSystem } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
-import {
-  Box,
-  Callout,
-  EmptyState,
-  FieldError,
-  ReferenceEntityCard,
-  tokens,
-} from '../../components/index'
+import { Callout, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
 import { readReference } from '../../lib/readReference'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { mechCopy } from '../../messages/build-mech'
-import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
+import { loadoutColumns } from '../wizard/pickColumns'
+import { ReviewLedger } from '../wizard/ReviewLedger'
+import { Recap, RecapStat } from '../wizard/ReviewRecap'
 import { SavePatternButton } from './Pattern/SavePatternButton'
 
-/** Columns are `.su-wiz-review-grid` (they change at lg). */
-const LAYOUT = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
-
-/** The recap, the banking note and Save-as-pattern, 12px apart. */
-const KV_COLUMN = {
-  alignSelf: 'flex-start',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
-
-/** The note's line in body type, as the crawler review's reminder. */
+/** A note's line in body type, as the crawler review's reminder. */
 const NOTE = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
+
+const COLUMNS = loadoutColumns<RefSystem | RefModule>()
+
+/** The system a mech moves by (its own text: without one the mech cannot move). */
+const LOCOMOTION = /locomotion/i
 
 type MechReviewStepProps = {
   form: MechWizardFormState
@@ -38,15 +28,32 @@ type MechReviewStepProps = {
    * Scrap Pool field is the manual landing spot.
    */
   bankedScrap: number
+  /** MOCK (wave 2): the slot budgets, for the lists' sums. */
+  capacity: {
+    systemSlotsUsed: number
+    systemSlotsMax: number
+    moduleSlotsUsed: number
+    moduleSlotsMax: number
+  }
+  /** MOCK (wave 2): the name's part (its field over its rule), leading the review. */
+  namePart: ReactNode
 }
 
 /**
- * Review step (undrawn for mechs; reuses the pilot
- * pattern): a recap of the build's fields on the left (with Save-as-pattern
- * below it), the chosen system + module cards stacked on the right (fresh
- * installs carry an 'Intact' status badge).
+ * MOCK (Working Manual, wave 2) · Step 4 · Name and review. The name's part
+ * leads; under it the build reads as it will on the sheet: the systems and the
+ * modules a Ledger each (the picker's own columns, a copy count, the slots and
+ * Scrap summed on an ink line), and beside them the chassis as its contentful
+ * card, the look as Stats, and what banks to the crawler. It replaces a recap
+ * panel beside one full card a pick (nine cards for a Hauler, 2,978px at 1440).
  */
-export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewStepProps) {
+export function MechReviewStep({
+  form,
+  submitError,
+  bankedScrap,
+  capacity,
+  namePart,
+}: MechReviewStepProps) {
   const chosenSystems = form.systems.flatMap((ref) => {
     const found = resolveSystemRef(ref)
     return found ? [found] : []
@@ -61,19 +68,63 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
       undefined)
     : undefined
 
+  const sums =
+    (used: number, max: number) =>
+    (rows: readonly { entity: RefSystem | RefModule; count: number }[]) => [
+      `${used}/${max}`,
+      rows.reduce((sum, row) => sum + row.entity.salvageValue * row.count, 0),
+      '',
+      '',
+      '',
+      '',
+    ]
+  const moves = chosenSystems.some((system) => LOCOMOTION.test(system.name))
+
   return (
-    <div className="su-wiz-review-grid" style={LAYOUT}>
-      <div style={KV_COLUMN}>
-        <Box bodyClassName="su-wiz-review-panel">
-          {/* The recap: Stats, the chassis as its chip, the parts as Minis. */}
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+      <div className="su-wiz-compare-main">
+        {namePart}
+        {submitError && <FieldError>{submitError}</FieldError>}
+        <div className="su-wiz-ledgers">
+          <ReviewLedger
+            title={mechCopy('systems')}
+            entities={chosenSystems}
+            columns={COLUMNS}
+            empty="No systems installed."
+            total={sums(capacity.systemSlotsUsed, capacity.systemSlotsMax)}
+          />
+          <ReviewLedger
+            title={mechCopy('modules')}
+            entities={chosenModules}
+            columns={COLUMNS}
+            empty="No modules installed."
+            total={sums(capacity.moduleSlotsUsed, capacity.moduleSlotsMax)}
+          />
+        </div>
+        {!moves && (
+          <Callout role="note">
+            <span style={NOTE}>
+              No Locomotion System installed: this Mech cannot move. You can still create it.
+            </span>
+          </Callout>
+        )}
+      </div>
+
+      <div className="su-wiz-compare-detail">
+        {chassis && (
+          <ReferenceEntityCard
+            data={chassis}
+            size="compact"
+            hide={{ actions: true, choices: true, patterns: true }}
+            showChassisAbility
+          />
+        )}
+        {(form.quirk || form.appearance) && (
           <Recap>
-            <RecapStat label={mechCopy('name')} value={form.name.trim()} required />
-            <RecapEntity label={mechCopy('chassis')} entity={chassis} required />
-            <RecapMinis label={mechCopy('systems')} entities={chosenSystems} />
-            <RecapMinis label={mechCopy('modules')} entities={chosenModules} />
+            <RecapStat label={mechCopy('quirk')} value={form.quirk} />
+            <RecapStat label={mechCopy('appearance')} value={form.appearance} />
           </Recap>
-          {submitError && <FieldError>{submitError}</FieldError>}
-        </Box>
+        )}
         {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder. */}
         <Callout role="note">
           <span style={NOTE}>{mechCopy('tech1ScrapBanksTo', { bankedScrap })}</span>
@@ -89,27 +140,6 @@ export function MechReviewStep({ form, submitError, bankedScrap }: MechReviewSte
               }}
             />
           </div>
-        )}
-      </div>
-
-      {/* chosen cards */}
-      <div className="su-wiz-stack su-wiz-stack--12">
-        {[...chosenSystems, ...chosenModules].map((entity, i) => (
-          <ReferenceEntityCard
-            // biome-ignore lint/suspicious/noArrayIndexKey: the same system/module may be chosen more than once, so the id alone is not unique; the list only appends/removes at stable positions during review
-            key={`${(entity as { id?: string }).id ?? 'entity'}-${i}`}
-            data={entity}
-            size="compact"
-            status="intact"
-            hide={{ actions: true, choices: true }}
-          />
-        ))}
-        {chosenSystems.length === 0 && chosenModules.length === 0 && (
-          <EmptyState
-            variant="quiet"
-            body={mechCopy('noSystemsOrModulesInstalled')}
-            bodyInk="inherit"
-          />
         )}
       </div>
     </div>

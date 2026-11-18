@@ -116,6 +116,27 @@ export function WizTracker({
   )
 }
 
+/**
+ * MOCK (Working Manual, wave 2): a budget as a meter, on the step it is spent
+ * on: the reading (`WizTracker`'s `Stat`) and a cell a point beside it, the
+ * filled cells the number it reads (the Scrap still held, the slots filled).
+ * Needed for a real build: `SlotGrid` is the sheet's addressable grid, six a
+ * row; this is one line of small cells.
+ */
+export function WizMeter({ label, value, max }: { label: string; value: number; max: number }) {
+  const cells = Array.from({ length: Math.max(0, max) }, (_, index) => index)
+  return (
+    <span className="su-wiz-meter">
+      <Stat label={label} value={value} max={max} />
+      <span aria-hidden="true" className="su-wiz-meter__cells">
+        {cells.map((index) => (
+          <span key={index} data-filled={index < value || undefined} />
+        ))}
+      </span>
+    </span>
+  )
+}
+
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
  *  (`.su-wiz-rail-step`). */
 const railStepStyle = {

@@ -23,6 +23,12 @@ type RuleBriefProps = StepRule & {
    * screen. The cite always shows.
    */
   fold?: boolean
+  /**
+   * MOCK (wave 2): what the rule asks for, over it in the same frame (a
+   * field with its Roll). The step's part is then one box: the ask, the
+   * book's words under it, the cite on the foot.
+   */
+  children?: ReactNode
 }
 
 /** A rule shorter than this fits two phone lines: nothing to fold. */
@@ -56,7 +62,7 @@ const citeStyle = { margin: 0 } satisfies CSSProperties
  * box carries no title of its own, only the
  * landmark's name for a screen reader.
  */
-export function RuleBrief({ rule, cite, className, fold = false }: RuleBriefProps) {
+export function RuleBrief({ rule, cite, className, fold = false, children }: RuleBriefProps) {
   const [open, setOpen] = useState(false)
   const ruleId = useId()
   const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
@@ -71,7 +77,10 @@ export function RuleBrief({ rule, cite, className, fold = false }: RuleBriefProp
         body="flush"
         frameColor="var(--tone)"
       >
-        <div className="su-wiz-rule-brief__text">
+        {children && <div className="su-wiz-rule-brief__ask">{children}</div>}
+        <div
+          className={cn('su-wiz-rule-brief__text', children && 'su-wiz-rule-brief__text--under')}
+        >
           <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>
             {rule}
           </p>
