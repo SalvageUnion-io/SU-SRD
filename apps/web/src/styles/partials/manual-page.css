@@ -1,8 +1,5 @@
-/* MOCK — the Working Manual direction's reading register (mockups A and B),
- * in today's dress. Not shipped code: a chassis Page (`CardPage`'s
- * `.su-manual`) and a Reference index as its List with a fixed chip strip.
- * The structure is the direction's (numbers first, rules before lore, rows
- * to compare); the materials are the site's own: the stat column's ink stamp
+/* The entity Page's reading layout (`CardPage`'s `.su-manual`): numbers first,
+ * rules before lore, in the site's own materials: the stat column's ink stamp
  * and framed numeral, the Compact and its chips (E2), R17's 12px rhythm.
  * Tokens only.
  */
