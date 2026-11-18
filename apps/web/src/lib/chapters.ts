@@ -19,14 +19,12 @@
 import type { RefEntity } from 'salvageunion-reference'
 import {
   entityTone,
-  getModel,
   getSchemaCatalog,
   isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ChapterTone } from '../components/index'
 import { schemaHref } from './entityHref'
-import { listingEntries } from './listingEntries'
 
 type ChapterDefinition = {
   /** The home page's anchor for the chapter (`/#mech-workshop`). */
@@ -64,12 +62,11 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   },
 ]
 
-/** One row of a chapter: a schema's listing and how many entries it holds. */
+/** One row of a chapter: a schema's listing. */
 type ChapterRow = {
   schemaId: string
   label: string
   href: string
-  count: number
 }
 
 export type SrdChapter = {
@@ -79,11 +76,9 @@ export type SrdChapter = {
   /** The chapter's anchor on the home page. */
   href: string
   rows: ChapterRow[]
-  /** Every entry in the chapter. */
-  total: number
 }
 
-/** The chapters, each with its schemas' real entry counts. */
+/** The chapters, each with its schemas' listings. */
 export function buildChapters(): SrdChapter[] {
   const categories = SalvageUnionReference.CatalogCategories.all()
   const schemas = new Map(getSchemaCatalog().schemas.map((schema) => [schema.id, schema]))
@@ -105,17 +100,7 @@ export function buildChapters(): SrdChapter[] {
     const rows = ordered.flatMap((schemaId): ChapterRow[] => {
       const schema = schemas.get(schemaId)
       if (!schema) return []
-      // The listing's count: the roll tables count only the ones they list.
-      const model = getModel(schemaId)
-      const count = model ? listingEntries(schemaId, model.all()).length : schema.itemCount
-      return [
-        {
-          schemaId,
-          label: schema.displayNamePlural,
-          href: schemaHref(schemaId),
-          count,
-        },
-      ]
+      return [{ schemaId, label: schema.displayNamePlural, href: schemaHref(schemaId) }]
     })
 
     return {
@@ -124,7 +109,6 @@ export function buildChapters(): SrdChapter[] {
       tone: definition.tone,
       href: chapterHref(definition.id),
       rows,
-      total: rows.reduce((sum, row) => sum + row.count, 0),
     }
   })
 }
@@ -135,7 +119,7 @@ const chapterHref = (id: string): string => `/#${id}`
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
 
-/** The five chapters by name, colour and anchor: no entry counts, so no ORM read. */
+/** The five chapters by name, colour and anchor: no catalog, so no ORM read. */
 export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
   ({ id, title, tone }) => ({
     id,

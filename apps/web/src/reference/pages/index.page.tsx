@@ -88,11 +88,9 @@ function page(): PageResult {
                   title={chapter.title}
                   tone={chapter.tone}
                   rows={chapter.rows}
-                  total={chapter.total}
                 />
               ))}
-              {/* Players' own patterns, not the book's (ADR-061): a count would
-                  go stale between builds, so the row has none. */}
+              {/* Players' own patterns, not the book's (ADR-061). */}
               <ContentsChapter
                 id="homebrew"
                 title={pagesCopy('homebrew')}

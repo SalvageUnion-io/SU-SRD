@@ -173,7 +173,6 @@ function SrdHome({
                 id={`srd-explorer-${chapter.id}`}
                 title={chapter.title}
                 tone={chapter.tone}
-                total={chapter.total}
                 rows={chapter.rows.map((row) => ({
                   ...row,
                   onOpen: () => onPickSchema(row.schemaId, row.label),

@@ -1,5 +1,5 @@
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
-import { escapeRegExp, pageOverflow } from './_helpers'
+import { pageOverflow } from './_helpers'
 import { expect, test } from './fixtures'
 
 test.use({ account: 'anonymous' })
@@ -80,13 +80,8 @@ test('the home page opens three ways in and indexes the book’s chapters', { ta
     'Denizens of the Wasteland',
     'Rules & Reference',
   ]) {
-    // The heading reads "<chapter> <count>".
-    await expect(
-      page.getByRole('heading', {
-        level: 2,
-        name: new RegExp(`^${escapeRegExp(chapter)}`),
-      })
-    ).toBeVisible()
+    // The heading is the chapter's name alone: no count.
+    await expect(page.getByRole('heading', { level: 2, name: chapter, exact: true })).toBeVisible()
   }
   expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
 })

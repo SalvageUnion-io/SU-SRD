@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { getEntitySchemas, getModel, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   bandFillFor,
   buildChapters,
@@ -7,7 +7,6 @@ import {
   chapterForSchema,
   listingBandFillFor,
 } from '../chapters'
-import { listingEntries } from '../listingEntries'
 
 /**
  * The SRD's chapters: the index the home page prints, the nav
@@ -31,24 +30,6 @@ describe('buildChapters', () => {
     const indexed = chapters.flatMap((c) => c.rows.map((row) => row.schemaId))
     expect([...indexed].sort()).toEqual([...new Set(catalogued)].sort())
     expect(new Set(indexed).size).toBe(indexed.length)
-  })
-
-  test('counts are what each listing lists, and a chapter’s total is its rows’ sum', () => {
-    const counts = new Map(
-      getEntitySchemas().map((s) => [
-        s.id,
-        listingEntries(s.id, getModel(s.id)?.all() ?? []).length,
-      ])
-    )
-    // The roll tables count only their top-level tables; every other listing
-    // counts every entry of its schema.
-    expect(counts.get('roll-tables')).toBeLessThan(SalvageUnionReference.RollTables.all().length)
-    for (const schema of getEntitySchemas())
-      if (schema.id !== 'roll-tables') expect(counts.get(schema.id)).toBe(schema.itemCount)
-    for (const chapter of chapters) {
-      for (const row of chapter.rows) expect(row.count).toBe(counts.get(row.schemaId) ?? -1)
-      expect(chapter.total).toBe(chapter.rows.reduce((sum, row) => sum + row.count, 0))
-    }
   })
 
   test('Rules & Reference leads with what a table reaches for: guides, then roll tables', () => {

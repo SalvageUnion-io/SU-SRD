@@ -217,11 +217,6 @@
   padding: var(--space-6) 0;
 }
 
-.su-contents__total {
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-}
-
 .su-contents__rows {
   display: flex;
   flex-direction: column;
@@ -247,7 +242,7 @@
   text-underline-offset: 3px;
 }
 
-.su-contents__count {
+.su-contents__page {
   color: var(--color-ink-2);
   font-family: var(--font-cond);
   font-variant-numeric: tabular-nums;
