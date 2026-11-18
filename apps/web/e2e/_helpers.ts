@@ -4,6 +4,12 @@ import { editSheet, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
 import { at } from './_base'
 
 /**
+ * A Ledger's pick (`Ledger` in select, ledger.md L8): the line's label over
+ * its visually hidden radio. A picked line is `tr[data-picked]`.
+ */
+const LEDGER_PICK = 'label.su-ledger__pick'
+
+/**
  * Shared helpers for the app end-to-end tests.
  *
  * Every pickable entity in a wizard or picker pane is a `ReferenceEntityCard`
@@ -17,10 +23,10 @@ import { at } from './_base'
  * silently misses whole steps, which is exactly how these specs rotted while
  * the panes migrated onto the entity card. We match by accessible text
  * containing the entity name, the same pattern the in-app integration tests
- * use.
+ * use. A step that picks from a Ledger offers its lines (`LEDGER_PICK`).
  */
 function pickTargets(page: Page): Locator {
-  return page.getByRole('button').or(page.getByRole('radio'))
+  return page.getByRole('button').or(page.getByRole('radio')).or(page.locator(LEDGER_PICK))
 }
 
 export function choiceCardByName(page: Page, name: string): Locator {
@@ -34,7 +40,7 @@ export function choiceCardByName(page: Page, name: string): Locator {
  * and the wizard CTA carry neither attribute).
  */
 export function optionCells(page: Page): Locator {
-  return page.locator('[aria-pressed], [aria-checked]')
+  return page.locator(`[aria-pressed], [aria-checked], ${LEDGER_PICK}`)
 }
 
 /**
@@ -137,7 +143,9 @@ export async function openWizard(page: Page, kind: WizardKind, game?: string): P
 
 /** The option cells not chosen yet, in either selection semantic (see `optionCells`). */
 export function unselectedOptions(page: Page): Locator {
-  return page.locator('[aria-pressed="false"], [aria-checked="false"]')
+  return page.locator(
+    `[aria-pressed="false"], [aria-checked="false"], tr:not([data-picked]) ${LEDGER_PICK}`
+  )
 }
 
 /**
@@ -345,6 +353,12 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
     if (createLabel) {
       const create = page.getByRole('button', { name: createLabel }).first()
       if (await create.isVisible().catch(() => false)) {
+        // The last step may hold the name too: Create waits on it.
+        if (await create.isDisabled()) {
+          for (const [label, value] of Object.entries(identity)) {
+            await fillIdentity(page, label, value)
+          }
+        }
         await create.click()
         await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
         return
@@ -383,7 +397,22 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
         // Take a named pick when one is on offer, so the built entity is the
         // same every run.
         let picked = false
-        for (const want of prefer) {
+        // A step that counts its picks (Equipment, a loadout) takes one through
+        // a line's stepper: its `+` appends a copy, the line's label only opens it.
+        const steppers = page.locator('.su-wiz-main button[aria-label^="Increase "]:enabled')
+        if ((await steppers.count()) > 0) {
+          let add = steppers.first()
+          for (const want of prefer) {
+            const named = page.getByRole('button', { name: `Increase ${want} count`, exact: true })
+            if ((await named.count()) > 0 && (await named.isEnabled())) {
+              add = named
+              break
+            }
+          }
+          await add.click().catch(() => {})
+          picked = true
+        }
+        for (const want of picked ? [] : prefer) {
           const candidate = unselected.filter({ hasText: want }).first()
           if (await candidate.isVisible().catch(() => false)) {
             await candidate.click().catch(() => {})

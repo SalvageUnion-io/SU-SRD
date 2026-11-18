@@ -26,6 +26,7 @@ import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import type { Paint } from './parts/paint'
 import { paintFor } from './parts/paint'
+import { usePeekAttrs } from './peekContext'
 
 export type LedgerColumn = {
   key: string
@@ -40,6 +41,16 @@ export type LedgerColumn = {
   kind: 'figure' | 'text' | 'quiet' | 'line'
   /** Kept on a phone. */
   phone?: boolean
+}
+
+/** A name linked to an address of its own; it Peeks when the row names an entity (L4). */
+function AddressedName({ row, href }: { row: LedgerRow; href: string }) {
+  const peek = usePeekAttrs(row.entityRef)
+  return (
+    <InlineRef href={href} {...peek} {...row.linkAttrs}>
+      {row.name}
+    </InlineRef>
+  )
 }
 
 export type LedgerRow = {
@@ -298,9 +309,7 @@ export function Ledger({
                       ) : (
                         <span className={NAME}>
                           {row.href ? (
-                            <InlineRef href={row.href} {...row.linkAttrs}>
-                              {row.name}
-                            </InlineRef>
+                            <AddressedName row={row} href={row.href} />
                           ) : (
                             <Mention entityRef={row.entityRef}>{row.name}</Mention>
                           )}

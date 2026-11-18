@@ -116,7 +116,8 @@ function whereOf(route: DesignRoute, width: DesignWalkWidth): string {
 /**
  * Open every view of `routes` (all of `designRoutes` by default) and hand each,
  * at rest, to `visit`: each route at each of its widths (or at `widths`, when
- * given, in their place), and wherever Play draws its tabs (below `lg`) each
+ * given, in their place, bar a phone the route is not held at), and wherever
+ * Play draws its tabs (below `lg`) each
  * tab in turn. A `:key` path is the seed's, so a walk over one needs `seed`.
  */
 export async function visitDesignViews(
@@ -131,7 +132,9 @@ export async function visitDesignViews(
   for (const route of routes) {
     const path = resolveSeedPath(route.path, seed ?? {})
     if (!path) throw new Error(`the seed made no ${route.path}`)
-    for (const width of widths ?? route.widths) {
+    // A route its table holds off the phone stays off it, whatever the walk names.
+    const held = widths?.filter((w) => w !== 'phone' || route.widths.includes('phone'))
+    for (const width of held ?? route.widths) {
       const { width: w, height } = viewportFor(width)
       await page.setViewportSize({ width: w, height })
       await open(page, route, path)
@@ -149,16 +152,23 @@ export async function visitDesignViews(
           await settle(page)
           await visit({ ...view, where: `${where}, ${name.trim()} tab` })
         }
-        // The player's table mode, then back to the tabs for the next route.
-        const table = page.locator('.su-play-root').getByRole('button', {
-          name: 'Table mode',
-        })
-        if ((await table.count()) > 0) {
-          await table.click()
-          await settle(page)
-          await visit({ ...view, where: `${where}, table mode` })
-          await table.click()
-          await settle(page)
+        // The player's table mode, a row in ⋯, then back to the tabs for the next route.
+        const more = page
+          .locator('.su-play-root')
+          .getByRole('button', { name: 'More', exact: true })
+        const row = (name: string) => page.getByRole('menuitem', { name, exact: true })
+        if ((await more.count()) > 0) {
+          await more.click()
+          if ((await row('Table mode').count()) > 0) {
+            await row('Table mode').click()
+            await settle(page)
+            await visit({ ...view, where: `${where}, table mode` })
+            await more.click()
+            await row('Leave table mode').click()
+            await settle(page)
+          } else {
+            await page.keyboard.press('Escape')
+          }
         }
       } else {
         await visit(view)

@@ -42,8 +42,9 @@ for (const [width, viewport] of Object.entries(DESIGN_VIEWPORTS)) {
       // A phone's sheet keeps its lists under tabs, as Ledgers (ruleset §1.2, L9).
       const loadout = page.getByRole('tab', { name: /Loadout/ })
       if ((await loadout.count()) > 0) await loadout.first().click()
+      // The loadout's own line: the Actions list above it names the system too, and only Peeks.
       await page
-        .locator('.su-entity-mini__name, .su-ledger__name')
+        .locator('.su-sheet-mech-loadout .su-entity-mini__name, .su-ledger__name')
         .filter({ hasText: APP_PAGE.token })
         .first()
         .click()

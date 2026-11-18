@@ -269,7 +269,6 @@ export const playCopy = messages({
     'The table is on step {step} of {count}. Everyone goes back to their seat, and a new Downtime starts from the first step.',
   endDowntimeBodySolo:
     'You are on step {step} of {count}. A new Downtime starts from the first step.',
-  table: 'Table',
   rollTheDie: 'Roll the die',
   rolledBand: 'Rolled {die}, {band}',
   nothingToTrackInDowntime: 'Nothing to track in Downtime: the tabs hold the step.',

@@ -101,7 +101,8 @@ export function PlayActionRow({
     ) : (
       <Button
         size={size}
-        variant="primary"
+        // A faded row's Use is ink: the accent does not hold its contrast dimmed.
+        variant={locked !== null || !canWrite ? 'ink' : 'primary'}
         className="su-play-act__use"
         onClick={onUse}
         disabled={!canWrite}

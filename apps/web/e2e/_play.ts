@@ -73,7 +73,7 @@ export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   return cockpitPath(id)
 }
 
-/** The Situation switch in the bar (from `lg`) or under the pinned vitals (a phone). */
+/** The Situation switch in the bar, from `lg`; a phone keeps its moves in ⋯ (`moreMenu`). */
 export function situation(page: Page): Locator {
   return page.getByRole('group', { name: 'Situation' })
 }
@@ -83,23 +83,54 @@ export function gameState(page: Page): Locator {
   return page.getByRole('group', { name: 'Game state' })
 }
 
+/** Open the bar's ⋯ and return its menu: on a phone the Situation's moves, Table mode and Units. */
+export async function moreMenu(page: Page): Promise<Locator> {
+  await page.locator('.su-play-root').getByRole('button', { name: 'More', exact: true }).click()
+  return page.getByRole('menu', { name: 'More' })
+}
+
+/** The phone's pinned vitals, a button a vital ("Bonesaw HP 10 of 10. Change"). */
+export function pinnedVitals(page: Page): Locator {
+  return page.getByRole('region', { name: 'Pinned vitals' })
+}
+
+/** The actions on hand: every line drawn (Not on hand stays shut). */
+export function actionsOnHand(page: Page): Locator {
+  return page.locator('.su-play-root li.su-play-act').filter({ visible: true })
+}
+
 /**
- * Board `mech` from the Situation switch: its one Board option ("Board ·
- * Scrapper"), or, with several mechs, its menu ("Board, choose a Mech").
- * A spare is claimed first, behind its confirm.
+ * Board `mech`. From `lg`, the Situation switch: its one Board option ("Board ·
+ * Scrapper"), or, with several mechs, its menu ("Board, choose a Mech"). On a
+ * phone, the same move in ⋯. A spare is claimed first, behind its confirm.
  */
 export async function board(page: Page, mech: string): Promise<void> {
-  const only = situation(page).getByRole('button', { name: new RegExp(`^Board · ${mech}`) })
-  if (await only.isVisible({ timeout: 5_000 }).catch(() => false)) {
-    await only.click()
-  } else {
-    await situation(page)
-      .getByRole('button', { name: /choose a Mech$/ })
+  const phone = (await layoutOf(page)) === 'tabs'
+  if (phone) {
+    const menu = await moreMenu(page)
+    await menu
+      .getByRole('menuitem', { name: new RegExp(`^(Assign and board|Board) ${mech}`) })
       .click()
-    await page.getByRole('menuitem', { name: new RegExp(mech) }).click()
+  } else {
+    const only = situation(page).getByRole('button', { name: new RegExp(`^Board · ${mech}`) })
+    if (await only.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      await only.click()
+    } else {
+      await situation(page)
+        .getByRole('button', { name: /choose a Mech$/ })
+        .click()
+      await page.getByRole('menuitem', { name: new RegExp(mech) }).click()
+    }
   }
   const assign = page.getByRole('alertdialog').getByRole('button', { name: /^Assign and board/ })
   if (await assign.isVisible({ timeout: 2_000 }).catch(() => false)) await assign.click()
+  if (phone) {
+    // Boarded, the mech's vitals are pinned beside the pilot's.
+    await expect(
+      pinnedVitals(page).getByRole('button', { name: new RegExp(`^${mech} SP `) })
+    ).toBeVisible({ timeout: 15_000 })
+    return
+  }
   await expect(
     situation(page).getByRole('button', { name: new RegExp(`^Boarded( · ${mech})?`) })
   ).toHaveAttribute('aria-pressed', 'true', { timeout: 15_000 })

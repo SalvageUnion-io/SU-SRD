@@ -29,7 +29,8 @@ import type { Finding } from './_findings'
  *   options). A Mini level 2 or deeper, in a search list or on a Peek's
  *   plate is no N8, and neither is one in the named exception (`n8Except`;
  *   R39): a pattern's loadout on a chassis's
- *   or a pattern's Page, and a class's ability trees.
+ *   or a pattern's Page, a class's ability trees, and a Page's own actions
+ *   under their Slab.
  *
  * A headed frame is the frame around a visible `Head` band (`Head`: Compact, Card
  * and TitledBox alike) or a CompactIndex's band; its name is the title on the band,
@@ -89,8 +90,9 @@ export type NestingSelectors = {
   notNested: string
   /**
    * N8's named exception (EDL E6): a pattern's loadout
-   * (`PatternLoadout`, on a chassis's Page and a pattern's) and a class's
-   * ability trees (`ClassAbilityTree`) keep their Minis one level deep.
+   * (`PatternLoadout`, on a chassis's Page and a pattern's), a class's
+   * ability trees (`ClassAbilityTree`) and a Page's actions (`ActionMinis`
+   * under its Actions Slab, R39) keep their Minis one level deep.
    */
   n8Except: string
   /**
@@ -118,7 +120,7 @@ export const NESTING_SELECTORS: NestingSelectors = {
   oneDeep: null,
   notNested: '[role="listbox"], [data-peek-popup], [role="dialog"]',
   n8Except:
-    '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours',
+    '.su-pattern-loadout, .su-entity-page__loadout, .su-ability-tree, .su-entity-page__neighbours, .su-entity-page__section-body > :is(.su-mini-grid, .su-entity-mini-list)',
   n3Except: '.su-mini-group > .su-entity-mini',
 }
 

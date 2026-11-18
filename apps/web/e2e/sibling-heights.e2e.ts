@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { DESIGN_VIEWPORTS } from 'gates/lib/designViewports'
 import { at } from './_base'
 import { expectCorpusClean } from './_designRoutes'
-import { board, openPlay, PHONE, pilotPlayPath, WIDE } from './_play'
+import { actionsOnHand, board, moreMenu, openPlay, PHONE, pilotPlayPath, WIDE } from './_play'
 import {
   describeMismatch,
   findSiblingHeights,
@@ -128,7 +128,7 @@ const UNITS = '.su-play-unit'
 const UNIT_HEADS = '.su-play-unit .su-entity-compact__head'
 const ACTIONS = 'li.su-play-act'
 
-/** Which lines each view shows and scans: the columns all three, a phone's tab its own. */
+/** Which lines each view shows and scans: the columns all three, a phone's pane its own. */
 const EXPECTED: Record<string, readonly string[]> = {
   wide: [BAR, UNITS, ACTIONS],
   Act: [BAR, ACTIONS],
@@ -139,9 +139,11 @@ async function playMismatches(page: Page, state: string): Promise<string[]> {
   const failures: string[] = []
   for (const viewport of [WIDE, PHONE]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height })
-    // A phone puts the Units on their own tab.
+    // A phone puts the Units on their own pane.
     for (const tab of viewport === PHONE ? ['Act', 'Units'] : [null]) {
-      if (tab !== null) await page.getByRole('tab', { name: tab }).click()
+      // Units is a row in ⋯, not a tab.
+      if (tab === 'Units') await (await moreMenu(page)).getByRole('menuitem', { name: tab }).click()
+      else if (tab !== null) await page.getByRole('tab', { name: tab }).click()
       await page.evaluate(() => document.fonts.ready.then(() => undefined))
       const where = tab === null ? viewport.name : `${viewport.name}, ${tab}`
       const lines = EXPECTED[tab ?? 'wide'] ?? []
@@ -186,10 +188,7 @@ test('Play: the bar, unit boxes and action rows share one height', { tag: '@pr' 
   const failures = await playMismatches(page, 'On foot')
 
   await board(page, 'Scrapper')
-  const use = page
-    .getByRole('list', { name: 'On hand' })
-    .getByRole('button', { name: /^Use / })
-    .first()
+  const use = actionsOnHand(page).getByRole('button', { name: /^Use / }).first()
   await use.click()
   await expect(page.locator('li.su-play-act[data-open]')).toHaveCount(1)
   failures.push(...(await playMismatches(page, 'Boarded, an action open')))

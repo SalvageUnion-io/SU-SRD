@@ -66,7 +66,7 @@ const RHYTHM_SELECTORS: RhythmSelectors = {
   frame: NESTING_SELECTORS.frame,
   title: NESTING_SELECTORS.title,
   token: '.su-entity-mini',
-  tokenList: '.su-entity-mini-list',
+  tokenList: '.su-entity-mini-list, .su-mini-grid',
   slab: '[data-slab]',
   parts:
     '.su-entity-page__art, .su-entity-page__stats, .su-manual__art, .su-manual__stats, .su-ledger, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc',

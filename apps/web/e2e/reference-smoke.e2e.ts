@@ -41,10 +41,10 @@ test('chassis schema index renders entities', { tag: '@pr' }, async ({ page }) =
   await page.goto('/chassis/')
   await expect(page).toHaveTitle(/Chassis/i)
 
-  // Entities render (after the island hydrates + game data loads) as links to
-  // their individual item pages.
+  // Entities render as the List's lines (one Ledger), each name a link to its
+  // own item page.
   await expect(
-    page.locator('a[aria-label][href^="/chassis/"]:not([href="/chassis/"])').first()
+    page.locator('.su-ledger__name a[href^="/chassis/"]:not([href="/chassis/"])').first()
   ).toBeVisible({
     timeout: 30_000,
   })
@@ -174,8 +174,8 @@ for (const [schema, view, part] of [
 // (f) A roll table rolling on its own page: `roll-instrument.e2e.ts`.
 
 // (g) Every listing's Catalog at every width: one flat grid of CompactIndexes, no
-// group headings, its List one press away (E2), each art box 3:4 before its image loads
-// (on a phone, at 40rem and below, a 2:1 band).
+// group headings, its List one press away (E2), each art box one height (24rem) whatever
+// its tile's width before its image loads (on a phone, at 40rem and below, a 2:1 band).
 for (const width of [1440, 390]) {
   test(`the /chassis/ Catalog is one flat grid at ${width}px`, { tag: '@pr' }, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 })
@@ -190,8 +190,8 @@ for (const width of [1440, 390]) {
     await expect(art).toBeVisible()
     const box = await art.boundingBox()
     expect(box).not.toBeNull()
-    const ratio = width > 640 ? 3 / 4 : 2 / 1
-    if (box) expect(Math.abs(box.width / box.height - ratio)).toBeLessThan(0.02)
+    if (box && width > 640) expect(box.height).toBeCloseTo(384, 0)
+    else if (box) expect(Math.abs(box.width / box.height - 2 / 1)).toBeLessThan(0.02)
   })
 }
 
@@ -205,7 +205,8 @@ test('the abilities open on their List and offer a Tree and a flat Catalog', {
   const list = page.getByRole('button', { name: 'List' })
   await expect(list).toHaveAttribute('aria-pressed', 'true', { timeout: 30_000 })
   await expect(page.locator('.su-listing .su-ledger__table')).toHaveCount(1)
-  await page.getByRole('button', { name: 'Tree' }).click()
+  // Exact: the List's head stamps sort, and one sorts by Tree.
+  await page.getByRole('button', { name: 'Tree', exact: true }).click()
   await expect(page.locator('.su-ability-track').first()).toBeVisible()
   await page.getByRole('button', { name: 'Catalog' }).click()
   await expect(page.locator('.su-ability-track')).toHaveCount(0)

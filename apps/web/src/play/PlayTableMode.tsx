@@ -1,6 +1,6 @@
 /**
  * PlayTableMode — a phone's one focused Play screen (play.md §11, table mode):
- * what the TABLE toggle beside the Situation switch swaps the tabs for,
+ * what ⋯'s Table mode row (`situationRows`) swaps the tabs for,
  * while the screen stays awake (`useWakeLock`).
  *
  *  - **Roll the die**: one Full button, a d20 on the Core Mechanic
@@ -24,7 +24,6 @@ import {
   capsLabel,
   EmptyState,
   heatDangerFrom,
-  Toggle,
   tokens,
   VitalGauge,
 } from '../components/index'
@@ -33,7 +32,6 @@ import { playCopy } from '../messages/play'
 import { recordPlayRoll } from './playRolls.model'
 import type { TableUnit } from './tableMode.model'
 import { TABLE_ROLL } from './tableMode.model'
-import { useTableMode } from './useTableMode'
 
 const ROOT = {
   display: 'flex',
@@ -194,18 +192,5 @@ export function PlayTableMode({
         </section>
       )}
     </section>
-  )
-}
-
-/**
- * TABLE, beside the phone's Situation switch: table mode on or off, this
- * device's choice (`useTableMode`): a `Toggle`, the switch's Compact Size.
- */
-export function TableModeToggle() {
-  const [on, setOn] = useTableMode()
-  return (
-    <Toggle pressed={on} aria-label={playCopy('tableMode')} onClick={() => setOn(!on)}>
-      {playCopy('table')}
-    </Toggle>
   )
 }

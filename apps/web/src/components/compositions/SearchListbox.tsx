@@ -248,7 +248,7 @@ function SearchLedger({
       {
         id: result.id,
         name: model.title,
-        entityRef: undefined,
+        entityRef: model.ref,
         href: target.href(result),
         linkAttrs: {
           id: optionId(index),

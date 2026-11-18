@@ -29,6 +29,18 @@ function standInRoot(el: HTMLElement): HTMLElement {
   return own.querySelector<HTMLElement>(':scope > astro-slot') ?? own
 }
 
+/**
+ * The first element at or under `el` that draws a box. `astro-island` and an
+ * island that is its page's rows (`.su-listing-shell`) are `display: contents`,
+ * and an element with no box never intersects anything.
+ */
+function boxOf(el: Element): Element {
+  let node = el
+  while (getComputedStyle(node).display === 'contents' && node.firstElementChild)
+    node = node.firstElementChild
+  return node
+}
+
 const interaction: ClientDirective = (load, options, el) => {
   const { name, props = {}, trigger } = (options.value ?? {}) as unknown as InteractionOptions
   const hydrate = async () => {
@@ -42,7 +54,7 @@ const interaction: ClientDirective = (load, options, el) => {
       observer.disconnect()
       void hydrate()
     })
-    observer.observe(el)
+    observer.observe(boxOf(el))
     return
   }
 

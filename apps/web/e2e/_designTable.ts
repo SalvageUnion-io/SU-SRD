@@ -165,6 +165,8 @@ export type CorpusPage = {
   family: DesignFamily
   path: string
   traits?: readonly CorpusTrait[]
+  /** Where its traits hold, when not at both widths. */
+  traitWidths?: readonly DesignWidth[]
 }
 
 const STARTER_SHEETS = [
@@ -221,7 +223,9 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   index('/chassis/', 'search'),
   index('/systems/', 'search'),
   index('/modules/'),
-  index('/abilities/', 'search', 'ability-trees'),
+  index('/abilities/', 'search'),
+  // The index opens on its List; its Tree is a view of it.
+  index('/abilities/?view=tree', 'ability-trees'),
   index('/creatures/'),
   page('/chassis/mazona/', 'rhythm'),
   page('/chassis/mazona/pattern/buzzard/', 'rhythm'),
@@ -252,7 +256,8 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
     (sheet): CorpusPage => ({
       family: 'starter-set',
       path: at(`/starter/${sheet}`),
-      ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet] } : {}),
+      // A phone's sheet keeps its lists as Ledgers under tabs (L9): no Mini, no track.
+      ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet], traitWidths: ['page'] } : {}),
     })
   ),
   { family: 'play-hub', path: at('/play/') },
@@ -260,13 +265,14 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
 
 /**
  * The corpus as routes a walk opens (`walkDesignRoutes`): every page, or those
- * with `trait`, held at `page` and `phone` unless the walk names its widths.
+ * with `trait`, held at `page` and `phone` unless the page (`traitWidths`) or
+ * the walk names its widths.
  */
 export function corpusRoutes(trait?: CorpusTrait): DesignRoute[] {
   return REFERENCE_CORPUS.filter((p) => !trait || p.traits?.includes(trait)).map((p) => ({
     family: p.family,
     path: p.path,
-    widths: BOTH,
+    widths: trait && p.traitWidths ? p.traitWidths : BOTH,
   }))
 }
 

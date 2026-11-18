@@ -38,7 +38,8 @@ test.describe('signed out', () => {
     // A Starter pilot's ability opens its Page in the app's dialog; its Next
     // ability opens that one's Page there too, never an SRD path under the app.
     await openApp(page, '/starter/pilot/starter-pilot-bonesaw')
-    await page.getByText('Jury Rig').first().click()
+    // (The Actions list names it too, and only Peeks.)
+    await page.locator('.su-ability-track').getByText('Jury Rig').first().click()
     const dialog = page.getByRole('dialog')
     await expect(dialog.getByLabel('Mech-Gyver')).toBeVisible()
     expect((await findDeadLinks(page, '[role="dialog"]')).map((f) => f.detail)).toEqual([])
