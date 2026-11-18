@@ -386,6 +386,37 @@ describe('companions and picks on the board (R65, R60)', () => {
     ).not.toBeNull()
   })
 
+  test('a companion’s action spends the companion’s own EP, on its host’s record', async () => {
+    const mech = makeMech({ systems: [] })
+    const pilot = makePilot({
+      partners: [
+        {
+          id: 'pt-rex',
+          hostRef: 'mecha-companion',
+          hostSchema: 'equipment',
+          name: 'Rex',
+          systems: [costedSystem],
+          modules: [],
+          currentEP: 5,
+        },
+      ],
+    } as unknown as Partial<Pilot>)
+    const { store, calls } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
+    const row = document.querySelector<HTMLElement>('li[data-action-key^="partner:pt-rex:"]')
+    if (!row) throw new Error('no companion row')
+    await click(within(row).getByRole('button', { name: `Use ${primary().name}` }))
+    await click(within(row).getByRole('button', { name: /^Activate/ }))
+    // The pilot's record, the companion's EP: never the mech's, never the pilot's AP.
+    expect(calls).toHaveLength(1)
+    expect(calls[0]?.type).toBe('pilot')
+    const patch = calls[0]?.patch as { partners?: { id: string; currentEP?: number }[] } | undefined
+    const partners = patch?.partners
+    expect(partners?.find((partner) => partner.id === 'pt-rex')?.currentEP).toBe(
+      Math.max(0, 5 - primary().epCost)
+    )
+  })
+
   test('a pick made on the sheet (mech.itemChoices) reads on the row, and its model’s action is a row', () => {
     const turret = resolveSystem(TURRET)
     const action = turret ? (SalvageUnionReference.resolveActions(turret) ?? [])[0] : undefined

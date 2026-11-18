@@ -20,6 +20,7 @@ import type { EntityRef, RefObjectPattern } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, visiblePatterns } from 'salvageunion-reference'
 import { EntitySurfaceProvider } from '../../../entity/EntitySurface'
 import { LEGAL_STARTING_PATTERN_NOTE } from '../legalStartingPattern'
+import { PatternListing } from '../PatternListRow'
 import { ReferenceEntityCard } from '../ReferenceEntityCard'
 
 /** The Mule — a chassis carrying patterns, a chassis ability and chassis prose. */
@@ -561,5 +562,31 @@ describe('Bio-Titan pattern view', () => {
       .getByText('Metallic Reconstitution')
       .closest('.su-entity-mini[data-contentful]')
     expect(token).not.toBeNull()
+  })
+})
+
+describe('a pattern as its own listing (`PatternListing`)', () => {
+  test('its drones run under the loadout, each over its own Systems and Modules', () => {
+    const host = SalvageUnionReference.Chassis.getByName('Big Brother')
+    const pattern = host?.patterns?.find((p) => p.name === 'DronTek')
+    if (!host || !pattern) throw new Error('Big Brother DronTek fixture missing')
+
+    render(
+      <PatternListing
+        chassis={host}
+        chassisName="Big Brother"
+        pattern={pattern}
+        host={{ hostDown: false, chassisName: 'Big Brother' }}
+        homebrew
+      />
+    )
+
+    const drones = screen.getByRole('list', { name: 'DronTek Drones installed' })
+    // Each drone under the name the pattern gives it.
+    expect(within(drones).getAllByText('Shield Drone').length).toBeGreaterThan(0)
+    const loadout = within(drones).getByRole('list', { name: 'Shield Drone loadout' })
+    expect(within(loadout).getByText('Energy Cell')).toBeTruthy()
+    // A player's pattern wears the HOMEBREW stamp among its chips (§3.9).
+    expect(screen.getByText('Homebrew')).toBeTruthy()
   })
 })

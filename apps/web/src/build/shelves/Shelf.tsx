@@ -42,7 +42,7 @@ type ShelfProps = {
   note?: ReactNode
   /** Shown when there are no items. */
   empty: ReactNode
-  /** The items, as `ShelfItem`s. */
+  /** The items, each an `li`. */
   children?: ReactNode
   /** Whether there are none to list. */
   isEmpty: boolean

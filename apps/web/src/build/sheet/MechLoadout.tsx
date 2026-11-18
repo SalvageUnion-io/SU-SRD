@@ -149,9 +149,12 @@ function ledgerLines(mech: Mech, kind: ItemKind) {
   return slugs.map((slug, index) => {
     const condition = conditions[slug] ?? 'intact'
     const uses = mech.itemUses?.[slug]
+    const entity = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
     return {
       id: keys[index] ?? slug,
-      entity: kind === 'system' ? resolveSystem(slug) : resolveModule(slug),
+      entity,
+      // An item the data no longer holds keeps its slug, as the columns' line does.
+      name: entity ? undefined : slug,
       stamp:
         condition !== 'intact' ? (
           <Stat label={condition} size="mini" state="critical" />

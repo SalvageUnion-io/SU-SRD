@@ -231,7 +231,7 @@ export function CardPage({
         as={sectionAs}
         title={referenceEntityCopy('description')}
         page
-        className={cn('su-manual__lore', bodyRules && 'su-manual__lore--rules')}
+        className="su-manual__lore"
       >
         <div className={cn('su-entity-page__prose', wordsAside && 'su-manual__lore-prose')}>
           {subLine}
@@ -241,7 +241,7 @@ export function CardPage({
     )
     const side = !!hero || wordsAside
     return (
-      <div className={cn('su-entity-page su-manual', side && 'su-manual--side')}>
+      <div className="su-entity-page su-manual">
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}

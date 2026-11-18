@@ -4,9 +4,10 @@
  * content-sized row fails, as do a hand-built grid's orphan cell and a
  * masonry's empty column.
  */
-import { describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test } from 'bun:test'
 import type { GridBoxes } from '../_fillGrid'
-import { findFillGridFaults } from '../_fillGrid'
+import { findFillGrid, findFillGridFaults } from '../_fillGrid'
+import { documentPage } from './_page'
 
 const LIST = { left: 0, right: 300, top: 0 }
 const cell = (left: number, right: number, top: number) => ({ left, right, top })
@@ -94,5 +95,53 @@ describe('a masonry', () => {
 
   test('nothing drawn is no fault', () => {
     expect(findFillGridFaults(masonry([]))).toEqual([])
+  })
+})
+
+describe('the item grids as the page draws them', () => {
+  const { page, restore } = documentPage()
+  afterAll(restore)
+
+  const item = (box: string, tag = 'li') => `<${tag} data-box="${box}">item</${tag}>`
+
+  test('`.su-grid`: a full row passes, a short one is `fill`, named by its label', async () => {
+    document.body.innerHTML = [
+      `<ul class="su-grid" data-box="0,0,300,20">${item('0,0,150,20')}${item('150,0,150,20')}</ul>`,
+      `<ul class="su-grid su-stat-column" aria-label="Mule stats" data-box="0,40,300,20">${item('0,40,90,20')}</ul>`,
+    ].join('')
+    expect(await findFillGrid(page)).toEqual([
+      {
+        rule: 'fill',
+        detail: 'fill: Mule stats: row 1 of 1 (1 items) leaves 0px left, 210px right',
+      },
+    ])
+  })
+
+  test('a stat cell is read by the Stat it draws; a gauge and a hidden grid are not grids', async () => {
+    document.body.innerHTML = [
+      `<ul class="su-grid" data-box="0,0,300,20"><li data-box="0,0,300,20"><span class="su-stat-column__stat" data-box="0,0,120,20">SP</span></li></ul>`,
+      `<div role="img"><span class="su-grid" data-box="0,0,300,20">${item('0,0,10,20', 'i')}</span></div>`,
+      `<div aria-hidden="true"><ul class="su-grid" data-box="0,0,300,20">${item('0,0,10,20')}</ul></div>`,
+    ].join('')
+    expect(await findFillGrid(page)).toEqual([
+      { rule: 'fill', detail: 'fill: ul: row 1 of 1 (1 items) leaves 0px left, 180px right' },
+    ])
+  })
+
+  test('a hand-built grid of equal tracks with an empty last track is `orphan`', async () => {
+    document.body.innerHTML = `<ul class="su-doors" style="display: grid; grid-template-columns: 100px 100px 100px" data-box="0,0,300,60">${item('0,0,100,20')}${item('100,0,100,20')}${item('200,0,100,20')}${item('0,30,100,20')}</ul>`
+    expect(await findFillGrid(page)).toEqual([
+      {
+        rule: 'orphan',
+        detail: 'orphan: ul.su-doors: row 2 of 2 (1 items) leaves 0px left, 200px right',
+      },
+    ])
+  })
+
+  test('a masonry with an empty column is `column`', async () => {
+    document.body.innerHTML = `<ul class="su-masonry" data-box="0,0,300,60">${item('0,0,140,20')}</ul>`
+    expect(await findFillGrid(page)).toEqual([
+      { rule: 'column', detail: 'column: ul.su-masonry leaves 160px of columns empty' },
+    ])
   })
 })
