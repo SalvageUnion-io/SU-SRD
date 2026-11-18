@@ -8,7 +8,7 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { CSSVarStyle } from '../components/index'
-import { Box, capsLabel, heatDangerFrom, tokens } from '../components/index'
+import { Box, capsLabel, heatDangerFrom, PhoneVitals, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayVital } from './PlayVital'
 import type { PinnedUnit } from './playPanes.model'
@@ -100,15 +100,24 @@ export function PlayPinnedVitals({
   )
 }
 
-/** MOCK: the opened vital's line, its − / + at the phone's 44px (`.su-play-pins__pad`). */
-const PAD = { padding: `${tokens.space[6]} ${tokens.space[8]}` } satisfies CSSProperties
+/** Each vital's words in full, for assistive tech (`PhoneVitals`' `name`). */
+const VITAL_NAME: Record<string, string> = {
+  HP: 'Hit Points',
+  AP: 'Ability Points',
+  SP: 'Structure Points',
+  EP: 'Energy Points',
+  Heat: 'Heat',
+}
 
 /**
- * MOCK (Working Manual E): the phone's pinned vitals as ONE row of framed
- * numbers, the pilot's HP and AP then the mech's SP, EP and Heat, each the
- * compact `VitalGauge` read-out (`PlayVital`) in a frame of its unit's tone.
- * Tapping one opens its − / + under the row (one at a time), so five vitals
- * take one line of the screen until a number has to change.
+ * MOCK (Working Manual wave 2, phone vitals): the phone's pinned vitals in the
+ * sheets' phone idiom (`PhoneVitals`, the owner's phone-vitals ruling): ONE
+ * quiet card of five cells, the pilot's HP and AP then the mech's SP, EP and
+ * Heat, each a short label, the value over its max in plain numerals and a
+ * slim meter in its unit's colour. Tapping a cell opens that unit's
+ * `PhoneVitals` block under the strip (its rows with their − | + at 44px,
+ * the tapped one marked), so the five take one 52px line of the screen until
+ * a number has to change. A second tap closes it.
  */
 export function PlayPinnedStrip({
   units,
@@ -128,44 +137,55 @@ export function PlayPinnedStrip({
   const picked = cells.find(({ v, unit }) => v.label === open && live[unit.kind])
   const danger = (v: { label: string; max: number }) =>
     v.label === 'Heat' && v.max > 0 ? heatDangerFrom(v.max) : undefined
+  const tone = (kind: PinnedUnit['kind']) => ({ '--tone': `var(--color-${kind})` }) as CSSVarStyle
   return (
     <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
       <ul className="su-play-pins__row">
-        {cells.map(({ unit, v }) => (
-          <li key={v.label}>
-            <button
-              type="button"
-              className="su-play-pin"
-              style={{ '--pin': `var(--color-${unit.kind})` } as CSSVarStyle}
-              aria-expanded={picked?.v.label === v.label}
-              aria-label={`${unit.name} ${v.label} ${v.value} of ${v.max}. Change`}
-              disabled={!live[unit.kind]}
-              onClick={() => setOpen(open === v.label ? null : v.label)}
-            >
-              <PlayVital
-                label={v.label}
-                value={v.value}
-                max={v.max}
-                tone={unit.kind}
-                danger={danger(v)}
-              />
-            </button>
-          </li>
-        ))}
+        {cells.map(({ unit, v }) => {
+          const redline = danger(v)
+          const hot = redline !== undefined && v.value > redline
+          return (
+            <li key={v.label}>
+              <button
+                type="button"
+                className="su-play-pin"
+                style={tone(unit.kind)}
+                aria-expanded={picked?.v.label === v.label}
+                aria-label={`${unit.name} ${v.label} ${v.value} of ${v.max}. Change`}
+                disabled={!live[unit.kind]}
+                data-hot={hot || undefined}
+                onClick={() => setOpen(open === v.label ? null : v.label)}
+              >
+                <span className="su-play-pin__label">{v.label}</span>
+                <span className="su-play-pin__value">
+                  <b>{v.value}</b>
+                  <i>/{v.max}</i>
+                </span>
+                <span className="su-play-pin__meter" aria-hidden="true">
+                  <span
+                    style={{ width: `${v.max > 0 ? Math.min(100, (v.value / v.max) * 100) : 0}%` }}
+                  />
+                </span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
       {picked ? (
-        <div className="su-play-pins__pad">
-          <Box frameColor={`var(--color-${picked.unit.kind})`} body="flush" bodyStyle={PAD}>
-            <PlayVital
-              label={`${picked.unit.name} · ${picked.v.label}`}
-              value={picked.v.value}
-              max={picked.v.max}
-              tone={picked.unit.kind}
-              danger={danger(picked.v)}
-              onChange={(next) => onWrite(picked.unit.kind, picked.v.field, next, picked.v.label)}
-            />
-          </Box>
-        </div>
+        <PhoneVitals
+          label={playCopy('sVitals', { name: picked.unit.name })}
+          className="su-play-pins__pad"
+          style={tone(picked.unit.kind)}
+          vitals={picked.unit.vitals.map((v) => ({
+            key: v.label.toLowerCase(),
+            label: v.label,
+            name: `${picked.unit.name} ${VITAL_NAME[v.label] ?? v.label}`,
+            value: v.value,
+            max: v.max,
+            ...(danger(v) !== undefined ? { danger: danger(v) } : {}),
+            onChange: (next: number) => onWrite(picked.unit.kind, v.field, next, v.label),
+          }))}
+        />
       ) : null}
     </section>
   )
