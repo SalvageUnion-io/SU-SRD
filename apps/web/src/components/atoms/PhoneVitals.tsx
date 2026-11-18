@@ -86,8 +86,12 @@ function Row({ vital }: { vital: PhoneVital }) {
   const shown = onChange ? clamp(value) : Math.max(0, value)
   const over = max !== undefined && shown > max
   // A hold reads the freshest value and writer, not the render it began in.
+  // It also counts from the step it just asked for until the store catches
+  // up, so fast presses never step twice from one stale value.
+  const asked = useRef<{ value: number; timer?: ReturnType<typeof setTimeout> } | null>(null)
+  if (asked.current?.value === shown) asked.current = null
   const live = useRef({ shown, onChange, ceiling })
-  live.current = { shown, onChange, ceiling }
+  live.current = { shown: asked.current?.value ?? shown, onChange, ceiling }
   const hold = useRef<{ timer?: ReturnType<typeof setTimeout>; held: boolean }>({ held: false })
   const stop = () => {
     clearTimeout(hold.current.timer)
@@ -98,7 +102,17 @@ function Row({ vital }: { vital: PhoneVital }) {
   const stepBy = (delta: number) => {
     const now = live.current
     const next = Math.min(Math.max(now.shown + delta, 0), now.ceiling)
-    if (next !== now.shown) now.onChange?.(next)
+    if (next === now.shown) return
+    clearTimeout(asked.current?.timer)
+    asked.current = {
+      value: next,
+      // A write that never lands (refused, offline) stops counting.
+      timer: setTimeout(() => {
+        asked.current = null
+      }, 1500),
+    }
+    now.shown = next
+    now.onChange?.(next)
   }
   const press = (delta: number) => ({
     onPointerDown: () => {
