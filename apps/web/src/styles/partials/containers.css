@@ -166,8 +166,10 @@
     columns: 3;
   }
 
-  /* Never more columns than cards: no column stands empty (R68). */
-  .su-masonry:has(> :nth-child(2):last-child) {
+  /* Never more columns than cards, and four balance two and two: no column
+     stands empty (R68). */
+  .su-masonry:has(> :nth-child(2):last-child),
+  .su-masonry:has(> :nth-child(4):last-child) {
     columns: 2;
   }
 }
@@ -204,8 +206,10 @@
   padding: 0;
 }
 
-/* Never more columns than Minis: no column stands empty (R68). */
-.su-mini-grid:has(> li:nth-child(2):last-child) {
+/* Never more columns than Minis, and four balance two and two: no column
+   stands empty (R68). */
+.su-mini-grid:has(> li:nth-child(2):last-child),
+.su-mini-grid:has(> li:nth-child(4):last-child) {
   columns: 18rem 2;
 }
 
