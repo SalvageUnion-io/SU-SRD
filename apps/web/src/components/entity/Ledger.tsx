@@ -22,6 +22,7 @@ import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
 import type { CardFootMeta } from '../referenceEntity/card/referenceEntityCardTypes'
+import { TraitProse } from '../TraitProse'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import type { Paint } from './parts/paint'
@@ -108,9 +109,19 @@ function sortMark(sort: LedgerSort): ReactNode {
 const isEmpty = (cell: ReactNode) =>
   cell === '' || cell === null || cell === undefined || cell === false
 
-/** A quiet line is cut short on its one line: its words are its hover title. */
+/** `[[Trait]]` markup in rules text (the dataset's own). */
+const MARKUP = /\[\[([^\]]+)\]\]/g
+
+/** A quiet line is cut short on its one line: its words, markup read as words, are its hover title. */
 function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
-  return column.kind === 'quiet' && typeof cell === 'string' ? cell : undefined
+  return column.kind === 'quiet' && typeof cell === 'string'
+    ? cell.replace(MARKUP, '$1')
+    : undefined
+}
+
+/** A cell's words; rules text's `[[Trait]]` renders as its Mention, never as markup. */
+function cellBody(cell: ReactNode): ReactNode {
+  return typeof cell === 'string' && cell.includes('[[') ? <TraitProse text={cell} /> : cell
 }
 
 export function Ledger({
@@ -328,7 +339,7 @@ export function Ledger({
                       data-empty={isEmpty(row.cells[cell]) || undefined}
                       title={cellTitle(column, row.cells[cell])}
                     >
-                      {isEmpty(row.cells[cell]) ? '—' : row.cells[cell]}
+                      {isEmpty(row.cells[cell]) ? '—' : cellBody(row.cells[cell])}
                     </td>
                   ))}
                   {hasTrailing && (
