@@ -123,6 +123,8 @@ export { BrandCard } from './compositions/BrandCard'
 // The searcher picker's modal width — for a bare ModalShell wrapping an
 // EntitySearcher (The app's SheetPickerModal applies it itself).
 // ContentsChapter — a chapter of the Contents: the SRD home's index, the Mediator's Reference
+// CardImage — an entity's art plate (a card's image, the home page's hero).
+export { CardImage } from './compositions/CardImage'
 export type { ContentsRow } from './compositions/ContentsChapter'
 export { ContentsChapter } from './compositions/ContentsChapter'
 export { heroImageSizes } from './compositions/cardImageSizes'
@@ -243,7 +245,7 @@ export { toastRoll } from './containers/toastRoll'
 //   chip (an SRD page's band sets its entity's traits with them; a sheet's
 //   `CLASS | Engineer` is one relation `Tag`, which opens and Peeks it).
 // - `mentionRef`: the glossary entry a `[[Name]]` names, a trait or a keyword.
-export type { TagItem } from './entity'
+export type { Paint, TagItem } from './entity'
 export {
   Art,
   Chips,
@@ -271,6 +273,9 @@ export { Mention } from './entity/forms/Mention'
 // MiniGroup — an entity's contentful Mini and the Minis that belong to it
 // in one subtle border (a crawler bay and its crew), no nesting
 export { MiniGroup } from './entity/forms/MiniGroup'
+// Ledger — a compared or picked list's one framed table (ledger.md L1 to L9, R63).
+export type { LedgerColumn, LedgerRow, LedgerSort } from './entity/Ledger'
+export { Ledger } from './entity/Ledger'
 export type { LinkedUnit } from './entity/LinkedUnits'
 export { LinkedUnits } from './entity/LinkedUnits'
 // Select mode's one dim (hard rule R15): a pick an app draws by hand dims with it.
@@ -290,6 +295,9 @@ export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
 // BayInfo — a crawler bay's own rules under a folding Slab, its first section.
 export { BayInfo } from './referenceEntity/card/BayInfo'
+// EntityCardIdentityFooter — a card's foot band and its cite cut-out (ruleset
+// Source 2); a Ledger, a rule brief and the Buy panel wear it too.
+export { EntityCardIdentityFooter } from './referenceEntity/card/EntityCardIdentityFooter'
 // EntityChoices — an entity's choices under its Mini, for a host that draws it as one.
 export { EntityChoices } from './referenceEntity/card/EntityChoices'
 // The band line a Page carries right of its title (EDL E20): the SRD's entity

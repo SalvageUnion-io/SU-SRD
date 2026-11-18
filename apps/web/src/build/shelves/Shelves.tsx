@@ -39,15 +39,15 @@
  */
 
 import type { EntityKind } from 'game-domain/entityKinds'
+import { gamePath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import type { CSSProperties } from 'react'
+import type { ReactNode } from 'react'
 import { useState } from 'react'
-import type { HeaderMenuItem } from '../../components/index'
+import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
 import {
   Button,
   ChapterBand,
-  Grid,
   HeaderMenu,
   PageShell,
   RosterSkeleton,
@@ -89,6 +89,8 @@ import {
   patternReading,
   pilotFact,
 } from '../../lib/shelves/shelfItems'
+import { VITAL } from '../../lib/units/readings'
+import type { UnitReading } from '../../lib/units/unitModel'
 import { usePatterns, useTray } from '../../replica/collections'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -99,20 +101,92 @@ import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.mod
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
-import { Shelf } from './Shelf'
-import { ShelfItem } from './ShelfItem'
+import { ShelfLedger, ShelfLink } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 
 // ---------------------------------------------------------------------------
 // Layout
 // ---------------------------------------------------------------------------
 
-/**
- * One row of shelves: your units (Pilots, Mechs,
- * Crawlers), then what you made (NPCs, Patterns), side by side where there is
- * room, stacked on a phone. The Starter Set is the third row, folded.
- */
-const ROW = { alignItems: 'start' } satisfies CSSProperties
+// ---------------------------------------------------------------------------
+// MOCK (wave 2 build): the shelves' columns and cells, in the Ledger form
+// ---------------------------------------------------------------------------
+
+const fig = (key: string, title: string, phone = false): LedgerColumn => ({
+  key,
+  label: key,
+  title,
+  kind: 'figure',
+  phone,
+})
+const word = (key: string, label: string, phone = false): LedgerColumn => ({
+  key,
+  label,
+  kind: 'text',
+  phone,
+})
+const GAME = word('game', 'Game')
+const PILOT_COLUMNS = [
+  word('class', 'Class', true),
+  fig(VITAL.hp, 'Hit Points', true),
+  fig(VITAL.ap, 'Ability Points'),
+  word('mech', 'Mech'),
+  GAME,
+]
+const MECH_COLUMNS = [
+  word('chassis', 'Chassis', true),
+  fig(VITAL.sp, 'Structure Points', true),
+  fig(VITAL.ep, 'Energy Points'),
+  fig(VITAL.heat, 'Heat'),
+  word('pilot', 'Pilot'),
+  GAME,
+]
+const CRAWLER_COLUMNS = [
+  word('type', 'Type', true),
+  fig('TL', 'Tech Level'),
+  fig(VITAL.sp, 'Structure Points'),
+  fig('Bays', 'Bays intact'),
+  GAME,
+]
+const GAME_COLUMNS = [
+  word('role', 'You are', true),
+  fig('Pilots', 'Your pilots in it'),
+  fig('Mechs', 'Your mechs in it'),
+]
+const NPC_COLUMNS = [
+  word('position', 'Position'),
+  fig('HP', 'Hit or Structure Points', true),
+  word('who', 'Seen by'),
+  GAME,
+]
+const PATTERN_COLUMNS = [
+  word('chassis', 'Chassis', true),
+  fig('Sys', 'System slots used'),
+  word('who', 'Seen by'),
+]
+
+/** One reading's figure (`8/10`) by its label; none draws the dash. */
+const read = (readings: readonly UnitReading[] | undefined, label: string): string =>
+  String(readings?.find((r) => String(r.label) === label)?.value ?? '')
+
+/** The unit it is crewed with, as a link to its sheet. */
+const paired = (linked: readonly { name: string; href?: string | undefined }[]): ReactNode =>
+  linked[0] ? <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink> : ''
+
+/** The Game it is in, as a link to that Game's page. */
+const inGame = (relations: readonly { value: string; href: string }[]): ReactNode =>
+  relations[0] ? <ShelfLink href={relations[0].href}>{relations[0].value}</ShelfLink> : ''
+
+/** Who can see it, in words. */
+const who = (chips: readonly { label: string }[]): string => chips.map((c) => c.label).join(', ')
+
+/** A unit's own labels (`Shared by link`), under its name. */
+const under = (chips: readonly { label: string }[]): string | undefined =>
+  chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
+
+/** How many of your units sit in a Game. */
+const count = (units: readonly { gameId?: string | null }[], gameId: string): string =>
+  String(units.filter((u) => u.gameId === gameId).length)
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -366,168 +440,186 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <RosterSkeleton />
       ) : (
         <>
-          <Grid min="20rem" gap={32} style={ROW}>
-            <Shelf
-              id="shelf-pilots"
-              title="Pilots"
-              action={newLink('/pilots/new', '+ New pilot')}
-              isEmpty={pilots.length === 0}
-              empty="No pilots yet."
-            >
-              {pilots.map((p) => (
-                <ShelfItem
-                  key={p.id}
-                  kind="pilot"
-                  note={pilotFact(p)}
-                  name={p.name}
-                  reading={pilotReadings.get(p.id)?.[0]}
-                  href={`/pilots/${p.id}`}
-                  chips={linkChip(sharedByLink, p.id)}
-                  linked={crewLinked({
-                    kind: 'pilot',
+          {/* MOCK (wave 2 build): every shelf is a Ledger, one framed list a kind,
+              not a stack of banded Compacts. Units on the left, what you run and
+              what you made on the right; one column on a phone. */}
+          <div className="su-shelf-ledgers">
+            <div className="su-shelf-ledgers__col">
+              <ShelfLedger
+                id="shelf-pilots"
+                title="Pilots"
+                tone="pilot"
+                columns={PILOT_COLUMNS}
+                action={newLink('/pilots/new', '+ New pilot')}
+                empty="No pilots yet."
+                rows={pilots.map((p) => {
+                  const r = pilotReadings.get(p.id)
+                  return {
                     id: p.id,
-                    softLinks,
-                    names: mechNames,
-                    readings: mechReadings,
-                  })}
-                  relations={gameRelation(p, games)}
-                  menu={unitMenu('pilot', p, p)}
-                />
-              ))}
-            </Shelf>
-
-            <Shelf
-              id="shelf-mechs"
-              title="Mechs"
-              action={newLink('/mechs/new', '+ New mech')}
-              isEmpty={mechs.length === 0}
-              empty="No mechs yet."
-            >
-              {mechs.map((m) => (
-                <ShelfItem
-                  key={m.id}
-                  kind="mech"
-                  note={chassisFact(m.chassisRef)}
-                  name={m.name}
-                  reading={mechReadings.get(m.id)?.[0]}
-                  href={`/mechs/${m.id}`}
-                  chips={linkChip(sharedByLink, m.id)}
-                  linked={crewLinked({
-                    kind: 'mech',
+                    name: p.name,
+                    href: `/pilots/${p.id}`,
+                    under: under(linkChip(sharedByLink, p.id)),
+                    cells: [
+                      pilotFact(p) ?? '',
+                      read(r, VITAL.hp),
+                      read(r, VITAL.ap),
+                      paired(crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })),
+                      inGame(gameRelation(p, games)),
+                    ],
+                    menu: unitMenu('pilot', p, p),
+                  }
+                })}
+              />
+              <ShelfLedger
+                id="shelf-mechs"
+                title="Mechs"
+                tone="mech"
+                columns={MECH_COLUMNS}
+                action={newLink('/mechs/new', '+ New mech')}
+                empty="No mechs yet."
+                rows={mechs.map((m) => {
+                  const r = mechReadings.get(m.id)
+                  return {
                     id: m.id,
-                    softLinks,
-                    names: pilotNames,
-                    readings: pilotReadings,
-                  })}
-                  relations={gameRelation(m, games)}
-                  menu={unitMenu('mech', m, m)}
-                />
-              ))}
-            </Shelf>
-
-            <Shelf
-              id="shelf-crawlers"
-              title="Crawlers"
-              action={newLink('/crawlers/new', '+ New crawler')}
-              isEmpty={crawlers.length === 0}
-              empty="No crawlers yet."
-            >
-              {crawlers.map((c) => (
-                <ShelfItem
-                  key={c.id}
-                  kind="crawler"
-                  note={crawlerFact(c)}
-                  name={c.name}
-                  reading={crawlerReading(c) ?? rowStats(crawlerRailItems(c))[0]}
-                  href={`/crawlers/${c.id}`}
-                  chips={[...crawlerChips({ crawler: c, games }), ...linkChip(sharedByLink, c.id)]}
-                  relations={gameRelation(c, games)}
-                  menu={unitMenu('crawler', c, c)}
-                />
-              ))}
-            </Shelf>
-          </Grid>
-
-          <Grid min="20rem" gap={32} style={ROW}>
-            <Shelf
-              id="shelf-npcs"
-              title="NPCs"
-              aside="Yours"
-              note="Your NPCs, ready to drop into a Game you mediate."
-              action={newLink('/npcs/new', '+ Design an NPC')}
-              isEmpty={npcs.length + tray.length === 0}
-              empty="No NPCs yet. Design one and it is kept here."
-            >
-              {npcs.map((n) => (
-                <ShelfItem
-                  key={n.id}
-                  kind="npc"
-                  note={n.position}
-                  name={n.name}
-                  reading={npcReading(n)}
-                  href={`/npcs/${n.id}`}
-                  userMade
-                  chips={npcChips({
-                    npc: n,
-                    sharedByLink: sharedByLink?.includes(n.id) ?? false,
-                  })}
-                  relations={gameRelation(n, games)}
-                  menu={unitMenu('npc', n, n)}
-                />
-              ))}
-              {tray.map((n) => (
-                <ShelfItem
-                  key={n.id}
-                  kind="npc"
-                  note="Tray"
-                  name={n.name}
-                  reading={encounterNpcReading(n)}
-                  userMade
-                  chips={encounterNpcChips()}
-                  menu={trayMenu(n)}
-                />
-              ))}
-            </Shelf>
-
-            <Shelf
-              id="shelf-patterns"
-              title="Patterns"
-              aside="Yours"
-              note="Your patterns, ready to build a Mech from."
-              action={
-                canWrite ? (
-                  <HeaderMenu
-                    variant="button"
-                    size="compact"
-                    trigger="+ From a mech"
-                    label="+ From a mech"
-                    chevron={false}
-                    sections={[fromAMech]}
-                  />
-                ) : undefined
-              }
-              isEmpty={patterns.length === 0}
-              empty="No patterns yet. Save one from a mech."
-            >
-              {patterns.map((p) => (
-                <ShelfItem
-                  key={p.id}
-                  kind="pattern"
-                  note={chassisFact(p.chassisRef)}
-                  name={p.name}
-                  reading={patternReading(p)}
-                  href={savedPatternHref(p.id)}
-                  userMade
-                  chips={patternChips(
-                    sharing?.find((s) => s.appId === p.id),
-                    games
-                  )}
-                  menu={patternMenu(p)}
-                />
-              ))}
-            </Shelf>
-            <EncounterShelf confirm={confirm} />
-          </Grid>
+                    name: m.name,
+                    href: `/mechs/${m.id}`,
+                    under: under(linkChip(sharedByLink, m.id)),
+                    cells: [
+                      chassisFact(m.chassisRef) ?? '',
+                      read(r, VITAL.sp),
+                      read(r, VITAL.ep),
+                      read(r, VITAL.heat),
+                      paired(crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })),
+                      inGame(gameRelation(m, games)),
+                    ],
+                    menu: unitMenu('mech', m, m),
+                  }
+                })}
+              />
+              <ShelfLedger
+                id="shelf-crawlers"
+                title="Crawlers"
+                tone="crawler"
+                columns={CRAWLER_COLUMNS}
+                action={newLink('/crawlers/new', '+ New crawler')}
+                empty="No crawlers yet."
+                rows={crawlers.map((c) => {
+                  const r = rowStats(crawlerRailItems(c))
+                  return {
+                    id: c.id,
+                    name: c.name,
+                    href: `/crawlers/${c.id}`,
+                    under: under([
+                      ...crawlerChips({ crawler: c, games }),
+                      ...linkChip(sharedByLink, c.id),
+                    ]),
+                    cells: [
+                      crawlerFact(c) ?? '',
+                      String(crawlerReading(c).value),
+                      read(r, VITAL.sp),
+                      read(r, 'Bays'),
+                      inGame(gameRelation(c, games)),
+                    ],
+                    menu: unitMenu('crawler', c, c),
+                  }
+                })}
+              />
+              <ShelfLedger
+                id="shelf-games"
+                title="Games"
+                tone="ink"
+                columns={GAME_COLUMNS}
+                action={newLink('/play/', 'Start or join')}
+                empty="No Games yet. Start or join one in Play."
+                rows={(games ?? []).map((g) => ({
+                  id: g._id,
+                  name: g.name,
+                  href: gamePath(g._id),
+                  cells: [
+                    g.mediator ? 'Mediator' : 'Player',
+                    count(pilots, g._id),
+                    count(mechs, g._id),
+                  ],
+                  menu: [],
+                }))}
+              />
+            </div>
+            <div className="su-shelf-ledgers__col">
+              <ShelfLedger
+                id="shelf-npcs"
+                title="NPCs"
+                tone="adversary"
+                columns={NPC_COLUMNS}
+                action={newLink('/npcs/new', '+ Design an NPC')}
+                empty="No NPCs yet. Design one and it is kept here."
+                note="Your NPCs, ready to drop into a Game you mediate."
+                rows={[
+                  ...npcs.map((n) => ({
+                    id: n.id,
+                    name: n.name,
+                    href: `/npcs/${n.id}`,
+                    cells: [
+                      n.position ?? '',
+                      String(npcReading(n).value),
+                      who(
+                        npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })
+                      ),
+                      inGame(gameRelation(n, games)),
+                    ],
+                    menu: unitMenu('npc', n, n),
+                  })),
+                  ...tray.map((n) => ({
+                    id: n.id,
+                    name: n.name,
+                    cells: [
+                      'Tray',
+                      String(encounterNpcReading(n).value),
+                      who(encounterNpcChips()),
+                      '',
+                    ],
+                    menu: trayMenu(n),
+                  })),
+                ]}
+              />
+              <ShelfLedger
+                id="shelf-patterns"
+                title="Patterns"
+                tone="mech"
+                columns={PATTERN_COLUMNS}
+                action={
+                  canWrite ? (
+                    <HeaderMenu
+                      variant="button"
+                      size="compact"
+                      trigger="+ From a mech"
+                      label="+ From a mech"
+                      chevron={false}
+                      sections={[fromAMech]}
+                    />
+                  ) : undefined
+                }
+                empty="No patterns yet. Save one from a mech."
+                note="Your patterns, ready to build a Mech from."
+                rows={patterns.map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  href: savedPatternHref(p.id),
+                  cells: [
+                    chassisFact(p.chassisRef) ?? '',
+                    String(patternReading(p)?.value ?? ''),
+                    who(
+                      patternChips(
+                        sharing?.find((s) => s.appId === p.id),
+                        games
+                      )
+                    ),
+                  ],
+                  menu: patternMenu(p),
+                }))}
+              />
+              <EncounterShelf confirm={confirm} />
+            </div>
+          </div>
         </>
       )}
       {ready && <StarterShelf />}

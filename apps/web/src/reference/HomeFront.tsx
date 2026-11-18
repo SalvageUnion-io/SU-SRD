@@ -6,21 +6,19 @@
 // shipped code.
 import type { ReactNode } from 'react'
 import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
-// biome-ignore lint/style/noRestrictedImports: MOCK, a real build exports the hero plate from the barrel
-import { CardImage } from '../components/compositions/CardImage'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
   Badge,
   Button,
+  CardImage,
+  EntityCardIdentityFooter,
   FrontPitch,
   SlabSection,
   StartHere,
   StatColumn,
   TitledBox,
 } from '../components/index'
-// biome-ignore lint/style/noRestrictedImports: MOCK, a real build exports the cite foot from the barrel
-import { EntityCardIdentityFooter } from '../components/referenceEntity/card/EntityCardIdentityFooter'
 import { appPath } from '../lib/appBase'
 import type { SrdChapter } from '../lib/chapters'
 import { BUY_HREF } from '../lib/docPages'

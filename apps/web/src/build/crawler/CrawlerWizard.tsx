@@ -1,5 +1,5 @@
 import { CrawlerSchema } from 'game-domain/schemas/crawler'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useMemo } from 'react'
 import type {
   RefCrawler,
@@ -47,34 +47,31 @@ import { CrawlerReviewStep } from './CrawlerReviewStep'
 /** The RuleBrief's muted aside (the saved pilot/mech count). */
 const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
 
-/** Book-order steps (Union Crawler pp.212–213 + Review). */
-const STEPS: readonly CrawlerWizardStepId[] = [
-  'type',
-  'stats',
-  'weapons',
-  'crew',
-  'identity',
-  'review',
-]
+/**
+ * MOCK (Working Manual, wave 2): six book steps become four, each one a
+ * decision. "Note your Crawler Statistics" asks nothing, so the numbers stand
+ * under the type's picker; the crew and the crawler's name share a step; the
+ * review is the build as its sheet will read. The book's own steps
+ * (pp.212–213) stay in the rule briefs.
+ */
+type MockCrawlerStep = 'type' | 'weapons' | 'crew' | 'review'
 
-/** Stepper-rail labels. */
-const STEP_LABELS: Record<CrawlerWizardStepId, string> = {
-  type: 'Crawler Type',
-  stats: 'Statistics',
+const STEPS: readonly MockCrawlerStep[] = ['type', 'weapons', 'crew', 'review']
+
+/** Stepper-rail labels (also the Next button's: it names the step it opens). */
+const STEP_LABELS: Record<MockCrawlerStep, string> = {
+  type: 'Crawler type',
   weapons: 'Armament Bay',
-  crew: 'Crew',
-  identity: 'Name',
+  crew: 'Name & crew',
   review: 'Review',
 }
 
-/** Step headings — the book's own step names (pp.212–213). */
-const STEP_TITLES: Record<CrawlerWizardStepId, string> = {
+/** Step headings. */
+const STEP_TITLES: Record<MockCrawlerStep, string> = {
   type: 'Choose a Crawler Type',
-  stats: 'Note your Crawler Statistics',
   weapons: 'Arm the Armament Bay',
-  crew: 'Name your Crew',
-  identity: 'Name your Crawler',
-  review: 'Review',
+  crew: 'Name your Crawler and its Crew',
+  review: 'Review your Crawler',
 }
 
 type CrawlerWizardProps = {
@@ -160,7 +157,8 @@ export function CrawlerWizard({
     noun: 'crawler',
     steps: STEPS,
     stepLabels: STEP_LABELS,
-    gateFor: (s) => crawlerCreationStepGate(s, form),
+    // MOCK: the merged step answers to the book step that gates it (the name).
+    gateFor: (s) => crawlerCreationStepGate(s === 'crew' ? 'identity' : s, form),
     initialStep: 'type',
     submitStep: 'review',
     form,
@@ -252,8 +250,9 @@ export function CrawlerWizard({
 
   // Per-step RuleBrief: the Core Book's own Union Crawler copy, pp.212–213,
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
-  const stepRule: StepRule = (() => {
-    switch (step) {
+  // MOCK: kept by book step; a merged step shows each of its parts' rules.
+  const ruleFor = (bookStep: CrawlerWizardStepId): StepRule => {
+    switch (bookStep) {
       case 'type':
         return {
           rule: (
@@ -264,7 +263,7 @@ export function CrawlerWizard({
               )}{' '}
               <span style={MUTED}>
                 (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
-                {mechCount === 1 ? '' : 's'} saved so far — context only, never a blocker.)
+                {mechCount === 1 ? '' : 's'} saved so far.)
               </span>
             </>
           ),
@@ -328,7 +327,20 @@ export function CrawlerWizard({
           cite: { source: 'Salvage Union Workshop Manual', page: [212, 213] },
         }
     }
-  })()
+  }
+  const brief = (bookStep: CrawlerWizardStepId) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
+  }
+  /** MOCK (wave 2): a part of a step: what it asks in the brief's frame, over its rule. */
+  const part = (bookStep: CrawlerWizardStepId, ask: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {ask}
+      </RuleBrief>
+    )
+  }
 
   // Tracker tab in the action pill: the WEAPONS pip chip rides on the
   // Armament step.
@@ -356,37 +368,58 @@ export function CrawlerWizard({
       footerNote={footerNote}
       submitLabel={crawlerCopy('createCrawler')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
       {step === 'type' && (
-        <CrawlerTypeSelectStep types={types} selectedType={form.type} onSelect={selectType} />
-      )}
-      {step === 'stats' && (
-        <CrawlerStatsStep techLevel={selectedTechLevel} selectedType={selectedType} />
+        <>
+          {brief('type')}
+          <CrawlerTypeSelectStep
+            types={types}
+            selectedType={form.type}
+            onSelect={selectType}
+            // MOCK: the read-only "Statistics" step, as a part under the picker.
+            stats={part(
+              'stats',
+              <CrawlerStatsStep techLevel={selectedTechLevel} selectedType={selectedType} />
+            )}
+          />
+        </>
       )}
       {step === 'weapons' && (
-        <SystemsList
-          systems={weaponCatalog}
-          selectedSystemSlugs={form.systems}
-          maxSelectable={weaponSlots}
-          installedWeaponCount={installedWeaponCount}
-          onChange={(systems) => updateForm({ systems })}
-        />
+        <>
+          {brief('weapons')}
+          <SystemsList
+            systems={weaponCatalog}
+            selectedSystemSlugs={form.systems}
+            maxSelectable={weaponSlots}
+            installedWeaponCount={installedWeaponCount}
+            onChange={(systems) => updateForm({ systems })}
+          />
+        </>
       )}
       {step === 'crew' && (
-        <CrawlerCrewStep
-          bays={crewBays}
-          selectedType={selectedType}
-          crew={form.crew}
-          onChange={updateForm}
-        />
-      )}
-      {step === 'identity' && (
-        <CrawlerIdentityStep
-          name={form.name}
-          description={form.description}
-          scrapPool={form.scrapPool}
-          onChange={updateForm}
-        />
+        <div className="su-wiz-parts">
+          <div className="su-wiz-parts__col">
+            {part(
+              'identity',
+              <CrawlerIdentityStep
+                name={form.name}
+                description={form.description}
+                scrapPool={form.scrapPool}
+                onChange={updateForm}
+              />
+            )}
+          </div>
+          <div className="su-wiz-parts__col">
+            {part(
+              'crew',
+              <CrawlerCrewStep
+                bays={crewBays}
+                selectedType={selectedType}
+                crew={form.crew}
+                onChange={updateForm}
+              />
+            )}
+          </div>
+        </div>
       )}
       {step === 'review' && (
         <CrawlerReviewStep

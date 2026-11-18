@@ -1,13 +1,13 @@
-// MOCK (Working Manual): the LEDGER, a list of entities to compare as ONE
-// framed block: the Compact's frame in the list's band colour, one column-head
-// strip on the band carrying the column labels as stamps, then a Mini-height
-// line per entity: its name (the link and Peek, a `Mention`), an optional stamp
-// (TL, Starting), and its values in fixed columns as plain tabular numerals.
-// Rows band paper and cream as the roll table's do. Its two cut-outs are the
-// app's own: the list's title on the Compact head's paper tab
+// The LEDGER (docs/design-system: L1 to L9), a list of entities to compare or
+// pick from as ONE framed block: the Compact's frame in the list's band colour,
+// one column-head strip on the band carrying the column labels as stamps, then
+// a Mini-height line per entity: its name (the link and Peek, a `Mention`), an
+// optional stamp (TL, Starting), and its values in fixed columns, in the stat
+// order (ruleset 2.6). Rows band paper and cream as the roll table's do. Its
+// cut-outs are the app's own: the list's title on the Compact head's paper tab
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
-// on the band, `--su-foot-ground`). Not shipped code.
+// on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
@@ -35,17 +35,26 @@ export type LedgerRow = {
   name: string
   /** The entity the name links to and Peeks. */
   entityRef: EntityRef | undefined
-  /** MOCK (wave 2): where the name links when it is no reference entity's Page (a shared pattern, a search result). */
+  /** Where the name links when it is no reference entity's Page (a shared pattern, a search result, a player's own sheet). */
   href?: string
   /** Attributes for that link: a search result's `role="option"`. */
   linkAttrs?: Record<string, unknown>
   /** The row's one stamp, at the name cell's end (`TL | 1`, Starting). */
   stamp?: ReactNode
-  /** One per column, in order; an empty string draws `—`. */
-  cells: readonly string[]
+  /** One per column, in order; an empty cell draws `—`. */
+  cells: readonly ReactNode[]
+  /** The row's last cell: its menu, its count or its stepper. */
+  trailing?: ReactNode
+  /** The pick's marks under the name (`CHOSEN | Energy`, hard rule R60). */
+  under?: ReactNode
 }
 
 export type LedgerSort = { key: string; descending: boolean }
+
+/** A quiet line is cut short on its one line: its words are its hover title. */
+function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
+  return column.kind === 'quiet' && typeof cell === 'string' ? cell : undefined
+}
 
 export function Ledger({
   paint,
@@ -58,25 +67,39 @@ export function Ledger({
   mark,
   onSort,
   label,
+  action,
+  empty,
+  total,
+  trailingLabel,
 }: {
   /** The band's paint (`paintFor`): the frame's colour and the head strip's. */
   paint: Paint
   /** The name column's label ("Chassis", "Pattern"). */
   nameLabel: string
-  /** How many the list holds, beside its title on the tab. */
-  count?: number
+  /** How many the list holds, beside its title on the tab; a node for a used/max ("7/7"). */
+  count?: ReactNode
   columns: readonly LedgerColumn[]
   rows: readonly LedgerRow[]
   /** The list's sources, once: the cite cut-out on the foot band. */
   foot?: ReactNode
   sort?: LedgerSort
-  /** MOCK (wave 2): a stamp beside the title tab, on the band (HOMEBREW). */
+  /** A stamp beside the title tab, on the band (HOMEBREW). */
   mark?: ReactNode
   /** With it, a column's label sorts by that column (`name` for the names). */
   onSort?: (key: string) => void
   /** Names the table for a screen reader. */
   label: string
+  /** At the head strip's end, on its own paper cut-out: the list's one make (`+ New pilot`). */
+  action?: ReactNode
+  /** Said in the body when the list holds nothing (`No pilots yet.`). */
+  empty?: string
+  /** The list's sums, a last line set in ink (`Total`, one cell a column). */
+  total?: { label: string; cells: readonly ReactNode[] }
+  /** The trailing cell's stamp (`Qty`); with it every row has a trailing cell. */
+  trailingLabel?: string
 }) {
+  const hasTrailing =
+    action != null || trailingLabel !== undefined || rows.some((row) => row.trailing != null)
   const stamp = (key: string, text: string, title?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
@@ -160,6 +183,15 @@ export function Ledger({
                 {stamp(column.key, column.label, column.title)}
               </th>
             ))}
+            {hasTrailing && (
+              <th scope="col" data-kind="trailing" data-phone="">
+                {action ? (
+                  <span className="su-ledger__action">{action}</span>
+                ) : (
+                  trailingLabel && stamp('trailing', trailingLabel)
+                )}
+              </th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -178,6 +210,7 @@ export function Ledger({
                   </span>
                   {row.stamp}
                 </span>
+                {row.under && <span className="su-ledger__under">{row.under}</span>}
               </th>
               {columns.map((column, index) => (
                 <td
@@ -186,14 +219,37 @@ export function Ledger({
                   data-phone={column.phone || undefined}
                   data-line={column.key === phoneLine || undefined}
                   data-empty={!row.cells[index] || undefined}
-                  title={column.kind === 'quiet' ? row.cells[index] : undefined}
+                  title={cellTitle(column, row.cells[index])}
                 >
                   {row.cells[index] || '—'}
                 </td>
               ))}
+              {hasTrailing && (
+                <td data-kind="trailing" data-phone="">
+                  {row.trailing}
+                </td>
+              )}
             </tr>
           ))}
+          {rows.length === 0 && empty && (
+            <tr className="su-ledger__empty">
+              <td colSpan={columns.length + 1 + (hasTrailing ? 1 : 0)}>{empty}</td>
+            </tr>
+          )}
         </tbody>
+        {total && rows.length > 0 && (
+          <tfoot>
+            <tr className="su-ledger__total">
+              <th scope="row">{total.label}</th>
+              {columns.map((column, index) => (
+                <td key={column.key} data-kind={column.kind} data-phone={column.phone || undefined}>
+                  {total.cells[index]}
+                </td>
+              ))}
+              {hasTrailing && <td data-kind="trailing" data-phone="" />}
+            </tr>
+          </tfoot>
+        )}
       </table>
       {foot && (
         <EntityCardIdentityFooter

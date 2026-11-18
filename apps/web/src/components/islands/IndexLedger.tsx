@@ -6,10 +6,10 @@ import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-referen
 import { toEntityModel } from 'salvageunion-reference'
 import { CiteLine } from '../atoms/CiteLine'
 import { Stat } from '../atoms/Stat'
+import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import type { LedgerColumn, LedgerSort } from '../entity/Ledger'
 import { Ledger } from '../entity/Ledger'
-import { paintFor } from '../entity/parts/paint'
 
 type IndexColumn = LedgerColumn & { value: (item: RefEntity, model: EntityModel) => string }
 

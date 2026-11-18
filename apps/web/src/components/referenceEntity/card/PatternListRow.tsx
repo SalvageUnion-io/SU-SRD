@@ -36,8 +36,7 @@ import { resolvePatternDrones, resolvePatternGroups } from './resolveNestedEntit
  * `schemaName` still links. Undefined elsewhere (the app's patterns have no
  * pages), so the row stays inert rather than linking to nowhere.
  */
-// MOCK: exported for the Working Manual's pattern table (`PatternTable`).
-export function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPattern) {
+function usePatternHref(chassis: ReferenceCardEntity, pattern: RefObjectAnyPattern) {
   const { hrefFor } = useEntitySurface()
   const host = entityRef(chassis as RefMetaEntity)
   const schemaName = isBioTitanPattern(pattern) ? 'bio-titans' : 'chassis'

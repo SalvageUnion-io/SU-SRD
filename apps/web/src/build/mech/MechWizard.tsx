@@ -1,9 +1,9 @@
 import { MechSchema } from 'game-domain/schemas/mech'
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { toast } from '../../components/index'
-import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
@@ -18,56 +18,42 @@ import {
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import { mechCopy } from '../../messages/build-mech'
 import { routesCopy } from '../../messages/routes'
-import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell, WizTracker } from '../wizard/WizShell'
-import { CraftItemsStep } from './CraftItemsStep'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'
+import { MechLoadoutStep } from './MechLoadoutStep'
 import { MechReviewStep } from './MechReviewStep'
-import { MechStatsStep } from './MechStatsStep'
 
-/** Book-order steps (Mech Workshop pp.94–95 + Review). */
-const STEPS: readonly MechWizardStepId[] = [
-  'scrap',
-  'chassis',
-  'stats',
-  'systems',
-  'modules',
-  'quirk',
-  'appearance',
-  'pattern',
-  'review',
-]
+/**
+ * MOCK (Working Manual, mockup C): nine book steps become four, each one a
+ * decision. "Gain Scrap" is step 1's cited rule; "Note down your Statistics"
+ * is the picked chassis's detail; Systems and Modules share a step; Quirk and
+ * Appearance share one; the name sits over the review. The book's own steps
+ * (pp.94–95) stay in the rule briefs.
+ */
+type MockMechStep = 'chassis' | 'loadout' | 'look' | 'review'
 
-/** Stepper-rail labels. */
-const STEP_LABELS: Record<MechWizardStepId, string> = {
-  scrap: 'Gain Scrap',
-  chassis: 'Craft your Chassis',
-  stats: 'Mech Statistics',
-  systems: 'Craft your Systems',
-  modules: 'Craft your Modules',
-  quirk: 'Quirk',
-  appearance: 'Appearance',
-  pattern: 'Pattern name',
-  review: 'Review',
+const STEPS: readonly MockMechStep[] = ['chassis', 'loadout', 'look', 'review']
+
+/** Stepper-rail labels (also the Next button's: it names the step it opens). */
+const STEP_LABELS: Record<MockMechStep, string> = {
+  chassis: 'Chassis',
+  loadout: 'Systems & modules',
+  look: 'Quirk & look',
+  review: 'Name & review',
 }
 
-/** Step headings — the book's own step names (pp.94–95). */
-const STEP_TITLES: Record<MechWizardStepId, string> = {
-  scrap: 'Gain Scrap',
-  chassis: 'Craft your Mech Chassis',
-  stats: 'Note down your Mech’s Statistics',
-  systems: 'Craft your Systems',
-  modules: 'Craft your Modules',
-  quirk: 'Choose your Quirk',
-  appearance: 'Describe your Mech’s Appearance',
-  pattern: 'Give your Mech a Name',
-  review: 'Review',
+/** Step headings. */
+const STEP_TITLES: Record<MockMechStep, string> = {
+  chassis: 'Choose a chassis',
+  loadout: 'Craft your Systems and Modules',
+  look: 'Give it a Quirk and a look',
+  review: 'Name your Mech and review',
 }
 
 type MechWizardProps = {
@@ -136,8 +122,14 @@ export function MechWizard({
     noun: 'mech',
     steps: STEPS,
     stepLabels: STEP_LABELS,
-    gateFor: (s) => mechCreationStepGate(s, form),
-    initialStep: 'scrap',
+    // MOCK: the merged steps answer to the book steps' own gates.
+    gateFor: (s) =>
+      s === 'chassis'
+        ? mechCreationStepGate('chassis', form)
+        : s === 'review'
+          ? mechCreationStepGate('review', form)
+          : mechCreationStepGate('systems', form),
+    initialStep: 'chassis',
     submitStep: 'review',
     form,
     draftKey,
@@ -170,8 +162,6 @@ export function MechWizard({
       }),
     [form.chassisName, form.systems, form.modules]
   )
-  const systemSlotsRemaining = Math.max(0, capacity.systemSlotsMax - capacity.systemSlotsUsed)
-  const moduleSlotsRemaining = Math.max(0, capacity.moduleSlotsMax - capacity.moduleSlotsUsed)
 
   /**
    * Chassis pick (radio). Changing the chassis REFUNDS its scrap and wipes
@@ -245,8 +235,19 @@ export function MechWizard({
 
   // Per-step RuleBrief: the Core Book's own Mech Workshop copy, pp.94–95,
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
-  const stepRule: StepRule = (() => {
-    switch (step) {
+  // MOCK: kept by book step; a merged step shows each of its parts' rules.
+  type BookStep =
+    | 'scrap'
+    | 'chassis'
+    | 'stats'
+    | 'systems'
+    | 'modules'
+    | 'quirk'
+    | 'appearance'
+    | 'pattern'
+    | 'review'
+  const ruleFor = (bookStep: BookStep): StepRule => {
+    switch (bookStep) {
       case 'scrap':
         return {
           rule: bookQuote(
@@ -349,7 +350,21 @@ export function MechWizard({
           cite: { source: 'Salvage Union Workshop Manual', page: [94, 95] },
         }
     }
-  })()
+  }
+  const brief = (bookStep: BookStep) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
+  }
+
+  /** MOCK (wave 2): a part of a step: its field in the brief's frame, over its rule. */
+  const part = (bookStep: BookStep, field: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {field}
+      </RuleBrief>
+    )
+  }
 
   // Tracker tabs in the action pill: the SCRAP tab debuts on step 1 and rides
   // along wherever scrap can move; the slot pip chips join on their own
@@ -363,37 +378,33 @@ export function MechWizard({
         testId="scrap-remaining"
       />
     )
+    // MOCK: one bar budget. Scrap rides every step that can spend it; the slot
+    // counts join it on step 2 from sm, and are the tabs' own counts on a phone.
     switch (step) {
-      case 'systems':
+      case 'loadout':
         return (
           <>
             {scrap}
-            <WizTracker
-              label={mechCopy('systemSlots')}
-              value={capacity.systemSlotsUsed}
-              max={capacity.systemSlotsMax}
-              pips
-              testId="system-slot-count"
-            />
+            <span className="su-wiz-pill-wide">
+              <WizTracker
+                label={mechCopy('systemSlots')}
+                value={capacity.systemSlotsUsed}
+                max={capacity.systemSlotsMax}
+                testId="system-slot-count"
+              />
+            </span>
+            <span className="su-wiz-pill-wide">
+              <WizTracker
+                label={mechCopy('moduleSlots')}
+                value={capacity.moduleSlotsUsed}
+                max={capacity.moduleSlotsMax}
+                testId="module-slot-count"
+              />
+            </span>
           </>
         )
-      case 'modules':
-        return (
-          <>
-            {scrap}
-            <WizTracker
-              label={mechCopy('moduleSlots')}
-              value={capacity.moduleSlotsUsed}
-              max={capacity.moduleSlotsMax}
-              pips
-              testId="module-slot-count"
-            />
-          </>
-        )
-      case 'quirk':
-      case 'appearance':
-      case 'pattern':
-        return undefined // flavor steps: nothing debits — keep the pill quiet
+      case 'look':
+        return undefined // flavor step: nothing debits — keep the bar quiet
       default:
         return scrap
     }
@@ -401,13 +412,8 @@ export function MechWizard({
 
   // Systems/modules are OPTIONAL — say so where a player might
   // expect a block; otherwise surface the gate reason on a locked Next.
-  const footerNote = !gate.ok
-    ? gate.reason
-    : step === 'systems'
-      ? 'Systems are optional · spare slots are fine'
-      : step === 'modules'
-        ? 'Modules are optional · spare slots are fine'
-        : undefined
+  // MOCK: the bar carries no note. A locked Next's reason shows on the step.
+  const footerNote = !gate.ok ? gate.reason : undefined
 
   return (
     <WizShell
@@ -420,70 +426,77 @@ export function MechWizard({
       footerNote={footerNote}
       submitLabel={mechCopy('createMech')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
-      {step === 'scrap' && <GainScrapStep />}
       {step === 'chassis' && (
-        <MechChassisStep
-          chassisName={form.chassisName}
-          patternName={form.patternName}
-          onSelectChassis={selectChassis}
-          onSelectPattern={selectPattern}
-          onSelectCustom={selectCustom}
-        />
+        <>
+          {/* MOCK: the read-only "Gain Scrap" step, as step 1's cited rule. */}
+          {brief('scrap')}
+          <MechChassisStep
+            chassisName={form.chassisName}
+            patternName={form.patternName}
+            onSelectChassis={selectChassis}
+            onSelectPattern={selectPattern}
+            onSelectCustom={selectCustom}
+          />
+        </>
       )}
-      {step === 'stats' && <MechStatsStep chassisName={form.chassisName} />}
-      {step === 'systems' && (
-        <CraftItemsStep
-          kind="systems"
-          selected={form.systems}
-          onCountChange={(name, next) => setInstallCount('systems', name, next)}
-          scrapRemaining={budget.remaining}
-          slotsRemaining={systemSlotsRemaining}
-        />
+      {step === 'loadout' && (
+        <>
+          {brief('systems')}
+          <MechLoadoutStep
+            systems={form.systems}
+            modules={form.modules}
+            onCountChange={setInstallCount}
+            scrapRemaining={budget.remaining}
+            slots={{
+              systems: { used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+              modules: { used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+            }}
+          />
+        </>
       )}
-      {step === 'modules' && (
-        <CraftItemsStep
-          kind="modules"
-          selected={form.modules}
-          onCountChange={(name, next) => setInstallCount('modules', name, next)}
-          scrapRemaining={budget.remaining}
-          slotsRemaining={moduleSlotsRemaining}
-        />
-      )}
-      {step === 'quirk' && (
-        <MechFlavorStep
-          field="quirk"
-          label={mechCopy('quirk')}
-          value={form.quirk}
-          onChange={(quirk) => updateForm({ quirk })}
-          placeholder={mechCopy('eGRattletrapSoundsLike')}
-        />
-      )}
-      {step === 'appearance' && (
-        <MechFlavorStep
-          field="appearance"
-          label={mechCopy('appearance')}
-          value={form.appearance}
-          onChange={(appearance) => updateForm({ appearance })}
-          placeholder={mechCopy('howItLooksPlatingPaint')}
-          multiline
-        />
-      )}
-      {step === 'pattern' && (
-        <MechFlavorStep
-          field="patternName"
-          label={mechCopy('namePattern')}
-          value={form.name}
-          onChange={setMechName}
-          placeholder={mechCopy('eGBullseyePatternMule')}
-          note={mechCopy('aMechsNameIsIts')}
-        />
+      {step === 'look' && (
+        // MOCK (wave 2): each part is one box, the field over the book's words
+        // for it, the two side by side from lg.
+        <div className="su-wiz-parts">
+          {part(
+            'quirk',
+            <MechFlavorStep
+              field="quirk"
+              label={mechCopy('quirk')}
+              value={form.quirk}
+              onChange={(quirk) => updateForm({ quirk })}
+              placeholder={mechCopy('eGRattletrapSoundsLike')}
+            />
+          )}
+          {part(
+            'appearance',
+            <MechFlavorStep
+              field="appearance"
+              label={mechCopy('appearance')}
+              value={form.appearance}
+              onChange={(appearance) => updateForm({ appearance })}
+              placeholder={mechCopy('howItLooksPlatingPaint')}
+              multiline
+            />
+          )}
+        </div>
       )}
       {step === 'review' && (
         <MechReviewStep
           form={form}
           submitError={submitError}
           bankedScrap={Math.max(0, budget.remaining)}
+          capacity={capacity}
+          namePart={part(
+            'pattern',
+            <MechFlavorStep
+              field="patternName"
+              label={mechCopy('namePattern')}
+              value={form.name}
+              onChange={setMechName}
+              placeholder={mechCopy('eGBullseyePatternMule')}
+            />
+          )}
         />
       )}
     </WizShell>

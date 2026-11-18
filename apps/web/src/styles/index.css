@@ -46,7 +46,6 @@
 @import './partials/reference-card.css';
 @import './partials/footer.css';
 @import './partials/card-chrome.css';
-/* MOCK: the Working Manual direction's reading-register mockups. */
 @import './partials/mock-working-manual.css';
-/* MOCK (front): the front door's mockups. */
 @import './partials/mock-front.css';
+@import './partials/ledger.css';

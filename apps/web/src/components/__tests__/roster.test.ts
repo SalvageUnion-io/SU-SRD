@@ -31,6 +31,7 @@ const ROSTER = {
     'slotPips', // §4.5 a slot count as pips, a wizard's tracker tab
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
+    'Ledger', // §5.12 Ledger: a compared or picked list's framed table (R63)
   ],
   /** chrome.md's roles (K1–K11) and the chrome hard rules (R16, R20, R22, R24, R27, R29). */
   chrome: [
@@ -125,6 +126,7 @@ const ROSTER = {
     'EntityDetailDialog', // the Page in a dialog (the app's open-in-place reading)
     'ActionMinis',
     'PatternListing',
+    'EntityCardIdentityFooter', // Source 2: the foot band and its cite cut-out
     'EntityPageStamps',
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',
@@ -165,6 +167,8 @@ const ROSTER = {
     'ogCardTitle',
     'ogReferenceAddressFits',
     'ContentsChapter',
+    'CardImage', // an entity's art plate, the home page's hero
+    'FrontPitch', // the home page's pitch
     'EntitySearcher',
     'SearchListbox',
     'useSearchCombobox',

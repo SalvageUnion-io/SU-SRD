@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useId, useState } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
-import { Box, Button, Eyebrow, tokens } from '../../components/index'
+import { Box, Button, EntityCardIdentityFooter, Eyebrow, tokens } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
@@ -22,6 +22,12 @@ type RuleBriefProps = StepRule & {
    * screen. The cite always shows.
    */
   fold?: boolean
+  /**
+   * MOCK (wave 2): what the rule asks for, over it in the same frame (a
+   * field with its Roll). The step's part is then one box: the ask, the
+   * book's words under it, the cite on the foot.
+   */
+  children?: ReactNode
 }
 
 /** A rule shorter than this fits two phone lines: nothing to fold. */
@@ -55,10 +61,55 @@ const citeStyle = { margin: 0 } satisfies CSSProperties
  * box carries no title of its own, only the
  * landmark's name for a screen reader.
  */
-export function RuleBrief({ rule, cite, className, fold = false }: RuleBriefProps) {
+export function RuleBrief({ rule, cite, className, fold = false, children }: RuleBriefProps) {
   const [open, setOpen] = useState(false)
   const ruleId = useId()
   const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
+  // MOCK (Working Manual): a wizard step's brief (`fold`) wears the site's
+  // cite-foot cut-out, the card's own foot in the kind's band paint.
+  if (fold) {
+    return (
+      <Box
+        as="section"
+        label={buildWizardCopy('theRule')}
+        className={className}
+        body="flush"
+        frameColor="var(--tone)"
+      >
+        {children && <div className="su-wiz-rule-brief__ask">{children}</div>}
+        <div
+          className={cn('su-wiz-rule-brief__text', children && 'su-wiz-rule-brief__text--under')}
+        >
+          <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>
+            {rule}
+          </p>
+          {folds && (
+            <div>
+              <Button
+                size="mini"
+                className="su-wiz-rule-toggle"
+                aria-expanded={open}
+                aria-controls={ruleId}
+                onClick={() => setOpen((was) => !was)}
+              >
+                {buildWizardCopy(open ? 'foldTheRule' : 'readTheRule')}
+              </Button>
+            </div>
+          )}
+        </div>
+        {cite && (
+          <div className="su-wiz-rule-brief__foot">
+            <EntityCardIdentityFooter
+              provenance={undefined}
+              size="compact"
+              band={{ onBand: 'ink', bandColor: 'var(--tone)' }}
+              credit={formatCite(cite)}
+            />
+          </div>
+        )}
+      </Box>
+    )
+  }
   return (
     <Box as="section" label={buildWizardCopy('theRule')} className={className}>
       <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>

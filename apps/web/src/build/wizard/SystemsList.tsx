@@ -1,7 +1,11 @@
+import { useState } from 'react'
 import type { RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
-import { EmptyState, MasonryColumns, ReferenceEntityCard } from '../../components/index'
+import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { PickList } from './PickList'
+import { weaponColumns } from './pickColumns'
+import { WizMeter } from './WizShell'
 
 type SystemsListProps = {
   /** Weapons systems available to install, already filtered by the parent. */
@@ -10,32 +14,28 @@ type SystemsListProps = {
   /**
    * Hard cap on how many WEAPONS systems may be installed — the crawler
    * type's Armament-Bay allowance, read from its stored `mutations` (1, or 2
-   * for a Battle Crawler; Core Book p. 213 / p. 216). Once this many weapons
-   * are installed, the remaining cards disable with a reason chip until one
-   * is removed.
+   * for a Battle Crawler; Core Book p. 213 / p. 216).
    */
   maxSelectable: number
   /**
    * How many WEAPONS systems are currently installed. The cap counts weapons
-   * only — NOT `selectedSystemSlugs.length`. A crawler may also carry
-   * non-weapon systems (Cargo Pod, Armour Plating, …) which this rule does not
-   * limit and which never appear in the weapons-only catalog, so counting all
-   * selected slugs would wrongly lock the picker for a crawler that carries
-   * any non-weapon system (it could neither add the allowed weapon nor remove
-   * the stranded system).
+   * only — NOT `selectedSystemSlugs.length` (a crawler may also carry
+   * non-weapon systems, which this rule does not limit).
    */
   installedWeaponCount: number
   onChange: (slugs: string[]) => void
 }
 
+const COLUMNS = weaponColumns<RefSystem>()
+
 /**
- * Step 3 · Arm the Armament Bay (Union Crawler p.213) — the weapons-system
- * pick grid, every option rendered as the SRD entity card in select mode
- * (the universal entity-card rule). The parent owns the weapons + TL filter
- * (guided create: Tech 1 only); selection is HARD-capped at `maxSelectable`
- * — the type's mutations-derived Armament-Bay allowance — and an at-cap card
- * dims with a reason chip naming the gate, visible, never
- * hidden.
+ * MOCK (Working Manual, wave 2) · Arm the Armament Bay (Union Crawler p.213),
+ * as a picker in the Ledger form (`PickList`, its count pick): the Tech 1
+ * weapons a line each (timing, range, damage, traits), a mount's stepper at
+ * the line's end, the bay's mounts a meter over the list. The line in focus is
+ * its contentful card beside the list (under its line on a phone). The parent
+ * owns the weapons + TL filter; selection is HARD-capped at `maxSelectable`:
+ * at the cap every other `+` is off, its line dimmed with the reason.
  */
 export function SystemsList({
   systems,
@@ -45,14 +45,7 @@ export function SystemsList({
   onChange,
 }: SystemsListProps) {
   const atCap = installedWeaponCount >= maxSelectable
-
-  function toggle(slug: string) {
-    if (selectedSystemSlugs.includes(slug)) {
-      onChange(selectedSystemSlugs.filter((s) => s !== slug))
-    } else if (!atCap) {
-      onChange([...selectedSystemSlugs, slug])
-    }
-  }
+  const [focus, setFocus] = useState<string | undefined>(undefined)
 
   if (systems.length === 0) {
     return (
@@ -62,37 +55,69 @@ export function SystemsList({
       />
     )
   }
+  const mounted = (system: RefSystem) => selectedSystemSlugs.includes(getEntitySlug(system))
+  const shown = focus ?? selectedSystemSlugs[0] ?? getEntitySlug(systems[0] as RefSystem)
+  const focused = systems.find((system) => getEntitySlug(system) === shown)
+  const full = buildWizardCopy('armamentBayFullMounted', { installedWeaponCount })
+  const card = (system: RefSystem) => (
+    <div className="su-wiz-own-rules">
+      <ReferenceEntityCard
+        data={system}
+        size="compact"
+        selected={mounted(system)}
+        hide={{ actions: true, choices: true }}
+      />
+    </div>
+  )
 
   return (
-    <MasonryColumns maxColumns={2}>
-      {systems.map((system) => {
-        const slug = getEntitySlug(system)
-        const selected = selectedSystemSlugs.includes(slug)
-        const disabled = !selected && atCap
-        return (
-          <ReferenceEntityCard
-            key={system.id}
-            data={system}
-            size="compact"
-            selected={selected}
-            selectionRole="toggle"
-            cardClickLabel={system.name}
-            selectable={!disabled}
-            onCardClick={disabled ? undefined : () => toggle(slug)}
-            hide={{ actions: true, choices: true }}
-            footMeta={
-              disabled
-                ? [
-                    {
-                      label: buildWizardCopy('armamentBayFullMounted', { installedWeaponCount }),
-                      value: '',
-                    },
-                  ]
-                : undefined
-            }
-          />
-        )
-      })}
-    </MasonryColumns>
+    <div className="su-wiz-stack su-wiz-stack--12">
+      <div className="su-wiz-budget">
+        <WizMeter label="Weapons mounted" value={installedWeaponCount} max={maxSelectable} />
+      </div>
+      <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+        <div className="su-wiz-compare-main">
+          <div>
+            <PickList
+              title="Tech 1 Weapons Systems"
+              note={
+                <Stat
+                  label="Mounted"
+                  value={installedWeaponCount}
+                  max={maxSelectable}
+                  size="mini"
+                />
+              }
+              rows={systems}
+              rowKey={getEntitySlug}
+              rowName={(system) => system.name}
+              columns={COLUMNS}
+              selected={shown}
+              onSelect={setFocus}
+              count={{
+                label: 'Mount',
+                value: (system) => (mounted(system) ? 1 : 0),
+                max: (system) => (mounted(system) || !atCap ? 1 : 0),
+                onChange: (system, next) => {
+                  const slug = getEntitySlug(system)
+                  setFocus(slug)
+                  onChange(
+                    next > 0
+                      ? [...selectedSystemSlugs, slug]
+                      : selectedSystemSlugs.filter((s) => s !== slug)
+                  )
+                },
+              }}
+              disabled={(system) => (atCap && !mounted(system) ? full : undefined)}
+              detail={card}
+              foot={{ cite: 'Workshop Manual · p.213 · Systems pp.162–187' }}
+            />
+          </div>
+        </div>
+        <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll su-wiz-compare-detail--desk">
+          {focused && card(focused)}
+        </div>
+      </div>
+    </div>
   )
 }
