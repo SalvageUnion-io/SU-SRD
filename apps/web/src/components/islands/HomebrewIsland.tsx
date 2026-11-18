@@ -18,8 +18,9 @@
  */
 
 import { useEffect, useState } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
 import type { HomebrewRow } from '../../lib/homebrew/endpoint'
-import type { HomebrewEntry } from '../../lib/homebrew/homebrew'
 import {
   fetchHomebrewPatterns,
   homebrewItems,
@@ -30,13 +31,19 @@ import {
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
+import { CiteLine } from '../atoms/CiteLine'
 import { Toggle } from '../atoms/Toggle'
 import { loadingCopy } from '../containers/loadingCopy'
 import { SlabSection } from '../containers/SlabSection'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
+import type { LedgerColumn } from '../entity/Ledger'
+import { Ledger } from '../entity/Ledger'
+import { paintFor } from '../entity/parts/paint'
 import { GameDataGate } from '../GameDataGate'
-import { Stat, Text } from '../index'
+import { Text } from '../index'
 import { ReferenceSurface } from '../ReferenceSurface'
-import { PatternListing, ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
+import { HomebrewStamp } from '../referenceEntity/card/HomebrewStamp'
+import { ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
 import { PATTERNS_ON_A_PHONE } from '../referenceEntity/card/patternsOnAPhone'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
@@ -68,26 +75,6 @@ function useHomebrew(on: boolean, chassisRef: string | undefined): Load {
 }
 
 /** No pattern of a chassis page's Homebrew is drawn under a down host. */
-const HOST = { hostDown: false, chassisName: undefined } as const
-
-/**
- * One homebrew pattern, listed as the book's are above it (`PatternListing`):
- * its head opening its page, the HOMEBREW stamp with its maker beside it, then
- * its description and loadout.
- */
-function HomebrewListing({ entry }: { entry: HomebrewEntry }) {
-  return (
-    <PatternListing
-      chassis={entry.chassis}
-      chassisName={entry.chassis.name}
-      pattern={entry.pattern}
-      host={HOST}
-      homebrew
-      href={entry.href}
-      credit={<Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="mini" />}
-    />
-  )
-}
 
 function HomebrewList({
   load,
@@ -135,17 +122,47 @@ function HomebrewGrid({
   shown: number
 }) {
   const entries = homebrewItems(rows).map(playerHomebrewEntry)
+  const surface = useEntitySurface()
   if (entries.length === 0) return empty === null ? null : <Text variant="hint">{empty}</Text>
+  const first = entries[0]
+  if (!first) return null
+  // MOCK (wave 2): shared patterns as one Ledger, as a chassis's book patterns
+  // are: a line a pattern, its chassis, its maker, its loadout a quiet line.
+  // Homebrew reads as ruleset §3.9 has it: a solid frame, the dashed HOMEBREW
+  // stamp on the band, the makers credited, the foot saying whose it is.
+  const names = (list: unknown) =>
+    Array.isArray(list) ? list.map((entry: { name: string }) => entry.name) : []
   return (
-    <ul className="su-pattern-rows__list">
-      {entries.map((entry, i) => (
-        <li key={entry.key} className={i < shown ? undefined : 'su-homebrew__more'}>
-          <HomebrewListing entry={entry} />
-        </li>
-      ))}
-    </ul>
+    <Ledger
+      label={islandsCopy('homebrewPatterns')}
+      paint={paintFor(toEntityModel(first.chassis as RefMetaEntity).tone, {
+        texture: surface.texture,
+      })}
+      nameLabel="Patterns"
+      count={entries.length}
+      mark={<HomebrewStamp size="mini" />}
+      columns={HOMEBREW_COLUMNS}
+      rows={entries.slice(0, Math.max(shown, PATTERNS_ON_A_PHONE)).map((entry) => ({
+        id: entry.key,
+        name: `“${entry.pattern.name}”`,
+        entityRef: undefined,
+        href: entry.href,
+        cells: [
+          entry.chassis.name,
+          entry.madeBy,
+          [...names(entry.pattern.systems), ...names(entry.pattern.modules)].join(', '),
+        ],
+      }))}
+      foot={<CiteLine text="Homebrew // Made by players" />}
+    />
   )
 }
+
+const HOMEBREW_COLUMNS: readonly LedgerColumn[] = [
+  { key: 'chassis', label: 'Chassis', kind: 'text', phone: true },
+  { key: 'by', label: 'Made by', kind: 'text' },
+  { key: 'loadout', label: 'Loadout', kind: 'quiet' },
+]
 
 /** A chassis page's switch and, while it is on, that chassis's homebrew. */
 function ChassisHomebrew({

@@ -12,6 +12,7 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
+import { InlineRef } from '../atoms/InlineRef'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
@@ -34,6 +35,10 @@ export type LedgerRow = {
   name: string
   /** The entity the name links to and Peeks. */
   entityRef: EntityRef | undefined
+  /** MOCK (wave 2): where the name links when it is no reference entity's Page (a shared pattern, a search result). */
+  href?: string
+  /** Attributes for that link: a search result's `role="option"`. */
+  linkAttrs?: Record<string, unknown>
   /** The row's one stamp, at the name cell's end (`TL | 1`, Starting). */
   stamp?: ReactNode
   /** One per column, in order; an empty string draws `—`. */
@@ -50,6 +55,7 @@ export function Ledger({
   rows,
   foot,
   sort,
+  mark,
   onSort,
   label,
 }: {
@@ -64,6 +70,8 @@ export function Ledger({
   /** The list's sources, once: the cite cut-out on the foot band. */
   foot?: ReactNode
   sort?: LedgerSort
+  /** MOCK (wave 2): a stamp beside the title tab, on the band (HOMEBREW). */
+  mark?: ReactNode
   /** With it, a column's label sorts by that column (`name` for the names). */
   onSort?: (key: string) => void
   /** Names the table for a screen reader. */
@@ -137,6 +145,7 @@ export function Ledger({
                   )}
                   {count != null && <span className="su-ledger__count">{count}</span>}
                 </span>
+                {mark}
               </span>
             </th>
             {columns.map((column) => (
@@ -159,7 +168,13 @@ export function Ledger({
               <th scope="row">
                 <span className="su-ledger__name-line">
                   <span className="su-ledger__name">
-                    <Mention entityRef={row.entityRef}>{row.name}</Mention>
+                    {row.href ? (
+                      <InlineRef href={row.href} {...row.linkAttrs}>
+                        {row.name}
+                      </InlineRef>
+                    ) : (
+                      <Mention entityRef={row.entityRef}>{row.name}</Mention>
+                    )}
                   </span>
                   {row.stamp}
                 </span>

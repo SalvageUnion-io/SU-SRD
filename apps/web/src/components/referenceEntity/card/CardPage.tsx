@@ -9,13 +9,13 @@ import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
-import { ActionMinis } from './NestedCards'
-import type { Down } from './cardChrome'
 import { ChoiceRegion } from './ChoiceRegion'
+import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
 import { pageBodyStats, pageStatLine } from './entityPage'
-import { PatternLinkRows } from './PatternListRow'
+import { ActionMinis } from './NestedCards'
 import { PatternLedger } from './PatternLedger'
+import { PatternLinkRows } from './PatternListRow'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
@@ -233,12 +233,7 @@ export function CardPage({
         page
         className={cn('su-manual__lore', bodyRules && 'su-manual__lore--rules')}
       >
-        <div
-          className={cn(
-            'su-entity-page__prose',
-            wordsAside && 'su-manual__lore-prose'
-          )}
-        >
+        <div className={cn('su-entity-page__prose', wordsAside && 'su-manual__lore-prose')}>
           {subLine}
           {body}
         </div>

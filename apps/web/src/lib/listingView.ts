@@ -39,7 +39,6 @@ export const CATALOG_LISTINGS: ReadonlySet<string> = new Set([
  */
 export const TREE_LISTINGS: ReadonlySet<string> = new Set(['abilities'])
 
-
 /** The views a listing offers, in the rail's order. */
 function listingViews(schemaId: string): readonly ListingView[] {
   // MOCK (wave 2): every listing leads with its List, the Ledger.

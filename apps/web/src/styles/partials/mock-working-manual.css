@@ -313,10 +313,16 @@
     display: block;
   }
 
+  /* Two lines at most: the row stays a row, its Page has the rest. */
   .su-ledger__table[data-phone-line] tbody td[data-line] {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     border-top: 0;
-    display: block;
+    display: -webkit-box;
+    margin-bottom: var(--space-4);
     max-width: none;
+    overflow: hidden;
+    padding-bottom: 0;
     padding-top: 0;
     white-space: normal;
   }
@@ -324,4 +330,44 @@
   .su-ledger__table[data-phone-line] tbody td[data-line][data-empty] {
     display: none;
   }
+}
+
+/* ══ Search (wave 2): the dropdown's results as a Ledger ═══════════════════
+ * The highlighted row is the picked row: filled with ink, its name on a
+ * small paper tab.
+ */
+.su-search-ledger {
+  padding: var(--space-8);
+}
+
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) [data-empty] {
+  color: var(--color-paper-60);
+}
+
+.su-search-ledger .su-ledger__name [aria-selected='true'] {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  padding: 0 var(--space-6);
+}
+
+/* A phone keeps every search column: the kind tells two Lasers apart. */
+@media not (width >= 40rem) {
+  .su-search-ledger .su-ledger__table :is(th, td)[data-kind='text']:not([data-phone]) {
+    display: none;
+  }
+}
+
+/* The dropdown is narrow: a name wraps, the columns keep their width. */
+.su-search-ledger .su-ledger__table tbody th {
+  white-space: normal;
+  width: auto;
+}
+
+.su-search-ledger .su-ledger__name {
+  font-size: var(--text-body);
 }

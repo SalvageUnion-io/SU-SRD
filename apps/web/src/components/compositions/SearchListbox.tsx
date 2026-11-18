@@ -7,6 +7,9 @@ import { activateOnKey } from '../atoms/interaction'
 import { EmptyState } from '../containers/EmptyState'
 import { Pending } from '../containers/Pending'
 import { Entity } from '../entity/Entity'
+import type { LedgerColumn } from '../entity/Ledger'
+import { Ledger } from '../entity/Ledger'
+import type { Paint } from '../entity/parts/paint'
 import type { EntityFormModel } from '../entity/types'
 import { NO_RESULTS } from './searchCopy'
 import type { SearchComboboxResult } from './useSearchCombobox'
@@ -111,77 +114,151 @@ export function SearchListbox({
           <EmptyState variant="inline" body={NO_RESULTS} />
         </div>
       ) : (
-        <div
-          className={size === 'mini' ? 'su-entity-mini-list' : undefined}
-          style={size === 'mini' ? TOKENS : ROWS}
-        >
-          {results.map((result, index) => {
-            // A link stays a link; an act is reached through the combobox alone.
-            const option = {
-              id: optionId(index),
-              role: 'option',
-              'aria-selected': index === selectedIndex,
-              ...('open' in target ? { tabIndex: -1 } : {}),
-            } as const
-            const model = result.kind === 'entity' ? modelOf(result) : undefined
-            const link =
-              'href' in target
-                ? { href: target.href(result) }
-                : { onOpen: () => target.open(result) }
-            if (model) {
-              const mode = { kind: 'link', ...link, attrs: option } as const
-              return size === 'mini' ? (
-                <Entity
-                  key={result.id}
-                  size="mini"
-                  context="browse"
-                  model={model}
-                  mode={mode}
-                  state={
-                    kinds ? (
-                      <Badge shape="stamp" size="mini" aria-hidden="true">
-                        {schemaLabel(result.schemaId)}
-                      </Badge>
-                    ) : undefined
-                  }
-                />
-              ) : (
-                <Entity key={result.id} size="compact" model={model} mode={mode} />
+        <>
+          {/* MOCK (wave 2): the dropdown's entity results are one Ledger, as
+              every list is: a title tab with the count, a line a result, its
+              kind and Tech Level in columns, the highlighted row filled with
+              ink. The category lines follow it. */}
+          {size === 'mini' && (
+            <SearchLedger
+              results={results}
+              selectedIndex={selectedIndex}
+              optionId={optionId}
+              modelOf={modelOf}
+              target={target}
+            />
+          )}
+          <div
+            className={size === 'mini' ? 'su-entity-mini-list' : undefined}
+            style={size === 'mini' ? TOKENS : ROWS}
+          >
+            {results.map((result, index) => {
+              // A link stays a link; an act is reached through the combobox alone.
+              const option = {
+                id: optionId(index),
+                role: 'option',
+                'aria-selected': index === selectedIndex,
+                ...('open' in target ? { tabIndex: -1 } : {}),
+              } as const
+              const model = result.kind === 'entity' ? modelOf(result) : undefined
+              if (model && size === 'mini') return null
+              const link =
+                'href' in target
+                  ? { href: target.href(result) }
+                  : { onOpen: () => target.open(result) }
+              if (model) {
+                const mode = { kind: 'link', ...link, attrs: option } as const
+                return size === 'mini' ? (
+                  <Entity
+                    key={result.id}
+                    size="mini"
+                    context="browse"
+                    model={model}
+                    mode={mode}
+                    state={
+                      kinds ? (
+                        <Badge shape="stamp" size="mini" aria-hidden="true">
+                          {schemaLabel(result.schemaId)}
+                        </Badge>
+                      ) : undefined
+                    }
+                  />
+                ) : (
+                  <Entity key={result.id} size="compact" model={model} mode={mode} />
+                )
+              }
+              const body = (
+                <>
+                  <div style={CATEGORY_TITLE}>{result.title}</div>
+                  <div style={CATEGORY_GROUP}>{result.group}</div>
+                </>
               )
-            }
-            const body = (
-              <>
-                <div style={CATEGORY_TITLE}>{result.title}</div>
-                <div style={CATEGORY_GROUP}>{result.group}</div>
-              </>
-            )
-            return 'href' in link ? (
-              <a
-                key={result.id}
-                {...option}
-                href={link.href}
-                className="su-search__category"
-                style={CATEGORY}
-              >
-                {body}
-              </a>
-            ) : (
-              <div
-                key={result.id}
-                {...option}
-                role="option"
-                tabIndex={-1}
-                className="su-search__category"
-                style={CATEGORY_ACT}
-                onClick={link.onOpen}
-                onKeyDown={activateOnKey(link.onOpen)}
-              >
-                {body}
-              </div>
-            )
-          })}
-        </div>
+              return 'href' in link ? (
+                <a
+                  key={result.id}
+                  {...option}
+                  href={link.href}
+                  className="su-search__category"
+                  style={CATEGORY}
+                >
+                  {body}
+                </a>
+              ) : (
+                <div
+                  key={result.id}
+                  {...option}
+                  role="option"
+                  tabIndex={-1}
+                  className="su-search__category"
+                  style={CATEGORY_ACT}
+                  onClick={link.onOpen}
+                  onKeyDown={activateOnKey(link.onOpen)}
+                >
+                  {body}
+                </div>
+              )
+            })}
+          </div>
+        </>
       )}
+    </div>
+  )
+}
+
+const SEARCH_COLUMNS: readonly LedgerColumn[] = [
+  { key: 'kind', label: 'Kind', kind: 'text', phone: true },
+  { key: 'tl', label: 'TL', title: 'Tech Level', kind: 'figure', phone: true },
+  { key: 'cost', label: 'Cost', kind: 'text' },
+]
+
+/** Chrome's paint: the dropdown mixes kinds, so its band is ink. */
+const INK_PAINT: Paint = {
+  background: 'var(--color-ink)',
+  color: 'var(--color-paper)',
+  grain: 'paper',
+  ink: true,
+}
+
+function SearchLedger({
+  results,
+  selectedIndex,
+  optionId,
+  modelOf,
+  target,
+}: Pick<SearchListboxProps, 'results' | 'selectedIndex' | 'optionId' | 'modelOf' | 'target'>) {
+  const rows = results.flatMap((result, index) => {
+    const model = result.kind === 'entity' ? modelOf(result) : undefined
+    if (!model || !('href' in target)) return []
+    return [
+      {
+        id: result.id,
+        name: model.title,
+        entityRef: undefined,
+        href: target.href(result),
+        linkAttrs: {
+          id: optionId(index),
+          role: 'option',
+          'aria-selected': index === selectedIndex,
+        },
+        cells: [
+          schemaLabel(result.schemaId),
+          model.techLevel != null ? String(model.techLevel) : '',
+          model.cost ?? '',
+        ],
+      },
+    ]
+  })
+  if (rows.length === 0) return null
+  return (
+    <div className="su-search-ledger">
+      <Ledger
+        label="Results"
+        paint={INK_PAINT}
+        nameLabel="Results"
+        count={rows.length}
+        columns={SEARCH_COLUMNS}
+        rows={rows}
+      />
     </div>
   )
 }
