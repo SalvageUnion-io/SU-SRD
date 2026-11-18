@@ -135,10 +135,43 @@
   vertical-align: middle;
 }
 
+/* The foot's cite cut-out wears the table's paper, as a card's does. */
+.su-ledger {
+  --su-foot-ground: var(--color-paper);
+}
+
 /* The head strip: the band, its labels stamps. */
 .su-ledger__head > th {
   padding-block: var(--space-6);
   white-space: nowrap;
+}
+
+/* The title's cell: the Compact head's notch (`.su-entity-compact__notch`),
+   its tab on the strip's foot, opening into the first paper row. */
+.su-ledger__head > th:first-child {
+  padding: var(--space-8) var(--space-8) 0;
+  vertical-align: bottom;
+}
+
+.su-ledger__title-line {
+  align-items: flex-end;
+  display: flex;
+  font-family: var(--font-cond);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-ledger__title-line .su-ledger__sort {
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.su-ledger__count {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
 }
 
 .su-ledger__sort {
@@ -226,17 +259,6 @@
   font-weight: var(--font-weight-normal);
 }
 
-/* The foot: the list's source, once. */
-.su-ledger__foot {
-  background-color: var(--color-paper);
-  border-top: var(--bw-hairline) solid var(--color-ink-20);
-  color: var(--color-wk-muted);
-  font-size: var(--text-chip);
-  margin: 0;
-  padding: var(--space-4) var(--space-8);
-  text-align: right;
-}
-
 /* On a phone a row keeps its name, its stamp and the columns marked for it;
    a quiet line drops under the name when it is the row's only column. */
 @media not (width >= 40rem) {
@@ -265,7 +287,7 @@
     display: block;
   }
 
-  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) > th {
+  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) > th:first-child {
     display: block;
     border-bottom: 0;
   }

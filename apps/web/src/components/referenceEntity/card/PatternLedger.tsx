@@ -1,9 +1,11 @@
 // MOCK (Working Manual, A): a chassis page's patterns as one Ledger: a line
 // per pattern, its name the link to its Page, Starting its only stamp, its
-// loadout one quiet line, and the patterns' sources once, in the foot (a
-// citation is text, never a chip: E9). Not shipped code.
+// loadout one quiet line, and the patterns' sources once, on the foot's
+// cut-out (a citation is text, never a chip: E9). Its title tab names the
+// section and carries the count, so no Slab heads it. Not shipped code.
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { entityRef, isBioTitanPattern, toEntityModel } from 'salvageunion-reference'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { CiteLine } from '../../atoms/CiteLine'
 import { Stat } from '../../atoms/Stat'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -48,7 +50,8 @@ export function PatternLedger({
     <Ledger
       label={`${model.title} patterns`}
       paint={paintFor(model.tone, { texture: surface.texture })}
-      nameLabel="Pattern"
+      nameLabel={referenceEntityCopy('patterns')}
+      count={patterns.length}
       columns={COLUMNS}
       rows={patterns.map((pattern) => ({
         id: pattern.name,

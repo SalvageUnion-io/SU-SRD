@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react'
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { CiteLine } from '../atoms/CiteLine'
 import { Stat } from '../atoms/Stat'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
 import type { LedgerColumn, LedgerSort } from '../entity/Ledger'
@@ -138,6 +139,22 @@ export function IndexLedger({
         compareCells(by(a), by(b)) * (sort.descending ? -1 : 1) || a.name.localeCompare(b.name)
     )
   }, [built, columns, sort])
+  // The books the list is printed in, once, on the foot's cut-out; a list
+  // whose data names none has no foot.
+  const books = useMemo(
+    () => [
+      ...new Set(
+        items
+          .map((item) =>
+            'source' in item && item.source
+              ? String(item.source).replace(/^Salvage Union /, '')
+              : ''
+          )
+          .filter(Boolean)
+      ),
+    ],
+    [items]
+  )
   const first = built[0]
   if (!first) return null
   return (
@@ -153,6 +170,7 @@ export function IndexLedger({
         stamp: row.techLevel ? <Stat label="TL" value={row.techLevel} size="mini" /> : undefined,
         cells: row.cells,
       }))}
+      foot={books.length > 0 ? <CiteLine text={books.join(' // ')} /> : undefined}
       sort={sort}
       onSort={(key) =>
         setSort((now) => ({ key, descending: now?.key === key ? !now.descending : false }))

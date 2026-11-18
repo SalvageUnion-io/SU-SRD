@@ -218,14 +218,9 @@ export function CardPage({
           {beside}
           {table && <div className="su-entity-page__table">{table}</div>}
           {patterns.length > 0 && (
-            <SlabSection
-              as={sectionAs}
-              title={referenceEntityCopy('patterns')}
-              count={String(patterns.length)}
-              page
-            >
-              <PatternLedger chassis={entity} patterns={patterns} />
-            </SlabSection>
+            // MOCK (Working Manual, A): the Ledger's title tab names the
+            // section and keeps the count; no Slab says it twice.
+            <PatternLedger chassis={entity} patterns={patterns} />
           )}
           {!hero && lore}
           {after}
