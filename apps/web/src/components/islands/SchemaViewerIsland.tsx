@@ -43,8 +43,8 @@ import {
   tokens,
   trackForTree,
 } from '../index'
+import type { FixedChip } from '../entity/forms/Compact'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { CompareTable } from './CompareTable'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -65,6 +65,31 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  * loads at once and first rather than lazily after layout.
  */
 const OPENING_ROW = 4
+
+/** MOCK (Working Manual, B): a system's or module's fixed strip. */
+const LOADOUT_CHIPS: readonly FixedChip[] = [
+  { key: 'tech-level', label: 'TL' },
+  { key: 'book-Slots Required', label: 'Slots' },
+  { key: 'book-Salvage Value', label: 'SV' },
+  { key: 'range', label: 'RNG', action: true },
+  { key: 'damage', label: 'DMG', action: true },
+]
+
+/** MOCK (Working Manual, B): each compare listing's stat chips, in §2.6 order. */
+const FIXED_CHIPS: Readonly<Record<string, readonly FixedChip[]>> = {
+  chassis: [
+    { key: 'tech-level', label: 'TL' },
+    { key: 'book-Salvage Value', label: 'SV' },
+    { key: 'book-Structure Points', label: 'SP' },
+    { key: 'book-Energy Points', label: 'EP' },
+    { key: 'book-System Slots', label: 'SYS' },
+    { key: 'book-Module Slots', label: 'MODS' },
+    { key: 'book-Heat Capacity', label: 'Heat' },
+    { key: 'book-Cargo Capacity', label: 'Cargo' },
+  ],
+  systems: LOADOUT_CHIPS,
+  modules: LOADOUT_CHIPS,
+}
 
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
@@ -413,6 +438,8 @@ function SchemaViewer({
         data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
+        // MOCK: a compare listing's List is one row a line (`mock-working-manual.css`).
+        data-compare={(view === 'list' && schemaId in FIXED_CHIPS && schemaId) || undefined}
       >
         {!band && rail}
 
@@ -434,14 +461,7 @@ function SchemaViewer({
               {groups.map((group, groupIndex) => (
                 <section key={group.key} className="su-listing__group" aria-label={group.label}>
                   {group.label && <Slab label={group.label} />}
-                  {view === 'table' ? (
-                    // MOCK (Working Manual, B): the index as a compare table.
-                    <CompareTable
-                      schemaId={schemaId}
-                      noun={band?.title ?? ''}
-                      items={group.items}
-                    />
-                  ) : view === 'catalog' ? (
+                  {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
                       {group.items.map((item: RefEntity, index) => (
                         <li key={item.id}>
@@ -470,6 +490,9 @@ function SchemaViewer({
                             mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                             omit={omit}
                             wholeName
+                            // MOCK (Working Manual, B): the stat chips in one
+                            // fixed §2.6 order on every row, a row a line.
+                            fixedChips={FIXED_CHIPS[schemaId]}
                           />
                         </li>
                       ))}

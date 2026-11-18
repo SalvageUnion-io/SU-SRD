@@ -52,6 +52,8 @@ export type EntityFormModel = Pick<
   Partial<
     Pick<
       EntityModel,
+      // MOCK (Working Manual, B): the book's stats, for a fixed chip strip.
+      | 'bookStats'
       | 'tier'
       | 'techLevel'
       | 'cost'

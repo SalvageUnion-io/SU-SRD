@@ -8,12 +8,14 @@ import { listingViewStorageKey, PARAM_VIEW } from './listingParams'
  * `TREE_LISTINGS` schema only), each tree under its heading on its class-page
  * track. Every listing opens on its Catalog, a tree listing on its Tree.
  */
-// MOCK (Working Manual, B): `table`, the index as a table to sort and compare.
-export type ListingView = 'catalog' | 'tree' | 'list' | 'table'
+export type ListingView = 'catalog' | 'tree' | 'list'
 
-/** MOCK: the listings that open on the compare table (`CompareTable`'s columns). */
-export const TABLE_LISTINGS: ReadonlySet<string> = new Set(['chassis', 'systems', 'modules'])
-const TABLE_VIEWS: readonly ListingView[] = ['table', 'catalog', 'list']
+/**
+ * MOCK (Working Manual, B): the listings a reader compares, which open on
+ * their List (E2), its chips in one fixed order (`FIXED_CHIPS`).
+ */
+export const COMPARE_LISTINGS: ReadonlySet<string> = new Set(['chassis', 'systems', 'modules'])
+const COMPARE_VIEWS: readonly ListingView[] = ['list', 'catalog']
 
 /**
  * Listings whose entities have no artwork and whose lead is the content: a
@@ -41,13 +43,13 @@ const TREE_VIEWS: readonly ListingView[] = ['catalog', 'tree', 'list']
 
 /** The views a listing offers, in the rail's order. */
 function listingViews(schemaId: string): readonly ListingView[] {
-  if (TABLE_LISTINGS.has(schemaId)) return TABLE_VIEWS // MOCK
+  if (COMPARE_LISTINGS.has(schemaId)) return COMPARE_VIEWS // MOCK
   return TREE_LISTINGS.has(schemaId) ? TREE_VIEWS : VIEWS
 }
 
 /** The view a listing opens on: a tree listing's Tree, every other's Catalog. */
 export function defaultListingView(schemaId: string): ListingView {
-  if (TABLE_LISTINGS.has(schemaId)) return 'table' // MOCK
+  if (COMPARE_LISTINGS.has(schemaId)) return 'list' // MOCK
   return TREE_LISTINGS.has(schemaId) ? 'tree' : 'catalog'
 }
 

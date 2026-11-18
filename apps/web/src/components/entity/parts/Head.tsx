@@ -73,6 +73,8 @@ export type HeadProps = {
    * that ends the strip. The head never grows for them.
    */
   overflow?: 'body' | 'more'
+  /** MOCK (Working Manual, B): the chips keep one fixed order and place on every row: no right-to-left fill, no +MORE. */
+  fixed?: boolean
   /**
    * A row of controls on the band above the name's line, the width of the
    * band: a dialog's search and filters (the SRD Explorer's), so they sit in
@@ -110,11 +112,12 @@ export function Head({
   overflow = 'body',
   top,
   whole = false,
+  fixed = false,
 }: HeadProps) {
-  const chips = asStrip(chipsProp, controls, overflow === 'more')
-  const overflowRow = !!chips && overflow === 'body'
+  const chips = asStrip(chipsProp, controls, overflow === 'more' && !fixed)
+  const overflowRow = !!chips && overflow === 'body' && !fixed
   const headingRef = useRef<HTMLDivElement>(null)
-  useChipFill(headingRef, !!chips)
+  useChipFill(headingRef, !!chips && !fixed)
   const tierNode = tier && (
     <span
       className={cn(
@@ -178,8 +181,11 @@ export function Head({
         {chips ? (
           <div
             ref={headingRef}
-            className="su-entity-compact__heading su-entity-compact__heading--cut"
-            data-chip-fill=""
+            className={cn(
+              'su-entity-compact__heading su-entity-compact__heading--cut',
+              fixed && 'su-entity-compact__heading--fixed' // MOCK
+            )}
+            data-chip-fill={fixed ? undefined : ''}
           >
             {name}
             {labelsWithChips ? (

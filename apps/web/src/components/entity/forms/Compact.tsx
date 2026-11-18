@@ -2,6 +2,7 @@ import type { ElementType, ReactNode } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { budgetFacts, naturalContext } from 'salvageunion-reference'
 import { Stat } from '../../atoms/Stat'
+import type { StatItem } from '../../containers/statsBarTypes'
 import { CardLabels } from '../../referenceEntity/card/CardLabels'
 import { downOf } from '../../referenceEntity/card/cardChrome'
 import { HomebrewStamp } from '../../referenceEntity/card/HomebrewStamp'
@@ -87,9 +88,33 @@ export type RowProps = {
   /** Hover, focus or a long press Peeks the Compact (a pattern's loadout). Off in listings. */
   peek?: boolean
   slots?: RowSlots
+  /** MOCK (Working Manual, B): the head's stat chips, by key, in one fixed order on every row (`FixedChip`). */
+  fixedChips?: readonly FixedChip[]
 }
 
+/**
+ * MOCK (Working Manual, B): one chip of a fixed strip: a book stat's or an
+ * action fact's key, with the label its place wears when the entity has no
+ * such stat (drawn `—`, so the columns hold).
+ */
+export type FixedChip = { key: string; label: string; action?: boolean }
+
 const READ: EntityMode = { kind: 'read' }
+
+/** MOCK (Working Manual, B): the fixed strip's cells, every place filled, in the order given. */
+function fixedFacts(model: EntityFormModel, fixed: readonly FixedChip[]): StatItem[] {
+  const known = [...(model.bookStats ?? []), ...model.facts]
+  return fixed.map(({ key, label, action }) => {
+    const fact = known.find((entry) => entry.key === key)
+    return {
+      key,
+      label: fact?.short ?? label,
+      value: fact ? (fact.shortValue ?? fact.value) : '—',
+      ...(action ? { group: 'action' as const } : fact?.group ? { group: fact.group } : {}),
+      ...(fact?.hint ? { hoverText: fact.hint } : {}),
+    }
+  })
+}
 
 /*
  * The frame (ink on paper, dashed when player-made: ruleset §3.9) and the body
@@ -121,6 +146,7 @@ export function Compact({
   omit = [],
   peek = false,
   slots = {},
+  fixedChips,
 }: RowProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
@@ -139,7 +165,9 @@ export function Compact({
   const chips: ChipSet = {
     durations: actionTypeStamps(model.actionType, model.mechActionType),
     ...(model.cost ? { cost: model.cost } : {}),
-    facts: factCells(budgetFacts(model.facts, context ?? naturalContext(model.kind)), omit),
+    facts: fixedChips
+      ? fixedFacts(model, fixedChips) // MOCK
+      : factCells(budgetFacts(model.facts, context ?? naturalContext(model.kind)), omit),
     tags: slots.tags ?? traitTags(model.traits),
     ...(slots.relations ? { relations: slots.relations } : {}),
   }
@@ -244,6 +272,7 @@ export function Compact({
         // What does not fit beside the name: the body's first row, or, with
         // no body, +MORE (C2b, C5).
         overflow={hasBody ? 'body' : 'more'}
+        fixed={!!fixedChips}
       />
       {hasBody && (
         <CompactBody style={down ? { opacity: 0.6 } : undefined}>
