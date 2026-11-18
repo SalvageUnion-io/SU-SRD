@@ -230,6 +230,20 @@ describe('the Game room Durable Object', () => {
     expect(waiting).toHaveLength(1)
   })
 
+  test('the Mediator’s alert is posted after the act; a refused one is not', async () => {
+    const { game, waiting } = await seeded('g-alert')
+    expect(game.act(PLAYER, 'changeLog.broadcast', { message: 'Dust storm' })).toMatchObject({
+      ok: false,
+    })
+    expect(waiting).toHaveLength(0)
+    game.act(ORGANIZER, 'setMediator', { userId: ORGANIZER, mediator: true })
+    expect(game.act(ORGANIZER, 'changeLog.broadcast', { message: 'Dust storm' })).toMatchObject({
+      ok: true,
+    })
+    expect(waiting).toHaveLength(1)
+    await Promise.all(waiting)
+  })
+
   test('a lease the alarm cannot settle is logged and tried again; a socket needs the Worker’s headers', async () => {
     const { game, store } = await seeded('g-lost')
     game.offer({

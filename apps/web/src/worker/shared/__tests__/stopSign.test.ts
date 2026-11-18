@@ -1,6 +1,6 @@
 import { describe, expect, spyOn, test } from 'bun:test'
-import { BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
-import { postStopSign } from '../stopSign'
+import { BOT_RELAY_POST_ALERT_PATH, BOT_RELAY_POST_STOP_PATH } from 'game-domain/botWire'
+import { postStopSign, postTableAlert } from '../stopSign'
 import { testDb } from './d1'
 
 function bound() {
@@ -83,5 +83,29 @@ describe('posting the Stop Sign', () => {
     } finally {
       warn.mockRestore()
     }
+  })
+})
+
+describe('posting the Mediator’s alert', () => {
+  test('asks the bot to post its words in the table’s channel, or a runner’s own', async () => {
+    const db = bound()
+    db.sqlite
+      .query(
+        `insert into channel_bindings (channel_id, game_id, bound_by, channel_name, bound_at)
+         values ('c-med', null, 'd-med', 'haven', 0)`
+      )
+      .run()
+    const { calls, BOT } = relay(ok)
+    await postTableAlert({ SHARED: db, BOT }, 'g-1', 'Dust storm')
+    await postTableAlert({ SHARED: db, BOT }, 'g-2', 'Dust storm', ['d-med'])
+    await postTableAlert({ SHARED: db, BOT }, 'g-2', 'Dust storm')
+    expect(calls.map((c) => new URL(c.url).pathname)).toEqual([
+      BOT_RELAY_POST_ALERT_PATH,
+      BOT_RELAY_POST_ALERT_PATH,
+    ])
+    expect(calls.map((c) => JSON.parse(String(c.init?.body)))).toEqual([
+      { channelId: 'c-1', message: 'Dust storm' },
+      { channelId: 'c-med', message: 'Dust storm' },
+    ])
   })
 })

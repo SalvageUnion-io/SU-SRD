@@ -55,7 +55,7 @@ import { membershipGameIds } from './shared/games'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
-import { postStopSign } from './shared/stopSign'
+import { postStopSign, postTableAlert } from './shared/stopSign'
 import { isShelfAct, runShelfAct } from './shelfActs'
 
 /**
@@ -313,6 +313,12 @@ export class GameRoom extends Room {
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
     }
+    if (name === 'changeLog.broadcast' && answer.ok) {
+      const { message } = args as GameActArgs<'changeLog.broadcast'>
+      this.ctx.waitUntil(
+        postTableAlert(this.env as StopSignEnv, this.gameId, message.trim(), this.runners())
+      )
+    }
     if (name === 'downtime.begin' && answer.ok && answer.value === true) {
       this.countUsage('downtime:game')
     }
@@ -339,12 +345,16 @@ export class GameRoom extends Room {
   /** The Stop Sign to the bound channel, while it is still up. */
   private async postStop(): Promise<void> {
     if (!this.logic.safety.stillPosting()) return
+    await postStopSign(this.env as StopSignEnv, this.gameId, this.runners())
+  }
+
+  /** The table runners' Discord ids, whose own channel stands in for an unbound Game's. */
+  private runners(): string[] {
     const { store } = this.logic
-    const runners = store
+    return store
       .members()
       .filter((m) => store.isTableRunner(m))
       .map((m) => m.userId)
-    await postStopSign(this.env as StopSignEnv, this.gameId, runners)
   }
 
   /** The actor's own units and the primary crawler, for the bot's sheets. */
