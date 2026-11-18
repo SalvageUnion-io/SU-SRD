@@ -10,10 +10,18 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
-import { toEntityModel } from 'salvageunion-reference'
-import { EmptyState, Entity, MiniGrid, Slab, Stat, tokens } from '../../components/index'
+import {
+  EmptyState,
+  Entity,
+  MiniGrid,
+  Slab,
+  Stat,
+  TraitProse,
+  tokens,
+} from '../../components/index'
 import type { PlayAction } from '../../lib/rules/actionPatches'
-import { buildMechActions } from '../../lib/rules/actionPatches'
+import { buildCompanionActions, buildMechActions } from '../../lib/rules/actionPatches'
+import { actionRow } from '../../lib/rules/actionRow'
 import type { ActionTypeKey } from '../../play/playActions.model'
 import { actionTypeOf } from '../../play/playActions.model'
 
@@ -44,26 +52,42 @@ const TIMING: readonly ActionTypeKey[] = [
 ]
 
 function ActionRow({ action }: { action: PlayAction }) {
-  const model = toEntityModel(action.action)
+  // MOCK (wave 2, the actions board): the row Play's board draws (`actionRow`):
+  // the picks applied, the effect alone as its text, a companion's row named.
+  const { model, summary } = actionRow(action)
+  const companion = action.companion
   return (
     <li>
       <Entity
         size="mini"
         context="play"
         model={model}
-        tint="mech"
+        tint={companion?.tone ?? 'mech'}
+        {...(companion
+          ? { relations: [{ key: `companion-${companion.id}`, name: companion.name }] }
+          : {})}
         instance={action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         {...(action.ownerName !== action.name
           ? { state: <Stat size="mini" label={action.ownerName} /> }
           : {})}
-        body={HEAD_ONLY}
+        body={
+          summary
+            ? {
+                text: false,
+                children: <TraitProse as="p" className="su-play-act__effect" text={summary} />,
+              }
+            : HEAD_ONLY
+        }
       />
     </li>
   )
 }
 
 export function MechSheetActions({ mech }: { mech: Mech }) {
-  const actions = buildMechActions(mech)
+  const actions = [
+    ...buildMechActions(mech),
+    ...buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners),
+  ]
   const groups = TIMING.map((type) => ({
     type,
     actions: actions.filter((a) => actionTypeOf(a.action) === type),

@@ -8,6 +8,8 @@ export const playCopy = messages({
   step: 'Step {max}',
   endDowntime: 'End Downtime',
   cancel: 'Cancel',
+  // MOCK (wave 2): a pick made on an action's choices, named in its row (R60).
+  chosen: 'Chosen',
   cancel2: 'Cancel {name}',
   use: 'Use',
   use2: 'Use {name}',
