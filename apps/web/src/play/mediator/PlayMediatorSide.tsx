@@ -30,7 +30,7 @@ import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { mediatorCopy } from '../../messages/play-mediator'
-import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
+import { PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
@@ -92,7 +92,8 @@ export function MediatorTablesAndFeed({
         prepared={running?.tables}
         onField={mediator.canWrite ? mediator.tray.field : undefined}
       />
-      <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+      {/* MOCK (wave 2): the Feed sits under the Table (`PlayMediatorCockpit`), where the
+          column was empty, so Tables runs straight into Propose. */}
     </>
   )
 }

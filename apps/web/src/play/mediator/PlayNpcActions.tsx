@@ -19,11 +19,13 @@
 
 import { useMemo, useState } from 'react'
 import { resultForTable, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Button, EmptyState, Entity, rollForTable, Slab } from '../../components/index'
+import { Button, EmptyState, Entity, rollForTable, Slab, TraitProse } from '../../components/index'
+import { actionEffect } from '../../lib/rules/actionEffect'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayRollInstrument } from '../PlayRollInstrument'
 import { playLineModel } from '../playLine.model'
 import { reportingRoll } from '../playRolls.model'
+import { usePlayWide } from '../usePlayWide'
 import type { NpcAction } from './npcActions.model'
 import { npcActions } from './npcActions.model'
 import type { TrayNpc } from './opposition.model'
@@ -120,7 +122,14 @@ function NpcActionRow({
   onOpen: (open: boolean) => void
   rollFor: typeof rollForTable
 }) {
-  const model = useMemo(() => toEntityModel(entry.action), [entry.action])
+  // MOCK (wave 2): the same row text as the player's board: the effect alone.
+  const effect = useMemo(() => actionEffect(entry.action), [entry.action])
+  const model = useMemo(
+    () => ({ ...toEntityModel(entry.action), prose: effect }),
+    [entry.action, effect]
+  )
+  const first = effect.find((block) => typeof block.value === 'string')?.value
+  const wide = usePlayWide()
   const [rolled, setRolled] = useState<{ die: number; band: string } | null>(null)
 
   async function roll() {
@@ -153,7 +162,9 @@ function NpcActionRow({
             </Button>
           ) : (
             <Button
-              size="mini"
+              // MOCK (wave 2): every Use is rust; a phone's is a 44px target.
+              size={wide ? 'mini' : 'full'}
+              variant="primary"
               disabled={!live}
               aria-label={mediatorCopy('useFor', { name: entry.name, name2: npc.name })}
               onClick={() => onOpen(true)}
@@ -181,7 +192,14 @@ function NpcActionRow({
                 ),
               },
             }
-          : {})}
+          : typeof first === 'string'
+            ? {
+                body: {
+                  text: false,
+                  children: <TraitProse as="p" className="su-play-act__effect" text={first} />,
+                },
+              }
+            : {})}
       />
     </li>
   )
