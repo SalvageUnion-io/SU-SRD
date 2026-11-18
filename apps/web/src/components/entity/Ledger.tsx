@@ -22,7 +22,6 @@ import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
 import type { CardFootMeta } from '../referenceEntity/card/referenceEntityCardTypes'
-import { TraitProse } from '../TraitProse'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import type { Paint } from './parts/paint'
@@ -119,9 +118,12 @@ function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
     : undefined
 }
 
-/** A cell's words; rules text's `[[Trait]]` renders as its Mention, never as markup. */
+/**
+ * A cell's words; rules text's `[[Trait]]` reads as its word, never as markup.
+ * Only the row's name is a link: a cell cut to its one line holds no links.
+ */
 function cellBody(cell: ReactNode): ReactNode {
-  return typeof cell === 'string' && cell.includes('[[') ? <TraitProse text={cell} /> : cell
+  return typeof cell === 'string' ? cell.replace(MARKUP, '$1') : cell
 }
 
 export function Ledger({

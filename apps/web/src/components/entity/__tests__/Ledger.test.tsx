@@ -190,5 +190,6 @@ describe('rules markup in a cell', () => {
     })
     expect(container.innerHTML).not.toContain('[[')
     expect(container.textContent).toContain('the Hacking Trait')
+    expect(container.querySelectorAll('a')).toHaveLength(1)
   })
 })

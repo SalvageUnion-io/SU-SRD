@@ -63,7 +63,7 @@ export function HomeHero() {
       </div>
       {art && (
         <div className="su-front__plate">
-          <CardImage hero {...art} />
+          <CardImage hero plate {...art} />
           <p className="su-front__plate-cite">{referenceCopy('heroArtCite')}</p>
         </div>
       )}

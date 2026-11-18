@@ -1,7 +1,12 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { duration, ease } from '../../design/tokens'
-import { CARD_IMAGE_CONTAINER_WIDTH, cardImageSizes, heroImageSizes } from './cardImageSizes'
+import {
+  CARD_IMAGE_CONTAINER_WIDTH,
+  cardImageSizes,
+  heroImageSizes,
+  plateImageSizes,
+} from './cardImageSizes'
 import { heroArtCrop } from './heroArtCrop'
 
 type CardImageProps = {
@@ -32,6 +37,11 @@ type CardImageProps = {
    * page's preload must repeat.
    */
   hero?: boolean
+  /**
+   * With `hero`: the plate's height is capped (the front door's art plate), so
+   * its `sizes` is `plateImageSizes`, not the column's.
+   */
+  plate?: boolean
 }
 
 /**
@@ -52,7 +62,7 @@ const IMG = {
   transitionDuration: duration.fast,
 } satisfies CSSProperties
 
-export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageProps) {
+export function CardImage({ url, srcSet, alt, compact, aside, hero, plate }: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
   // the server. On the reference site an entity card is rendered by the ZERO-JS static path
@@ -106,7 +116,7 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero }: CardImageP
         ref={imgRef}
         src={url}
         srcSet={srcSet}
-        sizes={srcSet ? heroImageSizes() : undefined}
+        sizes={srcSet ? (plate ? plateImageSizes() : heroImageSizes()) : undefined}
         alt={alt}
         className={crop ? 'su-entity-hero__img su-entity-hero__img--crop' : 'su-entity-hero__img'}
         style={{ ...crop?.image, opacity: loaded ? 1 : 0 }}
