@@ -195,7 +195,7 @@ export async function findSiblingHeights(page: Page, within?: string): Promise<F
 
 /**
  * A Button beside Tabs (or a Segmented row) is their Size (ruleset §4.7,
- * R41):
+ * §4.7):
  * on the Tabs' line or in the band that holds them (the nearest ancestor,
  * four levels up at most, that holds a Button too), every Button but a
  * strip's chip is a tab's height. One `tab-size:` line per Button off it.

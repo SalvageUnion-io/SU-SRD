@@ -17,8 +17,11 @@ import { fromFaults } from './_findings'
  * - `stray-head` (R53): a heading that is no band title, Slab, entity title,
  *   contents chapter or screen-reader label; `nested-slab`: a Slab section in a Slab section,
  *   not Mini;
- * - `make-rust` (§3.13): a "+ New…" or "+ Design…" control not rust; `stamp-twin`: a button
- *   painted like a read stamp beside it on its line;
+ * - `door-rust` (§3.13): a "+ New…" or "+ Design…" control rust beside its
+ *   region's door (a Ledger's, a section's); `use-rust`: a Use
+ *   that is not rust; `band-keyline`: a rust control on a colour band without
+ *   its ink keyline; `stamp-twin`: a button painted like a read stamp beside
+ *   it on its line;
  * - `tool-title-clip` (C12): a TitledBox's title clipped to "…";
  * - `measure` (§1.10): a Reference or Manage band title off the page measure's
  *   left edge; `first-screen`: a phone page whose first content starts below
@@ -117,19 +120,57 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     if (!known && drawn(h)) out.push(`stray-head: ${name(h)}`)
   }
 
-  // make-rust and stamp-twin.
-  const probe = document.createElement('span')
-  probe.style.color = 'var(--color-rust)'
-  document.body.append(probe)
-  const rust = getComputedStyle(probe).color
-  probe.remove()
+  // door-rust, use-rust, band-keyline and stamp-twin.
+  const token = (name: string) => {
+    const probe = document.createElement('span')
+    probe.style.color = `var(${name})`
+    document.body.append(probe)
+    const value = getComputedStyle(probe).color
+    probe.remove()
+    return value
+  }
+  const rust = token('--color-rust')
+  const ink = token('--color-ink')
+  // The grounds that are no band: paper, cream, the page, ink.
+  const plain = new Set(
+    ['--color-paper', '--color-band-cream', '--color-wk-bg', '--color-ink', '--color-ink-deep'].map(
+      token
+    )
+  )
   const controls = [...document.querySelectorAll('button, a.su-btn, a[class*="su-button"]')].filter(
     drawn
   )
+  const label = (c: Element) => (c.textContent ?? '').trim()
+  const isRust = (c: Element) => getComputedStyle(c).backgroundColor === rust
+  const isMake = (c: Element) => /^\+\s*(?:New|Design)\b/i.test(label(c))
+  const isUse = (c: Element) => /^Use\b/.test(label(c))
+  /** The ground a control stands on: its nearest painted ancestor's colour. */
+  const ground = (c: Element) => {
+    for (let el = c.parentElement; el; el = el.parentElement) {
+      const bg = getComputedStyle(el).backgroundColor
+      const alpha = Number((bg.match(/[\d.]+/g) ?? [])[3] ?? 1)
+      if (bg !== 'rgba(0, 0, 0, 0)' && alpha >= 0.5) return bg
+    }
+    return ''
+  }
   for (const c of controls) {
-    const text = (c.textContent ?? '').trim()
-    if (/^\+\s*(?:New|Design)\b/i.test(text) && getComputedStyle(c).backgroundColor !== rust)
-      out.push(`make-rust: ${name(c)}`)
+    const off = (c as HTMLButtonElement).disabled || c.getAttribute('aria-disabled') === 'true'
+    if (isUse(c) && !off && !isRust(c)) out.push(`use-rust: ${name(c)}`)
+    if (isMake(c)) {
+      const region = c.closest('.su-ledger, .su-slab-section, section, main') ?? document.body
+      const door = controls.some(
+        (o) => o !== c && region.contains(o) && isRust(o) && !isMake(o) && !isUse(o)
+      )
+      if (door && isRust(c)) out.push(`door-rust: ${name(c)} is rust beside its region's door`)
+    }
+    if (isRust(c)) {
+      const on = ground(c)
+      // A strip's Mini control draws its edge as an outline (its border is its hit area).
+      const cs = getComputedStyle(c)
+      const keyed =
+        cs.borderTopColor === ink || (cs.outlineStyle !== 'none' && cs.outlineColor === ink)
+      if (on && !plain.has(on) && !keyed) out.push(`band-keyline: ${name(c)}`)
+    }
   }
   const fill = (el: Element) => getComputedStyle(el).backgroundColor
   const dark = (rgb: string) => {
@@ -193,15 +234,11 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
     for (let n = texts.nextNode(); n; n = texts.nextNode()) {
       const el = n.parentElement
       if (!el || !n.textContent?.trim() || !drawn(el)) continue
-      if (
-        el.closest('button, a.su-btn, input, select, label, [role="search"], [data-slab], header')
-      )
+      if (el.closest('button, a.su-btn, input, select, label, [role="search"], [data-slab]'))
         continue
       const top = el.getBoundingClientRect().top + scrollY
-      if (top >= foot) {
-        first = top
-        break
-      }
+      // Drawn order, not source order: a side column's prose can come first in the markup.
+      if (top >= foot) first = Math.min(first ?? top, top)
     }
     if (first !== undefined && first > innerHeight)
       out.push(

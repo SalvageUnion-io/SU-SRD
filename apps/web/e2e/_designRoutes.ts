@@ -10,7 +10,7 @@ import type { DesignDebt, DesignFamily, DesignFinding, DesignRoute } from './_de
 import { againstBaseline, corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
 import type { Finding, Placed } from './_findings'
 import { place } from './_findings'
-import { editSheet, openPeekFromSearch, waitForReady } from './_helpers'
+import { editSheet, openPeek, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
 import { MID } from './_play'
 
@@ -94,7 +94,7 @@ async function open(page: Page, route: DesignRoute, path: string): Promise<void>
   }
   await settle(page)
   if (route.edit === true) await edit(page)
-  if (route.peek) await openPeekFromSearch(page, route.peek)
+  if (route.peek) await openPeek(page, route.peek)
 }
 
 /** The viewport a route is held at. */

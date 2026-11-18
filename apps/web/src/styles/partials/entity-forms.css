@@ -1363,20 +1363,15 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: 1 1 auto;
 }
 
-/* Two Minis a line (`--two-up`: a pattern drone's systems and modules under
-   its Mini), in reading order; one a line on a phone, where two would each
-   be too narrow to hold a system name. */
+/* Two Minis a line (`--two-up` on the item grid, `.su-grid`: a pattern
+   drone's systems and modules under its Mini), in reading order, an odd last
+   one taking its line; one a line where two would each be too narrow to hold
+   a system name. */
 .su-entity-mini-list--two-up {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  column-gap: var(--space-6);
-  row-gap: var(--space-4);
-}
-
-@media (width >= 40rem) {
-  .su-entity-mini-list--two-up {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  --su-grid-gap: var(--space-6);
+  --su-grid-max: 2;
+  --su-grid-min: 14rem;
+  --su-grid-row-gap: var(--space-4);
 }
 
 @media (pointer: coarse) {
@@ -1573,6 +1568,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
   outline: var(--bw-chrome) solid currentcolor;
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
+}
+
+/* A rust button on a Mini's band wears its ink keyline (ruleset §3.13) as an
+   outline on its plate's edge, a strip's Mini control as the outlined one does. */
+.su-entity-mini__pill .su-btn--primary:not(:disabled) {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * (var(--su-mini-inset, 0px) + var(--bw-chrome)));
 }
 
 /* A list that keeps its Minis' names whole (`data-names-whole`: a Game's

@@ -82,10 +82,18 @@ export async function searchPeekTrigger(page: Page, { schema, name }: SearchPeek
   return page.locator(`[role="option"][data-peek^="${schema}:"]`).filter({ hasText: name }).first()
 }
 
-/** Open `name`'s Peek from the Union bar's search; resolves once its plate draws a head. */
-export async function openPeekFromSearch(page: Page, peek: SearchPeek): Promise<void> {
-  const trigger = await searchPeekTrigger(page, peek)
-  await expect(trigger, `a ${peek.schema} Mini for ${peek.name} to Peek`).toBeVisible()
+/**
+ * Open `name`'s Peek: from the page's own trigger where it draws one (an
+ * index's Ledger names its entities, L4), else from the Union bar's search;
+ * resolves once its plate draws a head.
+ */
+export async function openPeek(page: Page, peek: SearchPeek): Promise<void> {
+  const own = page
+    .locator(`[data-peek^="${peek.schema}:"]`)
+    .filter({ hasText: peek.name, visible: true })
+    .first()
+  const trigger = (await own.count()) > 0 ? own : await searchPeekTrigger(page, peek)
+  await expect(trigger, `a ${peek.schema} name for ${peek.name} to Peek`).toBeVisible()
   await trigger.hover()
   await expect(
     page.locator('[data-peek-popup]').locator('.su-entity-compact__head, .su-entity-mini').first()
