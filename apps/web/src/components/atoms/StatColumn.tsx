@@ -10,13 +10,12 @@ import { Stat } from './Stat'
  * the value-cell law (§7.1) drawn the size the book draws it, so a label is
  * never squeezed into a header cell and never clips.
  *
- * Two to a row at every width, in pairs: each part of the stat order
- * (provenance, vitals, capacity) pairs off its own cells from the top, so a
- * mech reads Structure | Energy, System | Module Slots, Heat | Cargo. A cell
- * left without a partner, its group's last or a
- * missing stat's neighbour, spans the row, so there is never an empty cell or
- * a ragged edge (`stat-fill.e2e.ts`). The cells keep the stat order: build
- * them from the entity model's `bookStats`.
+ * Two to a row at every width on the item grid (`.su-grid`, R68), in pairs:
+ * each part of the stat order (provenance, vitals, capacity) pairs off its own
+ * cells from the top, so a mech reads Structure | Energy, System | Module
+ * Slots, Heat | Cargo. A cell left without a partner, its group's last or a
+ * missing stat's neighbour, takes the row (`fill-grid.e2e.ts`). The cells
+ * keep the stat order: build them from the entity model's `bookStats`.
  *
  * A layout of `Stat`s (ruleset §3.7, §6.2: every labelled value is a Stat,
  * no hand `dl`), each a list item, so a screen reader reads "Structure
@@ -68,7 +67,7 @@ export function StatColumn({ stats, label, compact = false, cellStyle }: StatCol
   const lone = loneStatCells(stats)
   return (
     <ul
-      className={compact ? 'su-stat-column su-stat-column--compact' : 'su-stat-column'}
+      className={cn('su-grid su-stat-column', compact && 'su-stat-column--compact')}
       aria-label={label}
     >
       {stats.map((stat, index) => (

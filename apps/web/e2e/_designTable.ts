@@ -138,8 +138,6 @@ export const designRoutes: readonly DesignRoute[] = [
  *   loadout, a class's ability track (`token-cutout.e2e.ts`).
  * - `header-mini`: a header-only Mini: a pattern's loadout, a bio-titan's
  *   part, a crawler sheet's crew (`token-cutout.e2e.ts`).
- * - `stat-column`: a `StatColumn` grid: two chassis and a pattern (`CardPage`'s
- *   column) (`stat-fill.e2e.ts`). The mech sheet has none: TL and SV ride its band.
  * - `search`: a search field on its own line: an SRD listing's rail
  *   (`search-width.e2e.ts`).
  * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
@@ -156,7 +154,6 @@ export const designRoutes: readonly DesignRoute[] = [
 export type CorpusTrait =
   | 'contentful-mini'
   | 'header-mini'
-  | 'stat-column'
   | 'search'
   | 'rhythm'
   | 'seam'
@@ -226,9 +223,9 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   index('/modules/'),
   index('/abilities/', 'search', 'ability-trees'),
   index('/creatures/'),
-  page('/chassis/mazona/', 'stat-column', 'rhythm'),
-  page('/chassis/mazona/pattern/buzzard/', 'stat-column', 'rhythm'),
-  page('/chassis/big-brother/', 'stat-column', 'rhythm'),
+  page('/chassis/mazona/', 'rhythm'),
+  page('/chassis/mazona/pattern/buzzard/', 'rhythm'),
+  page('/chassis/big-brother/', 'rhythm'),
   page('/chassis/big-brother/pattern/drontek/', 'header-mini'),
   page('/chassis/mule/', 'contentful-mini'),
   page('/chassis/mule/pattern/crusher/', 'contentful-mini'),
