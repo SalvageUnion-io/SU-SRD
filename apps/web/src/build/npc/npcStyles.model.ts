@@ -19,7 +19,7 @@ export const COLUMNS = {
   alignItems: 'start',
   margin: '0 auto',
   maxWidth: '80rem',
-  padding: `${tokens.space[16]} ${tokens.space[16]} 0`,
+  padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
 } satisfies CSSProperties
 
 export const COLUMN = {

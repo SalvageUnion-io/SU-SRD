@@ -1,38 +1,15 @@
 /**
- * A Ledger's columns keep the stat order (ledger.md L5, ruleset §2.6):
- * `ledgerOrderFaults` judges a head strip's stamps, and every SRD index's
- * List (`IndexLedger`) is held to it on the real dataset. The same judge
- * reads every Ledger a page draws (`e2e/_ledger.ts`, rule `order`).
+ * A Ledger's columns keep the stat order (ledger.md L5, ruleset §2.6): every
+ * SRD index's List (`IndexLedger`) is held to `ledgerOrderFaults` on the real
+ * dataset. The same judge reads every Ledger a page draws (`e2e/_ledger.ts`,
+ * rule `order`).
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
+import { ledgerOrderFaults } from 'gates/lib/ledgerOrder'
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { IndexLedger } from '../../islands/IndexLedger'
-import { ledgerOrderFaults, ledgerRank } from '../ledgerOrder'
-
-describe('ledgerOrderFaults', () => {
-  test('the stat order passes, whatever a list drops', () => {
-    expect(
-      ledgerOrderFaults(['TL', 'Slots', 'SV', 'SP', 'EP', 'Sys', 'Mods', 'Heat', 'Cargo'])
-    ).toEqual([])
-    expect(ledgerOrderFaults(['Slots', 'Action', 'RNG', 'DMG', 'Traits', 'Cost'])).toEqual([])
-    expect(ledgerOrderFaults(['Lvl', 'Action', 'AP'])).toEqual([])
-  })
-
-  test('words that place the entity carry no rank', () => {
-    expect(ledgerRank('Tree')).toBeUndefined()
-    expect(ledgerOrderFaults(['Tree', 'Slots', 'Made by', 'RNG', 'Loadout'])).toEqual([])
-  })
-
-  test('a moved column fails, named with the stat it stands after', () => {
-    expect(ledgerOrderFaults(['Slots', 'Cost', 'RNG', 'DMG'])).toEqual([
-      'RNG after Cost',
-      'DMG after Cost',
-    ])
-    expect(ledgerOrderFaults(['SP', 'EP', 'SV'])).toEqual(['SV after EP'])
-  })
-})
 
 const INDEXES: RefEnumSchemaName[] = [
   'chassis',

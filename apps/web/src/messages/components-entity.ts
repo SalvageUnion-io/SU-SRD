@@ -9,4 +9,5 @@ export const entityCopy = messages({
   rollTheDie: 'Roll the Die:',
   removed: 'Removed',
   redacted: 'Redacted',
+  sortBy: 'Sort by {column}',
 })

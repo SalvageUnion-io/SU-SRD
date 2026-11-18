@@ -58,6 +58,8 @@ export const npcCopy = messages({
   crewSlots: 'Crew slots',
   oneSlotForTheCrawler: 'One slot for the crawler type’s NPC, then one per bay. ',
   oneSlotPerBay: 'One slot per bay. ',
+  anEmptySlotUses:
+    'An empty slot uses the book’s crew line; assigning a designed NPC replaces it, and unassigning brings the book’s line back.',
   onlyTheMediatorAssignsCrawler:
     'Only the Mediator assigns crawler crew. Design an NPC in your Training Bay and move it into this Game to offer it.',
   crewSlots2: '{name} crew slots',

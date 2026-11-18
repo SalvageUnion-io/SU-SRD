@@ -14,6 +14,7 @@ import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
+import { entityCopy } from '../../messages/components-entity'
 import { Badge } from '../atoms/Badge'
 import { capsLabel } from '../atoms/capsLabel'
 import { InlineRef } from '../atoms/InlineRef'
@@ -176,7 +177,7 @@ export function Ledger({
         type="button"
         className="su-ledger__sort"
         title={title}
-        aria-label={`Sort by ${title ?? text}`}
+        aria-label={entityCopy('sortBy', { column: title ?? text })}
         onClick={() => onSort(key)}
       >
         {mark}
@@ -213,7 +214,7 @@ export function Ledger({
                     <button
                       type="button"
                       className="su-ledger__sort su-entity-compact__title"
-                      aria-label={`Sort by ${nameLabel}`}
+                      aria-label={entityCopy('sortBy', { column: nameLabel })}
                       onClick={() => onSort('name')}
                     >
                       {nameLabel}
@@ -275,7 +276,7 @@ export function Ledger({
                     ? {
                         // The whole line picks; its own controls (the radio's label, a stepper) act for themselves.
                         onClick: (event: MouseEvent<HTMLTableRowElement>) => {
-                          if (!(event.target as Element).closest('label, button, a, input'))
+                          if (!(event.target as Element).closest('label,button,a,input'))
                             select.onSelect(row.id)
                         },
                       }

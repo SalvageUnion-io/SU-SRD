@@ -36,13 +36,16 @@ export function cardImageSizes(compact?: boolean): string {
   return `(width >= ${width}) ${width}, 100vw`
 }
 
+/** A `sizes` of `width` from `lg`, the viewport's width below it. */
+const fromLg = (width: string) => [`${widthAtLeast('lg')} ${width}`, '100vw'].join(', ')
+
 /**
  * The `sizes` of the entity page's HERO art (`CardImage hero`): half
  * of the page's 1200px measure beside the stat column from `lg`, the full
  * width of the column under it. The reference site's item pages preload with it.
  */
 export function heroImageSizes(): string {
-  return `${widthAtLeast('lg')} 560px, 100vw`
+  return fromLg('560px')
 }
 
 /**
@@ -50,5 +53,5 @@ export function heroImageSizes(): string {
  * measure from `lg`, the column's width below.
  */
 export function tileImageSizes(): string {
-  return `${widthAtLeast('lg')} 24rem, 100vw`
+  return fromLg('24rem')
 }

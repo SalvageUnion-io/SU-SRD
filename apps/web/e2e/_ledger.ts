@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { ledgerOrderFaults } from '../src/components/entity/ledgerOrder'
+import { ledgerOrderFaults } from 'gates/lib/ledgerOrder'
 import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
 
