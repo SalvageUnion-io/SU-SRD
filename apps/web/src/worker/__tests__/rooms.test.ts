@@ -65,6 +65,7 @@ function roomState(sockets: Sock[], name?: string) {
       transactionSync: <T>(fn: () => T) => sql.transaction(fn),
     },
     blockConcurrencyWhile: (fn: () => Promise<void>) => fn(),
+    waitUntil: (work: Promise<unknown>) => void work,
     getWebSockets: () => sockets,
     getTags: (ws: Sock) => ws.tags,
   }

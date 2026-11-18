@@ -98,7 +98,7 @@ export type RoomUnit = z.infer<typeof RoomUnitSchema>
  *  - `scene`: `{ conditions, hours }`.
  *  - `salvageArea`: `{ name, techLevel, supply }`, none when unset; an
  *    account room keeps its player's solo table's.
- *  - `safety`: `{ stop: { shownAt, mine, mayLift } | null, mayManage, postToChannel }`.
+ *  - `safety`: `{ stop: { shownAt, mine } | null, mayLift }`.
  *  - `session`: `{ live, startedAt }`, the group session (`session.state`).
  *  - `game`: `{ primaryCrawlerId }`, the crawler the crew rides, or null.
  *  - `opposition`: one record per tray NPC, its body; the Mediator's only.

@@ -1,26 +1,16 @@
 /**
  * GameSafety — "Safety" on a Game's own page (Core Book pp.12-13): the Stop
- * Sign. The section's head shows it from here too, and the table runner
- * chooses whether showing it posts to the Game's bound Discord channel
- * (`safety.setPostToChannel`).
+ * Sign. The section's head shows it from here too. Showing it posts to the
+ * Game's bound Discord channel whenever one is bound; there is no opt-in.
  */
 
-import { SlabSection, Switch, Text } from '../../components/index'
-import { useServerAction } from '../../lib/connection/useServerAction'
+import { SlabSection, Text } from '../../components/index'
 import { playSafetyCopy } from '../../messages/play-safety'
-import { useSync } from '../../replica/syncContext'
-import { useTableAct } from '../../replica/useTable'
 import { StopSignButton } from '../StopSign'
 import type { StopSign } from '../useStopSign'
 import { HUB_BODY } from './hubStyles.model'
 
-export function GameSafety({ gameId, sign }: { gameId: string; sign: StopSign | null }) {
-  const setPost = useServerAction(useTableAct('safety.setPostToChannel', gameId), {
-    failure: playSafetyCopy('couldNotChange'),
-    toastId: 'stop-sign-post',
-  })
-  const { canWrite } = useSync()
-
+export function GameSafety({ sign }: { sign: StopSign | null }) {
   return (
     <SlabSection
       as="h2"
@@ -30,15 +20,6 @@ export function GameSafety({ gameId, sign }: { gameId: string; sign: StopSign | 
       actions={<StopSignButton sign={sign} />}
     >
       <Text variant="note">{playSafetyCopy('stopSignMeans')}</Text>
-      {sign?.mayManage && (
-        <Switch
-          checked={sign.postToChannel}
-          disabled={!canWrite || setPost.pending}
-          onClick={() => void setPost.run({ on: !sign.postToChannel })}
-        >
-          {playSafetyCopy('postToChannel')}
-        </Switch>
-      )}
     </SlabSection>
   )
 }

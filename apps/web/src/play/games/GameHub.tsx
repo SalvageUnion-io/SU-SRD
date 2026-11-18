@@ -141,7 +141,7 @@ function GameSections({ game }: { game: Game }) {
               }
             />
           )}
-          <GameSafety gameId={gameId} sign={sign} />
+          <GameSafety sign={sign} />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame
