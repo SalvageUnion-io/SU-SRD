@@ -349,7 +349,22 @@
 /* CrawlerWizard, PilotWizard, MechWizard: the gap under each step's RuleBrief.
    A class, not a style object: RuleBrief takes no `style`. */
 .su-wiz-rule-brief {
-  margin-bottom: var(--space-20);
+  margin-bottom: var(--space-16);
+}
+
+/* MOCK: a step's brief wears the card's foot: the cite on a paper cut-out
+   hanging from a foot band in the kind's paint. */
+.su-wiz-rule-brief__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding: var(--space-12);
+}
+
+.su-wiz-rule-brief__foot {
+  --su-foot-ground: var(--color-paper);
+
+  display: flex;
 }
 
 /* RuleBrief `fold`: a phone shows a long rule's first two lines until its
@@ -465,17 +480,49 @@
 }
 
 /* The picker (`PickList`): one frame in the kind's band paint; a head strip in
-   the band colour with its columns' ink stamps; Mini-height select rows banded
-   paper and page ground, their figures in fixed columns. Every line is a
-   subgrid of the frame's one track list, so a column is one width throughout. */
+   the band colour, the title's paper cut-out on its foot and its columns' ink
+   stamps right of it; Mini-height select rows banded paper and page ground,
+   their figures in fixed columns; the card's own foot. Every line is a subgrid
+   of the frame's one track list, so a column is one width throughout. */
 .su-wiz-pick {
+  --su-foot-ground: var(--color-paper);
+
   background-color: var(--color-paper);
   border: var(--bw-entity-compact) solid var(--tone);
   column-gap: var(--space-8);
   display: grid;
 }
 
-.su-wiz-pick__head,
+/* The band spans the head's two lines: the ask on the first, the stamps on
+   the second, the tab on its foot beside them. */
+.su-wiz-pick__band {
+  align-items: flex-end;
+  background-color: var(--tone);
+  display: flex;
+  gap: var(--space-8);
+  grid-column: 1 / -1;
+  grid-row: 1 / span 2;
+  justify-content: space-between;
+  min-width: 0;
+  padding: var(--space-4) var(--space-8) 0;
+}
+
+/* The title's cut-out, the Compact head's own, at the picker's size. */
+.su-wiz-pick__tab {
+  flex: none;
+  margin-left: 0;
+}
+
+.su-wiz-pick__tab > .su-entity-compact__title {
+  font-size: var(--text-readout);
+}
+
+.su-wiz-pick__note {
+  align-self: flex-start;
+  flex: none;
+}
+
+.su-wiz-pick__cols,
 .su-wiz-pick__row {
   align-items: center;
   display: grid;
@@ -484,9 +531,12 @@
   padding-inline: var(--space-8);
 }
 
-.su-wiz-pick__head {
-  background-color: var(--tone);
-  padding-block: var(--space-4);
+/* The stamps ride the band's second line, over it. */
+.su-wiz-pick__cols {
+  grid-row: 2;
+  padding-block: var(--space-2) var(--space-4);
+  pointer-events: none;
+  position: relative;
 }
 
 .su-wiz-pick__row {
@@ -504,12 +554,24 @@
   background-color: var(--color-band-cream);
 }
 
-/* The picked row is set in ink, as a rolled row is. */
+/* The picked row is set in ink, as a rolled row is, its name on a paper
+   cut-out, as a card's head carries its name. */
 .su-wiz-pick__row--selected,
 .su-wiz-pick__row--selected:nth-child(odd),
 .su-wiz-pick__row--selected:hover {
   background-color: var(--color-ink);
   color: var(--color-paper);
+}
+
+.su-wiz-pick__name {
+  display: inline-block;
+}
+
+.su-wiz-pick__row--selected .su-wiz-pick__name {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  margin-inline-start: calc(-1 * var(--space-4));
+  padding: var(--space-2) var(--space-4) 0;
 }
 
 .su-wiz-pick__row:focus-within {
@@ -532,7 +594,7 @@
   text-align: center;
 }
 
-.su-wiz-pick__head .su-wiz-pick__cell {
+.su-wiz-pick__cols .su-wiz-pick__cell {
   display: flex;
   justify-content: center;
 }
@@ -559,17 +621,58 @@
   margin-inline-start: var(--space-12);
 }
 
+.su-wiz-pick__foot {
+  display: flex;
+  grid-column: 1 / -1;
+}
+
+/* A text picker (names and one line each) needs no stamp line: its lines say
+   what they are, and the band is the tab and the ask alone. */
+.su-wiz-pick--text .su-wiz-pick__cols {
+  display: none;
+}
+
+.su-wiz-pick--text .su-wiz-pick__band {
+  grid-row: 1;
+}
+
+.su-wiz-pick--text .su-wiz-pick__note {
+  align-self: center;
+}
+
+/* From sm the head's first line is the ask's own height, over the stamps. */
+@media (width >= 40rem) {
+  .su-wiz-pick:not(.su-wiz-pick--text) {
+    grid-template-rows: var(--space-20) auto;
+  }
+}
+
 /* A phone: the frame takes the step's side padding back, so seven figures fit
-   390; a text column's line sits under its name. */
+   390. The band is the head's first line alone (the tab and the ask), and the
+   stamps drop to the paper line under it; a text column's line sits under its
+   name. */
 @media not (width >= 40rem) {
   .su-wiz-pick {
     column-gap: var(--space-2);
     margin-inline: calc(-1 * var(--space-12));
   }
 
-  .su-wiz-pick__head,
+  .su-wiz-pick__band {
+    grid-row: 1;
+  }
+
+  .su-wiz-pick__band,
+  .su-wiz-pick__cols,
   .su-wiz-pick__row {
     padding-inline: var(--space-6);
+  }
+
+  .su-wiz-pick__cols {
+    padding-block: var(--space-4) var(--space-2);
+  }
+
+  .su-wiz-pick__note {
+    align-self: center;
   }
 
   .su-wiz-pick .su-wiz-pick__cell--name {
@@ -586,16 +689,17 @@
     display: block;
   }
 
-  .su-wiz-pick--text .su-wiz-pick__head,
   .su-wiz-pick--text .su-wiz-pick__row {
+    align-items: flex-start;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: var(--space-2);
   }
 
-  .su-wiz-pick--text .su-wiz-pick__head {
-    flex-direction: row;
-    gap: var(--space-8);
+  /* The foot is the source alone: its cut-out takes the line. */
+  .su-wiz-pick__foot [data-foot-band] > span:first-child:not(:last-child) {
+    /* MOCK: the foot sets its meta's display inline; the real build gives the
+       foot a prop for this. */
+    display: none !important;
   }
 }

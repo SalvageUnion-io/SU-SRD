@@ -95,10 +95,9 @@ export function ClassAbilityStep({
       <div className="su-wiz-compare-layout">
         <div className="su-wiz-compare-main">
           <div>
-            <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
             <PickList
-              ariaLabel={buildWizardCopy('pilotClass2')}
-              nameLabel="Class"
+              title={buildWizardCopy('pilotClass')}
+              note="Choose 1"
               rows={legalClasses}
               rowKey={(c) => c.id}
               rowName={(c) => c.name}

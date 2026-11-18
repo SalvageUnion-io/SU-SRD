@@ -3,6 +3,7 @@ import { useId, useState } from 'react'
 import type { BookCite } from 'salvageunion-reference'
 import { formatCite } from 'salvageunion-reference'
 import { Box, Button, Eyebrow, tokens } from '../../components/index'
+import { EntityCardIdentityFooter } from '../../components/referenceEntity/card/EntityCardIdentityFooter'
 import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
@@ -59,6 +60,48 @@ export function RuleBrief({ rule, cite, className, fold = false }: RuleBriefProp
   const [open, setOpen] = useState(false)
   const ruleId = useId()
   const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
+  // MOCK (Working Manual): a wizard step's brief (`fold`) wears the site's
+  // cite-foot cut-out, the card's own foot in the kind's band paint.
+  if (fold) {
+    return (
+      <Box
+        as="section"
+        label={buildWizardCopy('theRule')}
+        className={className}
+        body="flush"
+        frameColor="var(--tone)"
+      >
+        <div className="su-wiz-rule-brief__text">
+          <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>
+            {rule}
+          </p>
+          {folds && (
+            <div>
+              <Button
+                size="mini"
+                className="su-wiz-rule-toggle"
+                aria-expanded={open}
+                aria-controls={ruleId}
+                onClick={() => setOpen((was) => !was)}
+              >
+                {buildWizardCopy(open ? 'foldTheRule' : 'readTheRule')}
+              </Button>
+            </div>
+          )}
+        </div>
+        {cite && (
+          <div className="su-wiz-rule-brief__foot">
+            <EntityCardIdentityFooter
+              provenance={undefined}
+              size="compact"
+              band={{ onBand: 'ink', bandColor: 'var(--tone)' }}
+              credit={formatCite(cite)}
+            />
+          </div>
+        )}
+      </Box>
+    )
+  }
   return (
     <Box as="section" label={buildWizardCopy('theRule')} className={className}>
       <p id={ruleId} className={cn(folds && !open && 'su-wiz-rule--folded')} style={ruleStyle}>

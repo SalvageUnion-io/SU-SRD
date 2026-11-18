@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
 import {
@@ -8,31 +7,11 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import { EmptyState, Eyebrow, ReferenceEntityCard, Slab, tokens } from '../../components/index'
+import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import type { PickColumn } from '../wizard/PickList'
 import { PickList } from '../wizard/PickList'
-import { textSmStyle } from '../wizard/wizardStyles.model'
-
-const HINT = {
-  ...textSmStyle,
-  color: 'currentcolor',
-  fontFamily: tokens.font.body,
-  margin: 0,
-} satisfies CSSProperties
-
-/** MOCK: the table's cost line and its cite, on one line where they fit. */
-const COST_LINE = {
-  alignItems: 'baseline',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
-  justifyContent: 'space-between',
-  marginTop: tokens.space[8],
-} satisfies CSSProperties
-
-const NO_MARGIN = { margin: 0 } satisfies CSSProperties
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
@@ -151,30 +130,26 @@ export function MechChassisStep({
     <div className="su-wiz-compare-layout">
       <div className="su-wiz-compare-main">
         <div>
-          <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
           <PickList
-            ariaLabel={mechCopy('chassis')}
-            nameLabel={mechCopy('chassis')}
+            title={mechCopy('tech1Chassis')}
+            note="Choose 1"
             rows={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
             rowKey={(c) => nameToSlug(c.name)}
             rowName={(c) => c.name}
             columns={CHASSIS_COLUMNS}
             selected={chassisName || undefined}
             onSelect={onSelectChassis}
+            foot={{
+              cite: 'Workshop Manual · p.94 · Mech Chassis pp.100–159',
+              meta: { label: 'Costs', value: 'its Salvage Value in Tech 1 Scrap' },
+            }}
           />
-          <div style={COST_LINE}>
-            <p style={HINT}>A chassis costs its Salvage Value in Tech 1 Scrap.</p>
-            <Eyebrow as="p" tone="muted" style={NO_MARGIN}>
-              Workshop Manual · p.94 · Mech Chassis pp.100–159
-            </Eyebrow>
-          </div>
         </div>
         {selectedChassis !== undefined && (
           <div>
-            <Slab label="Or start from a pattern" count="Optional" countInk="inherit" />
             <PickList
-              ariaLabel={mechCopy('startingPattern')}
-              nameLabel="Pattern"
+              title="Or start from a pattern"
+              note="Optional"
               rows={patternRows}
               rowKey={(row) => row.key}
               rowName={(row) => row.name}
