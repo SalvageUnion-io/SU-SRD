@@ -312,7 +312,7 @@ export function ChapterBand({
   const lone = !lead
   // The title that is the fill's name holds its line's left, its free room on
   // its right (the fill's `margin-inline-end: auto`, which an inline `margin:
-  // 0` beat would set a sheet's name at the right; R40: a name sits at the
+  // 0` beat would set a sheet's name at the right; E22: a name sits at the
   // left).
   const fillName = fills && lone && !trail
   const placed = fillName ? { ...titleStyle, ...BESIDE_CONTROLS } : titleStyle

@@ -26,14 +26,13 @@ const RULESET = [
 
 const context = { rules: new Set(['tokens/raw-color']), checks: new Set(['rules-fidelity']) }
 
-/** A repo with the five canon docs: one law each but the ruleset's, and the gates `files` adds. */
+/** A repo with the canon docs: one law each but the ruleset's, and the gates `files` adds. */
 function repo(files: Record<string, string> = {}): string {
   return tree({
     [CANON_DOCS.ruleset]: '## The laws\n0. **§0 The one law** — one primitive.',
-    [CANON_DOCS.chrome]: '- **K1 One ground** — once.',
     [CANON_DOCS.edl]: '- **E1** The form follows the job. **N1** nothing titled.',
     [CANON_DOCS.chips]: '- **C2b** Chips sit beside the name.',
-    [CANON_DOCS.hard]: '- **R1 One Slab** — solid.',
+    [CANON_DOCS.hard]: '- **R1 One Slab** — solid.\n- **K1 One ground** — once.',
     'apps/web/src/a.test.ts': 'test("R1 holds", () => {})',
     ...files,
   })
@@ -69,7 +68,7 @@ describe('lawsIn', () => {
 
   test('the R, K, C, E and N ids where each doc defines them, never a citation', () => {
     expect(lawsIn('hard', '- **R4 Every strip** (C2) — see R37.\n  Gate: R4.')).toEqual(['R4'])
-    expect(lawsIn('chrome', '- **K10 Tabs** — K9 aside.')).toEqual(['K10'])
+    expect(lawsIn('hard', '- **K10 Tabs** — K9 aside.')).toEqual(['K10'])
     expect(lawsIn('chips', '- **C1a** One Size (C8).\n- **C11** Relations.')).toEqual([
       'C1a',
       'C11',

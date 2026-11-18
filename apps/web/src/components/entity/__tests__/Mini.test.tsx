@@ -257,7 +257,7 @@ describe('the contentful Mini (N3)', () => {
     ])
   })
 
-  test('the head stays one row (E18): its name keeps the ellipsis and the chips their whole budget', () => {
+  test('the head stays one row (C5): its name keeps the ellipsis and the chips their whole budget', () => {
     const { container } = render(
       <Entity size="mini" context="loadout" entity={shield()} body={{}} />
     )

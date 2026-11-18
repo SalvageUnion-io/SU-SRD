@@ -1,6 +1,6 @@
 /**
  * A Compact's controls (`controls`): a host's Use, Assign, Unassign or View are
- * the chip group's last slot, after the cost and before a "⋯" (C8, R6). They never nest in
+ * the chip group's last slot, after the cost and before a "⋯" (C8). They never nest in
  * the Compact's own control: a link or select Compact lays its surface over the frame
  * as an empty cover and raises the controls above it. A host's labels sit
  * right of the title, after the model's own; its trailing chip (a "⋯" menu)
@@ -31,7 +31,7 @@ describe('Compact controls', () => {
   test('read: the controls are the last slot of the chip group, after the chips', () => {
     render(<Entity size="compact" model={MODEL} controls={unassign()} />)
     const button = screen.getByRole('button', { name: 'Unassign' })
-    // In the group, never beside it (C8, hard rule R6): the menu lane, last.
+    // In the group, never beside it (C8): the menu lane, last.
     const lane = button.closest('[data-chip-class]')
     expect(lane?.getAttribute('data-chip-class')).toBe('menu')
     expect(button.closest('[data-chip-group]')?.lastElementChild).toBe(lane)

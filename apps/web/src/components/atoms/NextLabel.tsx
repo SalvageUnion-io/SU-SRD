@@ -4,7 +4,7 @@ import { iconSize } from '../../design/tokens'
 import { atomsCopy } from '../../messages/components-atoms'
 
 /**
- * NextLabel — what a forward control says (chrome K11, hard rule R23), the
+ * NextLabel — what a forward control says (chrome K11), the
  * mirror of `BackLabel`: the place's name ("Stats", "Step 3") and the
  * `ChevronRight` glyph after it at the line's Size, never an arrow character
  * or a sentence. Its accessible name reads "Next: <place>", the visible name

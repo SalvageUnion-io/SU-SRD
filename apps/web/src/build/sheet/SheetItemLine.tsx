@@ -2,7 +2,7 @@
  * SheetItemLine — one installed or carried item on a sheet: its Mini (which
  * Peeks the whole card), its state, uses and actions in the Mini's own chip
  * group, after the cost, in the fixed slots (`chips-and-actions.md` C8, hard
- * rules R6 and R11): state · uses · the actions and ✕, at the Mini's Size
+ * rules C8 and R11): state · uses · the actions and ✕, at the Mini's Size
  * (Mini; on a Compact, Compact). Nothing sits beside the strip or under it.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on

@@ -1,7 +1,7 @@
 /**
  * PlayMediatorSeat — one seat at the Mediator's table (play.md §10): the pilot's Mini, one a line (ruleset §1.3: Play's lists are
  * Minis), its chips what the table needs at a glance: the mech as a relation
- * chip (C11, R5), whether they are here ("Here", or "Away" once their seat
+ * chip (C11), whether they are here ("Here", or "Away" once their seat
  * stops beating) and the vital needing the Mediator (▲, critical). Its body
  * (N3, plain content, no entity) is the mount in words, every live vital as a
  * chip, and what they are doing now.
@@ -102,7 +102,7 @@ export function PlayMediatorSeat({
           </>
         }
         controls={
-          // The chip group's last slot, at the strip's Size (C1a, R6).
+          // The chip group's last slot, at the strip's Size (C1a, C8).
           <Button
             variant="ghost"
             size="mini"

@@ -4,7 +4,7 @@
  * actions the guide names (Train your Pilot, Craft · Trade, Gather Cantina
  * Rumours). Play's lists are Minis (ruleset §1.3, ADR-051 §6), so each is the
  * ink Mini of a thing you do, as an action's is, linked nowhere and Peeking
- * nothing (`synthetic`): its controls ride its chip group (R6), and what it
+ * nothing (`synthetic`): its controls ride its chip group (C8), and what it
  * rolls is its contentful body (N3).
  */
 

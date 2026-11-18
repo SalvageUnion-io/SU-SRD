@@ -41,7 +41,7 @@ type RowSlots = {
   relations?: TagItem[]
   /**
    * The host's controls (Use, Assign, Unassign, View): the chip group's last
-   * slot, after the cost and the state, ahead of a "⋯" (C8, hard rule R6);
+   * slot, after the cost and the state, ahead of a "⋯" (C8);
    * never beside the strip. They never nest inside the surface's own control:
    * a link or select Compact that has them lays its surface over the frame and
    * raises them above it.

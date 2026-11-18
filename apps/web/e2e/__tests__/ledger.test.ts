@@ -1,5 +1,5 @@
 /**
- * The Ledger's render check (`_ledger.ts`, hard rule R63) on hand-made
+ * The Ledger's render check (`_ledger.ts`, ledger.md L9) on hand-made
  * readings: a well-formed Ledger passes; each rule fails on its own fault.
  */
 import { afterAll, describe, expect, test } from 'bun:test'

@@ -4,7 +4,7 @@ import { fromFaults } from './_findings'
 
 /**
  * The two inviolable laws (ruleset §7), read off the rendered page (hard rule
- * R31). Each finding is `<rule>: <what>`, its rule one of:
+ * §7.1). Each finding is `<rule>: <what>`, its rule one of:
  *
  * - `fill` (§7.1): a `Stat` cell's value plate (`.su-stat-plate--value`) is
  *   paper, or transparent over a paper ground; never cream, white, a tint or

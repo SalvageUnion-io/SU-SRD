@@ -48,7 +48,7 @@ export type Seed = Record<SeedKey, string>
 
 /**
  * The seeded Game's name, made long: its Training Bay chip is wider than a
- * Compact's room beside the name at a page's three columns (R3), so the
+ * Compact's room beside the name at a page's three columns (C5), so the
  * chip-strip gate holds it inside the Compact.
  */
 const SEED_GAME = 'The Long Haul Across the Glass Wastes'
@@ -135,7 +135,7 @@ export async function createGame(page: Page, name: string, base = ''): Promise<s
 export async function makeInviteLink(page: Page): Promise<string> {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.getByRole('button', { name: 'Copy invite link' }).click()
-  // The copy control's own swap and its polite status (chrome.md K5), never a toast.
+  // The copy control's own swap and its polite status (chrome K5), never a toast.
   await page
     .getByRole('status')
     .filter({ hasText: /^Copied$/ })

@@ -27,8 +27,8 @@ function Name({ name }: { name: string }) {
 }
 
 /**
- * ROLL MINI — a roll table as a Mini (EDL E14: "nested: Mini, Table, Roll
- * the Die"): the ink pill with the
+ * ROLL MINI — a roll table as a Mini (hard rule R8: nested in a card, a
+ * Mini): the ink pill with the
  * table's name on the cut-out, at a Mini's height.
  *
  * - **Nested in a card** (`onRoll`): its roll (`RollControl`, Mini) inside its
@@ -44,7 +44,7 @@ function Name({ name }: { name: string }) {
  *   parent marks it (`data-choice-toggle`, N7).
  *
  * The Mini form's own markup (`.su-entity-mini__*`), here in `entity/`
- * with the other forms (E15), never hand-built by its host.
+ * with the other forms (R7), never hand-built by its host.
  */
 export function RollMini({
   name,

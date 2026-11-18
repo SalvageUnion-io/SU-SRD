@@ -14,8 +14,8 @@ import { glyphFindings } from '../rules/copyTerms'
 import { loneSignFindings } from '../rules/loneSign'
 
 /**
- * The `controls` rule set (hard rules R23, R29) and the copy set's `glyph`
- * rule (R23), against fixtures: what counts as a lucide glyph, what names its
+ * The `controls` rule set (chrome K11, K10) and the copy set's `glyph`
+ * rule (K11), against fixtures: what counts as a lucide glyph, what names its
  * Size, and which characters stand in for an icon.
  */
 

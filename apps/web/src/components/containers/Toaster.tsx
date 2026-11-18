@@ -71,7 +71,7 @@ const firstMount = () => mounts[0]
 const noMount = () => undefined
 
 /**
- * Asks for the document's one `Toaster` (chrome K5, hard rule R20). The app's
+ * Asks for the document's one `Toaster` (chrome K5). The app's
  * root and each SRD island that toasts (a roll) render this; the first mounted
  * draws the toaster where it stands (a fixed region, so its place in the tree
  * does not show) and the rest share it, so a page with three islands still has

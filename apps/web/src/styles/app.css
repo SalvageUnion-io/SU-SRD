@@ -52,7 +52,7 @@ body {
  * Every heading in the app wears the condensed face. Unlayered, so it beats a
  * package class on a heading; `styles/build/libHandback.css` hands those classes
  * their own type back. Its caps are the heading's own, through the stamp or
- * `capsLabel` (R14), never this rule's.
+ * `capsLabel` (§3.12), never this rule's.
  */
 h1,
 h2,

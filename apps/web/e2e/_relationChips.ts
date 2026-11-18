@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import type { Finding } from './_findings'
 
 /**
- * Hard rule R5, a linked unit is its header-only Mini, never a chip, as the
+ * C11, a linked unit is its header-only Mini, never a chip, as the
  * rendered page draws it: what a Compact is linked to leads its body
  * (`LinkedUnits`, `[data-entity-linked]`), so no entity hangs under a Compact.
  *

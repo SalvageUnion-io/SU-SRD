@@ -1,7 +1,7 @@
 /**
  * NpcPickRows — the NPC designer's Actions & traits step, one line a pick
  * (D6): the action's or trait's header-only Compact, opening its full rules, with
- * its Carry toggle the Compact's last chip (C8, hard rule R6).
+ * its Carry toggle the Compact's last chip (C8).
  */
 
 import { Check } from 'lucide-react'
@@ -24,7 +24,7 @@ const GROW = { flex: 1, minWidth: 0 } satisfies CSSProperties
 
 /**
  * One header-only card that opens the full rules (D6), its Carry toggle the
- * Compact's last chip (C8, hard rule R6); a name the reference lacks has its
+ * Compact's last chip (C8); a name the reference lacks has its
  * toggle beside it.
  */
 function PickRow({

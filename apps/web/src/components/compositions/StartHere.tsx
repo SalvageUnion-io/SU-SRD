@@ -14,7 +14,7 @@ import { tileImageSizes } from './cardImageSizes'
  * StartHere — a front page's row of tiles: the onboarding path Build's front
  * door shows, and the doors the home and Play's front door open on. Each is a
  * catalog tile (`.su-entity-index`): its tone band with the title notched into
- * its foot, then one line on what it is, framed in the band's colour (R51: a
+ * its foot, then one line on what it is, framed in the band's colour (R38: a
  * step is no entity, so not R38's subtle ink-40). A step wears its number at
  * the band's left, as a tree ability's tier numeral; a door (`numbered` off)
  * wears none, and may carry its art in the tile's art place and one read
@@ -85,7 +85,7 @@ const STEPS = {
   padding: 0,
 } satisfies CSSProperties
 
-/** The step's frame in its band's colour, through the one hook that colours a frame (R38, R51). */
+/** The step's frame in its band's colour, through the one hook that colours a frame (R38). */
 const frameIn = (band: string) =>
   ({ '--su-compact-frame': band, borderColor: 'var(--su-compact-frame)' }) as CSSProperties
 

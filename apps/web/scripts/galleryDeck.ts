@@ -116,7 +116,7 @@ type ShotInfo = { tags: string[]; marks: Mark[] }
 
 /**
  * In the page: the blind spots in view (overlapping controls, clipped text, a
- * word broken over lines, broken art), and the chip law's geometry (R37), each
+ * word broken over lines, broken art), and the chip law's geometry (C2b), each
  * outlined on the shot: magenta for a rule, blue for a possible issue.
  */
 function measure(): ShotInfo {
@@ -143,7 +143,7 @@ function measure(): ShotInfo {
     e.style.outlineOffset = '2px'
   }
 
-  // R37: a strip's chips on more than one line, or off its name's line.
+  // C2b: a strip's chips on more than one line, or off its name's line.
   const STRIP = '.su-entity-stamps,[data-chip-group],.su-entity-tile__chips,.su-entity-token__chips'
   const CHIP =
     '.su-stat-cell,.su-stat-column__cell,.su-badge-stamp,.su-chip-link,.su-cost-edge,.su-cost,.su-chip-more,[data-chip-class] > *'
@@ -170,7 +170,7 @@ function measure(): ShotInfo {
       if (i > 0 && mid - (mids[i - 1] ?? mid) > lineH * 0.6) lines++
     })
     if (lines > 1)
-      mark(host, { kind: 'rule', rule: 'R37 chips', what: `${what}: chips on ${lines} lines` })
+      mark(host, { kind: 'rule', rule: 'C2b chips', what: `${what}: chips on ${lines} lines` })
     else if (name) {
       const n = name.getBoundingClientRect()
       const off = rects.filter(
@@ -179,7 +179,7 @@ function measure(): ShotInfo {
       if (off.length > 0)
         mark(host, {
           kind: 'rule',
-          rule: 'R37 chips',
+          rule: 'C2b chips',
           what: `${what}: ${off.length} chip(s) off the name's line`,
         })
     }
@@ -188,7 +188,7 @@ function measure(): ShotInfo {
     if (!visible(el) || !inView(el.getBoundingClientRect())) continue
     mark(el.closest(HOST) ?? el, {
       kind: 'rule',
-      rule: 'R37 chips',
+      rule: 'C2b chips',
       what: `"${text(el)}" drawn in the head and its first row`,
     })
   }
@@ -295,9 +295,9 @@ async function viewRules(
       appendFileSync(join(out, 'errors.txt'), `${where}: detector failed: ${e}\n`)
     }
   }
-  // R37's overflow and +MORE kinds are the canon now, not faults (C2b, C5).
+  // C2b's overflow and +MORE kinds are the canon now, not faults (C2b, C5).
   await take(
-    (f) => `R37 chips · ${f.rule}`,
+    (f) => `C2b chips · ${f.rule}`,
     async () =>
       (await findChipStrips(page)).filter(
         (f) => !['more-contentful', 'overflow', 'align'].includes(f.rule)

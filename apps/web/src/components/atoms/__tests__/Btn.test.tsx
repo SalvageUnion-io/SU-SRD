@@ -167,7 +167,7 @@ describe('Button', () => {
       </Button>
     )
     const button = screen.getByRole('button', { name: 'Next: Stats' })
-    // The visible name, then the glyph: no arrow character in the text (R23).
+    // The visible name, then the glyph: no arrow character in the text (K11).
     expect(button.textContent).toBe('Next: Stats')
     expect(button.lastElementChild?.tagName.toLowerCase()).toBe('svg')
     expect(button.lastElementChild?.getAttribute('width')).toBe('18')

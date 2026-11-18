@@ -15,7 +15,7 @@ import { Speckle } from './Speckle'
  * through the cascade (they are siblings), so the rule is keyed on it, and a
  * static page, no JS, matches too. Both grains are served; the ground's shows.
  *
- * A foot band carries TEXT, never chips (hard rule R4).
+ * A foot band carries TEXT, never chips (C10).
  */
 
 export type ChapterFootProps = {
@@ -42,7 +42,7 @@ export function ChapterFoot({ cite, start, end, measure }: ChapterFootProps) {
   return (
     <div
       className="su-chapter-foot"
-      // A foot band is text, never chips (hard rule R4): `chip-strips.e2e.ts` reads it.
+      // A foot band is text, never chips (C10): `chip-strips.e2e.ts` reads it.
       data-foot-band=""
       style={ROOT}
     >

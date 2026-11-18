@@ -61,7 +61,7 @@ const PEEK_HIDE = { patterns: true }
  * brand-colour ground's is (ruleset §3.5.1, R10), inside `InsidePeekContext`, which makes everything
  * in it act on nothing: no links (Mentions and Tags go inert), no roll-table
  * controls, and no Peek inside it. Its name alone links, to the entity's Page
- * (`CardTitleLink`, R33). The card is level 1 on its plate (N1, E6),
+ * (`CardTitleLink`, E16). The card is level 1 on its plate (N1, E6),
  * so everything nested in it is a Mini: children, drones, actions (contentful,
  * `ActionMinis`), choice options and guide ladders. No host lists its
  * patterns here, a chassis's or a Bio-Titan's: each is a pattern Mini with

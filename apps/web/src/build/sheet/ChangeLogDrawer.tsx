@@ -113,7 +113,7 @@ function ChangeLogEntries({
             }
           >
             <span style={BEFORE}>{formatValue(entry.before)}</span>{' '}
-            {/* The value's change, a glyph at the line's Size (R23), never a text arrow. */}
+            {/* The value's change, a glyph at the line's Size (K11), never a text arrow. */}
             <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
             <span style={AFTER}>{formatValue(entry.after)}</span>
           </FeedLine>

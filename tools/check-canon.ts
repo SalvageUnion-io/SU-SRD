@@ -25,8 +25,8 @@ import { CHECKS } from './check'
 
 const ROOT = join(import.meta.dir, '..')
 
-/** About 80% of today's 208 laws: a canon that parses to fewer lost its numbering. */
-const LAW_FLOOR = 165
+/** About 80% of today's 173 laws: a canon that parses to fewer lost its numbering. */
+const LAW_FLOOR = 138
 
 export const CONTEXT: CanonContext = {
   rules: new Set(RULE_SETS.flatMap((set) => set.rules.map((rule) => `${set.id}/${rule.id}`))),

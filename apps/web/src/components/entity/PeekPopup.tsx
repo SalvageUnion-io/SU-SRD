@@ -60,7 +60,7 @@ function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
 
 /**
  * A card that cannot render (a schema it reads did not load) says so on the
- * plate, quietly (chrome.md K8): a Peek is terminal (no button, so no
+ * plate, quietly (chrome K8): a Peek is terminal (no button, so no
  * `RecoveryPanel`), and an error that closes the Peek says nothing at all.
  * Reported, since catching it is what keeps it from the window's reporter.
  */

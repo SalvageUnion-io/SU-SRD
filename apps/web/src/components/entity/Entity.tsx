@@ -71,7 +71,7 @@ export type EntityProps = EntitySource &
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
-     * hard rule R6).
+     * C8).
      * They never nest in a link or select surface.
      */
     controls?: ReactNode

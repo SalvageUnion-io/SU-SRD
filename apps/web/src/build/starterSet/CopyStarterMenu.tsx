@@ -1,6 +1,6 @@
 /**
  * "Copy to…" on a Starter Set Compact: a Mini action chip in the Compact's last slot
- * (C8, hard rule R6) that opens a menu (`HeaderMenu`) of where the copy may
+ * (C8) that opens a menu (`HeaderMenu`) of where the copy may
  * go — the Training Bay, or one of the player's Games — and confirms.
  *
  * The destinations are the ones a build of that kind may be **moved** to

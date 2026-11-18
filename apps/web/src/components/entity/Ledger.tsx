@@ -91,7 +91,7 @@ export type LedgerSelect = {
   detailAt?: 'narrow' | 'always'
 }
 
-/** The condensed caps a title, a name and the sums' label wear (`capsLabel`, R14). */
+/** The condensed caps a title, a name and the sums' label wear (`capsLabel`, §3.12). */
 const CAPS = capsLabel({ weight: 'inherit' })
 const TITLE_LINE = cn('su-ledger__title-line', CAPS)
 const NAME = cn('su-ledger__name', capsLabel({ size: 'lede', weight: 'inherit' }))

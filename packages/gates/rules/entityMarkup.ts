@@ -39,7 +39,7 @@ const ENTITY_PART_CLASS = /\bsu-entity-(?:compact|mini)__[\w-]+/g
 
 /**
  * R7 (hard-rules.md): entity markup lives only in `components/entity/` (EDL
- * E15), and its styling only in `entity-forms.css`. Anywhere else in the app
+ * R7), and its styling only in `entity-forms.css`. Anywhere else in the app
  * (Play, Build, the library's other containers and stylesheets) a rule that
  * restyles a Compact's frame or main, or code that draws a Mini's pill by its
  * class, is a second entity form; the form's own props say what a host needs

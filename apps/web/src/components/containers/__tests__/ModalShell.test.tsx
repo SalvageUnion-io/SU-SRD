@@ -96,7 +96,7 @@ describe('ModalShell', () => {
     expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(2)
   })
 
-  // Chrome K7 / hard rule R24: three widths, and no other.
+  // Chrome K7: three widths, and no other.
   for (const [width, cap] of [
     ['narrow', '28rem'],
     ['default', '48rem'],

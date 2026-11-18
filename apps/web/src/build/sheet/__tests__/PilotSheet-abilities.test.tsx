@@ -118,7 +118,7 @@ describe('PilotSheet — spend AP (Slice D)', () => {
     expect(updateSpy).not.toHaveBeenCalled()
   })
 
-  test("an ability's controls are one ⋯ in its Mini's chip group (R6)", () => {
+  test("an ability's controls are one ⋯ in its Mini's chip group (C8)", () => {
     const pilot = makePilot()
     render(
       <PilotSheet

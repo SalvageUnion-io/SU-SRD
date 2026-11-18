@@ -6,7 +6,7 @@
  *
  * ADR-007: Eject is behind a confirm, and so is assigning an unassigned spare.
  * A Mini one a line in the list (ruleset §1.3; `playLineModel`, Mount being
- * no reference entity), its controls in its chip group (R6); not on hand, the
+ * no reference entity), its controls in its chip group (C8); not on hand, the
  * need is its chip.
  */
 

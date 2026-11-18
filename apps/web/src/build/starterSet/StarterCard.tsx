@@ -9,7 +9,7 @@
  * What a build is made from (`CLASS | Engineer`, `CHASSIS | Mule`) is a
  * relation chip (`chips-and-actions.md` C11): it Peeks and opens that entity.
  * The host's controls (signed in, "Copy to…") are the chip group's last slot
- * (C8, hard rule R6). Neither may sit inside the sheet's link (no nested
+ * (C8). Neither may sit inside the sheet's link (no nested
  * interactive content), so the Compact is a covered link Compact: the link is an empty
  * cover over the whole card and the chips are raised above it.
  */

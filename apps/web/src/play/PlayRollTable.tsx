@@ -27,7 +27,7 @@ type Landed =
 
 /**
  * Play's roll table (the Tables column): the shared
- * `RollTableInstrument` (EDL E14), as every card and SRD page draws it, banded
+ * `RollTableInstrument` (hard rule R8), as every card and SRD page draws it, banded
  * in the surface's `tone`. This file is only the host: the dice, the toast, the
  * Game log hand-off and the Copy of the last result.
  *

@@ -7,7 +7,7 @@ import * as barrel from '../index'
  * first. Each value export sits under the law that sanctions it; types are
  * erased and not counted.
  *
- * To add an export: name it in its law (ruleset §5 or §6, chrome.md's K-roles,
+ * To add an export: name it in its law (ruleset §5 or §6, hard-rules' chrome K-roles,
  * the EDL) or as a named composition, then list it here under that law. To
  * retire one: delete it from the barrel and from here.
  */
@@ -19,7 +19,7 @@ const ROSTER = {
     'TitledBox', // §5.2 Frame, cut-out
     'Callout', // §5.2 a note
     'Stat', // §5.4 Well
-    'StatColumn', // §5.4 Wells at the book's scale (R36)
+    'StatColumn', // §5.4 Wells at the book's scale (§3.7)
     'VitalGauge', // §5.5 Gauge
     'Button', // §5.6 Btn
     'buttonVariants', // §5.6 Btn's recipe
@@ -31,9 +31,9 @@ const ROSTER = {
     'slotPips', // §4.5 a slot count as pips, a wizard's tracker tab
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
-    'Ledger', // §5.12 Ledger: a compared or picked list's framed table (R63)
+    'Ledger', // §5.12 Ledger: a compared or picked list's framed table (L9)
   ],
-  /** chrome.md's roles (K1–K11) and the chrome hard rules (R16, R20, R22, R24, R27, R29). */
+  /** the chrome laws (K1–K11) and hard rule R16. */
   chrome: [
     // K5 notices
     'ToasterMount',
@@ -91,7 +91,7 @@ const ROSTER = {
     'HeaderMenu',
     'PopoverPanel',
     'useModKeyHint',
-    // R14 caps: the one recipe a label in caps asks
+    // §3.12 caps: the one recipe a label in caps asks
     'capsLabel',
     // The shell: the Union bar, its drawer and foot, the chapter band (ruleset Source 2, §3.11)
     'AppBar',
@@ -220,7 +220,7 @@ describe('the components roster', () => {
       .sort()
     expect(
       unnamed,
-      'a new export: name it in its law (ruleset §5/§6, chrome.md, the EDL) or as a composition, then add it to ROSTER'
+      'a new export: name it in its law (ruleset §5/§6, the chrome K laws, the EDL) or as a composition, then add it to ROSTER'
     ).toEqual([])
   })
 

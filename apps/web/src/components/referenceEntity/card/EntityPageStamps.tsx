@@ -7,7 +7,7 @@ import { labelChips } from './labelChips'
 /**
  * EntityPageStamps — what an entity Page's chapter band carries right of its
  * title (EDL E20) — an SRD route's and the app's detail dialog's
- * alike — as one `Chips` strip that wraps (`chips-and-actions.md` C2a), in the
+ * alike — as one `Chips` strip that wraps (C2), in the
  * class order (C2): the Legal Starting Pattern stamp or a player-made page's
  * dashed HOMEBREW stamp (a mark), then every chip
  * the entity carries (E17; the page body holds none): its stats under their

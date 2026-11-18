@@ -315,7 +315,7 @@ function HorizontalValue({
             </>
           ) : (
             // A live reading reserves its maximum's width, in tabular figures
-            // (C7): `9/13` takes the room `13/13` does, so it never shifts.
+            // (C6): `9/13` takes the room `13/13` does, so it never shifts.
             <span className="su-stat-reading" style={{ minWidth: `${reserve}ch` }}>
               {value}
               {max !== undefined && <span style={MAX_SUFFIX}>/{max}</span>}
@@ -382,7 +382,7 @@ function HorizontalValue({
 }
 
 /**
- * The characters a live reading reserves (C7): a reading out of its maximum
+ * The characters a live reading reserves (C6): a reading out of its maximum
  * (`max`, or a `9/13` value) takes its maximum's width, `13/13`, and any word
  * after it (`4/5 Intact`); anything else reserves nothing.
  */

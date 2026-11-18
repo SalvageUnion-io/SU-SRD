@@ -1,8 +1,8 @@
 # The Ledger
 
-The law for a list you compare or pick from: one framed table, between the book's banded table and the Compacts. It extends [EDL](entity-display-language.md) E2. A Ledger row is no strip: [chips-and-actions.md](chips-and-actions.md) does not lay it. Each law's gate is in [hard-rules.md](hard-rules.md) (R63). Code: `components/entity/Ledger`.
+A list you compare or pick from is one framed table, between the book's banded table and the Compacts ([EDL](entity-display-language.md) E2). A row is no strip: [chips-and-actions.md](chips-and-actions.md) does not lay it. Code: `components/entity/Ledger`.
 
-- **L1 One frame a list** — one `Ledger`, framed 2px (`--bw-entity-compact`) in its band's paint (R38), square. No row wears a band, frame or tone of its own.
+- **L1 One frame a list** — one `Ledger`, framed 2px (`--bw-entity-compact`) in its band's paint (R38), square. No row wears a band, frame or tone of its own. No `<table>` outside `Ledger`, `RollTableInstrument` and a document page's own.
 - **L2 The head strip** — the band's colour, speckled (R10). The list's title is a paper cut-out tab notched in at its left (E22), its count beside the name: the tab is the list's section head, and no Slab stands over a Ledger. The column labels are mini ink stamps, each over its column; a picker ends the strip with what it asks (`CHOOSE | 1`) or its budget. On an SRD index, and nowhere else, the tab and each stamp sort by their column (§3.13's one exception), the sorted one marked by a chevron.
 - **L3 Rows** — a Mini's line, banded paper and `--color-band-cream`, a 1px hairline between. A quiet line is one line, cut with "…"; nothing else is cut, and on a Page nothing is: a prose column wraps there.
 - **L4 The name** — first, in condensed caps (`capsLabel`), the row's one link, with Peek. The only stamp on a row is its mark (STARTING) or rank (TL).

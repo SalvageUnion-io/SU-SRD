@@ -1,5 +1,5 @@
 /**
- * A crew slot's assigned NPC card's controls (C8, hard rule R6): Open, to its
+ * A crew slot's assigned NPC card's controls (C8): Open, to its
  * sheet, and, where the session may write, Unassign. They are the card's own
  * controls, never a line under it.
  */

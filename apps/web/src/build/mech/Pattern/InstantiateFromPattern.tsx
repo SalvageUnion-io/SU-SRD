@@ -15,7 +15,7 @@
  * stamping the mech.
  *
  * Drawn as a Mini action chip in the pattern Compact's last slot (C8, hard rule
- * R6); a failure is the act's toast, never a line under the Compact.
+ * C8); a failure is the act's toast, never a line under the Compact.
  */
 
 import type { MechPattern } from 'game-domain/schemas/pattern'

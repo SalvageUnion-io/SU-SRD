@@ -213,7 +213,7 @@ describe('MechSheet — The Hold panel', () => {
       cell.textContent?.startsWith('Units')
     )
     expect(units?.textContent).toBe('Units2/6')
-    // The linked crawler is its relation chip (R5), opening its sheet.
+    // The linked crawler is its relation chip (C11), opening its sheet.
     const token = screen.getByRole('link', { name: /Hold Crawler$/ })
     expect(token.getAttribute('href')).toBe('/crawlers/crawler-hold-1')
   })
