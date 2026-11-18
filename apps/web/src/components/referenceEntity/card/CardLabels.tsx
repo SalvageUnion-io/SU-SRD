@@ -72,7 +72,7 @@ export function CardLabels({
           </Badge>
         )}
       </div>
-      {/* The dashed stamp closes the cluster (R32: dashed means user-made). */}
+      {/* The dashed stamp closes the cluster (§3.9: dashed means user-made). */}
       {userMade && (
         <span style={{ flex: 'none' }}>
           <HomebrewStamp />

@@ -28,6 +28,7 @@ export const COLLAPSED_DOCS: Record<string, number> = {
   'docs/design-system/chips-and-actions.md': 8_100,
   'docs/design-system/entity-display-language.md': 6_250,
   'docs/design-system/hard-rules.md': 17_400,
+  'docs/design-system/ledger.md': 4_100,
   'docs/design-system/ruleset.md': 14_250,
   'docs/ops/cloud-environment.md': 3_800,
 }

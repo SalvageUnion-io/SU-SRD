@@ -43,7 +43,7 @@ const LIST = { display: 'flex', flexDirection: 'column', gap: space[12] } satisf
 
 /**
  * Mobile-endpoint segmented Pilot/Mech/Crawler switch. Compact, the Size of
- * the crew's head action beside it ("Copy the crew to…", hard rule R41).
+ * the crew's head action beside it ("Copy the crew to…", ruleset §4.7).
  */
 export function SegmentSwitch({
   active,
