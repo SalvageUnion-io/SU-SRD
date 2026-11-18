@@ -433,9 +433,9 @@
   margin-bottom: var(--space-4);
 }
 
-/* — MOCK (Working Manual): the compare-table picker (`CompareTable`) — */
+/* — MOCK (Working Manual): the pickers (select Compacts, the pick beside them) — */
 
-/* The table, with the picked row's detail beside it from lg. */
+/* The picker's grid, with the picked one's contentful card beside it from lg. */
 .su-wiz-compare-layout {
   display: grid;
   gap: var(--space-16);
@@ -464,160 +464,27 @@
   }
 }
 
-/* The book's table (as the roll table's grid): a frame in the kind's band
-   paint, an ink head in paper caps, banded rows, condensed bold figures. */
-.su-wiz-compare__scroll {
-  background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--tone);
-  max-width: 100%;
-  overflow-x: auto;
+/* A pick Compact's stats: one fixed order (ruleset §2.6) on one fixed grid,
+   so the same stat sits in the same place on every card of the picker. */
+.su-wiz-pick-stats {
+  display: grid;
+  gap: var(--space-4) var(--space-8);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: start;
 }
 
-.su-wiz-compare {
-  border-collapse: collapse;
+/* A pick Compact's line of body copy (a pattern's loadout). */
+.su-wiz-pick-line {
   color: var(--color-ink);
   font-family: var(--font-barlow);
-  font-size: var(--text-body);
-  line-height: 1.2;
-  width: 100%;
-}
-
-.su-wiz-compare th,
-.su-wiz-compare td {
-  padding: var(--space-6) var(--space-8);
-  text-align: right;
-  vertical-align: middle;
-}
-
-.su-wiz-compare td {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-extrabold);
-}
-
-.su-wiz-compare thead th {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-  font-family: var(--font-cond);
   font-size: var(--text-caption);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-snug);
-  padding-block: var(--space-4);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.su-wiz-compare thead abbr {
-  text-decoration: none;
-}
-
-.su-wiz-compare .su-wiz-compare__name,
-.su-wiz-compare .su-wiz-compare__text {
-  text-align: left;
-}
-
-/* A text column reads as body copy, not as a figure. */
-.su-wiz-compare td.su-wiz-compare__text {
-  font-family: var(--font-barlow);
-  font-size: var(--text-body);
-  font-weight: 500;
-}
-
-.su-wiz-compare tbody .su-wiz-compare__name {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: var(--font-weight-extrabold);
-  letter-spacing: var(--tracking-caps-tight);
-  text-transform: uppercase;
-}
-
-/* Banded rows on the one hairline; the row is the radio's target. */
-.su-wiz-compare__row {
-  cursor: pointer;
-}
-
-.su-wiz-compare__row + .su-wiz-compare__row > * {
-  border-top: var(--bw-hairline) solid var(--color-ink-20);
-}
-
-.su-wiz-compare__row:nth-child(even) {
-  background-color: var(--color-wk-bg);
-}
-
-.su-wiz-compare__row:hover {
-  background-color: var(--color-band-cream);
-}
-
-/* The picked row is set in ink, as a rolled row is. */
-.su-wiz-compare__row--selected,
-.su-wiz-compare__row--selected:nth-child(even),
-.su-wiz-compare__row--selected:hover {
-  background-color: var(--color-ink);
-  color: var(--color-paper);
-}
-
-.su-wiz-compare__row--disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.su-wiz-compare__pick {
-  align-items: center;
-  cursor: inherit;
-  display: flex;
-  gap: var(--space-8);
-}
-
-.su-wiz-compare__pick input {
-  accent-color: var(--color-ink);
-  flex: none;
-  height: var(--space-14);
+  line-height: 1.35;
   margin: 0;
-  width: var(--space-14);
 }
 
-.su-wiz-compare__row--selected .su-wiz-compare__pick input {
-  accent-color: var(--color-paper);
-}
-
-.su-wiz-compare__reason {
-  color: var(--color-wk-muted);
-  display: block;
-  font-family: var(--font-barlow);
-  font-size: var(--text-chip);
-  font-weight: 400;
-  letter-spacing: 0;
-  text-transform: none;
-}
-
-/* A phone keeps the figures that decide; the rest are the detail's. */
-@media not (width >= 40rem) {
-  .su-wiz-compare .su-wiz-compare__wide {
-    display: none;
-  }
-
-  /* The table takes the step's side padding back, so seven figures fit 390. */
-  .su-wiz-compare__scroll {
-    margin-inline: calc(-1 * var(--space-12));
-    max-width: none;
-  }
-
-  .su-wiz-compare th,
-  .su-wiz-compare td {
-    padding-inline: var(--space-4);
-  }
-
-  .su-wiz-compare thead th {
-    font-size: var(--text-chip);
-    letter-spacing: 0;
-  }
-
-  .su-wiz-compare tbody .su-wiz-compare__name {
-    font-size: var(--text-lede);
-  }
-
-  .su-wiz-compare__pick {
-    gap: var(--space-6);
-  }
+/* A class's trees: chips that wrap. */
+.su-wiz-pick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
 }

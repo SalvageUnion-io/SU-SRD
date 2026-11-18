@@ -7,23 +7,20 @@ import {
   SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
-import {
-  isLegalCreationChassis,
-  legalStartingPatterns,
-  MECH_CREATION_SCRAP_CAP,
-} from 'salvageunion-reference/rules'
+import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
 import {
   EmptyState,
+  Entity,
   Eyebrow,
-  Radio,
+  MasonryColumns,
   ReferenceEntityCard,
   Slab,
+  Stat,
+  TitledBox,
   tokens,
 } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
-import type { CompareColumn } from '../wizard/CompareTable'
-import { CompareTable } from '../wizard/CompareTable'
 import { textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
@@ -45,29 +42,51 @@ const COST_LINE = {
 
 const NO_MARGIN = { margin: 0 } satisfies CSSProperties
 
-/** MOCK: the pattern radios, one under the next. */
-const PATTERNS = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[8],
+const CUSTOM_BODY = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  margin: 0,
 } satisfies CSSProperties
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
 
 /**
- * MOCK (Working Manual, "Compare in columns"): a chassis's stats in the book's
- * order (ruleset §2.6), then what it costs to craft.
+ * MOCK (Working Manual, "compare at a glance"): a chassis's stats in the
+ * book's order (ruleset §2.6), then what it costs to craft. Every pick Compact
+ * prints all seven, in this order, on one grid (`.su-wiz-pick-stats`): no
+ * right-to-left fill moves a stat from card to card (C2b).
  */
-const CHASSIS_COLUMNS: readonly CompareColumn<RefChassis>[] = [
-  { key: 'sp', label: 'SP', title: 'Structure Points', value: (c) => c.structurePoints },
-  { key: 'ep', label: 'EP', title: 'Energy Points', value: (c) => c.energyPoints },
-  { key: 'sys', label: 'Sys', title: 'System slots', value: (c) => c.systemSlots },
-  { key: 'mod', label: 'Mod', title: 'Module slots', value: (c) => c.moduleSlots },
-  { key: 'heat', label: 'Heat', title: 'Heat Capacity', value: (c) => c.heatCapacity },
-  { key: 'cargo', label: 'Cargo', title: 'Cargo Capacity', value: (c) => c.cargoCapacity },
-  { key: 'cost', label: 'Scrap', title: 'Cost in Tech 1 Scrap', value: (c) => c.salvageValue },
-]
+function ChassisStats({ chassis }: { chassis: RefChassis }) {
+  return (
+    <div className="su-wiz-pick-stats">
+      <Stat size="mini" label="SP" value={chassis.structurePoints} />
+      <Stat size="mini" label="EP" value={chassis.energyPoints} />
+      <Stat size="mini" label="Sys" value={chassis.systemSlots} />
+      <Stat size="mini" label="Mod" value={chassis.moduleSlots} />
+      <Stat size="mini" label="Heat" value={chassis.heatCapacity} />
+      <Stat size="mini" label="Cargo" value={chassis.cargoCapacity} />
+      <Stat size="mini" label="Scrap" value={chassis.salvageValue} />
+    </div>
+  )
+}
+
+/**
+ * The pick's head is its name alone: its measures are the body's grid, TL is
+ * the slab's, and its art is the detail card's beside the grid.
+ */
+const CHASSIS_OMIT = [
+  'art',
+  'tech-level',
+  'ref-stat-structurePoints',
+  'ref-stat-energyPoints',
+  'ref-stat-heatCapacity',
+  'ref-stat-systemSlots',
+  'ref-stat-moduleSlots',
+  'ref-stat-cargoCapacity',
+  'ref-stat-salvageValue',
+] as const
 
 /** MOCK: a pattern's loadout as one line, its systems then its modules. */
 function loadoutLine(pattern: ChassisPattern): string {
@@ -92,13 +111,15 @@ type MechChassisStepProps = {
 }
 
 /**
- * MOCK (Working Manual, mockup C) · Step 1 · Chassis. The Tech 1 chassis are
- * the rows of one compare table (`CompareTable`), exactly one picked (radio).
- * The picked row fills the detail column: the chassis's own card (art, stats,
- * its ability as a contentful Mini), then "or start from a pattern", the
- * `legalStarting` patterns as a radio list. The rules are unchanged: only
- * Tech 1 chassis render, the cost column is the Salvage Value, and a pattern
- * prefills step 2 and debits the 20-Scrap pool.
+ * MOCK (Working Manual, mockup C) · Step 1 · Chassis, in the app's own picker
+ * pattern (EDL "Wizard or picker: Compact, select", N7): the Tech 1 chassis
+ * are a grid of select Compacts, exactly one picked (radio; the ink ring and
+ * the Selected seal), each with its seven stats in one fixed order. The pick
+ * fills the detail column as its contentful card (art, its ability as a
+ * contentful Mini). "Or start from a pattern" is the same pattern again: the
+ * `legalStarting` patterns as select Compacts, and Custom build. The rules are
+ * unchanged: only Tech 1 chassis render, Scrap is the Salvage Value, and a
+ * pattern prefills step 2 and debits the 20-Scrap pool.
  */
 export function MechChassisStep({
   chassisName,
@@ -135,21 +156,30 @@ export function MechChassisStep({
       <div className="su-wiz-compare-main">
         <div>
           <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
-          <CompareTable
-            ariaLabel={mechCopy('chassis')}
-            nameLabel={mechCopy('chassis')}
-            rows={chassisPool}
-            rowKey={(c) => nameToSlug(c.name)}
-            rowName={(c) => c.name}
-            columns={CHASSIS_COLUMNS}
-            selected={chassisName || undefined}
-            onSelect={onSelectChassis}
-            disabledReason={(c) =>
-              chassisFitsCreationBudget(c.salvageValue)
-                ? undefined
-                : `Costs ${c.salvageValue} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-            }
-          />
+          <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('chassis')}>
+            {chassisPool.map((chassis) => {
+              const slug = nameToSlug(chassis.name)
+              // Every Tech 1 chassis fits the 20-Scrap cap; one that did not
+              // would not be offered (the gate re-checks it).
+              if (!chassisFitsCreationBudget(chassis.salvageValue)) return null
+              return (
+                <Entity
+                  key={chassis.id}
+                  size="compact"
+                  entity={chassis}
+                  omit={CHASSIS_OMIT}
+                  leading={<ChassisStats chassis={chassis} />}
+                  mode={{
+                    kind: 'select',
+                    role: 'radio',
+                    selected: slug === chassisName,
+                    onSelect: () => onSelectChassis(slug),
+                    label: chassis.name,
+                  }}
+                />
+              )
+            })}
+          </MasonryColumns>
           <div style={COST_LINE}>
             <p style={HINT}>A chassis costs its Salvage Value in Tech 1 Scrap.</p>
             <Eyebrow as="p" tone="muted" style={NO_MARGIN}>
@@ -160,32 +190,45 @@ export function MechChassisStep({
         {selectedChassis !== undefined && (
           <div>
             <Slab label="Or start from a pattern" count="Optional" countInk="inherit" />
-            <div role="radiogroup" aria-label={mechCopy('startingPattern')} style={PATTERNS}>
+            <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('startingPattern')}>
               {patternPool.map((pattern) => (
-                <Radio
+                <Entity
                   key={pattern.name}
-                  name="mech-starting-pattern"
-                  stacked
-                  label={`${pattern.name} pattern`}
-                  description={loadoutLine(pattern)}
-                  checked={normalizePatternName(pattern.name) === normalizePatternName(patternName)}
-                  onChange={() => onSelectPattern(pattern)}
+                  size="compact"
+                  entity={selectedChassis}
+                  pattern={pattern}
+                  omit={CHASSIS_OMIT}
+                  leading={<p className="su-wiz-pick-line">{loadoutLine(pattern)}</p>}
+                  mode={{
+                    kind: 'select',
+                    role: 'radio',
+                    selected:
+                      normalizePatternName(pattern.name) === normalizePatternName(patternName),
+                    onSelect: () => onSelectPattern(pattern),
+                    label: `${pattern.name} pattern`,
+                  }}
                 />
               ))}
-              <Radio
-                name="mech-starting-pattern"
-                stacked
-                label={mechCopy('customBuild')}
-                description={mechCopy('noPrefillCraftYourSystems')}
-                checked={isCustom}
-                onChange={onSelectCustom}
-              />
-            </div>
+              {/* No entity, so no Card: the Compact's frame in select mode, solid, since a
+                  custom build is not user-made (ruleset §3.9). */}
+              <TitledBox
+                title={mechCopy('customBuild')}
+                select={{
+                  kind: 'select',
+                  role: 'radio',
+                  selected: isCustom,
+                  onSelect: onSelectCustom,
+                  label: mechCopy('customBuild'),
+                }}
+              >
+                <p style={CUSTOM_BODY}>{mechCopy('noPrefillCraftYourSystems')}</p>
+              </TitledBox>
+            </MasonryColumns>
           </div>
         )}
       </div>
 
-      <div className="su-wiz-compare-detail">
+      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky">
         {selectedChassis === undefined ? (
           <EmptyState variant="quiet" body={mechCopy('pickAChassisToReveal')} bodyInk="inherit" />
         ) : (

@@ -1,10 +1,15 @@
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
+import {
+  EmptyState,
+  Entity,
+  MasonryColumns,
+  ReferenceEntityCard,
+  Slab,
+  Stat,
+} from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
-import type { CompareColumn } from './CompareTable'
-import { CompareTable } from './CompareTable'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
 import { fullWidthStyle } from './wizardStyles.model'
@@ -18,25 +23,21 @@ type SURAbilitiesAccessor = {
 }
 
 /**
- * MOCK (Working Manual, "Compare in columns"): what tells the six classes
- * apart is their trees, so those are the table's columns. The Salvager's row
- * says what the book says of it (p.18): any Core tree, never beyond them.
+ * MOCK (Working Manual, "compare at a glance"): what tells the six classes
+ * apart is their trees, so every pick Compact prints them, in the book's
+ * order. The Salvager's says what the book says of it (p.18): any Core tree.
  */
-const CLASS_COLUMNS: readonly CompareColumn<SelectableBaseClass>[] = [
-  {
-    key: 'core',
-    label: 'Core trees',
-    text: true,
-    value: (c) => (c.coreTrees.length > 3 ? 'Any Core tree' : c.coreTrees.join(' · ')),
-  },
-  {
-    key: 'advanced',
-    label: 'Advances to',
-    text: true,
-    wideOnly: true,
-    value: (c) => (c.advanceable && c.advancedTree ? c.advancedTree : 'Core trees only'),
-  },
-]
+function ClassTrees({ cls }: { cls: SelectableBaseClass }) {
+  return (
+    <div className="su-wiz-pick-chips">
+      {cls.coreTrees.length > 3 ? (
+        <Stat size="mini" label="Trees" value="Any Core tree" />
+      ) : (
+        cls.coreTrees.map((tree) => <Stat key={tree} size="mini" label="Tree" value={tree} />)
+      )}
+    </div>
+  )
+}
 
 type ClassAbilityStepProps = {
   classId: string
@@ -98,21 +99,28 @@ export function ClassAbilityStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      {/* MOCK: the classes as one compare table; the pick's card beside it. */}
+      {/* MOCK: the classes as select Compacts; the pick's card beside them. */}
       <div className="su-wiz-compare-layout">
         <div className="su-wiz-compare-main">
           <div>
             <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
-            <CompareTable
-              ariaLabel={buildWizardCopy('pilotClass2')}
-              nameLabel="Class"
-              rows={legalClasses}
-              rowKey={(c) => c.id}
-              rowName={(c) => c.name}
-              columns={CLASS_COLUMNS}
-              selected={classId || undefined}
-              onSelect={onSelectClass}
-            />
+            <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('pilotClass2')}>
+              {legalClasses.map((cls) => (
+                <Entity
+                  key={cls.id}
+                  size="compact"
+                  entity={cls}
+                  leading={<ClassTrees cls={cls} />}
+                  mode={{
+                    kind: 'select',
+                    role: 'radio',
+                    selected: cls.id === classId,
+                    onSelect: () => onSelectClass(cls.id),
+                    label: cls.name,
+                  }}
+                />
+              ))}
+            </MasonryColumns>
           </div>
           {/* MOCK: the pick's Level-1 pool under the table, so the class's card
               rides beside both and the column has no dead room. */}
