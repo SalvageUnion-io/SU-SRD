@@ -323,7 +323,9 @@ export function Ledger({
                 </tr>
                 {select && selected && row.detail && (
                   <tr className="su-ledger__detail" data-at={select.detailAt ?? 'narrow'}>
-                    <td colSpan={span}>{row.detail}</td>
+                    <td colSpan={span}>
+                      <div className="su-ledger__detail-body">{row.detail}</div>
+                    </td>
                   </tr>
                 )}
               </Fragment>

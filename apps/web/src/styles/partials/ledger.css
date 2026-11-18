@@ -323,6 +323,11 @@
   padding: var(--space-8);
 }
 
+/* The card takes the list's width and never sets it. */
+.su-ledger__detail-body {
+  contain: inline-size;
+}
+
 @media (width >= 64rem) {
   .su-ledger__table tbody .su-ledger__detail[data-at='narrow'] {
     display: none;
@@ -366,6 +371,18 @@
   }
 
   .su-ledger__table[data-phone-line] tbody td[data-line][data-empty] {
+    display: none;
+  }
+
+  /* A name's stamp drops under it before the list runs wider than its frame. */
+  .su-ledger__name-line {
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-8);
+  }
+
+  /* The head keeps the trailing column's stamp alone: the ask or the budget
+     beside it is the step's own line above the list. */
+  .su-ledger__trailing-line > :not(:last-child) {
     display: none;
   }
 

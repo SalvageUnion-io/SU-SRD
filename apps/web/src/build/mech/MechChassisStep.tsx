@@ -19,6 +19,7 @@ export type ChassisPattern = RefChassis['patterns'][number]
 /**
  * A chassis's stats in the one column order (ruleset §2.6): its Salvage Value
  * in place, then its points and slots. What it costs is said once, on the foot.
+ * A phone keeps two figures (L8); the pick's card under its row has the rest.
  */
 const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
   {
@@ -35,15 +36,14 @@ const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
     phone: true,
     value: (c) => c.structurePoints,
   },
-  { key: 'ep', label: 'EP', title: 'Energy Points', phone: true, value: (c) => c.energyPoints },
-  { key: 'sys', label: 'Sys', title: 'System slots', phone: true, value: (c) => c.systemSlots },
-  { key: 'mod', label: 'Mods', title: 'Module slots', phone: true, value: (c) => c.moduleSlots },
-  { key: 'heat', label: 'Heat', title: 'Heat Capacity', phone: true, value: (c) => c.heatCapacity },
+  { key: 'ep', label: 'EP', title: 'Energy Points', value: (c) => c.energyPoints },
+  { key: 'sys', label: 'Sys', title: 'System slots', value: (c) => c.systemSlots },
+  { key: 'mod', label: 'Mods', title: 'Module slots', value: (c) => c.moduleSlots },
+  { key: 'heat', label: 'Heat', title: 'Heat Capacity', value: (c) => c.heatCapacity },
   {
     key: 'cargo',
     label: 'Cargo',
     title: 'Cargo Capacity',
-    phone: true,
     value: (c) => c.cargoCapacity,
   },
 ]
