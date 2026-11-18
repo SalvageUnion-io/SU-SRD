@@ -8,19 +8,11 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import {
-  EmptyState,
-  Entity,
-  Eyebrow,
-  MasonryColumns,
-  ReferenceEntityCard,
-  Slab,
-  Stat,
-  TitledBox,
-  tokens,
-} from '../../components/index'
+import { EmptyState, Eyebrow, ReferenceEntityCard, Slab, tokens } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
+import type { PickColumn } from '../wizard/PickList'
+import { PickList } from '../wizard/PickList'
 import { textSmStyle } from '../wizard/wizardStyles.model'
 
 const HINT = {
@@ -42,58 +34,37 @@ const COST_LINE = {
 
 const NO_MARGIN = { margin: 0 } satisfies CSSProperties
 
-const CUSTOM_BODY = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  margin: 0,
-} satisfies CSSProperties
-
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
 
 /**
  * MOCK (Working Manual, "compare at a glance"): a chassis's stats in the
- * book's order (ruleset §2.6), then what it costs to craft, as one quiet strip
- * of value cells (§7.1) on a fixed grid (`.su-wiz-pick-strip`): every pick
- * Compact prints all seven in the same places, and nothing fills right to left
- * (C2b). Each is the plain `Stat`, a caption label over its numeral.
+ * book's order (ruleset §2.6), then, set apart, what it costs to craft.
  */
-function ChassisStats({ chassis }: { chassis: RefChassis }) {
-  const cell = 'su-wiz-pick-cell'
-  return (
-    <div className="su-wiz-pick-strip">
-      <Stat surface="plain" className={cell} label="SP" value={chassis.structurePoints} />
-      <Stat surface="plain" className={cell} label="EP" value={chassis.energyPoints} />
-      <Stat surface="plain" className={cell} label="Sys" value={chassis.systemSlots} />
-      <Stat surface="plain" className={cell} label="Mod" value={chassis.moduleSlots} />
-      <Stat surface="plain" className={cell} label="Heat" value={chassis.heatCapacity} />
-      <Stat surface="plain" className={cell} label="Cargo" value={chassis.cargoCapacity} />
-      <Stat
-        surface="plain"
-        className={`${cell} su-wiz-pick-cell--cost`}
-        label="Scrap"
-        value={chassis.salvageValue}
-      />
-    </div>
-  )
-}
+const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
+  { key: 'sp', label: 'SP', title: 'Structure Points', value: (c) => c.structurePoints },
+  { key: 'ep', label: 'EP', title: 'Energy Points', value: (c) => c.energyPoints },
+  { key: 'sys', label: 'Sys', title: 'System slots', value: (c) => c.systemSlots },
+  { key: 'mod', label: 'Mods', title: 'Module slots', value: (c) => c.moduleSlots },
+  { key: 'heat', label: 'Heat', title: 'Heat Capacity', value: (c) => c.heatCapacity },
+  { key: 'cargo', label: 'Cargo', title: 'Cargo Capacity', value: (c) => c.cargoCapacity },
+  {
+    key: 'cost',
+    label: 'Scrap',
+    title: 'Cost in Tech 1 Scrap',
+    value: (c) => c.salvageValue,
+    apart: true,
+  },
+]
 
-/**
- * The pick's head is its name alone: its measures are the body's grid, TL is
- * the slab's, and its art is the detail card's beside the grid.
- */
-const CHASSIS_OMIT = [
-  'art',
-  'tech-level',
-  'ref-stat-structurePoints',
-  'ref-stat-energyPoints',
-  'ref-stat-heatCapacity',
-  'ref-stat-systemSlots',
-  'ref-stat-moduleSlots',
-  'ref-stat-cargoCapacity',
-  'ref-stat-salvageValue',
-] as const
+/** MOCK: a starting-pattern row: a book pattern, or the custom build. */
+type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }
+
+const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
+  { key: 'loadout', label: 'Loadout', text: true, value: (row) => row.line },
+]
+
+const CUSTOM_KEY = 'custom-build'
 
 /** MOCK: a pattern's loadout as one line, its systems then its modules. */
 function loadoutLine(pattern: ChassisPattern): string {
@@ -118,15 +89,15 @@ type MechChassisStepProps = {
 }
 
 /**
- * MOCK (Working Manual, mockup C) · Step 1 · Chassis, in the app's own picker
- * pattern (EDL "Wizard or picker: Compact, select", N7): the Tech 1 chassis
- * are a grid of select Compacts, exactly one picked (radio; the ink ring and
- * the Selected seal), each with its seven stats in one fixed order. The pick
- * fills the detail column as its contentful card (art, its ability as a
- * contentful Mini). "Or start from a pattern" is the same pattern again: the
- * `legalStarting` patterns as select Compacts, and Custom build. The rules are
- * unchanged: only Tech 1 chassis render, Scrap is the Salvage Value, and a
- * pattern prefills step 2 and debits the 20-Scrap pool.
+ * MOCK (Working Manual, mockup C) · Step 1 · Chassis. The Tech 1 chassis are
+ * the rows of one picker (`PickList`): one frame in the mech band's paint, a
+ * stamped head strip, a select row a chassis with its seven figures in fixed
+ * columns, exactly one picked (radio). The pick fills the detail column as its
+ * contentful card (art, its ability as a contentful Mini). "Or start from a
+ * pattern" is the same picker: the `legalStarting` patterns and Custom build,
+ * a name and a loadout line each. The rules are unchanged: only Tech 1 chassis
+ * render, Scrap is the Salvage Value, and a pattern prefills step 2 and debits
+ * the 20-Scrap pool.
  */
 export function MechChassisStep({
   chassisName,
@@ -158,35 +129,39 @@ export function MechChassisStep({
     (p) => normalizePatternName(p.name) === normalizePatternName(patternName)
   )
 
+  const patternRows: PatternRow[] = [
+    ...patternPool.map((pattern) => ({
+      key: pattern.name,
+      name: pattern.name,
+      line: loadoutLine(pattern),
+      pattern,
+    })),
+    {
+      key: CUSTOM_KEY,
+      name: mechCopy('customBuild'),
+      line: mechCopy('noPrefillCraftYourSystems'),
+    },
+  ]
+  const selectedPatternKey = isCustom
+    ? CUSTOM_KEY
+    : patternPool.find((p) => normalizePatternName(p.name) === normalizePatternName(patternName))
+        ?.name
+
   return (
     <div className="su-wiz-compare-layout">
       <div className="su-wiz-compare-main">
         <div>
           <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
-          <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('chassis')}>
-            {chassisPool.map((chassis) => {
-              const slug = nameToSlug(chassis.name)
-              // Every Tech 1 chassis fits the 20-Scrap cap; one that did not
-              // would not be offered (the gate re-checks it).
-              if (!chassisFitsCreationBudget(chassis.salvageValue)) return null
-              return (
-                <Entity
-                  key={chassis.id}
-                  size="compact"
-                  entity={chassis}
-                  omit={CHASSIS_OMIT}
-                  leading={<ChassisStats chassis={chassis} />}
-                  mode={{
-                    kind: 'select',
-                    role: 'radio',
-                    selected: slug === chassisName,
-                    onSelect: () => onSelectChassis(slug),
-                    label: chassis.name,
-                  }}
-                />
-              )
-            })}
-          </MasonryColumns>
+          <PickList
+            ariaLabel={mechCopy('chassis')}
+            nameLabel={mechCopy('chassis')}
+            rows={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
+            rowKey={(c) => nameToSlug(c.name)}
+            rowName={(c) => c.name}
+            columns={CHASSIS_COLUMNS}
+            selected={chassisName || undefined}
+            onSelect={onSelectChassis}
+          />
           <div style={COST_LINE}>
             <p style={HINT}>A chassis costs its Salvage Value in Tech 1 Scrap.</p>
             <Eyebrow as="p" tone="muted" style={NO_MARGIN}>
@@ -197,40 +172,20 @@ export function MechChassisStep({
         {selectedChassis !== undefined && (
           <div>
             <Slab label="Or start from a pattern" count="Optional" countInk="inherit" />
-            <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('startingPattern')}>
-              {patternPool.map((pattern) => (
-                <Entity
-                  key={pattern.name}
-                  size="compact"
-                  entity={selectedChassis}
-                  pattern={pattern}
-                  omit={CHASSIS_OMIT}
-                  leading={<p className="su-wiz-pick-line">{loadoutLine(pattern)}</p>}
-                  mode={{
-                    kind: 'select',
-                    role: 'radio',
-                    selected:
-                      normalizePatternName(pattern.name) === normalizePatternName(patternName),
-                    onSelect: () => onSelectPattern(pattern),
-                    label: `${pattern.name} pattern`,
-                  }}
-                />
-              ))}
-              {/* No entity, so no Card: the Compact's frame in select mode, solid, since a
-                  custom build is not user-made (ruleset §3.9). */}
-              <TitledBox
-                title={mechCopy('customBuild')}
-                select={{
-                  kind: 'select',
-                  role: 'radio',
-                  selected: isCustom,
-                  onSelect: onSelectCustom,
-                  label: mechCopy('customBuild'),
-                }}
-              >
-                <p style={CUSTOM_BODY}>{mechCopy('noPrefillCraftYourSystems')}</p>
-              </TitledBox>
-            </MasonryColumns>
+            <PickList
+              ariaLabel={mechCopy('startingPattern')}
+              nameLabel="Pattern"
+              rows={patternRows}
+              rowKey={(row) => row.key}
+              rowName={(row) => row.name}
+              columns={PATTERN_COLUMNS}
+              selected={selectedPatternKey}
+              onSelect={(key) => {
+                const row = patternRows.find((r) => r.key === key)
+                if (row?.pattern) onSelectPattern(row.pattern)
+                else onSelectCustom()
+              }}
+            />
           </div>
         )}
       </div>

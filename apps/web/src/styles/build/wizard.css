@@ -433,7 +433,7 @@
   margin-bottom: var(--space-4);
 }
 
-/* — MOCK (Working Manual): the pickers (select Compacts, the pick beside them) — */
+/* — MOCK (Working Manual): the pickers (`PickList`, the pick beside it) — */
 
 /* The picker's grid, with the picked one's contentful card beside it from lg. */
 .su-wiz-compare-layout {
@@ -464,56 +464,138 @@
   }
 }
 
-/* A pick Compact's stats: one quiet strip of value cells (ruleset §7.1: ink
-   on paper in a 1px frame, no fill, no stamp), a caption label over its
-   numeral, in one fixed order (§2.6) on one fixed grid, so the same stat sits
-   in the same place on every card. The six stats share their frames; the
-   cost stands apart after them. */
-.su-wiz-pick-strip {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr)) var(--space-8) minmax(0, 1.15fr);
-}
-
-.su-wiz-pick-cell {
-  align-items: center;
+/* The picker (`PickList`): one frame in the kind's band paint; a head strip in
+   the band colour with its columns' ink stamps; Mini-height select rows banded
+   paper and page ground, their figures in fixed columns. Every line is a
+   subgrid of the frame's one track list, so a column is one width throughout. */
+.su-wiz-pick {
   background-color: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink);
-  color: var(--color-wk-muted);
-  display: flex;
-  flex-direction: column;
-  font-family: var(--font-barlow);
-  font-size: var(--text-badge);
-  font-weight: 600;
-  line-height: 1.2;
-  margin-inline-start: calc(-1 * var(--bw-hairline));
-  min-width: 0;
-  padding: var(--space-2) var(--space-2) 0;
+  border: var(--bw-entity-compact) solid var(--tone);
+  column-gap: var(--space-8);
+  display: grid;
 }
 
-.su-wiz-pick-cell:first-child {
-  margin-inline-start: 0;
+.su-wiz-pick__head,
+.su-wiz-pick__row {
+  align-items: center;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  padding-inline: var(--space-8);
 }
 
-.su-wiz-pick-cell > b {
+.su-wiz-pick__head {
+  background-color: var(--tone);
+  padding-block: var(--space-4);
+}
+
+.su-wiz-pick__row {
   color: var(--color-ink);
+  cursor: pointer;
+  min-height: var(--space-28);
+  padding-block: var(--space-4);
+}
+
+.su-wiz-pick__row:nth-child(odd) {
+  background-color: var(--color-wk-bg);
+}
+
+.su-wiz-pick__row:hover {
+  background-color: var(--color-band-cream);
+}
+
+/* The picked row is set in ink, as a rolled row is. */
+.su-wiz-pick__row--selected,
+.su-wiz-pick__row--selected:nth-child(odd),
+.su-wiz-pick__row--selected:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-wiz-pick__row:focus-within {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-pill));
+}
+
+.su-wiz-pick__row--selected:focus-within {
+  outline-color: var(--color-paper);
+}
+
+/* A figure: plain condensed tabular numerals, centred under its stamp. */
+.su-wiz-pick__cell {
   font-family: var(--font-cond);
   font-size: var(--text-readout);
   font-variant-numeric: tabular-nums;
   font-weight: var(--font-weight-extrabold);
   line-height: 1.15;
+  min-width: 0;
+  text-align: center;
 }
 
-/* The cost: after the gap track, a cell of its own. */
-.su-wiz-pick-cell--cost {
-  grid-column: 8;
-  margin-inline-start: 0;
+.su-wiz-pick__head .su-wiz-pick__cell {
+  display: flex;
+  justify-content: center;
 }
 
-/* A pick Compact's line of body copy (a pattern's loadout). */
-.su-wiz-pick-line {
-  color: var(--color-ink);
+/* The name, in the Mini's caps face. */
+.su-wiz-pick .su-wiz-pick__cell--name {
+  justify-content: flex-start;
+  letter-spacing: var(--tracking-caps-tight);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.su-wiz-pick .su-wiz-pick__cell--text {
   font-family: var(--font-barlow);
   font-size: var(--text-caption);
+  font-weight: 500;
+  justify-content: flex-start;
   line-height: 1.35;
-  margin: 0;
+  text-align: left;
+}
+
+/* Set apart: the cost after the stats. */
+.su-wiz-pick__cell--apart {
+  margin-inline-start: var(--space-12);
+}
+
+/* A phone: the frame takes the step's side padding back, so seven figures fit
+   390; a text column's line sits under its name. */
+@media not (width >= 40rem) {
+  .su-wiz-pick {
+    column-gap: var(--space-2);
+    margin-inline: calc(-1 * var(--space-12));
+  }
+
+  .su-wiz-pick__head,
+  .su-wiz-pick__row {
+    padding-inline: var(--space-6);
+  }
+
+  .su-wiz-pick .su-wiz-pick__cell--name {
+    font-size: var(--text-lede);
+    letter-spacing: 0;
+  }
+
+  .su-wiz-pick__cell--apart {
+    margin-inline-start: var(--space-4);
+  }
+
+  .su-wiz-pick--text {
+    /* One track: the name over its line. */
+    display: block;
+  }
+
+  .su-wiz-pick--text .su-wiz-pick__head,
+  .su-wiz-pick--text .su-wiz-pick__row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .su-wiz-pick--text .su-wiz-pick__head {
+    flex-direction: row;
+    gap: var(--space-8);
+  }
 }

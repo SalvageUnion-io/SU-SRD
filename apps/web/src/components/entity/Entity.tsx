@@ -78,12 +78,6 @@ export type EntityProps = EntitySource &
     /** Compact only: the host's labels (an owner stamp), the first of its chips. */
     labels?: ReactNode
     /**
-     * MOCK (Working Manual pickers): Compact only, the host's content leading
-     * the body (`RowSlots.leading`): a picker's stat chips in one fixed order
-     * (ruleset §2.6), so every card of the grid reads the same way across.
-     */
-    leading?: ReactNode
-    /**
      * Compact and Mini: what the unit is built on or linked to (`CLASS | Engineer`,
      * `CHASSIS | Mule`, `PILOT | Bonesaw`), the relation chips after its traits
      * (`chips-and-actions.md` C11). Each Peeks and opens its entity, or opens a
@@ -146,7 +140,6 @@ function EntityForm(props: EntityProps) {
     missingArt,
     controls,
     labels,
-    leading,
     relations,
     linked,
     state,
@@ -207,7 +200,6 @@ function EntityForm(props: EntityProps) {
             wholeName ||
             controls ||
             labels ||
-            leading ||
             relations ||
             trailing ||
             state ||
@@ -218,7 +210,6 @@ function EntityForm(props: EntityProps) {
                   ...(linkedNode ? { linked: linkedNode } : {}),
                   ...(controls ? { controls } : {}),
                   ...(labels ? { extraLabels: labels } : {}),
-                  ...(leading ? { leading } : {}),
                   ...(relations ? { relations } : {}),
                   ...(trailing ? { trailing } : {}),
                   ...(state ? { state } : {}),

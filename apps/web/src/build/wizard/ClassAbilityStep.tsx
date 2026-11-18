@@ -1,16 +1,12 @@
 import type { RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import {
-  EmptyState,
-  Entity,
-  MasonryColumns,
-  ReferenceEntityCard,
-  Slab,
-} from '../../components/index'
+import { EmptyState, MasonryColumns, ReferenceEntityCard, Slab } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
+import type { PickColumn } from './PickList'
+import { PickList } from './PickList'
 import { fullWidthStyle } from './wizardStyles.model'
 
 type SURClassesAccessor = {
@@ -23,16 +19,17 @@ type SURAbilitiesAccessor = {
 
 /**
  * MOCK (Working Manual, "compare at a glance"): what tells the six classes
- * apart is their trees, so every pick Compact prints them as one quiet line,
- * in the book's order. The Salvager's says what the book says of it (p.18): any Core tree.
+ * apart is their trees, so that is the picker's column, as plain text in the
+ * book's order. The Salvager's says what the book says of it (p.18).
  */
-function ClassTrees({ cls }: { cls: SelectableBaseClass }) {
-  return (
-    <p className="su-wiz-pick-line">
-      {cls.coreTrees.length > 3 ? 'Any Core tree' : cls.coreTrees.join(' · ')}
-    </p>
-  )
-}
+const CLASS_COLUMNS: readonly PickColumn<SelectableBaseClass>[] = [
+  {
+    key: 'core',
+    label: 'Core trees',
+    text: true,
+    value: (c) => (c.coreTrees.length > 3 ? 'Any Core tree' : c.coreTrees.join(' · ')),
+  },
+]
 
 type ClassAbilityStepProps = {
   classId: string
@@ -94,28 +91,21 @@ export function ClassAbilityStep({
 
   return (
     <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      {/* MOCK: the classes as select Compacts; the pick's card beside them. */}
+      {/* MOCK: the classes as one picker; the pick's card beside it. */}
       <div className="su-wiz-compare-layout">
         <div className="su-wiz-compare-main">
           <div>
             <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
-            <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('pilotClass2')}>
-              {legalClasses.map((cls) => (
-                <Entity
-                  key={cls.id}
-                  size="compact"
-                  entity={cls}
-                  leading={<ClassTrees cls={cls} />}
-                  mode={{
-                    kind: 'select',
-                    role: 'radio',
-                    selected: cls.id === classId,
-                    onSelect: () => onSelectClass(cls.id),
-                    label: cls.name,
-                  }}
-                />
-              ))}
-            </MasonryColumns>
+            <PickList
+              ariaLabel={buildWizardCopy('pilotClass2')}
+              nameLabel="Class"
+              rows={legalClasses}
+              rowKey={(c) => c.id}
+              rowName={(c) => c.name}
+              columns={CLASS_COLUMNS}
+              selected={classId || undefined}
+              onSelect={onSelectClass}
+            />
           </div>
           {/* MOCK: the pick's Level-1 pool under the table, so the class's card
               rides beside both and the column has no dead room. */}
