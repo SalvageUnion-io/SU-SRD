@@ -48,6 +48,6 @@
 @import './partials/reference-card.css';
 @import './partials/footer.css';
 @import './partials/card-chrome.css';
-@import './partials/mock-working-manual.css';
-@import './partials/mock-front.css';
+@import './partials/manual-page.css';
+@import './partials/front.css';
 @import './partials/ledger.css';

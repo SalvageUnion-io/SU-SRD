@@ -277,7 +277,7 @@ export { Mention } from './entity/forms/Mention'
 // in one subtle border (a crawler bay and its crew), no nesting
 export { MiniGroup } from './entity/forms/MiniGroup'
 // Ledger — a compared or picked list's one framed table (ledger.md L1 to L9, R63).
-export type { LedgerColumn, LedgerRow, LedgerSort } from './entity/Ledger'
+export type { LedgerColumn, LedgerRow, LedgerSelect, LedgerSort } from './entity/Ledger'
 export { Ledger } from './entity/Ledger'
 export type { LinkedUnit } from './entity/LinkedUnits'
 export { LinkedUnits } from './entity/LinkedUnits'

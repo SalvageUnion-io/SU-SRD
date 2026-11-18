@@ -4,8 +4,8 @@ import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
 import { Callout, EmptyState, ReferenceEntityCard, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
-import type { PickColumn } from './PickList'
 import { PickList } from './PickList'
+import type { PickColumn } from './pickLedger'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
 
@@ -30,24 +30,10 @@ const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
  */
 const TYPE_COLUMNS: readonly PickColumn<RefCrawler>[] = [
   {
-    key: 'ability',
-    label: 'Ability',
-    kind: 'text',
-    phone: true,
-    value: (type) => (Array.isArray(type.actions) ? type.actions.join(', ') : ''),
-  },
-  {
     key: 'npc',
     label: 'Special NPC',
-    kind: 'quiet',
+    kind: 'text',
     value: (type) => type.npc?.position ?? '',
-  },
-  {
-    key: 'weapons',
-    label: 'Weapons',
-    title: 'Weapons Systems its Armament Bay mounts',
-    phone: true,
-    value: (type) => crawlerWeaponSlots(type.mutations),
   },
   {
     key: 'sp',
@@ -57,6 +43,20 @@ const TYPE_COLUMNS: readonly PickColumn<RefCrawler>[] = [
       const bonus = crawlerMaxSpBonus(type.mutations)
       return bonus > 0 ? `+${bonus}` : ''
     },
+  },
+  {
+    key: 'weapons',
+    label: 'Weapons',
+    title: 'Weapons Systems its Armament Bay mounts',
+    phone: true,
+    value: (type) => crawlerWeaponSlots(type.mutations),
+  },
+  {
+    key: 'ability',
+    label: 'Ability',
+    kind: 'quiet',
+    phone: true,
+    value: (type) => (Array.isArray(type.actions) ? type.actions.join(', ') : ''),
   },
 ]
 

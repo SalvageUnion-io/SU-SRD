@@ -14,7 +14,7 @@ import type {
 import { resolveChoiceView, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Stat } from '../../components/index'
 import { readReference } from '../../lib/readReference'
-import type { PickColumn } from './PickList'
+import type { PickColumn } from './pickLedger'
 
 const models = new WeakMap<object, EntityModel>()
 
@@ -173,7 +173,7 @@ export function equipmentColumns<T extends RefMetaEntity>(selected?: Selected<T>
   return [{ ...(action as PickColumn<T>), phone: true }, ...rest]
 }
 
-/** An ability's columns: its tree, its timing, its cost, its range, what it does. */
+/** An ability's columns (ruleset §2.6): its tree, its timing, its range, what it does, its cost last. */
 export function abilityColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
   const [action, range] = actionColumns<T>()
   return [
@@ -185,6 +185,13 @@ export function abilityColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
       value: (row) => ('tree' in row && typeof row.tree === 'string' ? row.tree : ''),
     },
     action as PickColumn<T>,
+    range as PickColumn<T>,
+    {
+      key: 'lead',
+      label: 'What it does',
+      kind: 'quiet',
+      value: (row) => modelOf(row).lead ?? '',
+    },
     {
       key: 'ap',
       label: 'AP',
@@ -194,13 +201,6 @@ export function abilityColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
         const cost = actionOf(row)?.activationCost
         return cost === undefined ? '' : String(cost)
       },
-    },
-    range as PickColumn<T>,
-    {
-      key: 'lead',
-      label: 'What it does',
-      kind: 'quiet',
-      value: (row) => modelOf(row).lead ?? '',
     },
   ]
 }

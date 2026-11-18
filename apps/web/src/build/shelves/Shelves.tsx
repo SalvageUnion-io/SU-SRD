@@ -126,27 +126,29 @@ const word = (key: string, label: string, phone = false): LedgerColumn => ({
   phone,
 })
 const GAME = word('game', 'Game')
+// The one column order (ruleset §2.6): the words that place a row (its class,
+// its crew, its Game) follow its name, then its figures in the stat order.
 const PILOT_COLUMNS = [
   word('class', 'Class', true),
-  fig(VITAL.hp, 'Hit Points', true),
-  fig(VITAL.ap, 'Ability Points'),
   word('mech', 'Mech'),
   GAME,
+  fig(VITAL.hp, 'Hit Points', true),
+  fig(VITAL.ap, 'Ability Points'),
 ]
 const MECH_COLUMNS = [
   word('chassis', 'Chassis', true),
+  word('pilot', 'Pilot'),
+  GAME,
   fig(VITAL.sp, 'Structure Points', true),
   fig(VITAL.ep, 'Energy Points'),
   fig(VITAL.heat, 'Heat'),
-  word('pilot', 'Pilot'),
-  GAME,
 ]
 const CRAWLER_COLUMNS = [
   word('type', 'Type', true),
+  GAME,
   fig('TL', 'Tech Level'),
   fig(VITAL.sp, 'Structure Points'),
   fig('Bays', 'Bays intact'),
-  GAME,
 ]
 const GAME_COLUMNS = [
   word('role', 'You are', true),
@@ -155,14 +157,14 @@ const GAME_COLUMNS = [
 ]
 const NPC_COLUMNS = [
   word('position', 'Position'),
-  fig('HP', 'Hit or Structure Points', true),
   word('who', 'Seen by'),
   GAME,
+  fig('HP', 'Hit or Structure Points', true),
 ]
 const PATTERN_COLUMNS = [
   word('chassis', 'Chassis', true),
-  fig('Sys', 'System slots used'),
   word('who', 'Seen by'),
+  fig('Sys', 'System slots used'),
 ]
 
 /** One reading's figure (`8/10`) by its label; none draws the dash. */
@@ -461,10 +463,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: under(linkChip(sharedByLink, p.id)),
                     cells: [
                       pilotFact(p) ?? '',
-                      read(r, VITAL.hp),
-                      read(r, VITAL.ap),
                       paired(crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })),
                       inGame(gameRelation(p, games)),
+                      read(r, VITAL.hp),
+                      read(r, VITAL.ap),
                     ],
                     menu: unitMenu('pilot', p, p),
                   }
@@ -486,11 +488,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: under(linkChip(sharedByLink, m.id)),
                     cells: [
                       chassisFact(m.chassisRef) ?? '',
+                      paired(crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })),
+                      inGame(gameRelation(m, games)),
                       read(r, VITAL.sp),
                       read(r, VITAL.ep),
                       read(r, VITAL.heat),
-                      paired(crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })),
-                      inGame(gameRelation(m, games)),
                     ],
                     menu: unitMenu('mech', m, m),
                   }
@@ -515,10 +517,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     ]),
                     cells: [
                       crawlerFact(c) ?? '',
+                      inGame(gameRelation(c, games)),
                       String(crawlerReading(c).value),
                       read(r, VITAL.sp),
                       read(r, 'Bays'),
-                      inGame(gameRelation(c, games)),
                     ],
                     menu: unitMenu('crawler', c, c),
                   }
@@ -560,11 +562,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     href: `/npcs/${n.id}`,
                     cells: [
                       n.position ?? '',
-                      String(npcReading(n).value),
                       who(
                         npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })
                       ),
                       inGame(gameRelation(n, games)),
+                      String(npcReading(n).value),
                     ],
                     menu: unitMenu('npc', n, n),
                   })),
@@ -573,9 +575,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     name: n.name,
                     cells: [
                       'Tray',
-                      String(encounterNpcReading(n).value),
                       who(encounterNpcChips()),
                       '',
+                      String(encounterNpcReading(n).value),
                     ],
                     menu: trayMenu(n),
                   })),
@@ -606,13 +608,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   href: savedPatternHref(p.id),
                   cells: [
                     chassisFact(p.chassisRef) ?? '',
-                    String(patternReading(p)?.value ?? ''),
                     who(
                       patternChips(
                         sharing?.find((s) => s.appId === p.id),
                         games
                       )
                     ),
+                    String(patternReading(p)?.value ?? ''),
                   ],
                   menu: patternMenu(p),
                 }))}

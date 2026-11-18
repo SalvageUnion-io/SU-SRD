@@ -98,7 +98,7 @@ function page(): PageResult {
           </ChapterBand>
         </div>
         <div className="su-front__body su-page-body">
-          <HomeHero chapters={chapters} />
+          <HomeHero />
           <HomeDoors />
           <SlabSection title="Contents" id="contents" as="h2" page count={`${entries} entries`}>
             <div className="su-home__index su-front__index">

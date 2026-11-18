@@ -73,7 +73,7 @@
   margin-left: var(--space-4);
 }
 
-.su-ledger__table tbody tr:nth-child(even) {
+.su-ledger__table tbody tr[data-band] {
   background-color: var(--color-band-cream);
 }
 
@@ -128,6 +128,14 @@
 
 .su-ledger__table tbody [data-kind='text'] {
   font-weight: var(--font-weight-semibold);
+}
+
+/* Body copy that takes the room left and wraps (a pattern's loadout, a
+   class's trees). */
+.su-ledger__table tbody [data-kind='line'] {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
 }
 
 /* A quiet line of words: one line, muted, taking the room left. */
@@ -203,6 +211,124 @@
   text-transform: uppercase;
 }
 
+/* The head strip's end: what a pick asks or its budget, then the trailing
+   column's stamp or the list's one make. */
+.su-ledger__trailing-line {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+/* ── A picker (L7): the same Ledger in select ───────────────────────────────
+ * Each row is a radio; the picked row is set in ink, as a rolled row is, its
+ * name on a paper cut-out, as a card's head carries its name. No ring, seal
+ * or left rail.
+ */
+.su-ledger__table tbody tr:has(.su-ledger__pick) {
+  cursor: pointer;
+}
+
+.su-ledger__pick {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.su-ledger__table tbody tr[data-picked],
+.su-ledger__table tbody tr[data-picked]:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-ledger__name {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  margin-inline-start: calc(-1 * var(--space-4));
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.su-ledger__table tbody tr[data-picked] :is([data-empty], [data-kind='quiet']) {
+  color: var(--color-paper);
+}
+
+/* A count picker's selected row (the one the detail shows) is ringed in ink;
+   set in ink already, the ring is paper. Keyboard focus draws the same ring. */
+.su-ledger__table tbody tr[data-focused],
+.su-ledger__table tbody tr:has(.su-ledger__pick:focus-within) {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-pill));
+}
+
+.su-ledger__table tbody tr[data-picked][data-focused],
+.su-ledger__table tbody tr[data-picked]:has(.su-ledger__pick:focus-within) {
+  outline-color: var(--color-paper);
+  outline-offset: calc(-2 * var(--bw-pill));
+}
+
+/* A row that does not fit the budget now: the one select dim (`SELECT_DIM`). */
+.su-ledger__table tbody tr[data-blocked] > * {
+  opacity: 0.45;
+}
+
+/* The count's own stepper (ruleset §6.2), a Mini pair about its figure. */
+.su-ledger__stepper {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.su-ledger__copies {
+  min-width: 1.5ch;
+  text-align: center;
+}
+
+.su-ledger__copies[data-empty] {
+  font-weight: var(--font-weight-normal);
+  opacity: 0.45;
+}
+
+.su-ledger__step {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  height: var(--space-20);
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: var(--space-20);
+}
+
+.su-ledger__step:hover:not(:disabled) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-ledger__step {
+  border-color: var(--color-paper);
+}
+
+.su-ledger__step:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+/* The selected row's card under its line: where no column stands beside the
+   list, or always (a row's own fields). */
+.su-ledger__table tbody .su-ledger__detail > td {
+  background-color: var(--color-wk-bg);
+  padding: var(--space-8);
+}
+
+@media (width >= 64rem) {
+  .su-ledger__table tbody .su-ledger__detail[data-at='narrow'] {
+    display: none;
+  }
+}
+
 /* On a phone a row keeps its name, its stamp and the columns marked for it;
    a quiet line drops under the name when it is the row's only column. */
 @media not (width >= 40rem) {
@@ -241,6 +367,16 @@
 
   .su-ledger__table[data-phone-line] tbody td[data-line][data-empty] {
     display: none;
+  }
+
+  /* Touch takes a taller picker row and a bigger stepper (§4.6). */
+  .su-ledger__table tbody tr:has(.su-ledger__pick) > * {
+    height: var(--space-40);
+  }
+
+  .su-ledger__step {
+    height: var(--space-28);
+    width: var(--space-28);
   }
 
   /* A column of words (a bay's crew lead) is caption size on its one line;

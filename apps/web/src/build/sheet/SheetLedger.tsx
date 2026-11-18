@@ -79,9 +79,9 @@ const own = (label: string, key: string, kind: Column['kind'] = 'figure'): Colum
 const COLUMNS = {
   loadout: [
     book('Slots', 'Slots Required', 'book-Slots Required'),
-    COST,
     fact('RNG', 'Range', 'range'),
     fact('DMG', 'Damage', 'damage'),
+    COST,
   ],
   equipment: [
     book('TL', 'Tech Level', 'tech-level'),
@@ -98,8 +98,8 @@ const COLUMNS = {
       phone: true,
       value: (model) => String(model.tier ?? ''),
     },
-    COST,
     ACTION,
+    COST,
   ],
   bays: [own('Crew lead', 'lead', 'text'), own('HP', 'hp')],
 } as const satisfies Record<string, readonly Column[]>

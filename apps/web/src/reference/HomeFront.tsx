@@ -1,9 +1,7 @@
-// MOCK (front): the home page as a product page. Its parts, each from the
-// site's own primitives: the pitch (`FrontPitch`), "What's inside" as the stat
-// column's framed numerals (`StatColumn`), the hero plate (`CardImage hero`,
-// art from R2), the three doors (`StartHere` tiles with art), and the Buy the
-// game panel (`TitledBox` on ink, the licence on its cite cut-out). Not
-// shipped code.
+// The home page as a product page, each part from the site's own primitives:
+// the pitch (`FrontPitch`), the hero plate (`CardImage hero`, art from R2), the
+// three doors (`StartHere` tiles with art), and the Buy the game panel
+// (`TitledBox` on ink, the licence on its cite cut-out).
 import type { ReactNode } from 'react'
 import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
 import type { StartHereStep } from '../components/index'
@@ -14,13 +12,10 @@ import {
   CardImage,
   EntityCardIdentityFooter,
   FrontPitch,
-  SlabSection,
   StartHere,
-  StatColumn,
   TitledBox,
 } from '../components/index'
 import { appPath } from '../lib/appBase'
-import type { SrdChapter } from '../lib/chapters'
 import { BUY_HREF } from '../lib/docPages'
 import { compositionsCopy } from '../messages/components-compositions'
 
@@ -33,8 +28,8 @@ function artOf(schema: Parameters<typeof findEntityBySlug>[0], slug: string, alt
   return srcSet ? { url, srcSet, alt } : { url, alt }
 }
 
-/** The hero: the pitch and what's inside at the left, the art plate at the right. */
-export function HomeHero({ chapters }: { chapters: SrdChapter[] }) {
+/** The hero: the pitch at the left, the art plate at the right. */
+export function HomeHero() {
   const art = artOf('bio-titans', 'typhon', 'A Mech faces the Bio-Titan Typhon')
   return (
     <section className="su-front__hero" aria-label="SalvageUnion.io">
@@ -56,7 +51,6 @@ export function HomeHero({ chapters }: { chapters: SrdChapter[] }) {
           The free, fan-made companion to Salvage Union, the post-apocalyptic mech tabletop RPG by
           Leyline Press.
         </FrontPitch>
-        <HomeInside chapters={chapters} />
       </div>
       {art && (
         <div className="su-front__plate">
@@ -65,34 +59,6 @@ export function HomeHero({ chapters }: { chapters: SrdChapter[] }) {
         </div>
       )}
     </section>
-  )
-}
-
-/** The counts "What's inside" shows, by the catalog's schema id, in the book's order. */
-const INSIDE: readonly { schemaId: string; label: string }[] = [
-  { schemaId: 'chassis', label: 'Chassis' },
-  { schemaId: 'systems', label: 'Systems' },
-  { schemaId: 'modules', label: 'Modules' },
-  { schemaId: 'classes', label: 'Pilot classes' },
-  { schemaId: 'abilities', label: 'Abilities' },
-  { schemaId: 'equipment', label: 'Equipment' },
-  { schemaId: 'bio-titans', label: 'Bio-Titans' },
-  { schemaId: 'roll-tables', label: 'Roll tables' },
-]
-
-/** What's inside: real counts from the reference data, as framed numerals. */
-function HomeInside({ chapters }: { chapters: SrdChapter[] }) {
-  const counts = new Map(chapters.flatMap((c) => c.rows.map((r) => [r.schemaId, r.count] as const)))
-  const stats = INSIDE.flatMap(({ schemaId, label }) => {
-    const count = counts.get(schemaId)
-    return count === undefined
-      ? []
-      : [{ key: schemaId, label, value: String(count), group: 'capacity' as const }]
-  })
-  return (
-    <SlabSection title="What’s inside" as="h2" page className="su-front__inside">
-      <StatColumn stats={stats} label="What’s inside" />
-    </SlabSection>
   )
 }
 

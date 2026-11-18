@@ -36,12 +36,12 @@ import { MechReviewStep } from './MechReviewStep'
  * Appearance share one; the name sits over the review. The book's own steps
  * (pp.94–95) stay in the rule briefs.
  */
-type MockMechStep = 'chassis' | 'loadout' | 'look' | 'review'
+type MechStep = 'chassis' | 'loadout' | 'look' | 'review'
 
-const STEPS: readonly MockMechStep[] = ['chassis', 'loadout', 'look', 'review']
+const STEPS: readonly MechStep[] = ['chassis', 'loadout', 'look', 'review']
 
 /** Stepper-rail labels (also the Next button's: it names the step it opens). */
-const STEP_LABELS: Record<MockMechStep, string> = {
+const STEP_LABELS: Record<MechStep, string> = {
   chassis: 'Chassis',
   loadout: 'Systems & modules',
   look: 'Quirk & look',
@@ -49,7 +49,7 @@ const STEP_LABELS: Record<MockMechStep, string> = {
 }
 
 /** Step headings. */
-const STEP_TITLES: Record<MockMechStep, string> = {
+const STEP_TITLES: Record<MechStep, string> = {
   chassis: 'Choose a chassis',
   loadout: 'Craft your Systems and Modules',
   look: 'Give it a Quirk and a look',

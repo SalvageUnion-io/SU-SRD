@@ -42,12 +42,12 @@ import { StatsStep } from './StatsStep'
  * Review is the build as it will read on the sheet. The book's own steps
  * (pp.18–19) stay in the rule briefs.
  */
-type MockPilotStep = 'classAbility' | 'equipment' | 'identity' | 'review'
+type PilotStep = 'classAbility' | 'equipment' | 'identity' | 'review'
 
-const STEPS: readonly MockPilotStep[] = ['classAbility', 'equipment', 'identity', 'review']
+const STEPS: readonly PilotStep[] = ['classAbility', 'equipment', 'identity', 'review']
 
 /** Stepper-rail labels (also the Next button's: it names the step it opens). */
-const STEP_LABELS: Record<MockPilotStep, string> = {
+const STEP_LABELS: Record<PilotStep, string> = {
   classAbility: 'Class & ability',
   equipment: 'Equipment',
   identity: 'Who they are',
@@ -55,7 +55,7 @@ const STEP_LABELS: Record<MockPilotStep, string> = {
 }
 
 /** Step headings. */
-const STEP_TITLES: Record<MockPilotStep, string> = {
+const STEP_TITLES: Record<PilotStep, string> = {
   classAbility: 'Choose your Pilot and your first Ability',
   equipment: 'Choose your Equipment',
   identity: 'Say who your Pilot is',

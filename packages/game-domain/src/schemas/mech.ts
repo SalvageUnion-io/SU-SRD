@@ -4,6 +4,7 @@ import { containerFields } from './entity'
 import { ItemConditionMapSchema } from './itemCondition'
 import { PartnerInstanceSchema } from './partner'
 import { photoFields } from './photo'
+import { ChoiceSelectionsSchema } from './pilot'
 
 /**
  * chassisRef / systems / modules store SLUG references into
@@ -145,6 +146,17 @@ export const MechSchema = z
      * All uses recharge after a week of Downtime.
      */
     itemUses: z.record(z.string(), z.number().int().min(0)).optional(),
+
+    /**
+     * The options chosen on an installed System or Module that asks a choice
+     * (an Automated Weapon Turret's Turret Model), as a pilot's
+     * `equipmentChoices`: keyed by the installed item's stable key (the same
+     * key as `itemUses`: the item slug today, the loadout instance id once
+     * installed items gain instance ids), then by choiceId → selected option
+     * values. Optional: when absent or a key is missing, that item has no
+     * selections made.
+     */
+    itemChoices: z.record(z.string(), ChoiceSelectionsSchema).optional(),
 
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),

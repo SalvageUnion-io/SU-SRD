@@ -5,9 +5,9 @@ import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
-import type { PickColumn } from './PickList'
 import { PickList } from './PickList'
 import { abilityColumns, choicesOf, chosenChips } from './pickColumns'
+import type { PickColumn } from './pickLedger'
 
 type SURClassesAccessor = {
   all: () => unknown[]

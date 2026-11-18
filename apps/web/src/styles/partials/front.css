@@ -118,24 +118,14 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
+  /* The pitch stands at the plate's middle. */
   .su-front__pitch {
-    gap: var(--space-24);
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .su-front__plate .su-entity-hero {
     --su-hero-max-h: 20rem;
   }
-
-  /* What's inside: four framed numerals a row, as the mech page's stats. */
-  .su-front__inside .su-stat-column {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-/* A three-figure count keeps its room on a phone's half-width cell. */
-.su-front__inside .su-stat-column__stat > .su-stat-plate--value {
-  min-width: 3.25rem;
 }
 
 /* A door's art place: shorter than a catalog tile's 3:4, so three doors and

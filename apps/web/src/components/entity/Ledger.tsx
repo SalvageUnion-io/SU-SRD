@@ -8,7 +8,8 @@
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
-import type { ReactNode } from 'react'
+import type { MouseEvent, ReactNode } from 'react'
+import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { cn } from '../../lib/cn'
 import { Badge } from '../atoms/Badge'
@@ -16,6 +17,7 @@ import { InlineRef } from '../atoms/InlineRef'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
+import type { CardFootMeta } from '../referenceEntity/card/referenceEntityCardTypes'
 import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import type { Paint } from './parts/paint'
@@ -26,8 +28,12 @@ export type LedgerColumn = {
   label: string
   /** The label spelled out, on hover and for a screen reader. */
   title?: string
-  /** `figure`: a numeral, centred in its column; `text`: a word; `quiet`: a line of words, muted, taking the room left. */
-  kind: 'figure' | 'text' | 'quiet'
+  /**
+   * `figure`: a numeral, centred in its column; `text`: a word; `quiet`: one
+   * line of words, muted, taking the room left; `line`: body copy that takes
+   * the room left and wraps.
+   */
+  kind: 'figure' | 'text' | 'quiet' | 'line'
   /** Kept on a phone. */
   phone?: boolean
 }
@@ -49,9 +55,32 @@ export type LedgerRow = {
   trailing?: ReactNode
   /** The pick's marks under the name (`CHOSEN | Energy`, hard rule R60). */
   under?: ReactNode
+  /**
+   * In select: whether the row is inked. Left out, the selected row is. A count
+   * pick sets it (a row with a copy), and the selected row is then the one
+   * the detail shows, ringed.
+   */
+  picked?: boolean
+  /** In select: why the row cannot be picked now; it wears the one dim and says why on a pointer. */
+  blocked?: string
+  /** In select: the row's card, opened under its line while it is selected. */
+  detail?: ReactNode
+}
+
+/** A picker (L7): each row a radio of one group. */
+export type LedgerSelect = {
+  /** The selected row's id. */
+  selected: string | undefined
+  onSelect: (id: string) => void
+  /** `always`: a row's detail opens under its line at every width; `narrow` (the default): only where no column stands beside the list. */
+  detailAt?: 'narrow' | 'always'
 }
 
 export type LedgerSort = { key: string; descending: boolean }
+
+/** A cell with nothing to say draws `—` (L5); a `0` is a value. */
+const isEmpty = (cell: ReactNode) =>
+  cell === '' || cell === null || cell === undefined || cell === false
 
 /** A quiet line is cut short on its one line: its words are its hover title. */
 function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
@@ -74,6 +103,9 @@ export function Ledger({
   empty,
   total,
   trailingLabel,
+  select,
+  note,
+  footMeta,
 }: {
   /** The band's tone on the colour map (a kind's, `ink` for a mixed list): the frame's colour and the head strip's. */
   tone?: string
@@ -102,11 +134,22 @@ export function Ledger({
   total?: { label: string; cells: readonly ReactNode[] }
   /** The trailing cell's stamp (`Qty`); with it every row has a trailing cell. */
   trailingLabel?: string
+  /** With it the Ledger is a picker (L7): a row's name is its radio, not a link. */
+  select?: LedgerSelect
+  /** The head strip's last mark: what a pick asks (`Choose 1`) or how much of its budget is spent. */
+  note?: ReactNode
+  /** A plain fact left of the sources on the foot band (`COSTS | its Salvage Value`). */
+  footMeta?: CardFootMeta[]
 }) {
+  const group = useId()
   const surface = useEntitySurface()
   const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
   const hasTrailing =
-    action != null || trailingLabel !== undefined || rows.some((row) => row.trailing != null)
+    action != null ||
+    note != null ||
+    trailingLabel !== undefined ||
+    rows.some((row) => row.trailing != null)
+  const span = columns.length + 1 + (hasTrailing ? 1 : 0)
   const stamp = (key: string, text: string, title?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
@@ -136,7 +179,7 @@ export function Ledger({
   // quiet line instead, dropped under the name.
   const phoneLine = columns.some((column) => column.phone)
     ? undefined
-    : columns.find((column) => column.kind === 'quiet')?.key
+    : columns.find((column) => column.kind === 'quiet' || column.kind === 'line')?.key
   const ariaSort = (key: string) =>
     sort?.key === key ? (sort.descending ? 'descending' : 'ascending') : undefined
   return (
@@ -192,55 +235,103 @@ export function Ledger({
             ))}
             {hasTrailing && (
               <th scope="col" data-kind="trailing" data-phone="">
-                {action ? (
-                  <span className="su-ledger__action">{action}</span>
-                ) : (
-                  trailingLabel && stamp('trailing', trailingLabel)
-                )}
+                <span className="su-ledger__trailing-line">
+                  {typeof note === 'string' ? (
+                    <Badge shape="stamp" size="mini" surface="solid">
+                      {note}
+                    </Badge>
+                  ) : (
+                    note
+                  )}
+                  {action ? (
+                    <span className="su-ledger__action">{action}</span>
+                  ) : (
+                    trailingLabel && stamp('trailing', trailingLabel)
+                  )}
+                </span>
               </th>
             )}
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
-              <th scope="row">
-                <span className="su-ledger__name-line">
-                  <span className="su-ledger__name">
-                    {row.href ? (
-                      <InlineRef href={row.href} {...row.linkAttrs}>
-                        {row.name}
-                      </InlineRef>
-                    ) : (
-                      <Mention entityRef={row.entityRef}>{row.name}</Mention>
-                    )}
-                  </span>
-                  {row.stamp}
-                </span>
-                {row.under && <span className="su-ledger__under">{row.under}</span>}
-              </th>
-              {columns.map((column, index) => (
-                <td
-                  key={column.key}
-                  data-kind={column.kind}
-                  data-phone={column.phone || undefined}
-                  data-line={column.key === phoneLine || undefined}
-                  data-empty={!row.cells[index] || undefined}
-                  title={cellTitle(column, row.cells[index])}
+          {rows.map((row, index) => {
+            const selected = select?.selected === row.id
+            const picked = select ? (row.picked ?? selected) : false
+            return (
+              <Fragment key={row.id}>
+                <tr
+                  data-band={index % 2 === 1 || undefined}
+                  data-picked={picked || undefined}
+                  data-focused={(selected && row.picked !== undefined) || undefined}
+                  data-blocked={(row.blocked !== undefined && !picked) || undefined}
+                  title={row.blocked}
+                  {...(select
+                    ? {
+                        // The whole line picks; its own controls (the radio's label, a stepper) act for themselves.
+                        onClick: (event: MouseEvent<HTMLTableRowElement>) => {
+                          if (!(event.target as Element).closest('label, button, a, input'))
+                            select.onSelect(row.id)
+                        },
+                      }
+                    : {})}
                 >
-                  {row.cells[index] || '—'}
-                </td>
-              ))}
-              {hasTrailing && (
-                <td data-kind="trailing" data-phone="">
-                  {row.trailing}
-                </td>
-              )}
-            </tr>
-          ))}
+                  <th scope="row">
+                    <span className="su-ledger__name-line">
+                      {select ? (
+                        <label className="su-ledger__pick">
+                          <input
+                            type="radio"
+                            name={group}
+                            className="su-sr-only"
+                            checked={selected}
+                            onChange={() => select.onSelect(row.id)}
+                          />
+                          <span className="su-ledger__name">{row.name}</span>
+                        </label>
+                      ) : (
+                        <span className="su-ledger__name">
+                          {row.href ? (
+                            <InlineRef href={row.href} {...row.linkAttrs}>
+                              {row.name}
+                            </InlineRef>
+                          ) : (
+                            <Mention entityRef={row.entityRef}>{row.name}</Mention>
+                          )}
+                        </span>
+                      )}
+                      {row.stamp}
+                    </span>
+                    {row.under && <span className="su-ledger__under">{row.under}</span>}
+                  </th>
+                  {columns.map((column, cell) => (
+                    <td
+                      key={column.key}
+                      data-kind={column.kind}
+                      data-phone={column.phone || undefined}
+                      data-line={column.key === phoneLine || undefined}
+                      data-empty={isEmpty(row.cells[cell]) || undefined}
+                      title={cellTitle(column, row.cells[cell])}
+                    >
+                      {isEmpty(row.cells[cell]) ? '—' : row.cells[cell]}
+                    </td>
+                  ))}
+                  {hasTrailing && (
+                    <td data-kind="trailing" data-phone="">
+                      {row.trailing}
+                    </td>
+                  )}
+                </tr>
+                {select && selected && row.detail && (
+                  <tr className="su-ledger__detail" data-at={select.detailAt ?? 'narrow'}>
+                    <td colSpan={span}>{row.detail}</td>
+                  </tr>
+                )}
+              </Fragment>
+            )
+          })}
           {rows.length === 0 && empty && (
             <tr className="su-ledger__empty">
-              <td colSpan={columns.length + 1 + (hasTrailing ? 1 : 0)}>{empty}</td>
+              <td colSpan={span}>{empty}</td>
             </tr>
           )}
         </tbody>
@@ -258,10 +349,11 @@ export function Ledger({
           </tfoot>
         )}
       </table>
-      {foot && (
+      {(foot || footMeta) && (
         <EntityCardIdentityFooter
           provenance={undefined}
           credit={foot}
+          {...(footMeta ? { footMeta } : {})}
           size="mini"
           band={{
             bandColor: paint.background,

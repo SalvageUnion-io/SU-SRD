@@ -10,17 +10,24 @@ import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-refe
 import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
-import type { PickColumn } from '../wizard/PickList'
 import { PickList } from '../wizard/PickList'
+import type { PickColumn } from '../wizard/pickLedger'
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
 
 /**
- * MOCK (Working Manual, "compare at a glance"): a chassis's stats in the
- * book's order (ruleset §2.6), then, set apart, what it costs to craft.
+ * A chassis's stats in the one column order (ruleset §2.6): its Salvage Value
+ * in place, then its points and slots. What it costs is said once, on the foot.
  */
 const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
+  {
+    key: 'sv',
+    label: 'SV',
+    title: 'Salvage Value, its cost in Tech 1 Scrap',
+    phone: true,
+    value: (c) => c.salvageValue,
+  },
   {
     key: 'sp',
     label: 'SP',
@@ -38,14 +45,6 @@ const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
     title: 'Cargo Capacity',
     phone: true,
     value: (c) => c.cargoCapacity,
-  },
-  {
-    key: 'cost',
-    label: 'Scrap',
-    title: 'Cost in Tech 1 Scrap',
-    value: (c) => c.salvageValue,
-    apart: true,
-    phone: true,
   },
 ]
 

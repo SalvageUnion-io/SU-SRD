@@ -340,7 +340,7 @@ export function buildMechActions(mech: Mech): PlayAction[] {
 
   out.push(
     ...itemActions({
-      owner: mech,
+      choices: mech.itemChoices,
       systems: mech.systems ?? [],
       modules: mech.modules ?? [],
       systemConditions: mech.systemConditions,
@@ -360,7 +360,8 @@ export function buildMechActions(mech: Mech): PlayAction[] {
  * (R60: a made choice reads as made).
  */
 function itemActions(args: {
-  owner: { id: string }
+  /** The owner's picks on its installed items (`mech.itemChoices`), by item slug. */
+  choices: Record<string, ChoiceSelections> | undefined
   systems: readonly string[]
   modules: readonly string[]
   systemConditions: Record<string, ItemCondition> | undefined
@@ -386,7 +387,7 @@ function itemActions(args: {
       } as const
       deckActions(item).forEach((action, i) => {
         const from = action.choices ?? []
-        const selections = from.length > 0 ? mockItemChoices(args.owner.id, slug) : undefined
+        const selections = from.length > 0 ? args.choices?.[slug] : undefined
         out.push({
           ...base,
           key: `${args.keyOf(kind, slug)}:${action.id ?? i}`,
@@ -433,25 +434,6 @@ function pickedVariantActions(
 }
 
 /**
- * MOCK (wave 2): where a System's, Module's or ability's picks are read from.
- * The records have nowhere to keep them yet (only `pilot.equipmentChoices`
- * exists), so the mock reads a local map (`localStorage['su-mock-item-choices']`,
- * `{ [unitId]: { [slug]: selections } }`). NEEDED FOR A REAL BUILD:
- * `mech.systemChoices`, `mech.moduleChoices`, `pilot.abilityChoices` and the
- * same on a companion, written by the sheet's Details card.
- */
-export function mockItemChoices(unitId: string, slug: string): ChoiceSelections | undefined {
-  try {
-    const raw = globalThis.localStorage?.getItem('su-mock-item-choices')
-    if (!raw) return undefined
-    const all = JSON.parse(raw) as Record<string, Record<string, ChoiceSelections>>
-    return all[unitId]?.[slug]
-  } catch {
-    return undefined
-  }
-}
-
-/**
  * MOCK (wave 2, the actions board): a companion's actions. A companion "uses
  * the same rules as Mechs" and acts on its own turn, so every action of its
  * stat block (a drone's own abilities and loadout) and of each System and
@@ -492,7 +474,8 @@ export function buildPartnerActions(
   return [
     ...own,
     ...itemActions({
-      owner: partner,
+      // A companion's record keeps no picks: its installed items read unpicked.
+      choices: undefined,
       systems: [...slugs(printed.systems), ...partner.systems],
       modules: [...slugs(printed.modules), ...partner.modules],
       systemConditions: partner.systemConditions,

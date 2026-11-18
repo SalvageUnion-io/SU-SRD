@@ -1,22 +1,14 @@
-// MOCK (Working Manual, wave 2): a Review step's list of what was picked, as
-// the reading lane's Ledger (`components/entity/Ledger.tsx`) in the wizard's
-// band paint: one line an entity (a copy count at its end), the same columns
-// its picker showed, its made choices under its name (hard rule R60), and the
-// sums on a last ink line. It replaces the wall of full cards a review drew.
+// A Review step's list of what was picked, as a Ledger in the wizard's band
+// paint: one line an entity (a copy count at its end), the same columns its
+// picker showed, its made choices under its name (hard rule R60), and the sums
+// on a last ink line.
 import type { ReactNode } from 'react'
 import type { ChoiceSelections, RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
-import type { Paint } from '../../components/index'
 import { CiteLine, Ledger } from '../../components/index'
-import type { PickColumn } from './PickList'
 import { chosenChips, modelOf } from './pickColumns'
-
-/** The wizard's band paint (`--tone`, the kind's colour), for a Ledger in it. */
-const WIZ_PAINT: Paint = {
-  background: 'var(--tone-band, var(--tone))',
-  color: 'var(--on-tone-band, var(--color-ink))',
-  ink: false,
-}
+import type { PickColumn } from './pickLedger'
+import { ledgerColumns, WIZ_PAINT } from './pickLedger'
 
 type ReviewLedgerProps<T extends RefMetaEntity> = {
   title: string
@@ -47,26 +39,18 @@ export function ReviewLedger<T extends RefMetaEntity>({
     if (known) known.count += 1
     else rows.push({ entity, count: 1 })
   }
-  const text = (value: ReactNode) => (value === null || value === undefined ? '' : value)
   return (
     <Ledger
       label={title}
       paint={WIZ_PAINT}
       nameLabel={title}
       count={entities.length}
-      columns={columns.map((column) => ({
-        key: column.key,
-        label: column.label,
-        ...(column.title ? { title: column.title } : {}),
-        kind:
-          column.kind === 'quiet' || column.kind === 'line' ? 'quiet' : (column.kind ?? 'figure'),
-        ...(column.phone ? { phone: true } : {}),
-      }))}
+      columns={ledgerColumns(columns)}
       rows={rows.map(({ entity, count }) => ({
         id: entity.id,
         name: entity.name,
         entityRef: modelOf(entity).ref,
-        cells: columns.map((column) => text(column.value(entity))),
+        cells: columns.map((column) => column.value(entity)),
         trailing: count > 1 ? `×${count}` : '',
         under: chosenChips(entity, choices?.[nameToSlug(entity.name)]),
       }))}

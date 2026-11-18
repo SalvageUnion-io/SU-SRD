@@ -54,12 +54,12 @@ const MUTED = { color: tokens.color.wkMuted } satisfies CSSProperties
  * review is the build as its sheet will read. The book's own steps
  * (pp.212–213) stay in the rule briefs.
  */
-type MockCrawlerStep = 'type' | 'weapons' | 'crew' | 'review'
+type CrawlerStep = 'type' | 'weapons' | 'crew' | 'review'
 
-const STEPS: readonly MockCrawlerStep[] = ['type', 'weapons', 'crew', 'review']
+const STEPS: readonly CrawlerStep[] = ['type', 'weapons', 'crew', 'review']
 
 /** Stepper-rail labels (also the Next button's: it names the step it opens). */
-const STEP_LABELS: Record<MockCrawlerStep, string> = {
+const STEP_LABELS: Record<CrawlerStep, string> = {
   type: 'Crawler type',
   weapons: 'Armament Bay',
   crew: 'Name & crew',
@@ -67,7 +67,7 @@ const STEP_LABELS: Record<MockCrawlerStep, string> = {
 }
 
 /** Step headings. */
-const STEP_TITLES: Record<MockCrawlerStep, string> = {
+const STEP_TITLES: Record<CrawlerStep, string> = {
   type: 'Choose a Crawler Type',
   weapons: 'Arm the Armament Bay',
   crew: 'Name your Crawler and its Crew',
