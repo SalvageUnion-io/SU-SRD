@@ -267,6 +267,7 @@ export function MechSheet({
               onRepair={(deductTl, cost) => {
                 runWrite(() => actions.repairItem(kind, slug, deductTl, cost))
               }}
+              choices={{ mechId: mech.id, seed: mech.itemChoices?.[slug], store }}
               onRemove={
                 readOnly
                   ? undefined

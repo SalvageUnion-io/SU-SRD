@@ -19,12 +19,6 @@ const LEDE = {
   color: 'currentcolor',
 } satisfies CSSProperties
 
-/** An open row's crew fields; the column count is `.su-wiz-crew-fields`. */
-const CREW_FIELDS = {
-  display: 'grid',
-  gap: tokens.space[12],
-} satisfies CSSProperties satisfies CSSProperties
-
 type NpcSource = {
   /** Stable key — the bay slug or the type slug. */
   ref: string
@@ -49,12 +43,10 @@ function npcOf(entity: RefEntity): ResolvedNpc | undefined {
 }
 
 /**
- * Step 4 · Name your Crew (Union Crawler p.213) — the bay roster, restyled to
- * the poster idiom: the 10 base bays auto-seed (not
- * choosable, not removable; expansion bays never appear) and each is its
- * SRD entity's Mini (header-only is a Mini, EDL N2) until it opens into its
- * compact card and the sheets' IdentityFields for the NPC's four crew facts
- * (Name, Background, Keepsake, Motto — guarded off the NPC's own choice set:
+ * Name your Crew (Union Crawler p.213): the bay roster. The 10 base bays
+ * auto-seed (not choosable, not removable; expansion bays never appear) and
+ * each is a line that opens onto the NPC's four crew facts (Name, Background,
+ * Keepsake, Motto — guarded off the NPC's own choice set:
  * Augmented's A.I. carries neither Keepsake nor Motto). NPC HP is fixed by
  * the data (4; Grizzled Veteran 10; the A.I. none) — nothing to input. The
  * type's special NPC heads the list. Every field is optional — the step
@@ -84,17 +76,15 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
     onChange({ crew: { ...crew, [ref]: { ...crew[ref], ...patch } } })
   }
 
-  // MOCK (Working Manual, wave 2): the crew as one list in the Ledger form
-  // (`PickList`): a line a crewed Bay (its lead, their HP, the name given),
-  // the open line's fields under it. It replaces a Mini with its own band a
-  // row, eleven bands down the step.
+  // The crew as one list in the Ledger form (`PickList`): a line a crewed Bay
+  // (its lead, their HP, the name given), the open line's fields under it.
   const open = sources.find((source) => expanded.has(source.ref))
   const fieldsFor = (source: NpcSource) => {
     const value = crew[source.ref] ?? {}
     const showKeepsake = findNpcChoiceByName(source.npc, 'Keepsake') !== undefined
     const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
     return (
-      <div className="su-wiz-crew-fields" style={CREW_FIELDS}>
+      <div className="su-wiz-crew-fields">
         <Field
           label={crawlerCopy('name')}
           value={value.name ?? ''}
@@ -135,7 +125,7 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
       <p style={LEDE}>{crawlerCopy('eachCrewedBayIsRun')}</p>
       <PickList
         title={crawlerCopy('crew')}
-        note="Optional"
+        note={crawlerCopy('optional')}
         rows={sources}
         rowKey={(source) => source.ref}
         rowName={(source) => source.entity.name}
@@ -153,21 +143,21 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
 const CREW_COLUMNS = (crew: Record<string, CrewNpcForm>): readonly PickColumn<NpcSource>[] => [
   {
     key: 'lead',
-    label: 'Lead',
+    label: crawlerCopy('lead'),
     kind: 'text',
     phone: true,
     value: (source) => source.npc.position ?? '',
   },
   {
     key: 'hp',
-    label: 'HP',
-    title: 'Hit Points',
+    label: crawlerCopy('hp'),
+    title: crawlerCopy('hitPoints'),
     phone: true,
     value: (source) => (source.npc.hitPoints ? source.npc.hitPoints : ''),
   },
   {
     key: 'name',
-    label: 'Name',
+    label: crawlerCopy('name'),
     kind: 'quiet',
     value: (source) => crew[source.ref]?.name ?? '',
   },

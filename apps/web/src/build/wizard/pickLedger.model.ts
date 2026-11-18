@@ -11,8 +11,8 @@ export type PickColumn<T> = Omit<LedgerColumn, 'kind'> & {
 
 /** The wizard's band paint (`--tone`, the kind's colour), for a Ledger in it. */
 export const WIZ_PAINT: Paint = {
-  background: 'var(--tone-band, var(--tone))',
-  color: 'var(--on-tone-band, var(--color-ink))',
+  background: 'var(--tone-band,var(--tone))',
+  color: 'var(--on-tone-band,var(--color-ink))',
   ink: false,
 }
 

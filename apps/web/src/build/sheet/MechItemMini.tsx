@@ -8,7 +8,9 @@
  * equipment shares): the condition, Uses, Repair (Damaged only: shows the
  * half-SV scrap cost and opens a MODAL confirm offering an OPTIONAL crawler
  * scrap-pool deduction; the no-deduction path is always available —
- * advisory, never blocks, but never a silent free flip either) and Remove.
+ * advisory, never blocks, but never a silent free flip either), Details where
+ * the item asks a choice (`MechItemDetails`, saved as `Mech.itemChoices`) and
+ * Remove.
  *
  * An unresolvable slug falls back to a plain chit (raw slug + status badge)
  * so unknown data never crashes the sheet.
@@ -23,6 +25,9 @@ import { poolShortfall } from '../../lib/rules/crawlerEconomy'
 import type { MechItem } from '../../lib/rules/mechItems'
 import { itemEconomy, itemUsesRemaining, repairScrapCost } from '../../lib/rules/mechItems'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { choicesOf } from '../wizard/pickColumns'
+import type { MechItemChoices } from './MechItemDetails'
+import { MechItemDetails } from './MechItemDetails'
 import { SheetItemLine } from './SheetItemLine'
 import { UnknownItemLine } from './UnknownItemLine'
 
@@ -70,6 +75,11 @@ type MechItemMiniProps = {
    * sheets (unified edit language archetype B). Omit on read-only sheets.
    */
   onRemove?: () => void
+  /**
+   * Where the item's chosen options are saved (`Mech.itemChoices`). With it, an
+   * editable item that asks a choice offers Details, where they are chosen.
+   */
+  choices?: MechItemChoices
 }
 
 export function MechItemMini({
@@ -84,6 +94,7 @@ export function MechItemMini({
   onUsesChange,
   onRepair,
   onRemove,
+  choices,
 }: MechItemMiniProps) {
   const [confirmingRepair, setConfirmingRepair] = useState(false)
 
@@ -103,6 +114,8 @@ export function MechItemMini({
   }
 
   const { maxUses } = itemEconomy(entity)
+  // Its options are chosen on its Page, in Edit.
+  const asksAChoice = !readOnly && choicesOf(entity).length > 0
   const remaining = itemUsesRemaining(maxUses, usesRemaining)
   const cost = repairScrapCost(entity.salvageValue)
   // techLevel can be 'B'/'N' (Bio/Nano) — only numeric TLs map to pool buckets.
@@ -179,7 +192,7 @@ export function MechItemMini({
             size="mini"
             context="loadout"
             entity={entity}
-            instance={{ condition }}
+            instance={{ condition, ...(choices?.seed ? { selections: choices.seed } : {}) }}
             mode={{ kind: 'link' }}
             body={{}}
           />
@@ -190,17 +203,20 @@ export function MechItemMini({
         onConditionCycle={onStatusCycle}
         uses={maxUses > 0 ? { remaining, max: maxUses, onChange: onUsesChange } : undefined}
         actions={
-          condition === 'damaged' && (
-            <Button
-              size="mini"
-              variant="primary"
-              className="su-sheet-item__repair"
-              aria-label={buildSheetCopy('repair2', { name: entity.name })}
-              onClick={() => setConfirmingRepair(true)}
-            >
-              {buildSheetCopy('repairScrap', { cost })}
-            </Button>
-          )
+          <>
+            {condition === 'damaged' && (
+              <Button
+                size="mini"
+                variant="primary"
+                className="su-sheet-item__repair"
+                aria-label={buildSheetCopy('repair2', { name: entity.name })}
+                onClick={() => setConfirmingRepair(true)}
+              >
+                {buildSheetCopy('repairScrap', { cost })}
+              </Button>
+            )}
+            {asksAChoice && choices && <MechItemDetails slug={slug} entity={entity} {...choices} />}
+          </>
         }
         onRemove={onRemove}
       />

@@ -14,9 +14,10 @@
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import { startingPatternRef } from 'game-domain/startingPattern'
-import type { RefChassis } from 'salvageunion-reference'
+import type { ChoiceSelections, RefChassis } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { mechPartnerSeeds, syncPartners } from '../rules/partnerGrants'
+import { madeChoices } from './itemChoices'
 
 /** Shape of form state carried through the mech wizard. */
 export type MechWizardFormState = {
@@ -38,6 +39,11 @@ export type MechWizardFormState = {
   quirk: string
   /** Freeform appearance note (maps to Mech.appearance). */
   appearance: string
+  /**
+   * The options chosen on a System or Module that asks a choice, by its slug
+   * (maps to Mech.itemChoices). Unset until one is made, as on the mech.
+   */
+  itemChoices?: Record<string, ChoiceSelections>
 }
 
 export const EMPTY_MECH_FORM_STATE: MechWizardFormState = {
@@ -86,9 +92,12 @@ type MechWizardPatch = Pick<
   | 'cargoLots'
   | 'quirk'
   | 'appearance'
+  | 'itemChoices'
 >
 
 export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatch {
+  // A removed item's choices go with it: only what is installed keeps its own.
+  const itemChoices = madeChoices(form.itemChoices, [...form.systems, ...form.modules])
   return {
     name: form.name.trim(),
     chassisRef: form.chassisName,
@@ -98,6 +107,7 @@ export function mechFormToUpdatePatch(form: MechWizardFormState): MechWizardPatc
     cargoLots: form.cargoLots,
     quirk: form.quirk.trim() || undefined,
     appearance: form.appearance.trim() || undefined,
+    ...(itemChoices ? { itemChoices } : {}),
   }
 }
 

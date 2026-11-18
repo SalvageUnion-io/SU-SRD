@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { RefChassis } from 'salvageunion-reference'
+import type { BookCite, RefChassis } from 'salvageunion-reference'
 import {
   nameToSlug,
   normalizePatternName,
@@ -19,45 +19,65 @@ export type ChassisPattern = RefChassis['patterns'][number]
 /**
  * A chassis's stats in the one column order (ruleset §2.6): its Salvage Value
  * in place, then its points and slots. What it costs is said once, on the foot.
- * A phone keeps two figures (L8); the pick's card under its row has the rest.
+ * A phone keeps two figures (L8); the pick's card under its list has the rest.
  */
 const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
   {
     key: 'sv',
-    label: 'SV',
-    title: 'Salvage Value, its cost in Tech 1 Scrap',
+    label: mechCopy('sv'),
+    title: mechCopy('salvageValueItsCost'),
     phone: true,
     value: (c) => c.salvageValue,
   },
   {
     key: 'sp',
-    label: 'SP',
-    title: 'Structure Points',
+    label: mechCopy('sp'),
+    title: mechCopy('structurePoints'),
     phone: true,
     value: (c) => c.structurePoints,
   },
-  { key: 'ep', label: 'EP', title: 'Energy Points', value: (c) => c.energyPoints },
-  { key: 'sys', label: 'Sys', title: 'System slots', value: (c) => c.systemSlots },
-  { key: 'mod', label: 'Mods', title: 'Module slots', value: (c) => c.moduleSlots },
-  { key: 'heat', label: 'Heat', title: 'Heat Capacity', value: (c) => c.heatCapacity },
+  {
+    key: 'ep',
+    label: mechCopy('ep'),
+    title: mechCopy('energyPoints'),
+    value: (c) => c.energyPoints,
+  },
+  {
+    key: 'sys',
+    label: mechCopy('sys'),
+    title: mechCopy('systemSlots'),
+    value: (c) => c.systemSlots,
+  },
+  {
+    key: 'mod',
+    label: mechCopy('mod'),
+    title: mechCopy('moduleSlots'),
+    value: (c) => c.moduleSlots,
+  },
+  {
+    key: 'heat',
+    label: mechCopy('heat'),
+    title: mechCopy('heatCapacity'),
+    value: (c) => c.heatCapacity,
+  },
   {
     key: 'cargo',
-    label: 'Cargo',
-    title: 'Cargo Capacity',
+    label: mechCopy('cargo'),
+    title: mechCopy('cargoCapacity'),
     value: (c) => c.cargoCapacity,
   },
 ]
 
-/** MOCK: a starting-pattern row: a book pattern, or the custom build. */
+/** A starting-pattern row: a book pattern, or the custom build. */
 type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }
 
 const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
-  { key: 'loadout', label: 'Loadout', kind: 'line', value: (row) => row.line },
+  { key: 'loadout', label: mechCopy('loadout'), kind: 'line', value: (row) => row.line },
 ]
 
 const CUSTOM_KEY = 'custom-build'
 
-/** MOCK: a pattern's loadout as one line, its systems then its modules. */
+/** A pattern's loadout as one line, its systems then its modules. */
 function loadoutLine(pattern: ChassisPattern): string {
   const names = (list: readonly { name: string; count?: number | undefined }[]) =>
     list.map((entry) =>
@@ -77,18 +97,19 @@ type MechChassisStepProps = {
   onSelectPattern: (pattern: ChassisPattern) => void
   /** Custom build — no prefill; craft manually in step 2. */
   onSelectCustom: () => void
+  /** Where the book prints the step's rule, on the chassis list's foot. */
+  cite: BookCite
 }
 
 /**
- * MOCK (Working Manual, mockup C) · Step 1 · Chassis. The Tech 1 chassis are
- * the rows of one picker (`PickList`): one frame in the mech band's paint, a
- * stamped head strip, a select row a chassis with its seven figures in fixed
- * columns, exactly one picked (radio). The pick fills the detail column as its
- * contentful card (art, its ability as a contentful Mini). "Or start from a
- * pattern" is the same picker: the `legalStarting` patterns and Custom build,
- * a name and a loadout line each. The rules are unchanged: only Tech 1 chassis
- * render, Scrap is the Salvage Value, and a pattern prefills step 2 and debits
- * the 20-Scrap pool.
+ * Step 1 · Chassis (Workshop Manual p.94). The Tech 1 chassis are the rows of
+ * one picker (`PickList`, ledger.md L7): a line a chassis with its seven
+ * figures in fixed columns, exactly one picked (radio). The pick stands beside
+ * the lists as its contentful card (its art, its ability as a contentful
+ * Mini: N3, E19). "Or start from a pattern" is the same picker: the chassis's
+ * `legalStarting` patterns and Custom build, a name and a loadout line each.
+ * Only Tech 1 chassis the 20 Scrap can buy render, a chassis costs its Salvage
+ * Value, and a pattern prefills step 2 and debits the same pool.
  */
 export function MechChassisStep({
   chassisName,
@@ -96,6 +117,7 @@ export function MechChassisStep({
   onSelectChassis,
   onSelectPattern,
   onSelectCustom,
+  cite,
 }: MechChassisStepProps) {
   const chassisPool = useMemo(
     () =>
@@ -144,7 +166,7 @@ export function MechChassisStep({
         <div>
           <PickList
             title={mechCopy('tech1Chassis')}
-            note="Choose 1"
+            note={mechCopy('choose1')}
             rows={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
             rowKey={(c) => nameToSlug(c.name)}
             rowName={(c) => c.name}
@@ -152,16 +174,16 @@ export function MechChassisStep({
             selected={chassisName || undefined}
             onSelect={onSelectChassis}
             foot={{
-              cite: 'Workshop Manual · p.94 · Mech Chassis pp.100–159',
-              meta: { label: 'Costs', value: 'its Salvage Value in Tech 1 Scrap' },
+              cite,
+              meta: { label: mechCopy('costs'), value: mechCopy('itsSalvageValueIn') },
             }}
           />
         </div>
         {selectedChassis !== undefined && (
           <div>
             <PickList
-              title="Or start from a pattern"
-              note="Optional"
+              title={mechCopy('orStartFromAPattern')}
+              note={mechCopy('optional')}
               rows={patternRows}
               rowKey={(row) => row.key}
               rowName={(row) => row.name}

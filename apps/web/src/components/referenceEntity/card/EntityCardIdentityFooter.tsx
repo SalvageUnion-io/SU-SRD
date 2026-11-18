@@ -43,6 +43,12 @@ type EntityCardIdentityFooterProps = {
   band?: CardColors
   /** The head band's speckle, worn on the foot's band too. */
   grain?: CardGrain | undefined
+  /**
+   * A foot whose meta is a sentence (a list's `COSTS | …`): where the line is
+   * too narrow for both, the meta wraps onto a line of its own under the
+   * source, which keeps its place at the band's top edge.
+   */
+  wrap?: boolean
 }
 
 const PAD_X: Record<Size, string> = { full: space[14], compact: space[12], mini: space[8] }
@@ -102,6 +108,7 @@ export function EntityCardIdentityFooter({
   credit,
   band,
   grain,
+  wrap = false,
 }: EntityCardIdentityFooterProps) {
   const printed = provenance ? citeLine(provenancePrintings(provenance)) : undefined
   const citation = credit ?? (printed ? <CiteLine text={printed} /> : undefined)
@@ -125,6 +132,8 @@ export function EntityCardIdentityFooter({
         color: onBand ? `var(--color-${band?.onBand})` : color.ink2,
         alignItems: 'baseline',
         display: 'flex',
+        // Reversed, the first line (the meta) is the lower one.
+        flexWrap: wrap ? 'wrap-reverse' : undefined,
         fontSize: fontSize.caption,
         gap: space[8],
         justifyContent: 'flex-end',
@@ -142,8 +151,10 @@ export function EntityCardIdentityFooter({
           style={{
             alignItems: 'baseline',
             display: 'inline-flex',
-            flexShrink: 0,
+            flexShrink: wrap ? 1 : 0,
+            flexWrap: wrap ? 'wrap' : undefined,
             gap: space[4],
+            minWidth: wrap ? 0 : undefined,
           }}
         >
           <span className={TYPE_LABEL} style={TYPE_CAPS}>
@@ -160,7 +171,7 @@ export function EntityCardIdentityFooter({
         <span
           style={{
             contain: 'inline-size',
-            flex: '1 1 0',
+            flex: wrap ? '1 1 12rem' : '1 1 0',
             minWidth: 0,
             textAlign: 'right',
             ...(onBand ? CUTOUT_SLOT : {}),

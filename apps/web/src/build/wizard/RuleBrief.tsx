@@ -23,7 +23,7 @@ type RuleBriefProps = StepRule & {
    */
   fold?: boolean
   /**
-   * MOCK (wave 2): what the rule asks for, over it in the same frame (a
+   * What the rule asks for, over it in the same frame (a
    * field with its Roll). The step's part is then one box: the ask, the
    * book's words under it, the cite on the foot.
    */
@@ -65,7 +65,7 @@ export function RuleBrief({ rule, cite, className, fold = false, children }: Rul
   const [open, setOpen] = useState(false)
   const ruleId = useId()
   const folds = fold && typeof rule === 'string' && rule.length > FOLD_FROM
-  // MOCK (Working Manual): a wizard step's brief (`fold`) wears the site's
+  // A wizard step's brief (`fold`) wears the site's
   // cite-foot cut-out, the card's own foot in the kind's band paint.
   if (fold) {
     return (

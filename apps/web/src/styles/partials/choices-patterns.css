@@ -17,6 +17,28 @@
   }
 }
 
+/* `choiceCard/ChoiceGroups.tsx` — an editable option: its toggle lies over
+   the whole box, and the box's own links and Peeks are raised above it, so
+   no link is ever nested in the button. */
+.su-choice-toggle {
+  position: relative;
+}
+
+.su-choice-toggle__hit {
+  background: none;
+  border: 0;
+  height: 100%;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.su-choice-toggle :is(a, [role='button'], [tabindex], [data-peek]) {
+  position: relative;
+  z-index: 1;
+}
+
 /* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
    flush when it is last (a structural `:not(:last-child)`). */
 .su-choice-region:not(:last-child) {

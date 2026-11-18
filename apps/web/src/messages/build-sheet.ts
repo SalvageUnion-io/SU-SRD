@@ -133,6 +133,7 @@ export const buildSheetCopy = messages({
   editCrewDetails: 'Edit {bayName} crew details',
   closeCrewDetails: 'Close {bayName} crew details',
   details: 'Details',
+  itemDetails: '{name} details',
   readOnlyCrewSheet: 'Read-only crew sheet',
   cargoKind: 'Cargo kind',
   cargo: 'Cargo',

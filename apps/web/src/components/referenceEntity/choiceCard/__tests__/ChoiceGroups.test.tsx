@@ -67,6 +67,21 @@ describe('ChoiceGroups — uncontrolled (ephemeral) state', () => {
     expect(ballistic.getAttribute('aria-pressed')).toBe('false')
   })
 
+  // A term in an option's text is a link of its own, so the toggle lies over
+  // the option's box and never wraps it: no control nests in the button.
+  test('the toggle holds nothing: the option, and any link in it, stands beside it', () => {
+    const { container } = render(<ChoiceGroups choices={[modificationChoice]} parent={parent} />)
+    const toggle = asButton(screen.getByRole('button', { name: 'Rangefinder' }))
+    expect(toggle.childElementCount).toBe(0)
+    expect(container.querySelector('button :is(a, button, [role="button"])')).toBeNull()
+    // The option's text describes the toggle, and the whole box presses it.
+    const describedBy = toggle.getAttribute('aria-describedby')
+    expect(describedBy && document.getElementById(describedBy)?.textContent).toContain(
+      'Increases Range to Far.'
+    )
+    expect(toggle.parentElement?.textContent).toContain('Rangefinder')
+  })
+
   // Inside a card (level 2, N1) an option is untitled: no head band, no seal;
   // on its entity's Page it is the headed option card with its "Chosen" seal.
   test('only on its Page is an option headed and sealed', () => {

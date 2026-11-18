@@ -1,18 +1,27 @@
 import { useState } from 'react'
-import type { ChoiceSelections, RefEquipment } from 'salvageunion-reference'
+import type { BookCite, ChoiceSelections, RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
+import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
-import { choicesOf, chosenChips, equipmentColumns, openChoices } from './pickColumns'
+import { chosenChips, equipmentColumns, openChoices } from './pickColumns'
 import { RecapMinis } from './ReviewRecap'
-import { WizMeter } from './WizShell'
+import { WizMeter } from './WizBudget'
 
 type SUREquipmentAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
 }
+
+/**
+ * Whether the wizard asks the item's choices: the ones a pilot keeps
+ * (`Pilot.equipmentChoices`, the item's own). A drone or companion the item
+ * grants is set up on the pilot's sheet, as its own card (ADR-028).
+ */
+const asksAChoice = (item: RefEquipment) =>
+  (item.choices?.length ?? 0) > 0 && !isPartnerEquipment(getEntitySlug(item))
 
 type EquipmentStepProps = {
   /** Picked slugs — duplicates allowed (one entry per copy). */
@@ -21,32 +30,35 @@ type EquipmentStepProps = {
   onCountChange: (slug: string, next: number) => void
   /** Selection cap: the total picks the Qty steppers are clamped at. */
   budget: number
-  /** MOCK (wave 2): each pick's chosen options, by slug, and their setter. */
-  choices?: Record<string, ChoiceSelections>
-  onChoices?: (slug: string, next: ChoiceSelections) => void
+  /** The options chosen on an item that asks a choice, by its slug (the form's `equipmentChoices`). */
+  choices: Record<string, ChoiceSelections> | undefined
+  onChoices: (slug: string, next: ChoiceSelections) => void
+  /** Where the book prints the step's rule, on the list's foot. */
+  cite: BookCite | undefined
   /** Injectable SUR for testing. */
   _sur?: { Equipment: SUREquipmentAccessor }
 }
 
 /**
- * MOCK (Working Manual, wave 2) · Step 2 · Equipment, as a picker in the
- * Ledger form (`PickList`, its count pick). The Tech 1 equipment is one framed
- * list, a line an item: its timing, range, damage and traits in fixed columns
- * and its count's stepper at the line's end. The two picks and the inventory
- * they fill are meters over the list. The line in focus opens as its card
- * beside the list (under its line on a phone), and that card is where its
- * options are chosen: a Custom Sniper Rifle's weapon type and modification
- * are picked there, each made choice a chip under the rifle's line and its
- * range and traits in the list already the chosen ones (hard rule R60).
- * The rules are unchanged: only Tech 1 renders, exactly `budget` picks,
- * duplicates allowed; at the budget every `+` is off.
+ * Step 2 · Equipment (Workshop Manual p.19), as a picker in the Ledger form
+ * (`PickList`, its count pick). The Tech 1 equipment is one framed list, a
+ * line an item: its timing, range, damage and traits in fixed columns and its
+ * count's stepper at the line's end. The two picks and the inventory they
+ * fill are meters over the list. The line in focus opens as its card beside
+ * the list (under its line on a phone), and that card is where its options
+ * are chosen: a Custom Sniper Rifle's weapon type and modification are picked
+ * there, saved with the pilot (`Pilot.equipmentChoices`), each made choice a
+ * chip under the rifle's line and its range and traits in the list already
+ * the chosen ones (hard rule R60). Only Tech 1 renders, exactly `budget`
+ * picks, duplicates allowed; at the budget every `+` is off.
  */
 export function EquipmentStep({
   selectedEquipment,
   onCountChange,
   budget,
-  choices = {},
+  choices,
   onChoices,
+  cite,
   _sur,
 }: EquipmentStepProps) {
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
@@ -67,41 +79,30 @@ export function EquipmentStep({
     const found = equipment.find((item) => getEntitySlug(item) === slug)
     return found ? [found] : []
   })
-  const columns = equipmentColumns<RefEquipment>((item) => choices[getEntitySlug(item)])
+  const columns = equipmentColumns<RefEquipment>((item) => choices?.[getEntitySlug(item)])
 
   const card = (item: RefEquipment) => {
     const slug = getEntitySlug(item)
     const count = copies(item)
-    const asks = choicesOf(item).length > 0 && onChoices !== undefined
-    const open = count > 0 ? openChoices(item, choices[slug]) : 0
+    const asks = asksAChoice(item)
+    const open = asks && count > 0 ? openChoices(item, choices?.[slug]) : 0
     return (
-      <div className="su-wiz-own-rules">
-        <ReferenceEntityCard
-          data={item}
-          size="compact"
-          selected={count >= 1}
-          hide={asks ? {} : { choices: true }}
-          controls={[
-            {
-              key: 'qty',
-              stepper: {
-                label: buildWizardCopy('qty'),
-                subject: `${item.name} count`,
-                value: count,
-                ceiling: count + remaining,
-                onChange: (next) => onCountChange(slug, next),
-              },
-            },
-          ]}
-          {...(asks
-            ? {
-                selections: choices[slug] ?? {},
-                onSelectionChange: (next: ChoiceSelections) => onChoices(slug, next),
-              }
-            : {})}
-          {...(open > 0 ? { footMeta: [{ label: `${open} to choose`, value: '' }] } : {})}
-        />
-      </div>
+      <ReferenceEntityCard
+        data={item}
+        size="compact"
+        selected={count >= 1}
+        // A pick's card says its own rules: no lead line, no flavour.
+        hide={{ lead: true, flavor: true, ...(asks ? {} : { choices: true }) }}
+        {...(asks
+          ? {
+              selections: choices?.[slug] ?? {},
+              onSelectionChange: (next: ChoiceSelections) => onChoices(slug, next),
+            }
+          : {})}
+        {...(open > 0
+          ? { footMeta: [{ label: buildWizardCopy('toChoose', { count: open }), value: '' }] }
+          : {})}
+      />
     )
   }
 
@@ -115,11 +116,11 @@ export function EquipmentStep({
   }
 
   return (
-    <div className="su-wiz-stack su-wiz-stack--12">
+    <div className="su-wiz-step">
       <div className="su-wiz-budget">
-        <WizMeter label="Picks" value={selectedEquipment.length} max={budget} />
+        <WizMeter label={buildWizardCopy('picks')} value={selectedEquipment.length} max={budget} />
         <WizMeter
-          label="Inventory slots"
+          label={buildWizardCopy('inventorySlots')}
           value={pilotInventoryUsed({ equipment: selectedEquipment, genericInventory: [] })}
           max={pilotInventoryCapacity()}
         />
@@ -128,9 +129,14 @@ export function EquipmentStep({
         <div className="su-wiz-compare-main">
           <div>
             <PickList
-              title="Tech 1 Equipment"
+              title={buildWizardCopy('tech1Equipment')}
               note={
-                <Stat label="Picks" value={selectedEquipment.length} max={budget} size="mini" />
+                <Stat
+                  label={buildWizardCopy('picks')}
+                  value={selectedEquipment.length}
+                  max={budget}
+                  size="mini"
+                />
               }
               rows={equipment}
               rowKey={getEntitySlug}
@@ -147,20 +153,29 @@ export function EquipmentStep({
                   onCountChange(getEntitySlug(item), next)
                 },
               }}
-              under={(item) => chosenChips(item, choices[getEntitySlug(item)])}
+              under={(item) => chosenChips(item, choices?.[getEntitySlug(item)])}
               detail={card}
-              foot={{
-                cite: 'Workshop Manual · p.19 · Pilot Equipment pp.78–87',
-                meta: { label: 'Choose', value: `${budget}, duplicates allowed` },
-              }}
+              {...(cite
+                ? {
+                    foot: {
+                      cite,
+                      meta: {
+                        label: buildWizardCopy('choose'),
+                        value: buildWizardCopy('duplicatesAllowed', { count: budget }),
+                      },
+                    },
+                  }
+                : {})}
             />
           </div>
         </div>
         <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll su-wiz-compare-detail--desk">
           {focused && card(focused)}
-          <div>
-            <RecapMinis label="Your picks" entities={picked} empty="None yet" />
-          </div>
+          <RecapMinis
+            label={buildWizardCopy('yourPicks')}
+            entities={picked}
+            empty={buildWizardCopy('noneYet')}
+          />
         </div>
       </div>
     </div>

@@ -365,6 +365,7 @@ export function Ledger({
           credit={foot}
           {...(footMeta ? { footMeta } : {})}
           size="mini"
+          wrap
           band={{
             bandColor: paint.background,
             onBand: paint.color === 'var(--color-paper)' ? 'paper' : 'ink',

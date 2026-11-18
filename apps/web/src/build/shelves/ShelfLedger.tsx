@@ -1,18 +1,16 @@
-// MOCK (Working Manual, wave 2): a Training Bay shelf as a LEDGER (the reading
-// lane's `components/entity/Ledger.tsx`), one framed list a kind in that
-// kind's band paint: the shelf's name on the head strip's paper cut-out, its
-// columns as mini ink stamps, its one make (`+ New pilot`, rust) on a second
-// cut-out at the strip's end, then a Mini-height line a unit: its name the
-// link to its sheet, what it is and its live readings in fixed columns, the
-// unit it is paired with and its Game as links, and its ⋯ menu at the line's
-// end. It replaces a Slab over a stack of Compacts, each with its own band and
-// its own chip strip (`Shelf`, `ShelfItem`), whose lanes ran ragged.
+// A Training Bay shelf as a Ledger (`components/entity/Ledger.tsx`), one
+// framed list a kind in that kind's band paint: the shelf's name on the head
+// strip's paper cut-out, its columns as mini ink stamps, its one make
+// (`+ New pilot`, rust) on a second cut-out at the strip's end, then a
+// Mini-height line a unit: its name the link to its sheet, what it is and its
+// live readings in fixed columns, the unit it is paired with and its Game as
+// links, and its ⋯ menu at the line's end.
 import type { ReactNode } from 'react'
 import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
 import { HeaderMenu, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 
-export type ShelfLedgerRow = {
+type ShelfLedgerRow = {
   id: string
   name: string
   /** Its sheet; without one the name is plain. */

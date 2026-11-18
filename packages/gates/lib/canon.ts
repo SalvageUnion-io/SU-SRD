@@ -171,7 +171,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   C2a: ['R4'],
   C2b: ['R37'],
   C3: ['R3'],
-  C4: ['tokenChips.test.ts', 'Mini.test.tsx', 'ShelfItem.test.tsx'],
+  C4: ['tokenChips.test.ts', 'Mini.test.tsx', 'Shelves.test.tsx'],
   C5: ['R3', 'R37'],
   C6: ['R2'],
   C7: ['R2'],

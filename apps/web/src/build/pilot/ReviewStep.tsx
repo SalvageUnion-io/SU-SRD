@@ -1,4 +1,4 @@
-import type { ChoiceSelections, RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
+import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { Box, FieldError, ReferenceEntityCard } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
@@ -18,8 +18,6 @@ type SURFind<T> = { find: (fn: (x: T) => boolean) => T | undefined }
 type ReviewStepProps = {
   form: PilotWizardFormState
   submitError: string | null
-  /** MOCK (wave 2): each pick's chosen options, by slug. */
-  choices?: Record<string, ChoiceSelections>
   /** Injectable SUR for testing. */
   _sur?: {
     Classes: SURFind<RefClass>
@@ -31,13 +29,13 @@ type ReviewStepProps = {
 const ABILITY_COLUMNS = abilityColumns<RefAbility>()
 
 /**
- * MOCK (Working Manual, wave 2) · Step 4 · Review. The pilot as the sheet
- * will read: who they are as Stats, their starting numbers, their ability and
- * their equipment a Ledger each (the pickers' own columns, each made choice a
- * chip under its line, hard rule R60), and their class beside it as its
- * contentful card. It replaces a recap panel beside one full card a pick.
+ * Step 4 · Review. The pilot as the sheet will read: who they are as Stats,
+ * their starting numbers, their ability and their equipment a Ledger each
+ * (the pickers' own columns, each made choice a chip under its line, hard
+ * rule R60), and their class beside it as its contentful card.
  */
-export function ReviewStep({ form, submitError, choices = {}, _sur }: ReviewStepProps) {
+export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
+  const choices = form.equipmentChoices
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
@@ -49,7 +47,7 @@ export function ReviewStep({ form, submitError, choices = {}, _sur }: ReviewStep
   const chosenEquipment = form.equipment
     .map((slug) => surEquipment.findAll((e) => nameToSlug(e.name) === slug)[0])
     .filter((e) => e !== undefined)
-  const equipmentCols = equipmentColumns<RefEquipment>((item) => choices[nameToSlug(item.name)])
+  const equipmentCols = equipmentColumns<RefEquipment>((item) => choices?.[nameToSlug(item.name)])
 
   return (
     <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
@@ -72,15 +70,14 @@ export function ReviewStep({ form, submitError, choices = {}, _sur }: ReviewStep
             title={pilotCopy('abilities')}
             entities={chosenAbilities}
             columns={ABILITY_COLUMNS}
-            choices={choices}
-            empty="No ability chosen."
+            empty={pilotCopy('noAbilityChosen')}
           />
           <ReviewLedger
             title={pilotCopy('equipment')}
             entities={chosenEquipment}
             columns={equipmentCols}
             choices={choices}
-            empty="No equipment chosen."
+            empty={pilotCopy('noEquipmentChosen')}
           />
         </div>
       </div>

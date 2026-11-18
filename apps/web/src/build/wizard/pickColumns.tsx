@@ -1,19 +1,22 @@
-// MOCK (Working Manual, wave 2): what a picker's and a review Ledger's columns
-// read off an entity, one place for both. The values are the entity model's
-// own (`toEntityModel`: its book stats, its action's facts, its traits), so a
-// row says what the entity's card says. A component whose options are chosen
-// reads through `resolveChoiceView`: its range, damage and traits are the
-// chosen ones (the criteria's "chosen options must update the action").
+// What a picker's and a review Ledger's columns read off an entity, one place
+// for both. The values are the entity's own and its display model's
+// (`toEntityModel`: its action's facts, its traits), so a row says what the
+// entity's card says. An item whose options are chosen reads through
+// `resolveChoiceView`: its range, damage and traits are the chosen ones (hard
+// rule R60: a made choice reads as made).
 import type { ReactNode } from 'react'
 import type {
   ChoiceSelections,
   EntityModel,
   RefMetaEntity,
+  RefModule,
   RefObjectChoice,
+  RefSystem,
 } from 'salvageunion-reference'
 import { resolveChoiceView, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Stat } from '../../components/index'
 import { readReference } from '../../lib/readReference'
+import { buildWizardCopy } from '../../messages/build-wizard'
 import type { PickColumn } from './pickLedger.model'
 
 const models = new WeakMap<object, EntityModel>()
@@ -85,11 +88,6 @@ function factValue(model: EntityModel, key: string): string {
   return keyword?.param ? String(keyword.param) : ''
 }
 
-function bookValue(model: EntityModel, key: string): string {
-  const found = model.bookStats.find((fact) => fact.key === key)
-  return found ? String(found.value) : ''
-}
-
 function dataValue<T extends RefMetaEntity>(
   row: T,
   label: 'Range' | 'Damage',
@@ -146,24 +144,26 @@ function actionColumns<T extends RefMetaEntity>(selected?: Selected<T>): PickCol
   ]
 }
 
-/** A system's or a module's columns: Slots, SV, then what it does. */
-export function loadoutColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
+/** A System's or a Module's columns: Slots, SV, then what it does; its options change them. */
+export function loadoutColumns<T extends RefSystem | RefModule>(
+  selected?: Selected<T>
+): PickColumn<T>[] {
   return [
     {
       key: 'slots',
-      label: 'Slots',
-      title: 'Slots Required',
+      label: buildWizardCopy('slots'),
+      title: buildWizardCopy('slotsRequired'),
       phone: true,
-      value: (row) => bookValue(modelOf(row), 'book-Slots Required'),
+      value: (row) => row.slotsRequired,
     },
     {
       key: 'sv',
-      label: 'SV',
-      title: 'Salvage Value, its cost in Scrap',
+      label: buildWizardCopy('sv'),
+      title: buildWizardCopy('salvageValueItsCost'),
       phone: true,
-      value: (row) => bookValue(modelOf(row), 'book-Salvage Value'),
+      value: (row) => row.salvageValue,
     },
-    ...actionColumns<T>(),
+    ...actionColumns<T>(selected),
   ]
 }
 
@@ -188,14 +188,14 @@ export function abilityColumns<T extends RefMetaEntity>(): PickColumn<T>[] {
     range as PickColumn<T>,
     {
       key: 'lead',
-      label: 'What it does',
+      label: buildWizardCopy('whatItDoes'),
       kind: 'quiet',
       value: (row) => modelOf(row).lead ?? '',
     },
     {
       key: 'ap',
       label: 'AP',
-      title: 'Ability Points to use it',
+      title: buildWizardCopy('abilityPointsToUse'),
       phone: true,
       value: (row) => {
         const cost = actionOf(row)?.activationCost

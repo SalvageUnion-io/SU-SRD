@@ -1,10 +1,10 @@
 /**
  * Unit tests for CrawlerCrewStep — the wizard's crew/NPC roster step
- * (entity-card rows expanding to IdentityFields).
+ * (a Ledger line a crewed Bay, the open line's fields under it).
  *
  * Renders the 10 crewed base bays (the 4 expansion bays carry no NPC →
  * excluded) plus the selected crawler type's special NPC HEADING the list.
- * Each row is the SRD entity card, header-only until expanded; the expanded
+ * Each row is a line (the Bay, its lead, their HP) until opened; the open
  * row exposes the freeform set Name/Background/Keepsake/Motto through
  * click-to-edit IdentityFields, guarded off the NPC's own choices: the
  * Augmented type's A.I. has only Name/Background.
@@ -27,13 +27,9 @@ function bayByName(name: string) {
   return must(crewedBays().find((b) => b.name === name))
 }
 
-/** Expand a roster row by pressing its shut Mini, a button named for the entity. */
+/** Open a roster row's fields: the row's radio, named for its Bay or type. */
 function expandRow(name: string): void {
-  const card = screen
-    .getAllByRole('button')
-    .find((b) => (b.getAttribute('aria-label') ?? '').startsWith(name))
-  if (!card) throw new Error(`No clickable roster card for "${name}"`)
-  fireEvent.click(card)
+  fireEvent.click(screen.getByRole('radio', { name }))
 }
 
 /** Open a click-to-edit IdentityField and return its input. */
