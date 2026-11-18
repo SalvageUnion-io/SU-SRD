@@ -61,10 +61,16 @@ import {
 } from 'salvageunion-reference/rules'
 import { rollForTable } from '../components/index'
 import { changeUndoToast } from '../lib/changeUndoToast'
-import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionPatches'
+import { replacePartner } from '../lib/partnerLookup'
+import type {
+  PlayAction,
+  PlayActionCompanion,
+  PlayActionCurrency,
+} from '../lib/rules/actionPatches'
 import {
   activationHeatGate,
   activationPatch,
+  buildCompanionActions,
   buildMechActions,
   buildPilotActions,
   coreMechanicRowText,
@@ -78,6 +84,7 @@ import {
 } from '../lib/rules/actionPatches'
 import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEconomy'
 import type { MechItemEconomy } from '../lib/rules/mechItems'
+import { partnerDerivedStats, partnerTechLevel } from '../lib/rules/partnerStats'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
@@ -231,7 +238,40 @@ export function useActionsDeck({
   // equipment in the cockpit).
   const onFoot = situation === 'onFoot'
   const pilotDeck = pilot ? buildPilotActions(pilot) : []
-  const deck = onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
+  // MOCK (wave 2, the actions board): the companions' actions are in the deck
+  // too. A pilot's companion acts on its own turn, on foot or Boarded; a
+  // mech's drone is reached from its mech.
+  const companionDeck = [
+    ...(pilot ? buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners) : []),
+    ...(!onFoot && mech ? buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners) : []),
+  ]
+  const deck = [
+    ...(onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]),
+    ...companionDeck,
+  ]
+
+  /**
+   * MOCK (wave 2): a companion as its host's record holds it now, with its EP
+   * and Heat maxima. "Uses the same rules as Mechs": its actions spend its
+   * own EP, make its own Heat and tick its own Uses.
+   */
+  function companionNow(c: PlayActionCompanion) {
+    const host = c.host.kind === 'pilot' ? s.get('pilot', c.host.id) : s.get('mech', c.host.id)
+    const partner = host?.partners?.find((p) => p.id === c.id)
+    if (!host || !partner) return null
+    const techLevel = partnerTechLevel(
+      partner,
+      c.host.kind === 'pilot' && pilot ? resolveEffectiveCrawlerLevel(pilot, crawler) : undefined
+    )
+    const max = partnerDerivedStats(partner, techLevel)
+    return {
+      host,
+      partner,
+      maxEP: max.energyPoints,
+      heatCap: max.heatCapacity,
+      currentHeat: resolveGauge(partner.currentHeat),
+    }
+  }
 
   // Heat context for the heat-lock (pilots carry no heat).
   const heatCtx = (() => {
@@ -341,6 +381,47 @@ export function useActionsDeck({
               runWrite(() => s.update('pilot', pilot.id, { currentAP: value }, meta)),
           })
       } else step(current, { activated: true })
+      return
+    }
+    // MOCK (wave 2): a companion's action spends the companion's own EP, Heat and Uses.
+    if (action.companion) {
+      const c = action.companion
+      const now = companionNow(c)
+      if (!now) return
+      const before = resolvePoolStart(now.partner.currentEP, now.maxEP)
+      const patch = activationPatch({
+        slug: action.slug,
+        economy,
+        currentEP: before,
+        currentHeat: now.currentHeat,
+        heatCap: now.heatCap,
+        prevUses: now.partner.itemUses,
+      })
+      if (Object.keys(patch).length === 0) {
+        step(current, { activated: true })
+        return
+      }
+      const write = (fields: typeof patch) => {
+        const fresh = companionNow(c)
+        if (!fresh) return Promise.resolve()
+        const partners = replacePartner(fresh.host.partners, c.id, fields)
+        return c.host.kind === 'pilot'
+          ? s.update('pilot', c.host.id, { partners }, meta)
+          : s.update('mech', c.host.id, { partners }, meta)
+      }
+      runWrite(
+        () => write(patch),
+        () => step(current, { activated: true })
+      )
+      if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
+        changeUndoToast({
+          id: `partner:${c.id}:currentEP`,
+          label: `${c.name} EP`,
+          did: `Used ${action.name}`,
+          from: before,
+          to: patch.currentEP,
+          undo: (value) => runWrite(() => write({ currentEP: value })),
+        })
       return
     }
     // EP is the mech's: only a boarded deck offers it.
@@ -503,13 +584,18 @@ export function useActionsDeck({
         : selected.currency
 
     // Heat projection + cap gate (EP activations only; pilots carry no Heat).
+    // MOCK (wave 2): a companion's Heat is its own, on foot or Boarded.
+    const companion = selected.companion ? companionNow(selected.companion) : null
+    const actionHeat = companion
+      ? { currentHeat: companion.currentHeat, heatCap: companion.heatCap }
+      : heatCtx
     const { applies: heatApplies, ok: heatOk } = activationHeatGate({
       currency: effCurrency,
-      onFoot,
+      onFoot: selected.companion ? false : onFoot,
       heat: eco.heat,
-      ...heatCtx,
+      ...actionHeat,
     })
-    const projectedHeat = heatCtx.currentHeat + eco.heat
+    const projectedHeat = actionHeat.currentHeat + eco.heat
     const apUnavailable = effCurrency === 'AP' && !pilot
     const activateDisabled = activated || !heatOk || apUnavailable
 
@@ -543,7 +629,7 @@ export function useActionsDeck({
         ? {
             hotX,
             activated,
-            projText: `Heat ${projectedHeat}/${heatCtx.heatCap}${heatOk ? '' : ' — over cap'}`,
+            projText: `Heat ${projectedHeat}/${actionHeat.heatCap}${heatOk ? '' : ' — over cap'}`,
             over: !heatOk,
             onDec: () => setHotX((x) => Math.max(1, x - 1)),
             onInc: () => setHotX((x) => x + 1),
@@ -560,7 +646,8 @@ export function useActionsDeck({
         activated,
         onRoll: () => void (salvaging ? doSalvageRoll(current) : doRoll(current)),
         push:
-          isPilotAction || salvaging
+          // A companion cannot Push (Core Book p.68).
+          isPilotAction || salvaging || selected.companion
             ? undefined
             : {
                 disabled: roll === null || pushed || pushLocked,

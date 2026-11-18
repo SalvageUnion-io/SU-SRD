@@ -19,6 +19,7 @@ import { pushHeatAt, scaleHeat } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
 import type { Mech } from 'game-domain/schemas/mech'
+import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type {
@@ -28,7 +29,13 @@ import type {
   RefMetaEntity,
   RefObjectChoice,
 } from 'salvageunion-reference'
-import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  droneOwnLoadout,
+  getEntitySlug,
+  resultForTable,
+  SalvageUnionReference,
+  toEntityModel,
+} from 'salvageunion-reference'
 import type {
   CoreRollBand,
   HeatCheckEffect,
@@ -52,6 +59,8 @@ import {
 } from 'salvageunion-reference/rules'
 import type { MechItemEconomy } from './mechItems'
 import { actionEconomy, resolveModule, resolveSystem } from './mechItems'
+import { isPartnerEquipment } from './partnerGrants'
+import { resolvePartnerStatBlock } from './partnerStats'
 import { carriedEquipment, resolveEquipment } from './pilotInventory'
 
 // ---------------------------------------------------------------------------
@@ -272,6 +281,24 @@ export type PlayAction = {
    * Damage and traits. Absent for an item with no choices.
    */
   choices?: { from: RefObjectChoice[]; selections: ChoiceSelections }
+  /**
+   * MOCK (wave 2, the actions board): the companion whose action this is (a
+   * pilot's Mecha Companion, a chassis's drone). Its EP, Heat and Uses are the
+   * companion's own, on its host's record, and it never Pushes.
+   */
+  companion?: PlayActionCompanion
+  /** MOCK: the option this row is (an Automated Weapon Turret's chosen Turret Model). */
+  variantOf?: string
+}
+
+/** MOCK (wave 2): whose action a companion's row is. */
+export type PlayActionCompanion = {
+  id: string
+  /** Its own name ("Rivet"), else its stat block's. */
+  name: string
+  host: { kind: 'pilot' | 'mech'; id: string }
+  /** Its Mini's tone in the Units column, which its rows wear. */
+  tone: string
 }
 
 function entityActions(entity: RefMetaEntity): RefMetaAction[] {
@@ -311,33 +338,177 @@ export function buildMechActions(mech: Mech): PlayAction[] {
     })
   }
 
-  const build = (slugs: string[], kind: 'system' | 'module') => {
-    const conditions = kind === 'system' ? mech.systemConditions : mech.moduleConditions
+  out.push(
+    ...itemActions({
+      owner: mech,
+      systems: mech.systems ?? [],
+      modules: mech.modules ?? [],
+      systemConditions: mech.systemConditions,
+      moduleConditions: mech.moduleConditions,
+      keyOf: (kind, slug) => `${kind}:${slug}`,
+    })
+  )
+
+  return out
+}
+
+/**
+ * MOCK (wave 2, the actions board): every action of a set of installed
+ * Systems and Modules, a mech's or a companion's. An action that carries
+ * choices (an Automated Weapon Turret's Turret Model) takes the owner's
+ * picks, and a picked variant's own actions follow it as rows of their own
+ * (R60: a made choice reads as made).
+ */
+function itemActions(args: {
+  owner: { id: string }
+  systems: readonly string[]
+  modules: readonly string[]
+  systemConditions: Record<string, ItemCondition> | undefined
+  moduleConditions: Record<string, ItemCondition> | undefined
+  keyOf: (kind: 'system' | 'module', slug: string) => string
+  companion?: PlayActionCompanion
+}): PlayAction[] {
+  const out: PlayAction[] = []
+  const build = (slugs: readonly string[], kind: 'system' | 'module') => {
+    const conditions = kind === 'system' ? args.systemConditions : args.moduleConditions
     for (const slug of slugs) {
       const item = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
       if (!item) continue
       const condition = conditions?.[slug] ?? 'intact'
+      const base = {
+        kind,
+        stamp: kind === 'system' ? 'SYS' : 'MOD',
+        currency: 'EP',
+        ownerName: item.name,
+        slug,
+        condition,
+        ...(args.companion ? { companion: args.companion } : {}),
+      } as const
       deckActions(item).forEach((action, i) => {
+        const from = action.choices ?? []
+        const selections = from.length > 0 ? mockItemChoices(args.owner.id, slug) : undefined
         out.push({
-          key: `${kind}:${slug}:${action.id ?? i}`,
+          ...base,
+          key: `${args.keyOf(kind, slug)}:${action.id ?? i}`,
           name: action.name,
-          kind,
-          stamp: kind === 'system' ? 'SYS' : 'MOD',
-          currency: 'EP',
-          ownerName: item.name,
-          slug,
           economy: actionEconomy(action),
           action,
-          condition,
+          ...(from.length > 0 ? { choices: { from, selections: selections ?? {} } } : {}),
         })
+        for (const variant of pickedVariantActions(from, selections ?? {})) {
+          out.push({
+            ...base,
+            key: `${args.keyOf(kind, slug)}:${action.id ?? i}:${variant.id ?? variant.name}`,
+            name: variant.name,
+            economy: actionEconomy(variant),
+            action: variant,
+            variantOf: item.name,
+          })
+        }
       })
     }
   }
-
-  build(mech.systems ?? [], 'system')
-  build(mech.modules ?? [], 'module')
-
+  build(args.systems, 'system')
+  build(args.modules, 'module')
   return out
+}
+
+/** The actions of the variants picked on a `systemVariant` choice (a Turret Model). */
+function pickedVariantActions(
+  choices: readonly RefObjectChoice[],
+  selections: ChoiceSelections
+): RefMetaAction[] {
+  return choices.flatMap((choice) => {
+    if (choice.source?.kind !== 'systemVariant') return []
+    const picked = selections[choice.id] ?? []
+    return choice.source.options
+      .filter((option) => option.name !== undefined && picked.includes(option.name))
+      .flatMap((option) =>
+        (option.actions ?? []).flatMap((name) => {
+          const action = SalvageUnionReference.Actions.getByName(name)
+          return action && !action.hidden ? [action] : []
+        })
+      )
+  })
+}
+
+/**
+ * MOCK (wave 2): where a System's, Module's or ability's picks are read from.
+ * The records have nowhere to keep them yet (only `pilot.equipmentChoices`
+ * exists), so the mock reads a local map (`localStorage['su-mock-item-choices']`,
+ * `{ [unitId]: { [slug]: selections } }`). NEEDED FOR A REAL BUILD:
+ * `mech.systemChoices`, `mech.moduleChoices`, `pilot.abilityChoices` and the
+ * same on a companion, written by the sheet's Details card.
+ */
+export function mockItemChoices(unitId: string, slug: string): ChoiceSelections | undefined {
+  try {
+    const raw = globalThis.localStorage?.getItem('su-mock-item-choices')
+    if (!raw) return undefined
+    const all = JSON.parse(raw) as Record<string, Record<string, ChoiceSelections>>
+    return all[unitId]?.[slug]
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * MOCK (wave 2, the actions board): a companion's actions. A companion "uses
+ * the same rules as Mechs" and acts on its own turn, so every action of its
+ * stat block (a drone's own abilities and loadout) and of each System and
+ * Module installed on it is a row, on the companion's own EP, Heat and Uses.
+ * The row that only says how the companion is built (the Mecha Companion
+ * ability's own text) is not an action and is left out.
+ */
+export function buildPartnerActions(
+  partner: PartnerInstance,
+  host: { kind: 'pilot' | 'mech'; id: string }
+): PlayAction[] {
+  const statBlock = resolvePartnerStatBlock(partner)
+  if (!statBlock) return []
+  const companion: PlayActionCompanion = {
+    id: partner.id,
+    name: partner.name?.trim() || statBlock.name,
+    host,
+    tone: toEntityModel(statBlock).tone,
+  }
+  const own: PlayAction[] = deckActions(statBlock)
+    .filter((action) => action.actionType !== undefined && action.name !== statBlock.name)
+    .map((action, i) => ({
+      key: `partner:${partner.id}:own:${action.id ?? i}`,
+      name: action.name,
+      kind: 'chassis',
+      stamp: 'CHS',
+      currency: 'EP',
+      ownerName: statBlock.name,
+      slug: partner.hostRef,
+      economy: actionEconomy(action),
+      action,
+      condition: 'intact',
+      companion,
+    }))
+  const printed = droneOwnLoadout(statBlock)
+  const slugs = (entities: readonly Parameters<typeof getEntitySlug>[0][]) =>
+    entities.map((e) => getEntitySlug(e))
+  return [
+    ...own,
+    ...itemActions({
+      owner: partner,
+      systems: [...slugs(printed.systems), ...partner.systems],
+      modules: [...slugs(printed.modules), ...partner.modules],
+      systemConditions: partner.systemConditions,
+      moduleConditions: partner.moduleConditions,
+      keyOf: (kind, slug) => `partner:${partner.id}:${kind}:${slug}`,
+      companion,
+    }),
+  ]
+}
+
+/** Every companion of a host, each one's actions. */
+export function buildCompanionActions(
+  host: { kind: 'pilot' | 'mech'; id: string },
+  partners: readonly PartnerInstance[] | undefined
+): PlayAction[] {
+  return (partners ?? []).flatMap((partner) => buildPartnerActions(partner, host))
 }
 
 /** Resolve a pilot ability slug against the reference ORM. */
@@ -380,8 +551,18 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
   for (const slug of [...owned, ...INTRINSIC_ABILITIES.filter((s) => !owned.includes(s))]) {
     const ability = resolveAbilityBySlug(slug)
     if (!ability) continue
+    // MOCK (wave 2): an ability that grants a companion prints how the
+    // companion is built, not an action; the companion's own rows stand for it.
+    const grantsCompanion = (ability.grants ?? []).some(
+      (grant) =>
+        grant.schema === 'equipment' &&
+        isPartnerEquipment(
+          getEntitySlug(SalvageUnionReference.Equipment.getByName(grant.name) ?? ability)
+        )
+    )
     deckActions(ability).forEach((action, i) => {
       if (action.id && carriedActionIds.has(action.id)) return
+      if (grantsCompanion && action.actionType === undefined) return
       out.push({
         key: `ability:${slug}:${action.id ?? i}`,
         name: action.name,

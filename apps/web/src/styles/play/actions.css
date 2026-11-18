@@ -240,3 +240,26 @@ button.su-play-dt-track__step:disabled {
     display: none;
   }
 }
+
+/*
+ * MOCK (Working Manual wave 2, the actions board): a closed row says its
+ * effect in at most two short lines under its head, in the caption
+ * size; the whole effect is the opened row's. Its picks sit as
+ * chips over its steps.
+ */
+.su-play-act__effect {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-ink);
+  display: -webkit-box;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: var(--leading-snug, 1.35);
+  margin: 0;
+  overflow: hidden;
+}
+.su-play-act__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
