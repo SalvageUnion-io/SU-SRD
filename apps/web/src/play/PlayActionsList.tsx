@@ -176,7 +176,16 @@ function onHandGroups(onHand: readonly ListEntry[]): Group[] {
   return groups.filter((group) => group.entries.length > 0)
 }
 
-export function PlayActionsList({ play, actions }: { play: Play; actions: PlayActions }) {
+export function PlayActionsList({
+  play,
+  actions,
+  head,
+}: {
+  play: Play
+  actions: PlayActions
+  /** A group's heading: under the column's "Actions" from `lg`, under the page's below it. */
+  head: 'h2' | 'h3'
+}) {
   const groups = onHandGroups(actions.onHand)
   return (
     <>
@@ -188,7 +197,7 @@ export function PlayActionsList({ play, actions }: { play: Play; actions: PlayAc
           {groups.map((group) => (
             <SlabSection
               key={group.key}
-              as="h3"
+              as={head}
               size="mini"
               title={group.label}
               count={group.entries.length}

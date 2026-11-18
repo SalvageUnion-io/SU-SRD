@@ -284,7 +284,7 @@ export function CrawlerLiveSheet({
               <Button
                 key={action.dialog}
                 variant="primary"
-                size="compact"
+                size="full"
                 onClick={() => setEconDialog(action.dialog)}
               >
                 {action.label}

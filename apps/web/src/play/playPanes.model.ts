@@ -4,8 +4,9 @@
  * is pinned above them below `lg`.
  *
  *  - The player's (`playerPanes`): from `lg` Units | Act | Crew, then Tables,
- *    in the end column; below it the tabs Act, Units, Tables, Crew
- *    (`PLAYER_TABS`). Crew is a Game's, so a solo screen has three.
+ *    in the end column; below it the tabs Act, Crew, Rolls, Rules
+ *    (`PLAYER_TABS`), the Units pane opened from ⋯. Crew is a Game's, so a
+ *    solo screen has three.
  *  - The Mediator's: Table, Opposition, Tables, Propose (`mediatorPanes`; the
  *    second reads Downtime while it runs). From `lg`: Table | Opposition |
  *    Tables, then Propose docked at the column's foot.

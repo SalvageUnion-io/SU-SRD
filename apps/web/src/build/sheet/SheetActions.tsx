@@ -132,7 +132,7 @@ function SheetActions({
       {groups.map((group) => (
         <SlabSection
           key={group.type}
-          as={section ? 'h4' : 'h3'}
+          as={section ? 'h3' : 'h2'}
           size="mini"
           title={group.type}
           count={group.actions.length}
@@ -147,7 +147,7 @@ function SheetActions({
     </div>
   )
   return section ? (
-    <SlabSection fold="open" title={buildSheetCopy('actions')} count={actions.length}>
+    <SlabSection fold="open" as="h2" title={buildSheetCopy('actions')} count={actions.length}>
       {list}
     </SlabSection>
   ) : (

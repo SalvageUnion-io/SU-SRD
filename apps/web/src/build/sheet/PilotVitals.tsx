@@ -71,7 +71,7 @@ type PilotVitalsProps = {
   model: PilotSheetModel
   actions: PilotSheetActions
   readOnly: boolean
-  /** The viewer may write the sheet, so Read keeps HP, AP and Training Points live (R11). */
+  /** The viewer may write the sheet, so Read keeps HP and AP live, and a phone's Training Points row (R11). */
   live?: boolean
   /** A phone in Read: the vitals as `PhoneVitals`, one row a number. */
   phone?: boolean
@@ -183,7 +183,11 @@ export function PilotVitals({
       />
       {/* TP stands right under AP, in the same row of the vitals. */}
       <div style={TP_ROW}>
-        <TpBlock value={tp} onChange={change('trainingPoints', TP, tp)} editable={writes} />
+        <TpBlock
+          value={tp}
+          onChange={readOnly ? undefined : change('trainingPoints', TP, tp)}
+          editable={!readOnly}
+        />
       </div>
       {/* Read leaves an empty field out: Conditions prints only
         when there is one to read. */}
