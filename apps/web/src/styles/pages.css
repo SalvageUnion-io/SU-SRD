@@ -1156,3 +1156,48 @@ a.su-home__discord:hover {
     flex: 0 0 24rem;
   }
 }
+
+/* MOCK (Working Manual, B): a compare listing's List (`data-compare`), a
+   Compact a line. Here, unlayered, because the listing's own rules above are
+   (`partials/mock-working-manual.css` holds the rest). */
+.su-listing[data-compare] .su-listing__cards[data-entity-fit] > * {
+  flex-basis: 100%;
+}
+
+/* A row's art is a small window, a line tall, not the Catalog's. */
+.su-listing[data-compare] .su-listing__cards {
+  --su-head-art-min: 2.25rem;
+  --su-head-art-min-phone: 2.25rem;
+  --su-head-art-width: 3rem;
+  --su-head-art-width-phone: 2.5rem;
+  gap: var(--space-6);
+}
+
+/* From `lg` a row is one line: the head takes the room, the strip a fixed
+   column at the row's end, so every row's cells stand on the same lines. */
+@media (width >= 64rem) {
+  .su-listing[data-compare] .su-entity-compact__main {
+    flex-direction: row;
+  }
+
+  .su-listing[data-compare] .su-entity-compact__head {
+    flex: 1 1 0;
+  }
+
+  .su-listing[data-compare] .su-entity-compact__body {
+    align-content: center;
+    flex: 0 0 33.5rem;
+    padding: var(--space-4) var(--space-8);
+  }
+
+  .su-listing:is([data-compare='systems'], [data-compare='modules']) .su-entity-compact__body {
+    flex-basis: 44rem;
+  }
+}
+
+/* On a phone a row keeps its name and the head's stamps: TL and a stat or two. */
+@media not (width >= 40rem) {
+  .su-listing[data-compare] .su-entity-compact__body {
+    display: none;
+  }
+}

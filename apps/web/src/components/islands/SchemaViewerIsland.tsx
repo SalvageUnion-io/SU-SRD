@@ -66,29 +66,45 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  */
 const OPENING_ROW = 4
 
-/** MOCK (Working Manual, B): a system's or module's fixed strip. */
-const LOADOUT_CHIPS: readonly FixedChip[] = [
-  { key: 'tech-level', label: 'TL' },
-  { key: 'book-Slots Required', label: 'Slots' },
-  { key: 'book-Salvage Value', label: 'SV' },
-  { key: 'range', label: 'RNG', action: true },
-  { key: 'damage', label: 'DMG', action: true },
-]
+/** MOCK (Working Manual, B): what a compare row's head keeps, and its body's strip. */
+type CompareRow = { head: readonly FixedChip[]; strip: readonly FixedChip[] }
 
-/** MOCK (Working Manual, B): each compare listing's stat chips, in §2.6 order. */
-const FIXED_CHIPS: Readonly<Record<string, readonly FixedChip[]>> = {
-  chassis: [
+/** A system's or module's row: TL and its slots on the head. */
+const LOADOUT_ROW: CompareRow = {
+  head: [
     { key: 'tech-level', label: 'TL' },
-    { key: 'book-Salvage Value', label: 'SV' },
-    { key: 'book-Structure Points', label: 'SP' },
-    { key: 'book-Energy Points', label: 'EP' },
-    { key: 'book-System Slots', label: 'SYS' },
-    { key: 'book-Module Slots', label: 'MODS' },
-    { key: 'book-Heat Capacity', label: 'Heat' },
-    { key: 'book-Cargo Capacity', label: 'Cargo' },
+    { key: 'book-Slots Required', label: 'Slots' },
   ],
-  systems: LOADOUT_CHIPS,
-  modules: LOADOUT_CHIPS,
+  strip: [
+    { key: 'book-Salvage Value', label: 'SV' },
+    { key: 'action-type', label: 'Act' },
+    { key: 'range', label: 'RNG' },
+    { key: 'damage', label: 'DMG' },
+    { key: 'traits', label: 'Traits', wide: true },
+  ],
+}
+
+/**
+ * MOCK (Working Manual, B): each compare listing's row: TL and one or two key
+ * stats as the head's stamps, every other stat in the strip, in §2.6 order.
+ */
+const COMPARE_ROWS: Readonly<Record<string, CompareRow>> = {
+  chassis: {
+    head: [
+      { key: 'tech-level', label: 'TL' },
+      { key: 'book-Structure Points', label: 'SP' },
+      { key: 'book-Energy Points', label: 'EP' },
+    ],
+    strip: [
+      { key: 'book-Salvage Value', label: 'SV' },
+      { key: 'book-System Slots', label: 'SYS' },
+      { key: 'book-Module Slots', label: 'MODS' },
+      { key: 'book-Heat Capacity', label: 'Heat' },
+      { key: 'book-Cargo Capacity', label: 'Cargo' },
+    ],
+  },
+  systems: LOADOUT_ROW,
+  modules: LOADOUT_ROW,
 }
 
 /**
@@ -439,7 +455,7 @@ function SchemaViewer({
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
         // MOCK: a compare listing's List is one row a line (`mock-working-manual.css`).
-        data-compare={(view === 'list' && schemaId in FIXED_CHIPS && schemaId) || undefined}
+        data-compare={(view === 'list' && schemaId in COMPARE_ROWS && schemaId) || undefined}
       >
         {!band && rail}
 
@@ -490,9 +506,10 @@ function SchemaViewer({
                             mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                             omit={omit}
                             wholeName
-                            // MOCK (Working Manual, B): the stat chips in one
-                            // fixed §2.6 order on every row, a row a line.
-                            fixedChips={FIXED_CHIPS[schemaId]}
+                            // MOCK (Working Manual, B): TL and a key stat or
+                            // two on the head, the rest a quiet value strip.
+                            fixedChips={COMPARE_ROWS[schemaId]?.head}
+                            strip={COMPARE_ROWS[schemaId]?.strip}
                           />
                         </li>
                       ))}

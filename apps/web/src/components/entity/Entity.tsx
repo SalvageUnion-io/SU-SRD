@@ -71,6 +71,8 @@ export type EntityProps = EntitySource &
     wholeName?: boolean
     /** MOCK (Working Manual, B): Compact only: its stat chips in one fixed order on every row. */
     fixedChips?: readonly FixedChip[]
+    /** MOCK (Working Manual, B): Compact only: every other stat, a quiet value strip in its body. */
+    strip?: readonly FixedChip[]
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
@@ -199,6 +201,7 @@ function EntityForm(props: EntityProps) {
           omit={omit}
           peek={peek}
           fixedChips={props.fixedChips}
+          strip={props.strip}
           slots={
             titleAs ||
             wholeName ||

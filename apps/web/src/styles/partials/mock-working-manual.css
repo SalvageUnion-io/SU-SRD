@@ -114,7 +114,20 @@
 }
 
 /* A's patterns: header-only Compacts in an entity grid, as the app's pattern
-   lists (`PatternList`'s grid). */
+   lists (`PatternList`'s grid); each run
+   of one printing closes on its citation, small text at the line's end. */
+.su-manual__pattern-runs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.su-manual__pattern-run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 .su-manual__patterns {
   display: grid;
   gap: var(--space-8);
@@ -124,16 +137,23 @@
   padding: 0;
 }
 
-/* ══ B · the index: its List, the chips in one fixed order ═════════════════
- * A compare listing's List is a Compact a line (`data-compare`), and its head
- * a fixed strip (`Head`'s `fixed`): the name, then every stat chip in the
- * §2.6 order at its own place on every row, so a column of one stat reads
- * down the listing. No right-to-left fill and no +MORE (C2b is off here).
- */
-.su-listing[data-compare] .su-listing__cards[data-entity-fit] > * {
-  flex-basis: 100%;
+.su-manual__pattern-cite {
+  color: var(--color-wk-muted);
+  font-size: var(--text-chip);
+  line-height: 1.3;
+  margin: 0;
+  text-align: right;
 }
 
+/* ══ B · the index: its List, calm rows that still line up ═════════════════
+ * A compare listing's List is a Compact a line (`data-compare`). Its head
+ * keeps the band, the name and TL plus a key stat or two as stamps, in one
+ * fixed order (`Head`'s `fixed`: no right-to-left fill, no +MORE). Every
+ * other stat is a §7.1 value cell in the paper body (`.su-value-strip`): ink
+ * on paper in a 1px frame, a caption label and its value, each at one place
+ * on every row, so a column of one stat reads down the listing. From `lg`
+ * the body stands beside the head, so a row is one line.
+ */
 .su-entity-compact__heading--fixed {
   align-items: center;
   column-gap: var(--space-8);
@@ -151,23 +171,6 @@
   flex-wrap: nowrap;
 }
 
-/* A listing whose rows differ in what they carry (a system with no traits)
-   packs the strip from the name's fixed column, so each class still starts
-   on one line down the list. */
-@media (width >= 64rem) {
-  .su-listing:is([data-compare='systems'], [data-compare='modules'])
-    .su-entity-compact__heading--fixed
-    > .su-entity-compact__name {
-    flex: 0 0 20rem;
-  }
-
-  .su-listing:is([data-compare='systems'], [data-compare='modules'])
-    .su-entity-compact__heading--fixed
-    > .su-chips {
-    flex: 1 1 0;
-  }
-}
-
 /* Each class a box of its own, so a class's chips keep their column. */
 .su-entity-compact__heading--fixed .su-chip-lane {
   display: flex;
@@ -176,52 +179,77 @@
 }
 
 /* A value's plate holds two figures, so a column is one width down the list. */
-.su-entity-compact__heading--fixed
-  .su-chip-lane:is([data-chip-class='rank'], [data-chip-class='measure'])
-  .su-stat-plate--value {
+.su-entity-compact__heading--fixed .su-stat-plate--value {
   font-variant-numeric: tabular-nums;
   justify-content: center;
   min-width: 1.75rem;
   text-align: center;
 }
 
-/* The action's lane: its type stamp, then RNG and DMG at the lane's end. */
-.su-entity-compact__heading--fixed .su-chip-lane[data-chip-class='economy'] {
-  justify-content: flex-end;
-  width: 14.5rem;
-}
-
-.su-entity-compact__heading--fixed
-  .su-chip-lane[data-chip-class='economy']
-  .su-stat-plate--value {
-  justify-content: center;
-  min-width: 2.5rem;
-  text-align: center;
-}
-
-.su-entity-compact__heading--fixed .su-chip-lane[data-chip-class='traits'] {
+/* The value strip (`Compact`'s `strip`). */
+.su-value-strip {
+  display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
-  width: 19rem;
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
 }
 
-/* Short of room the strip drops its classes from the end, never reorders. */
-@media not (width >= 80rem) {
-  .su-entity-compact__heading--fixed .su-chip-lane[data-chip-class='traits'] {
-    display: none;
-  }
+.su-value-strip__cell {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-40);
+  border-radius: var(--radius-badge);
+  flex: 0 0 6.25rem;
+  min-width: 0;
+  padding: var(--space-2) var(--space-6);
 }
 
-@media not (width >= 64rem) {
-  .su-entity-compact__heading--fixed .su-chip-lane[data-chip-class='economy'] {
-    display: none;
-  }
+.su-value-strip__cell[data-wide] {
+  flex: 1 1 10rem;
 }
 
-/* On a phone a row keeps its name, its TL and two stats. */
-@media not (width >= 40rem) {
-  .su-listing[data-compare='chassis']
-    .su-chip-lane[data-chip-class='measure']
-    > :not(:nth-child(2), :nth-child(3)) {
-    display: none;
-  }
+/* `Stat surface="plain"`: the caption label, then its value at the cell's end. */
+.su-value-strip__cell > span {
+  align-items: baseline;
+  color: var(--color-wk-muted);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  justify-content: space-between;
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.5;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-value-strip__cell > span > b {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+}
+
+.su-value-strip__cell[data-empty] > span > b {
+  color: var(--color-ink-35);
+  font-weight: var(--font-weight-normal);
+}
+
+/* The traits read as a line of words, from the label. */
+.su-value-strip__cell[data-wide] > span {
+  justify-content: flex-start;
+}
+
+.su-value-strip__cell[data-wide] > span > b {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
 }

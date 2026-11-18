@@ -90,6 +90,13 @@ export type RowProps = {
   slots?: RowSlots
   /** MOCK (Working Manual, B): the head's stat chips, by key, in one fixed order on every row (`FixedChip`). */
   fixedChips?: readonly FixedChip[]
+  /**
+   * MOCK (Working Manual, B): the quiet value strip in the paper body: every
+   * other stat as a §7.1 value cell (ink on paper, a 1px frame, no stamp), in
+   * one fixed order and place on every row. With it the head keeps only its
+   * `fixedChips`: no action type, traits or cost.
+   */
+  strip?: readonly FixedChip[]
 }
 
 /**
@@ -97,7 +104,14 @@ export type RowProps = {
  * action fact's key, with the label its place wears when the entity has no
  * such stat (drawn `—`, so the columns hold).
  */
-export type FixedChip = { key: string; label: string; action?: boolean }
+export type FixedChip = {
+  /** A fact's key; `action-type` and `traits` name the model's own. */
+  key: string
+  label: string
+  action?: boolean
+  /** The strip's last, widest cell (the traits): it takes the room left. */
+  wide?: boolean
+}
 
 const READ: EntityMode = { kind: 'read' }
 
@@ -106,14 +120,46 @@ function fixedFacts(model: EntityFormModel, fixed: readonly FixedChip[]): StatIt
   const known = [...(model.bookStats ?? []), ...model.facts]
   return fixed.map(({ key, label, action }) => {
     const fact = known.find((entry) => entry.key === key)
+    const own =
+      key === 'action-type'
+        ? (model.actionType ?? model.mechActionType)
+        : key === 'traits'
+          ? model.traits
+              .map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name))
+              .join(', ')
+          : undefined
     return {
       key,
       label: fact?.short ?? label,
-      value: fact ? (fact.shortValue ?? fact.value) : '—',
+      value: own || (fact ? (fact.shortValue ?? fact.value) : '—'),
       ...(action ? { group: 'action' as const } : fact?.group ? { group: fact.group } : {}),
       ...(fact?.hint ? { hoverText: fact.hint } : {}),
     }
   })
+}
+
+/**
+ * MOCK (Working Manual, B): the value strip. Each cell is a `Stat` in its
+ * running-text material inside a §7.1 frame (`.su-value-strip`), so a row's
+ * numbers read quietly and a column of one stat reads down the listing.
+ */
+function ValueStrip({ model, strip }: { model: EntityFormModel; strip: readonly FixedChip[] }) {
+  const cells = fixedFacts(model, strip)
+  return (
+    <ul className="su-value-strip">
+      {cells.map((cell, index) => (
+        <li
+          key={cell.key}
+          className="su-value-strip__cell"
+          data-wide={strip[index]?.wide || undefined}
+          data-empty={cell.value === '—' || undefined}
+          title={cell.hoverText}
+        >
+          <Stat surface="plain" label={cell.label} value={cell.value} />
+        </li>
+      ))}
+    </ul>
+  )
 }
 
 /*
@@ -147,6 +193,7 @@ export function Compact({
   peek = false,
   slots = {},
   fixedChips,
+  strip,
 }: RowProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
@@ -163,16 +210,16 @@ export function Compact({
   const selected = mode.kind === 'select' && mode.selected
 
   const chips: ChipSet = {
-    durations: actionTypeStamps(model.actionType, model.mechActionType),
-    ...(model.cost ? { cost: model.cost } : {}),
+    durations: strip ? [] : actionTypeStamps(model.actionType, model.mechActionType),
+    ...(model.cost && !strip ? { cost: model.cost } : {}),
     facts: fixedChips
       ? fixedFacts(model, fixedChips) // MOCK
       : factCells(budgetFacts(model.facts, context ?? naturalContext(model.kind)), omit),
-    tags: slots.tags ?? traitTags(model.traits),
+    tags: strip ? [] : (slots.tags ?? traitTags(model.traits)),
     ...(slots.relations ? { relations: slots.relations } : {}),
   }
   const leadText = lead ? model.lead : undefined
-  const hasBody = !!slots.leading || !!leadText || !!slots.linked
+  const hasBody = !!slots.leading || !!leadText || !!slots.linked || !!strip
   const affordance =
     mode.kind === 'select' && mode.role === 'toggle' ? (
       // A toggle's control is a real checkbox; the seal still marks the pick.
@@ -278,6 +325,7 @@ export function Compact({
         <CompactBody style={down ? { opacity: 0.6 } : undefined}>
           {slots.linked}
           {slots.leading}
+          {strip && <ValueStrip model={model} strip={strip} />}
           {leadText && <Lead text={leadText} peeks={peeks} />}
         </CompactBody>
       )}
