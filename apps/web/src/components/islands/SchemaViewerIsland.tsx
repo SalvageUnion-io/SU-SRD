@@ -43,8 +43,8 @@ import {
   tokens,
   trackForTree,
 } from '../index'
-import type { FixedChip } from '../entity/forms/Compact'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
+import { INDEX_COLUMNS, IndexLedger } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -65,47 +65,6 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  * loads at once and first rather than lazily after layout.
  */
 const OPENING_ROW = 4
-
-/** MOCK (Working Manual, B): what a compare row's head keeps, and its body's strip. */
-type CompareRow = { head: readonly FixedChip[]; strip: readonly FixedChip[] }
-
-/** A system's or module's row: TL and its slots on the head. */
-const LOADOUT_ROW: CompareRow = {
-  head: [
-    { key: 'tech-level', label: 'TL' },
-    { key: 'book-Slots Required', label: 'Slots' },
-  ],
-  strip: [
-    { key: 'book-Salvage Value', label: 'SV' },
-    { key: 'action-type', label: 'Act' },
-    { key: 'range', label: 'RNG' },
-    { key: 'damage', label: 'DMG' },
-    { key: 'traits', label: 'Traits', wide: true },
-  ],
-}
-
-/**
- * MOCK (Working Manual, B): each compare listing's row: TL and one or two key
- * stats as the head's stamps, every other stat in the strip, in §2.6 order.
- */
-const COMPARE_ROWS: Readonly<Record<string, CompareRow>> = {
-  chassis: {
-    head: [
-      { key: 'tech-level', label: 'TL' },
-      { key: 'book-Structure Points', label: 'SP' },
-      { key: 'book-Energy Points', label: 'EP' },
-    ],
-    strip: [
-      { key: 'book-Salvage Value', label: 'SV' },
-      { key: 'book-System Slots', label: 'SYS' },
-      { key: 'book-Module Slots', label: 'MODS' },
-      { key: 'book-Heat Capacity', label: 'Heat' },
-      { key: 'book-Cargo Capacity', label: 'Cargo' },
-    ],
-  },
-  systems: LOADOUT_ROW,
-  modules: LOADOUT_ROW,
-}
 
 /**
  * Read a single query-param value from the current URL. SSR-safe: the SSG
@@ -454,8 +413,6 @@ function SchemaViewer({
         data-wide={WIDE_LISTINGS.has(schemaId) || undefined}
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
-        // MOCK: a compare listing's List is one row a line (`mock-working-manual.css`).
-        data-compare={(view === 'list' && schemaId in COMPARE_ROWS && schemaId) || undefined}
       >
         {!band && rail}
 
@@ -494,6 +451,14 @@ function SchemaViewer({
                         </li>
                       ))}
                     </ul>
+                  ) : view === 'list' && schemaId in INDEX_COLUMNS ? (
+                    // MOCK (Working Manual, B): a compare listing's List is
+                    // one Ledger, a line an entity.
+                    <IndexLedger
+                      schemaId={schemaId}
+                      noun={band?.title ?? ''}
+                      items={group.items}
+                    />
                   ) : view === 'list' ? (
                     // The List (E2): the Catalog's entities header-only, a
                     // name and its chips a line, each name whole (R56).
@@ -506,10 +471,6 @@ function SchemaViewer({
                             mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
                             omit={omit}
                             wholeName
-                            // MOCK (Working Manual, B): TL and a key stat or
-                            // two on the head, the rest a quiet value strip.
-                            fixedChips={COMPARE_ROWS[schemaId]?.head}
-                            strip={COMPARE_ROWS[schemaId]?.strip}
                           />
                         </li>
                       ))}

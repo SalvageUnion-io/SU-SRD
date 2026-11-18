@@ -9,7 +9,6 @@ import type {
 import { toEntityModel } from 'salvageunion-reference'
 import { Compact } from './forms/Compact'
 import { CompactIndex } from './forms/CompactIndex'
-import type { FixedChip } from './forms/Compact'
 import type { MiniBody } from './forms/Mini'
 import { Mini } from './forms/Mini'
 import type { LinkedUnit } from './LinkedUnits'
@@ -69,10 +68,6 @@ export type EntityProps = EntitySource &
      * controls are the body's first row.
      */
     wholeName?: boolean
-    /** MOCK (Working Manual, B): Compact only: its stat chips in one fixed order on every row. */
-    fixedChips?: readonly FixedChip[]
-    /** MOCK (Working Manual, B): Compact only: every other stat, a quiet value strip in its body. */
-    strip?: readonly FixedChip[]
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
@@ -200,8 +195,6 @@ function EntityForm(props: EntityProps) {
           lead={lead}
           omit={omit}
           peek={peek}
-          fixedChips={props.fixedChips}
-          strip={props.strip}
           slots={
             titleAs ||
             wholeName ||

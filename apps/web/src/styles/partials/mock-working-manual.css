@@ -113,143 +113,164 @@
   display: none;
 }
 
-/* A's patterns: header-only Compacts in an entity grid, as the app's pattern
-   lists (`PatternList`'s grid); each run
-   of one printing closes on its citation, small text at the line's end. */
-.su-manual__pattern-runs {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.su-manual__pattern-run {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.su-manual__patterns {
-  display: grid;
-  gap: var(--space-8);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-manual__pattern-cite {
-  color: var(--color-wk-muted);
-  font-size: var(--text-chip);
-  line-height: 1.3;
-  margin: 0;
-  text-align: right;
-}
-
-/* ══ B · the index: its List, calm rows that still line up ═════════════════
- * A compare listing's List is a Compact a line (`data-compare`). Its head
- * keeps the band, the name and TL plus a key stat or two as stamps, in one
- * fixed order (`Head`'s `fixed`: no right-to-left fill, no +MORE). Every
- * other stat is a §7.1 value cell in the paper body (`.su-value-strip`): ink
- * on paper in a 1px frame, a caption label and its value, each at one place
- * on every row, so a column of one stat reads down the listing. From `lg`
- * the body stands beside the head, so a row is one line.
+/* ══ The Ledger (`entity/Ledger.tsx`): A's patterns, B's index ═════════════
+ * One framed block a list: the Compact's frame in the band's colour, one
+ * column-head strip on the band, its labels the site's stamps, then a
+ * Mini-height line an entity: its name the link, one stamp at most, and its
+ * values in fixed columns as plain condensed numerals. Rows band paper and
+ * cream, hairline-ruled, as the roll table's.
  */
-.su-entity-compact__heading--fixed {
-  align-items: center;
-  column-gap: var(--space-8);
-  display: flex;
-}
-
-.su-entity-compact__heading--fixed > .su-entity-compact__name {
-  align-self: flex-end;
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.su-entity-compact__heading--fixed > .su-chips {
-  flex: none;
-  flex-wrap: nowrap;
-}
-
-/* Each class a box of its own, so a class's chips keep their column. */
-.su-entity-compact__heading--fixed .su-chip-lane {
-  display: flex;
-  flex: none;
-  gap: var(--space-4);
-}
-
-/* A value's plate holds two figures, so a column is one width down the list. */
-.su-entity-compact__heading--fixed .su-stat-plate--value {
-  font-variant-numeric: tabular-nums;
-  justify-content: center;
-  min-width: 1.75rem;
-  text-align: center;
-}
-
-/* The value strip (`Compact`'s `strip`). */
-.su-value-strip {
-  display: flex;
-  flex: 1 1 auto;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  list-style: none;
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-}
-
-.su-value-strip__cell {
+.su-ledger__table {
   background-color: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink-40);
-  border-radius: var(--radius-badge);
-  flex: 0 0 6.25rem;
-  min-width: 0;
-  padding: var(--space-2) var(--space-6);
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: 1.3;
+  width: 100%;
 }
 
-.su-value-strip__cell[data-wide] {
-  flex: 1 1 10rem;
+.su-ledger__table :is(th, td) {
+  font-weight: var(--font-weight-normal);
+  padding: var(--space-4) var(--space-8);
+  text-align: left;
+  vertical-align: middle;
 }
 
-/* `Stat surface="plain"`: the caption label, then its value at the cell's end. */
-.su-value-strip__cell > span {
-  align-items: baseline;
-  color: var(--color-wk-muted);
-  display: flex;
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  font-weight: var(--font-weight-bold);
-  gap: var(--space-6);
-  justify-content: space-between;
-  letter-spacing: var(--tracking-caps-tight);
-  line-height: 1.5;
-  text-transform: uppercase;
+/* The head strip: the band, its labels stamps. */
+.su-ledger__head > th {
+  padding-block: var(--space-6);
   white-space: nowrap;
 }
 
-.su-value-strip__cell > span > b {
-  color: var(--color-ink);
-  font-family: var(--font-body);
-  font-size: var(--text-body);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: normal;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-transform: none;
+.su-ledger__sort {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
 }
 
-.su-value-strip__cell[data-empty] > span > b {
+.su-ledger__arrow {
+  font-size: 0.7em;
+  margin-left: var(--space-4);
+}
+
+.su-ledger__table tbody tr:nth-child(even) {
+  background-color: var(--color-band-cream);
+}
+
+.su-ledger__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-ledger__table tbody tr:hover {
+  background-color: var(--color-wk-bg);
+}
+
+/* The name's cell: the name, then its one stamp at the cell's end. */
+.su-ledger__name-line {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-ledger__name {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-tight);
+  text-transform: uppercase;
+}
+
+.su-ledger__table tbody th {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* A figure: a plain tabular numeral, condensed bold, centred under its stamp. */
+.su-ledger__table [data-kind='figure'] {
+  text-align: center;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='figure'] {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-ledger__table [data-kind='text'] {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='text'] {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A quiet line of words: one line, muted, taking the room left. */
+.su-ledger__table tbody [data-kind='quiet'] {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.su-ledger__table tbody [data-empty] {
   color: var(--color-ink-35);
   font-weight: var(--font-weight-normal);
 }
 
-/* The traits read as a line of words, from the label. */
-.su-value-strip__cell[data-wide] > span {
-  justify-content: flex-start;
+/* The foot: the list's source, once. */
+.su-ledger__foot {
+  background-color: var(--color-paper);
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  color: var(--color-wk-muted);
+  font-size: var(--text-chip);
+  margin: 0;
+  padding: var(--space-4) var(--space-8);
+  text-align: right;
 }
 
-.su-value-strip__cell[data-wide] > span > b {
-  font-size: var(--text-caption);
-  font-weight: var(--font-weight-semibold);
+/* On a phone a row keeps its name, its stamp and the columns marked for it;
+   a quiet line drops under the name when it is the row's only column. */
+@media not (width >= 40rem) {
+  .su-ledger__table :is(th, td):not(:first-child, [data-phone]) {
+    display: none;
+  }
+
+  .su-ledger__table tbody th {
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-ledger__table tr > [data-kind='quiet']:nth-child(2):last-child {
+    display: block;
+    max-width: none;
+    padding-top: 0;
+    white-space: normal;
+  }
+
+  /* The dropped line needs no label of its own. */
+  .su-ledger__table thead tr > [data-kind='quiet']:nth-child(2):last-child {
+    display: none;
+  }
+
+  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) {
+    display: block;
+  }
+
+  .su-ledger__table tr:has(> [data-kind='quiet']:nth-child(2):last-child) > th {
+    display: block;
+    border-bottom: 0;
+  }
+
+  .su-ledger__table tbody tr + tr > td[data-kind='quiet']:nth-child(2):last-child {
+    border-top: 0;
+  }
 }

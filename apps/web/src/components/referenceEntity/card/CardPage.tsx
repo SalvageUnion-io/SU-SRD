@@ -13,7 +13,7 @@ import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
 import { pageBodyStats, pageStatLine } from './entityPage'
 import { PatternLinkRows } from './PatternListRow'
-import { PatternCompacts } from './PatternCompacts'
+import { PatternLedger } from './PatternLedger'
 import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes'
 
 /**
@@ -224,7 +224,7 @@ export function CardPage({
               count={String(patterns.length)}
               page
             >
-              <PatternCompacts chassis={entity} patterns={patterns} />
+              <PatternLedger chassis={entity} patterns={patterns} />
             </SlabSection>
           )}
           {!hero && lore}
