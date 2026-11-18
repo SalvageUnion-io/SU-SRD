@@ -464,13 +464,49 @@
   }
 }
 
-/* A pick Compact's stats: one fixed order (ruleset §2.6) on one fixed grid,
-   so the same stat sits in the same place on every card of the picker. */
-.su-wiz-pick-stats {
+/* A pick Compact's stats: one quiet strip of value cells (ruleset §7.1: ink
+   on paper in a 1px frame, no fill, no stamp), a caption label over its
+   numeral, in one fixed order (§2.6) on one fixed grid, so the same stat sits
+   in the same place on every card. The six stats share their frames; the
+   cost stands apart after them. */
+.su-wiz-pick-strip {
   display: grid;
-  gap: var(--space-4) var(--space-8);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  justify-items: start;
+  grid-template-columns: repeat(6, minmax(0, 1fr)) var(--space-8) minmax(0, 1.15fr);
+}
+
+.su-wiz-pick-cell {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink);
+  color: var(--color-wk-muted);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-barlow);
+  font-size: var(--text-badge);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-inline-start: calc(-1 * var(--bw-hairline));
+  min-width: 0;
+  padding: var(--space-2) var(--space-2) 0;
+}
+
+.su-wiz-pick-cell:first-child {
+  margin-inline-start: 0;
+}
+
+.su-wiz-pick-cell > b {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.15;
+}
+
+/* The cost: after the gap track, a cell of its own. */
+.su-wiz-pick-cell--cost {
+  grid-column: 8;
+  margin-inline-start: 0;
 }
 
 /* A pick Compact's line of body copy (a pattern's loadout). */
@@ -480,11 +516,4 @@
   font-size: var(--text-caption);
   line-height: 1.35;
   margin: 0;
-}
-
-/* A class's trees: chips that wrap. */
-.su-wiz-pick-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
 }

@@ -7,7 +7,6 @@ import {
   MasonryColumns,
   ReferenceEntityCard,
   Slab,
-  Stat,
 } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { SelectableBaseClass } from './classOptions.model'
@@ -24,18 +23,14 @@ type SURAbilitiesAccessor = {
 
 /**
  * MOCK (Working Manual, "compare at a glance"): what tells the six classes
- * apart is their trees, so every pick Compact prints them, in the book's
- * order. The Salvager's says what the book says of it (p.18): any Core tree.
+ * apart is their trees, so every pick Compact prints them as one quiet line,
+ * in the book's order. The Salvager's says what the book says of it (p.18): any Core tree.
  */
 function ClassTrees({ cls }: { cls: SelectableBaseClass }) {
   return (
-    <div className="su-wiz-pick-chips">
-      {cls.coreTrees.length > 3 ? (
-        <Stat size="mini" label="Trees" value="Any Core tree" />
-      ) : (
-        cls.coreTrees.map((tree) => <Stat key={tree} size="mini" label="Tree" value={tree} />)
-      )}
-    </div>
+    <p className="su-wiz-pick-line">
+      {cls.coreTrees.length > 3 ? 'Any Core tree' : cls.coreTrees.join(' · ')}
+    </p>
   )
 }
 

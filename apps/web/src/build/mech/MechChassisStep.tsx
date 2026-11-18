@@ -54,20 +54,27 @@ export type ChassisPattern = RefChassis['patterns'][number]
 
 /**
  * MOCK (Working Manual, "compare at a glance"): a chassis's stats in the
- * book's order (ruleset §2.6), then what it costs to craft. Every pick Compact
- * prints all seven, in this order, on one grid (`.su-wiz-pick-stats`): no
- * right-to-left fill moves a stat from card to card (C2b).
+ * book's order (ruleset §2.6), then what it costs to craft, as one quiet strip
+ * of value cells (§7.1) on a fixed grid (`.su-wiz-pick-strip`): every pick
+ * Compact prints all seven in the same places, and nothing fills right to left
+ * (C2b). Each is the plain `Stat`, a caption label over its numeral.
  */
 function ChassisStats({ chassis }: { chassis: RefChassis }) {
+  const cell = 'su-wiz-pick-cell'
   return (
-    <div className="su-wiz-pick-stats">
-      <Stat size="mini" label="SP" value={chassis.structurePoints} />
-      <Stat size="mini" label="EP" value={chassis.energyPoints} />
-      <Stat size="mini" label="Sys" value={chassis.systemSlots} />
-      <Stat size="mini" label="Mod" value={chassis.moduleSlots} />
-      <Stat size="mini" label="Heat" value={chassis.heatCapacity} />
-      <Stat size="mini" label="Cargo" value={chassis.cargoCapacity} />
-      <Stat size="mini" label="Scrap" value={chassis.salvageValue} />
+    <div className="su-wiz-pick-strip">
+      <Stat surface="plain" className={cell} label="SP" value={chassis.structurePoints} />
+      <Stat surface="plain" className={cell} label="EP" value={chassis.energyPoints} />
+      <Stat surface="plain" className={cell} label="Sys" value={chassis.systemSlots} />
+      <Stat surface="plain" className={cell} label="Mod" value={chassis.moduleSlots} />
+      <Stat surface="plain" className={cell} label="Heat" value={chassis.heatCapacity} />
+      <Stat surface="plain" className={cell} label="Cargo" value={chassis.cargoCapacity} />
+      <Stat
+        surface="plain"
+        className={`${cell} su-wiz-pick-cell--cost`}
+        label="Scrap"
+        value={chassis.salvageValue}
+      />
     </div>
   )
 }
