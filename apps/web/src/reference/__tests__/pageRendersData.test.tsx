@@ -60,6 +60,8 @@ const NOT_TEXT = new Set([
   'entityLayout',
   // A pattern prints on its own page, walked there.
   'patterns',
+  // Play tags quote their block's own words, which the page prints in full.
+  'notInPlay',
 ])
 
 /**

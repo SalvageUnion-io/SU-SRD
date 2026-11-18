@@ -15,6 +15,7 @@ export const CHECK_IDS = [
   'action-backrefs',
   'orphans',
   'content-dupes',
+  'play-tags',
   'traits',
   'parity',
 ] as const

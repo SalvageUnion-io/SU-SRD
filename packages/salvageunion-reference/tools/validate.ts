@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks:
+ * 12 checks:
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - duplicate-keys   (validateDuplicateKeysLogic.ts — reads the raw text)
@@ -15,6 +15,7 @@
  *   - action-backrefs  (validateActionBackrefsLogic.ts)
  *   - orphans          (validateOrphansLogic.ts)
  *   - content-dupes    (validateContentDupesLogic.ts)
+ *   - play-tags        (validatePlayTagsLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
  *   - parity           (validateParityLogic.ts)
  *
@@ -43,6 +44,7 @@ import { runContentDupeCheck } from './validateContentDupesLogic'
 import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic'
 import { runOrphanCheck } from './validateOrphansLogic'
 import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic'
+import { runPlayTagCheck } from './validatePlayTagsLogic'
 import { findReferenceErrors } from './validateReferencesLogic'
 import { findSlugCollisions } from './validateSlugsLogic'
 import { findTraitIssues } from './validateTraitsLogic'
@@ -203,6 +205,16 @@ function contentDupesCheck(data: DataBag): Diagnostic[] {
   }))
 }
 
+/** A Play tag whose words are not in its block once, or that overlaps another (R65). */
+function playTagsCheck(data: DataBag): Diagnostic[] {
+  return runPlayTagCheck(data).map((issue) => ({
+    check: 'play-tags',
+    file: issue.file,
+    path: `"${issue.record}" content[${issue.block}].notInPlay`,
+    message: `${issue.detail}. Copy the words exactly from the block's value, or drop the tag`,
+  }))
+}
+
 function traitsCheck(data: DataBag): Diagnostic[] {
   return findTraitIssues(data).map((issue) => ({
     check: 'traits',
@@ -259,6 +271,7 @@ const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   'action-backrefs': { label: 'Namesake action back-references', run: actionBackrefsCheck },
   orphans: { label: 'Orphan detection', run: orphansCheck },
   'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
+  'play-tags': { label: 'Play tags', run: playTagsCheck },
   traits: { label: 'Trait data', run: traitsCheck },
   parity: { label: 'Rules parity', run: parityCheck },
 }

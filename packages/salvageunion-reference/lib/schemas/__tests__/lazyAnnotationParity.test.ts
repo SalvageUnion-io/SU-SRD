@@ -68,7 +68,16 @@ function lazyShapeKeys(schema: unknown): string[] {
   return Object.keys(getter().def.shape)
 }
 
-const CONTENT_BLOCK_KEYS = ['type', 'value', 'label', 'level', 'lead', 'choiceId', 'items'] as const
+const CONTENT_BLOCK_KEYS = [
+  'type',
+  'value',
+  'label',
+  'level',
+  'lead',
+  'notInPlay',
+  'choiceId',
+  'items',
+] as const
 
 const CHOICE_KEYS = ['id', 'name', 'content', 'source', 'cardinality', 'lifetime'] as const
 

@@ -1,7 +1,8 @@
 /**
  * actionEffect — an actions row says what an action DOES (R65): its book
- * text with the setup, the upkeep, the examples and the flavour left out,
- * and never a word changed. Held to the book's own actions, by slug.
+ * text with the setup, the upkeep, the examples and the flavour that the data
+ * tags (`notInPlay`) left out, and never a word changed. Held to the book's
+ * own actions, by slug.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -34,6 +35,7 @@ const paragraphs = (action: RefMetaAction) =>
   (action.content ?? []).flatMap((block) => (typeof block.value === 'string' ? [block.value] : []))
 const effectText = (action: RefMetaAction) =>
   actionEffect(action).flatMap((block) => (typeof block.value === 'string' ? [block.value] : []))
+const words = (text: string) => text.split(/\s+/).filter(Boolean)
 
 describe('what the effect leaves out', () => {
   test('an example: the rule stays, "For example, …" goes', () => {
@@ -46,10 +48,10 @@ describe('what the effect leaves out', () => {
     expect(paragraphs(mender)[0]?.startsWith(effect ?? '-')).toBe(true)
   })
 
-  test('flavour: a paragraph with no rule in it, where the action has rules text', () => {
+  test('flavour: a paragraph with no rule in it', () => {
     const juryRig = abilityAction('jury-rig', 'Jury Rig')
     const [flavour, ...rules] = paragraphs(juryRig)
-    expect(effectText(juryRig)).toEqual(rules.map((text) => text.trim()))
+    expect(effectText(juryRig)).toEqual(rules)
     expect(effectText(juryRig)).not.toContain(flavour)
   })
 
@@ -58,15 +60,16 @@ describe('what the effect leaves out', () => {
     const whole = paragraphs(turret).join(' ')
     const effect = effectText(turret).join(' ')
     for (const left of [
+      /You construct an immobile Auto-Turret/,
       /A\.I\. Personality/,
       /upgraded along with/,
-      /uses the same rules as Mechs/,
     ]) {
       expect(whole).toMatch(left)
       expect(effect).not.toMatch(left)
     }
-    // What it does at the table stays.
+    // What it does at the table stays, and so does the rule it plays by.
     expect(effect).toMatch(/Turn Action/)
+    expect(effect).toMatch(/uses the same rules as Mechs/)
   })
 
   test('a rule that names no number still stays: Downtime, an Ability, a Tech Level', () => {
@@ -83,22 +86,30 @@ describe('what the effect leaves out', () => {
 })
 
 describe('the book’s words are never changed, only left out', () => {
-  test('every kept paragraph is its own paragraph’s sentences, in order', () => {
+  test('an untagged block reaches the row as it is; a tagged one loses its tagged words only', () => {
     for (const action of everyAction()) {
-      const originals = paragraphs(action)
-      for (const kept of effectText(action)) {
-        const source = originals.find((original) => {
-          // Each kept sentence is found in the original after the last one.
-          let from = 0
-          return kept.split(/(?<=[.!?])\s+/).every((sentence) => {
-            const at = original.indexOf(sentence.trim(), from)
-            if (at < 0) return false
-            from = at + sentence.trim().length
-            return true
-          })
-        })
-        expect(source, `${action.name}: “${kept.slice(0, 40)}…”`).toBeDefined()
+      const expected: (string | undefined)[][] = []
+      for (const block of action.content ?? []) {
+        const type = block.type ?? 'paragraph'
+        if (['flavor', 'hint', 'heading', 'choice'].includes(type)) continue
+        if (type === 'datavalues' && !block.label) continue
+        if (typeof block.value !== 'string') {
+          expected.push([undefined])
+          continue
+        }
+        const tags = block.notInPlay ?? []
+        if (tags.some((t) => t.text === undefined)) continue
+        let text = block.value
+        for (const t of tags) text = text.replace(t.text ?? '', '')
+        if (tags.length === 0) expected.push([block.value])
+        else if (words(text).length > 0) expected.push(words(text))
       }
+      const kept = actionEffect(action).map((block): (string | undefined)[] => {
+        if (typeof block.value !== 'string') return [undefined]
+        const tagged = (action.content ?? []).find((b) => b === block) === undefined
+        return tagged ? words(block.value) : [block.value]
+      })
+      expect(kept, action.name).toEqual(expected)
     }
   })
 
@@ -110,26 +121,12 @@ describe('the book’s words are never changed, only left out', () => {
     }
   })
 
-  test('flavour, hint, heading and choice blocks never reach a row', () => {
+  test('flavour, hint, heading and choice blocks, and the tags, never reach a row', () => {
     for (const action of everyAction()) {
       for (const block of actionEffect(action)) {
         expect(['flavor', 'hint', 'heading', 'choice']).not.toContain(block.type ?? 'paragraph')
+        expect(block.notInPlay, action.name).toBeUndefined()
       }
-    }
-  })
-
-  test('an action with text keeps some of it, unless its chips say what it does', () => {
-    for (const action of everyAction()) {
-      const said =
-        (action.range?.length ?? 0) > 0 ||
-        action.damage !== undefined ||
-        (action.content ?? []).some((block) => block.type === 'datavalues' && !block.label)
-      if (paragraphs(action).length === 0 || said) continue
-      const typed = (action.content ?? []).filter(
-        (block) => !['flavor', 'hint', 'heading', 'choice'].includes(block.type ?? 'paragraph')
-      )
-      if (typed.length === 0) continue
-      expect(actionEffect(action).length, action.name).toBeGreaterThan(0)
     }
   })
 })

@@ -1,27 +1,16 @@
 /**
- * actionEffect — an action's EFFECT, what happens when you use it, cut from
- * its book text for an actions row (Play's board, a Live Sheet's Actions
- * list; R65). Pure, display-only: the book's words are never changed, only
+ * actionEffect — an action's EFFECT, what happens when you use it, for an
+ * actions row (Play's board, a Live Sheet's Actions list, the Mediator's NPC
+ * actions; R65). Pure, display-only: the book's words are never changed, only
  * left out. The whole text stays on the action's card, which the row's name
  * Peeks.
  *
- * Left out, a sentence at a time:
- *  - SETUP and ON-CHOOSE text: what you do when you take, craft or build the
- *    thing ("Choose if it is a Ballistic or Energy weapon", "At each Tech
- *    Level you may choose an additional modification", "Name and describe").
- *  - UPKEEP text: how you replace it, how it scales with the Union Crawler
- *    (the row's chips already carry the scaled numbers).
- *  - EXAMPLES ("For example, …", "e.g. …").
- * Left out, a paragraph at a time:
- *  - FLAVOUR: a paragraph with no rules signal in it (no number, trait,
- *    resource, range, roll, action type or "you may"), where the action has
- *    other rules text or its chips already say what it does.
- *  - `flavor`, `hint`, `heading` and `choice` blocks, and the unlabelled
- *    `datavalues` row (the head's chips are that row, with the picks applied).
- *
- * The reference data types only `flavor` on a content block, so the rest is
- * read from the words: the patterns below are the whole rule, and
- * `__tests__/actionEffect.test.ts` holds them to the book's actions.
+ * What is left out is marked in the data, not guessed: a content block's
+ * `notInPlay` tags name the setup, upkeep, examples and flavour, either the
+ * whole block or its exact words (the reference data's `play-tags` check holds
+ * every tag to its block). The `flavor`, `hint`, `heading` and `choice` blocks
+ * and the unlabelled `datavalues` row (the head's chips are that row, with the
+ * picks applied) are left out by type.
  */
 
 import type {
@@ -30,53 +19,6 @@ import type {
   RefObjectChoice,
   RefObjectContentBlock,
 } from 'salvageunion-reference'
-
-/** A sentence that is about taking, crafting or building the thing. */
-const SETUP: readonly RegExp[] = [
-  /^when (crafting|you (first )?(choose|take|select|acquire|install|craft|build|gain) this)/i,
-  /a\.i\. personality/i,
-  /^choose (if (it|your)|a modification|your own|this or roll)/i,
-  /^in addition, choose/i,
-  /choose (a|an additional|three) modifi/i,
-  /^at each tech level/i,
-  /^name (and describe|your)/i,
-  /describe what/i,
-  /can look however you wish/i,
-  /^(it|this) could be /i,
-  /^you (acquire and train|have constructed|construct an?|have built)\b/i,
-  /^it can be customised/i,
-]
-
-/** A sentence about replacing it or how it scales (the chips carry the scaled numbers). */
-const UPKEEP: readonly RegExp[] = [
-  /acquire a new one/i,
-  /you may only ever have one/i,
-  /per tech level/i,
-  /tech level equal to your union crawler/i,
-  /upgraded along with/i,
-  /if your union crawler is upgraded/i,
-  /uses the same rules as mechs/i,
-  /may have one active/i,
-  /you may craft a new/i,
-]
-
-const EXAMPLE: readonly RegExp[] = [/^for example\b/i, /^e\.g\./i, /\be\.g\. /i]
-
-/** Words that mark rules text: a number, a trait, a resource, a range, a roll, an action type, a game term. */
-const SIGNAL: readonly RegExp[] = [
-  // A number standing alone (a cost, an amount, a roll), never a model name's (120mm, 360°).
-  /(^|[\s(+-])\d+(-\d+)?(?=[\s.,;:)]|$)/,
-  /\[\[/,
-  /\b(SP|HP|EP|AP|Heat|Range|Trait|Hit Points?|Structure Points?|Energy Points?|Ability Points?)\b/,
-  /\b(Turn|Free|Short|Long|Downtime) Actions?\b|\bReaction\b/,
-  // The book's own capitalised terms for what a rule acts on.
-  /\b(Ability|Abilities|Downtime|Tech Level|Scrap)\b/,
-  /\b[Rr]e-?rolls?\b|\b[Rr]oll(s|ed)?\b/,
-  /\bwhen activated\b/i,
-  /\bMediator\b/,
-  /\b(Damaged|Destroyed|Intact|Vulnerable|Shutdown|Push(ed)?)\b/,
-  /\byou (may|can|cannot|must|regain|gain|repair|deal|take|make|salvage)\b/i,
-]
 
 /** Tokens a full stop follows without ending a sentence. */
 const ABBREVIATION = /(?:^|[\s(])(?:(?:[A-Za-z]\.)*[A-Za-z]|e\.g|i\.e|Art|vs|etc|approx)$/
@@ -99,55 +41,44 @@ function sentencesOf(text: string): string[] {
 
 const matches = (tests: readonly RegExp[], text: string) => tests.some((t) => t.test(text))
 
-/** Whether a sentence is setup, upkeep or an example: never the effect. */
-function isBuildSentence(sentence: string): boolean {
-  return matches(SETUP, sentence) || matches(UPKEEP, sentence) || matches(EXAMPLE, sentence)
-}
-
-/** Whether text carries a rules signal. */
-function hasRulesSignal(text: string): boolean {
-  return matches(SIGNAL, text)
-}
-
-/** Whether the action's head already says what it does: a range or damage of its own. */
-function headSaysIt(action: RefMetaAction): boolean {
-  return (
-    (action.range?.length ?? 0) > 0 ||
-    action.damage !== undefined ||
-    (action.content ?? []).some((c) => c.type === 'datavalues' && !c.label)
-  )
+/** The block's words with its tagged words taken out, the spacing they leave tidied. */
+function withoutTagged(value: string, cuts: readonly string[]): string {
+  let text = value
+  for (const cut of cuts) text = text.replace(cut, '')
+  return text
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/ {2,}/g, ' ')
+    .trim()
 }
 
 /**
- * The action's effect: its content with the setup, upkeep, examples and
- * flavour left out. Empty when the head's chips are the whole of it (a plain
- * weapon).
+ * The action's effect: its content with the tagged setup, upkeep, examples
+ * and flavour left out. Empty when the head's chips are the whole of it (a
+ * plain weapon).
  */
 export function actionEffect(action: RefMetaAction): RefObjectContentBlock[] {
-  const kept: { block: RefObjectContentBlock; signal: boolean }[] = []
+  const kept: RefObjectContentBlock[] = []
   for (const block of action.content ?? []) {
     const type = block.type ?? 'paragraph'
     if (type === 'flavor' || type === 'hint' || type === 'heading' || type === 'choice') continue
     if (type === 'datavalues') {
-      if (block.label) kept.push({ block, signal: true })
+      if (block.label) kept.push(block)
       continue
     }
-    if (typeof block.value !== 'string') {
-      kept.push({ block, signal: true })
+    const tags = block.notInPlay ?? []
+    if (tags.length === 0 || typeof block.value !== 'string') {
+      kept.push(block)
       continue
     }
-    const text = sentencesOf(block.value)
-      .filter((s) => !isBuildSentence(s))
-      .join(' ')
-    if (!text) continue
-    // A list item is one of the effect's options: its label is a signal.
-    const signal = type === 'list-item' || hasRulesSignal(text)
-    kept.push({ block: text === block.value ? block : { ...block, value: text }, signal })
+    const cuts = tags.map((t) => t.text)
+    if (cuts.some((c) => c === undefined)) continue
+    const { notInPlay: _tags, ...rest } = block
+    const value = withoutTagged(block.value, cuts as string[])
+    if (value) kept.push({ ...rest, value })
   }
-  const anySignal = kept.some((k) => k.signal)
-  // Flavour goes where something else says what the action does.
-  if (anySignal || headSaysIt(action)) return kept.filter((k) => k.signal).map((k) => k.block)
-  return kept.map((k) => k.block)
+  return kept
 }
 
 /** A pick the player made on an action's choices, as its row says it (R60). */
