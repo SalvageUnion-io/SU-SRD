@@ -400,6 +400,16 @@ export function MechSheet({
             patch={readOnly ? undefined : actions.patchMech}
           />
         )
+        const manifestNode = (
+          <StorageManifest
+            side="mech"
+            cargo={cargo}
+            mechName={mech.name}
+            crawlerName={crawler?.name ?? null}
+            counterpartHref={crawlerHref}
+            readOnly={readOnly}
+          />
+        )
         const holdNode = showHold && (
           <SlabSection
             title={buildSheetCopy('theHold')}
@@ -410,14 +420,7 @@ export function MechSheet({
               ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
             }}
           >
-            <StorageManifest
-              side="mech"
-              cargo={cargo}
-              mechName={mech.name}
-              crawlerName={crawler?.name ?? null}
-              counterpartHref={crawlerHref}
-              readOnly={readOnly}
-            />
+            {manifestNode}
           </SlabSection>
         )
         const asideNode = (
@@ -582,7 +585,12 @@ export function MechSheet({
                 value: 'hold',
                 label: 'Hold',
                 count: `${cargo.usage.used}/${cargo.usage.cap}`,
-                panel: holdNode || <EmptyState variant="quiet" body="Nothing in the hold." />,
+                // The tab names the hold and its count: the manifest alone, no Slab over it.
+                panel: showHold ? (
+                  manifestNode
+                ) : (
+                  <EmptyState variant="quiet" body="Nothing in the hold." />
+                ),
               },
               {
                 value: 'about',
