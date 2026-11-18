@@ -108,9 +108,22 @@ function sortMark(sort: LedgerSort): ReactNode {
 const isEmpty = (cell: ReactNode) =>
   cell === '' || cell === null || cell === undefined || cell === false
 
-/** A quiet line is cut short on its one line: its words are its hover title. */
+/** `[[Trait]]` markup in rules text (the dataset's own). */
+const MARKUP = /\[\[([^\]]+)\]\]/g
+
+/** A quiet line is cut short on its one line: its words, markup read as words, are its hover title. */
 function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
-  return column.kind === 'quiet' && typeof cell === 'string' ? cell : undefined
+  return column.kind === 'quiet' && typeof cell === 'string'
+    ? cell.replace(MARKUP, '$1')
+    : undefined
+}
+
+/**
+ * A cell's words; rules text's `[[Trait]]` reads as its word, never as markup.
+ * Only the row's name is a link: a cell cut to its one line holds no links.
+ */
+function cellBody(cell: ReactNode): ReactNode {
+  return typeof cell === 'string' ? cell.replace(MARKUP, '$1') : cell
 }
 
 export function Ledger({
@@ -328,7 +341,7 @@ export function Ledger({
                       data-empty={isEmpty(row.cells[cell]) || undefined}
                       title={cellTitle(column, row.cells[cell])}
                     >
-                      {isEmpty(row.cells[cell]) ? '—' : row.cells[cell]}
+                      {isEmpty(row.cells[cell]) ? '—' : cellBody(row.cells[cell])}
                     </td>
                   ))}
                   {hasTrailing && (

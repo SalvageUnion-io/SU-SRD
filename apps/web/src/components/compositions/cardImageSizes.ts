@@ -49,6 +49,16 @@ export function heroImageSizes(): string {
 }
 
 /**
+ * The `sizes` of the front door's art plate (`.su-front__plate`): its height
+ * is capped (15rem, 20rem from `lg`) and its art is about square, so it is
+ * about that wide. On a phone that is the 440w candidate, not the 880w one
+ * `heroImageSizes` would pick for the full column.
+ */
+export function plateImageSizes(): string {
+  return [`${widthAtLeast('lg')} 20rem`, '15rem'].join(', ')
+}
+
+/**
  * The `sizes` of a door tile's art (`StartHere`): a third of the page's
  * measure from `lg`, the column's width below.
  */

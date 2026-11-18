@@ -96,7 +96,8 @@
 }
 
 .su-front__plate .su-entity-hero {
-  --su-hero-max-h: 16rem;
+  /* `plateImageSizes` repeats this cap. */
+  --su-hero-max-h: 15rem;
 }
 
 .su-front__plate-cite {
@@ -126,6 +127,7 @@
   }
 
   .su-front__plate .su-entity-hero {
+    /* `plateImageSizes` repeats this cap. */
     --su-hero-max-h: 20rem;
   }
 }

@@ -174,3 +174,22 @@ describe('Ledger: an empty list', () => {
     expect(container.querySelector('tbody')?.textContent).toBe('No systems yet.')
   })
 })
+
+describe('rules markup in a cell', () => {
+  test('a [[Trait]] renders as words, never as markup, in the cell and its title', () => {
+    const { container } = draw({
+      rows: [
+        {
+          id: 'h',
+          name: 'Override',
+          entityRef: undefined,
+          href: '/abilities/override/',
+          cells: [1, '', 'Use an Ability with the [[Hacking]] Trait'],
+        },
+      ],
+    })
+    expect(container.innerHTML).not.toContain('[[')
+    expect(container.textContent).toContain('the Hacking Trait')
+    expect(container.querySelectorAll('a')).toHaveLength(1)
+  })
+})
