@@ -130,7 +130,7 @@ describe('ModalShell', () => {
     expect(screen.getByRole('dialog').className).toBe('')
   })
 
-  test('the danger band declares an ink ground for its ×; the pilot band does not (R19)', () => {
+  test('the danger band declares an ink ground for its ×; the pilot band does not (K1)', () => {
     const { unmount } = render(
       <ModalShell open={true} onOpenChange={() => {}} title="Delete" tone="danger">
         <p>Content</p>

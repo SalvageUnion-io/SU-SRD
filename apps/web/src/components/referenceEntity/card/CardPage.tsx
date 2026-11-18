@@ -249,7 +249,10 @@ export function CardPage({
           </div>
         )}
         {line.length > 0 && (
-          <ul className="su-stat-column su-manual__stats" aria-label={`${action.hostName} stats`}>
+          <ul
+            className="su-grid su-stat-column su-manual__stats"
+            aria-label={`${action.hostName} stats`}
+          >
             {line.map((stat) => (
               <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
                 <Stat
@@ -291,7 +294,7 @@ export function CardPage({
           <PatternLedger chassis={entity} patterns={patterns} />
         )}
         {neighbours.length > 0 && (
-          <div className="su-entity-page__neighbour-row">
+          <div className="su-grid su-entity-page__neighbour-row">
             {neighbours.map(({ label, abilities }) => (
               <SlabSection
                 key={label}
@@ -378,7 +381,7 @@ export function CardPage({
           (ruleset N1), a named N8 exception
           (`.su-entity-page__neighbours`). */}
       {neighbours.length > 0 && (
-        <div className="su-entity-page__neighbour-row">
+        <div className="su-grid su-entity-page__neighbour-row">
           {neighbours.map(({ label, abilities }) => (
             <SlabSection
               key={label}

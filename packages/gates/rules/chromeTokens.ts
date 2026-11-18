@@ -38,6 +38,7 @@ import {
 import { ignoredRules } from '../lib/tokenIgnore'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { ENTITY_FRAME_STYLE_FILES, entityFrameInkCss, entityFrameInkScript } from './entityFrames'
+import { itemGridRule } from './itemGrid'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
@@ -496,6 +497,7 @@ const CHROME_RULES: ChromeRule[] = [
     css: entityFrameInkCss,
     script: entityFrameInkScript,
   },
+  itemGridRule,
 ]
 
 /** Every rule id here, for the `design-tokens-ignore` names the tokens set checks. */

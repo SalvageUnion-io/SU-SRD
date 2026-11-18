@@ -95,15 +95,15 @@
 /* The stat column (`.su-stat-column`, its Stats' plates), four to a row: all
    eight stats in two tight rows. A phone reads the short labels. */
 .su-stat-column.su-manual__stats {
-  gap: var(--space-6);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  --su-grid-gap: var(--space-6);
+  --su-grid-max: 4;
   list-style: none;
   padding: 0;
 }
 
 @media (width >= 40rem) {
   .su-stat-column.su-manual__stats {
-    gap: var(--space-6) var(--space-8);
+    --su-grid-gap: var(--space-8);
   }
 
   .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {

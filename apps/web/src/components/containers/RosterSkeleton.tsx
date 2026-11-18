@@ -70,7 +70,7 @@ type RosterSkeletonProps = {
 export function RosterSkeleton({ label = 'saved builds' }: RosterSkeletonProps) {
   return (
     <SkeletonFrame label={label}>
-      <div className="su-roster-skeleton">
+      <div className="su-grid su-roster-skeleton">
         <SkeletonColumn />
         <SkeletonColumn hiddenOnMobile />
         <SkeletonColumn hiddenOnMobile />

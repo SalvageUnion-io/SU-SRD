@@ -60,7 +60,7 @@ type ConfirmDialogProps = {
    * `danger` for destructive confirms — the danger header, focus on Cancel.
    * `default` for constructive ones — pilot-blue header, focus on the
    * confirm. The confirm button is rust either way: no state colour fills a
-   * button (ruleset §3.1, hard rule R9).
+   * button (ruleset §3.1).
    */
   tone?: 'danger' | 'default'
   /** The action. A returned promise holds the dialog in its pending state. */

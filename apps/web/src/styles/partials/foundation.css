@@ -217,8 +217,14 @@ body {
  * the reference site writes a style object out on every element. First in the cascade, so a
  * component class laid over one wins at one class each, the gap aside. The gap is one step
  * of the space scale, `data-gap`, one rule per step `containers/layoutGap.ts`
- * allows; the Grid's narrowest column is `--su-grid-min`, set inline because
- * it varies by instance.
+ * allows (a Grid's share of a row reads it as `--su-grid-gap`).
+ *
+ * `.su-grid` is the one item grid (hard rule R68): a wrapping flex row whose
+ * items grow, so a short last row shares the line and no track stands empty.
+ * A consumer's own class sets what varies: `--su-grid-min`, an item's
+ * narrowest; `--su-grid-max`, the most a row holds; `--su-grid-gap` (and
+ * `--su-grid-row-gap` where rows sit closer). An item that takes a row of its
+ * own sets `flex-basis: 100%`.
  */
 .su-stack {
   display: flex;
@@ -232,38 +238,63 @@ body {
 }
 
 .su-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--su-grid-min)), 1fr));
+  --su-grid-gap: var(--space-12);
+  --su-grid-max: 12;
+  --su-grid-min: 0px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--su-grid-row-gap, var(--su-grid-gap)) var(--su-grid-gap);
+}
+
+/* An item's basis is its narrowest, or its share of a full row where that is
+   wider; a hair under the share, so a rounded-up basis never wraps a full row. */
+.su-grid > * {
+  flex: 1 1
+    max(
+      var(--su-grid-min),
+      (100% - (var(--su-grid-max) - 1) * var(--su-grid-gap)) /
+      var(--su-grid-max) -
+      0.05px
+    );
+  min-width: 0;
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='4'] {
+  --su-grid-gap: var(--space-4);
   gap: var(--space-4);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='6'] {
+  --su-grid-gap: var(--space-6);
   gap: var(--space-6);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='8'] {
+  --su-grid-gap: var(--space-8);
   gap: var(--space-8);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='12'] {
+  --su-grid-gap: var(--space-12);
   gap: var(--space-12);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='16'] {
+  --su-grid-gap: var(--space-16);
   gap: var(--space-16);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='20'] {
+  --su-grid-gap: var(--space-20);
   gap: var(--space-20);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='24'] {
+  --su-grid-gap: var(--space-24);
   gap: var(--space-24);
 }
 
 :is(.su-stack, .su-cluster, .su-grid)[data-gap='32'] {
+  --su-grid-gap: var(--space-32);
   gap: var(--space-32);
 }
