@@ -16,16 +16,14 @@
  * each press does is `Play`'s (`usePlaySituation`); this only draws it.
  */
 
-import { downtimeStepCount } from 'game-domain/rules/downtime'
 import { ChevronDown, Lock } from 'lucide-react'
 import type { CSSProperties } from 'react'
-import { useState } from 'react'
-import { ConfirmDialog, HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
+import { HeaderMenu, Segmented, SegmentedOption, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
-import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'
 import { boardable, boardedMechName, boardMenuSections } from './boardMenu.model'
 import type { Play } from './situation.model'
+import { useSituationMoves } from './useSituationMoves'
 
 const ROW = {
   alignItems: 'center',
@@ -34,11 +32,6 @@ const ROW = {
 } satisfies CSSProperties
 
 /** Below `lg`, pinned: the options share the screen's width (`fill`). */
-const FILL_ROW = { ...ROW, width: '100%' } satisfies CSSProperties
-
-const GROW = { flex: '1 1 0%' } satisfies CSSProperties
-
-/** The leading label sits on the Play bar's band: its foreground (`PlayBar`). */
 const LABEL = {
   color: 'inherit',
   fontFamily: tokens.font.cond,
@@ -54,57 +47,24 @@ const GLYPH = {
 } satisfies CSSProperties
 
 /** Where a press that leaves a running Downtime goes once it is ended. */
-type Leave = { kind: 'foot' } | { kind: 'board'; option: BoardOption }
-
-/** The reason the Downtime option is locked, read with its name. */
 const SET_BY_MEDIATOR = 'Set by the Mediator'
 const SET_BY_MEDIATOR_PHRASE = 'set by the Mediator'
 
-export function PlaySituationSwitch({
-  play,
-  fill = false,
-}: {
-  play: Play
-  /** Pinned below `lg`: no leading label, the options share the row (play.md §11). */
-  fill?: boolean
-}) {
-  const [leaving, setLeaving] = useState<Leave | null>(null)
-  const [assigning, setAssigning] = useState<BoardOption | null>(null)
+export function PlaySituationSwitch({ play }: { play: Play }) {
+  const { go, dialogs } = useSituationMoves(play)
   const { situation, mechs, canWrite, canChangeDowntime } = play
   const { downtime, locked } = play.downtime
   const running = downtime.running
-
-  /** Go there now, or once a running Downtime this screen may end is ended. */
-  function go(to: Leave) {
-    if (running && canChangeDowntime) {
-      setLeaving(to)
-      return
-    }
-    arrive(to)
-  }
-
-  function arrive(to: Leave) {
-    if (to.kind === 'foot') play.setOnFoot()
-    else if (to.option.state === 'spare') setAssigning(to.option)
-    else play.board(to.option.mechId)
-  }
 
   const boardedName = boardedMechName(play)
   const boarded = situation === 'boarded'
 
   return (
-    <div style={fill ? FILL_ROW : ROW}>
-      {!fill && (
-        <span style={LABEL} aria-hidden="true">
-          {playCopy('situation')}
-        </span>
-      )}
-      <Segmented
-        label={playCopy('situation')}
-        size="compact"
-        fill={fill}
-        style={fill ? GROW : undefined}
-      >
+    <div style={ROW}>
+      <span style={LABEL} aria-hidden="true">
+        {playCopy('situation')}
+      </span>
+      <Segmented label={playCopy('situation')} size="compact">
         <SegmentedOption
           pressed={situation === 'onFoot'}
           disabled={!canWrite}
@@ -117,7 +77,6 @@ export function PlaySituationSwitch({
           pressed={boarded}
           boardedName={boardedName}
           disabled={!canWrite}
-          short={fill}
           onChoose={(option) => go({ kind: 'board', option })}
         />
         <SegmentedOption
@@ -140,34 +99,9 @@ export function PlaySituationSwitch({
           )}
         </SegmentedOption>
       </Segmented>
-      <ConfirmDialog
-        open={leaving !== null}
-        onOpenChange={(open) => {
-          if (!open) setLeaving(null)
-        }}
-        tone="danger"
-        title={playCopy('endDowntime2')}
-        body={endDowntimeBody(downtime.stepIndex, play.target.gameId !== null)}
-        confirmLabel={playCopy('endDowntime')}
-        onConfirm={() => {
-          const to = leaving
-          play.endDowntime()
-          setLeaving(null)
-          if (to !== null) arrive(to)
-        }}
-      />
-      <AssignAndBoardConfirm play={play} assigning={assigning} onClose={() => setAssigning(null)} />
+      {dialogs}
     </div>
   )
-}
-
-/** What ending a running Downtime early costs, as the confirm says it. */
-function endDowntimeBody(stepIndex: number | null, inGame: boolean): string {
-  const step = `${inGame ? 'The table is' : 'You are'} on step ${(stepIndex ?? 0) + 1} of ${downtimeStepCount()}.`
-  const after = inGame
-    ? 'Everyone goes back to their seat, and a new Downtime starts from the first step.'
-    : 'A new Downtime starts from the first step.'
-  return `${step} ${after}`
 }
 
 /**
@@ -179,20 +113,16 @@ function BoardOptionControl({
   pressed,
   boardedName,
   disabled,
-  short,
   onChoose,
 }: {
   mechs: readonly BoardOption[]
   pressed: boolean
   boardedName: string | null
   disabled: boolean
-  /** The phone's: "Boarded" alone on the option (the pinned vitals name the mech), the name still in its accessible name. */
-  short: boolean
   onChoose: (option: BoardOption) => void
 }) {
   const only = mechs.length === 1 ? mechs[0] : undefined
   const label = pressed ? (boardedName === null ? 'Boarded' : `Boarded · ${boardedName}`) : 'Board'
-  const shown = short ? (pressed ? 'Boarded' : 'Board') : null
 
   if (mechs.length === 0) {
     return (
@@ -202,7 +132,7 @@ function BoardOptionControl({
         aria-label={playCopy('noMechToBoard2', { label })}
       >
         {/* Said on the option, never only in a hover title a phone can't read. */}
-        {pressed ? (shown ?? label) : playCopy('noMech')}
+        {pressed ? label : playCopy('noMech')}
       </SegmentedOption>
     )
   }
@@ -214,12 +144,10 @@ function BoardOptionControl({
         pressed={pressed}
         disabled={disabled || !boardable(only)}
         title={only.note ?? undefined}
-        aria-label={
-          only.note === null ? (shown === null ? undefined : text) : `${text}, ${only.note}`
-        }
+        aria-label={only.note === null ? undefined : `${text}, ${only.note}`}
         onClick={() => onChoose(only)}
       >
-        {shown ?? text}
+        {text}
       </SegmentedOption>
     )
   }
@@ -232,7 +160,7 @@ function BoardOptionControl({
       label={playCopy('chooseAMech', { label })}
       trigger={
         <>
-          {shown ?? label}
+          {label}
           <ChevronDown size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
         </>
       }

@@ -33,14 +33,13 @@ type MechVitalsProps = {
   readOnly: boolean
   store: UnitsStore
   /**
-   * MOCK (Working Manual D, principle 2): the viewer may write the sheet, so
-   * in Read the three gauges keep their value live: − / + steppers
-   * (`VitalGauge`'s `steppers`: under the track; the Compact Size from `sm`,
-   * `.su-sheet-vitals`), each change said with Undo. Edit keeps the
-   * maxima and their provenance.
+   * The viewer may write the sheet, so Read keeps the three vitals live
+   * (R11, ruleset §1.2): the gauge's − / + at the track's end
+   * (`VitalGauge`'s `steppers="end"`), each change one toast with Undo (K5).
+   * Edit keeps the maxima and their provenance.
    */
   live?: boolean
-  /** MOCK (wave 2): a phone in Read draws the vitals as `PhoneVitals`, one row a number. */
+  /** A phone in Read: the vitals as `PhoneVitals`, one row a number (ruleset §2.1). */
   phone?: boolean
 }
 
@@ -53,7 +52,7 @@ export function MechVitals({
   live = false,
   phone = false,
 }: MechVitalsProps) {
-  // MOCK: session state writes in Read too, and every change shows its line with Undo.
+  // Session state writes in Read too, and every change shows its line with Undo.
   const writes = !readOnly || live
   const change = (field: 'currentSP' | 'currentEP' | 'currentHeat', label: string, from: number) =>
     writes
@@ -71,11 +70,11 @@ export function MechVitals({
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
   // The conditions Read prints: the same list the Edit chips write.
   const readConditions = readOnly ? mech.conditions : []
-  // MOCK (wave 2): the phone's block. Names come from the one vitals map (R11).
+  // The phone's block. Names come from the one vitals map (R11).
   if (phone)
     return (
       <PhoneVitals
-        label={`${mech.name} vitals`}
+        label={buildSheetCopy('unitVitals', { name: mech.name })}
         vitals={[
           {
             key: 'sp',
@@ -83,7 +82,7 @@ export function MechVitals({
             name: SHEET_VITALS.sp.label,
             value: model.currentSP,
             max: maxSP,
-            onChange: change('currentSP', 'SP', model.currentSP),
+            onChange: change('currentSP', SHEET_VITALS.sp.short, model.currentSP),
           },
           {
             key: 'ep',
@@ -91,7 +90,7 @@ export function MechVitals({
             name: SHEET_VITALS.ep.label,
             value: model.currentEP,
             max: maxEP,
-            onChange: change('currentEP', 'EP', model.currentEP),
+            onChange: change('currentEP', SHEET_VITALS.ep.short, model.currentEP),
           },
           {
             key: 'heat',
@@ -100,7 +99,7 @@ export function MechVitals({
             value: model.currentHeat,
             max: heatCap,
             danger: heatCap > 0 ? heatDangerFrom(heatCap) : undefined,
-            onChange: change('currentHeat', 'Heat', model.currentHeat),
+            onChange: change('currentHeat', SHEET_VITALS.heat.short, model.currentHeat),
           },
         ]}
         foot={readConditions.length > 0 ? <Conditions conditions={readConditions} /> : undefined}
@@ -112,8 +111,8 @@ export function MechVitals({
         vital="sp"
         value={model.currentSP}
         max={maxSP}
-        onChange={change('currentSP', 'SP', model.currentSP)}
-        steppers={writes}
+        onChange={change('currentSP', SHEET_VITALS.sp.short, model.currentSP)}
+        steppers={writes ? 'end' : false}
         onMaxChange={
           readOnly
             ? undefined
@@ -130,8 +129,8 @@ export function MechVitals({
         vital="ep"
         value={model.currentEP}
         max={maxEP}
-        onChange={change('currentEP', 'EP', model.currentEP)}
-        steppers={writes}
+        onChange={change('currentEP', SHEET_VITALS.ep.short, model.currentEP)}
+        steppers={writes ? 'end' : false}
         onMaxChange={
           readOnly
             ? undefined
@@ -149,8 +148,8 @@ export function MechVitals({
         value={model.currentHeat}
         max={heatCap}
         danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
-        onChange={change('currentHeat', 'Heat', model.currentHeat)}
-        steppers={writes}
+        onChange={change('currentHeat', SHEET_VITALS.heat.short, model.currentHeat)}
+        steppers={writes ? 'end' : false}
         onMaxChange={
           readOnly
             ? undefined

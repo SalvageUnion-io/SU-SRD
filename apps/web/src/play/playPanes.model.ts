@@ -4,8 +4,9 @@
  * is pinned above them below `lg`.
  *
  *  - The player's (`playerPanes`): from `lg` Units | Act | Crew, then Tables,
- *    in the end column; below it the tabs Act, Units, Tables, Crew
- *    (`PLAYER_TABS`). Crew is a Game's, so a solo screen has three.
+ *    in the end column; below it the tabs Act, Crew, Rolls, Rules
+ *    (`PLAYER_TABS`), the Units pane opened from ⋯. Crew is a Game's, so a
+ *    solo screen has three.
  *  - The Mediator's: Table, Opposition, Tables, Propose (`mediatorPanes`; the
  *    second reads Downtime while it runs). From `lg`: Table | Opposition |
  *    Tables, then Propose docked at the column's foot.
@@ -20,6 +21,7 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { playCopy } from '../messages/play'
 import type { Situation } from './situation.model'
 import type { UnitGauge } from './unitStats.model'
 import { mechStats, pilotVitals } from './unitStats.model'
@@ -37,11 +39,11 @@ export type PaneSpec<Value extends string> = {
   column: PlayColumn
   /** From `lg`, sits at the foot of its column (the Mediator's Propose dock). */
   dock?: boolean
-  /** MOCK (Working Manual, attention law): something on this pane is pending; its tab wears a dot. */
+  /** Something on this pane is pending; its tab wears a dot. */
   dot?: boolean
 }
 
-// MOCK (Working Manual E): `rules`, the Reference inside Play, a player's tab below `lg`.
+/** `rules` is the Reference inside Play: a tab below `lg`, under the Tables from it. */
 export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'rules'
 
 export type MediatorPane = 'table' | 'opposition' | 'tables' | 'propose'
@@ -60,27 +62,29 @@ export function playerPanes(solo: boolean): readonly PaneSpec<PlayerPane>[] {
 }
 
 /**
- * MOCK (Working Manual E): the phone's panes. Tables reads "Rolls" (one
- * meaning for "Table"), Rules is the Reference, and Units has no tab: its
- * vitals are pinned and Board / On foot are in the bar's ⋯. `pending` is the
- * pane with something waiting (a Mediator's proposal), which wears the dot.
+ * The panes below `lg`. Tables reads "Rolls" there (one meaning for "Table"),
+ * and Rules is the Reference. `waiting` is the pane with something waiting (a
+ * proposal to answer, in the Feed), whose tab wears the dot.
  */
 export function playerPhonePanes(
   solo: boolean,
-  pending: PlayerPane | null
+  waiting: PlayerPane | null
 ): readonly PaneSpec<PlayerPane>[] {
   const panes: readonly PaneSpec<PlayerPane>[] = [
-    ...playerPanes(solo).map((p) => (p.value === 'tables' ? { ...p, label: 'Rolls' } : p)),
-    { value: 'rules', label: 'Rules', column: 'end' },
+    ...playerPanes(solo).map((p) =>
+      p.value === 'tables' ? { ...p, label: playCopy('rolls') } : p
+    ),
+    { value: 'rules', label: playCopy('rules'), column: 'end' },
   ]
-  return panes.map((p) => (p.value === pending ? { ...p, dot: true } : p))
+  return panes.map((p) => (p.value === waiting ? { ...p, dot: true } : p))
 }
 
-/** MOCK (Working Manual E): the phone's tabs, Act · Crew · Rolls · Rules. */
-export const PLAYER_PHONE_TABS: readonly PlayerPane[] = ['act', 'crew', 'tables', 'rules']
-
-/** The player's tabs below `lg`, in a fixed order a thumb learns: what a turn uses first. */
-export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'units', 'tables', 'crew']
+/**
+ * The player's tabs below `lg`, in a fixed order a thumb learns: Act · Crew ·
+ * Rolls · Rules. Units has no tab: its vitals are pinned above every pane,
+ * and the bar's ⋯ opens the pane for the rest (range, effects, the hangar).
+ */
+export const PLAYER_TABS: readonly PlayerPane[] = ['act', 'crew', 'tables', 'rules']
 
 const MEDIATOR_PANES: readonly PaneSpec<MediatorPane>[] = [
   { value: 'table', label: 'Table', column: 'start' },

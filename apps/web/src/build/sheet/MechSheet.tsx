@@ -1,4 +1,3 @@
-import type { UnitsStore } from '../../replica/units'
 /**
  * MechSheet — the mech variant BODY for the LiveSheet shell, in the
  * poster layout.
@@ -10,10 +9,12 @@ import type { UnitsStore } from '../../replica/units'
  *   Identity Band: image | text | stats + ability (`MechHeroChassis`) — the
  *       player's photo, what they wrote (the pattern name in Edit only: it is
  *       the band's title), the chassis stats and ability ∥ the vitals rail.
- *   Systems & Modules — KEPT as two sections (each its own `SlabSection`,
- *       side by side from 48rem, one Mini a line): different collections
- *       with different '+ Add' pickers/slot budgets, so folding them into one
- *       list is not trivial.
+ *   Actions (Read): every action the mech has, by action type (R65,
+ *       `MechActionsList`), the rows Play's board draws.
+ *   Systems & Modules (`MechLoadout`) — KEPT as two sections (each its own
+ *       `SlabSection`, side by side from 48rem, one Mini a line): different
+ *       collections with different '+ Add' pickers/slot budgets, so folding
+ *       them into one list is not trivial.
  *   The sidebar (`SheetColumns`, ruleset §1.2), beside the sheet from the
  *       64rem rung, straight under the opening on a phone: the Chassis
  *       callout (`MechChassisCard`: name with a CHASSIS chip, art,
@@ -25,6 +26,10 @@ import type { UnitsStore } from '../../replica/units'
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
  * collections get a SLAB (The Hold, Systems, Modules, Assigned Units). Read
  * leaves an empty section out (hard rule R11).
+ *
+ * A phone in Read is `PhoneSheet` (R11): the vitals as `PhoneVitals`, then
+ * the tabs Actions, Loadout, Hold, About: what the mech does, has and
+ * carries, then who it is. Its lists are Ledgers (`MechLoadoutLedgers`).
  *
  * No play-control panel lives on the sheet: Heat Check / Push / Reactor
  * Overload and Take Damage / Critical Damage are Play's (ADR-021). The
@@ -50,34 +55,19 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { nameToSlug } from 'salvageunion-reference'
-import type { SlabCount } from '../../components/index'
-import {
-  Button,
-  EmptyState,
-  EntitySearcher,
-  Field,
-  FieldError,
-  MiniGrid,
-  SlabSection,
-  Stack,
-  Stat,
-  tokens,
-} from '../../components/index'
+import { EmptyState, Field, FieldError, SlabSection, Stack, tokens } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
-import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
-import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
-import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from './MechIdentity'
-import { MechItemMini } from './MechItemMini'
-import { MechSheetActions } from './MechSheetActions'
+import { MechLoadout, MechLoadoutLedgers } from './MechLoadout'
+import { MechSheetPickers } from './MechSheetPickers'
 import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
@@ -86,10 +76,9 @@ import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
 import { PhoneSheet } from './PhoneSheet'
 import { PhotoBeside } from './PhotoBeside'
+import { MechActionsList } from './SheetActions'
 import { SheetColumns } from './SheetColumns'
 import { HeroMore, SheetHero } from './SheetHero'
-import { SheetLedger } from './SheetLedger'
-import { SheetPickerModal } from './SheetPickerModal'
 import { StorageManifest } from './StorageManifest'
 import { usePhoneRead } from './usePhoneRead'
 
@@ -109,40 +98,6 @@ const FIELDS = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
-type AsPrinted = { pattern: string; cite: string } | undefined
-
-/**
- * An over-slot count is "as printed" when the loadout is a pattern the book
- * prints over its chassis's slots: the count is the book's, not a mistake.
- */
-function overAsPrinted(used: number, max: number, asPrinted: AsPrinted): boolean {
-  return asPrinted !== undefined && used > max
-}
-
-/**
- * A section's `SLOTS | used/max` chip, noted "as printed" (with its cite) when
- * an over-slot count is the book's; any other over-slot count is critical.
- */
-function slotCount(used: number, max: number, asPrinted: AsPrinted): SlabCount {
-  const printed = overAsPrinted(used, max, asPrinted) ? asPrinted : undefined
-  if (printed) {
-    return {
-      label: buildSheetCopy('slots'),
-      value: used,
-      max,
-      note: buildSheetCopy('asPrinted'),
-      title: `${printed.pattern}, ${printed.cite}`,
-    }
-  }
-  return {
-    label: buildSheetCopy('slots'),
-    value: used,
-    max,
-    ...(used > max ? { state: 'critical' } : {}),
-  }
-}
-
 type MechSheetProps = {
   mech: Mech
   /**
@@ -155,7 +110,7 @@ type MechSheetProps = {
    * Pass a stub in tests to avoid Zustand side effects.
    */
   store?: UnitsStore
-  /** MOCK (Working Manual, principle 2): the viewer may write it, so Read keeps the vitals live. */
+  /** The viewer may write it, so Read keeps the vitals live (R11). */
   live?: boolean
   /** Suppresses every edit affordance (a sheet the viewer cannot write (public, crewmate's, Starter Set, or Read)). */
   readOnly?: boolean
@@ -217,70 +172,162 @@ export function MechSheet({
   // Read leaves an empty section out (ruleset §1.2): an empty state only where
   // Edit can fill it.
   const showHold = !readOnly || model.cargo.usage.used > 0
-  const showSystems = !readOnly || mech.systems.length > 0
-  const showModules = !readOnly || mech.modules.length > 0
 
-  const { chassis, cargo, capacity, maxEP } = model
-  // MOCK (Working Manual D): a phone in Read leads with the numbers, then tabs.
+  const { chassis, cargo, capacity } = model
+  // A phone in Read leads with the numbers, then tabs (`PhoneSheet`).
   const phoneRead = usePhoneRead(readOnly)
+  const vitals = (phone: boolean) => (
+    <MechVitals
+      mech={mech}
+      model={model}
+      actions={actions}
+      readOnly={readOnly}
+      store={store}
+      live={live}
+      phone={phone}
+    />
+  )
 
-  function renderItems(kind: ItemKind, slugs: string[]) {
-    const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
-    if (slugs.length === 0) {
-      return (
-        <EmptyState
-          variant="quiet"
-          body={
-            kind === 'system'
-              ? buildSheetCopy('noSystemsInstalled')
-              : buildSheetCopy('noModulesInstalled')
-          }
-        />
-      )
-    }
-    // Keyed by occurrence, not index: removing one item must not remount (and
-    // hand local state to) the items after it. See occurrenceKeys.
-    const keys = occurrenceKeys(slugs)
-    // Contentful Minis in a masonry grid, each its head and then its text,
-    // Peeking its whole card.
-    return (
-      <MiniGrid
-        label={
-          kind === 'system'
-            ? buildSheetCopy('systemsInstalled')
-            : buildSheetCopy('modulesInstalled')
+  // The sheet's regions, named once: a phone in Read orders them number
+  // first, in tabs; every other width and Edit keep the opening, the sidebar
+  // and the main column.
+  // On a phone the chassis ability follows the Vitals (§1.10); on the phone's
+  // About tab it runs the card's width under the photo.
+  const chassisAbility = (
+    <HeroMore>
+      <MechHeroChassis
+        abilities={model.chassisAbilities}
+        chassisModder={model.chassisModder}
+        onModChassis={
+          readOnly
+            ? undefined
+            : (slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })
         }
-        edit={!readOnly}
-      >
-        {slugs.map((slug, index) => (
-          <li key={keys[index]}>
-            <MechItemMini
-              slug={slug}
-              entity={kind === 'system' ? resolveSystem(slug) : resolveModule(slug)}
-              condition={conditions[slug] ?? 'intact'}
-              usesRemaining={mech.itemUses?.[slug]}
-              scrapPool={model.scrapPool}
-              scrapPoolLocked={cargo.crawlerLocked}
-              readOnly={readOnly}
-              onStatusCycle={() => runWrite(() => actions.cycleItemCondition(kind, slug))}
-              onUsesChange={(next) => runWrite(() => actions.setItemUses(slug, next))}
-              onRepair={(deductTl, cost) => {
-                runWrite(() => actions.repairItem(kind, slug, deductTl, cost))
-              }}
-              choices={{ mechId: mech.id, seed: mech.itemChoices?.[slug], store }}
-              onRemove={
+      />
+    </HeroMore>
+  )
+  const heroNode = (
+    <SheetHero
+      flat={phoneRead}
+      name={mech.name}
+      fields={
+        <PhotoBeside
+          below={
+            <>
+              {phoneRead && chassisAbility}
+              <MechDescriptionField
+                mech={mech}
+                onSave={readOnly ? undefined : actions.saveDescription}
+              />
+            </>
+          }
+          photo={
+            <EntityPhoto
+              photo={mech.photo}
+              // The chassis art until the player changes it.
+              fallback={chassisArt(mech.chassisRef)}
+              name={mech.name}
+              onChange={
                 readOnly
                   ? undefined
-                  : () => {
-                      actions.removeItem(kind, index)
-                    }
+                  : (photo) =>
+                      useUnits.getState().update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
               }
             />
-          </li>
-        ))}
-      </MiniGrid>
-    )
-  }
+          }
+        >
+          <div className="su-sheet-mech-hero-split">
+            <div style={FIELDS}>
+              <MechIdentityPanel
+                mech={mech}
+                patch={readOnly ? undefined : actions.patchMech}
+                after={
+                  <>
+                    <Field
+                      label={buildSheetCopy('quirk')}
+                      value={mech.quirk ?? ''}
+                      onSave={readOnly ? undefined : actions.saveQuirk}
+                      placeholder={buildSheetCopy('noQuirkRecorded')}
+                    />
+                    <MechAppearanceField
+                      mech={mech}
+                      onSave={readOnly ? undefined : actions.saveAppearance}
+                    />
+                  </>
+                }
+              />
+            </div>
+            {!phoneRead && chassisAbility}
+          </div>
+        </PhotoBeside>
+      }
+      vitals={phoneRead ? undefined : vitals(false)}
+    />
+  )
+  const chassisNode = (
+    <MechChassisCard
+      mech={mech}
+      entity={model.chassisEntity}
+      chassisName={model.chassisName}
+      patch={readOnly ? undefined : actions.patchMech}
+    />
+  )
+  const manifestNode = (
+    <StorageManifest
+      side="mech"
+      cargo={cargo}
+      mechName={mech.name}
+      crawlerName={crawler?.name ?? null}
+      counterpartHref={crawlerHref}
+      readOnly={readOnly}
+    />
+  )
+  const holdNode = showHold && (
+    <SlabSection
+      title={buildSheetCopy('theHold')}
+      count={{
+        label: buildSheetCopy('slots'),
+        value: cargo.usage.used,
+        max: cargo.usage.cap,
+        ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
+      }}
+    >
+      {manifestNode}
+    </SlabSection>
+  )
+  const asideNode = (
+    <>
+      {chassisNode}
+      {holdNode}
+      {linkedUnits}
+    </>
+  )
+  const partnersNode = (
+    <>
+      {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
+    Sestra's Sestra Drone, Big Brother's four). Its own region rather than
+    a Assigned Units row: a partner is not a linked roster entity, it is part
+    of this mech's own kit — and it renders full width because it carries a
+    nested loadout and a hold. No crawler tech level is threaded: a
+    mech-granted drone is fixed by its stat block and never tracks the
+    Union Crawler, unlike a pilot's ability-granted partners. ===== */}
+      {(mech.partners ?? []).length > 0 && (
+        <SlabSection fold="open" title={buildSheetCopy('partners')}>
+          <Stack gap={12}>
+            {(mech.partners ?? []).map((partner) => (
+              <PartnerCard
+                key={partner.id}
+                found={{ partner, hostKind: 'mech', host: mech }}
+                fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
+                readOnly={readOnly}
+                store={store}
+              />
+            ))}
+          </Stack>
+        </SlabSection>
+      )}
+    </>
+  )
 
   return (
     <section
@@ -302,380 +349,78 @@ export function MechSheet({
         </FieldError>
       )}
 
-      {/* ===== Identity Band (Workshop-Manual mech sheet top region) =====
-          Photo + the player's fields ∥ SP/EP/Heat + Conditions vitals rail. */}
-      {/* MOCK (Working Manual D): the sheet's regions, named once, so a phone in
-          Read can order them number first (`phoneRead`); every other width and
-          Edit keep the opening, the sidebar and the main column as they were. */}
-      {(() => {
-        // On a phone the chassis ability follows the Vitals (§1.10). MOCK (wave 2):
-        // on the phone's About tab it runs the card's width under the photo.
-        const chassisAbility = (
-          <HeroMore>
-            <MechHeroChassis
-              abilities={model.chassisAbilities}
-              chassisModder={model.chassisModder}
-              onModChassis={
-                readOnly
-                  ? undefined
-                  : (slug) => actions.patchMech({ moddedChassisAbility: slug ?? undefined })
-              }
-            />
-          </HeroMore>
-        )
-        const heroNode = (
-          <SheetHero
-            flat={phoneRead}
-            name={mech.name}
-            fields={
-              <PhotoBeside
-                below={
-                  <>
-                    {phoneRead && chassisAbility}
-                    <MechDescriptionField
-                      mech={mech}
-                      onSave={readOnly ? undefined : actions.saveDescription}
-                    />
-                  </>
-                }
-                photo={
-                  <EntityPhoto
-                    photo={mech.photo}
-                    // The chassis art until the player changes it.
-                    fallback={chassisArt(mech.chassisRef)}
-                    name={mech.name}
-                    onChange={
-                      readOnly
-                        ? undefined
-                        : (photo) =>
-                            useUnits
-                              .getState()
-                              .update('mech', mech.id, { photo }, LIVE_SHEET_MANUAL)
-                    }
-                  />
-                }
-              >
-                <div className="su-sheet-mech-hero-split">
-                  <div style={FIELDS}>
-                    <MechIdentityPanel
-                      mech={mech}
-                      patch={readOnly ? undefined : actions.patchMech}
-                      after={
-                        <>
-                          <Field
-                            label={buildSheetCopy('quirk')}
-                            value={mech.quirk ?? ''}
-                            onSave={readOnly ? undefined : actions.saveQuirk}
-                            placeholder={buildSheetCopy('noQuirkRecorded')}
-                          />
-                          <MechAppearanceField
-                            mech={mech}
-                            onSave={readOnly ? undefined : actions.saveAppearance}
-                          />
-                        </>
-                      }
-                    />
-                  </div>
-                  {!phoneRead && chassisAbility}
-                </div>
-              </PhotoBeside>
-            }
-            vitals={
-              phoneRead ? undefined : (
-                <MechVitals
-                  mech={mech}
-                  model={model}
-                  actions={actions}
-                  readOnly={readOnly}
-                  store={store}
-                  live={live}
-                />
-              )
-            }
-          />
-        )
-        const chassisNode = (
-          <MechChassisCard
+      {phoneRead ? (
+        <PhoneSheet
+          name={mech.name}
+          vitals={vitals(true)}
+          tabs={[
+            {
+              value: 'actions',
+              label: buildSheetCopy('actions'),
+              panel: <MechActionsList mech={mech} />,
+            },
+            {
+              value: 'loadout',
+              label: buildSheetCopy('loadout'),
+              count: `${capacity.systemSlotsUsed + capacity.moduleSlotsUsed}/${capacity.systemSlotsMax + capacity.moduleSlotsMax}`,
+              panel: (
+                <>
+                  <MechLoadoutLedgers mech={mech} model={model} />
+                  {partnersNode}
+                </>
+              ),
+            },
+            {
+              value: 'hold',
+              label: buildSheetCopy('hold'),
+              count: `${cargo.usage.used}/${cargo.usage.cap}`,
+              // The tab names the hold and its count: the manifest alone, no Slab over it.
+              panel: showHold ? (
+                manifestNode
+              ) : (
+                <EmptyState variant="quiet" body={buildSheetCopy('nothingInTheHold')} />
+              ),
+            },
+            {
+              value: 'about',
+              label: buildSheetCopy('about'),
+              panel: (
+                <>
+                  {heroNode}
+                  {chassisNode}
+                  {linkedUnits}
+                </>
+              ),
+            },
+          ]}
+        />
+      ) : (
+        <SheetColumns
+          asideLabel={buildSheetCopy('whatCarries', { name: mech.name })}
+          hero={heroNode}
+          aside={asideNode}
+        >
+          {/* Read lists what the mech does first (R65); Edit is its build. */}
+          {readOnly && <MechActionsList mech={mech} section />}
+          <MechLoadout
             mech={mech}
-            entity={model.chassisEntity}
-            chassisName={model.chassisName}
-            patch={readOnly ? undefined : actions.patchMech}
-          />
-        )
-        const manifestNode = (
-          <StorageManifest
-            side="mech"
-            cargo={cargo}
-            mechName={mech.name}
-            crawlerName={crawler?.name ?? null}
-            counterpartHref={crawlerHref}
+            model={model}
+            actions={actions}
             readOnly={readOnly}
+            store={store}
+            onManage={setPicker}
           />
-        )
-        const holdNode = showHold && (
-          <SlabSection
-            title={buildSheetCopy('theHold')}
-            count={{
-              label: buildSheetCopy('slots'),
-              value: cargo.usage.used,
-              max: cargo.usage.cap,
-              ...(cargo.usage.used > cargo.usage.cap ? { state: 'critical' } : {}),
-            }}
-          >
-            {manifestNode}
-          </SlabSection>
-        )
-        const asideNode = (
-          <>
-            {chassisNode}
-            {holdNode}
-            {linkedUnits}
-          </>
-        )
-        const partnersNode = (
-          <>
-            {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
-          Sestra's Sestra Drone, Big Brother's four). Its own region rather than
-          a Assigned Units row: a partner is not a linked roster entity, it is part
-          of this mech's own kit — and it renders full width because it carries a
-          nested loadout and a hold. No crawler tech level is threaded: a
-          mech-granted drone is fixed by its stat block and never tracks the
-          Union Crawler, unlike a pilot's ability-granted partners. ===== */}
-            {(mech.partners ?? []).length > 0 && (
-              <SlabSection fold="open" title={buildSheetCopy('partners')}>
-                <Stack gap={12}>
-                  {(mech.partners ?? []).map((partner) => (
-                    <PartnerCard
-                      key={partner.id}
-                      found={{ partner, hostKind: 'mech', host: mech }}
-                      fielded={
-                        (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
-                      }
-                      readOnly={readOnly}
-                      store={store}
-                    />
-                  ))}
-                </Stack>
-              </SlabSection>
-            )}
-          </>
-        )
-        const mainNode = (
-          <>
-            {/* ===== R3: Systems & Modules, side by side once there is room. ===== */}
-            {(showSystems || showModules) && (
-              <div className="su-sheet-mech-loadout">
-                {showSystems && (
-                  <SlabSection
-                    fold="open"
-                    title={buildSheetCopy('systems')}
-                    count={slotCount(
-                      capacity.systemSlotsUsed,
-                      capacity.systemSlotsMax,
-                      capacity.asPrinted
-                    )}
-                    actions={
-                      readOnly ? undefined : (
-                        <Button size="compact" onClick={() => setPicker('system')}>
-                          {buildSheetCopy('manageSystems')}
-                        </Button>
-                      )
-                    }
-                  >
-                    {renderItems('system', mech.systems)}
-                  </SlabSection>
-                )}
+          {partnersNode}
+        </SheetColumns>
+      )}
 
-                {showModules && (
-                  <SlabSection
-                    fold="open"
-                    title={buildSheetCopy('modules')}
-                    count={slotCount(
-                      capacity.moduleSlotsUsed,
-                      capacity.moduleSlotsMax,
-                      capacity.asPrinted
-                    )}
-                    actions={
-                      readOnly ? undefined : (
-                        <Button size="compact" onClick={() => setPicker('module')}>
-                          {buildSheetCopy('manageModules')}
-                        </Button>
-                      )
-                    }
-                  >
-                    {renderItems('module', mech.modules)}
-                  </SlabSection>
-                )}
-              </div>
-            )}
-
-            {partnersNode}
-          </>
-        )
-        // The actions by timing: a phone's first tab. From `sm` the sheet is laid out as it was.
-        const actionsNode = <MechSheetActions mech={mech} />
-        if (!phoneRead)
-          return (
-            <SheetColumns
-              asideLabel={buildSheetCopy('whatCarries', { name: mech.name })}
-              hero={heroNode}
-              aside={asideNode}
-            >
-              {mainNode}
-            </SheetColumns>
-          )
-        // MOCK (wave 2): the phone's lists in the Ledger form, a line an item.
-        const ledgerLines = (kind: ItemKind, slugs: string[]) => {
-          const conditions =
-            (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
-          const keys = occurrenceKeys(slugs)
-          return slugs.map((slug, index) => {
-            const condition = conditions[slug] ?? 'intact'
-            const uses = mech.itemUses?.[slug]
-            return {
-              id: keys[index] ?? slug,
-              entity: kind === 'system' ? resolveSystem(slug) : resolveModule(slug),
-              stamp:
-                condition !== 'intact' ? (
-                  <Stat label={condition} size="mini" state="critical" />
-                ) : uses !== undefined ? (
-                  <Stat label="Uses" value={uses} size="mini" />
-                ) : undefined,
-            }
-          })
-        }
-        return (
-          <PhoneSheet
-            name={mech.name}
-            vitals={
-              <MechVitals
-                mech={mech}
-                model={model}
-                actions={actions}
-                readOnly={readOnly}
-                store={store}
-                live={live}
-                phone
-              />
-            }
-            tabs={[
-              // What the mech does, has and carries; who it is comes last.
-              { value: 'actions', label: 'Actions', panel: actionsNode },
-              {
-                value: 'loadout',
-                label: 'Loadout',
-                count: `${capacity.systemSlotsUsed + capacity.moduleSlotsUsed}/${capacity.systemSlotsMax + capacity.moduleSlotsMax}`,
-                panel: (
-                  <>
-                    <SheetLedger
-                      kind="loadout"
-                      title={buildSheetCopy('systems')}
-                      count={`${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`}
-                      lines={ledgerLines('system', mech.systems)}
-                    />
-                    <SheetLedger
-                      kind="loadout"
-                      title={buildSheetCopy('modules')}
-                      count={`${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`}
-                      lines={ledgerLines('module', mech.modules)}
-                    />
-                    {partnersNode}
-                  </>
-                ),
-              },
-              {
-                value: 'hold',
-                label: 'Hold',
-                count: `${cargo.usage.used}/${cargo.usage.cap}`,
-                // The tab names the hold and its count: the manifest alone, no Slab over it.
-                panel: showHold ? (
-                  manifestNode
-                ) : (
-                  <EmptyState variant="quiet" body="Nothing in the hold." />
-                ),
-              },
-              {
-                value: 'about',
-                label: 'About',
-                panel: (
-                  <>
-                    {heroNode}
-                    {chassisNode}
-                    {linkedUnits}
-                  </>
-                ),
-              },
-            ]}
-          />
-        )
-      })()}
-
-      {/* The ONE shared picker modal — Systems & Modules '+ Add' both open it
-          (the wizard's install grid writes through on click; no Save button). */}
-      <SheetPickerModal
-        open={picker === 'system'}
+      <MechSheetPickers
+        picker={picker}
         onClose={() => setPicker(null)}
-        title={buildSheetCopy('addSystems')}
-        floating
-      >
-        <EntitySearcher
-          schema="systems"
-          mode="count"
-          selected={mech.systems}
-          idOf={(item) => nameToSlug(item.name)}
-          onAdd={(slug) => actions.addItem('system', slug)}
-          onRemove={(index) => actions.removeItem('system', index)}
-          railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          chosenLabel={buildSheetCopy('installed')}
-          emptyMessage={buildSheetCopy('noSystemsMatchThoseFilters')}
-          budget={[
-            {
-              label: overAsPrinted(
-                capacity.systemSlotsUsed,
-                capacity.systemSlotsMax,
-                capacity.asPrinted
-              )
-                ? buildSheetCopy('systemSlotsAsPrinted')
-                : buildSheetCopy('systemSlots'),
-              used: capacity.systemSlotsUsed,
-              max: capacity.systemSlotsMax,
-            },
-            { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
-          ]}
-        />
-      </SheetPickerModal>
-      <SheetPickerModal
-        open={picker === 'module'}
-        onClose={() => setPicker(null)}
-        title={buildSheetCopy('addModules')}
-        floating
-      >
-        <EntitySearcher
-          schema="modules"
-          mode="count"
-          selected={mech.modules}
-          idOf={(item) => nameToSlug(item.name)}
-          onAdd={(slug) => actions.addItem('module', slug)}
-          onRemove={(index) => actions.removeItem('module', index)}
-          railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
-          chosenLabel={buildSheetCopy('installed')}
-          emptyMessage={buildSheetCopy('noModulesMatchThoseFilters')}
-          budget={[
-            {
-              label: overAsPrinted(
-                capacity.moduleSlotsUsed,
-                capacity.moduleSlotsMax,
-                capacity.asPrinted
-              )
-                ? buildSheetCopy('moduleSlotsAsPrinted')
-                : buildSheetCopy('moduleSlots'),
-              used: capacity.moduleSlotsUsed,
-              max: capacity.moduleSlotsMax,
-            },
-            { label: buildSheetCopy('energy'), used: model.currentEP, max: maxEP },
-          ]}
-        />
-      </SheetPickerModal>
+        mech={mech}
+        model={model}
+        actions={actions}
+      />
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}
       <SoftWarningDialog

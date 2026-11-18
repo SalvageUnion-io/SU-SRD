@@ -149,7 +149,7 @@ function GameSections({ game }: { game: Game }) {
             organizer={game.organizer}
             onDelete={() => setConfirmingDelete(true)}
           />
-          {/* MOCK (owner's note: a side column never ends in a void): Safety
+          {/* Safety
               runs under The Game, so the two columns end together. */}
           <GameSafety gameId={gameId} sign={sign} />
         </aside>
@@ -192,7 +192,7 @@ export function GameHub({ gameId }: GameHubProps) {
                 gameId={gameId}
                 onlyWithPilots={game.mediator}
                 live={session?.live === true}
-                // MOCK (Working Manual F): a player's door is Play; the Mediator's is Mediate.
+                // A player's door is Play; the Mediator's is Mediate.
                 door={!game.mediator}
               />
             ) : undefined

@@ -1,9 +1,9 @@
 /**
- * MOCK (Working Manual wave 2, the actions board): an action's EFFECT, what
- * happens when you use it, cut from its book text for an actions row (the
- * Play board, the Live Sheet's Actions tab). Pure, display-only: the book's
- * words are never changed, only left out. The whole text stays on the
- * action's card, which the row's name Peeks.
+ * actionEffect — an action's EFFECT, what happens when you use it, cut from
+ * its book text for an actions row (Play's board, a Live Sheet's Actions
+ * list; R65). Pure, display-only: the book's words are never changed, only
+ * left out. The whole text stays on the action's card, which the row's name
+ * Peeks.
  *
  * Left out, a sentence at a time:
  *  - SETUP and ON-CHOOSE text: what you do when you take, craft or build the
@@ -19,11 +19,9 @@
  *  - `flavor`, `hint`, `heading` and `choice` blocks, and the unlabelled
  *    `datavalues` row (the head's chips are that row, with the picks applied).
  *
- * The reference data has no role on a content block (only `flavor` on five of
- * them), so this reads the words. NEEDED FOR A REAL BUILD: a `role` on every
- * action content block (`effect | setup | upkeep | example | flavour`),
- * authored once in `salvageunion-reference`, and this file becomes a filter
- * on it.
+ * The reference data types only `flavor` on a content block, so the rest is
+ * read from the words: the patterns below are the whole rule, and
+ * `__tests__/actionEffect.test.ts` holds them to the book's actions.
  */
 
 import type {
@@ -64,13 +62,15 @@ const UPKEEP: readonly RegExp[] = [
 
 const EXAMPLE: readonly RegExp[] = [/^for example\b/i, /^e\.g\./i, /\be\.g\. /i]
 
-/** Words that mark rules text: a number, a trait, a resource, a range, a roll, an action type. */
+/** Words that mark rules text: a number, a trait, a resource, a range, a roll, an action type, a game term. */
 const SIGNAL: readonly RegExp[] = [
   // A number standing alone (a cost, an amount, a roll), never a model name's (120mm, 360°).
   /(^|[\s(+-])\d+(-\d+)?(?=[\s.,;:)]|$)/,
   /\[\[/,
   /\b(SP|HP|EP|AP|Heat|Range|Trait|Hit Points?|Structure Points?|Energy Points?|Ability Points?)\b/,
   /\b(Turn|Free|Short|Long|Downtime) Actions?\b|\bReaction\b/,
+  // The book's own capitalised terms for what a rule acts on.
+  /\b(Ability|Abilities|Downtime|Tech Level|Scrap)\b/,
   /\b[Rr]e-?rolls?\b|\b[Rr]oll(s|ed)?\b/,
   /\bwhen activated\b/i,
   /\bMediator\b/,
@@ -82,7 +82,7 @@ const SIGNAL: readonly RegExp[] = [
 const ABBREVIATION = /(?:^|[\s(])(?:(?:[A-Za-z]\.)*[A-Za-z]|e\.g|i\.e|Art|vs|etc|approx)$/
 
 /** The paragraph's sentences, split at a full stop that ends one. */
-export function sentencesOf(text: string): string[] {
+function sentencesOf(text: string): string[] {
   const out: string[] = []
   let start = 0
   const stop = /[.!?]+["')\]*]*\s+(?=[A-Z[(*"'])/g
@@ -100,12 +100,12 @@ export function sentencesOf(text: string): string[] {
 const matches = (tests: readonly RegExp[], text: string) => tests.some((t) => t.test(text))
 
 /** Whether a sentence is setup, upkeep or an example: never the effect. */
-export function isBuildSentence(sentence: string): boolean {
+function isBuildSentence(sentence: string): boolean {
   return matches(SETUP, sentence) || matches(UPKEEP, sentence) || matches(EXAMPLE, sentence)
 }
 
 /** Whether text carries a rules signal. */
-export function hasRulesSignal(text: string): boolean {
+function hasRulesSignal(text: string): boolean {
   return matches(SIGNAL, text)
 }
 

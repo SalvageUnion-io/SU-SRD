@@ -62,7 +62,7 @@ const FIELD_GRID = {
   rowGap: tokens.space[12],
 } satisfies CSSProperties
 
-const ONE_COLUMN = { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' } satisfies CSSProperties
+const ONE_COLUMN = { gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
 const FIELD_COLUMN = {
   display: 'flex',
@@ -71,10 +71,11 @@ const FIELD_COLUMN = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The traits' row; its columns are `.su-sheet-pilot-traits`. */
+/** The traits' row; each trait's share of it is `.su-sheet-pilot-traits`. */
 const TRAITS_ROW = {
   columnGap: tokens.space[16],
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   minWidth: 0,
   rowGap: tokens.space[12],
 } satisfies CSSProperties
@@ -175,7 +176,7 @@ type PilotIdentityPanelProps = {
   patch?: SheetPatch
   /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
   photo?: ReactNode
-  /** MOCK (wave 2): a phone's About tab runs the Bio under the photo, the card's width. */
+  /** A phone's About tab runs the Bio under the photo, the card's width. */
   proseUnder?: boolean
 }
 

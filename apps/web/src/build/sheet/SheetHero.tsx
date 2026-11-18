@@ -75,7 +75,7 @@ type SheetHeroProps = {
   /** Title of the fields card. */
   fieldsTitle?: string
   /**
-   * MOCK (wave 2): a phone's About tab: the longer fields stay in the fields
+   * A phone's About tab: the longer fields stay in the fields
    * panel, beside and under the photo, so the photo's panel has no empty half.
    */
   flat?: boolean

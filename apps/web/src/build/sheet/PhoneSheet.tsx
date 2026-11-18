@@ -1,5 +1,5 @@
 /**
- * MOCK (wave 2, phone sheets): PhoneSheet, a phone's Live Sheet in Read, the
+ * PhoneSheet, a phone's Live Sheet in Read, the
  * one frame all three kinds share (hard rule R11): the vitals block first
  * under the band (`PhoneVitals`), then one row of section tabs, each a 44px
  * target, then the open tab's panel. The first tab is what the unit does or
@@ -10,6 +10,7 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** The vitals, then the tabs: a list's gap apart, so both sit on the first screen. */
 const ROOT = {
@@ -60,7 +61,7 @@ export function PhoneSheet({
     <div style={ROOT} data-phone-sheet="">
       {vitals}
       <Tabs value={open} onValueChange={setOpen}>
-        <TabList label={`${name} sheet`} style={TABS}>
+        <TabList label={buildSheetCopy('unitSheet', { name })} style={TABS}>
           {tabs.map((tab) => (
             <Tab key={tab.value} value={tab.value} style={TAB}>
               {tab.label}

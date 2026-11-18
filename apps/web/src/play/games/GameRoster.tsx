@@ -98,25 +98,26 @@ type GameRosterProps = {
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
-/* Masonry on desktop (two columns of at least 24rem, one on a phone): each
-   card sits right under the one above it in its column, so a short card
-   leaves no gap beside a tall one. The crawler spans both columns. */
+/* The roster fills its rows (R68): a card is at least 24rem, as many a row as
+   fit, and a short last row's cards grow to share the line, so one unit is
+   never half a row. The crawler takes a row of its own. */
 const LIST = {
-  columns: '2 24rem',
-  columnGap: tokens.space[12],
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
 
 const ITEM = {
+  flex: '1 1 24rem',
   listStyle: 'none',
   minWidth: 0,
-  breakInside: 'avoid',
-  marginBlockEnd: tokens.space[12],
 } satisfies CSSProperties
 
-const CRAWLER_ITEM = { ...ITEM, columnSpan: 'all' } satisfies CSSProperties
+const CRAWLER_ITEM = { ...ITEM, flexBasis: '100%' } satisfies CSSProperties
 
 const BODY = {
   display: 'flex',
@@ -203,7 +204,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       return reading ? { readings: crawlerVitals(reading) } : {}
     }
     if (row.kind === 'mech') {
-      // MOCK (Working Manual F): a mech on its own row reads its vitals as one
+      // A mech on its own row reads its vitals as one
       // riding its pilot's row does, in the same order: TL, SP, EP, Heat.
       const live = vitals?.mechs.find((m) => m._id === row.serverId)
       return live == null
@@ -377,9 +378,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
         {...(seats !== null && seats.total > 0
           ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
           : {})}
-        // MOCK (Working Manual F, principle 9): + New steps down to outline; the
-        // page's one rust button is the role's door on the band. Bends R55
-        // (every + New rust).
+        // + New is outlined here: the page's one rust button is the role's
+        // door on the band (ruleset §3.13).
         actions={
           <>
             {caps.canAddCrew && (

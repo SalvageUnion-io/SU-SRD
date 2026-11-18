@@ -30,7 +30,11 @@ const SLAB_HEAD = {
 
 const SLAB_LEADER = { height: tokens.space[2], flex: '1 1 0%' } satisfies CSSProperties
 
-const SLAB_GRID = { display: 'grid', gap: tokens.space[12] } satisfies CSSProperties
+const SLAB_GRID = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
+} satisfies CSSProperties
 
 const SLAB_CARD = {
   height: '80px',

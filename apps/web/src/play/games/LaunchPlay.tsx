@@ -62,7 +62,7 @@ export function LaunchPlay({
   onlyWithPilots?: boolean
   /** A group session is live: the chip reads Join session. */
   live?: boolean
-  /** MOCK (Working Manual F, principle 9): Play is this viewer's door, the band's one rust button. */
+  /** Play is this viewer's door, the band's one rust button. */
   door?: boolean
 }) {
   // Probed rather than required, as `GameRoster` and `AppLink` do: component

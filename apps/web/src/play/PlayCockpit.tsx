@@ -1,9 +1,10 @@
 /**
  * PlayCockpit — the player's Play screen for one pilot, in a Game or solo
  * (Direction A, the Cockpit), on `PlayFrame`'s one layout: the Play bar,
- * then the panes, Act, Units, Tables and Crew as tabs on a phone and Units |
- * Actions | Crew, Tables and Feed from `lg`, then the foot. Who may open it
- * is `PlayGate`'s question, asked before this renders.
+ * then the panes: Act, Crew, Rolls and Rules as tabs on a phone (Units from
+ * the bar's ⋯), and Units over the Feed | Actions | Crew, Tables and the
+ * Rules from `lg`, then the foot. Who may open it is `PlayGate`'s question,
+ * asked before this renders.
  *
  * Each pane is its own component (`PlayUnitsColumn`, `PlayActionsColumn`,
  * `PlayCrewSection`, `PlayerTablesAndFeed`), so a pane's work happens in its
@@ -14,8 +15,9 @@
  * so every roll made in any pane is dispatched whichever pane is open.
  *
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
- * `situation` slot; below it, it is pinned under the live vitals for the
- * Situation (`pinnedUnits`), TABLE beside it. In table mode (`useTableMode`)
+ * `situation` slot; below it, the Situation and Table mode are rows of the
+ * bar's ⋯ (`situationRows`) and the live vitals for the Situation are pinned
+ * above every pane (`pinnedUnits`). In table mode (`useTableMode`)
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
@@ -54,14 +56,13 @@ import { PLAY_TXN } from '../replica/provenance'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
-import { boardable } from './boardMenu.model'
 import { hereCount } from './crew.model'
 import { SrdExplorer } from './mediator/SrdExplorer'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
-import { PlayPinnedStrip } from './PlayPinnedVitals'
+import { PlayPinnedVitals } from './PlayPinnedVitals'
 import { PlaySheetPane } from './PlaySheetPane'
 import { PlayCrewSection, PlayerTablesAndFeed, PlayFeedSection } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
@@ -70,15 +71,8 @@ import { PlayUnitsColumn } from './PlayUnitsColumn'
 import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
-import {
-  PLAYER_PHONE_TABS,
-  PLAYER_TABS,
-  pinnedUnits,
-  playerPanes,
-  playerPhonePanes,
-} from './playPanes.model'
+import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
-import type { Play } from './situation.model'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
 import { ShowSheetContext } from './useOpenSheet'
@@ -91,28 +85,23 @@ import { usePlayUnits } from './usePlayUnits'
 import { usePlayWide } from './usePlayWide'
 import type { SheetOnScreen } from './useSheetOnScreen'
 import { useSheetOnScreen } from './useSheetOnScreen'
+import { situationRows, useSituationMoves } from './useSituationMoves'
 import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 
-/** MOCK (Working Manual E): the Rules pane holds the Reference's own frame, edge to edge. */
+/** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
 
-/** MOCK: from `lg` the Reference closes the end column, under the Tables. */
-const RULES_PANE = { value: 'rules', label: 'Rules', column: 'end' } as const
+/** From `lg` the Reference closes the end column, under the Tables. */
+const RULES_PANE = { value: 'rules', label: playCopy('rules'), column: 'end' } as const
 
-/** MOCK: the phases as the phone's band says them. */
-const PHASE_WORDS = { onFoot: 'On foot', boarded: 'Boarded', downtime: 'Downtime' } as const
-
-/**
- * MOCK (screenshot state only): `?mock=dot,turn,ep` forces what the app has
- * no source for yet (whose turn it is, a pending proposal's dot) or opens a
- * vital's − / +.
- */
-function mockFlags(): ReadonlySet<string> {
-  if (typeof window === 'undefined') return new Set()
-  return new Set((new URLSearchParams(window.location.search).get('mock') ?? '').split(','))
-}
+/** The phases as the phone's band says them. */
+const PHASE_WORDS = {
+  onFoot: playCopy('onFoot'),
+  boarded: playCopy('boarded'),
+  downtime: playCopy('downtimeWord'),
+} as const
 
 type PlayCockpitProps = {
   target: PlayTarget
@@ -148,7 +137,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     compact: !wide,
   })
   const [tableOn, setTableOn] = useTableMode()
-  const mock = mockFlags()
+  const moves = useSituationMoves(play)
   const table = tableOn && !wide
   useWakeLock(table)
   const pinned = pinnedUnits({
@@ -163,7 +152,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const writeVital = (kind: 'pilot' | 'mech', field: string, next: number, label?: string) => {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
-    // MOCK (Working Manual, the Undo law): the change says itself, with Undo.
+    // The change says itself, with Undo.
     const from = pinned.find((u) => u.kind === kind)?.vitals.find((v) => v.label === label)?.value
     runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
     if (label !== undefined && from !== undefined)
@@ -176,9 +165,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
           runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
       })
   }
+  const openTab = (next: PlayerPane) => {
+    onScreen.close()
+    setTab(next)
+  }
   const nodes: Record<PlayerPane, ReactNode> = {
     act: <PlayActionsColumn target={target} play={play} {...actions} />,
-    // MOCK (owner's note: a side column never ends in a void): from `lg` the
+    // From `lg` the
     // Feed, the table's log, runs under the Units, and the Reference under the
     // Tables, so both side columns end with the centre one.
     units: (
@@ -189,36 +182,37 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     ),
     crew: <PlayCrewSection target={target} play={play} side={side} />,
     tables: <PlayerTablesAndFeed target={target} play={play} side={side} feed={!wide} />,
-    // MOCK (Working Manual E): the Reference inside Play, a player's too (the Mediator's `SrdExplorer`).
+    // The Reference inside Play, a player's too (the Mediator's `SrdExplorer`).
     rules: (
       <div style={wide ? undefined : RULES}>
         <SrdExplorer />
       </div>
     ),
   }
-  // MOCK (Working Manual E): who is playing, on the band's cut-out.
+  // Who is playing, on the band's cut-out.
+  const pilotWord = pilotName ?? playCopy('pilot2')
   const who =
     play.situation === 'boarded' && play.boardedMech !== null
-      ? `${pilotName ?? 'Pilot'} in ${play.boardedMech.name}`
-      : (pilotName ?? 'Pilot')
+      ? playCopy('pilotInMech', { pilot: pilotWord, mech: play.boardedMech.name })
+      : pilotWord
+  // A proposal awaiting this player's answer sits in the Feed, the Rolls tab's on a phone.
+  const waiting = side.entries.some((entry) => entry.kind === 'proposal')
 
   return (
     <ShowSheetContext.Provider value={onScreen.show}>
       <PlayFrame
         wide={wide}
-        labels={['Units', 'Actions', 'Crew, Tables and Feed']}
+        labels={[playCopy('unitsAndFeed'), playCopy('actions'), playCopy('crewTablesAndRules')]}
         bar={
           <>
             <PlayBar
-              title={wide ? playTitle(target, play.pilot?.name ?? 'Pilot') : who}
+              title={wide ? playTitle(target, pilotWord) : who}
               line={
                 wide
                   ? undefined
                   : {
                       game: target.gameName,
                       phase: PHASE_WORDS[play.situation],
-                      // MOCK: the app does not track turns; forced for the picture.
-                      turn: mock.has('turn') ? 'Your turn' : undefined,
                     }
               }
               stamp={playStamp(target)}
@@ -240,38 +234,34 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
                   gameName={target.gameName}
                   channel={channel.row}
                   onScreen={onScreen}
-                  // MOCK (Working Manual E): below `lg`, On foot / Board / Table mode live here.
-                  situation={wide ? null : { play, tableOn, setTableOn }}
+                  // Below `lg`, On foot / Board / Table mode live here.
+                  situation={wide ? null : situationRows({ play, moves, tableOn, setTableOn })}
+                  // Units has no tab below `lg`: this row opens its pane.
+                  onUnits={wide ? null : () => openTab('units')}
                 />
               }
             />
             {channel.dialog}
+            {!wide && moves.dialogs}
             <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
           </>
         }
         pinned={
-          <>
-            {/* MOCK (Working Manual E): one row of five framed vitals; the switch is in ⋯. */}
-            {table ? null : (
-              <PlayPinnedStrip
-                units={pinned}
-                live={{ pilot: units.live.pilot, mech: units.live.mech }}
-                onWrite={writeVital}
-                initialOpen={mock.has('ep') ? 'EP' : null}
-              />
-            )}
-          </>
+          table ? null : (
+            <PlayPinnedVitals
+              units={pinned}
+              live={{ pilot: units.live.pilot, mech: units.live.mech }}
+              onWrite={writeVital}
+            />
+          )
         }
         panes={(wide
           ? [...playerPanes(solo), RULES_PANE]
-          : playerPhonePanes(solo, mock.has('dot') ? 'tables' : null)
+          : playerPhonePanes(solo, waiting ? 'tables' : null)
         ).map((p) => ({ ...p, node: nodes[p.value] }))}
-        tabs={wide ? PLAYER_TABS : PLAYER_PHONE_TABS}
+        tabs={PLAYER_TABS}
         tab={tab}
-        onTab={(next) => {
-          onScreen.close()
-          setTab(next)
-        }}
+        onTab={openTab}
         sheet={
           onScreen.shown ? (
             <PlaySheetPane
@@ -310,13 +300,16 @@ function CockpitMenu({
   channel,
   onScreen,
   situation,
+  onUnits,
 }: {
   gameId: string | null
   gameName: string | null
   channel: HeaderMenuItem | null
   onScreen: SheetOnScreen
-  /** MOCK (Working Manual E): the phone's Situation switch and Table mode, as rows. */
-  situation: { play: Play; tableOn: boolean; setTableOn: (on: boolean) => void } | null
+  /** The phone's Situation and Table mode, as rows (`situationRows`). */
+  situation: HeaderMenuItem[] | null
+  /** Opens the Units pane, where it has no tab. */
+  onUnits: (() => void) | null
 }) {
   const first = onScreen.sections[0]?.[0]
   const router = useRouter({ warn: false })
@@ -327,7 +320,8 @@ function CockpitMenu({
       label={playCopy('more')}
       trigger={null}
       sections={[
-        situation === null ? [] : situationRows(situation),
+        situation ?? [],
+        onUnits === null ? [] : [{ id: 'units', label: playCopy('units'), onSelect: onUnits }],
         first === undefined
           ? []
           : [
@@ -355,46 +349,4 @@ function CockpitMenu({
       ]}
     />
   )
-}
-
-/**
- * MOCK (Working Manual E): the Situation switch as ⋯ rows below `lg`: On
- * foot, Board for each mech that can be boarded, then Table mode. Leaving a
- * running Downtime keeps its confirm on the wide switch; these rows are off
- * while it runs.
- */
-function situationRows({
-  play,
-  tableOn,
-  setTableOn,
-}: {
-  play: Play
-  tableOn: boolean
-  setTableOn: (on: boolean) => void
-}): HeaderMenuItem[] {
-  const off = !play.canWrite || play.downtime.downtime.running
-  return [
-    {
-      id: 'on-foot',
-      label: 'On foot',
-      hint: play.situation === 'onFoot' ? 'Now' : undefined,
-      onSelect: off || play.situation === 'onFoot' ? undefined : () => play.setOnFoot(),
-    },
-    ...play.mechs
-      .filter((m) => boardable(m) && m.state !== 'spare')
-      .map((m) => ({
-        id: `board-${m.mechId}`,
-        label: `Board ${m.name}`,
-        hint: play.situation === 'boarded' && play.boardedMech?.id === m.mechId ? 'Now' : undefined,
-        onSelect:
-          off || (play.situation === 'boarded' && play.boardedMech?.id === m.mechId)
-            ? undefined
-            : () => play.board(m.mechId),
-      })),
-    {
-      id: 'table-mode',
-      label: tableOn ? 'Leave table mode' : 'Table mode',
-      onSelect: () => setTableOn(!tableOn),
-    },
-  ]
 }

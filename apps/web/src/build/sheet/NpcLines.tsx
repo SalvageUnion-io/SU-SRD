@@ -48,10 +48,11 @@ const ROW_VALUE_PROSE = {
   lineHeight: 1.375,
 } satisfies CSSProperties
 
-/** The id lines; their two-column split is a container query (`.su-sheet-npc-lines`). */
+/** The id lines; each line's share of a row is `.su-sheet-npc-lines`' (a container query). */
 const LINES = {
   columnGap: tokens.space[16],
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   flex: '1 1 0%',
   margin: 0,
   minWidth: 0,
@@ -94,7 +95,7 @@ function NpcRow({
   grow?: boolean
   /** Skip the prose treatment — the cell hosts its own component. */
   plain?: boolean
-  /** Grid placement from the caller (e.g. `.su-sheet-npc-wide`, spanning both columns). */
+  /** Placement from the caller (e.g. `.su-sheet-npc-wide`, a row of its own). */
   className?: string
   children: ReactNode
 }) {

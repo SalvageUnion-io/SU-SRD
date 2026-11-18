@@ -73,6 +73,13 @@
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule
  * reaches it; `classNames` puts the class on the toast. */
+/* A phone's toast stands 16px over the screen's foot, clear of the home
+ * indicator and of a tab row there: a surface that has one says how tall in
+ * `--su-foot-clear` (Play's frame, `styles/play/frame.css`). */
+:root {
+  --su-toast-bottom: calc(var(--su-foot-clear, 0px) + env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
 .su-toast--ok > [data-icon] {
   color: var(--color-status-ok);
 }

@@ -11,21 +11,19 @@ import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
-import type { PlayAction } from '../actionPatches'
+import type { PlayAction } from '../actionList'
+import { buildMechActions, buildPilotActions, isAreaSalvage } from '../actionList'
 import {
   actionInRange,
   actionReachable,
   activationHeatGate,
   activationPatch,
-  buildMechActions,
-  buildPilotActions,
   coreMechanicRowText,
   economyForActivation,
   economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
   heatCheckOncePatch,
-  isAreaSalvage,
   isDestructiveOutcome,
   mechPush,
   pilotActivationPatch,

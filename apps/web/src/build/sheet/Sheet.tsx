@@ -481,7 +481,7 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
-    // MOCK (Working Manual, principle 2): Read still writes session state.
+    // Read still writes session state.
     liveInRead: !readOnlyProp && !writesBlocked,
     ownerOf,
     crawlerReadOnly,

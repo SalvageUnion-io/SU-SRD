@@ -16,7 +16,7 @@
 
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
-import type { PlayAction } from '../lib/rules/actionPatches'
+import type { PlayAction } from '../lib/rules/actionList'
 import { actionInRange, actionReachable, economyUnderScene } from '../lib/rules/actionPatches'
 import { playCopy } from '../messages/play'
 import type { Situation } from './situation.model'
@@ -32,8 +32,8 @@ export type ActionTypeKey =
   | 'Passive'
   | 'Other'
 
-/** The list's order: Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
-const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
+/** The list's order, and its groups': Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
+export const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
   'Turn',
   'Short',
   'Long',
@@ -74,7 +74,7 @@ const DOWNTIME_ACTIONS: readonly { id: DowntimeActionId; name: string }[] = [
   { id: 'rumours', name: 'Gather Cantina Rumours' },
 ]
 
-/** Whose action a row is. A companion's waits on what its host's would (MOCK, wave 2). */
+/** Whose action a row is. A companion's waits on what its host's would. */
 export type ActionSource = 'pilot' | 'mech' | 'companion'
 
 /** One line of the list. */
@@ -84,7 +84,6 @@ export type ListEntry =
       key: string
       name: string
       type: ActionTypeKey
-      // MOCK (wave 2): a companion's action is its own source.
       source: ActionSource
       action: PlayAction
       need: Need | null
@@ -120,8 +119,8 @@ export type ActionListInput = {
   /** Whether there is a mech whose Reactor the list offers. */
   hasMech: boolean
   /**
-   * MOCK (wave 2): the companions' actions (`buildCompanionActions`), the
-   * pilot's companions' then the mech's drones'. A companion acts on its own
+   * The companions' actions (`buildCompanionActions`), the pilot's
+   * companions' then the mech's drones'. A companion acts on its own
    * turn, so a pilot's is on hand on foot and Boarded; a mech's drone waits
    * on Boarded with its mech.
    */

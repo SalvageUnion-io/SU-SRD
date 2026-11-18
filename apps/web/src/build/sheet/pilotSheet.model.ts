@@ -361,3 +361,13 @@ export function usePilotSheetModel({
     tp,
   }
 }
+
+/** Whether the pilot carries nothing: Read leaves the empty section out (R11). */
+export function inventoryEmpty(
+  pilot: Pilot,
+  model: Pick<PilotSheetModel, 'granted' | 'genericInventory'>
+): boolean {
+  return (
+    pilot.equipment.length === 0 && model.granted.size === 0 && model.genericInventory.length === 0
+  )
+}

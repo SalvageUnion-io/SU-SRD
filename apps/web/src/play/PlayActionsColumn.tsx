@@ -2,12 +2,13 @@
  * PlayActionsColumn — the Cockpit's centre column (play.md §5, §6).
  *
  * Outside Downtime it is one flattened Actions list (`PlayActionsList`): every
- * action of the pilot and the mech, the Reactor and Mount, sorted by action
- * type (Turn, Short, Long, Reaction, Free, Downtime), with a type filter and
- * Find on the "Actions" heading line; what is on hand first, what is not collapsed below with its reason.
- * Every line is a Mini (ruleset §1.3); Use opens the action in place as its
- * Mini's contentful body: Activate, Roll, Push?, Apply, on the seat's
- * `resolving`.
+ * action of the pilot, the mech and their companions, the Reactor and Mount,
+ * grouped by action type (Turn, Short, Long, Reaction, Free, Passive), with a
+ * type filter and Find on the "Actions" heading line; what is on hand first,
+ * what is not collapsed below with its reason. Every line is a Mini (ruleset
+ * §1.3); Use opens the action in place as its Mini's contentful body:
+ * Activate, Roll, Push?, Apply, on the seat's `resolving`. Below `lg` the
+ * pane's tab is its heading, so the type filter leads it.
  *
  * Over it, the Scene's conditions when the Mediator has put it under any
  * (`PlayScene`): what scales the Heat a Push and a Hot action make.
@@ -37,19 +38,17 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
   return (
     <>
       <PlayScene scene={play.scene} />
-      {/* MOCK (Working Manual E): the phone's "Actions" head is its tab; the
-          type filter leads the pane (`.su-play-act-head--tools`). */}
       {wide ? (
         <Slab
           as="h2"
           label={playCopy('actions')}
           className="su-play-act-head"
-          actions={<PlayActionsTools actions={actions} />}
+          actions={<PlayActionsTools actions={actions} find />}
         />
       ) : (
-        <PlayActionsTools actions={actions} />
+        <PlayActionsTools actions={actions} find={false} />
       )}
-      <PlayActionsList play={play} actions={actions} />
+      <PlayActionsList play={play} actions={actions} head={wide ? 'h3' : 'h2'} />
     </>
   )
 }

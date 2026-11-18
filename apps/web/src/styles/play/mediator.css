@@ -34,12 +34,18 @@
   outline-offset: 2px;
 }
 
-/* The Opposition: two boxes a row where the centre has the room. */
+/* The Opposition fills its rows (R68): a box is at least 16rem, as many a
+   row as fit, and a short last row's boxes grow to share the line. */
 .su-play-npcs {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   padding: var(--space-4);
+}
+
+.su-play-npcs > * {
+  flex: 1 1 16rem;
+  min-width: 0;
 }
 
 .su-play-npc {

@@ -1,5 +1,3 @@
-import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
-import type { UnitsStore } from '../../replica/units'
 /**
  * CrawlerSheet — the crawler variant BODY for the LiveSheet shell, in the
  * poster layout.
@@ -42,6 +40,9 @@ import type { UnitsStore } from '../../replica/units'
  * in the sidebar; Load is cap-checked against the docked mech. Keeps the
  * Stow/Load transfer feature.
  *
+ * A phone in Read is `CrawlerPhoneSheet` (`PhoneSheet`, R11): the numbers,
+ * then the tabs Bays, Storage, About.
+ *
  * No play-control panel lives on the sheet. Tech Level is the chapter band's
  * TL chip (built by CrawlerLiveSheet), its stepper on the chip in Edit. The
  * scrap pool has no section of its own: bay Repair below spends from it
@@ -64,41 +65,30 @@ import {
   HeaderMenu,
   MiniGrid,
   SlabSection,
-  Stack,
-  Stat,
   tokens,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { addToScrapPool, scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import { useCargo } from '../../lib/cargo/useCargo'
-import { resolveCrawlerBay } from '../../lib/crawlerRefs'
 import type { CrewAssignment } from '../../lib/npcs/npcModel'
 import { assignmentFor } from '../../lib/npcs/npcModel'
 import { crawlerTypeArt } from '../../lib/photos/defaultArt'
 import { poolShortfall } from '../../lib/rules/crawlerEconomy'
 import { BAY_REPAIR_COST, bayRepairPatch, resolveCrawlerSystem } from '../../lib/rules/crawlerItems'
-import type { ExoticKey } from '../../lib/rules/exoticSalvage'
-import {
-  addToExotic,
-  EXOTIC_RESOURCES,
-  exoticBucket,
-  hasExotic,
-} from '../../lib/rules/exoticSalvage'
 import { runWrite } from '../../lib/runWrite'
 import { expansionCrawlerBays } from '../../lib/wizard/crawlerFormState'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
+import { CrawlerPhoneSheet } from './CrawlerPhoneSheet'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
-import { EXOTIC_NAME } from './exoticNames.model'
-import { PhoneSheet } from './PhoneSheet'
+import { CrawlerStorage } from './CrawlerStorage'
+import { storageShows } from './crawlerStorage.model'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SheetLedger } from './SheetLedger'
-import { StorageManifest } from './StorageManifest'
 import { UnknownItemLine } from './UnknownItemLine'
 import { usePhoneRead } from './usePhoneRead'
 
@@ -112,8 +102,6 @@ const ROOT = {
   flexDirection: 'column',
   gap: tokens.space[24],
 } satisfies CSSProperties
-
-const POOL_ROW = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
 type CrawlerSheetProps = {
   crawler: Crawler
@@ -149,7 +137,7 @@ type CrawlerSheetProps = {
    * beside `economy` and set on the vitals card's head, not in its body.
    */
   economyActions?: ReactNode
-  /** MOCK (wave 2): the phone's vitals block (`PhoneVitals`), built beside `economy`. */
+  /** A phone's vitals block in Read (`PhoneVitals`), built beside `economy`. */
   phoneVitals?: ReactNode
   /**
    * The Assigned Units rail content (docked mech + lead pilot rail row/
@@ -238,49 +226,9 @@ export function CrawlerSheet({
     patchCrawler((current) => ({ systems: current.systems.filter((s) => s !== slug) }))
   }
 
-  /**
-   * Set one Scrap Pool tech-level bucket to `next` (Free Edit — hand-patch the
-   * pool directly). Reads the FRESHEST record so rapid steps don't race the
-   * async write, then applies the delta through `addToScrapPool` (floored at 0).
-   */
-  function setScrapBucket(tlBucket: number, next: number) {
-    if (readOnly) return
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    const currentPool = fresh.scrapPool ?? {}
-    const delta = next - scrapPoolBucket(currentPool, tlBucket)
-    if (delta === 0) return
-    runWrite(() =>
-      storeState.update(
-        'crawler',
-        crawler.id,
-        {
-          scrapPool: addToScrapPool(currentPool, tlBucket, delta),
-        },
-        LIVE_SHEET_MANUAL
-      )
-    )
-  }
-
   const expansionBays = expansionCrawlerBays()
   const expansionSlugs = new Set(expansionBays.map((b) => b.slug))
   const installable = expansionBays.filter((b) => !bays.some((e) => e.bayRef === b.slug))
-
-  /** Set one expansion resource to `next` (Free Edit), as `setScrapBucket` does a Tech bucket. */
-  function setExotic(key: ExoticKey, next: number) {
-    if (readOnly) return
-    const fresh = storeState.get('crawler', crawler.id) ?? crawler
-    const currentPool = fresh.scrapPool ?? {}
-    const delta = next - exoticBucket(currentPool, key)
-    if (delta === 0) return
-    runWrite(() =>
-      storeState.update(
-        'crawler',
-        crawler.id,
-        { scrapPool: addToExotic(currentPool, key, delta) },
-        LIVE_SHEET_MANUAL
-      )
-    )
-  }
 
   /**
    * Install an expansion bay (Free Edit): the Bio-Mech, Bio-Crafting and
@@ -299,18 +247,6 @@ export function CrawlerSheet({
       crawlerBays: (current.crawlerBays ?? []).filter((_, i) => i !== index),
     }))
   }
-
-  // Read leaves what is empty out (ruleset §1.2): an empty state only where
-  // Edit can fill it.
-  const poolEmpty = NUMERIC_TECH_LEVELS.every((t) => scrapPoolBucket(pool, t) === 0)
-  // Edit reads the pool as six counts until Adjust opens their steppers, so
-  // the Storage Bay is not eighteen controls at rest.
-  const [adjustPool, setAdjustPool] = useState(false)
-  const poolEditing = !readOnly && adjustPool
-  const showExotic = poolEditing || hasExotic(pool)
-  const holdEmpty = (crawler.cargoLots ?? []).length === 0
-  const showPool = !readOnly || !poolEmpty
-  const showHold = !readOnly || !holdEmpty
 
   /** The Armament Bay's mounted weapons — rendered INSIDE that bay. */
   const armamentContents =
@@ -343,69 +279,19 @@ export function CrawlerSheet({
       </MiniGrid>
     )
 
-  /** The Storage Bay's scrap pool + the crawler hold — rendered INSIDE it. */
-  const storageContents = !(showPool || showHold) ? undefined : (
-    <Stack gap={16} style={SHRINK}>
-      {/* Scrap Pool — the crawler's abstract TL-bucketed scrap store (the
-          bucket bay-repair spends), a section of the bay under its Slab, as
-          the Crawler Hold below it is (N5), both at the Mini Size of the
-          bay's other sections. Per-tech-level `Stat` steppers let
-          a crawler stow arbitrary scrap by hand (Free Edit). The
-          physical-scrap-cargo path lives in the Hold add-form's Scrap kind. */}
-      {showPool && (
-        <SlabSection
-          title={buildSheetCopy('scrapPool')}
-          size="mini"
-          bodyStyle={POOL_ROW}
-          actions={
-            readOnly ? undefined : (
-              <Button size="mini" onClick={() => setAdjustPool((v) => !v)}>
-                {adjustPool ? buildSheetCopy('done') : buildSheetCopy('adjust')}
-              </Button>
-            )
-          }
-        >
-          {NUMERIC_TECH_LEVELS.map((t) => (
-            <Stat
-              key={t}
-              label={buildSheetCopy('t', { t })}
-              value={scrapPoolBucket(pool, t)}
-              min={0}
-              size={poolEditing ? undefined : 'mini'}
-              mode={poolEditing ? 'edit' : 'read'}
-              onChange={poolEditing ? (next) => setScrapBucket(t, next) : undefined}
-            />
-          ))}
-        </SlabSection>
-      )}
-      {/* Bio-Salvage, Chimerium and Meld Nanites: not Scrap of any Tech
-          Level, so each its own stepper beside the Tech buckets. */}
-      {showExotic && (
-        <SlabSection title={buildSheetCopy('bioAndNanites')} size="mini" bodyStyle={POOL_ROW}>
-          {EXOTIC_RESOURCES.map((r) => (
-            <Stat
-              key={r.key}
-              label={EXOTIC_NAME[r.key]}
-              value={exoticBucket(pool, r.key)}
-              min={0}
-              mode={poolEditing ? 'edit' : 'read'}
-              onChange={poolEditing ? (next) => setExotic(r.key, next) : undefined}
-            />
-          ))}
-        </SlabSection>
-      )}
-      {showHold && (
-        <StorageManifest
-          side="crawler"
-          cargo={cargo}
-          mechName={mech?.name ?? null}
-          counterpartHref={mechHref}
-          crawlerName={crawler.name}
-          readOnly={readOnly}
-        />
-      )}
-    </Stack>
-  )
+  /** The Storage Bay's scrap pool and the crawler hold: rendered INSIDE it; null when Read has neither. */
+  const shows = storageShows(crawler, readOnly)
+  const storageContents =
+    shows.pool || shows.hold ? (
+      <CrawlerStorage
+        crawler={crawler}
+        mech={mech}
+        mechHref={mechHref}
+        cargo={cargo}
+        storeState={storeState}
+        readOnly={readOnly}
+      />
+    ) : undefined
 
   /** Which special bay is this? Drives what gets rendered INSIDE it. */
   function bayKind(entry: CrawlerBayEntry): 'mech' | 'armament' | 'storage' | 'plain' {
@@ -451,103 +337,8 @@ export function CrawlerSheet({
     )
   }
 
-  // MOCK (wave 2, phone sheets): a phone in Read is the numbers, then tabs
-  // (`PhoneSheet`): Bays, Storage, About. The bays are one Ledger, a
-  // line a bay with its crew lead and their HP; a damaged bay says so on its
-  // stamp. The Armament Bay's weapons are a second Ledger under it.
+  // A phone in Read is the numbers, then tabs (`CrawlerPhoneSheet`).
   const phoneRead = usePhoneRead(readOnly)
-  const phoneSheet = phoneRead && (
-    <PhoneSheet
-      name={crawler.name}
-      vitals={phoneVitals}
-      tabs={[
-        {
-          value: 'bays',
-          label: buildSheetCopy('bays'),
-          count: `${intactBays}/${bays.length}`,
-          panel: (
-            <>
-              <SheetLedger
-                kind="bays"
-                tone="crawler"
-                title={buildSheetCopy('bays')}
-                count={`${intactBays}/${bays.length} ${buildSheetCopy('intact')}`}
-                lines={bays.map((entry, i) => {
-                  const bay = resolveCrawlerBay(entry.bayRef)
-                  const built = assignmentFor(crew, { kind: 'bay', bayRef: entry.bayRef })?.npc
-                  const maxHp = bay?.npc?.hitPoints ?? 0
-                  return {
-                    id: `${entry.bayRef}-${i}`,
-                    entity: bay,
-                    name: bay ? undefined : entry.bayRef,
-                    stamp:
-                      (entry.condition ?? 'intact') === 'damaged' ? (
-                        <Stat label="Damaged" size="mini" state="critical" />
-                      ) : undefined,
-                    cells: {
-                      lead: built?.name ?? entry.npcName?.trim() ?? bay?.npc?.position ?? '',
-                      hp: maxHp > 0 ? `${entry.npcCurrentHP ?? maxHp}/${maxHp}` : '',
-                    },
-                  }
-                })}
-              />
-              {crawler.systems.length > 0 && (
-                <SheetLedger
-                  kind="loadout"
-                  title="Weapons"
-                  count={crawler.systems.length}
-                  lines={crawler.systems.map((slug) => ({
-                    id: slug,
-                    entity: resolveCrawlerSystem(slug),
-                    name: resolveCrawlerSystem(slug) ? undefined : slug,
-                  }))}
-                />
-              )}
-            </>
-          ),
-        },
-        {
-          value: 'storage',
-          label: 'Storage',
-          // What the crawler holds, then who it homes (the Assigned Units).
-          panel: (
-            <>
-              {storageContents ?? <EmptyState variant="quiet" body="Nothing stored." />}
-              {linkedUnits}
-            </>
-          ),
-        },
-        {
-          value: 'about',
-          label: 'About',
-          panel: (
-            <SheetHero
-              flat
-              name={crawler.name}
-              fields={
-                <CrawlerIdentityPanel
-                  crawler={crawler}
-                  store={store}
-                  storeState={storeState}
-                  patch={undefined}
-                  readOnly
-                  proseUnder
-                  typeCrew={assignmentFor(crew, { kind: 'type' })}
-                  photo={
-                    <EntityPhoto
-                      photo={crawler.photo}
-                      fallback={crawlerTypeArt(crawler.type)}
-                      name={crawler.name}
-                    />
-                  }
-                />
-              }
-            />
-          ),
-        },
-      ]}
-    />
-  )
 
   /** The Storage Bay(s), by their place in the bay list: the sidebar's. */
   const storageBays = bays.flatMap((entry, i) =>
@@ -567,8 +358,17 @@ export function CrawlerSheet({
           every sheet shares (`SheetColumns`): Identity → Bays (Armament
           weapons inside their bay) → Assigned Units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
-      {phoneSheet}
-      {!phoneSheet && (
+      {phoneRead ? (
+        <CrawlerPhoneSheet
+          crawler={crawler}
+          vitals={phoneVitals}
+          storage={storageContents}
+          linkedUnits={linkedUnits}
+          crew={crew}
+          store={store}
+          storeState={storeState}
+        />
+      ) : (
         <SheetColumns
           asideLabel={buildSheetCopy('whatCarries', { name: crawler.name })}
           hero={

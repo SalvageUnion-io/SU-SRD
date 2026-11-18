@@ -122,12 +122,12 @@ export type PlayBarProps = {
   /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
   /**
-   * MOCK (Working Manual E): a phone's band. One crumb line on the band (the
-   * Game · the phase · whose turn), then the controls' line with `title` (who
+   * A phone's band. One crumb line on the band (the
+   * Game · the phase), then the controls' line with `title` (who
    * is playing: "Bonesaw in Mazona") on its cut-out. The ONLINE stamp and the
    * Situation switch are not drawn: the foot and ⋯ hold them.
    */
-  line?: { game: string | null; phase: string; turn?: string }
+  line?: { game: string | null; phase: string }
 }
 
 export function PlayBar({
@@ -148,7 +148,7 @@ export function PlayBar({
   line,
 }: PlayBarProps) {
   const band = phaseBand(tone)
-  // MOCK (Working Manual E): the phone's one-line band, the title kept on its cut-out.
+  // The phone's one-line band, the title kept on its cut-out.
   if (line) {
     return (
       <header
@@ -162,7 +162,6 @@ export function PlayBar({
           <span>
             {line.game !== null && ' · '}
             {line.phase}
-            {line.turn ? ` · ${line.turn}` : ''}
           </span>
         </p>
         <Button

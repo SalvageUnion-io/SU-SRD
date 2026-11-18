@@ -68,7 +68,7 @@ type CrawlerIdentityPanelProps = {
   typeCrew?: CrewAssignment
   /** The crawler's picture (`EntityPhoto`), beside its Name and Type; the rest runs under both. */
   photo?: ReactNode
-  /** MOCK (wave 2): a phone's About tab: the Description wraps round the photo and the type's internals run under both. */
+  /** A phone's About tab: the Description wraps round the photo and the type's internals run under both. */
   proseUnder?: boolean
 }
 
@@ -148,7 +148,8 @@ export function CrawlerIdentityPanel({
           </>
         }
       >
-        <div style={STACK}>
+        {/* A phone's About lets the prose wrap round the floated photo, so no flex stack there. */}
+        <div style={proseUnder ? undefined : STACK}>
           {/* The band already names the crawler, so Read never repeats it;
               Edit keeps the field to rename it, as a pilot's Name. Tech Level
               is not here: it is the band's TL chip, beside the type's. */}
