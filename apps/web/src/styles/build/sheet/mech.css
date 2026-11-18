@@ -58,7 +58,7 @@
 .su-sheet-hero {
   align-items: start;
   gap: var(--space-16);
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
 @container (width >= 48rem) {

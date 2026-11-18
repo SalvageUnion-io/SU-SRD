@@ -82,15 +82,20 @@ const UNIT_NAME = {
 } satisfies CSSProperties
 const UNIT_NAME_CAPS = capsLabel({ size: 'caption' })
 
-/** Two gauges a line: a phone's width holds two Full gauges and their − / +. */
+/**
+ * Two gauges a line: a phone's width holds two Full gauges and their − / +.
+ * A gauge alone on its line (a mech's third) takes it whole (R68).
+ */
 const GAUGES = {
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
+
+const GAUGE = { flex: '1 1 40%', minWidth: 0 } satisfies CSSProperties
 
 /** The gauge's `--tone` pair per unit, as `PlayVital` sets it. */
 const TONES: Record<TableUnit['kind'], CSSVarStyle> = {
@@ -168,7 +173,7 @@ export function PlayTableMode({
               </p>
               <ul aria-label={playCopy('unitVitals', { name: unit.name })} style={GAUGES}>
                 {unit.vitals.map((v) => (
-                  <li key={v.label}>
+                  <li key={v.label} style={GAUGE}>
                     <VitalGauge
                       label={v.label}
                       value={v.value}

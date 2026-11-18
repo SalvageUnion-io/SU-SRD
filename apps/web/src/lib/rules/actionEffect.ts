@@ -62,13 +62,15 @@ const UPKEEP: readonly RegExp[] = [
 
 const EXAMPLE: readonly RegExp[] = [/^for example\b/i, /^e\.g\./i, /\be\.g\. /i]
 
-/** Words that mark rules text: a number, a trait, a resource, a range, a roll, an action type. */
+/** Words that mark rules text: a number, a trait, a resource, a range, a roll, an action type, a game term. */
 const SIGNAL: readonly RegExp[] = [
   // A number standing alone (a cost, an amount, a roll), never a model name's (120mm, 360°).
   /(^|[\s(+-])\d+(-\d+)?(?=[\s.,;:)]|$)/,
   /\[\[/,
   /\b(SP|HP|EP|AP|Heat|Range|Trait|Hit Points?|Structure Points?|Energy Points?|Ability Points?)\b/,
   /\b(Turn|Free|Short|Long|Downtime) Actions?\b|\bReaction\b/,
+  // The book's own capitalised terms for what a rule acts on.
+  /\b(Ability|Abilities|Downtime|Tech Level|Scrap)\b/,
   /\b[Rr]e-?rolls?\b|\b[Rr]oll(s|ed)?\b/,
   /\bwhen activated\b/i,
   /\bMediator\b/,

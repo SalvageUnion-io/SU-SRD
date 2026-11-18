@@ -122,23 +122,22 @@ export function PlayActionRow({
     ) : (
       effect
     )
-  const steps = open ? (
-    <>
-      {picks.length > 0 && (
-        <div className="su-play-act__picks">
-          {picks.map((pick) => (
-            <Stat
-              key={`${pick.choice}-${pick.label}`}
-              size="mini"
-              label={playCopy('chosen')}
-              value={pick.label}
-            />
-          ))}
-        </div>
-      )}
-      <PlayResolveSteps view={resolve} canWrite={canWrite} />
-    </>
-  ) : null
+  // What was chosen on it (R60): said when the row is open, and on a Passive
+  // row always, which never opens.
+  const chosen =
+    picks.length > 0 && (open || entry.type === 'Passive') ? (
+      <div className="su-play-act__picks">
+        {picks.map((pick) => (
+          <Stat
+            key={`${pick.choice}-${pick.label}`}
+            size="mini"
+            label={playCopy('chosen')}
+            value={pick.label}
+          />
+        ))}
+      </div>
+    ) : null
+  const steps = open ? <PlayResolveSteps view={resolve} canWrite={canWrite} /> : null
   return (
     <li
       className="su-play-act"
@@ -168,6 +167,7 @@ export function PlayActionRow({
           children: (
             <>
               {line}
+              {chosen}
               {steps}
             </>
           ),

@@ -82,9 +82,10 @@
   min-width: 0;
 }
 
-/* A toast stands clear of the tab row (`Toaster` reads `--su-foot-clear`). */
+/* A toast stands clear of the tab row, a Compact line under its rule
+   (`--su-toast-bottom` reads `--su-foot-clear`, `atoms-leaves.css`). */
 :root:has(.su-play-frame__tabs:not([hidden])) {
-  --su-foot-clear: var(--size-full);
+  --su-foot-clear: calc(var(--size-compact) + var(--bw-chrome));
 }
 
 /*

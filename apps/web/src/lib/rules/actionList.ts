@@ -163,7 +163,12 @@ function itemActions(args: {
   const out: PlayAction[] = []
   const build = (slugs: readonly string[], kind: 'system' | 'module') => {
     const conditions = kind === 'system' ? args.systemConditions : args.moduleConditions
+    // An item installed twice lists its actions twice, each row under a key of its own.
+    const seen = new Map<string, number>()
     for (const slug of slugs) {
+      const copy = seen.get(slug) ?? 0
+      seen.set(slug, copy + 1)
+      const owner = copy === 0 ? args.keyOf(kind, slug) : `${args.keyOf(kind, slug)}#${copy}`
       const item = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
       if (!item) continue
       const condition = conditions?.[slug] ?? 'intact'
@@ -181,7 +186,7 @@ function itemActions(args: {
         const selections = from.length > 0 ? args.choices?.[slug] : undefined
         out.push({
           ...base,
-          key: `${args.keyOf(kind, slug)}:${action.id ?? i}`,
+          key: `${owner}:${action.id ?? i}`,
           name: action.name,
           economy: actionEconomy(action),
           action,
@@ -190,7 +195,7 @@ function itemActions(args: {
         for (const variant of pickedVariantActions(from, selections ?? {})) {
           out.push({
             ...base,
-            key: `${args.keyOf(kind, slug)}:${action.id ?? i}:${variant.id ?? variant.name}`,
+            key: `${owner}:${action.id ?? i}:${variant.id ?? variant.name}`,
             name: variant.name,
             economy: actionEconomy(variant),
             action: variant,

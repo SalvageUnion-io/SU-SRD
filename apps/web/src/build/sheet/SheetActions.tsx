@@ -62,7 +62,8 @@ function ActionRow({ action, tint }: { action: PlayAction; tint: Tint }) {
           ? { relations: [{ key: `companion-${companion.id}`, name: companion.name }] }
           : {})}
         instance={action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
-        {...(action.ownerName !== action.name
+        // The item it comes from, where its own name does not say it.
+        {...(!action.name.includes(action.ownerName)
           ? { state: <Stat size="mini" label={action.ownerName} /> }
           : {})}
         // Contentful, so its head carries range, damage and traits; its text

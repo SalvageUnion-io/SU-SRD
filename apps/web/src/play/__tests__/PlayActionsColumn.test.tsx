@@ -143,6 +143,14 @@ function rowFor(name: string): HTMLElement {
   if (!li) throw new Error(`no row for ${name}`)
   return li
 }
+/** The `<li>` of the row whose head opens with `name`, Use or none. */
+function rowOf(name: string): HTMLElement {
+  const row = [...document.querySelectorAll<HTMLElement>('li[data-action-key]')].find((li) =>
+    li.textContent?.startsWith(`${name} (`)
+  )
+  if (!row) throw new Error(`no row named ${name}`)
+  return row
+}
 const use = (name: string) => screen.getByRole('button', { name: `Use ${name}` })
 
 function renderBoarded(
@@ -340,6 +348,71 @@ describe('the list', () => {
   test('nesting: no titled box, Compact or Card head sits inside another', () => {
     renderBoarded()
     expect(document.querySelector('.su-entity-compact .su-entity-compact')).toBeNull()
+  })
+})
+
+describe('companions and picks on the board (R65, R60)', () => {
+  const TURRET = 'automated-weapon-turret'
+
+  test('a companion’s actions are rows on the board, each naming the companion', () => {
+    const mech = makeMech()
+    const pilot = makePilot({
+      partners: [
+        {
+          id: 'pt-rex',
+          hostRef: 'mecha-companion',
+          hostSchema: 'equipment',
+          name: 'Rex',
+          systems: [costedSystem],
+          modules: [],
+        },
+      ],
+    } as unknown as Partial<Pilot>)
+    const { store } = stubStore(mech, pilot)
+    render(<Harness pilot={pilot} mech={mech} situation="boarded" store={store} writes={[]} />)
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>('li[data-action-key^="partner:pt-rex:"]'),
+    ]
+    expect(rows.length).toBeGreaterThan(0)
+    for (const row of rows) expect(within(row).getByText('Rex')).toBeTruthy()
+    // The mech's own copy of the same System is a row of its own, on the mech.
+    const names = screen.getAllByRole('button', { name: `Use ${primary().name}` })
+    expect(names.length).toBe(2)
+    // A pilot's companion is reached on foot too.
+    cleanup()
+    render(<Harness pilot={pilot} mech={mech} situation="onFoot" store={store} writes={[]} />)
+    expect(
+      document.querySelector('.su-play-timings li[data-action-key^="partner:pt-rex:"]')
+    ).not.toBeNull()
+  })
+
+  test('a pick made on the sheet (mech.itemChoices) reads on the row, and its model’s action is a row', () => {
+    const turret = resolveSystem(TURRET)
+    const action = turret ? (SalvageUnionReference.resolveActions(turret) ?? [])[0] : undefined
+    const choice = action?.choices?.find((c) => c.source?.kind === 'systemVariant')
+    const option = choice?.source?.kind === 'systemVariant' ? choice.source.options[0] : undefined
+    if (!action || !choice || !option?.name) throw new Error('no Turret Model choice')
+    const unpicked = renderBoarded({ mech: makeMech({ systems: [TURRET] }) })
+    expect(unpicked.mech.itemChoices).toBeUndefined()
+    for (const name of option.actions ?? []) {
+      expect(screen.queryByRole('button', { name: `Use ${name}` })).toBeNull()
+    }
+    cleanup()
+    renderBoarded({
+      mech: makeMech({
+        systems: [TURRET],
+        itemChoices: { [TURRET]: { [choice.id]: [option.name] } },
+      }),
+    })
+    // The picked model's own actions follow the turret's row.
+    for (const name of option.actions ?? []) {
+      expect(screen.getByRole('button', { name: `Use ${name}` })).toBeTruthy()
+    }
+    // The turret's own row is Passive, so it never opens: it says what was chosen as it stands.
+    const row = rowOf(action.name)
+    expect(row.closest('ul')?.getAttribute('aria-label')).toBe('Passive')
+    expect(within(row).queryByRole('button', { name: /^Use / })).toBeNull()
+    expect(row.querySelector('.su-play-act__picks')?.textContent).toContain(option.name)
   })
 })
 

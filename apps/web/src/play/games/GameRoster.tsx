@@ -98,25 +98,26 @@ type GameRosterProps = {
 
 const HINT = { textAlign: 'left' } satisfies CSSProperties
 
-/* Masonry on desktop (two columns of at least 24rem, one on a phone): each
-   card sits right under the one above it in its column, so a short card
-   leaves no gap beside a tall one. The crawler spans both columns. */
+/* The roster fills its rows (R68): a card is at least 24rem, as many a row as
+   fit, and a short last row's cards grow to share the line, so one unit is
+   never half a row. The crawler takes a row of its own. */
 const LIST = {
-  columns: '2 24rem',
-  columnGap: tokens.space[12],
+  alignItems: 'flex-start',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
   listStyle: 'none',
   margin: 0,
   padding: 0,
 } satisfies CSSProperties
 
 const ITEM = {
+  flex: '1 1 24rem',
   listStyle: 'none',
   minWidth: 0,
-  breakInside: 'avoid',
-  marginBlockEnd: tokens.space[12],
 } satisfies CSSProperties
 
-const CRAWLER_ITEM = { ...ITEM, columnSpan: 'all' } satisfies CSSProperties
+const CRAWLER_ITEM = { ...ITEM, flexBasis: '100%' } satisfies CSSProperties
 
 const BODY = {
   display: 'flex',

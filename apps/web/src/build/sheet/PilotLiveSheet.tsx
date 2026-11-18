@@ -97,7 +97,7 @@ export function PilotLiveSheet({
           pilot={pilot}
           store={store}
           readOnly={readOnly}
-          // Read keeps HP, AP and TP live on a phone.
+          // Read keeps HP, AP and TP live for whoever may write the sheet (R11).
           live={liveInRead}
           crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}
