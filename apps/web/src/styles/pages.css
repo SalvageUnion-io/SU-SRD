@@ -161,6 +161,31 @@ a.su-home__discord:hover {
   width: 1.25em;
 }
 
+/* MOCK (front): the home as a product page (`HomeFront.tsx`). The band
+   carries the kicker, so the title needs no more room over it than the app's
+   front doors give theirs; a phone's first screen is the pitch, so the
+   tagline waits for a desktop's band; the Contents run four columns under
+   their Slab. Here, not in the layered sheet, to beat the rules above. */
+.su-front .su-home__band .su-chapter-band__row {
+  padding-top: var(--space-12);
+}
+
+@media not (width >= 64rem) {
+  .su-front .su-home__band .su-chapter-band__aside {
+    padding: 0;
+  }
+
+  .su-front .su-home__band .su-home__lede {
+    display: none;
+  }
+}
+
+@media (width >= 64rem) {
+  .su-front .su-home__index {
+    columns: 4 13rem;
+  }
+}
+
 /*
  * An entity page (`EntityPageFrame`): band, then body. The article fills the
  * page so the site footer's citation band closes it at the foot. The band

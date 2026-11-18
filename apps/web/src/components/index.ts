@@ -140,6 +140,8 @@ export {
 export { EntitySearcher } from './compositions/EntitySearcher'
 export type { FooterFoot } from './compositions/Footer'
 export { Footer } from './compositions/Footer'
+// MOCK (front): the front door's pitch.
+export { FrontPitch } from './compositions/FrontPitch'
 export type { NavDrawerCategory, NavDrawerItem } from './compositions/NavDrawer'
 export { NavDrawer } from './compositions/NavDrawer'
 // OgCard — the 1200 × 630 link preview, built from ChapterBand and
