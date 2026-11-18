@@ -10,13 +10,14 @@ import type { UnitsStore } from '../../replica/units'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { pinFor } from 'salvageunion-reference/rules'
-import { Conditions, Eyebrow, heatDangerFrom, tokens } from '../../components/index'
+import { Conditions, Eyebrow, heatDangerFrom, PhoneVitals, tokens } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { MechConditionsEditor } from './MechConditionsEditor'
 import type { MechSheetModel } from './mechSheet.model'
 import type { useMechSheetActions } from './mechSheetActions.model'
 import { SheetVitalGauge } from './SheetVitalGauge'
+import { SHEET_VITALS } from './sheetVitals.model'
 
 const CONDITIONS = {
   display: 'flex',
@@ -39,6 +40,8 @@ type MechVitalsProps = {
    * maxima and their provenance.
    */
   live?: boolean
+  /** MOCK (wave 2): a phone in Read draws the vitals as `PhoneVitals`, one row a number. */
+  phone?: boolean
 }
 
 export function MechVitals({
@@ -48,6 +51,7 @@ export function MechVitals({
   readOnly,
   store,
   live = false,
+  phone = false,
 }: MechVitalsProps) {
   // MOCK: session state writes in Read too, and every change shows its line with Undo.
   const writes = !readOnly || live
@@ -67,6 +71,41 @@ export function MechVitals({
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
   // The conditions Read prints: the same list the Edit chips write.
   const readConditions = readOnly ? mech.conditions : []
+  // MOCK (wave 2): the phone's block. Names come from the one vitals map (R11).
+  if (phone)
+    return (
+      <PhoneVitals
+        label={`${mech.name} vitals`}
+        vitals={[
+          {
+            key: 'sp',
+            label: SHEET_VITALS.sp.short,
+            name: SHEET_VITALS.sp.label,
+            value: model.currentSP,
+            max: maxSP,
+            onChange: change('currentSP', 'SP', model.currentSP),
+          },
+          {
+            key: 'ep',
+            label: SHEET_VITALS.ep.short,
+            name: SHEET_VITALS.ep.label,
+            value: model.currentEP,
+            max: maxEP,
+            onChange: change('currentEP', 'EP', model.currentEP),
+          },
+          {
+            key: 'heat',
+            label: SHEET_VITALS.heat.short,
+            name: SHEET_VITALS.heat.label,
+            value: model.currentHeat,
+            max: heatCap,
+            danger: heatCap > 0 ? heatDangerFrom(heatCap) : undefined,
+            onChange: change('currentHeat', 'Heat', model.currentHeat),
+          },
+        ]}
+        foot={readConditions.length > 0 ? <Conditions conditions={readConditions} /> : undefined}
+      />
+    )
   return (
     <>
       <SheetVitalGauge

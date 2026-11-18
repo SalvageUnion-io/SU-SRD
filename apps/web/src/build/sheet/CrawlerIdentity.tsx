@@ -68,6 +68,8 @@ type CrawlerIdentityPanelProps = {
   typeCrew?: CrewAssignment
   /** The crawler's picture (`EntityPhoto`), beside its Name and Type; the rest runs under both. */
   photo?: ReactNode
+  /** MOCK (wave 2): a phone's About tab: the Description wraps round the photo and the type's internals run under both. */
+  proseUnder?: boolean
 }
 
 export function CrawlerIdentityPanel({
@@ -78,6 +80,7 @@ export function CrawlerIdentityPanel({
   readOnly = false,
   typeCrew,
   photo,
+  proseUnder = false,
 }: CrawlerIdentityPanelProps) {
   const [typePickerOpen, setTypePickerOpen] = useState(false)
 
@@ -98,14 +101,18 @@ export function CrawlerIdentityPanel({
   }
 
   return (
-    <section aria-label={buildSheetCopy('crawlerIdentity')} style={PANEL}>
+    <section
+      aria-label={buildSheetCopy('crawlerIdentity')}
+      className={proseUnder ? 'su-sheet-phone-wrap' : undefined}
+      style={PANEL}
+    >
       {/* The Description leads, beside the picture, after the Name and Type
           in Edit; the type's internals run the card's full width under both in
           Edit, so no empty column stands under the photo,
           and stay beside the photo in Read. */}
       <PhotoBeside
         photo={photo}
-        belowBeside={!canEdit}
+        belowBeside={!canEdit && !proseUnder}
         below={
           <>
             {/* The type's INTERNALS, laid out directly in identity: no card frame

@@ -212,3 +212,20 @@
   .su-entity-mini__body:not(:has(.su-stat-plate--value, .su-cost, p, button, table)) {
   display: none;
 }
+
+/*
+ * MOCK (wave 2, sheets): the Actions tab's row text, Play's own rule
+ * (`styles/play/actions.css`, which a sheet does not load): the effect's
+ * first two lines at caption size; the name's Peek has the whole card.
+ */
+.su-timing-rows .su-play-act__effect {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-ink);
+  display: -webkit-box;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.35;
+  margin: 0;
+  overflow: hidden;
+}

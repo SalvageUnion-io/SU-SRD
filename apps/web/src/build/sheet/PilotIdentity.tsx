@@ -175,9 +175,17 @@ type PilotIdentityPanelProps = {
   patch?: SheetPatch
   /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
   photo?: ReactNode
+  /** MOCK (wave 2): a phone's About tab runs the Bio under the photo, the card's width. */
+  proseUnder?: boolean
 }
 
-export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({
+  pilot,
+  onToggleUsed,
+  patch,
+  photo,
+  proseUnder = false,
+}: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -267,7 +275,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
           short lines, so the prose stays beside the photo. */}
       <PhotoBeside
         photo={photo}
-        belowBeside={!canEdit}
+        belowBeside={!canEdit && !proseUnder}
         below={
           <HeroMore>
             {/* Appearance spans the card: it is prose, and a half-width column

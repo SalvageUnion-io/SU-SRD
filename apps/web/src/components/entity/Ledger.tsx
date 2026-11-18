@@ -16,8 +16,10 @@ import { InlineRef } from '../atoms/InlineRef'
 import { Box } from '../containers/Box'
 import { grainClass } from '../referenceEntity/card/cardGrain'
 import { EntityCardIdentityFooter } from '../referenceEntity/card/EntityCardIdentityFooter'
+import { useEntitySurface } from './entitySurfaceContext'
 import { Mention } from './forms/Mention'
 import type { Paint } from './parts/paint'
+import { paintFor } from './parts/paint'
 
 export type LedgerColumn = {
   key: string
@@ -57,7 +59,8 @@ function cellTitle(column: LedgerColumn, cell: ReactNode): string | undefined {
 }
 
 export function Ledger({
-  paint,
+  tone = 'ink',
+  paint: paintProp,
   nameLabel,
   count,
   columns,
@@ -72,8 +75,10 @@ export function Ledger({
   total,
   trailingLabel,
 }: {
-  /** The band's paint (`paintFor`): the frame's colour and the head strip's. */
-  paint: Paint
+  /** The band's tone on the colour map (a kind's, `ink` for a mixed list): the frame's colour and the head strip's. */
+  tone?: string
+  /** The band's paint, for a list whose band is no tone token's (a wizard's `--tone`). It replaces `tone`. */
+  paint?: Paint
   /** The name column's label ("Chassis", "Pattern"). */
   nameLabel: string
   /** How many the list holds, beside its title on the tab; a node for a used/max ("7/7"). */
@@ -98,6 +103,8 @@ export function Ledger({
   /** The trailing cell's stamp (`Qty`); with it every row has a trailing cell. */
   trailingLabel?: string
 }) {
+  const surface = useEntitySurface()
+  const paint = paintProp ?? paintFor(tone, { texture: surface.texture })
   const hasTrailing =
     action != null || trailingLabel !== undefined || rows.some((row) => row.trailing != null)
   const stamp = (key: string, text: string, title?: string) => {

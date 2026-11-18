@@ -9,6 +9,7 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
+import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import {
   EmptyState,
@@ -20,7 +21,11 @@ import {
   tokens,
 } from '../../components/index'
 import type { PlayAction } from '../../lib/rules/actionPatches'
-import { buildCompanionActions, buildMechActions } from '../../lib/rules/actionPatches'
+import {
+  buildCompanionActions,
+  buildMechActions,
+  buildPilotActions,
+} from '../../lib/rules/actionPatches'
 import { actionRow } from '../../lib/rules/actionRow'
 import type { ActionTypeKey } from '../../play/playActions.model'
 import { actionTypeOf } from '../../play/playActions.model'
@@ -51,7 +56,10 @@ const TIMING: readonly ActionTypeKey[] = [
   'Other',
 ]
 
-function ActionRow({ action }: { action: PlayAction }) {
+/** The Mini's tint: the unit's kind on the colour map. */
+type Tint = 'mech' | 'pilot'
+
+function ActionRow({ action, tint }: { action: PlayAction; tint: Tint }) {
   // MOCK (wave 2, the actions board): the row Play's board draws (`actionRow`):
   // the picks applied, the effect alone as its text, a companion's row named.
   const { model, summary } = actionRow(action)
@@ -62,7 +70,7 @@ function ActionRow({ action }: { action: PlayAction }) {
         size="mini"
         context="play"
         model={model}
-        tint={companion?.tone ?? 'mech'}
+        tint={companion?.tone ?? tint}
         {...(companion
           ? { relations: [{ key: `companion-${companion.id}`, name: companion.name }] }
           : {})}
@@ -84,10 +92,32 @@ function ActionRow({ action }: { action: PlayAction }) {
 }
 
 export function MechSheetActions({ mech }: { mech: Mech }) {
-  const actions = [
-    ...buildMechActions(mech),
-    ...buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners),
-  ]
+  return (
+    <SheetActions
+      tint="mech"
+      actions={[
+        ...buildMechActions(mech),
+        ...buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners),
+      ]}
+    />
+  )
+}
+
+/** MOCK (wave 2, phone sheets): the pilot's twin: abilities, equipment and companions, by timing. */
+export function PilotSheetActions({ pilot }: { pilot: Pilot }) {
+  return (
+    <SheetActions
+      tint="pilot"
+      actions={[
+        ...buildPilotActions(pilot),
+        ...buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners),
+      ]}
+    />
+  )
+}
+
+/** MOCK (wave 2, phone sheets): any unit's actions by timing, the one list both sheets draw. */
+function SheetActions({ actions, tint }: { actions: readonly PlayAction[]; tint: Tint }) {
   const groups = TIMING.map((type) => ({
     type,
     actions: actions.filter((a) => actionTypeOf(a.action) === type),
@@ -100,7 +130,7 @@ export function MechSheetActions({ mech }: { mech: Mech }) {
           <Slab as="h3" size="mini" label={group.type} count={group.actions.length} />
           <MiniGrid label={`${group.type} actions`}>
             {group.actions.map((action) => (
-              <ActionRow key={action.key} action={action} />
+              <ActionRow key={action.key} action={action} tint={tint} />
             ))}
           </MiniGrid>
         </section>

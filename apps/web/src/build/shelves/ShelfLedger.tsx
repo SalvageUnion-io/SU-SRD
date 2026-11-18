@@ -8,7 +8,6 @@
 // end. It replaces a Slab over a stack of Compacts, each with its own band and
 // its own chip strip (`Shelf`, `ShelfItem`), whose lanes ran ragged.
 import type { ReactNode } from 'react'
-import { paintFor } from '../../components/entity/index'
 import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
 import { HeaderMenu, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
@@ -63,7 +62,7 @@ export function ShelfLedger({
     <section id={id} aria-label={title} className="su-shelf-ledger">
       <Ledger
         label={title}
-        paint={paintFor(tone, { texture: true })}
+        tone={tone}
         nameLabel={title}
         count={rows.length}
         columns={columns}
