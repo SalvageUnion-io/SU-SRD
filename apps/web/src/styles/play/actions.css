@@ -204,19 +204,12 @@ button.su-play-dt-track__step:disabled {
 .su-play-timings {
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--space-12);
 }
 .su-play-timing {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-}
-/* The rows of a group sit a chip's gap apart, tighter than a list of contentful Minis. */
-.su-play-timing .su-mini-grid > li {
-  margin-bottom: var(--space-4);
-}
-.su-play-timing .su-mini-grid > li:last-child {
-  margin-bottom: 0;
+  gap: var(--space-8);
 }
 /*
  * Under its timing heading a row's action-type chip says nothing new (C10):

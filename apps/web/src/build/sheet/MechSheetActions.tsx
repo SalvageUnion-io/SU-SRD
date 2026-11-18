@@ -20,13 +20,13 @@ import { actionTypeOf } from '../../play/playActions.model'
 const GROUPS = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[8],
+  gap: tokens.space[16],
 } satisfies CSSProperties
 
 const GROUP = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[4],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** The rows print no text: the head carries the facts, the Peek the rules. */

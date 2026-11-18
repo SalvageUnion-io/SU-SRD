@@ -114,8 +114,15 @@ const FIELDS = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** MOCK (Working Manual D): the phone's live vitals panel and its stack. */
-const VITALS_BODY = { padding: tokens.space[8] } satisfies CSSProperties
+/** MOCK (Working Manual D): the phone's Vitals panel, the opening panel's own body and stack (`SheetHero`). */
+const VITALS_BODY = {
+  padding: `${tokens.space[16]} ${tokens.space[20]}`,
+} satisfies CSSProperties
+const VITALS_STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+} satisfies CSSProperties
 
 /** MOCK: the phone's section tabs share one row, each a 44px target (principle 8). */
 const SHEET_TABS = { flexWrap: 'nowrap', gap: tokens.space[4] } satisfies CSSProperties
@@ -127,29 +134,29 @@ const SHEET_TAB = {
 const SHEET_PANEL = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[16],
-  paddingTop: tokens.space[8],
+  gap: tokens.space[24],
+  paddingTop: tokens.space[16],
 } satisfies CSSProperties
 
-/** MOCK: the phone's numbers and tabs are one block, a card gutter apart (§4.4). */
+/** MOCK: the phone's numbers, then its tabs, a section's gap apart as the sheet's sections are. */
 const PHONE_READ = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[12],
+  gap: tokens.space[24],
 } satisfies CSSProperties
 
 /** MOCK: the loadout's slots as filled boxes, Systems beside Modules. */
 const SLOTS_BODY = {
   display: 'grid',
-  gap: tokens.space[12],
+  gap: tokens.space[16],
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  padding: tokens.space[8],
+  padding: `${tokens.space[16]} ${tokens.space[20]}`,
 } satisfies CSSProperties
 const SLOTS = {
   alignItems: 'flex-start',
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[6],
+  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** The book's pattern behind an over-slot loadout (`computeMechCapacity`'s `asPrinted`). */
@@ -536,7 +543,7 @@ export function MechSheet({
             )}
           </>
         )
-        // The actions by timing: on a phone, a tab; from `sm`, the main column's first section.
+        // The actions by timing: a phone's first tab. From `sm` the sheet is laid out as it was.
         const actionsNode = <MechSheetActions mech={mech} />
         if (!phoneRead)
           return (
@@ -545,11 +552,6 @@ export function MechSheet({
               hero={heroNode}
               aside={asideNode}
             >
-              {readOnly && (
-                <SlabSection fold="open" title="Actions">
-                  {actionsNode}
-                </SlabSection>
-              )}
               {mainNode}
             </SheetColumns>
           )
@@ -564,7 +566,7 @@ export function MechSheet({
               frame="hairline"
               bodyStyle={VITALS_BODY}
             >
-              <div className="su-sheet-vitals-row">
+              <div className="su-sheet-vitals" style={VITALS_STACK}>
                 <MechVitals
                   mech={mech}
                   model={model}
@@ -572,7 +574,6 @@ export function MechSheet({
                   readOnly={readOnly}
                   store={store}
                   live={live}
-                  compact
                 />
               </div>
             </Box>

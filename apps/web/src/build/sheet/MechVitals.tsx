@@ -25,14 +25,6 @@ const CONDITIONS = {
   width: '100%',
 } satisfies CSSProperties
 
-/** MOCK: the compact gauge's shell as a cell: read-out over steppers, the steppers at its foot. */
-const CELL = {
-  alignItems: 'stretch',
-  flexDirection: 'column',
-  gap: tokens.space[4],
-  height: '100%',
-} satisfies CSSProperties
-
 type MechVitalsProps = {
   mech: Mech
   model: MechSheetModel
@@ -42,12 +34,11 @@ type MechVitalsProps = {
   /**
    * MOCK (Working Manual D, principle 2): the viewer may write the sheet, so
    * in Read the three gauges keep their value live: − / + steppers
-   * (`VitalGauge`'s `steppers`), each change said with Undo. Edit keeps the
+   * (`VitalGauge`'s `steppers`: under the track; the Compact Size from `sm`,
+   * `.su-sheet-vitals`), each change said with Undo. Edit keeps the
    * maxima and their provenance.
    */
   live?: boolean
-  /** MOCK: the instrument rung (label · pips · value/max, then − / +): a phone's. */
-  compact?: boolean
 }
 
 export function MechVitals({
@@ -57,7 +48,6 @@ export function MechVitals({
   readOnly,
   store,
   live = false,
-  compact = false,
 }: MechVitalsProps) {
   // MOCK: session state writes in Read too, and every change shows its line with Undo.
   const writes = !readOnly || live
@@ -74,9 +64,6 @@ export function MechVitals({
           })
         }
       : undefined
-  // MOCK: on a phone a vital is a cell of one row: the instrument read-out
-  // (label · value/max over the pips), its − / + under it sharing the cell.
-  const rung = compact ? ({ size: 'compact', style: CELL } as const) : {}
   const { spParts, epParts, heatParts, maxSP, maxEP, heatCap } = model
   // The conditions Read prints: the same list the Edit chips write.
   const readConditions = readOnly ? mech.conditions : []
@@ -88,7 +75,6 @@ export function MechVitals({
         max={maxSP}
         onChange={change('currentSP', 'SP', model.currentSP)}
         steppers={writes}
-        {...rung}
         onMaxChange={
           readOnly
             ? undefined
@@ -107,7 +93,6 @@ export function MechVitals({
         max={maxEP}
         onChange={change('currentEP', 'EP', model.currentEP)}
         steppers={writes}
-        {...rung}
         onMaxChange={
           readOnly
             ? undefined
@@ -127,7 +112,6 @@ export function MechVitals({
         danger={heatCap > 0 ? heatDangerFrom(heatCap) : undefined}
         onChange={change('currentHeat', 'Heat', model.currentHeat)}
         steppers={writes}
-        {...rung}
         onMaxChange={
           readOnly
             ? undefined

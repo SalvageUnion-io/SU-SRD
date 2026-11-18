@@ -63,7 +63,7 @@ import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
 import { PlayPinnedStrip } from './PlayPinnedVitals'
 import { PlaySheetPane } from './PlaySheetPane'
-import { PlayCrewSection, PlayerTablesAndFeed } from './PlaySideColumn'
+import { PlayCrewSection, PlayerTablesAndFeed, PlayFeedSection } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
 import { PlayTableMode } from './PlayTableMode'
 import { PlayUnitsColumn } from './PlayUnitsColumn'
@@ -97,6 +97,9 @@ import { useWakeLock } from './useWakeLock'
 
 /** MOCK (Working Manual E): the Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
+
+/** MOCK: from `lg` the Reference closes the end column, under the Tables. */
+const RULES_PANE = { value: 'rules', label: 'Rules', column: 'end' } as const
 
 /** MOCK: the phases as the phone's band says them. */
 const PHASE_WORDS = { onFoot: 'On foot', boarded: 'Boarded', downtime: 'Downtime' } as const
@@ -175,12 +178,20 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   }
   const nodes: Record<PlayerPane, ReactNode> = {
     act: <PlayActionsColumn target={target} play={play} {...actions} />,
-    units: <PlayUnitsColumn target={target} play={play} />,
+    // MOCK (owner's note: a side column never ends in a void): from `lg` the
+    // Feed, the table's log, runs under the Units, and the Reference under the
+    // Tables, so both side columns end with the centre one.
+    units: (
+      <>
+        <PlayUnitsColumn target={target} play={play} />
+        {wide && <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />}
+      </>
+    ),
     crew: <PlayCrewSection target={target} play={play} side={side} />,
-    tables: <PlayerTablesAndFeed target={target} play={play} side={side} />,
+    tables: <PlayerTablesAndFeed target={target} play={play} side={side} feed={!wide} />,
     // MOCK (Working Manual E): the Reference inside Play, a player's too (the Mediator's `SrdExplorer`).
-    rules: wide ? null : (
-      <div style={RULES}>
+    rules: (
+      <div style={wide ? undefined : RULES}>
         <SrdExplorer />
       </div>
     ),
@@ -252,7 +263,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
           </>
         }
         panes={(wide
-          ? playerPanes(solo)
+          ? [...playerPanes(solo), RULES_PANE]
           : playerPhonePanes(solo, mock.has('dot') ? 'tables' : null)
         ).map((p) => ({ ...p, node: nodes[p.value] }))}
         tabs={wide ? PLAYER_TABS : PLAYER_PHONE_TABS}

@@ -31,7 +31,7 @@
  * the book's table dress (the roll table's): an ink head row with paper caps,
  * rows banded paper and page ground, each number a framed numeral (the Stat's
  * value plate: a hairline cell, §4.3), the whole framed in its head's paint
- * (ink, `--bw-entity-compact`). Tight: 4px rows on the {2,4,6,8,12} scale. On
+ * (ink, `--bw-entity-compact`), its cells on the card gutter (§4.4). On
  * a phone it scrolls inside itself, never the page (R44).
  */
 .su-crew-table-scroll {
@@ -47,7 +47,7 @@
 }
 .su-crew-table th,
 .su-crew-table td {
-  padding: var(--space-4) var(--space-8);
+  padding: var(--space-6) var(--space-12);
   text-align: start;
   vertical-align: middle;
   white-space: nowrap;
