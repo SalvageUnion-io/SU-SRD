@@ -261,12 +261,13 @@ describe('What a shelf says of a unit (L9)', () => {
     const columns = within(pilots)
       .getAllByRole('columnheader')
       .map((th) => th.textContent)
-    expect(columns.slice(1, 6)).toEqual(['Class', 'Mech', 'Game', 'HP', 'AP'])
+    // No pilot here has a Mech, so the shelf has no Mech column (L5).
+    expect(columns.slice(1, 5)).toEqual(['Class', 'Game', 'HP', 'AP'])
     const cells = within(within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement)
       .getAllByRole('cell')
       .map((td) => td.textContent)
-    // Its class, no Mech, no Game, then HP and AP as its sheet reads them.
-    expect(cells.slice(0, 5)).toEqual(['scavenger', '—', '—', '10/10', '5/5'])
+    // Its class, no Game, then HP and AP as its sheet reads them.
+    expect(cells.slice(0, 4)).toEqual(['scavenger', '—', '10/10', '5/5'])
   })
 })
 

@@ -249,7 +249,7 @@ export function Ledger({
                   )}
                   {count != null && <span className="su-ledger__count">{count}</span>}
                 </span>
-                {mark}
+                {mark && <span className="su-ledger__mark">{mark}</span>}
               </span>
             </th>
             {columns.map((column) => (

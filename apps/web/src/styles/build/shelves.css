@@ -24,3 +24,10 @@
    what does not fit there wraps up over it
    (`.su-chapter-band[data-aside='controls']` in shell.css), so they need
    nothing of their own here. */
+
+/* With nothing to report the status line takes no room: the band is its
+   corner and its title, as a sheet's is. It stays in the tree, so a result
+   that lands is still announced. */
+.su-chapter-band__eyebrow:has(> .su-shelves-band__status:empty) {
+  padding-block: 0;
+}

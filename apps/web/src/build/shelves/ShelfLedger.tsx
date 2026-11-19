@@ -50,6 +50,10 @@ export function ShelfLink({ href, children }: { href: string | undefined; childr
   return <InlineRef href={href}>{children}</InlineRef>
 }
 
+/** A cell with something to say; a `0` is a value. */
+const filled = (cell: ReactNode) =>
+  cell !== '' && cell !== null && cell !== undefined && cell !== false
+
 export function ShelfLedger({
   id,
   title,
@@ -61,6 +65,10 @@ export function ShelfLedger({
   empty,
   note,
 }: ShelfLedgerProps) {
+  // A list drops a column no row fills (ledger.md L5): the rest keep their order.
+  const kept = columns.flatMap((column, index) =>
+    rows.some((row) => filled(row.cells[index])) ? [{ column, index }] : []
+  )
   return (
     <section id={id} aria-label={title} className="su-shelf-ledger">
       <Ledger
@@ -69,13 +77,13 @@ export function ShelfLedger({
         nameLabel={title}
         count={rows.length}
         {...(homebrew ? { mark: <HomebrewStamp size="mini" /> } : {})}
-        columns={columns}
+        columns={kept.map(({ column }) => column)}
         rows={rows.map((row) => ({
           id: row.id,
           name: row.name,
           entityRef: undefined,
           ...(row.href ? { href: row.href } : {}),
-          cells: row.cells,
+          cells: kept.map(({ index }) => row.cells[index]),
           ...(row.under ? { under: row.under } : {}),
           trailing: row.menu.some((section) => section.length > 0) ? (
             <HeaderMenu
@@ -89,7 +97,7 @@ export function ShelfLedger({
         action={action}
         empty={empty}
       />
-      {note && <Text variant="hint">{note}</Text>}
+      {note && <Text variant="note">{note}</Text>}
     </section>
   )
 }
