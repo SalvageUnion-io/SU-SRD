@@ -105,7 +105,7 @@ function renderPilot(props: { readOnly: boolean; live?: boolean }) {
 }
 
 describe('a mech on a phone in Read', () => {
-  test('the numbers, then the tabs Actions, Loadout, Hold, About', () => {
+  test('the numbers, then the tabs Loadout, Hold, About', () => {
     restore = narrowViewport()
     renderMech({ readOnly: true })
     const vitals = screen.getByRole('group', { name: 'Buzzard vitals' })
@@ -116,7 +116,6 @@ describe('a mech on a phone in Read', () => {
     expect(within(vitals).queryByRole('slider')).toBeNull()
     expect(within(vitals).getByText('Shutdown')).toBeTruthy()
     expect(tabNames().map((name) => name?.replace(/[\d/]+$/, ''))).toEqual([
-      'Actions',
       'Loadout',
       'Hold',
       'About',
@@ -199,7 +198,6 @@ describe('a pilot on a phone in Read', () => {
     ).toEqual(['hp', 'ap', 'tp'])
     expect(within(vitals).getByText('Bleeding')).toBeTruthy()
     expect(tabNames().map((name) => name?.replace(/[\d/]+$/, ''))).toEqual([
-      'Actions',
       'Abilities',
       'Gear',
       'About',

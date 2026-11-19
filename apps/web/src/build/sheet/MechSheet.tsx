@@ -9,8 +9,6 @@
  *   Identity Band: image | text | stats + ability (`MechHeroChassis`) — the
  *       player's photo, what they wrote (the pattern name in Edit only: it is
  *       the band's title), the chassis stats and ability ∥ the vitals rail.
- *   Actions (Read): every action the mech has, by action type (R65,
- *       `MechActionsList`), the rows Play's board draws.
  *   Systems & Modules (`MechLoadout`) — KEPT as two sections (each its own
  *       `SlabSection`, side by side from 48rem, one Mini a line): different
  *       collections with different '+ Add' pickers/slot budgets, so folding
@@ -76,7 +74,6 @@ import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
 import { PhoneSheet } from './PhoneSheet'
 import { PhotoBeside } from './PhotoBeside'
-import { MechActionsList } from './SheetActions'
 import { SheetColumns } from './SheetColumns'
 import { HeroMore, SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
@@ -355,11 +352,6 @@ export function MechSheet({
           vitals={vitals(true)}
           tabs={[
             {
-              value: 'actions',
-              label: buildSheetCopy('actions'),
-              panel: <MechActionsList mech={mech} />,
-            },
-            {
               value: 'loadout',
               label: buildSheetCopy('loadout'),
               count: `${capacity.systemSlotsUsed + capacity.moduleSlotsUsed}/${capacity.systemSlotsMax + capacity.moduleSlotsMax}`,
@@ -400,8 +392,6 @@ export function MechSheet({
           hero={heroNode}
           aside={asideNode}
         >
-          {/* Read lists what the mech does first (R65); Edit is its build. */}
-          {readOnly && <MechActionsList mech={mech} section />}
           <MechLoadout
             mech={mech}
             model={model}

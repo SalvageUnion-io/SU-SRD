@@ -7,8 +7,6 @@
  *     class's art, beside fields typeset in Read) beside the Vitals card
  *     (`PilotVitals`: HP/AP gauges named from the one vitals map, TP and
  *     Conditions, live in Read for whoever may write the sheet);
- *   - in Read, Actions: every action the pilot has, by action type (R65,
- *     `PilotActionsList`), the rows Play's board draws;
  *   - Abilities, two folding masonry grids (`PilotSheetAbilities`): each
  *     tree the pilot trained in, its taken Abilities as Compacts on the SRD's
  *     track, open; then the Generic tree as Minis, folded; each with Spend AP
@@ -81,7 +79,6 @@ import { PilotSheetPickers } from './PilotSheetPickers'
 import { PilotVitals } from './PilotVitals'
 import { inventoryEmpty, usePilotSheetModel } from './pilotSheet.model'
 import { usePilotSheetActions } from './pilotSheetActions.model'
-import { PilotActionsList } from './SheetActions'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { SheetLedger } from './SheetLedger'
@@ -224,11 +221,6 @@ export function PilotSheet({
           vitals={vitals(true)}
           tabs={[
             {
-              value: 'actions',
-              label: buildSheetCopy('actions'),
-              panel: <PilotActionsList pilot={pilot} />,
-            },
-            {
               value: 'abilities',
               label: buildSheetCopy('abilities'),
               count: String(pilot.abilities.length),
@@ -354,8 +346,6 @@ export function PilotSheet({
             )
           }
         >
-          {/* Read lists what the pilot does first (R65); Edit is their build. */}
-          {readOnly && <PilotActionsList pilot={pilot} section />}
           {/* ===== Abilities — the trees this pilot trained in, then the Generic
           tree (`PilotSheetAbilities`) ===== */}
           <PilotSheetAbilities

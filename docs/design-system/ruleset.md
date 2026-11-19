@@ -73,7 +73,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    4. **Well** — labelled value: `Stat`, label first (steppers when edited). 5. **Gauge** — segmented current/max: `VitalGauge`. 6. **Btn** — the only mutator: `Button`.
    7. **Slab** — solid section stamp + leader rule, every section head. 8. **RollTable** — banded d20 map: `RollTableInstrument`. 9. **Condition** — tri-state glyph: `StatusBadge`.
    10. **SlotGrid** — dashed addressable cargo cells. 11. **Icons** — `currentColor` `lucide-react` and local glyphs at the line's Size, stroke 2 (K11). 12. **Ledger** — a compared list's framed table: `Ledger` ([ledger.md](ledger.md)). The technique: StampSeam (§7.2), `STAMP_SEAM`.
-   - **Actions nest** — no tray: an action is a contentful Mini (N3) showing its effect alone, under an Actions Slab on a Page, grouped by type on a sheet and in Play (R65).
+   - **Actions nest** — no tray: an action is a contentful Mini (N3) showing its effect alone, under an Actions Slab on a Page, grouped by type in Play, never on a sheet (R65).
    - **Nesting** — children stack in the parent's frame under their own titles, one tone each (E6); a child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab if a section (When Damaged), an unlabelled Callout if a note; an SRD Page's level-1 block may stay a TitledBox.
    - **A container of entities is untitled** (N6) — a wizard step is its title and content; a dialog's head is its chrome (level 0).

@@ -2,11 +2,11 @@
  * Read still writes session state (R11, ruleset §1.2): for whoever may write
  * the sheet, a pilot's HP and AP and a mech's SP, EP and Heat step in Read,
  * each change one line with Undo (K5). A sheet the viewer may not write is a
- * read-out. Read also lists the unit's Actions (R65), which Edit leaves out.
+ * read-out. A sheet lists no Actions: Play's board does (R65).
  */
 
 import { afterEach, beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
@@ -91,10 +91,9 @@ describe('a pilot’s sheet in Read', () => {
     expect(update).not.toHaveBeenCalled()
   })
 
-  test('Read lists the Actions; Edit leaves them out', () => {
+  test('a sheet lists no Actions, in Read or Edit (R65)', () => {
     renderPilot({ readOnly: true, live: true })
-    expect(screen.getByRole('button', { name: 'Collapse Actions' })).toBeTruthy()
-    expect(screen.getByRole('list', { name: 'Long actions' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Collapse Actions' })).toBeNull()
     cleanup()
     renderPilot({ readOnly: false, live: false })
     expect(screen.queryByRole('button', { name: 'Collapse Actions' })).toBeNull()
@@ -112,16 +111,9 @@ describe('a mech’s sheet in Read', () => {
     )
   })
 
-  test('its Actions are grouped by action type, each row its effect', () => {
+  test('lists no Actions: Play’s board does (R65)', () => {
     renderMech({ readOnly: true, live: true })
-    expect(screen.getByRole('button', { name: 'Collapse Actions' })).toBeTruthy()
-    const passive = screen.getByRole('list', { name: 'Passive actions' })
-    const row = within(passive)
-      .getAllByRole('listitem')
-      .find((li) => li.textContent?.startsWith('Automated Weapon Turret')) as HTMLElement
-    expect(row).toBeDefined()
-    expect(row.querySelector('.su-sheet-act__effect')?.textContent?.trim()).not.toBe('')
-    // The turret's row: no Use on a sheet, which reads (ADR-021).
-    expect(screen.queryByRole('button', { name: /^Use / })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Collapse Actions' })).toBeNull()
+    expect(screen.queryByRole('list', { name: 'Passive actions' })).toBeNull()
   })
 })
