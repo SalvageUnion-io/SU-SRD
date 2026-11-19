@@ -39,7 +39,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
 
   return (
     <>
-      <Slab as="h2" label={mediatorCopy('theTable')} />
+      <Slab as="h2" label={mediatorCopy('theTable')} flush />
       {mediator.crew === null ? (
         <EmptyState variant="inline" body={mediatorCopy('theTableAppearsOnceThe')} />
       ) : seats.length === 0 ? (

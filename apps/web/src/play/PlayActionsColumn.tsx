@@ -43,6 +43,7 @@ export function PlayActionsColumn({ play, ...deps }: PlayColumnProps & PlayActio
           as="h2"
           label={playCopy('actions')}
           className="su-play-act-head"
+          flush
           actions={<PlayActionsTools actions={actions} find />}
         />
       ) : (

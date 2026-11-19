@@ -110,7 +110,7 @@ export function PlayMediatorDowntime({
 
   return (
     <>
-      <Slab as="h2" label={mediatorCopy('downtimeStepOf', { value: idx + 1, count })} />
+      <Slab as="h2" label={mediatorCopy('downtimeStepOf', { value: idx + 1, count })} flush />
       <PlayDowntimeTrack
         steps={steps}
         current={idx}

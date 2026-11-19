@@ -72,6 +72,7 @@ export function PlayScene({ scene }: { scene: SceneState }) {
       <Slab
         as="h2"
         label={playCopy('scene')}
+        flush
         {...(scene.hours > 0 ? { count: { label: playCopy('hour'), value: scene.hours } } : {})}
       />
       <MiniGrid label={playCopy('sceneConditions')} play>

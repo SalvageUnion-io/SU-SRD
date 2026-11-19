@@ -151,6 +151,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
       <Slab
         as="h2"
         label={mediatorCopy('scene')}
+        flush
         {...(scene.hours > 0 ? { count: { label: mediatorCopy('hour'), value: scene.hours } } : {})}
         actions={
           <Button

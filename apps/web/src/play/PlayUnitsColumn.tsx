@@ -37,7 +37,7 @@ export function PlayUnitsColumn({ play }: PlayColumnProps) {
 
   return (
     <>
-      <Slab as="h2" label={playCopy('units')} />
+      <Slab as="h2" label={playCopy('units')} flush />
       {pilot ? (
         <PlayPilotUnit
           pilot={pilot}
