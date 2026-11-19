@@ -29,7 +29,7 @@ test('solo: On foot, Boarded and Downtime fit and pass axe', { tag: '@pr' }, asy
   await buildPilot(page, 'Rook Hale', 'Rook')
   await buildMech(page, 'Ironclad')
 
-  // A pilot in no Game plays from its own Play mode (ADR-065).
+  // A pilot in no Game plays from its own Play mode (ADR-066).
   await openPlay(page, await pilotPlayPath(page, 'Rook Hale'))
   const bar = page.locator('.su-play-root header')
   await expect(bar.getByRole('heading', { name: /Rook Hale/ })).toBeVisible()

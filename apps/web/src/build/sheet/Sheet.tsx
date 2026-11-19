@@ -366,7 +366,7 @@ export function Sheet({
       },
     ],
   ]
-  // The sheet's Play mode (ADR-065): a pilot's own Play, in its Game or solo;
+  // The sheet's Play mode (ADR-066): a pilot's own Play, in its Game or solo;
   // a mech's goes through the pilot assigned to it, when this session holds
   // that pilot (Play runs a pilot, the mech optional). Signed out there is no
   // Play.

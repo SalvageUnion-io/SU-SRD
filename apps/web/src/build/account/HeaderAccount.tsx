@@ -8,7 +8,7 @@ import { SignInControl } from './SignInControl'
  * What the app puts in the masthead's app slots (`UnionBarSlots`' `actions`,
  * `mobileActions` and `drawerExtra`) — the account, wired to the Worker here so
  * `src/components` stays persistence-agnostic. Your Games are a tab of their own
- * (ADR-065), so the bar carries no Games menu:
+ * (ADR-066), so the bar carries no Games menu:
  *
  * | Where                      | Signed in                | Signed out           |
  * | -------------------------- | ------------------------ | -------------------- |

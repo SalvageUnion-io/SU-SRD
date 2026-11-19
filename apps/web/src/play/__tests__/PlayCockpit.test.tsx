@@ -133,7 +133,7 @@ describe('the Cockpit frame', () => {
     expect(within(screen.getByRole('banner')).getByText(/● Online/)).toBeTruthy()
   })
 
-  test('in a Game, “‹ Sheet” goes back to the pilot’s page and ⋯ › Game page opens the Game’s (ADR-065)', async () => {
+  test('in a Game, “‹ Sheet” goes back to the pilot’s page and ⋯ › Game page opens the Game’s (ADR-066)', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('link', { name: 'Back to Sheet' }).getAttribute('href')).toMatch(

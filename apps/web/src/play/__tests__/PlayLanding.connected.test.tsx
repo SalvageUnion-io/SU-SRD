@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'b
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Games hub (`/games/`, ADR-065): + New Game and Join with a link on its
+ * The Games hub (`/games/`, ADR-066): + New Game and Join with a link on its
  * band; Your Games, each a contentful Compact opening the Game's page with
  * your role, how many are here, the Downtime state and its channel as chips,
  * its crew as Minis (each pilot and its mech one Mini), and its doors (Mediate

@@ -10,7 +10,7 @@
  * links out to Build for the rest — **+ New Pilot** (Build's own wizard,
  * started for this Game, `/pilots/new?game=<id>`, ADR-052 §3), the table
  * runner's **+ New Crawler** while the Game has none. Moving a unit in or out
- * is its ⋯ menu's, in the Training Bay, one tab away (ADR-065).
+ * is its ⋯ menu's, in the Training Bay, one tab away (ADR-066).
  *
  * ## One list, the crawler first
  *

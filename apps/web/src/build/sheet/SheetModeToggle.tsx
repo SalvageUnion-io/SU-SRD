@@ -1,6 +1,6 @@
 /**
  * SheetModeToggle — the sheet band's Read | Edit | Play (`sheetMode.model.ts`,
- * ADR-065): one page per unit, its modes one shared `Segmented`, at a page
+ * ADR-066): one page per unit, its modes one shared `Segmented`, at a page
  * head's action height so it stands as tall as its neighbours
  * (`.su-page-action`). The mode you are in is the ink plate; `aria-pressed`
  * carries it, so a screen reader hears which is on. Play opens the pilot's Play

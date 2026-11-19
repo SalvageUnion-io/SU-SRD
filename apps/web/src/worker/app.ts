@@ -107,7 +107,7 @@ export function spaAssets(assets: Assets, base: string): Assets {
   }
 }
 
-/** Whether a site path is under Play's retired root, `/play` (ADR-065). */
+/** Whether a site path is under Play's retired root, `/play` (ADR-066). */
 function retiredPlayRoot(pathname: string): boolean {
   return pathname === RETIRED_PLAY_ROOT || pathname.startsWith(`${RETIRED_PLAY_ROOT}/`)
 }

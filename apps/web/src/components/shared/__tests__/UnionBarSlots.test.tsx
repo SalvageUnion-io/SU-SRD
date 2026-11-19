@@ -149,7 +149,7 @@ describe('the bar’s rules', () => {
     expect(unionHere('/patterns/')).toBe('build')
     expect(unionHere('/starter/pilot/x')).toBe('build')
     expect(unionHere('/settings')).toBe('build')
-    // A pilot's Play mode is the pilot's own page (and draws no bar, ADR-065).
+    // A pilot's Play mode is the pilot's own page (and draws no bar, ADR-066).
     expect(unionHere('/pilots/p1/play')).toBe('build')
     expect(unionHere('/games')).toBe('play')
     expect(unionHere('/games/')).toBe('play')

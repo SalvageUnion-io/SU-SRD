@@ -29,7 +29,7 @@ import { useSignOut } from './useSignOut'
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
  * Discord bot's still land. Your Games are their own tab, `/games/`, each
- * opening a Game's page (ADR-065).
+ * opening a Game's page (ADR-066).
  *
  * It wears the Training Bay's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section

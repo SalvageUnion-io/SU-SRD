@@ -11,7 +11,7 @@ import { AppBar } from '../index'
  * reference pages (`TopNavigation`, its live parts islands) and the app's
  * shell (`shell/unionBar.ts`, its live parts portals filling slots). Everything
  * that makes it the same bar is here: the switcher's targets (Reference, the
- * Training Bay and the Games, ADR-065), the mark, "Buy the game" and the
+ * Training Bay and the Games, ADR-066), the mark, "Buy the game" and the
  * view-transition name. The render mode
  * hands in only what it makes live: the search, the account controls and the
  * phone cluster (`UnionDrawer` with its triggers).

@@ -10,7 +10,7 @@
  * (`useOwnUnits`), and the crawler of each Game you run (`useKeptCrawlers`):
  * a crewmate's units, unassigned ones and the crawler of a Game you only play
  * at show only on the Game's page, and a Game is started or joined from Your
- * Games, the header's Games tab (ADR-065).
+ * Games, the header's Games tab (ADR-066).
  *
  *  - **The band** (ink, paper flecks): the notched title and, in the band's
  *    top-right corner, one "⋯" (`BackupMenu`: **Import…** and **Export all**).
@@ -396,7 +396,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                       read(r, VITAL.ap),
                     ],
                     menu: unitMenu('pilot', p, p),
-                    // Play runs a pilot (ADR-065): one press from the Training Bay.
+                    // Play runs a pilot (ADR-066): one press from the Training Bay.
                     ...(status === 'signedOut' ? {} : { play: cockpitPath(p.id) }),
                   }
                 })}

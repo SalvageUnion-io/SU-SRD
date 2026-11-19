@@ -41,7 +41,7 @@ import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-/** Back to the Training Bay, where every pilot of yours is (ADR-065). */
+/** Back to the Training Bay, where every pilot of yours is (ADR-066). */
 const TO_TRAINING_BAY = { href: '/', label: PRODUCT.build }
 
 export function PlayGate({ id }: { id: string }) {

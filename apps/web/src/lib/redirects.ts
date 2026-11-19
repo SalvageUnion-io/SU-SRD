@@ -13,7 +13,7 @@
  *   no longer has (`retiredDocPage`, `retiredTarget`): the Worker runs first
  *   there, so `_redirects` never sees them. Play moved out from under the base
  *   to `/play` (ADR-062), then became the Games' root and each pilot's Play
- *   mode (ADR-065), so its old addresses are among them, at either root.
+ *   mode (ADR-066), so its old addresses are among them, at either root.
  *
  * A published URL never dies (ADR-043, decision 4). Pure: the Worker bundles it.
  */
@@ -28,7 +28,7 @@ import {
 } from 'game-domain/entityKinds'
 import { APP_BASE, appPath, GAMES_ROOT, underBase } from './appBase'
 
-/** Your Games, the Games' root (ADR-065). */
+/** Your Games, the Games' root (ADR-066). */
 const GAMES_HOME = `${GAMES_ROOT}/`
 
 import { DOC_PAGES } from './docPages'
@@ -255,7 +255,7 @@ export function retiredDocPage(path: string): string | null {
  * Play's and the sheets' addresses before Play had its own root (ADR-062),
  * from links pasted into Discord, bookmarks and installed apps:
  *
- *   - `/play/…`, here or at Play's retired root (ADR-065):
+ *   - `/play/…`, here or at Play's retired root (ADR-066):
  *     `/play/`                               → `/games/`,
  *     `/play/games/:gameId[/mediate]`        → `/games/:gameId[/mediate]`,
  *     `/play/invite/:token`                  → `/games/invite/:token`,
@@ -317,7 +317,7 @@ const PLAY_COLLECTIONS = new Set(['games', 'game', 'pilots', 'invite'])
 
 /**
  * A Play path (`/play/…` at its retired root, or under the base) where it lives
- * now: the Games' root, or the pilot's own page for a Cockpit (ADR-065).
+ * now: the Games' root, or the pilot's own page for a Cockpit (ADR-066).
  */
 function playTarget(parts: readonly string[]): string | null {
   const [, second, third, fourth] = parts

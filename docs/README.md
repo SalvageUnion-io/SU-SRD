@@ -8,7 +8,7 @@ Intent → doc. Area links and "ADR-N" resolve in [ARCHITECTURE.md](ARCHITECTURE
 4. **Data flow or persistence** — [data flow](ARCHITECTURE.md#data-flow) to [the replica](ARCHITECTURE.md#stores); ADR-030, ADR-034.
 5. **Where a rule is enforced, combat** — [surfaces](ARCHITECTURE.md#surfaces) to [combat](ARCHITECTURE.md#combat); ADR-021, ADR-007.
 6. **Play mode** — [play.md](architecture/play.md), its state and rules driver §14; ADR-051, ADR-038.
-7. **A Game's page** — Play's: [play.md](architecture/play.md) §16; ADR-030, ADR-052.
+7. **A Game's page** — the Games': [play.md](architecture/play.md) §16; ADR-030, ADR-052, ADR-066.
 8. **NPCs** — [npc-builder.md](architecture/npc-builder.md); ADR-044.
 9. **Sharing** — ADR-032, ADR-036.
 10. **Accounts, Games, the rooms** — ADR-030, ADR-064; [room backups](ops/room-backups.md); [deployments](ARCHITECTURE.md#deployments) to [conventions](ARCHITECTURE.md#room-conventions); procedures: the [`site-ops`](../.claude/skills/site-ops/SKILL.md) skill.

@@ -163,16 +163,16 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: an `npcs` table like pilots; a slotted link authorised by the crawler's writer.
     Amends ADR-037. As built: [npc-builder.md](architecture/npc-builder.md).
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
-    Built: Play beside Reference and Build; one layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed from it; solo seats.
-    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052. As built: [play.md](architecture/play.md).
+    Built: one Cockpit layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed; solo seats.
+    Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052, ADR-066. As built: [play.md](architecture/play.md).
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
-    Built: Build lists and reads only what you own, a Game a chip and never a filter; Play has the hub, Game pages, invites, Cockpits.
-    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062.
+    Built: Build lists only what you own, a Game a chip, never a filter.
+    Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062, ADR-066.
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
     Amends ADR-030 §2, §4–6.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
-    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues; `/roadmap` retired (4.5.63).
+    Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues.
 58. **ADR-058 A read-only device copy** · [full text](adr/058-device-copy.md)
     Built: offline, the player's own sheets come back from the device; Convex stays of record.
     Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
@@ -188,5 +188,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     A unit changes only by an op through the pure `applyOp`; its body is a snapshot at `headSeq`. Offline, ops on your own units wait in an outbox.
     Amends ADR-008, ADR-022 and ADR-030 §1, §4; replaces ADR-058.
 64. **ADR-064 Cloudflare rooms are the server of record** · [full text](adr/064-cloudflare-rooms.md)
-    A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in. One cutover at 4.5.0.
+    A SQLite Durable Object per account and per Game, D1 for cross-room reads, R2 for art and backups; the Worker signs in.
     Supersedes ADR-030 §1's Convex sentence and ADR-033 §5.
+66. **ADR-066 Reference | Training Bay | Games** · [full text](adr/066-training-bay-and-games.md)
+    Header nouns, no second nav; Play a pilot page's mode; no Games in the Training Bay, no Solo list.
+    Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.

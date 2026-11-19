@@ -82,7 +82,7 @@ export function publicPath(kind: PublicKind, appId: string, name?: string): stri
   return `/p/${kind}/${encodeURIComponent(shareSegment(appId, name))}`
 }
 
-/** A Game's own page (ADR-065): `/games/<gameId>`. */
+/** A Game's own page (ADR-066): `/games/<gameId>`. */
 export function gamePath(gameId: string): string {
   return `/games/${encodeURIComponent(gameId)}`
 }
@@ -93,14 +93,14 @@ export function mediatePath(gameId: string): string {
 }
 
 /**
- * An invite link's route, the Game's door (ADR-065): `/games/invite/<token>`,
+ * An invite link's route, the Game's door (ADR-066): `/games/invite/<token>`,
  * the token being the invite's code.
  */
 export function invitePath(token: string): string {
   return `/games/invite/${encodeURIComponent(token)}`
 }
 
-/** One pilot's Cockpit, the Play mode of its own page (ADR-065): `/pilots/<pilotId>/play`. */
+/** One pilot's Cockpit, the Play mode of its own page (ADR-066): `/pilots/<pilotId>/play`. */
 export function cockpitPath(pilotId: string): string {
   return `${sheetPath('pilot', pilotId)}/play`
 }

@@ -7,7 +7,7 @@
  * `/games/$gameId`, became the Game's page in Play (ADR-052 §5). Then Play
  * moved out from under the base to `/play/…`, and the sheets and Patterns
  * took the plural grammar (ADR-062); then Play's root became the Games'
- * (`/games/…`) and each pilot's Cockpit the Play mode of its page (ADR-065). Each lands in one hop on a live route of
+ * (`/games/…`) and each pilot's Cockpit the Play mode of its page (ADR-066). Each lands in one hop on a live route of
  * the real generated tree.
  *
  * The site's search page, `/search`, is retired: the bar's dropdown is the
@@ -52,7 +52,7 @@ describe('the retired app addresses', () => {
     ['/build/play/games/g1', '/games/g1', '/games/$gameId'],
     ['/build/play/game/g1', '/games/g1/mediate', '/games/$gameId_/mediate'],
     ['/build/play/p1', '/build/pilots/p1/play', '/pilots/$id_/play'],
-    // Play's own root, retired for the Games and each pilot's Play (ADR-065).
+    // Play's own root, retired for the Games and each pilot's Play (ADR-066).
     ['/play/', '/games/', '/games/'],
     ['/play', '/games/', '/games/'],
     ['/play/games/g1', '/games/g1', '/games/$gameId'],

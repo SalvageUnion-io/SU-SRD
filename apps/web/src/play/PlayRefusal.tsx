@@ -21,7 +21,7 @@ const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSPrope
 
 type PlayRefusalProps = {
   /** Whose band it wears: a pilot's Play is a mode of its Training Bay page
-   *  (ADR-065); a Game's screens are the Games'. */
+   *  (ADR-066); a Game's screens are the Games'. */
   area?: 'build' | 'play'
   /** What is missing, as the heading under the band. */
   title: string

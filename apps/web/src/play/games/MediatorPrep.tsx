@@ -1,6 +1,6 @@
 /**
  * MediatorPrep — the Mediator's door to their prep, on a Game's page
- * (ADR-065). Prep is made and kept in the Training Bay (its Encounters and NPCs
+ * (ADR-066). Prep is made and kept in the Training Bay (its Encounters and NPCs
  * shelves, ADR-059) and run on the Mediator screen, whose Mediate is the
  * band's door; this section counts what is ready and links to where it is
  * kept, so the Game's page is never a second place to make it.

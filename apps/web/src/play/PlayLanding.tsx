@@ -1,5 +1,5 @@
 /**
- * PlayLanding — the Games hub (`/games/`, ADR-065): your Games, and one tap
+ * PlayLanding — the Games hub (`/games/`, ADR-066): your Games, and one tap
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
@@ -23,7 +23,7 @@
  *    (paste an invite link, or its token, to open the invite screen).
  *
  * No solo list: a pilot in no Game plays from its own page's Play mode, and
- * every Training Bay pilot line carries that door (ADR-065).
+ * every Training Bay pilot line carries that door (ADR-066).
  *
  * Signed out there is nothing to play, so it is Play's front door
  * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,

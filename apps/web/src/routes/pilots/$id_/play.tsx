@@ -1,5 +1,5 @@
 /**
- * A pilot's Play mode — /pilots/:id/play (ADR-065)
+ * A pilot's Play mode — /pilots/:id/play (ADR-066)
  *
  * Play runs one pilot of yours, in a Game or solo, on the Cockpit
  * (`PlayCockpit`). An old mech-keyed URL lands here too (from the retired

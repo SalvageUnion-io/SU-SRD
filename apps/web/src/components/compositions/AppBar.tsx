@@ -20,7 +20,7 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  * one preset, `unionBar/UnionBar.tsx`.
  *
  * One lockup (the SU mark alone, no wordmark), then the **Reference | Training
- * Bay | Games** switcher (ADR-065), the search slot, "Buy the game" and the
+ * Bay | Games** switcher (ADR-066), the search slot, "Buy the game" and the
  * app's account controls. There is no second nav: each tab is a place, and a
  * page's own modes (a pilot's Read | Edit | Play) live on that page. Crossing
  * is a tab on the same bar, never an off-site link. The tab you are on is an

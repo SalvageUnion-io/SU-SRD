@@ -4,7 +4,7 @@
  * replies — imports these rather than typing its own spelling, so a name
  * cannot drift between screens again.
  *
- * The site has three areas, the header's nouns (ADR-065): Reference, the
+ * The site has three areas, the header's nouns (ADR-066): Reference, the
  * Training Bay and Games. Two of them carry a name on their pages:
  *
  * - `build` — the Training Bay, the bay where a pilot trains (the book's VR

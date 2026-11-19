@@ -14,7 +14,7 @@ export type UnionMode = 'build' | 'play'
  * Which tab a route (a path inside the app) is under: the Games for Your
  * Games, a Game's page and its Mediator's Cockpit, and an invite (which joins a
  * Game); the Training Bay for everything else, a pilot's Play mode among it
- * (ADR-065).
+ * (ADR-066).
  */
 export function unionHere(path: string): UnionMode {
   return path === '/games' || path.startsWith('/games/') ? 'play' : 'build'

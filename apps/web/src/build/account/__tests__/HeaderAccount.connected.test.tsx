@@ -10,7 +10,7 @@ import type { ReactNode } from 'react'
  * - **Signed in, Connected** — the trigger is a menu button carrying the
  *   player's display name and avatar circle; its menu holds Settings (to
  *   `/settings`) and Sign out, then About, Changelog and Suggest or report. Games
- *   is a tab of the bar (ADR-065), never part of the account slot.
+ *   is a tab of the bar (ADR-066), never part of the account slot.
  * - **Signed in, offline** — the identity stays and Sign out still works.
  * - **Signed out** — "Sign in with Discord" takes the slot, on desktop and in
  *   the mobile drawer; the mobile header row stays empty.

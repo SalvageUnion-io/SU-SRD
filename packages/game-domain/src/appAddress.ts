@@ -12,7 +12,7 @@
 export const APP_BASE = '/build'
 
 /**
- * The Games' root on the site (ADR-065): Your Games, each Game's page, its
+ * The Games' root on the site (ADR-066): Your Games, each Game's page, its
  * Mediator's Cockpit and invites are the app too, but served at their own
  * path, `/games/…`, beside the Training Bay's `/build/…` rather than under it.
  * The route inside the app and the path on the site are the same string.
@@ -20,7 +20,7 @@ export const APP_BASE = '/build'
 export const GAMES_ROOT = '/games'
 
 /**
- * Play's old root (ADR-062), retired by ADR-065: still the app's, so the Worker
+ * Play's old root (ADR-062), retired by ADR-066: still the app's, so the Worker
  * runs first there and 301s each address to where it lives now.
  */
 export const RETIRED_PLAY_ROOT = '/play'

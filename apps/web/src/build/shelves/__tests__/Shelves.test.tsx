@@ -244,7 +244,7 @@ describe('Play, one press from the shelf', () => {
     expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
   })
 
-  test('the Training Bay lists no Games: they are the Games tab’s (ADR-065)', async () => {
+  test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {
     await renderShelves()
     expect(screen.queryByRole('region', { name: 'Games' })).toBeNull()
   })
