@@ -402,7 +402,7 @@ describe('main', () => {
       `goto ${base}${APP_BASE}/`,
       'seam',
       'sign in a@b pw signIn',
-      'attached Games',
+      'attached /^Account menu/',
       `goto ${base}/games/g`,
     ])
     expect(calls).toContain('wait')
