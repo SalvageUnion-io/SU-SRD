@@ -171,7 +171,7 @@ export const pagesCopy = messages({
   homeTitle: 'Salvage Union SRD and Character Manager',
   salvageUnionSrd: 'Salvage Union SRD',
   siteName: 'SalvageUnion.io',
-  homeKicker: 'Reference // Build // Play',
+  homeKicker: 'Reference // Training Bay // Games',
   contents: 'Contents',
   atTheTable: 'At the table',
   ogCardRender: 'OG card render',

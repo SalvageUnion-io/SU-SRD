@@ -71,7 +71,7 @@ export function HomeHero() {
   )
 }
 
-/** The three ways in: Reference, Build, Play, each in its band colour. */
+/** The three ways in, named as the Union bar's tabs are (§3.11), each in its band colour. */
 export function HomeDoors() {
   const doors: StartHereStep[] = [
     {

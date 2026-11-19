@@ -37,11 +37,11 @@ export const referenceCopy = messages({
   doorReferenceBody:
     'The whole book, searchable: every Chassis, System, Module, Ability and rule, cited to its page.',
   doorReferenceArt: 'The Mule Chassis',
-  doorBuild: 'Build',
+  doorBuild: 'Training Bay',
   doorBuildBody:
     'Make a Pilot, a Mech and a Union Crawler step by step, or copy the Starter Set crew and make it yours.',
   doorBuildArt: 'An Engineer Pilot',
-  doorPlay: 'Play',
+  doorPlay: 'Games',
   doorPlayBody:
     'Run your sheets at the table: roll, spend and take damage, solo or with your crew in one shared Game.',
   doorPlayArt: 'The Bio-Titan Scylla',
