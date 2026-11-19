@@ -83,4 +83,8 @@ export const playGamesCopy = messages({
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
   whoMediates: 'Who mediates',
+  yourPrep: 'Your prep',
+  encounters: 'Encounters',
+  npcs: 'NPCs',
+  prepInTheTrainingBay: 'Prep in the Training Bay',
 })

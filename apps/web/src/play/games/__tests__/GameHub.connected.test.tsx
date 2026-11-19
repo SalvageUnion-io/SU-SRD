@@ -355,6 +355,15 @@ describe('the Mediator on the Game page', () => {
     // Their way in is the player's Play button, not the Mediator's link.
     expect(screen.queryByRole('link', { name: 'Mediate' })).toBeNull()
     expect(heading('Proposals you sent')).toBeNull()
+    expect(heading('Your prep')).toBeNull()
+  })
+
+  test('the Mediator gets a door to the prep the Training Bay keeps, counted', async () => {
+    await renderHub({ 'games.get': { ...GAME, mediator: true } })
+    expect(heading('Your prep')).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: 'Prep in the Training Bay' }).getAttribute('href')
+    ).toBe('/')
   })
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {

@@ -15,7 +15,9 @@
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
  *     about building (ADR-052 §3: Play only plays). Then the proposals
- *     awaiting their answer. **The Mediator:** Proposals you sent.
+ *     awaiting their answer. **The Mediator:** Proposals you sent, then
+ *     Your prep (`MediatorPrep`): what the Training Bay keeps ready, and the
+ *     way there.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head). **Every member**
  *     again: Safety (`GameSafety`: the Stop Sign, whose banner heads the
@@ -62,6 +64,7 @@ import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
 import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
+import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { TheGame } from './TheGame'
@@ -126,6 +129,8 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
+          {/* The Mediator's door to the prep the Training Bay keeps (ADR-065). */}
+          {game.mediator && <MediatorPrep />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
