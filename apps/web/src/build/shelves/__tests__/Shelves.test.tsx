@@ -231,6 +231,25 @@ describe('a unit’s Game', () => {
   })
 })
 
+describe('Play, one press from the shelf', () => {
+  test('each pilot line carries its Play door, to that pilot’s Play mode', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByRole('link', { name: 'Play Nia Vale' }).getAttribute('href')).toBe(
+      '/pilots/p-nia/play'
+    )
+    expect(within(pilots).getByRole('link', { name: 'Play Rook' })).toBeTruthy()
+    // Mechs play through their pilot: no door of their own.
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
+  })
+
+  test('the Training Bay lists no Games: they are the Games tab’s (ADR-065)', async () => {
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Games' })).toBeNull()
+  })
+})
+
 describe('Crawlers', () => {
   test('a Game’s crawler is in your Training Bay only where you run the table', async () => {
     await renderShelves()

@@ -66,12 +66,12 @@ export async function signInThroughSeam(
     },
     { name: TEST_SIGN_IN_GLOBAL, email: account.email, password: account.password, flow }
   )
-  // The masthead's "Games" menu renders only in `connected` (GamesMenu), the
-  // mode whose backend is the account: waiting on the token alone would let a
-  // first write race the backend flip. It sits in Play's nav, which the bar
-  // keeps in the DOM but hides outside Play, so it is waited for attached.
+  // The masthead's account menu renders only once the sync is `live` (or
+  // `offline`), the status whose backend is the account: waiting on the token
+  // alone would let a first write race the backend flip. The phone row's copy
+  // is hidden at desktop width, so it is waited for attached.
   await page
-    .getByRole('button', { name: 'Games', includeHidden: true })
+    .getByRole('button', { name: /^Account menu/, includeHidden: true })
     .first()
     .waitFor({ state: 'attached', timeout: 30_000 })
 }

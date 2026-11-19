@@ -50,11 +50,6 @@ export const CRAWLER_COLUMNS = [
   fig(VITAL.sp, buildShelvesCopy('structurePoints')),
   fig(BAYS, buildShelvesCopy('baysIntact')),
 ]
-export const GAME_COLUMNS = [
-  word('role', buildShelvesCopy('youAre'), true),
-  fig(buildShelvesCopy('pilots'), buildShelvesCopy('yourPilotsInIt')),
-  fig(buildShelvesCopy('mechs'), buildShelvesCopy('yourMechsInIt')),
-]
 export const NPC_COLUMNS = [
   word('position', buildShelvesCopy('position')),
   word('who', buildShelvesCopy('seenBy')),
@@ -87,7 +82,3 @@ export const who = (chips: readonly { label: string }[]): string =>
 /** A unit's own labels (`Shared by link`), under its name. */
 export const under = (chips: readonly { label: string }[]): string | undefined =>
   chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
-
-/** How many of your units sit in a Game. */
-export const count = (units: readonly { gameId?: string | null }[], gameId: string): string =>
-  String(units.filter((u) => u.gameId === gameId).length)

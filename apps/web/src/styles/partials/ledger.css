@@ -360,7 +360,7 @@
 
   /* The head keeps the trailing column's stamp alone: the ask or the budget
      beside it is the step's own line above the list. */
-  .su-ledger__trailing-line > :not(:last-child) {
+  th .su-ledger__trailing-line > :not(:last-child) {
     display: none;
   }
 
