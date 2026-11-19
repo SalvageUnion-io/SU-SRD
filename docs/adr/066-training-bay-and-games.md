@@ -47,9 +47,11 @@ there; there is no Solo list anywhere.
 
 It lists every unit you own, in a Game or not; a unit's Game stays a chip.
 Patterns sit first in the right column: planning comes before building
-(chassis, then a pattern, then a mech on a pilot). Every pilot line carries a
-Play door beside its ⋯ menu, so Play is one press from where players already
-are. The Games ledger goes.
+(chassis, then a pattern, then a mech on a pilot). Every pilot line carries its
+mech, or "+ Add a mech" (`/mechs/new?pilot=`, assigned on create), and a Play
+door beside its ⋯ menu; the Mechs ledger holds only mechs no pilot flies. New
+Mech opens on From a pattern, then Guided and Blank. A mech's band always
+names its chassis and the pattern it came from, linked. The Games ledger goes.
 
 ### 5. Games hold Games
 

@@ -150,6 +150,7 @@ export const buildSheetCopy = messages({
   sheetControls: 'Sheet controls',
   starterKit: 'Starter Kit',
   pattern: 'Pattern',
+  aSavedPattern: 'A saved pattern',
   madeBy: 'Made by',
   assignedSheets: 'Assigned sheets',
   chassis: 'Chassis',

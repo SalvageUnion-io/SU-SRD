@@ -25,8 +25,9 @@ import {
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { usePatterns } from '../../replica/collections'
 import { assignedRail } from './assignedRail'
-import { mechStamp } from './bandStamps.model'
+import { mechPatternStamp, mechStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
@@ -91,6 +92,7 @@ export function MechLiveSheet({
 
   // Assigned units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
+  const savedPatterns = usePatterns((s) => s.mechPatterns)
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
@@ -106,6 +108,7 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
+      fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id)?.name)}
       rank={<MechBandRank chassisRef={mech.chassisRef} />}
       out={
         mechHasCondition(mech, 'Destroyed')

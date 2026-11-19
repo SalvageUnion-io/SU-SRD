@@ -185,6 +185,16 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const anyCrawlers = useCrawlers()
   const { pilotReadings, mechReadings } = crewReadings(pilots, mechs, anyCrawlers, softLinks)
   const patternSource = mechs.find((m) => m.id === savingPattern)
+  // A mech a pilot of yours flies rides that pilot's line; the Mechs shelf
+  // holds the rest (ADR-066: the pilot is the anchor).
+  const flown = new Set(
+    softLinks
+      .filter((l) => l.type === 'mech-to-pilot' && pilotNames.has(l.to.id))
+      .map((l) => l.from.id)
+  )
+  const spareMechs = mechs.filter((m) => !flown.has(m.id))
+  /** A pilot line's "+ Add a mech": the mech wizard, its mech assigned to that pilot. */
+  const newMechFor = (pilotId: string) => `/mechs/new?pilot=${encodeURIComponent(pilotId)}`
   // The personal tray is in the Training Bay alone.
   const tray = trayNpcs.filter((n) => typeof n.gameId !== 'string')
 
@@ -390,7 +400,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: under(linkChip(sharedByLink, p.id)),
                     cells: [
                       pilotFact(p) ?? '',
-                      paired(crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })),
+                      // The pilot carries its mech; with none, Add a mech builds one for it.
+                      paired(
+                        crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames }),
+                        canWrite ? newMechFor(p.id) : undefined
+                      ),
                       inGame(gameRelation(p, games)),
                       read(r, VITAL.hp),
                       read(r, VITAL.ap),
@@ -407,8 +421,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 tone="mech"
                 columns={MECH_COLUMNS}
                 action={newLink('/mechs/new', '+ New mech')}
-                empty="No mechs yet."
-                rows={mechs.map((m) => {
+                empty={
+                  mechs.length === 0 ? 'No mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
+                }
+                note={buildShelvesCopy('mechsNoPilotFlies')}
+                rows={spareMechs.map((m) => {
                   const r = mechReadings.get(m.id)
                   return {
                     id: m.id,
@@ -417,7 +434,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: under(linkChip(sharedByLink, m.id)),
                     cells: [
                       chassisFact(m.chassisRef) ?? '',
-                      paired(crewLinked({ kind: 'mech', id: m.id, softLinks, names: pilotNames })),
                       inGame(gameRelation(m, games)),
                       read(r, VITAL.sp),
                       read(r, VITAL.ep),

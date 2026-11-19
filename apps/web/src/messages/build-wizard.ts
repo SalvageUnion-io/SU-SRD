@@ -57,8 +57,11 @@ export const buildWizardCopy = messages({
   anEmptySheetNoSteps2: 'An empty sheet. No steps, no limits. Fill it in on the live sheet.',
   forVeteransImportsAndHomebrew: 'For veterans, imports, and homebrew.',
   startBlank: 'Start blank',
-  instantiateFromPattern: 'Instantiate from Pattern',
-  orBuildFromASavedPattern: 'Or start from a pattern you saved:',
+  fromAPattern: 'From a pattern',
+  aPatternIsYourPlan:
+    'A pattern is your plan: a Chassis and its loadout. Build With This makes a Mech of it, fresh.',
+  forPilot: 'For {name}: the Mech is assigned to them once it is made.',
+  mechNotGivenTo: 'The Mech could not be given to {name}.',
   qty: 'Qty',
   noEquipment: 'No Equipment',
   noTechLevel1Equipment: 'No tech level 1 equipment found.',

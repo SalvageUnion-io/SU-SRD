@@ -47,6 +47,8 @@ type NewEntityScreenProps = {
   returnTo?: string
   /** The Game a Blank create lands in (`?game=<id>`, ADR-052 §3); unset, the store decides. */
   gameId?: string | undefined
+  /** A mech built for a pilot: that pilot's name, on the chooser. */
+  forPilot?: string | undefined
 }
 
 export function NewEntityScreen({
@@ -57,6 +59,7 @@ export function NewEntityScreen({
   onCreated,
   returnTo,
   gameId,
+  forPilot,
 }: NewEntityScreenProps) {
   const connection = useSync()
   if (showsSignedOutView(connection.status)) return <SignInGate kind={kind} returnTo={returnTo} />
@@ -76,7 +79,9 @@ export function NewEntityScreen({
                 kind={kind}
                 onGuided={() => onModeChange('guided')}
                 onBlank={() => onModeChange('blank')}
+                onBuilt={onCreated}
                 gameId={gameId}
+                forPilot={forPilot}
               />
               <BlankCreateDialog
                 kind={kind}

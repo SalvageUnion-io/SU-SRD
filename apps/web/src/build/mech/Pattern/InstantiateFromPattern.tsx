@@ -18,6 +18,7 @@
  * C8); a failure is the act's toast, never a line under the Compact.
  */
 
+import { moveTo } from 'game-domain/container'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
 import { Button, ConfirmDialog } from '../../../components/index'
@@ -30,12 +31,22 @@ type InstantiateFromPatternProps = {
   pattern: MechPattern
   /** Called with the new mech id after entityStore.create resolves. */
   onSuccess: (mechId: string) => void
+  /** The Game the mech is built into (a wizard started for one); unset, the store decides. */
+  gameId?: string | undefined
 }
 
-export function InstantiateFromPattern({ pattern, onSuccess }: InstantiateFromPatternProps) {
+export function InstantiateFromPattern({
+  pattern,
+  onSuccess,
+  gameId,
+}: InstantiateFromPatternProps) {
   const [confirming, setConfirming] = useState(false)
   const build = useServerAction(
-    () => useUnits.getState().create('mech', mechFromPattern(pattern)),
+    () =>
+      useUnits.getState().create('mech', {
+        ...mechFromPattern(pattern),
+        ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
+      }),
     {
       failure: 'The mech could not be built from this pattern. Try again.',
       toastId: `build-from-pattern-${pattern.id}`,
