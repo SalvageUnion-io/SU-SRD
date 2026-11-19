@@ -62,7 +62,7 @@ function trailingOf(row: ShelfLedgerRow): ReactNode {
         <Button
           href={row.play}
           variant="primary"
-          size="compact"
+          size="mini"
           aria-label={buildShelvesCopy('playName', { name: row.name })}
         >
           {buildShelvesCopy('play')}
