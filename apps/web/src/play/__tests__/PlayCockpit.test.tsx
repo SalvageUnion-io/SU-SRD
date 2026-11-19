@@ -80,14 +80,16 @@ async function renderCockpit(
 }
 
 describe('the Cockpit frame', () => {
-  test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to Play', async () => {
+  test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to its sheet', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
-    expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
+    expect(bar.getByRole('link', { name: 'Back to Sheet' }).getAttribute('href')).toMatch(
+      /^\/pilots\/[^/]+$/
+    )
     // Nothing bound: no channel button; the way to bind one is the ⋯'s row.
     expect(bar.queryByRole('button', { name: /Discord channel/ })).toBeNull()
     fireEvent.click(bar.getByRole('button', { name: 'More' }))
@@ -131,10 +133,12 @@ describe('the Cockpit frame', () => {
     expect(within(screen.getByRole('banner')).getByText(/● Online/)).toBeTruthy()
   })
 
-  test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
+  test('in a Game, “‹ Sheet” goes back to the pilot’s page and ⋯ › Game page opens the Game’s (ADR-065)', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe('/games/g1')
+    expect(bar.getByRole('link', { name: 'Back to Sheet' }).getAttribute('href')).toMatch(
+      /^\/pilots\/[^/]+$/
+    )
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.hasAttribute('disabled')).toBe(false)
     await act(async () => {
@@ -240,7 +244,7 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       expect(bar.getByText('Tenacity')).toBeTruthy()
       expect(bar.getByText(/On foot/)).toBeTruthy()
       expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
-      expect(bar.getByRole('link', { name: 'Back to Game' }).textContent).toBe('Back to Game')
+      expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
       // No Situation switch on a phone: On foot, Board and Downtime are ⋯ rows.
       expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()
       await act(async () => {

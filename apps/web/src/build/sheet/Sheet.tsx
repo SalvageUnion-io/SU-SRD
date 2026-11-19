@@ -366,27 +366,20 @@ export function Sheet({
       },
     ],
   ]
-  // The sheet's door into Play (ruleset §1.9: rust is the door into play): a
-  // pilot's own Play screen, in its Game or solo, the address the Play hub
-  // opens; a mech's goes through the pilot assigned to it, when this session
-  // holds that pilot. Signed out there is no Play.
+  // The sheet's Play mode (ADR-065): a pilot's own Play, in its Game or solo;
+  // a mech's goes through the pilot assigned to it, when this session holds
+  // that pilot (Play runs a pilot, the mech optional). Signed out there is no
+  // Play.
   const playPilot =
     resolved.kind === 'pilot'
       ? resolved.entity
       : resolved.kind === 'mech' && composition.pilot && holds('pilot', composition.pilot.id)
         ? composition.pilot
         : null
-  const playDoor =
-    playPilot && status !== 'signedOut' ? (
-      <Button
-        href={cockpitPath(playPilot.id)}
-        variant="primary"
-        aria-label={buildSheetCopy('playAs', { name: playPilot.name })}
-        className="su-page-action"
-      >
-        {buildSheetCopy('play')}
-      </Button>
-    ) : null
+  const play =
+    playPilot && status !== 'signedOut'
+      ? { name: playPilot.name, onPlay: () => go(cockpitPath(playPilot.id)) }
+      : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
@@ -400,7 +393,6 @@ export function Sheet({
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div style={ACTIONS}>
-      {playDoor}
       {!writesBlocked && (
         <Button
           aria-label={buildSheetCopy('shareThis', { kind })}
@@ -456,13 +448,19 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
-  // The band: the type stamps' provenance, and Read | Edit only where the
-  // viewer may write. A read-only sheet (`readOnlyProp`: the Starter Set's, a
-  // crewmate's, a public one) has nothing to switch to, so it prints no toggle
-  // at all — a disabled Edit was a control that could only say no.
+  // The band: the type stamps' provenance, and Read | Edit | Play. Read | Edit
+  // only where the viewer may write: a read-only sheet (`readOnlyProp`: the
+  // Starter Set's, a crewmate's, a public one) has nothing to switch to — a
+  // disabled Edit was a control that could only say no. Play wherever there is
+  // a pilot of yours to play.
+  const editable = sheetMode !== null && !readOnlyProp && !writesBlocked
   const modeToggle =
-    sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind={kind} />
+    editable || (play && !readOnlyProp) ? (
+      <SheetModeToggle
+        mode={editable ? sheetMode : null}
+        kind={kind}
+        play={readOnlyProp ? undefined : play}
+      />
     ) : null
   const band: SheetBand = {
     actions:

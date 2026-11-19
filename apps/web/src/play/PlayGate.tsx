@@ -23,14 +23,15 @@
  * Disconnected is not a refusal: when the Game's answer has not arrived and
  * cannot until the connection is back, it opens on the local pilot, read-only.
  *
- * A mech-keyed URL (`/play/<mech id>`, where the Worker 301s `/dashboard/<mech id>`)
+ * A mech-keyed URL (`/pilots/<mech id>/play`, where the Worker 301s `/dashboard/<mech id>`)
  * resolves through the mech's `mech-to-pilot` link and is replaced with the
  * pilot's URL.
  */
 
 import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
-import { cockpitPath } from 'game-domain/entityKinds'
+import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
+import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { playCopy } from '../messages/play'
@@ -40,7 +41,8 @@ import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-const TO_PLAY = { href: '/games/', label: playCopy('play') }
+/** Back to the Training Bay, where every pilot of yours is (ADR-065). */
+const TO_TRAINING_BAY = { href: '/', label: PRODUCT.build }
 
 export function PlayGate({ id }: { id: string }) {
   const { status } = useSync()
@@ -95,7 +97,10 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
             ? playCopy('itMayHaveBeenDeleted')
             : playCopy('playRunsAPilotAssign', { name: mech.name })
         }
-        link={TO_PLAY}
+        // A mech with no pilot: back to its page, where Assigned units lives.
+        link={
+          mech === null ? TO_TRAINING_BAY : { href: sheetPath('mech', mech.id), label: mech.name }
+        }
       />
     )
   }
@@ -119,7 +124,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
       <PlayRefusal
         title={playCopy('youreNotInThisPilots')}
         body={playCopy('playOpensForMembersOf', { name: pilot.name })}
-        link={TO_PLAY}
+        link={TO_TRAINING_BAY}
       />
     )
   }
