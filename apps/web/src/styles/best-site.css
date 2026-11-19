@@ -1,0 +1,158 @@
+/*
+ * MOCK (density mock, "best" variant): the site outside the sheets, in the
+ * same grammar. Loaded by both the Reference (`global.css`) and the app
+ * (`app.css`), after `build/dash.css`, whose strip head it shares.
+ *
+ *   1. The area rail: what the open area holds, one row under the Union bar.
+ *   2. The Ledger, unframed: its head strip stays in its kind's colour (the
+ *      colour map), the frame and the foot band go, the rows band deeper, and
+ *      its "+ New…" leaves the cut-out for the strip.
+ *   3. An entity page's stats as a masthead: a small label over a big
+ *      numeral, on one paper board, as a sheet's own vitals read.
+ *
+ * `!important` appears where a style object sets the value this mock must
+ * change; built for real those are the components' own.
+ */
+
+/* ── 1. The area rail ───────────────────────────────────────────────────── */
+
+.su-union-bar__rail {
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-union-bar[data-mode='reference'] .su-union-bar__rail[data-area='reference'],
+  .su-union-bar[data-mode='build'] .su-union-bar__rail[data-area='build'],
+  .su-union-bar[data-mode='play'] .su-union-bar__rail[data-area='play'] {
+    align-items: center;
+    border-top: var(--bw-hairline) solid var(--su-bar-fg-15);
+    display: flex;
+    gap: var(--space-4);
+    min-height: var(--size-compact);
+    padding-inline: var(--space-16);
+    position: relative;
+  }
+}
+
+.su-union-bar__rail-name {
+  color: var(--su-bar-fg-70);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-wide);
+  margin-inline: calc(var(--size-compact) + var(--space-12)) var(--space-12);
+  text-transform: uppercase;
+}
+
+.su-union-bar__rail-link {
+  border-bottom: var(--bw-pill) solid transparent;
+  color: var(--su-bar-fg);
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: calc(var(--size-compact) - var(--bw-pill));
+  padding-inline: var(--space-12);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.su-union-bar__rail-link:hover {
+  border-bottom-color: var(--su-bar-fg);
+}
+
+/* ── 2. The Ledger, unframed ────────────────────────────────────────────── */
+
+.su-box.su-ledger {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  border-width: 0 0 var(--bw-pill) !important;
+  border-bottom-color: var(--color-ink) !important;
+  border-style: solid !important;
+  padding: 0 !important;
+}
+
+.su-ledger__table tbody tr[data-band] {
+  background-color: color-mix(in srgb, var(--color-band-cream) 86%, var(--color-ink));
+}
+
+@media (width >= 40rem) {
+  .su-ledger__table tbody :is(th, td) {
+    padding-block: var(--space-8);
+  }
+}
+
+/* A button is never on a cut-out: the Ledger's "+ New…" rides the strip. */
+.su-ledger__head .su-ledger__action {
+  background-color: transparent;
+  padding: 0;
+}
+
+.su-ledger__head > th[data-kind='trailing']:has(.su-ledger__action) {
+  padding: var(--space-6) var(--space-8);
+  vertical-align: middle;
+}
+
+/* ── 3. An entity page's stats, as a masthead ───────────────────────────── */
+
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  gap: 0 !important;
+  padding: var(--space-4) var(--space-16);
+}
+
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
+  align-items: flex-start !important;
+  background: none !important;
+  border: 0 !important;
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20) !important;
+  flex-direction: column !important;
+  gap: var(--space-2) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  outline: 0 !important;
+  padding: var(--space-12) 0 !important;
+}
+
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label {
+  background: none !important;
+  color: var(--color-ink-75) !important;
+  font-size: var(--text-chip) !important;
+  justify-content: flex-start !important;
+  letter-spacing: var(--tracking-caps) !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--value {
+  background: none !important;
+  border: 0 !important;
+  color: var(--color-ink) !important;
+  font-size: var(--text-hero) !important;
+  justify-content: flex-start !important;
+  line-height: 1 !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  outline: 0 !important;
+  padding: 0 !important;
+}
+
+/* The frame goes: the head strip is the Ledger's only paint, a 2px ink rule
+   closes it, and the cite keeps its cut-out on the ground, bottom right. */
+.su-ledger > .su-entity-compact__frame {
+  background-color: transparent;
+  border-color: var(--color-ink);
+  border-width: 0 0 var(--bw-pill);
+}
+
+.su-ledger .su-box__body > :not(table) {
+  background: none !important;
+  background-image: none !important;
+}

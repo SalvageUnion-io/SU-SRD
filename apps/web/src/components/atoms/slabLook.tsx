@@ -12,9 +12,15 @@ import { createContext, useContext } from 'react'
  * A surface sets it once (`SlabLookProvider`), so every `Slab` and
  * `SlabSection` under it changes together and no call site picks a variant.
  */
-export type SlabLook = 'stamp' | 'rule'
+/**
+ * MOCK (best variant): `auto`, the default everywhere, is the ink strip with
+ * its cut-out title (`rule`) for a section head and the stamp for a Mini Slab
+ * inside a card, so the Reference, the front pages and the app read as one
+ * site. Play, approved as it is, pins `stamp`.
+ */
+export type SlabLook = 'stamp' | 'rule' | 'auto'
 
-const SlabLookContext = createContext<SlabLook>('stamp')
+const SlabLookContext = createContext<SlabLook>('auto')
 
 export const SlabLookProvider = SlabLookContext.Provider
 

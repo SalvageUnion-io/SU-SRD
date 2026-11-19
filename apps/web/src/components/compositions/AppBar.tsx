@@ -139,6 +139,43 @@ const SWITCH = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
+/**
+ * MOCK (best variant): what each area holds, for the rail. Built for real
+ * these come from `chapters.ts` (the Reference) and the app's routes.
+ */
+const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: string }[] }> = {
+  reference: {
+    name: 'The book',
+    links: [
+      { label: 'Pilots', href: '/#pilot-bay' },
+      { label: 'Mechs', href: '/#mech-workshop' },
+      { label: 'Union Crawler', href: '/#union-crawler' },
+      { label: 'Wasteland', href: '/#denizens' },
+      { label: 'Rules', href: '/#rules-reference' },
+      { label: 'Guides', href: '/guides/' },
+      { label: 'Roll Tables', href: '/roll-tables/' },
+    ],
+  },
+  build: {
+    name: 'Yours',
+    links: [
+      { label: 'Pilots', href: '/build/#pilots' },
+      { label: 'Mechs', href: '/build/#mechs' },
+      { label: 'Crawlers', href: '/build/#crawlers' },
+      { label: 'Patterns', href: '/build/#patterns' },
+      { label: 'Starter Set', href: '/build/starter' },
+    ],
+  },
+  play: {
+    name: 'At the table',
+    links: [
+      { label: 'Your Games', href: '/games/' },
+      { label: 'Join with a link', href: '/games/#join' },
+      { label: "Mediator's Kit", href: '/games/#kit' },
+    ],
+  },
+}
+
 export function AppBar({
   product,
   referenceHref,
@@ -253,6 +290,32 @@ export function AppBar({
           {/* Mobile: search trigger + hamburger, below `lg`. */}
           {mobile && <div className="su-union-bar__mobile">{mobile}</div>}
         </div>
+        {/* MOCK (best variant): the area's own contents, one row under the
+            bar from `lg`. Not ADR-066's second nav (which repeated the tabs):
+            it lists what is INSIDE the open area, as D&D Beyond's and
+            Demiplane's section menus do, so any listing is one press from
+            any page. A phone reads the same map in the drawer. */}
+        {(Object.keys(RAIL) as AppBarProduct[]).map((area) => (
+          // All three are served; the bar's `data-mode` shows its own
+          // (`best-site.css`), so the rail follows the app's route marking.
+          <nav
+            key={area}
+            className="su-union-bar__rail"
+            data-area={area}
+            aria-label={`In ${RAIL[area].name}`}
+          >
+            <span className="su-union-bar__rail-name">{RAIL[area].name}</span>
+            {RAIL[area].links.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                className={cn('su-union-bar__rail-link', FOCUS_RING)}
+              >
+                {link.label}
+              </a>
+            ))}
+          </nav>
+        ))}
       </header>
 
       {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="row" />}

@@ -215,7 +215,8 @@ export function Slab({
   countAt = 'end',
   size,
 }: SlabProps) {
-  const look = useSlabLook()
+  const surface = useSlabLook()
+  const look = surface === 'auto' ? (size === 'mini' ? 'stamp' : 'rule') : surface
   const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT

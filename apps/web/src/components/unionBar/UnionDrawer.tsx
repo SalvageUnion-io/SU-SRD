@@ -3,11 +3,12 @@ import { NAV_CATALOG } from '../../generated/navCatalog'
 import { SIGN_IN_HREF } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
+import { appPath } from '../../lib/appBase'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
 import { MARK_SRC } from '../../lib/documentHead'
 import { unionBarCopy } from '../../messages/components-union-bar'
 import { FOCUS_RING } from '../atoms/interaction'
-import type { NavDrawerItem } from '../index'
+import type { NavDrawerCategory, NavDrawerItem } from '../index'
 import { Button, NavDrawer } from '../index'
 
 /**
@@ -71,10 +72,38 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
     { label: unionBarCopy('buyTheGame'), href: BUY_HREF, external: true },
   ]
 
+  // MOCK (best variant): the drawer is the site's whole map, the three areas
+  // in the bar's order. Your own things lead (the Training Bay, then Games);
+  // the Reference follows as the book's chapters, as before.
+  const AREAS: NavDrawerCategory[] = [
+    {
+      id: 'area-training-bay',
+      title: 'Training Bay',
+      tone: 'pilot',
+      rows: [
+        { label: 'Pilots', href: appPath('/#pilots') },
+        { label: 'Mechs', href: appPath('/#mechs') },
+        { label: 'Crawlers', href: appPath('/#crawlers') },
+        { label: 'Patterns', href: appPath('/#patterns') },
+        { label: 'Starter Set', href: appPath('/starter') },
+      ],
+    },
+    {
+      id: 'area-games',
+      title: 'Games',
+      tone: 'crawler',
+      rows: [
+        { label: 'Your Games', href: appPath('/games/') },
+        { label: 'Join with a link', href: appPath('/games/#join') },
+        { label: "Mediator's Kit", href: appPath('/games/#kit') },
+      ],
+    },
+  ]
+
   return (
     <NavDrawer
       brand={BRAND}
-      categories={[...NAV_CATALOG]}
+      categories={[...AREAS, ...NAV_CATALOG]}
       search={search}
       navItems={navItems}
       extra={extra}
