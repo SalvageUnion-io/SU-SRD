@@ -38,6 +38,7 @@ import {
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useSync } from '../../replica/syncContext'
+import { RailActs } from '../sheet/RailActs'
 import { CopyCrew } from './CopyCrew'
 import { StarterCrewLedger } from './StarterCrewLedger'
 import { useCopyCrewOnArrival } from './useCopyCrewOnArrival'
@@ -116,8 +117,12 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         <ChapterBand
           tone="build"
           measure={PAGE_MEASURE}
-          aside={<CopyCrew confirm={confirm} />}
-          asideAt="controls"
+          // MOCK (best, revision 6): the page's act rides the area rail.
+          corner={
+            <RailActs>
+              <CopyCrew confirm={confirm} />
+            </RailActs>
+          }
         >
           {buildStarterSetCopy('starterSet2')}
         </ChapterBand>

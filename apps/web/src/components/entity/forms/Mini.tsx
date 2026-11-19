@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useLayoutEffect, useRef } from 'react'
+import { useContext, useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
@@ -26,6 +26,7 @@ import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { RowDress, rowPaint } from '../rowDress'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 /** The pill sets its name and chips in the caps recipe. */
@@ -194,9 +195,12 @@ export function Mini({
   const target = useLinkTarget(headMode, model.ref)
   const down = downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
-  const paint = slots.tint
+  // MOCK (best, revision 6): under a titled strip a Mini is a row.
+  const row = useContext(RowDress)
+  const tonePaint = slots.tint
     ? paintFor(slots.tint, { down: down === 'destroyed' ? down : true, texture: false })
     : paintFor(model.tone, { down, texture: false })
+  const paint = row ? rowPaint(tonePaint) : tonePaint
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const chips = tokenChips(model, context, {
@@ -244,6 +248,7 @@ export function Mini({
       // The pill is the frame: on an ink pill (a thing you do) its cells,
       // stamp and cost box read the ground in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
+      data-row={row ? '' : undefined}
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       className={PILL}

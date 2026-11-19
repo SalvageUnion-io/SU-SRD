@@ -44,6 +44,7 @@ import {
 import { widthAtLeast } from '../../design/tokens'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
+import { RailActs } from './RailActs'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -453,10 +454,11 @@ export function LiveSheet({
         asideAt="notch"
         corner={
           band?.actions || actions ? (
-            <>
+            // MOCK (best, revision 6): the acts ride the area rail.
+            <RailActs>
               {band?.actions}
               {actions}
-            </>
+            </RailActs>
           ) : undefined
         }
         aside={

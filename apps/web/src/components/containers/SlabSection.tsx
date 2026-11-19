@@ -31,13 +31,14 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Children } from 'react'
+import { Children, useContext } from 'react'
 import { color, duration, ease, iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Button } from '../atoms/Button'
 import type { SlabCount } from '../atoms/Slab'
 import { Slab } from '../atoms/Slab'
+import { RowDress } from '../entity/rowDress'
 
 type SlabSectionProps = {
   /** The section's name: the Slab's solid stamp. */
@@ -60,6 +61,8 @@ type SlabSectionProps = {
   foldLabel?: string
   /** On a Page: head and body are level-1 blocks, 12px apart (R17). */
   page?: boolean
+  /** MOCK (best, revision 6): what this section heads are rows (`RowDress`), as on a Page. */
+  rows?: boolean
   /** `mini`: inside a contentful Mini, its head and fold at the Mini Size (18px), 6px over the body. */
   size?: 'mini'
   /** The section's name when it has no `id` to be labelled by. */
@@ -102,6 +105,7 @@ export function SlabSection({
   fold,
   foldLabel,
   page = false,
+  rows = false,
   size,
   'aria-label': ariaLabel,
   className,
@@ -110,6 +114,7 @@ export function SlabSection({
   bodyStyle,
   children,
 }: SlabSectionProps) {
+  const inherited = useContext(RowDress)
   const disclosure = useDisclosure(fold !== 'closed')
   const open = fold === undefined || disclosure.open
   const name = foldLabel ?? (typeof title === 'string' ? title : '')
@@ -173,8 +178,11 @@ export function SlabSection({
           hidden={!open}
           className={cn('su-slab-section__body', bodyClassName)}
           style={bodyStyle}
+          // MOCK (best, revision 6): on a Page what a strip heads are rows,
+          // never a second cut-out (`RowDress`).
+          data-rows={page || rows ? '' : undefined}
         >
-          {children}
+          <RowDress.Provider value={page || rows || inherited}>{children}</RowDress.Provider>
         </div>
       )}
     </section>

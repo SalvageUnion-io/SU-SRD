@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { RailActs } from '../build/sheet/RailActs'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
 import { iconSize } from '../design/tokens'
@@ -106,7 +107,8 @@ export function EntityPageFrame({
         }
         asideAt="notch"
         action={
-          <>
+          // MOCK (best, revision 6): the page's acts ride the area rail.
+          <RailActs>
             <SharePageButton />
             {buy && (
               // The store is off the site: a new tab, in ink, never the
@@ -138,7 +140,7 @@ export function EntityPageFrame({
                 {build.label}
               </Button>
             )}
-          </>
+          </RailActs>
         }
         lead={
           // An ability's level, left of its title as its Compact sets it: just the number.

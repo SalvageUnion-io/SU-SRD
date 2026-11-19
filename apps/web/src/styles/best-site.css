@@ -714,3 +714,355 @@
   overflow: hidden;
   row-gap: var(--space-8);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): A PAGE'S ACTS RIDE THE RAIL.
+ * Read | Edit | Play, Share and ⋯ sit right-aligned on the rail's line, in
+ * the rail links' own type; the current mode wears the links' underline.
+ * Under 64rem there is no rail: the acts are a strip of the same colour and
+ * style directly under the header, over the band.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.su-union-bar__rail-acts {
+  align-items: center;
+  display: flex;
+  margin-inline-start: auto;
+}
+
+.su-rail-acts {
+  --su-acts-fg: var(--su-bar-fg, var(--su-on-kind, var(--color-ink)));
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: flex-end;
+}
+
+.su-rail-acts .su-seg {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  gap: 0;
+  margin: 0;
+  min-inline-size: 0;
+  outline: 0;
+  padding: 0;
+}
+
+.su-rail-acts :is(.su-seg__option, .su-btn),
+.su-rail-acts .su-seg__option + .su-seg__option {
+  align-items: center;
+  background: none !important;
+  border: 0;
+  border-bottom: var(--bw-pill) solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--su-acts-fg) !important;
+  display: inline-flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  height: var(--size-full);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  min-height: 0;
+  min-width: 0;
+  outline-offset: calc(-1 * var(--space-2));
+  padding: var(--bw-pill) var(--space-12) 0;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.su-rail-acts :is(.su-seg__option, .su-btn):hover,
+.su-rail-acts .su-seg__option[aria-pressed='true'],
+.su-rail-acts .su-btn[aria-expanded='true'] {
+  border-bottom-color: var(--su-acts-fg);
+}
+
+/* The rail's line: the acts end on the page's right edge. */
+.su-union-bar__rail-acts .su-rail-acts {
+  margin-inline-end: calc(-1 * var(--space-12));
+}
+
+/* No rail (under 64rem): the acts are the band's first row, a strip in the
+   rail's colour, so the same text passes AA on every kind. */
+.su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
+  --su-bar-fg: var(--su-on-kind, var(--color-ink));
+  background-color: var(--su-kind, transparent);
+  padding-block: 0;
+}
+
+/* With its acts on the rail the band's corner is empty: the band is the
+   title and its chips. */
+.su-chapter-band .su-chapter-band__corner:empty {
+  display: none;
+}
+
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: var(--space-32);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): NEVER STACK CUT-OUTS (L-6).
+ * Below the page's title, one cut-out a block: the strip's. What a strip
+ * heads are rows (`RowDress`): no band, no cut-out, no frame; the name in
+ * ink, its chips beside it, its text under it, zebra between.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-mini > *,
+[data-rows] .su-entity-compact__frame,
+[data-rows] .su-entity-mini__pill[data-row] {
+  border-color: transparent !important;
+  border-width: 0 !important;
+  box-shadow: none;
+}
+
+[data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
+[data-rows]
+  .su-entity-compact__head[data-row]
+  :is(.su-entity-compact__name, .su-entity-compact__title) {
+  background: none !important;
+  color: var(--color-ink);
+}
+
+[data-rows] .su-entity-compact__head[data-row] {
+  background-image: none !important;
+}
+
+/* A list of rows: one column, no gaps, zebra in the page's colour. */
+[data-rows] .su-entity-mini-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-compact__frame {
+  background-color: var(--color-paper);
+}
+
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-mini,
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-compact > .su-entity-compact__frame,
+[data-rows]
+  :is(li, .su-grid > *):nth-child(even):is(.su-entity-compact)
+  > .su-entity-compact__frame {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* A roll table under a strip or in an opened row names itself in plain
+   text on its strip: the cut-out above it is the block's one. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the roll table's own title */
+:is([data-rows], .su-open__detail) .su-roll__title {
+  align-self: center;
+  background: none;
+  color: var(--su-on-kind, var(--color-paper));
+  margin-bottom: 0;
+  padding-inline: 0 var(--space-8);
+}
+
+/* A strip's own controls (Show Homebrew, + New Game, Copy the crew to …)
+   are compact buttons at the strip's end, on its line: never a full-width
+   bar under it (revision 6, 16:47Z). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's wrapped actions */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
+  align-self: center;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding: var(--space-2) 0;
+}
+
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions > .su-btn:not(.su-btn--icon-only) {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+/* Rows sit on their strip, as a table's do; a row's text is on the row. */
+.su-slab-section:has(> [data-rows]) {
+  gap: 0 !important;
+}
+
+[data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
+  background-color: transparent !important;
+}
+
+/* The home page's three doors are cards with their own names: no strip
+   stands over them (it would stack two cut-outs). The heading is still
+   read. */
+.su-rule-head:has(> #three-ways-in) {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px; /* design-tokens-ignore(raw-spacing): the visually-hidden pattern, not spacing */
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+/* ── MOCK (best, revision 6, 16:48Z): the home page's polish ────────────── */
+
+/* Buy the game: its words and its two buttons on one line across the panel,
+   then the books as ONE shelf row under them (no orphaned second row, no
+   empty column beside the covers). */
+@media (width >= 64rem) {
+  .su-front__buy-body {
+    display: grid;
+    gap: var(--space-16);
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-16);
+  }
+
+  .su-front__buy-copy {
+    align-items: start;
+    column-gap: var(--space-32);
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) minmax(0, 1fr);
+  }
+
+  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, unrelated table rule */
+  .su-front__buy-copy > * {
+    grid-column: 1;
+  }
+
+  .su-front__buy-copy > .su-front__buy-actions {
+    align-self: start;
+    flex-direction: column;
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    justify-self: end;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .su-front__buy-copy > .su-front__buy-actions > * {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .su-front__shelf {
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+  }
+}
+
+.su-front__cover-type {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* A guide's phase (Post-Session) stands over steps that each wear their own
+   cut-out: the phase is a plain ruled label, never a second cut-out over
+   them (L-6). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase strip */
+.su-guide--page .su-guide__section > .su-slab-section__head {
+  background: none !important;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  min-height: 0;
+  padding-block: var(--space-4);
+}
+
+.su-guide--page .su-guide__section > .su-slab-section__head::before {
+  content: none;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase label's plate */
+.su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  flex: 0 0 auto;
+  padding-inline: 0;
+}
+
+/* The Training tiers as rows: one line each, name then what opens it. */
+.su-class-brief__cards[data-rows] {
+  background-color: var(--color-paper);
+  align-items: stretch;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0;
+}
+
+.su-class-brief:has(> [data-rows]) {
+  gap: 0;
+}
+
+.su-class-brief__cards[data-rows] .su-box__body {
+  flex: 0 0 auto;
+  padding-block: 0 var(--space-8);
+}
+
+/* The Training tiers as rows: each the strip's full width. */
+.su-class-brief__cards[data-rows] > .su-class-brief__card {
+  align-self: stretch;
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+.su-class-brief__cards[data-rows] > .su-class-brief__card:nth-child(even) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* A head that stands over blocks with their own cut-outs (the Mediator's
+   Kit over its NPC and Encounter tables) is a plain ruled label too (L-6).
+   So is a section's head in a Peek: the Peek's own title cut-out stands
+   right above it. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip */
+[role='dialog'] .su-rule-head.su-slab-section__head,
+.su-rule-head.su-rule-head--over {
+  background: none !important;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  min-height: 0;
+  padding-block: var(--space-4);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
+[role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  padding-inline: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
+.su-rule-head.su-rule-head--over > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  padding-inline: 0;
+}
+
+/* A strip's buttons fit inside the strip: none hangs under its edge. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the compact button's height */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions .su-btn {
+  font-size: var(--text-chip);
+  height: 1.5rem; /* design-tokens-ignore(raw-size): inside the 2rem strip */
+  min-height: 0;
+  padding-block: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
+.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) {
+  align-items: center;
+  padding-block: var(--space-4);
+  /* Where the buttons do not fit beside the title (a narrow side column, a
+     phone) they wrap to their own line under the strip, clear of it, still
+     compact and at the line's end. */
+  row-gap: var(--space-12);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
+.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) > .su-rule-head__label {
+  align-self: flex-end;
+  margin-bottom: calc(-1 * var(--space-4));
+}
+
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
+  padding-block: 0;
+}

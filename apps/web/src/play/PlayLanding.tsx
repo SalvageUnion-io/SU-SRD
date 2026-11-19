@@ -311,7 +311,8 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             it is for. */}
         {connected && (
           <section id="mediators-kit" className="su-mediator-kit-section">
-            <header className="su-rule-head">
+            {/* MOCK (best, revision 6): a plain ruled label, its tables each wear their own cut-out. */}
+            <header className="su-rule-head su-rule-head--over">
               <h2 className="su-rule-head__label">Mediator’s Kit</h2>
             </header>
             <MockShelvesPart.Provider value="kit">

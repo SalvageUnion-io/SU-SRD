@@ -97,6 +97,7 @@ import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
+import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { EncounterShelf } from './EncounterShelf'
 import type { MoveSubject } from './MoveToGameDialog'
@@ -425,7 +426,12 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               {importResult}
             </p>
           }
-          corner={<BackupMenu canImport={canWrite} onResult={setImportResult} />}
+          corner={
+            // MOCK (best, revision 6): the acts ride the area rail.
+            <RailActs>
+              <BackupMenu canImport={canWrite} onResult={setImportResult} />
+            </RailActs>
+          }
         >
           {PRODUCT.build}
         </ChapterBand>

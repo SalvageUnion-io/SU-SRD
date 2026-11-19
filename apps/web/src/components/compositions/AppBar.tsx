@@ -314,6 +314,9 @@ export function AppBar({
                 {link.label}
               </a>
             ))}
+            {/* MOCK (best, revision 6): the open page's acts land here
+                (`RailActs`), right-aligned on the links' line. */}
+            <span className="su-union-bar__rail-acts" data-rail-acts="" />
           </nav>
         ))}
       </header>

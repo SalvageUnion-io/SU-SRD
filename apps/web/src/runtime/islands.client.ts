@@ -38,6 +38,34 @@ watchStaticTokenOverflow()
 // A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.
 watchStaticChipFill()
 
+/**
+ * MOCK (best, revision 6): a static Reference page's acts (Share, Build With
+ * This) ride the area rail, as a sheet's do through `RailActs`' portal. The
+ * page is served without React, so the served acts are moved into the shown
+ * rail's slot at rail widths and back to the band under them. The real
+ * change gives the bar an `acts` slot both shells fill.
+ */
+function placeStaticRailActs(): void {
+  const acts = document.querySelector<HTMLElement>(
+    '.su-chapter-band__action > .su-rail-acts, [data-rail-acts] > .su-rail-acts[data-static]'
+  )
+  const home = document.querySelector<HTMLElement>('.su-chapter-band__action')
+  if (!acts || !home) return
+  const media = window.matchMedia('(width >= 64rem)')
+  const place = () => {
+    let slot: HTMLElement | null = null
+    for (const each of document.querySelectorAll<HTMLElement>('[data-rail-acts]')) {
+      if (each.offsetParent !== null) slot = each
+    }
+    acts.dataset.static = ''
+    const target = media.matches && slot ? slot : home
+    if (acts.parentElement !== target) target.append(acts)
+  }
+  place()
+  media.addEventListener('change', place)
+}
+if (document.querySelector('[data-share-page]')) placeStaticRailActs()
+
 /** Set once a search field has mounted; its own listener then answers Cmd+K. */
 let searchMounted = false
 document.addEventListener(ISLAND_COMMIT, (event) => {
