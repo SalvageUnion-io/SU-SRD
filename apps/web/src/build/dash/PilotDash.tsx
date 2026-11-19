@@ -16,7 +16,7 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, SlotGrid, Stat } from '../../components/index'
+import { Conditions, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { classArt } from '../../lib/photos/defaultArt'
 import { buildCompanionActions, buildPilotActions } from '../../lib/rules/actionList'
@@ -327,17 +327,7 @@ export function PilotDash({
                   columns={GEAR_COLUMNS}
                   groups={[{ key: 'gear', rows: gear }]}
                 />
-                <div className="su-dash-slots">
-                  <SlotGrid
-                    used={model.slotsUsed}
-                    cap={model.slotsCap}
-                    label={buildSheetCopy(
-                      model.overCapacity ? 'inventoryOverCapacity' : 'inventorySlotsFilled',
-                      { used: model.slotsUsed, cap: model.slotsCap }
-                    )}
-                    readOnly
-                  />
-                </div>
+                {/* MOCK (best, revision 4): the slot cells are gone; the head's count says it. */}
               </div>
             )}
             <DashGroup title={buildSheetCopy('about')}>

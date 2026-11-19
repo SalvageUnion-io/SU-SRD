@@ -300,3 +300,297 @@
   font-size: var(--text-chip);
   font-variant-numeric: tabular-nums;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 4): THE LAYOUT SYSTEM.
+ *
+ *   L-1  One measure. Every page (front, listing, entity, sheet, guide,
+ *        wizard) sets its content on `--page-measure`, centred; the header's
+ *        brand and the area rail start on the same left edge.
+ *   L-2  One header. The site bar is ink on every page and never takes a
+ *        page's colour; under it the area rail is paper. Colour starts at
+ *        the page's title band and belongs to the entity.
+ *   L-3  One page order: title band → masthead (if the page has numbers) →
+ *        tab row (if it has views) → body → sources. The foot is ink.
+ *   L-4  Tables have no borders: a head strip in the entity's colour, zebra
+ *        rows, nothing else. An opened row keeps its ink edge (a state
+ *        mark, not a frame).
+ * ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --page-measure: 80rem;
+  --su-shell-edge: max(var(--space-16), calc((100vw - var(--page-measure)) / 2));
+}
+
+/* L-1: a sheet's gutters grow to the measure, so its band still bleeds. */
+@media (width >= 80rem) {
+  .su-page-gutters {
+    --su-page-gutter-inline: max(var(--space-48), var(--su-shell-edge));
+  }
+}
+
+/* L-2: the header. */
+.su-union-bar,
+.su-union-bar[data-mode] {
+  --su-bar-bg: var(--color-ink-deep) !important;
+  --su-bar-fg: var(--color-paper) !important;
+  --su-bar-on-fg: var(--color-ink) !important;
+  --su-bar-fg-85: var(--color-paper-85) !important;
+  --su-bar-fg-70: var(--color-paper-70) !important;
+  --su-bar-fg-60: var(--color-paper-60) !important;
+  --su-bar-fg-30: var(--color-paper-30) !important;
+  --su-bar-fg-15: var(--color-paper-15) !important;
+  --su-bar-grain-paper: contents !important;
+  --su-bar-grain-ink: none !important;
+}
+
+@media (width >= 64rem) {
+  .su-union-bar .su-union-bar__row {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
+    --su-bar-fg: var(--color-ink) !important;
+    --su-bar-fg-70: var(--color-ink-75) !important;
+    background-color: var(--color-paper);
+    border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+    border-top: 0;
+    min-height: var(--size-full);
+    padding-inline: var(--su-shell-edge);
+  }
+
+  .su-union-bar .su-union-bar__rail-name {
+    margin-inline: 0 var(--space-12);
+  }
+
+  .su-union-bar .su-union-bar__rail-link {
+    line-height: calc(var(--size-full) - var(--bw-pill));
+  }
+}
+
+/* L-3: the foot is the header's ink. */
+.su-chapter-foot {
+  --su-foot-bg: var(--color-ink-deep) !important;
+  --su-foot-fg: var(--color-paper) !important;
+  --su-foot-mark: invert(1) !important;
+  --su-foot-grain-paper: contents !important;
+  --su-foot-grain-ink: none !important;
+}
+
+/* L-3: the tab row, on the masthead's foot. Tabs, not a boxed switch: the
+   current view carries an ink bar on the row's rule. */
+.su-dash-top:has(> .su-mast__tabs) > .su-mast {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-mast__tabs {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+.su-mast__tabs .su-seg {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  min-inline-size: 0;
+  outline: 0;
+  padding: 0;
+  border-radius: 0;
+  display: flex;
+  gap: var(--space-24);
+}
+
+.su-mast__tabs .su-seg__option,
+.su-mast__tabs .su-seg__option + .su-seg__option {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-ink-75);
+  flex: none;
+  font-size: var(--text-readout);
+  min-height: var(--size-full);
+  padding-inline: var(--space-2);
+}
+
+.su-mast__tabs .su-seg__option:hover {
+  background: none;
+  color: var(--color-ink);
+}
+
+.su-mast__tabs .su-seg__option[aria-pressed='true'],
+.su-mast__tabs .su-seg__option[aria-pressed='true']:hover {
+  background: none;
+  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* L-4: no borders on a table. */
+.su-open,
+.su-open.su-open--sub,
+.su-open__detail .su-roll,
+.su-box.su-ledger,
+.su-ledger > .su-entity-compact__frame,
+.su-roll[data-frame='box'],
+.su-scrap {
+  border-bottom: 0 !important;
+  border-top: 0 !important;
+}
+
+.su-open .su-open__row > :is(th, td),
+.su-ledger__table tbody tr + tr > *,
+.su-roll .su-roll__row,
+.su-roll .su-roll__rows + .su-roll__rows > .su-roll__row:first-child,
+.su-scrap .su-scrap__cell + .su-scrap__cell {
+  border: 0;
+}
+
+/* A sub-table (a tree, what is stored) heads itself with a lighter band of
+   the same colour instead of an ink rule. */
+.su-open.su-open--sub thead th {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
+  border-bottom: 0;
+  padding-block: var(--space-4);
+}
+
+.su-open.su-open--sub thead th:first-child {
+  padding-inline-start: var(--space-8);
+}
+
+/* Revision 4, note 1: an ability's level is a small mark, not a column. */
+.su-trees .su-open-level {
+  font-size: var(--text-badge);
+  height: 1.125rem;
+  min-width: 1.125rem;
+  width: 1.125rem;
+}
+
+.su-trees .su-open__toggle {
+  margin-inline: calc(-1 * var(--space-6)) 0;
+  width: var(--space-16);
+}
+
+.su-trees .su-open tbody > .su-open__row > th {
+  padding-inline-start: var(--space-8);
+}
+
+/* The line under a name starts under the level mark, not under the name:
+   the only column left of the text is the opener's. */
+.su-trees .su-open .su-open__row[data-opens] + .su-open__under > td {
+  padding-inline-start: var(--space-24);
+}
+
+.su-trees .su-open .su-open__detail-body {
+  padding-inline-start: var(--space-8);
+}
+
+/* A phone: the bays list keeps to the page (no sideways scroll, R44). */
+@media (width < 40rem) {
+  .su-open.su-open--manifest .su-open__row > td[data-kind='text'],
+  .su-open.su-open--manifest thead th[data-col][data-kind='text'] {
+    padding-inline: var(--space-4);
+  }
+
+  .su-open.su-open--manifest .su-open__row > td:last-child,
+  .su-open.su-open--manifest thead th:last-child {
+    padding-inline: var(--space-4) var(--space-8);
+  }
+}
+
+@media (width < 40rem) {
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
+    overflow-wrap: anywhere;
+    padding-inline: var(--space-4);
+    white-space: normal;
+  }
+
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):is(:nth-child(2), :nth-child(3)) {
+    padding-inline: var(--space-4);
+  }
+}
+
+/* Revision 4, note 2: the Actions view is a tool. */
+.su-actions-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.su-actions-tool__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+}
+
+/* The field has its own line; the filters share the next. */
+.su-actions-tool__search {
+  flex: 1 1 100%;
+  margin-inline-end: max(0px, calc(100% - 32rem));
+  max-width: 32rem;
+}
+
+.su-open--actions .su-open__clamp {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.su-open--actions :is(.su-open__under > td, .su-open__detail-body) {
+  max-width: 46rem;
+}
+
+/* L-1: at the measure, a sheet band's corner controls and the foot keep the
+   page's edges too. */
+@media (width >= 84rem) {
+  .su-chapter-band:not([data-measured]) .su-chapter-band__corner {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  /* A measured page (front, listing, entity page, guide) drops its inner
+     padding there, so its text starts under the brand like a sheet's. */
+  .su-page-body,
+  .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    padding-inline: 0;
+  }
+
+  /* A wizard too: its title, step rail and step keep the measure. */
+  .su-chapter-band:has(+ .su-wiz-body) .su-chapter-band__row {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  .su-wiz-body {
+    box-sizing: border-box;
+    padding-inline: calc(var(--su-shell-edge) - var(--space-16) - var(--space-4))
+      calc(var(--su-shell-edge) - var(--space-40));
+  }
+
+  .su-chapter-foot :is(.su-chapter-foot__row, .su-chapter-foot__cite) {
+    margin-inline: auto;
+    max-width: var(--page-measure) !important;
+    padding-inline: 0;
+  }
+}
+
+/* The Mediator's Kit's lists stand clear of their section's strip. */
+.su-mediator-kit-section .su-mediator-kit {
+  margin-top: var(--space-12);
+}
+
+/* Borderless lists stacked in a column need air between them (L-4). */
+.su-shelf-ledgers .su-shelf-ledgers__col {
+  gap: var(--space-16);
+}
+
+/* L-4 on a grid roll table (a d20 by d20 matrix): no cell rules; its
+   column heads are a lighter band of the same colour, like any sub-head. */
+.su-roll,
+.su-roll :is(.su-roll__edge, .su-roll__cell, .su-roll__stack-entry, .su-roll__stack-col) {
+  border: 0 !important;
+}
+
+.su-roll .su-roll__table thead :is(.su-roll__col, .su-roll__edge) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
+  color: var(--color-ink);
+}

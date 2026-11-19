@@ -17,7 +17,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, Content, Mention, SlotGrid, Stat } from '../../components/index'
+import { Conditions, Content, Mention, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -380,12 +380,7 @@ export function MechDash({
                 empty={buildSheetCopy('nothingInTheHold')}
               />
               <div className="su-dash-slots">
-                <SlotGrid
-                  used={used}
-                  cap={cap}
-                  readOnly
-                  label={buildSheetCopy('cargoSlotsUsed', { used, cap })}
-                />
+                {/* MOCK (best, revision 4): no slot cells; the head counts the slots. */}
                 {free > 0 && (
                   <span className="su-dash-quiet">{buildSheetCopy('free', { free })}</span>
                 )}

@@ -301,16 +301,18 @@ export function Strip({
               ))}
             </div>
           )}
-          {(figures || view) && (
+          {figures && (
             <div className="su-mast__rail">
-              {figures && <dl className="su-strip__figures">{figures}</dl>}
-              {view && <div className="su-mast__view">{view}</div>}
+              <dl className="su-strip__figures">{figures}</dl>
             </div>
           )}
           {foot && <div className="su-strip__foot">{foot}</div>}
         </div>
         {identity && <div className="su-mast__identity">{identity}</div>}
       </div>
+      {/* MOCK (best, revision 4): the view switch is the page's tab row, on
+          the masthead's foot, left-aligned over the body it switches. */}
+      {view && <div className="su-mast__tabs">{view}</div>}
     </div>
   )
 }

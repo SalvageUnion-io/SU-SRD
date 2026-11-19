@@ -11,7 +11,16 @@
  */
 
 import type { ComponentProps } from 'react'
-import { ActivationCost, Content, Stat, TraitProse } from '../../components/index'
+import { useState } from 'react'
+import {
+  ActivationCost,
+  Content,
+  SearchField,
+  Segmented,
+  SegmentedOption,
+  Stat,
+  TraitProse,
+} from '../../components/index'
 import type { PlayAction } from '../../lib/rules/actionList'
 import { actionRow } from '../../lib/rules/actionRow'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -20,17 +29,6 @@ import type { OpenColumn, OpenRow } from './OpenLedger'
 import { OpenLedger } from './OpenLedger'
 
 const GROUPED = { grouped: true } as const
-
-const COLUMNS: readonly OpenColumn[] = [
-  { key: 'range', label: buildSheetCopy('rng'), title: buildSheetCopy('range') },
-  { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage') },
-  {
-    key: 'cost',
-    label: buildSheetCopy('cost'),
-    title: buildSheetCopy('activationCost'),
-    phone: true,
-  },
-]
 
 /** "2 EP" as the book's pointy box. */
 export function Cost({ cost }: { cost: string | undefined }) {
@@ -113,24 +111,169 @@ function row(action: PlayAction): OpenRow {
  * long list (COMP/CON's and Foundry's action-economy grouping). A row's
  * effect is two lines until it is opened; opened, it prints whole.
  */
-export function ActionsLedger({ actions }: { actions: readonly PlayAction[] }) {
-  const groups = ACTION_TYPE_ORDER.map((type) => ({
-    type,
-    rows: actions.filter((action) => actionTypeOf(action.action) === type).map(row),
-  })).filter((group) => group.rows.length > 0)
-  if (groups.length === 0) return <p className="su-open__empty">{buildSheetCopy('noActionsYet')}</p>
+// MOCK (best, revision 4): the Actions view is a tool, not a set of columned
+// tables: one search box, three rows of filter chips (action type, where it
+// comes from, whether it costs), and ONE list whose rows keep the effect
+// readable (three lines closed, the whole text opened). The words belong in
+// the message catalogue.
+const SOURCE_LABEL: Record<PlayAction['kind'], string> = {
+  ability: 'Abilities',
+  equipment: 'Equipment',
+  system: 'Systems',
+  module: 'Modules',
+  chassis: 'Chassis',
+}
+
+type CostFilter = 'all' | 'free' | 'costs'
+
+const LIST_COLUMNS: readonly OpenColumn[] = [
+  { key: 'type', label: 'Type', kind: 'text', phone: true },
+  {
+    key: 'cost',
+    label: buildSheetCopy('cost'),
+    title: buildSheetCopy('activationCost'),
+    phone: true,
+  },
+]
+
+function Chips<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string
+  options: readonly { key: T; label: string; count?: number }[]
+  value: T
+  onChange: (next: T) => void
+}) {
   return (
-    <section className="su-actions-view" aria-label={buildSheetCopy('actions')}>
-      {groups.map((group) => (
-        <OpenLedger
-          key={group.type}
-          title={group.type}
-          // MOCK: "actions" belongs in the message catalogue.
-          note={`${group.rows.length} ${group.rows.length === 1 ? 'action' : 'actions'}`}
-          columns={COLUMNS}
-          groups={[{ key: group.type, rows: group.rows }]}
-        />
+    <Segmented label={label} size="compact" wrap className="su-actions-tool__chips">
+      {options.map((option) => (
+        <SegmentedOption
+          key={option.key}
+          pressed={value === option.key}
+          onClick={() => onChange(option.key)}
+        >
+          {option.label}
+          {option.count !== undefined && (
+            <span className="su-mast__view-count">{option.count}</span>
+          )}
+        </SegmentedOption>
       ))}
+    </Segmented>
+  )
+}
+
+function toolRow(action: PlayAction): OpenRow {
+  const base = row(action)
+  const { model } = actionRow(action, GROUPED)
+  const reach = model.facts
+    .filter((fact) => fact.key === 'range' || fact.key === 'damage')
+    .map((fact) => `${fact.short} ${fact.shortValue ?? fact.value}`)
+  const marks = [
+    ...reach,
+    ...model.facts
+      .filter((fact) => fact.key !== 'range' && fact.key !== 'damage')
+      .map((fact) => `${fact.short} ${fact.shortValue ?? fact.value}`),
+    ...model.traits.map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name)),
+    ...(action.name.includes(action.ownerName) ? [] : [action.ownerName]),
+  ]
+  const type = actionTypeOf(action.action)
+  return {
+    ...base,
+    meta: marks.length > 0 ? marks.join(' · ') : undefined,
+    cells: [type, model.cost ? <Cost key="cost" cost={model.cost} /> : ''],
+  }
+}
+
+export function ActionsLedger({ actions }: { actions: readonly PlayAction[] }) {
+  const [query, setQuery] = useState('')
+  const [type, setType] = useState<string>('all')
+  const [source, setSource] = useState<string>('all')
+  const [cost, setCost] = useState<CostFilter>('all')
+  if (actions.length === 0)
+    return <p className="su-open__empty">{buildSheetCopy('noActionsYet')}</p>
+
+  const types = ACTION_TYPE_ORDER.filter((each) =>
+    actions.some((action) => actionTypeOf(action.action) === each)
+  )
+  const sources = (Object.keys(SOURCE_LABEL) as PlayAction['kind'][]).filter((kind) =>
+    actions.some((action) => action.kind === kind)
+  )
+  const costs = (action: PlayAction) => Boolean(actionRow(action, GROUPED).model.cost)
+  const needle = query.trim().toLowerCase()
+  const shown = actions.filter((action) => {
+    if (type !== 'all' && actionTypeOf(action.action) !== type) return false
+    if (source !== 'all' && action.kind !== source) return false
+    if (cost === 'free' && costs(action)) return false
+    if (cost === 'costs' && !costs(action)) return false
+    if (!needle) return true
+    const { model, summary } = actionRow(action, GROUPED)
+    return [action.name, action.ownerName, summary ?? '', ...model.traits.map((t) => t.name)]
+      .join(' ')
+      .toLowerCase()
+      .includes(needle)
+  })
+  // Listed in the order a turn is spent: by action type, then as the sheet lists them.
+  const ordered = ACTION_TYPE_ORDER.flatMap((each) =>
+    shown.filter((action) => actionTypeOf(action.action) === each)
+  )
+  const filtered = shown.length !== actions.length
+  return (
+    <section className="su-actions-tool" aria-label={buildSheetCopy('actions')}>
+      <div className="su-actions-tool__bar">
+        <SearchField
+          containerClassName="su-actions-tool__search"
+          type="search"
+          aria-label="Search actions"
+          placeholder="Search actions by name, trait or text"
+          value={query}
+          onChange={(event) => setQuery(event.currentTarget.value)}
+        />
+        <Chips
+          label="Action type"
+          value={type}
+          onChange={setType}
+          options={[
+            { key: 'all', label: 'All', count: actions.length },
+            ...types.map((each) => ({
+              key: each as string,
+              label: each as string,
+              count: actions.filter((action) => actionTypeOf(action.action) === each).length,
+            })),
+          ]}
+        />
+        {sources.length > 1 && (
+          <Chips
+            label="From"
+            value={source}
+            onChange={setSource}
+            options={[
+              { key: 'all', label: 'Any source' },
+              ...sources.map((kind) => ({ key: kind as string, label: SOURCE_LABEL[kind] })),
+            ]}
+          />
+        )}
+        <Chips
+          label="Cost"
+          value={cost}
+          onChange={setCost}
+          options={[
+            { key: 'all', label: 'Any cost' },
+            { key: 'free', label: 'No cost' },
+            { key: 'costs', label: 'Costs AP / EP' },
+          ]}
+        />
+      </div>
+      <OpenLedger
+        title={buildSheetCopy('actions')}
+        note={filtered ? `${shown.length} of ${actions.length} shown` : `${actions.length} actions`}
+        columns={LIST_COLUMNS}
+        groups={[{ key: 'actions', rows: ordered.map(toolRow) }]}
+        empty="No action matches. Clear the search or a filter."
+        className="su-open--actions"
+      />
     </section>
   )
 }
