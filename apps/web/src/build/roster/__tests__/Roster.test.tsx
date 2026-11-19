@@ -284,7 +284,7 @@ describe('Training Bay — one shelf per kind', () => {
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     // Its name is the link to its sheet; its line reads its position, who can
-    // see it and its HP, a column each.
+    // see it and its HP, a column each; in no Game, the shelf has no Game column (L5).
     const line = within(npcs).getByRole('link', { name: 'Doc Marrow' }).closest('tr')
     expect(within(npcs).getByRole('link', { name: 'Doc Marrow' }).getAttribute('href')).toBe(
       `/npcs/${npc.id}`
@@ -293,18 +293,18 @@ describe('Training Bay — one shelf per kind', () => {
       within(line as HTMLElement)
         .getAllByRole('cell')
         .map((td) => td.textContent)
-        .slice(0, 4)
-    ).toEqual(['Doc', 'Only me', '—', '6/6'])
+        .slice(0, 3)
+    ).toEqual(['Doc', 'Only me', '6/6'])
     expect(within(npcs).getByRole('button', { name: 'More for Doc Marrow' })).toBeTruthy()
   })
 
-  test('the Starter Set is folded under your builds, and opens to the front door’s cards', async () => {
+  test('the Starter Set is folded under your builds, and opens to the front door’s Ledger', async () => {
     await renderShelves()
     const starter = screen.getByRole('region', { name: 'Starter Set' })
     expect(within(starter).getByText('read-only')).toBeTruthy()
     const toggle = within(starter).getByRole('button', { name: 'Expand Starter Set' })
     expect(toggle.getAttribute('aria-expanded')).toBe('false')
-    expect(within(starter).queryByRole('link', { name: 'Read Bonesaw' })).toBeNull()
+    expect(within(starter).queryByRole('link', { name: 'Bonesaw' })).toBeNull()
 
     fireEvent.click(toggle)
 
@@ -313,13 +313,11 @@ describe('Training Bay — one shelf per kind', () => {
         .getByRole('button', { name: 'Collapse Starter Set' })
         .getAttribute('aria-expanded')
     ).toBe('true')
-    expect(within(starter).getByRole('link', { name: 'Read Bonesaw' }).getAttribute('href')).toBe(
+    const crew = within(starter).getByRole('table', { name: 'Starter Set crew' })
+    expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    expect(within(starter).getAllByText(/Leyline Press/)).toHaveLength(1)
-    expect(within(starter).getByRole('region', { name: 'Starter Set pilots' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set mechs' })).toBeTruthy()
-    expect(within(starter).getByRole('region', { name: 'Starter Set crawler' })).toBeTruthy()
+    expect(within(starter).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
   })
 })
 

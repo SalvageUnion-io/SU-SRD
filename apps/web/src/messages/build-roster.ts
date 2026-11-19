@@ -3,10 +3,6 @@
 import { messages } from './define'
 
 export const rosterCopy = messages({
-  pilots: 'Pilots',
-  mechs: 'Mechs',
-  crawlers: 'Crawlers',
-  show: 'Show',
   pitchValue: 'Build your Pilot, your Mech and your Union Crawler.',
   pitchLede:
     'A guided build, one choice at a time, with every option cited to its page in the book.',

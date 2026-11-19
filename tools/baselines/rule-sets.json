@@ -106,7 +106,7 @@
       "apps/web/src/build/wizard/BlankCreateDialog.tsx": 1,
       "apps/web/src/build/wizard/CrawlerStatsStep.tsx": 6,
       "apps/web/src/build/wizard/CrawlerTypeStep.tsx": 3,
-      "apps/web/src/build/wizard/CreateModeChooser.tsx": 5,
+      "apps/web/src/build/wizard/CreateModeChooser.tsx": 3,
       "apps/web/src/build/wizard/rollTableHelpers.model.ts": 5,
       "apps/web/src/build/wizard/useWizardDraft.ts": 1,
       "apps/web/src/build/wizard/useWizardFlow.tsx": 1,
