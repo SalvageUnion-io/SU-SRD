@@ -65,8 +65,6 @@ const ROW = {
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
-
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -143,9 +141,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
             <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
-              <Text variant="hint" style={HINT}>
-                {t.description}
-              </Text>
+              <Text variant="hint">{t.description}</Text>
               <div>
                 <Button
                   variant="default"
@@ -161,9 +157,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           ))}
         </SlabSection>
 
-        <Text variant="hint" style={HINT}>
-          {buildGamesCopy('joiningAFriendsGameOpen')}
-        </Text>
+        <Text variant="hint">{buildGamesCopy('joiningAFriendsGameOpen')}</Text>
 
         <FieldError>{error}</FieldError>
       </div>

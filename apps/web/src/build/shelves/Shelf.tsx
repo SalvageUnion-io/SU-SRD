@@ -18,8 +18,6 @@ const BODY = {
   gap: tokens.space[4],
 } satisfies CSSProperties
 
-const NOTE = { textAlign: 'left' } satisfies CSSProperties
-
 const LIST = {
   display: 'flex',
   flexDirection: 'column',
@@ -59,11 +57,7 @@ export function Shelf({ title, id, aside, action, note, empty, children, isEmpty
       actions={action}
       bodyStyle={BODY}
     >
-      {note && (
-        <Text variant="hint" style={NOTE}>
-          {note}
-        </Text>
-      )}
+      {note && <Text variant="hint">{note}</Text>}
       {isEmpty ? <EmptyState variant="quiet" body={empty} /> : <ul style={LIST}>{children}</ul>}
     </SlabSection>
   )

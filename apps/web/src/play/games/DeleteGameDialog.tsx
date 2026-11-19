@@ -69,7 +69,6 @@ const SURVIVOR_LIST = {
 } satisfies CSSProperties
 
 /** The hint rung is centred; these asides read as a left-set list. */
-const LEFT = { textAlign: 'left' } satisfies CSSProperties
 
 /** "4 pilots", "1 pilot", or null when there are none to mention. */
 function countPhrase(n: number, singular: string): string | null {
@@ -117,20 +116,18 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
           <Text>{playGamesCopy('thisEndsTheTableFor', { value: game?.memberCount ?? 0 })}</Text>
 
           <Stack gap={8}>
-            <Text variant="hint" style={LEFT}>
-              {playGamesCopy('nothingAnybodyBuiltIsDestroyed')}
-            </Text>
+            <Text variant="hint">{playGamesCopy('nothingAnybodyBuiltIsDestroyed')}</Text>
             <ul style={SURVIVOR_LIST}>
               {surviving.length > 0 && (
                 <li>
-                  <Text variant="hint" style={LEFT}>
+                  <Text variant="hint">
                     {surviving.join(' and ')} go back to whoever owns them, in their {PRODUCT.build}
                     .
                   </Text>
                 </li>
               )}
               <li>
-                <Text variant="hint" style={LEFT}>
+                <Text variant="hint">
                   {game?.crawlerName === null || game?.crawlerName === undefined
                     ? playGamesCopy('anythingUnassignedComesToYou', { build: PRODUCT.build })
                     : playGamesCopy('andAnythingUnassignedComeTo', {
@@ -142,9 +139,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
             </ul>
           </Stack>
 
-          <Text variant="hint" style={LEFT}>
-            {playGamesCopy('theCrewItsInviteLink')}
-          </Text>
+          <Text variant="hint">{playGamesCopy('theCrewItsInviteLink')}</Text>
         </>
       }
     />

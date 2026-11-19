@@ -50,7 +50,7 @@ const BODY = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
+const NOTE = { margin: 0 } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 
