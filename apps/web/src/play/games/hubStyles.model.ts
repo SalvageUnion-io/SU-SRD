@@ -10,13 +10,15 @@ import { tokens } from '../../components/index'
 
 const { space } = tokens
 
-/** The main column and the sidebar, side by side while both fit. */
+/**
+ * The main column and the sidebar, side by side while both fit. No top margin:
+ * the page body's own padding is the space under the band (§1.7).
+ */
 export const HUB_COLUMNS = {
   alignItems: 'flex-start',
   display: 'flex',
   flexWrap: 'wrap',
   gap: space[24],
-  marginTop: space[24],
 } satisfies CSSProperties
 
 const COLUMN = {

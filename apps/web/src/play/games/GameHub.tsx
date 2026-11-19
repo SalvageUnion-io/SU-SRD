@@ -75,11 +75,8 @@ type GameHubProps = {
   gameId: string
 }
 
-const PENDING = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
-
-const STOP_BANNER = { marginTop: tokens.space[24] } satisfies CSSProperties
+/** The Stop Sign's banner leads the page: the sections start a block's gap under it. */
+const STOP_BANNER = { marginBottom: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
 const PLAY_HUB = '/games/'
@@ -92,16 +89,14 @@ const PLAY_HUB = '/games/'
  */
 function NotInGame() {
   return (
-    <div style={NOT_IN_NOTE}>
-      <Callout role="note">
-        <Text>{playGamesCopy('youAreNotInThis')}</Text>
-        <div>
-          <Button href={PLAY_HUB} back size="compact">
-            {playGamesCopy('play')}
-          </Button>
-        </div>
-      </Callout>
-    </div>
+    <Callout role="note">
+      <Text>{playGamesCopy('youAreNotInThis')}</Text>
+      <div>
+        <Button href={PLAY_HUB} back size="compact">
+          {playGamesCopy('play')}
+        </Button>
+      </div>
+    </Callout>
   )
 }
 
@@ -207,9 +202,7 @@ export function GameHub({ gameId }: GameHubProps) {
       }
     >
       {game === undefined ? (
-        <div style={PENDING}>
-          <Pending label={playGamesCopy('thisGame')} />
-        </div>
+        <Pending label={playGamesCopy('thisGame')} />
       ) : game === null ? (
         <NotInGame />
       ) : (
