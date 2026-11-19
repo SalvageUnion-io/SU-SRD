@@ -291,7 +291,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           action={
             connected ? (
               <div style={CONTROLS}>
-                <NewGameControl />
+                <NewGameControl beside={games !== undefined && games.length > 0} />
                 <JoinGame />
               </div>
             ) : undefined
@@ -369,8 +369,8 @@ function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
         <Button
           href={cockpitPath(pilot.pilotId)}
           aria-label={playCopy('playSolo2', { name: pilot.name })}
-          // A door, so never a stamp's ink block (ruleset §3.13): the paper plate.
-          variant="default"
+          // The row's one door, so rust (ruleset §1.9, §3.13).
+          variant="primary"
           size="mini"
         >
           {playCopy('playSolo')}
@@ -485,16 +485,16 @@ function PlayGameItem({
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           doors.length > 0
-            ? // A chip's height (C8), and a door's look, never a stamp's ink
-              // block (ruleset §3.13): Play is the paper plate, Start session
-              // the outline beside it, both ink on the Game's pink (R44).
-              doors.map((door) =>
+            ? // A chip's height (C8). The first is your role's door, so rust
+              // (ruleset §1.9, §3.13: Mediate where you mediate, else Play);
+              // any other is the paper plate beside it.
+              doors.map((door, index) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
                   <Button
                     key={door.href}
                     aria-label={door.ariaLabel}
-                    variant="ghost"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
@@ -510,7 +510,7 @@ function PlayGameItem({
                     key={door.href}
                     href={door.href}
                     aria-label={door.ariaLabel}
-                    variant="default"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
                   >
                     {door.label}

@@ -1570,6 +1570,13 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
 }
 
+/* A rust button on a Compact's head band wears the ink keyline too (a Game's
+   door on the Play hub). */
+.su-entity-compact__head .su-btn--primary:not(:disabled) {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-chrome));
+}
+
 /* A rust button on a Mini's band wears its ink keyline (ruleset §3.13) as an
    outline on its plate's edge, a strip's Mini control as the outlined one does. */
 .su-entity-mini__pill .su-btn--primary:not(:disabled) {
