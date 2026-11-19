@@ -188,7 +188,12 @@ export function Ledger({
     note != null ||
     trailingLabel !== undefined ||
     rows.some((row) => row.trailing != null)
-  const span = columns.length + 1 + (hasTrailing ? 1 : 0)
+  // With no column that takes the room left (a quiet line, a loadout), the
+  // line's end does: the trailing cell, or an empty last one. The fixed
+  // columns then stand beside the names instead of spreading across the frame.
+  const roomy = columns.some((column) => column.kind === 'quiet' || column.kind === 'line')
+  const hasFill = !roomy && !hasTrailing
+  const span = columns.length + 1 + (hasTrailing || hasFill ? 1 : 0)
   const stamp = (key: string, text: string, title?: string) => {
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
@@ -223,6 +228,7 @@ export function Ledger({
         className="su-ledger__table"
         aria-label={label}
         data-phone-line={phoneLine ? '' : undefined}
+        data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
       >
         <thead>
           <tr
@@ -286,6 +292,7 @@ export function Ledger({
                 </span>
               </th>
             )}
+            {hasFill && <td data-kind="fill" />}
           </tr>
         </thead>
         <tbody>
@@ -353,6 +360,7 @@ export function Ledger({
                       {row.trailing}
                     </td>
                   )}
+                  {hasFill && <td data-kind="fill" />}
                 </tr>
                 {select && selected && row.detail && (
                   <tr className="su-ledger__detail" data-at={select.detailAt ?? 'narrow'}>
@@ -382,6 +390,7 @@ export function Ledger({
                 </td>
               ))}
               {hasTrailing && <td data-kind="trailing" data-phone="" />}
+              {hasFill && <td data-kind="fill" />}
             </tr>
           </tfoot>
         )}

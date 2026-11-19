@@ -184,6 +184,20 @@
   padding-block: var(--space-2);
 }
 
+/* The room no column takes goes to the line's end, so the fixed columns
+   stand beside the names: an empty last cell (a phone drops it with the
+   rest), or the trailing cell where the list has one (from `sm`: on a phone
+   the name takes the room). */
+.su-ledger__table [data-kind='fill'] {
+  padding: 0;
+}
+
+@media (width >= 40rem) {
+  .su-ledger__table[data-trailing-fills] [data-kind='trailing'] {
+    width: auto;
+  }
+}
+
 /* The list's one make, on a paper cut-out at the head strip's end, the title
    tab's twin: notched into the strip's foot. */
 .su-ledger__head > th[data-kind='trailing']:has(.su-ledger__action) {
@@ -425,12 +439,8 @@
 .su-shelf-ledger {
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
-  min-width: 0;
-}
-
-.su-shelf-ledger {
   gap: var(--space-4);
+  min-width: 0;
 }
 
 /* A shelf's names wrap and its link cells cut short with an ellipsis, so the
@@ -439,6 +449,11 @@
 .su-shelf-ledger .su-ledger__table tbody th {
   white-space: normal;
   width: auto;
+}
+
+/* A shelf's names take the room left, so its line's end keeps to its content. */
+.su-shelf-ledger .su-ledger__table [data-kind='trailing'] {
+  width: 1%;
 }
 
 .su-shelf-ledger .su-ledger__table td[data-kind='text'] {
