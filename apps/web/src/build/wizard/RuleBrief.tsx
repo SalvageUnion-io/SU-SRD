@@ -48,7 +48,7 @@ const ruleStyle = {
   fontSize: tokens.fontSize.body,
   lineHeight: 1.625,
   margin: 0,
-  maxWidth: '70ch',
+  maxWidth: '70ch', // the brief's own width follows it (`.su-wiz-rule-brief`)
 } satisfies CSSProperties
 
 /** The cite under the rule: plain text, as every foot cites (E9). */

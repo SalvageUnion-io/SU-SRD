@@ -344,6 +344,17 @@
   margin-bottom: var(--space-16);
 }
 
+/* A brief of the book's words alone is as wide as their measure (R61: a box
+   fits its content), never a frame half empty beside them; one that asks
+   (a field, a part) keeps its line. */
+.su-wiz-rule-brief:not(:has(.su-wiz-rule-brief__ask)) {
+  max-width: calc(70ch + 2 * var(--space-12) + 2 * var(--bw-entity-compact));
+}
+
+.su-wiz-parts .su-wiz-rule-brief {
+  max-width: none;
+}
+
 /* A step's brief wears the card's foot: the cite on a paper cut-out hanging
    from a foot band in the kind's paint. */
 .su-wiz-rule-brief__text {
