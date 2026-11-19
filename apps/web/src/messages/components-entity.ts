@@ -10,4 +10,5 @@ export const entityCopy = messages({
   removed: 'Removed',
   redacted: 'Redacted',
   sortBy: 'Sort by {column}',
+  rowActions: 'Actions',
 })

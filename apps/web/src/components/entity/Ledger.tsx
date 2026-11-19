@@ -279,6 +279,10 @@ export function Ledger({
                   ) : (
                     trailingLabel && stamp('trailing', trailingLabel)
                   )}
+                  {/* A head with nothing to show still names its column (axe empty-table-header). */}
+                  {note == null && !action && !trailingLabel && (
+                    <span className="su-sr-only">{entityCopy('rowActions')}</span>
+                  )}
                 </span>
               </th>
             )}
