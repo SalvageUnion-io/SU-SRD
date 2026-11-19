@@ -500,9 +500,15 @@
 
 @media (width < 40rem) {
   .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
-    overflow-wrap: anywhere;
     padding-inline: var(--space-4);
-    white-space: normal;
+  }
+
+  .su-open.su-open--pairs .su-open__row > th {
+    padding-inline: var(--space-8) var(--space-4);
+  }
+
+  .su-open.su-open--pairs .su-open__title > .su-rule-head__label {
+    font-size: var(--text-readout);
   }
 
   .su-open.su-open--pairs :is(.su-open__row > td, thead th):is(:nth-child(2), :nth-child(3)) {
@@ -593,4 +599,11 @@
 .su-roll .su-roll__table thead :is(.su-roll__col, .su-roll__edge) {
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
   color: var(--color-ink);
+}
+
+/* On the measure a chassis plate is narrower: its six figures sit three a
+   line, as on a phone, so no two labels touch. */
+.su-chassis-gallery .su-chassis-plate__figures {
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: var(--space-4);
 }
