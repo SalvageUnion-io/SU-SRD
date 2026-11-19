@@ -264,7 +264,7 @@
       "apps/web/src/replica/sync.ts": 4,
       "apps/web/src/runtime/interaction.ts": 1,
       "apps/web/src/runtime/offlineWarm.client.ts": 2,
-      "apps/web/src/shell/shell.ts": 10,
+      "apps/web/src/shell/shell.ts": 9,
       "apps/web/src/worker/linkPreview.ts": 2,
       "apps/web/src/worker/miss.ts": 3,
       "apps/web/src/worker/publicPages.ts": 2

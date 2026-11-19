@@ -20,6 +20,9 @@ const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
 const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
 
 type PlayRefusalProps = {
+  /** Whose band it wears: a pilot's Play is a mode of its Training Bay page
+   *  (ADR-065); a Game's screens are the Games'. */
+  area?: 'build' | 'play'
   /** What is missing, as the heading under the band. */
   title: string
   body: string
@@ -38,10 +41,17 @@ type PlayRefusalProps = {
     }
 )
 
-export function PlayRefusal({ title, body, link, signInTo, children }: PlayRefusalProps) {
+export function PlayRefusal({
+  area = 'play',
+  title,
+  body,
+  link,
+  signInTo,
+  children,
+}: PlayRefusalProps) {
   return (
     <PageShell>
-      <ChapterBand tone="play">{PRODUCT.play}</ChapterBand>
+      <ChapterBand tone={area}>{PRODUCT[area]}</ChapterBand>
       <Text as="h2" style={REASON}>
         {title}
       </Text>

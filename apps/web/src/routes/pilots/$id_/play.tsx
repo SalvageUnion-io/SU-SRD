@@ -21,7 +21,7 @@ import { PlayGate } from '../../../play/PlayGate'
 import { useUnits } from '../../../replica/units'
 
 export const Route = createFileRoute('/pilots/$id_/play')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('play')) }] }),
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('play')) }] }),
   loader: async () => {
     const store = useUnits.getState()
     await Promise.all([

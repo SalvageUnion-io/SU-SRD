@@ -113,7 +113,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
   const pilotName = play.pilot?.name
-  useTabTitle(pilotName ? areaTitle(PRODUCT.play, `${pilotName} · ${routesCopy('play')}`) : null)
+  useTabTitle(pilotName ? areaTitle(PRODUCT.build, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',

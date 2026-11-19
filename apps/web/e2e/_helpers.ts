@@ -312,7 +312,7 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
 
 /** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || /^\/play\/games\/[^/]+\/?$/.test(pathname)
+  return pathname === at('/') || /^\/games\/[^/]+\/?$/.test(pathname)
 }
 
 /**

@@ -1,11 +1,11 @@
 /**
- * PlayLanding — the Play hub (`/games/`, ADR-052 §4): your Games, and one tap
+ * PlayLanding — the Games hub (`/games/`, ADR-065): your Games, and one tap
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
  * `play` band, on the page measure every hub takes.
  *
- *  - **The band**: Play's name under `PRODUCT.playDescriptor`, with the
+ *  - **The band**: the Games' name under `PRODUCT.playDescriptor`, with the
  *    legacy tagline quoted beside it, as Build's front door and the SRD's
  *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
@@ -21,8 +21,9 @@
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
- *  - **Play solo**, under the Games: each pilot you own that is in no Game,
- *    with its mech or "No Mech", and Play solo.
+ *
+ * No solo list: a pilot in no Game plays from its own page's Play mode, and
+ * every Training Bay pilot line carries that door (ADR-065).
  *
  * Signed out there is nothing to play, so it is Play's front door
  * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
@@ -34,7 +35,7 @@
 
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
-import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
+import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
@@ -45,7 +46,6 @@ import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
-  Badge,
   Button,
   ChapterBand,
   capsLabel,
@@ -61,20 +61,12 @@ import {
   tokens,
 } from '../components/index'
 import { RoutePending } from '../components/shared/RouteFallbacks'
-import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import {
-  useCrawlers,
-  useHydrateEntities,
-  useMechs,
-  usePilots,
-  useSoftLinkList,
-} from '../lib/entities'
+import { useHydrateEntities, usePilots } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
@@ -84,8 +76,7 @@ import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
-import type { SoloPilot } from './play.model'
-import { gamePilots, soloPilots } from './play.model'
+import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
@@ -262,9 +253,8 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
+  useHydrateEntities(['pilot'])
   const pilots = usePilots()
-  const solo = soloPilots(pilots, useMechs(), useCrawlers(), useSoftLinkList())
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -316,67 +306,8 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             />
           ))}
         </Shelf>
-        <Shelf
-          title={playCopy('playSolo')}
-          id="play-solo"
-          isEmpty={solo.length === 0}
-          empty={playCopy('everyPilotOfYoursIs')}
-        >
-          {solo.map((pilot) => (
-            <li key={pilot.pilotId} style={ITEM}>
-              <SoloPilotRow pilot={pilot} />
-            </li>
-          ))}
-        </Shelf>
       </div>
     </PageShell>
-  )
-}
-
-/**
- * A shelf pilot under Play solo, by the pair rule (`crewPair`): not aboard,
- * it is the pilot, its HP and AP, with a MECH chip naming its mech; with
- * none, the stamp says so.
- */
-function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
-  const pair = crewPair({
-    pilot: { id: pilot.pilotId, name: pilot.name, readings: pilot.readings },
-    mech:
-      pilot.mechName === null
-        ? null
-        : {
-            id: pilot.mechId ?? pilot.mechName,
-            name: pilot.mechName,
-            href: pilot.mechId === null ? undefined : sheetPath('mech', pilot.mechId),
-          },
-    boarded: false,
-  })
-  return (
-    <UnitRow
-      kind={pair.kind}
-      name={pair.name}
-      readings={pair.readings}
-      {...(pair.relations
-        ? { relations: [...pair.relations] }
-        : {
-            labels: (
-              <Badge shape="stamp" size="compact" surface="inverse">
-                {playCopy('noMech')}
-              </Badge>
-            ),
-          })}
-      controls={
-        <Button
-          href={cockpitPath(pilot.pilotId)}
-          aria-label={playCopy('playSolo2', { name: pilot.name })}
-          // A door, so never a stamp's ink block (ruleset §3.13): the paper plate.
-          variant="default"
-          size="mini"
-        >
-          {playCopy('playSolo')}
-        </Button>
-      }
-    />
   )
 }
 

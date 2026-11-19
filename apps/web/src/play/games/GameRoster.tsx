@@ -9,8 +9,8 @@
  * no copy: each row opens its unit's sheet in Build, and the head
  * links out to Build for the rest — **+ New Pilot** (Build's own wizard,
  * started for this Game, `/pilots/new?game=<id>`, ADR-052 §3), the table
- * runner's **+ New Crawler** while the Game has none, and **Manage in Build**
- * (the Training Bay, which moves units in and out of Games).
+ * runner's **+ New Crawler** while the Game has none. Moving a unit in or out
+ * is its ⋯ menu's, in the Training Bay, one tab away (ADR-065).
  *
  * ## One list, the crawler first
  *
@@ -401,9 +401,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
                 {playGamesCopy('newCrawler')}
               </Button>
             )}
-            <Button href="/" variant="default" size="compact">
-              {playGamesCopy('manageInBuild')}
-            </Button>
           </>
         }
         bodyStyle={BODY}

@@ -51,6 +51,7 @@ export function PlayGate({ id }: { id: string }) {
   if (status === 'signedOut') {
     return (
       <PlayRefusal
+        area="build"
         title={playCopy('signInToPlay')}
         body={playCopy('playRunsYourPilotsSolo2')}
         signInTo={cockpitPath(id)}
@@ -89,6 +90,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (pilot === null) {
     return (
       <PlayRefusal
+        area="build"
         title={
           mech === null ? playCopy('pilotNotFound') : playCopy('hasNoPilot', { name: mech.name })
         }
@@ -122,6 +124,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
   if (game === null) {
     return (
       <PlayRefusal
+        area="build"
         title={playCopy('youreNotInThisPilots')}
         body={playCopy('playOpensForMembersOf', { name: pilot.name })}
         link={TO_TRAINING_BAY}

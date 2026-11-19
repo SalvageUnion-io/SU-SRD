@@ -620,14 +620,14 @@ describe('remove from game', () => {
 })
 
 describe('units in from Build (ADR-052 §3, §5)', () => {
-  test('the head links out to Build: its wizard for this Game, and the Training Bay', async () => {
+  test('the head links out to Build’s wizards for this Game, and nothing else', async () => {
     const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
     await renderAs(mediator, listing())
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
     expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
     expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
-    expect(hrefOf('Manage in Build')).toBe('/')
+    expect(screen.queryByRole('link', { name: 'Manage in Build' })).toBeNull()
     // Nothing that builds lives here.
     expect(screen.queryByText('Create Mech')).toBeNull()
     expect(screen.queryByText('Patterns')).toBeNull()

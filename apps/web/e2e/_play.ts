@@ -60,8 +60,8 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
 }
 
 /**
- * A pilot's Play screen, `/play/pilots/<id>`, read off its Training Bay Compact's sheet link,
- * so a spec reaches it without first waiting on the Play hub's Games.
+ * A pilot's Play mode, `/pilots/<id>/play`, read off its Training Bay line's sheet link,
+ * so a spec reaches it without first waiting on the Games hub.
  */
 export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   await openApp(page, '/')

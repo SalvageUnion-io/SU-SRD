@@ -12,7 +12,7 @@ import { expect, test } from './fixtures'
  *  2. A player, with a pilot already in their Training Bay, opens the link and joins:
  *     joining lands on the same Game's page.
  *  3. They move the pilot in from their Training Bay (its ⋯ menu's Move to a
- *     Game…, which the Game page's Manage in Build leads to), and the Game's
+ *     Game…, one press away on the header's Training Bay tab), and the Game's
  *     Crew lists it.
  *  4. Play opens that pilot's Cockpit.
  *
@@ -46,7 +46,7 @@ test(
       })
 
       // --- 3. Move the pilot in from the Training Bay, in Build ---
-      await player.page.getByRole('link', { name: 'Manage in Build' }).click()
+      await openApp(player.page, '/')
       await expect(
         player.page.getByRole('heading', { level: 1, name: 'Training Bay' })
       ).toBeVisible({
@@ -66,7 +66,7 @@ test(
       const launch = player.page.getByRole('dialog', { name: 'Play' })
       await expect(launch.getByRole('radio', { name: PILOT })).toBeVisible({ timeout: 20_000 })
       await launch.getByRole('button', { name: 'Play', exact: true }).click()
-      await player.page.waitForURL(/\/play\/pilots\/[^/]+$/, { timeout: 20_000 })
+      await player.page.waitForURL(/\/pilots\/[^/]+\/play$/, { timeout: 20_000 })
       await expect(player.page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
     } finally {
       await player.context.close()

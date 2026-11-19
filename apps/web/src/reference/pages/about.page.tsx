@@ -58,7 +58,7 @@ const specialThanksMd = readFileSync(repoRootFile('SPECIAL_THANKS.md'), 'utf8')
 const KOFI_CODE = 'C3Z82382ZC'
 
 const TITLE = pageTitle(pagesCopy('about'))
-const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and ${PRODUCT.play}, where you play them.`
+const DESCRIPTION = `About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the ${PRODUCT.build}, where you build characters, and your ${PRODUCT.play}, where you play them.`
 
 const imageAltText = 'Map of The Eldridge Coast, created using Shmeppy.com'
 
@@ -358,7 +358,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               <InlineRef href={appPath('/')} style={BOLD}>
                 {PRODUCT.build}
               </InlineRef>
-              , then run them at the table in{' '}
+              , then run them at the table in your{' '}
               <InlineRef href={appPath('/games/')} style={BOLD}>
                 {PRODUCT.play}
               </InlineRef>
