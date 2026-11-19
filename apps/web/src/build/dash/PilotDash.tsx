@@ -43,6 +43,8 @@ const ABILITY_COLUMNS: readonly OpenColumn[] = [
     label: buildSheetCopy('cost'),
     title: buildSheetCopy('activationCost'),
     phone: true,
+    // MOCK (best, revision 6): a cost badge says what it is; no head label.
+    quiet: true,
   },
 ]
 
@@ -50,14 +52,6 @@ const GEAR_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel'), phone: true },
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
-
-/** A tree's track, in the words the class page prints. */
-const TRACK_NOTE: Record<string, string> = {
-  core: 'Core tree',
-  advanced: 'Advanced tree',
-  hybrid: 'Hybrid tree',
-  legendary: 'Legendary · choose 1',
-}
 
 /** A tree's column is a third of the page: its one figure is the cost. */
 const TREE_COLUMNS: readonly OpenColumn[] = ABILITY_COLUMNS.filter(
@@ -274,7 +268,6 @@ export function PilotDash({
                     className="su-open--sub"
                     as="h4"
                     title={group.tree}
-                    note={group.track ? TRACK_NOTE[group.track] : undefined}
                     columns={TREE_COLUMNS}
                     groups={[
                       {

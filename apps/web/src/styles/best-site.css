@@ -1072,3 +1072,92 @@
 .su-chapter-band__action:has(> .su-rail-acts) {
   align-items: center;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6, 17:50Z): RAIL AND BAND ARE ONE PAINT.
+ * The rail has no paint of its own: the band runs up behind it, so the
+ * colour and the speckle are the band's, unbroken, from the header's ink to
+ * the band's foot. The band is as tall as its title cut-out: nothing above
+ * the title now that the acts ride the rail.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* A crawler's band takes the deeper crawler pink its rail and tables wear,
+   so rail and band are one colour there too (paper text 4.6:1). MOCK: the
+   band's own paint is matched by its inline colour; the real change is
+   `ChapterBand`'s tone. */
+.su-chapter-band[style*='206, 88, 152']:not([role='dialog'] *) {
+  background-color: var(
+    --su-kind,
+    rgb(184 74 134)
+  ) !important; /* design-tokens-ignore(raw-color): crawlerBand, as tokens.ts */
+}
+
+/* With its acts on the rail the corner holds nothing: it takes no room. */
+.su-chapter-band .su-chapter-band__corner:not(:has(*)) {
+  display: none !important;
+}
+
+/* Under 64rem the acts are the band's first row: no paint of their own, the
+   band's colour and speckle run through them. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's paint */
+.su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
+  background-color: transparent;
+}
+
+/* Nothing above the title: the cut-out stands from the band's top (under
+   the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: 0 !important;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
+  padding-top: var(--space-8);
+}
+
+@media (width >= 64rem) {
+  /* The header's ink is its row's, so the rail under it can be clear. */
+  :root:has(.su-chapter-band:not([role='dialog'] *)) .su-union-bar[data-mode] {
+    background-color: transparent;
+  }
+
+  :root:has(.su-chapter-band:not([role='dialog'] *)) .su-union-bar[data-mode] > .su-union-bar__row {
+    background-color: var(--color-ink-deep);
+  }
+
+  :root:not([data-rail='dark']):has(.su-chapter-band:not([role='dialog'] *))
+    .su-union-bar[data-mode]
+    .su-union-bar__rail[data-area] {
+    background-color: transparent;
+  }
+
+  /* The band starts under the header's row, behind the rail (2.75rem). */
+  .su-chapter-band:not([role='dialog'] *) {
+    margin-top: -2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+    padding-top: 2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+  }
+
+  /* An app page's scroll sentinel (1px, pulled back by its own -1px margin)
+     stands before the band; the two negative margins collapse to the larger,
+     so the band takes the sentinel's pixel too. */
+  div:not([class]) + .su-chapter-band:not([role='dialog'] *) {
+    margin-top: calc(
+      -2.75rem -
+      1px
+    ); /* design-tokens-ignore(raw-spacing): the rail's height and the sentinel */
+  }
+}
+
+/* The row is as tall as the title cut-out, no taller. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
+  min-height: 0 !important;
+}
+
+/* An eyebrow with nothing to say (the Bay's status line when all is saved)
+   takes no room above the title. */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow:has(> :only-child:empty) {
+  padding-top: 0;
+}

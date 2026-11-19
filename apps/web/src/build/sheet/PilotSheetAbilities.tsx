@@ -58,7 +58,7 @@ function TreeTrackSection({
   return (
     <SlabSection
       title={group.tree}
-      count={track === 'legendary' ? 'Choose 1' : 'Tree'}
+      count={track === 'legendary' ? 'Choose 1' : undefined}
       size="mini"
       className="su-ability-tree__group"
       bodyClassName="su-ability-tree__track"

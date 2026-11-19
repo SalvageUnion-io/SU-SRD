@@ -26,8 +26,8 @@ const GAINING_ABILITIES_PAGE = 23
 
 const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 
-/** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
-const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
+/** What a tree's slab notes: nothing for a sequence (MOCK, best revision 6: the head is the tree's name), "Choose 1" for a Legendary tree. */
+const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : undefined)
 
 /**
  * A tree on its track, under a slab naming it (and, for a branch, its owner).
