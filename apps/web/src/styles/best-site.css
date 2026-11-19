@@ -1161,3 +1161,115 @@
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow:has(> :only-child:empty) {
   padding-top: 0;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): THE MASTHEAD'S WORDS.
+ * The right column is About (clamped, More). The unit's short lines (a
+ * pilot's Motto, Keepsake, Background; a mech's Quirk, Appearance) sit on
+ * the figures' rail, beside the tallies: label and value on one line.
+ * ══════════════════════════════════════════════════════════════════════ */
+.su-mast__traits {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: var(--space-12) 0 var(--space-12) var(--space-24);
+}
+
+.su-mast-traits {
+  display: grid;
+  gap: var(--space-4) var(--space-12);
+  grid-template-columns: max-content minmax(0, 1fr);
+  margin: 0;
+}
+
+.su-mast-trait {
+  align-items: baseline;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.su-mast-trait > dt {
+  white-space: nowrap;
+}
+
+.su-mast-trait > dd {
+  font-size: var(--text-body);
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.su-mast-id__about > .su-mast-id__label {
+  margin-bottom: var(--space-4);
+}
+
+/* A phone: the lines take the rail's whole width under the tallies. */
+@media (width < 40rem) {
+  .su-mast__traits {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+    padding-inline: 0;
+  }
+}
+
+/* MOCK (best, revision 6): A PILOT'S REAL NAME. Plain words on the callsign's
+   baseline, inside the title's cut-out, in the body face at a lighter weight. */
+.su-title-aka {
+  margin-left: 0.6em;
+  font-family: var(--font-body);
+  font-size: 0.36em;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* MOCK (best, revision 6): A CHASSIS ABILITY IS TEXT. The name, then every
+   word of it, in the Chassis group of the side column; never a row. */
+.su-chassis-ability > .su-dash-entity__name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+/* MOCK (best, revision 6): A COMPANION IS ITS OWN CELL. Painted in the
+   companion's own colour (a drone wears its tech level), the whole cell a
+   link to the companion; its numbers in one quiet line. */
+.su-companion-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  background-color: var(--su-kind, var(--color-tl-1));
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.su-companion-cell__kind {
+  grid-column: 1 / -1;
+  font-family: var(--font-cond);
+  font-size: var(--text-xs, 0.6875rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.su-companion-cell__name {
+  font-family: var(--font-cond);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.su-companion-cell__block {
+  font-size: 0.8125rem;
+}
+.su-companion-cell__vitals {
+  grid-column: 1 / -1;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.su-companion-cell:hover .su-companion-cell__name,
+.su-companion-cell:focus-visible .su-companion-cell__name {
+  text-decoration: underline;
+}
+.su-partner-anchor {
+  scroll-margin-top: 6rem;
+}

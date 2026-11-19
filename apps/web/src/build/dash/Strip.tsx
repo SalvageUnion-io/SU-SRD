@@ -275,6 +275,7 @@ export function Strip({
   figures,
   foot,
   identity,
+  traits,
   view,
 }: {
   /** Names the strip: "Mazona vitals". */
@@ -285,6 +286,8 @@ export function Strip({
   foot?: ReactNode
   /** The printed sheet's identity block, beside the board. */
   identity?: ReactNode
+  /** MOCK (best, revision 6): the unit's short lines (Motto, Keepsake, Background; Quirk, Appearance), inline on the figures' rail. */
+  traits?: ReactNode
   /** The page's view switch (Sheet | Actions), at the rail's end. */
   view?: ReactNode
 }) {
@@ -301,9 +304,10 @@ export function Strip({
               ))}
             </div>
           )}
-          {figures && (
+          {(figures || traits) && (
             <div className="su-mast__rail">
-              <dl className="su-strip__figures">{figures}</dl>
+              {figures && <dl className="su-strip__figures">{figures}</dl>}
+              {traits && <div className="su-mast__traits">{traits}</div>}
             </div>
           )}
           {foot && <div className="su-strip__foot">{foot}</div>}

@@ -54,11 +54,12 @@
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Field, FieldError, SlabSection, Stack, tokens } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { chassisArt } from '../../lib/photos/defaultArt'
+import { mechPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
@@ -142,8 +143,29 @@ type MechSheetProps = {
   pilotAbilities?: string[]
 }
 
+/**
+ * MOCK (best, revision 6): `?mock-chassis=little-sestra` shows this mech on
+ * another chassis, with the drones that chassis fields, so a companion chassis
+ * can be shot from the seeded Mazona. Nothing is written.
+ */
+function useMockChassis(mech: Mech): Mech {
+  return useMemo(() => {
+    const slug =
+      typeof window === 'undefined'
+        ? null
+        : new URLSearchParams(window.location.search).get('mock-chassis')
+    if (!slug) return mech
+    let minted = 0
+    const partners = syncPartners(undefined, mechPartnerSeeds(slug), {
+      mintId: () => `mock-${++minted}`,
+    })
+    const { startingPatternRef: _pattern, ...rest } = mech
+    return { ...rest, chassisRef: slug, ...(partners ? { partners } : {}) }
+  }, [mech])
+}
+
 export function MechSheet({
-  mech,
+  mech: storedMech,
   chassis: chassisOverride,
   store = useUnits,
   readOnly = false,
@@ -154,6 +176,7 @@ export function MechSheet({
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
+  const mech = useMockChassis(storedMech)
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
@@ -315,13 +338,17 @@ export function MechSheet({
         <SlabSection fold="open" title={buildSheetCopy('partners')}>
           <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
-              <PartnerCard
-                key={partner.id}
-                found={{ partner, hostKind: 'mech', host: mech }}
-                fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
-                readOnly={readOnly}
-                store={store}
-              />
+              // MOCK (best, revision 6): the side column's companion cell lands here.
+              <div key={partner.id} id={`partner-${partner.id}`} className="su-partner-anchor">
+                <PartnerCard
+                  found={{ partner, hostKind: 'mech', host: mech }}
+                  fielded={
+                    (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
+                  }
+                  readOnly={readOnly}
+                  store={store}
+                />
+              </div>
             ))}
           </Stack>
         </SlabSection>

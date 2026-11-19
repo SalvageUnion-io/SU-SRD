@@ -220,21 +220,45 @@ export function PilotDash({
   // The printed sheet opens with who the pilot is: the Motto as the line you
   // say at the table, Keepsake and Background under it, each with its
   // once-a-Downtime Used mark.
-  const identity = traits.some(Boolean) ? (
-    <div className="su-mast-id">
-      {pilot.motto.trim() !== '' && (
-        <div className="su-mast-id__motto">
-          <p className="su-mast-id__label">
-            {buildSheetCopy('motto')}
-            {usedChip('motto', 'motto')}
-          </p>
-          <p className="su-mast-id__quote">{`\u201c${pilot.motto.trim()}\u201d`}</p>
-        </div>
+  // MOCK (best, revision 6): the masthead's right column is About (the Bio,
+  // clamped, with More; Appearance under it). Motto, Keepsake and Background,
+  // each with its once-a-Downtime Used mark, are short lines on the figures'
+  // rail, beside Inventory. The side column keeps only tables.
+  const identity =
+    pilot.description || pilot.appearance.trim() !== '' ? (
+      <div className="su-mast-id">
+        {pilot.description && (
+          <div className="su-mast-id__about">
+            <p className="su-mast-id__label">{buildSheetCopy('about')}</p>
+            <Prose text={pilot.description} lines={phone ? 3 : 5} />
+          </div>
+        )}
+        {pilot.appearance.trim() !== '' && (
+          <Facts
+            facts={[
+              {
+                key: 'appearance',
+                label: buildSheetCopy('appearance'),
+                value: pilot.appearance,
+                wide: true,
+              },
+            ]}
+          />
+        )}
+      </div>
+    ) : undefined
+  const traitLines = traits.some(Boolean) ? (
+    <dl className="su-mast-traits">
+      {traits.map(
+        (fact) =>
+          fact && (
+            <div key={fact.key} className="su-mast-trait">
+              <dt className="su-mast-id__label">{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          )
       )}
-      <Facts
-        facts={[traits[1], traits[2]].map((fact) => (fact ? { ...fact, wide: false } : fact))}
-      />
-    </div>
+    </dl>
   ) : undefined
   return (
     <>
@@ -251,7 +275,8 @@ export function PilotDash({
         vitals={phone ? [] : vitals}
         figures={figures}
         foot={phone ? undefined : foot}
-        identity={phone ? undefined : identity}
+        identity={identity}
+        traits={traitLines}
         view={<SheetViewSwitch view={view} onChange={setView} count={allActions.length} />}
       />
       {view === 'actions' ? (
@@ -278,21 +303,13 @@ export function PilotDash({
                   />
                 ))}
               </div>
-              {(generic.length > 0 || model.unresolvedAbilities.length > 0) && (
+              {model.unresolvedAbilities.length > 0 && (
                 <OpenLedger
                   className="su-open--sub su-open--generic"
                   as="h4"
                   title={buildSheetCopy('generic')}
                   columns={ABILITY_COLUMNS}
                   groups={[
-                    {
-                      key: 'generic',
-                      // MOCK: the fold's words belong in the message catalogue.
-                      label: 'All Generic Abilities',
-                      // Every pilot's: a line until it is asked for.
-                      fold: 'closed' as const,
-                      rows: generic.map((entry) => abilityRow(entry, used)),
-                    },
                     {
                       key: 'unknown',
                       rows: model.unresolvedAbilities.map((slug) => ({
@@ -323,28 +340,26 @@ export function PilotDash({
                 {/* MOCK (best, revision 4): the slot cells are gone; the head's count says it. */}
               </div>
             )}
-            <DashGroup title={buildSheetCopy('about')}>
-              <Facts
-                facts={[
-                  // On a page the masthead carries these three (R59).
-                  ...(phone ? traits : []),
-                  {
-                    key: 'appearance',
-                    label: buildSheetCopy('appearance'),
-                    value: pilot.appearance,
-                    wide: true,
-                  },
-                  pilot.description
-                    ? {
-                        key: 'bio',
-                        label: buildSheetCopy('bio'),
-                        value: <Prose text={pilot.description} lines={5} />,
-                        wide: true,
-                      }
-                    : null,
-                ]}
-              />
-            </DashGroup>
+            {generic.length > 0 && (
+              // MOCK (best, revision 6): every pilot's Generic Abilities are a
+              // table of the side column, under Inventory: a row each, header
+              // only, opening its rules in place.
+              <div className="su-dash-group">
+                <OpenLedger
+                  title={buildSheetCopy('genericAbilities')}
+                  columns={ABILITY_COLUMNS}
+                  groups={[
+                    {
+                      key: 'generic',
+                      rows: generic.map((entry) => ({
+                        ...abilityRow(entry, used),
+                        under: undefined,
+                      })),
+                    },
+                  ]}
+                />
+              </div>
+            )}
             {linkedUnits}
           </DashColumn>
         </Dash>

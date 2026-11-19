@@ -15,10 +15,12 @@
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { ComponentProps, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
+import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { Conditions, Content, Mention, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { bandFillFor } from '../../lib/chapters'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { buildCompanionActions, buildMechActions } from '../../lib/rules/actionList'
@@ -28,10 +30,16 @@ import {
   resolveModule,
   resolveSystem,
 } from '../../lib/rules/mechItems'
+import {
+  partnerDerivedStats,
+  partnerTechLevel,
+  resolvePartnerStatBlock,
+} from '../../lib/rules/partnerStats'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { mechVitalRows } from '../sheet/MechVitals'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
+import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { ActionsLedger, Cost } from './ActionsLedger'
 import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
 import type { OpenColumn, OpenRow } from './OpenLedger'
@@ -55,16 +63,6 @@ const ITEM_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
   { key: 'range', label: buildSheetCopy('rng'), title: buildSheetCopy('range') },
   { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage') },
-  {
-    key: 'cost',
-    label: buildSheetCopy('cost'),
-    title: buildSheetCopy('activationCost'),
-    phone: true,
-  },
-]
-
-const CHASSIS_COLUMNS: readonly OpenColumn[] = [
-  { key: 'action', label: buildSheetCopy('action'), kind: 'text', phone: true },
   {
     key: 'cost',
     label: buildSheetCopy('cost'),
@@ -232,35 +230,69 @@ export function MechDash({
     ...buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners),
   ]
   // What the chassis itself does (its abilities are records in the actions
-  // schema): a line each, opening its text with the chassis named.
-  const chassisRows: OpenRow[] = allActions
-    .filter((action) => action.kind === 'chassis')
-    .map((action) => {
-      const actionModel = toEntityModel(action.action)
-      return {
-        id: action.key,
-        name: action.name,
-        entityRef: actionModel.ref,
-        cells: [
-          typeWord(actionModel.actionType),
-          actionModel.cost ? <Cost key="cost" cost={actionModel.cost} /> : '',
-        ],
-        detail: <RowRules entity={action.action} chassisName={model.chassisName} />,
-      }
-    })
-  const identity =
-    mech.quirk || mech.appearance ? (
-      <Facts
-        facts={[
-          { key: 'quirk', label: buildSheetCopy('quirk'), value: mech.quirk, wide: true },
+  // schema): printed in full in the side column, the chassis named.
+  const chassisAbilities = allActions.filter((action) => action.kind === 'chassis')
+  // MOCK (best, revision 6): a companion the chassis fields (a drone) is its
+  // own cell, in its own colour (a drone wears its tech level), with its
+  // numbers; it opens the companion where it lives, under the columns (a
+  // partner has no sheet of its own, ADR-028).
+  const companions = (mech.partners ?? []).map((partner) => {
+    const block = resolvePartnerStatBlock(partner)
+    const max = partnerDerivedStats(partner, partnerTechLevel(partner, undefined))
+    const name = partnerDisplayName(partner)
+    const blockName = block && 'name' in block ? block.name : undefined
+    return (
+      <a
+        key={partner.id}
+        className="su-companion-cell"
+        href={`#partner-${partner.id}`}
+        style={
           {
-            key: 'appearance',
-            label: buildSheetCopy('appearance'),
-            value: mech.appearance,
-            wide: true,
-          },
-        ]}
-      />
+            '--su-kind': block
+              ? (bandFillFor(partner.hostSchema, block) ?? 'var(--color-tl-1)')
+              : undefined,
+          } as CSSProperties
+        }
+      >
+        <span className="su-companion-cell__kind">{buildSheetCopy('companion')}</span>
+        <span className="su-companion-cell__name">{name}</span>
+        {blockName && blockName !== name && (
+          <span className="su-companion-cell__block">{blockName}</span>
+        )}
+        <span className="su-companion-cell__vitals">
+          {`SP ${resolvePool(partner.currentSP, max.structurePoints)}/${max.structurePoints} · EP ${resolvePool(partner.currentEP, max.energyPoints)}/${max.energyPoints} · HEAT ${resolveGauge(partner.currentHeat)}/${max.heatCapacity}`}
+        </span>
+      </a>
+    )
+  })
+  // MOCK (best, revision 6): the masthead's right column is About (the
+  // description, clamped, with More). Quirk and Appearance are short lines on
+  // the figures' rail, beside SYS, MODS and CARGO. The side column keeps only
+  // tables.
+  const identity = mech.description ? (
+    <div className="su-mast-id">
+      <div className="su-mast-id__about">
+        <p className="su-mast-id__label">{buildSheetCopy('about')}</p>
+        <Prose text={mech.description} lines={phone ? 3 : 5} />
+      </div>
+    </div>
+  ) : undefined
+  const traitLines =
+    mech.quirk || mech.appearance ? (
+      <dl className="su-mast-traits">
+        {mech.quirk && (
+          <div className="su-mast-trait">
+            <dt className="su-mast-id__label">{buildSheetCopy('quirk')}</dt>
+            <dd>{mech.quirk}</dd>
+          </div>
+        )}
+        {mech.appearance && (
+          <div className="su-mast-trait">
+            <dt className="su-mast-id__label">{buildSheetCopy('appearance')}</dt>
+            <dd>{mech.appearance}</dd>
+          </div>
+        )}
+      </dl>
     ) : undefined
   const viewSwitch = <SheetViewSwitch view={view} onChange={setView} count={allActions.length} />
   return (
@@ -278,7 +310,8 @@ export function MechDash({
         vitals={phone ? [] : vitals}
         figures={figures}
         foot={phone ? undefined : foot}
-        identity={phone ? undefined : identity}
+        identity={identity}
+        traits={traitLines}
         view={viewSwitch}
       />
       {view === 'actions' ? (
@@ -320,16 +353,27 @@ export function MechDash({
             )}
           </DashColumn>
           <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
-            {/* MOCK (best, revision 5): the chassis leads the side column: its name,
-                its ability (a row that opens), its own facts and its description. */}
+            {/* MOCK (best, revision 6): the chassis leads the side column. Its ability
+                is text, never a row: the name and every word, always showing. Then
+                its own facts and its description. A companion it fields is its own
+                cell below, in the companion's colour, opening the companion. */}
             {chassisModel && (
-              <div className="su-dash-group">
-                <OpenLedger
-                  title={buildSheetCopy('chassis')}
-                  note={<Mention entityRef={chassisModel.ref}>{model.chassisName}</Mention>}
-                  columns={CHASSIS_COLUMNS}
-                  groups={[{ key: 'chassis', rows: chassisRows }]}
-                />
+              <DashGroup
+                title={buildSheetCopy('chassis')}
+                tally={<Mention entityRef={chassisModel.ref}>{model.chassisName}</Mention>}
+              >
+                {chassisAbilities.map((action) => {
+                  const actionModel = toEntityModel(action.action)
+                  return (
+                    <div key={action.key} className="su-dash-item su-chassis-ability">
+                      <p className="su-dash-entity__name">
+                        <Mention entityRef={actionModel.ref}>{action.name}</Mention>
+                        {actionModel.cost && <Cost cost={actionModel.cost} />}
+                      </p>
+                      <RowRules entity={action.action} chassisName={model.chassisName} />
+                    </div>
+                  )
+                })}
                 <Facts
                   facts={[
                     typeof chassis?.techLevel === 'number'
@@ -357,8 +401,9 @@ export function MechDash({
                     />
                   </Prose>
                 )}
-              </div>
+              </DashGroup>
             )}
+            {companions}
             <div className="su-dash-group">
               <OpenLedger
                 title={buildSheetCopy('cargo')}
@@ -395,39 +440,6 @@ export function MechDash({
                 )}
               </div>
             </div>
-            {((phone && (mech.quirk || mech.appearance)) || mech.description) && (
-              <DashGroup title={buildSheetCopy('about')}>
-                <Facts
-                  facts={[
-                    // On a page the masthead carries Quirk and Appearance (R59).
-                    phone
-                      ? {
-                          key: 'quirk',
-                          label: buildSheetCopy('quirk'),
-                          value: mech.quirk,
-                          wide: true,
-                        }
-                      : null,
-                    phone
-                      ? {
-                          key: 'appearance',
-                          label: buildSheetCopy('appearance'),
-                          value: mech.appearance,
-                          wide: true,
-                        }
-                      : null,
-                    mech.description
-                      ? {
-                          key: 'description',
-                          label: buildSheetCopy('description'),
-                          value: <Prose text={mech.description} lines={4} />,
-                          wide: true,
-                        }
-                      : null,
-                  ]}
-                />
-              </DashGroup>
-            )}
             {linkedUnits}
           </DashColumn>
         </Dash>

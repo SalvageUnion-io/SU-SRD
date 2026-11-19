@@ -269,7 +269,27 @@ export function Ledger({
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
-                {stamp(column.key, column.label, column.title)}
+                {/* MOCK (best, revision 6, L15): a cost's values label themselves ("2 EP"); the head prints no label, a reader still hears it. Where the head sorts, its handle stays as a bare mark. */}
+                {column.key === 'cost' ? (
+                  onSort ? (
+                    <button
+                      type="button"
+                      className="su-ledger__sort"
+                      title={column.title ?? column.label}
+                      aria-label={entityCopy('sortBy', { column: column.title ?? column.label })}
+                      onClick={() => onSort(column.key)}
+                    >
+                      <Badge shape="stamp" size="mini" surface="solid">
+                        <span className="su-sr-only">{column.label}</span>
+                        {sort?.key === column.key ? sortMark(sort) : '↕'}
+                      </Badge>
+                    </button>
+                  ) : (
+                    <span className="su-sr-only">{column.label}</span>
+                  )
+                ) : (
+                  stamp(column.key, column.label, column.title)
+                )}
               </th>
             ))}
             {hasTrailing && (

@@ -104,6 +104,11 @@ export type LiveSheetStripItem = {
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
+  /**
+   * MOCK (best, revision 6): plain words on the title's baseline, right of it:
+   * a pilot's real name after the callsign. Absent, nothing shows.
+   */
+  nameAside?: string
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   /**
@@ -319,6 +324,7 @@ function useCondensed(target: RefObject<HTMLElement | null>): boolean {
 export function LiveSheet({
   variant,
   name,
+  nameAside,
   strip = [],
   segments,
   renderBody,
@@ -562,6 +568,7 @@ export function LiveSheet({
         }
       >
         {title}
+        {nameAside && <span className="su-title-aka">{nameAside}</span>}
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>

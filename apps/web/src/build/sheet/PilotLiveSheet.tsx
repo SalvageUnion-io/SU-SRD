@@ -74,11 +74,23 @@ export function PilotLiveSheet({
     }
   )
 
+  // MOCK (best, revision 6): the band's title is the callsign; a real name that
+  // differs follows it as plain words. `?mock-name=` stands one in for a shot.
+  const mockName =
+    typeof window === 'undefined'
+      ? null
+      : new URLSearchParams(window.location.search).get('mock-name')
+  const callsign = pilot.callsign.trim() || pilot.name
+  const givenName = (mockName ?? pilot.name).trim()
+  const realName =
+    givenName !== '' && givenName.toLowerCase() !== callsign.toLowerCase() ? givenName : undefined
+
   return (
     <LiveSheet
       variant="pilot"
       pinsVitals={readOnly}
-      name={pilot.name}
+      name={callsign}
+      nameAside={realName}
       strip={strip}
       segments={segments}
       band={band}

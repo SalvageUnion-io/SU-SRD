@@ -396,13 +396,13 @@ export function CrawlerDash({
         foot={phone ? undefined : actionsFoot('compact')}
         identity={
           // On a page what was written about the crawler sits beside its numbers.
-          !phone && crawler.description ? (
+          crawler.description ? (
             <Facts
               facts={[
                 {
                   key: 'about',
                   label: buildSheetCopy('about'),
-                  value: <Prose text={crawler.description} lines={7} />,
+                  value: <Prose text={crawler.description} lines={phone ? 3 : 5} />,
                   wide: true,
                 },
               ]}
@@ -486,12 +486,11 @@ export function CrawlerDash({
                     <p className="su-dash-entity__name">
                       <Mention entityRef={model.ref}>{model.title}</Mention>
                     </p>
-                    <Prose lines={4}>
-                      <Content
-                        body={(ability.content ?? []) as ComponentProps<typeof Content>['body']}
-                        fontSize="sm"
-                      />
-                    </Prose>
+                    {/* MOCK (best, revision 6): an ability is text, every word showing. */}
+                    <Content
+                      body={(ability.content ?? []) as ComponentProps<typeof Content>['body']}
+                      fontSize="sm"
+                    />
                   </div>
                 )
               })}
@@ -527,11 +526,6 @@ export function CrawlerDash({
                   className="su-open--sub"
                 />
               )}
-            </DashGroup>
-          )}
-          {phone && crawler.description && (
-            <DashGroup title={buildSheetCopy('about')}>
-              <Prose text={crawler.description} lines={5} />
             </DashGroup>
           )}
         </DashColumn>

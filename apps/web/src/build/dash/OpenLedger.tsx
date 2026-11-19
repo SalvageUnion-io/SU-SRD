@@ -41,7 +41,7 @@ export type OpenColumn = {
   kind?: 'figure' | 'text'
   /** Kept on a phone; the others give way to the name. */
   phone?: boolean
-  /** MOCK (best, revision 6): its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. */
+  /** MOCK (best, revision 6): its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. A column keyed `cost` is quiet unless it says otherwise (L15). */
   quiet?: boolean
 }
 
@@ -329,7 +329,11 @@ export function OpenLedger({
               data-phone={column.phone ? '' : undefined}
               title={column.title}
             >
-              {column.quiet ? <span className="su-sr-only">{column.label}</span> : column.label}
+              {(column.quiet ?? column.key === 'cost') ? (
+                <span className="su-sr-only">{column.label}</span>
+              ) : (
+                column.label
+              )}
             </th>
           ))}
         </tr>

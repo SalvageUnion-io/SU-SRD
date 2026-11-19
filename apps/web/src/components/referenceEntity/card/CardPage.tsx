@@ -1,6 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { getChoices } from 'salvageunion-reference'
+import { getChoices, toEntityModel } from 'salvageunion-reference'
+import { RowRules } from '../../../build/dash/RowRules'
 import { cn } from '../../../lib/cn'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
@@ -8,6 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
+import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import { ChoiceRegion } from './ChoiceRegion'
 import type { Down } from './cardChrome'
@@ -363,7 +365,19 @@ export function CardPage({
                 {/* No band holds the chassis ability (the page's h1 is the
                     ChapterBand above), so its title stays a span: an h3 here
                     would skip a level. */}
-                {leadActions.map((data, index) => actionCard(data, index, undefined))}
+                {/* MOCK (best, revision 6): a chassis ability is text, never a
+                    box: its name, then every word of it. */}
+                {leadActions.map((data) => {
+                  const lead = toEntityModel(data as RefMetaEntity)
+                  return (
+                    <div key={lead.ref.slug} className="su-dash-item su-chassis-ability">
+                      <p className="su-dash-entity__name">
+                        <Mention entityRef={lead.ref}>{lead.title}</Mention>
+                      </p>
+                      <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
+                    </div>
+                  )
+                })}
               </div>
             )}
             {/* A pattern page's Systems and Modules follow its chassis
