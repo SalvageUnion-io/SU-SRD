@@ -3,7 +3,7 @@
  * the shelf leads, the Games follow, actions act and pick nothing.
  */
 import { describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import type { ContainerChoice } from '../ContainerPicker'
 import { ContainerPicker } from '../ContainerPicker'
 
@@ -39,40 +39,6 @@ describe('ContainerPicker', () => {
     fireEvent.change(select, { target: { value: 'new-game' } })
     expect(made).toBe(1)
     expect(picks).toHaveLength(1)
-  })
-
-  test('menu: a row per choice with its hint, inert while loading', async () => {
-    const picks: ContainerChoice[] = []
-    const { rerender } = render(
-      <ContainerPicker
-        variant="menu"
-        trigger="Games"
-        choices={undefined}
-        onPick={(c) => picks.push(c)}
-        loading="your Games"
-        empty="No Games yet"
-      />
-    )
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Games' }))
-    })
-    expect(
-      within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Loading your Games…' })
-    ).toBeTruthy()
-    rerender(
-      <ContainerPicker
-        variant="menu"
-        trigger="Games"
-        choices={CHOICES}
-        onPick={(c) => picks.push(c)}
-        loading="your Games"
-        empty="No Games yet"
-      />
-    )
-    await act(async () => {
-      fireEvent.click(screen.getByRole('menuitem', { name: /Union Crawler/ }))
-    })
-    expect(picks.map((c) => c.label)).toEqual(['Union Crawler #430'])
   })
 
   test('list: a Compact per choice, its hint a chip; loading pends, and with none it says why', () => {

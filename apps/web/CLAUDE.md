@@ -2,9 +2,9 @@
 
 One app ([ADR-050](../../docs/architecture/one-app.md)): the SRD's pre-rendered pages
 (built by Astro in `astro/`; its contract is [`astro/DESIGN.md`](astro/DESIGN.md),
-**read it first**) and the app at `/build`. One Worker
-(`src/worker/index.ts`) runs for a miss and first for `/build/*`. Areas in
-`src/`: `reference/`, `build/` (Training Bay), `play/` (The Cantina).
+**read it first**) and the app at `/build`, `/games`. One Worker
+(`src/worker/index.ts`) runs for misses and the app. Areas in
+`src/`: `reference/`, `build/` (Training Bay), `play/` (Games, Play).
 
 ## Pages
 

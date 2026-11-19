@@ -1,15 +1,13 @@
 /**
  * ContainerPicker — the one control that picks a container: your Training Bay (the
  * shelf) or one of your Games (ADR-030 §2). The host decides which containers
- * are offered (`moveDestinations` for a move, the Games you are in for
- * navigation) and what picking does; the picker only draws them, in the shape
+ * are offered (`moveDestinations` for a move) and what picking does; the picker only draws them, in the shape
  * its place calls for:
  *
  * - `select` — a faux-select (the sheet's "In:"): the shelf leads, the Games
  *   follow under "Games", then any actions.
- * - `menu` — a `HeaderMenu` dropdown (the masthead's Games).
  * - `list` — a column of Compacts (ruleset §1.9: a Game is a Compact), the whole Compact
- *   the pick (the Move dialog, the mobile drawer); an action is a button.
+ *   the pick (the Move dialog); an action is a button.
  *
  * Every variant writes a choice the same way: its label, then its hint after a
  * middle dot (a role). `actions` are entries that act rather than pick
@@ -18,18 +16,7 @@
 
 import type { Container } from 'game-domain/container'
 import type { ChangeEvent, CSSProperties } from 'react'
-import type { HeaderMenuItem } from '../../components/index'
-import {
-  Button,
-  EmptyState,
-  Entity,
-  HeaderMenu,
-  loadingCopy,
-  Pending,
-  Select,
-  Stat,
-  tokens,
-} from '../../components/index'
+import { Button, EmptyState, Entity, Pending, Select, Stat, tokens } from '../../components/index'
 import { gameRowModel, hangarRowModel } from '../../lib/games/containerRow.model'
 import { entityContainerCopy } from '../../messages/build-entity-container'
 import { serializeContainer } from './containerKey.model'
@@ -64,18 +51,6 @@ type SelectVariantProps = CommonProps & {
   style?: CSSProperties
 }
 
-type MenuVariantProps = CommonProps & {
-  variant: 'menu'
-  /** The trigger's text, which also names the menu. */
-  trigger: string
-  /** The page is one of the choices, so the menu is where you are. */
-  active?: boolean
-  /** What is loading, for the inert row while the choices load (`loadingCopy`: "your Games"). */
-  loading: string
-  /** The inert row when there are none. */
-  empty: string
-}
-
 type ListVariantProps = CommonProps & {
   variant: 'list'
   /** Names the list. */
@@ -86,7 +61,7 @@ type ListVariantProps = CommonProps & {
   empty: string
 }
 
-type ContainerPickerProps = SelectVariantProps | MenuVariantProps | ListVariantProps
+type ContainerPickerProps = SelectVariantProps | ListVariantProps
 
 /** An action's button spans the list, as the Compacts above it do. */
 const LIST_ACTION = { width: '100%' } satisfies CSSProperties
@@ -159,32 +134,6 @@ function PickerSelect({
   )
 }
 
-function PickerMenu({
-  choices,
-  onPick,
-  actions = [],
-  trigger,
-  active = false,
-  loading,
-  empty,
-}: MenuVariantProps) {
-  // A row without `onSelect` is an inert menuitem, so the loading and empty
-  // states stay inside the menu a screen reader is walking.
-  const rows: HeaderMenuItem[] =
-    choices === undefined
-      ? [{ id: 'loading', label: loadingCopy(loading) }]
-      : choices.length === 0
-        ? [{ id: 'none', label: empty }]
-        : choices.map((c) => ({
-            id: serializeContainer(c.container),
-            label: c.label,
-            hint: c.hint,
-            onSelect: () => onPick(c),
-          }))
-  const sections = actions.length > 0 ? [rows, [...actions]] : [rows]
-  return <HeaderMenu trigger={trigger} active={active} sections={sections} />
-}
-
 function PickerList({ choices, onPick, actions = [], label, loading, empty }: ListVariantProps) {
   if (choices === undefined) return <Pending label={loading} />
   if (choices.length === 0 && actions.length === 0) {
@@ -215,6 +164,5 @@ function PickerList({ choices, onPick, actions = [], label, loading, empty }: Li
 
 export function ContainerPicker(props: ContainerPickerProps) {
   if (props.variant === 'select') return <PickerSelect {...props} />
-  if (props.variant === 'menu') return <PickerMenu {...props} />
   return <PickerList {...props} />
 }

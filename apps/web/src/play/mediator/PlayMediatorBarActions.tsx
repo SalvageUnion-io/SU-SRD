@@ -89,7 +89,7 @@ export function PlayMediatorBarActions({
               onSelect: () => {
                 if (router) {
                   void router.navigate({
-                    to: '/play/games/$gameId',
+                    to: '/games/$gameId',
                     params: { gameId: mediator.gameId },
                   })
                 } else window.location.assign(gameHref)

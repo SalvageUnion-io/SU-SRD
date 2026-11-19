@@ -117,7 +117,7 @@ export const designRoutes: readonly DesignRoute[] = [
   { family: 'wizard-crawler', path: at('/crawlers/new?mode=guided'), widths: BOTH },
   // Manage: the Training Bay, the Play hub, a Game's page, the invite screen.
   { family: 'training-bay', path: at('/'), widths: BOTH },
-  { family: 'play-hub', path: at('/play/'), widths: BOTH },
+  { family: 'play-hub', path: at('/games/'), widths: BOTH },
   { family: 'game-page', path: ':game', widths: BOTH },
   { family: 'invite', path: ':invite', widths: BOTH },
   { family: 'starter-set', path: at('/starter'), widths: BOTH },
@@ -260,7 +260,7 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
       ...(STARTER_TRAITS[sheet] ? { traits: STARTER_TRAITS[sheet], traitWidths: ['page'] } : {}),
     })
   ),
-  { family: 'play-hub', path: at('/play/') },
+  { family: 'play-hub', path: at('/games/') },
 ]
 
 /**

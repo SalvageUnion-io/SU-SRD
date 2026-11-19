@@ -64,8 +64,8 @@ test.use({ account: 'anonymous' })
  *   roster                         2,211,380 B   2,440,000 B
  *   wizard                         2,198,339 B   2,390,000 B
  *   sheet                          2,397,687 B   2,590,000 B
- *   /play/pilots/:pilotId          2,515,698 B   2,920,000 B
- *   /play/games/:gameId/mediate    2,541,798 B   2,920,000 B
+ *   /pilots/:id/play               2,515,698 B   2,920,000 B
+ *   /games/:gameId/mediate    2,541,798 B   2,920,000 B
  *
  * The largest chunk measures 511,029 B against the 530 KB tripwire. The
  * ceilings were set on the older build and were not raised with it, so the
@@ -160,16 +160,16 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // imports `PlayCockpit` statically). The byte count is the route's true
     // cost.
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/pilots/budget-probe')
-    report('/play/pilots/:pilotId', totals, CEILING)
+    const totals = await captureRouteJs(page, '/pilots/budget-probe/play')
+    report('/pilots/:id/play', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 
   test('the Mediator’s Play stays under budget', async ({ page }) => {
     // The same probe through `PlayMediatorGate`'s "Sign in to run your Game".
     const CEILING = 2_920_000
-    const totals = await captureRouteJs(page, '/play/games/budget-probe/mediate')
-    report('/play/games/:gameId/mediate', totals, CEILING)
+    const totals = await captureRouteJs(page, '/games/budget-probe/mediate')
+    report('/games/:gameId/mediate', totals, CEILING)
     expect(totals.bytes).toBeLessThan(CEILING)
   })
 })

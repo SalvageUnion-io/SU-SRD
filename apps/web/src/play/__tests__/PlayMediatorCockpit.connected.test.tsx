@@ -814,7 +814,7 @@ describe('every Mediator capability is reachable here', () => {
     await renderCockpit()
     const bar = within(screen.getAllByRole('banner')[0] as HTMLElement)
     expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
-      `/play/games/${GAME}`
+      `/games/${GAME}`
     )
   })
 

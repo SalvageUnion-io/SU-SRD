@@ -18,8 +18,8 @@ import { Button, NavDrawer } from '../index'
  * The mark home, the search, the book's chapter index with its counts
  * (`NAV_CATALOG`, frozen at build time: building it at runtime would pull the
  * reference ORM onto every page, which `reference-bundle-budget.e2e.ts` forbids), then the
- * site's pages and "Buy the game". The app adds its own nav ahead of those
- * (`productNav`) and its account controls (`extra`); without them the drawer
+ * site's pages and "Buy the game". The app adds its account controls
+ * (`extra`); without them the drawer
  * offers Sign in while nobody is signed in, from the account hint.
  */
 
@@ -50,20 +50,13 @@ function signInFromHint(): ((close: () => void) => ReactNode) | undefined {
 type UnionDrawerProps = {
   /** The search field at the drawer's head. */
   search?: ReactNode
-  /** The product's own nav (the app's Training Bay and Starter Set), ahead of the site's pages. */
-  productNav?: NavDrawerItem[]
   /** App-owned controls at the drawer's top, handed `close`; defaults to Sign in from the hint. */
   extra?: (close: () => void) => ReactNode
   /** Link component for internal items; the app routes its own in place. */
   LinkComponent?: ElementType
 }
 
-export function UnionDrawer({
-  search,
-  productNav = [],
-  extra = signInFromHint(),
-  LinkComponent,
-}: UnionDrawerProps) {
+export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }: UnionDrawerProps) {
   const path = typeof location === 'undefined' ? '/' : location.pathname
   const page = (link: { label: string; href: string }): NavDrawerItem => ({
     ...link,
@@ -71,7 +64,6 @@ export function UnionDrawer({
   })
 
   const navItems: NavDrawerItem[] = [
-    ...productNav,
     page(DOC_PAGES.about),
     page(DOC_PAGES.changelog),
     page(DOC_PAGES.discord),

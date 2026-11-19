@@ -5,10 +5,10 @@ import { routesCopy } from '../../../messages/routes'
 import { InviteScreen } from '../../../play/games/InviteScreen'
 
 /**
- * `/play/invite/$token` — an invite link. `?join=1` marks the return from
+ * `/games/invite/$token` — an invite link. `?join=1` marks the return from
  * "Sign in to join", so the page joins on arrival rather than asking again.
  */
-export const Route = createFileRoute('/play/invite/$token')({
+export const Route = createFileRoute('/games/invite/$token')({
   head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('joinAGame')) }] }),
   validateSearch: (search: Record<string, unknown>): { join?: true } =>
     search.join === 1 || search.join === '1' || search.join === true ? { join: true } : {},
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/play/invite/$token')({
 })
 
 function InviteRoute() {
-  const { token } = useParams({ from: '/play/invite/$token' })
+  const { token } = useParams({ from: '/games/invite/$token' })
   const { join } = Route.useSearch()
   return <InviteScreen token={token} joinOnArrival={join === true} />
 }

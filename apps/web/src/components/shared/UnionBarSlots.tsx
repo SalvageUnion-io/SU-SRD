@@ -3,8 +3,7 @@ import { useRouter } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { appPath } from '../../lib/appBase'
-import { inAppRoute, markUnionBar, UNION_NAV, unionHere } from '../../lib/barLinks'
+import { inAppRoute, markUnionBar, unionHere } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
@@ -15,12 +14,11 @@ import { SiteLink } from './AppLink'
  *
  * The bar itself is the shell's, rendered at build time (`shell/unionBar.ts`),
  * so it paints before the app boots. This fills its slots through portals: the
- * Games menu in the nav, the search and the account at its end, and below `lg`
+ * search and the account at its end, and below `lg`
  * the phone's search, avatar and drawer. Portals keep the app's context, so
  * what goes in a slot reads the connection and the router as if the bar were
  * part of the tree. It also routes a click on one of the bar's own links in
- * place, and moves "here" as you route: the mode (Build or Play: its tab, its
- * colour and its nav) and the nav link of the page you are on (`unionHere`).
+ * place, and moves the current tab and its colour as you route (`unionHere`).
  * The shell arrives already marked for the route it was served on.
  *
  * The slots stay content-agnostic, so this file knows nothing about accounts,
@@ -28,16 +26,13 @@ import { SiteLink } from './AppLink'
  * (`build/account/HeaderAccount.tsx`).
  *
  * The phone drawer is the bar's one `UnionDrawer`, the reference pages' own,
- * with the mode's nav ahead of the site's pages and its account controls
- * at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
+ * with its account controls at the top. Its links are site paths, as the bar's are: `SiteLink` routes the
  * app's in place and loads the reference pages.
  */
 
 type UnionBarSlotsProps = {
-  /** The current route, to mark "you are here" in the nav. */
+  /** The current route, to mark its tab current. */
   pathname: string
-  /** Play's Games control, first in Play's nav. */
-  games?: ReactNode
   /** Desktop search trigger, before the account control. */
   search?: ReactNode
   /** Phone search icon button, beside the hamburger below `lg`. */
@@ -70,7 +65,6 @@ function useSlots(): Partial<Record<UnionSlot, Element>> {
 
 export function UnionBarSlots({
   pathname,
-  games,
   search,
   mobileSearch,
   actions,
@@ -83,7 +77,7 @@ export function UnionBarSlots({
   const router = useRouter({ warn: false })
   const slots = useSlots()
 
-  // A click on the bar's own links (the lockup, the Build tab, the nav)
+  // A click on the bar's own links (the lockup, the app's tabs)
   // routes in place, as AppLink does.
   useEffect(() => {
     const bar = document.querySelector('.su-union-bar')
@@ -101,31 +95,22 @@ export function UnionBarSlots({
   // Where you are, as the route changes: the shell arrives marked for the
   // route it was served on (`markUnionRoute`), and this moves the mark with
   // you. A layout effect, so a route change repaints the bar with the page.
-  const here = unionHere(pathname)
+  const mode = unionHere(pathname)
   useLayoutEffect(() => {
     const bar = document.querySelector('.su-union-bar')
-    if (bar) markUnionBar(bar, here.mode, here.nav)
-  }, [here.mode, here.nav])
+    if (bar) markUnionBar(bar, mode)
+  }, [mode])
 
   const mobile = (
     <>
       {mobileSearch}
       {mobileActions}
-      <UnionDrawer
-        search={drawerSearch}
-        productNav={UNION_NAV[here.mode].map((item) => ({
-          label: item.label,
-          href: appPath(item.path),
-          active: item.id === here.nav,
-        }))}
-        extra={drawerExtra}
-        LinkComponent={SiteLink}
-      />
+      <UnionDrawer search={drawerSearch} extra={drawerExtra} LinkComponent={SiteLink} />
     </>
   )
 
   if (barHidden) return null
-  const fill: Record<UnionSlot, ReactNode> = { games, search, actions, mobile }
+  const fill: Record<UnionSlot, ReactNode> = { search, actions, mobile }
   return (
     <>
       {UNION_SLOTS.map((name) => {

@@ -1,9 +1,9 @@
 /**
- * Play route — /play/pilots/:pilotId
+ * A pilot's Play mode — /pilots/:id/play (ADR-066)
  *
  * Play runs one pilot of yours, in a Game or solo, on the Cockpit
  * (`PlayCockpit`). An old mech-keyed URL lands here too (from the retired
- * `/dashboard/:id`) and is redirected to the mech's pilot.
+ * `/dashboard/:id`, `/play/pilots/:id`) and is redirected to the mech's pilot.
  *
  * The loader only hydrates every entity kind and the soft links, mirroring the
  * sheet route, so the pilot and its mech and crawler resolve synchronously.
@@ -20,8 +20,8 @@ import { routesCopy } from '../../../messages/routes'
 import { PlayGate } from '../../../play/PlayGate'
 import { useUnits } from '../../../replica/units'
 
-export const Route = createFileRoute('/play/pilots/$pilotId')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.play, routesCopy('play')) }] }),
+export const Route = createFileRoute('/pilots/$id_/play')({
+  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('play')) }] }),
   loader: async () => {
     const store = useUnits.getState()
     await Promise.all([
@@ -35,6 +35,6 @@ export const Route = createFileRoute('/play/pilots/$pilotId')({
 })
 
 function PlayPage() {
-  const { pilotId } = Route.useParams()
-  return <PlayGate id={pilotId} />
+  const { id } = Route.useParams()
+  return <PlayGate id={id} />
 }

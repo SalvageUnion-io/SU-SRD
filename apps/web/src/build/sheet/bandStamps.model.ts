@@ -8,11 +8,14 @@
 
 import type { NpcTemplateRef } from 'game-domain/schemas/npc'
 import type { EntityRef, RefEntity } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClass } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { srdPatternHref } from '../../lib/patternHref'
+import { savedPatternHref } from '../../lib/patterns/patterns'
 import { readReference } from '../../lib/readReference'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type BandStamp = {
   /** What the entity is to the unit: 'Class', 'Chassis', 'Type'. */
@@ -70,4 +73,37 @@ export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | u
     null
   )
   return stampOf('From', 'npcs', templateRef.slug, npc)
+}
+
+/** The pattern a mech was built from: its name, and its page when it has one. */
+export type PatternStamp = { name: string; href?: string }
+
+/**
+ * Which pattern a mech was built from (`PATTERN | Nimble Hauler`, ADR-066 §4:
+ * chassis, then a pattern, then a mech): a saved pattern (`sourcePattern`)
+ * links to its page, named when this browser holds it; a book pattern
+ * (`startingPatternRef`) links to its page under the chassis. A blank build
+ * says nothing.
+ */
+export function mechPatternStamp(
+  mech: {
+    chassisRef: string
+    sourcePattern?: string | undefined
+    startingPatternRef?: string | undefined
+  },
+  savedName: (patternId: string) => string | undefined
+): PatternStamp | undefined {
+  if (mech.sourcePattern) {
+    return {
+      name: savedName(mech.sourcePattern) ?? buildSheetCopy('aSavedPattern'),
+      href: savedPatternHref(mech.sourcePattern),
+    }
+  }
+  const ref = mech.startingPatternRef
+  if (!ref) return undefined
+  const chassis = readReference('mechPatternStamp', () => resolveChassisRef(mech.chassisRef), null)
+  const pattern = chassis?.patterns?.find((p) => nameToSlug(p.name) === ref)
+  return chassis && pattern
+    ? { name: pattern.name, href: srdPatternHref(chassis, pattern) }
+    : { name: ref }
 }

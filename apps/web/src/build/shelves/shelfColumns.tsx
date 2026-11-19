@@ -35,9 +35,9 @@ export const PILOT_COLUMNS = [
   fig(VITAL.hp, buildShelvesCopy('hitPoints'), true),
   fig(VITAL.ap, buildShelvesCopy('abilityPoints')),
 ]
+// A mech a pilot flies is on that pilot's line; this shelf holds the rest.
 export const MECH_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
-  word('pilot', buildShelvesCopy('pilot')),
   GAME,
   fig(VITAL.sp, buildShelvesCopy('structurePoints'), true),
   fig(VITAL.ep, buildShelvesCopy('energyPoints')),
@@ -49,11 +49,6 @@ export const CRAWLER_COLUMNS = [
   fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
   fig(VITAL.sp, buildShelvesCopy('structurePoints')),
   fig(BAYS, buildShelvesCopy('baysIntact')),
-]
-export const GAME_COLUMNS = [
-  word('role', buildShelvesCopy('youAre'), true),
-  fig(buildShelvesCopy('pilots'), buildShelvesCopy('yourPilotsInIt')),
-  fig(buildShelvesCopy('mechs'), buildShelvesCopy('yourMechsInIt')),
 ]
 export const NPC_COLUMNS = [
   word('position', buildShelvesCopy('position')),
@@ -71,10 +66,21 @@ export const PATTERN_COLUMNS = [
 export const read = (readings: readonly UnitReading[] | undefined, label: string): string =>
   String(readings?.find((r) => String(r.label) === label)?.value ?? '')
 
-/** The unit it is crewed with, as a link to its sheet. */
+/**
+ * A pilot's mech, as a link to its sheet; with none, the way to add one
+ * (`addHref`, where a write could land), else the dash.
+ */
 export const paired = (
-  linked: readonly { name: string; href?: string | undefined }[]
-): ReactNode => (linked[0] ? <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink> : '')
+  linked: readonly { name: string; href?: string | undefined }[],
+  addHref?: string
+): ReactNode =>
+  linked[0] ? (
+    <ShelfLink href={linked[0].href}>{linked[0].name}</ShelfLink>
+  ) : addHref ? (
+    <ShelfLink href={addHref}>{buildShelvesCopy('addAMech')}</ShelfLink>
+  ) : (
+    ''
+  )
 
 /** The Game it is in, as a link to that Game's page. */
 export const inGame = (relations: readonly { value: string; href: string }[]): ReactNode =>
@@ -87,7 +93,3 @@ export const who = (chips: readonly { label: string }[]): string =>
 /** A unit's own labels (`Shared by link`), under its name. */
 export const under = (chips: readonly { label: string }[]): string | undefined =>
   chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
-
-/** How many of your units sit in a Game. */
-export const count = (units: readonly { gameId?: string | null }[], gameId: string): string =>
-  String(units.filter((u) => u.gameId === gameId).length)

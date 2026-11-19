@@ -222,12 +222,31 @@ describe('a unit’s Game', () => {
   test('is a link in its Game column, opening the Game’s page in Play; in no Game, none', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const games = [...pilots.querySelectorAll('a[href^="/play/games/"]')]
+    const games = [...pilots.querySelectorAll('a[href^="/games/"]')]
     expect(games.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Tenacity', '/play/games/g1'],
+      ['Tenacity', '/games/g1'],
     ])
     expect(within(pilots).getByText('Tenacity').closest('tr')?.textContent).toContain('Rook')
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
+  })
+})
+
+describe('Play, one press from the shelf', () => {
+  test('each pilot line carries its Play door, to that pilot’s Play mode', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByRole('link', { name: 'Play Nia Vale' }).getAttribute('href')).toBe(
+      '/pilots/p-nia/play'
+    )
+    expect(within(pilots).getByRole('link', { name: 'Play Rook' })).toBeTruthy()
+    // Mechs play through their pilot: no door of their own.
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
+  })
+
+  test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Games' })).toBeNull()
   })
 })
 
@@ -261,13 +280,15 @@ describe('What a shelf says of a unit (L9)', () => {
     const columns = within(pilots)
       .getAllByRole('columnheader')
       .map((th) => th.textContent)
-    // No pilot here has a Mech, so the shelf has no Mech column (L5).
-    expect(columns.slice(1, 5)).toEqual(['Class', 'Game', 'HP', 'AP'])
+    // No pilot here has a mech: each line offers "+ Add a mech" (ADR-066 §4).
+    expect(columns.slice(1, 6)).toEqual(['Class', 'Mech', 'Game', 'HP', 'AP'])
     const cells = within(within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement)
       .getAllByRole('cell')
       .map((td) => td.textContent)
-    // Its class, no Game, then HP and AP as its sheet reads them.
-    expect(cells.slice(0, 4)).toEqual(['scavenger', '—', '10/10', '5/5'])
+    // Its class, its mech (none: the door to add one), no Game, then HP and AP.
+    expect(cells.slice(0, 5)).toEqual(['scavenger', '+ Add a Mech', '—', '10/10', '5/5'])
+    const add = within(pilots).getAllByRole('link', { name: '+ Add a Mech' })[0]
+    expect(add?.getAttribute('href')).toMatch(/\/mechs\/new\?pilot=/)
   })
 })
 

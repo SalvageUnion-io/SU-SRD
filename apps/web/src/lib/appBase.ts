@@ -11,7 +11,14 @@
 
 import { appPath, routeInApp } from 'game-domain/appAddress'
 
-export { APP_BASE, appPath, PLAY_ROOT, routeInApp, underBase } from 'game-domain/appAddress'
+export {
+  APP_BASE,
+  appPath,
+  GAMES_ROOT,
+  RETIRED_PLAY_ROOT,
+  routeInApp,
+  underBase,
+} from 'game-domain/appAddress'
 
 /**
  * The router's URL rewrite (`main.tsx`), in place of a `basepath`: a site path

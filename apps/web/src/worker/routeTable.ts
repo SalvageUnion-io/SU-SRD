@@ -6,7 +6,7 @@
  * so the Astro config can read it.
  */
 
-import { APP_BASE, PLAY_ROOT } from '../lib/appBase'
+import { APP_BASE, GAMES_ROOT, RETIRED_PLAY_ROOT } from '../lib/appBase'
 import { AUTH_PREFIX } from '../lib/auth/paths'
 import { HOMEBREW_PATTERNS_PATH } from '../lib/homebrew/endpoint'
 import { PHOTOS_PATH, SHARED_PATH } from '../lib/sharing/paths'
@@ -20,7 +20,8 @@ export const WORKER_ROUTES = [
   { name: 'errors', pattern: ERROR_REPORT_PATH },
   { name: 'auth', pattern: tree(AUTH_PREFIX) },
   { name: 'app', pattern: tree(APP_BASE) },
-  { name: 'app', pattern: tree(PLAY_ROOT) },
+  { name: 'app', pattern: tree(GAMES_ROOT) },
+  { name: 'app', pattern: tree(RETIRED_PLAY_ROOT) },
   { name: 'rooms', pattern: tree(ROOMS_PATH) },
   { name: 'shared', pattern: tree(SHARED_PATH) },
   { name: 'photos', pattern: tree(PHOTOS_PATH) },

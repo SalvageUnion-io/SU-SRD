@@ -4,8 +4,8 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 /**
  * Where a mech started: the slug of the chassis pattern its loadout was
  * built from (`Mech.startingPatternRef`, within its `chassisRef`), as
- * provenance. The mech's own name is its pattern's name; this is never shown
- * and never rewritten by a rename.
+ * provenance. The mech's band names it (`PATTERN | …`, ADR-066), linked to
+ * the pattern's page; a rename never rewrites it.
  */
 
 /** The chassis pattern named `patternName` (" Pattern" or not) as a ref; undefined when the chassis has none. */

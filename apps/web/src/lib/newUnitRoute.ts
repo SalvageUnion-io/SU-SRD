@@ -17,6 +17,8 @@ import { parseSlugParam } from './wizard/preselect'
 export type NewUnitSearch<K extends string = never> = {
   mode: CreateMode
   game?: string | undefined
+  /** `/mechs/new` only: the pilot the new mech is assigned to (a Training Bay pilot line's "+ Add a mech"). */
+  pilot?: string | undefined
 } & { [P in K]?: string }
 
 /**

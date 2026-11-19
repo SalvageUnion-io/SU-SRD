@@ -9,7 +9,7 @@
 // stamp beside its tab (ruleset §3.9, ledger.md L9).
 import type { ReactNode } from 'react'
 import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
-import { HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
+import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 
 type ShelfLedgerRow = {
@@ -23,6 +23,8 @@ type ShelfLedgerRow = {
   under?: ReactNode
   /** The ⋯ menu's rows, grouped; empty draws no menu. */
   menu: HeaderMenuItem[][]
+  /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
+  play?: string
 }
 
 type ShelfLedgerProps = {
@@ -48,6 +50,34 @@ type ShelfLedgerProps = {
 export function ShelfLink({ href, children }: { href: string | undefined; children: ReactNode }) {
   if (!href) return <>{children}</>
   return <InlineRef href={href}>{children}</InlineRef>
+}
+
+/** A line's end: its Play door, then its ⋯ menu; neither draws nothing. */
+function trailingOf(row: ShelfLedgerRow): ReactNode {
+  const menu = row.menu.some((section) => section.length > 0)
+  if (!row.play && !menu) return undefined
+  return (
+    <span className="su-ledger__trailing-line">
+      {row.play && (
+        <Button
+          href={row.play}
+          variant="primary"
+          size="mini"
+          aria-label={buildShelvesCopy('playName', { name: row.name })}
+        >
+          {buildShelvesCopy('play')}
+        </Button>
+      )}
+      {menu && (
+        <HeaderMenu
+          variant="overflow"
+          trigger={null}
+          label={buildShelvesCopy('moreFor', { name: row.name })}
+          sections={row.menu}
+        />
+      )}
+    </span>
+  )
 }
 
 /** A cell with something to say; a `0` is a value. */
@@ -85,14 +115,7 @@ export function ShelfLedger({
           ...(row.href ? { href: row.href } : {}),
           cells: kept.map(({ index }) => row.cells[index]),
           ...(row.under ? { under: row.under } : {}),
-          trailing: row.menu.some((section) => section.length > 0) ? (
-            <HeaderMenu
-              variant="overflow"
-              trigger={null}
-              label={buildShelvesCopy('moreFor', { name: row.name })}
-              sections={row.menu}
-            />
-          ) : undefined,
+          trailing: trailingOf(row),
         }))}
         action={action}
         empty={empty}

@@ -334,11 +334,11 @@ describe('Training Bay — items', () => {
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
     // In no Game: its Game column is empty, never "Unassigned" (C11).
-    expect(line?.querySelector('a[href^="/play/games/"]')).toBeNull()
+    expect(line?.querySelector('a[href^="/games/"]')).toBeNull()
     expect(line?.textContent).not.toContain('Unassigned')
   })
 
-  test('linked units name each other on their lines, each a link to the other’s sheet', async () => {
+  test('a pilot’s line carries the mech it flies, a link to its sheet; the Mechs ledger holds the rest', async () => {
     const store = useUnits.getState()
     await Promise.all([store.hydrate('pilot'), store.hydrate('mech'), store.hydrate('softLink')])
     const pilot = await store.create('pilot', { ...basePilotInput, name: 'Mara Vex' })
@@ -351,17 +351,16 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    // The pilot's line names its Mech, and the mech's its Pilot.
+    // The pilot's line names its Mech (ADR-066 §4).
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const itsMech = within(
       within(pilots).getByRole('link', { name: 'Mara Vex' }).closest('tr') as HTMLElement
     ).getByRole('link', { name: 'Iron Fist' })
     expect(itsMech.getAttribute('href')).toBe(`/mechs/${mech.id}`)
+    // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
-    const itsPilot = within(
-      within(mechs).getByRole('link', { name: 'Iron Fist' }).closest('tr') as HTMLElement
-    ).getByRole('link', { name: 'Mara Vex' })
-    expect(itsPilot.getAttribute('href')).toBe(`/pilots/${pilot.id}`)
+    expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()
+    expect(within(mechs).getByText('Every Mech of yours has its Pilot.')).toBeTruthy()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 

@@ -392,10 +392,12 @@ export function productNames(root: string): { build: string; play: string } {
 
 /**
  * Any other casing of the area names, and of a name without its leading
- * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name.
+ * "The" ("Cantina"). A bracketed `[cantina]`, a log tag, is not the name. A
+ * one-word name ("Games") is a common noun too, so its casing is not policed.
  */
 export function productBans(product: { build: string; play: string }): Banned[] {
-  const spellings = [product.build, product.play].flatMap((name) => {
+  const named = [product.build, product.play].filter((name) => /\s/.test(name))
+  const spellings = named.flatMap((name) => {
     const bare = name.replace(/^The\s+/, '')
     return bare === name ? [name] : [name, bare]
   })

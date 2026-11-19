@@ -2,12 +2,12 @@ import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'b
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
- * The Play hub (`/play/`, ADR-052 §4): + New Game and Join with a link on its
+ * The Games hub (`/games/`, ADR-066): + New Game and Join with a link on its
  * band; Your Games, each a contentful Compact opening the Game's page with
  * your role, how many are here, the Downtime state and its channel as chips,
  * its crew as Minis (each pilot and its mech one Mini), and its doors (Mediate
- * where you mediate it, then Play <pilot> for each pilot of yours there); Play solo, each pilot in no
- * Game with its mech or "No Mech". Nothing that builds.
+ * where you mediate it, then Play <pilot> for each pilot of yours there). No solo list: a pilot in
+ * no Game plays from its own page. Nothing that builds.
  * Signed out, sign in.
  *
  * Queries are answered by name (`serverMock.ts`): `games.listMine` and
@@ -150,10 +150,10 @@ describe('the Play landing', () => {
     const tenacity = card('Tenacity')
     // The whole Compact opens the Game's page in Play.
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
-      '/play/games/land-g1'
+      '/games/land-g1'
     )
     const play = tenacity.getByRole('link', { name: 'Play Rook in Tenacity' })
-    expect(play.getAttribute('href')).toBe('/play/pilots/land-rook')
+    expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
     expect(play.textContent).toBe('Play Rook')
     expect(tenacity.getByText('Player')).toBeTruthy()
     expect(tenacity.queryByRole('link', { name: /^Mediate/ })).toBeNull()
@@ -165,11 +165,11 @@ describe('the Play landing', () => {
     const wastes = card('Wastes')
     expect(wastes.getByText('Mediator')).toBeTruthy()
     const mediate = wastes.getByRole('link', { name: 'Mediate Wastes' })
-    expect(mediate.getAttribute('href')).toBe('/play/games/land-g2/mediate')
+    expect(mediate.getAttribute('href')).toBe('/games/land-g2/mediate')
     expect(mediate.textContent).toBe('Mediate')
     // A Mediator who also plays reaches their pilot too.
     expect(wastes.getByRole('link', { name: 'Play Vane in Wastes' }).getAttribute('href')).toBe(
-      '/play/pilots/land-vane'
+      '/pilots/land-vane/play'
     )
 
     // R56: a Game's name is kept whole: on a phone its doors are the body's
@@ -190,7 +190,7 @@ describe('the Play landing', () => {
     const tenacity = card('Tenacity')
     expect(tenacity.getByText('Session live')).toBeTruthy()
     const join = tenacity.getByRole('link', { name: 'Join the session in Tenacity as Rook' })
-    expect(join.getAttribute('href')).toBe('/play/pilots/land-rook')
+    expect(join.getAttribute('href')).toBe('/pilots/land-rook/play')
     expect(join.textContent).toBe('Join as Rook')
   })
 
@@ -206,30 +206,15 @@ describe('the Play landing', () => {
     expect(elsewhere.queryByText('Scene')).toBeNull()
     // Its page is one tap away, and the only link on the Compact.
     expect(elsewhere.getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual([
-      '/play/games/land-g9',
+      '/games/land-g9',
     ])
   })
 
-  test('Solo: each shelf pilot with its Mech’s chip or "No Mech", and Play solo', async () => {
+  test('no solo list: a pilot in no Game plays from its own page, and the empty state points to New Game and Join', async () => {
     answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
     await renderAs('live')
-    const solo = section('Play solo')
-    expect(solo.getByRole('link', { name: 'Play Wren solo' }).getAttribute('href')).toBe(
-      '/play/pilots/land-wren'
-    )
-    const row = (name: string) => {
-      const item = solo.getByRole('link', { name: `Play ${name} solo` }).closest('li')
-      if (!item) throw new Error(`no solo row for ${name}`)
-      return within(item)
-    }
-    // The pair rule: a pilot not aboard is the pilot, with a MECH chip naming its mech.
-    expect(row('Wren').getByText('Scrapper')).toBeTruthy()
-    expect(row('Wren').getByText('Mech')).toBeTruthy()
-    expect(row('Wren').getByText('HP')).toBeTruthy()
-    expect(row('Kestrel').getByText('No Mech')).toBeTruthy()
-    // A Game's pilot is not offered solo.
-    expect(solo.queryByRole('link', { name: 'Play Rook solo' })).toBeNull()
-    // The empty state points to New Game and Join, not to Build.
+    expect(screen.queryByRole('region', { name: 'Play solo' })).toBeNull()
+    expect(screen.queryByRole('link', { name: 'Play Wren solo' })).toBeNull()
     expect(
       section('Your Games').getByText(
         'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
@@ -274,7 +259,7 @@ describe('the Play landing', () => {
       await act(async () => {
         fireEvent.click(join)
       })
-      expect(assigned).toEqual(['/play/invite/AB12CD34EF56'])
+      expect(assigned).toEqual(['/games/invite/AB12CD34EF56'])
     } finally {
       assign.mockRestore()
     }
@@ -424,10 +409,9 @@ describe('the Play landing', () => {
     }
   })
 
-  test('offline, the shelf still lists, and Your Games wait for the connection', async () => {
+  test('offline, Your Games wait for the connection', async () => {
     answerReads({})
     await renderAs('offline')
-    expect(section('Play solo').getByRole('link', { name: 'Play Wren solo' })).toBeTruthy()
     expect(
       section('Your Games').getByText('Your Games list once the connection returns.')
     ).toBeTruthy()

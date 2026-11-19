@@ -1,4 +1,4 @@
-# play — The Cantina
+# play — Games, Play
 
 Map: [play.md](../../../../docs/architecture/play.md). Play only plays: edits
 are the Build sheet's, but for `CrawlerEconomyControl.tsx`; conditions stay

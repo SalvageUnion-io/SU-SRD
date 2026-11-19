@@ -312,12 +312,12 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
 
 /** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
 function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || /^\/play\/games\/[^/]+\/?$/.test(pathname)
+  return pathname === at('/') || /^\/games\/[^/]+\/?$/.test(pathname)
 }
 
 /**
  * Drive a `/new` wizard to completion and return once the redirect lands: `/`
- * for the Training Bay, or `/play/games/<id>` for a wizard started from a Game's page
+ * for the Training Bay, or `/games/<id>` for a wizard started from a Game's page
  * (`?game=`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —

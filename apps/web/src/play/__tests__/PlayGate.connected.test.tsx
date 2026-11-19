@@ -122,7 +122,9 @@ describe('refusals', () => {
     setQueryAnswers({ 'games.get': null })
     await renderGate('play-rook')
     expect(heading(/not in this Pilot's Game/)).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Training Bay' }).getAttribute('href')).toBe(
+      '/'
+    )
     expect(opened()).toBeNull()
   })
 
@@ -197,7 +199,7 @@ describe('old mech-keyed URLs', () => {
     setQueryAnswers({ 'games.get': GAME })
     await renderGate('play-mech')
     expect(serverMocks.navigations).toEqual([
-      { to: '/play/pilots/$pilotId', params: { pilotId: 'play-rook' }, replace: true },
+      { to: '/pilots/$id/play', params: { id: 'play-rook' }, replace: true },
     ])
     expect(opened()?.pilotId).toBe('play-rook')
   })

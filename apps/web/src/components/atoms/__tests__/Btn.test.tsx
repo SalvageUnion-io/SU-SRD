@@ -111,12 +111,12 @@ describe('Button', () => {
 
     test('is an anchor wearing the recipe, with no style of its own', () => {
       render(
-        <Button href="/play/" variant="primary" size="mini">
+        <Button href="/games/" variant="primary" size="mini">
           Play solo
         </Button>
       )
       const link = screen.getByRole('link', { name: 'Play solo' })
-      expect(link.getAttribute('href')).toBe('/play/')
+      expect(link.getAttribute('href')).toBe('/games/')
       expect(link.className).toContain(variantClass('primary'))
       expect(link.className).toContain(sizeClass('mini'))
       expect(link.getAttribute('style')).toBeNull()

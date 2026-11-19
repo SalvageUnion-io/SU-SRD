@@ -50,9 +50,11 @@ const ROW = {
 type PatternListProps = {
   /** Called with the new mech id when a pattern is instantiated. */
   onInstantiated: (mechId: string) => void
+  /** The Game each build lands in (the New Mech screen's `?game=`). */
+  gameId?: string | undefined
 }
 
-export function PatternList({ onInstantiated }: PatternListProps) {
+export function PatternList({ onInstantiated, gameId }: PatternListProps) {
   // Subscribing keeps the list live — saves from this tab, and those
   // `RoomFeed` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
@@ -99,7 +101,11 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   }}
                   lead
                   controls={
-                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                    <InstantiateFromPattern
+                      pattern={pattern}
+                      onSuccess={handleInstantiated}
+                      gameId={gameId}
+                    />
                   }
                 />
                 {/* A header-only row has no footer, so the credit sits beneath it. */}
@@ -114,7 +120,11 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   name={pattern.name}
                   userMade
                   controls={
-                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                    <InstantiateFromPattern
+                      pattern={pattern}
+                      onSuccess={handleInstantiated}
+                      gameId={gameId}
+                    />
                   }
                 />
                 <Text variant="hint">{mechCopy('itsChassisIsNotIn')}</Text>

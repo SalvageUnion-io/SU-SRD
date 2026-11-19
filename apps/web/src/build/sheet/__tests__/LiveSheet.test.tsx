@@ -181,11 +181,26 @@ describe('LiveSheet — the chapter band', () => {
     expect(openPage).toHaveBeenCalledTimes(1)
   })
 
-  test('a detail that only repeats the name is not stamped', () => {
-    renderShell({ name: 'Scrapper', kindDetail: { label: 'Class', name: 'Scrapper' } })
+  test('a detail is stamped even when it repeats the name (ADR-066: explicit)', () => {
+    renderShell({ name: 'Scrapper', kindDetail: { label: 'Chassis', name: 'Scrapper' } })
     const title = screen.getByRole('heading', { level: 1, name: 'Scrapper (Pilot)' })
     const band = must(title.closest<HTMLElement>('.su-chapter-band'))
-    expect(within(band).getAllByText('Scrapper')).toHaveLength(1)
+    expect(within(band).getAllByText('Scrapper')).toHaveLength(2)
+  })
+
+  test('a mech built from a pattern names it, linked to its page', () => {
+    renderShell({
+      variant: 'mech',
+      name: 'Mazona',
+      quoted: true,
+      fromPattern: { name: 'Nimble Hauler', href: '/p/pattern/p1' },
+    })
+    const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
+    const band = must(title.closest<HTMLElement>('.su-chapter-band'))
+    expect(within(band).getAllByText('Pattern')).toHaveLength(1)
+    expect(within(band).getByText('Nimble Hauler').closest('a')?.getAttribute('href')).toBe(
+      '/p/pattern/p1'
+    )
   })
 
   test('a pattern-named mech says so: “its name” and a PATTERN chip', () => {

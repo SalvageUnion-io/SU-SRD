@@ -162,7 +162,7 @@ export function inviteCard(answer: InvitePreviewAnswer, address: string): Previe
     tone: color.crawler,
     summary: answer.mediatedBy
       ? `Mediated by ${answer.mediatedBy}.`
-      : `A Salvage Union Game in ${PRODUCT.play}.`,
+      : `A Salvage Union Game on ${PRODUCT.wordmark}.`,
     address,
   }
 }

@@ -159,9 +159,9 @@ describe('Training Bay: everything you own', () => {
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     expect(within(pilots).getByText('Roach-Boy')).toBeTruthy()
     expect(within(pilots).getByText('Mira Cole')).toBeTruthy()
-    const games = pilots.querySelectorAll('a[href^="/play/games/"]')
+    const games = pilots.querySelectorAll('a[href^="/games/"]')
     expect([...games].map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Union Crawler #430', '/play/games/g1'],
+      ['Union Crawler #430', '/games/g1'],
     ])
     // A unit in no Game leaves the column empty: never "Unassigned".
     expect(within(pilots).queryByText('Unassigned')).toBeNull()

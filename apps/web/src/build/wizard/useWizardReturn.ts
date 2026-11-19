@@ -10,6 +10,6 @@ export function useWizardReturn(gameId: string | undefined): () => void {
   const navigate = useNavigate()
   return () => {
     if (gameId === undefined) void navigate({ to: '/' })
-    else void navigate({ to: '/play/games/$gameId', params: { gameId } })
+    else void navigate({ to: '/games/$gameId', params: { gameId } })
   }
 }

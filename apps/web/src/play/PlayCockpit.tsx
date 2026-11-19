@@ -30,7 +30,7 @@
  * bar says the game is paused (`StopSign.tsx`).
  * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
- * §5–§6); solo, "‹ Play" goes back to the Play hub and there is no ⋯.
+ * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066); solo there is no ⋯.
  *
  * A sheet on the screen (`useSheetOnScreen`, play.md §18): any unit's Sheet,
  * a Crew line, or ⋯'s "Show a sheet" puts that sheet in the Actions column
@@ -39,7 +39,7 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { gamePath } from 'game-domain/entityKinds'
+import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
@@ -113,7 +113,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
   const pilotName = play.pilot?.name
-  useTabTitle(pilotName ? areaTitle(PRODUCT.play, `${pilotName} · ${routesCopy('play')}`) : null)
+  useTabTitle(pilotName ? areaTitle(PRODUCT.build, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
@@ -217,8 +217,9 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               }
               stamp={playStamp(target)}
               tone={PHASE_TONE[play.situation]}
-              backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
-              backLabel={solo ? playCopy('play') : playCopy('game')}
+              // Back to the pilot's own page (ADR-066); its Game is in ⋯.
+              backHref={sheetPath('pilot', target.pilotId)}
+              backLabel={playCopy('sheet')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
               // A phone's bar is one line: with no channel button on it, the
@@ -339,8 +340,7 @@ function CockpitMenu({
                 label: playCopy('gamePage'),
                 hint: gameName ?? undefined,
                 onSelect: () => {
-                  if (router)
-                    void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
+                  if (router) void router.navigate({ to: '/games/$gameId', params: { gameId } })
                   else window.location.assign(gamePath(gameId))
                 },
               },

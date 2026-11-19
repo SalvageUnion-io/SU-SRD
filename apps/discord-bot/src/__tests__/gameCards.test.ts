@@ -228,10 +228,10 @@ describe('denialMessage', () => {
 
 describe('deep links', () => {
   test('a game links to its own route, not a query string', () => {
-    // /play/games/$gameId is the real TanStack route, the Game's page in Play
+    // /games/$gameId is the real TanStack route, the Game's page in Play
     // (ADR-052 §5). A link that 404s reads as the app having lost the game,
     // not as the bot guessing.
-    expect(gameUrl('g1')).toBe(`https://salvageunion.io/play/games/g1`)
+    expect(gameUrl('g1')).toBe(`https://salvageunion.io/games/g1`)
   })
 
   test('every sheet links to the live sheet by its row id', () => {
@@ -254,10 +254,10 @@ describe('gamesCard', () => {
     expect(cardText(gamesCard([]))).toContain('No Games yet')
   })
 
-  test('links to Play’s hub, where your Games are listed; each Game to its page in Play', () => {
-    expect(cardUrl(gamesCard([]))).toBe(`https://salvageunion.io/play/`)
+  test('links to Your Games; each Game to its page', () => {
+    expect(cardUrl(gamesCard([]))).toBe(`https://salvageunion.io/games/`)
     const card = gamesCard([{ gameId: 'g1', name: 'Tenacity', mediator: false, organizer: false }])
-    expect(cardText(card)).toContain(`[Tenacity](https://salvageunion.io/play/games/g1)`)
+    expect(cardText(card)).toContain(`[Tenacity](https://salvageunion.io/games/g1)`)
   })
 
   test('roles read as base role plus modifier, never as three roles', () => {

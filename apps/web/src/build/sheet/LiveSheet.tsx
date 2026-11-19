@@ -40,7 +40,7 @@ import {
   tokens,
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { BandStamp } from './bandStamps.model'
+import type { BandStamp, PatternStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -121,10 +121,12 @@ type LiveSheetProps = {
   band?: SheetBand
   /**
    * What it is built as: a pilot's class, a mech's chassis, a crawler's type —
-   * a `CLASS | Engineer` chip that opens and Peeks the entity it names. Not
-   * shown when it only repeats the name (the Starter Set's Scrapper).
+   * a `CLASS | Engineer` chip that opens and Peeks the entity it names, always
+   * (ADR-066: a mech names its chassis even when its name is the chassis's).
    */
   kindDetail?: BandStamp
+  /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
+  fromPattern?: PatternStamp | undefined
   /**
    * Where it came from, when not a blank build (R49): the
    * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
@@ -312,7 +314,8 @@ export function LiveSheet({
   renderBody,
   actions,
   band,
-  kindDetail,
+  kindDetail: stamp,
+  fromPattern,
   source,
   rank,
   out,
@@ -324,12 +327,6 @@ export function LiveSheet({
   // a whole region to clear the viewport.
   const topRef = useRef<HTMLDivElement | null>(null)
   const condensed = useCondensed(topRef)
-
-  // A chip that only repeats the name says nothing (the Starter Set's Scrapper).
-  const stamp =
-    kindDetail && kindDetail.name.toLowerCase() !== name.trim().toLowerCase()
-      ? kindDetail
-      : undefined
 
   const title = quoted ? `“${name}”` : name
 
@@ -463,8 +460,9 @@ export function LiveSheet({
                 <>
                   {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                   {source === 'starter' && <Stat label={buildSheetCopy('starterKit')} />}
-                  {/* Its name is a pattern's: it says so. */}
-                  {quoted && <Stat label={buildSheetCopy('pattern')} />}
+                  {/* Its name is a pattern's: it says so, unless the PATTERN
+                      relation names the pattern. */}
+                  {quoted && !fromPattern && <Stat label={buildSheetCopy('pattern')} />}
                 </>
               }
               nodes={{
@@ -482,6 +480,18 @@ export function LiveSheet({
                         />
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
+                      ))}
+                    {fromPattern &&
+                      (fromPattern.href ? (
+                        <Tag
+                          tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
+                            href: fromPattern.href,
+                          })}
+                          linkable
+                          wrap
+                        />
+                      ) : (
+                        <Stat label={buildSheetCopy('pattern')} value={fromPattern.name} wrap />
                       ))}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />

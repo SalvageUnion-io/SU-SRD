@@ -52,21 +52,17 @@ test.describe('signed out', { tag: '@pr' }, () => {
   })
 
   /**
-   * The Union bar in each of the app's modes (ruleset §3.11, §4.7): Reference |
-   * Build | Play stays one switch at one Size, beside the mode's own nav, and
-   * every control on the bar shares the switch's height. The bar's tabs are
-   * links the page scan does not count as controls, so the bar is held whole
-   * here, and each route is checked to wear its mode and show its nav: Build's
-   * on the front door and Patterns, Play's on the hub.
+   * The Union bar in each of the app's areas (ruleset §3.11, §4.7): Reference |
+   * Training Bay | Games stays one switch at one Size, with no second nav
+   * (ADR-066), and every control on the bar shares the switch's height. The
+   * bar's tabs are links the page scan does not count as controls, so the bar
+   * is held whole here, and each route is checked to wear its area: the
+   * Training Bay on its front door and Patterns, Games on the hub.
    */
   const BAR_ROUTES = [
-    { path: at('/'), mode: 'build', nav: ['Training Bay', 'Patterns', 'Starter Set'] },
-    {
-      path: at('/patterns/'),
-      mode: 'build',
-      nav: ['Training Bay', 'Patterns', 'Starter Set'],
-    },
-    { path: at('/play/'), mode: 'play', nav: ['Solo'] },
+    { path: at('/'), mode: 'build' },
+    { path: at('/patterns/'), mode: 'build' },
+    { path: at('/games/'), mode: 'play' },
   ] as const
 
   test('the Union bar holds one height in Build and in Play', async ({ page }) => {
@@ -74,7 +70,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
     for (const viewport of Object.values(DESIGN_VIEWPORTS)) {
       const { width } = viewport
       await page.setViewportSize(viewport)
-      for (const { path, mode, nav } of BAR_ROUTES) {
+      for (const { path, mode } of BAR_ROUTES) {
         await page.goto(path, { waitUntil: 'networkidle' })
         const bar = page.locator('.su-union-bar')
         await expect(bar, `${path}: the bar wears its mode`).toHaveAttribute('data-mode', mode)
@@ -82,12 +78,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
           bar.locator('.su-union-bar__tab[aria-current]'),
           `${path}: its mode's tab is current`
         ).toHaveAttribute('data-tool', mode)
-        // The mode's nav shows inline from `lg`; below it the drawer carries it.
-        if (width >= 1024) {
-          await expect(bar.locator('.su-union-bar__nav a').filter({ visible: true })).toHaveText([
-            ...nav,
-          ])
-        }
+        await expect(bar.locator('.su-union-bar__nav'), `${path}: no second nav`).toHaveCount(0)
         const heights = await heightsOf(
           bar,
           '.su-union-bar__tab, .su-search-field, .su-btn, .su-union-bar__buy, .su-nav-drawer__trigger'

@@ -282,7 +282,7 @@ describe("Discord's round trip", () => {
     const d = deps()
     const start = await answer(
       new Request(
-        `${ORIGIN}${AUTH_PATHS.signIn}?to=${encodeURIComponent('/play/invite/abc?join=1')}`
+        `${ORIGIN}${AUTH_PATHS.signIn}?to=${encodeURIComponent('/games/invite/abc?join=1')}`
       ),
       d
     )
@@ -294,7 +294,7 @@ describe("Discord's round trip", () => {
       d
     )
     expect(back.status).toBe(302)
-    expect(back.headers.get('location')).toBe('/play/invite/abc?join=1')
+    expect(back.headers.get('location')).toBe('/games/invite/abc?join=1')
     const session = back.headers.getSetCookie().find((c) => c.startsWith('su_session='))
     expect(session).toBeDefined()
   })

@@ -5,7 +5,6 @@ import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
   HeaderDrawerAccount,
-  HeaderGames,
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
 import { firstPaintSchemas, routeSchemas } from '../build/account/signedOutView.model'
@@ -71,13 +70,12 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
-      games={<HeaderGames pathname={pathname} />}
       search={<SearchIsland />}
       mobileSearch={<MobileSearchIsland />}
       drawerSearch={<SearchIsland />}
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
-      drawerExtra={(close) => <HeaderDrawerAccount close={close} pathname={pathname} />}
+      drawerExtra={() => <HeaderDrawerAccount />}
     />
   )
 }

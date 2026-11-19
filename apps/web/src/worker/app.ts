@@ -51,7 +51,14 @@
  * never has a file extension, so a dot in the last segment means a FILE.
  */
 
-import { APP_BASE, appPath, PLAY_ROOT, routeInApp, underBase } from '../lib/appBase'
+import {
+  APP_BASE,
+  appPath,
+  GAMES_ROOT,
+  RETIRED_PLAY_ROOT,
+  routeInApp,
+  underBase,
+} from '../lib/appBase'
 import { retiredDocPage, retiredTarget } from '../lib/redirects'
 import { hidesUnionBar } from '../shell/unionSlots'
 import type { ImageCache, PreviewEnv, PreviewRoute } from './linkPreview'
@@ -64,7 +71,14 @@ import { applyMeta, hideUnionBar, markUnionRoute } from './shellMeta'
  * pattern sends its matches straight to the assets, and `true` would run the
  * script for every SRD page.
  */
-export const RUN_WORKER_FIRST = [APP_BASE, `${APP_BASE}/*`, PLAY_ROOT, `${PLAY_ROOT}/*`]
+export const RUN_WORKER_FIRST = [
+  APP_BASE,
+  `${APP_BASE}/*`,
+  GAMES_ROOT,
+  `${GAMES_ROOT}/*`,
+  RETIRED_PLAY_ROOT,
+  `${RETIRED_PLAY_ROOT}/*`,
+]
 
 type Assets = { fetch(request: Request): Promise<Response> }
 
@@ -93,13 +107,18 @@ export function spaAssets(assets: Assets, base: string): Assets {
   }
 }
 
+/** Whether a site path is under Play's retired root, `/play` (ADR-066). */
+function retiredPlayRoot(pathname: string): boolean {
+  return pathname === RETIRED_PLAY_ROOT || pathname.startsWith(`${RETIRED_PLAY_ROOT}/`)
+}
+
 /** The Cache API's default cache, where the runtime has one (never under Bun). */
 function defaultCache(): ImageCache | undefined {
   return (globalThis as { caches?: { default?: ImageCache } }).caches?.default
 }
 
 /**
- * A request for the app (`/build`, `/play` and below); `null` for a missing file, which
+ * A request for the app (`/build`, `/games` and below, and the retired `/play`); `null` for a missing file, which
  * the site answers as any other miss.
  */
 export async function serveApp(
@@ -119,8 +138,9 @@ export async function serveApp(
   // the app serves lives there, so the rules answer it as the miss it is.
   const path = routeInApp(url.pathname, base) ?? url.pathname
 
-  // Only an address under the base is retired: Play's own root is current.
-  if (underBase(url.pathname, base)) {
+  // An address under the base, or under Play's retired root, may be retired;
+  // the Games' own root is current.
+  if (underBase(url.pathname, base) || (retiredPlayRoot(url.pathname) && !wantsFile(path))) {
     // D. A doc page the app no longer has: the SRD's on this origin.
     const docPage = retiredDocPage(path)
     if (docPage !== null) return Response.redirect(new URL(docPage, url).href, 301)

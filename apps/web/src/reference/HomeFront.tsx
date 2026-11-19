@@ -105,7 +105,7 @@ export function HomeDoors() {
       title={referenceCopy('threeWaysIn')}
       steps={doors}
       numbered={false}
-      hrefs={{ reference: '#contents', build: appPath('/'), play: appPath('/play/') }}
+      hrefs={{ reference: '#contents', build: appPath('/'), play: appPath('/games/') }}
     />
   )
 }

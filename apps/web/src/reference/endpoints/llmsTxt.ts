@@ -28,7 +28,7 @@ function body(): string {
 
 > An open-source, searchable rules reference and character manager for the Salvage Union TTRPG (tabletop RPG) by Leyline Press.
 
-SalvageUnion.io is a community-built site for Salvage Union, a post-apocalyptic mech TTRPG. Its System Reference Document (SRD) provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence. Its app builds and keeps Pilot, Mech and Crawler sheets in the ${PRODUCT.build} and runs them at the table in ${PRODUCT.play}.
+SalvageUnion.io is a community-built site for Salvage Union, a post-apocalyptic mech TTRPG. Its System Reference Document (SRD) provides stats, descriptions, abilities, and rules for game text and mechanics released under the Salvage Union Open Game Licence. Its app builds and keeps Pilot, Mech and Crawler sheets in the ${PRODUCT.build} and runs them at the table in your ${PRODUCT.play}.
 
 ## Content Categories
 

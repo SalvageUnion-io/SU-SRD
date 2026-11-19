@@ -26,7 +26,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app; terminal (E16).
    7. **Page — the entity's own route** — stats first (E20), then rules, the art and the Description in a side column (EDL Forms 5).
       The body starts under the band; level-1 blocks sit 12px apart; nothing is centred in spare height.
-   8. **Front door — the cover** — `/`, and `/build/` and `/play/` signed out, sell the product in the site's own dress: one rust action, one outline beside it; Leyline Press credited by name, one ink link to buy the game; no price, banner or pop-up.
+   8. **Front door — the cover** — `/`, and `/build/` and `/games/` signed out, sell the product in the site's own dress: one rust action, one outline beside it; Leyline Press credited by name, one ink link to buy the game; no price, banner or pop-up.
    9. **Manage — the owner's desk** — Training Bay, Play hub, a Game, invites: paper under the area's band, level 0, Slab sections, Compacts that link.
       No stepper or in-place edit; acts are Buttons in a chip group or under a Slab, destruction `confirm`. Rust is the role's door (Play, Mediate); a make (+ New) is rust only where there is no door (§3.13); Open and filters are ink.
    10. **Two measures** — Reference and Manage sit on `--page-measure`; a Live Sheet and Play fill the window. On a phone a page's first content is on its first screen: its controls one row or a menu.
@@ -51,7 +51,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for canon (pattern, NPC): a solid frame, the dashed HOMEBREW stamp, "Made by [user]", at every size. Dashed is otherwise only a Play reference unit (ADR-051 §5), an edit field and an empty slot; a Slab is always solid.
       A sheet adds a hatched band; a pattern's page is the book's, footed "Homebrew // Made by [user]". One `userMade` flag (+ `madeBy`); canon-built units stay solid.
    10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
-   11. **§3.11 One union, two tools** — one Union bar; the switcher reads Reference | Build | Play; Build (the Training Bay) and Play (the Cantina) name their pages; bar and footer wear the leading band's colour (no band: the area's), no rule under the bar, no off-site arrows.
+   11. **§3.11 One union, two tools** — one Union bar; its tabs read Reference | Training Bay | Games (ADR-066), no second nav; the areas name their pages; bar and footer wear the leading band's colour (no band: the area's), no rule under the bar, no off-site arrows.
    12. **§3.12 Microcopy** — sentence case; game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). Caps only through the stamp, `Button` and `capsLabel`; 11px caps are snug.
    13. **§3.13 The emphasis ladder** — rust is what you came to do: a region's one door (Play, Build With This, a step's Next) and every Use; then ink fill, outline, ghost. + New is rust only where its region has no door. On a band a rust button wears an ink keyline, any other is outlined: a read stamp and a button never share a look on one line (a Ledger's sorting stamp, L2, apart).

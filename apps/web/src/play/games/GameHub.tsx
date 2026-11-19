@@ -1,5 +1,5 @@
 /**
- * GameHub — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5).
+ * GameHub — a Game's own page in Play, `/games/$gameId` (ADR-052 §5).
  *
  * One place per table, in the Manage context (ruleset §1.9): paper under the
  * `play` band, level 0, Slab sections, Compacts that link. It lists a Game the
@@ -8,14 +8,16 @@
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and the ways
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
- *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); **Play**
+ *     opens Play's Mediator screen (`/games/$gameId/mediate`); **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it, for a player and
  *     for a Mediator who also plays one here.
  *  1. A main column of sections. **Every member:** the Crew (`GameRoster`):
  *     one list, the crawler first, each pilot's seat (its HP, its mech) on
  *     its row, the head counting them; it links out to Build for anything
  *     about building (ADR-052 §3: Play only plays). Then the proposals
- *     awaiting their answer. **The Mediator:** Proposals you sent.
+ *     awaiting their answer. **The Mediator:** Proposals you sent, then
+ *     Your prep (`MediatorPrep`): what the Training Bay keeps ready, and the
+ *     way there.
  *     Downtime runs in the Cockpit, not here. **The Organiser:** the
  *     Invite link (copy and reset, chips on its head). **Every member**
  *     again: Safety (`GameSafety`: the Stop Sign, whose banner heads the
@@ -62,6 +64,7 @@ import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
 import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
 import { LaunchPlay } from './LaunchPlay'
+import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
 import { ProposalsSent } from './ProposalsSent'
 import { TheGame } from './TheGame'
@@ -79,7 +82,7 @@ const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
 const STOP_BANNER = { marginTop: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
-const PLAY_HUB = '/play/'
+const PLAY_HUB = '/games/'
 
 /**
  * A Game the viewer is not in: they left, it ended, or an old link points at
@@ -126,6 +129,8 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
+          {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
+          {game.mediator && <MediatorPrep />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
@@ -162,7 +167,7 @@ function GameSections({ game }: { game: Game }) {
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
         onDeleted={() => {
-          if (router) void router.navigate({ to: '/play' })
+          if (router) void router.navigate({ to: '/games' })
           else window.location.assign(PLAY_HUB)
         }}
       />

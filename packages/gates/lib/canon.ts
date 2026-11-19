@@ -90,7 +90,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§3.8': ['tone-ground/tl-ground', 'contrast.test.ts'],
   '§3.9': ['chrome-tokens/dashed', 'R1', 'PatternList.test.tsx'],
   '§3.10': ['chrome-tokens/left-rail'],
-  '§3.11': ['AppBar.test.tsx'],
+  '§3.11': ['AppBar.test.tsx', 'UnionBarSlots.test.tsx'],
   '§3.12': [
     'copy/banned-variant',
     'copy/lowercase-term',
@@ -223,7 +223,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R7: ['styling/entity-markup', 'biome.jsonc#R7'],
   R8: ['roll-instrument.e2e.ts'],
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
-  R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts'],
+  R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
   R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
   R15: [
     'select-mode/picker-opacity',

@@ -230,13 +230,13 @@ describe('the account’s routes', () => {
     const sent = await call(ACCOUNT_PATHS.feedback, PLAYER, {
       kind: 'suggestion',
       text: 'A dark mode for the Cockpit, please',
-      page: '/play/',
+      page: '/games/',
     })
     expect(sent.status).toBe(200)
     const row = await db
       .prepare('select sender, source, page from feedback')
       .first<{ sender: string; source: string; page: string }>()
-    expect(row).toEqual({ sender: 'discord:d-1', source: 'app', page: '/play/' })
+    expect(row).toEqual({ sender: 'discord:d-1', source: 'app', page: '/games/' })
   })
 
   test('metrics are an admin’s, with the totals counted on the read', async () => {

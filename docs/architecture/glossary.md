@@ -4,9 +4,9 @@ One noun and one verb per concept, in everything a player reads in the app and t
 Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy follows this page. The model is ADR-030 in [ARCHITECTURE.md](../ARCHITECTURE.md).
 
 1. **Game** — the shared container a table plays in: always capital G ("Start a Game", "Not in a Game", "Your Games").
-   Lowercase "game" is only Salvage Union itself ("Buy the game"). Not campaign, group or workspace. Its page is Play's, `/play/games/$gameId` (ADR-052).
+   Lowercase "game" is only Salvage Union itself ("Buy the game"). Not campaign, group or workspace. Its page is under the Games tab, `/games/$gameId` (ADR-066).
 2. **Shelf** — the per-account container (code name). Players read it as the **Training Bay** (`PRODUCT.build`): "your Training Bay" in a sentence, **Training Bay** the page at `/`, its band pilot orange. Never "Hangar" or "My Stuff".
-   The Training Bay lists everything you own, in a Game or not, and nothing else; a unit's Game is a chip there, never a filter or a place (ADR-052).
+   The Training Bay lists everything you own, in a Game or not, and nothing else; a unit's Game is a chip there, never a filter or a place, and no Games are listed there (ADR-052, ADR-066).
 3. **Assign** — the one verb for an assignment (ADR-037): assign, unassign, assigned; a pilot to a mech, a pilot, mech or NPC to a crawler.
    Never linked, wired, docked or aboard for it; a crawler's assigned pilots are its crew. Code calls the record a soft link.
 4. **Move** — the same record changes container ("Move to a Game…", "Move to your Training Bay"). It is never a copy.
@@ -16,8 +16,8 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
 7. **Board** — a pilot taking a mech's seat in Play (ADR-051 §3); "aboard" belongs to this, not to assignment.
    "Dock" is only the Mech Bay's function action.
 8. **Player**, **Mediator**, **Organiser** — the roles, capitalised; Organiser in British spelling. "Table runner" in docs is the Mediator, or the Organiser while a Game has none.
-9. **Training Bay** and **The Cantina** — the names of Build and Play, the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`), each a bay of the Union Crawler.
-   They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Play hub's band); the header's tabs stay Reference | Build | Play. The whole app is "the app" (the account: a salvageunion.io account), never "the Cantina".
-   Both are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
+9. **Training Bay** and **Games** — the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`), and the header's nouns: Reference | Training Bay | Games (ADR-066).
+   They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Games hub's band). **Play** is a mode of a pilot's page (Read | Edit | Play), never an area. The whole app is "the app" (the account: a salvageunion.io account).
+   The Training Bay and The Cantina are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.
 10. **Group session** — a Game's table sitting down to play: the table runner's **Start group session** and **End group session**; while it runs, "Session live" and **Join session**. Never a lock: Play opens without one.
