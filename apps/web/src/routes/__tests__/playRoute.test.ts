@@ -7,18 +7,18 @@
  * them.
  *
  * `router.load()` runs every `beforeLoad` without rendering, so it proves no
- * route redirects away, that `/play/games/<id>/mediate` is the Mediator's
- * screen and not nested in the Game's page, and that Play is at its own root
- * on the site, `/play/…`, outside the base.
+ * route redirects away, that `/games/<id>/mediate` is the Mediator's screen
+ * and not nested in the Game's page, that a pilot's Play is its own page's
+ * mode, and that the Games are at their own root on the site, `/games/…`.
  */
 
 import { describe, expect, test } from 'bun:test'
-import { Route as PlayGame } from '../play/games/$gameId_/mediate'
-import { Route as PlayLanding } from '../play/index'
-import { Route as PlayPilot } from '../play/pilots/$pilotId'
+import { Route as PlayGame } from '../games/$gameId_/mediate'
+import { Route as PlayLanding } from '../games/index'
+import { Route as PlayPilot } from '../pilots/$id_/play'
 import { land } from './landOn'
 
-describe('the Play routes', () => {
+describe('the Games and Play routes', () => {
   test('each has a page title', async () => {
     expect((await PlayLanding.options.head?.({} as never))?.meta).toEqual([
       { title: 'The Cantina · SalvageUnion.io' },
@@ -32,26 +32,31 @@ describe('the Play routes', () => {
   })
 
   test('the landing, a pilot’s screen and a Game’s each stay put', async () => {
-    expect(await land('/play/')).toEqual({ pathname: '/play/', leaf: '/play/' })
-    expect(await land('/play/pilots/p1')).toEqual({
-      pathname: '/play/pilots/p1',
-      leaf: '/play/pilots/$pilotId',
+    expect(await land('/games/')).toEqual({ pathname: '/games/', leaf: '/games/' })
+    expect(await land('/pilots/p1/play')).toEqual({
+      pathname: '/pilots/p1/play',
+      leaf: '/pilots/$id_/play',
     })
-    expect(await land('/play/games/g1/mediate')).toEqual({
-      pathname: '/play/games/g1/mediate',
-      leaf: '/play/games/$gameId_/mediate',
+    expect(await land('/games/g1/mediate')).toEqual({
+      pathname: '/games/g1/mediate',
+      leaf: '/games/$gameId_/mediate',
     })
-    expect(await land('/play/games/g1')).toEqual({
-      pathname: '/play/games/g1',
-      leaf: '/play/games/$gameId',
+    expect(await land('/games/g1')).toEqual({
+      pathname: '/games/g1',
+      leaf: '/games/$gameId',
     })
   })
 
-  test('on the site, Play is at its own root and Build under the base', async () => {
-    expect(await land('/play/games/g1', true)).toEqual({
-      pathname: '/play/games/g1',
-      address: '/play/games/g1',
-      leaf: '/play/games/$gameId',
+  test('on the site, the Games are at their own root and Build under the base', async () => {
+    expect(await land('/games/g1', true)).toEqual({
+      pathname: '/games/g1',
+      address: '/games/g1',
+      leaf: '/games/$gameId',
+    })
+    expect(await land('/build/pilots/p1/play', true)).toEqual({
+      pathname: '/pilots/p1/play',
+      address: '/build/pilots/p1/play',
+      leaf: '/pilots/$id_/play',
     })
     expect(await land('/build/pilots/p1', true)).toEqual({
       pathname: '/pilots/p1',

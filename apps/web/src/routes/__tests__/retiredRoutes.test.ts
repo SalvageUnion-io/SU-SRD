@@ -6,7 +6,8 @@
  * pilot; `/mediator/$gameId` → the Game's Play screen), and Build's Game page,
  * `/games/$gameId`, became the Game's page in Play (ADR-052 §5). Then Play
  * moved out from under the base to `/play/…`, and the sheets and Patterns
- * took the plural grammar (ADR-062). Each lands in one hop on a live route of
+ * took the plural grammar (ADR-062); then Play's root became the Games'
+ * (`/games/…`) and each pilot's Cockpit the Play mode of its page (ADR-065). Each lands in one hop on a live route of
  * the real generated tree.
  *
  * The site's search page, `/search`, is retired: the bar's dropdown is the
@@ -38,20 +39,27 @@ async function redirectOf(path: string) {
 describe('the retired app addresses', () => {
   for (const [from, to, leaf] of [
     // intheunionnow.com's, through its zone rule's `/build` + path.
-    ['/build/dashboard/p1', '/play/pilots/p1', '/play/pilots/$pilotId'],
-    ['/build/mediator/g1', '/play/games/g1/mediate', '/play/games/$gameId_/mediate'],
-    ['/build/games/g1', '/play/games/g1', '/play/games/$gameId'],
-    ['/build/games/g1/', '/play/games/g1', '/play/games/$gameId'],
-    ['/build/games', '/play/', '/play/'],
-    ['/build/join/AB12CD34', '/play/invite/AB12CD34', '/play/invite/$token'],
+    ['/build/dashboard/p1', '/build/pilots/p1/play', '/pilots/$id_/play'],
+    ['/build/mediator/g1', '/games/g1/mediate', '/games/$gameId_/mediate'],
+    ['/build/games/g1', '/games/g1', '/games/$gameId'],
+    ['/build/games/g1/', '/games/g1', '/games/$gameId'],
+    ['/build/games', '/games/', '/games/'],
+    ['/build/join/AB12CD34', '/games/invite/AB12CD34', '/games/invite/$token'],
     ['/build/games/g1/view/mech/m1', '/build/mechs/m1', '/mechs/$id'],
     // Play under the base, and the sheets' and Patterns' old grammar.
-    ['/build/play/', '/play/', '/play/'],
-    ['/build/play', '/play/', '/play/'],
-    ['/build/play/games/g1', '/play/games/g1', '/play/games/$gameId'],
-    ['/build/play/game/g1', '/play/games/g1/mediate', '/play/games/$gameId_/mediate'],
-    ['/build/play/p1', '/play/pilots/p1', '/play/pilots/$pilotId'],
-    ['/build/invite/AB12CD34', '/play/invite/AB12CD34', '/play/invite/$token'],
+    ['/build/play/', '/games/', '/games/'],
+    ['/build/play', '/games/', '/games/'],
+    ['/build/play/games/g1', '/games/g1', '/games/$gameId'],
+    ['/build/play/game/g1', '/games/g1/mediate', '/games/$gameId_/mediate'],
+    ['/build/play/p1', '/build/pilots/p1/play', '/pilots/$id_/play'],
+    // Play's own root, retired for the Games and each pilot's Play (ADR-065).
+    ['/play/', '/games/', '/games/'],
+    ['/play', '/games/', '/games/'],
+    ['/play/games/g1', '/games/g1', '/games/$gameId'],
+    ['/play/games/g1/mediate', '/games/g1/mediate', '/games/$gameId_/mediate'],
+    ['/play/invite/AB12CD34', '/games/invite/AB12CD34', '/games/invite/$token'],
+    ['/play/pilots/p1', '/build/pilots/p1/play', '/pilots/$id_/play'],
+    ['/build/invite/AB12CD34', '/games/invite/AB12CD34', '/games/invite/$token'],
     ['/build/sheet/pilot/p1', '/build/pilots/p1', '/pilots/$id'],
     ['/build/sheet/npc/n1/', '/build/npcs/n1', '/npcs/$id'],
     ['/build/mechs/patterns', '/build/patterns/', '/patterns/'],
@@ -69,8 +77,8 @@ describe('the retired app addresses', () => {
     })
   }
 
-  test("Play's own addresses are current, never retired", async () => {
-    for (const path of ['/play/', '/play/games/g1', '/play/pilots/p1', '/play/invite/AB12']) {
+  test('the Games’ own addresses and a pilot’s Play are current, never retired', async () => {
+    for (const path of ['/games/', '/games/g1', '/build/pilots/p1/play', '/games/invite/AB12']) {
       const { status } = await redirectOf(path)
       expect(status).not.toBe(301)
     }

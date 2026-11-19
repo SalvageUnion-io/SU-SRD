@@ -217,7 +217,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               }
               stamp={playStamp(target)}
               tone={PHASE_TONE[play.situation]}
-              backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
+              backHref={target.gameId === null ? '/games/' : gamePath(target.gameId)}
               backLabel={solo ? playCopy('play') : playCopy('game')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
@@ -339,8 +339,7 @@ function CockpitMenu({
                 label: playCopy('gamePage'),
                 hint: gameName ?? undefined,
                 onSelect: () => {
-                  if (router)
-                    void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
+                  if (router) void router.navigate({ to: '/games/$gameId', params: { gameId } })
                   else window.location.assign(gamePath(gameId))
                 },
               },

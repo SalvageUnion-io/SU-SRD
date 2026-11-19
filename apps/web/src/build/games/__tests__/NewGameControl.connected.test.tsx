@@ -7,7 +7,7 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  *
  * What these pin: there is no game UI for somebody who is not signed in; a game
  * started by name or from a template opens on its page in Play
- * (`/play/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
+ * (`/games/$gameId`) and the dialog gets out of the way; a refusal is shown in the words the server chose; and there
  * is no code to type — a Game is joined from an invite link.
  *
  * Queries are answered **by name** — see `serverMock.ts`.
@@ -123,7 +123,7 @@ describe('starting a game', () => {
     await press('Create')
 
     expect(mutations).toEqual([{ name: 'games.create', args: { name: 'Union Crawler #430' } }])
-    expect(assigned).toEqual(['/play/games/g-new'])
+    expect(assigned).toEqual(['/games/g-new'])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -134,7 +134,7 @@ describe('starting a game', () => {
     expect(mutations).toEqual([
       { name: 'templates.createGame', args: { templateId: 'starter-set' } },
     ])
-    expect(assigned).toEqual(['/play/games/g-template'])
+    expect(assigned).toEqual(['/games/g-template'])
   })
 
   test('a refusal is shown in the server’s own words, and goes nowhere', async () => {

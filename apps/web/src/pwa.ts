@@ -61,7 +61,7 @@
  */
 
 import type { VitePWAOptions } from 'vite-plugin-pwa'
-import { APP_BASE, PLAY_ROOT } from './lib/appBase'
+import { APP_BASE, GAMES_ROOT, RETIRED_PLAY_ROOT } from './lib/appBase'
 
 /** The one web manifest, at the site's root; every page links it. */
 export const SITE_MANIFEST = '/site.webmanifest'
@@ -96,11 +96,11 @@ const APP_DIR = APP_BASE.slice(1)
 const BUILDER_SHELL = `${APP_DIR}/index.html`
 
 /**
- * The app's paths, Build and Play: what `routeInApp` reads as the app. The
+ * The app's paths, the Training Bay, the Games and Play's retired root: what `routeInApp` reads as the app. The
  * app rule below and `public/sw-lifecycle.js` spell it out as a literal, since
  * neither can import it (`__tests__/pwa.test.ts` holds both to it).
  */
-export const APP_PATH = new RegExp(`^(${APP_BASE}|${PLAY_ROOT})(/|$)`)
+export const APP_PATH = new RegExp(`^(${APP_BASE}|${GAMES_ROOT}|${RETIRED_PLAY_ROOT})(/|$)`)
 
 /**
  * The runtime rules, in match order. Each `urlPattern` is stringified into
@@ -112,7 +112,7 @@ export const RUNTIME_CACHING = [
     // The app, Build and Play: the network's shell, else the precached one.
     // `APP_PATH`, spelled out: workbox-build stringifies the function on its own.
     urlPattern: ({ request, url }: { request: Request; url: URL }) =>
-      request.mode === 'navigate' && /^(\/build|\/play)(\/|$)/.test(url.pathname),
+      request.mode === 'navigate' && /^(\/build|\/games|\/play)(\/|$)/.test(url.pathname),
     handler: 'NetworkOnly' as const,
     options: { precacheFallback: { fallbackURL: BUILDER_SHELL } },
   },

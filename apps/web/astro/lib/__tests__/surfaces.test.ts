@@ -60,7 +60,7 @@ describe('home: the front door, then the manual’s Contents', () => {
   it('opens three ways in: the Reference below, Build and Play in the app', () => {
     const doors = html.slice(html.indexOf('id="three-ways-in"'), html.indexOf('id="contents"'))
     expect(doors.match(/class="su-start-here__item"/g)).toHaveLength(3)
-    for (const href of ['#contents', '/build/', '/play/']) {
+    for (const href of ['#contents', '/build/', '/games/']) {
       expect(doors).toContain(`<a href="${href}" class="su-entity-index su-start-here__step`)
     }
     expect(doors).not.toContain('target="_blank"')

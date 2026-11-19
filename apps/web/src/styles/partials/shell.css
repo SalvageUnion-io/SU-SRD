@@ -189,43 +189,6 @@
   }
 }
 
-/* The product nav, inline beside the switcher, ruled off from it. */
-.su-union-bar__nav {
-  align-items: center;
-  align-self: stretch;
-  display: none;
-  gap: var(--space-20);
-  padding-left: var(--space-16);
-}
-
-* + .su-union-bar__nav {
-  border-left: var(--bw-hairline) solid var(--su-bar-fg-30);
-}
-
-.su-union-bar__link {
-  align-items: center;
-  align-self: stretch;
-  border-bottom: var(--bw-pill) solid transparent;
-  border-top: var(--bw-pill) solid transparent;
-  display: inline-flex;
-  flex-shrink: 0;
-  font-size: var(--text-lede);
-  text-decoration: none;
-  transition:
-    color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease);
-  color: var(--su-bar-fg-70);
-}
-
-.su-union-bar__link:hover,
-.su-union-bar__link[aria-current='page'] {
-  color: var(--su-bar-fg);
-}
-
-.su-union-bar__link[aria-current='page'] {
-  border-bottom-color: var(--su-bar-fg);
-}
-
 /* Quiet links (About, Changelog): mixed case, a step back from the nav. */
 .su-union-bar__quiet {
   color: var(--su-bar-fg-70);
@@ -276,19 +239,6 @@
   border-color: var(--su-bar-fg);
 }
 
-/* A bar with a product nav (The app's) has no room for "Buy the game" until
-   80rem: from `lg` to there it would push the row past the viewport. Below
-   `lg` the drawer carries it. */
-.su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
-  display: none;
-}
-
-@media (width >= 80rem) {
-  .su-union-bar__nav ~ .su-union-bar__end .su-union-bar__buy {
-    display: inline-flex;
-  }
-}
-
 /* The search field's width in the bar (`SearchField`'s input). Scoped to the
    bar so it outranks the field's own `width: 100%` (atoms-leaves.css loads
    later). */
@@ -334,7 +284,6 @@
 }
 
 @media (width >= 64rem) {
-  .su-union-bar__nav,
   .su-union-bar__end {
     display: flex;
   }
@@ -404,14 +353,6 @@
   .su-union-bar:has(.su-union-bar__search .su-search-field) .su-mobile-search__trigger {
     display: none;
   }
-}
-
-/* The app's bar carries both modes' navs (`UnionBar`); it shows the one of
-   the mode it wears (`data-mode`), which the shell is served marked with
-   (`markUnionRoute`), so the right nav paints first. */
-.su-union-bar:not([data-mode='build']) .su-union-bar__nav[data-mode='build'],
-.su-union-bar:not([data-mode='play']) .su-union-bar__nav[data-mode='play'] {
-  display: none;
 }
 
 /* ══ Breadcrumbs (the Union bar's trail) ════════════════════════════════════

@@ -66,7 +66,7 @@ test.describe('signed out', { tag: '@pr' }, () => {
       mode: 'build',
       nav: ['Training Bay', 'Patterns', 'Starter Set'],
     },
-    { path: at('/play/'), mode: 'play', nav: ['Solo'] },
+    { path: at('/games/'), mode: 'play', nav: ['Solo'] },
   ] as const
 
   test('the Union bar holds one height in Build and in Play', async ({ page }) => {

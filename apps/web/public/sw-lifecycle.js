@@ -5,7 +5,7 @@
  * The worker is built with `registerType: 'prompt'`, so on its own a new one
  * waits until a page activates it or every tab closes. At install this decides:
  *
- * - **An app tab is open** (`/build/…` or `/play/…`): wait. The tab is a long session
+ * - **An app tab is open** (`/build/…`, `/games/…` or the retired `/play/…`): wait. The tab is a long session
  *   reading chunks the old precache holds; it moves onto the new build at its
  *   next page change, which activates this worker
  *   (`src/lib/sw/softUpdate.ts`).
@@ -28,7 +28,7 @@
 ;((sw) => {
   const MARKER = 'su-sw-v1'
   // `APP_PATH` in src/pwa.ts, spelled out: this file is served as-is.
-  const BUILDER = /^(\/build|\/play)(\/|$)/
+  const BUILDER = /^(\/build|\/games|\/play)(\/|$)/
   let legacy = false
   let takeover = false
 

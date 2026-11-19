@@ -1,5 +1,5 @@
 /**
- * PlayLanding — the Play hub (`/play/`, ADR-052 §4): your Games, and one tap
+ * PlayLanding — the Play hub (`/games/`, ADR-052 §4): your Games, and one tap
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
@@ -10,7 +10,7 @@
  *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
- *    (`/play/games/$gameId`). Its chips are your role, how many are here now
+ *    (`/games/$gameId`). Its chips are your role, how many are here now
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
@@ -215,7 +215,7 @@ function PlayFrontDoor() {
           value={playCopy('pitchValue')}
           actions={
             <>
-              <SignInControl size="full" redirectTo="/play/" />
+              <SignInControl size="full" redirectTo="/games/" />
               <Button href={`#${STARTER_ID}`} variant="default" size="full">
                 {playCopy('meetTheStarterCrew')}
               </Button>

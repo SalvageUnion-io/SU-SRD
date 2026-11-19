@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 /**
- * `/play/invite/$token` — a Game's invite URL, in Play (ADR-052 §4).
+ * `/games/invite/$token` — a Game's invite URL, in Play (ADR-052 §4).
  *
  * This is the one URL in the app a stranger can be handed, so the failure modes
  * worth defending are about people who are not signed in and links that are no
@@ -66,7 +66,7 @@ function preview(over: Record<string, unknown> = {}) {
 }
 
 /** What joining opens: the Game's own page, in Play. */
-const THE_GAME = { to: '/play/games/$gameId', params: { gameId: 'g1' } }
+const THE_GAME = { to: '/games/$gameId', params: { gameId: 'g1' } }
 
 function renderJoin(value: unknown, joinOnArrival = false) {
   answerPreview(value)
@@ -128,7 +128,7 @@ describe('a link that is no good', () => {
     // An old typed code from `/join/…` lands here too: say how joining works now.
     expect(screen.getByText(/there is no code to type/i)).toBeTruthy()
     expect(screen.queryByText('Join this Game')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
   })
 
   test('still checking is not the same as invalid', () => {
@@ -171,7 +171,7 @@ describe('a visitor who is not signed in', () => {
     expect(screen.getByText(/does not work/i)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Sign in to join' })).toBeNull()
     // Its ways on: back to your shelves, and — signed out — a plain sign-in.
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     isAuthenticated = true
   })

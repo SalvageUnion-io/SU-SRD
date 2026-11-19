@@ -1,6 +1,6 @@
 /**
  * PlayGate — who may open Play for a pilot, decided live: the body of
- * `/play/pilots/$pilotId`.
+ * `/pilots/$id/play`.
  *
  * Play opens for any pilot of yours, in a Game or solo. The store holds only
  * your own pilots (a crewmate's never reaches this browser), so a pilot the
@@ -40,7 +40,7 @@ import { useUnits } from '../replica/units'
 import { PlayCockpit } from './PlayCockpit'
 import { PlayRefusal } from './PlayRefusal'
 
-const TO_PLAY = { href: '/play/', label: playCopy('play') }
+const TO_PLAY = { href: '/games/', label: playCopy('play') }
 
 export function PlayGate({ id }: { id: string }) {
   const { status } = useSync()
@@ -80,7 +80,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
 
   useEffect(() => {
     if (flownBy !== null) {
-      void navigate({ to: '/play/pilots/$pilotId', params: { pilotId: flownBy }, replace: true })
+      void navigate({ to: '/pilots/$id/play', params: { id: flownBy }, replace: true })
     }
   }, [flownBy, navigate])
 

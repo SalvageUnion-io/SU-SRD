@@ -67,7 +67,7 @@ describe('link previews', () => {
       'Bonesaw'
     )
     expect(
-      title(await (await worker.fetch(discordbot('/play/invite/K7QR2XA'), env(db))).text())
+      title(await (await worker.fetch(discordbot('/games/invite/K7QR2XA'), env(db))).text())
     ).toBe('Reclamation of the Wastes')
     await publish(db, 'account:u-1', {})
     expect(title(await (await worker.fetch(discordbot('/p/pilot/p-1'), env(db))).text())).toBe(

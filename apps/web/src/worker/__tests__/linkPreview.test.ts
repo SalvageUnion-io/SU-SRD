@@ -266,29 +266,29 @@ describe('a Discordbot fetch of a private sheet', () => {
 })
 
 describe('a Discordbot fetch of an invite', () => {
-  it('unfurls the /play/invite/<token> link the app and the bot hand out', async () => {
-    const html = await unfurl('/play/invite/K7QR2XA')
+  it('unfurls the /games/invite/<token> link the app and the bot hand out', async () => {
+    const html = await unfurl('/games/invite/K7QR2XA')
     expect(meta(html, 'og:title')).toBe('Reclamation of the Wastes')
     expect(meta(html, 'og:description')).toBe("You're invited · Player seat · Mediated by alxjrvs.")
     expect(meta(html, 'og:title')).not.toContain('K7QR2XA')
     expect(meta(html, 'og:description')).not.toContain('K7QR2XA')
-    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/play/invite/K7QR2XA')
+    expect(meta(html, 'og:url')).toBe('https://salvageunion.io/games/invite/K7QR2XA')
     expect(meta(html, 'theme-color')).toBe(color.crawlerBand)
     expect(html).toContain('<title>Reclamation of the Wastes</title>')
   })
 
-  it('sends an old /join/<code> link to /play/invite/<code> before unfurling, so the bot unfurls that', async () => {
+  it('sends an old /join/<code> link to /games/invite/<code> before unfurling, so the bot unfurls that', async () => {
     // Where intheunionnow.com's zone Redirect Rule sends an old link.
     const old = new Request('https://salvageunion.io/build/join/K7QR2XA', {
       headers: { 'user-agent': 'Discordbot/2.0' },
     })
     const res = await worker.fetch(old, env())
     expect(res.status).toBe(301)
-    expect(res.headers.get('location')).toBe('/play/invite/K7QR2XA')
+    expect(res.headers.get('location')).toBe('/games/invite/K7QR2XA')
   })
 
   it('keeps the sitewide defaults for a dead code', async () => {
-    expect(meta(await unfurl('/play/invite/DEADCODE'), 'og:title')).toBe(
+    expect(meta(await unfurl('/games/invite/DEADCODE'), 'og:title')).toBe(
       'Training Bay · SalvageUnion.io'
     )
   })
@@ -328,7 +328,7 @@ describe('previewRouteOf', () => {
     expect(previewRouteOf('/p/pilot/abc')).toEqual({ type: 'sheet', kind: 'pilot', id: 'abc' })
     expect(previewRouteOf('/p/pattern/abc')).toEqual({ type: 'sheet', kind: 'pattern', id: 'abc' })
     expect(previewRouteOf('/p/npc/abc')).toEqual({ type: 'sheet', kind: 'npc', id: 'abc' })
-    expect(previewRouteOf('/play/invite/0123456789ABCDEF')).toEqual({
+    expect(previewRouteOf('/games/invite/0123456789ABCDEF')).toEqual({
       type: 'invite',
       code: '0123456789ABCDEF',
     })

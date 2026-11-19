@@ -8,7 +8,7 @@ import { expect, test } from './fixtures'
  * in from Build (ADR-052 §3–§5; Play only plays):
  *
  *  1. The Organizer makes a Game on the Play hub (+ New Game) and lands on its
- *     page, `/play/games/<id>`, and copies its invite link.
+ *     page, `/games/<id>`, and copies its invite link.
  *  2. A player, with a pilot already in their Training Bay, opens the link and joins:
  *     joining lands on the same Game's page.
  *  3. They move the pilot in from their Training Bay (its ⋯ menu's Move to a
@@ -56,7 +56,7 @@ test(
       await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({
         timeout: 20_000,
       })
-      await openApp(player.page, `/play/games/${gameId}`)
+      await openApp(player.page, `/games/${gameId}`)
       await expect(
         player.page.getByRole('region', { name: 'Crew' }).getByText(PILOT).first()
       ).toBeVisible({ timeout: 20_000 })

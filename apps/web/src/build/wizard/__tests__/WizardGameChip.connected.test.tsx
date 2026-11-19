@@ -31,7 +31,7 @@ describe("a wizard's Game chip", () => {
     wrap()
     expect(screen.getByText('Game')).toBeTruthy()
     const link = screen.getByText('Rust Run').closest('a')
-    expect(link?.getAttribute('href')).toMatch(/\/play\/games\/g1$/)
+    expect(link?.getAttribute('href')).toMatch(/\/games\/g1$/)
     expect(queryCalls()).toEqual([{ name: 'games.get', args: { gameId: 'g1' } }])
   })
 

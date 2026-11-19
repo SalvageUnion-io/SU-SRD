@@ -336,7 +336,7 @@ describe('Training Bay — items', () => {
     expect(line?.textContent).toContain('Engineer')
     expect(line?.textContent).not.toContain('Pilot ·')
     // In no Game: its Game column is empty, never "Unassigned" (C11).
-    expect(line?.querySelector('a[href^="/play/games/"]')).toBeNull()
+    expect(line?.querySelector('a[href^="/games/"]')).toBeNull()
     expect(line?.textContent).not.toContain('Unassigned')
   })
 

@@ -185,7 +185,7 @@ describe('/su sheet', () => {
     ['just-a-name'],
     ['pilots:'],
     ['bogus:p1'],
-    ['https://salvageunion.io/play/games/g1'],
+    ['https://salvageunion.io/games/g1'],
     ['https://salvageunion.io/build/pilots/new'],
   ])('refuses a value that is neither a pick nor a sheet link (%s)', async (typed) => {
     connect(OK_SHEET)

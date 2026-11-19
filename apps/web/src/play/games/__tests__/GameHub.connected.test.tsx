@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
- * `GameHub` — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5):
+ * `GameHub` — a Game's own page in Play, `/games/$gameId` (ADR-052 §5):
  * the band, the roster, then two columns of sections. What this
  * file defends:
  *
@@ -281,7 +281,7 @@ describe('the sections under the roster', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
     expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
-    expect(navigations).toEqual([{ to: '/play' }])
+    expect(navigations).toEqual([{ to: '/games' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
@@ -379,7 +379,7 @@ describe('the Mediator on the Game page', () => {
 
     expect(screen.getByText('You mediate')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe(
-      '/play/games/g1/mediate'
+      '/games/g1/mediate'
     )
     expect(heading('Proposals you sent')).toBeTruthy()
     expect(screen.getByText('Judge · HP → 4 · “Ejection burn”')).toBeTruthy()
@@ -433,7 +433,7 @@ describe('a game the viewer is not in', () => {
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
   })
 
   test('still loading is not the same as not a member', async () => {
@@ -550,7 +550,7 @@ describe('Play from the Game page', () => {
     })
     expect(launcher()).toBeNull()
     const links = screen.getAllByRole('link', { name: 'Mediate' })
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/play/games/g1/mediate'])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/games/g1/mediate'])
   })
 
   test('a Game with no Mediator plays too', async () => {
@@ -560,7 +560,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
   })
 
   test('nothing shows while the crew is still loading', async () => {
@@ -586,7 +586,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -627,9 +627,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(launch)
     })
-    expect(navigations).toEqual([
-      { to: '/play/pilots/$pilotId', params: { pilotId: 'hub-pregen' } },
-    ])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-pregen' } }])
   })
 
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
@@ -660,7 +658,7 @@ describe('Play from the Game page', () => {
       await act(async () => {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
       })
-      ids.push((navigations[0] as { params: { pilotId: string } }).params.pilotId)
+      ids.push((navigations[0] as { params: { id: string } }).params.id)
       dialog = await openPicker()
     }
     expect(ids).toEqual(['hub-mine', 'hub-mine-2', 'hub-pregen'])

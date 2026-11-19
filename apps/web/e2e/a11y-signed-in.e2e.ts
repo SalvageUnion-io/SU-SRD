@@ -44,7 +44,7 @@ test('no accessibility violations signed in', async ({ page, browser, baseURL },
       at('/mechs/new?mode=guided'),
       at('/crawlers/new?mode=guided'),
       at('/npcs/new'),
-      at('/play/'),
+      at('/games/'),
       ...SEED_KEYS.map((key) => seed[key]),
     ],
     // The reference-data gate's loading screen has no <main>.

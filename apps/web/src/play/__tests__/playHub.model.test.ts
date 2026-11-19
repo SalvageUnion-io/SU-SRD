@@ -42,18 +42,18 @@ describe('its chips', () => {
 describe('its doors', () => {
   const MEDIATE = {
     label: 'Mediate',
-    href: '/play/games/g1/mediate',
+    href: '/games/g1/mediate',
     ariaLabel: 'Mediate The Rust Belt Run',
   }
   const BONESAW = {
     label: 'Play Bonesaw',
-    href: '/play/pilots/p1',
+    href: '/pilots/p1/play',
     ariaLabel: 'Play Bonesaw in The Rust Belt Run',
   }
 
   const START = {
     label: 'Start session',
-    href: '/play/games/g1/mediate',
+    href: '/games/g1/mediate',
     ariaLabel: 'Start a group session of The Rust Belt Run',
     start: true,
   }
@@ -84,7 +84,7 @@ describe('its doors', () => {
       BONESAW,
       {
         label: 'Play Driftwood',
-        href: '/play/pilots/p2',
+        href: '/pilots/p2/play',
         ariaLabel: 'Play Driftwood in The Rust Belt Run',
       },
     ])
@@ -99,7 +99,7 @@ describe('its doors', () => {
       MEDIATE,
       {
         label: 'Join as Bonesaw',
-        href: '/play/pilots/p1',
+        href: '/pilots/p1/play',
         ariaLabel: 'Join the session in The Rust Belt Run as Bonesaw',
       },
     ])

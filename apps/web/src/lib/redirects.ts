@@ -12,7 +12,8 @@
  * - The app's rules (`worker/app.ts`) for the paths under `/build` it
  *   no longer has (`retiredDocPage`, `retiredTarget`): the Worker runs first
  *   there, so `_redirects` never sees them. Play moved out from under the base
- *   to its own root, `/play` (ADR-062), so its old addresses are among them.
+ *   to `/play` (ADR-062), then became the Games' root and each pilot's Play
+ *   mode (ADR-065), so its old addresses are among them, at either root.
  *
  * A published URL never dies (ADR-043, decision 4). Pure: the Worker bundles it.
  */
@@ -25,7 +26,11 @@ import {
   mediatePath,
   sheetPath,
 } from 'game-domain/entityKinds'
-import { APP_BASE, appPath, underBase } from './appBase'
+import { APP_BASE, appPath, GAMES_ROOT, underBase } from './appBase'
+
+/** Your Games, the Games' root (ADR-065). */
+const GAMES_HOME = `${GAMES_ROOT}/`
+
 import { DOC_PAGES } from './docPages'
 import { searchHref } from './searchHref'
 
@@ -250,11 +255,13 @@ export function retiredDocPage(path: string): string | null {
  * Play's and the sheets' addresses before Play had its own root (ADR-062),
  * from links pasted into Discord, bookmarks and installed apps:
  *
- *   - `/play/…`                              → `/play/…` at its own root:
- *     `/play/game/:gameId`                   → `/play/games/:gameId/mediate`,
- *     `/play/:pilotId`                       → `/play/pilots/:pilotId`, and
- *     every other Play path keeps its own (`/play/`, `/play/games/:gameId`)
- *   - `/invite/:token`                       → `/play/invite/:token`
+ *   - `/play/…`, here or at Play's retired root (ADR-065):
+ *     `/play/`                               → `/games/`,
+ *     `/play/games/:gameId[/mediate]`        → `/games/:gameId[/mediate]`,
+ *     `/play/invite/:token`                  → `/games/invite/:token`,
+ *     `/play/pilots/:pilotId`, `/play/:pilotId` → `/pilots/:pilotId/play`,
+ *     `/play/game/:gameId`                   → `/games/:gameId/mediate`
+ *   - `/invite/:token`                       → `/games/invite/:token`
  *   - `/sheet/:kind/:id`                     → `/<kind>s/:id` (`sheetPath`)
  *   - `/mechs/patterns`                      → `/patterns/`
  *
@@ -262,15 +269,15 @@ export function retiredDocPage(path: string): string | null {
  * browser; that zone's Redirect Rule sends every path to the same path under
  * salvageunion.io/build:
  *
- *   - `/games`                               → `/play/` (Your Games is Play's hub)
- *   - `/games/:gameId`                       → `/play/games/:gameId` (ADR-052 §5)
+ *   - `/games`                               → `/games/` (Your Games, at its own root)
+ *   - `/games/:gameId`                       → `/games/:gameId`
  *   - `/games/:gameId/view/:kind/:entityId`  → `/<kind>s/:entityId` (the old crew
  *     view; the live read-only sheet takes the same row id)
- *   - `/join/:code`                          → `/play/invite/:code` (an invite's
+ *   - `/join/:code`                          → `/games/invite/:code` (an invite's
  *     token is its old join code, so the invite page joins or explains)
- *   - `/dashboard/:pilotId`                  → `/play/pilots/:pilotId` (`PlayGate`
+ *   - `/dashboard/:pilotId`                  → `/pilots/:pilotId/play` (`PlayGate`
  *     resolves an old mech-keyed id to its pilot)
- *   - `/mediator/:gameId`                    → `/play/games/:gameId/mediate`
+ *   - `/mediator/:gameId`                    → `/games/:gameId/mediate`
  *
  * Each lands where it lives now in one hop. A trailing slash names the same
  * address. A path under one of these prefixes that names none of these shapes
@@ -291,7 +298,7 @@ export function retiredTarget(path: string): string | null {
     return isEntityKind(second) ? sheetPath(second, third) : null
   if (first === 'mechs' && second === 'patterns' && parts.length === 2) return '/patterns/'
   if (first === 'invite' && parts.length === 2 && second !== undefined) return invitePath(second)
-  if (first === 'games' && parts.length === 1) return '/play/'
+  if (first === 'games' && parts.length === 1) return GAMES_HOME
   if (first === 'games' && parts.length === 2 && second !== undefined) return gamePath(second)
   if (first === 'games' && parts.length === 5 && third === 'view') {
     return fourth !== undefined && fifth !== undefined && isEntityKind(fourth)
@@ -305,10 +312,24 @@ export function retiredTarget(path: string): string | null {
   return null
 }
 
-/** A Play path from under the base, at its own root and its current name. */
-function playTarget(parts: readonly string[]): string {
-  const [, second, third] = parts
-  if (parts.length === 3 && second === 'game' && third !== undefined) return mediatePath(third)
-  if (parts.length === 2 && second !== undefined && second !== 'games') return cockpitPath(second)
-  return parts.length === 1 ? '/play/' : `/${parts.join('/')}`
+/** The collections Play's old addresses named, never a pilot's id. */
+const PLAY_COLLECTIONS = new Set(['games', 'game', 'pilots', 'invite'])
+
+/**
+ * A Play path (`/play/…` at its retired root, or under the base) where it lives
+ * now: the Games' root, or the pilot's own page for a Cockpit (ADR-065).
+ */
+function playTarget(parts: readonly string[]): string | null {
+  const [, second, third, fourth] = parts
+  if (parts.length === 1) return GAMES_HOME
+  if (parts.length === 2 && second !== undefined && !PLAY_COLLECTIONS.has(second))
+    return cockpitPath(second)
+  if (second === 'game' && parts.length === 3 && third !== undefined) return mediatePath(third)
+  if (second === 'pilots' && parts.length === 3 && third !== undefined) return cockpitPath(third)
+  if (second === 'invite' && parts.length === 3 && third !== undefined) return invitePath(third)
+  if (parts.length === 2) return GAMES_HOME
+  if (second === 'games' && parts.length === 3 && third !== undefined) return gamePath(third)
+  if (second === 'games' && parts.length === 4 && third !== undefined && fourth === 'mediate')
+    return mediatePath(third)
+  return null
 }

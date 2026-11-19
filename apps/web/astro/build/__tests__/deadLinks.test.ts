@@ -32,8 +32,8 @@ describe('a link resolves', () => {
       '/build/starter',
       '/build/starter/pilot/starter-pilot-bonesaw',
       '/build/mechs/new',
-      '/play/',
-      '/play/games/abc/mediate',
+      '/games/',
+      '/games/abc/mediate',
     ]) {
       expect(resolves(path, site)).toBe(true)
     }

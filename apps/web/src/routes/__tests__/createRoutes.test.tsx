@@ -272,16 +272,16 @@ describe('a sheet route', () => {
   })
 })
 
-describe('/play/pilots/$pilotId', () => {
+describe('/pilots/$id_/play', () => {
   test("hands the pilot's id to the gate", async () => {
-    await mountAt('/play/pilots/p1')
+    await mountAt('/pilots/p1/play')
     expect(await screen.findByText('Play gate for p1')).toBeTruthy()
   })
 })
 
-describe('/play/games/$gameId', () => {
+describe('/games/$gameId', () => {
   test("hands the Game's id to its page", async () => {
-    await mountAt('/play/games/g1')
+    await mountAt('/games/g1')
     expect(await screen.findByText('Game page for g1')).toBeTruthy()
   })
 })
@@ -297,7 +297,7 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
       expect(await screen.findByText(`${name} game: g1`)).toBeTruthy()
       expect(screen.getByText('blank lands in g1')).toBeTruthy()
       await press(`${name}: complete`)
-      expect(at(router).pathname).toBe('/play/games/g1')
+      expect(at(router).pathname).toBe('/games/g1')
     })
   }
 
@@ -308,7 +308,7 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
     await press('Pilot wizard: off rules')
     expect(at(router).search).toEqual({ game: 'g1', mode: 'blank' })
     await press('Pilot wizard: cancel')
-    expect(at(router).pathname).toBe('/play/games/g1')
+    expect(at(router).pathname).toBe('/games/g1')
   })
 
   test('a game param that is not an id is dropped', async () => {
@@ -317,9 +317,9 @@ describe('a wizard started from a Game’s page (`?game=`, ADR-052 §3)', () => 
   })
 })
 
-describe('/play/games/$gameId/mediate', () => {
+describe('/games/$gameId/mediate', () => {
   test("hands the Game's id to the Mediator's gate", async () => {
-    await mountAt('/play/games/g1/mediate')
+    await mountAt('/games/g1/mediate')
     expect(await screen.findByText('Mediate gate for g1')).toBeTruthy()
   })
 })

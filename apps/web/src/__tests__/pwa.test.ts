@@ -9,7 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import { Glob } from 'bun'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { APP_BASE, appPath, PLAY_ROOT, routeInApp } from '../lib/appBase'
+import { APP_BASE, appPath, GAMES_ROOT, RETIRED_PLAY_ROOT, routeInApp } from '../lib/appBase'
 import {
   APP_PATH,
   NAVIGATION_TIMEOUT_SECONDS,
@@ -48,8 +48,10 @@ describe('the app paths', () => {
     APP_BASE,
     appPath('/'),
     appPath('/pilots/x'),
-    PLAY_ROOT,
-    appPath('/play/games/x'),
+    GAMES_ROOT,
+    appPath('/games/x'),
+    RETIRED_PLAY_ROOT,
+    '/gamesroom/',
     '/',
     '/chassis/',
     '/builder/',
@@ -108,7 +110,7 @@ describe('the navigation rules', () => {
     for (const rule of navigation) {
       const original = rule.urlPattern as Matcher
       const rebuilt = new Function(`return (${original.toString()})`)() as Matcher
-      for (const path of ['/', '/build/', '/play/games/x', '/chassis/']) {
+      for (const path of ['/', '/build/', '/games/x', '/chassis/']) {
         expect(rebuilt(requestOf('navigate', path))).toBe(original(requestOf('navigate', path)))
       }
     }

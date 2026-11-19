@@ -1,5 +1,5 @@
 /**
- * GameHub — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5).
+ * GameHub — a Game's own page in Play, `/games/$gameId` (ADR-052 §5).
  *
  * One place per table, in the Manage context (ruleset §1.9): paper under the
  * `play` band, level 0, Slab sections, Compacts that link. It lists a Game the
@@ -8,7 +8,7 @@
  *
  *  0. **The band** (`GameBand`): the Game's name on Play's band, and the ways
  *     into the Cockpit: the Mediator's **Mediate** (after a YOU MEDIATE stamp)
- *     opens Play's Mediator screen (`/play/games/$gameId/mediate`); **Play**
+ *     opens Play's Mediator screen (`/games/$gameId/mediate`); **Play**
  *     (`LaunchPlay`) asks which pilot and opens Play for it, for a player and
  *     for a Mediator who also plays one here.
  *  1. A main column of sections. **Every member:** the Crew (`GameRoster`):
@@ -79,7 +79,7 @@ const NOT_IN_NOTE = { marginTop: tokens.space[24] } satisfies CSSProperties
 const STOP_BANNER = { marginTop: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
-const PLAY_HUB = '/play/'
+const PLAY_HUB = '/games/'
 
 /**
  * A Game the viewer is not in: they left, it ended, or an old link points at
@@ -162,7 +162,7 @@ function GameSections({ game }: { game: Game }) {
         // otherwise show "You are not in this game" — true, and read as an
         // error by someone who just deleted it.
         onDeleted={() => {
-          if (router) void router.navigate({ to: '/play' })
+          if (router) void router.navigate({ to: '/games' })
           else window.location.assign(PLAY_HUB)
         }}
       />

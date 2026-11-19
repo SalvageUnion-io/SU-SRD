@@ -25,7 +25,7 @@ function expectNoLauncher(): void {
   expect(screen.queryByText(/play in a game/i)).toBeNull()
   for (const link of screen.queryAllByRole('link')) {
     expect(link.getAttribute('href') ?? '').not.toContain('/dashboard')
-    expect(link.getAttribute('href') ?? '').not.toContain('/play/')
+    expect(link.getAttribute('href') ?? '').not.toContain('/games/')
   }
 }
 

@@ -189,7 +189,7 @@ describe('the Starter Set’s pre-rendered shell, and the front door', () => {
 })
 
 describe('a private or signed-in route gets no canonical', () => {
-  for (const path of ['/pilots/xyz', '/play/games/g1', '/pilots/new', '/settings']) {
+  for (const path of ['/pilots/xyz', '/games/g1', '/pilots/new', '/settings']) {
     it(`leaves ${path} as the shell, noindex`, async () => {
       const res = await worker.fetch(crawl(path), env())
       // The shell as every route gets it: its Union bar marked for the route.

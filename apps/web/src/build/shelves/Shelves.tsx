@@ -458,7 +458,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 title={buildShelvesCopy('games')}
                 tone="ink"
                 columns={GAME_COLUMNS}
-                action={newLink('/play/', buildShelvesCopy('startOrJoin'))}
+                action={newLink('/games/', buildShelvesCopy('startOrJoin'))}
                 empty={buildShelvesCopy('noGamesYet')}
                 rows={(games ?? []).map((g) => ({
                   id: g._id,

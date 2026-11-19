@@ -3,8 +3,8 @@
  * from the store and the connection, with no React and no I/O.
  *
  * Play is the third mode beside Reference and Build: one screen per pilot,
- * in a Game or solo (`/play/pilots/$pilotId`), one per Game for its Mediator
- * (`/play/games/$gameId/mediate`), and the landing that leads to both (`/play/`).
+ * in a Game or solo (`/pilots/$id/play`), one per Game for its Mediator
+ * (`/games/$gameId/mediate`), and the landing that leads to both (`/games/`).
  */
 
 import { containerOf } from 'game-domain/container'

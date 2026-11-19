@@ -79,7 +79,7 @@ test(
       a11y.push(...(await axeViolations(player.page, 'player in a Game, On foot')))
 
       // The Mediator starts the group session from the hub, which opens their screen.
-      await openApp(page, '/play/')
+      await openApp(page, '/games/')
       await page.getByRole('button', { name: `Start a group session of ${GAME}` }).click()
       await page.waitForURL(/\/mediate$/, { timeout: 30_000 })
       await openPlay(page, new URL(page.url()).pathname)

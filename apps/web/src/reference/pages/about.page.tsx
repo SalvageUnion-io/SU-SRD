@@ -359,7 +359,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
                 {PRODUCT.build}
               </InlineRef>
               , then run them at the table in{' '}
-              <InlineRef href={appPath('/play/')} style={BOLD}>
+              <InlineRef href={appPath('/games/')} style={BOLD}>
                 {PRODUCT.play}
               </InlineRef>
               , with live sheets you can share. Reading needs no account: the Starter Set and any

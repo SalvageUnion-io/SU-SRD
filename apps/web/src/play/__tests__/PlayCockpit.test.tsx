@@ -87,7 +87,7 @@ describe('the Cockpit frame', () => {
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
-    expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
     // Nothing bound: no channel button; the way to bind one is the ⋯'s row.
     expect(bar.queryByRole('button', { name: /Discord channel/ })).toBeNull()
     fireEvent.click(bar.getByRole('button', { name: 'More' }))
@@ -134,9 +134,7 @@ describe('the Cockpit frame', () => {
   test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
-      '/play/games/g1'
-    )
+    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe('/games/g1')
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.hasAttribute('disabled')).toBe(false)
     await act(async () => {

@@ -317,7 +317,7 @@ function isContainerPage(pathname: string): boolean {
 
 /**
  * Drive a `/new` wizard to completion and return once the redirect lands: `/`
- * for the Training Bay, or `/play/games/<id>` for a wizard started from a Game's page
+ * for the Training Bay, or `/games/<id>` for a wizard started from a Game's page
  * (`?game=`), so a pilot built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —

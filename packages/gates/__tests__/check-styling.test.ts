@@ -1081,7 +1081,7 @@ describe('chrome rule set', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
-        'apps/web/src/play/games/A.tsx': [
+        'apps/web/src/games/A.tsx': [
           'export const A = () => (',
           '  <dl style={LIST}>',
           '    <dt>Mediator</dt>',
@@ -1092,13 +1092,13 @@ describe('chrome rule set', () => {
           '',
         ].join('\n'),
         'apps/web/src/components/atoms/StatColumn.tsx': '<dl><dt>SP</dt><dd>4</dd></dl>\n',
-        'apps/web/src/play/games/__tests__/A.test.tsx': "querySelector('dl')\n<dl />\n",
+        'apps/web/src/games/__tests__/A.test.tsx': "querySelector('dl')\n<dl />\n",
       })
     )
     expect(found['raw-dl']?.map((f) => `${f.file}:${f.line}`)).toEqual([
-      'apps/web/src/play/games/A.tsx:2',
-      'apps/web/src/play/games/A.tsx:3',
-      'apps/web/src/play/games/A.tsx:4',
+      'apps/web/src/games/A.tsx:2',
+      'apps/web/src/games/A.tsx:3',
+      'apps/web/src/games/A.tsx:4',
     ])
   })
 
@@ -1106,14 +1106,14 @@ describe('chrome rule set', () => {
     const found = chromeLaws.scan(
       fixture({
         ...CHROME_BASE,
-        'apps/web/src/play/games/A.tsx':
+        'apps/web/src/games/A.tsx':
           'export const A = () => (\n  <table>\n    <tbody />\n  </table>\n)\n',
         'apps/web/src/components/entity/Ledger.tsx': '<table><tbody /></table>\n',
-        'apps/web/src/play/games/__tests__/A.test.tsx': '<table />\n',
+        'apps/web/src/games/__tests__/A.test.tsx': '<table />\n',
       })
     )
     expect(found['raw-table']?.map((f) => `${f.file}:${f.line}`)).toEqual([
-      'apps/web/src/play/games/A.tsx:2',
+      'apps/web/src/games/A.tsx:2',
     ])
   })
 

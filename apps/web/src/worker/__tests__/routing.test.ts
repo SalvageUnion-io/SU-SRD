@@ -209,7 +209,7 @@ describe('the route table Astro injects (`WORKER_ROUTES`)', () => {
         '/auth/session',
         '/build',
         '/build/pilots',
-        '/play/',
+        '/games/',
         '/__rooms/health',
         '/__shared/sheet',
         '/__photos',

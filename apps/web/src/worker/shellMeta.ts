@@ -107,21 +107,17 @@ function withAttribute(tag: string, name: string, value: string | null): string 
 
 /**
  * Mark the shell's Union bar for the route it is served on (`unionHere`), so
- * the right tab, nav and nav item paint first: the bar wears the route's mode
- * (`data-mode`, which also shows that mode's nav), its tab is current, and
- * so is the nav link of the page you are on. The app moves all three as it
- * routes (`UnionBarSlots`). Only the bar's tags change: the header by its
- * class, the tabs by `data-tool`, the links by `data-nav`; React escapes
- * every attribute value, so no `>` sits inside a tag.
+ * the right tab paints first: the bar wears the route's mode (`data-mode`) and
+ * its tab is current. The app moves both as it routes (`UnionBarSlots`). Only
+ * the bar's tags change: the header by its class, the tabs by `data-tool`;
+ * React escapes every attribute value, so no `>` sits inside a tag.
  */
 export function markUnionRoute(shell: string, route: string): string {
-  const { mode, nav } = unionHere(route)
+  const mode = unionHere(route)
   return shell.replace(/<(?:header|a)\s[^>]*>/g, (tag) => {
     if (tag.includes('class="su-union-bar"')) return withAttribute(tag, 'data-mode', mode)
     const tool = /\sdata-tool="([^"]*)"/.exec(tag)?.[1]
     if (tool !== undefined) return withAttribute(tag, 'aria-current', tool === mode ? 'true' : null)
-    const link = /\sdata-nav="([^"]*)"/.exec(tag)?.[1]
-    if (link !== undefined) return withAttribute(tag, 'aria-current', link === nav ? 'page' : null)
     return tag
   })
 }

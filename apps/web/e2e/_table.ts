@@ -33,7 +33,7 @@ export async function secondAccount(
 
 /**
  * Open an invite link by its token and join: joining lands on the Game's own
- * page in Play, `/play/games/<id>`. Resolves to the Game's id.
+ * page in Play, `/games/<id>`. Resolves to the Game's id.
  */
 export async function joinByInvite(page: Page, token: string): Promise<string> {
   await openApp(page, invitePath(token))
@@ -66,7 +66,7 @@ async function assignToMe(page: Page, name: string): Promise<void> {
  * in it offers: that door moves to Play (ADR-051) while the stamp stays.
  */
 export async function setUpTable(page: Page): Promise<{ gameId: string; gameName: string }> {
-  await openApp(page, '/play/')
+  await openApp(page, '/games/')
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
   await page.waitForURL(/\/play\/games\/[^/]+$/, { timeout: 20_000 })

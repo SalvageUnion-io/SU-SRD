@@ -132,7 +132,7 @@ export type PlayBarProps = {
 
 export function PlayBar({
   title,
-  backHref = '/play/',
+  backHref = '/games/',
   backLabel = 'Play',
   live,
   here = null,

@@ -18,15 +18,7 @@
 import type { Page } from '@playwright/test'
 import { appPath } from 'game-domain/appAddress'
 import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
-import {
-  copyStarter,
-  editSheet,
-  openApp,
-  playDoor,
-  sheetHref,
-  sheetLink,
-  waitForReady,
-} from './appPage'
+import { copyStarter, editSheet, openApp, sheetHref, sheetLink, waitForReady } from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -114,13 +106,13 @@ async function seedCarried(
   }
 }
 
-/** "+ New Game" from the Play hub, named; resolves to the new Game's id, its page open. */
+/** "+ New Game" from Your Games, named; resolves to the new Game's id, its page open. */
 export async function createGame(page: Page, name: string, base = ''): Promise<string> {
-  await openApp(page, '/play/', base)
+  await openApp(page, '/games/', base)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill(name)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/play\/games\/[^/]+$/, LONG)
+  await page.waitForURL(/\/games\/[^/]+$/, LONG)
   const id = new URL(page.url()).pathname.split('/').pop()
   if (!id) throw new Error(`No Game id in ${page.url()}`)
   // The Game's own page is up: its band names it, as the page's h1.
@@ -159,6 +151,7 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
 
   await openApp(page, '/', base)
   const pilot = await sheetPath(page, 'pilot', SEED_IN_GAME)
+  const solo = await sheetPath(page, 'pilot', SEED_SOLO)
   const mech = await sheetPath(page, 'mech')
   const crawler = await sheetPath(page, 'crawler')
   await seedCarried(page, base, { pilot, mech, crawler })
@@ -192,12 +185,14 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.waitForURL(/\/build\/npcs\/(?!new)/, LONG)
   const npc = new URL(page.url()).pathname
 
-  // Play's screens: the player's is the pilot's own, `/play/<id>`; the
+  // Play's screens: each pilot's own page's Play mode, `/pilots/<id>/play`; the
   // Mediator's is the Game's own, which its Compact offers only once a group
   // session is live (Start group session until then), so it is the Game's path.
   const pilotId = pilot.match(/\/pilots\/([^/?#]+)/)?.[1]
   if (!pilotId) throw new Error(`no pilot id in ${pilot}`)
-  const playSolo = await playDoor(page, `Play ${SEED_SOLO} solo`, base)
+  const soloId = solo.match(/\/pilots\/([^/?#]+)/)?.[1]
+  if (!soloId) throw new Error(`no pilot id in ${solo}`)
+  const playSolo = appPath(cockpitPath(soloId))
   const playMediator = `${game}/mediate`
 
   return {

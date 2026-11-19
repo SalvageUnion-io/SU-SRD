@@ -182,7 +182,7 @@ function mechStats(body: EntityBody, derived: MechDerived | null) {
 /**
  * Web URLs. The glance lives in Discord; the surface lives in the app.
  *
- * Both mirror real TanStack routes — `/play/games/$gameId`, the Game's page in
+ * Both mirror real TanStack routes — `/games/$gameId`, the Game's page in
  * Play (ADR-052 §5), and `/pilots/$id` and its siblings (`sheetPath`). A link
  * that 404s is worse than no link: it reads as the app having lost the thing,
  * not the bot having guessed.
@@ -284,11 +284,11 @@ export function meCard(me: MeResult): ContainerData {
   })
 }
 
-/** `/su games` — every Game you belong to, each linked to its Play page; the card to Play's hub. */
+/** `/su games` — every Game you belong to, each linked to its page; the card to Your Games. */
 export function gamesCard(games: GameSummary[]): ContainerData {
   return entityCard({
     title: `Your Games (${games.length})`,
-    url: appUrl('/play/'),
+    url: appUrl('/games/'),
     accent: DISCORD_NEUTRAL_ACCENT,
     description: gameLines(games),
     fields: [],

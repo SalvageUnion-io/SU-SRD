@@ -222,9 +222,9 @@ describe('a unit’s Game', () => {
   test('is a link in its Game column, opening the Game’s page in Play; in no Game, none', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const games = [...pilots.querySelectorAll('a[href^="/play/games/"]')]
+    const games = [...pilots.querySelectorAll('a[href^="/games/"]')]
     expect(games.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
-      ['Tenacity', '/play/games/g1'],
+      ['Tenacity', '/games/g1'],
     ])
     expect(within(pilots).getByText('Tenacity').closest('tr')?.textContent).toContain('Rook')
     expect(within(pilots).queryByText('Unassigned')).toBeNull()

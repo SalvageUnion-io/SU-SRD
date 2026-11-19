@@ -38,13 +38,13 @@ describe('app addresses', () => {
     expect(sheetPath('npc', 'n1')).toBe('/npcs/n1')
     expect(publicPath('npc', 'n1')).toBe('/p/npc/n1')
     expect(publicPath('pattern', 'pat-1')).toBe('/p/pattern/pat-1')
-    expect(gamePath('g1')).toBe('/play/games/g1')
-    expect(mediatePath('g1')).toBe('/play/games/g1/mediate')
-    expect(cockpitPath('p1')).toBe('/play/pilots/p1')
+    expect(gamePath('g1')).toBe('/games/g1')
+    expect(mediatePath('g1')).toBe('/games/g1/mediate')
+    expect(cockpitPath('p1')).toBe('/pilots/p1/play')
   })
 
   test('an id is one path segment', () => {
     expect(sheetPath('pilot', 'a/b c')).toBe('/pilots/a%2Fb%20c')
-    expect(cockpitPath('a/b')).toBe('/play/pilots/a%2Fb')
+    expect(cockpitPath('a/b')).toBe('/pilots/a%2Fb/play')
   })
 })

@@ -1,6 +1,5 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { Fragment } from 'react'
 import { borderWidth, iconSize, layer, radius, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
@@ -14,31 +13,28 @@ import { Speckle } from '../atoms/Speckle'
 
 /** The switcher's tabs keep their rule's tracking, which steps with the bar's width. */
 const TAB_CAPS = capsLabel({ tracking: 'inherit' })
-const LINK = cn('su-union-bar__link', capsLabel())
 
 /**
  * AppBar — the Union bar: the one masthead both SU tools wear (ruleset §3.11,
  * "One union, two tools"). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
- * One lockup (the SU mark alone, no wordmark), then the **Reference | Build |
- * Play** mode switcher, then the product's own nav, the search slot, "Buy the
- * game" and the app's account controls. Crossing modes is a tab on the same
- * bar, never an off-site "Builder ↗" / "SRD ↗" link. The tab you are on is an
- * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). Play
- * lives in the app beside Build, so the app's bar carries both modes' navs,
- * each `data-mode`, and shows the one its mode names: the shell's bar is
- * marked for the route it is served on (`markUnionRoute`), and the app moves
- * "here" as it routes (`UnionBarSlots`, by each tab's `data-tool` and each
- * link's `data-nav`).
+ * One lockup (the SU mark alone, no wordmark), then the **Reference | Training
+ * Bay | Games** switcher (ADR-065), the search slot, "Buy the game" and the
+ * app's account controls. There is no second nav: each tab is a place, and a
+ * page's own modes (a pilot's Read | Edit | Play) live on that page. Crossing
+ * is a tab on the same bar, never an off-site link. The tab you are on is an
+ * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). The
+ * shell's bar is marked for the route it is served on (`markUnionRoute`), and
+ * the app moves the current tab as it routes (`UnionBarSlots`, by each tab's
+ * `data-tool`).
  *
  * ## One geometry
  *
  * Both tools wear the same bar (one product at one domain): one
  * 56px row at every width (below `lg` the search takes a full-width row of
  * its own under it), one height for the mark and every control in it
- * (`--su-union-bar-control`, `styles/partials/shell.css`), the product
- * nav inline beside the switcher from `lg`, and the search entry at the same
+ * (`--su-union-bar-control`, `styles/partials/shell.css`), and the search entry at the same
  * place in the same shape (the one `SearchField` combobox). There are no
  * densities: the SRD's 64px bar and the app's 48px one were two products.
  *
@@ -53,7 +49,7 @@ const LINK = cn('su-union-bar__link', capsLabel())
  *
  * ## Slots
  *
- * Presentational: nav links are data, and the search, actions and mobile
+ * Presentational: the search, actions and mobile
  * drawer are slots. Internal links route through the injected `LinkComponent`;
  * the other product is a plain same-tab anchor, and an `external` item opens a
  * new tab. So the shared library stays free of a router, search or account
@@ -67,58 +63,22 @@ const LINK = cn('su-union-bar__link', capsLabel())
  * it, until a page leads with a chapter band: then it wears that band's
  * colour, foreground and grain, so the site header and the band read as one
  * (`atoms/unionBarMatch.ts`). In the app it wears its area's colour on every
- * route, whatever band leads: Build, the Training Bay, is pilot orange with
- * ink; Play, the Cantina, the deep crawler pink with paper. Its colours are
+ * route, whatever band leads: the Training Bay is pilot orange with ink; the
+ * Games, the deep crawler pink with paper. Its colours are
  * the `--su-bar-*` properties on `.su-union-bar`; the site footer wears the
  * leading band too (`footerMatchCss`).
  */
 
 type AppBarProduct = 'reference' | 'build' | 'play'
 
-type AppBarNavItem = {
-  label: ReactNode
-  href: string
-  /** Names the item for "here" (`data-nav`), which the app marks as it routes. */
-  id?: string
-  /** Marks the link as the page you are on (`aria-current="page"`). */
-  active?: boolean
-  /** Opens in a new tab via a plain anchor (bypasses LinkComponent). */
-  external?: boolean
-  /** Optional trailing pill (e.g. an "Alpha" tag). */
-  badge?: ReactNode
-}
-
-/**
- * A nav entry the app renders itself — a control, not a link (The app's Games
- * menu). It takes its place in the nav's order and the bar knows nothing of it.
- */
-export type AppBarNavSlot = {
-  id: string
-  node: ReactNode
-}
-
-export type AppBarNavEntry = AppBarNavItem | AppBarNavSlot
-
-/**
- * One mode's nav. The bar shows the nav of the mode it wears (`data-mode`,
- * `styles/partials/shell.css`), so a bar that changes mode in place carries
- * each mode's.
- */
-export type AppBarNav = {
-  mode: AppBarProduct
-  /** Its landmark's name ("Build navigation"). */
-  label: string
-  items: AppBarNavEntry[]
-}
-
 type AppBarProps = {
   /** The tool this bar is mounted in: its switcher tab is the inverse stamp. */
   product: AppBarProduct
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Build" goes — the app's home. */
+  /** Where "Training Bay" goes — the app's home. */
   buildHref: string
-  /** Where "Play" goes — the Play landing. */
+  /** Where "Games" goes — Your Games. */
   playHref: string
   /** Link component for the brand + internal links. Defaults to a plain anchor. */
   LinkComponent?: ElementType
@@ -129,8 +89,6 @@ type AppBarProps = {
    */
   markSrc?: string
   viewTransitionName?: string
-  /** The product's own nav (desktop), inline beside the switcher: one per mode it can wear. */
-  navs?: AppBarNav[]
   /**
    * Desktop search slot — the site's one `SearchField` combobox,
    * `su-union-bar__search-input` wide.
@@ -181,34 +139,6 @@ const SWITCH = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-function isSlot(entry: AppBarNavEntry): entry is AppBarNavSlot {
-  return 'node' in entry
-}
-
-type NavLinkProps = {
-  item: AppBarNavItem
-  className: string
-  LinkComponent: ElementType
-}
-
-/** One nav link: external items open a new tab; internal ones route. */
-function NavLink({ item, className, LinkComponent }: NavLinkProps) {
-  const Link = item.external ? 'a' : LinkComponent
-  return (
-    <Link
-      href={item.href}
-      className={cn(className, FOCUS_RING)}
-      data-nav={item.id}
-      {...(item.external
-        ? { target: '_blank', rel: 'noopener noreferrer' }
-        : { 'aria-current': item.active ? ('page' as const) : undefined })}
-    >
-      {item.label}
-      {item.badge}
-    </Link>
-  )
-}
-
 export function AppBar({
   product,
   referenceHref,
@@ -217,7 +147,6 @@ export function AppBar({
   LinkComponent = 'a',
   markSrc = MARK_SRC,
   viewTransitionName,
-  navs = [],
   search,
   buyHref,
   actions,
@@ -240,15 +169,6 @@ export function AppBar({
     { key: 'build', label: compositionsCopy('build'), href: buildHref },
     { key: 'play', label: compositionsCopy('play'), href: playHref },
   ]
-
-  const navLinks = (items: AppBarNavEntry[]) =>
-    items.map((entry) =>
-      isSlot(entry) ? (
-        <Fragment key={entry.id}>{entry.node}</Fragment>
-      ) : (
-        <NavLink key={entry.href} item={entry} className={LINK} LinkComponent={LinkComponent} />
-      )
-    )
 
   return (
     <>
@@ -306,17 +226,6 @@ export function AppBar({
               </a>
             ))}
           </nav>
-
-          {navs.map((nav) => (
-            <nav
-              key={nav.mode}
-              aria-label={nav.label}
-              className="su-union-bar__nav"
-              data-mode={nav.mode}
-            >
-              {navLinks(nav.items)}
-            </nav>
-          ))}
 
           {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="bar" />}
 

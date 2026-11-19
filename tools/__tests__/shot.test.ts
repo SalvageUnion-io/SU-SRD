@@ -77,13 +77,13 @@ describe('planShot', () => {
       email: 'a@b',
       password: 'p',
       npc: '/build/sheet/npc/n',
-      playPlayer: '/play/pilots/x',
-      playMediator: '/play/games/g/mediate',
+      playPlayer: '/pilots/x/play',
+      playMediator: '/games/g/mediate',
     }
     expect(planShot({ target: ':npc' }, seeded).path).toBe('/build/sheet/npc/n')
-    expect(planShot({ target: ':play' }, seeded).path).toBe('/play/pilots/x')
-    expect(planShot({ target: ':playPlayer' }, seeded).path).toBe('/play/pilots/x')
-    expect(planShot({ target: ':mediate' }, seeded).path).toBe('/play/games/g/mediate')
+    expect(planShot({ target: ':play' }, seeded).path).toBe('/pilots/x/play')
+    expect(planShot({ target: ':playPlayer' }, seeded).path).toBe('/pilots/x/play')
+    expect(planShot({ target: ':mediate' }, seeded).path).toBe('/games/g/mediate')
     expect(() => planShot({ target: ':mediate' }, { email: 'a@b', password: 'p' })).toThrow(
       'the seed made no playMediator'
     )
@@ -391,7 +391,7 @@ describe('main', () => {
         asked = server
         return () => {}
       },
-      readSeed: () => ({ email: 'a@b', password: 'pw', game: '/play/games/g' }),
+      readSeed: () => ({ email: 'a@b', password: 'pw', game: '/games/g' }),
       launch,
     })
     expect(r.code).toBe(0)
@@ -403,7 +403,7 @@ describe('main', () => {
       'seam',
       'sign in a@b pw signIn',
       'attached Games',
-      `goto ${base}/play/games/g`,
+      `goto ${base}/games/g`,
     ])
     expect(calls).toContain('wait')
     expect(r.out).toEqual([`${out}/game-page.png`])
