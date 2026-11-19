@@ -76,7 +76,7 @@ export async function editSheet(page: Page): Promise<void> {
 export function sheetHref(kind = ''): string {
   const kinds = kind ? [kind] : ['pilot', 'mech', 'crawler', 'npc']
   const hrefs = kinds.map((k) => `[href*="${APP_BASE}/${k}s/"]`).join(',')
-  return `a:is(${hrefs}):not([href$="/new"])`
+  return `a:is(${hrefs}):not([href$="/new"], [href*="/new?"])`
 }
 
 /**
