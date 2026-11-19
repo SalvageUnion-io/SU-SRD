@@ -154,13 +154,15 @@
 }
 
 /* Buy the game: the words and the store's button beside the books' Ledger,
-   on one wrapping line, each at least 20rem and growing to fill it. */
+   on one wrapping line, each at least 20rem and growing to fill it. The
+   words' column is as tall as the Ledger: its buttons stand on its foot, so
+   the shorter column ends where the taller one does. */
 .su-front__buy {
   --su-foot-ground: var(--color-paper);
 }
 
 .su-front__buy-body {
-  align-items: flex-start;
+  align-items: stretch;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-12) var(--space-28);
@@ -195,7 +197,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-8);
-  margin-top: var(--space-4);
+  margin-top: auto;
+  padding-top: var(--space-4);
 }
 
 /* The Discord bot's panel: its sentence, then its button at the line's end;

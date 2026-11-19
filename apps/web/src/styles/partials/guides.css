@@ -384,10 +384,11 @@
  * A guide's page reads like the book's prose pages (`.su-entity-page--guide`,
  * set by `CardPage` when it holds a guide): one column for the introduction
  * and the steps alike, so slabs, tables and option cards share one left
- * edge. Its prose is set to a book measure inside it (about 70 characters a
- * line at the reading size; the tables and cards take the column's width) at
- * a book leading, paragraphs parted by a breath rather than packed, and the
- * asides framed.
+ * edge. Its prose keeps a reading measure inside it (the tables and cards
+ * take the column's width) at a book leading, paragraphs parted by a breath
+ * rather than packed, and the asides framed. From 64rem the column runs to
+ * the rail and the prose with it, so no strip of empty ground stands between
+ * the text and the contents beside it.
  */
 .su-entity-page--guide {
   --su-guide-measure: 46rem;
@@ -447,9 +448,8 @@
 }
 
 /*
- * On a desktop (from 64rem: the 46rem column, the gap and the rail's 12rem
- * floor fit inside a 1024px screen's margins) the whole page is two columns:
- * the reading column, and the rail
+ * On a desktop (from 64rem) the whole page is two columns: the reading
+ * column, which takes the room the rail leaves, and the rail
  * beside it from the band down — beside the introduction too, not only the
  * steps. `GuideSteps`'s own box steps aside (`display: contents`) so its rail
  * is a cell of the page's grid; the rail spans both rows (the introduction,
@@ -461,9 +461,9 @@
     align-items: start;
     column-gap: var(--space-40);
     display: grid;
-    grid-template-columns: minmax(0, var(--su-guide-measure)) minmax(12rem, 16rem);
+    --su-guide-prose: 76ch;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 16rem);
     grid-template-rows: auto 1fr;
-    justify-content: space-between;
     row-gap: 0;
   }
 

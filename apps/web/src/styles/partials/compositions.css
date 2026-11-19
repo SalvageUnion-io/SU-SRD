@@ -31,6 +31,13 @@
   min-width: 0;
 }
 
+/* A step's band is as tall as its title: a catalog tile's reserves two name
+   lines so a grid of entities keeps one height, which a row of three short
+   titles would wear as an empty strip of colour over the name. */
+.su-start-here__band.su-entity-index__band {
+  min-height: 0;
+}
+
 /* A step's number, at the band's left on the name's line, as a tree
    ability's tier numeral (`.su-entity-compact__tier`): the title's face in
    the band's own foreground. */
