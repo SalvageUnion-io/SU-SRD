@@ -250,6 +250,7 @@ export type {
   EntityDomain,
   EntityInstance,
   EntityModel,
+  EntityPrinting,
   EntityRef,
   Fact,
   StatGroup,
