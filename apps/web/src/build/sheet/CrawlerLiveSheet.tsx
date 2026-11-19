@@ -22,6 +22,7 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import type { PhoneVital } from '../../components/index'
 import { Button, linesFromBreakdown, PhoneVitals, Stat } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
@@ -242,42 +243,50 @@ export function CrawlerLiveSheet({
         ...(trading.present ? [{ label: buildSheetCopy('trade'), dialog: 'trade' as const }] : []),
       ]
     : []
+  // The crawler's numbers as rows (R11): what a phone's block and the sheet
+  // dashboard's header strip both draw.
+  const vitalRows: PhoneVital[] = [
+    {
+      key: 'sp',
+      label: SHEET_VITALS.sp.short,
+      name: SHEET_VITALS.sp.label,
+      value: sp,
+      max: maxSP,
+      onChange: liveNumber('currentSP', SHEET_VITALS.sp.short, sp),
+    },
+    ...(upgradeCost === null
+      ? []
+      : [
+          {
+            key: 'upgrade',
+            label: buildSheetCopy('upgrade'),
+            name: buildSheetCopy('upgradePool'),
+            value: crawler.upgradePool ?? 0,
+            max: upgradeCost,
+            onChange: liveNumber(
+              'upgradePool',
+              buildSheetCopy('upgrade'),
+              crawler.upgradePool ?? 0
+            ),
+          },
+        ]),
+    {
+      key: 'upkeep',
+      label: buildSheetCopy('upkeep'),
+      name: buildSheetCopy('upkeep'),
+      note: buildSheetCopy('tScrapEachDowntime', { tl }),
+      value: 5,
+    },
+  ]
+  const vitalActions = phoneActions.map((action) => ({
+    key: action.dialog,
+    label: action.label,
+    onClick: () => setEconDialog(action.dialog),
+  }))
   const phoneVitals = (
     <PhoneVitals
       label={buildSheetCopy('unitVitals', { name: crawler.name })}
-      vitals={[
-        {
-          key: 'sp',
-          label: SHEET_VITALS.sp.short,
-          name: SHEET_VITALS.sp.label,
-          value: sp,
-          max: maxSP,
-          onChange: liveNumber('currentSP', SHEET_VITALS.sp.short, sp),
-        },
-        ...(upgradeCost === null
-          ? []
-          : [
-              {
-                key: 'upgrade',
-                label: buildSheetCopy('upgrade'),
-                name: buildSheetCopy('upgradePool'),
-                value: crawler.upgradePool ?? 0,
-                max: upgradeCost,
-                onChange: liveNumber(
-                  'upgradePool',
-                  buildSheetCopy('upgrade'),
-                  crawler.upgradePool ?? 0
-                ),
-              },
-            ]),
-        {
-          key: 'upkeep',
-          label: buildSheetCopy('upkeep'),
-          name: buildSheetCopy('upkeep'),
-          note: buildSheetCopy('tScrapEachDowntime', { tl }),
-          value: 5,
-        },
-      ]}
+      vitals={vitalRows}
       foot={
         phoneActions.length > 0
           ? phoneActions.map((action) => (
@@ -294,7 +303,6 @@ export function CrawlerLiveSheet({
       }
     />
   )
-  // Pay / Fund / Trade: chips on the Vitals card's head, not a row in its body.
   const economyActions = econItems.some((item) => item.action) ? (
     <CrawlerEconActions items={econItems} />
   ) : undefined
@@ -312,16 +320,22 @@ export function CrawlerLiveSheet({
         // The crawler's rung is the band's TL chip, ahead of its type (C2's
         // rank before relation); Edit grows its stepper on the chip, a Free
         // Edit of the stored rung (the Upgrade dialog is the play path).
+        pinsVitals={readOnly}
+        // MOCK (density mock, sheet variant): Read's header strip carries the
+        // Tech Level with the crawler's other figures, so the band leaves it
+        // out (R59); Edit keeps its stepper here.
         rank={
-          <Stat
-            label={buildSheetCopy('tl')}
-            value={tl}
-            mode={readOnly ? 'read' : 'edit'}
-            onChange={readOnly ? undefined : (next) => patch({ techLevel: next })}
-            min={NUMERIC_TECH_LEVELS[0]}
-            ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
-            stepperLabel={buildSheetCopy('techLevel')}
-          />
+          readOnly ? undefined : (
+            <Stat
+              label={buildSheetCopy('tl')}
+              value={tl}
+              mode="edit"
+              onChange={(next) => patch({ techLevel: next })}
+              min={NUMERIC_TECH_LEVELS[0]}
+              ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
+              stepperLabel={buildSheetCopy('techLevel')}
+            />
+          )
         }
         actions={actions}
         renderBody={() => (
@@ -335,6 +349,8 @@ export function CrawlerLiveSheet({
             economy={economy}
             economyActions={economyActions}
             phoneVitals={phoneVitals}
+            vitalRows={vitalRows}
+            vitalActions={vitalActions}
             linkedUnits={rail}
             crew={composition.crew}
             crewHref={

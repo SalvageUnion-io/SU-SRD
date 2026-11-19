@@ -35,10 +35,13 @@ import {
   KindLabel,
   LinkedUnits,
   relation,
+  SlabLookProvider,
   Stat,
   Tag,
   tokens,
+  useMediaQuery,
 } from '../../components/index'
+import { widthAtLeast } from '../../design/tokens'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import type { SheetBand } from './sheetViewProps.model'
@@ -158,6 +161,12 @@ type LiveSheetProps = {
    * PATTERN chip.
    */
   quoted?: boolean
+  /**
+   * MOCK (density mock, sheet variant): the body pins its own vitals on a
+   * phone (the sheet dashboard's `PinnedVitals`), so the condensed bar stays
+   * out of its way there. From 40rem the bar condenses as before.
+   */
+  pinsVitals?: boolean
 }
 
 /** Sticky bar height (design: 58/66px). */
@@ -321,12 +330,15 @@ export function LiveSheet({
   out,
   userMade,
   quoted = false,
+  pinsVitals = false,
 }: LiveSheetProps) {
   // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
   // should seam and fill the moment you scroll past IT, rather than waiting for
   // a whole region to clear the viewport.
   const topRef = useRef<HTMLDivElement | null>(null)
-  const condensed = useCondensed(topRef)
+  const scrolled = useCondensed(topRef)
+  const phone = !useMediaQuery(widthAtLeast('sm'), true)
+  const condensed = scrolled && !(pinsVitals && phone)
 
   const title = quoted ? `“${name}”` : name
 
@@ -572,7 +584,9 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
-            {renderBody()}
+            {/* MOCK (density mock, sheet variant): a sheet's section heads
+                are labels on rules (`SlabLookProvider`), in Read and Edit. */}
+            <SlabLookProvider value="rule">{renderBody()}</SlabLookProvider>
           </EntitySurfaceProvider>
         </div>
       </div>

@@ -43,6 +43,7 @@ import {
   Callout,
   PageShell,
   Pending,
+  SlabLookProvider,
   SlabSection,
   Text,
   tokens,
@@ -111,7 +112,10 @@ function GameSections({ game }: { game: Game }) {
   const sign = useStopSign(gameId)
 
   return (
-    <>
+    // MOCK (density mock, sheet variant): the Game page reads as a sheet
+    // dashboard — its section heads are labels on rules, and its crew is one
+    // manifest (`GameRoster`).
+    <SlabLookProvider value="rule">
       {sign?.shown && (
         <div style={STOP_BANNER}>
           <StopSignBanner sign={sign} />
@@ -119,11 +123,23 @@ function GameSections({ game }: { game: Game }) {
       )}
       <div style={HUB_COLUMNS}>
         <div style={HUB_MAIN}>
+          {/* MOCK (density mock, sheet variant): the crew manifest leads the
+              page — what the table is made of — and everything that runs the
+              table (its people, the prep, the invite, safety) is the column
+              beside it. */}
           <GameRoster gameId={gameId} gameName={game.name} />
           {/* Renders nothing until the Mediator has asked something. */}
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
+        </div>
+        <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
+          <TheGame
+            gameId={gameId}
+            viewerId={viewerId}
+            organizer={game.organizer}
+            onDelete={() => setConfirmingDelete(true)}
+          />
           {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
           {game.mediator && <MediatorPrep />}
           {/* The invite URL is administrative, so only the Organizer sees it
@@ -141,16 +157,7 @@ function GameSections({ game }: { game: Game }) {
               }
             />
           )}
-        </div>
-        <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
-          <TheGame
-            gameId={gameId}
-            viewerId={viewerId}
-            organizer={game.organizer}
-            onDelete={() => setConfirmingDelete(true)}
-          />
-          {/* Safety
-              runs under The Game, so the two columns end together. */}
+          {/* Safety runs last, so the two columns end together. */}
           <GameSafety sign={sign} />
         </aside>
       </div>
@@ -166,7 +173,7 @@ function GameSections({ game }: { game: Game }) {
           else window.location.assign(PLAY_HUB)
         }}
       />
-    </>
+    </SlabLookProvider>
   )
 }
 

@@ -12,7 +12,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { SlabSection, tokens } from '../../components/index'
+import { SlabLookProvider, SlabSection, tokens } from '../../components/index'
 import {
   QUICKSTART_BOOK,
   STARTER_SET_ADVENTURE,
@@ -36,7 +36,9 @@ const CREDIT = {
 
 export function StarterShelf() {
   return (
-    <>
+    // MOCK (density mock, sheet variant): the Training Bay's foot reads as
+    // the crew page does.
+    <SlabLookProvider value="rule">
       <SlabSection
         as="h2"
         id="shelf-starter"
@@ -69,6 +71,6 @@ export function StarterShelf() {
         </p>
         <StarterCrewLedger roster="quickstart" />
       </SlabSection>
-    </>
+    </SlabLookProvider>
   )
 }

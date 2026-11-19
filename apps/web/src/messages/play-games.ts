@@ -87,4 +87,8 @@ export const playGamesCopy = messages({
   encounters: 'Encounters',
   npcs: 'NPCs',
   prepInTheTrainingBay: 'Prep in the Training Bay',
+  // MOCK (density mock, sheet variant): the Game page's crew manifest.
+  mechsGroup: 'Mechs with no pilot',
+  crawlerGroup: 'Union Crawler',
+  unassignedSeat: 'Unassigned',
 })

@@ -75,7 +75,8 @@ const DOCKS = {
 type BayContent = NonNullable<RefCrawlerBay['content']>
 
 /** Split a bay's rules content into its always-true half and its damaged half. */
-function splitBayContent(content: RefCrawlerBay['content']): {
+// biome-ignore lint/style/useComponentExportOnlyModules: the bay's own split, beside it
+export function splitBayContent(content: RefCrawlerBay['content']): {
   normal: BayContent
   damaged: string[]
 } {

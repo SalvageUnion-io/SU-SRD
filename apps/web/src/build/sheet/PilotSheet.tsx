@@ -60,21 +60,18 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import type { RefAbility } from 'salvageunion-reference'
-import { Entity } from '../../components/entity/Entity'
-import { MiniGrid, SlabSection, Stat, tokens } from '../../components/index'
+import { MiniGrid, SlabSection, tokens } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
-import { resolveClass } from '../../lib/classRef'
 import { classArt } from '../../lib/photos/defaultArt'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
+import { PilotDash } from '../dash/PilotDash'
 import { PartnerMini } from './PartnerMini'
-import { PhoneSheet } from './PhoneSheet'
 import { PilotIdentityPanel } from './PilotIdentity'
-import { PilotGearLedger, PilotInventory } from './PilotInventory'
+import { PilotInventory } from './PilotInventory'
 import { PilotSheetAbilities } from './PilotSheetAbilities'
 import type { PilotPicker } from './PilotSheetPickers'
 import { PilotSheetPickers } from './PilotSheetPickers'
@@ -84,7 +81,6 @@ import { usePilotSheetActions } from './pilotSheetActions.model'
 import { PilotActionsList } from './SheetActions'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
-import { SheetLedger } from './SheetLedger'
 import { usePhoneRead } from './usePhoneRead'
 
 /** The sheet body; `container-type` scopes the region grid to its own width. */
@@ -148,7 +144,6 @@ export function PilotSheet({
     storeState,
     crawlerTechLevel: model.effectiveCrawlerLevel,
   })
-  const pilotClass = resolveClass(pilot.classRef)
   const empty = inventoryEmpty(pilot, model)
   // A phone in Read is the numbers, then tabs (`PhoneSheet`), as the mech's is.
   const phoneRead = usePhoneRead(readOnly)
@@ -162,17 +157,6 @@ export function PilotSheet({
       phone={phone}
     />
   )
-  /** A tree's taken abilities, as a phone's Ledger lists them: a used one says so. */
-  const learned = (entries: readonly { slug: string; ability: RefAbility; unlearned?: true }[]) =>
-    entries
-      .filter((entry) => !entry.unlearned)
-      .map((entry) => ({
-        id: entry.slug,
-        entity: entry.ability,
-        stamp: (pilot.usedAbilities ?? []).includes(entry.slug) ? (
-          <Stat label={buildSheetCopy('used')} size="mini" />
-        ) : undefined,
-      }))
   /**
    * Ability-granted COMPANIONS (a pilot's partners). Each carries a nested
    * loadout and a cargo hold, and acts on its own turn rather than being one
@@ -218,84 +202,18 @@ export function PilotSheet({
       className="su-sheet-section"
       style={BODY}
     >
-      {phoneRead ? (
-        <PhoneSheet
-          name={pilot.name}
-          vitals={vitals(true)}
-          tabs={[
-            {
-              value: 'actions',
-              label: buildSheetCopy('actions'),
-              panel: <PilotActionsList pilot={pilot} />,
-            },
-            {
-              value: 'abilities',
-              label: buildSheetCopy('abilities'),
-              count: String(pilot.abilities.length),
-              panel: (
-                <>
-                  {model.classTrees.map((group) => (
-                    <SheetLedger
-                      key={group.tree}
-                      kind="abilities"
-                      title={group.tree}
-                      tone="pilot"
-                      count={learned(group.abilities).length}
-                      lines={learned(group.abilities)}
-                    />
-                  ))}
-                  <SheetLedger
-                    kind="abilities"
-                    title={buildSheetCopy('generic')}
-                    tone="pilot"
-                    count={learned(model.genericAbilities).length}
-                    lines={learned(model.genericAbilities)}
-                  />
-                  {companions(false)}
-                </>
-              ),
-            },
-            {
-              value: 'gear',
-              label: buildSheetCopy('gear'),
-              count: `${model.slotsUsed}/${model.slotsCap}`,
-              panel: <PilotGearLedger pilot={pilot} model={model} />,
-            },
-            {
-              value: 'about',
-              label: buildSheetCopy('about'),
-              panel: (
-                <>
-                  <SheetHero
-                    flat
-                    name={pilot.name}
-                    fields={
-                      <PilotIdentityPanel
-                        pilot={pilot}
-                        proseUnder
-                        photo={
-                          <EntityPhoto
-                            photo={pilot.photo}
-                            fallback={classArt(pilot.classRef)}
-                            name={pilot.callsign || pilot.name}
-                          />
-                        }
-                      />
-                    }
-                  />
-                  {pilotClass && (
-                    <Entity
-                      size="mini"
-                      context="browse"
-                      entity={pilotClass}
-                      mode={{ kind: 'link' }}
-                    />
-                  )}
-                  {linkedUnits}
-                </>
-              ),
-            },
-          ]}
+      {readOnly ? (
+        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // every width; a phone stacks it under its pinned vitals. Edit keeps
+        // the build layout below.
+        <PilotDash
+          pilot={pilot}
+          model={model}
+          actions={actions}
+          live={live}
+          linkedUnits={linkedUnits}
+          companions={companions(true)}
+          phone={phoneRead}
         />
       ) : (
         // The opening (`SheetHero`, as every sheet opens): the identity fields

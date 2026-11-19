@@ -126,7 +126,7 @@ const PICKER_ACTIONS = {
  * and pip carry the state, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
  * unset one would be a control that isn't).
  */
-function UsedChip({
+export function UsedChip({
   label,
   used,
   onToggle,

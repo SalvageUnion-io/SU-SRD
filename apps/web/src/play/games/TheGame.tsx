@@ -18,21 +18,17 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import type { EntityFormModel } from '../../components/index'
 import {
   Button,
   ConfirmDialog,
-  Entity,
   Field,
   HeaderMenu,
-  relation,
   Select,
   SlabSection,
   Stat,
   tokens,
 } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { syntheticModel } from '../../lib/units/syntheticModel'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
@@ -53,17 +49,6 @@ const LINES = {
 } satisfies CSSProperties
 
 /** A member as an entity: their Discord name, in Discord's colour. */
-function memberModel(name: string): EntityFormModel {
-  return syntheticModel({
-    schemaName: 'classes',
-    id: `member/${name}`,
-    slug: name,
-    name,
-    kind: { label: playGamesCopy('member'), domain: 'pilot' },
-    tone: 'discord',
-  })
-}
-
 export function TheGame({
   gameId,
   viewerId,
@@ -136,26 +121,23 @@ export function TheGame({
       }
     >
       {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
+      {/* MOCK (density mock, sheet variant): the table's people as rows — the
+          name, what they run, and the pilot they hold — not painted Minis. */}
       <ul aria-label={playGamesCopy('members')} data-names-whole="" style={LINES}>
         {members?.map((m) => (
-          <li key={m.userId}>
-            <Entity
-              size="mini"
-              context="roster"
-              model={memberModel(name(m))}
-              omit={['kind']}
-              relations={pilotsOf(m.userId).map((pilot) =>
-                relation(`pilot-${pilot.id}`, 'Pilot', pilot.name)
-              )}
-              state={
-                m.mediator || m.organizer ? (
-                  <>
-                    {m.mediator && <Stat label={playGamesCopy('mediator')} size="mini" />}
-                    {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
-                  </>
-                ) : undefined
-              }
-            />
+          <li key={m.userId} className="su-game-member">
+            <span className="su-game-member__name">{name(m)}</span>
+            <span className="su-game-member__marks">
+              {m.mediator && <Stat label={playGamesCopy('mediator')} size="mini" />}
+              {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
+            </span>
+            {pilotsOf(m.userId).length > 0 && (
+              <span className="su-game-member__pilots">
+                {pilotsOf(m.userId)
+                  .map((pilot) => pilot.name)
+                  .join(' · ')}
+              </span>
+            )}
           </li>
         ))}
       </ul>

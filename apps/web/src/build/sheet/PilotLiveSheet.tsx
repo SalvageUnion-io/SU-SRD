@@ -77,6 +77,7 @@ export function PilotLiveSheet({
   return (
     <LiveSheet
       variant="pilot"
+      pinsVitals={readOnly}
       name={pilot.name}
       strip={strip}
       segments={segments}

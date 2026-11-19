@@ -10,6 +10,7 @@ import type { UnitsStore } from '../../replica/units'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { pinFor } from 'salvageunion-reference/rules'
+import type { PhoneVital } from '../../components/index'
 import { Conditions, Eyebrow, heatDangerFrom, PhoneVitals, tokens } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -41,6 +42,64 @@ type MechVitalsProps = {
   live?: boolean
   /** A phone in Read: the vitals as `PhoneVitals`, one row a number (ruleset §2.1). */
   phone?: boolean
+}
+
+/**
+ * A mech's three vitals as rows (SP, EP, Heat), named from the one vitals map
+ * (R11) and written with one Undo toast a change (K5): what a phone's block
+ * and the sheet's header strip both draw.
+ */
+// biome-ignore lint/style/useComponentExportOnlyModules: the rows the block draws, beside it
+export function mechVitalRows({
+  mech,
+  model,
+  actions,
+  writes,
+}: Pick<MechVitalsProps, 'mech' | 'model' | 'actions'> & { writes: boolean }): PhoneVital[] {
+  const change = (field: 'currentSP' | 'currentEP' | 'currentHeat', label: string, from: number) =>
+    writes
+      ? (next: number) => {
+          actions.patchMech({ [field]: next })
+          changeUndoToast({
+            id: `mech:${mech.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => actions.patchMech({ [field]: value }),
+          })
+        }
+      : undefined
+  const { maxSP, maxEP, heatCap } = model
+  const sp = change('currentSP', SHEET_VITALS.sp.short, model.currentSP)
+  const ep = change('currentEP', SHEET_VITALS.ep.short, model.currentEP)
+  const heat = change('currentHeat', SHEET_VITALS.heat.short, model.currentHeat)
+  return [
+    {
+      key: 'sp',
+      label: SHEET_VITALS.sp.short,
+      name: SHEET_VITALS.sp.label,
+      value: model.currentSP,
+      max: maxSP,
+      ...(sp ? { onChange: sp } : {}),
+    },
+    {
+      key: 'ep',
+      label: SHEET_VITALS.ep.short,
+      name: SHEET_VITALS.ep.label,
+      value: model.currentEP,
+      max: maxEP,
+      ...(ep ? { onChange: ep } : {}),
+    },
+    {
+      key: 'heat',
+      label: SHEET_VITALS.heat.short,
+      name: SHEET_VITALS.heat.label,
+      value: model.currentHeat,
+      max: heatCap,
+      ...(heatCap > 0 ? { danger: heatDangerFrom(heatCap) } : {}),
+      ...(heat ? { onChange: heat } : {}),
+    },
+  ]
 }
 
 export function MechVitals({
@@ -75,33 +134,7 @@ export function MechVitals({
     return (
       <PhoneVitals
         label={buildSheetCopy('unitVitals', { name: mech.name })}
-        vitals={[
-          {
-            key: 'sp',
-            label: SHEET_VITALS.sp.short,
-            name: SHEET_VITALS.sp.label,
-            value: model.currentSP,
-            max: maxSP,
-            onChange: change('currentSP', SHEET_VITALS.sp.short, model.currentSP),
-          },
-          {
-            key: 'ep',
-            label: SHEET_VITALS.ep.short,
-            name: SHEET_VITALS.ep.label,
-            value: model.currentEP,
-            max: maxEP,
-            onChange: change('currentEP', SHEET_VITALS.ep.short, model.currentEP),
-          },
-          {
-            key: 'heat',
-            label: SHEET_VITALS.heat.short,
-            name: SHEET_VITALS.heat.label,
-            value: model.currentHeat,
-            max: heatCap,
-            danger: heatCap > 0 ? heatDangerFrom(heatCap) : undefined,
-            onChange: change('currentHeat', SHEET_VITALS.heat.short, model.currentHeat),
-          },
-        ]}
+        vitals={mechVitalRows({ mech, model, actions, writes })}
         foot={readConditions.length > 0 ? <Conditions conditions={readConditions} /> : undefined}
       />
     )
