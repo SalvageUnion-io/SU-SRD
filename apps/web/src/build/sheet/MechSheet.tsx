@@ -59,7 +59,6 @@ import { Field, FieldError, SlabSection, Stack, tokens } from '../../components/
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { chassisArt } from '../../lib/photos/defaultArt'
-import { mechPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
@@ -75,6 +74,7 @@ import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions.model'
 import { useMechSheetActions } from './mechSheetActions.model'
+import { mockChassisOf } from './mockChassis'
 import { PartnerCard } from './PartnerCard'
 import { PhotoBeside } from './PhotoBeside'
 import { MechActionsList } from './SheetActions'
@@ -143,27 +143,6 @@ type MechSheetProps = {
   pilotAbilities?: string[]
 }
 
-/**
- * MOCK (best, revision 6): `?mock-chassis=little-sestra` shows this mech on
- * another chassis, with the drones that chassis fields, so a companion chassis
- * can be shot from the seeded Mazona. Nothing is written.
- */
-function useMockChassis(mech: Mech): Mech {
-  return useMemo(() => {
-    const slug =
-      typeof window === 'undefined'
-        ? null
-        : new URLSearchParams(window.location.search).get('mock-chassis')
-    if (!slug) return mech
-    let minted = 0
-    const partners = syncPartners(undefined, mechPartnerSeeds(slug), {
-      mintId: () => `mock-${++minted}`,
-    })
-    const { startingPatternRef: _pattern, ...rest } = mech
-    return { ...rest, chassisRef: slug, ...(partners ? { partners } : {}) }
-  }, [mech])
-}
-
 export function MechSheet({
   mech: storedMech,
   chassis: chassisOverride,
@@ -176,7 +155,8 @@ export function MechSheet({
   linkedUnits,
   pilotAbilities,
 }: MechSheetProps) {
-  const mech = useMockChassis(storedMech)
+  // MOCK (best, revision 6): `?mock-chassis=` (see `mockChassis.ts`).
+  const mech = useMemo(() => mockChassisOf(storedMech), [storedMech])
   const storeState = store()
   // Which collection's shared picker modal is open ('+ Add' — unified edit
   // language archetype B; always available: Free Edit, not rule-gated, ADR-021).
@@ -325,6 +305,9 @@ export function MechSheet({
       {linkedUnits}
     </>
   )
+  // MOCK (best, revision 6): Read shows no companion card: a companion has its
+  // own sheet, linked from the side column's cell. Edit keeps the card, where
+  // its loadout is still fitted.
   const partnersNode = (
     <>
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
@@ -387,7 +370,6 @@ export function MechSheet({
           live={live}
           crawler={crawler}
           linkedUnits={linkedUnits}
-          partners={partnersNode}
           phone={phoneRead}
         />
       ) : (

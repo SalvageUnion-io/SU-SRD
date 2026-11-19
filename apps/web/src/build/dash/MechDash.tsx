@@ -20,6 +20,7 @@ import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-refer
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import { Conditions, Content, Mention, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -39,6 +40,7 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { mechVitalRows } from '../sheet/MechVitals'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
+import { mockQuery } from '../sheet/mockChassis'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { ActionsLedger, Cost } from './ActionsLedger'
 import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
@@ -51,7 +53,8 @@ import { STRIP_ART, Strip, StripFigure } from './Strip'
 // THE stat order (ledger.md, `ledgerOrder.ts`): where it comes from (TL,
 // Slots, SV), then what its action does (type, Range, Damage), the cost last
 // on the row's edge, where a player hunts for it mid-turn.
-const ITEM_COLUMNS: readonly OpenColumn[] = [
+// biome-ignore lint/style/useComponentExportOnlyModules: MOCK, the companion's sheet draws the same columns
+export const ITEM_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   {
     key: 'slots',
@@ -78,7 +81,14 @@ const CARGO_COLUMNS: readonly OpenColumn[] = [
 
 const typeWord = (type: string | undefined) => (type === 'DownTime' ? 'Downtime' : (type ?? ''))
 
-function itemRows(mech: Mech, kind: ItemKind): OpenRow[] {
+/** What a row reads: a mech, or a companion (a mech in all but Push). */
+type Fitted = Pick<
+  Mech,
+  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses'
+>
+
+// biome-ignore lint/style/useComponentExportOnlyModules: MOCK, the companion's sheet draws the same rows
+export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
   const slugs = kind === 'system' ? mech.systems : mech.modules
   const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
   const keys = occurrenceKeys(slugs)
@@ -234,8 +244,7 @@ export function MechDash({
   const chassisAbilities = allActions.filter((action) => action.kind === 'chassis')
   // MOCK (best, revision 6): a companion the chassis fields (a drone) is its
   // own cell, in its own colour (a drone wears its tech level), with its
-  // numbers; it opens the companion where it lives, under the columns (a
-  // partner has no sheet of its own, ADR-028).
+  // numbers; the whole cell opens the companion's own sheet (`CompanionSheet`).
   const companions = (mech.partners ?? []).map((partner) => {
     const block = resolvePartnerStatBlock(partner)
     const max = partnerDerivedStats(partner, partnerTechLevel(partner, undefined))
@@ -245,7 +254,7 @@ export function MechDash({
       <a
         key={partner.id}
         className="su-companion-cell"
-        href={`#partner-${partner.id}`}
+        href={`${appPath(`/mechs/${mech.id}/companions/${partner.id}`)}${mockQuery()}`}
         style={
           {
             '--su-kind': block
