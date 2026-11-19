@@ -349,14 +349,31 @@
     padding-inline: var(--su-shell-edge);
   }
 
+  /* MOCK (best, revision 5): the rail is not paper. It wears the page's band
+     colour (`--su-kind`, the leading band's; ink where a page has none), so
+     ink header, rail and band read as one. Its text is the colour's own
+     AA foreground, at full strength. */
   .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--color-ink) !important;
-    --su-bar-fg-70: var(--color-ink-75) !important;
-    background-color: var(--color-paper);
-    border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+    --su-bar-fg: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-70: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-85: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-60: var(--su-on-kind, var(--color-paper)) !important;
+    background-color: var(--su-kind, var(--color-ink-deep));
+    border-bottom: 0;
     border-top: 0;
     min-height: var(--size-full);
     padding-inline: var(--su-shell-edge);
+  }
+
+  /* The alternate (`alt-dark-rail-*` shots; MOCK: `data-rail="dark"` on the
+     root, set by the shot script): a dark rail a step lighter than the
+     header's ink, paper text. */
+  :root[data-rail='dark'] .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
+    --su-bar-fg: var(--color-paper) !important;
+    --su-bar-fg-70: var(--color-paper) !important;
+    --su-bar-fg-85: var(--color-paper) !important;
+    --su-bar-fg-60: var(--color-paper) !important;
+    background-color: color-mix(in srgb, var(--color-ink-deep) 85%, var(--color-paper));
   }
 
   .su-union-bar .su-union-bar__rail-name {
@@ -606,4 +623,94 @@
 .su-chassis-gallery .su-chassis-plate__figures {
   grid-template-columns: repeat(3, 1fr);
   row-gap: var(--space-4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 5): ONE LINE IN A HEAD STRIP (L-5).
+ * The cut-out title, its tally and every column label share one baseline:
+ * the title's. A control in the strip (a button) is centred instead; it is
+ * not a label.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* A sheet table's strip. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-open thead th,
+.su-open.su-open--sub thead th {
+  vertical-align: baseline;
+}
+
+.su-open:not(.su-open--sub) thead th[data-col],
+.su-open.su-open--sub thead th[data-col] {
+  line-height: 1;
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+.su-open thead .su-open__title {
+  align-items: baseline;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-open thead .su-open__title > .su-rule-head__label,
+.su-open
+  thead
+  .su-open__title
+  :is(.su-rule-head__tallies, .su-rule-head__tally, .su-rule-head__note) {
+  align-self: baseline !important;
+  padding-bottom: 0;
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__label {
+  padding-bottom: var(--space-4);
+}
+
+/* A section's strip with no table under it (Storage Bay, About). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label,
+.su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
+  align-items: baseline;
+  align-self: baseline !important;
+  height: auto;
+  padding-bottom: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
+  padding-block: var(--space-6) var(--space-4);
+}
+
+/* A Reference or Bay list's strip. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-ledger__table .su-ledger__head > th {
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-ledger__table .su-ledger__head > th:first-child {
+  padding-top: var(--space-8);
+  vertical-align: baseline;
+}
+
+.su-ledger__table .su-ledger__head > th:has(.su-btn) {
+  padding-block: var(--space-6);
+  vertical-align: middle;
+}
+
+.su-ledger__head .su-ledger__title-line {
+  align-items: baseline;
+}
+
+.su-ledger__head .su-ledger__mark {
+  align-self: baseline !important;
+  margin-bottom: 0;
+}
+
+/* A tree's strip keeps to one line: a note that does not fit beside the
+   title is dropped whole, never wrapped under it. */
+.su-open.su-open--sub thead .su-open__title {
+  flex-wrap: wrap;
+  max-height: 1.0625rem;
+  overflow: hidden;
+  row-gap: var(--space-8);
 }

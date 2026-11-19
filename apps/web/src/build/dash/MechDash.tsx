@@ -213,22 +213,8 @@ export function MechDash({
         tint="cargo"
         over={over}
       />
-      {typeof chassis?.techLevel === 'number' && (
-        <StripFigure
-          label={buildSheetCopy('tl')}
-          name={buildSheetCopy('techLevel')}
-          value={chassis.techLevel}
-          meter="bar"
-          tint={{ tl: chassis.techLevel }}
-        />
-      )}
-      {typeof chassis?.salvageValue === 'number' && (
-        <StripFigure
-          label={STAT_LABELS.salvageValue.short}
-          name={STAT_LABELS.salvageValue.label}
-          value={chassis.salvageValue}
-        />
-      )}
+      {/* MOCK (best, revision 5): Tech Level and Salvage Value are the chassis's
+          own facts, so they sit with the Chassis in the side column. */}
     </>
   )
   const art = (
@@ -332,6 +318,10 @@ export function MechDash({
                 groups={[{ key: 'modules', rows: itemRows(mech, 'module') }]}
               />
             )}
+          </DashColumn>
+          <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
+            {/* MOCK (best, revision 5): the chassis leads the side column: its name,
+                its ability (a row that opens), its own facts and its description. */}
             {chassisModel && (
               <div className="su-dash-group">
                 <OpenLedger
@@ -340,8 +330,26 @@ export function MechDash({
                   columns={CHASSIS_COLUMNS}
                   groups={[{ key: 'chassis', rows: chassisRows }]}
                 />
+                <Facts
+                  facts={[
+                    typeof chassis?.techLevel === 'number'
+                      ? {
+                          key: 'tl',
+                          label: buildSheetCopy('techLevel'),
+                          value: <TechLevel level={chassis.techLevel} />,
+                        }
+                      : null,
+                    typeof chassis?.salvageValue === 'number'
+                      ? {
+                          key: 'sv',
+                          label: STAT_LABELS.salvageValue.label,
+                          value: chassis.salvageValue,
+                        }
+                      : null,
+                  ]}
+                />
                 {chassis?.content && chassis.content.length > 0 && (
-                  <Prose lines={2}>
+                  <Prose lines={4}>
                     <Content
                       body={chassis.content as ComponentProps<typeof Content>['body']}
                       fontSize="sm"
@@ -351,8 +359,6 @@ export function MechDash({
                 )}
               </div>
             )}
-          </DashColumn>
-          <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
             <div className="su-dash-group">
               <OpenLedger
                 title={buildSheetCopy('cargo')}
