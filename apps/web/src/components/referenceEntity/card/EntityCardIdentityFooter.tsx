@@ -2,10 +2,12 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { Provenance } from 'salvageunion-reference'
 import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
+import { bookHrefs } from '../../../lib/bookHref'
 import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
 import { CiteLine } from '../../atoms/CiteLine'
 import { capsLabel } from '../../atoms/capsLabel'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
 import { grainClass } from './cardGrain'
@@ -49,6 +51,8 @@ type EntityCardIdentityFooterProps = {
    * source, which keeps its place at the band's top edge.
    */
   wrap?: boolean
+  /** Each printing links to its book's page (Source 2); off inside a Peek, whose one link is its name (E16). */
+  linkBooks?: boolean
 }
 
 const PAD_X: Record<Size, string> = { full: space[14], compact: space[12], mini: space[8] }
@@ -109,9 +113,16 @@ export function EntityCardIdentityFooter({
   band,
   grain,
   wrap = false,
+  linkBooks = true,
 }: EntityCardIdentityFooterProps) {
-  const printed = provenance ? citeLine(provenancePrintings(provenance)) : undefined
-  const citation = credit ?? (printed ? <CiteLine text={printed} /> : undefined)
+  const { hrefFor } = useEntitySurface()
+  const printings = provenance ? provenancePrintings(provenance) : []
+  const printed = citeLine(printings)
+  const citation =
+    credit ??
+    (printed ? (
+      <CiteLine text={printed} hrefs={linkBooks ? bookHrefs(printings, hrefFor) : []} />
+    ) : undefined)
   // Foot extras force the footer even without source/page data — they are
   // affordances, not source chrome.
   const hasFootExtras = (footMeta?.length ?? 0) > 0 || !!externalLink

@@ -94,7 +94,7 @@ const NOT_PRINTED: Record<string, string> = {
   // Blade") is read by nothing yet, and a source's edition and store link have
   // no place on its page.
   'chassis .systems[].preselectedChoices.*': 'known gap: not read by any surface',
-  'sources .purchaseLink': 'known gap: no store link on a source page',
+  'sources .purchaseLink': "a link: the band's Buy this book",
   'sources .version': 'known gap: no edition on a source page',
 }
 

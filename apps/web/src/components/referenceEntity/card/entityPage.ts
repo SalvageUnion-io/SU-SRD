@@ -58,7 +58,7 @@ export type EntityPageMeta = {
    * Where it is printed, for the foot's one citation line: the book and page,
    * then each reprint ("Salvage Union Starter Set (PC)", p.26).
    */
-  printings: { book: string; page?: number }[]
+  printings: { book: string; page?: number; source?: string }[]
 }
 
 /** The model's facts the band does not already state as a book stat. */

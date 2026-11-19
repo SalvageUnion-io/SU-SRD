@@ -136,6 +136,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         fill={fill}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
+        buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
       >
         {/* The Entity renders as one unit — interactive island card + its static
