@@ -5,19 +5,16 @@
  * one act: GUIDED (primary — the existing step wizard), headed in the kind's
  * tone, and BLANK (the escape hatch — an empty sheet, no steps, no limits),
  * headed in ink. Solid, both: neither is user-made (ruleset §3.9). For mechs a
- * third door joins the Blank family: Instantiate from Pattern, which links to
- * the existing /patterns/ flow.
+ * line under them links to the /patterns/ flow: Instantiate from Pattern.
  *
  * The title is the ChapterBand every page wears.
  */
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, capsLabel, TitledBox, tokens } from '../../components/index'
-import { AppLink } from '../../components/shared/AppLink'
+import { Button, ChapterBand, InlineRef, Text, TitledBox, tokens } from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
-import { cn } from '../../lib/cn'
 import { buildWizardCopy } from '../../messages/build-wizard'
 
 type CreateModeChooserProps = {
@@ -61,25 +58,10 @@ const doorCite = { fontWeight: tokens.weight.bold, margin: 0 } satisfies CSSProp
 const doorAct = { alignSelf: 'flex-start' } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
-const bodyStyle = { marginInline: 'auto', maxWidth: '56rem', width: '100%' } satisfies CSSProperties
-
-/** Its fill dims on hover, so the background is `.su-wiz-chooser-pattern`'s. */
-const patternLinkStyle = {
-  borderRadius: tokens.radius.badge,
-  color: tokens.color.paper,
-  display: 'block',
-  lineHeight: 1.625,
-  marginInline: 'auto',
-  marginTop: tokens.space[24],
-  maxWidth: '92%',
-  padding: `${tokens.space[8]} ${tokens.space[16]}`,
-  textAlign: 'center',
-  textDecorationLine: 'none',
-  width: 'fit-content',
-} satisfies CSSProperties satisfies CSSProperties
-const patternLinkCaps = capsLabel({ size: 'badge' })
-
-const patternAccentStyle = { color: tokens.color.pilot } satisfies CSSProperties
+const MEASURE = '56rem'
+const bodyStyle = { marginInline: 'auto', maxWidth: MEASURE, width: '100%' } satisfies CSSProperties
+/** The pattern door's line, under the doors. */
+const patternNote = { marginTop: tokens.space[16] } satisfies CSSProperties
 
 export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
@@ -96,6 +78,7 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
           started for, as the wizard's own band shows it. */}
       <ChapterBand
         tone={kind}
+        measure={MEASURE}
         asideAt="notch"
         aside={gameId === undefined ? undefined : <WizardGameChip gameId={gameId} />}
       >
@@ -122,18 +105,12 @@ export function CreateModeChooser({ kind, onGuided, onBlank, gameId }: CreateMod
           </TitledBox>
         </div>
 
-        {/* Mech only: the third Blank-family door — Instantiate from Pattern,
-            a link to the /patterns/ flow. */}
+        {/* Mech only: the pattern door, a link to the /patterns/ flow. */}
         {kind === 'mech' && (
-          <AppLink
-            href="/patterns/"
-            className={cn('su-wiz-chooser-pattern', patternLinkCaps)}
-            style={patternLinkStyle}
-          >
-            A third door in the Blank family —{' '}
-            <span style={patternAccentStyle}>{buildWizardCopy('instantiateFromPattern')}</span> ·
-            stamp a saved pattern, then edit freely
-          </AppLink>
+          <Text variant="note" style={patternNote}>
+            {buildWizardCopy('orBuildFromASavedPattern')}{' '}
+            <InlineRef href="/patterns/">{buildWizardCopy('instantiateFromPattern')}</InlineRef>
+          </Text>
         )}
       </div>
     </section>
