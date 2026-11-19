@@ -44,6 +44,15 @@
   display: flex;
 }
 
+/* A mark beside the tab (HOMEBREW) rides the strip's stamp line: centred in
+   the band over the tab's foot, as the column stamps are. */
+.su-ledger__mark {
+  align-self: center;
+  display: inline-flex;
+  margin-bottom: var(--space-8);
+  margin-inline-start: var(--space-8);
+}
+
 .su-ledger__sort {
   background: none;
   border: 0;
@@ -91,6 +100,13 @@
 
 .su-ledger__name {
   font-weight: var(--font-weight-extrabold);
+}
+
+/* A row's rank (`TL | 1`) is one width down the list: its numeral centred in
+   a frame as wide as it is tall, so a 1 and a 4 end on the same edge. */
+.su-ledger__name-line .su-stat-plate--value {
+  justify-content: center;
+  min-width: var(--space-16);
 }
 
 .su-ledger__table tbody th {
@@ -429,6 +445,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* On a phone the make's cut-out is the widest thing on the strip: the cells
+   after the name sit closer and a word column wraps, so a long name's menu
+   stays inside the frame. */
+@media not (width >= 40rem) {
+  .su-shelf-ledger .su-ledger__table tr > :is(th, td):not(:first-child) {
+    padding-inline: var(--space-4);
+  }
+
+  .su-shelf-ledger .su-ledger__table td[data-kind='text'] {
+    white-space: normal;
+  }
 }
 
 /* Search: the dropdown's results as a Ledger.

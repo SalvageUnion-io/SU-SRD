@@ -1,7 +1,9 @@
+import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
+import { iconSize } from '../design/tokens'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { referenceCopy } from '../messages/reference'
@@ -70,6 +72,8 @@ type EntityPageFrameProps = {
   legalStartingPattern?: boolean
   /** "Build With This": the deep link into the app's builder (`buildLinkFor`), ending the cluster after Share (the band's `action`). */
   build?: BuildLink | null
+  /** A book's store page (a Sources record's `purchaseLink`): the band's off-site Buy, after Share. */
+  buy?: string
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
   children: ReactNode
@@ -83,6 +87,7 @@ export function EntityPageFrame({
   parent,
   legalStartingPattern,
   build,
+  buy,
   exits,
   children,
 }: EntityPageFrameProps) {
@@ -103,6 +108,22 @@ export function EntityPageFrame({
         action={
           <>
             <SharePageButton />
+            {buy && (
+              // The store is off the site: a new tab, in ink, never the
+              // page's rust (the front door's Buy the game is ink too).
+              <Button
+                href={buy}
+                linkAs="a"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="ink"
+                size="compact"
+                className="su-page-action"
+              >
+                {referenceCopy('buyThisBook')}
+                <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+              </Button>
+            )}
             {build && (
               // A link drawn as the shared Button (`Button href`): same tab, no
               // off-site arrow — the Reference and Build are one union

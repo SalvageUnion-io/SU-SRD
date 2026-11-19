@@ -52,6 +52,7 @@ export const referenceCopy = messages({
   buyBody:
     'The books hold the setting, the art and the adventures. If you like what you find here, the best way to support the game is to buy it from the people who made it.',
   buyFromLeylinePress: 'Buy from Leyline Press',
+  buyThisBook: 'Buy this book',
   gotTheStarterSet: 'Got the Starter Set?',
   theBooksThisSiteCites: 'The books this site cites',
   books: 'Books',

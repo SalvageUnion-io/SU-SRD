@@ -63,7 +63,8 @@ export function GameBand({
       asideAt="controls"
       aside={
         mediates || actions || live ? (
-          <>
+          // One cluster, so a phone's strip under the band keeps the doors on a line.
+          <Cluster gap={12}>
             {mediates && (
               // The stamp and its link wrap as one piece, centred on each other.
               <Cluster gap={8}>
@@ -94,7 +95,7 @@ export function GameBand({
               </Badge>
             )}
             {actions}
-          </>
+          </Cluster>
         ) : undefined
       }
     >

@@ -145,11 +145,18 @@ export function provenancePrintings(provenance: Provenance): EntityPrinting[] {
   const book = formatProvenance(provenance.source, provenance.booklet, undefined)
   return [
     ...(book
-      ? [{ book, ...(provenance.page !== undefined ? { page: provenance.page } : {}) }]
+      ? [
+          {
+            book,
+            ...(provenance.page !== undefined ? { page: provenance.page } : {}),
+            ...(provenance.source ? { source: provenance.source } : {}),
+          },
+        ]
       : []),
     ...provenance.additionalSources.map((entry) => ({
       book: formatProvenance(entry.source, entry.booklet, undefined) ?? entry.source,
       page: entry.page,
+      source: entry.source,
     })),
   ]
 }

@@ -15,7 +15,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { SignInControl } from '../build/account/SignInControl'
 import { Button, ChapterBand, PageShell, Text, tokens } from '../components/index'
 
-const BODY = { maxWidth: '36rem', textAlign: 'left' } satisfies CSSProperties
+const BODY = { maxWidth: '36rem' } satisfies CSSProperties
 
 const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
 

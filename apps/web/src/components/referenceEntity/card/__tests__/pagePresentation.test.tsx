@@ -77,8 +77,16 @@ describe('resolveEntityPageMeta — what the page’s bands say', () => {
     const meta = resolveEntityPageMeta(gopher())
     expect(meta.typeLabel).toBe('Chassis')
     expect(meta.techLevel).toBe('2')
-    expect(meta.printings[0]).toEqual({ book: 'Workshop Manual', page: gopher().page })
-    expect(meta.printings[1]).toEqual({ book: 'Salvage Union Starter Set (PC)', page: 26 })
+    expect(meta.printings[0]).toEqual({
+      book: 'Workshop Manual',
+      page: gopher().page,
+      source: 'Salvage Union Workshop Manual',
+    })
+    expect(meta.printings[1]).toEqual({
+      book: 'Salvage Union Starter Set (PC)',
+      page: 26,
+      source: 'Salvage Union Starter Set',
+    })
   })
 
   test('an ability: its tree in its kind, its tier numeral, and its action type and cost on the band', () => {

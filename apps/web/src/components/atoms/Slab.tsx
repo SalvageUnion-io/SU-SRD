@@ -179,7 +179,10 @@ const RULE = {
   minWidth: space[12],
 } satisfies CSSProperties
 
-/** Its actions wrap onto lines of their own before the row runs off a phone. */
+/**
+ * Its actions wrap onto lines of their own before the row runs off a phone;
+ * the lines they wrap into are filled (`.su-slab__actions`, `containers.css`).
+ */
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -262,7 +265,11 @@ export function Slab({
       {/* A div, not a span: actions carry block-level content (the Ko-fi widget
           renders a div), and a div inside a span is invalid HTML. Both are flex
           items of the same row, so nothing moves. */}
-      {actions && <div style={ACTIONS}>{actions}</div>}
+      {actions && (
+        <div className="su-slab__actions" style={ACTIONS}>
+          {actions}
+        </div>
+      )}
     </div>
   )
 }

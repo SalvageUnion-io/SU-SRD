@@ -306,6 +306,14 @@
   flex-wrap: wrap;
 }
 
+/* A Slab's actions that overfill a line wrap inside their own box, and each
+   line is filled (R68): three buttons and a fourth read as a block, never a
+   ragged right edge. Beside the title the box is its content's width, so
+   nothing grows. A square stays a square. */
+.su-slab__actions > .su-btn:not(.su-btn--icon-only) {
+  flex: 1 1 auto;
+}
+
 /* With controls (a fold, actions) its count chip is the head's Size, Compact,
    the height of the chevron and the Buttons beside it, so the head is one line
    of one height, in a sidebar's narrow column as on a wide one. */

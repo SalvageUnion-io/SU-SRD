@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
+import { bookHrefs } from '../../lib/bookHref'
 import { islandsCopy } from '../../messages/components-islands'
 import { CiteLine } from '../atoms/CiteLine'
 import { Stat } from '../atoms/Stat'
@@ -273,20 +274,19 @@ export function IndexLedger({
   }, [built, columns, sort])
   // The books the list is printed in, once, on the foot's cut-out; a list
   // whose data names none has no foot.
-  const books = useMemo(
+  const sources = useMemo(
     () => [
       ...new Set(
         items
-          .map((item) =>
-            'source' in item && item.source
-              ? String(item.source).replace(/^Salvage Union /, '')
-              : ''
-          )
+          .map((item) => ('source' in item && item.source ? String(item.source) : ''))
           .filter(Boolean)
       ),
     ],
     [items]
   )
+  const books = sources.map((source) => source.replace(/^Salvage Union /, ''))
+  // Each book links to its page (Source 2).
+  const bookLinks = bookHrefs(sources.map((source) => ({ book: source, source })))
   const first = built[0]
   if (!first) return null
   return (
@@ -305,7 +305,7 @@ export function IndexLedger({
         ) : undefined,
         cells: row.cells,
       }))}
-      foot={books.length > 0 ? <CiteLine text={books.join(' // ')} /> : undefined}
+      foot={books.length > 0 ? <CiteLine text={books.join(' // ')} hrefs={bookLinks} /> : undefined}
       sort={sort}
       onSort={(key) =>
         setSort((now) => ({ key, descending: now?.key === key ? !now.descending : false }))

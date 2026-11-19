@@ -58,6 +58,7 @@ export const buildWizardCopy = messages({
   forVeteransImportsAndHomebrew: 'For veterans, imports, and homebrew.',
   startBlank: 'Start blank',
   instantiateFromPattern: 'Instantiate from Pattern',
+  orBuildFromASavedPattern: 'Or start from a pattern you saved:',
   qty: 'Qty',
   noEquipment: 'No Equipment',
   noTechLevel1Equipment: 'No tech level 1 equipment found.',

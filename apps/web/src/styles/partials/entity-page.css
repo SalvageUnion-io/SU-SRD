@@ -81,6 +81,13 @@
   .su-stat-column__stat > .su-stat-plate--label {
     padding: 0 var(--space-12);
   }
+
+  /* Four a row, the longest stamp (STRUCTURE POINTS) runs its cell's width:
+     at 14px a stamp takes the label tracking (§4.2), which leaves it a margin
+     its neighbours' have. The compact cells' 11px caps stay snug (§3.12). */
+  .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat > .su-stat-plate--label {
+    letter-spacing: var(--tracking-caps-tight);
+  }
 }
 
 /* The compact column (`StatColumn compact`): the band's smaller cells, paired

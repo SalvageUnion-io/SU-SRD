@@ -54,8 +54,6 @@ const ACTIONS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } sati
 /** The invite's words, a step up from the body's. */
 const WORDS = { fontSize: 'var(--text-readout)' } satisfies CSSProperties
 
-const HINT = { ...WORDS, textAlign: 'left' } satisfies CSSProperties
-
 /**
  * The page column: an invitation is a short read, so it does not span the
  * hub's width. It stands in the middle of the room under the band, a size up,
@@ -111,10 +109,10 @@ function DeadLink({
 }) {
   return (
     <TitledBox title={headline}>
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {ask}
       </Text>
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {HOW_INVITES_WORK}
       </Text>
       <Back signIn={signIn} />
@@ -175,7 +173,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <InviteWords preview={preview} />
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {playGamesCopy('everyoneAtATableCan')}
       </Text>
       <div style={ACTIONS}>
@@ -202,7 +200,7 @@ function SignedOutInvite({ token }: { token: string }) {
   return (
     <TitledBox title={playGamesCopy('youHaveBeenInvited')}>
       <InviteWords preview={preview} />
-      <Text variant="hint" style={HINT}>
+      <Text variant="hint" style={WORDS}>
         {playGamesCopy('signInToJoinYour')}
       </Text>
       <div>

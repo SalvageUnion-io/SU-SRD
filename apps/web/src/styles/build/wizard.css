@@ -41,16 +41,17 @@
 
 /* — CreateModeChooser — */
 
-/* The doors' column. */
+/* The doors' column, on the band's measure: its gutters are the band row's,
+   so the doors start under the title's cut-out. */
 .su-wiz-chooser-body {
-  padding: var(--space-32) var(--space-24);
+  padding: var(--space-24) var(--space-16);
 }
 
 /* The two doors: stacked on a phone, side by side from sm. */
 .su-wiz-chooser-doors {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-24);
+  gap: var(--space-12);
 }
 
 .su-wiz-chooser-doors > * {
@@ -58,22 +59,9 @@
   min-width: 0;
 }
 
-/* The mech-only "Instantiate from Pattern" door dims on hover. */
-.su-wiz-chooser-pattern {
-  background-color: var(--color-ink);
-}
-
-.su-wiz-chooser-pattern:hover {
-  background-color: var(--color-ink-85);
-}
-
 @media (width >= 40rem) {
   .su-wiz-chooser-body {
-    padding: var(--space-40) var(--space-32);
-  }
-
-  .su-wiz-chooser-doors {
-    gap: var(--space-20);
+    padding-inline: var(--space-24);
   }
 }
 

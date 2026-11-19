@@ -550,6 +550,7 @@ function ReferenceEntityCardInner({
               provenance={userMade ? undefined : provenance}
               footMeta={footMeta}
               externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
+              linkBooks={!insidePeek}
               size={size}
               credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
               band={{ onBand, bandColor }}

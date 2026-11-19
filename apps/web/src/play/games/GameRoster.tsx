@@ -96,8 +96,6 @@ type GameRosterProps = {
   gameName: string | null
 }
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
-
 /* The roster fills its rows (R68): a card is at least 24rem, as many a row as
    fit, and a short last row's cards grow to share the line, so one unit is
    never half a row. The crawler takes a row of its own. */
@@ -407,16 +405,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       >
         {error !== null && <FieldError>{error}</FieldError>}
         {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
-          <Text variant="hint" style={HINT}>
-            {caps.addCrewBlocked}
-          </Text>
+          <Text variant="hint">{caps.addCrewBlocked}</Text>
         )}
         {loading ? (
           <RosterSkeleton label={playGamesCopy('theCrew')} />
         ) : rows.length === 0 ? (
-          <Text variant="hint" style={HINT}>
-            {playGamesCopy('nobodyHasBroughtAUnit')}
-          </Text>
+          <Text variant="hint">{playGamesCopy('nobodyHasBroughtAUnit')}</Text>
         ) : (
           <ul aria-labelledby="crew-heading" style={LIST}>
             {rows.map(renderRow)}

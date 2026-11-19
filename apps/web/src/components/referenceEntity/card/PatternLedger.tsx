@@ -7,6 +7,7 @@
 // section and carries the count, so no Slab heads it.
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { entityRef, isBioTitanPattern, toEntityModel } from 'salvageunion-reference'
+import { bookHrefs } from '../../../lib/bookHref'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { CiteLine } from '../../atoms/CiteLine'
 import { Stat } from '../../atoms/Stat'
@@ -59,7 +60,18 @@ export function PatternLedger({
   const surface = useEntitySurface()
   const model = toEntityModel(chassis as RefMetaEntity)
   const host = entityRef(chassis as RefMetaEntity)
-  const cites = [...new Set(patterns.map(citeOf).filter(Boolean))]
+  // Each distinct cite once, linked to its book's page (Source 2).
+  const cited = new Map<string, string>()
+  for (const pattern of patterns) {
+    const cite = citeOf(pattern)
+    if (cite && !cited.has(cite))
+      cited.set(cite, 'source' in pattern ? String(pattern.source ?? '') : '')
+  }
+  const cites = [...cited.keys()]
+  const hrefs = bookHrefs(
+    [...cited.values()].map((source) => ({ book: source, source })),
+    surface.hrefFor
+  )
   return (
     <Ledger
       label={referenceEntityCopy('patternsOf', { name: model.title })}
@@ -84,7 +96,7 @@ export function PatternLedger({
         ) : undefined,
         cells: [changesOf(pattern)],
       }))}
-      foot={<CiteLine text={cites.join(' // ')} />}
+      foot={<CiteLine text={cites.join(' // ')} hrefs={hrefs} />}
     />
   )
 }

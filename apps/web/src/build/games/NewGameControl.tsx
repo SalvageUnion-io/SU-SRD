@@ -65,8 +65,6 @@ const ROW = {
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
 
-const HINT = { textAlign: 'left' } satisfies CSSProperties
-
 type NewGameDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -143,9 +141,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
             <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
-              <Text variant="hint" style={HINT}>
-                {t.description}
-              </Text>
+              <Text variant="hint">{t.description}</Text>
               <div>
                 <Button
                   variant="default"
@@ -161,9 +157,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           ))}
         </SlabSection>
 
-        <Text variant="hint" style={HINT}>
-          {buildGamesCopy('joiningAFriendsGameOpen')}
-        </Text>
+        <Text variant="hint">{buildGamesCopy('joiningAFriendsGameOpen')}</Text>
 
         <FieldError>{error}</FieldError>
       </div>
@@ -171,12 +165,17 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   )
 }
 
-function ConnectedNewGameControl() {
+type NewGameControlProps = {
+  /** Its region already has a door (a Game to play): the make is outlined, not rust (ruleset §3.13). */
+  beside?: boolean
+}
+
+function ConnectedNewGameControl({ beside = false }: NewGameControlProps) {
   const [open, setOpen] = useState(false)
   return (
     <>
-      {/* A make, so rust (ruleset §1.9). */}
-      <Button variant="primary" size="compact" onClick={() => setOpen(true)}>
+      {/* A make is rust only where its region has no door (ruleset §1.9, §3.13). */}
+      <Button variant={beside ? 'default' : 'primary'} size="compact" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />
@@ -185,8 +184,8 @@ function ConnectedNewGameControl() {
 }
 
 /** "+ New Game" and its dialog; nothing at all outside Connected mode. */
-export function NewGameControl() {
+export function NewGameControl(props: NewGameControlProps) {
   const { status } = useSync()
   if (status !== 'live') return null
-  return <ConnectedNewGameControl />
+  return <ConnectedNewGameControl {...props} />
 }

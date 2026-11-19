@@ -16,6 +16,7 @@ export const CHECK_IDS = [
   'orphans',
   'content-dupes',
   'play-tags',
+  'sources',
   'traits',
   'parity',
 ] as const

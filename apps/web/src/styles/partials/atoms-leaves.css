@@ -132,10 +132,11 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* A hint starts where its block does, as every line on the site: no caller
+   re-aligns it. */
 .su-text.su-text--hint {
   max-width: 100%;
   overflow: hidden;
-  text-align: center;
 }
 
 .su-text.su-text--flavor {

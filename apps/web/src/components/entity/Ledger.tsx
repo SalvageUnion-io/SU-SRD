@@ -249,7 +249,7 @@ export function Ledger({
                   )}
                   {count != null && <span className="su-ledger__count">{count}</span>}
                 </span>
-                {mark}
+                {mark && <span className="su-ledger__mark">{mark}</span>}
               </span>
             </th>
             {columns.map((column) => (
@@ -278,6 +278,10 @@ export function Ledger({
                     <span className="su-ledger__action">{action}</span>
                   ) : (
                     trailingLabel && stamp('trailing', trailingLabel)
+                  )}
+                  {/* A head with nothing to show still names its column (axe empty-table-header). */}
+                  {note == null && !action && !trailingLabel && (
+                    <span className="su-sr-only">{entityCopy('rowActions')}</span>
                   )}
                 </span>
               </th>
