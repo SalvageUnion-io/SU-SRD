@@ -101,7 +101,7 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     // Measured 27,212 once the island lists patterns as the book does
     // (`PatternListing` on the game-data surface): its lazy chunk's preload
     // list names more chunks, 42 bytes more in the island entry.
-    // Measured 27,517 on Vite 8.3.5, which Astro 7 needs (ADR-066): its
+    // Measured 27,517 on Vite 8.3.5, which Astro 7 needs (ADR-065): its
     // preload helper dedupes in-flight preloads, 323 bytes more. Measured
     // 27,697 built by Astro: its client build keeps the helper's `relList`
     // check, 146 bytes more. Measured 27,570 once sign-in moved to the
