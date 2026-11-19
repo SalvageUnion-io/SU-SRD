@@ -43,7 +43,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { cockpitPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -138,6 +138,10 @@ function ConnectedShelves() {
 }
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
+/** MOCK (best, revision 3): which half of the old Shelves to draw. */
+// biome-ignore lint/style/useComponentExportOnlyModules: MOCK: a real build splits the kit into its own module
+export const MockShelvesPart = createContext<'bay' | 'kit'>('bay')
+
 export function Shelves() {
   const { status } = useSync()
   if (status === 'live') return <ConnectedShelves />
@@ -149,6 +153,7 @@ export function Shelves() {
 // ---------------------------------------------------------------------------
 
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
+  const part = useContext(MockShelvesPart)
   const { status, canWrite } = useSync()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
@@ -356,6 +361,57 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
+  // MOCK (best, revision 3): the Mediator's Kit (NPCs, Encounters) renders
+  // on the Games front, not here. Built for real it is its own module with
+  // its own hooks; the mock reuses this page's.
+  if (part === 'kit') {
+    return (
+      <div className="su-shelf-ledgers su-mediator-kit">
+        <div className="su-shelf-ledgers__col">
+          <ShelfLedger
+            id="shelf-npcs"
+            title="NPCs"
+            tone="adversary"
+            homebrew
+            columns={NPC_COLUMNS}
+            action={newLink('/npcs/new', '+ Design an NPC')}
+            empty="No NPCs yet. Design one and it is kept here."
+            note={buildShelvesCopy('yourNpcsReadyToDrop')}
+            rows={[
+              ...npcs.map((n) => ({
+                id: n.id,
+                name: n.name,
+                href: `/npcs/${n.id}`,
+                cells: [
+                  n.position ?? '',
+                  who(npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })),
+                  inGame(gameRelation(n, games)),
+                  String(npcReading(n).value),
+                ],
+                menu: unitMenu('npc', n, n),
+              })),
+              ...tray.map((n) => ({
+                id: n.id,
+                name: n.name,
+                cells: [
+                  buildShelvesCopy('tray'),
+                  who(encounterNpcChips()),
+                  '',
+                  String(encounterNpcReading(n).value),
+                ],
+                menu: trayMenu(n),
+              })),
+            ]}
+          />
+        </div>
+        <div className="su-shelf-ledgers__col">
+          <EncounterShelf confirm={confirm} />
+        </div>
+        {dialog}
+      </div>
+    )
+  }
+
   return (
     <PageShell
       className="su-shelves"
@@ -510,44 +566,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   menu: patternMenu(p),
                 }))}
               />
-              <ShelfLedger
-                id="shelf-npcs"
-                title="NPCs"
-                tone="adversary"
-                homebrew
-                columns={NPC_COLUMNS}
-                action={newLink('/npcs/new', '+ Design an NPC')}
-                empty="No NPCs yet. Design one and it is kept here."
-                note={buildShelvesCopy('yourNpcsReadyToDrop')}
-                rows={[
-                  ...npcs.map((n) => ({
-                    id: n.id,
-                    name: n.name,
-                    href: `/npcs/${n.id}`,
-                    cells: [
-                      n.position ?? '',
-                      who(
-                        npcChips({ npc: n, sharedByLink: sharedByLink?.includes(n.id) ?? false })
-                      ),
-                      inGame(gameRelation(n, games)),
-                      String(npcReading(n).value),
-                    ],
-                    menu: unitMenu('npc', n, n),
-                  })),
-                  ...tray.map((n) => ({
-                    id: n.id,
-                    name: n.name,
-                    cells: [
-                      buildShelvesCopy('tray'),
-                      who(encounterNpcChips()),
-                      '',
-                      String(encounterNpcReading(n).value),
-                    ],
-                    menu: trayMenu(n),
-                  })),
-                ]}
-              />
-              <EncounterShelf confirm={confirm} />
+              {/* MOCK (best, revision 3): the Mediator's Kit moved to Games. */}
             </div>
           </div>
         </>

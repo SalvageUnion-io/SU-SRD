@@ -42,6 +42,7 @@ import { assetUrl } from 'salvageunion-reference'
 import { SignInControl } from '../build/account/SignInControl'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
+import { MockShelvesPart, Shelves } from '../build/shelves/Shelves'
 import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {
@@ -306,6 +307,18 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             />
           ))}
         </Shelf>
+        {/* MOCK (best, revision 3): the Mediator's Kit lives with the tables
+            it is for. */}
+        {connected && (
+          <section id="mediators-kit" className="su-mediator-kit-section">
+            <header className="su-rule-head">
+              <h2 className="su-rule-head__label">Mediator’s Kit</h2>
+            </header>
+            <MockShelvesPart.Provider value="kit">
+              <Shelves />
+            </MockShelvesPart.Provider>
+          </section>
+        )}
       </div>
     </PageShell>
   )

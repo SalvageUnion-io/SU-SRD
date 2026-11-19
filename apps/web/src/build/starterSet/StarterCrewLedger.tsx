@@ -156,6 +156,7 @@ export function StarterCrewLedger({ roster = 'starter-set', confirm }: StarterCr
     <div className="su-dash-group__body">
       <OpenLedger
         title={buildStarterSetCopy('pilotsAndTheirMechs')}
+        className="su-open--pairs"
         tally={{ label: buildStarterSetCopy('pilots'), value: crew.pilots.length }}
         columns={PAIR_COLUMNS}
         groups={[

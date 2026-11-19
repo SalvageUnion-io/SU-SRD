@@ -51,7 +51,6 @@ import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
-import { CrawlerCrewLead } from '../sheet/CrawlerCrewLead'
 import type { CrawlerBayEntry } from '../sheet/CrawlerSheetItems'
 import { splitBayContent } from '../sheet/CrawlerSheetItems'
 import { EXOTIC_NAME } from '../sheet/exoticNames.model'
@@ -124,7 +123,6 @@ function BayDetail({
   index,
   store,
   liveCondition,
-  assigned,
   dockedMech,
   contents,
 }: {
@@ -138,7 +136,7 @@ function BayDetail({
   contents?: ReactNode
 }) {
   const storeState = store()
-  const { selections, setSelections } = useEntityChoices(
+  const { selections } = useEntityChoices(
     'crawler',
     crawler.id,
     entry.bayRef,
@@ -180,15 +178,8 @@ function BayDetail({
             <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
           </p>
         )}
-        <CrawlerCrewLead
-          npc={bay.npc}
-          slot={{ schemaName: 'crawler-bays', id: bay.id, name: bay.name }}
-          state={entry}
-          selections={selections}
-          setSelections={setSelections}
-          onPatch={undefined}
-          assigned={assigned}
-        />
+        {/* MOCK (best, revision 3): the crew lead prints once, on the bay's own
+            line (name, Keepsake, Motto, HP); the card that repeated it here is gone. */}
         {/* A bay's condition is session state: it writes in Read (R11). */}
         {liveCondition && (
           <div>
@@ -431,7 +422,11 @@ export function CrawlerDash({
           {linkedUnits}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: crawler.name })}>
-          <DashGroup title={buildSheetCopy('storageBay')}>
+          {/* MOCK (best, revision 3): the Storage Bay as one deliberate object:
+              "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
+              chip over its count), then what is stored as its rows. */}
+          <DashGroup title={buildSheetCopy('storageBay')} tally="Unlimited">
+            <p className="su-dash-sub su-scrap__label">Scrap</p>
             <dl className="su-scrap" aria-label={buildSheetCopy('scrapByTechLevel')}>
               {NUMERIC_TECH_LEVELS.map((level) => {
                 const count = scrapPoolBucket(pool, level)
@@ -442,7 +437,9 @@ export function CrawlerDash({
                     data-empty={count === 0 ? '' : undefined}
                     style={{ '--tl': `var(--color-tl-${level})` } as CSSVarStyle}
                   >
-                    <dt>{buildSheetCopy('t', { t: level })}</dt>
+                    <dt>
+                      <TechLevel level={level} />
+                    </dt>
                     <dd>{count}</dd>
                   </div>
                 )
@@ -478,7 +475,6 @@ export function CrawlerDash({
               empty={buildSheetCopy('nothingStored')}
               className="su-open--sub"
             />
-            <p className="su-dash-quiet">{buildSheetCopy('unlimitedStorage')}</p>
           </DashGroup>
           {weaponsLedger}
           {type && (

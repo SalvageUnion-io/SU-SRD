@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import type { BookCite, RefChassis } from 'salvageunion-reference'
 import {
+  getAssetUrl,
   nameToSlug,
   normalizePatternName,
   SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import { EmptyState, ReferenceEntityCard } from '../../components/index'
+import { assetSrcSetFor, EmptyState, ReferenceEntityCard } from '../../components/index'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
@@ -117,7 +118,7 @@ export function MechChassisStep({
   onSelectChassis,
   onSelectPattern,
   onSelectCustom,
-  cite,
+  cite: _cite, // MOCK: the gallery drops the pick list's cite foot
 }: MechChassisStepProps) {
   const chassisPool = useMemo(
     () =>
@@ -164,19 +165,12 @@ export function MechChassisStep({
     <div className="su-wiz-compare-layout">
       <div className="su-wiz-compare-main">
         <div>
-          <PickList
+          <ChassisGallery
             title={mechCopy('tech1Chassis')}
             note={mechCopy('choose1')}
-            rows={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
-            rowKey={(c) => nameToSlug(c.name)}
-            rowName={(c) => c.name}
-            columns={CHASSIS_COLUMNS}
+            pool={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
             selected={chassisName || undefined}
             onSelect={onSelectChassis}
-            foot={{
-              cite,
-              meta: { label: mechCopy('costs'), value: mechCopy('itsSalvageValueIn') },
-            }}
           />
         </div>
         {selectedChassis !== undefined && (
@@ -214,5 +208,76 @@ export function MechChassisStep({
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * MOCK (density "best", revision 3, item 7): the chassis pick as a gallery.
+ * A chassis is chosen by its picture first (the owner: "huge draw"), so each
+ * is a plate: its art, its name, its cost (Salvage Value), and the same six
+ * figures the pick list printed, under their labels. One radio group; the
+ * picked plate takes the ink frame. The step's cite would ride the foot as
+ * the pick list's did; the mock drops it.
+ */
+function ChassisGallery({
+  title,
+  note,
+  pool,
+  selected,
+  onSelect,
+}: {
+  title: string
+  note: string
+  pool: readonly RefChassis[]
+  selected: string | undefined
+  onSelect: (slug: string) => void
+}) {
+  const figures = CHASSIS_COLUMNS.filter((column) => column.key !== 'sv')
+  return (
+    <section className="su-chassis-gallery">
+      <header className="su-rule-head">
+        <h2 className="su-rule-head__label">{title}</h2>
+        <span className="su-rule-head__note">{note}</span>
+      </header>
+      <div className="su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
+        {pool.map((chassis) => {
+          const slug = nameToSlug(chassis.name)
+          const art = getAssetUrl(chassis)
+          const picked = slug === selected
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: a picture plate is a button-shaped radio, not a native input
+            <button
+              key={slug}
+              type="button"
+              role="radio"
+              aria-checked={picked}
+              className="su-chassis-plate"
+              data-picked={picked || undefined}
+              onClick={() => onSelect(slug)}
+            >
+              <span className="su-chassis-plate__art">
+                {art && (
+                  <img src={art} srcSet={assetSrcSetFor(art)} sizes="240px" alt="" loading="lazy" />
+                )}
+              </span>
+              <span className="su-chassis-plate__name">
+                <b>{chassis.name}</b>
+                <span className="su-chassis-plate__cost">
+                  <small>{mechCopy('sv')}</small> {chassis.salvageValue}
+                </span>
+              </span>
+              <span className="su-chassis-plate__figures">
+                {figures.map((column) => (
+                  <span key={column.key} title={column.title}>
+                    <small>{column.label}</small>
+                    <b>{column.value(chassis)}</b>
+                  </span>
+                ))}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
   )
 }

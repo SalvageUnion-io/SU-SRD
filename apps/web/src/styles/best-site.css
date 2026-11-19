@@ -73,7 +73,7 @@
 }
 
 .su-ledger__table tbody tr[data-band] {
-  background-color: color-mix(in srgb, var(--color-band-cream) 86%, var(--color-ink));
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
 @media (width >= 40rem) {
@@ -155,4 +155,148 @@
 .su-ledger .su-box__body > :not(table) {
   background: none !important;
   background-image: none !important;
+}
+
+/* ── 4. MOCK (revision 3): the roll table in the best grammar ───────────────
+   The bar is the head strip in the page's kind colour; the name is a cut-out
+   the strip's own height on its foot (never a small tab low in a tall bar);
+   the d20 column is plain tabular numerals on the row's band, right-aligned
+   under its label, with no cell of its own. */
+
+.su-roll {
+  --su-roll-band: color-mix(
+    in srgb,
+    var(--su-kind, var(--color-ink)) 26%,
+    var(--color-paper)
+  ) !important;
+  --su-roll-range: 4rem;
+}
+
+.su-roll[data-frame='box'] {
+  border: 0;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  border-radius: 0;
+}
+
+.su-roll .su-roll__bar {
+  align-items: center;
+  background-color: var(--su-kind, var(--color-ink));
+  color: var(--su-on-kind, var(--color-paper));
+  min-height: 2.5rem;
+  padding-block: 0;
+}
+
+.su-roll .su-roll__bar .su-roll__title {
+  align-items: center;
+  align-self: flex-end;
+  display: inline-flex;
+  font-size: var(--text-readout);
+  margin-bottom: 0;
+  min-height: calc(2.5rem - var(--space-6));
+  padding-block: 0;
+  padding-inline: var(--space-12);
+}
+
+.su-roll .su-roll__bar :is(.su-roll__col-text, .su-roll__hint) {
+  color: inherit;
+}
+
+.su-roll .su-roll__bar .su-roll__col-range {
+  box-sizing: border-box;
+  padding-right: var(--space-12);
+  text-align: right;
+}
+
+.su-roll .su-roll__bands {
+  border-top: 0;
+}
+
+.su-roll .su-roll__range,
+.su-roll .su-roll__row[data-rolled] .su-roll__range {
+  background-color: transparent;
+  border-right: 0;
+  box-sizing: border-box;
+  color: inherit;
+  justify-content: flex-end;
+  padding-right: var(--space-12);
+}
+
+/* ── 5. MOCK (revision 3): Buy the game, the books as a shelf of covers ──── */
+
+.su-front__buy-copy {
+  flex: 1 1 18rem;
+}
+
+.su-front__buy-copy .su-front__buy-licence {
+  color: var(--color-ink-75);
+  font-size: var(--text-caption);
+}
+
+.su-front__shelf {
+  display: grid;
+  flex: 3 1 28rem;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.su-front__cover {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-decoration: none;
+}
+
+.su-front__cover > img,
+.su-front__cover-type {
+  aspect-ratio: 3 / 4;
+  border: var(--bw-chrome) solid var(--color-ink);
+  box-sizing: border-box;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* The slot before its art: the title set as a cover, ink on the book's blue. */
+.su-front__cover-type {
+  align-items: flex-end;
+  background-color: var(--color-ink);
+  background-image: linear-gradient(
+    to bottom,
+    var(--su-kind, var(--color-wk-line)) 0,
+    var(--su-kind, var(--color-wk-line)) var(--space-12),
+    transparent var(--space-12)
+  );
+  color: var(--color-paper);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  overflow: hidden;
+  padding: var(--space-8);
+  text-transform: uppercase;
+}
+
+.su-front__cover:hover .su-front__cover-type {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: var(--space-2);
+}
+
+.su-front__cover-name {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  text-decoration: underline;
+}
+
+.su-front__cover-version {
+  color: var(--color-ink-75);
+  font-size: var(--text-chip);
+  font-variant-numeric: tabular-nums;
 }

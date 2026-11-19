@@ -9,7 +9,7 @@
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { MouseEvent, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
@@ -226,6 +226,8 @@ export function Ledger({
     <Box frameColor={paint.background} body="flush" className="su-ledger">
       <table
         className="su-ledger__table"
+        // MOCK (best, revision 3): the zebra tints from the list's own band.
+        style={{ '--su-kind': paint.background } as CSSProperties}
         aria-label={label}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}

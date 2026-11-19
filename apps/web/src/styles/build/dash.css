@@ -1233,7 +1233,7 @@
 
 .su-rule-head:not(.su-rule-head--sub) {
   align-items: flex-end;
-  background-color: var(--color-ink);
+  background-color: var(--su-kind, var(--color-ink));
   border-bottom: 0;
   column-gap: var(--space-12);
   min-height: var(--size-compact);
@@ -1257,13 +1257,13 @@
 .su-rule-head:not(.su-rule-head--sub) :is(.su-rule-head__tally, .su-rule-head__note),
 .su-open:not(.su-open--sub) thead :is(.su-rule-head__tally, .su-rule-head__note) {
   align-self: center;
-  color: var(--color-paper);
+  color: var(--su-on-kind, var(--color-paper));
   padding-bottom: var(--space-2);
 }
 
 .su-rule-head:not(.su-rule-head--sub) .su-rule-head__tally > :is(i, small),
 .su-open:not(.su-open--sub) thead .su-rule-head__tally > :is(i, small) {
-  color: var(--color-paper-85);
+  color: var(--su-on-kind, var(--color-paper));
 }
 
 .su-rule-head:not(.su-rule-head--sub) .su-rule-head__tally[data-state='critical'] > b,
@@ -1281,11 +1281,11 @@
 
 /* A Mention on the strip (the chassis a mech is built on) reads reversed. */
 .su-open:not(.su-open--sub) thead .su-rule-head__note a {
-  color: var(--color-paper);
+  color: var(--su-on-kind, var(--color-paper));
 }
 
 .su-open:not(.su-open--sub) thead th {
-  background-color: var(--color-ink);
+  background-color: var(--su-kind, var(--color-ink));
   border-bottom: 0;
   padding-bottom: 0;
 }
@@ -1297,7 +1297,7 @@
 }
 
 .su-open:not(.su-open--sub) thead th[data-col] {
-  color: var(--color-paper);
+  color: var(--su-on-kind, var(--color-paper));
   padding-block: var(--space-8);
   padding-inline: var(--space-8);
   vertical-align: middle;
@@ -1344,7 +1344,7 @@
 .su-open {
   /* The band: the Ledger's cream, a step deeper so a row tracks across a
      1440 page (revision 2, rule 2). */
-  --su-zebra: color-mix(in srgb, var(--color-band-cream) 86%, var(--color-ink));
+  --su-zebra: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
 .su-open__row > :is(th, td) {
@@ -1431,7 +1431,7 @@
 
 /* A sub-group's line inside a painted ledger: a quiet band of its own. */
 .su-open .su-open__group > th {
-  background-color: color-mix(in srgb, var(--color-ink) 14%, var(--color-paper));
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 34%, var(--color-paper));
   border-bottom: 0;
   color: var(--color-ink);
   padding: var(--space-4) var(--space-12);
@@ -1855,8 +1855,8 @@
   align-items: flex-start;
   background: linear-gradient(
     to bottom,
-    var(--color-ink) 0,
-    var(--color-ink) var(--size-compact),
+    var(--su-kind, var(--color-ink)) 0,
+    var(--su-kind, var(--color-ink)) var(--size-compact),
     transparent var(--size-compact)
   );
   flex-wrap: wrap;
@@ -1901,4 +1901,242 @@
 /* A group's body starts clear of its strip. */
 .su-dash-group__body {
   padding-top: var(--space-4);
+}
+
+/* ── MOCK (best, revision 3): the chassis pick as a gallery of plates ───── */
+
+.su-chassis-gallery__grid {
+  display: grid;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  padding-top: var(--space-12);
+}
+
+.su-chassis-plate {
+  background-color: var(--color-paper);
+  border: var(--bw-pill) solid var(--color-ink-20);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  text-align: left;
+}
+
+.su-chassis-plate:hover {
+  border-color: var(--color-ink-60);
+}
+
+.su-chassis-plate:focus-visible {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: var(--space-2);
+}
+
+.su-chassis-plate[data-picked] {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 var(--bw-pill) var(--color-ink);
+}
+
+.su-chassis-plate__art {
+  aspect-ratio: 4 / 3;
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 14%, var(--color-paper));
+  display: block;
+  overflow: hidden;
+}
+
+.su-chassis-plate__art > img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--space-8);
+  width: 100%;
+}
+
+.su-chassis-plate__name {
+  align-items: baseline;
+  background-color: var(--su-kind, var(--color-ink));
+  color: var(--su-on-kind, var(--color-paper));
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  gap: var(--space-8);
+  justify-content: space-between;
+  letter-spacing: 0.04em;
+  padding: var(--space-6) var(--space-8);
+  text-transform: uppercase;
+}
+
+.su-chassis-plate[data-picked] .su-chassis-plate__name {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-chassis-plate__cost {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  white-space: nowrap;
+}
+
+.su-chassis-plate small {
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.su-chassis-plate__figures {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  padding: var(--space-6) var(--space-4);
+}
+
+.su-chassis-plate__figures > span {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-variant-numeric: tabular-nums;
+}
+
+.su-chassis-plate__figures b {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  line-height: 1.1;
+}
+
+@media (width < 40rem) {
+  .su-chassis-gallery__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8);
+  }
+
+  .su-chassis-plate__figures {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: var(--space-4);
+  }
+}
+
+/* ── MOCK (best, revision 3): the phone masthead ────────────────────────────
+   The pinned glance, set as the page's masthead is: each vital a small label
+   over a hero numeral over a thick bar in the unit's colour, on paper, closed
+   by the masthead's ink rule. Stuck to the top it drops a rung so it does not
+   eat the screen. */
+
+.su-dash-pin {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  padding-block: var(--space-12);
+}
+
+.su-dash-pin .su-phone-glance {
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+  column-gap: var(--space-12);
+}
+
+.su-dash-pin .su-phone-glance > li + li {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+  padding-left: var(--space-12);
+}
+
+.su-dash-pin .su-phone-glance__cell {
+  border-radius: 0;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  padding: 0;
+  row-gap: var(--space-4);
+  text-align: left;
+  width: 100%;
+}
+
+.su-dash-pin .su-phone-glance__value > b {
+  font-size: var(--text-hero);
+  line-height: 0.9;
+}
+
+.su-dash-pin .su-phone-glance__value > i {
+  font-size: var(--text-lede);
+}
+
+.su-dash-pin .su-phone-glance__meter {
+  border-radius: 0;
+  height: var(--space-8);
+  width: 100%;
+}
+
+.su-dash-pin .su-phone-glance__cell[aria-expanded='true'] {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.su-dash-pin[data-stuck] {
+  padding-block: var(--space-6);
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__value > b {
+  font-size: var(--text-title);
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__meter {
+  height: var(--space-4);
+}
+
+/* ── MOCK (best, revision 3): the Storage Bay's Scrap board ─────────────── */
+
+.su-scrap__label {
+  margin: var(--space-8) 0 var(--space-4);
+}
+
+.su-scrap {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-hairline) solid var(--color-ink-40);
+  border-top: var(--bw-chrome) solid var(--color-ink);
+  gap: 0;
+}
+
+.su-scrap .su-scrap__cell {
+  align-items: center;
+  border-top: 0;
+  flex-direction: row;
+  gap: var(--space-6);
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.su-scrap .su-scrap__cell + .su-scrap__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-scrap .su-scrap__cell:nth-child(even) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+.su-scrap .su-scrap__cell[data-empty] .su-tl {
+  opacity: 0.45;
+}
+
+/* MOCK (best, revision 3): on a phone the Starter crew's head keeps one line:
+   the title is not allowed to wrap, and the pilots' tally (the rows say it)
+   goes. */
+@media (width < 40rem) {
+  .su-open--pairs .su-open__title > .su-rule-head__label {
+    font-size: var(--text-lede);
+    white-space: nowrap;
+  }
+
+  .su-open--pairs thead .su-rule-head__tally {
+    display: none;
+  }
+}
+
+/* MOCK (best, revision 3): AA on a tinted band. The muted grey clears 4.5:1
+   on paper but not on a 26% tint of the pink or the brown, so quiet text on
+   a banded row is 78% ink (5.4:1 or better on every kind). */
+.su-open tbody > tr[data-band],
+.su-ledger__table tbody tr[data-band],
+.su-roll__row,
+.su-scrap__cell {
+  --color-wk-muted: rgb(40 32 25 / 0.78);
+  --color-ink-60: rgb(40 32 25 / 0.78);
 }

@@ -63,7 +63,15 @@ export function RowRules({
           />
         </div>
       )}
-      <EntityRollMini entity={entity} />
+      <EntityRollMini entity={entity} full />
+      {/* The table an own action rolls on (Escape Hatch) rides in the row too. */}
+      {own.map((action) => (
+        <EntityRollMini
+          key={`roll-${action.id ?? action.name}`}
+          entity={action as RefMetaEntity}
+          full
+        />
+      ))}
       {others.map((action) => {
         const actionModel = toEntityModel(action)
         const actionMarks = marksOf(actionModel)
@@ -83,6 +91,7 @@ export function RowRules({
                 {...(chassisName ? { chassisName } : {})}
               />
             </div>
+            <EntityRollMini entity={action as RefMetaEntity} full />
           </div>
         )
       })}

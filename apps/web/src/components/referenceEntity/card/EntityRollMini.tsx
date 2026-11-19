@@ -14,7 +14,10 @@ import { CardRollTable } from './CardRollTable'
 export function EntityRollMini({
   entity,
   disabled = false,
+  full = false,
 }: {
+  /** MOCK (best, revision 3): in an opened row the table prints whole, rows and all. */
+  full?: boolean
   entity: RefMetaEntity
   /** The entity is down (a damaged bay): the roll is off. */
   disabled?: boolean
@@ -29,8 +32,8 @@ export function EntityRollMini({
       name={name}
       size="compact"
       disabled={disabled}
-      nested
-      peekAt={tablePeekAddress(entity)}
+      nested={!full}
+      {...(full ? {} : { peekAt: tablePeekAddress(entity) })}
     />
   )
 }
