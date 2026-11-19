@@ -39,8 +39,8 @@ watchStaticTokenOverflow()
 watchStaticChipFill()
 
 /**
- * MOCK (best, revision 6): a static Reference page's acts (Share, Build With
- * This) ride the area rail, as a sheet's do through `RailActs`' portal. The
+ * MOCK (best, revision 6): a static Reference page's view act (Share) rides
+ * the area rail, as a sheet's do through `RailActs`' portal. The
  * page is served without React, so the served acts are moved into the shown
  * rail's slot at rail widths and back to the band under them. The real
  * change gives the bar an `acts` slot both shells fill.
@@ -59,7 +59,8 @@ function placeStaticRailActs(): void {
     }
     acts.dataset.static = ''
     const target = media.matches && slot ? slot : home
-    if (acts.parentElement !== target) target.append(acts)
+    // Back in the band, Share leads the call to action as it was served.
+    if (acts.parentElement !== target) target.prepend(acts)
   }
   place()
   media.addEventListener('change', place)

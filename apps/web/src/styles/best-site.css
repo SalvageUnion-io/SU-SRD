@@ -1066,3 +1066,9 @@
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
   padding-block: 0;
 }
+
+/* A Reference Page's call to action (Build With This) stays a rust button in
+   the band; Share beside it on a phone sits on the button's centre line. */
+.su-chapter-band__action:has(> .su-rail-acts) {
+  align-items: center;
+}
