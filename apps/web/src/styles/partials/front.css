@@ -239,7 +239,7 @@ body:has(.su-front--show) main {
    tagline's lines, a slide's plate) is outlined as one shape: the outline
    traces its outer edge only, never a seam between its lines or strips. A
    border cannot (it would box each line), so the area's silhouette is
-   offset each way by the info box's frame width (`--bw-entity-compact`), in
+   offset each way by twice the info box's frame width (`--bw-entity-compact`), in
    its area's colour. The areas stand on the page's cream, as a page body does. */
 /* Each area its own colour, the same on every slide: the name and pitch
    green, the tagline crawler pink, a slide's plate Build orange. */
@@ -256,8 +256,9 @@ body:has(.su-front--show) main {
 }
 
 :is(.su-front__show-brand, .su-front__show-quote, .su-front__show-plate) {
-  --su-o: var(--bw-entity-compact);
-  --su-o-: calc(-1 * var(--bw-entity-compact));
+  /* Twice the info box's frame: 4px, so the trace holds over busy art. */
+  --su-o: calc(2 * var(--bw-entity-compact));
+  --su-o-: calc(-2 * var(--bw-entity-compact));
   filter: drop-shadow(var(--su-o) 0 0 var(--su-show-frame))
     drop-shadow(var(--su-o-) 0 0 var(--su-show-frame))
     drop-shadow(0 var(--su-o) 0 var(--su-show-frame))
