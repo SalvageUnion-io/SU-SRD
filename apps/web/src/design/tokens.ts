@@ -342,7 +342,8 @@ const base = {
   wkMuted: 'rgb(107, 98, 87)',
   /** NON-TEXT ONLY — 2.03:1 on paper. A hairline/divider tone. */
   wkFaint: 'rgb(167, 180, 189)',
-  desk: 'color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink))',
+  /** The desk beside the page column: the page ground a sixth toward ink. */
+  desk: 'rgb(207, 203, 197)',
   /** Advisory/info rule. */
   wkLine: 'rgb(143, 195, 216)',
   /** Game-state accent. */
