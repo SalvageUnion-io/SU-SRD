@@ -1,6 +1,7 @@
 import { SETTINGS_HREF, signOutHref } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
+import { appPath } from '../../lib/appBase'
 import { DOC_PAGES } from '../../lib/docPages'
 import { clientSwap } from '../../runtime/clientSwap'
 import { AccountMenu } from '../index'
@@ -21,6 +22,8 @@ function AccountIslandBody({ compact }: { compact: boolean }) {
         name={hint.name}
         avatarUrl={hint.avatarUrl}
         compact={compact}
+        onGames={() => window.location.assign(appPath('/games/'))}
+        onTrainingBay={() => window.location.assign(appPath('/'))}
         onSettings={() => window.location.assign(SETTINGS_HREF)}
         onSignOut={() => window.location.assign(signOutHref(window.location.href))}
         aboutHref={DOC_PAGES.about.href}

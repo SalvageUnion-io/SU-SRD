@@ -9,7 +9,9 @@ import { HeaderMenu } from '../containers/HeaderMenu'
  *
  * The trigger shows the player's display name beside their Discord avatar on
  * a square chip (two initials when there is no avatar, or it will not load); it
- * opens a `HeaderMenu` holding **Settings** and **Sign out**, then **About** and
+ * opens a `HeaderMenu` holding the player's own places, **Your Games** and the
+ * **Training Bay** (their pilots, mechs and crawlers), then **Settings** and
+ * **Sign out**, then **About** and
  * **Changelog**, and in the app **Suggest or report** (ADR-057). The `compact` form is the avatar alone, for the phone's header
  * row, which has no room for a name.
  *
@@ -26,6 +28,9 @@ type AccountMenuProps = {
   avatarUrl: string | null
   /** Avatar only — the phone's header row. */
   compact?: boolean
+  /** Your Games and the Training Bay: each app routes there its own way. */
+  onGames: () => void
+  onTrainingBay: () => void
   onSettings: () => void
   onSignOut: () => void
   /** The shared doc pages, on the SRD. */
@@ -48,6 +53,8 @@ export function AccountMenu({
   name,
   avatarUrl,
   compact = false,
+  onGames,
+  onTrainingBay,
   onSettings,
   onSignOut,
   aboutHref,
@@ -69,6 +76,14 @@ export function AccountMenu({
         </>
       }
       sections={[
+        [
+          { id: 'games', label: compositionsCopy('yourGames'), onSelect: onGames },
+          {
+            id: 'training-bay',
+            label: compositionsCopy('trainingBay'),
+            onSelect: onTrainingBay,
+          },
+        ],
         [
           { id: 'settings', label: compositionsCopy('settings'), onSelect: onSettings },
           { id: 'sign-out', label: compositionsCopy('signOut'), onSelect: onSignOut },

@@ -8,9 +8,10 @@ import type { ReactNode } from 'react'
  * What these pin, per session state:
  *
  * - **Signed in, Connected** — the trigger is a menu button carrying the
- *   player's display name and avatar circle; its menu holds Settings (to
- *   `/settings`) and Sign out, then About, Changelog and Suggest or report. Games
- *   is a tab of the bar (ADR-066), never part of the account slot.
+ *   player's display name and avatar circle; its menu holds the player's own
+ *   places (Your Games, the Training Bay), then Settings (to `/settings`) and
+ *   Sign out, then About, Changelog and Suggest or report. The slot itself
+ *   carries no Games button: Play is a tab of the bar (ADR-066).
  * - **Signed in, offline** — the identity stays and Sign out still works.
  * - **Signed out** — "Sign in with Discord" takes the slot, on desktop and in
  *   the mobile drawer; the mobile header row stays empty.
@@ -96,7 +97,7 @@ describe('signed in and connected', () => {
     expect(trigger.textContent).toContain('BE')
   })
 
-  test('its menu holds Settings and Sign out, then About, Changelog and Suggest or report', async () => {
+  test('its menu holds Your Games and the Training Bay, Settings and Sign out, then the site’s pages', async () => {
     serve(QUERIES)
     wrap(<HeaderActions />)
 
@@ -105,7 +106,27 @@ describe('signed in and connected', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Settings', 'Sign out', 'About', 'Changelog', 'Suggest or report'])
+    ).toEqual([
+      'Your Games',
+      'Training Bay',
+      'Settings',
+      'Sign out',
+      'About',
+      'Changelog',
+      'Suggest or report',
+    ])
+  })
+
+  test('Your Games and the Training Bay route in the app', async () => {
+    serve(QUERIES)
+    wrap(<HeaderActions />)
+    for (const name of ['Your Games', 'Training Bay']) {
+      const menu = await openMenu(screen.getByRole('button', { name: 'Account menu for Beefcake' }))
+      await act(async () => {
+        fireEvent.click(within(menu).getByRole('menuitem', { name }))
+      })
+    }
+    expect(serverMocks.navigations).toEqual([{ to: '/games' }, { to: '/' }])
   })
 
   test('Settings goes to /settings', async () => {
