@@ -55,15 +55,15 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toMatch(/su-front__show-plate--quote"><figure class="su-tagline"/)
   })
 
-  it('names the site at the left and pitches it at the right', () => {
+  it('names the site in the head; the pitch is the first slide', () => {
     const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
-    expect(head).toContain('su-front__show-value')
-    expect(head.indexOf('su-front__show-name')).toBeLessThan(head.indexOf('su-front__show-value'))
+    const first = show.slice(0, show.indexOf('</li>'))
+    expect(first).toContain('su-front__show-pitch')
   })
 
-  it('shows five action slides, each one action to one part of the site, then the tagline', () => {
-    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(6)
+  it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(7)
     expect(show.match(/su-btn--primary/g)).toHaveLength(5)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
@@ -86,13 +86,14 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
-    // Five action slides and the tagline's, which takes the first's painting.
-    expect(arts).toHaveLength(6)
+    // Seven slides, seven pieces: the five paintings and two cut-out drawings.
+    expect(arts).toHaveLength(7)
+    expect(new Set(arts.map((art) => art.match(/src="([^"]+)"/)?.[1])).size).toBe(7)
     for (const art of arts) {
       expect(art).toContain('alt=""')
-      expect(art).toMatch(/src="https:\/\/assets\.salvageunion\.io\/hero\//)
+      expect(art).toMatch(/src="https:\/\/assets\.salvageunion\.io\//)
       // A phone takes the 880px derivative, never the print-size master.
-      expect(art).toMatch(/hero\/[a-z-]+-880q80\.webp 880w/)
+      expect(art).toMatch(/\/[a-z-]+-880q80\.webp 880w/)
     }
     expect(arts[0]).toMatch(/fetchpriority="high"/i)
     expect(arts.slice(1).every((art) => /fetchpriority="low"/i.test(art))).toBe(true)

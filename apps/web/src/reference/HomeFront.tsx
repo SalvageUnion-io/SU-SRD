@@ -14,12 +14,14 @@ import { referenceCopy } from '../messages/reference'
 
 type Slide = {
   key: string
-  /** The slide's ground: a painting from the books. */
-  art: { url: string } | undefined
+  /** The slide's ground: a painting from the books, or a cut-out drawing. */
+  art: { url: string; cutout?: boolean } | undefined
 } & (
-  | { quote?: false; title: string; body: string; href: string; external?: boolean }
+  | { kind: 'action'; title: string; body: string; href: string; external?: boolean }
+  /** The slide's words are the pitch, in the title's face. */
+  | { kind: 'pitch' }
   /** The slide's words are the tagline (`Tagline`), in its plate. */
-  | { quote: true }
+  | { kind: 'quote' }
 )
 
 /**
@@ -31,11 +33,17 @@ type Slide = {
  */
 const painting = (name: string) => ({ url: assetUrl(`hero/${name}.webp`) })
 
-/** The slides: what each part of the site is for, over a piece of the book's art, then the tagline. */
+/** An entity's drawing, cut out on white, from the same bucket its Page uses. */
+const drawing = (key: string) => ({ url: assetUrl(`${key}.webp`), cutout: true })
+
+/** The slides: the pitch, what each part of the site is for over a piece of the book's art, then the tagline. */
 function heroSlides(): Slide[] {
   return [
+    // What the site is, over a bio-titan rising on a mech.
+    { key: 'pitch', kind: 'pitch', art: drawing('bio-titans/typhon') },
     {
       key: 'reference',
+      kind: 'action',
       title: referenceCopy('showReference'),
       body: referenceCopy('showReferenceBody'),
       href: '/reference/',
@@ -43,6 +51,7 @@ function heroSlides(): Slide[] {
     },
     {
       key: 'build',
+      kind: 'action',
       title: referenceCopy('showBuild'),
       body: referenceCopy('showBuildBody'),
       href: appPath('/'),
@@ -50,6 +59,7 @@ function heroSlides(): Slide[] {
     },
     {
       key: 'play',
+      kind: 'action',
       title: referenceCopy('showPlay'),
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
@@ -57,6 +67,7 @@ function heroSlides(): Slide[] {
     },
     {
       key: 'buy',
+      kind: 'action',
       title: referenceCopy('showBuy'),
       body: referenceCopy('showBuyBody'),
       href: BUY_HREF,
@@ -65,15 +76,15 @@ function heroSlides(): Slide[] {
     },
     {
       key: 'discord',
+      kind: 'action',
       title: referenceCopy('showDiscord'),
       body: referenceCopy('showDiscordBody'),
       href: DISCORD_INSTALL_URL,
       external: true,
       art: painting('discord'),
     },
-    // The tagline every landing page says, as the show's last slide, over the
-    // first slide's painting, so the show loops back on the same ground.
-    { key: 'union', quote: true, art: painting('reference') },
+    // The tagline every landing page says, last, over a Union salvager.
+    { key: 'union', kind: 'quote', art: drawing('classes/salvager') },
   ]
 }
 
@@ -104,7 +115,10 @@ export function HomeHero() {
               // An <img>, not a background, so a phone takes the 880px
               // derivative and the first slide (the page's LCP) loads first.
               <img
-                className="su-front__show-art"
+                className={cn(
+                  'su-front__show-art',
+                  slide.art.cutout && 'su-front__show-art--cutout'
+                )}
                 src={slide.art.url}
                 srcSet={`${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`}
                 sizes="100vw"
@@ -120,9 +134,13 @@ export function HomeHero() {
                 action (named for the slide, which has no heading) first, the
                 line beside it. */}
             <div className="su-front__show-copy">
-              {slide.quote ? (
+              {slide.kind === 'quote' ? (
                 <div className="su-front__show-plate su-front__show-plate--quote">
                   <Tagline />
+                </div>
+              ) : slide.kind === 'pitch' ? (
+                <div className="su-front__show-plate">
+                  <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
                 </div>
               ) : (
                 <div className="su-front__show-plate">
@@ -144,15 +162,11 @@ export function HomeHero() {
           </li>
         ))}
       </ul>
-      {/* The site's name on a cream cut-out, the page's one h1, at the left;
-          the pitch at the right, its cream hugging each line it breaks to. */}
+      {/* The site's name on a cream cut-out, the page's one h1. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
           <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
         </div>
-        <p className="su-front__show-value">
-          <span className="su-front__show-lines">{referenceCopy('pitchValue')}</span>
-        </p>
       </div>
     </section>
   )

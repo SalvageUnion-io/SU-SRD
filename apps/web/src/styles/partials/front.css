@@ -121,6 +121,12 @@ body:has(.su-front--show) main {
   position: absolute;
 }
 
+/* A drawing cut out on white (an entity's art, not a painting) stands whole
+   at the slide's right on the page's cream, its white melted into the cream. */
+.su-front__show-slide:has(.su-front__show-art--cutout) {
+  background-color: var(--color-wk-bg);
+}
+
 /* The art covers the slide, edge to edge, no letterbox. */
 .su-front__show-art {
   block-size: 100%;
@@ -129,6 +135,24 @@ body:has(.su-front--show) main {
   object-fit: cover;
   object-position: center 40%;
   position: absolute;
+}
+
+.su-front__show-art--cutout {
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  object-position: right center;
+  padding: var(--space-24);
+}
+
+/* The pitch, a slide's line: the title's face, a step under the name. */
+.su-front__show-pitch {
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.2;
+  margin: 0;
+  max-width: 24rem;
+  text-wrap: balance;
 }
 
 /* The site's name on a paper cut-out at the top left, the chapter title's
@@ -161,25 +185,6 @@ body:has(.su-front--show) main {
   line-height: 0.92;
   margin: 0;
   padding: var(--space-12) var(--space-16) var(--space-4);
-}
-
-.su-front__show-value {
-  color: var(--color-ink);
-  max-width: 34rem;
-  font-family: var(--font-cond);
-  font-size: var(--text-display-lg);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.35;
-  margin: 0;
-}
-
-/* The pitch's paper: a strip behind each line, its padding on every line
-   (`box-decoration-break: clone`), so the plate hugs the words' ragged edge. */
-.su-front__show-lines {
-  -webkit-box-decoration-break: clone;
-  background-color: var(--color-wk-bg);
-  box-decoration-break: clone;
-  padding: var(--space-4) var(--space-16);
 }
 
 /* A slide's words, at its lower left in the same place on every slide: one
@@ -218,18 +223,20 @@ body:has(.su-front--show) main {
   text-wrap: balance;
 }
 
+/* One slide's turn in a show of seven (`heroSlides`): each holds a seventh
+   of the loop, fading in over its first fifth and out just past its end. */
 @keyframes su-front-show {
   /* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
   0% {
     opacity: 0;
     visibility: visible;
   }
-  4%,
-  18% {
+  2.857%,
+  12.857% {
     opacity: 1;
     visibility: visible;
   }
-  21%,
+  15%,
   100% {
     opacity: 0;
     visibility: hidden;
@@ -253,14 +260,7 @@ body:has(.su-front--show) main {
   }
 }
 
-/* From `sm` the pitch stands at the right, set right; on a phone it stacks under the name. */
-@media (width >= 40rem) {
-  .su-front__show-value {
-    text-align: right;
-  }
-}
-
-/* A phone: the plates span the width, the pitch a step smaller. */
+/* A phone: the plates span the width. */
 @media not (width >= 40rem) {
   .su-front__show {
     min-height: 36rem;
@@ -274,10 +274,6 @@ body:has(.su-front--show) main {
 
   .su-front__show-name {
     font-size: var(--text-display-lg);
-  }
-
-  .su-front__show-value {
-    font-size: var(--text-title);
   }
 
   .su-front__show-copy {
