@@ -88,27 +88,150 @@
   min-width: 0;
 }
 
-/* The art plate: the entity page's hero plate, its cite under its foot. */
+/* The art frame: a hairline Box whose paper body holds a stack of the
+   book's artworks. Each card sits one step further back and up-right than
+   the one before it; every `--su-stack-step` the front card fades out and
+   comes back at the stack's rear, and the rest move up one. */
 .su-front__plate {
-  display: flex;
-  flex-direction: column;
   min-width: 0;
 }
 
-.su-front__plate .su-entity-hero {
-  /* `plateImageSizes` repeats this cap. */
-  --su-hero-max-h: 15rem;
+.su-front__stack {
+  --su-stack-step: 6s;
+  --su-stack-offset: var(--space-8);
+  aspect-ratio: 4 / 3;
+  isolation: isolate;
+  max-height: 22rem;
+  position: relative;
+  width: 100%;
+}
+
+.su-front__stack-card {
+  /* The card's slot: 0 at the front, count - 1 at the rear. */
+  --su-slot: var(--su-stack-i);
+  animation: su-front-stack calc(var(--su-stack-step) * var(--su-stack-count)) linear infinite;
+  /* Card i starts i steps from its next turn at the front: 0, 1, 2… in order. */
+  animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  inset: calc(var(--su-stack-offset) * (var(--su-stack-count) - 1) + var(--space-12))
+    calc(var(--su-stack-offset) * (var(--su-stack-count) - 1) + var(--space-12)) var(--space-12)
+    var(--space-12);
+  margin: 0;
+  position: absolute;
+  transform: translate(
+    calc(var(--su-stack-offset) * var(--su-slot)),
+    calc(var(--su-stack-offset) * var(--su-slot) * -1)
+  );
+  z-index: calc(var(--su-stack-count) - var(--su-slot));
+}
+
+.su-front__stack-card img {
+  height: 100%;
+  /* The artwork's white canvas takes the card's paper. */
+  mix-blend-mode: multiply;
+  object-fit: contain;
+  padding: var(--space-8);
+  width: 100%;
 }
 
 .su-front__plate-cite {
-  align-self: flex-end;
   background-color: var(--color-paper);
   border: var(--bw-hairline) solid var(--color-ink-20);
-  border-top: 0;
+  border-bottom: 0;
+  border-right: 0;
   color: var(--color-ink-2);
   font-size: var(--text-caption);
   margin: 0;
   padding: var(--space-4) var(--space-8);
+}
+
+/* The cite sits on the card's foot, shown on the front card alone. */
+.su-front__stack-card .su-front__plate-cite {
+  animation: su-front-stack-cite calc(var(--su-stack-step) * var(--su-stack-count)) linear infinite;
+  animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
+  bottom: 0;
+  position: absolute;
+  right: 0;
+}
+
+/* One cycle is six steps, one a card (`HERO_STACK`'s six artworks): a card
+   holds the front for a step, fades, comes back in at the rear (slot 5), and
+   moves forward a slot at the end of each step after. `--su-slot` is
+   registered so the move glides and the z-order follows it. */
+@property --su-slot {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@keyframes su-front-stack {
+  0%,
+  14% {
+    --su-slot: 0;
+    opacity: 1;
+  }
+  16.66% {
+    --su-slot: 0;
+    opacity: 0;
+  }
+  16.67% {
+    --su-slot: 5;
+    opacity: 0;
+  }
+  19%,
+  30.66% {
+    --su-slot: 5;
+    opacity: 1;
+  }
+  33.33%,
+  47.33% {
+    --su-slot: 4;
+  }
+  50%,
+  64% {
+    --su-slot: 3;
+  }
+  66.67%,
+  80.66% {
+    --su-slot: 2;
+  }
+  83.33%,
+  97.33% {
+    --su-slot: 1;
+    opacity: 1;
+  }
+  100% {
+    --su-slot: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes su-front-stack-cite {
+  0%,
+  14% {
+    opacity: 1;
+  }
+  16.66%,
+  97.33% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Under reduced motion the stack stands still, the first artwork in front. */
+@media (prefers-reduced-motion: reduce) {
+  .su-front__stack-card,
+  .su-front__stack-card .su-front__plate-cite {
+    animation: none;
+  }
+
+  .su-front__stack-card:not(:first-child) .su-front__plate-cite {
+    opacity: 0;
+  }
 }
 
 /* The mech page's model: the stat block at the left, the art plate at the
@@ -118,7 +241,7 @@
     align-items: stretch;
     display: grid;
     gap: var(--space-28);
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   }
 
   /* The pitch stands at the plate's middle. */
@@ -126,9 +249,9 @@
     justify-content: center;
   }
 
-  .su-front__plate .su-entity-hero {
-    /* `plateImageSizes` repeats this cap. */
-    --su-hero-max-h: 20rem;
+  .su-front__stack {
+    --su-stack-offset: var(--space-12);
+    max-height: 28rem;
   }
 }
 

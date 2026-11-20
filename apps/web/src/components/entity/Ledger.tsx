@@ -130,6 +130,7 @@ export function Ledger({
   tone = 'ink',
   paint: paintProp,
   nameLabel,
+  plainTitle = false,
   count,
   columns,
   rows,
@@ -152,6 +153,8 @@ export function Ledger({
   paint?: Paint
   /** The name column's label ("Chassis", "Pattern"). */
   nameLabel: string
+  /** MOCK (best, revision 8): the name column's label as a plain column label, no title cut-out (a list named by its page's header). */
+  plainTitle?: boolean
   /** How many the list holds, beside its title on the tab; a node for a used/max ("7/7"). */
   count?: ReactNode
   columns: readonly LedgerColumn[]
@@ -239,26 +242,32 @@ export function Ledger({
             style={{ backgroundColor: paint.background, color: paint.color }}
           >
             <th scope="col" aria-sort={ariaSort('name')}>
-              {/* The title's cut-out: the Compact head's paper tab. */}
-              <span className={TITLE_LINE}>
-                <span className="su-entity-compact__notch">
-                  {onSort ? (
-                    <button
-                      type="button"
-                      className="su-ledger__sort su-entity-compact__title"
-                      aria-label={entityCopy('sortBy', { column: nameLabel })}
-                      onClick={() => onSort('name')}
-                    >
-                      {nameLabel}
-                      {sort?.key === 'name' && sortMark(sort)}
-                    </button>
-                  ) : (
-                    <span className="su-entity-compact__title">{nameLabel}</span>
-                  )}
-                  {count != null && <span className="su-ledger__count">{count}</span>}
-                </span>
-                {mark && <span className="su-ledger__mark">{mark}</span>}
-              </span>
+              {plainTitle ? (
+                stamp('name', nameLabel)
+              ) : (
+                <>
+                  {/* The title's cut-out: the Compact head's paper tab. */}
+                  <span className={TITLE_LINE}>
+                    <span className="su-entity-compact__notch">
+                      {onSort ? (
+                        <button
+                          type="button"
+                          className="su-ledger__sort su-entity-compact__title"
+                          aria-label={entityCopy('sortBy', { column: nameLabel })}
+                          onClick={() => onSort('name')}
+                        >
+                          {nameLabel}
+                          {sort?.key === 'name' && sortMark(sort)}
+                        </button>
+                      ) : (
+                        <span className="su-entity-compact__title">{nameLabel}</span>
+                      )}
+                      {count != null && <span className="su-ledger__count">{count}</span>}
+                    </span>
+                    {mark && <span className="su-ledger__mark">{mark}</span>}
+                  </span>
+                </>
+              )}
             </th>
             {columns.map((column) => (
               <th
