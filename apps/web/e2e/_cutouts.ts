@@ -78,7 +78,8 @@ function readCutouts(page: Page): Promise<CutoutRead[]> {
     for (const band of document.querySelectorAll('.su-rule-head:not(.su-rule-head--sub)')) {
       if (band.closest('thead')) continue
       for (const label of band.querySelectorAll(':scope > .su-rule-head__label')) {
-        if (getComputedStyle(label).backgroundColor === 'rgba(0, 0, 0, 0)') continue
+        const paper = getComputedStyle(label).backgroundColor
+        if (paper === '' || paper === 'transparent' || paper === 'rgba(0, 0, 0, 0)') continue
         foot(band, label, 'band')
       }
     }
