@@ -3,6 +3,7 @@ import type { Seed } from 'gates/lib/seedAccount'
 import { seedAccount } from 'gates/lib/seedAccount'
 import { at } from './_base'
 import { findChipStrips } from './_chipStrips'
+import { findCutouts } from './_cutouts'
 import type { DesignView } from './_designRoutes'
 import { expectWithinBaseline, visitDesignViews, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt, DesignFamily, DesignFinding } from './_designTable'
@@ -156,6 +157,17 @@ function designGates(page: Page): Gate[] {
           where,
           await findLedgers(page, { index: family === 'reference-index' || family === 'peek' })
         ),
+      baseline: [],
+    },
+    {
+      /**
+       * The cut-out law (`_cutouts.ts`): every paper cut-out stands flush on
+       * its strip's foot, notched into the body (a Ledger's and a sheet
+       * table's title tab and column labels, a band's label, the home's
+       * name and plates), never floated over the strip's paint.
+       */
+      gate: 'cutouts',
+      scan: async ({ where }) => place(where, await findCutouts(page)),
       baseline: [],
     },
     {
