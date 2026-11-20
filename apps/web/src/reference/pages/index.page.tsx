@@ -14,7 +14,7 @@
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContentsRow } from '../../components/index'
-import { ChapterBand, ContentsChapter, capsLabel, SlabSection } from '../../components/index'
+import { ChapterBand, ContentsChapter, SlabSection } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { buildChapters } from '../../lib/chapters'
 import { DEFAULT_DESCRIPTION, WEBSITE } from '../../lib/constants'
@@ -28,9 +28,6 @@ import '../../lib/gameData'
 
 /** The site's name and what this page is: there is no page name to put ahead of it. */
 const TITLE = `${pageTitle()} · ${pagesCopy('homeTitle')}`
-
-/** The kicker: brand caps, as the app's front doors set theirs. */
-const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 
 /** An entity's page by name, or nothing when the dataset no longer has it. */
 function hrefByName(schemaName: RefEnumSchemaName, name: string): string | undefined {
@@ -68,12 +65,7 @@ function page(): PageResult {
     },
     children: (
       <div className="su-front">
-        <ChapterBand
-          measure={PAGE_MEASURE}
-          eyebrow={<span className={KICKER_CAPS}>{pagesCopy('homeKicker')}</span>}
-          asideAt="notch"
-          aside={<Tagline />}
-        >
+        <ChapterBand measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
           {pagesCopy('siteName')}
         </ChapterBand>
         <div className="su-front__body su-page-body">

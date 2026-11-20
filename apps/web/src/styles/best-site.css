@@ -34,15 +34,6 @@
   }
 }
 
-.su-union-bar__rail-name {
-  color: var(--su-bar-fg-70);
-  font-family: var(--font-cond);
-  font-size: var(--text-chip);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-caps-wide);
-  margin-inline: calc(var(--size-compact) + var(--space-12)) var(--space-12);
-}
-
 .su-union-bar__rail-link {
   border-bottom: var(--bw-pill) solid transparent;
   color: var(--su-bar-fg);
@@ -375,10 +366,6 @@
     border-top: 0;
     min-height: var(--size-full);
     padding-inline: var(--su-shell-edge);
-  }
-
-  .su-union-bar .su-union-bar__rail-name {
-    margin-inline: 0 var(--space-12);
   }
 
   .su-union-bar .su-union-bar__rail-link {

@@ -5,7 +5,7 @@
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
  * `play` band, on the page measure every hub takes.
  *
- *  - **The band**: the Games' name under `PRODUCT.playDescriptor`, with the
+ *  - **The band**: the Games' name with the
  *    legacy tagline quoted beside it, as Build's front door and the SRD's
  *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
@@ -95,9 +95,6 @@ const BODY = {
   flexDirection: 'column',
   gap: tokens.space[32],
 } satisfies CSSProperties
-
-/** The kicker: brand caps, the eyebrow's tracking. */
-const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 
 /** The Your Games shelf's controls, at its rule's end. */
 const CONTROLS = {
@@ -195,13 +192,7 @@ function PlayFrontDoor() {
     <PageShell
       measure={PAGE_MEASURE}
       band={
-        <ChapterBand
-          tone="play"
-          measure={PAGE_MEASURE}
-          eyebrow={<span className={KICKER_CAPS}>{PRODUCT.playDescriptor}</span>}
-          asideAt="notch"
-          aside={<Tagline />}
-        >
+        <ChapterBand tone="play" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
           {PRODUCT.play}
         </ChapterBand>
       }
@@ -268,13 +259,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
     <PageShell
       measure={PAGE_MEASURE}
       band={
-        <ChapterBand
-          tone="play"
-          measure={PAGE_MEASURE}
-          eyebrow={<span className={KICKER_CAPS}>{PRODUCT.playDescriptor}</span>}
-          asideAt="notch"
-          aside={<Tagline />}
-        >
+        <ChapterBand tone="play" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
           {PRODUCT.play}
         </ChapterBand>
       }
