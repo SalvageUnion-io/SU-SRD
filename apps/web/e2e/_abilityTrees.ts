@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import type { Page } from '@playwright/test'
 import type { Finding } from './_findings'
 import { fromFaults } from './_findings'
@@ -110,4 +112,85 @@ export async function findAbilityTrees(page: Page): Promise<Finding[]> {
     slack: SLACK,
   })
   return fromFaults(faults, 'tree')
+}
+
+/**
+ * A sheet's dashboard (`PilotDash`) draws its class's trees as ledgers, not
+ * tracks: under its Abilities group, each tree is its own sub-ledger
+ * (`table.su-open--sub`, titled by the tree), never more than `MAX_ACROSS`
+ * side by side, and lists every ability the dataset puts in that tree, and
+ * none from another. `findDashTrees` returns one `dash-tree` finding per fault.
+ */
+export const DASH_TREE_SELECTORS = {
+  group: 'section',
+  heading: 'h2',
+  tree: 'table.su-open--sub',
+  title: '.su-open__title',
+  name: '.su-open__row .su-open__name',
+}
+
+/** Runs in the page: each tree ledger's name, its abilities and where it starts. */
+function scanDashTrees(a: typeof DASH_TREE_SELECTORS) {
+  const text = (el: Element | null) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim()
+  const group = [...document.querySelectorAll(a.group)].find(
+    (s) => text(s.querySelector(a.heading)) === 'Abilities'
+  )
+  if (!group) return undefined
+  return [...group.querySelectorAll(a.tree)].map((table) => {
+    const r = table.getBoundingClientRect()
+    return {
+      tree: text(table.querySelector(a.title)),
+      names: [...table.querySelectorAll(a.name)].map((n) => text(n)),
+      top: r.top,
+      drawn: r.width > 0 && r.height > 0,
+    }
+  })
+}
+
+/** Every ability's tree, from the reference data. */
+function abilityTrees(): Map<string, string[]> {
+  const file = join(
+    import.meta.dirname,
+    '../../../packages/salvageunion-reference/data/abilities.json'
+  )
+  const abilities = JSON.parse(readFileSync(file, 'utf8')) as { name: string; tree: string }[]
+  const trees = new Map<string, string[]>()
+  for (const ability of abilities) {
+    trees.set(ability.tree, [...(trees.get(ability.tree) ?? []), ability.name])
+  }
+  return trees
+}
+
+/** Every dashboard tree ledger's fault on the page, each a `dash-tree` finding. */
+export async function findDashTrees(page: Page): Promise<Finding[]> {
+  const read = await page.evaluate(scanDashTrees, DASH_TREE_SELECTORS)
+  if (read === undefined)
+    return fromFaults(['group: no Abilities group on the dashboard'], 'dash-tree')
+  const faults: string[] = []
+  const drawn = read.filter((t) => t.drawn)
+  if (drawn.length === 0) faults.push('group: the Abilities group draws no tree ledger')
+  const data = abilityTrees()
+  const lines: { top: number; trees: string[] }[] = []
+  for (const t of drawn) {
+    const want = data.get(t.tree)
+    if (!want) {
+      faults.push(`tree: "${t.tree}" is no tree in the dataset`)
+      continue
+    }
+    const missing = want.filter((name) => !t.names.includes(name))
+    const strays = t.names.filter((name) => !want.includes(name))
+    if (missing.length > 0) faults.push(`tree: ${t.tree} leaves out ${missing.join(', ')}`)
+    if (strays.length > 0)
+      faults.push(`tree: ${t.tree} lists ${strays.join(', ')}, of another tree`)
+    const line = lines.find((l) => Math.abs(l.top - t.top) <= SLACK)
+    if (line) line.trees.push(t.tree)
+    else lines.push({ top: t.top, trees: [t.tree] })
+  }
+  for (const line of lines) {
+    if (line.trees.length > MAX_ACROSS)
+      faults.push(`across: ${line.trees.length} trees on one line (${line.trees.join(', ')})`)
+  }
+  if (new Set(drawn.map((t) => t.tree)).size !== drawn.length)
+    faults.push('group: a tree is drawn as more than one ledger')
+  return fromFaults(faults, 'dash-tree')
 }

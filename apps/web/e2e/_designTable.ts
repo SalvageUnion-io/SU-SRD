@@ -148,7 +148,9 @@ export const designRoutes: readonly DesignRoute[] = [
  * - `ability-trees`: ability trees on their tracks: a Core class's page, a
  *   Hybrid Class's and the abilities index's Tree (`ability-trees.e2e.ts`). A
  *   Starter pilot's sheet reads as its dashboard, its trees as ledgers, no
- *   track (`PilotDash`); the editable sheet's tracks are its unit tests'.
+ *   track (`PilotDash`): those are `dash-trees`.
+ * - `dash-trees`: every Starter pilot's dashboard, its class's trees as ledgers
+ *   (`ability-trees.e2e.ts`).
  * - `linked-head`: a contentful card met inside another, whose name links to
  *   its Page: a drone's and a vehicle's systems (`link-heads.e2e.ts`).
  */
@@ -159,6 +161,7 @@ export type CorpusTrait =
   | 'rhythm'
   | 'seam'
   | 'ability-trees'
+  | 'dash-trees'
   | 'linked-head'
 
 /** One signed-out page of the reference corpus: its family, its path, what it is picked for. */
@@ -189,7 +192,12 @@ const STARTER_SHEETS = [
 
 /** Traits a Starter Set sheet carries, by sheet; the rest carry none. */
 const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly CorpusTrait[]>> = {
-  'pilot/starter-pilot-bonesaw': ['contentful-mini'],
+  'pilot/starter-pilot-bonesaw': ['contentful-mini', 'dash-trees'],
+  'pilot/starter-pilot-driftwood': ['dash-trees'],
+  'pilot/starter-pilot-hotdog': ['dash-trees'],
+  'pilot/starter-pilot-judge': ['dash-trees'],
+  'pilot/starter-pilot-pickle': ['dash-trees'],
+  'pilot/starter-pilot-razor': ['dash-trees'],
   'mech/starter-mech-mule': ['contentful-mini'],
   'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
 }
