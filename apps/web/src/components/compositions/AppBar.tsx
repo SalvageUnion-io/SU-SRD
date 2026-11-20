@@ -304,7 +304,6 @@ export function AppBar({
             data-area={area}
             aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
           >
-            <span className={cn('su-union-bar__rail-name', CAPS, CAPS)}>{RAIL[area].name}</span>
             {RAIL[area].links.map((link) => (
               <a
                 key={link.label}
