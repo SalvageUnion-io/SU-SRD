@@ -310,7 +310,9 @@ export function ChapterBand({
     // Beside controls the title holds the left of its line; they keep the right.
     ...(aside && asideAt === 'controls' ? BESIDE_CONTROLS : {}),
   }
-  const band = fill ?? CHAPTER_BAND_COLOR[tone]
+  // The book's crawler pink carries neither ink nor paper at 4.5:1: a band on
+  // it wears the deeper crawler band, so rail, band and tables are one paint.
+  const band = kindPaint(fill ?? CHAPTER_BAND_COLOR[tone])
   const speckle = grain ?? (tone === 'ink' ? 'paper' : 'ink')
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
   // in the characters an attribute selector takes unescaped.

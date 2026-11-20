@@ -17,10 +17,11 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { Conditions, Mention, Stat } from '../../components/index'
+import { Conditions, capsLabel, Mention, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
+import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { buildMechActions } from '../../lib/rules/actionList'
 import {
@@ -40,6 +41,9 @@ import type { OpenColumn } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
 import { STRIP_ART, Strip, StripFigure } from './Strip'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const CARGO_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
@@ -76,7 +80,9 @@ export function MechDash({
   const foot =
     conditions.length > 0 ? (
       <>
-        <span className="su-strip__foot-label">{buildSheetCopy('conditions')}</span>
+        <span className={cn('su-strip__foot-label', CAPS, CAPS)}>
+          {buildSheetCopy('conditions')}
+        </span>
         <Conditions conditions={[...conditions]} />
       </>
     ) : undefined
@@ -148,7 +154,9 @@ export function MechDash({
           } as CSSProperties
         }
       >
-        <span className="su-companion-cell__kind">{buildSheetCopy('companion')}</span>
+        <span className={cn('su-companion-cell__kind', CAPS, CAPS)}>
+          {buildSheetCopy('companion')}
+        </span>
         <span className="su-companion-cell__name">{name}</span>
         {blockName && blockName !== name && (
           <span className="su-companion-cell__block">{blockName}</span>
@@ -173,7 +181,7 @@ export function MechDash({
   const identity = mech.description ? (
     <div className="su-mast-id">
       <div className="su-mast-id__about">
-        <p className="su-mast-id__label">{buildSheetCopy('about')}</p>
+        <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
         <Prose text={mech.description} lines={phone ? 3 : 5} />
       </div>
     </div>
@@ -183,13 +191,13 @@ export function MechDash({
       <dl className="su-mast-traits">
         {mech.quirk && (
           <div className="su-mast-trait">
-            <dt className="su-mast-id__label">{buildSheetCopy('quirk')}</dt>
+            <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('quirk')}</dt>
             <dd>{mech.quirk}</dd>
           </div>
         )}
         {mech.appearance && (
           <div className="su-mast-trait">
-            <dt className="su-mast-id__label">{buildSheetCopy('appearance')}</dt>
+            <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('appearance')}</dt>
             <dd>{mech.appearance}</dd>
           </div>
         )}

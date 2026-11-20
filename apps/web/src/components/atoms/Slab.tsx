@@ -4,11 +4,15 @@ import { borderWidth, color, font, fontSize, space, weight } from '../../design/
 import { cn } from '../../lib/cn'
 import type { ChipSet } from '../entity'
 import { Chips } from '../entity'
+import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { POSTER_STAMP } from './posterStamp'
 import { useSlabLook } from './slabLook'
 import type { SlabCount } from './slabSummary'
 import { slabSummary, summaryFacts } from './slabSummary'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 export type { SlabCount } from './slabSummary'
 
@@ -230,7 +234,7 @@ export function Slab({
         {counts.map((entry) => (
           <span
             key={String(entry.label)}
-            className="su-rule-head__tally"
+            className={cn('su-rule-head__tally', CAPS, CAPS)}
             data-state={entry.state === 'critical' ? 'critical' : undefined}
           >
             <b>{entry.value}</b>
@@ -240,7 +244,9 @@ export function Slab({
         ))}
       </span>
     ) : (
-      count != null && <span className="su-rule-head__note">{count as ReactNode}</span>
+      count != null && (
+        <span className={cn('su-rule-head__note', CAPS, CAPS)}>{count as ReactNode}</span>
+      )
     )
     return (
       <div
@@ -252,7 +258,7 @@ export function Slab({
           id={id}
           ref={ref}
           tabIndex={tabIndex}
-          className={cn('su-rule-head__label', tabIndex !== undefined && FOCUS_RING)}
+          className={cn('su-rule-head__label', CAPS, tabIndex !== undefined && FOCUS_RING)}
         >
           {label}
         </Label>

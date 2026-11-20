@@ -21,6 +21,7 @@ import { useId, useState } from 'react'
 import {
   Button,
   ConfirmDialog,
+  capsLabel,
   Field,
   HeaderMenu,
   Select,
@@ -28,6 +29,7 @@ import {
   Stat,
   tokens,
 } from '../../components/index'
+import { cn } from '../../lib/cn'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
@@ -35,6 +37,9 @@ import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useTableRead } from '../../replica/useTable'
 import { HUB_BODY } from './hubStyles.model'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const { space } = tokens
 
@@ -132,7 +137,7 @@ export function TheGame({
               {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
             </span>
             {pilotsOf(m.userId).length > 0 && (
-              <span className="su-game-member__pilots">
+              <span className={cn('su-game-member__pilots', CAPS, CAPS)}>
                 {pilotsOf(m.userId)
                   .map((pilot) => pilot.name)
                   .join(' · ')}

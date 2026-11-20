@@ -25,6 +25,7 @@ import type { ChoiceSelections, CSSVarStyle, PhoneVital } from '../../components
 import {
   Button,
   Content,
+  capsLabel,
   damagedEffectOf,
   EntityChoices,
   EntityRollMini,
@@ -35,6 +36,7 @@ import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
+import { cn } from '../../lib/cn'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import {
   findNpcChoiceByName,
@@ -59,6 +61,9 @@ import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
 import type { OpenColumn, OpenRow } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { STRIP_ART, Strip, StripFigure } from './Strip'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const BAY_COLUMNS: readonly OpenColumn[] = [
   { key: 'lead', label: buildSheetCopy('crewLeadColumn'), kind: 'text', phone: true },
@@ -107,8 +112,7 @@ function leadOf(
 
 /** The lead's cell: their name, then their post in the book's words ("the Princeps"). */
 function LeadCell({ lead }: { lead: Lead }) {
-  if (!lead.name)
-    return lead.position ? <>{buildSheetCopy('thePost', { post: lead.position })}</> : null
+  if (!lead.name) return lead.position ? buildSheetCopy('thePost', { post: lead.position }) : null
   return (
     <>
       <b className="su-bay-lead__name">{lead.name}</b>
@@ -157,7 +161,7 @@ function BayDetail({
   return (
     <div className="su-bay-detail">
       <div className="su-bay-detail__part">
-        <p className="su-dash-sub">{buildSheetCopy('bayRules')}</p>
+        <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('bayRules')}</p>
         <div className="su-dash-prose">
           <Content body={normal as ComponentProps<typeof Content>['body']} fontSize="sm" />
         </div>
@@ -173,7 +177,7 @@ function BayDetail({
       <div className="su-bay-detail__part">
         {damagedText && (
           <>
-            <p className="su-dash-sub">{buildSheetCopy('ifDamaged')}</p>
+            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('ifDamaged')}</p>
             <p className="su-dash-prose">{damagedText}</p>
           </>
         )}
@@ -430,7 +434,7 @@ export function CrawlerDash({
               "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
               chip over its count), then what is stored as its rows. */}
           <DashGroup title={buildSheetCopy('storageBay')} tally={buildSheetCopy('unlimited')}>
-            <p className="su-dash-sub su-scrap__label">{buildSheetCopy('scrap')}</p>
+            <p className={cn('su-dash-sub su-scrap__label', CAPS)}>{buildSheetCopy('scrap')}</p>
             <dl className="su-scrap" aria-label={buildSheetCopy('scrapByTechLevel')}>
               {NUMERIC_TECH_LEVELS.map((level) => {
                 const count = scrapPoolBucket(pool, level)

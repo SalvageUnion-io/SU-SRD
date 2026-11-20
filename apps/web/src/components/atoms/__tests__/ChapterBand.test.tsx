@@ -14,7 +14,8 @@ describe('ChapterBand', () => {
     render(<ChapterBand>Changelog</ChapterBand>)
     const title = screen.getByRole('heading', { level: 1, name: 'Changelog' })
     expect(title.style.color).toBe(color.ink)
-    expect(title.style.backgroundColor).toBe(color.wkBg)
+    // The cut-out takes the ground it notches into, the page's by default.
+    expect(title.style.backgroundColor).toBe(`var(--cutout-ground, ${color.wkBg})`)
   })
 
   test('takes the band colour from the book’s colour map', () => {

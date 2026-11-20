@@ -41,7 +41,6 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-wide);
   margin-inline: calc(var(--size-compact) + var(--space-12)) var(--space-12);
-  text-transform: uppercase;
 }
 
 .su-union-bar__rail-link {
@@ -54,7 +53,6 @@
   line-height: calc(var(--size-compact) - var(--bw-pill));
   padding-inline: var(--space-12);
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .su-union-bar__rail-link:hover {
@@ -111,12 +109,10 @@
 
 .su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
   align-items: flex-start !important;
-  background: linear-gradient(
-    to bottom,
-    var(--su-kind, var(--color-ink)) 0,
-    var(--su-kind, var(--color-ink)) calc(var(--su-tile-label) + var(--space-6)),
-    var(--color-paper) calc(var(--su-tile-label) + var(--space-6))
-  ) !important;
+  /* The head strip: a band of the kind's paint over the tile's paper. */
+  background: var(--color-paper) !important;
+  box-shadow: inset 0 calc(var(--su-tile-label) + var(--space-6)) 0 0
+    var(--su-kind, var(--color-ink));
   border: var(--bw-entity-compact) solid var(--su-kind, var(--color-ink-40)) !important;
   flex-direction: column !important;
   gap: 0 !important;
@@ -282,26 +278,21 @@
   width: 100%;
 }
 
-/* The slot before its art: the title set as a cover, ink on the book's blue. */
+/* The slot before its art: the title set as a cover, ink on the book's blue,
+   a strip of the book's paint at its head. */
 .su-front__cover-type {
   align-items: flex-end;
   background-color: var(--color-ink);
-  background-image: linear-gradient(
-    to bottom,
-    var(--su-kind, var(--color-wk-line)) 0,
-    var(--su-kind, var(--color-wk-line)) var(--space-12),
-    transparent var(--space-12)
-  );
+  box-shadow: inset 0 var(--space-12) 0 0 var(--su-kind, var(--color-wk-line));
   color: var(--color-paper);
   display: flex;
   font-family: var(--font-cond);
   font-size: var(--text-readout);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.03em;
+  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.05;
   overflow: hidden;
   padding: var(--space-8);
-  text-transform: uppercase;
 }
 
 .su-front__cover:hover .su-front__cover-type {
@@ -386,17 +377,6 @@
     padding-inline: var(--su-shell-edge);
   }
 
-  /* The alternate (`alt-dark-rail-*` shots; MOCK: `data-rail="dark"` on the
-     root, set by the shot script): a dark rail a step lighter than the
-     header's ink, paper text. */
-  :root[data-rail='dark'] .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--color-paper) !important;
-    --su-bar-fg-70: var(--color-paper) !important;
-    --su-bar-fg-85: var(--color-paper) !important;
-    --su-bar-fg-60: var(--color-paper) !important;
-    background-color: color-mix(in srgb, var(--color-ink-deep) 85%, var(--color-paper));
-  }
-
   .su-union-bar .su-union-bar__rail-name {
     margin-inline: 0 var(--space-12);
   }
@@ -413,55 +393,6 @@
   --su-foot-mark: invert(1) !important;
   --su-foot-grain-paper: contents !important;
   --su-foot-grain-ink: none !important;
-}
-
-/* L-3: the tab row, on the masthead's foot. Tabs, not a boxed switch: the
-   current view carries an ink bar on the row's rule. */
-.su-dash-top:has(> .su-mast__tabs) > .su-mast {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-}
-
-.su-mast__tabs {
-  background-color: var(--color-paper);
-  border-bottom: var(--bw-pill) solid var(--color-ink);
-  padding-inline: var(--su-page-gutter-inline);
-}
-
-.su-mast__tabs .su-seg {
-  background: none;
-  border: 0;
-  box-shadow: none;
-  margin: 0;
-  min-inline-size: 0;
-  outline: 0;
-  padding: 0;
-  border-radius: 0;
-  display: flex;
-  gap: var(--space-24);
-}
-
-.su-mast__tabs .su-seg__option,
-.su-mast__tabs .su-seg__option + .su-seg__option {
-  background: none;
-  border: 0;
-  border-radius: 0;
-  color: var(--color-ink-75);
-  flex: none;
-  font-size: var(--text-readout);
-  min-height: var(--size-full);
-  padding-inline: var(--space-2);
-}
-
-.su-mast__tabs .su-seg__option:hover {
-  background: none;
-  color: var(--color-ink);
-}
-
-.su-mast__tabs .su-seg__option[aria-pressed='true'],
-.su-mast__tabs .su-seg__option[aria-pressed='true']:hover {
-  background: none;
-  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
-  color: var(--color-ink);
 }
 
 /* L-4: no borders on a table. */
@@ -499,9 +430,9 @@
 /* Revision 4, note 1: an ability's level is a small mark, not a column. */
 .su-trees .su-open-level {
   font-size: var(--text-badge);
-  height: 1.125rem;
-  min-width: 1.125rem;
-  width: 1.125rem;
+  height: var(--size-mini);
+  min-width: var(--size-mini);
+  width: var(--size-mini);
 }
 
 .su-trees .su-open__toggle {
@@ -524,7 +455,7 @@
 }
 
 /* A phone: the bays list keeps to the page (no sideways scroll, R44). */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-open.su-open--manifest .su-open__row > td[data-kind='text'],
   .su-open.su-open--manifest thead th[data-col][data-kind='text'] {
     padding-inline: var(--space-4);
@@ -536,7 +467,7 @@
   }
 }
 
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
     padding-inline: var(--space-4);
   }
@@ -554,39 +485,9 @@
   }
 }
 
-/* Revision 4, note 2: the Actions view is a tool. */
-.su-actions-tool {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-}
-
-.su-actions-tool__bar {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-16);
-}
-
-/* The field has its own line; the filters share the next. */
-.su-actions-tool__search {
-  flex: 1 1 100%;
-  margin-inline-end: max(0px, calc(100% - 32rem));
-  max-width: 32rem;
-}
-
-.su-open--actions .su-open__clamp {
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-}
-
-.su-open--actions :is(.su-open__under > td, .su-open__detail-body) {
-  max-width: 46rem;
-}
-
 /* L-1: at the measure, a sheet band's corner controls and the foot keep the
    page's edges too. */
-@media (width >= 84rem) {
+@media (width >= 80rem) {
   .su-chapter-band:not([data-measured]) .su-chapter-band__corner {
     padding-inline: var(--su-shell-edge);
   }
@@ -794,7 +695,6 @@
   min-width: 0;
   outline-offset: calc(-1 * var(--space-2));
   padding: var(--bw-pill) var(--space-12) 0;
-  text-transform: uppercase;
   width: auto;
 }
 
@@ -889,7 +789,6 @@
 /* A strip's own controls (Show Homebrew, + New Game, Copy the crew to …)
    are compact buttons at the strip's end, on its line: never a full-width
    bar under it (revision 6, 16:47Z). */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's wrapped actions */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
   align-self: center;
   flex: 0 0 auto;
@@ -985,7 +884,6 @@
 /* A guide's phase (Post-Session) stands over steps that each wear their own
    cut-out: the phase is a plain ruled label, never a second cut-out over
    them (L-6). */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase strip */
 .su-guide--page .su-guide__section > .su-slab-section__head {
   background: none !important;
   border-bottom: var(--bw-pill) solid var(--color-ink);
@@ -997,7 +895,6 @@
   content: none;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase label's plate */
 .su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
   background: none !important;
   color: var(--color-ink);
@@ -1039,7 +936,6 @@
    Kit over its NPC and Encounter tables) is a plain ruled label too (L-6).
    So is a section's head in a Peek: the Peek's own title cut-out stands
    right above it. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip */
 [role='dialog'] .su-rule-head.su-slab-section__head,
 .su-rule-head.su-rule-head--over {
   background: none !important;
@@ -1048,7 +944,6 @@
   padding-block: var(--space-4);
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
 [role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
   background: none !important;
   color: var(--color-ink);
@@ -1063,15 +958,13 @@
 }
 
 /* A strip's buttons fit inside the strip: none hangs under its edge. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the compact button's height */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions .su-btn {
   font-size: var(--text-chip);
-  height: 1.5rem; /* design-tokens-ignore(raw-size): inside the 2rem strip */
+  height: 1.5rem; /* design-tokens-ignore(size-literal): inside the 2rem strip */
   min-height: 0;
   padding-block: 0;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
 .su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) {
   align-items: center;
   padding-block: var(--space-4);
@@ -1081,7 +974,6 @@
   row-gap: var(--space-12);
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
 .su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) > .su-rule-head__label {
   align-self: flex-end;
   margin-bottom: calc(-1 * var(--space-4));
@@ -1105,17 +997,6 @@
  * the title now that the acts ride the rail.
  * ══════════════════════════════════════════════════════════════════════ */
 
-/* A crawler's band takes the deeper crawler pink its rail and tables wear,
-   so rail and band are one colour there too (paper text 4.6:1). MOCK: the
-   band's own paint is matched by its inline colour; the real change is
-   `ChapterBand`'s tone. */
-.su-chapter-band[style*='206, 88, 152']:not([role='dialog'] *) {
-  background-color: var(
-    --su-kind,
-    rgb(184 74 134)
-  ) !important; /* design-tokens-ignore(raw-color): crawlerBand, as tokens.ts */
-}
-
 /* With its acts on the rail the corner holds nothing: it takes no room. */
 .su-chapter-band .su-chapter-band__corner:not(:has(*)) {
   display: none !important;
@@ -1123,20 +1004,17 @@
 
 /* Under 64rem the acts are the band's first row: no paint of their own, the
    band's colour and speckle run through them. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's paint */
 .su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
   background-color: transparent;
 }
 
 /* Nothing above the title: the cut-out stands from the band's top (under
    the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
 .su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
   padding-top: 0 !important;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
   padding-top: var(--space-8);
 }
@@ -1175,7 +1053,6 @@
 }
 
 /* The row is as tall as the title cut-out, no taller. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
   min-height: 0 !important;
 }
@@ -1241,7 +1118,7 @@
 }
 
 /* A phone: the lines take the rail's whole width under the tallies. */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-mast__traits {
     border-top: var(--bw-hairline) solid var(--color-ink-20);
     flex-basis: 100%;
@@ -1252,9 +1129,9 @@
 /* A PILOT'S REAL NAME. Plain words on the callsign's
    baseline, inside the title's cut-out, in the body face at a lighter weight. */
 .su-title-aka {
-  margin-left: 0.6em;
+  margin-inline-start: var(--space-12);
   font-family: var(--font-body);
-  font-size: 0.36em;
+  font-size: var(--text-title);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -1277,7 +1154,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 2px var(--space-12);
+  gap: var(--space-2) var(--space-12);
   padding: var(--space-8) var(--space-12);
   background-color: var(--su-kind, var(--color-tl-1));
   color: var(--color-ink);
@@ -1286,21 +1163,20 @@
 .su-companion-cell__kind {
   grid-column: 1 / -1;
   font-family: var(--font-cond);
-  font-size: var(--text-xs, 0.6875rem);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: var(--text-badge);
+  letter-spacing: var(--tracking-caps-snug);
 }
 .su-companion-cell__name {
   font-family: var(--font-cond);
-  font-size: 1.125rem;
+  font-size: var(--text-readout);
   font-weight: 700;
 }
 .su-companion-cell__block {
-  font-size: 0.8125rem;
+  font-size: var(--text-caption);
 }
 .su-companion-cell__vitals {
   grid-column: 1 / -1;
-  font-size: 0.8125rem;
+  font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }
 .su-companion-cell:hover .su-companion-cell__name,
@@ -1348,7 +1224,6 @@
    a hairline. Band, rail and foot stay full bleed over it. A phone has no
    margin: nothing changes there. */
 :root {
-  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink));
   /* The column's padding is the title plate's own (its title's inset on the
      plate), so the content's edge lines up with the title's words. Never past
      the window's edge. */
@@ -1361,20 +1236,14 @@
 }
 
 @media (width >= 64rem) {
-  /* Painted on whatever lays the ground (the body; an SRD page's <main>),
-     pinned to the window so the column lines up across them. */
-  :root :is(body, main) {
-    /* !important: the app's sheet grounds are unlayered and would win. */
-    background-attachment: fixed !important;
-    background-image: linear-gradient(
-      to right,
-      var(--color-desk) 0,
-      var(--color-desk) var(--su-col-l),
-      var(--color-wk-bg) var(--su-col-l),
-      var(--color-wk-bg) var(--su-col-r),
-      var(--color-desk) var(--su-col-r),
-      var(--color-desk) 100%
-    ) !important;
+  /* Painted on whatever lays the ground (the body; an SRD page's <main>):
+     the desk is a band either side of the column, measured from the
+     window's centre, so the column lines up across them. Inset, so it lies
+     over the element's own ground and under its content. */
+  :is(body, main) {
+    box-shadow:
+      inset var(--su-column-edge) 0 0 0 var(--color-desk),
+      inset calc(-1 * var(--su-column-edge)) 0 0 0 var(--color-desk);
   }
 }
 
@@ -1407,7 +1276,7 @@
 
 /* The kicker's words stand where the title's do: the plate's padding in. */
 @media (width >= 64rem) {
-  :root .su-chapter-band__eyebrow {
+  :root .su-chapter-band > .su-chapter-band__eyebrow {
     padding-inline: var(--su-column-pad) !important;
   }
 }
@@ -1446,8 +1315,7 @@
    read as one surface, no seam of page ground between. */
 @media not (width >= 40rem) {
   .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow + * {
-    background:
-      linear-gradient(var(--color-paper), var(--color-paper)) top / 100% var(--space-24) no-repeat;
+    box-shadow: inset 0 var(--space-24) 0 0 var(--color-paper);
   }
 }
 
@@ -1568,7 +1436,6 @@
   overflow: hidden;
   padding: var(--space-6) var(--space-8);
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1590,8 +1457,8 @@
 @media (prefers-reduced-motion: no-preference) {
   .su-dash-pin {
     transition:
-      background-color 150ms ease-out,
-      padding 150ms ease-out;
+      background-color var(--dur-fast) var(--ease),
+      padding var(--dur-fast) var(--ease);
   }
 }
 
@@ -1699,7 +1566,6 @@
   line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__name > span {
@@ -1713,7 +1579,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__vital {
@@ -1733,7 +1598,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__figure {
@@ -1756,11 +1620,7 @@
 
 /* The fill: a thin bar along the card's foot, the unit's paint. */
 .su-sheet-bar__meter {
-  background: linear-gradient(
-    to right,
-    var(--su-kind, var(--color-ink)) calc(var(--su-fill) * 100%),
-    var(--color-ink-10) calc(var(--su-fill) * 100%)
-  );
+  background-color: var(--color-ink-10);
   bottom: 0;
   height: var(--space-2);
   left: 0;
@@ -1768,16 +1628,21 @@
   right: 0;
 }
 
-.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
-  color: var(--color-rust);
+/* The fill, its share of the meter in the unit's paint. */
+.su-sheet-bar__meter::before {
+  background-color: var(--su-kind, var(--color-ink));
+  content: '';
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: calc(var(--su-fill) * 100%);
 }
 
-.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter {
-  background: linear-gradient(
-    to right,
-    var(--color-rust) calc(var(--su-fill) * 100%),
-    var(--color-ink-10) calc(var(--su-fill) * 100%)
-  );
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter::before {
+  background-color: var(--color-status-bad);
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
+  color: var(--color-status-bad);
 }
 
 /* The acts, compact, as the rail draws them. */
@@ -1790,13 +1655,6 @@
 .su-sheet-bar__acts :is(a, button) {
   min-height: 0 !important;
   padding-block: var(--space-4) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, the condensed bar */
-  .su-sheet-gutter {
-    transition: none !important;
-  }
 }
 
 /* An app page that reads as a Reference Page (the Starter Set): its body is
@@ -1812,14 +1670,7 @@
    - frame: `--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint,
      round a thing that is one object (a tile, a card, a tracker);
    - divider: one hairline in ink-20 between parts of one surface;
-   - the 2px ink rule is the band's and a Ledger's strip foot only.
-   The sheet's tab row and its masthead dropped their 2px ink rules to the
-   divider. */
-.su-mast__tabs {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-}
-
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, borders by role and contained boxes */
+   - the 2px ink rule is the band's and a Ledger's strip foot only. */
 .su-mast {
   border-bottom-color: var(--color-ink-20);
   border-bottom-width: var(--bw-hairline);

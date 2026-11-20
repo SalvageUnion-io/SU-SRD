@@ -11,8 +11,12 @@
 import type { ComponentProps } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Content, EntityRollMini } from '../../components/index'
+import { Content, capsLabel, EntityRollMini } from '../../components/index'
+import { cn } from '../../lib/cn'
 import { Cost } from './Cost'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 type Body = ComponentProps<typeof Content>['body']
 
@@ -53,7 +57,9 @@ export function RowRules({
   const marks = marksOf(model)
   return (
     <div className="su-row-rules">
-      {marks.length > 0 && <p className="su-row-rules__marks">{marks.join(' · ')}</p>}
+      {marks.length > 0 && (
+        <p className={cn('su-row-rules__marks', CAPS, CAPS)}>{marks.join(' · ')}</p>
+      )}
       {ownContent.length > 0 && (
         <div className="su-row-rules__text">
           <Content
@@ -80,7 +86,9 @@ export function RowRules({
             <p className="su-row-rules__action-head">
               <b>{action.name}</b>
               {actionMarks.length > 0 && (
-                <span className="su-row-rules__marks">{actionMarks.join(' · ')}</span>
+                <span className={cn('su-row-rules__marks', CAPS, CAPS)}>
+                  {actionMarks.join(' · ')}
+                </span>
               )}
               {actionModel.cost && <Cost cost={actionModel.cost} />}
             </p>

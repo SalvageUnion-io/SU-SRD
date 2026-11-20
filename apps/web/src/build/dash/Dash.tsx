@@ -10,11 +10,20 @@
  * vitals, pinned over the stacked groups.
  */
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSVarStyle, PhoneVital, SlabCount } from '../../components/index'
-import { cn, PhoneVitals, PhoneVitalsGlance, SlabSection } from '../../components/index'
+import { capsLabel, cn, PhoneVitals, PhoneVitalsGlance, SlabSection } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
+
+// Watched for the pin's stuck state; it takes back its own 1px.
+const SENTINEL = {
+  height: '1px',
+  marginBottom: '-1px', // design-tokens-ignore(raw-spacing): a fit, the sentinel takes back its own 1px
+} satisfies CSSProperties
 
 export function Dash({ children, cols = 3 }: { children: ReactNode; cols?: 2 | 3 }) {
   return (
@@ -90,7 +99,7 @@ export function Facts({ facts }: { facts: readonly (Fact | false | null | undefi
     <dl className="su-dash-facts">
       {shown.map((fact) => (
         <div key={fact.key} className={cn('su-dash-fact', fact.wide && 'su-dash-fact--wide')}>
-          <dt>{fact.label}</dt>
+          <dt className={CAPS}>{fact.label}</dt>
           <dd>{fact.value}</dd>
         </div>
       ))}
@@ -135,7 +144,7 @@ export function Prose({
       {(clipped || open) && (
         <button
           type="button"
-          className="su-dash-more"
+          className={cn('su-dash-more', CAPS, CAPS)}
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
@@ -180,10 +189,10 @@ export function PinnedVitals({
   const live = vitals.some((vital) => vital.onChange)
   return (
     <>
-      <div ref={sentinel} aria-hidden="true" style={{ height: 1, marginBottom: -1 }} />
+      <div ref={sentinel} aria-hidden="true" style={SENTINEL} />
       <div className="su-dash-pin" data-stuck={stuck ? '' : undefined}>
         {name && (
-          <span className="su-dash-pin__name" aria-hidden={!stuck}>
+          <span className={cn('su-dash-pin__name', CAPS, CAPS)} aria-hidden={!stuck}>
             {name}
           </span>
         )}
