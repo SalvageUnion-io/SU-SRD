@@ -125,10 +125,7 @@ function Row({
   // Until it is pressed a row is open where it starts open: derived, not
   // stored, so a row whose rules arrive after its first render still opens.
   const [pressed, setPressed] = useState<boolean | null>(null)
-  const starts =
-    row.defaultOpen === true ||
-    mockOpen(row.id) ||
-    (typeof row.name === 'string' && mockOpen(row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')))
+  const starts = row.defaultOpen === true
   const open = row.detail !== undefined && (pressed ?? starts)
   const setOpen = (next: (value: boolean) => boolean) => setPressed(next(open))
   const panel = useId()
