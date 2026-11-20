@@ -7,10 +7,25 @@
  * rust action beside one outline, a caption. Blocks 12px apart, as a card's.
  */
 .su-front-pitch {
+  align-self: flex-start;
+  /* Framed as a sparse Page's info box is (`TitledBox`'s Compact frame): the
+     frame's width on paper, in its area's band colour (below). */
+  background-color: var(--color-paper);
+  border: var(--bw-entity-compact) solid var(--su-pitch-frame, var(--color-ink));
   display: flex;
   flex-direction: column;
   gap: var(--space-12);
+  max-width: 100%;
   min-width: 0;
+  padding: var(--space-16);
+}
+
+:root:has(.su-union-bar[data-mode='build']) .su-front-pitch {
+  --su-pitch-frame: var(--color-pilot);
+}
+
+:root:has(.su-union-bar[data-mode='play']) .su-front-pitch {
+  --su-pitch-frame: var(--color-crawler-band);
 }
 
 .su-front-pitch__value {
@@ -216,6 +231,8 @@ body:has(.su-front--show) main {
 .su-front__show-plate {
   align-items: center;
   background-color: var(--color-paper);
+  /* An info box's frame (`TitledBox`'s Compact frame), in ink: the home has no band colour. */
+  border: var(--bw-entity-compact) solid var(--color-ink);
   display: flex;
   gap: var(--space-12) var(--space-16);
   padding: var(--space-12) var(--space-16);
