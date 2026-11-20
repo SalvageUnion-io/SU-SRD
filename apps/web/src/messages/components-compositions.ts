@@ -14,7 +14,7 @@ export const compositionsCopy = messages({
   changelog: 'Changelog',
   reference: 'Reference',
   ref: 'Ref',
-  build: 'Training Bay',
+  build: 'Builder',
   play: 'Games',
   salvageUnion: 'Salvage Union',
   salvageUnionTools: 'Salvage Union tools',

@@ -16,7 +16,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
 7. **Board** — a pilot taking a mech's seat in Play (ADR-051 §3); "aboard" belongs to this, not to assignment.
    "Dock" is only the Mech Bay's function action.
 8. **Player**, **Mediator**, **Organiser** — the roles, capitalised; Organiser in British spelling. "Table runner" in docs is the Mediator, or the Organiser while a Game has none.
-9. **Training Bay** and **Games** — the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`), and the header's nouns: Reference | Training Bay | Games (ADR-066).
+9. **Training Bay** and **Games** — the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`). Nav labels are descriptive: the header and drawer read Reference | Builder | Games, each linking its landing page (`/reference/`, `/build/`, `/games/`); the logo is the marketing home, `/` (ADR-066 §7).
    They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Games hub's band). **Play** is a mode of a pilot's page (Read | Edit | Play), never an area. The whole app is "the app" (the account: a salvageunion.io account).
    The Training Bay and The Cantina are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.

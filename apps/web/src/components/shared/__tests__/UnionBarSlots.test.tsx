@@ -31,7 +31,7 @@ const button = (name: string) => (
 )
 
 describe('UnionBarSlots', () => {
-  test('fills the bar’s end and the phone cluster; the bar carries no second nav', () => {
+  test('fills the bar’s end and the phone cluster; the bar’s navs are its area links and rails', () => {
     render(
       <UnionBarSlots
         pathname="/games/"
@@ -41,9 +41,9 @@ describe('UnionBarSlots', () => {
         mobileActions={button('Avatar')}
       />
     )
-    expect(screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'))).toEqual([
-      'Salvage Union tools',
-    ])
+    const navs = screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'))
+    expect(navs[0]).toBe('Salvage Union tools')
+    for (const label of navs.slice(1)) expect(label).toMatch(/^In /)
     const header = within(screen.getByRole('banner'))
     const search = header.getByRole('button', { name: 'Search' })
     const account = header.getByRole('button', { name: 'Account' })
@@ -56,24 +56,24 @@ describe('UnionBarSlots', () => {
     ).toEqual(['Phone search', 'Avatar', 'Open menu'])
   })
 
-  test('marks the tab you are under: Games on Your Games and every Game route, the Training Bay everywhere else', () => {
+  test('marks the tab you are under: Games on Your Games and every Game route, the Builder everywhere else', () => {
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const current = () =>
       tools()
         .getAllByRole('link')
         .filter((tab) => tab.getAttribute('aria-current') === 'true')
         .map((tab) => tab.textContent)
+    const { rerender } = render(<UnionBarSlots pathname="/games/" />)
     expect(
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Training Bay', 'Games'])
-    const { rerender } = render(<UnionBarSlots pathname="/games/" />)
+    ).toEqual(['Reference', 'Builder', 'Games'])
     expect(current()).toEqual(['Games'])
     rerender(<UnionBarSlots pathname="/starter/" />)
-    expect(current()).toEqual(['Training Bay'])
+    expect(current()).toEqual(['Builder'])
     rerender(<UnionBarSlots pathname="/pilots/p1/play" />)
-    expect(current()).toEqual(['Training Bay'])
+    expect(current()).toEqual(['Builder'])
     rerender(<UnionBarSlots pathname="/games/g1" />)
     expect(current()).toEqual(['Games'])
   })
