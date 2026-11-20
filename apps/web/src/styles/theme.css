@@ -202,7 +202,7 @@
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
   /* The desk: the margin beside the page column from `lg`, warm ink over the
      workshop ground, the same material in shadow (grounds by role). */
-  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink));
+  --color-desk: rgb(207, 203, 197); /* #cfcbc5, the page ground a sixth toward ink */
   --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule */
   --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent */
 
