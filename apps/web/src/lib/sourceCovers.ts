@@ -4,10 +4,11 @@ import { assetUrl, getAssetUrl, getEntitySlug } from 'salvageunion-reference'
 /**
  * The books whose covers are in the art store, at `sources/<slug>.webp`: each
  * digital edition's cover page. The list lives here, in the site, not as a
- * `hasArtwork` flag in the game data. The Workshop Manual's is not in the
- * bucket yet; We Were Here First and False Flag have none.
+ * `hasArtwork` flag in the game data. We Were Here First and False Flag have
+ * none.
  */
 const SOURCE_COVERS: ReadonlySet<string> = new Set([
+  'salvage-union-workshop-manual',
   'salvage-union-starter-set',
   'rainmaker',
   'reclamation-of-the-wastes',
