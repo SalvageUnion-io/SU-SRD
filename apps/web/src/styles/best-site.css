@@ -563,16 +563,22 @@
   vertical-align: middle;
 }
 
-/* A button in the strip makes it taller than its labels' line: the tab stays
-   on the strip's foot, notched into the first row, and the column stamps
-   stand on the foot beside it, on the tab's text line, never floated over
-   the band's paint. */
-.su-ledger__table .su-ledger__head:has(> th .su-btn) > th:not(:has(.su-btn)) {
+/* Every label in the strip is a paper cut-out on its foot, notched into the
+   first row as the title's tab is (L2), each on one line: the tab, then a
+   cut-out over each column. A button in the strip stays centred on it. */
+.su-ledger__table .su-ledger__head > th:not(:has(.su-btn)) {
   vertical-align: bottom;
 }
 
-.su-ledger__table .su-ledger__head:has(> th .su-btn) > th:not(:first-child, :has(.su-btn)) {
-  padding-bottom: var(--space-6);
+.su-ledger__table .su-ledger__head > th:not(:first-child, :has(.su-btn)) {
+  padding-bottom: 0;
+}
+
+.su-ledger__head > th:not(:first-child) .su-badge--stamp-solid {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  white-space: nowrap;
 }
 
 .su-ledger__head .su-ledger__title-line {

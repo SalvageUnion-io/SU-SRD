@@ -346,7 +346,8 @@ export function OpenLedger({
               {(column.quiet ?? column.key === 'cost') ? (
                 <span className="su-sr-only">{column.label}</span>
               ) : (
-                column.label
+                // A paper cut-out on the strip's foot, as the title's tab (L2).
+                <span className="su-open__col-tab">{column.label}</span>
               )}
             </th>
           ))}

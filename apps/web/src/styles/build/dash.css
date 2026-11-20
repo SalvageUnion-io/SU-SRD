@@ -1255,9 +1255,19 @@
 
 .su-open:not(.su-open--sub) thead th[data-col] {
   color: var(--su-on-kind, var(--color-paper));
-  padding-block: var(--space-8);
+  padding-block: var(--space-8) 0;
   padding-inline: var(--space-8);
-  vertical-align: middle;
+  vertical-align: bottom;
+}
+
+/* A column's label: a paper cut-out on the strip's foot, notched into the
+   first row as the title's tab is (L2), on one line. */
+.su-open:not(.su-open--sub) thead .su-open__col-tab {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  display: inline-block;
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  white-space: nowrap;
 }
 
 .su-open:not(.su-open--sub) thead th[data-col]:last-child {
