@@ -203,8 +203,8 @@ body:has(.su-front--show) main {
 
 .su-front__show-act {
   display: flex;
+  flex: 0 0 auto;
   justify-content: flex-end;
-  padding: 0 var(--space-16) var(--space-12);
 }
 
 .su-front__show-act .su-btn {
@@ -220,9 +220,20 @@ body:has(.su-front--show) main {
   padding: var(--space-12) var(--space-16) var(--space-4);
 }
 
-.su-front__show-body {
-  margin: 0;
+/* The plate: the line, then its button beside it on the right, centred on
+   one row; on a narrow screen the button wraps under the line. */
+.su-front__show-plate {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+  justify-content: flex-end;
   padding: var(--space-4) var(--space-16) var(--space-12);
+}
+
+.su-front__show-body {
+  flex: 1 1 16rem;
+  margin: 0;
 }
 
 @keyframes su-front-show {
