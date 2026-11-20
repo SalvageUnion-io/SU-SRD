@@ -214,15 +214,6 @@ export default defineConfig({
                     tags: ['$initial'],
                     priority: 10,
                   },
-                  {
-                    // The components a reference page's islands share with the
-                    // app: one automatic chunk of them outgrew the bundle's
-                    // largest-chunk tripwire, so they split by size instead.
-                    name: 'components',
-                    test: /[\\/]apps[\\/]web[\\/]src[\\/]components[\\/]/,
-                    maxSize: 300_000,
-                    priority: 5,
-                  },
                 ],
               },
             },
