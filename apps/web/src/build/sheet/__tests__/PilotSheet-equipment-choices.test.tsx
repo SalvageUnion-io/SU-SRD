@@ -14,7 +14,7 @@
  */
 
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { expandCards } from '../../../components/__tests__/expandCards'
@@ -81,6 +81,37 @@ function makePilot(overrides?: Partial<Pilot>): Pilot {
     equipment: [SNIPER_ID],
     ...overrides,
   })
+}
+
+/**
+ * Read is the sheet dashboard: a carried item is a row of its Inventory
+ * Ledger, its rules opening under it. The row and, once opened, its rules.
+ */
+async function readRow(name: string, open = true): Promise<HTMLElement> {
+  const inventory = screen
+    .getAllByRole('table')
+    .find((table) => table.querySelector('.su-rule-head__label')?.textContent === 'Inventory')
+  if (!inventory) throw new Error('no Inventory ledger')
+  const row = within(inventory)
+    .getAllByRole('rowheader')
+    .find((cell) => cell.textContent?.includes(name))
+    ?.closest<HTMLElement>('tr')
+  if (!row) throw new Error(`no ${name} row`)
+  const toggle = within(row).queryByRole('button', { name: `${name} rules` })
+  if (open && toggle) {
+    await act(async () => {
+      fireEvent.click(toggle)
+    })
+  }
+  return row
+}
+
+/** A row's text with its opened rules. */
+function rowText(row: HTMLElement): string {
+  const detail = row.nextElementSibling?.classList.contains('su-open__detail')
+    ? (row.nextElementSibling.textContent ?? '')
+    : ''
+  return `${row.textContent ?? ''}${detail}`
 }
 
 // ---------------------------------------------------------------------------
@@ -156,7 +187,7 @@ describe('PilotSheet — equipment choice cards', () => {
     expect(updateMock).not.toHaveBeenCalled()
   })
 
-  test("the item line shows the picks and the crawler's Tech Level, not the book's TL1 rifle", () => {
+  test("the item line shows the picks and the crawler's Tech Level, not the book's TL1 rifle", async () => {
     // The line is the player's rifle: its head and its text both read the
     // picks and the Tech Level, as its Details card does.
     const pilot = makePilot({
@@ -169,17 +200,19 @@ describe('PilotSheet — equipment choice cards', () => {
       },
     })
     const { store } = makePilotStubStore(pilot)
-    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
-    const line = container.querySelector('[data-sheet-carried] li')
-    const text = line?.textContent ?? ''
+    render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const text = rowText(await readRow(SNIPER_NAME))
     // 2 SP + 1 per Tech Level after the first + 1 High Calibre = 5 SP.
     expect(text).toContain('5 SP')
     expect(text).toContain('Far')
     expect(text).toContain('Energy')
-    expect(text).not.toContain('Long')
+    // Its marks read the player's rifle: Far, not the book's Long.
+    const marks = document.querySelector('.su-open__detail .su-row-rules__marks')?.textContent ?? ''
+    expect(marks).toContain('Far')
+    expect(marks).not.toContain('Long')
   })
 
-  test('R60: each pick reads as made, a CHOSEN chip naming it', () => {
+  test('R60: each pick reads as made, a CHOSEN chip naming it', async () => {
     const pilot = makePilot({
       crawlerLevel: 3,
       equipmentChoices: {
@@ -190,22 +223,22 @@ describe('PilotSheet — equipment choice cards', () => {
       },
     })
     const { store } = makePilotStubStore(pilot)
-    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
-    const line = container.querySelector<HTMLElement>('[data-sheet-carried] li')
-    if (!line) throw new Error('no item line')
+    render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const line = await readRow(SNIPER_NAME, false)
     const chosen = [...line.querySelectorAll('.su-stat-cell')]
       .map((cell) => cell.textContent ?? '')
       .filter((text) => text.startsWith('Chosen'))
     expect(chosen).toEqual(['ChosenEnergy', 'ChosenRangefinder', 'ChosenHigh Calibre Rounds'])
   })
 
-  test('R59: gear an ability grants prints its rules once, under the ability', () => {
+  test('R59: gear an ability grants prints its rules once, under the ability', async () => {
     const pilot = makePilot({ abilities: ['custom-sniper-rifle'], equipment: [], crawlerLevel: 4 })
     const { store } = makePilotStubStore(pilot)
-    const { container } = render(<PilotSheet pilot={pilot} store={store} readOnly />)
-    const line = container.querySelector('[data-sheet-carried] li')
-    expect(line?.textContent ?? '').toContain(SNIPER_NAME)
-    expect(line?.textContent ?? '').not.toContain('You acquire and train')
+    render(<PilotSheet pilot={pilot} store={store} readOnly />)
+    const line = await readRow(SNIPER_NAME)
+    // The row names it; its rules do not open under it.
+    expect(within(line).queryByRole('button', { name: `${SNIPER_NAME} rules` })).toBeNull()
+    expect(rowText(line)).not.toContain('You acquire and train')
   })
 
   test('an item the ability grants is on the sheet, its picks saved, with no Remove of its own', async () => {

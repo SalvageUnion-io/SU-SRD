@@ -9,7 +9,7 @@
  */
 
 import type { ComponentProps } from 'react'
-import type { RefMetaEntity } from 'salvageunion-reference'
+import type { EntityInstance, RefMetaEntity } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { Content, capsLabel, EntityRollMini } from '../../components/index'
 import { cn } from '../../lib/cn'
@@ -36,13 +36,16 @@ function marksOf(model: ReturnType<typeof toEntityModel>, skip: readonly string[
 
 export function RowRules({
   entity,
+  instance,
   chassisName,
 }: {
   entity: RefMetaEntity
+  /** The carried item's picks and Tech Level: its marks read the player's item (R60). */
+  instance?: EntityInstance
   /** A chassis ability names its chassis by a token; this fills it. */
   chassisName?: string
 }) {
-  const model = toEntityModel(entity)
+  const model = toEntityModel(entity, instance)
   const actions = (SalvageUnionReference.resolveActions(entity) ?? []).filter(
     (action) => !action.hidden
   )

@@ -184,7 +184,7 @@ describe('MechSheet — The Hold (Stow)', () => {
     })
     render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(must(slabChip('The Hold')).textContent).toBe('Slots3/6')
+    expect(must(slabChip('The Hold')).textContent).toBe('3/6Slots')
     expect(screen.queryByText(/2 lots/i)).toBeNull()
   })
 })

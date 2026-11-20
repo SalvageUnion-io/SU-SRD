@@ -13,7 +13,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import { slabChip } from '../../../components/__tests__/slabChip'
+import { slabChip, slabCountCritical } from '../../../components/__tests__/slabChip'
 import { MechSheet } from '../MechSheet'
 
 const MANIC_MINER_SYSTEMS = [
@@ -51,25 +51,21 @@ describe('MechSheet — patterns printed over their slots', () => {
   test('the printed loadout reads as printed, with its cite', () => {
     renderSheet(makeMech(MANIC_MINER_SYSTEMS))
     const systems = must(slabChip('Systems'))
-    expect(systems.textContent).toBe('Slots14/13')
-    expect(systems.classList.contains('su-stat-cell--critical')).toBe(false)
-    // The summary strip (`Chips`) and its note, one count.
-    const noted = must(systems.closest('[data-chip-group]')?.parentElement)
-    expect(noted.textContent).toBe('Slots14/13as printed')
-    expect(noted.getAttribute('title')).toBe(
+    // The rule head's tally and its note, one count, with the printing on hover.
+    expect(systems.textContent).toBe('14/13Slotsas printed')
+    expect(slabCountCritical(systems)).toBe(false)
+    expect(systems.getAttribute('title')).toBe(
       'Manic Miner, Salvage Union Starter Set, Parts Catalogue p.11'
     )
     // Its modules fit, so they carry no note.
-    expect(must(slabChip('Modules')).closest('[data-chip-group]')?.parentElement?.textContent).toBe(
-      'Slots2/2'
-    )
+    expect(must(slabChip('Modules')).textContent).toBe('2/2Slots')
   })
 
   test('a loadout past the printed one is a plain over-slot count', () => {
     renderSheet(makeMech([...MANIC_MINER_SYSTEMS, 'cargo-pod']))
     const systems = must(slabChip('Systems'))
-    expect(systems.textContent).toBe('Slots15/13')
-    expect(systems.classList.contains('su-stat-cell--critical')).toBe(true)
+    expect(systems.textContent).toBe('15/13Slots')
+    expect(slabCountCritical(systems)).toBe(true)
     expect(screen.queryByText(/as printed/)).toBeNull()
   })
 })

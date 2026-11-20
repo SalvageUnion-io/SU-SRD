@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import type { BookCite, RefChassis } from 'salvageunion-reference'
 import {
   getAssetUrl,
@@ -243,6 +243,7 @@ function ChassisGallery({
   onSelect: (slug: string) => void
 }) {
   const figures = CHASSIS_COLUMNS.filter((column) => column.key !== 'sv')
+  const plateId = useId()
   return (
     <section className="su-chassis-gallery">
       <header className="su-rule-head">
@@ -260,6 +261,8 @@ function ChassisGallery({
               checked={picked}
               className="su-chassis-plate"
               data-picked={picked || undefined}
+              aria-labelledby={`${plateId}-${slug}`}
+              aria-describedby={`${plateId}-${slug}-figures`}
               onClick={() => onSelect(slug)}
             >
               <span className="su-chassis-plate__art">
@@ -268,12 +271,12 @@ function ChassisGallery({
                 )}
               </span>
               <span className={cn('su-chassis-plate__name', CAPS, CAPS)}>
-                <b>{chassis.name}</b>
+                <b id={`${plateId}-${slug}`}>{chassis.name}</b>
                 <span className="su-chassis-plate__cost">
                   <small>{mechCopy('sv')}</small> {chassis.salvageValue}
                 </span>
               </span>
-              <span className="su-chassis-plate__figures">
+              <span id={`${plateId}-${slug}-figures`} className="su-chassis-plate__figures">
                 {figures.map((column) => (
                   <span key={column.key} title={column.title}>
                     <small>{column.label}</small>
