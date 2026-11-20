@@ -76,7 +76,7 @@ describe('roll tables reach the card by reference, not just inline', () => {
     expect(screen.getByText('An Intact Mech Chassis is available for trade.')).toBeTruthy()
   })
 
-  test('a NON-self action keeps its table under its own Mini — printed once', () => {
+  test('a NON-self action keeps its table inside its own Mini — printed once', () => {
     // "Trade Caravan" hosts "Improved Trading Bay", which names a table. In a
     // card the action is a contentful Mini (N3) with its folded table on the
     // line under it, so pulling the table up to the host as well would print
@@ -85,11 +85,12 @@ describe('roll tables reach the card by reference, not just inline', () => {
     const { container } = render(<ReferenceEntityCard data={crawler} />)
 
     expect(screen.getAllByLabelText(ROLL_BUTTON)).toHaveLength(1)
-    // Beside the Mini, never inside it: a Mini nests nothing (E6).
-    expect(container.querySelector('.su-entity-mini[data-contentful] .su-roll-token')).toBeNull()
+    // Inside its action, at the foot of the action's body (best, revision 8):
+    // no roll Mini of its own beside it.
     expect(
-      container.querySelector('.su-entity-mini[data-contentful] + .su-roll-token')
+      container.querySelector('.su-entity-mini[data-contentful] .su-roll-inline')
     ).not.toBeNull()
+    expect(container.querySelector('.su-entity-mini[data-contentful] + .su-roll-token')).toBeNull()
   })
 
   test('every ability with by-reference table data resolves a table', () => {

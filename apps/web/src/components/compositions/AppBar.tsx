@@ -1,6 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
-import { borderWidth, iconSize, layer, radius, space } from '../../design/tokens'
+import { iconSize, layer, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
 import { compositionsCopy } from '../../messages/components-compositions'
@@ -77,6 +77,8 @@ type AppBarProduct = 'reference' | 'build' | 'play'
 type AppBarProps = {
   /** The tool this bar is mounted in: its switcher tab is the inverse stamp. */
   product: AppBarProduct
+  /** The site's front door (`/`) is in no area: no link is marked current. */
+  noCurrent?: boolean
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
   /** Where "Training Bay" goes — the app's home. */
@@ -129,17 +131,12 @@ const BRAND = {
 
 const MARK = { display: 'block', flexShrink: 0 } satisfies CSSProperties
 
-// The frame is an inset outline, not a border, so the switcher is exactly its
-// tabs' height: the bar's one control height, with nothing added around it.
+// The site's three areas as plain header links (best, revision 8), not a
+// framed toggle: the current one is underlined, as the rail marks its own.
 const SWITCH = {
-  borderRadius: radius.card,
   display: 'inline-flex',
   flexShrink: 0,
-  outlineColor: 'var(--su-bar-fg-30)',
-  outlineOffset: `calc(-1 * ${borderWidth.chrome})`,
-  outlineStyle: 'solid',
-  outlineWidth: borderWidth.chrome,
-  overflow: 'hidden',
+  gap: space[4],
 } satisfies CSSProperties
 
 /** What each area holds, for the rail. */
@@ -147,11 +144,11 @@ const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: 
   reference: {
     name: compositionsCopy('railReference'),
     links: [
-      { label: compositionsCopy('railPilots'), href: '/#pilot-bay' },
-      { label: compositionsCopy('railMechs'), href: '/#mech-workshop' },
-      { label: compositionsCopy('railUnionCrawler'), href: '/#union-crawler' },
-      { label: compositionsCopy('railWasteland'), href: '/#denizens' },
-      { label: compositionsCopy('railRules'), href: '/#rules-reference' },
+      { label: compositionsCopy('railPilots'), href: '/reference/#pilot-bay' },
+      { label: compositionsCopy('railMechs'), href: '/reference/#mech-workshop' },
+      { label: compositionsCopy('railUnionCrawler'), href: '/reference/#union-crawler' },
+      { label: compositionsCopy('railWasteland'), href: '/reference/#denizens' },
+      { label: compositionsCopy('railRules'), href: '/reference/#rules-reference' },
       { label: compositionsCopy('railGuides'), href: '/guides/' },
       { label: compositionsCopy('railRollTables'), href: '/roll-tables/' },
     ],
@@ -189,6 +186,7 @@ export function AppBar({
   actions,
   mobile,
   breadcrumbs,
+  noCurrent = false,
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
@@ -252,7 +250,7 @@ export function AppBar({
                 className={cn('su-union-bar__tab', TAB_CAPS, FOCUS_RING)}
                 data-tool={tab.key}
                 // Last, where the shell's marking adds it (`markUnionRoute`).
-                aria-current={tab.key === product ? 'true' : undefined}
+                aria-current={!noCurrent && tab.key === product ? 'true' : undefined}
                 {...(tab.short ? { 'aria-label': tab.label, 'data-short': tab.short } : {})}
               >
                 {tab.short ? (

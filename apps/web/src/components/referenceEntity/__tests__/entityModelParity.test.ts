@@ -104,7 +104,7 @@ function spelled(value: string, model: EntityModel): string {
 function pageMetaOf(
   model: EntityModel,
   relations: EntityRelation[] = [],
-  { pattern = false }: { pattern?: boolean } = {}
+  _options: { pattern?: boolean } = {}
 ) {
   // The band carries the chips: action type, facts, traits and cost.
   const cost = model.cost ? costCell(model.cost) : undefined
@@ -112,16 +112,9 @@ function pageMetaOf(
     // The kind: the title's screen-reader text (never on a foot, E9).
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
-    // An entity's stats lead its Page's body as the stat column, so its band
-    // has none. A pattern's page keeps them on its band: every book stat but
-    // a chassis's, which lead its body (all but its Tech Level and Salvage
-    // Value, which ride the band).
-    stats: (!pattern
-      ? []
-      : model.ref.schemaName === 'chassis'
-        ? model.bookStats.filter((fact) => fact.group === 'provenance')
-        : model.bookStats
-    ).map((fact) => ({
+    // A chassis's stats (its patterns' too) are tiles in its Page's body, so
+    // its band has none; every other Page's ride its band.
+    stats: (model.ref.schemaName === 'chassis' ? [] : model.bookStats).map((fact) => ({
       key: fact.key,
       label: fact.label,
       shortLabel: fact.short,

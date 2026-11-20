@@ -225,7 +225,11 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
           {/* The 404's own search stands in for the Union bar's: two fields on
               one page would both claim ⌘K. Its pathname is `/404/` though it
               is emitted as `404.html`. */}
-          <TopNavigation breadcrumbs={trail} pageHasSearch={pathname === '/404/'} />
+          <TopNavigation
+            breadcrumbs={trail}
+            pageHasSearch={pathname === '/404/'}
+            home={pathname === '/'}
+          />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus

@@ -159,7 +159,7 @@ describe('one stat order on every surface', () => {
     ) as RefMetaEntity
     const { container } = render(<Entity size="compact" entity={shield} />)
     expect(domLabels(container)[0]).toBe('TL')
-    expect(pageStatLine(shield)[0]?.label).toBe('Tech Level')
+    expect(resolveEntityPageMeta(shield).stats[0]?.label).toBe('Tech Level')
     expect(ogLabels('systems', shield)[0]).toBe('TL')
   })
 
