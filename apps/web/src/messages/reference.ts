@@ -54,8 +54,6 @@ export const referenceCopy = messages({
   buyThisBook: 'Buy this book',
   gotTheStarterSet: 'Got the Starter Set?',
   theBooksThisSiteCites: 'The books this site cites',
-  books: 'Books',
-  version: 'Version',
   inYourServer: 'In your server',
   inYourServerBody:
     'The SalvageUnion.io bot looks up any rule and rolls on any table, right in your Discord channel. A Game can post its rolls there too.',

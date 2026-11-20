@@ -84,7 +84,8 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
           {buildSheetCopy('companion')}
         </ChapterBand>
         <p className="su-open__empty">
-          No such companion. <a href={hostHref}>Back to its {hostKind}</a>
+          {buildSheetCopy('noSuchCompanion')}{' '}
+          <a href={hostHref}>{buildSheetCopy('backToItsHost', { kind: hostKind })}</a>
         </p>
       </>
     )
@@ -206,7 +207,7 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
               relation: (
                 <>
                   <Tag
-                    tag={relation('host', 'Companion of', hostName, {
+                    tag={relation('host', buildSheetCopy('companionOf'), hostName, {
                       href: hostHref,
                     })}
                     linkable
@@ -317,14 +318,14 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
                 tally={{ label: buildSheetCopy('slots'), value: sysUsed, max: sysMax }}
                 columns={ITEM_COLUMNS}
                 groups={[{ key: 'systems', rows: systems }]}
-                empty="Nothing fitted."
+                empty={buildSheetCopy('nothingFitted')}
               />
               <OpenLedger
                 title={buildSheetCopy('modules')}
                 tally={{ label: buildSheetCopy('slots'), value: modUsed, max: modMax }}
                 columns={ITEM_COLUMNS}
                 groups={[{ key: 'modules', rows: modules }]}
-                empty="Nothing fitted."
+                empty={buildSheetCopy('nothingFitted')}
               />
             </DashColumn>
             <DashColumn label={buildSheetCopy('whatCarries', { name })}>

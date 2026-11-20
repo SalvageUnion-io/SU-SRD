@@ -17,11 +17,11 @@ import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
-import { applyMockPage } from './mockPage'
+import { trackScrollbarWidth } from './scrollbarWidth'
 import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
-applyMockPage()
+trackScrollbarWidth()
 initBrowserObservability()
 
 // An island's chunk is the first import to fail on a page older than the
@@ -41,17 +41,14 @@ watchStaticTokenOverflow()
 watchStaticChipFill()
 
 /**
- * A static Reference page's view act (Share) rides
- * the area rail, as a sheet's do through `RailActs`' portal. The
- * page is served without React, so the served acts are moved into the shown
- * rail's slot at rail widths and back to the band under them. The real
- * change gives the bar an `acts` slot both shells fill.
+ * A static Reference page's view act (Share) rides the area rail, as a
+ * sheet's do through `RailActs`' portal. The page is served without React, so
+ * the served acts move into the shown rail's slot at rail widths and back to
+ * the band under them.
  */
 function placeStaticRailActs(): void {
-  const acts = document.querySelector<HTMLElement>(
-    '.su-chapter-band__action > .su-rail-acts, [data-rail-acts] > .su-rail-acts[data-static]'
-  )
   const home = document.querySelector<HTMLElement>('.su-chapter-band__action')
+  const acts = home?.querySelector<HTMLElement>(':scope>.su-rail-acts')
   if (!acts || !home) return
   const media = window.matchMedia('(width >= 64rem)')
   const place = () => {

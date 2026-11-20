@@ -95,7 +95,7 @@ export function PilotLiveSheet({
       out={
         isPilotDead(statInput)
           ? {
-              stamp: 'Killed in Action',
+              stamp: buildSheetCopy('killedInAction'),
               note: buildSheetCopy('injuriesHaveReducedThisPilots'),
             }
           : undefined

@@ -44,7 +44,6 @@ export const islandsCopy = messages({
   loadout: 'Loadout',
   action: 'Action',
   cost: 'Cost',
-  traits: 'Traits',
   description: 'Description',
   actions: 'Actions',
   systems: 'Systems',

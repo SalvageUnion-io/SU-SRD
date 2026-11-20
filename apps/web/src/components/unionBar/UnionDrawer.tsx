@@ -78,24 +78,24 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
   const AREAS: NavDrawerCategory[] = [
     {
       id: 'area-training-bay',
-      title: 'Training Bay',
+      title: unionBarCopy('drawerTrainingBay'),
       tone: 'pilot',
       rows: [
-        { label: 'Pilots', href: appPath('/#pilots') },
-        { label: 'Mechs', href: appPath('/#mechs') },
-        { label: 'Crawlers', href: appPath('/#crawlers') },
-        { label: 'Patterns', href: appPath('/#patterns') },
-        { label: 'Starter Set', href: appPath('/starter') },
+        { label: unionBarCopy('drawerPilots'), href: appPath('/#pilots') },
+        { label: unionBarCopy('drawerMechs'), href: appPath('/#mechs') },
+        { label: unionBarCopy('drawerCrawlers'), href: appPath('/#crawlers') },
+        { label: unionBarCopy('drawerPatterns'), href: appPath('/#patterns') },
+        { label: unionBarCopy('drawerStarterSet'), href: appPath('/starter') },
       ],
     },
     {
       id: 'area-games',
-      title: 'Games',
+      title: unionBarCopy('drawerGames'),
       tone: 'crawler',
       rows: [
-        { label: 'Your Games', href: appPath('/games/') },
-        { label: 'Join with a link', href: appPath('/games/#join') },
-        { label: "Mediator's Kit", href: appPath('/games/#kit') },
+        { label: unionBarCopy('drawerYourGames'), href: appPath('/games/') },
+        { label: unionBarCopy('drawerJoin'), href: appPath('/games/#join') },
+        { label: unionBarCopy('drawerKit'), href: appPath('/games/#kit') },
       ],
     },
   ]

@@ -30,6 +30,7 @@ import { Fragment, useId, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { CSSVarStyle, SlabCount } from '../../components/index'
 import { cn, InlineRef, Mention, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type OpenColumn = {
   key: string
@@ -70,23 +71,6 @@ export type OpenRow = {
   detailLabel?: string
   /** Starts open (the pilot's taken abilities read without a press). */
   defaultOpen?: boolean
-}
-
-/**
- * MOCK: `?open=<row id>` opens that row on load, so a screenshot can show an
- * expanded row without a click. Not for the real build.
- */
-// Read once, as the page loads: the sheet's router rewrites the address after.
-const MOCK_OPEN: readonly string[] =
-  typeof window === 'undefined'
-    ? []
-    : new URLSearchParams(window.location.search)
-        .getAll('open')
-        .flatMap((value) => value.split(','))
-        .filter((want) => want !== '')
-
-function mockOpen(id: string): boolean {
-  return MOCK_OPEN.some((want) => id.includes(want))
 }
 
 type OpenGroup = {
@@ -142,10 +126,7 @@ function Row({
   // Until it is pressed a row is open where it starts open: derived, not
   // stored, so a row whose rules arrive after its first render still opens.
   const [pressed, setPressed] = useState<boolean | null>(null)
-  const starts =
-    row.defaultOpen === true ||
-    mockOpen(row.id) ||
-    (typeof row.name === 'string' && mockOpen(row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')))
+  const starts = row.defaultOpen === true
   const open = row.detail !== undefined && (pressed ?? starts)
   const setOpen = (next: (value: boolean) => boolean) => setPressed(next(open))
   const panel = useId()
@@ -169,7 +150,8 @@ function Row({
                 aria-expanded={open}
                 aria-controls={panel}
                 aria-label={
-                  row.detailLabel ?? `${typeof row.name === 'string' ? row.name : 'Row'} rules`
+                  row.detailLabel ??
+                  buildSheetCopy('rowRules', { name: typeof row.name === 'string' ? row.name : '' })
                 }
                 onClick={() => setOpen((value) => !value)}
               >
@@ -383,7 +365,7 @@ export function TechLevel({ level }: { level: number | string | undefined }) {
       // The dark swatches (TL 4 up) carry paper text.
       data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
-      title={`Tech Level ${level}`}
+      title={buildSheetCopy('techLevelN', { level: String(level) })}
     >
       {level}
     </span>

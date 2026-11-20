@@ -6,8 +6,6 @@
  *    Mini (its head, then its text), a generic entry its Mini; in Edit their
  *    controls ride the chip group (`SheetItemLine`), as a mech's Systems do.
  *    The slots' `SlotGrid` stands under them.
- *  - `PilotGearLedger`: a phone's Gear tab in Read, one Inventory Ledger
- *    (`SheetLedger`, L9) with the hand-written entries on the same lines.
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'

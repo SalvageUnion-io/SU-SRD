@@ -30,7 +30,6 @@ export const buildPrepCopy = messages({
   newEncounter: 'New encounter',
   makeACopy: 'Make a copy',
   encounters: 'Encounters',
-  shelfNote: 'Your prep, ready to run in a Game you mediate.',
   addEncounter: '+ New encounter',
   noEncounters: 'No encounters yet. Prep one before the session.',
   addGroup: '+ Group',

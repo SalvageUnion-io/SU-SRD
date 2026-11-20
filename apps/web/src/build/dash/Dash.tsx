@@ -14,6 +14,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { CSSVarStyle, PhoneVital, SlabCount } from '../../components/index'
 import { cn, PhoneVitals, PhoneVitalsGlance, SlabSection } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export function Dash({ children, cols = 3 }: { children: ReactNode; cols?: 2 | 3 }) {
   return (
@@ -138,7 +139,7 @@ export function Prose({
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
-          {open ? 'Less' : 'More'}
+          {buildSheetCopy(open ? 'less' : 'more')}
         </button>
       )}
     </>

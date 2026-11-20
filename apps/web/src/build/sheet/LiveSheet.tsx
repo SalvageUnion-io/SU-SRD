@@ -61,11 +61,11 @@ type SheetUnitOut = { stamp: string; note: string }
 
 /** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
 const KIND_LABEL: Record<SheetVariant, string> = {
-  pilot: 'Pilot',
-  mech: 'Mech',
-  crawler: 'Union Crawler',
-  npc: 'NPC',
-  encounter: 'Encounter',
+  pilot: buildSheetCopy('kindPilotLabel'),
+  mech: buildSheetCopy('kindMechLabel'),
+  crawler: buildSheetCopy('kindCrawlerLabel'),
+  npc: buildSheetCopy('kindNpcLabel'),
+  encounter: buildSheetCopy('kindEncounterLabel'),
 }
 
 /** The chapter band each sheet wears: its own tone, and Denizens navy for an NPC and an encounter. */

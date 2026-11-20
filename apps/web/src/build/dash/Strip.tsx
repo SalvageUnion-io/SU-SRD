@@ -22,6 +22,7 @@ import { Minus, Plus } from 'lucide-react'
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import type { CSSVarStyle, PhoneVital } from '../../components/index'
 import { cn, FOCUS_RING, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** The strip's art frame (`EntityPhoto`'s `frame`): a square thumbnail. */
 // biome-ignore lint/style/useComponentExportOnlyModules: the strip's own frame, beside it
@@ -136,7 +137,7 @@ function StripVital({ vital }: { vital: PhoneVital }) {
           <span className="su-strip__stepper">
             <button
               type="button"
-              aria-label={`Decrease ${name}`}
+              aria-label={buildSheetCopy('decreaseName', { name })}
               disabled={shown <= 0}
               className={FOCUS_RING}
               onClick={() => onChange(clamp(shown - 1))}
@@ -145,7 +146,7 @@ function StripVital({ vital }: { vital: PhoneVital }) {
             </button>
             <button
               type="button"
-              aria-label={`Increase ${name}`}
+              aria-label={buildSheetCopy('increaseName', { name })}
               disabled={shown >= ceiling}
               className={FOCUS_RING}
               onClick={() => onChange(clamp(shown + 1))}

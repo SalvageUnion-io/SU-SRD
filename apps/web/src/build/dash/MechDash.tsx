@@ -154,7 +154,14 @@ export function MechDash({
           <span className="su-companion-cell__block">{blockName}</span>
         )}
         <span className="su-companion-cell__vitals">
-          {`SP ${resolvePool(partner.currentSP, max.structurePoints)}/${max.structurePoints} · EP ${resolvePool(partner.currentEP, max.energyPoints)}/${max.energyPoints} · HEAT ${resolveGauge(partner.currentHeat)}/${max.heatCapacity}`}
+          {buildSheetCopy('companionVitals', {
+            sp: resolvePool(partner.currentSP, max.structurePoints),
+            spMax: max.structurePoints,
+            ep: resolvePool(partner.currentEP, max.energyPoints),
+            epMax: max.energyPoints,
+            heat: resolveGauge(partner.currentHeat),
+            heatMax: max.heatCapacity,
+          })}
         </span>
       </a>
     )
