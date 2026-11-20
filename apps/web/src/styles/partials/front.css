@@ -182,45 +182,37 @@ body:has(.su-front--show) main {
   padding: var(--space-4) var(--space-16) var(--space-12);
 }
 
-/* A slide's words, at the bottom right in the same place on every slide,
-   right-aligned on paper that matches the site's name at the top, as wide as
-   the line (`shrinkWrap`); the button, named for the slide, under it. */
+/* A slide's words, at its lower left in the same place on every slide: one
+   paper plate, as wide as its words (`shrinkWrap` fits the line), its action
+   first and the line beside it on one row; where the row cannot fit, the
+   action stands over the line. */
 .su-front__show-copy {
-  align-items: flex-end;
   bottom: var(--space-24);
   color: var(--color-ink);
   display: flex;
-  flex-direction: column;
-  max-width: min(32rem, calc(100% - var(--space-24) * 2));
+  left: var(--su-shell-edge, var(--space-24));
+  max-width: min(44rem, calc(100% - var(--space-24) * 2));
   position: absolute;
-  right: var(--su-shell-edge, var(--space-24));
-  text-align: right;
+  text-align: left;
   z-index: 1;
 }
 
-.su-front__show-copy > :not(.su-front__show-act) {
-  background-color: var(--color-paper);
-}
-
-/* The action stands below the words, at their edge, straight on the art:
-   the rust button's own fill, lifted off the painting by the one lift. */
-.su-front__show-act {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--space-12);
-}
-
-.su-front__show-act .su-btn {
-  box-shadow: var(--shadow-lift);
-  width: auto;
-}
-
-/* The plate: the slide's line on paper, fitted to its words. */
 .su-front__show-plate {
+  align-items: center;
+  background-color: var(--color-paper);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12) var(--space-16);
   padding: var(--space-12) var(--space-16);
 }
 
+.su-front__show-act.su-btn {
+  flex: none;
+  width: auto;
+}
+
 .su-front__show-body {
+  flex: 1 1 14rem;
   margin: 0;
   text-wrap: balance;
 }
@@ -282,7 +274,7 @@ body:has(.su-front--show) main {
 
   .su-front__show-copy {
     bottom: var(--space-12);
-    right: var(--space-12);
+    left: var(--space-12);
   }
 }
 

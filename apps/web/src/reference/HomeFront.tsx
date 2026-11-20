@@ -113,23 +113,23 @@ export function HomeHero() {
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
+            {/* The slide's words on a paper plate at its lower left: its
+                action (named for the slide, which has no heading) first, the
+                line beside it. */}
             <div className="su-front__show-copy">
               <div className="su-front__show-plate">
-                <p className="su-front__show-body">{slide.body}</p>
-              </div>
-              {/* The action floats on the art below the words, on no paper,
-                  and carries the slide's title: the slide has no heading. */}
-              <div className="su-front__show-act">
                 <Button
                   href={slide.href}
                   linkAs="a"
                   variant="primary"
                   size="full"
+                  className="su-front__show-act"
                   target={slide.external ? '_blank' : undefined}
                   rel="noopener noreferrer"
                 >
                   {slide.title}
                 </Button>
+                <p className="su-front__show-body">{slide.body}</p>
               </div>
             </div>
           </li>
