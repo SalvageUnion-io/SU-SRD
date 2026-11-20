@@ -17,7 +17,8 @@ export function shrinkWrap(root: ParentNode, selector: string): void {
       if (lines.length === 0) continue
       const widest = Math.max(...lines.map((line) => line.width))
       const style = getComputedStyle(box)
-      const inset = Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight)
+      const inset =
+        (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0)
       box.style.setProperty('inline-size', `${Math.ceil(widest + inset)}px`)
     }
   }
