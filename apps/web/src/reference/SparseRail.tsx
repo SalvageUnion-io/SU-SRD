@@ -2,7 +2,7 @@
 // rules that explain it, its neighbours in its list. Just enough to fill the
 // room the Page's words leave: the column is as tall as the main track, and a
 // piece that would not fit drops whole, the last first (`front.css`).
-import { Mention, TitledBox } from '../components/index'
+import { cn, Mention, TitledBox } from '../components/index'
 import type { SparseRail as Rail } from '../lib/sparseRail'
 import { referenceCopy } from '../messages/reference'
 
@@ -68,7 +68,7 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         titleAs="h2"
         tone={tone}
         className="su-sparse-rail__piece"
-        bodyClassName="su-sparse-rail__body su-sparse-rail__steps"
+        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__steps')}
       >
         {previous && (
           <p>
