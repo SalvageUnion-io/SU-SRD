@@ -165,13 +165,13 @@ body:has(.su-front--show) main {
    They touch: no gap, only each line's own leading. */
 .su-front__show-quote .su-tagline__line {
   -webkit-box-decoration-break: clone;
-  background-color: var(--color-paper);
+  background-color: var(--color-wk-bg);
   box-decoration-break: clone;
   padding: var(--space-2) var(--space-16);
 }
 
 .su-front__show-name {
-  background-color: var(--color-paper);
+  background-color: var(--color-wk-bg);
   color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
@@ -194,7 +194,7 @@ body:has(.su-front--show) main {
    (`box-decoration-break: clone`), so the plate hugs the words' ragged edge. */
 .su-front__show-lines {
   -webkit-box-decoration-break: clone;
-  background-color: var(--color-paper);
+  background-color: var(--color-wk-bg);
   box-decoration-break: clone;
   padding: var(--space-4) var(--space-16);
 }
@@ -215,7 +215,7 @@ body:has(.su-front--show) main {
 
 .su-front__show-plate {
   align-items: center;
-  background-color: var(--color-paper);
+  background-color: var(--color-wk-bg);
   display: flex;
   gap: var(--space-12) var(--space-16);
   padding: var(--space-12) var(--space-16);
@@ -239,14 +239,28 @@ body:has(.su-front--show) main {
    traces its outer edge only, never a seam between its lines or strips. A
    border cannot (it would box each line), so the area's silhouette is
    offset each way by the info box's frame width (`--bw-entity-compact`), in
-   crawler pink on every slide. */
+   its area's colour. The areas stand on the page's cream, as a page body does. */
+/* Each area its own colour, the same on every slide: the name and pitch
+   green, the tagline crawler pink, a slide's plate Build orange. */
+.su-front__show-brand {
+  --su-show-frame: var(--color-mech);
+}
+
+.su-front__show-quote {
+  --su-show-frame: var(--color-crawler-band);
+}
+
+.su-front__show-plate {
+  --su-show-frame: var(--color-pilot);
+}
+
 :is(.su-front__show-brand, .su-front__show-quote, .su-front__show-plate) {
   --su-o: var(--bw-entity-compact);
   --su-o-: calc(-1 * var(--bw-entity-compact));
-  filter: drop-shadow(var(--su-o) 0 0 var(--color-crawler-band))
-    drop-shadow(var(--su-o-) 0 0 var(--color-crawler-band))
-    drop-shadow(0 var(--su-o) 0 var(--color-crawler-band))
-    drop-shadow(0 var(--su-o-) 0 var(--color-crawler-band));
+  filter: drop-shadow(var(--su-o) 0 0 var(--su-show-frame))
+    drop-shadow(var(--su-o-) 0 0 var(--su-show-frame))
+    drop-shadow(0 var(--su-o) 0 var(--su-show-frame))
+    drop-shadow(0 var(--su-o-) 0 var(--su-show-frame));
 }
 
 @keyframes su-front-show {
