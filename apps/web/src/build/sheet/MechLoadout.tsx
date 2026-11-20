@@ -6,9 +6,6 @@
  *    by side once there is room (`.su-sheet-mech-loadout`), one contentful
  *    Mini a line (`MechItemMini`) with its condition, Uses and repair. Read
  *    leaves an empty section out (R11).
- *  - `MechLoadoutLedgers`: a phone in Read, each a Ledger (`SheetLedger`, L9),
- *    a line an item; a damaged or destroyed item says so on its one stamp, an
- *    item with Uses shows them.
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
