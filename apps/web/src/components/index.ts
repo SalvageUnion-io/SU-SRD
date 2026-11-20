@@ -241,7 +241,8 @@ export type { StatItem } from './containers/statsBarTypes'
 // named variant.
 export { TitledBox } from './containers/TitledBox'
 // ToasterMount — the document's one Toaster (K5); `toast` raises an act's notice
-export { ToasterMount, toast } from './containers/Toaster'
+export { ToasterMount } from './containers/Toaster'
+export { toast } from './containers/toast'
 export type { AnnouncedRoll } from './containers/toastRoll'
 export { toastRoll } from './containers/toastRoll'
 // THE ENTITY MODULE'S FACE (`entity/index.ts`, R7): the forms' shared parts,

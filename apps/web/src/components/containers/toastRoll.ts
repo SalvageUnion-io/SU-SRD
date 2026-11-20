@@ -1,5 +1,3 @@
-import { toast } from 'sonner'
-
 /** A roll as its toast reads it: the table, the die and where it landed. */
 export type AnnouncedRoll = {
   /** The table's name. */
@@ -22,12 +20,15 @@ export type AnnouncedRoll = {
  * own page): one toast with the die and the range it lands on, then the
  * outcome's name and text. A reroll on the same table replaces its toast
  * rather than stacking another. It shows in the document's one toaster
- * (`ToasterMount`).
+ * (`ToasterMount`). Sonner loads with the first roll, so a reference page's
+ * islands do not carry it until a reader rolls.
  */
-export function toastRoll({ table, roll, range, label, text }: AnnouncedRoll) {
-  toast(range ? `${table}: rolled ${roll} (${range})` : `${table}: rolled ${roll}`, {
-    id: `roll-${table}`,
-    description: label ? `${label}: ${text}` : text,
-    duration: 8000,
-  })
+export function toastRoll({ table, roll, range, label, text }: AnnouncedRoll): void {
+  void import('sonner').then(({ toast }) =>
+    toast(range ? `${table}: rolled ${roll} (${range})` : `${table}: rolled ${roll}`, {
+      id: `roll-${table}`,
+      description: label ? `${label}: ${text}` : text,
+      duration: 8000,
+    })
+  )
 }
