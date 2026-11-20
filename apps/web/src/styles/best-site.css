@@ -1342,7 +1342,7 @@
 }
 
 /* ── The page as a column on a desk ─────────────────
-   Opt-in, `?mock-page=paper` (`runtime/mockPage.ts`). From `lg` the margins
+   From `lg` the margins
    are the desk, a step of ink under the page's ground; the page's measure
    stands, a block of padding round its content, on the page's own ground, edged in
    a hairline. Band, rail and foot stay full bleed over it. A phone has no
@@ -1363,7 +1363,7 @@
 @media (width >= 64rem) {
   /* Painted on whatever lays the ground (the body; an SRD page's <main>),
      pinned to the window so the column lines up across them. */
-  :root[data-mock-page='paper'] :is(body, main) {
+  :root :is(body, main) {
     /* !important: the app's sheet grounds are unlayered and would win. */
     background-attachment: fixed !important;
     background-image: linear-gradient(
@@ -1378,35 +1378,17 @@
   }
 }
 
-/* `?mock-desk=1..4`: the desk's tone, from the palette. Nothing but the
-   column stands on it (the foot keeps its own ink). */
-:root[data-mock-desk='1'] {
-  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink)); /* warm stone */
-}
-
-:root[data-mock-desk='2'] {
-  --color-desk: color-mix(in srgb, var(--color-wk-faint) 75%, var(--color-wk-bg)); /* cool slate */
-}
-
-:root[data-mock-desk='3'] {
-  --color-desk: color-mix(in srgb, var(--color-ink-deep) 88%, var(--color-paper)); /* charcoal */
-}
-
-:root[data-mock-desk='4'] {
-  --color-desk: color-mix(in srgb, var(--color-paper) 62%, var(--color-ink-deep)); /* mid-grey */
-}
-
 /* The band's head (kicker, title plate, acts) stands on the column's edges,
    so the title plate and the column share one left edge: no step. */
 @media (width >= 64rem) {
-  :root[data-mock-page='paper']
+  :root
     .su-chapter-band[data-measured]
     :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
     max-width: calc(var(--page-measure) + 2 * var(--su-column-pad)) !important;
   }
 
   /* A sheet's band sits in its page's gutters: it steps out by the same. */
-  :root[data-mock-page='paper']
+  :root
     .su-page-gutters
     > .su-chapter-band
     > :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
@@ -1416,7 +1398,7 @@
 
 /* Paper mode measures the shell's edge without the scrollbar, so a sheet's
    gutters land on the same centred measure as the band and the column. */
-:root[data-mock-page='paper'] {
+:root {
   --su-shell-edge: max(
     var(--space-16),
     calc((100vw - var(--su-scrollbar, 0px) - var(--page-measure)) / 2)
@@ -1425,7 +1407,7 @@
 
 /* The kicker's words stand where the title's do: the plate's padding in. */
 @media (width >= 64rem) {
-  :root[data-mock-page='paper'] .su-chapter-band__eyebrow {
+  :root .su-chapter-band__eyebrow {
     padding-inline: var(--su-column-pad) !important;
   }
 }
@@ -1688,7 +1670,7 @@
    column's edge (callsign, real name, what it is); each vital a tracker,
    figure over max on a thin fill, critical in rust; the band's acts at the
    end. A quick slide, none under reduced motion. */
-:root[data-mock-page='paper'] .su-sheet-gutter {
+:root .su-sheet-gutter {
   padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad)) !important;
 }
 
@@ -1957,50 +1939,4 @@ body:has(> #root) {
 body > #root {
   flex: 1 0 auto;
   min-height: 0 !important;
-}
-
-/* `?mock-boxes=bare` (a comparison): a stat tile keeps its header strip, its
-   white paper and its figure, but no frame; the label's cut-out shares that
-   paper (the cut-out law) and has no border, as its body has none. Text
-   panels are already paper without a frame. */
-:root[data-mock-boxes='bare']
-  .su-entity-page
-  .su-stat-column:not(.su-stat-column--compact)
-  .su-stat-column__stat {
-  border: 0 !important;
-}
-
-/* ── Item stats as chips (law-changes.md) ─────────
-   The default (`?mock-stats=off` compares the old): a non-chassis Page's stats
-   ride its band as chips beside the title, no tiles; a chassis keeps its
-   tiles; a Page that is only its description reads as plain prose, no strip
-   or panel. */
-.su-mock-band-stats {
-  display: none !important;
-}
-
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the comparison switches */
-.su-mock-band-stats * {
-  display: none !important;
-}
-
-:root[data-mock-stats='chips'] .su-mock-band-stats {
-  display: contents !important;
-}
-
-:root[data-mock-stats='chips'] .su-mock-band-stats * {
-  display: revert-layer !important;
-}
-
-:root[data-mock-stats='chips'] .su-manual__stats:not(.su-manual__stats--chassis) {
-  display: none !important;
-}
-
-:root[data-mock-stats='chips'] .su-manual__lore--only > .su-slab-section__head {
-  display: none;
-}
-
-:root[data-mock-stats='chips'] .su-manual__lore--only > .su-slab-section__body {
-  background-color: transparent !important;
-  padding-inline: 0 !important;
 }

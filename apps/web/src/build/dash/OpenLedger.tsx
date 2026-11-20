@@ -72,23 +72,6 @@ export type OpenRow = {
   defaultOpen?: boolean
 }
 
-/**
- * MOCK: `?open=<row id>` opens that row on load, so a screenshot can show an
- * expanded row without a click. Not for the real build.
- */
-// Read once, as the page loads: the sheet's router rewrites the address after.
-const MOCK_OPEN: readonly string[] =
-  typeof window === 'undefined'
-    ? []
-    : new URLSearchParams(window.location.search)
-        .getAll('open')
-        .flatMap((value) => value.split(','))
-        .filter((want) => want !== '')
-
-function mockOpen(id: string): boolean {
-  return MOCK_OPEN.some((want) => id.includes(want))
-}
-
 type OpenGroup = {
   key: string
   /** The sub-group's label; absent, the rows follow the head. */

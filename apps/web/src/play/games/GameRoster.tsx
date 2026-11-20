@@ -83,48 +83,6 @@ type GameRosterProps = {
   gameName: string | null
 }
 
-/**
- * `?crew=mock` fills the seeded Game's Crew with a
- * table's worth of rows so the page shows its real density. The units are the
- * Starter Set's own (their figures as its sheets print them); the member
- * names are placeholders. Display only: nothing is written anywhere.
- */
-const MOCK_CREW =
-  typeof window !== 'undefined' &&
-  new URLSearchParams(window.location.search).get('crew') === 'mock'
-
-function mockCrew(kind: 'pilot' | 'crawler'): OpenRow[] {
-  if (!MOCK_CREW) return []
-  const pilot = (
-    name: string,
-    mech: string,
-    who: string,
-    hp: string,
-    sp: string,
-    ep: string,
-    heat: string
-  ): OpenRow => ({
-    id: `mock-${name}`,
-    name,
-    meta: `in ${mech}`,
-    cells: [who, <TechLevel key="tl" level="1" />, hp, sp, ep, heat],
-  })
-  return kind === 'pilot'
-    ? [
-        pilot('Pickle', 'Spectrum', 'Player two', '8/10', '17/17', '9/11', '1/3'),
-        pilot('Judge', 'Mule', 'Player three', '10/10', '9/12', '4/4', '0/6'),
-        pilot('Hotdog', 'Mazona', 'Player four', '6/10', '5/5', '10/10', '3/6'),
-        pilot('Razor', 'Thresher', 'Unclaimed', '10/10', '15/15', '6/6', '0/10'),
-      ]
-    : [
-        {
-          id: 'mock-tenacity',
-          name: "Crawler #430 'Tenacity'",
-          cells: ['Crew', <TechLevel key="tl" level="1" />, '', '20/20', '', ''],
-        },
-      ]
-}
-
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
   const { confirm, dialog: confirmDialog } = useConfirm()
@@ -444,7 +402,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           }
           columns={MANIFEST}
           groups={[
-            { key: 'pilots', rows: [...ordered(pilots).map(manifestRow), ...mockCrew('pilot')] },
+            { key: 'pilots', rows: [...ordered(pilots).map(manifestRow)] },
             {
               key: 'mechs',
               label: playGamesCopy('mechsGroup'),
@@ -453,7 +411,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
             {
               key: 'crawlers',
               label: playGamesCopy('crawlerGroup'),
-              rows: [...ordered(crawlers).map(manifestRow), ...mockCrew('crawler')],
+              rows: [...ordered(crawlers).map(manifestRow)],
             },
           ]}
           empty={playGamesCopy('nobodyHasBroughtAUnit')}
