@@ -252,8 +252,8 @@
 /* L-2: the header. */
 .su-union-bar,
 .su-union-bar[data-mode] {
-  --su-bar-bg: var(--color-ink-deep) !important;
-  --su-bar-fg: var(--color-paper) !important;
+  --su-bar-bg: var(--color-chrome) !important;
+  --su-bar-fg: var(--color-on-chrome) !important;
   --su-bar-on-fg: var(--color-ink) !important;
   --su-bar-fg-85: var(--color-paper-85) !important;
   --su-bar-fg-70: var(--color-paper-70) !important;
@@ -291,10 +291,10 @@
   }
 }
 
-/* L-3: the foot is the header's ink. */
+/* L-3: the foot is the header's chrome (K13): one token pair for both. */
 .su-chapter-foot {
-  --su-foot-bg: var(--color-ink-deep) !important;
-  --su-foot-fg: var(--color-paper) !important;
+  --su-foot-bg: var(--color-chrome) !important;
+  --su-foot-fg: var(--color-on-chrome) !important;
   --su-foot-mark: invert(1) !important;
   --su-foot-grain-paper: contents !important;
   --su-foot-grain-ink: none !important;
