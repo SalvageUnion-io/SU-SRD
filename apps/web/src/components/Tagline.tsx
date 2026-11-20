@@ -19,7 +19,7 @@ const QUOTE = {
 const QUOTE_BY = {
   fontStyle: 'italic',
   fontWeight: tokens.weight.bold,
-  // Flush under the quote: the two boxes touch, their widths the step between.
+  // Flush under the quote: no gap, only each line's own leading between them.
   margin: 0,
 } satisfies CSSProperties
 
