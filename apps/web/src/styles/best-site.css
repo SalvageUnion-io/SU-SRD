@@ -1042,9 +1042,11 @@
 }
 
 /* A breath between the area rail and the page's
-   head (its crumbs and title plate). */
+   head (its crumbs and title plate). An eyebrow with nothing in it (the
+   Training Bay's status line, waiting) is no eyebrow: Games, Reference and
+   Build stand at one height. */
 @media (width >= 64rem) {
-  .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow))
+  .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow :not(:empty)))
     > .su-chapter-band__row {
     padding-top: var(--space-12) !important;
   }
