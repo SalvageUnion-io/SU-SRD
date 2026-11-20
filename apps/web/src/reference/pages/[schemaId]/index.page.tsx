@@ -71,7 +71,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     tone: chapter.tone,
     fill: listingBandFillFor(schemaId),
     trail: [
-      { name: SRD_CRUMB.name, url: '/' },
+      { name: SRD_CRUMB.name, url: '/reference/' },
       { name: pluralName, url: schemaHref(schemaId) },
     ],
   }

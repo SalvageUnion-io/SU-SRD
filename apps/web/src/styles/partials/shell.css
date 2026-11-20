@@ -135,32 +135,27 @@
 
 .su-union-bar__tab {
   align-items: center;
-  background-color: transparent;
+  border-bottom: var(--bw-pill) solid transparent;
   color: var(--su-bar-fg-70);
   display: inline-flex;
   font-size: var(--text-caption);
   height: var(--su-union-bar-control);
   letter-spacing: var(--tracking-caps-wide);
-  padding-inline: var(--space-12);
+  padding-inline: var(--space-8);
   text-decoration: none;
   transition:
     color var(--dur-fast) var(--ease),
-    background-color var(--dur-fast) var(--ease);
+    border-color var(--dur-fast) var(--ease);
 }
 
 .su-union-bar__tab:hover {
   color: var(--su-bar-fg);
 }
 
+/* The area you are in: its link in full colour, underlined (as the rail's). */
 .su-union-bar__tab[aria-current] {
-  background-color: var(--su-bar-fg);
-  color: var(--su-bar-on-fg);
-}
-
-/* Two tabs side by side are ruled apart, so two that are not current read as
-   two (R42). */
-.su-union-bar__tab + .su-union-bar__tab {
-  border-left: var(--bw-chrome) solid var(--su-bar-fg-30);
+  border-bottom-color: var(--su-bar-fg);
+  color: var(--su-bar-fg);
 }
 
 /* On a phone the switcher is centred on the bar, between

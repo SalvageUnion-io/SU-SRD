@@ -24,7 +24,7 @@ export const WEBSITE = { '@type': 'WebSite', name: SITE_NAME, url: `${SITE_URL}/
 export const PUBLISHER = { '@type': 'Organization', name: 'Leyline Press' } as const
 
 /** Every trail's first crumb: the SRD's home page. */
-export const SRD_CRUMB = { name: 'Reference', url: `${SITE_URL}/` } as const
+export const SRD_CRUMB = { name: 'Reference', url: `${SITE_URL}/reference/` } as const
 
 /**
  * The SalvageUnion.io Discord bot's install link. The client id is public by design —

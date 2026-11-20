@@ -80,12 +80,19 @@ type TopNavigationProps = {
    * trigger stays: below `lg` the band's field sits under the fold of the bar.
    */
   pageHasSearch?: boolean
+  /** The site's front door: no area link is current. */
+  home?: boolean
 }
 
-export function TopNavigation({ breadcrumbs, pageHasSearch = false }: TopNavigationProps) {
+export function TopNavigation({
+  breadcrumbs,
+  pageHasSearch = false,
+  home = false,
+}: TopNavigationProps) {
   return (
     <UnionBar
       product="reference"
+      noCurrent={home}
       breadcrumbs={breadcrumbs}
       // The WIKI link sits left of the search, so it rides the search slot; it
       // stays when the page carries its own search.

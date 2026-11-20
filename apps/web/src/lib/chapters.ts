@@ -114,7 +114,7 @@ export function buildChapters(): SrdChapter[] {
 }
 
 /** A chapter's anchor on the home page. */
-const chapterHref = (id: string): string => `/#${id}`
+const chapterHref = (id: string): string => `/reference/#${id}`
 
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
