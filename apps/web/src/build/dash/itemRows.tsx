@@ -15,7 +15,7 @@ import {
   resolveModule,
   resolveSystem,
 } from '../../lib/rules/mechItems'
-import { buildSheetCopy } from '../../messages/build-sheet'
+import { buildDashCopy } from '../../messages/build-dash'
 import type { ItemKind } from '../sheet/mechSheetActions.model'
 import { Cost } from './Cost'
 import { RowRules } from './RowRules'
@@ -24,7 +24,7 @@ import { RowRules } from './RowRules'
 // Slots, SV), then what its action does (type, Range, Damage), the cost last
 // on the row's edge, where a player hunts for it mid-turn.
 export const ITEM_COLUMNS: readonly OpenColumn[] = [
-  { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
+  { key: 'tl', label: buildDashCopy('tl'), title: buildDashCopy('techLevel') },
   {
     key: 'slots',
     label: STAT_LABELS.slotsRequired.short,
@@ -32,13 +32,13 @@ export const ITEM_COLUMNS: readonly OpenColumn[] = [
     phone: true,
   },
   { key: 'sv', label: STAT_LABELS.salvageValue.short, title: STAT_LABELS.salvageValue.label },
-  { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
-  { key: 'range', label: buildSheetCopy('rng'), title: buildSheetCopy('range') },
-  { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage') },
+  { key: 'action', label: buildDashCopy('action'), kind: 'text' },
+  { key: 'range', label: buildDashCopy('rng'), title: buildDashCopy('range') },
+  { key: 'damage', label: buildDashCopy('dmg'), title: buildDashCopy('damage') },
   {
     key: 'cost',
-    label: buildSheetCopy('cost'),
-    title: buildSheetCopy('activationCost'),
+    label: buildDashCopy('cost'),
+    title: buildDashCopy('activationCost'),
     phone: true,
   },
 ]
@@ -89,7 +89,7 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
             {maxUses > 0 && (
               <Stat
                 size="mini"
-                label={buildSheetCopy('uses')}
+                label={buildDashCopy('uses')}
                 value={itemUsesRemaining(maxUses, mech.itemUses?.[slug])}
                 max={maxUses}
               />
