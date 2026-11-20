@@ -92,11 +92,21 @@
   padding-inline: var(--space-16);
 }
 
-/* The mark is the bar's one control height too, so the logo lines up with
-   the switcher, the search and the buttons beside it. */
-.su-union-bar__mark {
+/* The mark keeps the bar's control height as its target, but the tile itself
+   is drawn a step smaller: its solid paint and bright frame run to its edge,
+   where the switcher's and the buttons' faint frames do not, so at the same
+   box it reads larger than they do. */
+.su-union-bar__brand {
+  align-items: center;
+  display: inline-flex;
   height: var(--su-union-bar-control);
+  justify-content: center;
   width: var(--su-union-bar-control);
+}
+
+.su-union-bar__mark {
+  height: calc(var(--su-union-bar-control) - var(--space-4));
+  width: calc(var(--su-union-bar-control) - var(--space-4));
 }
 
 /* The bar's controls, one height and one corner. The search field's height
