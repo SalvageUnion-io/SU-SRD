@@ -460,23 +460,31 @@ export function ActionMinis({
       'tableName' in action && typeof action.tableName === 'string' ? action.tableName : title
     return (
       <li key={cardKey(action, index)} style={ACTION_ITEM}>
+        {/* An action's own roll sits inside it, at the foot of its body
+            (best, revision 8), not on a strip of its own under it. */}
         <Entity
           size="mini"
           context="play"
           entity={action as RefMetaEntity}
           instance={{ title, ...(condition ? { condition } : {}) }}
-          body={{ chassisName }}
+          body={{
+            chassisName,
+            ...(table
+              ? {
+                  children: (
+                    <CardRollTable
+                      table={table}
+                      name={tableName}
+                      size={size}
+                      disabled={!!hostDown}
+                      inline
+                      peekAt={tablePeekAddress(action)}
+                    />
+                  ),
+                }
+              : {}),
+          }}
         />
-        {table && (
-          <CardRollTable
-            table={table}
-            name={tableName}
-            size={size}
-            disabled={!!hostDown}
-            nested
-            peekAt={tablePeekAddress(action)}
-          />
-        )}
       </li>
     )
   })

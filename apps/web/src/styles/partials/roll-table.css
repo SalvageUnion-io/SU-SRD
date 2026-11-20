@@ -590,3 +590,21 @@
   font-size: var(--text-badge);
   padding: var(--space-2) var(--space-4);
 }
+
+/* An action's roll, inside the action's body at its foot (best, revision 8):
+   the button alone, at the right, no strip of its own. */
+.su-roll-inline {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+  margin-top: var(--space-8);
+}
+
+/* The table's name, its Peek's trigger: a quiet underlined word. */
+.su-roll-inline__name {
+  color: var(--color-ink-2);
+  cursor: pointer;
+  font-size: var(--text-caption);
+  text-decoration: underline dotted;
+}
