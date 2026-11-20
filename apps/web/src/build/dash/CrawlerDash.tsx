@@ -16,18 +16,12 @@
  *     what was written about it.
  */
 
-import type { Crawler, CrawlerNpcState } from 'game-domain/schemas/crawler'
+import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
-import type {
-  ChoiceSelections,
-  CSSVarStyle,
-  OpenColumn,
-  OpenRow,
-  PhoneVital,
-} from '../../components/index'
+import type { CSSVarStyle, OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   Button,
   Content,
@@ -35,6 +29,7 @@ import {
   damagedEffectOf,
   EntityChoices,
   EntityRollMini,
+  embeddedPeekAddress,
   Facts,
   Mention,
   OpenLedger,
@@ -50,9 +45,7 @@ import { useEntityChoices } from '../../components/shared/useEntityChoices'
 import { scrapPoolBucket } from '../../lib/cargo/cargoTransfer'
 import type { UseCargoResult } from '../../lib/cargo/useCargo'
 import { cn } from '../../lib/cn'
-import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import {
-  findNpcChoiceByName,
   resolveCrawlerBay,
   resolveCrawlerType,
   resolveCrawlerTypeAbilities,
@@ -70,6 +63,8 @@ import type { CrawlerBayEntry } from '../sheet/CrawlerSheetItems'
 import { splitBayContent } from '../sheet/CrawlerSheetItems'
 import { EXOTIC_NAME } from '../sheet/exoticNames.model'
 import { LinkedUnitLink } from '../sheet/LinkedUnitLink'
+import { LeadCell } from './bayLead'
+import { leadOf } from './bayLead.model'
 import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
@@ -96,44 +91,6 @@ const STORED_COLUMNS: readonly OpenColumn[] = [
 const TYPE_COLUMNS: readonly OpenColumn[] = [
   { key: 'hp', label: buildSheetCopy('hp'), phone: true },
 ]
-
-type Lead = { name: string; position: string; hp: string; keepsake: string; motto: string }
-
-/** A slot's crew lead as the manifest prints them: the built NPC, else what the sheet wrote. */
-function leadOf(
-  npc: ResolvedNpc | undefined,
-  state: CrawlerNpcState | undefined,
-  selections: ChoiceSelections | undefined,
-  assigned: CrewAssignment | undefined
-): Lead {
-  const pick = (name: 'Keepsake' | 'Motto') => {
-    const choice = findNpcChoiceByName(npc, name)
-    return choice ? (selections?.[choice.id]?.[0] ?? '') : ''
-  }
-  const maxHp = npc?.hitPoints ?? 0
-  return {
-    name: assigned?.npc?.name ?? state?.npcName?.trim() ?? '',
-    position: npc?.position ?? '',
-    hp: maxHp > 0 ? `${state?.npcCurrentHP ?? maxHp}/${maxHp}` : '',
-    keepsake: pick('Keepsake'),
-    motto: pick('Motto'),
-  }
-}
-
-/** The lead's cell: their name, then their post in the book's words ("the Princeps"). */
-function LeadCell({ lead }: { lead: Lead }) {
-  if (!lead.name) return lead.position ? buildSheetCopy('thePost', { post: lead.position }) : null
-  return (
-    <>
-      <b className="su-bay-lead__name">{lead.name}</b>
-      {lead.position && (
-        <span className="su-bay-lead__post">
-          {buildSheetCopy('thePostAfter', { post: lead.position })}
-        </span>
-      )}
-    </>
-  )
-}
 
 /** A bay's line opened: its rules, what a Damaged bay does, its choices and its crew lead. */
 function BayDetail({
@@ -325,7 +282,15 @@ export function CrawlerDash({
         <Stat size="mini" label={buildSheetCopy('damaged')} state="critical" />
       ) : undefined,
       cells: [
-        lead.name || lead.position ? <LeadCell key="lead" lead={lead} /> : '',
+        lead.name || lead.position ? (
+          <LeadCell
+            key="lead"
+            lead={lead}
+            peekAt={bay?.npc ? embeddedPeekAddress('crawler-bays', bay.id, 'npc') : undefined}
+          />
+        ) : (
+          ''
+        ),
         lead.keepsake,
         lead.motto,
         lead.hp,

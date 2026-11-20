@@ -43,6 +43,10 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { parseSync } from 'oxc-parser'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
+import { GENRE_AFTER, isCapitalised, termPattern, titleCase } from './copyCase'
+
+export { termPattern }
+
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
@@ -193,22 +197,6 @@ export const MIN_USES = 5
 
 /** Fields that name or key a record rather than say something about it. */
 const NON_PROSE_KEYS = new Set(['id', 'name', 'source', 'slug', 'booklet'])
-
-/**
- * `term(s)`, any casing, words joined by any whitespace. A hyphen, a slash or
- * a dot joined to a word on either side is a slug, a class name or a host
- * (`su-mech-card`, `/schema/mech/`, `salvageunion.io/build`), not a word.
- */
-export function termPattern(term: string): RegExp {
-  const body = term
-    .split(/\s+/)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-    .join('\\s+')
-  return new RegExp(`(?<![\\w/-]|\\w\\.)${body}s?(?![\\w/-]|\\.\\w)`, 'gi')
-}
-
-/** Every word of the match starts upper case ("Mech", "Hit Points", "Bio-Titan", "MECH"). */
-const isCapitalised = (match: string) => match.split(/[\s-]+/).every((w) => /^[A-Z]/.test(w))
 
 /** The keywords' plain names: "difficult terrain (False Flag)" is "difficult terrain". */
 function keywordTerms(root: string): string[] {
@@ -528,17 +516,6 @@ const RULES: readonly Rule[] = [
     mode: 'zero',
   },
 ]
-
-const titleCase = (term: string) =>
-  term.replace(/(^|[\s-])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
-
-/**
- * The genre's name, not the game's noun: "a post-apocalyptic mech TTRPG" (the
- * home's pitch, About, llms.txt) names the kind of game, as "mech tabletop RPG"
- * does, so its "mech" keeps the sentence's case. Only that phrase: every other
- * lower-case "mech" is still the noun.
- */
-const GENRE_AFTER = /^\s+(?:TTRPG|tabletop RPG)(?![\w-])/
 
 /** Findings for a corpus, given the term list and the bans. Pure. */
 export function lintCopy(

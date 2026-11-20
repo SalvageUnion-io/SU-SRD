@@ -201,6 +201,10 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   // The SRD's pages: each kind their Mentions, Tags and roll Minis open.
   for (const path of PAGES) {
     await page.goto(path, { waitUntil: 'networkidle' })
+    // A sheet's dashboard keeps a row's rules (a bay's roll Mini) under its
+    // opener: open every row, as a reader reaching for them would.
+    const shut = page.locator('.su-open__toggle[aria-expanded="false"]')
+    for (let left = await shut.count(); left > 0; left--) await shut.first().click()
     const addresses = await page.evaluate(() =>
       [...document.querySelectorAll('[data-peek]')]
         .filter((el) => !el.closest('[data-peek-popup], [role="listbox"]'))
