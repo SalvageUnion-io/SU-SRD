@@ -17,7 +17,7 @@ import {
   resolveProvenance,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
-import { artUrlFor } from '../../../lib/sourceCovers'
+import { artUrlFor, isBookCover } from '../../../lib/sourceCovers'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -231,6 +231,7 @@ function ReferenceEntityCardInner({
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
   const assetUrl = artUrlFor(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
+  const assetBare = isBookCover(entity)
 
   // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
   const isPattern = !!pattern
@@ -428,6 +429,7 @@ function ReferenceEntityCardInner({
     leadHint: hintText,
     assetUrl,
     assetSrcSet,
+    assetBare,
     effTechLevel,
     dataValueBonuses,
     entityChoices,

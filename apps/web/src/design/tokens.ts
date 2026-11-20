@@ -286,6 +286,10 @@ const base = {
   ink2: 'rgb(70, 61, 49)',
   /** The dark header ground. */
   inkDeep: 'rgb(27, 23, 18)',
+  /** The chrome: the header's and the footer's one ground (K13). */
+  chrome: 'rgb(27, 23, 18)',
+  /** The chrome's ink, on the header and the footer alike (K13). */
+  onChrome: 'rgb(251, 250, 247)',
 
   /** Ink at opacity — hairlines, placeholders, ghosts, disabled fills and
    *  shadows. Warm ink at opacity reads as the same material at distance,

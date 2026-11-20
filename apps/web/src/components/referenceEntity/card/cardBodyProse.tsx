@@ -85,6 +85,8 @@ export type CardBodyInput = Pick<
   leadHint: string | undefined
   assetUrl: string | undefined
   assetSrcSet: string | undefined
+  /** The art is a book's cover: drawn bare, with no plate or frame. */
+  assetBare?: boolean
   effTechLevel: number | undefined
   dataValueBonuses: BonusCell[]
   entityChoices: RefObjectChoice[]

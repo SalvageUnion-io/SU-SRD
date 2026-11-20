@@ -252,8 +252,8 @@
 /* L-2: the header. */
 .su-union-bar,
 .su-union-bar[data-mode] {
-  --su-bar-bg: var(--color-ink-deep) !important;
-  --su-bar-fg: var(--color-paper) !important;
+  --su-bar-bg: var(--color-chrome) !important;
+  --su-bar-fg: var(--color-on-chrome) !important;
   --su-bar-on-fg: var(--color-ink) !important;
   --su-bar-fg-85: var(--color-paper-85) !important;
   --su-bar-fg-70: var(--color-paper-70) !important;
@@ -269,16 +269,17 @@
     padding-inline: var(--su-shell-edge);
   }
 
-  /* The rail is not paper. It wears the page's band
-     colour (`--su-kind`, the leading band's; ink where a page has none), so
-     ink header, rail and band read as one. Its text is the colour's own
-     AA foreground, at full strength. */
+  /* The rail wears the page's band (it floats over it), so ink header, rail
+     and band read as one. Its words are ink at full strength on every band;
+     on a dark band, and where a page has none, a paper strip
+     (`--su-rail-ground`, set with the band's kind) lies under them so ink
+     reads at AA. */
   .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--su-on-kind, var(--color-paper)) !important;
-    --su-bar-fg-70: var(--su-on-kind, var(--color-paper)) !important;
-    --su-bar-fg-85: var(--su-on-kind, var(--color-paper)) !important;
-    --su-bar-fg-60: var(--su-on-kind, var(--color-paper)) !important;
-    background-color: var(--su-kind, var(--color-ink-deep));
+    --su-bar-fg: var(--color-ink) !important;
+    --su-bar-fg-70: var(--color-ink) !important;
+    --su-bar-fg-85: var(--color-ink) !important;
+    --su-bar-fg-60: var(--color-ink) !important;
+    background-color: var(--su-rail-ground, var(--color-paper-85));
     border-bottom: 0;
     border-top: 0;
     min-height: var(--size-full);
@@ -290,10 +291,10 @@
   }
 }
 
-/* L-3: the foot is the header's ink. */
+/* L-3: the foot is the header's chrome (K13): one token pair for both. */
 .su-chapter-foot {
-  --su-foot-bg: var(--color-ink-deep) !important;
-  --su-foot-fg: var(--color-paper) !important;
+  --su-foot-bg: var(--color-chrome) !important;
+  --su-foot-fg: var(--color-on-chrome) !important;
   --su-foot-mark: invert(1) !important;
   --su-foot-grain-paper: contents !important;
   --su-foot-grain-ink: none !important;
@@ -854,7 +855,7 @@
   :root:not([data-rail='dark']):has(.su-chapter-band:not([role='dialog'] *))
     .su-union-bar[data-mode]
     .su-union-bar__rail[data-area] {
-    background-color: transparent;
+    background-color: var(--su-rail-ground, transparent);
   }
 
   /* The band starts under the header's row, behind the rail (2.75rem). */

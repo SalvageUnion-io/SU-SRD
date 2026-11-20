@@ -78,6 +78,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
     foldedAction,
     assetUrl,
     assetSrcSet,
+    assetBare,
     sectionAs,
     afterExtraContent,
     selections,
@@ -175,6 +176,7 @@ export function resolveCardSections(input: CardBodyInput, resolved: BodyProse) {
         compact={compact}
         aside={asideLead}
         hero={onPage}
+        bare={assetBare}
       />
     ) : undefined
 

@@ -132,6 +132,10 @@
   --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
   --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground */
+  /* The chrome: the header's and the footer's one ground and ink (K13), so the
+     two can never drift apart. */
+  --color-chrome: rgb(27, 23, 18); /* the ink-deep */
+  --color-on-chrome: rgb(251, 250, 247); /* the paper */
 
   /* Ink-opacity ramp (ruleset.md, foundations) — hairlines,
      placeholders, ghosts, disabled fills. Not neutral greys, which fight the
