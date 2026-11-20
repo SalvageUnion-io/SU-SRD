@@ -39,8 +39,9 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-chapter-band')
   })
 
-  it('searches from the Union bar, as every page does: one search island, no hero', () => {
-    expect(islands(html, 'SearchIsland')).toBe(1)
+  it('carries no search: that is the Reference’s (desktop field and phone trigger alike)', () => {
+    expect(islands(html, 'SearchIsland')).toBe(0)
+    expect(islands(html, 'MobileSearchIsland')).toBe(0)
     expect(html).not.toContain('su-hero-search')
   })
 
@@ -109,6 +110,11 @@ describe('the Reference’s home: the manual’s Contents', () => {
 
   it('is titled Reference', () => {
     expect(h1s(html)).toEqual(['Reference'])
+  })
+
+  it('searches from the Union bar: one search island, the phone its trigger', () => {
+    expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(islands(html, 'MobileSearchIsland')).toBe(1)
   })
 
   it('says the tagline on its band, as every landing page does', () => {

@@ -6,7 +6,7 @@ import { AppBar } from '../AppBar'
 /**
  * The Union bar (ruleset §3.11): one lockup (the mark, the site's front door),
  * the areas as three plain links named for what they are (Reference |
- * Builder | Games) with "here" underlined, each area's rail under it,
+ * Build | Play) with "here" underlined, each area's rail under it,
  * breadcrumbs in the bar on desktop and on their own row on a phone, and the
  * paper flecks behind it all.
  */
@@ -44,7 +44,7 @@ describe('AppBar', () => {
     )
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
-    const build = tools.getByRole('link', { name: 'Builder' })
+    const build = tools.getByRole('link', { name: 'Build' })
     expect(build.getAttribute('aria-current')).toBeNull()
     expect(build.getAttribute('href')).toBe('https://app.example/')
     expect(build.getAttribute('target')).toBeNull()
@@ -64,22 +64,22 @@ describe('AppBar', () => {
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const reference = tools.getByRole('link', { name: 'Reference' })
     expect(reference.getAttribute('data-short')).toBe('Ref')
-    expect(tools.getByRole('link', { name: 'Builder' }).getAttribute('data-short')).toBeNull()
+    expect(tools.getByRole('link', { name: 'Build' }).getAttribute('data-short')).toBeNull()
   })
 
-  test('the area links read Reference | Builder | Games', () => {
+  test('the area links read Reference | Build | Play', () => {
     render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/games/" />)
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Builder', 'Games'])
-    expect(tools().getByRole('link', { name: 'Games' }).getAttribute('aria-current')).toBe('true')
-    expect(tools().getByRole('link', { name: 'Builder' }).getAttribute('aria-current')).toBeNull()
+    ).toEqual(['Reference', 'Build', 'Play'])
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('aria-current')).toBe('true')
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('aria-current')).toBeNull()
     // Every tab is a site path, whichever is current.
-    expect(tools().getByRole('link', { name: 'Builder' }).getAttribute('href')).toBe('/build/')
-    expect(tools().getByRole('link', { name: 'Games' }).getAttribute('href')).toBe('/games/')
+    expect(tools().getByRole('link', { name: 'Build' }).getAttribute('href')).toBe('/build/')
+    expect(tools().getByRole('link', { name: 'Play' }).getAttribute('href')).toBe('/games/')
   })
 
   test('one geometry for every tool: the area links, then each area’s rail; no density', () => {

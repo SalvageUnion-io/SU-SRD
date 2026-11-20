@@ -11,14 +11,14 @@ const CREDIT_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 const QUOTE = {
   fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
-  fontWeight: tokens.weight.semibold,
+  fontWeight: tokens.weight.bold,
   lineHeight: 1,
   margin: 0,
 } satisfies CSSProperties
 
 const QUOTE_BY = {
-  color: tokens.color.ink,
   fontStyle: 'italic',
+  fontWeight: tokens.weight.bold,
   // Flush under the quote: the two boxes touch, their widths the step between.
   margin: 0,
 } satisfies CSSProperties

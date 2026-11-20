@@ -172,14 +172,21 @@ body:has(.su-front--show) main {
 }
 
 .su-front__show-value {
-  background-color: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-display-lg);
   font-weight: var(--font-weight-bold);
-  line-height: 1.1;
+  line-height: 1.35;
   margin: 0;
-  padding: var(--space-4) var(--space-16) var(--space-12);
+}
+
+/* The pitch's paper: a strip behind each line, its padding on every line
+   (`box-decoration-break: clone`), so the plate hugs the words' ragged edge. */
+.su-front__show-lines {
+  -webkit-box-decoration-break: clone;
+  background-color: var(--color-paper);
+  box-decoration-break: clone;
+  padding: var(--space-4) var(--space-16);
 }
 
 /* A slide's words, at its lower left in the same place on every slide: one

@@ -99,7 +99,9 @@ export function TopNavigation({
       search={
         <>
           <WikiLink />
-          {pageHasSearch ? null : (
+          {/* The 404 carries its own; the home needs none (search is the
+              Reference's). */}
+          {pageHasSearch || home ? null : (
             <Island name="SearchIsland" client="interaction" ssr>
               <SearchIsland />
             </Island>
@@ -115,9 +117,11 @@ export function TopNavigation({
       mobile={
         <>
           <WikiLink />
-          <Island name="MobileSearchIsland" client="interaction" ssr>
-            <MobileSearchIsland />
-          </Island>
+          {home ? null : (
+            <Island name="MobileSearchIsland" client="interaction" ssr>
+              <MobileSearchIsland />
+            </Island>
+          )}
           <Island name="AccountAvatarIsland" client="idle" when="signed-in" />
           <Island name="MobileNavIsland" client="interaction" ssr>
             <MobileNavIsland />

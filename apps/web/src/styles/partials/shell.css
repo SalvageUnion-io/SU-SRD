@@ -133,7 +133,8 @@
   width: var(--su-union-bar-control);
 }
 
-.su-union-bar__tab {
+.su-union-bar__tab,
+.su-union-bar__buy {
   align-items: center;
   border-bottom: var(--bw-pill) solid transparent;
   color: var(--su-bar-fg-70);
@@ -148,7 +149,8 @@
     border-color var(--dur-fast) var(--ease);
 }
 
-.su-union-bar__tab:hover {
+.su-union-bar__tab:hover,
+.su-union-bar__buy:hover {
   color: var(--su-bar-fg);
 }
 
@@ -272,6 +274,11 @@
     font-size: var(--text-badge);
     letter-spacing: var(--tracking-caps-snug);
     padding-inline: var(--space-6);
+  }
+
+  /* Buy the game wraps past the row on a phone; the drawer carries it. */
+  .su-union-bar__buy {
+    display: none;
   }
 }
 

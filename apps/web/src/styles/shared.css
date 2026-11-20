@@ -64,8 +64,8 @@
 }
 
 /* The quoted tagline (`Tagline.tsx`), every landing page's: the quote and
-   its credit each on its own paper box, as wide as its words, ink on paper on
-   any band; at the band's right end set right, on a phone under it, left. */
+   its credit hang on the ground they stand on, bold; at the band's right end
+   set right, on a phone under it, left. */
 .su-tagline {
   align-items: flex-start;
   color: var(--color-ink);
@@ -73,12 +73,6 @@
   flex-direction: column;
   margin: 0;
   text-align: left;
-}
-
-.su-tagline > :is(blockquote, figcaption) {
-  background-color: var(--color-paper);
-  padding: var(--space-4) var(--space-12);
-  width: fit-content;
 }
 
 @media (width >= 40rem) {

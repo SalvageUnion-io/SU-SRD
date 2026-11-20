@@ -56,7 +56,7 @@ describe('UnionBarSlots', () => {
     ).toEqual(['Phone search', 'Avatar', 'Open menu'])
   })
 
-  test('marks the tab you are under: Games on Your Games and every Game route, the Builder everywhere else', () => {
+  test('marks the tab you are under: Play on Your Games and every Game route, Build everywhere else', () => {
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const current = () =>
       tools()
@@ -68,14 +68,14 @@ describe('UnionBarSlots', () => {
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Builder', 'Games'])
-    expect(current()).toEqual(['Games'])
+    ).toEqual(['Reference', 'Build', 'Play', 'Buy the game'])
+    expect(current()).toEqual(['Play'])
     rerender(<UnionBarSlots pathname="/starter/" />)
-    expect(current()).toEqual(['Builder'])
+    expect(current()).toEqual(['Build'])
     rerender(<UnionBarSlots pathname="/pilots/p1/play" />)
-    expect(current()).toEqual(['Builder'])
+    expect(current()).toEqual(['Build'])
     rerender(<UnionBarSlots pathname="/games/g1" />)
-    expect(current()).toEqual(['Games'])
+    expect(current()).toEqual(['Play'])
   })
 
   test('the bar wears its tab’s colour as you route', () => {

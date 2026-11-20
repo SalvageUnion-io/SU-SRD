@@ -255,27 +255,27 @@ describe('the shell’s Union bar is marked for the route', () => {
   }
 
   it('wears the Games on Your Games, its tab current', async () => {
-    expect(await served('/games/')).toEqual({ mode: 'play', current: ['Games'], hidden: false })
+    expect(await served('/games/')).toEqual({ mode: 'play', current: ['Play'], hidden: false })
   })
 
   it('wears the Training Bay on its pages, its tab current', async () => {
     expect(await served('/patterns/')).toEqual({
       mode: 'build',
-      current: ['Builder'],
+      current: ['Build'],
       hidden: false,
     })
-    expect(await served('/')).toEqual({ mode: 'build', current: ['Builder'], hidden: false })
+    expect(await served('/')).toEqual({ mode: 'build', current: ['Build'], hidden: false })
   })
 
   it('marks, and hides, a Cockpit’s', async () => {
     expect(await served('/games/g1/mediate')).toEqual({
       mode: 'play',
-      current: ['Games'],
+      current: ['Play'],
       hidden: true,
     })
     expect(await served('/pilots/p1/play')).toEqual({
       mode: 'build',
-      current: ['Builder'],
+      current: ['Build'],
       hidden: true,
     })
   })

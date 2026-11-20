@@ -140,7 +140,10 @@ export function HomeHero() {
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
           <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
-          <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
+          {/* The pitch's paper hugs each line it breaks to. */}
+          <p className="su-front__show-value">
+            <span className="su-front__show-lines">{referenceCopy('pitchValue')}</span>
+          </p>
         </div>
         {/* The tagline every landing page says, in its hand, level with the
             site's name. */}

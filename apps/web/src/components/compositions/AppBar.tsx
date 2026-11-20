@@ -6,7 +6,6 @@ import { MARK_SRC } from '../../lib/documentHead'
 import { compositionsCopy } from '../../messages/components-compositions'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
 import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
-import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
@@ -259,6 +258,18 @@ export function AppBar({
                 )}
               </a>
             ))}
+            {/* The store, right after the areas, a word as they are. */}
+            {buyHref && (
+              <a
+                href={buyHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn('su-union-bar__buy', TAB_CAPS, FOCUS_RING)}
+              >
+                {compositionsCopy('buyTheGame')}
+                <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+              </a>
+            )}
           </nav>
 
           {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="bar" />}
@@ -267,20 +278,6 @@ export function AppBar({
               only its search shows, on a row of its own under the bar. */}
           <div className="su-union-bar__end">
             {search && <div className="su-union-bar__search">{search}</div>}
-            {buyHref && (
-              <Button
-                href={buyHref}
-                linkAs="a"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="ghost"
-                size="compact"
-                className="su-union-bar__action su-union-bar__buy"
-              >
-                {compositionsCopy('buyTheGame')}
-                <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
-              </Button>
-            )}
             {actions && <div className="su-union-bar__actions">{actions}</div>}
           </div>
 
