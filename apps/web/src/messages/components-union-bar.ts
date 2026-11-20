@@ -6,7 +6,7 @@ export const unionBarCopy = messages({
   salvageUnion: 'Salvage Union',
   signInWithDiscord: 'Sign in with Discord',
   buyTheGame: 'Buy the game',
-  drawerTrainingBay: 'Training Bay',
+  drawerTrainingBay: 'Builder',
   drawerPilots: 'Pilots',
   drawerMechs: 'Mechs',
   drawerCrawlers: 'Crawlers',

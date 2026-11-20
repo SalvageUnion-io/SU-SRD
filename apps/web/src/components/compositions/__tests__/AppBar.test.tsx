@@ -4,9 +4,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { AppBar } from '../AppBar'
 
 /**
- * The Union bar (ruleset §3.11): one lockup, the Reference | Build | Play switcher
- * with "here" as the inverse stamp, breadcrumbs in the bar on desktop and on
- * their own row on a phone, and the paper flecks behind it all.
+ * The Union bar (ruleset §3.11): one lockup (the mark, the site's front door),
+ * the areas as three plain links named for what they are (Reference |
+ * Builder | Games) with "here" underlined, each area's rail under it,
+ * breadcrumbs in the bar on desktop and on their own row on a phone, and the
+ * paper flecks behind it all.
  */
 
 const CRUMBS = [
@@ -42,7 +44,7 @@ describe('AppBar', () => {
     )
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(tools.getByRole('link', { name: 'Reference' }).getAttribute('aria-current')).toBe('true')
-    const build = tools.getByRole('link', { name: 'Training Bay' })
+    const build = tools.getByRole('link', { name: 'Builder' })
     expect(build.getAttribute('aria-current')).toBeNull()
     expect(build.getAttribute('href')).toBe('https://app.example/')
     expect(build.getAttribute('target')).toBeNull()
@@ -62,36 +64,51 @@ describe('AppBar', () => {
     const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     const reference = tools.getByRole('link', { name: 'Reference' })
     expect(reference.getAttribute('data-short')).toBe('Ref')
-    expect(tools.getByRole('link', { name: 'Training Bay' }).getAttribute('data-short')).toBeNull()
+    expect(tools.getByRole('link', { name: 'Builder' }).getAttribute('data-short')).toBeNull()
   })
 
-  test('the switcher reads Reference | Training Bay | Games', () => {
+  test('the area links read Reference | Builder | Games', () => {
     render(<AppBar product="play" referenceHref="/" buildHref="/build/" playHref="/games/" />)
     const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
     expect(
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Training Bay', 'Games'])
+    ).toEqual(['Reference', 'Builder', 'Games'])
     expect(tools().getByRole('link', { name: 'Games' }).getAttribute('aria-current')).toBe('true')
-    expect(
-      tools().getByRole('link', { name: 'Training Bay' }).getAttribute('aria-current')
-    ).toBeNull()
+    expect(tools().getByRole('link', { name: 'Builder' }).getAttribute('aria-current')).toBeNull()
     // Every tab is a site path, whichever is current.
-    expect(tools().getByRole('link', { name: 'Training Bay' }).getAttribute('href')).toBe('/build/')
+    expect(tools().getByRole('link', { name: 'Builder' }).getAttribute('href')).toBe('/build/')
     expect(tools().getByRole('link', { name: 'Games' }).getAttribute('href')).toBe('/games/')
   })
 
-  test('one geometry for every tool: the switcher alone, no second nav, no density', () => {
+  test('one geometry for every tool: the area links, then each area’s rail; no density', () => {
     render(<AppBar product="build" referenceHref="/" buildHref="/" playHref="/games/" />)
-    expect(screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'))).toEqual([
-      'Salvage Union tools',
-    ])
+    const navs = screen.getAllByRole('navigation').map((nav) => nav.getAttribute('aria-label'))
+    expect(navs[0]).toBe('Salvage Union tools')
+    // Every other nav is an area's rail ("In …"), served for all three areas.
+    expect(navs.slice(1)).toHaveLength(3)
+    for (const label of navs.slice(1)) expect(label).toMatch(/^In /)
     const banner = screen.getByRole('banner')
     expect(banner.hasAttribute('data-density')).toBe(false)
     // The same lockup in both tools: the mark, never a wordmark.
     expect(banner.querySelector('.su-union-bar__mark')).not.toBeNull()
     expect(banner.querySelector('.su-union-bar__wordmark')).toBeNull()
+  })
+
+  test('the front door is in no area: no link is current', () => {
+    render(
+      <AppBar
+        product="reference"
+        referenceHref="/reference/"
+        buildHref="/build/"
+        playHref="/games/"
+        noCurrent
+      />
+    )
+    const tools = within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    for (const link of tools.getAllByRole('link'))
+      expect(link.getAttribute('aria-current')).toBeNull()
   })
 
   test('"Buy the game" is an outline link out, in a new tab', () => {

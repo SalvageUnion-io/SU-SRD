@@ -65,3 +65,11 @@ Build" goes: moving a unit is its ⋯ menu's in the Training Bay, one tab away.
 Encounters and NPCs are made and kept there (ADR-059). A Game's page gives its
 Mediator one Your prep section counting what is ready, with a link to the
 Training Bay; running an encounter stays on Mediate, the band's door.
+
+### 7. The header links its areas by what they do
+
+The Reference | Training Bay | Games toggle becomes three plain links with
+descriptive names, **Reference | Builder | Games**, the current one
+underlined; each opens its landing page (`/reference/`, the book's Contents;
+`/build/`; `/games/`). The logo opens the marketing home, `/`, which marks no
+area current. Pages keep their names (the Training Bay at `/build/`).
