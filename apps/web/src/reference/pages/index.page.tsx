@@ -1,22 +1,20 @@
 /**
- * `/` — the landing page: the site's front door (the Contents are the
- * Reference's home, `/reference/`).
+ * `/` — the landing page: the site's front door, then the manual's Contents.
  *
  * The band is the front doors' own (Build's `FrontDoor`, Play's
  * `PlayFrontDoor`): the site's name notched in under its kicker, the legacy
  * tagline (`Tagline`) beside it. Under it, `HomeFront`'s parts: the pitch with
  * the page's one rust action beside the art plate, the three ways in
- * (Reference, Build, Play), Buy the game, and the Discord bot. Search is the Union bar's, as on every other
+ * (Reference, Build, Play), the Contents (the book's chapters, each opened by
+ * its band, then the rules a table reaches for under an ink band), Buy the
+ * game, and the Discord bot. Search is the Union bar's, as on every other
  * page. Server-rendered and static: every row is a plain link.
  */
 
-import { ChapterBand } from '../../components/index'
-import { Tagline } from '../../components/Tagline'
 import { DEFAULT_DESCRIPTION, WEBSITE } from '../../lib/constants'
-import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
-import { BuyTheGame, HomeDoors, HomeHero, InYourServer } from '../HomeFront'
+import { HomeHero } from '../HomeFront'
 import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
@@ -37,16 +35,9 @@ function page(): PageResult {
       },
     },
     children: (
-      <div className="su-front">
-        <ChapterBand measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
-          {pagesCopy('siteName')}
-        </ChapterBand>
-        <div className="su-front__body su-page-body">
-          <HomeHero />
-          <HomeDoors />
-          <BuyTheGame />
-          <InYourServer />
-        </div>
+      // EXPERIMENT: the home is its slideshow alone, between the header and the footer.
+      <div className="su-front su-front--show">
+        <HomeHero />
       </div>
     ),
   }

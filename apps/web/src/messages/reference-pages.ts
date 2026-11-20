@@ -170,7 +170,6 @@ export const pagesCopy = messages({
   salvaging: 'Salvaging',
   homeTitle: 'Salvage Union SRD and Character Manager',
   salvageUnionSrd: 'Salvage Union SRD',
-  siteName: 'SalvageUnion.io',
   contents: 'Contents',
   referenceHome: 'Reference',
   referenceHomeDescription:

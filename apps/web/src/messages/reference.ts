@@ -22,13 +22,27 @@ export const referenceCopy = messages({
   shareFailed: 'The page could not be shared. Try again.',
   copyLinkFailed: 'The link could not be copied. Try again.',
   siteName: 'SalvageUnion.io',
-  heroStack: 'Art from the book',
   pitchValue:
     "Everything you need to play the world's best post-apocalyptic Mech tabletop roleplaying game.",
-  pitchLede:
-    'The free, fan-made companion to Salvage Union by Leyline Press: every rule in the book, a builder for your crew, and a table to play at.',
-  startBuilding: 'Start building',
-  readTheRules: 'Read the rules',
+  showReference: 'Know the rules',
+  showReferenceBody:
+    'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',
+  showReferenceAction: 'Browse the Reference',
+  showBuild: 'Build your crew',
+  showBuildBody:
+    'Make a Pilot, a Mech and a Union Crawler step by step, or start from the Starter Set crew.',
+  showBuildAction: 'Start building',
+  showPlay: 'Play at the table',
+  showPlayBody:
+    'Roll, spend and take damage on live sheets, solo or with your whole crew in one shared Game.',
+  showPlayAction: 'Open your Games',
+  showBuy: 'Get the books',
+  showBuyBody:
+    'Leyline Press writes and publishes Salvage Union. The books hold the setting, the art and the adventures.',
+  showBuyAction: 'Buy from Leyline Press',
+  showDiscord: 'Roll in Discord',
+  showDiscordBody: 'Look up any rule and roll on any table without leaving your channel.',
+  showDiscordAction: 'Add the bot',
   threeWaysIn: 'Three ways in',
   noAccount: 'No account',
   free: 'Free',

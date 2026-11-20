@@ -88,141 +88,191 @@
   min-width: 0;
 }
 
-/* The art stack: the book's artworks, each in its own frame in its entity's
-   band colour, heavy at the foot, its name and book on a paper cut-out that
-   hangs from the foot band's top. Each card sits one step further back and
-   up-right than the one before it; every `--su-stack-step` the front card
-   fades out and comes back at the stack's rear, and the rest move up one. */
-.su-front__stack {
-  --su-stack-step: 6s;
-  --su-stack-offset: var(--space-8);
-  aspect-ratio: 4 / 3;
-  isolation: isolate;
-  max-height: 24rem;
-  min-width: 0;
-  position: relative;
-  width: 100%;
-}
-
-.su-front__stack-card {
-  /* The card's slot: 0 at the front, count - 1 at the rear. */
-  --su-slot: var(--su-stack-i);
-  background-color: var(--su-art-band);
-  color: var(--color-ink);
+/* EXPERIMENT (hero slideshow): the home is its slideshow, edge to edge, the
+   whole height between the header and the footer; the footer always sits at
+   the foot of the screen. Each slide's art covers the ground; the words stand
+   on paper plates of their own, so the art is never dimmed. */
+body:has(.su-front--show) > div {
   display: flex;
   flex-direction: column;
-  inset: calc(var(--su-stack-offset) * (var(--su-stack-count) - 1))
-    calc(var(--su-stack-offset) * (var(--su-stack-count) - 1)) 0 0;
-  padding: var(--space-6) var(--space-6) 0;
-  position: absolute;
-  text-decoration: none;
-  transform: translate(
-    calc(var(--su-stack-offset) * var(--su-slot)),
-    calc(var(--su-stack-offset) * var(--su-slot) * -1)
-  );
-  z-index: calc(var(--su-stack-count) - var(--su-slot));
+  min-height: 100dvh;
 }
 
-/* The art on paper: its white canvas multiplies into the paper, so the
-   artwork has no edge of its own (the paper law: never pure white). */
-.su-front__stack-art {
-  background-color: var(--color-paper);
+body:has(.su-front--show) main {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
+  flex-direction: column;
   min-height: 0;
 }
 
-.su-front__stack-art img {
-  height: 100%;
-  mix-blend-mode: multiply;
-  object-fit: contain;
-  padding: var(--space-8);
-  width: 100%;
-}
-
-/* The heavy foot: the band, the cut-out hanging from its top at the right. */
-.su-front__stack-foot {
+.su-front--show {
   display: flex;
-  justify-content: flex-end;
-  min-height: var(--space-32);
-  padding: 0 var(--space-8) var(--space-8);
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.su-front__stack-cite {
-  align-items: baseline;
-  align-self: flex-start;
+.su-front__show {
+  --su-show-step: 7s;
+  background-color: var(--color-ink);
+  flex: 1 1 auto;
+  isolation: isolate;
+  min-height: 28rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.su-front__show-slides {
+  inset: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+}
+
+.su-front__show-slide {
+  inset: 0;
+  position: absolute;
+}
+
+/* The art covers the slide, edge to edge, no letterbox. */
+.su-front__show-art {
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  inset: 0;
+  position: absolute;
+}
+
+/* The site's name on a paper cut-out at the top left, the chapter title's
+   face at its size, and the pitch flowing flush out of its foot on the same
+   paper. */
+.su-front__show-head {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  left: var(--su-shell-edge, var(--space-24));
+  max-width: min(40rem, calc(100% - var(--space-24) * 2));
+  position: absolute;
+  top: var(--space-24);
+  z-index: 2;
+}
+
+.su-front__show-name {
   background-color: var(--color-paper);
-  display: inline-flex;
-  font-size: var(--text-caption);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-chapter);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.92;
+  margin: 0;
+  padding: var(--space-12) var(--space-16) var(--space-4);
+}
+
+.su-front__show-value {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-4) var(--space-16) var(--space-12);
+}
+
+/* A slide's words stand on the art itself, in the same place on every slide
+   (the bottom left), legible by the ink shadow under every letter. */
+.su-front__show-copy {
+  bottom: var(--space-24);
+  color: var(--color-paper);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-8);
-  padding: var(--space-4) var(--space-8) var(--space-6);
+  left: var(--su-shell-edge, var(--space-24));
+  max-width: 32rem;
+  position: absolute;
+  text-shadow:
+    0 1px 2px var(--color-ink),
+    0 0 var(--space-12) var(--color-ink);
+  z-index: 1;
 }
 
-.su-front__stack-card:hover .su-front__stack-name {
-  text-decoration: underline;
+.su-front__show-copy .su-btn {
+  align-self: flex-start;
+  width: auto;
 }
 
-/* One cycle is six steps, one a card (`HERO_STACK`'s six artworks): a card
-   holds the front for a step, fades, comes back in at the rear (slot 5), and
-   moves forward a slot at the end of each step after. `--su-slot` is
-   registered so the move glides and the z-order follows it. */
-@property --su-slot {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
+.su-front__show-title {
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.05;
+  margin: 0;
 }
 
-@keyframes su-front-stack {
-  /* design-tokens-ignore(loading-mark): the home's art stack, a slideshow, not a loading mark */
-  0%,
-  14% {
-    --su-slot: 0;
-    opacity: 1;
-  }
-  16.66% {
-    --su-slot: 0;
+.su-front__show-body {
+  margin: 0;
+}
+
+@keyframes su-front-show {
+  /* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
+  0% {
     opacity: 0;
+    visibility: visible;
   }
-  16.67% {
-    --su-slot: 5;
-    opacity: 0;
-  }
-  19%,
-  30.66% {
-    --su-slot: 5;
+  4%,
+  18% {
     opacity: 1;
+    visibility: visible;
   }
-  33.33%,
-  47.33% {
-    --su-slot: 4;
-  }
-  50%,
-  64% {
-    --su-slot: 3;
-  }
-  66.67%,
-  80.66% {
-    --su-slot: 2;
-  }
-  83.33%,
-  97.33% {
-    --su-slot: 1;
-    opacity: 1;
-  }
+  21%,
   100% {
-    --su-slot: 0;
-    opacity: 1;
+    opacity: 0;
+    visibility: hidden;
   }
 }
 
-/* The stack cycles only where motion is welcome; under reduced motion it
-   stands still, its first artwork in front. Card i starts i steps from its
-   next turn at the front: 0, 1, 2… in order. */
+/* The slides cycle only where motion is welcome. Slide i takes its turn at i
+   steps, the first already in. */
 @media (prefers-reduced-motion: no-preference) {
-  .su-front__stack-card {
-    animation: su-front-stack calc(var(--su-stack-step) * var(--su-stack-count)) var(--ease)
-      infinite;
-    animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
+  .su-front__show-slide {
+    animation: su-front-show calc(var(--su-show-step) * var(--su-show-count)) var(--ease) infinite
+      both;
+    animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
+  }
+}
+
+/* Under reduced motion the first slide stands still. */
+@media (prefers-reduced-motion: reduce) {
+  .su-front__show-slide:not(:first-child) {
+    display: none;
+  }
+}
+
+/* A phone: the plates span the width, the pitch a step smaller. */
+@media not (width >= 40rem) {
+  .su-front__show {
+    min-height: 36rem;
+  }
+
+  .su-front__show-head {
+    left: var(--space-12);
+    max-width: calc(100% - var(--space-24));
+    top: var(--space-12);
+  }
+
+  .su-front__show-name {
+    font-size: var(--text-display-lg);
+  }
+
+  .su-front__show-value {
+    font-size: var(--text-title);
+  }
+
+  .su-front__show-copy {
+    bottom: var(--space-12);
+    left: var(--space-12);
+    right: var(--space-12);
   }
 }
 
@@ -239,11 +289,6 @@
   /* The pitch stands at the plate's middle. */
   .su-front__pitch {
     justify-content: center;
-  }
-
-  .su-front__stack {
-    --su-stack-offset: var(--space-12);
-    max-height: 30rem;
   }
 }
 
