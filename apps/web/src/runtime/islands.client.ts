@@ -18,6 +18,7 @@ import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
 import { trackScrollbarWidth } from './scrollbarWidth'
+import { shrinkWrap } from './shrinkWrap'
 import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
@@ -66,6 +67,8 @@ function onSearchShortcut(event: KeyboardEvent): void {
 document.addEventListener('keydown', onSearchShortcut)
 revealWikiLinks(document)
 watchSharePage(document)
+// The home's slide captions: each cut-out as wide as its own words.
+shrinkWrap(document, '.su-front__show-body')
 
 // A guide page served as static HTML: its contents mark the section in view.
 // Plain DOM in its own chunk, fetched only on such a page; a guide card that

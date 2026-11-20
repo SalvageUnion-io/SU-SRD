@@ -168,9 +168,8 @@ body:has(.su-front--show) main {
 }
 
 /* A slide's words, at the bottom right in the same place on every slide,
-   right-aligned on paper that matches the site's name at the top: the title
-   its own tab, as wide as its words; the line and the button one plate under
-   it, as wide as the line. */
+   right-aligned on paper that matches the site's name at the top, as wide as
+   the line (`shrinkWrap`); the button, named for the slide, under it. */
 .su-front__show-copy {
   align-items: flex-end;
   bottom: var(--space-24);
@@ -201,23 +200,14 @@ body:has(.su-front--show) main {
   width: auto;
 }
 
-.su-front__show-title {
-  font-family: var(--font-cond);
-  font-size: var(--text-display-lg);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.05;
-  margin: 0;
-  padding: var(--space-12) var(--space-16) var(--space-4);
-}
-
-/* The plate: the line, then its button beside it on the right, centred on
-   one row; on a narrow screen the button wraps under the line. */
+/* The plate: the slide's line on paper, fitted to its words. */
 .su-front__show-plate {
-  padding: var(--space-4) var(--space-16) var(--space-12);
+  padding: var(--space-12) var(--space-16);
 }
 
 .su-front__show-body {
   margin: 0;
+  text-wrap: balance;
 }
 
 @keyframes su-front-show {

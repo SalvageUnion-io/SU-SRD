@@ -63,6 +63,19 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
+  it('names each slide on its button, with no heading of its own: the outline is the one h1', () => {
+    expect(show).not.toMatch(/<h[2-6]/)
+    for (const title of [
+      'Know the rules',
+      'Build your crew',
+      'Play at the table',
+      'Get the books',
+      'Roll in Discord',
+    ]) {
+      expect(show).toMatch(new RegExp(`su-btn--primary[^>]*>(?:<[^>]+>)*${title}<`))
+    }
+  })
+
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
     expect(arts).toHaveLength(5)
