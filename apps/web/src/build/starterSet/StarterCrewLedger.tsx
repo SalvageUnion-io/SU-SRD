@@ -30,6 +30,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { CiteLine, capsLabel } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { appPath } from '../../lib/appBase'
 import { resolveClass } from '../../lib/classRef'
 import { cn } from '../../lib/cn'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
@@ -96,7 +97,7 @@ function mechCells(mech: Mech | undefined) {
     <span key="mech" className="su-open__pair">
       <a
         className="su-inline-ref su-inline-ref--link su-open__pair-name"
-        href={`/starter/mech/${mech.id}`}
+        href={appPath(`/starter/mech/${mech.id}`)}
       >
         {mech.name}
       </a>
@@ -114,7 +115,7 @@ function pilotRow(pilot: Pilot, mech: Mech | undefined, confirm: Confirm | undef
   return {
     id: pilot.id,
     name: pilot.name,
-    href: `/starter/pilot/${pilot.id}`,
+    href: appPath(`/starter/pilot/${pilot.id}`),
     meta: pilotClass?.name,
     state: confirm ? (
       <CopyStarterMenu kind="pilot" templateId={pilot.id} name={pilot.name} confirm={confirm} />
@@ -128,7 +129,7 @@ function crawlerRow(crawler: Crawler, confirm: Confirm | undefined): OpenRow {
   return {
     id: crawler.id,
     name: crawler.name,
-    href: `/starter/crawler/${crawler.id}`,
+    href: appPath(`/starter/crawler/${crawler.id}`),
     state: confirm ? (
       <CopyStarterMenu
         kind="crawler"
@@ -174,7 +175,7 @@ export function StarterCrewLedger({ roster = 'starter-set', confirm }: StarterCr
             rows: loose.map((mech) => ({
               id: mech.id,
               name: mech.name,
-              href: `/starter/mech/${mech.id}`,
+              href: appPath(`/starter/mech/${mech.id}`),
               meta: chassisMeta(mech, resolveChassisRef(mech.chassisRef)),
               state: confirm ? (
                 <CopyStarterMenu
