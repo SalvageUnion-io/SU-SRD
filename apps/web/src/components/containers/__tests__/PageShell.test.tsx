@@ -9,7 +9,8 @@ describe('PageShell', () => {
     expect(main.className).toBe('su-page-shell')
     expect(main.style.flexDirection).toBe('column')
     expect(main.style.gap).toBe('24px')
-    expect(main.style.minHeight).toBe('100dvh')
+    // As tall as its content: `#root`'s column keeps a short page's foot down.
+    expect(main.style.minHeight).toBe('')
   })
 
   test('padded without the stack: no column', () => {

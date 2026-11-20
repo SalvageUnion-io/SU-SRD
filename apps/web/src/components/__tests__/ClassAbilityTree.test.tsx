@@ -17,9 +17,11 @@ const classNamed = (name: string): RefClass => {
   return found
 }
 
-/** A brief card's head band: the colour its cut-out head is painted. */
+/** A brief card's tier hue: its frame's paint (a row's head is no band, L-6). */
 const headBand = (card: Element) =>
-  card.querySelector<HTMLElement>('.su-entity-compact__head')?.style.backgroundColor
+  card
+    .querySelector<HTMLElement>('.su-entity-compact__frame')
+    ?.style.getPropertyValue('--su-compact-frame')
 
 describe('ClassAbilityTree headings', () => {
   test('each tree is an h2 and each Ability under it an h3', () => {
@@ -67,22 +69,22 @@ describe('ClassAbilityTree banners and track', () => {
     ]
     expect(heads.length).toBeGreaterThan(0)
     for (const head of heads) expect(head.dataset.fill).toBe('tone')
-    // A Compact's band, or a path card's Mini's pill (N3), wears the tier.
+    // A Compact's band paint (`--su-band`), on its frame, wears the tier.
     const bandsOf = (tree: string) =>
       screen
         .getAllByRole('heading', { level: 2, name: tree })
         .flatMap((h) => [
           ...(h
             .closest('section')
-            ?.querySelectorAll<HTMLElement>('.su-entity-compact__head, .su-entity-mini__pill') ??
-            []),
+            ?.querySelectorAll<HTMLElement>('.su-entity-compact__frame, .su-entity-mini') ?? []),
         ])
-        .map((head) => head.style.backgroundColor)
-    // Core orange, Advanced and Hybrid rust, Legendary pink (its deeper band).
+        .map((frame) => frame.style.getPropertyValue('--su-band'))
+    // The Core track's Compacts wear the Core orange.
     expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-pilot)']))
-    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['var(--color-tier-hybrid)']))
-    expect(new Set(bandsOf('Fabricator'))).toEqual(new Set(['var(--color-tier-hybrid)']))
-    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['var(--color-crawler-band)']))
+    // A path card's Mini under its strip is a plain row (L-6): no band of its own.
+    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['transparent']))
+    expect(new Set(bandsOf('Fabricator'))).toEqual(new Set(['transparent']))
+    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['transparent']))
 
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')

@@ -88,11 +88,9 @@ describe('the chassis ability shows only on a page', () => {
   test('the chassis page shows it once', () => {
     const { container } = render(<ReferenceEntityCard data={mule()} presentation="page" />)
     expect(abilityCount(container)).toBe(1)
-    // Under its own section, as a Mini with its rules text.
+    // Under its own section in the side column, its rules text.
     const section = screen.getByRole('heading', { name: 'Chassis Ability', level: 2 })
-    expect(
-      section.closest('section')?.querySelectorAll('.su-entity-mini[data-contentful]')
-    ).toHaveLength(1)
+    expect(section.closest('section')?.querySelectorAll('.su-row-rules')).toHaveLength(1)
   })
 
   test('the pattern page shows it once, ahead of its Systems and Modules', () => {
@@ -100,7 +98,7 @@ describe('the chassis ability shows only on a page', () => {
       <ReferenceEntityCard data={mule()} pattern={hauler()} presentation="page" />
     )
     expect(abilityCount(container)).toBe(1)
-    const lead = container.querySelector('.su-entity-page__lead')
+    const lead = container.querySelector('.su-manual__ability')
     const loadout = container.querySelector('.su-entity-page__loadout')
     expect(lead && loadout).toBeTruthy()
     expect(
