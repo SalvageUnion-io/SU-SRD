@@ -137,68 +137,63 @@ body:has(.su-front--show) main {
 
 /* The art covers the slide, edge to edge, no letterbox. */
 .su-front__show-art {
-  height: 100%;
+  background-position: center 40%;
+  background-repeat: no-repeat;
+  background-size: cover;
   inset: 0;
-  object-fit: cover;
-  object-position: center 40%;
   position: absolute;
-  width: 100%;
 }
 
-/* The Builder's slide: a chassis drawn as a blueprint, white lines on a
-   ruled blue sheet. */
-.su-front__show-slide[data-blueprint] {
-  background-color: color-mix(in oklab, var(--color-wk-line) 60%, var(--color-ink));
-  background-image:
-    linear-gradient(color-mix(in oklab, var(--color-paper) 12%, transparent) 1px, transparent 1px),
-    linear-gradient(
-      90deg,
-      color-mix(in oklab, var(--color-paper) 12%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: var(--space-24) var(--space-24);
-}
-
-.su-front__show-slide[data-blueprint] .su-front__show-art {
-  filter: invert(1);
-  inset: var(--space-24) var(--space-24) var(--space-24) 35%;
-  height: calc(100% - var(--space-24) * 2);
-  mix-blend-mode: screen;
-  object-fit: contain;
-  object-position: right center;
-  opacity: 0.9;
-  width: auto;
-}
-
-/* The site's pitch, over every slide, on its own paper plate at the top left. */
-.su-front__show-value {
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-hero);
-  font-weight: var(--font-weight-bold);
+/* The site's name on a paper cut-out at the top left, the chapter title's
+   face at its size, and the pitch flowing flush out of its foot on the same
+   paper. */
+.su-front__show-head {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
   left: var(--su-shell-edge, var(--space-24));
-  line-height: 1.05;
-  margin: 0;
-  max-width: 34rem;
-  padding: var(--space-12) var(--space-16);
+  max-width: min(40rem, calc(100% - var(--space-24) * 2));
   position: absolute;
   top: var(--space-24);
   z-index: 2;
 }
 
-/* A slide's words, on their plate at the bottom left. */
-.su-front__show-copy {
+.su-front__show-name {
   background-color: var(--color-paper);
-  bottom: var(--space-24);
   color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-chapter);
+  font-weight: var(--font-weight-bold);
+  line-height: 0.92;
+  margin: 0;
+  padding: var(--space-12) var(--space-16) var(--space-4);
+}
+
+.su-front__show-value {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  margin: 0;
+  padding: var(--space-4) var(--space-16) var(--space-12);
+}
+
+/* A slide's words stand on the art itself, in the same place on every slide
+   (the bottom left), legible by the ink shadow under every letter. */
+.su-front__show-copy {
+  bottom: var(--space-24);
+  color: var(--color-paper);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
   left: var(--su-shell-edge, var(--space-24));
-  max-width: 30rem;
-  padding: var(--space-16);
+  max-width: 32rem;
   position: absolute;
+  text-shadow:
+    0 1px 2px var(--color-ink),
+    0 0 var(--space-12) var(--color-ink);
   z-index: 1;
 }
 
@@ -219,8 +214,8 @@ body:has(.su-front--show) main {
   margin: 0;
 }
 
-/* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
 @keyframes su-front-show {
+  /* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
   0% {
     opacity: 0;
     visibility: visible;
@@ -243,7 +238,7 @@ body:has(.su-front--show) main {
   .su-front__show-slide {
     animation: su-front-show calc(var(--su-show-step) * var(--su-show-count)) var(--ease) infinite
       both;
-    animation-delay: calc(var(--su-show-step) * var(--su-show-i) - 1.5s);
+    animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
   }
 }
 
@@ -255,29 +250,29 @@ body:has(.su-front--show) main {
 }
 
 /* A phone: the plates span the width, the pitch a step smaller. */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-front__show {
     min-height: 36rem;
   }
 
-  .su-front__show-value {
-    font-size: var(--text-display-lg);
+  .su-front__show-head {
     left: var(--space-12);
-    right: var(--space-12);
+    max-width: calc(100% - var(--space-24));
     top: var(--space-12);
+  }
+
+  .su-front__show-name {
+    font-size: var(--text-display-lg);
+  }
+
+  .su-front__show-value {
+    font-size: var(--text-title);
   }
 
   .su-front__show-copy {
     bottom: var(--space-12);
     left: var(--space-12);
     right: var(--space-12);
-  }
-
-  .su-front__show-slide[data-blueprint] .su-front__show-art {
-    inset: 30% var(--space-12) 40% var(--space-12);
-    height: 30%;
-    object-position: center;
-    width: calc(100% - var(--space-24));
   }
 }
 

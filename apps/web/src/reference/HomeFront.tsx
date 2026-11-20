@@ -6,6 +6,7 @@
 import type { CSSProperties } from 'react'
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import {
+  assetUrl,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
@@ -40,26 +41,27 @@ type Slide = {
   action: string
   href: string
   external?: boolean
-  /** The slide's ground: a painting from the books, or a chassis drawn as a blueprint. */
-  art: { url: string; srcSet?: string; blueprint?: boolean } | undefined
+  /** The slide's ground: a painting from the books. */
+  art: { url: string } | undefined
 }
 
 /**
- * EXPERIMENT: paintings from the Workshop Manual's spreads, cropped clear of
- * their printed quotes, served from `public/hero-art/` (local only, kept out
- * of git: artwork lives in R2, ADR-033).
+ * A painting from the Workshop Manual's spreads, cropped clear of its printed
+ * quote, in the art bucket at `hero/<name>.webp` (R2, ADR-033: artwork never
+ * lives in git), at full size: the derivatives stop at 880px, a hero spans the
+ * screen. It is the slide's background, so an image the bucket does not hold
+ * yet draws nothing and the slide shows its ink ground under its words.
  */
-const painting = (name: string) => ({ url: `/hero-art/${name}.jpg` })
+const painting = (name: string) => ({ url: assetUrl(`hero/${name}.webp`) })
 
 /** The five slides: what each part of the site is for, over a piece of the book's art. */
 function heroSlides(): Slide[] {
-  const chassis = artOf('chassis', 'atlas', '')
   return [
     {
       key: 'reference',
       title: referenceCopy('showReference'),
       body: referenceCopy('showReferenceBody'),
-      action: referenceCopy('readTheRules'),
+      action: referenceCopy('showReferenceAction'),
       href: '/reference/',
       art: painting('reference'),
     },
@@ -67,9 +69,9 @@ function heroSlides(): Slide[] {
       key: 'build',
       title: referenceCopy('showBuild'),
       body: referenceCopy('showBuildBody'),
-      action: referenceCopy('startBuilding'),
+      action: referenceCopy('showBuildAction'),
       href: appPath('/'),
-      art: chassis ? { url: chassis.url, srcSet: chassis.srcSet, blueprint: true } : undefined,
+      art: painting('build'),
     },
     {
       key: 'play',
@@ -83,7 +85,7 @@ function heroSlides(): Slide[] {
       key: 'buy',
       title: referenceCopy('showBuy'),
       body: referenceCopy('showBuyBody'),
-      action: referenceCopy('buyFromLeylinePress'),
+      action: referenceCopy('showBuyAction'),
       href: BUY_HREF,
       external: true,
       art: painting('buy'),
@@ -101,11 +103,12 @@ function heroSlides(): Slide[] {
 }
 
 /**
- * EXPERIMENT (hero slideshow): the home is the slideshow, edge to edge and the
- * whole height between the header and the footer. Each slide's art covers the
- * ground; its words, and the site's pitch over every slide, stand on paper
- * plates of their own, so the art is never dimmed. CSS only (the page is
- * served without React); under reduced motion the first slide stands still.
+ * The home is its slideshow, edge to edge and the whole height between the
+ * header and the footer. Each slide's art covers the ground. The site's name
+ * stands on a paper cut-out at the top with the pitch under it; each slide's
+ * words stand on the art itself, in the same place every time, over a soft
+ * scrim. CSS only (the page is served without React); under reduced motion
+ * the first slide stands still.
  */
 export function HomeHero() {
   const slides = heroSlides()
@@ -120,20 +123,13 @@ export function HomeHero() {
           <li
             key={slide.key}
             className="su-front__show-slide"
-            data-blueprint={slide.art?.blueprint ? '' : undefined}
             style={{ '--su-show-i': index } as CSSProperties}
           >
             {slide.art && (
-              <img
+              <span
                 className="su-front__show-art"
-                src={slide.art.url}
-                srcSet={slide.art.srcSet}
-                sizes="100vw"
-                alt=""
-                // Every slide's art loads at once: a hidden slide's lazy image would wait for its turn.
-                loading="eager"
-                fetchPriority={index === 0 ? 'high' : 'low'}
-                decoding="async"
+                aria-hidden="true"
+                style={{ backgroundImage: `url(${slide.art.url})` }}
               />
             )}
             <div className="su-front__show-copy">
@@ -144,7 +140,8 @@ export function HomeHero() {
                 linkAs="a"
                 variant="primary"
                 size="full"
-                {...(slide.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                target={slide.external ? '_blank' : undefined}
+                rel="noopener noreferrer"
               >
                 {slide.action}
               </Button>
@@ -152,7 +149,12 @@ export function HomeHero() {
           </li>
         ))}
       </ul>
-      <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
+      {/* The site's name on a paper cut-out, the page's one h1, and the pitch
+          flowing flush out of its foot. */}
+      <div className="su-front__show-head">
+        <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
+        <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
+      </div>
     </section>
   )
 }

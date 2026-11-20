@@ -293,29 +293,31 @@ export function AppBar({
             it lists what is INSIDE the open area, as D&D Beyond's and
             Demiplane's section menus do, so any listing is one press from
             any page. A phone reads the same map in the drawer. */}
-        {(Object.keys(RAIL) as AppBarProduct[]).map((area) => (
-          // All three are served; the bar's `data-mode` shows its own
-          // (`best-site.css`), so the rail follows the app's route marking.
-          <nav
-            key={area}
-            className="su-union-bar__rail"
-            data-area={area}
-            aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
-          >
-            {RAIL[area].links.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                className={cn('su-union-bar__rail-link', CAPS, FOCUS_RING)}
-              >
-                {link.label}
-              </a>
-            ))}
-            {/* The open page's acts land here
+        {/* The front door (`noCurrent`) is in no area, so it carries no rail. */}
+        {!noCurrent &&
+          (Object.keys(RAIL) as AppBarProduct[]).map((area) => (
+            // All three are served; the bar's `data-mode` shows its own
+            // (`best-site.css`), so the rail follows the app's route marking.
+            <nav
+              key={area}
+              className="su-union-bar__rail"
+              data-area={area}
+              aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
+            >
+              {RAIL[area].links.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className={cn('su-union-bar__rail-link', CAPS, FOCUS_RING)}
+                >
+                  {link.label}
+                </a>
+              ))}
+              {/* The open page's acts land here
                 (`RailActs`), right-aligned on the links' line. */}
-            <span className="su-union-bar__rail-acts" data-rail-acts="" />
-          </nav>
-        ))}
+              <span className="su-union-bar__rail-acts" data-rail-acts="" />
+            </nav>
+          ))}
       </header>
 
       {hasCrumbs && <BreadcrumbTrail breadcrumbs={breadcrumbs} placement="row" />}

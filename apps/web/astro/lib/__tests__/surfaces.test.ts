@@ -29,12 +29,14 @@ const ldCrumbs = (html: string) =>
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
-describe('home: the front door', () => {
+describe('home: the front door, its slideshow alone', () => {
   const html = page('/')
+  const show = html.slice(html.indexOf('su-front__show'), html.indexOf('<footer'))
 
-  it('is titled with the site’s name, in the front doors’ band', () => {
+  it('is titled with the site’s name, on the slideshow’s cut-out', () => {
     expect(h1s(html)).toEqual(['SalvageUnion.io'])
-    expect(html).toContain('su-chapter-band')
+    expect(html).toContain('su-front__show-name')
+    expect(html).not.toContain('su-chapter-band')
   })
 
   it('searches from the Union bar, as every page does: one search island, no hero', () => {
@@ -42,62 +44,35 @@ describe('home: the front door', () => {
     expect(html).not.toContain('su-hero-search')
   })
 
-  it('quotes the legacy tagline on the band, credited to Stumpy', () => {
-    const band = html.slice(html.indexOf('su-chapter-band'), html.indexOf('su-front__body'))
-    expect(band).toContain('su-tagline')
-    expect(band).toContain('You’re in The Union, now!')
-    expect(band).toContain('Lester “Stumpy” Owens')
+  it('carries no area rail: the chapters are the Reference’s', () => {
+    expect(html).not.toContain('su-union-bar__rail"')
   })
 
-  it('pitches the site with one rust action, beside the art plate', () => {
-    const hero = html.slice(html.indexOf('su-front__hero'), html.indexOf('id="three-ways-in"'))
-    expect(hero.match(/su-btn--primary/g)).toHaveLength(1)
-    expect(hero).toContain('href="/reference/"')
-    expect(hero).toContain('su-front__plate')
-    expect(html.match(/su-btn--primary/g)).toHaveLength(1)
+  it('pitches the site under its name, flush on the same cut-out', () => {
+    const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
+    expect(head).toContain('su-front__show-name')
+    expect(head).toContain('su-front__show-value')
   })
 
-  it('opens three ways in: the Reference’s home, Build and Play in the app', () => {
-    const doors = html.slice(html.indexOf('id="three-ways-in"'), html.indexOf('su-front__buy'))
-    expect(doors.match(/class="su-start-here__item"/g)).toHaveLength(3)
+  it('shows five slides, each one action to one part of the site', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(5)
+    expect(show.match(/su-btn--primary/g)).toHaveLength(5)
     for (const href of ['/reference/', '/build/', '/games/']) {
-      expect(doors).toContain(`<a href="${href}" class="su-entity-index su-start-here__step`)
+      expect(show).toContain(`href="${href}"`)
     }
-    expect(doors).not.toContain('target="_blank"')
+    expect(show).toContain('href="https://discord.com/oauth2/authorize?client_id=')
+  })
+
+  it('draws each slide’s art as its ground, so art not yet uploaded draws nothing', () => {
+    expect(show).not.toContain('<img')
+    expect(
+      show.match(/background-image:url\(https:\/\/assets\.salvageunion\.io\/hero\//g)
+    ).toHaveLength(5)
   })
 
   it('holds no Contents: the book’s index is the Reference’s home', () => {
     expect(html).not.toContain('su-home__index')
     expect(html).not.toContain('id="pilot-bay"')
-  })
-
-  it('lists the books it cites as one Ledger, each opening its page', () => {
-    const buy = html.slice(html.indexOf('su-front__buy'), html.indexOf('su-front__bot'))
-    expect(buy.match(/<table/g)).toHaveLength(1)
-    expect(buy).toContain('href="/sources/salvage-union-workshop-manual/"')
-    expect(buy).toContain('href="/starter/"')
-  })
-
-  it('offers the Discord bot as one button, after the index', () => {
-    const bot = html.slice(html.indexOf('su-front__bot'), html.indexOf('<footer'))
-    expect(bot.match(/<a /g)).toHaveLength(1)
-    expect(bot).toContain('id="discord-bot"')
-    expect(bot).toContain('<svg')
-    expect(bot).toContain('href="https://discord.com/oauth2/authorize?client_id=')
-  })
-
-  it('reads title, tagline, the pitch, the three ways in, the books, then Discord', () => {
-    const at = (needle: string) => html.indexOf(needle)
-    expect(at('<h1')).toBeGreaterThan(-1)
-    const order = [
-      '<h1',
-      'su-tagline',
-      'su-front__hero',
-      'id="three-ways-in"',
-      'su-front__buy',
-      'id="discord-bot"',
-    ].map(at)
-    expect(order).toEqual([...order].sort((a, b) => a - b))
   })
 })
 
@@ -407,7 +382,7 @@ describe('every page ends on one footer', () => {
   }
 
   // The footer matches the leading band on every page that leads with one.
-  for (const [name, path] of [...listings, ['home', '/']] as const) {
+  for (const [name, path] of [...listings, ['the Reference’s home', '/reference']] as const) {
     it(`${name} wears its leading band on its footer`, () => {
       expect(matched(page(path))).toBe(true)
     })
