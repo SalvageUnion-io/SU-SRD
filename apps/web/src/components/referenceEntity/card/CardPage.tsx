@@ -109,7 +109,6 @@ export function CardPage({
   bodyLabel,
   subLine,
   body,
-  bodyRules = false,
   table,
   guide,
   sections,
@@ -220,23 +219,13 @@ export function CardPage({
         )}
       </>
     )
-    const hasRules =
-      leadActions.length > 0 ||
-      otherActions.length > 0 ||
-      !!sections ||
-      !!table ||
-      patterns.length > 0 ||
-      neighbours.length > 0 ||
-      !!opening
-    // The words stand in the side column when rules stand beside them.
-    // A pattern's Page shows its chassis's ability,
-    // not the chassis's own prose.
-    const wordsAside = !opening && !!(subLine || body) && !bodyRules && (!!hero || hasRules)
-    // A Page that is only its description reads as plain prose: no strip, no
-    // panel ("Stats by kind").
-    const loreOnly = !hasRules && !opening && line.length === 0
+    // The words lead the main column, never the side (best, revision 8):
+    // the description reads as plain prose at the head of the main column: no
+    // strip, no panel. A Page whose body is named otherwise (a pattern's "Mule
+    // chassis") keeps its labelled section.
+    const loreOnly = !bodyLabel
     const prose = (
-      <div className={cn('su-entity-page__prose', wordsAside && 'su-manual__lore-prose')}>
+      <div className="su-entity-page__prose">
         {subLine}
         {body}
       </div>
@@ -300,23 +289,23 @@ export function CardPage({
       </ul>
     )
     const statsAside = !hero && line.length > 0
-    const side = !!hero || wordsAside || statsAside
+    const side = !!hero || statsAside
     return (
       <div className="su-entity-page su-manual">
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}
             {statsAside && stats}
-            {wordsAside && words}
             {ability}
           </div>
         )}
         {/* The main track, always beside a side
             track (empty or not), so every Page's blocks share one width. */}
         <div className="su-manual__main">
+          {loreOnly && words}
           {!statsAside && stats}
           {opening && <div className="su-entity-page__opening">{opening}</div>}
-          {!wordsAside && words}
+          {!loreOnly && words}
           {!side && ability}
           {opening && loadout}
           {otherActions.length > 0 && (
