@@ -28,7 +28,8 @@ import {
   pilotMaxHP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import { CiteLine, capsLabel } from '../../components/index'
+import type { OpenColumn, OpenRow } from '../../components/index'
+import { CiteLine, capsLabel, OpenLedger, TechLevel } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { appPath } from '../../lib/appBase'
 import { resolveClass } from '../../lib/classRef'
@@ -42,8 +43,6 @@ import {
   starterRoster,
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
-import type { OpenColumn, OpenRow } from '../dash/OpenLedger'
-import { OpenLedger, TechLevel } from '../dash/OpenLedger'
 import { CopyStarterMenu } from './CopyStarterMenu'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */

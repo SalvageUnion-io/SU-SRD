@@ -4,6 +4,8 @@ import { messages } from './define'
 
 export const atomsCopy = messages({
   backTo: 'Back to',
+  more: 'More',
+  less: 'Less',
   breadcrumb: 'Breadcrumb',
   removeCondition: 'Remove condition {label}',
   add: '+ Add',

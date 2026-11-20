@@ -4,17 +4,15 @@
  * `Dash` is the grid under the header strip: three columns from 80rem (what
  * the unit does, what it has, what it carries and who it is), two from 48rem,
  * one below. `DashGroup` is a group in a column: a label on a rule (the
- * `SlabSection`, drawn by the surface's look) over its body. `Facts` is a
- * group's written fields, a small label over each; `Prose` a long text that
- * keeps to a few lines until it is asked for; `PinnedVitals` a phone's
- * vitals, pinned over the stacked groups.
+ * `SlabSection`, drawn by the surface's look) over its body. `PinnedVitals` is a
+ * phone's vitals, pinned over the stacked groups. A group's written fields
+ * are the library's `Facts`, a long text its `Prose`.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import type { CSSVarStyle, PhoneVital, SlabCount } from '../../components/index'
+import type { PhoneVital, SlabCount } from '../../components/index'
 import { capsLabel, cn, PhoneVitals, PhoneVitalsGlance, SlabSection } from '../../components/index'
-import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -77,81 +75,6 @@ export function DashGroup({
     >
       {children}
     </SlabSection>
-  )
-}
-
-export type Fact = {
-  key: string
-  label: ReactNode
-  value: ReactNode
-  /** Takes the list's whole width (a paragraph). */
-  wide?: boolean
-}
-
-/** A group's written fields; a field with nothing written is left out (R11). */
-export function Facts({ facts }: { facts: readonly (Fact | false | null | undefined)[] }) {
-  const shown = facts.filter(
-    (fact): fact is Fact =>
-      !!fact && fact.value !== '' && fact.value !== null && fact.value !== undefined
-  )
-  if (shown.length === 0) return null
-  return (
-    <dl className="su-dash-facts">
-      {shown.map((fact) => (
-        <div key={fact.key} className={cn('su-dash-fact', fact.wide && 'su-dash-fact--wide')}>
-          <dt className={CAPS}>{fact.label}</dt>
-          <dd>{fact.value}</dd>
-        </div>
-      ))}
-    </dl>
-  )
-}
-
-/** A long text at a few lines, the rest one press away. */
-export function Prose({
-  text,
-  lines = 4,
-  children,
-}: {
-  /** The text, a paragraph a blank line. */
-  text?: string | undefined
-  lines?: number
-  /** In place of `text`: prose already set (`TraitProse`). */
-  children?: ReactNode
-}) {
-  const [open, setOpen] = useState(false)
-  const [clipped, setClipped] = useState(false)
-  const ref = useRef<HTMLDivElement | null>(null)
-  // Only a text that overflows its lines offers "More".
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measured when the text or the fold changes
-  useEffect(() => {
-    const node = ref.current
-    if (!node || open) return
-    setClipped(node.scrollHeight > node.clientHeight + 1)
-  }, [text, open, lines])
-  const paragraphs = (text ?? '').split(/\n\s*\n/).filter((part) => part.trim() !== '')
-  if (!children && paragraphs.length === 0) return null
-  return (
-    <>
-      <div
-        ref={ref}
-        className="su-dash-prose"
-        data-clamp={open ? undefined : ''}
-        style={{ '--lines': lines } as CSSVarStyle}
-      >
-        {children ?? paragraphs.map((part) => <p key={part}>{part}</p>)}
-      </div>
-      {(clipped || open) && (
-        <button
-          type="button"
-          className={cn('su-dash-more', CAPS, CAPS)}
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        >
-          {buildSheetCopy(open ? 'less' : 'more')}
-        </button>
-      )}
-    </>
   )
 }
 

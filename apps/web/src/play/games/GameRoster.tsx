@@ -34,16 +34,16 @@ import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { OpenColumn, OpenRow } from '../../build/dash/OpenLedger'
-import { OpenLedger, TechLevel } from '../../build/dash/OpenLedger'
-import type { HeaderMenuItem } from '../../components/index'
+import type { HeaderMenuItem, OpenColumn, OpenRow } from '../../components/index'
 import {
   Button,
   FieldError,
   HeaderMenu,
+  OpenLedger,
   RosterSkeleton,
   SlabSection,
   Stat,
+  TechLevel,
   Text,
 } from '../../components/index'
 import type { UnitRow } from '../../components/shared/UnitRow'

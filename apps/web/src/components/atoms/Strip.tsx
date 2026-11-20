@@ -20,9 +20,13 @@
 
 import { Minus, Plus } from 'lucide-react'
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
-import type { CSSVarStyle, PhoneVital } from '../../components/index'
-import { capsLabel, cn, FOCUS_RING, tokens } from '../../components/index'
-import { buildSheetCopy } from '../../messages/build-sheet'
+import * as tokens from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { atomsCopy } from '../../messages/components-atoms'
+import type { CSSVarStyle } from '../../styles/cssVars'
+import { capsLabel } from './capsLabel'
+import { FOCUS_RING } from './interaction'
+import type { PhoneVital } from './PhoneVitals'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -140,7 +144,7 @@ function StripVital({ vital }: { vital: PhoneVital }) {
           <span className="su-strip__stepper">
             <button
               type="button"
-              aria-label={buildSheetCopy('decreaseName', { name })}
+              aria-label={atomsCopy('decrease2', { label: name })}
               disabled={shown <= 0}
               className={FOCUS_RING}
               onClick={() => onChange(clamp(shown - 1))}
@@ -149,7 +153,7 @@ function StripVital({ vital }: { vital: PhoneVital }) {
             </button>
             <button
               type="button"
-              aria-label={buildSheetCopy('increaseName', { name })}
+              aria-label={atomsCopy('increase2', { label: name })}
               disabled={shown >= ceiling}
               className={FOCUS_RING}
               onClick={() => onChange(clamp(shown + 1))}

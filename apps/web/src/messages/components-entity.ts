@@ -3,6 +3,8 @@
 import { messages } from './define'
 
 export const entityCopy = messages({
+  rowRules: '{name} rules',
+  techLevelN: 'Tech Level {level}',
   notShown: 'Not shown',
   thisCardCouldNotBe: 'This card could not be drawn here.',
   rollTable: '(roll table)',

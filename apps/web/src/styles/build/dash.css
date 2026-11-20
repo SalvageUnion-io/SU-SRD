@@ -1798,11 +1798,6 @@
   border-color: var(--color-ink-60);
 }
 
-.su-chassis-plate:focus-visible {
-  outline: var(--bw-pill) solid var(--color-ink);
-  outline-offset: var(--space-2);
-}
-
 .su-chassis-plate[data-picked] {
   border-color: var(--color-ink);
   box-shadow: 0 0 0 var(--bw-pill) var(--color-ink);

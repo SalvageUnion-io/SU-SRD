@@ -45,6 +45,10 @@ const SLAB_SECTION_HOME = 'apps/web/src/components/containers/SlabSection.tsx'
 const STAT_ATOMS = [
   'apps/web/src/components/atoms/Stat.tsx',
   'apps/web/src/components/atoms/StatColumn.tsx',
+  // A sheet's written fields, a masthead's traits, the Scrap board (§3.7, its list form).
+  'apps/web/src/components/atoms/Facts.tsx',
+  // A sheet masthead's fixed figures, label over figure (§3.7, the strip form).
+  'apps/web/src/components/atoms/Strip.tsx',
 ]
 
 /** The description list's elements. */
@@ -53,6 +57,7 @@ const DL_ELEMENTS = new Set(['dl', 'dt', 'dd'])
 /** Where a `<table>` may be drawn (ledger.md L9): a list compared or picked from is a Ledger. */
 const TABLE_HOMES: Record<string, string> = {
   'apps/web/src/components/entity/Ledger.tsx': 'the Ledger',
+  'apps/web/src/components/entity/OpenLedger.tsx': "the Ledger's open form, a sheet's lists (L1)",
   'apps/web/src/components/compositions/RollTableInstrument.tsx': 'the roll instrument (R8)',
   'apps/web/src/reference/pages/api.page.tsx':
     "a document page's schema table: prose, no entity list",

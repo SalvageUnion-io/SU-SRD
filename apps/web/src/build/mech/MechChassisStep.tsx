@@ -8,7 +8,13 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
+import {
+  assetSrcSetFor,
+  capsLabel,
+  EmptyState,
+  PictureRadio,
+  ReferenceEntityCard,
+} from '../../components/index'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
@@ -249,12 +255,9 @@ function ChassisGallery({
           const art = getAssetUrl(chassis)
           const picked = slug === selected
           return (
-            // biome-ignore lint/a11y/useSemanticElements: a picture plate is a button-shaped radio, not a native input
-            <button
+            <PictureRadio
               key={slug}
-              type="button"
-              role="radio"
-              aria-checked={picked}
+              checked={picked}
               className="su-chassis-plate"
               data-picked={picked || undefined}
               onClick={() => onSelect(slug)}
@@ -278,7 +281,7 @@ function ChassisGallery({
                   </span>
                 ))}
               </span>
-            </button>
+            </PictureRadio>
           )
         })}
       </div>

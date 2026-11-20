@@ -21,7 +21,13 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
-import type { ChoiceSelections, CSSVarStyle, PhoneVital } from '../../components/index'
+import type {
+  ChoiceSelections,
+  CSSVarStyle,
+  OpenColumn,
+  OpenRow,
+  PhoneVital,
+} from '../../components/index'
 import {
   Button,
   Content,
@@ -29,8 +35,15 @@ import {
   damagedEffectOf,
   EntityChoices,
   EntityRollMini,
+  Facts,
   Mention,
+  OpenLedger,
+  Prose,
+  STRIP_ART,
   Stat,
+  Strip,
+  StripFigure,
+  TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
@@ -57,10 +70,7 @@ import type { CrawlerBayEntry } from '../sheet/CrawlerSheetItems'
 import { splitBayContent } from '../sheet/CrawlerSheetItems'
 import { EXOTIC_NAME } from '../sheet/exoticNames.model'
 import { LinkedUnitLink } from '../sheet/LinkedUnitLink'
-import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
-import type { OpenColumn, OpenRow } from './OpenLedger'
-import { OpenLedger, TechLevel } from './OpenLedger'
-import { STRIP_ART, Strip, StripFigure } from './Strip'
+import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -435,24 +445,21 @@ export function CrawlerDash({
               chip over its count), then what is stored as its rows. */}
           <DashGroup title={buildSheetCopy('storageBay')} tally={buildSheetCopy('unlimited')}>
             <p className={cn('su-dash-sub su-scrap__label', CAPS)}>{buildSheetCopy('scrap')}</p>
-            <dl className="su-scrap" aria-label={buildSheetCopy('scrapByTechLevel')}>
-              {NUMERIC_TECH_LEVELS.map((level) => {
+            <Facts
+              className="su-scrap"
+              itemClassName="su-scrap__cell"
+              label={buildSheetCopy('scrapByTechLevel')}
+              facts={NUMERIC_TECH_LEVELS.map((level) => {
                 const count = scrapPoolBucket(pool, level)
-                return (
-                  <div
-                    key={level}
-                    className="su-scrap__cell"
-                    data-empty={count === 0 ? '' : undefined}
-                    style={{ '--tl': `var(--color-tl-${level})` } as CSSVarStyle}
-                  >
-                    <dt>
-                      <TechLevel level={level} />
-                    </dt>
-                    <dd>{count}</dd>
-                  </div>
-                )
+                return {
+                  key: String(level),
+                  label: <TechLevel level={level} />,
+                  value: count,
+                  empty: count === 0,
+                  style: { '--tl': `var(--color-tl-${level})` } as CSSVarStyle,
+                }
               })}
-            </dl>
+            />
             {hasExotic(pool) && (
               <Facts
                 facts={EXOTIC_RESOURCES.map((resource) => ({

@@ -15,7 +15,19 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, capsLabel, Stat } from '../../components/index'
+import type { OpenColumn, OpenRow } from '../../components/index'
+import {
+  Conditions,
+  capsLabel,
+  Facts,
+  OpenLedger,
+  Prose,
+  STRIP_ART,
+  Stat,
+  Strip,
+  StripFigure,
+  TechLevel,
+} from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
@@ -28,11 +40,8 @@ import type { AbilityEntry, PilotSheetModel } from '../sheet/pilotSheet.model'
 import { inventoryEmpty } from '../sheet/pilotSheet.model'
 import type { PilotSheetActions } from '../sheet/pilotSheetActions.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
-import type { OpenColumn, OpenRow } from './OpenLedger'
-import { OpenLedger, TechLevel } from './OpenLedger'
+import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
 import { RowRules } from './RowRules'
-import { STRIP_ART, Strip, StripFigure } from './Strip'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -248,17 +257,12 @@ export function PilotDash({
       </div>
     ) : undefined
   const traitLines = traits.some(Boolean) ? (
-    <dl className="su-mast-traits">
-      {traits.map(
-        (fact) =>
-          fact && (
-            <div key={fact.key} className="su-mast-trait">
-              <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{fact.label}</dt>
-              <dd>{fact.value}</dd>
-            </div>
-          )
-      )}
-    </dl>
+    <Facts
+      className="su-mast-traits"
+      itemClassName="su-mast-trait"
+      labelClassName="su-mast-id__label"
+      facts={traits}
+    />
   ) : undefined
   return (
     <>

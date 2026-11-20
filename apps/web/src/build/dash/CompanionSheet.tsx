@@ -19,8 +19,22 @@ import type { CSSProperties } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import type { PhoneVital } from '../../components/index'
-import { ChapterBand, Chips, capsLabel, Mention, relation, Tag } from '../../components/index'
+import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import {
+  ChapterBand,
+  Chips,
+  capsLabel,
+  Facts,
+  Mention,
+  OpenLedger,
+  Prose,
+  relation,
+  STRIP_ART,
+  Strip,
+  StripFigure,
+  Tag,
+  TechLevel,
+} from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { space } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
@@ -40,12 +54,9 @@ import { useUnits } from '../../replica/units'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, Prose } from './Dash'
+import { Dash, DashColumn } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
-import type { OpenColumn, OpenRow } from './OpenLedger'
-import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
-import { STRIP_ART, Strip, StripFigure } from './Strip'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -283,22 +294,19 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
               </>
             }
             traits={
-              <dl className="su-mast-traits">
-                <div className="su-mast-trait">
-                  <dt className={cn('su-mast-id__label', CAPS, CAPS)}>
-                    {buildSheetCopy('techLevel')}
-                  </dt>
-                  <dd>
-                    <TechLevel level={partnerTechLevel(partner, undefined)} />
-                  </dd>
-                </div>
-                {lines.map((line) => (
-                  <div key={line.key} className="su-mast-trait">
-                    <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{line.label}</dt>
-                    <dd>{line.value}</dd>
-                  </div>
-                ))}
-              </dl>
+              <Facts
+                className="su-mast-traits"
+                itemClassName="su-mast-trait"
+                labelClassName="su-mast-id__label"
+                facts={[
+                  {
+                    key: 'tech-level',
+                    label: buildSheetCopy('techLevel'),
+                    value: <TechLevel level={partnerTechLevel(partner, undefined)} />,
+                  },
+                  ...lines,
+                ]}
+              />
             }
             identity={
               about !== '' ? (

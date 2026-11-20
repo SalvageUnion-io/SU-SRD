@@ -6,7 +6,8 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Stat } from '../../components/index'
+import type { OpenColumn, OpenRow } from '../../components/index'
+import { Stat, TechLevel } from '../../components/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import {
   itemEconomy,
@@ -17,8 +18,6 @@ import {
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { ItemKind } from '../sheet/mechSheetActions.model'
 import { Cost } from './Cost'
-import type { OpenColumn, OpenRow } from './OpenLedger'
-import { TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
 
 // THE stat order (ledger.md, `ledgerOrder.ts`): where it comes from (TL,

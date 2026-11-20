@@ -17,7 +17,20 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { Conditions, capsLabel, Mention, Stat } from '../../components/index'
+import type { OpenColumn } from '../../components/index'
+import {
+  Conditions,
+  capsLabel,
+  Facts,
+  Mention,
+  OpenLedger,
+  Prose,
+  STRIP_ART,
+  Stat,
+  Strip,
+  StripFigure,
+  TechLevel,
+} from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
@@ -35,12 +48,9 @@ import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { MechSheetActions } from '../sheet/mechSheetActions.model'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { Cost } from './Cost'
-import { Dash, DashColumn, DashGroup, PinnedVitals, Prose } from './Dash'
+import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
-import type { OpenColumn } from './OpenLedger'
-import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
-import { STRIP_ART, Strip, StripFigure } from './Strip'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -188,20 +198,15 @@ export function MechDash({
   ) : undefined
   const traitLines =
     mech.quirk || mech.appearance ? (
-      <dl className="su-mast-traits">
-        {mech.quirk && (
-          <div className="su-mast-trait">
-            <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('quirk')}</dt>
-            <dd>{mech.quirk}</dd>
-          </div>
-        )}
-        {mech.appearance && (
-          <div className="su-mast-trait">
-            <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('appearance')}</dt>
-            <dd>{mech.appearance}</dd>
-          </div>
-        )}
-      </dl>
+      <Facts
+        className="su-mast-traits"
+        itemClassName="su-mast-trait"
+        labelClassName="su-mast-id__label"
+        facts={[
+          { key: 'quirk', label: buildSheetCopy('quirk'), value: mech.quirk },
+          { key: 'appearance', label: buildSheetCopy('appearance'), value: mech.appearance },
+        ]}
+      />
     ) : undefined
   return (
     <>

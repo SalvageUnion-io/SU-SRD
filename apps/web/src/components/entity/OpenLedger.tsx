@@ -18,19 +18,23 @@
  * its whole card), what marks it on this sheet, then its figures in fixed
  * tabular columns; the line under it is what it does, two lines at most.
  *
- * Built for real this is `Ledger`'s open form (ledger.md L1, L2): the same
- * rows and columns with no frame and no painted head strip, so a sheet's
- * lists read alike at every width. Kept apart here so the mock touches no
- * Ledger consumer.
+ * It is `Ledger`'s open form (ledger.md L1, L2): the same rows and columns
+ * with no frame and no painted head strip, so a sheet's lists read alike at
+ * every width.
  */
 
 import { ChevronDown } from 'lucide-react'
 import type { ElementType, ReactNode } from 'react'
 import { Fragment, useId, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
-import type { CSSVarStyle, SlabCount } from '../../components/index'
-import { capsLabel, cn, InlineRef, Mention, tokens } from '../../components/index'
-import { buildSheetCopy } from '../../messages/build-sheet'
+import * as tokens from '../../design/tokens'
+import { cn } from '../../lib/cn'
+import { entityCopy } from '../../messages/components-entity'
+import type { CSSVarStyle } from '../../styles/cssVars'
+import { capsLabel } from '../atoms/capsLabel'
+import { InlineRef } from '../atoms/InlineRef'
+import type { SlabCount } from '../atoms/slabSummary'
+import { Mention } from './forms/Mention'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -154,7 +158,7 @@ function Row({
                 aria-controls={panel}
                 aria-label={
                   row.detailLabel ??
-                  buildSheetCopy('rowRules', { name: typeof row.name === 'string' ? row.name : '' })
+                  entityCopy('rowRules', { name: typeof row.name === 'string' ? row.name : '' })
                 }
                 onClick={() => setOpen((value) => !value)}
               >
@@ -368,7 +372,7 @@ export function TechLevel({ level }: { level: number | string | undefined }) {
       // The dark swatches (TL 4 up) carry paper text.
       data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
-      title={buildSheetCopy('techLevelN', { level: String(level) })}
+      title={entityCopy('techLevelN', { level: String(level) })}
     >
       {level}
     </span>
