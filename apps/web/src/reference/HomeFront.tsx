@@ -1,5 +1,6 @@
 // The home page: its slideshow (`HomeHero`), the site's name on a paper
-// cut-out over five slides of the book's art, each a line and one action.
+// cut-out over five slides of the book's art, each a line and one action
+// named for the slide.
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
@@ -14,7 +15,6 @@ type Slide = {
   key: string
   title: string
   body: string
-  action: string
   href: string
   external?: boolean
   /** The slide's ground: a painting from the books. */
@@ -37,7 +37,6 @@ function heroSlides(): Slide[] {
       key: 'reference',
       title: referenceCopy('showReference'),
       body: referenceCopy('showReferenceBody'),
-      action: referenceCopy('showReferenceAction'),
       href: '/reference/',
       art: painting('reference'),
     },
@@ -45,7 +44,6 @@ function heroSlides(): Slide[] {
       key: 'build',
       title: referenceCopy('showBuild'),
       body: referenceCopy('showBuildBody'),
-      action: referenceCopy('showBuildAction'),
       href: appPath('/'),
       art: painting('build'),
     },
@@ -53,7 +51,6 @@ function heroSlides(): Slide[] {
       key: 'play',
       title: referenceCopy('showPlay'),
       body: referenceCopy('showPlayBody'),
-      action: referenceCopy('showPlayAction'),
       href: appPath('/games/'),
       art: painting('play'),
     },
@@ -61,7 +58,6 @@ function heroSlides(): Slide[] {
       key: 'buy',
       title: referenceCopy('showBuy'),
       body: referenceCopy('showBuyBody'),
-      action: referenceCopy('showBuyAction'),
       href: BUY_HREF,
       external: true,
       art: painting('buy'),
@@ -70,7 +66,6 @@ function heroSlides(): Slide[] {
       key: 'discord',
       title: referenceCopy('showDiscord'),
       body: referenceCopy('showDiscordBody'),
-      action: referenceCopy('showDiscordAction'),
       href: DISCORD_INSTALL_URL,
       external: true,
       art: painting('discord'),
@@ -118,21 +113,22 @@ export function HomeHero() {
               />
             )}
             <div className="su-front__show-copy">
-              <h2 className="su-front__show-title">{slide.title}</h2>
               <div className="su-front__show-plate">
                 <p className="su-front__show-body">{slide.body}</p>
-                <div className="su-front__show-act">
-                  <Button
-                    href={slide.href}
-                    linkAs="a"
-                    variant="primary"
-                    size="full"
-                    target={slide.external ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                  >
-                    {slide.action}
-                  </Button>
-                </div>
+              </div>
+              {/* The action floats on the art below the words, on no paper,
+                  and carries the slide's title: the slide has no heading. */}
+              <div className="su-front__show-act">
+                <Button
+                  href={slide.href}
+                  linkAs="a"
+                  variant="primary"
+                  size="full"
+                  target={slide.external ? '_blank' : undefined}
+                  rel="noopener noreferrer"
+                >
+                  {slide.title}
+                </Button>
               </div>
             </div>
           </li>

@@ -13,11 +13,13 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { SignInControl } from '../build/account/SignInControl'
-import { Button, ChapterBand, PageShell, Text, tokens } from '../components/index'
+import { Button, ChapterBand, PageShell, Text, TitledBox, tokens } from '../components/index'
 
-const BODY = { maxWidth: '36rem' } satisfies CSSProperties
+/** The prompt's panel: the not-found panel's measure, on the page's gutters. */
+const PANEL = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties
 
-const REASON = { fontSize: tokens.fontSize.title, margin: 0 } satisfies CSSProperties
+/** Its body: a column, the way on at its head's edge. */
+const PANEL_BODY = { alignItems: 'flex-start', gap: tokens.space[16] } satisfies CSSProperties
 
 type PlayRefusalProps = {
   /** Whose band it wears: a pilot's Play is a mode of its Training Bay page
@@ -52,20 +54,24 @@ export function PlayRefusal({
   return (
     <PageShell>
       <ChapterBand tone={area}>{PRODUCT[area]}</ChapterBand>
-      <Text as="h2" style={REASON}>
-        {title}
-      </Text>
-      <Text variant="hint" style={BODY}>
-        {body}
-      </Text>
-      <div>
-        {link ? (
-          <Button href={link.href} back={link.back ?? true} size="compact">
-            {link.label}
-          </Button>
-        ) : (
-          <SignInControl redirectTo={signInTo} />
-        )}
+      {/* What is missing, as a titled panel with its own padding, never flush
+          on the column's edge (the signed-out and refused screens alike). */}
+      <div style={PANEL}>
+        <TitledBox
+          title={title}
+          titleAs="h2"
+          tone={area === 'build' ? 'pilot' : 'crawler-band'}
+          bodyStyle={PANEL_BODY}
+        >
+          <Text variant="note">{body}</Text>
+          {link ? (
+            <Button href={link.href} back={link.back ?? true} size="compact">
+              {link.label}
+            </Button>
+          ) : (
+            <SignInControl redirectTo={signInTo} />
+          )}
+        </TitledBox>
       </div>
       {children}
     </PageShell>

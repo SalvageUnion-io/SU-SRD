@@ -63,6 +63,19 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
+  it('names each slide on its button, with no heading of its own: the outline is the one h1', () => {
+    expect(show).not.toMatch(/<h[2-6]/)
+    for (const title of [
+      'Know the rules',
+      'Build your crew',
+      'Play at the table',
+      'Get the books',
+      'Roll in Discord',
+    ]) {
+      expect(show).toMatch(new RegExp(`su-btn--primary[^>]*>(?:<[^>]+>)*${title}<`))
+    }
+  })
+
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
     expect(arts).toHaveLength(5)
@@ -157,6 +170,28 @@ describe('a listing (a Ledger under a visible heading)', () => {
   it('trails Reference // Chassis, without the home page’s chapter', () => {
     expect(crumbs(html)).toEqual(['Reference', 'Chassis'])
     expect(ldCrumbs(html)).toEqual(['Reference', 'Chassis'])
+  })
+})
+
+describe('a sparse Page fills its side track (EDL form 5)', () => {
+  it('a trait wears Used by first, its users as Mentions, then its neighbours under its list’s name', () => {
+    const html = page('/traits/hacking')
+    const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
+    expect(rail).toContain('Used by')
+    expect(rail.indexOf('Used by')).toBeLessThan(rail.indexOf('>Traits<'))
+    expect(rail).toContain('Hacking Kit')
+    expect(rail).toContain('and 19 more')
+  })
+
+  it('a keyword nothing names draws no empty Used by', () => {
+    const html = page('/keywords/corporate-scrip')
+    expect(html).toContain('su-sparse-rail')
+    expect(html).not.toContain('>Used by<')
+    expect(html).toContain('>Keywords<')
+  })
+
+  it('a Page with art and actions has no sparse rail', () => {
+    expect(page('/bio-titans/typhon')).not.toContain('su-sparse-rail')
   })
 })
 

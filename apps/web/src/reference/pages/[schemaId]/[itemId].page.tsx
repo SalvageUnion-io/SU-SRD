@@ -9,7 +9,7 @@
  * band. A roll table gets its own page to roll on.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
 import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
@@ -23,12 +23,14 @@ import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
+import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
+import { SparseRail } from '../../SparseRail'
 import type { PageModule, PageResult, RouteContext } from '../../types'
 
 /** The stats a crawler tech level's band keeps; the rest are its body's text. */
@@ -138,6 +140,14 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         build={buildLinkFor(schemaId, item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
+        rail={
+          !rollPage && !techLevelPage && isSparse(item) ? (
+            <SparseRail
+              rail={sparseRailFor(schemaId as RefEnumSchemaName, item)}
+              tone={chapter.tone}
+            />
+          ) : undefined
+        }
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}

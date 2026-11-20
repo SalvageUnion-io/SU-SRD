@@ -15,6 +15,7 @@ export function SharePageButton() {
   return (
     <>
       <Button
+        variant="ink"
         size="compact"
         aria-label={referenceCopy('shareThisPage')}
         className="su-page-action su-share-page"
