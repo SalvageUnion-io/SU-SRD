@@ -166,14 +166,12 @@ body:has(.su-front--show) main {
 .su-front__show-quote .su-tagline__line {
   -webkit-box-decoration-break: clone;
   background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
   box-decoration-break: clone;
   padding: var(--space-2) var(--space-16);
 }
 
 .su-front__show-name {
   background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
   color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
@@ -197,7 +195,6 @@ body:has(.su-front--show) main {
 .su-front__show-lines {
   -webkit-box-decoration-break: clone;
   background-color: var(--color-paper);
-  border: var(--bw-entity-compact) solid var(--color-ink);
   box-decoration-break: clone;
   padding: var(--space-4) var(--space-16);
 }
@@ -219,9 +216,6 @@ body:has(.su-front--show) main {
 .su-front__show-plate {
   align-items: center;
   background-color: var(--color-paper);
-  /* Every white box on the home's art wears an info box's frame (`TitledBox`'s
-     Compact frame), in ink: the home has no band colour. */
-  border: var(--bw-entity-compact) solid var(--color-ink);
   display: flex;
   gap: var(--space-12) var(--space-16);
   padding: var(--space-12) var(--space-16);
@@ -238,6 +232,21 @@ body:has(.su-front--show) main {
   margin: 0;
   min-width: 0;
   text-wrap: balance;
+}
+
+/* Each white area on the art (the name over the pitch's lines, the
+   tagline's lines, a slide's plate) is outlined as one shape: the outline
+   traces its outer edge only, never a seam between its lines or strips. A
+   border cannot (it would box each line), so the area's silhouette is
+   offset each way by the info box's frame width (`--bw-entity-compact`), in
+   crawler pink on every slide. */
+:is(.su-front__show-brand, .su-front__show-quote, .su-front__show-plate) {
+  --su-o: var(--bw-entity-compact);
+  --su-o-: calc(-1 * var(--bw-entity-compact));
+  filter: drop-shadow(var(--su-o) 0 0 var(--color-crawler-band))
+    drop-shadow(var(--su-o-) 0 0 var(--color-crawler-band))
+    drop-shadow(0 var(--su-o) 0 var(--color-crawler-band))
+    drop-shadow(0 var(--su-o-) 0 var(--color-crawler-band));
 }
 
 @keyframes su-front-show {
