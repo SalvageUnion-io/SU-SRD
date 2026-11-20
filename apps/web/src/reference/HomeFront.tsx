@@ -1,6 +1,6 @@
-// The home page: its slideshow (`HomeHero`), the site's name on a paper
-// cut-out over five slides of the book's art, each a line and one action
-// named for the slide.
+// The home page: its slideshow (`HomeHero`), the site's name on an ink
+// cut-out and the pitch over five slides of the book's art, each a line and
+// one action named for the slide, then the tagline's slide.
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
@@ -14,13 +14,13 @@ import { referenceCopy } from '../messages/reference'
 
 type Slide = {
   key: string
-  title: string
-  body: string
-  href: string
-  external?: boolean
   /** The slide's ground: a painting from the books. */
   art: { url: string } | undefined
-}
+} & (
+  | { quote?: false; title: string; body: string; href: string; external?: boolean }
+  /** The slide's words are the tagline (`Tagline`), in its plate. */
+  | { quote: true }
+)
 
 /**
  * A painting from the Workshop Manual's spreads, cropped clear of its printed
@@ -31,7 +31,7 @@ type Slide = {
  */
 const painting = (name: string) => ({ url: assetUrl(`hero/${name}.webp`) })
 
-/** The five slides: what each part of the site is for, over a piece of the book's art. */
+/** The slides: what each part of the site is for, over a piece of the book's art, then the tagline. */
 function heroSlides(): Slide[] {
   return [
     {
@@ -71,6 +71,9 @@ function heroSlides(): Slide[] {
       external: true,
       art: painting('discord'),
     },
+    // The tagline every landing page says, as the show's last slide, over the
+    // first slide's painting, so the show loops back on the same ground.
+    { key: 'union', quote: true, art: painting('reference') },
   ]
 }
 
@@ -117,39 +120,39 @@ export function HomeHero() {
                 action (named for the slide, which has no heading) first, the
                 line beside it. */}
             <div className="su-front__show-copy">
-              <div className="su-front__show-plate">
-                <Button
-                  href={slide.href}
-                  linkAs="a"
-                  variant="primary"
-                  size="full"
-                  className="su-front__show-act"
-                  target={slide.external ? '_blank' : undefined}
-                  rel="noopener noreferrer"
-                >
-                  {slide.title}
-                </Button>
-                <p className="su-front__show-body">{slide.body}</p>
-              </div>
+              {slide.quote ? (
+                <div className="su-front__show-plate su-front__show-plate--quote">
+                  <Tagline />
+                </div>
+              ) : (
+                <div className="su-front__show-plate">
+                  <Button
+                    href={slide.href}
+                    linkAs="a"
+                    variant="primary"
+                    size="full"
+                    className="su-front__show-act"
+                    target={slide.external ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                  >
+                    {slide.title}
+                  </Button>
+                  <p className="su-front__show-body">{slide.body}</p>
+                </div>
+              )}
             </div>
           </li>
         ))}
       </ul>
-      {/* The site's name on a paper cut-out, the page's one h1, and the pitch
-          flowing flush out of its foot. */}
+      {/* The site's name on an ink cut-out, the page's one h1, at the left;
+          the pitch at the right, its cream hugging each line it breaks to. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
           <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
-          {/* The pitch's paper hugs each line it breaks to. */}
-          <p className="su-front__show-value">
-            <span className="su-front__show-lines">{referenceCopy('pitchValue')}</span>
-          </p>
         </div>
-        {/* The tagline every landing page says, in its hand, level with the
-            site's name. */}
-        <div className="su-front__show-quote">
-          <Tagline />
-        </div>
+        <p className="su-front__show-value">
+          <span className="su-front__show-lines">{referenceCopy('pitchValue')}</span>
+        </p>
       </div>
     </section>
   )

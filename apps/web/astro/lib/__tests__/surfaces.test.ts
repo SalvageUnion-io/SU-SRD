@@ -49,20 +49,21 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-union-bar__rail"')
   })
 
-  it('says the tagline in its hand, beside the site’s name', () => {
+  it('says the tagline in its hand as a slide of its own, not in the head', () => {
     const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
-    expect(head).toMatch(/su-front__show-quote"><figure class="su-tagline"/)
-    expect(head).not.toContain('su-tagline--plain')
+    expect(head).not.toContain('su-tagline')
+    expect(show).toMatch(/su-front__show-plate--quote"><figure class="su-tagline"/)
   })
 
-  it('pitches the site under its name, flush on the same cut-out', () => {
+  it('names the site at the left and pitches it at the right', () => {
     const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
     expect(head).toContain('su-front__show-value')
+    expect(head.indexOf('su-front__show-name')).toBeLessThan(head.indexOf('su-front__show-value'))
   })
 
-  it('shows five slides, each one action to one part of the site', () => {
-    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(5)
+  it('shows five action slides, each one action to one part of the site, then the tagline', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(6)
     expect(show.match(/su-btn--primary/g)).toHaveLength(5)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
@@ -85,7 +86,8 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
-    expect(arts).toHaveLength(5)
+    // Five action slides and the tagline's, which takes the first's painting.
+    expect(arts).toHaveLength(6)
     for (const art of arts) {
       expect(art).toContain('alt=""')
       expect(art).toMatch(/src="https:\/\/assets\.salvageunion\.io\/hero\//)

@@ -147,32 +147,15 @@ body:has(.su-front--show) main {
   z-index: 2;
 }
 
-/* The site's name and the pitch under it, one cut-out stack at the left. */
+/* The site's name, a cut-out at the left. */
 .su-front__show-brand {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  max-width: 40rem;
-}
-
-/* The tagline at the right, its quote's box level with the name's top. */
-.su-front__show-quote {
   display: flex;
 }
 
-/* On the home's art (and only there) the tagline's quote and credit wear
-   paper hugging each line, as the pitch does, so they read over any slide.
-   They touch: no gap, only each line's own leading. */
-.su-front__show-quote .su-tagline__line {
-  -webkit-box-decoration-break: clone;
-  background-color: var(--color-wk-bg);
-  box-decoration-break: clone;
-  padding: var(--space-2) var(--space-16);
-}
-
+/* The site's name in cream on ink. */
 .su-front__show-name {
-  background-color: var(--color-wk-bg);
-  color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-wk-bg);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
@@ -183,6 +166,7 @@ body:has(.su-front--show) main {
 
 .su-front__show-value {
   color: var(--color-ink);
+  max-width: 34rem;
   font-family: var(--font-cond);
   font-size: var(--text-display-lg);
   font-weight: var(--font-weight-bold);
@@ -241,21 +225,25 @@ body:has(.su-front--show) main {
    border cannot (it would box each line), so the area's silhouette is
    offset each way by twice the info box's frame width (`--bw-entity-compact`), in
    its area's colour. The areas stand on the page's cream, as a page body does. */
-/* Each area its own colour, the same on every slide: the name and pitch
-   green, the tagline crawler pink, a slide's plate Build orange. */
+/* Each area its own colour, the same on every slide: the name ink on ink,
+   the pitch green, a slide's plate Build orange, the tagline's crawler pink. */
 .su-front__show-brand {
-  --su-show-frame: var(--color-mech);
+  --su-show-frame: var(--color-ink);
 }
 
-.su-front__show-quote {
-  --su-show-frame: var(--color-crawler-band);
+.su-front__show-value {
+  --su-show-frame: var(--color-mech);
 }
 
 .su-front__show-plate {
   --su-show-frame: var(--color-pilot);
 }
 
-:is(.su-front__show-brand, .su-front__show-quote, .su-front__show-plate) {
+.su-front__show-plate--quote {
+  --su-show-frame: var(--color-crawler-band);
+}
+
+:is(.su-front__show-brand, .su-front__show-value, .su-front__show-plate) {
   /* Twice the info box's frame: 4px, so the trace holds over busy art. */
   --su-o: calc(2 * var(--bw-entity-compact));
   --su-o-: calc(-2 * var(--bw-entity-compact));
@@ -297,6 +285,13 @@ body:has(.su-front--show) main {
 @media (prefers-reduced-motion: reduce) {
   .su-front__show-slide:not(:first-child) {
     display: none;
+  }
+}
+
+/* From `sm` the pitch stands at the right, set right; on a phone it stacks under the name. */
+@media (width >= 40rem) {
+  .su-front__show-value {
+    text-align: right;
   }
 }
 
