@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { OpenColumn, OpenRow } from '../../index'
 import { OpenLedger } from '../../index'
 
@@ -28,5 +28,23 @@ describe('OpenLedger whole', () => {
     render(<OpenLedger title="Systems" columns={COLUMNS} groups={[{ key: 'g', rows: ROWS }]} />)
     expect(screen.queryByText('Railgun rules')).toBeNull()
     expect(document.querySelectorAll('[aria-expanded="false"]')).toHaveLength(2)
+  })
+})
+
+describe('OpenLedger folded group', () => {
+  test('a group that starts shut is one line, its count; pressed, its rows', () => {
+    render(
+      <OpenLedger
+        title="Abilities"
+        columns={COLUMNS}
+        groups={[{ key: 'g', label: 'Generic', fold: 'closed', rows: ROWS }]}
+      />
+    )
+    const fold = screen.getByRole('button', { name: /Generic/ })
+    expect(fold.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText('Railgun')).toBeNull()
+    fireEvent.click(fold)
+    expect(fold.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText('Railgun')).toBeTruthy()
   })
 })
