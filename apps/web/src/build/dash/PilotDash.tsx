@@ -312,7 +312,7 @@ export function PilotDash({
                 <OpenLedger
                   key={group.tree}
                   className="su-open--sub"
-                  as="h4"
+                  as="h3"
                   title={group.tree}
                   columns={TREE_COLUMNS}
                   groups={[
@@ -327,7 +327,7 @@ export function PilotDash({
             {model.unresolvedAbilities.length > 0 && (
               <OpenLedger
                 className="su-open--sub su-open--generic"
-                as="h4"
+                as="h3"
                 title={buildSheetCopy('generic')}
                 columns={ABILITY_COLUMNS}
                 groups={[

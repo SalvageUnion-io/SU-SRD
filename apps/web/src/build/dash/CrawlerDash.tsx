@@ -486,7 +486,7 @@ export function CrawlerDash({
               />
             )}
             <OpenLedger
-              as="h4"
+              as="h3"
               title={buildSheetCopy('stored')}
               columns={STORED_COLUMNS}
               groups={[
@@ -527,7 +527,7 @@ export function CrawlerDash({
               })}
               {typeLead && (typeLead.name || typeLead.position) && (
                 <OpenLedger
-                  as="h4"
+                  as="h3"
                   title={buildSheetCopy('typeCrew')}
                   columns={TYPE_COLUMNS}
                   groups={[

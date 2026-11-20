@@ -67,7 +67,7 @@ export function DashGroup({
 }) {
   return (
     <SlabSection
-      as="h3"
+      as="h2"
       title={title}
       count={tally}
       actions={actions}
