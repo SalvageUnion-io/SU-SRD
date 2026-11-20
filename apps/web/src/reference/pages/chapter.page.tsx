@@ -8,8 +8,8 @@
  */
 
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { ContentsRow } from '../../components/index'
+import { getEntitySlug, getTechLevel, getTree, SalvageUnionReference } from 'salvageunion-reference'
+import type { ContentsGroup, ContentsRow } from '../../components/index'
 import {
   BreadcrumbTrail,
   ChapterBand,
@@ -22,24 +22,65 @@ import { buildChapters } from '../../lib/chapters'
 import { SITE_URL, SRD_CRUMB, WEBSITE } from '../../lib/constants'
 import { itemHref } from '../../lib/entityHref'
 import { listingEntries } from '../../lib/listingEntries'
+import type { TechLevel } from '../../lib/listingGroups'
+import { groupEntities, resolveGroupBy } from '../../lib/listingGroups'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
-/** A listing's rows: the listing itself, then its entries by name. */
-function listingRows(schemaId: string, label: string, href: string): ContentsRow[] {
+/** A big list breaks up under sub-heads (more than this many rows). */
+const GROUP_FROM = 24
+
+/**
+ * A listing's entries by name, under sub-heads where the list is big: the
+ * listing page's own groups (tech level in the book's order, tree, kind, bay;
+ * `listingGroups.ts`), else by first letter. Its title links the listing.
+ */
+function listingGroups(schemaId: string): ContentsGroup[] {
   const all = SalvageUnionReference.findAllIn(
     schemaId as RefEnumSchemaName,
     () => true
   ) as RefEntity[]
-  const entries = listingEntries(schemaId, all)
-    .map((entity) => ({ label: entity.name, href: itemHref(schemaId, getEntitySlug(entity)) }))
-    .sort((a, b) => a.label.localeCompare(b.label))
   const seen = new Set<string>()
-  const unique = entries.filter((row) => !seen.has(row.href) && seen.add(row.href))
-  return [{ label: pagesCopy('chapterAllOf', { listing: label }), href }, ...unique]
+  const items = listingEntries(schemaId, all).filter((entity) => {
+    const href = itemHref(schemaId, getEntitySlug(entity))
+    return !seen.has(href) && seen.add(href)
+  })
+  const row = (entity: RefEntity): ContentsRow => ({
+    label: entity.name,
+    href: itemHref(schemaId, getEntitySlug(entity)),
+  })
+  const byName = (list: RefEntity[]) =>
+    [...list].sort((a, b) => a.name.localeCompare(b.name)).map(row)
+  if (items.length <= GROUP_FROM) return [{ label: '', rows: byName(items) }]
+  const trees = [...new Set(items.map(getTree).filter((t): t is string => typeof t === 'string'))]
+  const levels = [...new Set(items.map(getTechLevel).filter((tl) => tl != null))] as TechLevel[]
+  const groupBy = resolveGroupBy(items, trees, levels, schemaId)
+  if (groupBy !== 'none') {
+    return groupEntities(items, groupBy).map((group) => ({
+      label: group.label ?? '',
+      rows: byName(group.items),
+    }))
+  }
+  const letters = new Map<string, RefEntity[]>()
+  for (const entity of items) {
+    const letter = entity.name.charAt(0).toUpperCase()
+    letters.set(letter, [...(letters.get(letter) ?? []), entity])
+  }
+  return [...letters.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([label, list]) => ({ label, rows: byName(list) }))
+}
+
+/** A listing's rows for its Contents section: plain, or under sub-heads. */
+function chapterRows(schemaId: string): { rows: ContentsRow[]; groups?: ContentsGroup[] } {
+  const groups = listingGroups(schemaId)
+  const [only] = groups
+  return groups.length === 1 && only && only.label === ''
+    ? { rows: only.rows }
+    : { rows: [], groups }
 }
 
 function chapterPage(chapterId: string): PageResult {
@@ -91,7 +132,8 @@ function chapterPage(chapterId: string): PageResult {
                 id={row.schemaId}
                 title={row.label}
                 tone={chapter.tone}
-                rows={listingRows(row.schemaId, row.label, row.href)}
+                href={row.href}
+                {...chapterRows(row.schemaId)}
               />
             ))}
           </div>

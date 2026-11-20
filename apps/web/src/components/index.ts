@@ -136,7 +136,7 @@ export { BrandCard } from './compositions/BrandCard'
 // ContentsChapter — a chapter of the Contents: the SRD home's index, the Mediator's Reference
 // CardImage — an entity's art plate (a card's image, the home page's hero).
 export { CardImage } from './compositions/CardImage'
-export type { ContentsRow } from './compositions/ContentsChapter'
+export type { ContentsGroup, ContentsRow } from './compositions/ContentsChapter'
 export { ContentsChapter } from './compositions/ContentsChapter'
 export { heroImageSizes } from './compositions/cardImageSizes'
 // digestRollTable — a banded d20 table as rows, highest first (the book's order);

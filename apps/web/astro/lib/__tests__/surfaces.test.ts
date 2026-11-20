@@ -173,6 +173,14 @@ describe('a chapter’s own page: its band, then its every listing', () => {
     expect(page('/mechs')).toContain('href="/chassis/mule/"')
   })
 
+  it('links each listing from its title, with no "All …" row', () => {
+    const html = page('/mechs')
+    expect(html).toMatch(
+      /su-contents__heading"><a href="\/chassis\/" class="su-contents__title-link">Chassis</
+    )
+    expect(html).not.toMatch(/>All [A-Z]/)
+  })
+
   it('is where the area rail’s chapters land', () => {
     const html = page('/reference')
     for (const [route] of chapters) expect(html).toContain(`href="${route}/"`)

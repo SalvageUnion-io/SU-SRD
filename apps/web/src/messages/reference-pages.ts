@@ -175,7 +175,6 @@ export const pagesCopy = messages({
   referenceHomeDescription:
     'The Salvage Union rules, chapter by chapter: Pilots, Mechs, the Union Crawler, the Wasteland and the rules a table reaches for.',
   atTheTable: 'At the table',
-  chapterAllOf: 'All {listing}',
   chapterDescription: 'The Salvage Union {chapter}, every entry by listing: {listings}.',
   ogCardRender: 'OG card render',
   homebrew: 'Homebrew',

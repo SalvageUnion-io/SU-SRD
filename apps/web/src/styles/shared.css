@@ -221,6 +221,23 @@
   padding: var(--space-6) 0;
 }
 
+.su-contents__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.su-contents__title-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* A big list's sub-head (a tech level, a tree, a letter): small caps over
+   its run of rows, a step of air above. */
+.su-contents__group-head {
+  color: var(--color-ink-2);
+  margin: var(--space-12) 0 var(--space-4);
+}
+
 .su-contents__rows {
   display: flex;
   flex-direction: column;
