@@ -271,8 +271,12 @@ describe('Pilot hero — readOnly identity', () => {
 
   test('a callsign that differs from the name still prints', () => {
     renderHero(makePilot({ name: 'Yara Voss', callsign: 'Ghost' }), undefined, true)
-    expect(screen.getByText('Callsign')).toBeTruthy()
-    expect(screen.getByText('Ghost')).toBeTruthy()
+    // The band's title is the callsign; the real name follows it.
+    const band = must(
+      screen.getByRole('heading', { level: 1 }).closest<HTMLElement>('.su-chapter-band')
+    )
+    expect(within(band).getByRole('heading', { level: 1 }).textContent).toContain('Ghost')
+    expect(within(band).getByText('Yara Voss')).toBeTruthy()
   })
 
   test('a callsign that is the name is the band’s title alone', () => {

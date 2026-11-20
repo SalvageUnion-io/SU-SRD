@@ -28,6 +28,8 @@ const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { useUnits } = await import('../../../replica/units')
 const { Roster } = await import('../Roster')
+const { Shelves } = await import('../../shelves/Shelves')
+const { ShelvesPart } = await import('../../shelves/shelvesPart')
 
 withSignedInBackend()
 
@@ -90,6 +92,20 @@ async function renderShelves() {
     )
   })
   await settle(() => screen.queryByRole('region', { name: 'Pilots' }) !== null)
+}
+
+/** The Mediator's Kit, the Games front's half of the shelves (NPCs, Encounters). */
+async function renderKit() {
+  await act(async () => {
+    render(
+      <SyncContext.Provider value={CONNECTED}>
+        <ShelvesPart.Provider value="kit">
+          <Shelves />
+        </ShelvesPart.Provider>
+      </SyncContext.Provider>
+    )
+  })
+  await settle(() => screen.queryByRole('region', { name: 'NPCs' }) !== null)
 }
 
 /** Seed one entity the way a signed-in player builds it: a store create. */
@@ -189,15 +205,16 @@ describe('Roster — signed out, it is the front door', () => {
     })
 
     const starter = screen.getByRole('region', { name: 'Starter Set' })
-    const crew = within(starter).getByRole('table', { name: 'Starter Set crew' })
+    const crew = within(starter).getByRole('table', { name: 'Pilots & their Mechs' })
     expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )
-    // Pilots, their Mechs and the Crawler, in one list: each line says its kind.
-    const kinds = [...crew.querySelectorAll('tbody tr')].map(
-      (row) => row.querySelector('td')?.textContent
-    )
-    expect(new Set(kinds)).toEqual(new Set(['Pilot', 'Mech', 'Crawler']))
+    // Each Pilot's line names their Mech, which opens its own sheet; the
+    // Crawler is its own Ledger under them.
+    const bonesaw = within(crew).getByRole('link', { name: 'Bonesaw' }).closest('tr')
+    const mech = bonesaw?.querySelector<HTMLAnchorElement>('td a')
+    expect(mech?.getAttribute('href')).toMatch(/^\/starter\/mech\//)
+    expect(within(starter).getByRole('table', { name: 'Union Crawler' })).toBeTruthy()
     // Whose crew it is, said once over the list (the Ledger's foot cites the book).
     expect(within(starter).getAllByText(/Leyline Press/, { selector: 'p' })).toHaveLength(1)
     expect(within(starter).getByText(/sign in to copy one/)).toBeTruthy()
@@ -233,12 +250,14 @@ describe('Training Bay — the band', () => {
 })
 
 describe('Training Bay — one shelf per kind', () => {
-  test('Pilots, Mechs, Crawlers, Patterns and NPCs, then the Starter Set', async () => {
+  test('Pilots, Mechs, Crawlers and Patterns, then the Starter Set; NPCs are the Games front kit', async () => {
     await renderShelves()
 
-    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'NPCs', 'Starter Set']) {
+    for (const name of ['Pilots', 'Mechs', 'Crawlers', 'Patterns', 'Starter Set']) {
       expect(screen.getByRole('region', { name })).toBeTruthy()
     }
+    // The Mediator's Kit is on the Games front (ADR-066), never the Training Bay.
+    expect(screen.queryByRole('region', { name: 'NPCs' })).toBeNull()
   })
 
   test('each unit shelf builds a new one onto the shelf', async () => {
@@ -257,9 +276,8 @@ describe('Training Bay — one shelf per kind', () => {
     expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
   })
 
-  test('patterns are user-made, and the NPC shelf offers the designer', async () => {
-    await renderShelves()
-    expect(screen.getByText('Your patterns, ready to build a Mech from.')).toBeTruthy()
+  test('the NPC shelf offers the designer', async () => {
+    await renderKit()
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText(/No NPCs yet/)).toBeTruthy()
     expect(within(npcs).queryByText(/on its way/)).toBeNull()
@@ -280,7 +298,7 @@ describe('Training Bay — one shelf per kind', () => {
       actions: [],
       traits: [],
     })
-    await renderShelves()
+    await renderKit()
 
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     // Its name is the link to its sheet; its line reads its position, who can
@@ -313,7 +331,7 @@ describe('Training Bay — one shelf per kind', () => {
         .getByRole('button', { name: 'Collapse Starter Set' })
         .getAttribute('aria-expanded')
     ).toBe('true')
-    const crew = within(starter).getByRole('table', { name: 'Starter Set crew' })
+    const crew = within(starter).getByRole('table', { name: 'Pilots & their Mechs' })
     expect(within(crew).getByRole('link', { name: 'Bonesaw' }).getAttribute('href')).toBe(
       '/starter/pilot/starter-pilot-bonesaw'
     )

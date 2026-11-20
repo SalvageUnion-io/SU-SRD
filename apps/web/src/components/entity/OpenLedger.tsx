@@ -283,13 +283,17 @@ export function OpenLedger({
   const tallies = tally === undefined ? [] : Array.isArray(tally) ? tally : [tally as SlabCount]
   const filled = groups.filter((group) => group.rows.length > 0)
   const gutter = filled.some((group) => group.rows.some((row) => row.detail !== undefined))
+  // The table is named by its title, as a screen reader lists it.
+  const titleId = useId()
   return (
-    <table className={cn('su-open', className)}>
+    <table className={cn('su-open', className)} aria-labelledby={titleId}>
       <thead className={CAPS}>
         <tr>
           <th scope="col">
             <span className="su-open__title">
-              <Heading className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</Heading>
+              <Heading id={titleId} className={cn('su-rule-head__label', CAPS, CAPS)}>
+                {title}
+              </Heading>
               {tallies.length > 0 && (
                 <span className="su-rule-head__tallies">
                   {tallies.map((entry) => (

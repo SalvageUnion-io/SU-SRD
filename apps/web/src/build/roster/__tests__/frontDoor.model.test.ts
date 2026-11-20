@@ -34,7 +34,8 @@ describe('FRONT_DOOR_SCHEMAS', () => {
     const subset = renderFrontDoor('subset')
     const all = renderFrontDoor('all')
     expect(subset.stderr).toBe('')
-    expect(all.markup).toContain('data-peek="classes:')
+    // The full render reads the reference: each Pilot's class names its line.
+    expect(all.markup).toMatch(/su-open__meta[^>]*>Engineer</)
     expect(subset.markup).toBe(all.markup)
   })
 })

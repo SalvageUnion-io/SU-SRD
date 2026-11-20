@@ -166,44 +166,36 @@ describe('MechSheet — no chassis stat column (C10)', () => {
   })
 })
 
+/** Read's chassis-ability group: the section its "Chassis ability" head names. */
+function chassisAbility(): HTMLElement {
+  const head = screen.getByText('Chassis ability', { selector: 'h3, h3 *' })
+  const section = head.closest<HTMLElement>('section')
+  if (!section) throw new Error('no chassis ability group')
+  return section
+}
+
 describe('MechSheet — the hero and the Chassis card', () => {
-  test('the hero is image | text | ability; the chassis callout leads the sidebar', () => {
+  test("Read's masthead wears the chassis art; the chassis ability leads the side column", () => {
     const spectrum: Mech = { ...fakeMech, chassisRef: 'spectrum', systems: [], cargoLots: [] }
     const { container } = render(
       <MechSheet mech={spectrum} store={makeStubStore(spectrum)} crawler={fakeCrawler} readOnly />
     )
-    const hero = container.querySelector('section[aria-label="Snapshot Mech sheet header"]')
-    const card = container.querySelector('section[aria-label="Chassis"]')
-    expect(hero).not.toBeNull()
-    expect(card).not.toBeNull()
-    // The hero: the player's photo (the chassis art until changed), what they
-    // wrote, then the chassis ability as a library Compact.
-    expect(hero?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
-    const ability = hero?.querySelector('ul[aria-label="Chassis ability"] li')
-    expect(ability?.textContent).toContain('Data Scanner')
+    // Read is the sheet dashboard: the masthead's art is the player's photo,
+    // the chassis art until changed.
+    const mast = container.querySelector('.su-mast')
+    expect(mast?.querySelector('img')?.getAttribute('alt')).toBe('Spectrum artwork')
+    // The chassis ability is its own group, its name and every word showing.
+    const ability = chassisAbility()
+    expect(ability.textContent).toContain('Data Scanner')
     // Read leaves the pattern name out: it is the band's title.
-    expect(hero?.textContent).not.toContain('Pattern name')
-    // The card: the chassis's name, art and description, and nothing the hero has.
-    expect(card?.textContent).toContain('Spectrum')
-    // The callout leads the sidebar, above the Hold, with a CHASSIS chip
-    // beside its name.
-    const aside = container.querySelector('[data-sheet-aside]')
-    expect(hero?.contains(card ?? null)).toBe(false)
-    // (After the slot the Vitals take from the 64rem rung.)
-    expect(aside?.querySelector(':scope > :not(.su-sheet-aside-vitals)')).toBe(card)
-    expect(card?.querySelector('[data-chip-group]')?.textContent).toMatch(/chassis/i)
-    expect(card?.querySelector('img')).not.toBeNull()
-    expect(card?.querySelector('[aria-label="Chassis ability"]')).toBeNull()
+    expect(container.textContent).not.toContain('Pattern name')
   })
 
-  test('the ability is a Compact with no lead, which is an SRD index alone (EDL E11)', () => {
+  test('the chassis ability names its chassis, never the token', () => {
     const mazona: Mech = { ...fakeMech, chassisRef: 'mazona', systems: [], cargoLots: [] }
-    const { container } = render(
-      <MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />
-    )
-    const ability = container.querySelector('ul[aria-label="Chassis ability"] li')
-    expect(ability?.textContent).toContain('Hover Drone')
-    expect(ability?.querySelector('.su-entity-lead')).toBeNull()
-    expect(ability?.textContent).not.toContain('[(CHASSIS)]')
+    render(<MechSheet mech={mazona} store={makeStubStore(mazona)} crawler={fakeCrawler} readOnly />)
+    const ability = chassisAbility()
+    expect(ability.textContent).toContain('Hover Drone')
+    expect(ability.textContent).not.toContain('[(CHASSIS)]')
   })
 })

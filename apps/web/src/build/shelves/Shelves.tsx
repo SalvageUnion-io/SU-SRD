@@ -43,7 +43,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { cockpitPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
-import { createContext, useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
@@ -117,6 +117,7 @@ import {
   under,
   who,
 } from './shelfColumns'
+import { ShelvesPart } from './shelvesPart'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
@@ -139,10 +140,6 @@ function ConnectedShelves() {
 }
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
-/** Which half of the old Shelves to draw. */
-// biome-ignore lint/style/useComponentExportOnlyModules: MOCK: a real build splits the kit into its own module
-export const MockShelvesPart = createContext<'bay' | 'kit'>('bay')
-
 export function Shelves() {
   const { status } = useSync()
   if (status === 'live') return <ConnectedShelves />
@@ -154,7 +151,7 @@ export function Shelves() {
 // ---------------------------------------------------------------------------
 
 function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
-  const part = useContext(MockShelvesPart)
+  const part = useContext(ShelvesPart)
   const { status, canWrite } = useSync()
   const { confirm, dialog } = useConfirm()
   const go = useGo()
@@ -362,9 +359,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
-  // The Mediator's Kit (NPCs, Encounters) renders
-  // on the Games front, not here. Built for real it is its own module with
-  // its own hooks; the mock reuses this page's.
+  // The Mediator's Kit (NPCs, Encounters) renders on the Games front
+  // (`ShelvesPart`), reading this page's hooks.
   if (part === 'kit') {
     return (
       <div className="su-shelf-ledgers su-mediator-kit">
