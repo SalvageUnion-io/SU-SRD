@@ -1175,10 +1175,11 @@
    words (its own size contained), and its pieces wrap into a column off its
    edge where they do not fit: a piece shows whole or not at all, the last
    first to go. */
+/* Stacked (under `lg`), the rail follows the Page's blocks on its rhythm (12px). */
 .su-entity__railed {
   display: flex;
   flex-direction: column;
-  gap: var(--space-24);
+  gap: var(--space-12);
 }
 
 .su-entity__railed-main {

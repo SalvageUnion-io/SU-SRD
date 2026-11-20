@@ -532,6 +532,14 @@ const RULES: readonly Rule[] = [
 const titleCase = (term: string) =>
   term.replace(/(^|[\s-])([a-z])/g, (_, sep: string, ch: string) => sep + ch.toUpperCase())
 
+/**
+ * The genre's name, not the game's noun: "a post-apocalyptic mech TTRPG" (the
+ * home's pitch, About, llms.txt) names the kind of game, as "mech tabletop RPG"
+ * does, so its "mech" keeps the sentence's case. Only that phrase: every other
+ * lower-case "mech" is still the noun.
+ */
+const GENRE_AFTER = /^\s+(?:TTRPG|tabletop RPG)(?![\w-])/
+
 /** Findings for a corpus, given the term list and the bans. Pure. */
 export function lintCopy(
   copy: readonly CopyString[],
@@ -553,6 +561,7 @@ export function lintCopy(
         if (taken.some(([a, b]) => from < b && to > a)) continue
         taken.push([from, to])
         if (isCapitalised(m[0])) continue
+        if (term.toLowerCase() === 'mech' && GENRE_AFTER.test(c.text.slice(to))) continue
         lowercase.push({ file: c.file, line: c.line, detail: `"${m[0]}": say ${titleCase(term)}` })
       }
     }

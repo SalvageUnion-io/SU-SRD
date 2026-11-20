@@ -112,6 +112,11 @@ type OpenLedgerProps = {
   empty?: string
   /** The books these rows are printed in: the foot's cut-out, bottom right. */
   cite?: ReactNode
+  /**
+   * Every row's rules stand open, with no opener: a reference Page shows its
+   * whole self, nothing folded (R43, R44).
+   */
+  whole?: boolean
   className?: string
 }
 
@@ -121,10 +126,13 @@ function Row({
   span,
   band,
   gutter,
+  whole,
 }: {
   row: OpenRow
   columns: readonly OpenColumn[]
   span: number
+  /** Its rules stand open, with no opener (`OpenLedger`'s `whole`). */
+  whole: boolean
   /** Another row of the ledger opens: this one keeps the opener's column. */
   gutter: boolean
   /** The cream band of the zebra (every second row of its group). */
@@ -133,8 +141,8 @@ function Row({
   // Until it is pressed a row is open where it starts open: derived, not
   // stored, so a row whose rules arrive after its first render still opens.
   const [pressed, setPressed] = useState<boolean | null>(null)
-  const starts = row.defaultOpen === true
-  const open = row.detail !== undefined && (pressed ?? starts)
+  const starts = row.defaultOpen === true || whole
+  const open = row.detail !== undefined && (whole || (pressed ?? starts))
   const setOpen = (next: (value: boolean) => boolean) => setPressed(next(open))
   const panel = useId()
   const banded = band ? '' : undefined
@@ -150,7 +158,7 @@ function Row({
       >
         <th scope="row">
           <span className="su-open__name-line">
-            {row.detail !== undefined && (
+            {row.detail !== undefined && !whole && (
               <button
                 type="button"
                 className="su-open__toggle"
@@ -203,7 +211,12 @@ function Row({
         </tr>
       )}
       {row.detail !== undefined && (
-        <tr className="su-open__detail" id={panel} hidden={!open} data-band={banded}>
+        <tr
+          className="su-open__detail"
+          id={whole ? undefined : panel}
+          hidden={!open}
+          data-band={banded}
+        >
           <td colSpan={span}>
             {open ? <div className="su-open__detail-body">{row.detail}</div> : null}
           </td>
@@ -218,11 +231,13 @@ function Group({
   columns,
   span,
   gutter,
+  whole,
 }: {
   group: OpenGroup
   columns: readonly OpenColumn[]
   span: number
   gutter: boolean
+  whole: boolean
 }) {
   const [open, setOpen] = useState(group.fold !== 'closed')
   return (
@@ -260,6 +275,7 @@ function Group({
             span={span}
             band={index % 2 === 1}
             gutter={gutter}
+            whole={whole}
           />
         ))}
     </tbody>
@@ -277,12 +293,14 @@ export function OpenLedger({
   groups,
   empty,
   cite,
+  whole = false,
   className,
 }: OpenLedgerProps) {
   const span = columns.length + 1
   const tallies = tally === undefined ? [] : Array.isArray(tally) ? tally : [tally as SlabCount]
   const filled = groups.filter((group) => group.rows.length > 0)
-  const gutter = filled.some((group) => group.rows.some((row) => row.detail !== undefined))
+  const gutter =
+    !whole && filled.some((group) => group.rows.some((row) => row.detail !== undefined))
   // The table is named by its title, as a screen reader lists it.
   const titleId = useId()
   return (
@@ -352,7 +370,14 @@ export function OpenLedger({
         </tbody>
       ) : (
         filled.map((group) => (
-          <Group key={group.key} group={group} columns={columns} span={span} gutter={gutter} />
+          <Group
+            key={group.key}
+            group={group}
+            columns={columns}
+            span={span}
+            gutter={gutter}
+            whole={whole}
+          />
         ))
       )}
       {cite && (

@@ -238,6 +238,8 @@ export function PatternLoadoutRows({
           <OpenLedger
             key={group.label}
             className="su-open--loadout"
+            // A reference Page shows its whole self: every row's rules open (R43).
+            whole
             title={group.label}
             as={sectionAs ?? 'h2'}
             columns={ITEM_COLUMNS}
