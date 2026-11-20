@@ -24,6 +24,8 @@ const ROSTER = {
     'Button', // §5.6 Btn
     'buttonVariants', // §5.6 Btn's recipe
     'Slab', // §5.7 Slab
+    'SlabLookProvider', // §5.7 Slab: its look, set once a surface
+    'useSlabLook', // §5.7 Slab: its look, read
     'SlabSection', // §6.4 Section
     'RollTableInstrument', // §5.8 RollTable
     'StatusBadge', // §5.9 Condition
@@ -31,10 +33,18 @@ const ROSTER = {
     'slotPips', // §4.5 a slot count as pips, a wizard's tracker tab
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
-    'Ledger', // §5.12 Ledger: a compared or picked list's framed table (L9)
+    'Ledger', // §5.12 Ledger: a compared or picked list's table (L9)
+    'OpenLedger', // L1 the Ledger's open form, a sheet's lists
+    'TechLevel', // L4 a row's one rank stamp, the Tech Level swatch
+    'Facts', // §3.7 a list of labelled values
+    'Prose', // §3.7's words at length: a sheet's long text, folded
+    'Strip', // §1.2 a Live Sheet's masthead
+    'StripFigure', // §1.2 the masthead's fixed figures
+    'STRIP_ART', // §1.2 the masthead's art plate
   ],
   /** the chrome laws (K1–K11) and hard rule R16. */
   chrome: [
+    'PictureRadio', // R16 a picture plate that is a radio
     // K5 notices
     'ToasterMount',
     'toast',

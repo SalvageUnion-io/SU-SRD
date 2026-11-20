@@ -18,20 +18,20 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
 0. **§0 The one law: one kind × one context = one primitive** — geometry is constant; materials, density and interactivity change. A new screen, size or theme reuses the primitive with props, never a sibling.
 1. **§1 The context laws** — every surface is one of seven contexts, which pick materials and interactivity, never the primitive. Automation: `auto` (applied + undo), `confirm` (player confirms + undo), `free` (unguarded, logged override).
    1. **Reference — the book, verbatim** — paper, read-only, no play state: if the printed manual cannot show it, it cannot appear. The only rust is an inline link, the Page's Build With This (E20) and the front door's (§1.8).
-   2. **Live Sheet — the pencil** — `free`; a right sidebar holds what the unit carries. Read is typeset (empties omitted unless fillable) and steps session state (vitals, Uses, condition). Edit holds build state: dashed fields, counts and overrides, dashed-ringed and logged; rules show, never gate. On a phone: vitals, then tabs.
+   2. **Live Sheet — the pencil** — `free`; a right sidebar holds what the unit carries. Read is typeset (empties omitted unless fillable) and steps session state (vitals, Uses, condition). Edit holds build state: dashed fields, counts and overrides, dashed-ringed and logged; rules show, never gate. Its masthead is a `Strip`; on a phone its vitals pin over the stacked groups.
    3. **Play — the instrument panel** — its lists are Minis; the only transactional surface: bookkeeping `auto`, destruction `confirm`; each mutation logs a Change Log row, each roll a Game log row.
       Its ground wears the phase's band (`PHASE_TONE`). On a phone: tabs under pinned vitals (ADR-051 §10).
-   4. **Use opens the action** — on a sheet's Actions tab and in Play an on-hand action's Mini carries a rust Use after its cost, which resolves it in place as its contentful body (ADR-051 §6); the cost stays a read pennant.
+   4. **Use opens the action** — in Play an on-hand action's Mini carries a rust Use after its cost, which resolves it in place (ADR-051 §6). A sheet lists no actions.
    5. **Compact — one entity, one click** — `<Entity size="compact">`, an entity in a list at level 1 (E6): one-row head, chip group (E17); nothing edits or expands in place. Forms: [EDL](entity-display-language.md).
    6. **Peek — the glance** — a Compact contentful (`PeekCard`) on a lifted plate, opened from a `data-peek` Mention or Tag by one `PeekHost` per app; terminal (E16).
-   7. **Page — the entity's own route** — stats first (E20), then rules, the art and the Description in a side column (EDL Forms 5).
+   7. **Page — the entity's own route** — the Description first, plain; a chassis's stats as tiles, every other's on the band (E20); then rules, the art in a side column (EDL Forms 5).
       The body starts under the band; level-1 blocks sit 12px apart; nothing is centred in spare height.
    8. **Front door — the cover** — `/`, and `/build/` and `/games/` signed out, sell the product in the site's own dress: one rust action, one outline beside it; Leyline Press credited by name, one ink link to buy the game; no price, banner or pop-up.
    9. **Manage — the owner's desk** — Training Bay, Play hub, a Game, invites: paper under the area's band, level 0, Slab sections, Compacts that link.
       No stepper or in-place edit; acts are Buttons in a chip group or under a Slab, destruction `confirm`. Rust is the role's door (Play, Mediate); a make (+ New) is rust only where there is no door (§3.13); Open and filters are ink.
    10. **Two measures** — Reference and Manage sit on `--page-measure`; a Live Sheet and Play fill the window. On a phone a page's first content is on its first screen: its controls one row or a menu.
 2. **§2 The rendering matrix** — one primitive per role on every surface; the surface picks its skin.
-   1. **Vitals** — `VitalGauge`; a `Stat` in listings. TP is a counter, no gauge. Below 40rem a pinned vital is the plain row (`PhoneVitals`), the one departure from the dress: a slim meter, the value large, − and + at the Full Size; no stamp, framed numeral, pip track or texture; tokens and the stat order hold.
+   1. **Vitals** — `VitalGauge`; a `Stat` in listings. TP is a counter, no gauge. Below 40rem a pinned vital is the plain row (`PhoneVitals`): a slim meter, the value large, − and + at the Full Size; no stamp, pip track or texture.
    2. **Caps and slots** — `Stat`; an override is a dashed, logged control.
    3. **Condition** — `StatusBadge`: a tri-state control, a glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` (R8): the result a readout plus a marked row (§3.4); Reference toasts it.
@@ -46,7 +46,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
       1. **Texture: the light speckle** — ink speckle on colour bands and tone headers, paper flecks on ink headers and unit stamps (R10).
       2. **One shading exemption** — `.su-pilot-panel` on `/about`; no precedent.
    6. **§3.6 Copy is 1:1 with SRD data** — a name it prints is a Mention (E4): a trait's name alone, a table's with "Table".
-   7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat`, a text value too, never hand markup; a sentence says the number in words. Game data renders through the shared primitives.
+   7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat` (a list of them `Facts`), a text value too, never hand markup; a sentence says the number in words. Game data renders through the shared primitives.
    8. **§3.8 Ink on colour** — ink text on pilot and mech; no pair under 4.5 : 1. Paper on crawler uses `--color-crawler-band`, as on Denizens brown and NPC navy; TL blue is never a text ground, bar systems and modules.
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for canon (pattern, NPC): a solid frame, the dashed HOMEBREW stamp, "Made by [user]", at every size. Dashed is otherwise only a Play reference unit (ADR-051 §5), an edit field and an empty slot; a Slab is always solid.
       A sheet adds a hatched band; a pattern's page is the book's, footed "Homebrew // Made by [user]". One `userMade` flag (+ `madeBy`); canon-built units stay solid.
