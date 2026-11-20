@@ -55,14 +55,12 @@ export async function pickRadio(name: string): Promise<void> {
   })
 }
 
-/** A picker's row (`PickList`): the radio its name labels. */
-function getPick(name: string): HTMLInputElement {
-  return screen.getByRole<HTMLInputElement>('radio', { name })
-}
-
-/** Whether a picker's row is the picked one. */
+/** Whether a picker's row is the picked one: a `PickList` input or a `PictureRadio` plate. */
 export function isPicked(name: string): boolean {
-  return getPick(name).checked
+  const pick = screen.getByRole('radio', { name })
+  return pick instanceof HTMLInputElement
+    ? pick.checked
+    : pick.getAttribute('aria-checked') === 'true'
 }
 
 /** A count pick's stepper (`Stat` in edit): the `+` and `−` of the row named `name`. */

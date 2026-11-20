@@ -22,7 +22,7 @@ import {
   makeSingleUnitStore,
 } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import { slabChip } from '../../../components/__tests__/slabChip'
+import { slabChip, slabCountCritical } from '../../../components/__tests__/slabChip'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
@@ -66,7 +66,7 @@ describe('PilotSheet — inventory slot math', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots6/6')
+    expect(must(slabChip('Inventory')).textContent).toBe('6/6Slots')
   })
 
   test('over-capacity totals render honestly (no clamp)', () => {
@@ -80,8 +80,8 @@ describe('PilotSheet — inventory slot math', () => {
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots10/6')
-    expect(must(slabChip('Inventory')).classList.contains('su-stat-cell--critical')).toBe(true)
+    expect(must(slabChip('Inventory')).textContent).toBe('10/6Slots')
+    expect(slabCountCritical(must(slabChip('Inventory')))).toBe(true)
   })
 })
 
@@ -284,7 +284,7 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.queryByRole('button', { name: /add scrap/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add inventory item/i })).toBeNull()
     // The slot math still renders
-    expect(must(slabChip('Inventory')).textContent).toBe('Slots4/6')
+    expect(must(slabChip('Inventory')).textContent).toBe('4/6Slots')
   })
 })
 

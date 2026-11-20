@@ -236,10 +236,12 @@ export function Slab({
             key={String(entry.label)}
             className={cn('su-rule-head__tally', CAPS, CAPS)}
             data-state={entry.state === 'critical' ? 'critical' : undefined}
+            title={entry.title}
           >
             <b>{entry.value}</b>
             {entry.max !== undefined && <i>/{entry.max}</i>}
             <small>{entry.label}</small>
+            {entry.note != null && <small>{entry.note}</small>}
           </span>
         ))}
       </span>

@@ -47,6 +47,7 @@ import { mechVitalRows } from '../sheet/MechVitals'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { MechSheetActions } from '../sheet/mechSheetActions.model'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
+import { slotCount } from '../sheet/mechSlots.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup, PinnedVitals } from './Dash'
 import { ITEM_COLUMNS, itemRows } from './itemRows'
@@ -233,14 +234,7 @@ export function MechDash({
             <OpenLedger
               className="su-open--loadout"
               title={buildSheetCopy('systems')}
-              tally={{
-                label: buildSheetCopy('slots'),
-                value: capacity.systemSlotsUsed,
-                max: capacity.systemSlotsMax,
-                ...(capacity.systemSlotsUsed > capacity.systemSlotsMax
-                  ? { state: 'critical' as const }
-                  : {}),
-              }}
+              tally={slotCount(capacity.systemSlotsUsed, capacity.systemSlotsMax, capacity.asPrinted)}
               columns={ITEM_COLUMNS}
               groups={[{ key: 'systems', rows: itemRows(mech, 'system') }]}
             />
@@ -249,14 +243,7 @@ export function MechDash({
             <OpenLedger
               className="su-open--loadout"
               title={buildSheetCopy('modules')}
-              tally={{
-                label: buildSheetCopy('slots'),
-                value: capacity.moduleSlotsUsed,
-                max: capacity.moduleSlotsMax,
-                ...(capacity.moduleSlotsUsed > capacity.moduleSlotsMax
-                  ? { state: 'critical' as const }
-                  : {}),
-              }}
+              tally={slotCount(capacity.moduleSlotsUsed, capacity.moduleSlotsMax, capacity.asPrinted)}
               columns={ITEM_COLUMNS}
               groups={[{ key: 'modules', rows: itemRows(mech, 'module') }]}
             />

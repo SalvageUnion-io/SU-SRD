@@ -171,12 +171,29 @@ export function PilotDash({
       const entity = resolveEquipment(slug)
       const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
       const uses = pilot.equipmentUses?.[slug]
+      const selections = pilot.equipmentChoices?.[slug]
+      // The player's item: its picks and the crawler's Tech Level change its
+      // Range, Damage and traits, as its card does (R60).
+      const instance = {
+        condition,
+        ...(selections ? { selections } : {}),
+        ...(typeof model.scalingParent?.techLevel === 'number'
+          ? { techLevel: model.scalingParent.techLevel }
+          : {}),
+      }
+      const chosen = Object.values(selections ?? {})
+        .flat()
+        .filter((value): value is string => typeof value === 'string')
+      // R59: gear an ability grants prints its rules under the ability alone.
+      const granted = model.granted.has(slug) || (pilot.abilities ?? []).includes(slug)
+      const item = entity ? toEntityModel(entity, instance) : undefined
+      const level = item?.facts.find((fact) => fact.key === 'tech-level')?.value
       return {
         id: slug,
         name: entity?.name ?? slug,
-        entityRef: entity ? toEntityModel(entity).ref : undefined,
+        entityRef: item?.ref,
         state:
-          condition !== 'intact' || uses !== undefined ? (
+          condition !== 'intact' || uses !== undefined || chosen.length > 0 ? (
             <>
               {condition !== 'intact' && (
                 <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
@@ -184,11 +201,14 @@ export function PilotDash({
               {uses !== undefined && (
                 <Stat size="mini" label={buildSheetCopy('uses')} value={uses} />
               )}
+              {chosen.map((name) => (
+                <Stat key={name} size="mini" label={buildSheetCopy('chosen')} value={name} />
+              ))}
             </>
           ) : undefined,
-        cells: [entity ? <TechLevel key="tl" level={entity.techLevel} /> : '', 1],
+        cells: [entity ? <TechLevel key="tl" level={level ?? entity.techLevel} /> : '', 1],
         dim: condition === 'destroyed',
-        detail: entity ? <RowRules entity={entity} /> : undefined,
+        detail: entity && !granted ? <RowRules entity={entity} instance={instance} /> : undefined,
       }
     }),
     ...model.genericInventory.map(
