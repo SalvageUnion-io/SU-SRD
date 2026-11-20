@@ -138,9 +138,9 @@ export function HomeHero() {
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
-            {/* The slide's words on a paper plate at its lower left: its
-                action (named for the slide, which has no heading) first, the
-                line beside it. */}
+            {/* The slide's words on a cream plate at its lower right: its line,
+                then its action (named for the slide, which has no heading) at
+                the plate's right. */}
             <div className="su-front__show-copy">
               {slide.kind === 'quote' ? (
                 <div className="su-front__show-plate su-front__show-plate--quote">
@@ -152,6 +152,7 @@ export function HomeHero() {
                 </div>
               ) : (
                 <div className="su-front__show-plate">
+                  <p className="su-front__show-body">{slide.body}</p>
                   <Button
                     href={slide.href}
                     linkAs="a"
@@ -163,7 +164,6 @@ export function HomeHero() {
                   >
                     {slide.title}
                   </Button>
-                  <p className="su-front__show-body">{slide.body}</p>
                 </div>
               )}
             </div>
