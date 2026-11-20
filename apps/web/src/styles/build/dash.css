@@ -1332,17 +1332,17 @@
   align-items: stretch;
 }
 
-/* A head's linked name (a chassis ability's) stands the head's 24px too. */
-.su-rule-head:not(.su-rule-head--sub) .su-inline-ref {
+/* The opener and the name it opens share one height (§4.7): the name's link
+   is at least the opener's 24px, and the opener stretches with a name that
+   wraps to a second line. */
+.su-open__name-line .su-inline-ref {
   align-items: center;
   display: inline-flex;
   min-block-size: var(--space-24);
 }
 
-/* The opener and the name it opens share one height (§4.7): the name's link
-   is at least the opener's 24px, and the opener stretches with a name that
-   wraps to a second line. */
-.su-open__name-line .su-inline-ref {
+/* A head's linked name (a chassis ability's) stands the head's 24px too. */
+.su-rule-head:not(.su-rule-head--sub) .su-inline-ref {
   align-items: center;
   display: inline-flex;
   min-block-size: var(--space-24);
