@@ -32,9 +32,13 @@ const QUOTE_BY = {
 export function Tagline() {
   return (
     <figure className="su-tagline">
-      <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
+      {/* Each line's words are an inline span, so a ground can hug them line
+          by line where the page gives one (the home's art, `front.css`). */}
+      <blockquote style={QUOTE}>
+        <span className="su-tagline__line">“{PRODUCT.tagline}”</span>
+      </blockquote>
       <figcaption className={CREDIT_CAPS} style={QUOTE_BY}>
-        — {PRODUCT.taglineBy}
+        <span className="su-tagline__line">— {PRODUCT.taglineBy}</span>
       </figcaption>
     </figure>
   )

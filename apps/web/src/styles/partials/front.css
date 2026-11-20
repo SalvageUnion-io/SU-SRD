@@ -160,6 +160,16 @@ body:has(.su-front--show) main {
   display: flex;
 }
 
+/* On the home's art (and only there) the tagline's quote and credit wear
+   paper hugging each line, as the pitch does, so they read over any slide.
+   They touch: no gap, only each line's own leading. */
+.su-front__show-quote .su-tagline__line {
+  -webkit-box-decoration-break: clone;
+  background-color: var(--color-paper);
+  box-decoration-break: clone;
+  padding: var(--space-2) var(--space-16);
+}
+
 .su-front__show-name {
   background-color: var(--color-paper);
   color: var(--color-ink);
@@ -191,8 +201,7 @@ body:has(.su-front--show) main {
 
 /* A slide's words, at its lower left in the same place on every slide: one
    paper plate, as wide as its words (`shrinkWrap` fits the line), its action
-   first and the line beside it on one row; where the row cannot fit, the
-   action stands over the line. */
+   first and the line beside it on one row at every width. */
 .su-front__show-copy {
   bottom: var(--space-24);
   color: var(--color-ink);
