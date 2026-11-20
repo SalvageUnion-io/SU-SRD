@@ -35,14 +35,12 @@ type AccountMenuProps = {
   onFeedback?: () => void
 }
 
-// A name is identity, not chrome: it keeps the case the player typed, inside a
-// trigger that otherwise wears the masthead's caps. Truncated so a long one
-// cannot push the nav into the brand.
+// The name wears the masthead's caps, as every word on the bar does.
+// Truncated so a long one cannot push the nav into the brand.
 const NAME = {
   maxWidth: '12em',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
-  textTransform: 'none',
   whiteSpace: 'nowrap',
 } satisfies CSSProperties
 
