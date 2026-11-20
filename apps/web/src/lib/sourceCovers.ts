@@ -16,6 +16,13 @@ const SOURCE_COVERS: ReadonlySet<string> = new Set([
   'relics-of-a-time-gone-by',
 ])
 
+/** Whether an entity's art is a book's cover from the list above (drawn bare, no frame). */
+export function isBookCover(entity: RefMetaEntity): boolean {
+  if (getAssetUrl(entity)) return false
+  const slug = getEntitySlug(entity as unknown as RefEntity)
+  return 'schemaName' in entity && entity.schemaName === 'sources' && SOURCE_COVERS.has(slug)
+}
+
 /** An entity's artwork: its own (`getAssetUrl`), or a book's cover from the list above. */
 export function artUrlFor(entity: RefMetaEntity): string | undefined {
   const own = getAssetUrl(entity)

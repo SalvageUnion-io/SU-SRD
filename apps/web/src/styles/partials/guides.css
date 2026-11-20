@@ -513,6 +513,13 @@
   padding: var(--su-hero-inset);
 }
 
+/* A book's cover stands bare: no paper plate, no hairline frame. */
+.su-entity-hero--bare {
+  --su-hero-inset: 0;
+  background-color: transparent;
+  border: 0;
+}
+
 .su-entity-hero__img {
   display: block;
   height: auto;

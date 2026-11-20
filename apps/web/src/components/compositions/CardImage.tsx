@@ -42,6 +42,8 @@ type CardImageProps = {
    * its `sizes` is `plateImageSizes`, not the column's.
    */
   plate?: boolean
+  /** With `hero`: the art stands bare, with no paper plate or hairline frame (a book's cover). */
+  bare?: boolean
 }
 
 /**
@@ -62,7 +64,16 @@ const IMG = {
   transitionDuration: duration.fast,
 } satisfies CSSProperties
 
-export function CardImage({ url, srcSet, alt, compact, aside, hero, plate }: CardImageProps) {
+export function CardImage({
+  url,
+  srcSet,
+  alt,
+  compact,
+  aside,
+  hero,
+  plate,
+  bare = false,
+}: CardImageProps) {
   const [showImage, setShowImage] = useState(true)
   // The fade-in is a CLIENT-ONLY enhancement, so it starts already-`loaded` on
   // the server. On the reference site an entity card is rendered by the ZERO-JS static path
@@ -133,7 +144,9 @@ export function CardImage({ url, srcSet, alt, compact, aside, hero, plate }: Car
         <div className="su-entity-hero__window">{img}</div>
       </figure>
     ) : (
-      <figure className="su-entity-hero">{img}</figure>
+      <figure className={bare ? 'su-entity-hero su-entity-hero--bare' : 'su-entity-hero'}>
+        {img}
+      </figure>
     )
   }
 
