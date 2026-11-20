@@ -73,7 +73,8 @@ describe('a spend says itself with Undo', () => {
   }
 
   test("the pilot's AP: Undo writes back the AP it started from", async () => {
-    const spender = { ...pilot, currentAP: 3 } as Pilot
+    // Its own id: the run's starting value is kept by number key across tests.
+    const spender = { ...pilot, id: 'p-undo', currentAP: 3 } as Pilot
     const { store, calls } = stubStore(spender)
     payActivation(
       { store, pilot: spender, mech: null, crawler: null },
@@ -82,11 +83,11 @@ describe('a spend says itself with Undo', () => {
       { ...FREE, epCost: 1 },
       () => {}
     )
-    expect(calls).toEqual([{ type: 'pilot', id: 'p1', patch: { currentAP: 2 } }])
-    const undo = undoOf('pilot:p1:currentAP')
+    expect(calls).toEqual([{ type: 'pilot', id: 'p-undo', patch: { currentAP: 2 } }])
+    const undo = undoOf('pilot:p-undo:currentAP')
     expect(undo).toBeDefined()
     undo?.({} as never)
     await Promise.resolve()
-    expect(calls.at(-1)).toEqual({ type: 'pilot', id: 'p1', patch: { currentAP: 3 } })
+    expect(calls.at(-1)).toEqual({ type: 'pilot', id: 'p-undo', patch: { currentAP: 3 } })
   })
 })
