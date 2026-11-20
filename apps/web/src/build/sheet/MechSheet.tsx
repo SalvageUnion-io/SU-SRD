@@ -299,7 +299,7 @@ export function MechSheet({
       {linkedUnits}
     </>
   )
-  // MOCK (best, revision 6): Read shows no companion card: a companion has its
+  // Read shows no companion card: a companion has its
   // own sheet, linked from the side column's cell. Edit keeps the card, where
   // its loadout is still fitted.
   const partnersNode = (
@@ -315,7 +315,7 @@ export function MechSheet({
         <SlabSection fold="open" title={buildSheetCopy('partners')}>
           <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
-              // MOCK (best, revision 6): the side column's companion cell lands here.
+              // The side column's companion cell lands here.
               <div key={partner.id} id={`partner-${partner.id}`} className="su-partner-anchor">
                 <PartnerCard
                   found={{ partner, hostKind: 'mech', host: mech }}
@@ -354,7 +354,7 @@ export function MechSheet({
       )}
 
       {readOnly ? (
-        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // Read is the sheet dashboard at
         // every width; a phone stacks it under its pinned vitals. Edit keeps
         // the build layout below.
         <MechDash

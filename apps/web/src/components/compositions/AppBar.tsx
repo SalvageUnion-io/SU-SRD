@@ -140,7 +140,7 @@ const SWITCH = {
 } satisfies CSSProperties
 
 /**
- * MOCK (best variant): what each area holds, for the rail. Built for real
+ * What each area holds, for the rail. Built for real
  * these come from `chapters.ts` (the Reference) and the app's routes.
  */
 const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: string }[] }> = {
@@ -290,7 +290,7 @@ export function AppBar({
           {/* Mobile: search trigger + hamburger, below `lg`. */}
           {mobile && <div className="su-union-bar__mobile">{mobile}</div>}
         </div>
-        {/* MOCK (best variant): the area's own contents, one row under the
+        {/* The area's own contents, one row under the
             bar from `lg`. Not ADR-066's second nav (which repeated the tabs):
             it lists what is INSIDE the open area, as D&D Beyond's and
             Demiplane's section menus do, so any listing is one press from
@@ -314,7 +314,7 @@ export function AppBar({
                 {link.label}
               </a>
             ))}
-            {/* MOCK (best, revision 6): the open page's acts land here
+            {/* The open page's acts land here
                 (`RailActs`), right-aligned on the links' line. */}
             <span className="su-union-bar__rail-acts" data-rail-acts="" />
           </nav>

@@ -112,7 +112,7 @@ function GameSections({ game }: { game: Game }) {
   const sign = useStopSign(gameId)
 
   return (
-    // MOCK (density mock, sheet variant): the Game page reads as a sheet
+    // The Game page reads as a sheet
     // dashboard — its section heads are labels on rules, and its crew is one
     // manifest (`GameRoster`).
     <SlabLookProvider value="rule">
@@ -123,7 +123,7 @@ function GameSections({ game }: { game: Game }) {
       )}
       <div style={HUB_COLUMNS}>
         <div style={HUB_MAIN}>
-          {/* MOCK (density mock, sheet variant): the crew manifest leads the
+          {/* The crew manifest leads the
               page — what the table is made of — and everything that runs the
               table (its people, the prep, the invite, safety) is the column
               beside it. */}

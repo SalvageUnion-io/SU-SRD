@@ -1,6 +1,6 @@
 /**
  * The rows a mech's (or a companion's) Systems and Modules read as, and their
- * columns: MOCK (best, revision 7), out of `MechDash` so a pattern's Page
+ * columns: Out of `MechDash` so a pattern's Page
  * draws the same lines (`PatternLoadoutRows`).
  */
 
@@ -65,7 +65,7 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
       const found = model?.facts.find((entry) => entry.key === key)
       return found ? (found.shortValue ?? found.value) : ''
     }
-    // MOCK (best, revision 7): traits stay out of the collapsed row; the row's
+    // Traits stay out of the collapsed row; the row's
     // open view (`RowRules`) lists them.
     const action = typeWord(model?.actionType)
     return {

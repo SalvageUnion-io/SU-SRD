@@ -1,5 +1,5 @@
 /**
- * Dash — MOCK (density mock, sheet variant): the sheet dashboard's layout.
+ * Dash — The sheet dashboard's layout.
  *
  * `Dash` is the grid under the header strip: three columns from 80rem (what
  * the unit does, what it has, what it carries and who it is), two from 48rem,
@@ -158,7 +158,7 @@ export function PinnedVitals({
   foot,
 }: {
   label: string
-  /** MOCK (best, revision 7): the unit's name, on the pinned strip's cut-out once it sticks. */
+  /** The unit's name, on the pinned strip's cut-out once it sticks. */
   name?: string
   vitals: readonly PhoneVital[]
   foot?: ReactNode

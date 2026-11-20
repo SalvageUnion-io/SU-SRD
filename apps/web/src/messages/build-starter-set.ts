@@ -42,7 +42,7 @@ export const buildStarterSetCopy = messages({
   techLevel: 'Tech Level',
   thePreGeneratedCrewOf: 'The pre-generated crew of',
   byPublisher: ', by {publisher}.',
-  // MOCK (density mock, sheet variant): the paired crew manifest.
+  // The paired crew manifest.
   hp: 'HP',
   ap: 'AP',
   sp: 'SP',

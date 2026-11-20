@@ -141,7 +141,7 @@ type CrawlerSheetProps = {
   /** A phone's vitals block in Read (`PhoneVitals`), built beside `economy`. */
   phoneVitals?: ReactNode
   /**
-   * MOCK (density mock, sheet variant): SP, the Upgrade Pool and Upkeep as
+   * SP, the Upgrade Pool and Upkeep as
    * rows, and the economy's dialogs (Pay Upkeep, Fund, Trade), for the sheet
    * dashboard's header strip and a phone's pinned vitals.
    */
@@ -370,7 +370,7 @@ export function CrawlerSheet({
           weapons inside their bay) → Assigned Units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
       {readOnly ? (
-        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // Read is the sheet dashboard at
         // every width; a phone stacks it under its pinned vitals. Edit keeps
         // the build layout below.
         <CrawlerDash

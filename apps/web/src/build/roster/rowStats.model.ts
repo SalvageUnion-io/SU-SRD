@@ -3,45 +3,7 @@
  * player's Roster and the Starter Set, so the two read identically.
  */
 
-import { resolveChassisRef } from 'salvageunion-reference/rules'
-import { resolveClassName } from '../../lib/classRef'
-import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
-
-/**
- * A mech row's stats: `CHASSIS | Iron Mongrel`, and `TL | 1` beside it.
- *
- * Two stats, never one caption string ("Iron Mongrel · TL 1"): two facts joined
- * by a separator is the shape `Stat` exists to replace.
- *
- * resolveChassisRef is slug/name/id tolerant; stored refs are slugs, so a
- * name-only match here would fall through to the raw slug for every mech.
- * `readReference` falls back to the raw ref when the Chassis model isn't
- * preloaded (some test/snapshot contexts) rather than crash.
- */
-export function mechChassisStats(chassisRef: string): UnitReading[] | undefined {
-  if (!chassisRef) return undefined
-  const resolved = readReference(
-    'Roster.mechChassisStats',
-    () => resolveChassisRef(chassisRef) as { name: string; techLevel?: number } | null,
-    null
-  )
-
-  const stats: UnitReading[] = [
-    { label: 'Chassis', value: resolved?.name ?? chassisRef, chip: 'relation' },
-  ]
-  if (resolved?.techLevel != null)
-    stats.push({ label: 'TL', value: resolved.techLevel, chip: 'rank' })
-  return stats
-}
-
-/**
- * A crawler row's stats: `TL | 2`. A crawler never lists its count of bays;
- * the crew roster reads the same.
- */
-export function crawlerStats(techLevel: number): UnitReading[] {
-  return [{ label: 'TL', value: String(techLevel), chip: 'rank' }]
-}
 
 /**
  * A pilot row's header stats: `CLASS | Scavenger`, `CALLSIGN | Ghost`.
@@ -66,12 +28,4 @@ export function npcStats(npc: {
   if (npc.position?.trim()) stats.push({ label: 'Role', value: npc.position.trim(), chip: 'mark' })
   stats.push({ label: npc.damageType, value: npc.hitPoints, chip: 'measure' })
   return stats
-}
-
-export function pilotStats(classRef: string, callsign?: string): UnitReading[] | undefined {
-  const stats: UnitReading[] = []
-  const className = resolveClassName(classRef)
-  if (className) stats.push({ label: 'Class', value: className, chip: 'relation' })
-  if (callsign) stats.push({ label: 'Callsign', value: callsign, chip: 'mark' })
-  return stats.length > 0 ? stats : undefined
 }

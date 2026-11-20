@@ -44,7 +44,7 @@ function Bridge() {
     const fn: TestSignIn = (email, password, flow = 'signUp') => testSignIn(email, password, flow)
     ;(window as unknown as Record<string, TestSignIn>)[TEST_SIGN_IN_GLOBAL] = fn
 
-    // MOCK (best, revision 7): a local review window signs itself in. On
+    // A local review window signs itself in. On
     // localhost, `?mock-signin` signs in as the account `bun run dev:backend`
     // seeds (`SEED_ACCOUNT`, local only), then reloads without the flag.
     const url = new URL(window.location.href)

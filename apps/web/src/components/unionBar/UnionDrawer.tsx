@@ -72,7 +72,7 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
     { label: unionBarCopy('buyTheGame'), href: BUY_HREF, external: true },
   ]
 
-  // MOCK (best variant): the drawer is the site's whole map, the three areas
+  // The drawer is the site's whole map, the three areas
   // in the bar's order. Your own things lead (the Training Bay, then Games);
   // the Reference follows as the book's chapters, as before.
   const AREAS: NavDrawerCategory[] = [

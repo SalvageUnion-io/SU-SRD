@@ -175,7 +175,7 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
           />
         }
       />
-      {/* MOCK (best, revision 6): under the Training strip the tiers are rows, never a second cut-out. */}
+      {/* Under the Training strip the tiers are rows, never a second cut-out. */}
       <ul className="su-class-brief__cards" data-rows="">
         <RowDress.Provider value>
           {briefCards(plan).map((card) => (

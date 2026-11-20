@@ -184,7 +184,7 @@ export function CardPage({
 
   // Every entity's Page is the manual's; a pattern's and a guide's keep the
   // art-led layout below.
-  // MOCK (best, revision 7): a pattern's Page is the manual's too.
+  // A pattern's Page is the manual's too.
   if (!guide) {
     const line = pageStatLine(entity)
     // The app's action Minis (`MiniGrid`: two or three across by the room),
@@ -229,7 +229,7 @@ export function CardPage({
       neighbours.length > 0 ||
       !!opening
     // The words stand in the side column when rules stand beside them.
-    // MOCK (best, revision 7): a pattern's Page shows its chassis's ability,
+    // A pattern's Page shows its chassis's ability,
     // not the chassis's own prose.
     const wordsAside = !opening && !!(subLine || body) && !bodyRules && (!!hero || hasRules)
     // A Page that is only its description reads as plain prose: no strip, no
@@ -252,7 +252,7 @@ export function CardPage({
         {prose}
       </SlabSection>
     ))
-    // MOCK (best, revision 7): the chassis ability stands in the side column,
+    // The chassis ability stands in the side column,
     // under the Description, its tab the paper of its panel.
     // The strip reads "Chassis ability" with the ability's name in it; its
     // body is the ability's words (as a mech sheet's side cell).
@@ -274,7 +274,7 @@ export function CardPage({
           </SlabSection>
         )
       })
-    // MOCK (best, revision 7): a Page with no art (a system, a module, an
+    // A Page with no art (a system, a module, an
     // ability) keeps its stats in the side track; a Page with art keeps them
     // first in the main one.
     const stats = line.length > 0 && (
@@ -306,7 +306,7 @@ export function CardPage({
             {ability}
           </div>
         )}
-        {/* MOCK (best, revision 7): the main track, always beside a side
+        {/* The main track, always beside a side
             track (empty or not), so every Page's blocks share one width. */}
         <div className="su-manual__main">
           {!statsAside && stats}
@@ -402,7 +402,7 @@ export function CardPage({
                 {/* No band holds the chassis ability (the page's h1 is the
                     ChapterBand above), so its title stays a span: an h3 here
                     would skip a level. */}
-                {/* MOCK (best, revision 6): a chassis ability is text, never a
+                {/* A chassis ability is text, never a
                     box: its name, then every word of it. */}
                 {leadActions.map((data) => {
                   const lead = toEntityModel(data as RefMetaEntity)

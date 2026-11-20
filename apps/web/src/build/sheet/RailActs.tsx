@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 /**
- * MOCK (best, revision 6): a page's acts (Read | Edit | Play, Share, ⋯) ride
+ * A page's acts (Read | Edit | Play, Share, ⋯) ride
  * the area rail, right-aligned on the line of its links, in the links' own
  * style. Where there is no rail (under 64rem it is the drawer) they stay
  * where they were, the first row of the band, in the same plain style.

@@ -41,7 +41,7 @@ watchStaticTokenOverflow()
 watchStaticChipFill()
 
 /**
- * MOCK (best, revision 6): a static Reference page's view act (Share) rides
+ * A static Reference page's view act (Share) rides
  * the area rail, as a sheet's do through `RailActs`' portal. The
  * page is served without React, so the served acts are moved into the shown
  * rail's slot at rail widths and back to the band under them. The real

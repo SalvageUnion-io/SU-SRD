@@ -1,5 +1,5 @@
 /**
- * StarterCrewLedger — MOCK (density mock, sheet variant): a book crew as a
+ * StarterCrewLedger — A book crew as a
  * PAIRED MANIFEST, not a list of different things in one table.
  *
  * The old table put pilots, mechs and a crawler in one list under KIND /

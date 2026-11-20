@@ -84,7 +84,7 @@ type GameRosterProps = {
 }
 
 /**
- * MOCK (best, revision 3): `?crew=mock` fills the seeded Game's Crew with a
+ * `?crew=mock` fills the seeded Game's Crew with a
  * table's worth of rows so the page shows its real density. The units are the
  * Starter Set's own (their figures as its sheets print them); the member
  * names are placeholders. Display only: nothing is written anywhere.
@@ -322,7 +322,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return [verbs, assign, danger]
   }
 
-  // MOCK (density mock, sheet variant): the crew as ONE manifest, a line a
+  // The crew as ONE manifest, a line a
   // unit under the columns the table reads — who holds it, and the numbers
   // Play spends. Its ⋯ menu rides the row, as a Compact's does.
   const MANIFEST: readonly OpenColumn[] = [
@@ -419,7 +419,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           <RosterSkeleton label={playGamesCopy('theCrew')} />
         </SlabSection>
       ) : (
-        // MOCK (density mock, sheet variant): the crew manifest IS the section
+        // The crew manifest IS the section
         // — its head is the label on the rule, with the seats on it and the
         // column labels at its end, so the "+ New…" buttons sit on their own
         // line under the rule rather than between the two (the page's one rust

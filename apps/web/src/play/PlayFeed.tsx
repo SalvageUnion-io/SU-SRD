@@ -60,7 +60,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     toastId: 'play-proposal-answer',
   })
 
-  // MOCK (best, revision 7): an empty feed says nothing (no explainer line).
+  // An empty feed says nothing (no explainer line).
   if (entries.length === 0) return null
 
   const accept = (entry: Extract<FeedEntry, { kind: 'proposal' }>) => {

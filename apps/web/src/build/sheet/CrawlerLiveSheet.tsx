@@ -321,7 +321,7 @@ export function CrawlerLiveSheet({
         // rank before relation); Edit grows its stepper on the chip, a Free
         // Edit of the stored rung (the Upgrade dialog is the play path).
         pinsVitals={readOnly}
-        // MOCK (density mock, sheet variant): Read's header strip carries the
+        // Read's header strip carries the
         // Tech Level with the crawler's other figures, so the band leaves it
         // out (R59); Edit keeps its stepper here.
         rank={

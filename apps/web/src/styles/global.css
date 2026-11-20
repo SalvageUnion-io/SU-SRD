@@ -9,7 +9,7 @@
 @import './discord-reply.css';
 /* The /about junk slab, the one CSS illustration. */
 @import './pilot-panel.css';
-/* MOCK (density mock, best variant): the strip head and the unframed Ledger,
+/* The strip head and the unframed Ledger,
    on the Reference and the front pages too. */
 @import './build/dash.css';
 @import './best-site.css';

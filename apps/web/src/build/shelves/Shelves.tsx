@@ -139,7 +139,7 @@ function ConnectedShelves() {
 }
 
 /** Shelves: the server's facts when Connected, the cached pile otherwise. */
-/** MOCK (best, revision 3): which half of the old Shelves to draw. */
+/** Which half of the old Shelves to draw. */
 // biome-ignore lint/style/useComponentExportOnlyModules: MOCK: a real build splits the kit into its own module
 export const MockShelvesPart = createContext<'bay' | 'kit'>('bay')
 
@@ -362,7 +362,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
-  // MOCK (best, revision 3): the Mediator's Kit (NPCs, Encounters) renders
+  // The Mediator's Kit (NPCs, Encounters) renders
   // on the Games front, not here. Built for real it is its own module with
   // its own hooks; the mock reuses this page's.
   if (part === 'kit') {
@@ -426,7 +426,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             </p>
           }
           corner={
-            // MOCK (best, revision 6): the acts ride the area rail.
+            // The acts ride the area rail.
             <RailActs>
               <BackupMenu canImport={canWrite} onResult={setImportResult} />
             </RailActs>
@@ -569,8 +569,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   menu: patternMenu(p),
                 }))}
               />
-              {/* MOCK (best, revision 3): the Mediator's Kit moved to Games. */}
-              {/* MOCK (best, revision 7): the read-only crews stand under the
+              {/* The Mediator's Kit moved to Games. */}
+              {/* The read-only crews stand under the
                   side column's Patterns, at its width. */}
               <StarterShelf />
             </div>

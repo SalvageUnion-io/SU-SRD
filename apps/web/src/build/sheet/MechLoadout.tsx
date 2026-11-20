@@ -12,7 +12,7 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
-import { Button, EmptyState, MiniGrid, SlabSection, Stat } from '../../components/index'
+import { Button, EmptyState, MiniGrid, SlabSection } from '../../components/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { runWrite } from '../../lib/runWrite'
@@ -22,7 +22,6 @@ import { MechItemMini } from './MechItemMini'
 import type { MechSheetModel } from './mechSheet.model'
 import type { ItemKind, MechSheetActions } from './mechSheetActions.model'
 import { slotCount } from './mechSlots.model'
-import { SheetLedger } from './SheetLedger'
 
 type LoadoutProps = {
   mech: Mech
@@ -139,48 +138,5 @@ export function MechLoadout({
         </SlabSection>
       )}
     </div>
-  )
-}
-
-function ledgerLines(mech: Mech, kind: ItemKind) {
-  const slugs = kind === 'system' ? mech.systems : mech.modules
-  const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
-  const keys = occurrenceKeys(slugs)
-  return slugs.map((slug, index) => {
-    const condition = conditions[slug] ?? 'intact'
-    const uses = mech.itemUses?.[slug]
-    const entity = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
-    return {
-      id: keys[index] ?? slug,
-      entity,
-      // An item the data no longer holds keeps its slug, as the columns' line does.
-      name: entity ? undefined : slug,
-      stamp:
-        condition !== 'intact' ? (
-          <Stat label={condition} size="mini" state="critical" />
-        ) : uses !== undefined ? (
-          <Stat label={buildSheetCopy('uses')} value={uses} size="mini" />
-        ) : undefined,
-    }
-  })
-}
-
-export function MechLoadoutLedgers({ mech, model }: Pick<LoadoutProps, 'mech' | 'model'>) {
-  const { capacity } = model
-  return (
-    <>
-      <SheetLedger
-        kind="loadout"
-        title={buildSheetCopy('systems')}
-        count={`${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`}
-        lines={ledgerLines(mech, 'system')}
-      />
-      <SheetLedger
-        kind="loadout"
-        title={buildSheetCopy('modules')}
-        count={`${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`}
-        lines={ledgerLines(mech, 'module')}
-      />
-    </>
   )
 }

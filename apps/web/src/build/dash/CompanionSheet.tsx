@@ -1,26 +1,21 @@
 /**
- * CompanionSheet — MOCK (best, revision 6, owner 2026-11-19): a companion's
- * own sheet, at `/mechs/:id/companions/:partnerId` (and a pilot's).
+ * CompanionSheet: a companion's own sheet, at
+ * `/mechs/:id/companions/:partnerId` (and a pilot's). The data stays where it
+ * is: a companion is an entry of its host's `partners`, read and written
+ * through the host.
  *
- * The owner's ruling brings a companion's sheet back (ADR-028 retired it, so
- * that ADR needs amending). The data stays where it is: a companion is an
- * entry of its host's `partners`, read and written through the host.
+ * The band in the companion's own paint (a drone wears its tech level) with
+ * "Companion of <host>" linking back; the masthead (art, SP · EP · Heat live,
+ * the slot tallies and its short lines, About at the right); then its
+ * abilities, Systems and Modules as tables whose rows open in place, Cargo in
+ * the side column, and the cite.
  *
- * The Best sheet anatomy: the band in the companion's own paint (a drone
- * wears its tech level) with "Companion of <host>" linking back; the masthead
- * (art, SP · EP · Heat live, the slot tallies and its short lines, About at
- * the right); Sheet | Actions; then its abilities, Systems and Modules as
- * tables whose rows open in place, Cargo in the side column, and the cite.
- *
- * MOCK shortcuts: it reads only the viewer's own host (a crewmate's companion
- * is not resolved); fitting a
- * loadout stays on the host's Edit card.
+ * It reads only the viewer's own host (a crewmate's companion is not
+ * resolved); fitting a loadout stays on the host's Edit card.
  */
 
-import type { Mech } from 'game-domain/schemas/mech'
 import type { PartnerInstance } from 'game-domain/schemas/partner'
 import type { CSSProperties } from 'react'
-import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
@@ -60,7 +55,7 @@ const CARGO_COLUMNS: readonly OpenColumn[] = [
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
 
-// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
+// The page is as tall as its content; `#root`'s
 // column keeps a short page's foot on the window's edge.
 const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
 

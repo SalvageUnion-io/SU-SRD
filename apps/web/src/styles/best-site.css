@@ -1,5 +1,5 @@
 /*
- * MOCK (density mock, "best" variant): the site outside the sheets, in the
+ * The site outside the sheets, in the
  * same grammar. Loaded by both the Reference (`global.css`) and the app
  * (`app.css`), after `build/dash.css`, whose strip head it shares.
  *
@@ -95,7 +95,7 @@
 
 /* ── 3. An entity page's stats, as a masthead ───────────────────────────── */
 
-/* MOCK (best, revision 7, take 2): each stat is its own tile, as the home
+/* Each stat is its own tile, as the home
    page's doors are: a paper card framed in the page's band paint, the
    numeral large on top, and at its foot the band's strip with the label on
    its paper cut-out, as a door's name sits under its art. No panel holds
@@ -323,7 +323,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 4): THE LAYOUT SYSTEM.
+ * THE LAYOUT SYSTEM.
  *
  *   L-1  One measure. Every page (front, listing, entity, sheet, guide,
  *        wizard) sets its content on `--page-measure`, centred; the header's
@@ -370,7 +370,7 @@
     padding-inline: var(--su-shell-edge);
   }
 
-  /* MOCK (best, revision 5): the rail is not paper. It wears the page's band
+  /* The rail is not paper. It wears the page's band
      colour (`--su-kind`, the leading band's; ink where a page has none), so
      ink header, rail and band read as one. Its text is the colour's own
      AA foreground, at full strength. */
@@ -647,7 +647,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 5): ONE LINE IN A HEAD STRIP (L-5).
+ * ONE LINE IN A HEAD STRIP (L-5).
  * The cut-out title, its tally and every column label share one baseline:
  * the title's. A control in the strip (a button) is centred instead; it is
  * not a label.
@@ -737,7 +737,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 6): A PAGE'S ACTS RIDE THE RAIL.
+ * A PAGE'S ACTS RIDE THE RAIL.
  * Read | Edit | Play, Share and ⋯ sit right-aligned on the rail's line, in
  * the rail links' own type; the current mode wears the links' underline.
  * Under 64rem there is no rail: the acts are a strip of the same colour and
@@ -828,7 +828,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 6): NEVER STACK CUT-OUTS (L-6).
+ * NEVER STACK CUT-OUTS (L-6).
  * Below the page's title, one cut-out a block: the strip's. What a strip
  * heads are rows (`RowDress`): no band, no cut-out, no frame; the name in
  * ink, its chips beside it, its text under it, zebra between.
@@ -930,7 +930,7 @@
   width: 1px;
 }
 
-/* ── MOCK (best, revision 6, 16:48Z): the home page's polish ────────────── */
+/* ── The home page's polish ────────────── */
 
 /* Buy the game: its words and its two buttons on one line across the panel,
    then the books as ONE shelf row under them (no orphaned second row, no
@@ -1098,7 +1098,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 6, 17:50Z): RAIL AND BAND ARE ONE PAINT.
+ * RAIL AND BAND ARE ONE PAINT.
  * The rail has no paint of its own: the band runs up behind it, so the
  * colour and the speckle are the band's, unbroken, from the header's ink to
  * the band's foot. The band is as tall as its title cut-out: nothing above
@@ -1187,7 +1187,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
- * MOCK (best, revision 6): THE MASTHEAD'S WORDS.
+ * THE MASTHEAD'S WORDS.
  * The right column is About (clamped, More). The unit's short lines (a
  * pilot's Motto, Keepsake, Background; a mech's Quirk, Appearance) sit on
  * the figures' rail, beside the tallies: label and value on one line.
@@ -1198,7 +1198,7 @@
   padding: var(--space-12) 0 var(--space-12) var(--space-24);
 }
 
-/* MOCK (best, revision 7): the traits (Motto, Keepsake, Background; a
+/* The traits (Motto, Keepsake, Background; a
    mech's Quirk, Appearance) stand side by side, a column each: its label and
    Used mark on one line, its words under them. A phone stacks them. */
 .su-mast-traits {
@@ -1249,7 +1249,7 @@
   }
 }
 
-/* MOCK (best, revision 6): A PILOT'S REAL NAME. Plain words on the callsign's
+/* A PILOT'S REAL NAME. Plain words on the callsign's
    baseline, inside the title's cut-out, in the body face at a lighter weight. */
 .su-title-aka {
   margin-left: 0.6em;
@@ -1261,7 +1261,7 @@
   white-space: nowrap;
 }
 
-/* MOCK (best, revision 6): A CHASSIS ABILITY IS TEXT. The name, then every
+/* A CHASSIS ABILITY IS TEXT. The name, then every
    word of it, in the Chassis group of the side column; never a row. */
 .su-chassis-ability > .su-dash-entity__name {
   display: flex;
@@ -1270,7 +1270,7 @@
   gap: var(--space-8);
 }
 
-/* MOCK (best, revision 6): A COMPANION IS ITS OWN CELL. Painted in the
+/* A COMPANION IS ITS OWN CELL. Painted in the
    companion's own colour (a drone wears its tech level), the whole cell a
    link to the companion; its numbers in one quiet line. */
 .su-companion-cell {
@@ -1311,7 +1311,7 @@
   scroll-margin-top: 6rem;
 }
 
-/* ── MOCK (best, revision 7): the chassis ability in the side column ─────── */
+/* ── The chassis ability in the side column ─────── */
 
 /* A phone reads it with the rules, after the art. */
 .su-manual__side > .su-manual__ability {
@@ -1328,7 +1328,7 @@
   order: 1;
 }
 
-/* MOCK (best, revision 7): a breath between the area rail and the page's
+/* A breath between the area rail and the page's
    head (its crumbs and title plate). */
 @media (width >= 64rem) {
   .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow))
@@ -1341,7 +1341,7 @@
   }
 }
 
-/* ── MOCK (best, revision 7): the page as a column on a desk ─────────────────
+/* ── The page as a column on a desk ─────────────────
    Opt-in, `?mock-page=paper` (`runtime/mockPage.ts`). From `lg` the margins
    are the desk, a step of ink under the page's ground; the page's measure
    stands, a block of padding round its content, on the page's own ground, edged in
@@ -1430,7 +1430,7 @@
   }
 }
 
-/* ── MOCK (best, revision 7): a cut-out shares its body (law-changes.md) ────
+/* ── A cut-out shares its body (law-changes.md) ────
    A cut-out (a band's title plate, a strip's tab) takes the ground and the
    border of the body it opens into: that body sets `--cutout-ground` and
    `--cutout-border`, the cut-out reads them, and the side that opens into the
@@ -1469,7 +1469,7 @@
   }
 }
 
-/* ── MOCK (best, revision 7): every Reference Page is two tracks ──────────
+/* ── Every Reference Page is two tracks ──────────
    From `lg` a Page is a main track and a side track, the side there even
    when it holds nothing, so a Page's strips, tiles, Ledgers and prose all
    end at the main track's edge: the measure lives on the column, never on
@@ -1556,7 +1556,7 @@
   max-width: none !important;
 }
 
-/* ── MOCK (best, revision 7): the pinned strip (a phone sheet's vitals) ─────
+/* ── The pinned strip (a phone sheet's vitals) ─────
    Once it sticks it is the band in brief: the band's paint full bleed, the
    unit's name on a small cut-out (the glance's paper, the ground it opens
    into), the vitals beside it, all on one row at most 48px tall. */
@@ -1682,7 +1682,7 @@
   max-width: 100%;
 }
 
-/* ── MOCK (best, revision 7): the sheet's condensed bar (`LiveSheet`) ───────
+/* ── The sheet's condensed bar (`LiveSheet`) ───────
    Once the band scrolls away it is the band in brief, one row at most 48px:
    the unit's paint full bleed; the name on its paper cut-out at the card
    column's edge (callsign, real name, what it is); each vital a tracker,
@@ -1825,7 +1825,7 @@
   }
 }
 
-/* ── MOCK (best, revision 7): borders by role, and boxes contained ─────────
+/* ── Borders by role, and boxes contained ─────────
    Three borders, by role, nothing louder than its peers:
    - frame: `--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint,
      round a thing that is one object (a tile, a card, a tracker);
@@ -1869,7 +1869,7 @@
   padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }
 
-/* ── MOCK (best, revision 7): the contrast floor (law-changes.md) ──────────
+/* ── The contrast floor (law-changes.md) ──────────
    Every word passes 4.5:1 on what it stands on (3:1 large or a UI edge). */
 
 /* An empty cell's dash and an empty figure read at ink-75, not a ghost. */
@@ -1902,7 +1902,7 @@
   color: var(--color-ink);
 }
 
-/* ── MOCK (best, revision 7): a band's chips beside its title ──────────────
+/* ── A band's chips beside its title ──────────────
    What the entity is (Pattern of, Class, Chassis, Starter Kit, its type and
    facts) stands on the band immediately right of the title's cut-out, never
    inside it, on the band's foot; the band's one act keeps the far end. A
@@ -1942,7 +1942,7 @@
   }
 }
 
-/* ── MOCK (best, revision 7): no page taller than it needs ─────────────────
+/* ── No page taller than it needs ─────────────────
    The window is the column: the bar, the route, the foot; the route takes
    only the spare height, so a short page ends on the window's edge with no
    scroll, and a long one scrolls by its content alone. (`#root` stood a full
@@ -1970,7 +1970,7 @@ body > #root {
   border: 0 !important;
 }
 
-/* ── MOCK (best, revision 7): item stats as chips (law-changes.md) ─────────
+/* ── Item stats as chips (law-changes.md) ─────────
    The default (`?mock-stats=off` compares the old): a non-chassis Page's stats
    ride its band as chips beside the title, no tiles; a chassis keeps its
    tiles; a Page that is only its description reads as plain prose, no strip

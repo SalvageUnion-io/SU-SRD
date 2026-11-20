@@ -56,7 +56,7 @@ export function Shelf({ title, id, aside, action, note, empty, children, isEmpty
       countAt="label"
       actions={action}
       bodyStyle={BODY}
-      // MOCK (best, revision 6): a shelf's cards are rows under its strip.
+      // A shelf's cards are rows under its strip.
       rows
     >
       {note && <Text variant="hint">{note}</Text>}

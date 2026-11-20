@@ -43,7 +43,7 @@ const SLAB_CARD = {
   backgroundColor: tokens.color.paper,
 } satisfies CSSProperties
 
-// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
+// The page is as tall as its content; `#root`'s
 // column keeps a short page's foot on the window's edge.
 const ROOT = { backgroundColor: tokens.color.wkBg } satisfies CSSProperties
 

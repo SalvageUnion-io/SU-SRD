@@ -200,7 +200,7 @@ export function PilotSheet({
       style={BODY}
     >
       {readOnly ? (
-        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // Read is the sheet dashboard at
         // every width; a phone stacks it under its pinned vitals. Edit keeps
         // the build layout below.
         <PilotDash

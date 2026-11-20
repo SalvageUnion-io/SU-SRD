@@ -44,6 +44,7 @@ import { widthAtLeast } from '../../design/tokens'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import { RailActs } from './RailActs'
+import { SheetBarStrip } from './SheetBarStrip'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -103,10 +104,7 @@ export type LiveSheetStripItem = {
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
-  /**
-   * MOCK (best, revision 6): plain words on the title's baseline, right of it:
-   * a pilot's real name after the callsign. Absent, nothing shows.
-   */
+  /** A pilot's real name after the callsign, plain words on the title's baseline. */
   nameAside?: string
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
@@ -166,20 +164,14 @@ type LiveSheetProps = {
    * PATTERN chip.
    */
   quoted?: boolean
-  /**
-   * MOCK (density mock, sheet variant): the body pins its own vitals on a
-   * phone (the sheet dashboard's `PinnedVitals`), so the condensed bar stays
-   * out of its way there. From 40rem the bar condenses as before.
-   */
+  /** The body pins its own vitals on a phone (`PinnedVitals`); the bar condenses from 40rem. */
   pinsVitals?: boolean
 }
 
-/** Sticky bar height (design: 58/66px). */
-// MOCK (best, revision 7): one compact row.
+/** Sticky bar height: one compact row. */
 const BAR_HEIGHT_PX = 48
 
-// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
-// column keeps a short page's foot on the window's edge.
+/** As tall as its content; `#root`'s column keeps the foot on the window's edge. */
 const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
 
 /**
@@ -196,7 +188,7 @@ const BAR_ANCHOR = {
 /** The bar, over the page from its anchor. Its gutter (`.su-sheet-gutter`) widens at sm. */
 const BAR = {
   alignItems: 'center',
-  // MOCK (best, revision 7): the band in brief, in the unit's own paint.
+  // The band in brief, in the unit's own paint.
   background: 'var(--su-kind, var(--color-wk-bg))',
   // No black rule under the app's nav: the lift alone
   // sets it off the page it floats over.
@@ -257,7 +249,6 @@ const STRIP_HIDDEN = {
   visibility: 'hidden',
 } satisfies CSSProperties
 
-/** The condensed name wraps rather than cutting to "…" (C5). */
 const BAR_END = {
   alignItems: 'center',
   display: 'flex',
@@ -400,55 +391,12 @@ export function LiveSheet({
               query, and a hidden duplicate is noise to every reader. */}
             {condensed && (
               <>
-                {/* MOCK (best, revision 7): the name on its cut-out (callsign,
-                    real name, what it is), then each vital as a tracker:
-                    figure over max on a thin fill, its state in colour. */}
-                <span className="su-sheet-bar__name">
-                  <b>{title}</b>
-                  {nameAside && <span>{nameAside}</span>}
-                  <small>
-                    {stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
-                  </small>
-                </span>
-                {strip.map((item) => {
-                  const fill =
-                    item.max !== undefined && item.max > 0
-                      ? Math.max(0, Math.min(1, item.value / item.max))
-                      : undefined
-                  const heat = item.key === 'heat'
-                  const state =
-                    fill === undefined
-                      ? undefined
-                      : heat
-                        ? fill >= 0.75
-                          ? 'critical'
-                          : undefined
-                        : fill <= 0.25
-                          ? 'critical'
-                          : undefined
-                  return (
-                    <span
-                      key={item.key}
-                      className={cn(
-                        'su-sheet-bar__vital',
-                        item.mobilePriority === false && 'su-sheet-live-stat-fold'
-                      )}
-                      data-state={state}
-                    >
-                      <span className="su-sheet-bar__label">{item.label}</span>
-                      <span className="su-sheet-bar__figure">
-                        <b>{item.value}</b>
-                        {item.max !== undefined && <i>/{item.max}</i>}
-                      </span>
-                      {fill !== undefined && (
-                        <span
-                          className="su-sheet-bar__meter"
-                          style={{ '--su-fill': fill } as CSSProperties}
-                        />
-                      )}
-                    </span>
-                  )
-                })}
+                <SheetBarStrip
+                  title={title}
+                  nameAside={nameAside}
+                  kind={stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
+                  items={strip}
+                />
               </>
             )}
           </div>
@@ -464,7 +412,7 @@ export function LiveSheet({
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
-            {/* MOCK (best, revision 7): the band's acts, compact, at the end. */}
+            {/* The band's acts, compact, at the end. */}
             {condensed && (band?.actions || actions) && (
               <div className="su-sheet-bar__acts">
                 {band?.actions}
@@ -503,7 +451,7 @@ export function LiveSheet({
         asideAt="notch"
         corner={
           band?.actions || actions ? (
-            // MOCK (best, revision 6): the acts ride the area rail.
+            // The acts ride the area rail.
             <RailActs>
               {band?.actions}
               {actions}
@@ -636,7 +584,7 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
-            {/* MOCK (density mock, sheet variant): a sheet's section heads
+            {/* A sheet's section heads
                 are labels on rules (`SlabLookProvider`), in Read and Edit. */}
             <SlabLookProvider value="rule">{renderBody()}</SlabLookProvider>
           </EntitySurfaceProvider>

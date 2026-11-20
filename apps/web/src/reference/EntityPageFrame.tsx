@@ -107,7 +107,7 @@ export function EntityPageFrame({
         }
         asideAt="notch"
         action={
-          // MOCK (best, revision 6): the page's view act (Share) rides the
+          // The page's view act (Share) rides the
           // area rail; its one call to action (Build With This, Buy this
           // book) stays a button in the band.
           <>

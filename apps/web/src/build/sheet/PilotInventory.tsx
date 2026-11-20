@@ -12,8 +12,7 @@
 
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, SlabSection, SlotGrid, Stat, tokens } from '../../components/index'
-import { resolveEquipment } from '../../lib/rules/pilotInventory'
+import { Button, EmptyState, SlabSection, SlotGrid, tokens } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
@@ -21,7 +20,6 @@ import { GenericEntryAdder, GenericEntryLine, PilotEquipmentItem } from './Pilot
 import type { PilotSheetModel } from './pilotSheet.model'
 import { inventoryEmpty } from './pilotSheet.model'
 import type { PilotSheetActions } from './pilotSheetActions.model'
-import { SheetLedger } from './SheetLedger'
 
 /** The inventory's slots under its pills: the SlotGrid, set to the left. */
 const SLOTS = { display: 'flex', marginTop: tokens.space[8] } satisfies CSSProperties
@@ -142,50 +140,5 @@ export function PilotInventory({
         </div>
       )}
     </SlabSection>
-  )
-}
-
-/** A phone's Gear tab: the Inventory as one Ledger, then its slots. */
-export function PilotGearLedger({ pilot, model }: { pilot: Pilot; model: PilotSheetModel }) {
-  if (inventoryEmpty(pilot, model))
-    return <EmptyState variant="quiet" body={buildSheetCopy('nothingCarried')} />
-  return (
-    <>
-      <SheetLedger
-        kind="equipment"
-        title={buildSheetCopy('inventory')}
-        count={`${model.slotsUsed}/${model.slotsCap}`}
-        lines={[
-          ...model.ordinaryEquipment.map((slug) => {
-            const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
-            const uses = pilot.equipmentUses?.[slug]
-            return {
-              id: slug,
-              entity: resolveEquipment(slug),
-              name: resolveEquipment(slug) ? undefined : slug,
-              stamp:
-                condition !== 'intact' ? (
-                  <Stat label={condition} size="mini" state="critical" />
-                ) : undefined,
-              cells: uses !== undefined ? { uses: String(uses) } : undefined,
-            }
-          }),
-          ...model.genericInventory.map((entry) => ({
-            id: entry.id,
-            name: entry.qty && entry.qty > 1 ? `${entry.name} ×${entry.qty}` : entry.name,
-            stamp: <Stat label={buildSheetCopy('slots')} value={entry.slotCost} size="mini" />,
-          })),
-        ]}
-      />
-      <SlotGrid
-        used={model.slotsUsed}
-        cap={model.slotsCap}
-        label={buildSheetCopy('inventorySlotsFilled', {
-          used: model.slotsUsed,
-          cap: model.slotsCap,
-        })}
-        readOnly
-      />
-    </>
   )
 }

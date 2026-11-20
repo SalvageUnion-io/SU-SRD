@@ -1,5 +1,5 @@
 /**
- * RowRules — MOCK (density mock, "best" variant): what an opened row prints.
+ * RowRules — What an opened row prints.
  *
  * A row's rules in full, in place under the row, as running text: the
  * entity's own action (its flavour, its effect), its roll table, then every

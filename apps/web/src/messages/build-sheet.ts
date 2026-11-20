@@ -361,7 +361,7 @@ export const buildSheetCopy = messages({
   crewLeadColumn: 'Crew lead',
   inventoryOverCapacity: 'Inventory: {used} of {cap} slots filled — over capacity',
   inventorySlotsFilled: 'Inventory: {used} of {cap} slots filled',
-  // MOCK (density mock, sheet variant): the sheet dashboard's words.
+  // The sheet dashboard's words.
   whatDoes: 'What {name} does',
   whatHas: 'What {name} has',
   whoIs: 'Who {name} is',

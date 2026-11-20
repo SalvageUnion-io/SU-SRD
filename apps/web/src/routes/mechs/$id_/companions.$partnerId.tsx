@@ -1,5 +1,5 @@
 /**
- * MOCK (best, revision 6): a mech's companion's own sheet,
+ * A mech's companion's own sheet,
  * /mechs/:id/companions/:partnerId. The companion stays an entry of the
  * mech's `partners`; this only gives it a page (`CompanionSheet`).
  */

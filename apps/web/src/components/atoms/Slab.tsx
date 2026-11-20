@@ -221,7 +221,7 @@ export function Slab({
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
   const counts = slabCounts(count)
-  // MOCK (sheet variant): the label-on-rule head. The name in condensed caps
+  // The label-on-rule head. The name in condensed caps
   // over a 2px ink rule, a value count as plain tabular numerals (`7/7 SLOTS`)
   // rather than a chip, its controls on the label's line.
   if (look === 'rule') {

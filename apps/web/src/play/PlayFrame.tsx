@@ -160,7 +160,7 @@ export function PlayFrame<Value extends string>({
   const inColumn = (column: PlayColumn) => panes.filter((p) => p.column === column)
 
   return (
-    // MOCK (best variant): Play keeps the section stamp it was approved with.
+    // Play keeps the section stamp it was approved with.
     <SlabLookProvider value="stamp">
       <EntitySurfaceProvider value={SPECKLED}>
         <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
