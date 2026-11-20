@@ -809,6 +809,11 @@
   .su-dash[data-cols='3'] > .su-dash__col--wide {
     grid-column: span 2;
   }
+
+  /* Three across, the column after a wide one stands beside it again. */
+  .su-dash[data-cols='3'] > .su-dash__col--wide + .su-dash__col:last-child {
+    grid-column: auto;
+  }
 }
 
 /* A group: its head, then its body. */
@@ -1261,11 +1266,13 @@
 }
 
 /* A column's label: a paper cut-out on the strip's foot, notched into the
-   first row as the title's tab is (L2), on one line. */
+   first row as the title's tab is (L2), on one line. Bottom-aligned on its
+   line, so no descender's room stands under it. */
 .su-open:not(.su-open--sub) thead .su-open__col-tab {
   background-color: var(--color-paper);
   color: var(--color-ink);
   display: inline-block;
+  vertical-align: bottom;
   padding: var(--space-4) var(--space-6) var(--space-2);
   white-space: nowrap;
 }
