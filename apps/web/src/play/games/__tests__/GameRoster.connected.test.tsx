@@ -224,9 +224,10 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     expect(screen.getByText('Ash')).toBeTruthy()
-    // Who plays it is The Game's to say (each person wears their pilots), so
-    // a held row carries no seal; only an unassigned one does.
-    expect(screen.queryByText('Mediator')).toBeNull()
+    // A held row names its holder in the Member column; it carries no seal
+    // (only an unassigned one does).
+    const line = screen.getByRole('link', { name: 'Ash' }).closest('tr')
+    expect(line?.querySelector('td')?.textContent).toBe('Mediator')
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })
@@ -365,10 +366,11 @@ describe('yours first, then everyone else', () => {
     // crewmate's and the unassigned pre-gen, in the listing's order.
     const names = screen
       .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
-    expect(screen.getByText('Mine')).toBeTruthy()
-    expect(screen.queryByText('Mediator')).toBeNull()
+    // Your row wears MINE (its stamp, and its Member cell).
+    const mine = screen.getByRole('link', { name: 'Roach-Boy' }).closest('tr')
+    expect(within(mine as HTMLElement).getAllByText('Mine').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
   })
 
@@ -382,7 +384,7 @@ describe('yours first, then everyone else', () => {
     // The rows, in order — each Compact is a link named for its unit.
     const names = screen
       .getAllByRole('link', { name: /^(#430 Tenacity|Second Wind)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['#430 Tenacity', 'Second Wind'])
   })
 })

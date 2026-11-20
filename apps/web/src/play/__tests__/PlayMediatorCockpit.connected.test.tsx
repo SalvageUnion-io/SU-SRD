@@ -824,10 +824,10 @@ describe('every Mediator capability is reachable here', () => {
     expect(flagged).toHaveLength(1)
   })
 
-  test('Saved is the foot’s, beside the Opposition reminder', async () => {
+  test('the foot is Play’s own, with no Opposition reminder on it', async () => {
     await renderCockpit()
     const foot = within(screen.getByRole('contentinfo'))
-    expect(foot.getByText('Players see the Opposition only through what you post')).toBeTruthy()
+    expect(foot.queryByText(/Players see the Opposition/)).toBeNull()
   })
 
   test('The table: View a seat’s sheet is its Sheet', async () => {

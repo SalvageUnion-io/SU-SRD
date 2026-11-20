@@ -328,21 +328,21 @@ describe('the seats, on the Pilots rows', () => {
       },
     })
 
-    const pilots = screen.getByRole('region', { name: 'Crew' })
-    const text = drawnText(pilots)
-    // A pilot's row: its HP, then its mech as its header-only Mini, never a
-    // chip.
-    expect(text).toContain('HP4/10')
-    expect(text).not.toContain('MechSpectrum')
-    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')
-    // An assigned mech always shows its Tech Level.
-    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('TL2')
-    // A piloted mech rides its pilot's row only, never a row of its own.
-    expect(pilots.querySelectorAll('[data-entity-linked]')).toHaveLength(1)
-    expect(text.split('Spectrum')).toHaveLength(2)
-    expect(text).toContain('HP8/8')
-    // The count is the label-first chip, `SEATS | 1/2`.
-    expect(within(pilots).getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    const line = (name: string) =>
+      within(crew).getByRole('link', { name }).closest('tr') as HTMLElement
+    const cells = (row: HTMLElement) => [...row.querySelectorAll('td')].map((td) => td.textContent)
+    // A pilot's line: the mech they are in beside their name, its Tech Level
+    // in the TL column, their HP in the HP column.
+    const pickle = line('Pickle')
+    expect(pickle.querySelector('th')?.textContent).toContain('in Spectrum')
+    expect(cells(pickle).slice(1, 3)).toEqual(['2', '4/10'])
+    // A piloted mech rides its pilot's line only, never a line of its own.
+    expect(drawnText(crew).split('Spectrum')).toHaveLength(2)
+    // An absent current HP is full.
+    expect(cells(line('Hotdog'))[2]).toBe('8/8')
+    // The seats are the head's tally: `1/2 SEATS`.
+    expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Seats')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })
@@ -420,10 +420,11 @@ describe('who plays whom', () => {
       li.textContent?.includes('Beefcake')
     )
     expect(beefcake?.textContent).toContain('Pickle')
-    // The crew row wears its Class; who holds it is The Game's to say, so no seal.
-    const crew = screen.getByRole('region', { name: 'Crew' })
+    // The crew line wears its Class, and its Member column names who holds it.
+    const crew = screen.getByRole('table', { name: 'Crew' })
     expect(drawnText(crew)).toContain('Hacker')
-    expect(crew.textContent).not.toContain('Beefcake')
+    const pickle = within(crew).getByRole('link', { name: 'Pickle' }).closest('tr')
+    expect(pickle?.querySelector('td')?.textContent).toBe('Beefcake')
   })
 })
 
@@ -648,7 +649,7 @@ describe('Play from the Game page', () => {
 
     expect(offered(dialog)).toEqual([])
     expect(
-      within(dialog).getByText(/None of this Game's pilots is saved in this browser/)
+      within(dialog).getByText(/None of this Game's Pilots is saved in this browser/)
     ).toBeTruthy()
     expect(within(dialog).getByRole('button', { name: 'Play' }).hasAttribute('disabled')).toBe(true)
   })

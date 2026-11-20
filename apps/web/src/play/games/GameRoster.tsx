@@ -49,6 +49,7 @@ import {
 import type { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { resolveClass } from '../../lib/classRef'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -296,6 +297,12 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     chips: Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'>,
     label: string
   ) => chips.readings?.find((reading) => reading.label === label)?.value ?? ''
+  const callsignOf = (row: RosterRow) =>
+    row.kind === 'pilot' && typeof row.body.callsign === 'string' ? row.body.callsign.trim() : ''
+  const classNameOf = (row: RosterRow) =>
+    row.kind === 'pilot' && typeof row.body.classRef === 'string'
+      ? (resolveClass(row.body.classRef)?.name ?? '')
+      : ''
   function manifestRow(row: RosterRow): OpenRow {
     const chips = rowChips(row)
     const linked = chips.linked?.[0]
@@ -304,9 +311,13 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const tl = readingOf(chips, 'TL') || mechOf('TL')
     return {
       id: row.serverId,
-      name: row.name,
+      // A pilot goes by their callsign, else their name.
+      name: callsignOf(row) || row.name,
       href: rosterSheetHref(row),
-      meta: linked?.name ? `in ${linked.name}` : undefined,
+      // A pilot's line wears their Class, then the mech they are in.
+      meta:
+        [classNameOf(row), linked?.name ? `in ${linked.name}` : ''].filter(Boolean).join(' · ') ||
+        undefined,
       state: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
