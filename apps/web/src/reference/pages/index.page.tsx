@@ -22,7 +22,7 @@ import { itemHref } from '../../lib/entityHref'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
-import { BuyTheGame, HomeDoors, HomeHero, InYourServer } from '../HomeFront'
+import { HomeHero } from '../HomeFront'
 import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
@@ -70,7 +70,6 @@ function page(): PageResult {
         </ChapterBand>
         <div className="su-front__body su-page-body">
           <HomeHero />
-          <HomeDoors />
           <SlabSection title={pagesCopy('contents')} id="contents" as="h2" page>
             <div className="su-home__index su-front__index">
               {chapters.map((chapter) => (
@@ -97,8 +96,6 @@ function page(): PageResult {
               />
             </div>
           </SlabSection>
-          <BuyTheGame />
-          <InYourServer />
         </div>
       </div>
     ),

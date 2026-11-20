@@ -27,6 +27,22 @@ export const referenceCopy = messages({
     "Everything you need to play the world's best post-apocalyptic Mech tabletop roleplaying game.",
   pitchLede:
     'The free, fan-made companion to Salvage Union by Leyline Press: every rule in the book, a builder for your crew, and a table to play at.',
+  showReference: 'The whole book',
+  showReferenceBody:
+    'Every Chassis, System, Module, Ability and rule, searchable and cited to its page.',
+  showBuild: 'Build your crew',
+  showBuildBody:
+    'A Pilot, a Mech and a Union Crawler, step by step, or the Starter Set crew to make your own.',
+  showPlay: 'Play at the table',
+  showPlayBody:
+    'Roll, spend and take damage on live sheets, solo or with your crew in one shared Game.',
+  showPlayAction: 'Open your Games',
+  showBuy: 'Buy the game',
+  showBuyBody:
+    'Leyline Press writes and publishes Salvage Union. The books hold the setting, the art and the adventures.',
+  showDiscord: 'In your server',
+  showDiscordBody: 'Look up any rule and roll on any table without leaving your Discord channel.',
+  showDiscordAction: 'Add the bot',
   startBuilding: 'Start building',
   readTheRules: 'Read the rules',
   threeWaysIn: 'Three ways in',

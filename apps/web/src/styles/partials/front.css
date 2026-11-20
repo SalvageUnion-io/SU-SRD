@@ -88,141 +88,169 @@
   min-width: 0;
 }
 
-/* The art stack: the book's artworks, each in its own frame in its entity's
-   band colour, heavy at the foot, its name and book on a paper cut-out that
-   hangs from the foot band's top. Each card sits one step further back and
-   up-right than the one before it; every `--su-stack-step` the front card
-   fades out and comes back at the stack's rear, and the rest move up one. */
-.su-front__stack {
-  --su-stack-step: 6s;
-  --su-stack-offset: var(--space-8);
-  aspect-ratio: 4 / 3;
-  isolation: isolate;
-  max-height: 24rem;
-  min-width: 0;
-  position: relative;
-  width: 100%;
-}
-
-.su-front__stack-card {
-  /* The card's slot: 0 at the front, count - 1 at the rear. */
-  --su-slot: var(--su-stack-i);
-  background-color: var(--su-art-band);
-  color: var(--color-ink);
-  display: flex;
-  flex-direction: column;
-  inset: calc(var(--su-stack-offset) * (var(--su-stack-count) - 1))
-    calc(var(--su-stack-offset) * (var(--su-stack-count) - 1)) 0 0;
-  padding: var(--space-6) var(--space-6) 0;
-  position: absolute;
-  text-decoration: none;
-  transform: translate(
-    calc(var(--su-stack-offset) * var(--su-slot)),
-    calc(var(--su-stack-offset) * var(--su-slot) * -1)
-  );
-  z-index: calc(var(--su-stack-count) - var(--su-slot));
-}
-
-/* The art on paper: its white canvas multiplies into the paper, so the
-   artwork has no edge of its own (the paper law: never pure white). */
-.su-front__stack-art {
+/* EXPERIMENT (hero slideshow): the hero is the home. The pitch stands over
+   five slides; each slide's art fills the hero's ground at the right, faded
+   into the paper at the left where the words stand, and crossfades with the
+   next every `--su-show-step`. */
+.su-front__show {
+  --su-show-step: 6s;
   background-color: var(--color-paper);
-  display: flex;
-  flex: 1;
-  min-height: 0;
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  display: grid;
+  isolation: isolate;
+  min-height: 34rem;
+  overflow: hidden;
+  padding: var(--space-24);
+  position: relative;
 }
 
-.su-front__stack-art img {
+.su-front__show-value {
+  font-family: var(--font-cond);
+  font-size: var(--text-hero);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  margin: 0;
+  max-width: 34rem;
+  position: relative;
+  z-index: 2;
+}
+
+.su-front__show-slides {
+  inset: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+}
+
+.su-front__show-slide {
+  inset: 0;
+  position: absolute;
+}
+
+/* The art: the hero's ground at the right, its white canvas the paper's. */
+.su-front__show-art {
   height: 100%;
+  inset: 0 0 0 auto;
   mix-blend-mode: multiply;
   object-fit: contain;
-  padding: var(--space-8);
-  width: 100%;
+  object-position: right center;
+  padding: var(--space-16);
+  position: absolute;
+  width: 75%;
 }
 
-/* The heavy foot: the band, the cut-out hanging from its top at the right. */
-.su-front__stack-foot {
+/* The words, low at the left, over a paper wash that fades the art under them. */
+.su-front__show-copy {
+  background: linear-gradient(90deg, var(--color-paper) 55%, transparent);
+  bottom: 0;
   display: flex;
-  justify-content: flex-end;
-  min-height: var(--space-32);
-  padding: 0 var(--space-8) var(--space-8);
+  flex-direction: column;
+  gap: var(--space-12);
+  left: 0;
+  max-width: 40rem;
+  padding: var(--space-24) 8rem var(--space-24) var(--space-24);
+  position: absolute;
+  z-index: 1;
 }
 
-.su-front__stack-cite {
-  align-items: baseline;
+.su-front__show-copy .su-btn {
   align-self: flex-start;
-  background-color: var(--color-paper);
-  display: inline-flex;
-  font-size: var(--text-caption);
-  gap: var(--space-8);
-  padding: var(--space-4) var(--space-8) var(--space-6);
+  width: auto;
 }
 
-.su-front__stack-card:hover .su-front__stack-name {
-  text-decoration: underline;
+.su-front__show-title {
+  font-family: var(--font-cond);
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.05;
+  margin: 0;
 }
 
-/* One cycle is six steps, one a card (`HERO_STACK`'s six artworks): a card
-   holds the front for a step, fades, comes back in at the rear (slot 5), and
-   moves forward a slot at the end of each step after. `--su-slot` is
-   registered so the move glides and the z-order follows it. */
-@property --su-slot {
-  syntax: '<number>';
-  inherits: false;
-  initial-value: 0;
+.su-front__show-body {
+  margin: 0;
+  max-width: 28rem;
 }
 
-@keyframes su-front-stack {
-  /* design-tokens-ignore(loading-mark): the home's art stack, a slideshow, not a loading mark */
-  0%,
-  14% {
-    --su-slot: 0;
-    opacity: 1;
-  }
-  16.66% {
-    --su-slot: 0;
+@keyframes su-front-show {
+  0% {
     opacity: 0;
+    visibility: visible;
   }
-  16.67% {
-    --su-slot: 5;
-    opacity: 0;
-  }
-  19%,
-  30.66% {
-    --su-slot: 5;
+  3%,
+  17% {
     opacity: 1;
+    visibility: visible;
   }
-  33.33%,
-  47.33% {
-    --su-slot: 4;
-  }
-  50%,
-  64% {
-    --su-slot: 3;
-  }
-  66.67%,
-  80.66% {
-    --su-slot: 2;
-  }
-  83.33%,
-  97.33% {
-    --su-slot: 1;
-    opacity: 1;
-  }
+  20%,
   100% {
-    --su-slot: 0;
-    opacity: 1;
+    opacity: 0;
+    visibility: hidden;
   }
 }
 
-/* The stack cycles only where motion is welcome; under reduced motion it
-   stands still, its first artwork in front. Card i starts i steps from its
-   next turn at the front: 0, 1, 2… in order. */
+/* The slides cycle only where motion is welcome. Slide i takes its turn at i
+   steps, the first already in. */
 @media (prefers-reduced-motion: no-preference) {
-  .su-front__stack-card {
-    animation: su-front-stack calc(var(--su-stack-step) * var(--su-stack-count)) var(--ease)
-      infinite;
-    animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
+  .su-front__show-slide {
+    animation: su-front-show calc(var(--su-show-step) * var(--su-show-count)) var(--ease) infinite
+      both;
+    animation-delay: calc(var(--su-show-step) * var(--su-show-i) - 1s);
+  }
+}
+
+/* Under reduced motion the slides stand still as a list under the pitch. */
+@media (prefers-reduced-motion: reduce) {
+  .su-front__show {
+    gap: var(--space-16);
+  }
+
+  .su-front__show-slides,
+  .su-front__show-slide,
+  .su-front__show-copy,
+  .su-front__show-art {
+    position: static;
+  }
+
+  .su-front__show-slides {
+    display: grid;
+    gap: var(--space-16);
+  }
+
+  .su-front__show-art {
+    height: 10rem;
+    width: auto;
+  }
+
+  .su-front__show-copy {
+    background: none;
+    padding: 0;
+  }
+}
+
+/* A phone: the art above, the words under it. */
+@media (width < 40rem) {
+  .su-front__show {
+    min-height: 40rem;
+    padding: var(--space-16);
+  }
+
+  .su-front__show-value {
+    font-size: var(--text-display-lg);
+  }
+
+  .su-front__show-art {
+    height: 55%;
+    inset: auto 0 45% 0;
+    object-position: center bottom;
+    width: 100%;
+  }
+
+  .su-front__show-copy {
+    background: linear-gradient(0deg, var(--color-paper) 70%, transparent);
+    max-width: none;
+    padding: 3rem var(--space-16) var(--space-16);
+    right: 0;
   }
 }
 
@@ -239,11 +267,6 @@
   /* The pitch stands at the plate's middle. */
   .su-front__pitch {
     justify-content: center;
-  }
-
-  .su-front__stack {
-    --su-stack-offset: var(--space-12);
-    max-height: 30rem;
   }
 }
 
