@@ -19,6 +19,7 @@ import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
 import { BUY_HREF } from '../lib/docPages'
 import { itemHref } from '../lib/entityHref'
+import { artUrlFor } from '../lib/sourceCovers'
 import { compositionsCopy } from '../messages/components-compositions'
 import { referenceCopy } from '../messages/reference'
 
@@ -134,17 +135,21 @@ export function HomeHero() {
             )}
             <div className="su-front__show-copy">
               <h2 className="su-front__show-title">{slide.title}</h2>
-              <p className="su-front__show-body">{slide.body}</p>
-              <Button
-                href={slide.href}
-                linkAs="a"
-                variant="primary"
-                size="full"
-                target={slide.external ? '_blank' : undefined}
-                rel="noopener noreferrer"
-              >
-                {slide.action}
-              </Button>
+              <div className="su-front__show-plate">
+                <p className="su-front__show-body">{slide.body}</p>
+                <div className="su-front__show-act">
+                  <Button
+                    href={slide.href}
+                    linkAs="a"
+                    variant="primary"
+                    size="full"
+                    target={slide.external ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                  >
+                    {slide.action}
+                  </Button>
+                </div>
+              </div>
             </div>
           </li>
         ))}
@@ -244,10 +249,10 @@ export function BuyTheGame() {
         {/* The books as a shelf of covers.
             No cover art exists yet (sources carry none, R2 has none), so each
             slot is a typeset cover in the book's proportions; a real cover
-            drops into the same slot through `getAssetUrl`. */}
+            drops into the same slot through `artUrlFor`. */}
         <ul className="su-grid su-front__shelf" aria-label={referenceCopy('theBooksThisSiteCites')}>
           {books.map((book) => {
-            const cover = getAssetUrl(book)
+            const cover = artUrlFor(book)
             return (
               <li key={book.id}>
                 <a className="su-front__cover" href={itemHref('sources', getEntitySlug(book))}>

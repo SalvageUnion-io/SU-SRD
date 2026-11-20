@@ -18,8 +18,7 @@
  * `createRoot`, so no hydration mismatch is possible.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { getAssetUrl } from 'salvageunion-reference'
+import type { EnhancedSchemaMetadata, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import type { ListingBand } from '../../../components/islands/ListingFrame'
 import { SchemaViewerListing } from '../../../components/islands/SchemaViewerIsland'
 import { chapterForSchema, listingBandFillFor } from '../../../lib/chapters'
@@ -32,6 +31,7 @@ import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
 import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
+import { artUrlFor } from '../../../lib/sourceCovers'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
 import type { PageModule, PageResult, RouteContext } from '../../types'
@@ -61,7 +61,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // Art-less tiles take the Catalog's wider columns.
-  const hasArt = data.some((item) => !!getAssetUrl(item))
+  const hasArt = data.some((item) => !!artUrlFor(item as RefMetaEntity))
   // The List's groups (one, but for the classes' Core and Hybrid), so the
   // island's skeleton sets a Ledger where each will mount.
   const groups: ListingGroup[] = groupEntities(data, catalogGroupBy(schemaId))
