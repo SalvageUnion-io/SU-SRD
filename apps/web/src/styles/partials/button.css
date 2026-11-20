@@ -83,7 +83,9 @@
 /* On a band rust wears an ink keyline (ruleset §3.13): no band's colour
    reaches 3 : 1 against rust, and ink does against every one. A Mini's
    strip control wears its own in `entity-forms.css`. */
-:is(.su-chapter-band, .su-play-bar) .su-btn--primary:not(:disabled) {
+/* A section's strip is a band's colour too: a rust control on it keys the same. */
+:is(.su-chapter-band, .su-play-bar, .su-rule-head, .su-open thead, .su-ledger)
+.su-btn--primary:not(:disabled) {
   border-color: var(--color-ink);
 }
 

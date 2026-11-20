@@ -246,7 +246,7 @@ function ChassisGallery({
   const plateId = useId()
   return (
     <section className="su-chassis-gallery">
-      <header className="su-rule-head">
+      <header className="su-rule-head" data-slab="">
         <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</h2>
         <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>
       </header>

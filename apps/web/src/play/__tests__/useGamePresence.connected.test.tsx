@@ -29,14 +29,7 @@ function Probe({ name, gameId, role }: Probe) {
   return null
 }
 
-const mount = (probes: Probe[]) =>
-  render(
-    <>
-      {probes.map((p) => (
-        <Probe key={p.name} {...p} />
-      ))}
-    </>
-  )
+const mount = (probes: Probe[]) => render(probes.map((p) => <Probe key={p.name} {...p} />))
 
 const seats = () => seatActs.map((a) => a.args.here)
 

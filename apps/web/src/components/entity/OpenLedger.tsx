@@ -308,7 +308,8 @@ export function OpenLedger({
       <thead className={CAPS}>
         <tr>
           <th scope="col">
-            <span className="su-open__title">
+            {/* The tab is its section's head (L2): a Slab, as the page's outline reads it. */}
+            <span className="su-open__title" data-slab="">
               <Heading id={titleId} className={cn('su-rule-head__label', CAPS, CAPS)}>
                 {title}
               </Heading>

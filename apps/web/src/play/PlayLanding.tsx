@@ -302,7 +302,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         {connected && (
           <section id="mediators-kit" className="su-mediator-kit-section">
             {/* A plain ruled label, its tables each wear their own cut-out. */}
-            <header className="su-rule-head su-rule-head--over">
+            <header className="su-rule-head su-rule-head--over" data-slab="">
               <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{playCopy('mediatorsKit')}</h2>
             </header>
             <ShelvesPart.Provider value="kit">
