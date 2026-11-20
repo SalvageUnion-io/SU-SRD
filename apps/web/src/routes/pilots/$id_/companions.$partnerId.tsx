@@ -1,5 +1,5 @@
 /**
- * MOCK (best, revision 6): a pilot's companion's own sheet,
+ * A pilot's companion's own sheet,
  * /pilots/:id/companions/:partnerId. The companion stays an entry of the
  * pilot's `partners`; this only gives it a page (`CompanionSheet`).
  */

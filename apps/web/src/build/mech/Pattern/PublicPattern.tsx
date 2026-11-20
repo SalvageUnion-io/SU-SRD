@@ -207,7 +207,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           }
           corner={
             writable ? (
-              // MOCK (best, revision 6): the acts ride the area rail.
+              // The acts ride the area rail.
               <RailActs>
                 <Button
                   className="su-page-action"

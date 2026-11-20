@@ -1,5 +1,5 @@
 /**
- * Strip — MOCK (density mock, sheet variant): a Live Sheet's header strip.
+ * Strip — A Live Sheet's header strip.
  *
  * One paper row under the band: the unit's art, its live vitals, then its
  * fixed figures. Every cell reads the same way — a small caps label, a big
@@ -74,7 +74,7 @@ function Meter({
 }
 
 /** A live number: label, numeral, − | +, and its meter. */
-export function StripVital({ vital }: { vital: PhoneVital }) {
+function StripVital({ vital }: { vital: PhoneVital }) {
   const { label, name, value, max, note, danger, onChange } = vital
   const ceiling = max ?? Number.POSITIVE_INFINITY
   const clamp = (next: number) => Math.min(Math.max(next, 0), ceiling)
@@ -285,7 +285,7 @@ export function Strip({
   foot?: ReactNode
   /** The printed sheet's identity block, beside the board. */
   identity?: ReactNode
-  /** MOCK (best, revision 6): the unit's short lines (Motto, Keepsake, Background; Quirk, Appearance), inline on the figures' rail. */
+  /** The unit's short lines (Motto, Keepsake, Background; Quirk, Appearance), inline on the figures' rail. */
   traits?: ReactNode
 }) {
   return (

@@ -195,7 +195,7 @@ export function Mini({
   const target = useLinkTarget(headMode, model.ref)
   const down = downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
-  // MOCK (best, revision 6): under a titled strip a Mini is a row.
+  // Under a titled strip a Mini is a row.
   const row = useContext(RowDress)
   const tonePaint = slots.tint
     ? paintFor(slots.tint, { down: down === 'destroyed' ? down : true, texture: false })

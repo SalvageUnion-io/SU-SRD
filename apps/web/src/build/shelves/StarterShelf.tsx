@@ -36,7 +36,7 @@ const CREDIT = {
 
 export function StarterShelf() {
   return (
-    // MOCK (density mock, sheet variant): the Training Bay's foot reads as
+    // The Training Bay's foot reads as
     // the crew page does.
     <SlabLookProvider value="rule">
       <SlabSection

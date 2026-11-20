@@ -202,7 +202,7 @@ export function BuyTheGame() {
             </Button>
           </div>
         </div>
-        {/* MOCK (best, revision 3, item 1): the books as a shelf of covers.
+        {/* The books as a shelf of covers.
             No cover art exists yet (sources carry none, R2 has none), so each
             slot is a typeset cover in the book's proportions; a real cover
             drops into the same slot through `getAssetUrl`. */}

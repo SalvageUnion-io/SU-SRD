@@ -212,7 +212,7 @@ export function MechChassisStep({
 }
 
 /**
- * MOCK (density "best", revision 3, item 7): the chassis pick as a gallery.
+ * The chassis pick as a gallery.
  * A chassis is chosen by its picture first (the owner: "huge draw"), so each
  * is a plate: its art, its name, its cost (Salvage Value), and the same six
  * figures the pick list printed, under their labels. One radio group; the

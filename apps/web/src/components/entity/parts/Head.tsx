@@ -112,7 +112,7 @@ export function Head({
   top,
   whole = false,
 }: HeadProps) {
-  // MOCK (best, revision 6): under a titled strip a Compact is a row.
+  // Under a titled strip a Compact is a row.
   const row = useContext(RowDress)
   const paint = row ? rowPaint(tonePaint) : tonePaint
   const chips = asStrip(chipsProp, controls, overflow === 'more')

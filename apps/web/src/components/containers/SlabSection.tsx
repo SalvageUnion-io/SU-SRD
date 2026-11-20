@@ -61,7 +61,7 @@ type SlabSectionProps = {
   foldLabel?: string
   /** On a Page: head and body are level-1 blocks, 12px apart (R17). */
   page?: boolean
-  /** MOCK (best, revision 6): what this section heads are rows (`RowDress`), as on a Page. */
+  /** What this section heads are rows (`RowDress`), as on a Page. */
   rows?: boolean
   /** `mini`: inside a contentful Mini, its head and fold at the Mini Size (18px), 6px over the body. */
   size?: 'mini'
@@ -178,7 +178,7 @@ export function SlabSection({
           hidden={!open}
           className={cn('su-slab-section__body', bodyClassName)}
           style={bodyStyle}
-          // MOCK (best, revision 6): on a Page what a strip heads are rows,
+          // On a Page what a strip heads are rows,
           // never a second cut-out (`RowDress`).
           data-rows={page || rows ? '' : undefined}
         >

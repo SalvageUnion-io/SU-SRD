@@ -16,7 +16,7 @@ import { useChipFill } from './useChipFill'
 import { USER_MADE_HATCH } from './userMadeHatch'
 
 /**
- * MOCK (density "best", revision 3): the paint a head strip wears on this
+ * The paint a head strip wears on this
  * band. The book's crawler pink carries neither ink nor paper text at 4.5:1,
  * so a head on it wears the deeper crawler band with paper text.
  */
@@ -240,7 +240,7 @@ const ASIDE = {
 // The notch: the page ground, ink condensed caps, flush with the band's foot.
 // Size and padding change at `sm`, so they are `.su-chapter-band__title`'s.
 const TITLE = {
-  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // A cut-out takes the ground of the body it opens
   // into (`--cutout-ground`, set by that body); the page ground by default.
   backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
@@ -260,7 +260,7 @@ const BESIDE_CONTROLS = { margin: '0 auto 0 0' } satisfies CSSProperties
 // The plate: the notch's cut-out around the trail and the title, so the two
 // read as one label at the wider one's width. Its padding is the parts'.
 const PLATE = {
-  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // A cut-out takes the ground of the body it opens
   // into (`--cutout-ground`, set by that body); the page ground by default.
   backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,

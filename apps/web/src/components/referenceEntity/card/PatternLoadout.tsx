@@ -213,8 +213,7 @@ const LOADOUT_PAGE = {
 } satisfies CSSProperties
 
 /**
- * A pattern PAGE's loadout, under its chassis ability. MOCK (best, revision 7):
- * each group (Systems, Modules) is the mech sheet's own list (`OpenLedger`
+ * A pattern PAGE's loadout, under its chassis ability. * each group (Systems, Modules) is the mech sheet's own list (`OpenLedger`
  * over `itemRows`): a zebra line a part, its figures in the sheet's columns,
  * its rules opening in place under it. Multiples repeat, as on the sheet.
  */

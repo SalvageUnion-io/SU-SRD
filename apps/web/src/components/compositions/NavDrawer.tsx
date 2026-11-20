@@ -112,7 +112,7 @@ export function NavDrawer({
   extra,
   LinkComponent = 'a',
 }: NavDrawerProps) {
-  // MOCK (best variant): `?nav=open` starts the drawer open, for a screenshot.
+  // `?nav=open` starts the drawer open, for a screenshot.
   const [open, setOpen] = useState(
     () =>
       typeof window !== 'undefined' &&

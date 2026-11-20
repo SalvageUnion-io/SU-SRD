@@ -29,7 +29,7 @@ const LEADING_BAND = `:is(${[
   `main > :first-child > ${BAND}:first-child`,
   `main > :first-child > :first-child > ${BAND}:first-child`,
   `.su-page-gutters > ${BAND}`,
-  // MOCK (best, revision 3): a listing's band before its island hydrates sits
+  // A listing's band before its island hydrates sits
   // in the island's stand-in, two wrappers deeper, so the bar stayed ink until
   // hydration (the dark bar on /chassis/ and /systems/).
   `main > :first-child > astro-island > [data-standin] > astro-slot > ${BAND}`,
@@ -98,7 +98,7 @@ export function footerMatchCss(
 }
 
 /**
- * MOCK (density "best", revision 3): the kind colour every head strip and
+ * The kind colour every head strip and
  * zebra band reads (`--su-kind`, `--su-on-kind`). The page's leading band
  * sets it for the page; any other band (a Peek's, a dialog's) sets it for
  * what shares its parent, so a Peek over a pilot's sheet keeps its own colour

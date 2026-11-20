@@ -1,5 +1,5 @@
 /**
- * OpenLedger — MOCK (density mock, "best" variant): the Ledger, unframed.
+ * OpenLedger — The Ledger, unframed.
  *
  * Best variant: the head is the Ledger's own (ledger.md L2, L5): an ink strip
  * with the title on a paper cut-out at its left and the column labels
@@ -41,7 +41,7 @@ export type OpenColumn = {
   kind?: 'figure' | 'text'
   /** Kept on a phone; the others give way to the name. */
   phone?: boolean
-  /** MOCK (best, revision 6): its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. A column keyed `cost` is quiet unless it says otherwise (L15). */
+  /** Its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. A column keyed `cost` is quiet unless it says otherwise (L15). */
   quiet?: boolean
 }
 
@@ -89,7 +89,7 @@ function mockOpen(id: string): boolean {
   return MOCK_OPEN.some((want) => id.includes(want))
 }
 
-export type OpenGroup = {
+type OpenGroup = {
   key: string
   /** The sub-group's label; absent, the rows follow the head. */
   label?: ReactNode
@@ -380,7 +380,7 @@ export function TechLevel({ level }: { level: number | string | undefined }) {
   return (
     <span
       className="su-tl"
-      // MOCK (best, revision 7): the dark swatches (TL 4 up) carry paper text.
+      // The dark swatches (TL 4 up) carry paper text.
       data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
       title={`Tech Level ${level}`}

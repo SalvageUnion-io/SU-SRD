@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 
 /**
- * MOCK (density mock, sheet variant): how a surface draws its section heads.
+ * How a surface draws its section heads.
  *
  *   `stamp` (default) — the solid ink section stamp and its leader rule (R1).
  *   `rule`  — a label on a rule: the section's name in condensed caps over a
@@ -13,7 +13,7 @@ import { createContext, useContext } from 'react'
  * `SlabSection` under it changes together and no call site picks a variant.
  */
 /**
- * MOCK (best variant): `auto`, the default everywhere, is the ink strip with
+ * `auto`, the default everywhere, is the ink strip with
  * its cut-out title (`rule`) for a section head and the stamp for a Mini Slab
  * inside a card, so the Reference, the front pages and the app read as one
  * site. Play, approved as it is, pins `stamp`.

@@ -1,5 +1,5 @@
 /**
- * CrawlerDash — MOCK (density mock, sheet variant): a Union Crawler's Read
+ * CrawlerDash — A Union Crawler's Read
  * sheet as a dashboard, in the printed sheet's order.
  *
  *   The strip: the art, SP and the Upgrade Pool live, then Tech Level,
@@ -178,7 +178,7 @@ function BayDetail({
             <LinkedUnitLink kind="mech" name={dockedMech.name} href={dockedMech.href} />
           </p>
         )}
-        {/* MOCK (best, revision 3): the crew lead prints once, on the bay's own
+        {/* The crew lead prints once, on the bay's own
             line (name, Keepsake, Motto, HP); the card that repeated it here is gone. */}
         {/* A bay's condition is session state: it writes in Read (R11). */}
         {liveCondition && (
@@ -258,7 +258,7 @@ export function CrawlerDash({
       id: slug,
       name: model?.title ?? slug,
       entityRef: model?.ref,
-      // MOCK (best, revision 7): traits are the open row's, not the line's.
+      // Traits are the open row's, not the line's.
       cells: [
         model?.techLevel !== undefined ? <TechLevel key="tl" level={model.techLevel} /> : '',
         short('range'),
@@ -421,7 +421,7 @@ export function CrawlerDash({
           {linkedUnits}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: crawler.name })}>
-          {/* MOCK (best, revision 3): the Storage Bay as one deliberate object:
+          {/* The Storage Bay as one deliberate object:
               "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
               chip over its count), then what is stored as its rows. */}
           <DashGroup title={buildSheetCopy('storageBay')} tally="Unlimited">
@@ -485,7 +485,7 @@ export function CrawlerDash({
                     <p className="su-dash-entity__name">
                       <Mention entityRef={model.ref}>{model.title}</Mention>
                     </p>
-                    {/* MOCK (best, revision 6): an ability is text, every word showing. */}
+                    {/* An ability is text, every word showing. */}
                     <Content
                       body={(ability.content ?? []) as ComponentProps<typeof Content>['body']}
                       fontSize="sm"

@@ -1,5 +1,5 @@
 /**
- * MOCK (best, revision 7): the page-ground comparisons, each a URL toggle
+ * The page-ground comparisons, each a URL toggle
  * that holds for the tab's session and lands on <html> as `data-mock-*`
  * (`best-site.css`). `=off` clears one. All off by default.
  *

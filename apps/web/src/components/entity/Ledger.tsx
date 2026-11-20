@@ -229,7 +229,7 @@ export function Ledger({
     <Box frameColor={paint.background} body="flush" className="su-ledger">
       <table
         className="su-ledger__table"
-        // MOCK (best, revision 3): the zebra tints from the list's own band.
+        // The zebra tints from the list's own band.
         style={{ '--su-kind': paint.background } as CSSProperties}
         aria-label={label}
         data-phone-line={phoneLine ? '' : undefined}
@@ -278,7 +278,7 @@ export function Ledger({
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
-                {/* MOCK (best, revision 6, L15): a cost's values label themselves ("2 EP"); the head prints no label, a reader still hears it. Where the head sorts, its handle stays as a bare mark. */}
+                {/* A cost's values label themselves ("2 EP"); the head prints no label, a reader still hears it. Where the head sorts, its handle stays as a bare mark. */}
                 {column.key === 'cost' ? (
                   onSort ? (
                     <button

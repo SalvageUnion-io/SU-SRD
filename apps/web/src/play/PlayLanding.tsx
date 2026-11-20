@@ -307,11 +307,11 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             />
           ))}
         </Shelf>
-        {/* MOCK (best, revision 3): the Mediator's Kit lives with the tables
+        {/* The Mediator's Kit lives with the tables
             it is for. */}
         {connected && (
           <section id="mediators-kit" className="su-mediator-kit-section">
-            {/* MOCK (best, revision 6): a plain ruled label, its tables each wear their own cut-out. */}
+            {/* A plain ruled label, its tables each wear their own cut-out. */}
             <header className="su-rule-head su-rule-head--over">
               <h2 className="su-rule-head__label">Mediator’s Kit</h2>
             </header>

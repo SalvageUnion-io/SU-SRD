@@ -121,7 +121,7 @@ export function TheGame({
       }
     >
       {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
-      {/* MOCK (density mock, sheet variant): the table's people as rows — the
+      {/* The table's people as rows — the
           name, what they run, and the pilot they hold — not painted Minis. */}
       <ul aria-label={playGamesCopy('members')} data-names-whole="" style={LINES}>
         {members?.map((m) => (

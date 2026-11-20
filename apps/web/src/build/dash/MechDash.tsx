@@ -1,5 +1,5 @@
 /**
- * MechDash — MOCK (density mock, sheet variant): a mech's Read sheet as a
+ * MechDash — A mech's Read sheet as a
  * dashboard, in the order the game uses it at the table.
  *
  *   The strip: the art, SP · EP · Heat live, then what the chassis fixes:
@@ -111,7 +111,7 @@ export function MechDash({
         tint="cargo"
         over={over}
       />
-      {/* MOCK (best, revision 5): Tech Level and Salvage Value are the chassis's
+      {/* Tech Level and Salvage Value are the chassis's
           own facts, so they sit with the Chassis in the side column. */}
     </>
   )
@@ -127,7 +127,7 @@ export function MechDash({
   // What the chassis itself does (its abilities are records in the actions
   // schema): printed in full in the side column, the chassis named.
   const chassisAbilities = buildMechActions(mech).filter((action) => action.kind === 'chassis')
-  // MOCK (best, revision 6): a companion the chassis fields (a drone) is its
+  // A companion the chassis fields (a drone) is its
   // own cell, in its own colour (a drone wears its tech level), with its
   // numbers; the whole cell opens the companion's own sheet (`CompanionSheet`).
   const companions = (mech.partners ?? []).map((partner) => {
@@ -159,7 +159,7 @@ export function MechDash({
       </a>
     )
   })
-  // MOCK (best, revision 6): the masthead's right column is About (the
+  // The masthead's right column is About (the
   // description, clamped, with More). Quirk and Appearance are short lines on
   // the figures' rail, beside SYS, MODS and CARGO. The side column keeps only
   // tables.
@@ -243,11 +243,11 @@ export function MechDash({
           )}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: mech.name })}>
-          {/* MOCK (best, revision 6): the chassis leads the side column. Its ability
+          {/* The chassis leads the side column. Its ability
               is text, never a row: the name and every word, always showing. Then
               its own facts and its description. A companion it fields is its own
               cell below, in the companion's colour, opening the companion. */}
-          {/* MOCK (best, revision 7): the side column shows the chassis
+          {/* The side column shows the chassis
               ability only: its strip reads "Chassis ability" with the
               ability's name in it, and its body is the ability's words. */}
           {chassisModel &&
@@ -298,13 +298,11 @@ export function MechDash({
               empty={buildSheetCopy('nothingInTheHold')}
             />
             <div className="su-dash-slots">
-              {/* MOCK (best, revision 4): no slot cells; the head counts the slots. */}
+              {/* No slot cells; the head counts the slots. */}
               {free > 0 && (
                 <span className="su-dash-quiet">{buildSheetCopy('free', { free })}</span>
               )}
-              {over && (
-                <Stat size="mini" label={buildSheetCopy('overCapacity')} state="critical" />
-              )}
+              {over && <Stat size="mini" label={buildSheetCopy('overCapacity')} state="critical" />}
             </div>
           </div>
           {linkedUnits}

@@ -1,5 +1,5 @@
 /**
- * PilotDash — MOCK (density mock, sheet variant): a pilot's Read sheet as a
+ * PilotDash — A pilot's Read sheet as a
  * dashboard, in the order the printed sheet is used at the table.
  *
  *   The strip: the portrait, HP and AP live, Training Points, then the
@@ -40,7 +40,7 @@ const ABILITY_COLUMNS: readonly OpenColumn[] = [
     label: buildSheetCopy('cost'),
     title: buildSheetCopy('activationCost'),
     phone: true,
-    // MOCK (best, revision 6): a cost badge says what it is; no head label.
+    // A cost badge says what it is; no head label.
     quiet: true,
   },
 ]
@@ -212,7 +212,7 @@ export function PilotDash({
   // The printed sheet opens with who the pilot is: the Motto as the line you
   // say at the table, Keepsake and Background under it, each with its
   // once-a-Downtime Used mark.
-  // MOCK (best, revision 6): the masthead's right column is About (the Bio,
+  // The masthead's right column is About (the Bio,
   // clamped, with More; Appearance under it). Motto, Keepsake and Background,
   // each with its once-a-Downtime Used mark, are short lines on the figures'
   // rail, beside Inventory. The side column keeps only tables.
@@ -326,11 +326,11 @@ export function PilotDash({
                 columns={GEAR_COLUMNS}
                 groups={[{ key: 'gear', rows: gear }]}
               />
-              {/* MOCK (best, revision 4): the slot cells are gone; the head's count says it. */}
+              {/* The slot cells are gone; the head's count says it. */}
             </div>
           )}
           {generic.length > 0 && (
-            // MOCK (best, revision 6): every pilot's Generic Abilities are a
+            // Every pilot's Generic Abilities are a
             // table of the side column, under Inventory: a row each, header
             // only, opening its rules in place.
             <div className="su-dash-group">

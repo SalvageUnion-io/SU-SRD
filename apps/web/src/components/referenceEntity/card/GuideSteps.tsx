@@ -231,7 +231,7 @@ export function GuideSteps({
         data-rows=""
         data-optional={step.optional || undefined}
       >
-        {/* MOCK (best, revision 6): what a step's strip heads are rows. */}
+        {/* What a step's strip heads are rows. */}
         <RowDress.Provider value>
           {/* On its Page the numeral is the wizard's rail tab, on the pipe
             that runs down the steps' left edge; the list says the number. */}

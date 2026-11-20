@@ -68,7 +68,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
   useCopyCrewOnArrival(copy, confirm)
 
   const body = (
-    // MOCK (density mock, sheet variant): the crew pages read as the sheets
+    // The crew pages read as the sheets
     // do — labels on rules, and the crew as a paired manifest.
     <SlabLookProvider value="rule">
       <section aria-label={buildStarterSetCopy('starterSet2')}>
@@ -117,7 +117,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         <ChapterBand
           tone="build"
           measure={PAGE_MEASURE}
-          // MOCK (best, revision 6): the page's act rides the area rail.
+          // The page's act rides the area rail.
           corner={
             <RailActs>
               <CopyCrew confirm={confirm} />
@@ -128,7 +128,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         </ChapterBand>
       }
     >
-      {/* MOCK (best, revision 7): the crews stand in the page's main track,
+      {/* The crews stand in the page's main track,
           as a Reference Page's do, a side track beside them. */}
       <div className="su-main-track">{body}</div>
     </PageShell>
