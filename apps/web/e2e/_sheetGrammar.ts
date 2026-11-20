@@ -12,7 +12,8 @@ import type { Finding } from './_findings'
  *   one stack (`.su-sheet-vitals`): in the opening, or from the 64rem rung
  *   heading the sidebar (`.su-sheet-aside-vitals`). A phone in Read opens on
  *   its plain vitals (`.su-phone-vitals`, ruleset §2.1) and then its tabs
- *   (`phone-tabs`).
+ *   (`phone-tabs`). Read may instead be the dashboard (`.su-dash`, R11): its
+ *   masthead and columns stand for the hero and the sidebar.
  * - `vitals` — every gauge in the opening but a Mini's own is a `SheetVitalGauge`
  *   (`[data-vital]`), captioned in full words from the one map
  *   (`SHEET_VITAL_WORDS`, kept equal to `sheetVitals.model.ts` by
@@ -102,7 +103,10 @@ export function scanSheetGrammar({
   const hero = body.querySelector('.su-sheet-hero')
   // A phone in Read: the plain vitals, then the tabs.
   const plain = edit ? null : body.querySelector('.su-phone-vitals')
-  if (!hero && !plain) {
+  // Read may be the dashboard (R11): its masthead and columns stand for the
+  // hero and the sidebar. Edit always opens on SheetHero.
+  const dash = edit ? null : body.querySelector('.su-dash')
+  if (!hero && !plain && !dash) {
     found.push({ rule: 'hero', detail: `${kind}: the body opens on no SheetHero` })
   }
   if (plain && !body.querySelector('[role="tablist"]')) {
@@ -134,7 +138,8 @@ export function scanSheetGrammar({
 
   // The sidebar: what the unit carries, beside the sheet or under its opening.
   const aside = body.querySelector<HTMLElement>('[data-sheet-aside]')
-  if (carries && !aside && !plain) found.push({ rule: 'aside', detail: `${kind}: no sidebar` })
+  if (carries && !aside && !plain && !dash)
+    found.push({ rule: 'aside', detail: `${kind}: no sidebar` })
   if (!carries && aside) {
     found.push({ rule: 'aside', detail: `${kind}: a sidebar on a sheet that carries nothing` })
   }

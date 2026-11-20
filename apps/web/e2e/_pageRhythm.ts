@@ -133,7 +133,10 @@ function scanRhythm(a: RhythmSelectors): RhythmFinding[] {
       ...[...body.querySelectorAll(a.token)].filter(
         (t) => !inFrame(t) && !t.closest(a.tokenList) && !t.parentElement?.closest(a.token)
       ),
-      ...[...body.querySelectorAll(a.slab)].filter((s) => !inFrame(s)),
+      // A ledger's tab is its section's head: the section is the whole table.
+      ...[...body.querySelectorAll(a.slab)]
+        .map((s) => s.closest('table.su-open') ?? s)
+        .filter((s) => !inFrame(s)),
       ...body.querySelectorAll(a.parts),
     ].filter(visible)
     // The prose's text: each run of children that hold no other block is one block.

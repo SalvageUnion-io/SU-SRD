@@ -23,8 +23,8 @@ import { fromFaults } from './_findings'
  *   its ink keyline; `stamp-twin`: a button painted like a read stamp beside
  *   it on its line;
  * - `tool-title-clip` (C5): a TitledBox's title clipped to "…";
- * - `measure` (§1.10): a Reference or Manage band title off the page measure's
- *   left edge; `first-screen`: a phone page whose first content starts below
+ * - `measure` (§1.10): a Reference or Manage band title whose words start off
+ *   the page measure's left edge (its cut-out may hang into the margin); `first-screen`: a phone page whose first content starts below
  *   its first screen.
  */
 
@@ -217,11 +217,15 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
       Number.parseFloat(
         getComputedStyle(document.documentElement).getPropertyValue('--page-measure')
       ) * 16
-    const left = band.getBoundingClientRect().left
+    // The title's words stand on the measure; its paper cut-out may hang into
+    // the margin around them (§1.10).
+    const words = document.createRange()
+    words.selectNodeContents(band)
+    const left = words.getClientRects()[0]?.left ?? band.getBoundingClientRect().left
     const want = Math.max(0, (document.documentElement.clientWidth - measure) / 2)
     if (left + 1 < want)
       out.push(
-        `measure: the band title starts at ${Math.round(left)}px, the measure at ${Math.round(want)}px`
+        `measure: the band title's words start at ${Math.round(left)}px, the measure at ${Math.round(want)}px`
       )
   }
   if (phone && band) {

@@ -138,7 +138,7 @@ export const designRoutes: readonly DesignRoute[] = [
  *   ability track, a bio-titan's parts, an NPC's actions (`token-cutout.e2e.ts`).
  *   A chassis's patterns and a pattern's loadout are Ledger rows, no Mini.
  * - `header-mini`: a header-only Mini: a pattern's loadout where it draws them
- *   (Drontek's), a crawler sheet's crew (`token-cutout.e2e.ts`).
+ *   (Drontek's) (`token-cutout.e2e.ts`).
  * - `search`: a search field on its own line: an SRD listing's rail
  *   (`search-width.e2e.ts`).
  * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
@@ -200,7 +200,7 @@ const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly C
   'pilot/starter-pilot-pickle': ['dash-trees'],
   'pilot/starter-pilot-razor': ['dash-trees'],
   'mech/starter-mech-mule': ['contentful-mini'],
-  'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
+  'crawler/starter-crawler-tenacity': ['contentful-mini'],
 }
 
 const page = (path: string, ...traits: CorpusTrait[]): CorpusPage => ({

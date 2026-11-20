@@ -29,7 +29,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    8. **Front door — the cover** — `/`, and `/build/` and `/games/` signed out, sell the product in the site's own dress: one rust action, one outline beside it; Leyline Press credited by name, one ink link to buy the game; no price, banner or pop-up.
    9. **Manage — the owner's desk** — Training Bay, Play hub, a Game, invites: paper under the area's band, level 0, Slab sections, Compacts that link.
       No stepper or in-place edit; acts are Buttons in a chip group or under a Slab, destruction `confirm`. Rust is the role's door (Play, Mediate); a make (+ New) is rust only where there is no door (§3.13); Open and filters are ink.
-   10. **Two measures** — Reference and Manage sit on `--page-measure`; a Live Sheet and Play fill the window. On a phone a page's first content is on its first screen: its controls one row or a menu.
+   10. **Two measures** — Reference and Manage sit on `--page-measure` (a band title's words on it); a Live Sheet and Play fill the window. A phone page's first content is on its first screen.
 2. **§2 The rendering matrix** — one primitive per role on every surface; the surface picks its skin.
    1. **Vitals** — `VitalGauge`; a `Stat` in listings. TP is a counter, no gauge. Below 40rem a pinned vital is the plain row (`PhoneVitals`): a slim meter, the value large, − and + at the Full Size; no stamp, pip track or texture.
    2. **Caps and slots** — `Stat`; an override is a dashed, logged control.
@@ -50,7 +50,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    8. **§3.8 Ink on colour** — ink text on pilot and mech; no pair under 4.5 : 1. Paper on crawler uses `--color-crawler-band`, as on Denizens brown and NPC navy; TL blue is never a text ground, bar systems and modules.
    9. **§3.9 Canon is solid; homebrew is dashed** — a player-made thing that could pass for canon (pattern, NPC): a solid frame, the dashed HOMEBREW stamp, "Made by [user]", at every size. Dashed is otherwise only a Play reference unit (ADR-051 §5), an edit field and an empty slot; a Slab is always solid.
       A sheet adds a hatched band; a pattern's page is the book's, footed "Homebrew // Made by [user]". One `userMade` flag (+ `madeBy`); canon-built units stay solid.
-   10. **§3.10 No left-rail borders** — colour rides in top bands, stamps and gauges; nesting shows by containment.
+   10. **§3.10 No left-rail borders** — colour rides in bands, stamps and gauges; nesting shows by containment.
    11. **§3.11 One union, two tools** — one Union bar; its tabs read Reference | Training Bay | Games (ADR-066), no second nav; the areas name their pages; bar and footer wear the leading band's colour (no band: the area's), no rule under the bar, no off-site arrows.
    12. **§3.12 Microcopy** — sentence case; game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). Caps only through the stamp, `Button` and `capsLabel`; 11px caps are snug.
@@ -67,7 +67,7 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    7. **§4.7 The Sizes and sibling height** — Full 44px, Compact 32px, Mini 18px (`--size-*`), every button and chip, every screen.
       A line's controls share one Size. A Button beside Tabs is their Size.
    8. **§4.8 The type ladder** — every font size is a `--text-*` rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64; no other size, alias or literal (a link preview's own, K12). Rungs are rem: the reader's text size scales them.
-   9. **§4.9 Rank rides the container** — band, then Slab, then frame, then Mini, as in the book: a Slab's 14px stamp may sit over 22px titles; hierarchy is never fixed by enlarging a stamp.
+   9. **§4.9 Rank rides the container** — band, then Slab, then frame, then Mini, a Slab's 14px stamp may sit over 22px titles; never enlarge a stamp for rank.
 5. **§5 The irreducible set** — 12 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.
    4. **Well** — labelled value: `Stat`, label first (steppers when edited). 5. **Gauge** — segmented current/max: `VitalGauge`. 6. **Btn** — the only mutator: `Button`.
@@ -86,5 +86,5 @@ Canon for every primitive and surface: a component that contradicts a rule is wr
    6. **Item** — a carried thing is a Mini in `SheetItemLine`; one pick dialog (`PickDialog`), one chip-well editor.
    7. **Must not merge** — Btn (do vs read), SlotGrid (places, not quantity), the condition glyph, RollTable; band ≠ rider.
 7. **§7 Two inviolable laws**
-   1. **§7.1 The value-cell law** — a label+value cell is ink on paper in a 1px ink frame on every side (a paper rule on ink, the state colour under a state), never a fill. A lone-label badge is frameless. Exempt: a Ledger cell (L5), a plain vital (§2.1).
-   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height (within 1px), never a fixed margin. It rides wells, callouts and Peek titles; never a Slab leader, flush header or entity frame.
+   1. **§7.1 The value-cell law** — a label+value cell is ink on paper in a 1px ink frame on every side (a Page's stat tile: band paint) (a paper rule on ink, the state colour under a state), never a fill. A lone-label badge is frameless. Exempt: a Ledger cell (L5), a plain vital (§2.1).
+   2. **§7.2 The StampSeam law** — a border-riding stamp centres on the line by its own height (within 1px), never a fixed margin. It rides wells, callouts and Peek titles (not a bare guide Note); never a Slab leader, flush header or entity frame.
