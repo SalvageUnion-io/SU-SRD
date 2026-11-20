@@ -24,6 +24,11 @@ export const referenceCopy = messages({
   siteName: 'SalvageUnion.io',
   pitchValue:
     "Everything you need to play the world's best post-apocalyptic tabletop roleplaying game.",
+  usedBy: 'Used by',
+  usedByMore: 'and {count} more',
+  relatedRules: 'Related rules',
+  previousEntry: 'Previous',
+  nextEntry: 'Next',
   showReference: 'Know the rules',
   showReferenceBody:
     'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',

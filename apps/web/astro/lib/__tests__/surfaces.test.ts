@@ -157,6 +157,28 @@ describe('a listing (a Ledger under a visible heading)', () => {
   })
 })
 
+describe('a sparse Page fills its side track (EDL form 5)', () => {
+  it('a trait wears Used by first, its users as Mentions, then its neighbours under its list’s name', () => {
+    const html = page('/traits/hacking')
+    const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
+    expect(rail).toContain('Used by')
+    expect(rail.indexOf('Used by')).toBeLessThan(rail.indexOf('>Traits<'))
+    expect(rail).toContain('Hacking Kit')
+    expect(rail).toContain('and 19 more')
+  })
+
+  it('a keyword nothing names draws no empty Used by', () => {
+    const html = page('/keywords/corporate-scrip')
+    expect(html).toContain('su-sparse-rail')
+    expect(html).not.toContain('>Used by<')
+    expect(html).toContain('>Keywords<')
+  })
+
+  it('a Page with art and actions has no sparse rail', () => {
+    expect(page('/bio-titans/typhon')).not.toContain('su-sparse-rail')
+  })
+})
+
 describe('an entity page', () => {
   const html = page('/chassis/gopher')
 

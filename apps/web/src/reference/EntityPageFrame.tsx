@@ -76,6 +76,8 @@ type EntityPageFrameProps = {
   buy?: string
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
+  /** A sparse Page's side column (`SparseRail`, EDL form 5), beside its body. */
+  rail?: ReactNode
   children: ReactNode
 }
 
@@ -89,6 +91,7 @@ export function EntityPageFrame({
   build,
   buy,
   exits,
+  rail,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -157,7 +160,14 @@ export function EntityPageFrame({
         <KindLabel kind={meta.typeLabel} />
       </ChapterBand>
       <div className="su-entity__body su-page-body">
-        {children}
+        {rail ? (
+          <div className="su-entity__railed">
+            <div className="su-entity__railed-main">{children}</div>
+            {rail}
+          </div>
+        ) : (
+          children
+        )}
         {exits && <GuideExitsFoot {...exits} />}
       </div>
     </article>
