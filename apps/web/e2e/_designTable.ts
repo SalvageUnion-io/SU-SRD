@@ -134,10 +134,11 @@ export const designRoutes: readonly DesignRoute[] = [
  *
  * - `contentful-mini`: a contentful Mini (N3) of each kind a sheet or a Page
  *   draws: a crawler's type ability, bays and crew, a pilot's abilities and
- *   equipment, a mech's chassis ability, systems and modules, a pattern's
- *   loadout, a class's ability track (`token-cutout.e2e.ts`).
- * - `header-mini`: a header-only Mini: a pattern's loadout, a bio-titan's
- *   part, a crawler sheet's crew (`token-cutout.e2e.ts`).
+ *   equipment, a mech's chassis ability, systems and modules, a class's
+ *   ability track, a bio-titan's parts, an NPC's actions (`token-cutout.e2e.ts`).
+ *   A chassis's patterns and a pattern's loadout are Ledger rows, no Mini.
+ * - `header-mini`: a header-only Mini: a pattern's loadout where it draws them
+ *   (Drontek's), a crawler sheet's crew (`token-cutout.e2e.ts`).
  * - `search`: a search field on its own line: an SRD listing's rail
  *   (`search-width.e2e.ts`).
  * - `rhythm`: a Page of each length and layout: short and long SRD Pages, a
@@ -235,8 +236,8 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/chassis/mazona/pattern/buzzard/', 'rhythm'),
   page('/chassis/big-brother/', 'rhythm'),
   page('/chassis/big-brother/pattern/drontek/', 'header-mini'),
-  page('/chassis/mule/', 'contentful-mini'),
-  page('/chassis/mule/pattern/crusher/', 'contentful-mini'),
+  page('/chassis/mule/'),
+  page('/chassis/mule/pattern/crusher/'),
   page('/systems/salvaging-drill/', 'rhythm'),
   page('/systems/50-cal-machine-gun/'),
   page('/modules/survey-scanner/'),
@@ -244,8 +245,8 @@ export const REFERENCE_CORPUS: readonly CorpusPage[] = [
   page('/classes/hacker/', 'contentful-mini', 'rhythm', 'ability-trees'),
   page('/classes/engineer/'),
   page('/classes/fabricator/', 'ability-trees'),
-  page('/bio-titans/tyrant/', 'rhythm', 'header-mini'),
-  page('/npcs/saboteur/', 'rhythm'),
+  page('/bio-titans/tyrant/', 'rhythm', 'contentful-mini'),
+  page('/npcs/saboteur/', 'rhythm', 'contentful-mini'),
   page('/drones/pest-drone/', 'rhythm', 'linked-head'),
   page('/vehicles/fighting-box-wheel/', 'linked-head'),
   page('/crawler-bays/armoury/', 'rhythm'),

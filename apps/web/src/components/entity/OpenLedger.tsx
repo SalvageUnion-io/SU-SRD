@@ -304,12 +304,13 @@ export function OpenLedger({
   // The table is named by its title, as a screen reader lists it.
   const titleId = useId()
   return (
-    <table className={cn('su-open', className)} aria-labelledby={titleId}>
+    // The ledger is its section, its tab the section's head (L2): a Slab, as
+    // the page's outline and rhythm read it.
+    <table className={cn('su-open', className)} aria-labelledby={titleId} data-slab="">
       <thead className={CAPS}>
         <tr>
           <th scope="col">
-            {/* The tab is its section's head (L2): a Slab, as the page's outline reads it. */}
-            <span className="su-open__title" data-slab="">
+            <span className="su-open__title">
               <Heading id={titleId} className={cn('su-rule-head__label', CAPS, CAPS)}>
                 {title}
               </Heading>
