@@ -1,11 +1,12 @@
 import type { ElementType, ReactNode } from 'react'
-import { cloneElement, isValidElement, useRef } from 'react'
+import { cloneElement, isValidElement, useContext, useRef } from 'react'
 import { cn } from '../../../lib/cn'
 import { capsLabel } from '../../atoms/capsLabel'
 import { WHOLE_ATTRIBUTE } from '../../atoms/chipFill'
 import { ChipOverflowRow, MoreChip } from '../../atoms/chipOverflow'
 import { useChipFill } from '../../atoms/useChipFill'
 import { grainClass } from '../../referenceEntity/card/cardGrain'
+import { RowDress, rowPaint } from '../rowDress'
 import { Chips } from './Chips'
 import type { ChipSet } from './chipSet'
 import { KindLabel } from './KindLabel'
@@ -99,7 +100,7 @@ export function Head({
   peeks = false,
   kind,
   titleAs: TitleTag = 'span',
-  paint,
+  paint: tonePaint,
   tier,
   tierChip = false,
   chips: chipsProp,
@@ -111,6 +112,9 @@ export function Head({
   top,
   whole = false,
 }: HeadProps) {
+  // MOCK (best, revision 6): under a titled strip a Compact is a row.
+  const row = useContext(RowDress)
+  const paint = row ? rowPaint(tonePaint) : tonePaint
   const chips = asStrip(chipsProp, controls, overflow === 'more')
   const overflowRow = !!chips && overflow === 'body'
   const headingRef = useRef<HTMLDivElement>(null)
@@ -166,6 +170,7 @@ export function Head({
       // The band is the frame: an ink band (a thing you do) declares its
       // ground once, and its stamps, chips and cost read it in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
+      data-row={row ? '' : undefined}
       data-grain={paint.grain}
       data-notch
       data-chip-overflow-owner={overflowRow ? '' : undefined}

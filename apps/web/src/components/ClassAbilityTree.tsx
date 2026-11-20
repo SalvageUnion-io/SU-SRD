@@ -9,6 +9,7 @@ import { resolveClassPlan } from '../lib/rules/classPaths'
 import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { Box } from './containers/Box'
+import { RowDress } from './entity/rowDress'
 import type { TreeTrack } from './index'
 import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
@@ -25,8 +26,8 @@ const GAINING_ABILITIES_PAGE = 23
 
 const classHref = (c: RefClass) => itemHref('classes', getEntitySlug(c))
 
-/** What a tree's slab notes: "Tree" for a sequence, "Choose 1" for a Legendary tree. */
-const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : 'Tree')
+/** What a tree's slab notes: nothing for a sequence (MOCK, best revision 6: the head is the tree's name), "Choose 1" for a Legendary tree. */
+const noteFor = (track: TreeTrack) => (track === 'legendary' ? 'Choose 1' : undefined)
 
 /**
  * A tree on its track, under a slab naming it (and, for a branch, its owner).
@@ -174,27 +175,30 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
           />
         }
       />
-      <ul className="su-class-brief__cards">
-        {briefCards(plan).map((card) => (
-          <li key={card.label} className="su-class-brief__card">
-            <TitledBox
-              title={card.label}
-              paint={tierPaint(card.tier)}
-              chips={
-                card.cost && (
-                  <Chips
-                    size="mini"
-                    chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
-                  />
-                )
-              }
-            >
-              <p className="su-class-brief__body">
-                <MentionProse parts={card.value} />
-              </p>
-            </TitledBox>
-          </li>
-        ))}
+      {/* MOCK (best, revision 6): under the Training strip the tiers are rows, never a second cut-out. */}
+      <ul className="su-class-brief__cards" data-rows="">
+        <RowDress.Provider value>
+          {briefCards(plan).map((card) => (
+            <li key={card.label} className="su-class-brief__card">
+              <TitledBox
+                title={card.label}
+                paint={tierPaint(card.tier)}
+                chips={
+                  card.cost && (
+                    <Chips
+                      size="mini"
+                      chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                    />
+                  )
+                }
+              >
+                <p className="su-class-brief__body">
+                  <MentionProse parts={card.value} />
+                </p>
+              </TitledBox>
+            </li>
+          ))}
+        </RowDress.Provider>
       </ul>
       {plan.kind === 'hybrid' && (
         <p className="su-class-brief__trees">

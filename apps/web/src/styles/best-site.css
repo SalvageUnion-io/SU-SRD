@@ -1,0 +1,2006 @@
+/*
+ * MOCK (density mock, "best" variant): the site outside the sheets, in the
+ * same grammar. Loaded by both the Reference (`global.css`) and the app
+ * (`app.css`), after `build/dash.css`, whose strip head it shares.
+ *
+ *   1. The area rail: what the open area holds, one row under the Union bar.
+ *   2. The Ledger, unframed: its head strip stays in its kind's colour (the
+ *      colour map), the frame and the foot band go, the rows band deeper, and
+ *      its "+ New…" leaves the cut-out for the strip.
+ *   3. An entity page's stats as a masthead: a small label over a big
+ *      numeral, on one paper board, as a sheet's own vitals read.
+ *
+ * `!important` appears where a style object sets the value this mock must
+ * change; built for real those are the components' own.
+ */
+
+/* ── 1. The area rail ───────────────────────────────────────────────────── */
+
+.su-union-bar__rail {
+  display: none;
+}
+
+@media (width >= 64rem) {
+  .su-union-bar[data-mode='reference'] .su-union-bar__rail[data-area='reference'],
+  .su-union-bar[data-mode='build'] .su-union-bar__rail[data-area='build'],
+  .su-union-bar[data-mode='play'] .su-union-bar__rail[data-area='play'] {
+    align-items: center;
+    border-top: var(--bw-hairline) solid var(--su-bar-fg-15);
+    display: flex;
+    gap: var(--space-4);
+    min-height: var(--size-compact);
+    padding-inline: var(--space-16);
+    position: relative;
+  }
+}
+
+.su-union-bar__rail-name {
+  color: var(--su-bar-fg-70);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-wide);
+  margin-inline: calc(var(--size-compact) + var(--space-12)) var(--space-12);
+  text-transform: uppercase;
+}
+
+.su-union-bar__rail-link {
+  border-bottom: var(--bw-pill) solid transparent;
+  color: var(--su-bar-fg);
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: calc(var(--size-compact) - var(--bw-pill));
+  padding-inline: var(--space-12);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.su-union-bar__rail-link:hover {
+  border-bottom-color: var(--su-bar-fg);
+}
+
+/* ── 2. The Ledger, unframed ────────────────────────────────────────────── */
+
+.su-box.su-ledger {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  border-width: 0 0 var(--bw-pill) !important;
+  border-bottom-color: var(--color-ink) !important;
+  border-style: solid !important;
+  padding: 0 !important;
+}
+
+.su-ledger__table tbody tr[data-band] {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+@media (width >= 40rem) {
+  .su-ledger__table tbody :is(th, td) {
+    padding-block: var(--space-8);
+  }
+}
+
+/* A button is never on a cut-out: the Ledger's "+ New…" rides the strip. */
+.su-ledger__head .su-ledger__action {
+  background-color: transparent;
+  padding: 0;
+}
+
+.su-ledger__head > th[data-kind='trailing']:has(.su-ledger__action) {
+  padding: var(--space-6) var(--space-8);
+  vertical-align: middle;
+}
+
+/* ── 3. An entity page's stats, as a masthead ───────────────────────────── */
+
+/* MOCK (best, revision 7, take 2): each stat is its own tile, as the home
+   page's doors are: a paper card framed in the page's band paint, the
+   numeral large on top, and at its foot the band's strip with the label on
+   its paper cut-out, as a door's name sits under its art. No panel holds
+   them: they stand on the page's grid, a block apart, and wrap. */
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) {
+  --su-tile-label: calc(var(--text-body) + 2 * var(--space-4));
+  --su-grid-gap: var(--space-12);
+  background: none;
+  border: 0;
+  gap: var(--space-12) !important;
+  padding: 0;
+}
+
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
+  align-items: flex-start !important;
+  background: linear-gradient(
+    to bottom,
+    var(--su-kind, var(--color-ink)) 0,
+    var(--su-kind, var(--color-ink)) calc(var(--su-tile-label) + var(--space-6)),
+    var(--color-paper) calc(var(--su-tile-label) + var(--space-6))
+  ) !important;
+  border: var(--bw-entity-compact) solid var(--su-kind, var(--color-ink-40)) !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  height: 100% !important;
+  justify-content: flex-start !important;
+  min-height: 0 !important;
+  outline: 0 !important;
+  padding: 0 !important;
+}
+
+/* Top-down: the strip heads the tile; the label is a cut-out facing down,
+   flush with the strip's foot so it opens into the numeral's paper below it
+   (the cut-out law), the strip showing above. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label {
+  background-color: var(--color-paper) !important;
+  color: var(--color-ink) !important;
+  font-size: var(--text-body) !important;
+  height: var(--su-tile-label) !important;
+  justify-content: flex-start !important;
+  letter-spacing: var(--tracking-caps-snug) !important;
+  line-height: 1 !important;
+  margin: var(--space-6) 0 0 var(--space-8) !important;
+  min-height: 0 !important;
+  padding: var(--space-4) var(--space-8) !important;
+}
+
+/* The numeral: large, on the tile's paper, no frame of its own. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--value {
+  background: none !important;
+  border: 0 !important;
+  color: var(--color-ink) !important;
+  flex: 1 1 auto !important;
+  font-size: var(--text-hero) !important;
+  justify-content: flex-start !important;
+  line-height: 1 !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  outline: 0 !important;
+  padding: var(--space-12) var(--space-12) var(--space-8) !important;
+  width: auto !important;
+}
+
+/* The frame goes: the head strip is the Ledger's only paint, a 2px ink rule
+   closes it, and the cite keeps its cut-out on the ground, bottom right. */
+.su-ledger > .su-entity-compact__frame {
+  background-color: transparent;
+  border-color: var(--color-ink);
+  border-width: 0 0 var(--bw-pill);
+}
+
+.su-ledger .su-box__body > :not(table) {
+  background: none !important;
+  background-image: none !important;
+}
+
+/* ── 4. MOCK (revision 3): the roll table in the best grammar ───────────────
+   The bar is the head strip in the page's kind colour; the name is a cut-out
+   the strip's own height on its foot (never a small tab low in a tall bar);
+   the d20 column is plain tabular numerals on the row's band, right-aligned
+   under its label, with no cell of its own. */
+
+.su-roll {
+  --su-roll-band: color-mix(
+    in srgb,
+    var(--su-kind, var(--color-ink)) 26%,
+    var(--color-paper)
+  ) !important;
+  --su-roll-range: 4rem;
+}
+
+.su-roll[data-frame='box'] {
+  border: 0;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  border-radius: 0;
+}
+
+.su-roll .su-roll__bar {
+  align-items: center;
+  background-color: var(--su-kind, var(--color-ink));
+  color: var(--su-on-kind, var(--color-paper));
+  min-height: 2.5rem;
+  padding-block: 0;
+}
+
+.su-roll .su-roll__bar .su-roll__title {
+  align-items: center;
+  align-self: flex-end;
+  display: inline-flex;
+  font-size: var(--text-readout);
+  margin-bottom: 0;
+  min-height: calc(2.5rem - var(--space-6));
+  padding-block: 0;
+  padding-inline: var(--space-12);
+}
+
+.su-roll .su-roll__bar :is(.su-roll__col-text, .su-roll__hint) {
+  color: inherit;
+}
+
+.su-roll .su-roll__bar .su-roll__col-range {
+  box-sizing: border-box;
+  padding-right: var(--space-12);
+  text-align: right;
+}
+
+.su-roll .su-roll__bands {
+  border-top: 0;
+}
+
+.su-roll .su-roll__range,
+.su-roll .su-roll__row[data-rolled] .su-roll__range {
+  background-color: transparent;
+  border-right: 0;
+  box-sizing: border-box;
+  color: inherit;
+  justify-content: flex-end;
+  padding-right: var(--space-12);
+}
+
+/* ── 5. MOCK (revision 3): Buy the game, the books as a shelf of covers ──── */
+
+.su-front__buy-copy {
+  flex: 1 1 18rem;
+}
+
+.su-front__buy-copy .su-front__buy-licence {
+  color: var(--color-ink-75);
+  font-size: var(--text-caption);
+}
+
+.su-front__shelf {
+  display: grid;
+  flex: 3 1 28rem;
+  gap: var(--space-12);
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.su-front__cover {
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  text-decoration: none;
+}
+
+.su-front__cover > img,
+.su-front__cover-type {
+  aspect-ratio: 3 / 4;
+  border: var(--bw-chrome) solid var(--color-ink);
+  box-sizing: border-box;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+/* The slot before its art: the title set as a cover, ink on the book's blue. */
+.su-front__cover-type {
+  align-items: flex-end;
+  background-color: var(--color-ink);
+  background-image: linear-gradient(
+    to bottom,
+    var(--su-kind, var(--color-wk-line)) 0,
+    var(--su-kind, var(--color-wk-line)) var(--space-12),
+    transparent var(--space-12)
+  );
+  color: var(--color-paper);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  overflow: hidden;
+  padding: var(--space-8);
+  text-transform: uppercase;
+}
+
+.su-front__cover:hover .su-front__cover-type {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: var(--space-2);
+}
+
+.su-front__cover-name {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  text-decoration: underline;
+}
+
+.su-front__cover-version {
+  color: var(--color-ink-75);
+  font-size: var(--text-chip);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 4): THE LAYOUT SYSTEM.
+ *
+ *   L-1  One measure. Every page (front, listing, entity, sheet, guide,
+ *        wizard) sets its content on `--page-measure`, centred; the header's
+ *        brand and the area rail start on the same left edge.
+ *   L-2  One header. The site bar is ink on every page and never takes a
+ *        page's colour; under it the area rail is paper. Colour starts at
+ *        the page's title band and belongs to the entity.
+ *   L-3  One page order: title band → masthead (if the page has numbers) →
+ *        tab row (if it has views) → body → sources. The foot is ink.
+ *   L-4  Tables have no borders: a head strip in the entity's colour, zebra
+ *        rows, nothing else. An opened row keeps its ink edge (a state
+ *        mark, not a frame).
+ * ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --page-measure: 80rem;
+  --su-shell-edge: max(var(--space-16), calc((100vw - var(--page-measure)) / 2));
+}
+
+/* L-1: a sheet's gutters grow to the measure, so its band still bleeds. */
+@media (width >= 80rem) {
+  .su-page-gutters {
+    --su-page-gutter-inline: max(var(--space-48), var(--su-shell-edge));
+  }
+}
+
+/* L-2: the header. */
+.su-union-bar,
+.su-union-bar[data-mode] {
+  --su-bar-bg: var(--color-ink-deep) !important;
+  --su-bar-fg: var(--color-paper) !important;
+  --su-bar-on-fg: var(--color-ink) !important;
+  --su-bar-fg-85: var(--color-paper-85) !important;
+  --su-bar-fg-70: var(--color-paper-70) !important;
+  --su-bar-fg-60: var(--color-paper-60) !important;
+  --su-bar-fg-30: var(--color-paper-30) !important;
+  --su-bar-fg-15: var(--color-paper-15) !important;
+  --su-bar-grain-paper: contents !important;
+  --su-bar-grain-ink: none !important;
+}
+
+@media (width >= 64rem) {
+  .su-union-bar .su-union-bar__row {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  /* MOCK (best, revision 5): the rail is not paper. It wears the page's band
+     colour (`--su-kind`, the leading band's; ink where a page has none), so
+     ink header, rail and band read as one. Its text is the colour's own
+     AA foreground, at full strength. */
+  .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
+    --su-bar-fg: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-70: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-85: var(--su-on-kind, var(--color-paper)) !important;
+    --su-bar-fg-60: var(--su-on-kind, var(--color-paper)) !important;
+    background-color: var(--su-kind, var(--color-ink-deep));
+    border-bottom: 0;
+    border-top: 0;
+    min-height: var(--size-full);
+    padding-inline: var(--su-shell-edge);
+  }
+
+  /* The alternate (`alt-dark-rail-*` shots; MOCK: `data-rail="dark"` on the
+     root, set by the shot script): a dark rail a step lighter than the
+     header's ink, paper text. */
+  :root[data-rail='dark'] .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
+    --su-bar-fg: var(--color-paper) !important;
+    --su-bar-fg-70: var(--color-paper) !important;
+    --su-bar-fg-85: var(--color-paper) !important;
+    --su-bar-fg-60: var(--color-paper) !important;
+    background-color: color-mix(in srgb, var(--color-ink-deep) 85%, var(--color-paper));
+  }
+
+  .su-union-bar .su-union-bar__rail-name {
+    margin-inline: 0 var(--space-12);
+  }
+
+  .su-union-bar .su-union-bar__rail-link {
+    line-height: calc(var(--size-full) - var(--bw-pill));
+  }
+}
+
+/* L-3: the foot is the header's ink. */
+.su-chapter-foot {
+  --su-foot-bg: var(--color-ink-deep) !important;
+  --su-foot-fg: var(--color-paper) !important;
+  --su-foot-mark: invert(1) !important;
+  --su-foot-grain-paper: contents !important;
+  --su-foot-grain-ink: none !important;
+}
+
+/* L-3: the tab row, on the masthead's foot. Tabs, not a boxed switch: the
+   current view carries an ink bar on the row's rule. */
+.su-dash-top:has(> .su-mast__tabs) > .su-mast {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-mast__tabs {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+.su-mast__tabs .su-seg {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  min-inline-size: 0;
+  outline: 0;
+  padding: 0;
+  border-radius: 0;
+  display: flex;
+  gap: var(--space-24);
+}
+
+.su-mast__tabs .su-seg__option,
+.su-mast__tabs .su-seg__option + .su-seg__option {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: var(--color-ink-75);
+  flex: none;
+  font-size: var(--text-readout);
+  min-height: var(--size-full);
+  padding-inline: var(--space-2);
+}
+
+.su-mast__tabs .su-seg__option:hover {
+  background: none;
+  color: var(--color-ink);
+}
+
+.su-mast__tabs .su-seg__option[aria-pressed='true'],
+.su-mast__tabs .su-seg__option[aria-pressed='true']:hover {
+  background: none;
+  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* L-4: no borders on a table. */
+.su-open,
+.su-open.su-open--sub,
+.su-open__detail .su-roll,
+.su-box.su-ledger,
+.su-ledger > .su-entity-compact__frame,
+.su-roll[data-frame='box'],
+.su-scrap {
+  border-bottom: 0 !important;
+  border-top: 0 !important;
+}
+
+.su-open .su-open__row > :is(th, td),
+.su-ledger__table tbody tr + tr > *,
+.su-roll .su-roll__row,
+.su-roll .su-roll__rows + .su-roll__rows > .su-roll__row:first-child,
+.su-scrap .su-scrap__cell + .su-scrap__cell {
+  border: 0;
+}
+
+/* A sub-table (a tree, what is stored) heads itself with a lighter band of
+   the same colour instead of an ink rule. */
+.su-open.su-open--sub thead th {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
+  border-bottom: 0;
+  padding-block: var(--space-4);
+}
+
+.su-open.su-open--sub thead th:first-child {
+  padding-inline-start: var(--space-8);
+}
+
+/* Revision 4, note 1: an ability's level is a small mark, not a column. */
+.su-trees .su-open-level {
+  font-size: var(--text-badge);
+  height: 1.125rem;
+  min-width: 1.125rem;
+  width: 1.125rem;
+}
+
+.su-trees .su-open__toggle {
+  margin-inline: calc(-1 * var(--space-6)) 0;
+  width: var(--space-16);
+}
+
+.su-trees .su-open tbody > .su-open__row > th {
+  padding-inline-start: var(--space-8);
+}
+
+/* The line under a name starts under the level mark, not under the name:
+   the only column left of the text is the opener's. */
+.su-trees .su-open .su-open__row[data-opens] + .su-open__under > td {
+  padding-inline-start: var(--space-24);
+}
+
+.su-trees .su-open .su-open__detail-body {
+  padding-inline-start: var(--space-8);
+}
+
+/* A phone: the bays list keeps to the page (no sideways scroll, R44). */
+@media (width < 40rem) {
+  .su-open.su-open--manifest .su-open__row > td[data-kind='text'],
+  .su-open.su-open--manifest thead th[data-col][data-kind='text'] {
+    padding-inline: var(--space-4);
+  }
+
+  .su-open.su-open--manifest .su-open__row > td:last-child,
+  .su-open.su-open--manifest thead th:last-child {
+    padding-inline: var(--space-4) var(--space-8);
+  }
+}
+
+@media (width < 40rem) {
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
+    padding-inline: var(--space-4);
+  }
+
+  .su-open.su-open--pairs .su-open__row > th {
+    padding-inline: var(--space-8) var(--space-4);
+  }
+
+  .su-open.su-open--pairs .su-open__title > .su-rule-head__label {
+    font-size: var(--text-readout);
+  }
+
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):is(:nth-child(2), :nth-child(3)) {
+    padding-inline: var(--space-4);
+  }
+}
+
+/* Revision 4, note 2: the Actions view is a tool. */
+.su-actions-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.su-actions-tool__bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-16);
+}
+
+/* The field has its own line; the filters share the next. */
+.su-actions-tool__search {
+  flex: 1 1 100%;
+  margin-inline-end: max(0px, calc(100% - 32rem));
+  max-width: 32rem;
+}
+
+.su-open--actions .su-open__clamp {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.su-open--actions :is(.su-open__under > td, .su-open__detail-body) {
+  max-width: 46rem;
+}
+
+/* L-1: at the measure, a sheet band's corner controls and the foot keep the
+   page's edges too. */
+@media (width >= 84rem) {
+  .su-chapter-band:not([data-measured]) .su-chapter-band__corner {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  /* A measured page (front, listing, entity page, guide) drops its inner
+     padding there, so its text starts under the brand like a sheet's. */
+  .su-page-body,
+  .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    padding-inline: 0;
+  }
+
+  /* A wizard too: its title, step rail and step keep the measure. */
+  .su-chapter-band:has(+ .su-wiz-body) .su-chapter-band__row {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  .su-wiz-body {
+    box-sizing: border-box;
+    padding-inline: calc(var(--su-shell-edge) - var(--space-16) - var(--space-4))
+      calc(var(--su-shell-edge) - var(--space-40));
+  }
+
+  .su-chapter-foot :is(.su-chapter-foot__row, .su-chapter-foot__cite) {
+    margin-inline: auto;
+    max-width: var(--page-measure) !important;
+    padding-inline: 0;
+  }
+}
+
+/* The Mediator's Kit's lists stand clear of their section's strip. */
+.su-mediator-kit-section .su-mediator-kit {
+  margin-top: var(--space-12);
+}
+
+/* Borderless lists stacked in a column need air between them (L-4). */
+.su-shelf-ledgers .su-shelf-ledgers__col {
+  gap: var(--space-16);
+}
+
+/* L-4 on a grid roll table (a d20 by d20 matrix): no cell rules; its
+   column heads are a lighter band of the same colour, like any sub-head. */
+.su-roll,
+.su-roll :is(.su-roll__edge, .su-roll__cell, .su-roll__stack-entry, .su-roll__stack-col) {
+  border: 0 !important;
+}
+
+.su-roll .su-roll__table thead :is(.su-roll__col, .su-roll__edge) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
+  color: var(--color-ink);
+}
+
+/* On the measure a chassis plate is narrower: its six figures sit three a
+   line, as on a phone, so no two labels touch. */
+.su-chassis-gallery .su-chassis-plate__figures {
+  grid-template-columns: repeat(3, 1fr);
+  row-gap: var(--space-4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 5): ONE LINE IN A HEAD STRIP (L-5).
+ * The cut-out title, its tally and every column label share one baseline:
+ * the title's. A control in the strip (a button) is centred instead; it is
+ * not a label.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* A sheet table's strip. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-open thead th,
+.su-open.su-open--sub thead th {
+  vertical-align: baseline;
+}
+
+.su-open:not(.su-open--sub) thead th[data-col],
+.su-open.su-open--sub thead th[data-col] {
+  line-height: 1;
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+.su-open thead .su-open__title {
+  align-items: baseline;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-open thead .su-open__title > .su-rule-head__label,
+.su-open
+  thead
+  .su-open__title
+  :is(.su-rule-head__tallies, .su-rule-head__tally, .su-rule-head__note) {
+  align-self: baseline !important;
+  padding-bottom: 0;
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__label {
+  padding-bottom: var(--space-4);
+}
+
+/* A section's strip with no table under it (Storage Bay, About). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label,
+.su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
+  align-items: baseline;
+  align-self: baseline !important;
+  height: auto;
+  padding-bottom: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
+  padding-block: var(--space-6) var(--space-4);
+}
+
+/* A Reference or Bay list's strip. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-ledger__table .su-ledger__head > th {
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+.su-ledger__table .su-ledger__head > th:first-child {
+  padding-top: var(--space-8);
+  vertical-align: baseline;
+}
+
+.su-ledger__table .su-ledger__head > th:has(.su-btn) {
+  padding-block: var(--space-6);
+  vertical-align: middle;
+}
+
+.su-ledger__head .su-ledger__title-line {
+  align-items: baseline;
+}
+
+.su-ledger__head .su-ledger__mark {
+  align-self: baseline !important;
+  margin-bottom: 0;
+}
+
+/* A tree's strip keeps to one line: a note that does not fit beside the
+   title is dropped whole, never wrapped under it. */
+.su-open.su-open--sub thead .su-open__title {
+  flex-wrap: wrap;
+  max-height: 1.0625rem;
+  overflow: hidden;
+  row-gap: var(--space-8);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): A PAGE'S ACTS RIDE THE RAIL.
+ * Read | Edit | Play, Share and ⋯ sit right-aligned on the rail's line, in
+ * the rail links' own type; the current mode wears the links' underline.
+ * Under 64rem there is no rail: the acts are a strip of the same colour and
+ * style directly under the header, over the band.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+.su-union-bar__rail-acts {
+  align-items: center;
+  display: flex;
+  margin-inline-start: auto;
+}
+
+.su-rail-acts {
+  --su-acts-fg: var(--su-bar-fg, var(--su-on-kind, var(--color-ink)));
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  justify-content: flex-end;
+}
+
+.su-rail-acts .su-seg {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  gap: 0;
+  margin: 0;
+  min-inline-size: 0;
+  outline: 0;
+  padding: 0;
+}
+
+.su-rail-acts :is(.su-seg__option, .su-btn),
+.su-rail-acts .su-seg__option + .su-seg__option {
+  align-items: center;
+  background: none !important;
+  border: 0;
+  border-bottom: var(--bw-pill) solid transparent;
+  border-radius: 0;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: var(--su-acts-fg) !important;
+  display: inline-flex;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-bold);
+  height: var(--size-full);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  min-height: 0;
+  min-width: 0;
+  outline-offset: calc(-1 * var(--space-2));
+  padding: var(--bw-pill) var(--space-12) 0;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.su-rail-acts :is(.su-seg__option, .su-btn):hover,
+.su-rail-acts .su-seg__option[aria-pressed='true'],
+.su-rail-acts .su-btn[aria-expanded='true'] {
+  border-bottom-color: var(--su-acts-fg);
+}
+
+/* The rail's line: the acts end on the page's right edge. */
+.su-union-bar__rail-acts .su-rail-acts {
+  margin-inline-end: calc(-1 * var(--space-12));
+}
+
+/* No rail (under 64rem): the acts are the band's first row, a strip in the
+   rail's colour, so the same text passes AA on every kind. */
+.su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
+  --su-bar-fg: var(--su-on-kind, var(--color-ink));
+  background-color: var(--su-kind, transparent);
+  padding-block: 0;
+}
+
+/* With its acts on the rail the band's corner is empty: the band is the
+   title and its chips. */
+.su-chapter-band .su-chapter-band__corner:empty {
+  display: none;
+}
+
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: var(--space-32);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): NEVER STACK CUT-OUTS (L-6).
+ * Below the page's title, one cut-out a block: the strip's. What a strip
+ * heads are rows (`RowDress`): no band, no cut-out, no frame; the name in
+ * ink, its chips beside it, its text under it, zebra between.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-mini > *,
+[data-rows] .su-entity-compact__frame,
+[data-rows] .su-entity-mini__pill[data-row] {
+  border-color: transparent !important;
+  border-width: 0 !important;
+  box-shadow: none;
+}
+
+[data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
+[data-rows]
+  .su-entity-compact__head[data-row]
+  :is(.su-entity-compact__name, .su-entity-compact__title) {
+  background: none !important;
+  color: var(--color-ink);
+}
+
+[data-rows] .su-entity-compact__head[data-row] {
+  background-image: none !important;
+}
+
+/* A list of rows: one column, no gaps, zebra in the page's colour. */
+[data-rows] .su-entity-mini-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-compact__frame {
+  background-color: var(--color-paper);
+}
+
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-mini,
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-compact > .su-entity-compact__frame,
+[data-rows]
+  :is(li, .su-grid > *):nth-child(even):is(.su-entity-compact)
+  > .su-entity-compact__frame {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* A roll table under a strip or in an opened row names itself in plain
+   text on its strip: the cut-out above it is the block's one. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the roll table's own title */
+:is([data-rows], .su-open__detail) .su-roll__title {
+  align-self: center;
+  background: none;
+  color: var(--su-on-kind, var(--color-paper));
+  margin-bottom: 0;
+  padding-inline: 0 var(--space-8);
+}
+
+/* A strip's own controls (Show Homebrew, + New Game, Copy the crew to …)
+   are compact buttons at the strip's end, on its line: never a full-width
+   bar under it (revision 6, 16:47Z). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's wrapped actions */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
+  align-self: center;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  margin: 0 0 0 auto;
+  padding: var(--space-2) 0;
+}
+
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions > .su-btn:not(.su-btn--icon-only) {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+/* Rows sit on their strip, as a table's do; a row's text is on the row. A
+   mini strip (a divider: a tree's name over its cards) keeps its gap, so the
+   box below it never sits flush on the rule (MOCK, best, revision 7). */
+.su-slab-section:not(.su-slab-section--mini):has(> [data-rows]) {
+  gap: 0 !important;
+}
+
+[data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
+  background-color: transparent !important;
+}
+
+/* The home page's three doors are cards with their own names: no strip
+   stands over them (it would stack two cut-outs). The heading is still
+   read. The Contents' chapters open with their own bands, so its strip goes
+   the same way (MOCK, best, revision 7). */
+.su-rule-head:is(:has(> #three-ways-in), :has(> #contents)) {
+  border: 0;
+  clip-path: inset(50%);
+  height: 1px;
+  margin: -1px; /* design-tokens-ignore(raw-spacing): the visually-hidden pattern, not spacing */
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+/* ── MOCK (best, revision 6, 16:48Z): the home page's polish ────────────── */
+
+/* Buy the game: its words and its two buttons on one line across the panel,
+   then the books as ONE shelf row under them (no orphaned second row, no
+   empty column beside the covers). */
+@media (width >= 64rem) {
+  .su-front__buy-body {
+    display: grid;
+    gap: var(--space-16);
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--space-16);
+  }
+
+  .su-front__buy-copy {
+    align-items: start;
+    column-gap: var(--space-32);
+    display: grid;
+    grid-template-columns: minmax(0, 46rem) minmax(0, 1fr);
+  }
+
+  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, unrelated table rule */
+  .su-front__buy-copy > * {
+    grid-column: 1;
+  }
+
+  .su-front__buy-copy > .su-front__buy-actions {
+    align-self: start;
+    flex-direction: column;
+    grid-column: 2;
+    grid-row: 1 / span 3;
+    justify-self: end;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .su-front__buy-copy > .su-front__buy-actions > * {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .su-front__shelf {
+    grid-auto-columns: minmax(0, 1fr);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+  }
+}
+
+.su-front__cover-type {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
+
+/* A guide's phase (Post-Session) stands over steps that each wear their own
+   cut-out: the phase is a plain ruled label, never a second cut-out over
+   them (L-6). */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase strip */
+.su-guide--page .su-guide__section > .su-slab-section__head {
+  background: none !important;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  min-height: 0;
+  padding-block: var(--space-4);
+}
+
+.su-guide--page .su-guide__section > .su-slab-section__head::before {
+  content: none;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase label's plate */
+.su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  flex: 0 0 auto;
+  padding-inline: 0;
+}
+
+/* The Training tiers as rows: one line each, name then what opens it. */
+.su-class-brief__cards[data-rows] {
+  background-color: var(--color-paper);
+  align-items: stretch;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 0;
+}
+
+.su-class-brief:has(> [data-rows]) {
+  gap: 0;
+}
+
+.su-class-brief__cards[data-rows] .su-box__body {
+  flex: 0 0 auto;
+  padding-block: 0 var(--space-8);
+}
+
+/* The Training tiers as rows: each the strip's full width. */
+.su-class-brief__cards[data-rows] > .su-class-brief__card {
+  align-self: stretch;
+  flex: 0 0 auto !important;
+  max-width: none !important;
+  width: auto !important;
+}
+
+.su-class-brief__cards[data-rows] > .su-class-brief__card:nth-child(even) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* A head that stands over blocks with their own cut-outs (the Mediator's
+   Kit over its NPC and Encounter tables) is a plain ruled label too (L-6).
+   So is a section's head in a Peek: the Peek's own title cut-out stands
+   right above it. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip */
+[role='dialog'] .su-rule-head.su-slab-section__head,
+.su-rule-head.su-rule-head--over {
+  background: none !important;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  min-height: 0;
+  padding-block: var(--space-4);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
+[role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  padding-inline: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
+.su-rule-head.su-rule-head--over > .su-rule-head__label {
+  background: none !important;
+  color: var(--color-ink);
+  padding-inline: 0;
+}
+
+/* A strip's buttons fit inside the strip: none hangs under its edge. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the compact button's height */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions .su-btn {
+  font-size: var(--text-chip);
+  height: 1.5rem; /* design-tokens-ignore(raw-size): inside the 2rem strip */
+  min-height: 0;
+  padding-block: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
+.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) {
+  align-items: center;
+  padding-block: var(--space-4);
+  /* Where the buttons do not fit beside the title (a narrow side column, a
+     phone) they wrap to their own line under the strip, clear of it, still
+     compact and at the line's end. */
+  row-gap: var(--space-12);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
+.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) > .su-rule-head__label {
+  align-self: flex-end;
+  margin-bottom: calc(-1 * var(--space-4));
+}
+
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
+  padding-block: 0;
+}
+
+/* A Reference Page's call to action (Build With This) stays a rust button in
+   the band; Share beside it on a phone sits on the button's centre line. */
+.su-chapter-band__action:has(> .su-rail-acts) {
+  align-items: center;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6, 17:50Z): RAIL AND BAND ARE ONE PAINT.
+ * The rail has no paint of its own: the band runs up behind it, so the
+ * colour and the speckle are the band's, unbroken, from the header's ink to
+ * the band's foot. The band is as tall as its title cut-out: nothing above
+ * the title now that the acts ride the rail.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* A crawler's band takes the deeper crawler pink its rail and tables wear,
+   so rail and band are one colour there too (paper text 4.6:1). MOCK: the
+   band's own paint is matched by its inline colour; the real change is
+   `ChapterBand`'s tone. */
+.su-chapter-band[style*='206, 88, 152']:not([role='dialog'] *) {
+  background-color: var(
+    --su-kind,
+    rgb(184 74 134)
+  ) !important; /* design-tokens-ignore(raw-color): crawlerBand, as tokens.ts */
+}
+
+/* With its acts on the rail the corner holds nothing: it takes no room. */
+.su-chapter-band .su-chapter-band__corner:not(:has(*)) {
+  display: none !important;
+}
+
+/* Under 64rem the acts are the band's first row: no paint of their own, the
+   band's colour and speckle run through them. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's paint */
+.su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
+  background-color: transparent;
+}
+
+/* Nothing above the title: the cut-out stands from the band's top (under
+   the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: 0 !important;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
+  padding-top: var(--space-8);
+}
+
+@media (width >= 64rem) {
+  /* The header's ink is its row's, so the rail under it can be clear. */
+  :root:has(.su-chapter-band:not([role='dialog'] *)) .su-union-bar[data-mode] {
+    background-color: transparent;
+  }
+
+  :root:has(.su-chapter-band:not([role='dialog'] *)) .su-union-bar[data-mode] > .su-union-bar__row {
+    background-color: var(--color-ink-deep);
+  }
+
+  :root:not([data-rail='dark']):has(.su-chapter-band:not([role='dialog'] *))
+    .su-union-bar[data-mode]
+    .su-union-bar__rail[data-area] {
+    background-color: transparent;
+  }
+
+  /* The band starts under the header's row, behind the rail (2.75rem). */
+  .su-chapter-band:not([role='dialog'] *) {
+    margin-top: -2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+    padding-top: 2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+  }
+
+  /* An app page's scroll sentinel (1px, pulled back by its own -1px margin)
+     stands before the band; the two negative margins collapse to the larger,
+     so the band takes the sentinel's pixel too. */
+  div:not([class]) + .su-chapter-band:not([role='dialog'] *) {
+    margin-top: calc(
+      -2.75rem -
+      1px
+    ); /* design-tokens-ignore(raw-spacing): the rail's height and the sentinel */
+  }
+}
+
+/* The row is as tall as the title cut-out, no taller. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
+  min-height: 0 !important;
+}
+
+/* An eyebrow with nothing to say (the Bay's status line when all is saved)
+   takes no room above the title. */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow:has(> :only-child:empty) {
+  padding-top: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * MOCK (best, revision 6): THE MASTHEAD'S WORDS.
+ * The right column is About (clamped, More). The unit's short lines (a
+ * pilot's Motto, Keepsake, Background; a mech's Quirk, Appearance) sit on
+ * the figures' rail, beside the tallies: label and value on one line.
+ * ══════════════════════════════════════════════════════════════════════ */
+.su-mast__traits {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: var(--space-12) 0 var(--space-12) var(--space-24);
+}
+
+/* MOCK (best, revision 7): the traits (Motto, Keepsake, Background; a
+   mech's Quirk, Appearance) stand side by side, a column each: its label and
+   Used mark on one line, its words under them. A phone stacks them. */
+.su-mast-traits {
+  display: grid;
+  gap: var(--space-8) var(--space-16);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0;
+}
+
+.su-mast-trait {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media not (width >= 40rem) {
+  .su-mast-traits {
+    grid-auto-flow: row;
+  }
+}
+
+.su-mast-trait > dt {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-6);
+  white-space: nowrap;
+}
+
+.su-mast-trait > dd {
+  font-size: var(--text-body);
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.su-mast-id__about > .su-mast-id__label {
+  margin-bottom: var(--space-4);
+}
+
+/* A phone: the lines take the rail's whole width under the tallies. */
+@media (width < 40rem) {
+  .su-mast__traits {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+    padding-inline: 0;
+  }
+}
+
+/* MOCK (best, revision 6): A PILOT'S REAL NAME. Plain words on the callsign's
+   baseline, inside the title's cut-out, in the body face at a lighter weight. */
+.su-title-aka {
+  margin-left: 0.6em;
+  font-family: var(--font-body);
+  font-size: 0.36em;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+/* MOCK (best, revision 6): A CHASSIS ABILITY IS TEXT. The name, then every
+   word of it, in the Chassis group of the side column; never a row. */
+.su-chassis-ability > .su-dash-entity__name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+/* MOCK (best, revision 6): A COMPANION IS ITS OWN CELL. Painted in the
+   companion's own colour (a drone wears its tech level), the whole cell a
+   link to the companion; its numbers in one quiet line. */
+.su-companion-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px var(--space-12);
+  padding: var(--space-8) var(--space-12);
+  background-color: var(--su-kind, var(--color-tl-1));
+  color: var(--color-ink);
+  text-decoration: none;
+}
+.su-companion-cell__kind {
+  grid-column: 1 / -1;
+  font-family: var(--font-cond);
+  font-size: var(--text-xs, 0.6875rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.su-companion-cell__name {
+  font-family: var(--font-cond);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.su-companion-cell__block {
+  font-size: 0.8125rem;
+}
+.su-companion-cell__vitals {
+  grid-column: 1 / -1;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.su-companion-cell:hover .su-companion-cell__name,
+.su-companion-cell:focus-visible .su-companion-cell__name {
+  text-decoration: underline;
+}
+.su-partner-anchor {
+  scroll-margin-top: 6rem;
+}
+
+/* ── MOCK (best, revision 7): the chassis ability in the side column ─────── */
+
+/* A phone reads it with the rules, after the art. */
+.su-manual__side > .su-manual__ability {
+  order: 2;
+}
+
+/* Its tab is cut from its panel's paper, so tab and text read as one. */
+.su-manual__ability > .su-rule-head {
+  --su-head-cut: var(--color-paper);
+}
+
+/* A pattern's own words lead its rules on a phone, after the art. */
+.su-manual > .su-entity-page__opening {
+  order: 1;
+}
+
+/* MOCK (best, revision 7): a breath between the area rail and the page's
+   head (its crumbs and title plate). */
+@media (width >= 64rem) {
+  .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow))
+    > .su-chapter-band__row {
+    padding-top: var(--space-12) !important;
+  }
+
+  .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
+    padding-top: var(--space-16);
+  }
+}
+
+/* ── MOCK (best, revision 7): the page as a column on a desk ─────────────────
+   Opt-in, `?mock-page=paper` (`runtime/mockPage.ts`). From `lg` the margins
+   are the desk, a step of ink under the page's ground; the page's measure
+   stands, a block of padding round its content, on the page's own ground, edged in
+   a hairline. Band, rail and foot stay full bleed over it. A phone has no
+   margin: nothing changes there. */
+:root {
+  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink));
+  /* The column's padding is the title plate's own (its title's inset on the
+     plate), so the content's edge lines up with the title's words. Never past
+     the window's edge. */
+  --su-column-pad: min(var(--space-20), var(--su-shell-edge));
+  --su-column-edge: calc(var(--su-shell-edge) - var(--su-column-pad));
+  /* The column's two edges, measured from the layout's centre as the band's
+     measure is (never from 100vw, which counts a scrollbar). */
+  --su-col-l: max(0px, calc(50% - var(--page-measure) / 2 - var(--su-column-pad)));
+  --su-col-r: min(100%, calc(50% + var(--page-measure) / 2 + var(--su-column-pad)));
+}
+
+@media (width >= 64rem) {
+  /* Painted on whatever lays the ground (the body; an SRD page's <main>),
+     pinned to the window so the column lines up across them. */
+  :root[data-mock-page='paper'] :is(body, main) {
+    /* !important: the app's sheet grounds are unlayered and would win. */
+    background-attachment: fixed !important;
+    background-image: linear-gradient(
+      to right,
+      var(--color-desk) 0,
+      var(--color-desk) var(--su-col-l),
+      var(--color-wk-bg) var(--su-col-l),
+      var(--color-wk-bg) var(--su-col-r),
+      var(--color-desk) var(--su-col-r),
+      var(--color-desk) 100%
+    ) !important;
+  }
+}
+
+/* `?mock-desk=1..4`: the desk's tone, from the palette. Nothing but the
+   column stands on it (the foot keeps its own ink). */
+:root[data-mock-desk='1'] {
+  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink)); /* warm stone */
+}
+
+:root[data-mock-desk='2'] {
+  --color-desk: color-mix(in srgb, var(--color-wk-faint) 75%, var(--color-wk-bg)); /* cool slate */
+}
+
+:root[data-mock-desk='3'] {
+  --color-desk: color-mix(in srgb, var(--color-ink-deep) 88%, var(--color-paper)); /* charcoal */
+}
+
+:root[data-mock-desk='4'] {
+  --color-desk: color-mix(in srgb, var(--color-paper) 62%, var(--color-ink-deep)); /* mid-grey */
+}
+
+/* The band's head (kicker, title plate, acts) stands on the column's edges,
+   so the title plate and the column share one left edge: no step. */
+@media (width >= 64rem) {
+  :root[data-mock-page='paper']
+    .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    max-width: calc(var(--page-measure) + 2 * var(--su-column-pad)) !important;
+  }
+
+  /* A sheet's band sits in its page's gutters: it steps out by the same. */
+  :root[data-mock-page='paper']
+    .su-page-gutters
+    > .su-chapter-band
+    > :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad)) !important;
+  }
+}
+
+/* Paper mode measures the shell's edge without the scrollbar, so a sheet's
+   gutters land on the same centred measure as the band and the column. */
+:root[data-mock-page='paper'] {
+  --su-shell-edge: max(
+    var(--space-16),
+    calc((100vw - var(--su-scrollbar, 0px) - var(--page-measure)) / 2)
+  );
+}
+
+/* The kicker's words stand where the title's do: the plate's padding in. */
+@media (width >= 64rem) {
+  :root[data-mock-page='paper'] .su-chapter-band__eyebrow {
+    padding-inline: var(--su-column-pad) !important;
+  }
+}
+
+/* ── MOCK (best, revision 7): a cut-out shares its body (law-changes.md) ────
+   A cut-out (a band's title plate, a strip's tab) takes the ground and the
+   border of the body it opens into: that body sets `--cutout-ground` and
+   `--cutout-border`, the cut-out reads them, and the side that opens into the
+   body never wears the border. No border on the body, none on the cut-out. */
+.su-chapter-band__plate,
+.su-chapter-band__heading > .su-chapter-band__title {
+  border: var(--cutout-border, 0 none);
+  border-bottom: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the cut-out law reaches every cut-out */
+.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
+  border: var(--cutout-border, 0 none);
+  border-bottom: 0;
+}
+
+/* A sheet's band opens into its masthead's paper. */
+.su-page-gutters:has(.su-mast) > .su-chapter-band {
+  --cutout-ground: var(--color-paper);
+}
+
+/* On a phone the band's overflow chips (Starter Kit) stand between the plate
+   and the masthead: they take the masthead's paper, so the plate still opens
+   into one body. */
+.su-page-gutters:has(.su-mast) > .su-chapter-band__overflow {
+  background-color: var(--color-paper);
+}
+
+/* …and the sheet's first block gap under them (a phone's pinned vitals sit
+   a section gap below) is the masthead's paper too: plate, chips and masthead
+   read as one surface, no seam of page ground between. */
+@media not (width >= 40rem) {
+  .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow + * {
+    background:
+      linear-gradient(var(--color-paper), var(--color-paper)) top / 100% var(--space-24) no-repeat;
+  }
+}
+
+/* ── MOCK (best, revision 7): every Reference Page is two tracks ──────────
+   From `lg` a Page is a main track and a side track, the side there even
+   when it holds nothing, so a Page's strips, tiles, Ledgers and prose all
+   end at the main track's edge: the measure lives on the column, never on
+   the paragraph. A phone is one column, as before. */
+.su-manual > .su-manual__main {
+  display: contents;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the main track's blocks */
+.su-manual__main > * {
+  min-width: 0;
+  order: 2;
+}
+
+.su-manual__main > .su-manual__stats {
+  order: 0;
+}
+
+.su-manual__main > .su-entity-page__opening {
+  order: 1;
+}
+
+.su-manual__main > .su-manual__after {
+  order: 4;
+}
+
+/* No cap inside the track: the track is the measure. */
+.su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip),
+.su-manual__lore-prose {
+  max-width: none;
+}
+
+@media (width >= 64rem) {
+  .su-manual {
+    column-gap: var(--space-24);
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  }
+
+  .su-manual > .su-manual__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .su-manual > .su-manual__side {
+    float: none;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    width: auto;
+  }
+
+  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, the main track's blocks */
+  .su-manual__main > *,
+  .su-manual__main > .su-manual__after > *,
+  .su-manual__main > .su-manual__after > .su-ability-tree > * {
+    margin-top: 0 !important;
+  }
+
+  .su-manual__main > .su-manual__after {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
+}
+
+/* A guide's Page is the same two tracks as every other: its steps fill the
+   main track (each strip ends where its words wrap), its On This Page rail
+   stands in the side track. No paragraph carries a cap of its own. */
+@media (width >= 64rem) {
+  .su-entity-page--guide {
+    column-gap: var(--space-24) !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) !important;
+  }
+}
+
+.su-entity-page--guide :is(.su-entity-page__prose, .su-guide__prose) .su-text,
+.su-entity-page--guide .su-guide__prose .su-text + .su-text,
+.su-entity-page--guide .su-guide__note,
+.su-entity-page--guide .su-guide__aside {
+  max-width: none !important;
+}
+
+/* ── MOCK (best, revision 7): the pinned strip (a phone sheet's vitals) ─────
+   Once it sticks it is the band in brief: the band's paint full bleed, the
+   unit's name on a small cut-out (the glance's paper, the ground it opens
+   into), the vitals beside it, all on one row at most 48px tall. */
+.su-dash-pin__name {
+  display: none;
+}
+
+.su-dash-pin[data-stuck] {
+  align-items: center;
+  background-color: var(--su-kind, var(--color-ink));
+  flex-flow: row wrap;
+  gap: var(--space-8);
+  padding-block: var(--space-4);
+}
+
+.su-dash-pin[data-stuck] > .su-dash-pin__name {
+  background-color: var(--cutout-ground, var(--color-paper));
+  color: var(--color-ink);
+  display: block;
+  flex: none;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  max-width: 40%;
+  overflow: hidden;
+  padding: var(--space-6) var(--space-8);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.su-dash-pin[data-stuck] > .su-phone-glance {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__cell {
+  min-height: var(--size-full);
+  padding-block: var(--space-4);
+  row-gap: var(--space-2);
+}
+
+.su-dash-pin[data-stuck] > :not(.su-dash-pin__name, .su-phone-glance) {
+  flex-basis: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .su-dash-pin {
+    transition:
+      background-color 150ms ease-out,
+      padding 150ms ease-out;
+  }
+}
+
+/* Stuck, each vital is one line on the glance's paper card (label, figure),
+   its meter left to the open sheet: the strip stays within 48px. */
+.su-dash-pin[data-stuck] > .su-phone-glance {
+  background-color: var(--color-paper) !important;
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__cell {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-6);
+  min-height: 0;
+  padding: var(--space-6) var(--space-8);
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__meter {
+  display: none;
+}
+
+/* A roll table's description fills its track: no cap of its own. */
+.su-roll-page__description {
+  max-width: none;
+}
+
+/* The cards sit on paper whatever the unit's tone, and the vitals never
+   shrink below their figures: a long name gives way, cut with an ellipsis. */
+.su-dash-pin[data-stuck] .su-phone-glance__cell {
+  background-color: var(--color-paper) !important;
+}
+
+.su-dash-pin[data-stuck] > .su-dash-pin__name {
+  flex: 0 1 auto;
+  max-width: none;
+  min-width: 0;
+}
+
+.su-dash-pin[data-stuck] > .su-phone-glance {
+  flex: 1 0 auto;
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__cell > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* One row: the vitals take their figures' width, the name the rest (cut with
+   an ellipsis when it must); an open sheet spans both. */
+.su-dash-pin[data-stuck] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.su-dash-pin[data-stuck] > :not(.su-dash-pin__name, .su-phone-glance) {
+  grid-column: 1 / -1;
+}
+
+/* Each vital as wide as its figure, the cut-out as wide as its name. */
+.su-dash-pin[data-stuck] > .su-phone-glance {
+  grid-auto-columns: max-content;
+}
+
+.su-dash-pin[data-stuck] .su-phone-glance__cell {
+  padding-inline: var(--space-6);
+}
+
+.su-dash-pin[data-stuck] > .su-dash-pin__name {
+  justify-self: start;
+  max-width: 100%;
+}
+
+/* ── MOCK (best, revision 7): the sheet's condensed bar (`LiveSheet`) ───────
+   Once the band scrolls away it is the band in brief, one row at most 48px:
+   the unit's paint full bleed; the name on its paper cut-out at the card
+   column's edge (callsign, real name, what it is); each vital a tracker,
+   figure over max on a thin fill, critical in rust; the band's acts at the
+   end. A quick slide, none under reduced motion. */
+:root[data-mock-page='paper'] .su-sheet-gutter {
+  padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad)) !important;
+}
+
+.su-sheet-gutter [data-sheet-strip] {
+  align-items: stretch !important;
+  column-gap: var(--space-8) !important;
+  flex-wrap: nowrap !important;
+}
+
+.su-sheet-bar__name {
+  align-items: baseline;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  column-gap: var(--space-8);
+  display: inline-flex;
+  min-width: 0;
+  padding: var(--space-6) var(--su-column-pad, var(--space-12));
+  white-space: nowrap;
+}
+
+.su-sheet-bar__name > b {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.su-sheet-bar__name > span {
+  font-size: var(--text-body);
+  line-height: 1;
+}
+
+.su-sheet-bar__name > small {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.su-sheet-bar__vital {
+  align-items: baseline;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  column-gap: var(--space-6);
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: var(--space-4) var(--space-8) var(--space-6);
+  position: relative;
+  white-space: nowrap;
+}
+
+.su-sheet-bar__label {
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.su-sheet-bar__figure {
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.su-sheet-bar__figure > b {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-sheet-bar__figure > i {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The fill: a thin bar along the card's foot, the unit's paint. */
+.su-sheet-bar__meter {
+  background: linear-gradient(
+    to right,
+    var(--su-kind, var(--color-ink)) calc(var(--su-fill) * 100%),
+    var(--color-ink-10) calc(var(--su-fill) * 100%)
+  );
+  bottom: 0;
+  height: var(--space-2);
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
+  color: var(--color-rust);
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter {
+  background: linear-gradient(
+    to right,
+    var(--color-rust) calc(var(--su-fill) * 100%),
+    var(--color-ink-10) calc(var(--su-fill) * 100%)
+  );
+}
+
+/* The acts, compact, as the rail draws them. */
+.su-sheet-bar__acts {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+}
+
+.su-sheet-bar__acts :is(a, button) {
+  min-height: 0 !important;
+  padding-block: var(--space-4) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, the condensed bar */
+  .su-sheet-gutter {
+    transition: none !important;
+  }
+}
+
+/* An app page that reads as a Reference Page (the Starter Set): its body is
+   the two tracks' main one, the side track left open. */
+@media (width >= 64rem) {
+  .su-main-track {
+    max-width: calc((100% - var(--space-24)) * 1.15 / 2.15);
+  }
+}
+
+/* ── MOCK (best, revision 7): borders by role, and boxes contained ─────────
+   Three borders, by role, nothing louder than its peers:
+   - frame: `--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint,
+     round a thing that is one object (a tile, a card, a tracker);
+   - divider: one hairline in ink-20 between parts of one surface;
+   - the 2px ink rule is the band's and a Ledger's strip foot only.
+   The sheet's tab row and its masthead dropped their 2px ink rules to the
+   divider. */
+.su-mast__tabs {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, borders by role and contained boxes */
+.su-mast {
+  border-bottom-color: var(--color-ink-20);
+  border-bottom-width: var(--bw-hairline);
+}
+
+/* No box stands naked on the ground: a section whose body is words (a
+   Description, a chassis ability, a sheet's facts or prose, a guide step, a
+   pattern's own words) sits on a paper panel, as a Ledger's rows do, and its
+   tab is cut from the same paper (the cut-out law). */
+.su-slab-section:is(.su-manual__lore, .su-manual__ability),
+.su-slab-section:has(
+  > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+),
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child),
+.su-guide__section {
+  --cutout-ground: var(--color-paper);
+}
+
+.su-slab-section:is(.su-manual__lore, .su-manual__ability) > .su-slab-section__body,
+.su-slab-section:has(
+    > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+  )
+  > .su-slab-section__body,
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child)
+  > .su-slab-section__body,
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, borders by role and contained boxes */
+.su-entity-page__opening {
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--su-column-pad, var(--space-16));
+}
+
+/* ── MOCK (best, revision 7): the contrast floor (law-changes.md) ──────────
+   Every word passes 4.5:1 on what it stands on (3:1 large or a UI edge). */
+
+/* An empty cell's dash and an empty figure read at ink-75, not a ghost. */
+.su-ledger__table tbody [data-empty],
+.su-scrap__cell[data-empty] > dd {
+  color: var(--color-ink-75);
+}
+
+/* A dark Tech Level swatch carries paper. */
+.su-tl[data-dark] {
+  color: var(--color-paper);
+}
+
+/* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
+   and its tagline. */
+.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),
+.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
+  color: var(--color-paper) !important;
+}
+
+/* Column labels on a pale tone strip, and a read-only Used mark's words, in
+   full ink. */
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the contrast floor */
+.su-open thead th[data-col] {
+  color: var(--color-ink);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the contrast floor */
+.su-mast-trait > dt .su-btn {
+  color: var(--color-ink);
+}
+
+/* ── MOCK (best, revision 7): a band's chips beside its title ──────────────
+   What the entity is (Pattern of, Class, Chassis, Starter Kit, its type and
+   facts) stands on the band immediately right of the title's cut-out, never
+   inside it, on the band's foot; the band's one act keeps the far end. A
+   phone keeps the fill (the chips under the title). */
+@media (width >= 40rem) {
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] {
+    align-items: center !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+  }
+
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+    align-self: flex-end !important;
+    flex: none !important;
+    margin-inline-end: var(--space-8) !important;
+    max-width: 75%;
+    order: -1000 !important;
+  }
+
+  /* On the band's foot, as a strip's chips sit on its cut-out's line: a
+     little room under them, none taken from the title. */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-item] {
+    align-self: flex-end !important;
+    margin-block: var(--space-8) var(--space-8) !important;
+    order: calc(-3 * var(--su-fill, 0)) !important;
+  }
+
+  /* The act keeps the row's far corner, out of the chips' flow. */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] {
+    position: relative;
+  }
+
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > .su-chapter-band__action {
+    bottom: var(--space-12);
+    position: absolute;
+    right: var(--su-band-act-edge, var(--space-16));
+  }
+}
+
+/* ── MOCK (best, revision 7): no page taller than it needs ─────────────────
+   The window is the column: the bar, the route, the foot; the route takes
+   only the spare height, so a short page ends on the window's edge with no
+   scroll, and a long one scrolls by its content alone. (`#root` stood a full
+   window tall with the foot outside it: a short page always scrolled by the
+   foot's height.) */
+body:has(> #root) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body > #root {
+  flex: 1 0 auto;
+  min-height: 0 !important;
+}
+
+/* `?mock-boxes=bare` (a comparison): a stat tile keeps its header strip, its
+   white paper and its figure, but no frame; the label's cut-out shares that
+   paper (the cut-out law) and has no border, as its body has none. Text
+   panels are already paper without a frame. */
+:root[data-mock-boxes='bare']
+  .su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat {
+  border: 0 !important;
+}
+
+/* ── MOCK (best, revision 7): item stats as chips (law-changes.md) ─────────
+   The default (`?mock-stats=off` compares the old): a non-chassis Page's stats
+   ride its band as chips beside the title, no tiles; a chassis keeps its
+   tiles; a Page that is only its description reads as plain prose, no strip
+   or panel. */
+.su-mock-band-stats {
+  display: none !important;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the comparison switches */
+.su-mock-band-stats * {
+  display: none !important;
+}
+
+:root[data-mock-stats='chips'] .su-mock-band-stats {
+  display: contents !important;
+}
+
+:root[data-mock-stats='chips'] .su-mock-band-stats * {
+  display: revert-layer !important;
+}
+
+:root[data-mock-stats='chips'] .su-manual__stats:not(.su-manual__stats--chassis) {
+  display: none !important;
+}
+
+:root[data-mock-stats='chips'] .su-manual__lore--only > .su-slab-section__head {
+  display: none;
+}
+
+:root[data-mock-stats='chips'] .su-manual__lore--only > .su-slab-section__body {
+  background-color: transparent !important;
+  padding-inline: 0 !important;
+}

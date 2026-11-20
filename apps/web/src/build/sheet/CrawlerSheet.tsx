@@ -58,6 +58,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import type { PhoneVital } from '../../components/index'
 import {
   Button,
   EmptyState,
@@ -81,8 +82,8 @@ import { LIVE_SHEET_MANUAL, LIVE_SHEET_TXN } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { CrawlerSystemsEditModal } from '../crawler/CrawlerSystemsEditModal'
+import { CrawlerDash } from '../dash/CrawlerDash'
 import { CrawlerIdentityPanel } from './CrawlerIdentity'
-import { CrawlerPhoneSheet } from './CrawlerPhoneSheet'
 import type { CrawlerBayEntry } from './CrawlerSheetItems'
 import { CrawlerBayCard } from './CrawlerSheetItems'
 import { CrawlerStorage } from './CrawlerStorage'
@@ -140,6 +141,13 @@ type CrawlerSheetProps = {
   /** A phone's vitals block in Read (`PhoneVitals`), built beside `economy`. */
   phoneVitals?: ReactNode
   /**
+   * MOCK (density mock, sheet variant): SP, the Upgrade Pool and Upkeep as
+   * rows, and the economy's dialogs (Pay Upkeep, Fund, Trade), for the sheet
+   * dashboard's header strip and a phone's pinned vitals.
+   */
+  vitalRows?: readonly PhoneVital[]
+  vitalActions?: readonly { key: string; label: string; onClick: () => void }[]
+  /**
    * The Assigned Units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
@@ -167,7 +175,10 @@ export function CrawlerSheet({
   liveCondition = false,
   economy,
   economyActions,
-  phoneVitals,
+  // MOCK: Read draws the vitals from `vitalRows`; the phone block is unused.
+  phoneVitals: _phoneVitals,
+  vitalRows = [],
+  vitalActions = [],
   linkedUnits,
   crew,
   crewHref,
@@ -358,15 +369,22 @@ export function CrawlerSheet({
           every sheet shares (`SheetColumns`): Identity → Bays (Armament
           weapons inside their bay) → Assigned Units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
-      {phoneRead ? (
-        <CrawlerPhoneSheet
+      {readOnly ? (
+        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // every width; a phone stacks it under its pinned vitals. Edit keeps
+        // the build layout below.
+        <CrawlerDash
           crawler={crawler}
-          vitals={phoneVitals}
-          storage={storageContents}
+          mech={mech}
+          mechHref={mechHref}
+          store={store}
+          cargo={cargo}
+          liveCondition={liveCondition}
+          vitals={vitalRows}
+          vitalActions={vitalActions}
           linkedUnits={linkedUnits}
           crew={crew}
-          store={store}
-          storeState={storeState}
+          phone={phoneRead}
         />
       ) : (
         <SheetColumns

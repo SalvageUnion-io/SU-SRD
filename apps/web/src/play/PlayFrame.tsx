@@ -45,7 +45,14 @@
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
-import { EntitySurfaceProvider, Tab, TabList, Tabs, tokens } from '../components/index'
+import {
+  EntitySurfaceProvider,
+  SlabLookProvider,
+  Tab,
+  TabList,
+  Tabs,
+  tokens,
+} from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 
@@ -153,58 +160,61 @@ export function PlayFrame<Value extends string>({
   const inColumn = (column: PlayColumn) => panes.filter((p) => p.column === column)
 
   return (
-    <EntitySurfaceProvider value={SPECKLED}>
-      <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
-        <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
-          <div className="su-play-frame">
-            <div className="su-play-frame__bar">{bar}</div>
-            {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
-            {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
-            {inColumn('start').map((p) => pane(p, labels[0]))}
-            {inColumn('centre').map((p) => pane(p, labels[1]))}
-            {sheetOn ? (
-              <section
-                className="su-play-pane su-play-sheet"
-                data-column="centre"
-                aria-label={playCopy('sheet')}
-              >
-                {sheet}
+    // MOCK (best variant): Play keeps the section stamp it was approved with.
+    <SlabLookProvider value="stamp">
+      <EntitySurfaceProvider value={SPECKLED}>
+        <main ref={hostRef} className="su-play-root" style={{ height: hostH }}>
+          <Tabs value={open ?? tab} onValueChange={onTab} style={ROOT}>
+            <div className="su-play-frame">
+              <div className="su-play-frame__bar">{bar}</div>
+              {!wide && pinned ? <div className="su-play-frame__pinned">{pinned}</div> : null}
+              {focused ? <div className="su-play-pane su-play-frame__focus">{focus}</div> : null}
+              {inColumn('start').map((p) => pane(p, labels[0]))}
+              {inColumn('centre').map((p) => pane(p, labels[1]))}
+              {sheetOn ? (
+                <section
+                  className="su-play-pane su-play-sheet"
+                  data-column="centre"
+                  aria-label={playCopy('sheet')}
+                >
+                  {sheet}
+                </section>
+              ) : null}
+              <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
+                {inColumn('end').map((p) => pane(p, null))}
               </section>
-            ) : null}
-            <section className="su-play-frame__end" aria-label={wide ? labels[2] : undefined}>
-              {inColumn('end').map((p) => pane(p, null))}
-            </section>
-            {wide ? (
-              <div className="su-play-frame__foot">{foot}</div>
-            ) : (
-              <div className="su-play-frame__tabs" hidden={focused}>
-                <TabList label={playCopy('play')} style={TAB_LIST}>
-                  {tabbed.map((p) => (
-                    <Tab
-                      key={p.value}
-                      value={p.value}
-                      id={tabId(p.value)}
-                      controls={paneId(p.value)}
-                      style={TAB}
-                    >
-                      {p.label}
-                      {/* A pending item marks its tab. */}
-                      {p.dot ? (
-                        <span
-                          className="su-play-tab-dot"
-                          role="img"
-                          aria-label={playCopy('somethingIsWaiting')}
-                        />
-                      ) : null}
-                    </Tab>
-                  ))}
-                </TabList>
-              </div>
-            )}
-          </div>
-        </Tabs>
-      </main>
-    </EntitySurfaceProvider>
+              {wide ? (
+                <div className="su-play-frame__foot">{foot}</div>
+              ) : (
+                <div className="su-play-frame__tabs" hidden={focused}>
+                  <TabList label={playCopy('play')} style={TAB_LIST}>
+                    {tabbed.map((p) => (
+                      <Tab
+                        key={p.value}
+                        value={p.value}
+                        id={tabId(p.value)}
+                        controls={paneId(p.value)}
+                        style={TAB}
+                      >
+                        {p.label}
+                        {/* A pending item marks its tab. */}
+                        {p.dot ? (
+                          <span
+                            className="su-play-tab-dot"
+                            role="img"
+                            aria-label={playCopy('somethingIsWaiting')}
+                          />
+                        ) : null}
+                      </Tab>
+                    ))}
+                  </TabList>
+                </div>
+              )}
+            </div>
+          </Tabs>
+        </main>
+      </EntitySurfaceProvider>
+    </SlabLookProvider>
   )
 }
 

@@ -74,10 +74,19 @@ export function PilotLiveSheet({
     }
   )
 
+  // The band's title is the callsign; a real name that differs follows it as
+  // plain words.
+  const callsign = pilot.callsign.trim() || pilot.name
+  const givenName = pilot.name.trim()
+  const realName =
+    givenName !== '' && givenName.toLowerCase() !== callsign.toLowerCase() ? givenName : undefined
+
   return (
     <LiveSheet
       variant="pilot"
-      name={pilot.name}
+      pinsVitals={readOnly}
+      name={callsign}
+      nameAside={realName}
       strip={strip}
       segments={segments}
       band={band}

@@ -53,7 +53,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
-import { EmptyState, Field, FieldError, SlabSection, Stack, tokens } from '../../components/index'
+import { Field, FieldError, SlabSection, Stack, tokens } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { chassisArt } from '../../lib/photos/defaultArt'
@@ -61,10 +61,11 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
+import { MechDash } from '../dash/MechDash'
 import { MechChassisCard } from './MechChassisCard'
 import { MechHeroChassis } from './MechHeroChassis'
 import { MechAppearanceField, MechDescriptionField, MechIdentityPanel } from './MechIdentity'
-import { MechLoadout, MechLoadoutLedgers } from './MechLoadout'
+import { MechLoadout } from './MechLoadout'
 import { MechSheetPickers } from './MechSheetPickers'
 import { MechVitals } from './MechVitals'
 import type { ChassisLike } from './mechSheet.model'
@@ -72,7 +73,6 @@ import { useMechSheetModel } from './mechSheet.model'
 import type { ItemKind } from './mechSheetActions.model'
 import { useMechSheetActions } from './mechSheetActions.model'
 import { PartnerCard } from './PartnerCard'
-import { PhoneSheet } from './PhoneSheet'
 import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { HeroMore, SheetHero } from './SheetHero'
@@ -170,7 +170,7 @@ export function MechSheet({
   // Edit can fill it.
   const showHold = !readOnly || model.cargo.usage.used > 0
 
-  const { chassis, cargo, capacity } = model
+  const { chassis, cargo } = model
   // A phone in Read leads with the numbers, then tabs (`PhoneSheet`).
   const phoneRead = usePhoneRead(readOnly)
   const vitals = (phone: boolean) => (
@@ -299,6 +299,9 @@ export function MechSheet({
       {linkedUnits}
     </>
   )
+  // MOCK (best, revision 6): Read shows no companion card: a companion has its
+  // own sheet, linked from the side column's cell. Edit keeps the card, where
+  // its loadout is still fitted.
   const partnersNode = (
     <>
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
@@ -312,13 +315,17 @@ export function MechSheet({
         <SlabSection fold="open" title={buildSheetCopy('partners')}>
           <Stack gap={12}>
             {(mech.partners ?? []).map((partner) => (
-              <PartnerCard
-                key={partner.id}
-                found={{ partner, hostKind: 'mech', host: mech }}
-                fielded={(mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length}
-                readOnly={readOnly}
-                store={store}
-              />
+              // MOCK (best, revision 6): the side column's companion cell lands here.
+              <div key={partner.id} id={`partner-${partner.id}`} className="su-partner-anchor">
+                <PartnerCard
+                  found={{ partner, hostKind: 'mech', host: mech }}
+                  fielded={
+                    (mech.partners ?? []).filter((p) => p.hostRef === partner.hostRef).length
+                  }
+                  readOnly={readOnly}
+                  store={store}
+                />
+              </div>
             ))}
           </Stack>
         </SlabSection>
@@ -346,45 +353,18 @@ export function MechSheet({
         </FieldError>
       )}
 
-      {phoneRead ? (
-        <PhoneSheet
-          name={mech.name}
-          vitals={vitals(true)}
-          tabs={[
-            {
-              value: 'loadout',
-              label: buildSheetCopy('loadout'),
-              count: `${capacity.systemSlotsUsed + capacity.moduleSlotsUsed}/${capacity.systemSlotsMax + capacity.moduleSlotsMax}`,
-              panel: (
-                <>
-                  <MechLoadoutLedgers mech={mech} model={model} />
-                  {partnersNode}
-                </>
-              ),
-            },
-            {
-              value: 'hold',
-              label: buildSheetCopy('hold'),
-              count: `${cargo.usage.used}/${cargo.usage.cap}`,
-              // The tab names the hold and its count: the manifest alone, no Slab over it.
-              panel: showHold ? (
-                manifestNode
-              ) : (
-                <EmptyState variant="quiet" body={buildSheetCopy('nothingInTheHold')} />
-              ),
-            },
-            {
-              value: 'about',
-              label: buildSheetCopy('about'),
-              panel: (
-                <>
-                  {heroNode}
-                  {chassisNode}
-                  {linkedUnits}
-                </>
-              ),
-            },
-          ]}
+      {readOnly ? (
+        // MOCK (density mock, sheet variant): Read is the sheet dashboard at
+        // every width; a phone stacks it under its pinned vitals. Edit keeps
+        // the build layout below.
+        <MechDash
+          mech={mech}
+          model={model}
+          actions={actions}
+          live={live}
+          crawler={crawler}
+          linkedUnits={linkedUnits}
+          phone={phoneRead}
         />
       ) : (
         <SheetColumns

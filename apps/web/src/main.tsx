@@ -18,6 +18,7 @@ import { installTrustedTypesPolicy } from './lib/trustedTypes'
 import { preloadGameData } from './lib/useGameData'
 import { setSyncStatus } from './replica/sync'
 import { routeTree } from './routeTree.gen'
+import { applyMockPage } from './runtime/mockPage'
 
 const router = createRouter({
   routeTree,
@@ -47,6 +48,7 @@ declare module '@tanstack/react-router' {
 }
 
 // Browser error reporting to the Worker, production builds only.
+applyMockPage()
 initBrowserObservability()
 
 // Installed BEFORE render, because the failure it recovers from — a lazy chunk

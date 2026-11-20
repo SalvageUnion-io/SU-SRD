@@ -15,6 +15,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import { pinFor } from 'salvageunion-reference/rules'
 import { Entity } from '../../components/entity/Entity'
+import type { PhoneVital } from '../../components/index'
 import { Conditions, Eyebrow, PhoneVitals, Stat, tokens } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { resolveClass } from '../../lib/classRef'
@@ -77,6 +78,67 @@ type PilotVitalsProps = {
   phone?: boolean
 }
 
+/**
+ * A pilot's numbers as rows (HP, AP, then Training Points, a counter), named
+ * from the one vitals map (R11) and written with one Undo toast a change
+ * (K5): what a phone's block and the sheet's header strip both draw.
+ */
+// biome-ignore lint/style/useComponentExportOnlyModules: the rows the block draws, beside it
+export function pilotVitalRows({
+  pilot,
+  model,
+  actions,
+  writes,
+}: Pick<PilotVitalsProps, 'pilot' | 'model' | 'actions'> & { writes: boolean }): PhoneVital[] {
+  const change = (
+    field: 'currentHP' | 'currentAP' | 'trainingPoints',
+    label: string,
+    from: number
+  ) =>
+    writes
+      ? (next: number) => {
+          actions.patchPilot({ [field]: next })
+          changeUndoToast({
+            id: `pilot:${pilot.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => actions.patchPilot({ [field]: value }),
+          })
+        }
+      : undefined
+  const { maxHP, maxAP, hp, ap, tp } = model
+  const onHp = change('currentHP', SHEET_VITALS.hp.short, hp)
+  const onAp = change('currentAP', SHEET_VITALS.ap.short, ap)
+  const onTp = change('trainingPoints', TP, tp)
+  return [
+    {
+      key: 'hp',
+      label: SHEET_VITALS.hp.short,
+      name: SHEET_VITALS.hp.label,
+      value: hp,
+      max: maxHP,
+      ...(onHp ? { onChange: onHp } : {}),
+    },
+    {
+      key: 'ap',
+      label: SHEET_VITALS.ap.short,
+      name: SHEET_VITALS.ap.label,
+      value: ap,
+      max: maxAP,
+      ...(onAp ? { onChange: onAp } : {}),
+    },
+    {
+      key: 'tp',
+      label: TP,
+      name: buildSheetCopy('trainingPoints'),
+      note: buildSheetCopy('trainingPoints'),
+      value: tp,
+      ...(onTp ? { onChange: onTp } : {}),
+    },
+  ]
+}
+
 export function PilotVitals({
   pilot,
   model,
@@ -109,32 +171,7 @@ export function PilotVitals({
     return (
       <PhoneVitals
         label={buildSheetCopy('unitVitals', { name: pilot.name })}
-        vitals={[
-          {
-            key: 'hp',
-            label: SHEET_VITALS.hp.short,
-            name: SHEET_VITALS.hp.label,
-            value: hp,
-            max: maxHP,
-            onChange: change('currentHP', SHEET_VITALS.hp.short, hp),
-          },
-          {
-            key: 'ap',
-            label: SHEET_VITALS.ap.short,
-            name: SHEET_VITALS.ap.label,
-            value: ap,
-            max: maxAP,
-            onChange: change('currentAP', SHEET_VITALS.ap.short, ap),
-          },
-          {
-            key: 'tp',
-            label: TP,
-            name: buildSheetCopy('trainingPoints'),
-            note: buildSheetCopy('trainingPoints'),
-            value: tp,
-            onChange: change('trainingPoints', TP, tp),
-          },
-        ]}
+        vitals={pilotVitalRows({ pilot, model, actions, writes })}
         foot={
           pilot.conditions.length > 0 ? (
             <Conditions conditions={[...pilot.conditions]} />

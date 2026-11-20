@@ -10,15 +10,13 @@ import {
   getEntitySlug,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import type { LedgerColumn, StartHereStep } from '../components/index'
+import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
   Badge,
   Button,
   CardImage,
-  EntityCardIdentityFooter,
   FrontPitch,
-  Ledger,
   StartHere,
   TitledBox,
 } from '../components/index'
@@ -110,10 +108,6 @@ export function HomeDoors() {
   )
 }
 
-const BOOK_COLUMNS: readonly LedgerColumn[] = [
-  { key: 'version', label: referenceCopy('version'), kind: 'text', phone: true },
-]
-
 /**
  * Buy the game: Leyline Press made Salvage Union, and this site only stands on
  * it. One ink panel, said plainly, with the store's link as an ink button
@@ -140,6 +134,8 @@ export function BuyTheGame() {
         <div className="su-front__buy-copy">
           <p className="su-front__buy-lede">{referenceCopy('buyLede')}</p>
           <p>{referenceCopy('buyBody')}</p>
+          {/* MOCK (revision 3, item 1): the licence reads in the body, not a foot. */}
+          <p className="su-front__buy-licence">{compositionsCopy('salvageUnionIsCopyrightedBy')}</p>
           <div className="su-front__buy-actions">
             <Button
               href={BUY_HREF}
@@ -155,28 +151,31 @@ export function BuyTheGame() {
             </Button>
           </div>
         </div>
-        <div className="su-front__books">
-          <Ledger
-            label={referenceCopy('theBooksThisSiteCites')}
-            nameLabel={referenceCopy('books')}
-            columns={BOOK_COLUMNS}
-            rows={books.map((book) => ({
-              id: book.id,
-              name: book.name,
-              entityRef: undefined,
-              href: itemHref('sources', getEntitySlug(book)),
-              cells: [book.version ?? ''],
-            }))}
-          />
-        </div>
+        {/* MOCK (best, revision 3, item 1): the books as a shelf of covers.
+            No cover art exists yet (sources carry none, R2 has none), so each
+            slot is a typeset cover in the book's proportions; a real cover
+            drops into the same slot through `getAssetUrl`. */}
+        <ul className="su-front__shelf" aria-label={referenceCopy('theBooksThisSiteCites')}>
+          {books.map((book) => {
+            const cover = getAssetUrl(book)
+            return (
+              <li key={book.id}>
+                <a className="su-front__cover" href={itemHref('sources', getEntitySlug(book))}>
+                  {cover ? (
+                    <img src={cover} alt="" loading="lazy" />
+                  ) : (
+                    <span className="su-front__cover-type" aria-hidden="true">
+                      {book.name}
+                    </span>
+                  )}
+                  <span className="su-front__cover-name">{book.name}</span>
+                  {book.version && <span className="su-front__cover-version">{book.version}</span>}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
       </div>
-      <EntityCardIdentityFooter
-        provenance={undefined}
-        size="compact"
-        credit={compositionsCopy('salvageUnionIsCopyrightedBy')}
-        band={{ bandColor: 'var(--color-ink)', onBand: 'paper' }}
-        grain="paper"
-      />
     </TitledBox>
   )
 }

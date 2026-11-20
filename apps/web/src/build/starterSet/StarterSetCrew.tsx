@@ -21,7 +21,7 @@ type StarterSetCrewProps = {
   /** The section's id: the pitch's "Meet the Starter crew" jumps to it. */
   id: string
   /** What a visitor can do with a sheet here, after whose crew it is. */
-  note: string
+  note?: string
 }
 
 export function StarterSetCrew({ id, note }: StarterSetCrewProps) {

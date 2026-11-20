@@ -11,6 +11,7 @@ import { Callout } from '../../containers/Callout'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
+import { RowDress } from '../../entity/rowDress'
 import { TraitProse } from '../../TraitProse'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
@@ -224,47 +225,55 @@ export function GuideSteps({
       options = <div className="su-guide__cards">{optionList(entities, step.name, false)}</div>
     }
     return (
-      <li key={step.id} className="su-guide__step" data-optional={step.optional || undefined}>
-        {/* On its Page the numeral is the wizard's rail tab, on the pipe
+      <li
+        key={step.id}
+        className="su-guide__step"
+        data-rows=""
+        data-optional={step.optional || undefined}
+      >
+        {/* MOCK (best, revision 6): what a step's strip heads are rows. */}
+        <RowDress.Provider value>
+          {/* On its Page the numeral is the wizard's rail tab, on the pipe
             that runs down the steps' left edge; the list says the number. */}
-        {page && (
-          <span aria-hidden="true" className="su-guide__tab">
-            {number}
-          </span>
-        )}
-        <StepHead
-          as={stepAs}
-          id={anchors?.get(step.id)}
-          number={page ? undefined : number}
-          name={step.name}
-          optional={step.optional}
-        />
-        <div className="su-guide__body">
-          {!ladder && stepProse}
-          {options}
-          {/* The step's table: the same embedded table an entity owns (R8),
+          {page && (
+            <span aria-hidden="true" className="su-guide__tab">
+              {number}
+            </span>
+          )}
+          <StepHead
+            as={stepAs}
+            id={anchors?.get(step.id)}
+            number={page ? undefined : number}
+            name={step.name}
+            optional={step.optional}
+          />
+          <div className="su-guide__body">
+            {!ladder && stepProse}
+            {options}
+            {/* The step's table: the same embedded table an entity owns (R8),
               framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
-          {table && !insidePeek && (
-            <div className="su-guide__table">
-              <CardRollTable
-                table={table.table}
-                name={table.name}
-                size={compact ? 'compact' : 'full'}
-                disabled={!!isDown}
-                tone={tableTone}
+            {table && !insidePeek && (
+              <div className="su-guide__table">
+                <CardRollTable
+                  table={table.table}
+                  name={table.name}
+                  size={compact ? 'compact' : 'full'}
+                  disabled={!!isDown}
+                  tone={tableTone}
+                />
+              </div>
+            )}
+            {subGuide && (
+              <Entity
+                size="mini"
+                context="browse"
+                entity={subGuide as RefMetaEntity}
+                instance={isDown ? { condition: conditionOf(isDown) } : undefined}
               />
-            </div>
-          )}
-          {subGuide && (
-            <Entity
-              size="mini"
-              context="browse"
-              entity={subGuide as RefMetaEntity}
-              instance={isDown ? { condition: conditionOf(isDown) } : undefined}
-            />
-          )}
-        </div>
+            )}
+          </div>
+        </RowDress.Provider>
       </li>
     )
   }

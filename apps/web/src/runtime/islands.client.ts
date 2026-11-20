@@ -17,9 +17,11 @@ import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
+import { applyMockPage } from './mockPage'
 import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
+applyMockPage()
 initBrowserObservability()
 
 // An island's chunk is the first import to fail on a page older than the
@@ -37,6 +39,35 @@ markSignedIn(document, readAccountHint(browserStorage()) !== null)
 watchStaticTokenOverflow()
 // A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.
 watchStaticChipFill()
+
+/**
+ * MOCK (best, revision 6): a static Reference page's view act (Share) rides
+ * the area rail, as a sheet's do through `RailActs`' portal. The
+ * page is served without React, so the served acts are moved into the shown
+ * rail's slot at rail widths and back to the band under them. The real
+ * change gives the bar an `acts` slot both shells fill.
+ */
+function placeStaticRailActs(): void {
+  const acts = document.querySelector<HTMLElement>(
+    '.su-chapter-band__action > .su-rail-acts, [data-rail-acts] > .su-rail-acts[data-static]'
+  )
+  const home = document.querySelector<HTMLElement>('.su-chapter-band__action')
+  if (!acts || !home) return
+  const media = window.matchMedia('(width >= 64rem)')
+  const place = () => {
+    let slot: HTMLElement | null = null
+    for (const each of document.querySelectorAll<HTMLElement>('[data-rail-acts]')) {
+      if (each.offsetParent !== null) slot = each
+    }
+    acts.dataset.static = ''
+    const target = media.matches && slot ? slot : home
+    // Back in the band, Share leads the call to action as it was served.
+    if (acts.parentElement !== target) target.prepend(acts)
+  }
+  place()
+  media.addEventListener('change', place)
+}
+if (document.querySelector('[data-share-page]')) placeStaticRailActs()
 
 /** Set once a search field has mounted; its own listener then answers Cmd+K. */
 let searchMounted = false

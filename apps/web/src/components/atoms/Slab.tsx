@@ -6,6 +6,7 @@ import type { ChipSet } from '../entity'
 import { Chips } from '../entity'
 import { FOCUS_RING } from './interaction'
 import { POSTER_STAMP } from './posterStamp'
+import { useSlabLook } from './slabLook'
 import type { SlabCount } from './slabSummary'
 import { slabSummary, summaryFacts } from './slabSummary'
 
@@ -214,10 +215,52 @@ export function Slab({
   countAt = 'end',
   size,
 }: SlabProps) {
+  const surface = useSlabLook()
+  const look = surface === 'auto' ? (size === 'mini' ? 'stamp' : 'rule') : surface
   const countByLabel = countAt === 'label'
   const Label = as ?? 'span'
   const countInkStyle = countInk === 'inherit' ? COUNT_INHERIT : COUNT
   const counts = slabCounts(count)
+  // MOCK (sheet variant): the label-on-rule head. The name in condensed caps
+  // over a 2px ink rule, a value count as plain tabular numerals (`7/7 SLOTS`)
+  // rather than a chip, its controls on the label's line.
+  if (look === 'rule') {
+    const tally = counts ? (
+      <span className="su-rule-head__tallies">
+        {counts.map((entry) => (
+          <span
+            key={String(entry.label)}
+            className="su-rule-head__tally"
+            data-state={entry.state === 'critical' ? 'critical' : undefined}
+          >
+            <b>{entry.value}</b>
+            {entry.max !== undefined && <i>/{entry.max}</i>}
+            <small>{entry.label}</small>
+          </span>
+        ))}
+      </span>
+    ) : (
+      count != null && <span className="su-rule-head__note">{count as ReactNode}</span>
+    )
+    return (
+      <div
+        className={cn('su-rule-head', size === 'mini' && 'su-rule-head--sub', className)}
+        data-slab=""
+        data-look="rule"
+      >
+        <Label
+          id={id}
+          ref={ref}
+          tabIndex={tabIndex}
+          className={cn('su-rule-head__label', tabIndex !== undefined && FOCUS_RING)}
+        >
+          {label}
+        </Label>
+        {tally}
+        {actions && <div className="su-slab__actions su-rule-head__actions">{actions}</div>}
+      </div>
+    )
+  }
   // The summary (C10): at most two counts, drawn by `Chips` as measures; a
   // count's note ("as printed") follows the strip as muted text.
   const chips = counts && slabSummary(counts)

@@ -95,6 +95,9 @@ export { StatColumn } from './atoms/StatColumn'
 export type { ProvenanceLine } from './atoms/StatProvenance'
 export { StatusBadge } from './atoms/StatusBadge'
 export { Switch } from './atoms/Switch'
+// MOCK (sheet variant): how a surface draws its section heads (stamp | rule).
+export type { SlabLook } from './atoms/slabLook'
+export { SlabLookProvider, useSlabLook } from './atoms/slabLook'
 export { Tab, TabList, TabPanel, Tabs } from './atoms/Tabs'
 // Base typography
 export { Text } from './atoms/Text'

@@ -55,7 +55,7 @@ const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   },
 }
 
-const screenStyle = { minHeight: '100dvh' } satisfies CSSProperties
+const screenStyle = {} satisfies CSSProperties
 
 /** A door's copy: body text, then its page citation in bold. */
 const doorText = { margin: 0 } satisfies CSSProperties

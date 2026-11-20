@@ -17,4 +17,10 @@ export const FRONT_DOOR_SCHEMAS = [
   'ability-tree-requirements',
   'chassis',
   'classes',
+  // MOCK (density mock, sheet variant): the crew manifest prints the Union
+  // Crawler's type and its derived SP, which the front door never read before
+  // (`crawlerMaxSP` -> CrawlerTechLevels, `resolveCrawlerType` -> Crawlers).
+  // Built for real, `frontDoor.model.test.ts` proves this list again.
+  'crawler-tech-levels',
+  'crawlers',
 ] as const

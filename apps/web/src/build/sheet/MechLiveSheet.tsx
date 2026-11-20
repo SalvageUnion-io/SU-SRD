@@ -109,7 +109,10 @@ export function MechLiveSheet({
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
       fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id)?.name)}
-      rank={<MechBandRank chassisRef={mech.chassisRef} />}
+      // MOCK (density mock, sheet variant): Read's header strip carries TL and
+      // SV with the chassis's other figures, so the band leaves them out (R59).
+      rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}
+      pinsVitals={readOnly}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {

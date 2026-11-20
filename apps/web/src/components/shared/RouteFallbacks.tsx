@@ -28,7 +28,6 @@ const SHELL = {
   backgroundColor: color.wkBg,
   display: 'flex',
   justifyContent: 'center',
-  minHeight: '100dvh',
   padding: space[24],
 } satisfies CSSProperties
 

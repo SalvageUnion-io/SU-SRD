@@ -33,24 +33,22 @@
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { Photo } from 'game-domain/schemas/photo'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { CSSProperties, ReactNode } from 'react'
-import { artOf, photoArt, sourceRelation } from '../../build/starterSet/starterShelves.model'
-import type { EntityFormModel, HeaderMenuItem, TagItem } from '../../components/index'
+import type { OpenColumn, OpenRow } from '../../build/dash/OpenLedger'
+import { OpenLedger, TechLevel } from '../../build/dash/OpenLedger'
+import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
   FieldError,
   HeaderMenu,
   RosterSkeleton,
   SlabSection,
+  Stat,
   Text,
-  tokens,
 } from '../../components/index'
-import { UnitRow } from '../../components/shared/UnitRow'
+import type { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
-import { resolveClass } from '../../lib/classRef'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
@@ -79,49 +77,53 @@ import { useRowActions } from './useRowActions'
  * A pilot's face on the roster (E10, C11): their photo, else their Class's
  * art, and their Class as a relation chip. Other rows draw as they were.
  */
-function pilotLook(row: RosterRow): { art?: EntityFormModel['art']; relations?: TagItem[] } {
-  if (row.kind !== 'pilot') return {}
-  const classRef = typeof row.body.classRef === 'string' ? row.body.classRef : null
-  const pilotClass = classRef === null ? null : () => resolveClass(classRef)
-  const art =
-    photoArt(row.body.photo as Photo | undefined) ??
-    (pilotClass === null ? undefined : artOf('class', pilotClass))
-  const relations = pilotClass === null ? undefined : sourceRelation('Class', 'class', pilotClass)
-  return { ...(art ? { art } : {}), ...(relations ? { relations } : {}) }
-}
-
 type GameRosterProps = {
   gameId: string
   /** The Game's name, for the confirms that name it; null while unknown. */
   gameName: string | null
 }
 
-/* The roster fills its rows (R68): a card is at least 24rem, as many a row as
-   fit, and a short last row's cards grow to share the line, so one unit is
-   never half a row. The crawler takes a row of its own. */
-const LIST = {
-  alignItems: 'flex-start',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[12],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
+/**
+ * MOCK (best, revision 3): `?crew=mock` fills the seeded Game's Crew with a
+ * table's worth of rows so the page shows its real density. The units are the
+ * Starter Set's own (their figures as its sheets print them); the member
+ * names are placeholders. Display only: nothing is written anywhere.
+ */
+const MOCK_CREW =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('crew') === 'mock'
 
-const ITEM = {
-  flex: '1 1 24rem',
-  listStyle: 'none',
-  minWidth: 0,
-} satisfies CSSProperties
-
-const CRAWLER_ITEM = { ...ITEM, flexBasis: '100%' } satisfies CSSProperties
-
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
+function mockCrew(kind: 'pilot' | 'crawler'): OpenRow[] {
+  if (!MOCK_CREW) return []
+  const pilot = (
+    name: string,
+    mech: string,
+    who: string,
+    hp: string,
+    sp: string,
+    ep: string,
+    heat: string
+  ): OpenRow => ({
+    id: `mock-${name}`,
+    name,
+    meta: `in ${mech}`,
+    cells: [who, <TechLevel key="tl" level="1" />, hp, sp, ep, heat],
+  })
+  return kind === 'pilot'
+    ? [
+        pilot('Pickle', 'Spectrum', 'Player two', '8/10', '17/17', '9/11', '1/3'),
+        pilot('Judge', 'Mule', 'Player three', '10/10', '9/12', '4/4', '0/6'),
+        pilot('Hotdog', 'Mazona', 'Player four', '6/10', '5/5', '10/10', '3/6'),
+        pilot('Razor', 'Thresher', 'Unclaimed', '10/10', '15/15', '6/6', '0/10'),
+      ]
+    : [
+        {
+          id: 'mock-tenacity',
+          name: "Crawler #430 'Tenacity'",
+          cells: ['Crew', <TechLevel key="tl" level="1" />, '', '20/20', '', ''],
+        },
+      ]
+}
 
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
@@ -320,43 +322,61 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return [verbs, assign, danger]
   }
 
-  function renderRow(row: RosterRow): ReactNode {
-    return (
-      <li key={row.serverId} style={row.kind === 'crawler' ? CRAWLER_ITEM : ITEM}>
-        <UnitRow
-          {...pilotLook(row)}
-          kind={row.kind}
-          name={row.name}
-          /* The primary crawler is where new crew is assigned (ADR-037), so
-             the list says which one it is. */
-          note={row.primary ? playGamesCopy('primary') : undefined}
-          /* The Compact is the door to the live sheet in Build: editable when
-             the row is yours to edit, read-only when it is a crewmate's. */
-          mode={{ kind: 'link', href: rosterSheetHref(row) }}
-          {...rowChips(row)}
-          /* MINE or UNASSIGNED sits right of the name, a label (ruleset §7.2):
-             never a stamp riding the frame. A crewmate's is The Game's to name. */
-          labels={
-            row.owner === null || !(row.owner.unassigned || row.owner.mine) ? undefined : (
-              <OwnerSeal
-                owner={row.owner}
-                assignable={row.can.assignSelf}
-                disabled={busy}
-                onAssign={() => rowActions.assignSelf(row)}
-              />
-            )
-          }
-          trailing={
-            <HeaderMenu
-              variant="overflow"
-              trigger={null}
-              label={playGamesCopy('moreFor', { name: row.name })}
-              sections={rowMenu(row)}
+  // MOCK (density mock, sheet variant): the crew as ONE manifest, a line a
+  // unit under the columns the table reads — who holds it, and the numbers
+  // Play spends. Its ⋯ menu rides the row, as a Compact's does.
+  const MANIFEST: readonly OpenColumn[] = [
+    // MOCK (revision 3): a phone drops Member so HP and SP never clip.
+    { key: 'who', label: playGamesCopy('member'), kind: 'text' },
+    { key: 'tl', label: 'TL', title: 'Tech Level' },
+    { key: 'hp', label: 'HP', phone: true },
+    { key: 'sp', label: 'SP', phone: true },
+    { key: 'ep', label: 'EP' },
+    { key: 'heat', label: 'Heat' },
+  ]
+  const readingOf = (
+    chips: Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'>,
+    label: string
+  ) => chips.readings?.find((reading) => reading.label === label)?.value ?? ''
+  function manifestRow(row: RosterRow): OpenRow {
+    const chips = rowChips(row)
+    const linked = chips.linked?.[0]
+    const mech = linked?.readings ?? []
+    const mechOf = (label: string) => mech.find((reading) => reading.label === label)?.value ?? ''
+    const tl = readingOf(chips, 'TL') || mechOf('TL')
+    return {
+      id: row.serverId,
+      name: row.name,
+      href: rosterSheetHref(row),
+      meta: linked?.name ? `in ${linked.name}` : undefined,
+      state: (
+        <>
+          {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
+          {row.owner !== null && (row.owner.unassigned || row.owner.mine) && (
+            <OwnerSeal
+              owner={row.owner}
+              assignable={row.can.assignSelf}
+              disabled={busy}
+              onAssign={() => rowActions.assignSelf(row)}
             />
-          }
-        />
-      </li>
-    )
+          )}
+          <HeaderMenu
+            variant="overflow"
+            trigger={null}
+            label={playGamesCopy('moreFor', { name: row.name })}
+            sections={rowMenu(row)}
+          />
+        </>
+      ),
+      cells: [
+        row.kind === 'crawler' ? playGamesCopy('crawlerGroup') : (row.owner?.label ?? ''),
+        tl === '' ? '' : <TechLevel key="tl" level={tl} />,
+        readingOf(chips, 'HP'),
+        readingOf(chips, 'SP') || mechOf('SP'),
+        readingOf(chips, 'EP') || mechOf('EP'),
+        readingOf(chips, 'Heat') || mechOf('Heat'),
+      ],
+    }
   }
 
   /** Each kind's rows, yours first, then everyone else's. */
@@ -364,59 +384,81 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const { yours, others } = groupColumn(rows)
     return [...yours, ...others]
   }
-  const rows = [...ordered(crawlers), ...ordered(pilots), ...ordered(mechs)]
   const loading = listing === undefined || members === undefined
+
+  const newButtons = (
+    <>
+      {caps.canAddCrew && (
+        <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newPilot')}
+        </Button>
+      )}
+      {caps.canAddCrew && (
+        <Button href={newInGameHref('/mechs/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newMech')}
+        </Button>
+      )}
+      {caps.canRaiseCrawler && !caps.hasCrawler && (
+        <Button href={newInGameHref('/crawlers/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newCrawler')}
+        </Button>
+      )}
+    </>
+  )
+  const note =
+    error !== null ? (
+      <FieldError>{error}</FieldError>
+    ) : !caps.canAddCrew && caps.addCrewBlocked !== null && !loading ? (
+      <Text variant="hint">{caps.addCrewBlocked}</Text>
+    ) : undefined
 
   return (
     <>
-      <SlabSection
-        as="h2"
-        id="crew-heading"
-        title={playGamesCopy('crew')}
-        {...(seats !== null && seats.total > 0
-          ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
-          : {})}
-        // + New is outlined here: the page's one rust button is the role's
-        // door on the band (ruleset §3.13).
-        actions={
-          <>
-            {caps.canAddCrew && (
-              <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
-                {playGamesCopy('newPilot')}
-              </Button>
-            )}
-            {caps.canAddCrew && (
-              <Button href={newInGameHref('/mechs/new', gameId)} variant="default" size="compact">
-                {playGamesCopy('newMech')}
-              </Button>
-            )}
-            {caps.canRaiseCrawler && !caps.hasCrawler && (
-              <Button
-                href={newInGameHref('/crawlers/new', gameId)}
-                variant="default"
-                size="compact"
-              >
-                {playGamesCopy('newCrawler')}
-              </Button>
-            )}
-          </>
-        }
-        bodyStyle={BODY}
-      >
-        {error !== null && <FieldError>{error}</FieldError>}
-        {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
-          <Text variant="hint">{caps.addCrewBlocked}</Text>
-        )}
-        {loading ? (
+      {loading ? (
+        <SlabSection as="h2" id="crew-heading" title={playGamesCopy('crew')} actions={newButtons}>
           <RosterSkeleton label={playGamesCopy('theCrew')} />
-        ) : rows.length === 0 ? (
-          <Text variant="hint">{playGamesCopy('nobodyHasBroughtAUnit')}</Text>
-        ) : (
-          <ul aria-labelledby="crew-heading" style={LIST}>
-            {rows.map(renderRow)}
-          </ul>
-        )}
-      </SlabSection>
+        </SlabSection>
+      ) : (
+        // MOCK (density mock, sheet variant): the crew manifest IS the section
+        // — its head is the label on the rule, with the seats on it and the
+        // column labels at its end, so the "+ New…" buttons sit on their own
+        // line under the rule rather than between the two (the page's one rust
+        // button stays the band's).
+        <OpenLedger
+          as="h2"
+          title={playGamesCopy('crew')}
+          {...(seats !== null && seats.total > 0
+            ? {
+                tally: {
+                  label: playGamesCopy('seats'),
+                  value: seats.claimed,
+                  max: seats.total,
+                },
+              }
+            : {})}
+          lead={
+            <div className="su-open__controls">
+              {newButtons}
+              {note}
+            </div>
+          }
+          columns={MANIFEST}
+          groups={[
+            { key: 'pilots', rows: [...ordered(pilots).map(manifestRow), ...mockCrew('pilot')] },
+            {
+              key: 'mechs',
+              label: playGamesCopy('mechsGroup'),
+              rows: ordered(mechs).map(manifestRow),
+            },
+            {
+              key: 'crawlers',
+              label: playGamesCopy('crawlerGroup'),
+              rows: [...ordered(crawlers).map(manifestRow), ...mockCrew('crawler')],
+            },
+          ]}
+          empty={playGamesCopy('nobodyHasBroughtAUnit')}
+        />
+      )}
 
       {confirmDialog}
     </>

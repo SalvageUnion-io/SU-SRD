@@ -42,4 +42,17 @@ export const buildStarterSetCopy = messages({
   techLevel: 'Tech Level',
   thePreGeneratedCrewOf: 'The pre-generated crew of',
   byPublisher: ', by {publisher}.',
+  // MOCK (density mock, sheet variant): the paired crew manifest.
+  hp: 'HP',
+  ap: 'AP',
+  sp: 'SP',
+  ep: 'EP',
+  heat: 'Heat',
+  mech: 'Mech',
+  type: 'Type',
+  bays: 'Bays',
+  pilots: 'Pilots',
+  pilotsAndTheirMechs: 'Pilots & their mechs',
+  unionCrawler: 'Union Crawler',
+  mechsWithNoPilot: 'Mechs with no pilot',
 })

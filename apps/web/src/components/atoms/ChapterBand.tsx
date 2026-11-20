@@ -11,9 +11,18 @@ import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import { ChipOverflowRow } from './chipOverflow'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
-import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
+import { BAND_KEY_ATTRIBUTE, footerMatchCss, kindMatchCss, unionBarMatchCss } from './unionBarMatch'
 import { useChipFill } from './useChipFill'
 import { USER_MADE_HATCH } from './userMadeHatch'
+
+/**
+ * MOCK (density "best", revision 3): the paint a head strip wears on this
+ * band. The book's crawler pink carries neither ink nor paper text at 4.5:1,
+ * so a head on it wears the deeper crawler band with paper text.
+ */
+function kindPaint(band: string): string {
+  return band === color.crawler ? color.crawlerBand : band
+}
 
 /**
  * ChapterBand — the page title as the Workshop Manual sets it (ruleset, "The
@@ -231,7 +240,9 @@ const ASIDE = {
 // The notch: the page ground, ink condensed caps, flush with the band's foot.
 // Size and padding change at `sm`, so they are `.su-chapter-band__title`'s.
 const TITLE = {
-  backgroundColor: color.wkBg,
+  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   fontWeight: weight.extrabold,
   lineHeight: 0.92,
@@ -249,7 +260,9 @@ const BESIDE_CONTROLS = { margin: '0 auto 0 0' } satisfies CSSProperties
 // The plate: the notch's cut-out around the trail and the title, so the two
 // read as one label at the wider one's width. Its padding is the parts'.
 const PLATE = {
-  backgroundColor: color.wkBg,
+  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   display: 'flex',
   flexDirection: 'column',
@@ -364,6 +377,9 @@ export function ChapterBand({
           {unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle) +
             footerMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}
         </style>
+      )}
+      {bleed && (
+        <style>{kindMatchCss(key, kindPaint(band), foregroundOn(kindPaint(band), 'ink'))}</style>
       )}
       <Speckle grain={speckle} />
       {corner && (

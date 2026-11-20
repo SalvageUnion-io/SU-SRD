@@ -37,6 +37,8 @@ import { Route as OgKindIdRouteImport } from './routes/og/$kind/$id'
 import { Route as PKindAppIdRouteImport } from './routes/p/$kind/$appId'
 import { Route as PilotsIdPlayRouteImport } from './routes/pilots/$id_/play'
 import { Route as StarterKindIdRouteImport } from './routes/starter/$kind/$id'
+import { Route as MechsIdCompanionsPartnerIdRouteImport } from './routes/mechs/$id_/companions.$partnerId'
+import { Route as PilotsIdCompanionsPartnerIdRouteImport } from './routes/pilots/$id_/companions.$partnerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -178,6 +180,18 @@ const StarterKindIdRoute = StarterKindIdRouteImport.update({
   path: '/starter/$kind/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MechsIdCompanionsPartnerIdRoute =
+  MechsIdCompanionsPartnerIdRouteImport.update({
+    id: '/mechs/$id_/companions/$partnerId',
+    path: '/mechs/$id/companions/$partnerId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PilotsIdCompanionsPartnerIdRoute =
+  PilotsIdCompanionsPartnerIdRouteImport.update({
+    id: '/pilots/$id_/companions/$partnerId',
+    path: '/pilots/$id/companions/$partnerId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -208,6 +222,8 @@ export interface FileRoutesByFullPath {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/pilots/$id/play': typeof PilotsIdPlayRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
+  '/mechs/$id/companions/$partnerId': typeof MechsIdCompanionsPartnerIdRoute
+  '/pilots/$id/companions/$partnerId': typeof PilotsIdCompanionsPartnerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -238,6 +254,8 @@ export interface FileRoutesByTo {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/pilots/$id/play': typeof PilotsIdPlayRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
+  '/mechs/$id/companions/$partnerId': typeof MechsIdCompanionsPartnerIdRoute
+  '/pilots/$id/companions/$partnerId': typeof PilotsIdCompanionsPartnerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -269,6 +287,8 @@ export interface FileRoutesById {
   '/p/$kind/$appId': typeof PKindAppIdRoute
   '/pilots/$id_/play': typeof PilotsIdPlayRoute
   '/starter/$kind/$id': typeof StarterKindIdRoute
+  '/mechs/$id_/companions/$partnerId': typeof MechsIdCompanionsPartnerIdRoute
+  '/pilots/$id_/companions/$partnerId': typeof PilotsIdCompanionsPartnerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -301,6 +321,8 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/pilots/$id/play'
     | '/starter/$kind/$id'
+    | '/mechs/$id/companions/$partnerId'
+    | '/pilots/$id/companions/$partnerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -331,6 +353,8 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/pilots/$id/play'
     | '/starter/$kind/$id'
+    | '/mechs/$id/companions/$partnerId'
+    | '/pilots/$id/companions/$partnerId'
   id:
     | '__root__'
     | '/'
@@ -361,6 +385,8 @@ export interface FileRouteTypes {
     | '/p/$kind/$appId'
     | '/pilots/$id_/play'
     | '/starter/$kind/$id'
+    | '/mechs/$id_/companions/$partnerId'
+    | '/pilots/$id_/companions/$partnerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -392,6 +418,8 @@ export interface RootRouteChildren {
   PKindAppIdRoute: typeof PKindAppIdRoute
   PilotsIdPlayRoute: typeof PilotsIdPlayRoute
   StarterKindIdRoute: typeof StarterKindIdRoute
+  MechsIdCompanionsPartnerIdRoute: typeof MechsIdCompanionsPartnerIdRoute
+  PilotsIdCompanionsPartnerIdRoute: typeof PilotsIdCompanionsPartnerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -592,6 +620,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StarterKindIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mechs/$id_/companions/$partnerId': {
+      id: '/mechs/$id_/companions/$partnerId'
+      path: '/mechs/$id/companions/$partnerId'
+      fullPath: '/mechs/$id/companions/$partnerId'
+      preLoaderRoute: typeof MechsIdCompanionsPartnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pilots/$id_/companions/$partnerId': {
+      id: '/pilots/$id_/companions/$partnerId'
+      path: '/pilots/$id/companions/$partnerId'
+      fullPath: '/pilots/$id/companions/$partnerId'
+      preLoaderRoute: typeof PilotsIdCompanionsPartnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -624,6 +666,8 @@ const rootRouteChildren: RootRouteChildren = {
   PKindAppIdRoute: PKindAppIdRoute,
   PilotsIdPlayRoute: PilotsIdPlayRoute,
   StarterKindIdRoute: StarterKindIdRoute,
+  MechsIdCompanionsPartnerIdRoute: MechsIdCompanionsPartnerIdRoute,
+  PilotsIdCompanionsPartnerIdRoute: PilotsIdCompanionsPartnerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

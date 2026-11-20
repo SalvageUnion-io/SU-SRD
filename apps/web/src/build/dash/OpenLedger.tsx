@@ -1,0 +1,391 @@
+/**
+ * OpenLedger — MOCK (density mock, "best" variant): the Ledger, unframed.
+ *
+ * Best variant: the head is the Ledger's own (ledger.md L2, L5): an ink strip
+ * with the title on a paper cut-out at its left and the column labels
+ * reversed on it; the rows band paper and cream (L3) on hairlines; a row with
+ * rules opens in place under itself (its chevron, `aria-expanded`), its
+ * columns holding still. No frame and no foot bar: the strip is the only
+ * paint, so a page of six tables reads as six lists, not six boxes.
+ *
+ * (From the sheet variant:) rows, not cards.
+ *
+ * One table for a section. Its head row IS the section's head: the label on
+ * its rule, its tally beside it, and the column labels at the rule's end
+ * (small caps, not stamps), so a column is named once for every sub-group
+ * under it. A sub-group (Turn, Short, a tree) is a small label on a hairline.
+ * A row is one thing: its name (a `Mention`, so it opens its Page and Peeks
+ * its whole card), what marks it on this sheet, then its figures in fixed
+ * tabular columns; the line under it is what it does, two lines at most.
+ *
+ * Built for real this is `Ledger`'s open form (ledger.md L1, L2): the same
+ * rows and columns with no frame and no painted head strip, so a sheet's
+ * lists read alike at every width. Kept apart here so the mock touches no
+ * Ledger consumer.
+ */
+
+import { ChevronDown } from 'lucide-react'
+import type { ElementType, ReactNode } from 'react'
+import { Fragment, useId, useState } from 'react'
+import type { EntityRef } from 'salvageunion-reference'
+import type { CSSVarStyle, SlabCount } from '../../components/index'
+import { cn, InlineRef, Mention, tokens } from '../../components/index'
+
+export type OpenColumn = {
+  key: string
+  /** The column's label on the rule: `RNG`, `DMG`. */
+  label: string
+  /** Its words in full, for the hover and assistive tech. */
+  title?: string
+  /** `figure` (default): a centred tabular figure. `text`: words, left. */
+  kind?: 'figure' | 'text'
+  /** Kept on a phone; the others give way to the name. */
+  phone?: boolean
+  /** MOCK (best, revision 6): its values label themselves (a cost badge reads "2 AP"), so the head prints no label; the label is still read. A column keyed `cost` is quiet unless it says otherwise (L15). */
+  quiet?: boolean
+}
+
+export type OpenRow = {
+  id: string
+  name: ReactNode
+  /** The entity the row names: its name opens the Page and Peeks the card. */
+  entityRef?: EntityRef | undefined
+  /** Where the row's name goes, when it is not a reference entity (a sheet). */
+  href?: string | undefined
+  /** Before the name: a level numeral, a Tech Level swatch. */
+  lead?: ReactNode
+  /** After the name, quiet caps: its traits, where it comes from. */
+  meta?: ReactNode
+  /** What it is on this sheet: a stamp (Damaged), its Uses. */
+  state?: ReactNode
+  /** One per column, in order; `''` or `null` prints the empty mark. */
+  cells: readonly ReactNode[]
+  /** The line under the row: what it does. */
+  under?: ReactNode
+  /** Greyed: an ability not taken, a destroyed item. */
+  dim?: boolean
+  /** With it the row opens: its rules in full, under it. */
+  detail?: ReactNode
+  /** The opener's name: "Command Bay rules". */
+  detailLabel?: string
+  /** Starts open (the pilot's taken abilities read without a press). */
+  defaultOpen?: boolean
+}
+
+/**
+ * MOCK: `?open=<row id>` opens that row on load, so a screenshot can show an
+ * expanded row without a click. Not for the real build.
+ */
+// Read once, as the page loads: the sheet's router rewrites the address after.
+const MOCK_OPEN: readonly string[] =
+  typeof window === 'undefined'
+    ? []
+    : new URLSearchParams(window.location.search)
+        .getAll('open')
+        .flatMap((value) => value.split(','))
+        .filter((want) => want !== '')
+
+function mockOpen(id: string): boolean {
+  return MOCK_OPEN.some((want) => id.includes(want))
+}
+
+export type OpenGroup = {
+  key: string
+  /** The sub-group's label; absent, the rows follow the head. */
+  label?: ReactNode
+  /** A quiet note at the label's line end: a tree's track. */
+  note?: ReactNode
+  rows: readonly OpenRow[]
+  /**
+   * The sub-group folds, and starts shut: what every unit of the kind has
+   * (a pilot's Generic abilities) stays a line until it is asked for.
+   */
+  fold?: 'closed'
+}
+
+type OpenLedgerProps = {
+  title: ReactNode
+  /** The title's element: the section's heading. */
+  as?: ElementType
+  /** The section's tally, as a Slab's value count reads under the rule look. */
+  tally?: SlabCount | readonly SlabCount[]
+  /** A quiet word at the title's end instead of a tally. */
+  note?: ReactNode
+  /** The section's controls, at the head's end (its "+ New…", Manage). */
+  actions?: ReactNode
+  /** Said before the rows: an error, a hint. */
+  lead?: ReactNode
+  columns: readonly OpenColumn[]
+  groups: readonly OpenGroup[]
+  /** Said when there is nothing to list. */
+  empty?: string
+  /** The books these rows are printed in: the foot's cut-out, bottom right. */
+  cite?: ReactNode
+  className?: string
+}
+
+function Row({
+  row,
+  columns,
+  span,
+  band,
+  gutter,
+}: {
+  row: OpenRow
+  columns: readonly OpenColumn[]
+  span: number
+  /** Another row of the ledger opens: this one keeps the opener's column. */
+  gutter: boolean
+  /** The cream band of the zebra (every second row of its group). */
+  band: boolean
+}) {
+  // Until it is pressed a row is open where it starts open: derived, not
+  // stored, so a row whose rules arrive after its first render still opens.
+  const [pressed, setPressed] = useState<boolean | null>(null)
+  const starts =
+    row.defaultOpen === true ||
+    mockOpen(row.id) ||
+    (typeof row.name === 'string' && mockOpen(row.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')))
+  const open = row.detail !== undefined && (pressed ?? starts)
+  const setOpen = (next: (value: boolean) => boolean) => setPressed(next(open))
+  const panel = useId()
+  const banded = band ? '' : undefined
+  const opens = row.detail !== undefined
+  return (
+    <Fragment>
+      <tr
+        className="su-open__row"
+        data-dim={row.dim ? '' : undefined}
+        data-band={banded}
+        data-opens={opens || gutter ? '' : undefined}
+        data-open={opens && open ? '' : undefined}
+      >
+        <th scope="row">
+          <span className="su-open__name-line">
+            {row.detail !== undefined && (
+              <button
+                type="button"
+                className="su-open__toggle"
+                aria-expanded={open}
+                aria-controls={panel}
+                aria-label={
+                  row.detailLabel ?? `${typeof row.name === 'string' ? row.name : 'Row'} rules`
+                }
+                onClick={() => setOpen((value) => !value)}
+              >
+                <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+              </button>
+            )}
+            {row.detail === undefined && gutter && (
+              <span className="su-open__toggle-gap" aria-hidden="true" />
+            )}
+            {row.lead !== undefined && <span className="su-open__lead">{row.lead}</span>}
+            <span className="su-open__name">
+              {row.entityRef ? (
+                <Mention entityRef={row.entityRef}>{row.name}</Mention>
+              ) : row.href ? (
+                <InlineRef href={row.href}>{row.name}</InlineRef>
+              ) : (
+                row.name
+              )}
+            </span>
+            {row.meta && <span className="su-open__meta">{row.meta}</span>}
+            {row.state && <span className="su-open__state">{row.state}</span>}
+          </span>
+        </th>
+        {columns.map((column, index) => {
+          const cell = row.cells[index]
+          const blank = cell === undefined || cell === null || cell === ''
+          return (
+            <td
+              key={column.key}
+              data-kind={column.kind ?? 'figure'}
+              data-phone={column.phone ? '' : undefined}
+              data-empty={blank ? '' : undefined}
+            >
+              {blank ? '—' : cell}
+            </td>
+          )
+        })}
+      </tr>
+      {row.under && (
+        <tr className="su-open__under" data-band={banded}>
+          <td colSpan={span}>{row.under}</td>
+        </tr>
+      )}
+      {row.detail !== undefined && (
+        <tr className="su-open__detail" id={panel} hidden={!open} data-band={banded}>
+          <td colSpan={span}>
+            {open ? <div className="su-open__detail-body">{row.detail}</div> : null}
+          </td>
+        </tr>
+      )}
+    </Fragment>
+  )
+}
+
+function Group({
+  group,
+  columns,
+  span,
+  gutter,
+}: {
+  group: OpenGroup
+  columns: readonly OpenColumn[]
+  span: number
+  gutter: boolean
+}) {
+  const [open, setOpen] = useState(group.fold !== 'closed')
+  return (
+    <tbody>
+      {group.label !== undefined && (
+        <tr className="su-open__group">
+          <th colSpan={span} scope="rowgroup">
+            <span className="su-open__group-line">
+              {group.fold ? (
+                <button
+                  type="button"
+                  className="su-open__group-fold"
+                  aria-expanded={open}
+                  onClick={() => setOpen((value) => !value)}
+                >
+                  <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+                  {group.label}
+                </button>
+              ) : (
+                <span>{group.label}</span>
+              )}
+              <span className="su-open__group-note">
+                {group.fold && !open ? group.rows.length : group.note}
+              </span>
+            </span>
+          </th>
+        </tr>
+      )}
+      {open &&
+        group.rows.map((row, index) => (
+          <Row
+            key={row.id}
+            row={row}
+            columns={columns}
+            span={span}
+            band={index % 2 === 1}
+            gutter={gutter}
+          />
+        ))}
+    </tbody>
+  )
+}
+
+export function OpenLedger({
+  title,
+  as: Heading = 'h3',
+  tally,
+  note,
+  actions,
+  lead,
+  columns,
+  groups,
+  empty,
+  cite,
+  className,
+}: OpenLedgerProps) {
+  const span = columns.length + 1
+  const tallies = tally === undefined ? [] : Array.isArray(tally) ? tally : [tally as SlabCount]
+  const filled = groups.filter((group) => group.rows.length > 0)
+  const gutter = filled.some((group) => group.rows.some((row) => row.detail !== undefined))
+  return (
+    <table className={cn('su-open', className)}>
+      <thead>
+        <tr>
+          <th scope="col">
+            <span className="su-open__title">
+              <Heading className="su-rule-head__label">{title}</Heading>
+              {tallies.length > 0 && (
+                <span className="su-rule-head__tallies">
+                  {tallies.map((entry) => (
+                    <span
+                      key={entry.label}
+                      className="su-rule-head__tally"
+                      data-state={entry.state === 'critical' ? 'critical' : undefined}
+                    >
+                      <b>{entry.value}</b>
+                      {entry.max !== undefined && <i>/{entry.max}</i>}
+                      <small>{entry.label}</small>
+                    </span>
+                  ))}
+                </span>
+              )}
+              {note && <span className="su-rule-head__note">{note}</span>}
+              {actions && <div className="su-rule-head__actions">{actions}</div>}
+            </span>
+          </th>
+          {columns.map((column) => (
+            <th
+              key={column.key}
+              scope="col"
+              data-col=""
+              data-kind={column.kind ?? 'figure'}
+              data-phone={column.phone ? '' : undefined}
+              title={column.title}
+            >
+              {(column.quiet ?? column.key === 'cost') ? (
+                <span className="su-sr-only">{column.label}</span>
+              ) : (
+                column.label
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      {lead !== undefined && lead !== null && (
+        <tbody>
+          <tr>
+            <td colSpan={span}>
+              <div className="su-open__lead-note">{lead}</div>
+            </td>
+          </tr>
+        </tbody>
+      )}
+      {filled.length === 0 && empty ? (
+        <tbody>
+          <tr>
+            <td colSpan={span}>
+              <p className="su-open__empty">{empty}</p>
+            </td>
+          </tr>
+        </tbody>
+      ) : (
+        filled.map((group) => (
+          <Group key={group.key} group={group} columns={columns} span={span} gutter={gutter} />
+        ))
+      )}
+      {cite && (
+        <tfoot>
+          <tr>
+            <td colSpan={span}>
+              <span className="su-open-cite">{cite}</span>
+            </td>
+          </tr>
+        </tfoot>
+      )}
+    </table>
+  )
+}
+
+/** A Tech Level as its swatch on the colour map. */
+export function TechLevel({ level }: { level: number | string | undefined }) {
+  if (level === undefined || level === '') return null
+  const key = typeof level === 'number' ? level : String(level).toLowerCase()
+  return (
+    <span
+      className="su-tl"
+      // MOCK (best, revision 7): the dark swatches (TL 4 up) carry paper text.
+      data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
+      style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
+      title={`Tech Level ${level}`}
+    >
+      {level}
+    </span>
+  )
+}

@@ -9,7 +9,7 @@
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import type { MouseEvent, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { iconSize } from '../../design/tokens'
@@ -226,6 +226,8 @@ export function Ledger({
     <Box frameColor={paint.background} body="flush" className="su-ledger">
       <table
         className="su-ledger__table"
+        // MOCK (best, revision 3): the zebra tints from the list's own band.
+        style={{ '--su-kind': paint.background } as CSSProperties}
         aria-label={label}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
@@ -267,7 +269,27 @@ export function Ledger({
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
-                {stamp(column.key, column.label, column.title)}
+                {/* MOCK (best, revision 6, L15): a cost's values label themselves ("2 EP"); the head prints no label, a reader still hears it. Where the head sorts, its handle stays as a bare mark. */}
+                {column.key === 'cost' ? (
+                  onSort ? (
+                    <button
+                      type="button"
+                      className="su-ledger__sort"
+                      title={column.title ?? column.label}
+                      aria-label={entityCopy('sortBy', { column: column.title ?? column.label })}
+                      onClick={() => onSort(column.key)}
+                    >
+                      <Badge shape="stamp" size="mini" surface="solid">
+                        <span className="su-sr-only">{column.label}</span>
+                        {sort?.key === column.key ? sortMark(sort) : '↕'}
+                      </Badge>
+                    </button>
+                  ) : (
+                    <span className="su-sr-only">{column.label}</span>
+                  )
+                ) : (
+                  stamp(column.key, column.label, column.title)
+                )}
               </th>
             ))}
             {hasTrailing && (

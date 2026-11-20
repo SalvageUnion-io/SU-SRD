@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { RailActs } from '../build/sheet/RailActs'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
 import { iconSize } from '../design/tokens'
@@ -106,8 +107,13 @@ export function EntityPageFrame({
         }
         asideAt="notch"
         action={
+          // MOCK (best, revision 6): the page's view act (Share) rides the
+          // area rail; its one call to action (Build With This, Buy this
+          // book) stays a button in the band.
           <>
-            <SharePageButton />
+            <RailActs>
+              <SharePageButton />
+            </RailActs>
             {buy && (
               // The store is off the site: a new tab, in ink, never the
               // page's rust (the front door's Buy the game is ink too).

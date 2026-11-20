@@ -44,7 +44,6 @@ export const ctaLockedStyle = {
 export const shellStyle = {
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100dvh',
 } satisfies CSSProperties
 
 /** Under a page's own band: the shell's column, as tall as its content. */

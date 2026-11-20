@@ -21,7 +21,14 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ChapterBand, PageShell, Slab, Text, tokens } from '../../components/index'
+import {
+  ChapterBand,
+  PageShell,
+  Slab,
+  SlabLookProvider,
+  Text,
+  tokens,
+} from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import {
@@ -31,6 +38,7 @@ import {
 } from '../../lib/starterSet/starterTemplates'
 import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useSync } from '../../replica/syncContext'
+import { RailActs } from '../sheet/RailActs'
 import { CopyCrew } from './CopyCrew'
 import { StarterCrewLedger } from './StarterCrewLedger'
 import { useCopyCrewOnArrival } from './useCopyCrewOnArrival'
@@ -60,7 +68,9 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
   useCopyCrewOnArrival(copy, confirm)
 
   const body = (
-    <>
+    // MOCK (density mock, sheet variant): the crew pages read as the sheets
+    // do — labels on rules, and the crew as a paired manifest.
+    <SlabLookProvider value="rule">
       <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
           {headingLevel === 'h2' && (
@@ -96,7 +106,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         </section>
       )}
       {dialog}
-    </>
+    </SlabLookProvider>
   )
   if (headingLevel === 'h2') return body
   // Its own page sits on the page measure (ruleset §1.10), band and body alike.
@@ -107,14 +117,20 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         <ChapterBand
           tone="build"
           measure={PAGE_MEASURE}
-          aside={<CopyCrew confirm={confirm} />}
-          asideAt="controls"
+          // MOCK (best, revision 6): the page's act rides the area rail.
+          corner={
+            <RailActs>
+              <CopyCrew confirm={confirm} />
+            </RailActs>
+          }
         >
           {buildStarterSetCopy('starterSet2')}
         </ChapterBand>
       }
     >
-      {body}
+      {/* MOCK (best, revision 7): the crews stand in the page's main track,
+          as a Reference Page's do, a side track beside them. */}
+      <div className="su-main-track">{body}</div>
     </PageShell>
   )
 }

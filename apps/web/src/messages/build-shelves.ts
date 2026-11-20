@@ -13,7 +13,6 @@ export const buildShelvesCopy = messages({
   moreFor: 'More for {name}',
   play: 'Play',
   addAMech: '+ Add a Mech',
-  mechsNoPilotFlies: 'Mechs no Pilot of yours flies. A Pilot’s Mech is on its line above.',
   everyMechHasItsPilot: 'Every Mech of yours has its Pilot.',
   playName: 'Play {name}',
   youMediate: 'You mediate',
@@ -40,6 +39,4 @@ export const buildShelvesCopy = messages({
   sys: 'Sys',
   systemSlotsUsed: 'System Slots used',
   tray: 'Tray',
-  yourNpcsReadyToDrop: 'Your NPCs, ready to drop into a Game you mediate.',
-  yourPatternsReadyToBuild: 'Your patterns, ready to build a Mech from.',
 })

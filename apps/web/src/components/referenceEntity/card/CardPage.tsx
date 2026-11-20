@@ -1,6 +1,7 @@
 import type { ElementType, ReactNode } from 'react'
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { getChoices } from 'salvageunion-reference'
+import { getChoices, toEntityModel } from 'salvageunion-reference'
+import { RowRules } from '../../../build/dash/RowRules'
 import { cn } from '../../../lib/cn'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
@@ -8,6 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
+import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import { ChoiceRegion } from './ChoiceRegion'
 import type { Down } from './cardChrome'
@@ -182,7 +184,8 @@ export function CardPage({
 
   // Every entity's Page is the manual's; a pattern's and a guide's keep the
   // art-led layout below.
-  if (!opening && !guide) {
+  // MOCK (best, revision 7): a pattern's Page is the manual's too.
+  if (!guide) {
     const line = pageStatLine(entity)
     // The app's action Minis (`MiniGrid`: two or three across by the room),
     // each its own rules text alone. An action's options are the Page's: they
@@ -223,105 +226,141 @@ export function CardPage({
       !!sections ||
       !!table ||
       patterns.length > 0 ||
-      neighbours.length > 0
+      neighbours.length > 0 ||
+      !!opening
     // The words stand in the side column when rules stand beside them.
-    const wordsAside = !!(subLine || body) && !bodyRules && (!!hero || hasRules)
-    const words = (subLine || body) && (
+    // MOCK (best, revision 7): a pattern's Page shows its chassis's ability,
+    // not the chassis's own prose.
+    const wordsAside = !opening && !!(subLine || body) && !bodyRules && (!!hero || hasRules)
+    // A Page that is only its description reads as plain prose: no strip, no
+    // panel ("Stats by kind").
+    const loreOnly = !hasRules && !opening && line.length === 0
+    const prose = (
+      <div className={cn('su-entity-page__prose', wordsAside && 'su-manual__lore-prose')}>
+        {subLine}
+        {body}
+      </div>
+    )
+    const words = !opening && (subLine || body) && (loreOnly ? prose : (
       <SlabSection
         as={sectionAs}
-        title={referenceEntityCopy('description')}
+        // A pattern's Page names the chassis it is built on ("Mule chassis").
+        title={bodyLabel ?? referenceEntityCopy('description')}
         page
         className="su-manual__lore"
       >
-        <div className={cn('su-entity-page__prose', wordsAside && 'su-manual__lore-prose')}>
-          {subLine}
-          {body}
-        </div>
+        {prose}
       </SlabSection>
+    ))
+    // MOCK (best, revision 7): the chassis ability stands in the side column,
+    // under the Description, its tab the paper of its panel.
+    // The strip reads "Chassis ability" with the ability's name in it; its
+    // body is the ability's words (as a mech sheet's side cell).
+    const ability =
+      leadActions.length > 0 &&
+      leadActions.map((data) => {
+        const lead = toEntityModel(data as RefMetaEntity)
+        return (
+          <SlabSection
+            key={lead.ref.slug}
+            as={sectionAs}
+            title={referenceEntityCopy('chassisAbility')}
+            count={<Mention entityRef={lead.ref}>{lead.title}</Mention>}
+            page
+            className="su-manual__ability"
+            bodyClassName="su-entity-page__section-body su-chassis-ability"
+          >
+            <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
+          </SlabSection>
+        )
+      })
+    // MOCK (best, revision 7): a Page with no art (a system, a module, an
+    // ability) keeps its stats in the side track; a Page with art keeps them
+    // first in the main one.
+    const stats = line.length > 0 && (
+      <ul
+        className="su-grid su-stat-column su-manual__stats"
+        aria-label={`${action.hostName} stats`}
+      >
+        {line.map((stat) => (
+          <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+            <Stat
+              label={stat.label}
+              shortLabel={stat.shortLabel}
+              value={stat.value}
+              className="su-stat-column__stat"
+            />
+          </li>
+        ))}
+      </ul>
     )
-    const side = !!hero || wordsAside
+    const statsAside = !hero && line.length > 0
+    const side = !!hero || wordsAside || statsAside
     return (
       <div className="su-entity-page su-manual">
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}
+            {statsAside && stats}
             {wordsAside && words}
+            {ability}
           </div>
         )}
-        {line.length > 0 && (
-          <ul
-            className="su-grid su-stat-column su-manual__stats"
-            aria-label={`${action.hostName} stats`}
-          >
-            {line.map((stat) => (
-              <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
-                <Stat
-                  label={stat.label}
-                  shortLabel={stat.shortLabel}
-                  value={stat.value}
-                  className="su-stat-column__stat"
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-        {!wordsAside && words}
-        {leadActions.length > 0 && (
-          <SlabSection
-            as={sectionAs}
-            title={referenceEntityCopy('chassisAbility')}
-            page
-            bodyClassName="su-entity-page__section-body"
-          >
-            {actionList(leadActions)}
-          </SlabSection>
-        )}
-        {otherActions.length > 0 && (
-          // One Actions section on every Page: a crawler's ability too.
-          <SlabSection
-            as={sectionAs}
-            title={actionSeal ? actionSeal.label : referenceEntityCopy('actions')}
-            page
-            bodyClassName="su-entity-page__section-body"
-          >
-            {actionList(otherActions)}
-          </SlabSection>
-        )}
-        {sections}
-        {table && <div className="su-entity-page__table">{table}</div>}
-        {patterns.length > 0 && (
-          // The Ledger's title tab names the section and keeps the count.
-          <PatternLedger chassis={entity} patterns={patterns} />
-        )}
-        {neighbours.length > 0 && (
-          <div className="su-grid su-entity-page__neighbour-row">
-            {neighbours.map(({ label, abilities }) => (
-              <SlabSection
-                key={label}
-                as={sectionAs}
-                title={label}
-                page
-                className={cn(
-                  'su-entity-page__section',
-                  label === 'Next' && 'su-entity-page__section--end'
-                )}
-                bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
-              >
-                {abilities.map((ability) => (
-                  <Entity
-                    key={ability.id}
-                    size="compact"
-                    context="play"
-                    entity={ability}
-                    mode={LINK}
-                    omit={NEIGHBOUR_OMIT}
-                  />
-                ))}
-              </SlabSection>
-            ))}
-          </div>
-        )}
-        {after && <div className="su-manual__after">{after}</div>}
+        {/* MOCK (best, revision 7): the main track, always beside a side
+            track (empty or not), so every Page's blocks share one width. */}
+        <div className="su-manual__main">
+          {!statsAside && stats}
+          {opening && <div className="su-entity-page__opening">{opening}</div>}
+          {!wordsAside && words}
+          {!side && ability}
+          {opening && loadout}
+          {otherActions.length > 0 && (
+            // One Actions section on every Page: a crawler's ability too.
+            <SlabSection
+              as={sectionAs}
+              title={actionSeal ? actionSeal.label : referenceEntityCopy('actions')}
+              page
+              bodyClassName="su-entity-page__section-body"
+            >
+              {actionList(otherActions)}
+            </SlabSection>
+          )}
+          {sections}
+          {table && <div className="su-entity-page__table">{table}</div>}
+          {patterns.length > 0 && (
+            // The Ledger's title tab names the section and keeps the count.
+            <PatternLedger chassis={entity} patterns={patterns} />
+          )}
+          {neighbours.length > 0 && (
+            <div className="su-grid su-entity-page__neighbour-row">
+              {neighbours.map(({ label, abilities }) => (
+                <SlabSection
+                  key={label}
+                  as={sectionAs}
+                  title={label}
+                  page
+                  className={cn(
+                    'su-entity-page__section',
+                    label === 'Next' && 'su-entity-page__section--end'
+                  )}
+                  bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
+                >
+                  {abilities.map((ability) => (
+                    <Entity
+                      key={ability.id}
+                      size="compact"
+                      context="play"
+                      entity={ability}
+                      mode={LINK}
+                      omit={NEIGHBOUR_OMIT}
+                    />
+                  ))}
+                </SlabSection>
+              ))}
+            </div>
+          )}
+          {after && <div className="su-manual__after">{after}</div>}
+        </div>
       </div>
     )
   }
@@ -363,7 +402,19 @@ export function CardPage({
                 {/* No band holds the chassis ability (the page's h1 is the
                     ChapterBand above), so its title stays a span: an h3 here
                     would skip a level. */}
-                {leadActions.map((data, index) => actionCard(data, index, undefined))}
+                {/* MOCK (best, revision 6): a chassis ability is text, never a
+                    box: its name, then every word of it. */}
+                {leadActions.map((data) => {
+                  const lead = toEntityModel(data as RefMetaEntity)
+                  return (
+                    <div key={lead.ref.slug} className="su-dash-item su-chassis-ability">
+                      <p className="su-dash-entity__name">
+                        <Mention entityRef={lead.ref}>{lead.title}</Mention>
+                      </p>
+                      <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
+                    </div>
+                  )
+                })}
               </div>
             )}
             {/* A pattern page's Systems and Modules follow its chassis
