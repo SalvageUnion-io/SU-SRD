@@ -227,8 +227,9 @@ body:has(.su-front--show) main {
 }
 
 .su-front__show-body {
-  /* Always right of the button, a phone included: the words take what is left. */
-  flex: 1 1 0;
+  /* Always right of the button, a phone included. One measure on every slide,
+     so each line sits on two even rows and the plate keeps its size. */
+  flex: 0 1 24rem;
   margin: 0;
   min-width: 0;
   text-wrap: balance;

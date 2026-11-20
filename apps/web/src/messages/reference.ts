@@ -36,9 +36,8 @@ export const referenceCopy = messages({
   showPlayBody:
     'Roll, spend and take damage on live sheets, solo or with your whole crew in one shared Game.',
   showBuy: 'Get the books',
-  showBuyBody:
-    'Leyline Press writes and publishes Salvage Union. The books hold the setting, the art and the adventures.',
+  showBuyBody: 'Get the Source Books direct from Leyline Press, available in Print and Digital',
   showDiscord: 'Roll in Discord',
-  showDiscordBody: 'Look up any rule and roll on any table without leaving your channel.',
+  showDiscordBody: 'Look up any rule, reference, or roll without ever leaving your call.',
   buyThisBook: 'Buy this book',
 })
