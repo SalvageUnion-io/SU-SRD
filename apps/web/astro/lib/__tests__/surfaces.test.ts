@@ -74,6 +74,9 @@ describe('home: the front door, its slideshow alone', () => {
     }
     expect(arts[0]).toMatch(/fetchpriority="high"/i)
     expect(arts.slice(1).every((art) => /fetchpriority="low"/i.test(art))).toBe(true)
+    // The rest wait for layout, so they never share the first one's bandwidth.
+    expect(arts.slice(1).every((art) => /loading="lazy"/.test(art))).toBe(true)
+    expect(arts[0]).not.toMatch(/loading="lazy"/)
   })
 
   it('holds no Contents: the book’s index is the Reference’s home', () => {

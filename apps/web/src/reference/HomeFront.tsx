@@ -112,6 +112,9 @@ export function HomeHero() {
                 alt=""
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'low'}
+                // Only the first slide is in view at load; the rest wait for
+                // layout, so they never share the first one's bandwidth.
+                loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
             <div className="su-front__show-copy">
