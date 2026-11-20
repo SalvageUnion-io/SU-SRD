@@ -133,8 +133,9 @@ describe('the Play landing', () => {
     expect(screen.getByRole('button', { name: 'Sign in with Discord' })).toBeTruthy()
     // What happens at the table, then the crew: one framed list, a line a build.
     expect(screen.getByRole('heading', { name: 'At the table' })).toBeTruthy()
-    const crew = within(screen.getByRole('table', { name: 'Starter Set crew' }))
-    expect(crew.getAllByRole('row').length).toBeGreaterThan(12)
+    const crew = within(screen.getByRole('table', { name: 'Pilots & their Mechs' }))
+    // A line a Pilot, their Mech on it.
+    expect(crew.getAllByRole('row').length).toBeGreaterThan(6)
     const sheets = crew.getAllByRole('link').map((link) => link.getAttribute('href') ?? '')
     expect(sheets.filter((href) => href.startsWith('/starter/pilot/')).length).toBe(6)
     expect(queryCalls()).toHaveLength(0)

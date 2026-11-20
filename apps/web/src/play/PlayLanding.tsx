@@ -42,7 +42,8 @@ import { assetUrl } from 'salvageunion-reference'
 import { SignInControl } from '../build/account/SignInControl'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
-import { MockShelvesPart, Shelves } from '../build/shelves/Shelves'
+import { Shelves } from '../build/shelves/Shelves'
+import { ShelvesPart } from '../build/shelves/shelvesPart'
 import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {
@@ -304,9 +305,9 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <header className="su-rule-head su-rule-head--over">
               <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{playCopy('mediatorsKit')}</h2>
             </header>
-            <MockShelvesPart.Provider value="kit">
+            <ShelvesPart.Provider value="kit">
               <Shelves />
-            </MockShelvesPart.Provider>
+            </ShelvesPart.Provider>
           </section>
         )}
       </div>
