@@ -287,7 +287,7 @@ export function PilotDash({
         <DashColumn wide label={buildSheetCopy('abilities')}>
           <DashGroup title={buildSheetCopy('abilities')}>
             {/* The class's trees side by side, as the class page prints them (R48). */}
-            <div className="su-trees">
+            <div className="su-grid su-trees">
               {model.classTrees.map((group) => (
                 <OpenLedger
                   key={group.tree}

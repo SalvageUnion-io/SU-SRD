@@ -249,7 +249,7 @@ function ChassisGallery({
         <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</h2>
         <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>
       </header>
-      <div className="su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
+      <div className="su-grid su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
         {pool.map((chassis) => {
           const slug = nameToSlug(chassis.name)
           const art = getAssetUrl(chassis)

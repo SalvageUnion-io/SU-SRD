@@ -757,7 +757,10 @@
   align-items: start;
   display: grid;
   gap: var(--space-32) var(--space-32);
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(
+      0,
+      1fr
+    ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
 }
 
 .su-dash__col {
@@ -770,7 +773,10 @@
 
 @media (width >= 48rem) {
   .su-dash {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(
+        2,
+        minmax(0, 1fr)
+      ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
   }
 
   /* Two columns: what it does keeps the first, the rest stack in the second. */
@@ -786,7 +792,10 @@
 @media (width >= 80rem) {
   .su-dash[data-cols='3'] {
     gap: var(--space-40);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(
+        3,
+        minmax(0, 1fr)
+      ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
   }
 
   .su-dash[data-cols='3'] > .su-dash__col:first-child {
@@ -815,9 +824,9 @@
 
 /* A list of facts: a small label over what was written. */
 .su-dash-facts {
-  display: grid;
-  gap: var(--space-12) var(--space-24);
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  --su-grid-gap: var(--space-24);
+  --su-grid-min: 9rem;
+  --su-grid-row-gap: var(--space-12);
   margin: 0;
 }
 
@@ -826,7 +835,7 @@
 }
 
 .su-dash-fact--wide {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 .su-dash-fact > dt {
@@ -909,7 +918,10 @@
 .su-scrap {
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(
+      6,
+      minmax(0, 1fr)
+    ); /* design-tokens-ignore(item-grid): the six Tech Levels, a fixed matrix */
   margin: 0;
 }
 
@@ -1025,7 +1037,10 @@
 .su-bay-detail {
   display: grid;
   gap: var(--space-16) var(--space-32);
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(
+      0,
+      1fr
+    ); /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */
   padding-top: var(--space-4);
   white-space: normal;
 }
@@ -1039,7 +1054,10 @@
 
 @container (width >= 40rem) {
   .su-bay-detail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(
+        2,
+        minmax(0, 1fr)
+      ); /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */
   }
 }
 
@@ -1456,15 +1474,15 @@
 
 /* A pilot's trees: side by side, as the class page prints them. */
 .su-trees {
+  --su-grid-gap: var(--space-24);
+  --su-grid-max: 1;
+  --su-grid-row-gap: var(--space-20);
   align-items: start;
-  display: grid;
-  gap: var(--space-20) var(--space-24);
-  grid-template-columns: minmax(0, 1fr);
 }
 
 @container (width >= 48rem) {
   .su-trees {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --su-grid-max: 3;
   }
 }
 
@@ -1777,9 +1795,8 @@
 /* ── The chassis pick as a gallery of plates ───── */
 
 .su-chassis-gallery__grid {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  --su-grid-gap: var(--space-12);
+  --su-grid-min: 11rem;
   padding-top: var(--space-12);
 }
 
@@ -1851,7 +1868,10 @@
 
 .su-chassis-plate__figures {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(
+      6,
+      1fr
+    ); /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */
   padding: var(--space-6) var(--space-4);
 }
 
@@ -1870,12 +1890,16 @@
 
 @media not (width >= 40rem) {
   .su-chassis-gallery__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-8);
+    --su-grid-gap: var(--space-8);
+    --su-grid-max: 2;
+    --su-grid-min: 0px;
   }
 
   .su-chassis-plate__figures {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(
+        3,
+        1fr
+      ); /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */
     row-gap: var(--space-4);
   }
 }

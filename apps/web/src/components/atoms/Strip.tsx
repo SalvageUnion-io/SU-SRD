@@ -60,6 +60,7 @@ function Meter({
   cargo?: boolean
 }) {
   const count = Math.max(max, value)
+  const tracks = { gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))` } // design-tokens-ignore(item-grid): a meter's segments, a fixed track
   return (
     <span
       className="su-strip__meter"
@@ -67,7 +68,7 @@ function Meter({
       data-rows={count > 12 ? 2 : 1}
       data-ink={ink ? '' : undefined}
       data-cargo={cargo ? '' : undefined}
-      style={{ gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))` }}
+      style={tracks}
     >
       {Array.from({ length: count }, (_, index) => (
         <span
@@ -124,7 +125,9 @@ function StripVital({ vital }: { vital: PhoneVital }) {
       data-state={segmentState(index, shown, max ?? 0, danger)}
     />
   ))
-  const meterStyle = { gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))` }
+  const meterStyle = {
+    gridTemplateColumns: `repeat(${columnsFor(count)}, minmax(0, 1fr))`, // design-tokens-ignore(item-grid): a meter's segments, a fixed track
+  }
   return (
     <div
       className="su-strip__cell"

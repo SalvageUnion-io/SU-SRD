@@ -244,7 +244,7 @@ export function BuyTheGame() {
             No cover art exists yet (sources carry none, R2 has none), so each
             slot is a typeset cover in the book's proportions; a real cover
             drops into the same slot through `getAssetUrl`. */}
-        <ul className="su-front__shelf" aria-label={referenceCopy('theBooksThisSiteCites')}>
+        <ul className="su-grid su-front__shelf" aria-label={referenceCopy('theBooksThisSiteCites')}>
           {books.map((book) => {
             const cover = getAssetUrl(book)
             return (

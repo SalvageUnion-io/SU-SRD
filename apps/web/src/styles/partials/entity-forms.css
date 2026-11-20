@@ -1603,3 +1603,60 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: 0 1 auto;
   flex-wrap: wrap;
 }
+
+/* ── A Ledger and a strip's rows (ledger.md L1, L-6) ─────────────────── */
+
+/* The frame goes: the head strip is the Ledger's only paint, a 2px ink rule
+   closes it, and the cite keeps its cut-out on the ground, bottom right. */
+.su-ledger > .su-entity-compact__frame {
+  background-color: transparent;
+  border-bottom-width: var(--bw-pill);
+  border-top: 0;
+  --su-compact-frame: var(--color-ink);
+  border-inline-width: 0;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-mini > *,
+[data-rows] .su-entity-compact__frame,
+[data-rows] .su-entity-mini__pill[data-row] {
+  border-color: transparent !important;
+  border-width: 0 !important;
+  box-shadow: none;
+}
+
+[data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
+[data-rows]
+  .su-entity-compact__head[data-row]
+  :is(.su-entity-compact__name, .su-entity-compact__title) {
+  background: none !important;
+  color: var(--color-ink);
+}
+
+[data-rows] .su-entity-compact__head[data-row] {
+  background-image: none !important;
+}
+
+/* A list of rows: one column, no gaps, zebra in the page's colour. */
+[data-rows] .su-entity-mini-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 0 !important;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-compact__frame {
+  background-color: var(--color-paper);
+}
+
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-mini,
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-compact > .su-entity-compact__frame,
+[data-rows]
+  :is(li, .su-grid > *):nth-child(even):is(.su-entity-compact)
+  > .su-entity-compact__frame {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+[data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
+  background-color: transparent !important;
+}
