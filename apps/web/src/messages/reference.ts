@@ -23,7 +23,7 @@ export const referenceCopy = messages({
   copyLinkFailed: 'The link could not be copied. Try again.',
   siteName: 'SalvageUnion.io',
   pitchValue:
-    "Everything you need to play the world's best post-apocalyptic Mech tabletop roleplaying game.",
+    "Everything you need to play the world's best post-apocalyptic tabletop roleplaying game.",
   showReference: 'Know the rules',
   showReferenceBody:
     'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',

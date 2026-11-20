@@ -22,7 +22,7 @@ describe('the shell’s Union bar', () => {
 
   test('links its lockup and the Training Bay tab home under the base, Reference to the root, Games to Your Games', () => {
     const doc = bar()
-    expect(doc.querySelector('.su-union-bar__brand')?.getAttribute('href')).toBe('/build/')
+    expect(doc.querySelector('.su-union-bar__brand')?.getAttribute('href')).toBe('/')
     // Vite puts the base in front of it.
     expect(doc.querySelector('.su-union-bar__mark')?.getAttribute('src')).toBe(
       '/logos/su-cargo-dark.svg'

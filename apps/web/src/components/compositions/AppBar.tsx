@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react'
-import type { CSSProperties, ElementType, ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { iconSize, layer, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { MARK_SRC } from '../../lib/documentHead'
@@ -53,8 +53,8 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  * ## Slots
  *
  * Presentational: the search, actions and mobile
- * drawer are slots. Internal links route through the injected `LinkComponent`;
- * the other product is a plain same-tab anchor, and an `external` item opens a
+ * drawer are slots. Every link is a plain site-path anchor (the logo the
+ * site's root), and an `external` item opens a
  * new tab. So the shared library stays free of a router, search or account
  * dependency.
  *
@@ -85,8 +85,6 @@ type AppBarProps = {
   buildHref: string
   /** Where "Games" goes — Your Games. */
   playHref: string
-  /** Link component for the brand + internal links. Defaults to a plain anchor. */
-  LinkComponent?: ElementType
   /**
    * The SU mark's URL. The app's own copy: the app serves its files under
    * `/build/` (ADR-048), so the root's is the reference site's on one origin and missing on
@@ -178,7 +176,6 @@ export function AppBar({
   referenceHref,
   buildHref,
   playHref,
-  LinkComponent = 'a',
   markSrc = MARK_SRC,
   viewTransitionName,
   search,
@@ -223,8 +220,10 @@ export function AppBar({
           <Speckle grain="ink" />
         </span>
         <div className="su-union-bar__row">
-          {/* The lockup is the mark alone; its alt names the link. */}
-          <LinkComponent href="/" className={cn('su-union-bar__brand', FOCUS_RING)} style={BRAND}>
+          {/* The lockup is the mark alone; its alt names the link. A plain
+              anchor to the site's root, the marketing home, on every surface:
+              the app's link component would route "/" to the app's own home. */}
+          <a href="/" className={cn('su-union-bar__brand', FOCUS_RING)} style={BRAND}>
             <img
               src={markSrc}
               alt={compositionsCopy('salvageUnion')}
@@ -236,7 +235,7 @@ export function AppBar({
               className="su-union-bar__mark"
               style={MARK}
             />
-          </LinkComponent>
+          </a>
 
           <nav
             aria-label={compositionsCopy('salvageUnionTools')}

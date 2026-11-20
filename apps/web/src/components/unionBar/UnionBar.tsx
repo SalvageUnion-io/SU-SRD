@@ -1,4 +1,4 @@
-import type { AnchorHTMLAttributes, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { appPath } from '../../lib/appBase'
 import type { UnionMode } from '../../lib/barLinks'
 import { BUY_HREF } from '../../lib/docPages'
@@ -33,11 +33,6 @@ type UnionBarProps = {
   noCurrent?: boolean
 }
 
-/** An app link: a route under the base. */
-function BaseLink({ href = '/', ...rest }: AnchorHTMLAttributes<HTMLAnchorElement>) {
-  return <a href={appPath(`/${href.replace(/^\/+/, '')}`)} {...rest} />
-}
-
 export function UnionBar({
   product,
   search,
@@ -46,17 +41,15 @@ export function UnionBar({
   breadcrumbs,
   noCurrent,
 }: UnionBarProps) {
-  const app = product !== 'reference'
   return (
     <AppBar
       product={product}
       // One origin (ADR-048): the reference is the site's root, the app
-      // under its base. The tabs are site paths; the app's other links route
-      // through `BaseLink`, so they are written as routes.
+      // under its base. Every link in the bar is a site path; the logo is the
+      // site's root, the marketing home.
       referenceHref="/reference/"
       buildHref={appPath('/')}
       playHref={appPath('/games/')}
-      LinkComponent={app ? BaseLink : 'a'}
       markSrc={MARK_SRC}
       // Cross-document view transitions match the bar on this name, so it
       // holds still between a reference page and the app.
