@@ -513,14 +513,27 @@
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
 .su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
   align-items: baseline;
-  align-self: baseline !important;
   height: auto;
   padding-bottom: 0;
+}
+
+.su-rule-head:not(.su-rule-head--sub):not(:has(> .su-rule-head__actions))
+  > :is(.su-rule-head__tallies, .su-rule-head__note) {
+  align-self: baseline !important;
 }
 
 .su-rule-head:not(.su-rule-head--sub):not(:has(> .su-rule-head__actions)) > .su-rule-head__label {
   align-items: baseline;
   align-self: baseline;
+}
+
+/* With actions the cut-out stands at the foot, out of the baseline: its note
+   and tallies stand at the foot with it, on its text's line ("TRAINING p.23"),
+   never at the top of the strip. */
+.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions)
+> :is(.su-rule-head__tallies, .su-rule-head__note) {
+  align-self: flex-end;
+  padding-bottom: var(--space-2);
 }
 
 /* The cut-out is its strip's buttons' 24px (§4.7: a head's name and its
