@@ -181,11 +181,10 @@ body:has(.su-front--show) main {
 }
 
 /* A slide's words, at the bottom right in the same place on every slide,
-   right-aligned on paper cut-outs that match the site's name at the top:
-   the title its own tab, the line and the button the paper under it,
-   flush, each as wide as its words. */
+   right-aligned on paper that matches the site's name at the top: the
+   title, the line and the button one block, every piece the same width. */
 .su-front__show-copy {
-  align-items: flex-end;
+  align-items: stretch;
   bottom: var(--space-24);
   color: var(--color-ink);
   display: flex;
@@ -202,6 +201,8 @@ body:has(.su-front--show) main {
 }
 
 .su-front__show-act {
+  display: flex;
+  justify-content: flex-end;
   padding: 0 var(--space-16) var(--space-12);
 }
 
