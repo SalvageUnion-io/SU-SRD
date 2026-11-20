@@ -6,7 +6,6 @@ import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { Button, capsLabel } from '../components/index'
 import { Tagline } from '../components/Tagline'
-import { widthAtLeast } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -15,8 +14,8 @@ import { referenceCopy } from '../messages/reference'
 
 type Slide = {
   key: string
-  /** The slide's ground: a painting from the books, or a cut-out drawing. */
-  art: { url: string; cutout?: boolean } | undefined
+  /** The slide's ground: a painting from the books. */
+  art: { url: string } | undefined
 } & (
   | { kind: 'action'; title: string; body: string; href: string; external?: boolean }
   /** The slide's words are the pitch, in the title's face. */
@@ -34,21 +33,18 @@ type Slide = {
  */
 const painting = (name: string) => ({ url: assetUrl(`hero/${name}.webp`) })
 
-/** An entity's drawing, cut out on white, from the same bucket its Page uses. */
-const drawing = (key: string) => ({ url: assetUrl(`${key}.webp`), cutout: true })
-
 /** The slides: the pitch, what each part of the site is for over a piece of the book's art, then the tagline. */
 function heroSlides(): Slide[] {
   return [
-    // What the site is, over a bio-titan rising on a mech.
-    { key: 'pitch', kind: 'pitch', art: drawing('bio-titans/typhon') },
+    // What the site is, first.
+    { key: 'pitch', kind: 'pitch', art: painting('reference') },
     {
       key: 'reference',
       kind: 'action',
       title: referenceCopy('showReference'),
       body: referenceCopy('showReferenceBody'),
       href: '/reference/',
-      art: painting('reference'),
+      art: painting('slide-city'),
     },
     {
       key: 'build',
@@ -64,7 +60,7 @@ function heroSlides(): Slide[] {
       title: referenceCopy('showPlay'),
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
-      art: painting('play'),
+      art: painting('slide-union'),
     },
     {
       key: 'buy',
@@ -73,7 +69,7 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showBuyBody'),
       href: BUY_HREF,
       external: true,
-      art: painting('buy'),
+      art: painting('slide-everything'),
     },
     {
       key: 'discord',
@@ -82,10 +78,10 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showDiscordBody'),
       href: DISCORD_INSTALL_URL,
       external: true,
-      art: painting('discord'),
+      art: painting('slide-buggy'),
     },
-    // The tagline every landing page says, last, over a Union salvager.
-    { key: 'union', kind: 'quote', art: drawing('classes/salvager') },
+    // The tagline every landing page says, last.
+    { key: 'union', kind: 'quote', art: painting('play') },
   ]
 }
 
@@ -116,20 +112,10 @@ export function HomeHero() {
               // An <img>, not a background, so a phone takes the 880px
               // derivative and the first slide (the page's LCP) loads first.
               <img
-                className={cn(
-                  'su-front__show-art',
-                  slide.art.cutout && 'su-front__show-art--cutout'
-                )}
+                className="su-front__show-art"
                 src={slide.art.url}
-                // A painting spans the screen (its master is 2400px); a drawing
-                // stands in half of it, so it takes only its derivatives, never
-                // its print-size master.
-                srcSet={
-                  slide.art.cutout
-                    ? `${assetDerivativeUrl(slide.art.url, 440)} 440w, ${assetDerivativeUrl(slide.art.url, 880)} 880w`
-                    : `${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`
-                }
-                sizes={slide.art.cutout ? `${widthAtLeast('sm')} 50vw, 60vw` : '100vw'}
+                srcSet={`${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`}
+                sizes="100vw"
                 alt=""
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'low'}

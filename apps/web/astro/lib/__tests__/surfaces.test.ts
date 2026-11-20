@@ -86,7 +86,7 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
-    // Seven slides, seven pieces: the five paintings and two cut-out drawings.
+    // Seven slides, seven paintings, none twice.
     expect(arts).toHaveLength(7)
     expect(new Set(arts.map((art) => art.match(/src="([^"]+)"/)?.[1])).size).toBe(7)
     for (const art of arts) {

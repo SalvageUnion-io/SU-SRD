@@ -121,13 +121,6 @@ body:has(.su-front--show) main {
   position: absolute;
 }
 
-/* A drawing cut out on white (an entity's art, not a painting) stands whole
-   at the slide's left, clear of the words at its right, on the page's cream,
-   its white melted into the cream. */
-.su-front__show-slide:has(.su-front__show-art--cutout) {
-  background-color: var(--color-wk-bg);
-}
-
 /* The art covers the slide, edge to edge, no letterbox. */
 .su-front__show-art {
   block-size: 100%;
@@ -136,13 +129,6 @@ body:has(.su-front--show) main {
   object-fit: cover;
   object-position: center 40%;
   position: absolute;
-}
-
-.su-front__show-art--cutout {
-  mix-blend-mode: multiply;
-  object-fit: contain;
-  object-position: left center;
-  padding: var(--space-24);
 }
 
 /* The pitch, a slide's line: the title's face, a step under the name. */
@@ -263,13 +249,6 @@ body:has(.su-front--show) main {
 
 /* A phone: the plates span the width. */
 @media not (width >= 40rem) {
-  /* A drawing takes three fifths of the width at the left (its 440px
-     derivative, the size of a painting's first load). */
-  .su-front__show-art--cutout {
-    inline-size: 60%;
-    inset-inline-end: auto;
-  }
-
   .su-front__show {
     min-height: 36rem;
   }
