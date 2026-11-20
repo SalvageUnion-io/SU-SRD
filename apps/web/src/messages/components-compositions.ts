@@ -9,7 +9,7 @@ export const compositionsCopy = messages({
   accountMenuFor: 'Account menu for {name}',
   account: 'Account',
   yourGames: 'Your Games',
-  trainingBay: 'Training Bay',
+  yourCharacters: 'Your Characters',
   settings: 'Settings',
   signOut: 'Sign out',
   about: 'About',
