@@ -1,4 +1,4 @@
-// The home page: its slideshow (`HomeHero`), the site's name on an ink
+// The home page: its slideshow (`HomeHero`), the site's name on a cream
 // cut-out and the pitch over five slides of the book's art, each a line and
 // one action named for the slide, then the tagline's slide.
 import type { CSSProperties } from 'react'
@@ -144,7 +144,7 @@ export function HomeHero() {
           </li>
         ))}
       </ul>
-      {/* The site's name on an ink cut-out, the page's one h1, at the left;
+      {/* The site's name on a cream cut-out, the page's one h1, at the left;
           the pitch at the right, its cream hugging each line it breaks to. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">

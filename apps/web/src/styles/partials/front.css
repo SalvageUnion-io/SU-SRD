@@ -152,10 +152,9 @@ body:has(.su-front--show) main {
   display: flex;
 }
 
-/* The site's name in cream on ink. */
 .su-front__show-name {
-  background-color: var(--color-ink);
-  color: var(--color-wk-bg);
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
@@ -217,40 +216,6 @@ body:has(.su-front--show) main {
   margin: 0;
   min-width: 0;
   text-wrap: balance;
-}
-
-/* Each white area on the art (the name over the pitch's lines, the
-   tagline's lines, a slide's plate) is outlined as one shape: the outline
-   traces its outer edge only, never a seam between its lines or strips. A
-   border cannot (it would box each line), so the area's silhouette is
-   offset each way by twice the info box's frame width (`--bw-entity-compact`), in
-   its area's colour. The areas stand on the page's cream, as a page body does. */
-/* Each area its own colour, the same on every slide: the name ink on ink,
-   the pitch green, a slide's plate Build orange, the tagline's crawler pink. */
-.su-front__show-brand {
-  --su-show-frame: var(--color-ink);
-}
-
-.su-front__show-value {
-  --su-show-frame: var(--color-mech);
-}
-
-.su-front__show-plate {
-  --su-show-frame: var(--color-pilot);
-}
-
-.su-front__show-plate--quote {
-  --su-show-frame: var(--color-crawler-band);
-}
-
-:is(.su-front__show-brand, .su-front__show-value, .su-front__show-plate) {
-  /* Twice the info box's frame: 4px, so the trace holds over busy art. */
-  --su-o: calc(2 * var(--bw-entity-compact));
-  --su-o-: calc(-2 * var(--bw-entity-compact));
-  filter: drop-shadow(var(--su-o) 0 0 var(--su-show-frame))
-    drop-shadow(var(--su-o-) 0 0 var(--su-show-frame))
-    drop-shadow(0 var(--su-o) 0 var(--su-show-frame))
-    drop-shadow(0 var(--su-o-) 0 var(--su-show-frame));
 }
 
 @keyframes su-front-show {
