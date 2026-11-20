@@ -84,6 +84,8 @@ const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&
  */
 export function isSparse(entity: RefEntity): boolean {
   const meta = entity as RefMetaEntity
+  // A guide is its steps (and the tables they roll on): a page of its own length.
+  if ((entity as { schemaName?: string }).schemaName === 'guides') return false
   if (artUrlFor(meta)) return false
   if (toEntityModel(meta).bookStats.length > 0) return false
   const json = JSON.stringify(entity)

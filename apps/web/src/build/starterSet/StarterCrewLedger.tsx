@@ -145,9 +145,15 @@ function crawlerRow(crawler: Crawler, confirm: Confirm | undefined): OpenRow {
 type StarterCrewLedgerProps = {
   roster?: StarterRosterId
   confirm?: Confirm
+  /** Its ledgers' heading: `h2` where no section heading stands over them. */
+  as?: 'h2' | 'h3'
 }
 
-export function StarterCrewLedger({ roster = 'starter-set', confirm }: StarterCrewLedgerProps) {
+export function StarterCrewLedger({
+  roster = 'starter-set',
+  confirm,
+  as = 'h3',
+}: StarterCrewLedgerProps) {
   const crew = starterRoster(roster)
   const pairs = pairing(crew)
   const paired = new Set([...pairs.values()].map((mech) => mech.id))
@@ -155,6 +161,7 @@ export function StarterCrewLedger({ roster = 'starter-set', confirm }: StarterCr
   return (
     <div className="su-dash-group__body">
       <OpenLedger
+        as={as}
         title={buildStarterSetCopy('pilotsAndTheirMechs')}
         className="su-open--pairs"
         tally={{ label: buildStarterSetCopy('pilots'), value: crew.pilots.length }}
@@ -190,6 +197,7 @@ export function StarterCrewLedger({ roster = 'starter-set', confirm }: StarterCr
       />
       {crew.crawlers.length > 0 && (
         <OpenLedger
+          as={as}
           title={buildStarterSetCopy('unionCrawler')}
           columns={CRAWLER_COLUMNS}
           groups={[{ key: 'crawlers', rows: crew.crawlers.map((c) => crawlerRow(c, confirm)) }]}

@@ -9,7 +9,8 @@ import { fromFaults } from './_findings'
  *
  * - `frame` (L1): a Ledger inside a Ledger's row, or a row that frames or
  *   bands itself (its pick's card under it aside);
- * - `tab` (L2): a head strip with no title on its cut-out tab, or a Slab
+ * - `tab` (L2): a head strip with no title on its cut-out tab (unless the
+ *   header over it, its page's h1 or its Peek's title, names it), or a Slab
  *   standing over the Ledger as its section's whole body;
  * - `order` (L5, §2.6): head stamps out of the stat order;
  * - `empty` (L5): a cell that draws nothing, not `—`;
@@ -64,6 +65,15 @@ function readLedgers(page: Page): Promise<LedgerRead[]> {
     probe.remove()
     const text = (el: Element | null | undefined) =>
       (el?.textContent ?? '').replace(/\s+/g, ' ').trim()
+    /** Whether the header over a list (its Peek's title, else the page's h1) says its name. */
+    const namedBy = (ledger: Element, name: string) => {
+      const host = ledger.closest('[data-peek-popup], [role="dialog"]')
+      const header = host
+        ? host.querySelector('h1, h2, [data-fill-name]')
+        : document.querySelector('main h1')
+      const said = text(header).toLowerCase()
+      return name !== '' && said.includes(name.toLowerCase())
+    }
     const out: LedgerRead[] = []
     for (const ledger of document.querySelectorAll('.su-ledger')) {
       const r = ledger.getBoundingClientRect()
@@ -77,7 +87,14 @@ function readLedgers(page: Page): Promise<LedgerRead[]> {
       const body = ledger.closest('.su-slab-section__body')
       out.push({
         label: table.getAttribute('aria-label') ?? 'a Ledger',
-        title: text(heads[0]?.querySelector('.su-entity-compact__notch .su-entity-compact__title')),
+        title:
+          text(heads[0]?.querySelector('.su-entity-compact__notch .su-entity-compact__title')) ||
+          // A list whose header names it (its page's title, its Peek's) prints no
+          // tab: its name is that header's, and only then.
+          (table.hasAttribute('data-plain-title') &&
+          namedBy(ledger, table.getAttribute('aria-label') ?? '')
+            ? '(its header)'
+            : ''),
         stamps: heads
           .slice(1)
           .filter((th) => th.getAttribute('data-kind') !== 'trailing')

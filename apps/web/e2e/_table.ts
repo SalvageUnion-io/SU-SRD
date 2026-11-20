@@ -45,12 +45,13 @@ export async function joinByInvite(page: Page, token: string): Promise<string> {
 }
 
 /**
- * Assign yourself an unassigned pre-gen from the Game's Crew: the row naming it
- * that still offers its seal (a pilot's row names its mech too, as a linked Mini).
+ * Assign yourself an unassigned pre-gen from the Game's Crew: the manifest's row
+ * naming it that still offers its seal (a pilot's row names its mech too).
  */
 async function assignToMe(page: Page, name: string): Promise<void> {
   const seal = page.getByRole('button', { name: /— assign this to you$/ })
-  const row = page.locator('li', { hasText: name }).filter({ has: seal }).last()
+  const crew = page.getByRole('table', { name: 'Crew' })
+  const row = crew.locator('tr', { hasText: name }).filter({ has: seal }).last()
   await row.getByRole('button', { name: /— assign this to you$/ }).click()
   const confirm = page.getByRole('alertdialog')
   await confirm.getByRole('button', { name: 'Assign to me' }).click()

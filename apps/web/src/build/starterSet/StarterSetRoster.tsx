@@ -84,7 +84,8 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
               : buildStarterSetCopy('signInToCopyOne')}
           </Text>
         </div>
-        <StarterCrewLedger confirm={confirm} />
+        {/* On its own page the band's h1 stands over the ledgers: they are h2. */}
+        <StarterCrewLedger confirm={confirm} as={headingLevel === 'h1' ? 'h2' : 'h3'} />
       </section>
       {headingLevel === 'h1' && (
         <section aria-label={buildStarterSetCopy('quickstartCrew')}>

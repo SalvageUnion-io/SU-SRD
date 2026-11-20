@@ -348,6 +348,7 @@ export function PilotDash({
           {!inventoryEmpty(pilot, model) && (
             <div className="su-dash-group">
               <OpenLedger
+                as="h2"
                 title={buildSheetCopy('inventory')}
                 tally={{
                   label: buildSheetCopy('slots'),
@@ -367,6 +368,7 @@ export function PilotDash({
             // only, opening its rules in place.
             <div className="su-dash-group">
               <OpenLedger
+                as="h2"
                 title={buildSheetCopy('genericAbilities')}
                 columns={ABILITY_COLUMNS}
                 groups={[

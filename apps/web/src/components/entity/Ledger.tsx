@@ -237,6 +237,8 @@ export function Ledger({
         // The zebra tints from the list's own band.
         style={{ '--su-kind': paint.background } as CSSProperties}
         aria-label={label}
+        // Named by the header over it (the page's title, a Peek's): the gate reads it.
+        data-plain-title={plainTitle ? '' : undefined}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
       >

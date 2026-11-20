@@ -232,6 +232,7 @@ export function MechDash({
         <DashColumn wide label={buildSheetCopy('whatHas', { name: mech.name })}>
           {mech.systems.length > 0 && (
             <OpenLedger
+              as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('systems')}
               tally={slotCount(
@@ -245,6 +246,7 @@ export function MechDash({
           )}
           {mech.modules.length > 0 && (
             <OpenLedger
+              as="h2"
               className="su-open--loadout"
               title={buildSheetCopy('modules')}
               tally={slotCount(
@@ -288,6 +290,7 @@ export function MechDash({
           {companions}
           <div className="su-dash-group">
             <OpenLedger
+              as="h2"
               title={buildSheetCopy('cargo')}
               tally={{
                 label: buildSheetCopy('slots'),

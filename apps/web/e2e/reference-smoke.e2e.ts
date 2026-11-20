@@ -65,14 +65,37 @@ test('a chassis entity page renders its card', { tag: '@pr' }, async ({ page }) 
   })
 })
 
-// (d) The home page is the site's front door, then the manual's Contents.
-test('the home page opens three ways in and indexes the book’s chapters', { tag: '@pr' }, async ({
-  page,
-}) => {
+// (d) The home page is the site's front door: its name, then one action to
+// each part of the site, each named for its slide. The manual's Contents is
+// the Reference's home (`/reference/`), every chapter under its own heading.
+test('the home page opens every way in; the Reference indexes the book’s chapters', {
+  tag: '@pr',
+}, async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1, name: 'SalvageUnion.io' })).toBeVisible()
-  await expect(page.getByRole('heading', { level: 2, name: 'Three ways in' })).toBeVisible()
-  await expect(page.getByRole('heading', { level: 2, name: 'Contents' })).toBeVisible()
+  const show = page.getByRole('region', { name: 'SalvageUnion.io' })
+  for (const [name, href] of [
+    ['Know the rules', '/reference/'],
+    ['Build your crew', '/build/'],
+    ['Play at the table', '/games/'],
+  ] as const) {
+    await expect(show.getByRole('link', { name, includeHidden: true })).toHaveAttribute(
+      'href',
+      href
+    )
+  }
+  await expect(show.getByRole('link', { name: 'Get the books', includeHidden: true })).toHaveCount(
+    1
+  )
+  await expect(
+    show.getByRole('link', { name: 'Roll in Discord', includeHidden: true })
+  ).toHaveCount(1)
+  // The first slide stands in view on load, its action with it.
+  await expect(show.getByRole('link', { name: 'Know the rules' })).toBeVisible()
+  expect((await pageOverflow(page)).across).toBeLessThanOrEqual(0)
+
+  await page.goto('/reference/')
+  await expect(page.getByRole('heading', { level: 1, name: 'Reference' })).toBeVisible()
   for (const chapter of [
     'Pilot Bay',
     'Mech Workshop',

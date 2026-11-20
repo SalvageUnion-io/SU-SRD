@@ -412,6 +412,7 @@ export function CrawlerDash({
       <Dash>
         <DashColumn wide label={buildSheetCopy('bays')}>
           <OpenLedger
+            as="h2"
             title={buildSheetCopy('bays')}
             tally={{ label: buildSheetCopy('intact'), value: intact, max: bays.length }}
             columns={BAY_COLUMNS}

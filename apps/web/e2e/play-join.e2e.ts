@@ -58,7 +58,7 @@ test(
       })
       await openApp(player.page, `/games/${gameId}`)
       await expect(
-        player.page.getByRole('region', { name: 'Crew' }).getByText(PILOT).first()
+        player.page.getByRole('table', { name: 'Crew' }).getByText(PILOT).first()
       ).toBeVisible({ timeout: 20_000 })
 
       // --- 4. Play: the pilot's Cockpit ---
