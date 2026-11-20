@@ -182,10 +182,11 @@ describe('PilotSheet — abilities readOnly (Slice D)', () => {
     expandCards()
 
     expect(screen.queryByRole('button', { name: /^More for / })).toBeNull()
-    // AP cost still shown read-only (the Compact's own cost chip), plus a
+    // Read is the dashboard: the ability's row carries its cost box and a
     // static Used stamp.
-    expect(costChips()).toContain('3 AP')
-    expect(screen.getByText('Used')).toBeTruthy()
+    const row = dashRow('Talk Shop')
+    expect(row.textContent).toContain('3')
+    expect(within(row).getByText('Used')).toBeTruthy()
   })
 })
 
@@ -223,8 +224,37 @@ const treesOf = (): HTMLElement => {
   return trees
 }
 
+/** Read's trees: the class's trees side by side, an open Ledger each. */
+const dashTrees = (): HTMLElement[] => [
+  ...document.querySelectorAll<HTMLElement>('.su-trees > table.su-open'),
+]
+
+/** Read's row for an ability, by its name. */
+const dashRow = (name: string): HTMLElement => {
+  const row = screen
+    .getAllByRole('rowheader')
+    .find((cell) => cell.textContent?.includes(name))
+    ?.closest<HTMLElement>('tr')
+  if (!row) throw new Error(`no ${name} row`)
+  return row
+}
+
 describe('PilotSheet — the abilities fold: the trees on their tracks, the Generic a masonry grid', () => {
-  for (const readOnly of [false, true]) {
+  test('Read: the class trees lead, each a Ledger; the Generic abilities taken are their own Ledger beside', () => {
+    const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+    const trees = dashTrees()
+    expect(trees.length).toBeGreaterThan(0)
+    const generic = screen
+      .getAllByRole('table')
+      .find(
+        (table) => table.querySelector('.su-rule-head__label')?.textContent === 'Generic Abilities'
+      )
+    // The Generic tree is never one of the class's trees.
+    if (generic) expect(trees.includes(generic)).toBe(false)
+  })
+
+  for (const readOnly of [false]) {
     test(`tree abilities on top and open, Generic abilities under them and folded (${readOnly ? 'Read' : 'Edit'})`, () => {
       const pilot = makePilot({ abilities: ['mech-acquisition', 'tip-top-shape'] })
       render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly={readOnly} />)
@@ -336,9 +366,9 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     const pilot = makePilot({ classRef: 'salvager', abilities: ['squeeze-it-in'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
 
-    const trees = Array.from(
-      treesOf().querySelectorAll(':scope > .su-ability-tree__group [data-slab] > :first-child')
-    ).map((label) => label.textContent)
+    const trees = dashTrees().map(
+      (table) => table.querySelector('.su-rule-head__label')?.textContent
+    )
     expect(trees.length).toBeGreaterThan(2)
     expect(trees[0]).toBe('Salvaging')
     expect(trees[1]).toBe('Mechanical Knowledge')
@@ -406,14 +436,17 @@ describe("PilotSheet — the class's own trees", () => {
   test('a Core class shows its Core trees whole, the untaken greyed, never its Advanced tree', () => {
     const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
-    const names = treeAbilityNames()
+    const rows = dashTrees().flatMap((table) => [
+      ...table.querySelectorAll<HTMLElement>('tr.su-open__row'),
+    ])
+    const names = rows.map((row) => row.querySelector('th')?.textContent ?? '')
     // Its Core trees whole: Talk Shop's tree-mates are there, greyed.
-    expect(names.some((n) => n.startsWith('Engineering Expertise'))).toBe(true)
-    expect(names.some((n) => n.startsWith('Union Engineer'))).toBe(false)
-    const unlearned = treesOf().querySelectorAll('.su-pilot-ability--unlearned')
-    expect(unlearned.length).toBe(names.length - 1)
-    // Each tree on its track, under a slab naming it.
-    expect(treesOf().querySelectorAll('.su-ability-track').length).toBeGreaterThan(1)
+    expect(names.some((n) => n.includes('Engineering Expertise'))).toBe(true)
+    expect(names.some((n) => n.includes('Union Engineer'))).toBe(false)
+    const greyed = rows.filter((row) => row.dataset.dim !== undefined)
+    expect(greyed.length).toBe(names.length - 1)
+    // Each tree its own Ledger, side by side.
+    expect(dashTrees().length).toBeGreaterThan(1)
   })
 })
 
@@ -421,14 +454,17 @@ describe('PilotSheet — a taken ability reads its full rules', () => {
   test('Talk Shop taken reads its rules; its untaken tree-mates their lead alone', () => {
     const pilot = makePilot({ classRef: 'Engineer', abilities: ['talk-shop'] })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
-    const rules = treesOf().querySelectorAll('.su-pilot-ability__rules')
-    expect(rules.length).toBeGreaterThan(0)
-    for (const block of rules) {
-      expect(block.closest('.su-pilot-ability--unlearned')).toBeNull()
-      expect((block.textContent ?? '').length).toBeGreaterThan(0)
-    }
-    expect(
-      treesOf().querySelector('.su-pilot-ability--unlearned .su-pilot-ability__rules')
-    ).toBeNull()
+    // The taken ability starts open, its rules showing; the untaken stay shut.
+    const talkShop = dashRow('Talk Shop')
+    expect(talkShop.dataset.open).toBe('')
+    const panel = talkShop.querySelector('[aria-controls]')?.getAttribute('aria-controls')
+    const rules = panel ? document.getElementById(panel) : null
+    expect(rules?.hidden).toBe(false)
+    expect((rules?.textContent ?? '').length).toBeGreaterThan(0)
+    const untaken = dashTrees().flatMap((table) => [
+      ...table.querySelectorAll<HTMLElement>('tr.su-open__row[data-dim]'),
+    ])
+    expect(untaken.length).toBeGreaterThan(0)
+    for (const row of untaken) expect(row.dataset.open).toBeUndefined()
   })
 })

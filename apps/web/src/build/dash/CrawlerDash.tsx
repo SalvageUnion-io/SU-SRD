@@ -198,7 +198,23 @@ function BayDetail({
           </p>
         )}
         {/* The crew lead prints once, on the bay's own
-            line (name, Keepsake, Motto, HP); the card that repeated it here is gone. */}
+            line (name, Keepsake, Motto, HP); opened, the line adds what the
+            table wrote about them, which the line has no room for. */}
+        {(entry.npcDescription?.trim() || (entry.npcFacts ?? []).length > 0) && (
+          <section aria-label={buildSheetCopy('crewLead', { bayName: bay.name })}>
+            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('crewLeadColumn')}</p>
+            {entry.npcDescription?.trim() && (
+              <p className="su-dash-prose">{entry.npcDescription}</p>
+            )}
+            {(entry.npcFacts ?? []).length > 0 && (
+              <ul className="su-dash-prose">
+                {(entry.npcFacts ?? []).map((fact) => (
+                  <li key={fact}>{fact}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
         {/* A bay's condition is session state: it writes in Read (R11). */}
         {liveCondition && (
           <div>

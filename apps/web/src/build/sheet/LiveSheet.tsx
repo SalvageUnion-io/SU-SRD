@@ -390,14 +390,12 @@ export function LiveSheet({
               the name ahead of the hero h1 was the first match for a text
               query, and a hidden duplicate is noise to every reader. */}
             {condensed && (
-              <>
-                <SheetBarStrip
-                  title={title}
-                  nameAside={nameAside}
-                  kind={stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
-                  items={strip}
-                />
-              </>
+              <SheetBarStrip
+                title={title}
+                nameAside={nameAside}
+                kind={stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
+                items={strip}
+              />
             )}
           </div>
 
