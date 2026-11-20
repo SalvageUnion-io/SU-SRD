@@ -773,10 +773,10 @@
 
 @media (width >= 48rem) {
   .su-dash {
-    grid-template-columns: repeat(
+    grid-template-columns: /* design-tokens-ignore(item-grid): the page's columns, a layout */ repeat(
         2,
         minmax(0, 1fr)
-      ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
+      );
   }
 
   /* Two columns: what it does keeps the first, the rest stack in the second. */
@@ -792,10 +792,10 @@
 @media (width >= 80rem) {
   .su-dash[data-cols='3'] {
     gap: var(--space-40);
-    grid-template-columns: repeat(
+    grid-template-columns: /* design-tokens-ignore(item-grid): the page's columns, a layout */ repeat(
         3,
         minmax(0, 1fr)
-      ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
+      );
   }
 
   .su-dash[data-cols='3'] > .su-dash__col:first-child {
@@ -918,10 +918,10 @@
 .su-scrap {
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: repeat(
+  grid-template-columns: /* design-tokens-ignore(item-grid): the six Tech Levels, a fixed matrix */ repeat(
       6,
       minmax(0, 1fr)
-    ); /* design-tokens-ignore(item-grid): the six Tech Levels, a fixed matrix */
+    );
   margin: 0;
 }
 
@@ -1054,10 +1054,10 @@
 
 @container (width >= 40rem) {
   .su-bay-detail {
-    grid-template-columns: repeat(
+    grid-template-columns: /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */ repeat(
         2,
         minmax(0, 1fr)
-      ); /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */
+      );
   }
 }
 
@@ -1868,10 +1868,10 @@
 
 .su-chassis-plate__figures {
   display: grid;
-  grid-template-columns: repeat(
+  grid-template-columns: /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */ repeat(
       6,
       1fr
-    ); /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */
+    );
   padding: var(--space-6) var(--space-4);
 }
 
@@ -1896,10 +1896,10 @@
   }
 
   .su-chassis-plate__figures {
-    grid-template-columns: repeat(
+    grid-template-columns: /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */ repeat(
         3,
         1fr
-      ); /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */
+      );
     row-gap: var(--space-4);
   }
 }

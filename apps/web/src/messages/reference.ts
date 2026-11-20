@@ -43,33 +43,5 @@ export const referenceCopy = messages({
   showDiscord: 'Roll in Discord',
   showDiscordBody: 'Look up any rule and roll on any table without leaving your channel.',
   showDiscordAction: 'Add the bot',
-  threeWaysIn: 'Three ways in',
-  noAccount: 'No account',
-  free: 'Free',
-  doorReference: 'Reference',
-  doorReferenceBody:
-    'The whole book, searchable: every Chassis, System, Module, Ability and rule, cited to its page.',
-  doorReferenceArt: 'The Mule Chassis',
-  doorBuild: 'Builder',
-  doorBuildBody:
-    'Make a Pilot, a Mech and a Union Crawler step by step, or copy the Starter Set crew and make it yours.',
-  doorBuildArt: 'An Engineer Pilot',
-  doorPlay: 'Games',
-  doorPlayBody:
-    'Run your sheets at the table: roll, spend and take damage, solo or with your crew in one shared Game.',
-  doorPlayArt: 'The Bio-Titan Scylla',
-  buyTheGame: 'Buy the game',
-  byLeylinePress: 'By Leyline Press',
-  buyLede:
-    'Salvage Union is written and published by Leyline Press. This site is a companion to the books, not a replacement for them.',
-  buyBody:
-    'The books hold the setting, the art and the adventures. If you like what you find here, the best way to support the game is to buy it from the people who made it.',
-  buyFromLeylinePress: 'Buy from Leyline Press',
   buyThisBook: 'Buy this book',
-  gotTheStarterSet: 'Got the Starter Set?',
-  theBooksThisSiteCites: 'The books this site cites',
-  inYourServer: 'In your server',
-  inYourServerBody:
-    'The SalvageUnion.io bot looks up any rule and rolls on any table, right in your Discord channel. A Game can post its rolls there too.',
-  onDiscord: 'SalvageUnion.io On Discord',
 })

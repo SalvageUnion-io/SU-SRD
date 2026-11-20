@@ -74,20 +74,6 @@
   gap: var(--space-24);
 }
 
-.su-front__hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  min-width: 0;
-}
-
-.su-front__pitch {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-  min-width: 0;
-}
-
 /* EXPERIMENT (hero slideshow): the home is its slideshow, edge to edge, the
    whole height between the header and the footer; the footer always sits at
    the foot of the screen. Each slide's art covers the ground; the words stand
@@ -298,22 +284,6 @@ body:has(.su-front--show) main {
   }
 }
 
-/* The mech page's model: the stat block at the left, the art plate at the
-   right, the plate as tall as the column beside it. */
-@media (width >= 64rem) {
-  .su-front__hero {
-    align-items: stretch;
-    display: grid;
-    gap: var(--space-28);
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  }
-
-  /* The pitch stands at the plate's middle. */
-  .su-front__pitch {
-    justify-content: center;
-  }
-}
-
 /* A door's art place: shorter than a catalog tile's 3:4, so three doors and
    their words sit on one screen. */
 .su-start-here__art.su-entity-index__art {
@@ -333,87 +303,4 @@ body:has(.su-front--show) main {
   display: flex;
   margin-bottom: var(--space-6);
   margin-left: auto;
-}
-
-/* Buy the game: the words and the store's button beside the books' Ledger,
-   on one wrapping line, each at least 20rem and growing to fill it. The
-   words' column is as tall as the Ledger: its buttons stand on its foot, so
-   the shorter column ends where the taller one does. */
-.su-front__buy {
-  --su-foot-ground: var(--color-paper);
-}
-
-.su-front__buy-body {
-  align-items: stretch;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-12) var(--space-28);
-  padding: var(--space-12);
-}
-
-.su-front__buy-copy,
-.su-front__books {
-  flex: 1 1 20rem;
-  min-width: 0;
-}
-
-.su-front__buy-copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-.su-front__buy-copy p {
-  font-size: var(--text-body);
-  line-height: 1.5;
-  margin: 0;
-  max-width: 40rem;
-}
-
-.su-front__buy-copy .su-front__buy-lede {
-  font-size: var(--text-lede);
-  font-weight: var(--font-weight-semibold);
-}
-
-.su-front__buy-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin-top: auto;
-  padding-top: var(--space-4);
-}
-
-/* The Discord bot's panel: its sentence, then its button at the line's end;
-   the button drops under the sentence where the two do not fit. */
-.su-front__bot {
-  align-items: center;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--space-12) var(--space-28);
-}
-
-.su-front__bot p {
-  flex: 1 1 20rem;
-  font-size: var(--text-body);
-  line-height: 1.5;
-  margin: 0;
-}
-
-/* The bot's button: Discord's blurple (a one-off exception to the tone
-   palette) with Discord's mark. */
-a.su-front__discord {
-  background-color: var(--color-discord);
-  border-color: var(--color-discord);
-  color: var(--color-paper);
-}
-
-a.su-front__discord:hover {
-  filter: brightness(0.9);
-}
-
-.su-front__discord-mark {
-  flex: none;
-  height: 1.25em;
-  width: 1.25em;
 }
