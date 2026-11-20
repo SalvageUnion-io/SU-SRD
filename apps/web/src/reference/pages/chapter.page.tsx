@@ -96,6 +96,10 @@ function chapterPage(chapterId: string): PageResult {
     { name: chapter.title, url: chapter.href },
   ]
 
+  const listed = chapter.rows.map((row) => ({ ...row, list: chapterRows(row.schemaId) }))
+  const small = listed.filter((row) => !row.list.groups)
+  const big = listed.filter((row) => row.list.groups)
+
   return {
     meta: {
       title,
@@ -125,15 +129,19 @@ function chapterPage(chapterId: string): PageResult {
           </ChapterBand>
         </ChapterBandTrail.Provider>
         <div className="su-front__body su-page-body">
-          <div className="su-home__index su-front__index">
-            {chapter.rows.map((row) => (
+          {/* One newspaper flow down the page's columns: the short lists
+              first, the big ones under them, breaking on to the next column
+              between their runs, so the columns stand level with no gutter
+              left empty. */}
+          <div className="su-chapter-flow">
+            {[...small, ...big].map((row) => (
               <ContentsChapter
                 key={row.schemaId}
                 id={row.schemaId}
                 title={row.label}
                 tone={chapter.tone}
                 href={row.href}
-                {...chapterRows(row.schemaId)}
+                {...row.list}
               />
             ))}
           </div>

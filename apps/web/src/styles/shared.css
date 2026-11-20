@@ -288,6 +288,41 @@
   min-height: var(--size-full);
 }
 
+/* A chapter's index (`chapter.page.tsx`) is one newspaper flow down as
+   many 20rem columns as fit: three at the page's measure, one on a phone.
+   A short list stays whole; a big one breaks on to the next column between
+   its runs (a long run between its rows), and no head is left at a
+   column's foot. */
+.su-chapter-flow {
+  column-gap: var(--space-28);
+  column-width: 20rem;
+}
+
+.su-chapter-flow > .su-contents__chapter {
+  display: block;
+  margin-block-end: var(--space-24);
+}
+
+.su-chapter-flow > .su-contents__chapter:not(:has(.su-contents__group)) {
+  break-inside: avoid;
+}
+
+.su-chapter-flow > .su-contents__chapter > :not(.su-contents__body),
+.su-chapter-flow .su-contents__group-head {
+  break-after: avoid;
+}
+
+.su-chapter-flow .su-contents__group:not(.su-contents__group--long),
+.su-chapter-flow .su-contents__rows > li {
+  break-inside: avoid;
+}
+
+/* A long run (a Tech Level of thirty) may break between its rows, so the
+   columns stand level; its sub-head keeps its first row. */
+.su-chapter-flow .su-contents__rows {
+  display: block;
+}
+
 .su-nav-drawer__link[aria-current='page'] {
   font-weight: var(--font-weight-semibold);
   text-decoration: underline;

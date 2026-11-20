@@ -50,6 +50,9 @@ export type ContentsChapterProps = {
   onFollow?: () => void
 }
 
+/** A run longer than this may break on to the next column of a flowing index. */
+const LONG_RUN = 12
+
 /** A plain left click, the one an in-place open takes over. */
 function isPlainClick(event: MouseEvent): boolean {
   return event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
@@ -99,14 +102,23 @@ export function ContentsChapter({
           <span>{title}</span>
         )}
       </h2>
-      {groups
-        ? groups.map((group) => (
-            <section key={group.label} className="su-contents__group" aria-label={group.label}>
-              <h3 className={cn('su-contents__group-head', GROUP_CAPS)}>{group.label}</h3>
-              {renderRows(group.rows)}
-            </section>
-          ))
-        : renderRows(rows)}
+      <div className="su-contents__body">
+        {groups
+          ? groups.map((group) => (
+              <section
+                key={group.label}
+                className={cn(
+                  'su-contents__group',
+                  group.rows.length > LONG_RUN && 'su-contents__group--long'
+                )}
+                aria-label={group.label}
+              >
+                <h3 className={cn('su-contents__group-head', GROUP_CAPS)}>{group.label}</h3>
+                {renderRows(group.rows)}
+              </section>
+            ))
+          : renderRows(rows)}
+      </div>
     </section>
   )
 }
