@@ -104,6 +104,18 @@ function sortMark(sort: LedgerSort): ReactNode {
   return <Mark aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" />
 }
 
+/**
+ * A sortable head's caret slot: the mark where the list sorts by this column,
+ * else its room kept (an unseen mark), so no label widens when you sort.
+ */
+function sortSlot(sort: LedgerSort | undefined, key: string): ReactNode {
+  return sort?.key === key ? (
+    sortMark(sort)
+  ) : (
+    <ChevronUp aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" data-idle="" />
+  )
+}
+
 /** A cell with nothing to say draws `—` (L5); a `0` is a value. */
 const isEmpty = (cell: ReactNode) =>
   cell === '' || cell === null || cell === undefined || cell === false
@@ -203,7 +215,7 @@ export function Ledger({
     const mark = (
       <Badge shape="stamp" size="mini" surface="solid">
         {text}
-        {sort?.key === key && sortMark(sort)}
+        {onSort && sortSlot(sort, key)}
       </Badge>
     )
     return onSort ? (
@@ -255,7 +267,7 @@ export function Ledger({
                       onClick={() => onSort('name')}
                     >
                       {nameLabel}
-                      {sort?.key === 'name' && sortMark(sort)}
+                      {sortSlot(sort, 'name')}
                     </button>
                   ) : (
                     <span className="su-entity-compact__title">{nameLabel}</span>

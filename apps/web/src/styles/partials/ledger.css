@@ -78,6 +78,11 @@
   margin-left: var(--space-4);
 }
 
+/* An unsorted column keeps its caret's room, unseen. */
+.su-ledger__arrow[data-idle] {
+  visibility: hidden;
+}
+
 .su-ledger__table tbody tr[data-band] {
   background-color: var(--color-band-cream);
 }
