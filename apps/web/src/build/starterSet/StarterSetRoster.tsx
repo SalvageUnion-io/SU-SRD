@@ -40,6 +40,7 @@ import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import { useSync } from '../../replica/syncContext'
 import { RailActs } from '../sheet/RailActs'
 import { CopyCrew } from './CopyCrew'
+import { StarterAside } from './StarterAside'
 import { StarterCrewLedger } from './StarterCrewLedger'
 import { useCopyCrewOnArrival } from './useCopyCrewOnArrival'
 
@@ -129,9 +130,12 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         </ChapterBand>
       }
     >
-      {/* The crews stand in the page's main track,
-          as a Reference Page's do, a side track beside them. */}
-      <div className="su-main-track">{body}</div>
+      {/* The crews stand in the page's main track, as a Reference Page's do,
+          the way to the table and the book in the side track beside them. */}
+      <div className="su-starter-tracks">
+        <div className="su-main-track">{body}</div>
+        <StarterAside signedIn={status === 'live'} />
+      </div>
     </PageShell>
   )
 }

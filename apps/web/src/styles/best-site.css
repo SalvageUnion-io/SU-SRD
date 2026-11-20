@@ -1497,14 +1497,6 @@
   padding-block: var(--space-4) !important;
 }
 
-/* An app page that reads as a Reference Page (the Starter Set): its body is
-   the two tracks' main one, the side track left open. */
-@media (width >= 64rem) {
-  .su-main-track {
-    max-width: calc((100% - var(--space-24)) * 1.15 / 2.15);
-  }
-}
-
 /* ── Borders by role, and boxes contained ─────────
    Three borders, by role, nothing louder than its peers:
    - frame: `--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint,

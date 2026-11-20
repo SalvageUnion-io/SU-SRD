@@ -30,3 +30,65 @@ html[data-signed-out-view='/npcs/new'] .su-signed-out-static[data-view='/npcs/ne
 html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   visibility: hidden;
 }
+
+/* The Starter Set page (`StarterSetRoster`) reads as a Reference Page: the
+   crews in the main track and the side track's info boxes beside them, the
+   sparse Page's split (`pages.css`). Stacked under `lg`, the boxes follow the
+   crews. Beside them, the side track is never taller than the crews: its own
+   size contained, it only fills the row they make. */
+.su-starter-tracks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-starter-aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+@media (width >= 64rem) {
+  .su-starter-tracks {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
+  }
+
+  .su-starter-aside {
+    contain: size;
+    overflow: hidden;
+  }
+}
+
+.su-starter-aside__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  list-style: decimal;
+  margin: 0;
+  padding-inline-start: var(--space-20);
+}
+
+.su-starter-aside__link {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.su-starter-aside__book {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-starter-aside__book p {
+  margin: 0;
+}
+
+.su-starter-aside__cover {
+  block-size: auto;
+  inline-size: 100%;
+  max-inline-size: 12rem;
+}

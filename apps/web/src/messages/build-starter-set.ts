@@ -51,4 +51,17 @@ export const buildStarterSetCopy = messages({
   pilotsAndTheirMechs: 'Pilots & their Mechs',
   unionCrawler: 'Union Crawler',
   mechsWithNoPilot: 'Mechs with no Pilot',
+  // The page's side track: from a premade crew to the table.
+  fromCrewToTable: 'From crew to table',
+  stepRead: 'Open any sheet above and read it.',
+  stepSignIn: 'Sign in with Discord.',
+  stepCopy: 'Copy one Pilot, or the whole crew, into your Training Bay.',
+  stepGame: 'Start a Game in Your Games and share its invite link.',
+  stepPlay: 'Seat your Pilots and open their Play screen at the table.',
+  yourGames: 'Your Games',
+  signIn: 'Sign in',
+  theBook: 'The book',
+  theBookBody:
+    '{adventure} is the Starter Set’s campaign: maps, NPCs, monsters and a Mediator’s advice for this crew.',
+  readAboutTheBook: 'Read about the book',
 })
