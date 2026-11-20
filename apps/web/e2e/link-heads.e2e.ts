@@ -41,7 +41,10 @@ test.describe('signed out', () => {
     // Its Abilities ledger's row (the Actions list's is "Jury Rig rules", and only Peeks).
     await page.getByRole('button', { name: 'Jury Rig', exact: true }).first().click()
     const dialog = page.getByRole('dialog')
-    await expect(dialog.getByLabel('Mech-Gyver')).toBeVisible()
+    // Its Next neighbour, a cut-out naming it (`NeighbourRow`).
+    await expect(
+      dialog.locator('.su-entity-page__neighbour-row').getByText('Mech-Gyver', { exact: true })
+    ).toBeVisible()
     expect((await findDeadLinks(page, '[role="dialog"]')).map((f) => f.detail)).toEqual([])
     expect((await findLinkHeads(page)).map((f) => f.detail)).toEqual([])
     // Its foot's citation is a cut-out hanging from the band's top edge (ruleset Source 2).

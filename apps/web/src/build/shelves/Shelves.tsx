@@ -55,6 +55,7 @@ import {
 } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { copyForShelf, copyName } from '../../lib/copyEntity'
 import {
@@ -417,6 +418,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <ChapterBand
           tone="build"
           measure={PAGE_MEASURE}
+          asideAt="notch"
+          aside={<Tagline />}
           eyebrow={
             <p role="status" aria-live="polite" className="su-shelves-band__status">
               {importResult}
