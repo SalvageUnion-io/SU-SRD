@@ -75,12 +75,13 @@
 }
 
 .su-ledger__arrow {
+  flex: none;
   margin-left: var(--space-4);
 }
 
-/* An unsorted column keeps its caret's room, unseen. */
+/* An unsorted column's caret is muted: it says the column sorts. */
 .su-ledger__arrow[data-idle] {
-  visibility: hidden;
+  color: var(--color-ink-40);
 }
 
 .su-ledger__table tbody tr[data-band] {

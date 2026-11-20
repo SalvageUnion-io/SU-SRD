@@ -8,7 +8,7 @@
 // (`.su-entity-compact__notch` + `__title`), notched into the head strip's
 // foot, and its sources on the card foot's cut-out (`EntityCardIdentityFooter`
 // on the band, `--su-foot-ground`). Styles: `styles/partials/ledger.css`.
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import type { CSSProperties, MouseEvent, ReactNode } from 'react'
 import { Fragment, useId } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
@@ -106,13 +106,19 @@ function sortMark(sort: LedgerSort): ReactNode {
 
 /**
  * A sortable head's caret slot: the mark where the list sorts by this column,
- * else its room kept (an unseen mark), so no label widens when you sort.
+ * else a muted up-and-down one in the same room, so no label widens when you
+ * sort and every sortable label says it sorts.
  */
 function sortSlot(sort: LedgerSort | undefined, key: string): ReactNode {
   return sort?.key === key ? (
     sortMark(sort)
   ) : (
-    <ChevronUp aria-hidden="true" size={iconSize.mini} className="su-ledger__arrow" data-idle="" />
+    <ChevronsUpDown
+      aria-hidden="true"
+      size={iconSize.mini}
+      className="su-ledger__arrow"
+      data-idle=""
+    />
   )
 }
 
