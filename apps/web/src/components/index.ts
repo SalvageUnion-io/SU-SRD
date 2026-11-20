@@ -157,6 +157,7 @@ export { Footer } from './compositions/Footer'
 export { FrontPitch } from './compositions/FrontPitch'
 export type { NavDrawerCategory, NavDrawerItem } from './compositions/NavDrawer'
 export { NavDrawer } from './compositions/NavDrawer'
+export { NeighbourRow } from './compositions/NeighbourRow'
 // OgCard — the 1200 × 630 link preview, built from ChapterBand and
 // the Union bar's foot; `ogCardForEntity` is a reference entity's card.
 export { OgCard } from './compositions/OgCard'

@@ -1283,8 +1283,7 @@
 }
 
 .su-sparse-rail__count,
-.su-sparse-rail__kind,
-.su-sparse-rail__step {
+.su-sparse-rail__kind {
   color: var(--color-ink-2);
   font-size: var(--text-caption);
 }
@@ -1297,10 +1296,4 @@
 
 .su-sparse-rail__body p {
   margin: 0;
-}
-
-.su-sparse-rail__steps {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
 }

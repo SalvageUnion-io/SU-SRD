@@ -11,7 +11,8 @@ import { artUrlFor } from './sourceCovers'
 
 /**
  * What a sparse Page's side column holds (EDL form 5, the Page): who uses the
- * entity, the rules that explain it, and its neighbours in its list. Every
+ * entity, the rules that explain it; and its neighbours in its list, which
+ * the Page draws at its foot. Every
  * piece is derived from the dataset as it stands; nothing new is stored.
  */
 
@@ -21,13 +22,12 @@ type Linked = { ref: EntityRef; name: string }
 type UsedByRow = Linked & { kind: string }
 
 export type SparseRail = {
-  /** The list it sits in, named as its listing is ("Keywords"). */
-  list: string
   /** Every record that names it, in the chapters' order: the rail shows them all. */
   usedBy: UsedByRow[]
   rules: Linked[]
-  previous?: Linked
-  next?: Linked
+  /** Its neighbours in its list, drawn at the Page's foot (`NeighbourRow`), not in the rail. */
+  previous?: RefMetaEntity
+  next?: RefMetaEntity
 }
 
 /** Fields that are the record's identity, never its words. */
@@ -118,19 +118,14 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
     )
     .map(({ entity: other }) => linked(other))
   const kinds = new Map(getSchemaCatalog().schemas.map((meta) => [meta.id, meta.displayName]))
-  const list =
-    buildChapters()
-      .flatMap((chapter) => chapter.rows)
-      .find((row) => row.schemaId === schema)?.label ?? ''
   const siblings = all.filter(({ schema: s }) => s === schema)
   const at = siblings.findIndex(({ entity: other }) => other.id === entity.id)
   const previous = at > 0 ? siblings[at - 1]?.entity : undefined
   const next = at >= 0 ? siblings[at + 1]?.entity : undefined
   return {
-    list,
     usedBy: users.map(({ schema: s, entity: e }) => ({ ...linked(e), kind: kinds.get(s) ?? '' })),
     rules,
-    ...(previous ? { previous: linked(previous) } : {}),
-    ...(next ? { next: linked(next) } : {}),
+    ...(previous ? { previous: previous as RefMetaEntity } : {}),
+    ...(next ? { next: next as RefMetaEntity } : {}),
   }
 }

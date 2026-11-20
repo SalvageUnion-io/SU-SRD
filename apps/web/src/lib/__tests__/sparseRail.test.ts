@@ -14,8 +14,9 @@ describe('sparseRailFor', () => {
     expect(rail.usedBy.length).toBe(22)
     expect(rail.usedBy.every((row) => row.kind.length > 0)).toBe(true)
     expect(rail.usedBy.map((row) => row.kind)).toContain('Equipment')
-    expect(rail.list).toBe('Traits')
+    // Its neighbours are whole records, for the Page's foot (`NeighbourRow`).
     expect(rail.previous?.name).toBeTruthy()
+    expect(rail.next?.id).toBeTruthy()
   })
 
   test('a keyword nothing names has no users, and keeps its neighbours', () => {

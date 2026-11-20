@@ -1,5 +1,6 @@
-// A sparse Page's side column (EDL form 5, the Page): who uses the entity, the
-// rules that explain it, its neighbours in its list. It fills the room the
+// A sparse Page's side column (EDL form 5, the Page): who uses the entity and
+// the rules that explain it. Its neighbours in its list are the Page's foot
+// (`NeighbourRow`), as an ability's Preceding and Next are. It fills the room the
 // Page's words leave and never more: the column is as tall as the main track
 // (`pages.css`). Used by lists every user, kind and name, never a capped
 // "and N more"; where the room runs out its rows scroll under a head that
@@ -17,10 +18,10 @@ const BAND_TOKEN: Record<string, string> = {
 }
 
 export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: string }) {
-  const { list, usedBy, rules, previous, next } = rail
+  const { usedBy, rules } = rail
   const tone = BAND_TOKEN[chapterTone] ?? chapterTone
   // An empty piece fills nothing: it is not drawn, and a rail with none is none.
-  if (usedBy.length === 0 && rules.length === 0 && !previous && !next) return null
+  if (usedBy.length === 0 && rules.length === 0) return null
   const pieces = [
     usedBy.length > 0 && (
       <TitledBox
@@ -61,29 +62,6 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
             </li>
           ))}
         </ul>
-      </TitledBox>
-    ),
-    (previous || next) && (
-      <TitledBox
-        key="list"
-        title={list}
-        titleAs="h2"
-        tone={tone}
-        className="su-sparse-rail__piece"
-        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__steps')}
-      >
-        {previous && (
-          <p>
-            <span className="su-sparse-rail__step">{referenceCopy('previousEntry')}</span>{' '}
-            <Mention entityRef={previous.ref}>{previous.name}</Mention>
-          </p>
-        )}
-        {next && (
-          <p>
-            <span className="su-sparse-rail__step">{referenceCopy('nextEntry')}</span>{' '}
-            <Mention entityRef={next.ref}>{next.name}</Mention>
-          </p>
-        )}
       </TitledBox>
     ),
   ].filter(Boolean)

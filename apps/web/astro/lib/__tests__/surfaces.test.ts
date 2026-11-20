@@ -219,11 +219,17 @@ describe('a listing (a Ledger under a visible heading)', () => {
 })
 
 describe('a sparse Page fills its side track (EDL form 5)', () => {
-  it('a trait wears Used by first, its users as Mentions, then its neighbours under its list’s name', () => {
+  it('a trait’s rail wears Used by, its users as Mentions; its neighbours are the foot’s pair', () => {
     const html = page('/traits/hacking')
     const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
     expect(rail).toContain('Used by')
-    expect(rail.indexOf('Used by')).toBeLessThan(rail.indexOf('>Traits<'))
+    // Previous and Next are not the rail's: they are the main column's foot,
+    // the ability tree's half-width pair (`NeighbourRow`), Next at its end.
+    expect(rail).not.toContain('>Previous<')
+    const main = html.slice(html.indexOf('su-entity__railed-main'), html.indexOf('su-sparse-rail'))
+    expect(main).toContain('su-entity-page__neighbour-row')
+    expect(main).toMatch(/>Previous<[\s\S]*>Next</)
+    expect(main).toContain('su-entity-page__section--end')
     expect(rail).toContain('Hacking Kit')
     // Every user, each with its kind, under the full count: never "and N more".
     expect(rail).toContain('22 uses')
@@ -232,11 +238,11 @@ describe('a sparse Page fills its side track (EDL form 5)', () => {
     expect(rail).not.toMatch(/and \d+ more/)
   })
 
-  it('a keyword nothing names draws no empty Used by', () => {
+  it('a keyword nothing names draws no empty rail: its words run full width over its neighbours', () => {
     const html = page('/keywords/corporate-scrip')
-    expect(html).toContain('su-sparse-rail')
+    expect(html).not.toContain('su-sparse-rail')
     expect(html).not.toContain('>Used by<')
-    expect(html).toContain('>Keywords<')
+    expect(html).toContain('su-entity-page__neighbour-row')
   })
 
   it('a Page with art and actions has no sparse rail', () => {

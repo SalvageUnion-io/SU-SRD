@@ -7,8 +7,8 @@ import { referenceEntityCopy } from '../../../messages/components-reference-enti
 import { Slab } from '../../atoms/Slab'
 import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
+import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
-import { Entity } from '../../entity/Entity'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import { ChoiceRegion } from './ChoiceRegion'
@@ -44,11 +44,6 @@ import type { NestedCard, ReferenceCardEntity } from './referenceEntityCardTypes
  *
  * Both keep their DOM order at every width, so tab order matches what you see.
  */
-
-/** A neighbour's Section names its relation, so its Mini drops the type stamp. */
-const NEIGHBOUR_OMIT = ['kind'] as const
-/** A neighbour opens its Page where the surface keeps it: the SRD's route, the app's dialog. */
-const LINK = { kind: 'link' } as const
 
 type CardPageProps = {
   entity: RefMetaEntity
@@ -325,34 +320,14 @@ export function CardPage({
             // The Ledger's title tab names the section and keeps the count.
             <PatternLedger chassis={entity} patterns={patterns} />
           )}
-          {neighbours.length > 0 && (
-            <div className="su-grid su-entity-page__neighbour-row">
-              {neighbours.map(({ label, abilities }) => (
-                <SlabSection
-                  key={label}
-                  as={sectionAs}
-                  title={label}
-                  page
-                  className={cn(
-                    'su-entity-page__section',
-                    label === 'Next' && 'su-entity-page__section--end'
-                  )}
-                  bodyClassName={cn('su-entity-page__section-body', 'su-entity-page__neighbours')}
-                >
-                  {abilities.map((ability) => (
-                    <Entity
-                      key={ability.id}
-                      size="compact"
-                      context="play"
-                      entity={ability}
-                      mode={LINK}
-                      omit={NEIGHBOUR_OMIT}
-                    />
-                  ))}
-                </SlabSection>
-              ))}
-            </div>
-          )}
+          <NeighbourRow
+            as={sectionAs}
+            neighbours={neighbours.map(({ label, abilities }) => ({
+              label,
+              entities: abilities,
+              end: label === 'Next',
+            }))}
+          />
           {after && <div className="su-manual__after">{after}</div>}
         </div>
       </div>

@@ -11,7 +11,7 @@
 
 import type { EnhancedSchemaMetadata, RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
+import { CHAPTER_BAND_COLOR, NeighbourRow, resolveEntityPageMeta } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
@@ -25,6 +25,7 @@ import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { referenceCopy } from '../../../messages/reference'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
@@ -76,6 +77,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   ) : columnsTable ? (
     <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
+  // A sparse Page's side column, and its neighbours at its foot.
+  const sparse =
+    !rollPage && !techLevelPage && isSparse(item)
+      ? sparseRailFor(schemaId as RefEnumSchemaName, item)
+      : null
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -140,14 +146,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         build={buildLinkFor(schemaId, item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
-        rail={
-          !rollPage && !techLevelPage && isSparse(item) ? (
-            <SparseRail
-              rail={sparseRailFor(schemaId as RefEnumSchemaName, item)}
-              tone={chapter.tone}
-            />
-          ) : undefined
-        }
+        rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
@@ -157,6 +156,23 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
+        {/* Its neighbours in its list, at the foot, as an ability's in its tree. */}
+        {sparse && (
+          <NeighbourRow
+            as="h2"
+            neighbours={[
+              {
+                label: referenceCopy('previousEntry'),
+                entities: sparse.previous ? [sparse.previous] : [],
+              },
+              {
+                label: referenceCopy('nextEntry'),
+                entities: sparse.next ? [sparse.next] : [],
+                end: true,
+              },
+            ]}
+          />
+        )}
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
           <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
