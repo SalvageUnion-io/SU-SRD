@@ -1060,7 +1060,8 @@
 }
 
 @media not (width >= 64rem) {
-  .su-manual__side-actions--more > .su-rule-head {
+  .su-manual__side-actions--more > .su-rule-head,
+  .su-ability-tree--more > .su-slab-section > .su-rule-head {
     display: none;
   }
 }

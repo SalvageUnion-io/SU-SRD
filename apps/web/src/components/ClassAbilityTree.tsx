@@ -322,6 +322,30 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
   )
 }
 
+/**
+ * How many of a class's Core trees stand in the main track. A class with no
+ * Advancement (the Salvager: twelve Core trees, no path) has nothing for the
+ * side track under its art, so its later trees flow there instead, a pair at
+ * a time: the main track keeps the first half, rounded up to a whole pair.
+ */
+function mainCoreCount(plan: Extract<ClassPlan, { kind: 'core' }>): number {
+  const count = plan.coreTrees.length
+  if (plan.paths.length > 0 || count < 4) return count
+  return Math.ceil(count / 4) * 2
+}
+
+function coreTreesSection(trees: Extract<ClassPlan, { kind: 'core' }>['coreTrees']) {
+  return (
+    <SlabSection title={componentsCopy('coreTrees')} page>
+      <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
+        {trees.map((group) => (
+          <TreeSection key={group.tree} {...group} track="core" />
+        ))}
+      </div>
+    </SlabSection>
+  )
+}
+
 export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
   if (plan.kind === 'none') return null
@@ -348,15 +372,7 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
   return (
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
-      {plan.coreTrees.length > 0 && (
-        <SlabSection title={componentsCopy('coreTrees')} page>
-          <div className="su-class-path__trees su-class-path__trees--pair" data-entity-fit="">
-            {plan.coreTrees.map((group) => (
-              <TreeSection key={group.tree} {...group} track="core" />
-            ))}
-          </div>
-        </SlabSection>
-      )}
+      {plan.coreTrees.length > 0 && coreTreesSection(plan.coreTrees.slice(0, mainCoreCount(plan)))}
     </div>
   )
 }
@@ -368,7 +384,14 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
  */
 export function ClassAdvancement({ classEntity }: ClassAbilityTreeProps) {
   const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
-  if (plan.kind !== 'core' || plan.paths.length === 0) return null
+  if (plan.kind !== 'core') return null
+  // No path: the Core trees the main track leaves (`mainCoreCount`).
+  const rest = plan.coreTrees.slice(mainCoreCount(plan))
+  if (plan.paths.length === 0) {
+    return rest.length > 0 ? (
+      <div className="su-ability-tree su-ability-tree--more">{coreTreesSection(rest)}</div>
+    ) : null
+  }
   return (
     <div className="su-ability-tree">
       <SlabSection title={componentsCopy('advancement')} page>

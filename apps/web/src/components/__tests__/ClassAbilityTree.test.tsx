@@ -269,3 +269,24 @@ describe('ClassAbilityTree training brief', () => {
     )
   })
 })
+
+describe('ClassAdvancement under the art', () => {
+  test('a class with no path (Salvager) hands its later Core trees, a pair at a time, to the side track', () => {
+    const salvager = classNamed('Salvager')
+    const main = render(<ClassAbilityTree classEntity={salvager} />).container
+    const mainTrees = main.querySelectorAll('.su-class-path__trees > *').length
+    main.remove()
+    const side = render(<ClassAdvancement classEntity={salvager} />).container
+    const sideTrees = side.querySelectorAll('.su-class-path__trees > *').length
+    expect(mainTrees % 2).toBe(0)
+    expect(sideTrees).toBeGreaterThan(0)
+    expect(mainTrees).toBeGreaterThanOrEqual(sideTrees)
+  })
+
+  test('a class with paths keeps every Core tree in the main track', () => {
+    const hacker = classNamed('Hacker')
+    const side = render(<ClassAdvancement classEntity={hacker} />).container
+    expect(side.querySelector('.su-class-path__trees--pair')).toBeNull()
+    expect(side.querySelector('.su-class-paths')).not.toBeNull()
+  })
+})
