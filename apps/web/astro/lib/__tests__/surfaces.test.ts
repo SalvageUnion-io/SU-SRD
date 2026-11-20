@@ -193,7 +193,7 @@ describe('a pattern page names and links its base chassis', () => {
     // Nothing but the page's trail sits above the title, on its plate (EDL E20).
     expect(html).not.toContain('su-chapter-band__eyebrow')
     expect(html).toContain(
-      '<div class="su-chapter-band__plate" data-fill-name="" style="background-color:rgb(239, 236, 230);color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
+      '<div class="su-chapter-band__plate" data-fill-name="" style="background-color:var(--cutout-ground, rgb(239, 236, 230));color:rgb(40, 32, 25);display:flex;flex-direction:column;max-width:100%;min-width:0"><div class="su-chapter-band__trail">'
     )
     // The ancestors, each followed by `//`; the title names the page.
     const trail = html.slice(html.indexOf('su-crumbs--band'), html.indexOf('<h1'))
@@ -210,15 +210,14 @@ describe('a pattern page names and links its base chassis', () => {
     expect(html).not.toMatch(/su-stat-plate--label">Pattern</)
   })
 
-  it('leads with the pattern, then the base chassis under its own slab', () => {
+  it("opens with the pattern's own words; the chassis ability is its own section", () => {
     // The body only: the head's meta description quotes the pattern too.
     const body = html.slice(html.indexOf('<h1'))
-    const patternProse = body.indexOf('Buzzards of the wastes')
-    const chassisSlab = body.indexOf('Mazona chassis')
-    const chassisProse = body.indexOf('The Mazona')
-    expect(patternProse).toBeGreaterThan(-1)
-    expect(chassisSlab).toBeGreaterThan(patternProse)
-    expect(chassisProse).toBeGreaterThan(chassisSlab)
+    const opening = body.indexOf('su-entity-page__opening')
+    expect(opening).toBeGreaterThan(-1)
+    expect(body.slice(opening, opening + 600)).toContain('Buzzards of the wastes')
+    const ability = body.indexOf('su-chassis-ability')
+    expect(body.slice(ability, ability + 800)).toContain('The Mazona')
   })
 
   it('serves an interactive pattern its whole card, the chassis linked, with no JS', () => {

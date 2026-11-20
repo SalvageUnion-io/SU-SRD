@@ -43,7 +43,7 @@ import { SignInControl } from '../build/account/SignInControl'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { Shelf } from '../build/shelves/Shelf'
 import { Shelves } from '../build/shelves/Shelves'
-import { ShelvesPart } from '../build/shelves/shelvesPart'
+import { ShelvesPart } from '../build/shelves/shelvesPart.model'
 import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {

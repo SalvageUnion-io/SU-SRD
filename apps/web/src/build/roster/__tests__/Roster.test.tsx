@@ -29,7 +29,7 @@ const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { useUnits } = await import('../../../replica/units')
 const { Roster } = await import('../Roster')
 const { Shelves } = await import('../../shelves/Shelves')
-const { ShelvesPart } = await import('../../shelves/shelvesPart')
+const { ShelvesPart } = await import('../../shelves/shelvesPart.model')
 
 withSignedInBackend()
 
