@@ -11,15 +11,7 @@
  * page. Server-rendered and static: every row is a plain link.
  */
 
-import type { RefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import type { ContentsRow } from '../../components/index'
-import { ChapterBand, ContentsChapter, SlabSection } from '../../components/index'
-import { Tagline } from '../../components/Tagline'
-import { buildChapters } from '../../lib/chapters'
 import { DEFAULT_DESCRIPTION, WEBSITE } from '../../lib/constants'
-import { itemHref } from '../../lib/entityHref'
-import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { HomeHero } from '../HomeFront'
@@ -29,28 +21,7 @@ import '../../lib/gameData'
 /** The site's name and what this page is: there is no page name to put ahead of it. */
 const TITLE = `${pageTitle()} · ${pagesCopy('homeTitle')}`
 
-/** An entity's page by name, or nothing when the dataset no longer has it. */
-function hrefByName(schemaName: RefEnumSchemaName, name: string): string | undefined {
-  const entity = SalvageUnionReference.findIn(schemaName, (e) => e.name === name)
-  return entity ? itemHref(schemaName, getEntitySlug(entity)) : undefined
-}
-
-/** The rules a table reaches for mid-session ("At the table"). */
-const AT_THE_TABLE: { schema: RefEnumSchemaName; name: string; label: string }[] = [
-  { schema: 'roll-tables', name: 'Core Mechanic', label: pagesCopy('theCoreMechanic') },
-  { schema: 'guides', name: 'Heat', label: pagesCopy('heat') },
-  { schema: 'guides', name: 'Mech Damage', label: pagesCopy('mechDamage') },
-  { schema: 'guides', name: 'Tough Choices', label: pagesCopy('toughChoices') },
-  { schema: 'guides', name: 'Salvaging', label: pagesCopy('salvaging') },
-]
-
 function page(): PageResult {
-  const chapters = buildChapters()
-  const atTheTable = AT_THE_TABLE.flatMap(({ schema, name, label }): ContentsRow[] => {
-    const href = hrefByName(schema, name)
-    return href ? [{ label, href }] : []
-  })
-
   return {
     meta: {
       title: TITLE,
@@ -64,39 +35,9 @@ function page(): PageResult {
       },
     },
     children: (
-      <div className="su-front">
-        <ChapterBand measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
-          {pagesCopy('siteName')}
-        </ChapterBand>
-        <div className="su-front__body su-page-body">
-          <HomeHero />
-          <SlabSection title={pagesCopy('contents')} id="contents" as="h2" page>
-            <div className="su-home__index su-front__index">
-              {chapters.map((chapter) => (
-                <ContentsChapter
-                  key={chapter.id}
-                  id={chapter.id}
-                  title={chapter.title}
-                  tone={chapter.tone}
-                  rows={chapter.rows}
-                />
-              ))}
-              {/* Players' own patterns, not the book's (ADR-061). */}
-              <ContentsChapter
-                id="homebrew"
-                title={pagesCopy('homebrew')}
-                tone="mech"
-                rows={[{ label: pagesCopy('homebrewPatternsRow'), href: '/homebrew/' }]}
-              />
-              <ContentsChapter
-                id="at-the-table"
-                title={pagesCopy('atTheTable')}
-                tone="ink"
-                rows={atTheTable}
-              />
-            </div>
-          </SlabSection>
-        </div>
+      // EXPERIMENT: the home is its slideshow alone, between the header and the footer.
+      <div className="su-front su-front--show">
+        <HomeHero />
       </div>
     ),
   }

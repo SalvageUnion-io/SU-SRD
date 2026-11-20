@@ -88,31 +88,38 @@
   min-width: 0;
 }
 
-/* EXPERIMENT (hero slideshow): the hero is the home. The pitch stands over
-   five slides; each slide's art fills the hero's ground at the right, faded
-   into the paper at the left where the words stand, and crossfades with the
-   next every `--su-show-step`. */
-.su-front__show {
-  --su-show-step: 6s;
-  background-color: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink-20);
-  display: grid;
-  isolation: isolate;
-  min-height: 34rem;
-  overflow: hidden;
-  padding: var(--space-24);
-  position: relative;
+/* EXPERIMENT (hero slideshow): the home is its slideshow, edge to edge, the
+   whole height between the header and the footer; the footer always sits at
+   the foot of the screen. Each slide's art covers the ground; the words stand
+   on paper plates of their own, so the art is never dimmed. */
+body:has(.su-front--show) > div {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
-.su-front__show-value {
-  font-family: var(--font-cond);
-  font-size: var(--text-hero);
-  font-weight: var(--font-weight-bold);
-  line-height: 1;
-  margin: 0;
-  max-width: 34rem;
+body:has(.su-front--show) main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.su-front--show {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.su-front__show {
+  --su-show-step: 7s;
+  background-color: var(--color-ink);
+  flex: 1 1 auto;
+  isolation: isolate;
+  min-height: 28rem;
+  overflow: hidden;
   position: relative;
-  z-index: 2;
 }
 
 .su-front__show-slides {
@@ -128,28 +135,69 @@
   position: absolute;
 }
 
-/* The art: the hero's ground at the right, its white canvas the paper's. */
+/* The art covers the slide, edge to edge, no letterbox. */
 .su-front__show-art {
   height: 100%;
-  inset: 0 0 0 auto;
-  mix-blend-mode: multiply;
-  object-fit: contain;
-  object-position: right center;
-  padding: var(--space-16);
+  inset: 0;
+  object-fit: cover;
+  object-position: center 40%;
   position: absolute;
-  width: 75%;
+  width: 100%;
 }
 
-/* The words, low at the left, over a paper wash that fades the art under them. */
+/* The Builder's slide: a chassis drawn as a blueprint, white lines on a
+   ruled blue sheet. */
+.su-front__show-slide[data-blueprint] {
+  background-color: color-mix(in oklab, var(--color-wk-line) 60%, var(--color-ink));
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--color-paper) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--color-paper) 12%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: var(--space-24) var(--space-24);
+}
+
+.su-front__show-slide[data-blueprint] .su-front__show-art {
+  filter: invert(1);
+  inset: var(--space-24) var(--space-24) var(--space-24) 35%;
+  height: calc(100% - var(--space-24) * 2);
+  mix-blend-mode: screen;
+  object-fit: contain;
+  object-position: right center;
+  opacity: 0.9;
+  width: auto;
+}
+
+/* The site's pitch, over every slide, on its own paper plate at the top left. */
+.su-front__show-value {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-hero);
+  font-weight: var(--font-weight-bold);
+  left: var(--su-shell-edge, var(--space-24));
+  line-height: 1.05;
+  margin: 0;
+  max-width: 34rem;
+  padding: var(--space-12) var(--space-16);
+  position: absolute;
+  top: var(--space-24);
+  z-index: 2;
+}
+
+/* A slide's words, on their plate at the bottom left. */
 .su-front__show-copy {
-  background: linear-gradient(90deg, var(--color-paper) 55%, transparent);
-  bottom: 0;
+  background-color: var(--color-paper);
+  bottom: var(--space-24);
+  color: var(--color-ink);
   display: flex;
   flex-direction: column;
-  gap: var(--space-12);
-  left: 0;
-  max-width: 40rem;
-  padding: var(--space-24) 8rem var(--space-24) var(--space-24);
+  gap: var(--space-8);
+  left: var(--su-shell-edge, var(--space-24));
+  max-width: 30rem;
+  padding: var(--space-16);
   position: absolute;
   z-index: 1;
 }
@@ -169,20 +217,20 @@
 
 .su-front__show-body {
   margin: 0;
-  max-width: 28rem;
 }
 
+/* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
 @keyframes su-front-show {
   0% {
     opacity: 0;
     visibility: visible;
   }
-  3%,
-  17% {
+  4%,
+  18% {
     opacity: 1;
     visibility: visible;
   }
-  20%,
+  21%,
   100% {
     opacity: 0;
     visibility: hidden;
@@ -195,62 +243,41 @@
   .su-front__show-slide {
     animation: su-front-show calc(var(--su-show-step) * var(--su-show-count)) var(--ease) infinite
       both;
-    animation-delay: calc(var(--su-show-step) * var(--su-show-i) - 1s);
+    animation-delay: calc(var(--su-show-step) * var(--su-show-i) - 1.5s);
   }
 }
 
-/* Under reduced motion the slides stand still as a list under the pitch. */
+/* Under reduced motion the first slide stands still. */
 @media (prefers-reduced-motion: reduce) {
-  .su-front__show {
-    gap: var(--space-16);
-  }
-
-  .su-front__show-slides,
-  .su-front__show-slide,
-  .su-front__show-copy,
-  .su-front__show-art {
-    position: static;
-  }
-
-  .su-front__show-slides {
-    display: grid;
-    gap: var(--space-16);
-  }
-
-  .su-front__show-art {
-    height: 10rem;
-    width: auto;
-  }
-
-  .su-front__show-copy {
-    background: none;
-    padding: 0;
+  .su-front__show-slide:not(:first-child) {
+    display: none;
   }
 }
 
-/* A phone: the art above, the words under it. */
+/* A phone: the plates span the width, the pitch a step smaller. */
 @media (width < 40rem) {
   .su-front__show {
-    min-height: 40rem;
-    padding: var(--space-16);
+    min-height: 36rem;
   }
 
   .su-front__show-value {
     font-size: var(--text-display-lg);
-  }
-
-  .su-front__show-art {
-    height: 55%;
-    inset: auto 0 45% 0;
-    object-position: center bottom;
-    width: 100%;
+    left: var(--space-12);
+    right: var(--space-12);
+    top: var(--space-12);
   }
 
   .su-front__show-copy {
-    background: linear-gradient(0deg, var(--color-paper) 70%, transparent);
-    max-width: none;
-    padding: 3rem var(--space-16) var(--space-16);
-    right: 0;
+    bottom: var(--space-12);
+    left: var(--space-12);
+    right: var(--space-12);
+  }
+
+  .su-front__show-slide[data-blueprint] .su-front__show-art {
+    inset: 30% var(--space-12) 40% var(--space-12);
+    height: 30%;
+    object-position: center;
+    width: calc(100% - var(--space-24));
   }
 }
 

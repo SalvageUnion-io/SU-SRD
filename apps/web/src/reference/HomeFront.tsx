@@ -40,19 +40,28 @@ type Slide = {
   action: string
   href: string
   external?: boolean
-  art: { url: string; srcSet?: string; alt: string } | undefined
+  /** The slide's ground: a painting from the books, or a chassis drawn as a blueprint. */
+  art: { url: string; srcSet?: string; blueprint?: boolean } | undefined
 }
+
+/**
+ * EXPERIMENT: paintings from the Workshop Manual's spreads, cropped clear of
+ * their printed quotes, served from `public/hero-art/` (local only, kept out
+ * of git: artwork lives in R2, ADR-033).
+ */
+const painting = (name: string) => ({ url: `/hero-art/${name}.jpg` })
 
 /** The five slides: what each part of the site is for, over a piece of the book's art. */
 function heroSlides(): Slide[] {
+  const chassis = artOf('chassis', 'atlas', '')
   return [
     {
       key: 'reference',
       title: referenceCopy('showReference'),
       body: referenceCopy('showReferenceBody'),
       action: referenceCopy('readTheRules'),
-      href: '#contents',
-      art: artOf('chassis', 'mule', referenceCopy('doorReferenceArt')),
+      href: '/reference/',
+      art: painting('reference'),
     },
     {
       key: 'build',
@@ -60,7 +69,7 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showBuildBody'),
       action: referenceCopy('startBuilding'),
       href: appPath('/'),
-      art: artOf('classes', 'engineer', referenceCopy('doorBuildArt')),
+      art: chassis ? { url: chassis.url, srcSet: chassis.srcSet, blueprint: true } : undefined,
     },
     {
       key: 'play',
@@ -68,7 +77,7 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showPlayBody'),
       action: referenceCopy('showPlayAction'),
       href: appPath('/games/'),
-      art: artOf('bio-titans', 'scylla', referenceCopy('doorPlayArt')),
+      art: painting('play'),
     },
     {
       key: 'buy',
@@ -77,7 +86,7 @@ function heroSlides(): Slide[] {
       action: referenceCopy('buyFromLeylinePress'),
       href: BUY_HREF,
       external: true,
-      art: artOf('bio-titans', 'typhon', 'The Bio-Titan Typhon'),
+      art: painting('buy'),
     },
     {
       key: 'discord',
@@ -86,17 +95,17 @@ function heroSlides(): Slide[] {
       action: referenceCopy('showDiscordAction'),
       href: DISCORD_INSTALL_URL,
       external: true,
-      art: artOf('chassis', 'atlas', 'The Atlas Chassis'),
+      art: painting('discord'),
     },
   ]
 }
 
 /**
- * EXPERIMENT (hero slideshow): the hero is the home. The site's pitch stands
- * on top; behind and beneath it five slides cycle, each a piece of the book's
- * art filling the hero's ground and a short line on one part of the site with
- * its one action. CSS only (the page is served without React); under reduced
- * motion the slides stand still as a list.
+ * EXPERIMENT (hero slideshow): the home is the slideshow, edge to edge and the
+ * whole height between the header and the footer. Each slide's art covers the
+ * ground; its words, and the site's pitch over every slide, stand on paper
+ * plates of their own, so the art is never dimmed. CSS only (the page is
+ * served without React); under reduced motion the first slide stands still.
  */
 export function HomeHero() {
   const slides = heroSlides()
@@ -106,12 +115,12 @@ export function HomeHero() {
       aria-label={referenceCopy('siteName')}
       style={{ '--su-show-count': slides.length } as CSSProperties}
     >
-      <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
       <ul className="su-front__show-slides">
         {slides.map((slide, index) => (
           <li
             key={slide.key}
             className="su-front__show-slide"
+            data-blueprint={slide.art?.blueprint ? '' : undefined}
             style={{ '--su-show-i': index } as CSSProperties}
           >
             {slide.art && (
@@ -119,7 +128,7 @@ export function HomeHero() {
                 className="su-front__show-art"
                 src={slide.art.url}
                 srcSet={slide.art.srcSet}
-                sizes="(width >= 64rem) 60rem, 100vw"
+                sizes="100vw"
                 alt=""
                 // Every slide's art loads at once: a hidden slide's lazy image would wait for its turn.
                 loading="eager"
@@ -133,7 +142,7 @@ export function HomeHero() {
               <Button
                 href={slide.href}
                 linkAs="a"
-                variant={index === 0 ? 'primary' : 'default'}
+                variant="primary"
                 size="full"
                 {...(slide.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
               >
@@ -143,6 +152,7 @@ export function HomeHero() {
           </li>
         ))}
       </ul>
+      <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
     </section>
   )
 }
