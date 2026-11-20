@@ -53,15 +53,13 @@ describe('the detail dialog is the Page', () => {
     expect(title.classList.contains('su-chapter-band__title')).toBe(true)
     // The band wears the entity's tone (a gear's tech level), as its card's head does.
     expect(band.style.backgroundColor).toContain('--color-tl-')
-    // The entity's chips ride the band; its stats, Tech Level first, lead
-    // the body as the stat column.
+    // An item's chips and stats, Tech Level among them, ride the band; its
+    // body repeats no stat column.
     const stamps = band.querySelector<HTMLElement>('.su-entity-stamps')
     if (!stamps) throw new Error('no band stamps')
     expect(within(stamps).getByText('Turn Action')).toBeTruthy()
-    expect(within(stamps).queryByText('Tech Level')).toBeNull()
-    const stats = dialog.querySelector<HTMLElement>('.su-manual__stats')
-    if (!stats) throw new Error('no stat column')
-    expect(stats.querySelector('.su-stat-label--long')?.textContent).toBe('Tech Level')
+    expect(within(stamps).getAllByText(/Tech Level/).length).toBeGreaterThan(0)
+    expect(dialog.querySelector('.su-manual__stats')).toBeNull()
   })
 
   test('its body is the card at presentation="page", not the framed card', () => {
