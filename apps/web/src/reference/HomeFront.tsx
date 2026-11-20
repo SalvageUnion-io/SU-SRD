@@ -138,9 +138,15 @@ export function HomeHero() {
       {/* The site's name on a paper cut-out, the page's one h1, and the pitch
           flowing flush out of its foot. */}
       <div className="su-front__show-head">
-        <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
-        <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
-        <Tagline plain />
+        <div className="su-front__show-brand">
+          <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
+          <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
+        </div>
+        {/* The tagline every landing page says, in its hand, level with the
+            site's name. */}
+        <div className="su-front__show-quote">
+          <Tagline />
+        </div>
       </div>
     </section>
   )

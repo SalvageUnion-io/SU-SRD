@@ -63,39 +63,29 @@
   padding-inline: var(--space-14);
 }
 
-/* The quoted tagline (`Tagline.tsx`), a band's aside on the app's front door
-   and the SRD's home: ink, on the band at its right end and set right; on a
-   phone ChapterBand sets it under the band on the page ground, set left. */
+/* The quoted tagline (`Tagline.tsx`), every landing page's: the quote and
+   its credit each on its own paper box, as wide as its words, ink on paper on
+   any band; at the band's right end set right, on a phone under it, left. */
 .su-tagline {
+  align-items: flex-start;
   color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
   margin: 0;
   text-align: left;
+}
+
+.su-tagline > :is(blockquote, figcaption) {
+  background-color: var(--color-paper);
+  padding: var(--space-4) var(--space-12);
+  width: fit-content;
 }
 
 @media (width >= 40rem) {
   .su-tagline {
+    align-items: flex-end;
     text-align: right;
   }
-}
-
-/* The plain tagline (`<Tagline plain />`): the home's, under the site's name
-   on the art itself: the display face in paper, no ground, set left. */
-.su-tagline.su-tagline--plain {
-  color: var(--color-paper);
-  margin-top: var(--space-16);
-  text-align: left;
-}
-
-.su-tagline--plain > blockquote {
-  font-family: var(--font-cond);
-  font-size: var(--text-display-lg);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.05;
-  margin: 0;
-}
-
-.su-tagline--plain > figcaption {
-  margin-top: var(--space-4);
 }
 
 /*

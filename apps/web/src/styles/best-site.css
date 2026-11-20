@@ -1556,10 +1556,10 @@
   color: var(--color-paper);
 }
 
-/* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
-   and its tagline. */
-.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),
-.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
+/* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker.
+   (The tagline stands on its own paper boxes, ink on paper.) */
+.su-chapter-band[style*='184, 74, 134'] .su-chapter-band__eyebrow,
+.su-chapter-band[style*='184, 74, 134'] .su-chapter-band__eyebrow * {
   color: var(--color-paper) !important;
 }
 

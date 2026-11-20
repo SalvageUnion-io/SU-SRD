@@ -19,21 +19,21 @@ const QUOTE = {
 const QUOTE_BY = {
   color: tokens.color.ink,
   fontStyle: 'italic',
-  margin: `${tokens.space[4]} 0 0`,
+  // Flush under the quote: the two boxes touch, their widths the step between.
+  margin: 0,
 } satisfies CSSProperties
 
 /**
- * Tagline — the legacy tagline (`PRODUCT.tagline`) credited to
- * `PRODUCT.taglineBy`: every landing page says it. On a chapter band's aside
- * (the Reference, the Training Bay, the Games, each chapter's page) it is
- * quoted in a hand; `plain` sets it in the display face with no ground (the
- * home, over its art). Colour and alignment are `.su-tagline`'s (`shared.css`).
+ * Tagline — the legacy tagline (`PRODUCT.tagline`) quoted in a hand and
+ * credited to `PRODUCT.taglineBy`: every landing page says it, beside its
+ * title (a chapter band's aside, the home's paper plate beside its name).
+ * Its colour and alignment are `.su-tagline`'s (`shared.css`).
  */
-export function Tagline({ plain = false }: { plain?: boolean }) {
+export function Tagline() {
   return (
-    <figure className={plain ? 'su-tagline su-tagline--plain' : 'su-tagline'}>
-      <blockquote style={plain ? undefined : QUOTE}>“{PRODUCT.tagline}”</blockquote>
-      <figcaption className={CREDIT_CAPS} style={plain ? undefined : QUOTE_BY}>
+    <figure className="su-tagline">
+      <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
+      <figcaption className={CREDIT_CAPS} style={QUOTE_BY}>
         — {PRODUCT.taglineBy}
       </figcaption>
     </figure>

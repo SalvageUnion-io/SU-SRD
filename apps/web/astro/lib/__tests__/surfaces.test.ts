@@ -48,9 +48,10 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-union-bar__rail"')
   })
 
-  it('says the tagline under the pitch, plain, on the art', () => {
+  it('says the tagline in its hand, beside the site’s name', () => {
     const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
-    expect(head).toContain('su-tagline su-tagline--plain')
+    expect(head).toMatch(/su-front__show-quote"><figure class="su-tagline"/)
+    expect(head).not.toContain('su-tagline--plain')
   })
 
   it('pitches the site under its name, flush on the same cut-out', () => {

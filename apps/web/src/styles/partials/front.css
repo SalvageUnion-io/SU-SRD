@@ -137,12 +137,27 @@ body:has(.su-front--show) main {
 .su-front__show-head {
   align-items: flex-start;
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  gap: var(--space-16) var(--space-24);
+  justify-content: space-between;
   left: var(--su-shell-edge, var(--space-24));
-  max-width: min(40rem, calc(100% - var(--space-24) * 2));
   position: absolute;
+  right: var(--su-shell-edge, var(--space-24));
   top: var(--space-24);
   z-index: 2;
+}
+
+/* The site's name and the pitch under it, one cut-out stack at the left. */
+.su-front__show-brand {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  max-width: 40rem;
+}
+
+/* The tagline at the right, its quote's box level with the name's top. */
+.su-front__show-quote {
+  display: flex;
 }
 
 .su-front__show-name {
@@ -253,7 +268,7 @@ body:has(.su-front--show) main {
 
   .su-front__show-head {
     left: var(--space-12);
-    max-width: calc(100% - var(--space-24));
+    right: var(--space-12);
     top: var(--space-12);
   }
 
