@@ -6,6 +6,7 @@ import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { Button, capsLabel } from '../components/index'
 import { Tagline } from '../components/Tagline'
+import { widthAtLeast } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -120,8 +121,15 @@ export function HomeHero() {
                   slide.art.cutout && 'su-front__show-art--cutout'
                 )}
                 src={slide.art.url}
-                srcSet={`${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`}
-                sizes="100vw"
+                // A painting spans the screen (its master is 2400px); a drawing
+                // stands in half of it, so it takes only its derivatives, never
+                // its print-size master.
+                srcSet={
+                  slide.art.cutout
+                    ? `${assetDerivativeUrl(slide.art.url, 440)} 440w, ${assetDerivativeUrl(slide.art.url, 880)} 880w`
+                    : `${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`
+                }
+                sizes={slide.art.cutout ? `${widthAtLeast('sm')} 50vw, 60vw` : '100vw'}
                 alt=""
                 decoding="async"
                 fetchPriority={index === 0 ? 'high' : 'low'}

@@ -262,6 +262,13 @@ body:has(.su-front--show) main {
 
 /* A phone: the plates span the width. */
 @media not (width >= 40rem) {
+  /* A drawing takes three fifths of the width at the right (its 440px
+     derivative, the size of a painting's first load). */
+  .su-front__show-art--cutout {
+    inline-size: 60%;
+    inset-inline-start: auto;
+  }
+
   .su-front__show {
     min-height: 36rem;
   }
