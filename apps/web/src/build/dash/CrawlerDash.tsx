@@ -258,9 +258,7 @@ export function CrawlerDash({
       id: slug,
       name: model?.title ?? slug,
       entityRef: model?.ref,
-      meta: model?.traits
-        .map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name))
-        .join(' · '),
+      // MOCK (best, revision 7): traits are the open row's, not the line's.
       cells: [
         model?.techLevel !== undefined ? <TechLevel key="tl" level={model.techLevel} /> : '',
         short('range'),
@@ -384,6 +382,7 @@ export function CrawlerDash({
       {phone && (
         <PinnedVitals
           label={buildSheetCopy('unitVitals', { name: crawler.name })}
+          name={crawler.name}
           vitals={vitals}
           foot={actionsFoot('full')}
         />

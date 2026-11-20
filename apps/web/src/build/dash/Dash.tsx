@@ -153,10 +153,13 @@ export function Prose({
  */
 export function PinnedVitals({
   label,
+  name,
   vitals,
   foot,
 }: {
   label: string
+  /** MOCK (best, revision 7): the unit's name, on the pinned strip's cut-out once it sticks. */
+  name?: string
   vitals: readonly PhoneVital[]
   foot?: ReactNode
 }) {
@@ -178,6 +181,11 @@ export function PinnedVitals({
     <>
       <div ref={sentinel} aria-hidden="true" style={{ height: 1, marginBottom: -1 }} />
       <div className="su-dash-pin" data-stuck={stuck ? '' : undefined}>
+        {name && (
+          <span className="su-dash-pin__name" aria-hidden={!stuck}>
+            {name}
+          </span>
+        )}
         <PhoneVitalsGlance
           cells={gauges.map((vital) => ({
             key: vital.key,

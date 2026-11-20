@@ -40,6 +40,11 @@ type EntityPageStampsProps = {
    * mark where a book pattern may wear Legal Starting Pattern (ruleset §3.9).
    */
   homebrew?: boolean
+  /**
+   * MOCK (best, revision 7, `?mock-stats=chips`): a non-chassis Page's book
+   * stats as band chips; hidden unless the comparison is on.
+   */
+  bandStats?: EntityPageMeta['stats']
 }
 
 export function EntityPageStamps({
@@ -47,13 +52,14 @@ export function EntityPageStamps({
   legalStartingPattern = false,
   parent,
   homebrew = false,
+  bandStats,
 }: EntityPageStampsProps) {
   const cost = meta.cost
     ? meta.cost.currency
       ? `${meta.cost.value} ${meta.cost.currency}`
       : meta.cost.value
     : undefined
-  return (
+  const stamps = (
     // Its fill, gap and alignment are `.su-entity-stamps`'.
     <Chips
       className="su-entity-stamps"
@@ -91,5 +97,17 @@ export function EntityPageStamps({
           : undefined
       }
     />
+  )
+  return bandStats && bandStats.length > 0 ? (
+    <>
+      {stamps}
+      <Chips
+        className="su-entity-stamps su-mock-band-stats"
+        size="compact"
+        chips={{ durations: [], facts: bandStats, tags: [] }}
+      />
+    </>
+  ) : (
+    stamps
   )
 }

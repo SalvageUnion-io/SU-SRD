@@ -132,13 +132,10 @@ export function resolveEntityPageMeta(
     typeLabel: model.kind.stamp,
     techLevel: model.techLevel != null ? String(model.techLevel) : undefined,
     // Every Page's stats lead its body as the stat column (`pageStatLine`), so
-    // its band carries no stat stamps. A pattern's page keeps them on its
-    // band: a chassis's TL and SV (the rest lead its body), another host's all.
-    stats: !pattern
-      ? []
-      : statsInBody(entity)
-        ? bookStatsOf(model, entity).filter(isBandStat)
-        : bookStatsOf(model, entity),
+    // its band carries no stat stamps. MOCK (best, revision 7): a chassis
+    // pattern's Page is the chassis Page's, its TL and SV in the column too;
+    // another host's pattern keeps its stats on the band.
+    stats: !pattern || statsInBody(entity) ? [] : bookStatsOf(model, entity),
     numeral: model.tier,
     actionTypes: actionTypeStamps(model.actionType, model.mechActionType),
     facts: factCells(

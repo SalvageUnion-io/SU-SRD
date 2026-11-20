@@ -11,7 +11,12 @@
 
 import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
+import {
+  CHAPTER_BAND_COLOR,
+  pageBodyStats,
+  pageStatLine,
+  resolveEntityPageMeta,
+} from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
@@ -138,6 +143,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         build={buildLinkFor(schemaId, item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
+        // MOCK (best, revision 7): a non-chassis Page's stats, for the band chips.
+        bandStats={pageBodyStats(item).length === 0 ? pageStatLine(item) : undefined}
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}

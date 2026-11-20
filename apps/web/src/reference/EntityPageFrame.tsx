@@ -77,6 +77,8 @@ type EntityPageFrameProps = {
   buy?: string
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
+  /** MOCK (best, revision 7): a non-chassis Page's stats for the band (`?mock-stats=chips`). */
+  bandStats?: EntityPageMeta['stats']
   children: ReactNode
 }
 
@@ -90,6 +92,7 @@ export function EntityPageFrame({
   build,
   buy,
   exits,
+  bandStats,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -103,6 +106,7 @@ export function EntityPageFrame({
             meta={meta}
             legalStartingPattern={legalStartingPattern}
             parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
+            bandStats={bandStats}
           />
         }
         asideAt="notch"

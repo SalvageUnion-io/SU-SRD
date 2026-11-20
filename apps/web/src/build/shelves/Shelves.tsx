@@ -377,7 +377,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             columns={NPC_COLUMNS}
             action={newLink('/npcs/new', '+ Design an NPC')}
             empty="No NPCs yet. Design one and it is kept here."
-            note={buildShelvesCopy('yourNpcsReadyToDrop')}
             rows={[
               ...npcs.map((n) => ({
                 id: n.id,
@@ -486,7 +485,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 empty={
                   mechs.length === 0 ? 'No mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
                 }
-                note={buildShelvesCopy('mechsNoPilotFlies')}
                 rows={spareMechs.map((m) => {
                   const r = mechReadings.get(m.id)
                   return {
@@ -554,7 +552,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   ) : undefined
                 }
                 empty="No patterns yet. Save one from a mech."
-                note={buildShelvesCopy('yourPatternsReadyToBuild')}
                 rows={patterns.map((p) => ({
                   id: p.id,
                   name: p.name,
@@ -573,11 +570,13 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 }))}
               />
               {/* MOCK (best, revision 3): the Mediator's Kit moved to Games. */}
+              {/* MOCK (best, revision 7): the read-only crews stand under the
+                  side column's Patterns, at its width. */}
+              <StarterShelf />
             </div>
           </div>
         </>
       )}
-      {ready && <StarterShelf />}
       <MoveToGameDialog
         subject={moving}
         onClose={() => setMoving(null)}

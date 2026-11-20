@@ -265,6 +265,7 @@ export function PilotDash({
       {phone && (
         <PinnedVitals
           label={buildSheetCopy('unitVitals', { name: pilot.name })}
+          name={pilot.name}
           vitals={vitals}
           foot={foot}
         />

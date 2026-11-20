@@ -90,7 +90,6 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
         ) : undefined
       }
       empty={hydrated ? buildPrepCopy('noEncounters') : ''}
-      note={buildPrepCopy('shelfNote')}
       rows={encounters.map((e) => ({
         id: e.id,
         name: e.name,

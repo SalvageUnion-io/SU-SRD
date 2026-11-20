@@ -83,7 +83,6 @@ export const playCopy = messages({
   skip: 'Skip',
   applyMarkDone: 'Apply & mark done',
   downtimeSteps: 'Downtime steps',
-  rollsAndChangesLandHere: 'Rolls and changes land here as they happen.',
   feed: 'Feed',
   accept: 'Accept',
   accept2: 'Accept: {text}',

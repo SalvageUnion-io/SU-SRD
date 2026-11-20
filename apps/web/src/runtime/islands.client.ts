@@ -17,9 +17,11 @@ import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
+import { applyMockPage } from './mockPage'
 import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
+applyMockPage()
 initBrowserObservability()
 
 // An island's chunk is the first import to fail on a page older than the

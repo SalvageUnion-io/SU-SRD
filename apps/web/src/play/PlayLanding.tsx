@@ -223,7 +223,7 @@ function PlayFrontDoor() {
           steps={steps}
           numbered={false}
         />
-        <StarterSetCrew id={STARTER_ID} note={playCopy('starterNote')} />
+        <StarterSetCrew id={STARTER_ID} />
       </div>
     </PageShell>
   )

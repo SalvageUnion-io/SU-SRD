@@ -25,7 +25,6 @@ import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { EntitySurfaceValue } from '../../components/index'
 import {
-  Badge,
   Button,
   ChapterBand,
   Chips,
@@ -176,9 +175,12 @@ type LiveSheetProps = {
 }
 
 /** Sticky bar height (design: 58/66px). */
-const BAR_HEIGHT_PX = 58
+// MOCK (best, revision 7): one compact row.
+const BAR_HEIGHT_PX = 48
 
-const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100dvh' } satisfies CSSProperties
+// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
+// column keeps a short page's foot on the window's edge.
+const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
 
 /**
  * The sticky bar's anchor: sticky at the top, but no height, so at rest the
@@ -194,7 +196,8 @@ const BAR_ANCHOR = {
 /** The bar, over the page from its anchor. Its gutter (`.su-sheet-gutter`) widens at sm. */
 const BAR = {
   alignItems: 'center',
-  background: 'var(--color-wk-bg)',
+  // MOCK (best, revision 7): the band in brief, in the unit's own paint.
+  background: 'var(--su-kind, var(--color-wk-bg))',
   // No black rule under the app's nav: the lift alone
   // sets it off the page it floats over.
   boxShadow: tokens.shadow.lift,
@@ -203,23 +206,29 @@ const BAR = {
   flexWrap: 'wrap',
   insetInline: 0,
   minHeight: `${BAR_HEIGHT_PX}px`,
-  paddingBlock: tokens.space[8],
+  paddingBlock: tokens.space[4],
   position: 'absolute',
   rowGap: tokens.space[4],
   top: 0,
   transitionDuration: tokens.duration.fast,
-  transitionProperty: 'opacity, visibility',
+  transitionProperty: 'opacity, visibility, translate',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
 
 /** Scrolled past the sentinel: the bar fades in. */
-const BAR_SHOWN = { ...BAR, opacity: 1, visibility: 'visible' } satisfies CSSProperties
+const BAR_SHOWN = {
+  ...BAR,
+  opacity: 1,
+  translate: '0 0',
+  visibility: 'visible',
+} satisfies CSSProperties
 
 /** At rest it is not there to see, click or read. */
 const BAR_HIDDEN = {
   ...BAR,
   opacity: 0,
   pointerEvents: 'none',
+  translate: '0 -100%',
   visibility: 'hidden',
 } satisfies CSSProperties
 
@@ -249,13 +258,6 @@ const STRIP_HIDDEN = {
 } satisfies CSSProperties
 
 /** The condensed name wraps rather than cutting to "…" (C5). */
-const NAME_STAMP = {
-  display: 'block',
-  maxWidth: '100%',
-  overflowWrap: 'anywhere',
-  whiteSpace: 'normal',
-} satisfies CSSProperties
-
 const BAR_END = {
   alignItems: 'center',
   display: 'flex',
@@ -398,21 +400,55 @@ export function LiveSheet({
               query, and a hidden duplicate is noise to every reader. */}
             {condensed && (
               <>
-                <Badge shape="stamp" size="full" style={NAME_STAMP}>
-                  {title}
-                </Badge>
-                {strip.map((item) => (
-                  <Stat
-                    key={item.key}
-                    label={item.label}
-                    value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
-                    // Non-priority readouts fold below sm so the condensed
-                    // bar leads with Heat + SP on phones.
-                    className={
-                      item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined
-                    }
-                  />
-                ))}
+                {/* MOCK (best, revision 7): the name on its cut-out (callsign,
+                    real name, what it is), then each vital as a tracker:
+                    figure over max on a thin fill, its state in colour. */}
+                <span className="su-sheet-bar__name">
+                  <b>{title}</b>
+                  {nameAside && <span>{nameAside}</span>}
+                  <small>
+                    {stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
+                  </small>
+                </span>
+                {strip.map((item) => {
+                  const fill =
+                    item.max !== undefined && item.max > 0
+                      ? Math.max(0, Math.min(1, item.value / item.max))
+                      : undefined
+                  const heat = item.key === 'heat'
+                  const state =
+                    fill === undefined
+                      ? undefined
+                      : heat
+                        ? fill >= 0.75
+                          ? 'critical'
+                          : undefined
+                        : fill <= 0.25
+                          ? 'critical'
+                          : undefined
+                  return (
+                    <span
+                      key={item.key}
+                      className={cn(
+                        'su-sheet-bar__vital',
+                        item.mobilePriority === false && 'su-sheet-live-stat-fold'
+                      )}
+                      data-state={state}
+                    >
+                      <span className="su-sheet-bar__label">{item.label}</span>
+                      <span className="su-sheet-bar__figure">
+                        <b>{item.value}</b>
+                        {item.max !== undefined && <i>/{item.max}</i>}
+                      </span>
+                      {fill !== undefined && (
+                        <span
+                          className="su-sheet-bar__meter"
+                          style={{ '--su-fill': fill } as CSSProperties}
+                        />
+                      )}
+                    </span>
+                  )
+                })}
               </>
             )}
           </div>
@@ -428,6 +464,13 @@ export function LiveSheet({
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
+            {/* MOCK (best, revision 7): the band's acts, compact, at the end. */}
+            {condensed && (band?.actions || actions) && (
+              <div className="su-sheet-bar__acts">
+                {band?.actions}
+                {actions}
+              </div>
+            )}
             {condensed && segments?.some((segment) => !segment.active) && (
               <LinkedUnits
                 linked={segments

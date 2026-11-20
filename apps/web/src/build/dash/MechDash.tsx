@@ -15,22 +15,15 @@
 
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { ComponentProps, CSSProperties, ReactNode } from 'react'
-import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
+import type { CSSProperties, ReactNode } from 'react'
+import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import { Conditions, Content, Mention, Stat } from '../../components/index'
+import { Conditions, Mention, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
-import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { buildCompanionActions, buildMechActions } from '../../lib/rules/actionList'
-import {
-  itemEconomy,
-  itemUsesRemaining,
-  resolveModule,
-  resolveSystem,
-} from '../../lib/rules/mechItems'
 import {
   partnerDerivedStats,
   partnerTechLevel,
@@ -39,122 +32,22 @@ import {
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { mechVitalRows } from '../sheet/MechVitals'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
-import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
+import type { MechSheetActions } from '../sheet/mechSheetActions.model'
 import { mockQuery } from '../sheet/mockChassis'
 import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { ActionsLedger, Cost } from './ActionsLedger'
-import { Dash, DashColumn, DashGroup, Facts, PinnedVitals, Prose } from './Dash'
-import type { OpenColumn, OpenRow } from './OpenLedger'
+import { Dash, DashColumn, DashGroup, PinnedVitals, Prose } from './Dash'
+import { ITEM_COLUMNS, itemRows } from './itemRows'
+import type { OpenColumn } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
 import { SheetViewSwitch, useSheetView } from './SheetView'
 import { STRIP_ART, Strip, StripFigure } from './Strip'
 
-// THE stat order (ledger.md, `ledgerOrder.ts`): where it comes from (TL,
-// Slots, SV), then what its action does (type, Range, Damage), the cost last
-// on the row's edge, where a player hunts for it mid-turn.
-// biome-ignore lint/style/useComponentExportOnlyModules: MOCK, the companion's sheet draws the same columns
-export const ITEM_COLUMNS: readonly OpenColumn[] = [
-  { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
-  {
-    key: 'slots',
-    label: STAT_LABELS.slotsRequired.short,
-    title: STAT_LABELS.slotsRequired.label,
-    phone: true,
-  },
-  { key: 'sv', label: STAT_LABELS.salvageValue.short, title: STAT_LABELS.salvageValue.label },
-  { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
-  { key: 'range', label: buildSheetCopy('rng'), title: buildSheetCopy('range') },
-  { key: 'damage', label: buildSheetCopy('dmg'), title: buildSheetCopy('damage') },
-  {
-    key: 'cost',
-    label: buildSheetCopy('cost'),
-    title: buildSheetCopy('activationCost'),
-    phone: true,
-  },
-]
-
 const CARGO_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel') },
   { key: 'units', label: buildSheetCopy('slots'), phone: true },
 ]
-
-const typeWord = (type: string | undefined) => (type === 'DownTime' ? 'Downtime' : (type ?? ''))
-
-/** What a row reads: a mech, or a companion (a mech in all but Push). */
-type Fitted = Pick<
-  Mech,
-  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses'
->
-
-// biome-ignore lint/style/useComponentExportOnlyModules: MOCK, the companion's sheet draws the same rows
-export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
-  const slugs = kind === 'system' ? mech.systems : mech.modules
-  const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
-  const keys = occurrenceKeys(slugs)
-  return slugs.map((slug, index) => {
-    const entity = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
-    const condition = conditions[slug] ?? 'intact'
-    const maxUses = entity ? itemEconomy(entity).maxUses : 0
-    const model = entity ? toEntityModel(entity) : undefined
-    const fact = (key: string) => {
-      const found = model?.facts.find((entry) => entry.key === key)
-      return found ? (found.shortValue ?? found.value) : ''
-    }
-    // Uses is live on the row (its stamp), so the trait line leaves it out.
-    const traits = (model?.traits ?? [])
-      .filter((trait) => trait.name !== 'Uses')
-      .map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name))
-    const action = typeWord(model?.actionType)
-    return {
-      id: keys[index] ?? slug,
-      // An item the data no longer holds keeps its slug.
-      name: entity?.name ?? slug,
-      entityRef: model?.ref,
-      meta:
-        traits.length > 0 || action !== '' ? (
-          <>
-            {action !== '' && (
-              <span className="su-open__phone-only">
-                {[action, fact('range') && `RNG ${fact('range')}`, fact('damage')]
-                  .filter(Boolean)
-                  .join(' · ')}
-                {traits.length > 0 ? ' · ' : ''}
-              </span>
-            )}
-            {traits.join(' · ')}
-          </>
-        ) : undefined,
-      state:
-        condition !== 'intact' || maxUses > 0 ? (
-          <>
-            {condition !== 'intact' && (
-              <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
-            )}
-            {maxUses > 0 && (
-              <Stat
-                size="mini"
-                label={buildSheetCopy('uses')}
-                value={itemUsesRemaining(maxUses, mech.itemUses?.[slug])}
-                max={maxUses}
-              />
-            )}
-          </>
-        ) : undefined,
-      cells: [
-        entity ? <TechLevel key="tl" level={entity.techLevel} /> : '',
-        entity?.slotsRequired ?? '',
-        entity?.salvageValue ?? '',
-        action,
-        fact('range'),
-        fact('damage'),
-        model?.cost ? <Cost key="cost" cost={model.cost} /> : '',
-      ],
-      dim: condition === 'destroyed',
-      detail: entity ? <RowRules entity={entity} /> : undefined,
-    }
-  })
-}
 
 type MechDashProps = {
   mech: Mech
@@ -309,6 +202,7 @@ export function MechDash({
       {phone && (
         <PinnedVitals
           label={buildSheetCopy('unitVitals', { name: mech.name })}
+          name={mech.name}
           vitals={vitals}
           foot={foot}
         />
@@ -366,52 +260,29 @@ export function MechDash({
                 is text, never a row: the name and every word, always showing. Then
                 its own facts and its description. A companion it fields is its own
                 cell below, in the companion's colour, opening the companion. */}
-            {chassisModel && (
-              <DashGroup
-                title={buildSheetCopy('chassis')}
-                tally={<Mention entityRef={chassisModel.ref}>{model.chassisName}</Mention>}
-              >
-                {chassisAbilities.map((action) => {
-                  const actionModel = toEntityModel(action.action)
-                  return (
-                    <div key={action.key} className="su-dash-item su-chassis-ability">
-                      <p className="su-dash-entity__name">
+            {/* MOCK (best, revision 7): the side column shows the chassis
+                ability only: its strip reads "Chassis ability" with the
+                ability's name in it, and its body is the ability's words. */}
+            {chassisModel &&
+              chassisAbilities.map((action) => {
+                const actionModel = toEntityModel(action.action)
+                return (
+                  <DashGroup
+                    key={action.key}
+                    title={buildSheetCopy('chassisAbility')}
+                    tally={
+                      <>
                         <Mention entityRef={actionModel.ref}>{action.name}</Mention>
                         {actionModel.cost && <Cost cost={actionModel.cost} />}
-                      </p>
+                      </>
+                    }
+                  >
+                    <div className="su-dash-item su-chassis-ability">
                       <RowRules entity={action.action} chassisName={model.chassisName} />
                     </div>
-                  )
-                })}
-                <Facts
-                  facts={[
-                    typeof chassis?.techLevel === 'number'
-                      ? {
-                          key: 'tl',
-                          label: buildSheetCopy('techLevel'),
-                          value: <TechLevel level={chassis.techLevel} />,
-                        }
-                      : null,
-                    typeof chassis?.salvageValue === 'number'
-                      ? {
-                          key: 'sv',
-                          label: STAT_LABELS.salvageValue.label,
-                          value: chassis.salvageValue,
-                        }
-                      : null,
-                  ]}
-                />
-                {chassis?.content && chassis.content.length > 0 && (
-                  <Prose lines={4}>
-                    <Content
-                      body={chassis.content as ComponentProps<typeof Content>['body']}
-                      fontSize="sm"
-                      chassisName={model.chassisName}
-                    />
-                  </Prose>
-                )}
-              </DashGroup>
-            )}
+                  </DashGroup>
+                )
+              })}
             {companions}
             <div className="su-dash-group">
               <OpenLedger

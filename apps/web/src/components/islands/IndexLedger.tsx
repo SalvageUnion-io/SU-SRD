@@ -57,16 +57,6 @@ const COST: IndexColumn = {
   value: (_item, model) => model.cost ?? '',
 }
 
-const TRAITS: IndexColumn = {
-  key: 'traits',
-  label: islandsCopy('traits'),
-  kind: 'quiet',
-  value: (_item, model) =>
-    model.traits
-      .map((trait) => (trait.param ? `${trait.name} ${trait.param}` : trait.name))
-      .join(', '),
-}
-
 /** A list of names a record carries (`actions`, `systems`, `coreTrees`), less a ` (Host)` suffix. */
 function names(label: string, field: string): IndexColumn {
   return {
@@ -110,10 +100,6 @@ const ACTIONS = names(islandsCopy('actions'), 'actions')
 /** The quiet line a kind's rows end on; every other kind's is its opening words. */
 const QUIET: Readonly<Record<string, IndexColumn>> = {
   chassis: names(islandsCopy('chassisAbility'), 'chassisAbilities'),
-  systems: TRAITS,
-  modules: TRAITS,
-  equipment: TRAITS,
-  vehicles: TRAITS,
   npcs: ACTIONS,
   'bio-titans': ACTIONS,
   creatures: ACTIONS,

@@ -240,7 +240,9 @@ const ASIDE = {
 // The notch: the page ground, ink condensed caps, flush with the band's foot.
 // Size and padding change at `sm`, so they are `.su-chapter-band__title`'s.
 const TITLE = {
-  backgroundColor: color.wkBg,
+  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   fontWeight: weight.extrabold,
   lineHeight: 0.92,
@@ -258,7 +260,9 @@ const BESIDE_CONTROLS = { margin: '0 auto 0 0' } satisfies CSSProperties
 // The plate: the notch's cut-out around the trail and the title, so the two
 // read as one label at the wider one's width. Its padding is the parts'.
 const PLATE = {
-  backgroundColor: color.wkBg,
+  // MOCK (best, revision 7): a cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   display: 'flex',
   flexDirection: 'column',

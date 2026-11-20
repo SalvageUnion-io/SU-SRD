@@ -380,6 +380,8 @@ export function TechLevel({ level }: { level: number | string | undefined }) {
   return (
     <span
       className="su-tl"
+      // MOCK (best, revision 7): the dark swatches (TL 4 up) carry paper text.
+      data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
       title={`Tech Level ${level}`}
     >

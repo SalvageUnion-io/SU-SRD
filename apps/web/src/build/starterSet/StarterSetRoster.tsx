@@ -128,7 +128,9 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         </ChapterBand>
       }
     >
-      {body}
+      {/* MOCK (best, revision 7): the crews stand in the page's main track,
+          as a Reference Page's do, a side track beside them. */}
+      <div className="su-main-track">{body}</div>
     </PageShell>
   )
 }

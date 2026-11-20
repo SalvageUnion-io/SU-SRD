@@ -45,7 +45,7 @@ import { partnerDisplayName } from '../sheet/partnerDisplay.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { ActionsLedger, Cost } from './ActionsLedger'
 import { Dash, DashColumn, Prose } from './Dash'
-import { ITEM_COLUMNS, itemRows } from './MechDash'
+import { ITEM_COLUMNS, itemRows } from './itemRows'
 import type { OpenColumn, OpenRow } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
@@ -62,7 +62,9 @@ const CARGO_COLUMNS: readonly OpenColumn[] = [
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
 
-const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100dvh' } satisfies CSSProperties
+// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
+// column keeps a short page's foot on the window's edge.
+const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
 
 const SHEET = {
   containerType: 'inline-size',

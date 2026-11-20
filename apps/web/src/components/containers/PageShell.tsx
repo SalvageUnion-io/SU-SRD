@@ -3,7 +3,9 @@ import { color, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { LayoutGap } from './layoutGap'
 
-const GROUND = { minHeight: '100dvh', backgroundColor: color.wkBg } satisfies CSSProperties
+// MOCK (best, revision 7): the page is as tall as its content; `#root`'s
+// column keeps a short page's foot on the window's edge.
+const GROUND = { backgroundColor: color.wkBg } satisfies CSSProperties
 
 const COLUMN = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 

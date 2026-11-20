@@ -61,8 +61,6 @@ import { usePlayWide } from './usePlayWide'
 import { useStopSign } from './useStopSign'
 
 /** The foot's reminder: what the players can see of the Opposition. */
-const OPPOSITION_NOTE = 'Players see the Opposition only through what you post'
-
 type PlayMediatorCockpitProps = {
   gameId: string
   gameName: string
@@ -183,13 +181,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
-      foot={
-        <PlayFoot
-          solo={false}
-          note={OPPOSITION_NOTE}
-          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-        />
-      }
+      foot={<PlayFoot solo={false} tone={PHASE_TONE[running ? 'downtime' : 'scene']} />}
     />
   )
 }

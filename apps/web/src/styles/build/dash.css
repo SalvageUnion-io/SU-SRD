@@ -1224,7 +1224,9 @@
 
 .su-rule-head,
 .su-open thead th {
-  --su-head-cut: var(--color-wk-bg);
+  /* MOCK (best, revision 7): the ground of the body the tab opens into;
+     every body is a paper panel now (no box stands naked), so paper. */
+  --su-head-cut: var(--cutout-ground, var(--color-paper));
 }
 
 .su-open thead th {
