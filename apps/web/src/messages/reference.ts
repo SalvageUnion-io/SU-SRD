@@ -24,7 +24,7 @@ export const referenceCopy = messages({
   siteName: 'SalvageUnion.io',
   pitchValue: "Everything you need to play the world's best post-apocalyptic mech TTRPG.",
   usedBy: 'Used by',
-  usedByMore: 'and {count} more',
+  usedByCount: '{count} uses',
   relatedRules: 'Related rules',
   previousEntry: 'Previous',
   nextEntry: 'Next',

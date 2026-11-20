@@ -225,7 +225,11 @@ describe('a sparse Page fills its side track (EDL form 5)', () => {
     expect(rail).toContain('Used by')
     expect(rail.indexOf('Used by')).toBeLessThan(rail.indexOf('>Traits<'))
     expect(rail).toContain('Hacking Kit')
-    expect(rail).toContain('and 19 more')
+    // Every user, each with its kind, under the full count: never "and N more".
+    expect(rail).toContain('22 uses')
+    expect(rail.match(/su-sparse-rail__row"/g)?.length).toBe(22)
+    expect(rail).toContain('>Equipment<')
+    expect(rail).not.toMatch(/and \d+ more/)
   })
 
   it('a keyword nothing names draws no empty Used by', () => {

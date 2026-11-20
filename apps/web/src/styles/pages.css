@@ -1171,10 +1171,10 @@
 }
 
 /* A sparse Page's side column (EDL form 5, the Page): its pieces stack under the
-   words on a phone. From `lg` it stands beside them, exactly as tall as the
-   words (its own size contained), and its pieces wrap into a column off its
-   edge where they do not fit: a piece shows whole or not at all, the last
-   first to go. */
+   words on a phone. From `lg` it stands beside them, a narrow track exactly as
+   tall as the words (its own size contained, so it never lengthens the page).
+   Used by gives way: its rows scroll under their count, and the short pieces
+   after it stand whole. */
 /* Stacked (under `lg`), the rail follows the Page's blocks on its rhythm (12px). */
 .su-entity__railed {
   display: flex;
@@ -1197,30 +1197,53 @@
   gap: var(--space-12);
 }
 
+/* Used by's rows scroll in their box; stacked, a box at most a screenful. */
+.su-sparse-rail__scroll {
+  max-height: 24rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 @media (width >= 64rem) {
-  /* The rail takes the Page's side track: the same split as a Page with art,
-     and the card beside it runs as one column to the rail. */
+  /* The rail is the narrow track; the words take the room it gives back. The
+     row fills the page body down to the screen's foot (the body already
+     stands a screen tall), so a short Page's rail uses that room too. */
   .su-entity__railed {
     column-gap: var(--space-24);
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 20rem);
   }
 
   .su-entity__railed-main .su-manual {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /* The first piece always stands and sizes the row with the words; the
-     rest fill what room is left, a piece whole or not at all. */
-  .su-sparse-rail__rest {
-    align-content: flex-start;
+  /* As tall as the words, never taller: its size is the row's. */
+  .su-sparse-rail {
     contain: size;
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    flex-wrap: wrap;
-    gap: var(--space-12);
+    min-height: 0;
     overflow: hidden;
+  }
+
+  /* Used by takes the room its rows need, and gives way when the words are
+     shorter: its frame shrinks with it (the Box's `shrink`) and the rows scroll. */
+  .su-sparse-rail__used {
+    flex: 0 1 auto;
+    min-height: 0;
+  }
+
+  .su-sparse-rail__scroll {
+    max-height: none;
+  }
+
+  /* The rest are short (a rule or two, the list's neighbours) and always
+     stand whole: Used by is what gives way. */
+  .su-sparse-rail__rest {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    gap: var(--space-12);
   }
 
   .su-sparse-rail__rest > * {
@@ -1228,19 +1251,48 @@
   }
 }
 
-.su-sparse-rail__list {
+.su-sparse-rail__list,
+.su-sparse-rail__rows {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.su-sparse-rail__more,
+.su-sparse-rail__list {
+  gap: var(--space-4);
+}
+
+/* A user, a Ledger row: its name, then its kind, on a hairline. */
+.su-sparse-rail__row {
+  align-items: baseline;
+  border-top: var(--bw-hairline) solid var(--color-ink-15);
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+  min-height: var(--space-24);
+  padding-block: var(--space-2);
+}
+
+/* The count heads the rows and stays while they scroll. */
+.su-sparse-rail__count {
+  background-color: var(--color-paper);
+  position: sticky;
+  top: 0;
+}
+
+.su-sparse-rail__count,
+.su-sparse-rail__kind,
 .su-sparse-rail__step {
   color: var(--color-ink-2);
   font-size: var(--text-caption);
+}
+
+.su-sparse-rail__kind {
+  flex: none;
+  font-family: var(--font-cond);
+  font-weight: var(--font-weight-semibold);
 }
 
 .su-sparse-rail__body p {

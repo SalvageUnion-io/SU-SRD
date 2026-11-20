@@ -2,6 +2,7 @@ import type { EntityRef, RefEntity, RefEnumSchemaName, RefMetaEntity } from 'sal
 import {
   entityRef,
   getEntitySlug,
+  getSchemaCatalog,
   SalvageUnionReference,
   toEntityModel,
 } from 'salvageunion-reference'
@@ -16,10 +17,14 @@ import { artUrlFor } from './sourceCovers'
 
 type Linked = { ref: EntityRef; name: string }
 
+/** A user of the entity: its link, and its kind as the book names one ("System"). */
+type UsedByRow = Linked & { kind: string }
+
 export type SparseRail = {
   /** The list it sits in, named as its listing is ("Keywords"). */
   list: string
-  usedBy: { count: number; first: Linked[] }
+  /** Every record that names it, in the chapters' order: the rail shows them all. */
+  usedBy: UsedByRow[]
   rules: Linked[]
   previous?: Linked
   next?: Linked
@@ -111,8 +116,8 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
       ({ schema: s, entity: other, words }) =>
         s === 'guides' && other.id !== entity.id && term.test(words)
     )
-    .slice(0, 2)
     .map(({ entity: other }) => linked(other))
+  const kinds = new Map(getSchemaCatalog().schemas.map((meta) => [meta.id, meta.displayName]))
   const list =
     buildChapters()
       .flatMap((chapter) => chapter.rows)
@@ -123,7 +128,7 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
   const next = at >= 0 ? siblings[at + 1]?.entity : undefined
   return {
     list,
-    usedBy: { count: users.length, first: users.slice(0, 3).map(({ entity: e }) => linked(e)) },
+    usedBy: users.map(({ schema: s, entity: e }) => ({ ...linked(e), kind: kinds.get(s) ?? '' })),
     rules,
     ...(previous ? { previous: linked(previous) } : {}),
     ...(next ? { next: linked(next) } : {}),

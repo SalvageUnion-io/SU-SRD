@@ -1,7 +1,9 @@
 // A sparse Page's side column (EDL form 5, the Page): who uses the entity, the
-// rules that explain it, its neighbours in its list. Just enough to fill the
-// room the Page's words leave: the column is as tall as the main track, and a
-// piece that would not fit drops whole, the last first (`front.css`).
+// rules that explain it, its neighbours in its list. It fills the room the
+// Page's words leave and never more: the column is as tall as the main track
+// (`pages.css`). Used by lists every user, kind and name, never a capped
+// "and N more"; where the room runs out its rows scroll under a head that
+// names the full count, and the short pieces after it stand whole.
 import { cn, Mention, TitledBox } from '../components/index'
 import type { SparseRail as Rail } from '../lib/sparseRail'
 import { referenceCopy } from '../messages/reference'
@@ -18,28 +20,28 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
   const { list, usedBy, rules, previous, next } = rail
   const tone = BAND_TOKEN[chapterTone] ?? chapterTone
   // An empty piece fills nothing: it is not drawn, and a rail with none is none.
-  if (usedBy.count === 0 && rules.length === 0 && !previous && !next) return null
+  if (usedBy.length === 0 && rules.length === 0 && !previous && !next) return null
   const pieces = [
-    usedBy.count > 0 && (
+    usedBy.length > 0 && (
       <TitledBox
         key="used-by"
         title={referenceCopy('usedBy')}
         titleAs="h2"
         tone={tone}
-        className="su-sparse-rail__piece"
-        bodyClassName="su-sparse-rail__body"
+        className={cn('su-sparse-rail__piece', 'su-sparse-rail__used')}
+        shrink
+        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__scroll')}
       >
-        <ul className="su-sparse-rail__list">
-          {usedBy.first.map((user) => (
-            <li key={user.ref.id}>
+        <p className="su-sparse-rail__count">
+          {referenceCopy('usedByCount', { count: usedBy.length })}
+        </p>
+        <ul className="su-sparse-rail__rows">
+          {usedBy.map((user) => (
+            <li key={user.ref.id} className="su-sparse-rail__row">
               <Mention entityRef={user.ref}>{user.name}</Mention>
+              <span className="su-sparse-rail__kind">{user.kind}</span>
             </li>
           ))}
-          {usedBy.count > usedBy.first.length && (
-            <li className="su-sparse-rail__more">
-              {referenceCopy('usedByMore', { count: usedBy.count - usedBy.first.length })}
-            </li>
-          )}
         </ul>
       </TitledBox>
     ),
