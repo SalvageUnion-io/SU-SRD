@@ -407,8 +407,12 @@
   }
 
   /* A measured page (front, listing, entity page, guide) drops its inner
-     padding there, so its text starts under the brand like a sheet's. */
-  .su-page-body,
+     padding there, so its text starts under the brand like a sheet's; a
+     window no wider than the measure keeps the shell's least gutter. */
+  .su-page-body {
+    padding-inline: max(0px, calc(var(--space-16) - (100vw - var(--page-measure)) / 2));
+  }
+
   .su-chapter-band[data-measured]
     :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
     padding-inline: 0;

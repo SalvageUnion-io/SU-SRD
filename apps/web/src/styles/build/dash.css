@@ -374,8 +374,9 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* Its cost goes grey, never faint: the badge's words keep their contrast. */
 .su-open__row[data-dim] .su-cost-edge {
-  opacity: 0.45;
+  filter: grayscale(1);
 }
 
 /* A row that opens: its chevron is the row's first cell content. */
@@ -1767,6 +1768,12 @@
 
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
   padding-block: var(--space-2) 0;
+}
+
+/* A tally and a note stand on the strip (the shadow above): they wear its
+   paint as their own ground too, so what reads their contrast reads the strip. */
+.su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
+  background-color: var(--su-kind, var(--color-ink));
 }
 
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {

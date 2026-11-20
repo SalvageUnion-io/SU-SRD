@@ -30,7 +30,11 @@ for (const path of PAGES) {
     await page.goto(path)
     const instrument = page.locator('main .su-roll').first()
     await expect(instrument).toBeVisible({ timeout: 30_000 })
-    const rows = instrument.locator('.su-roll__row, .su-roll__cell')
+    // Its bands in whichever form its column's width draws: the table's
+    // rows and cells, or under 40rem the stack's entries (`roll-table.css`).
+    const rows = instrument
+      .locator('.su-roll__row, .su-roll__cell, .su-roll__stack-entry')
+      .filter({ visible: true })
     expect(await rows.count(), `${path}: the table's bands are on the page`).toBeGreaterThan(0)
     await expect(rows.first()).toBeVisible()
     // Nothing folds it: no Table / Hide toggle anywhere on the page.
