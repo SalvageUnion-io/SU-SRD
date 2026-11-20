@@ -4,18 +4,21 @@
 // `TitledBox` on ink holding the books as a Ledger, the licence on its cite
 // cut-out) and the Discord bot's panel.
 import type { CSSProperties } from 'react'
-import type { RefEnumSchemaName } from 'salvageunion-reference'
+import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
 import {
+  citeLine,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
+  provenancePrintings,
+  resolveProvenance,
   SalvageUnionReference,
+  toEntityModel,
 } from 'salvageunion-reference'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
   Badge,
-  Box,
   Button,
   FrontPitch,
   StartHere,
@@ -47,21 +50,40 @@ const HERO_STACK: readonly [RefEnumSchemaName, string][] = [
   ['chassis', 'leviathan'],
 ]
 
-/** Each artwork in the stack, with its entity's name for the cite. */
+/**
+ * Each artwork in the stack: its entity's name, its band colour (the tone its
+ * card wears), the book it is printed in for the cut-out, and its page.
+ */
 function heroStackArt() {
   return HERO_STACK.flatMap(([schema, slug]) => {
     const entity = findEntityBySlug(schema, slug)
     const name = entity && 'name' in entity ? String(entity.name) : undefined
-    const art = name ? artOf(schema, slug, name) : undefined
-    return art && name ? [{ key: `${schema}/${slug}`, name, ...art }] : []
+    const art = entity && name ? artOf(schema, slug, name) : undefined
+    if (!entity || !name || !art) return []
+    const tone = toEntityModel(entity as RefMetaEntity).tone
+    const provenance = resolveProvenance(entity as RefMetaEntity)
+    // The first printing alone: the cut-out stays one short line.
+    const cite = provenance ? citeLine(provenancePrintings(provenance).slice(0, 1)) : undefined
+    return [
+      {
+        key: `${schema}/${slug}`,
+        name,
+        tone,
+        cite,
+        href: itemHref(schema, getEntitySlug(entity)),
+        ...art,
+      },
+    ]
   })
 }
 
 /**
- * The hero: the pitch at the left, the art in a frame at the right. The art
- * is a stack of the book's artworks, the front one cycling to the back in
- * turn (CSS only: the page is served without React); under reduced motion
- * the stack stands still, its first artwork at the front.
+ * The hero: the pitch at the left, the art stack at the right. Each artwork
+ * stands in its own frame in its entity's band colour, heavy at the foot,
+ * where its name and book sit on a paper cut-out, and opens its entity's
+ * page. The front one cycles to the back in turn (CSS only: the page is
+ * served without React); under reduced motion the stack stands still, its
+ * first artwork at the front.
  */
 export function HomeHero() {
   const arts = heroStackArt()
@@ -85,36 +107,44 @@ export function HomeHero() {
         </FrontPitch>
       </div>
       {arts.length > 0 && (
-        <Box
-          as="section"
-          label={referenceCopy('heroStack')}
-          frame="hairline"
-          body="flush"
-          className="su-front__plate"
-          bodyClassName="su-front__stack"
-          bodyStyle={{ '--su-stack-count': arts.length } as CSSProperties}
+        <section
+          className="su-front__plate su-front__stack"
+          aria-label={referenceCopy('heroStack')}
+          style={{ '--su-stack-count': arts.length } as CSSProperties}
         >
           {arts.map((art, index) => (
-            <figure
+            <a
               key={art.key}
-              className="su-front__stack-card"
-              style={{ '--su-stack-i': index } as CSSProperties}
-              aria-hidden={index > 0 || undefined}
+              href={art.href}
+              className="su-front__stack-card su-focus-ring"
+              style={
+                {
+                  '--su-stack-i': index,
+                  '--su-art-band': `var(--color-${art.tone})`,
+                } as CSSProperties
+              }
+              // Only the first card takes focus: the rest are the stack behind it.
+              tabIndex={index > 0 ? -1 : undefined}
             >
-              <img
-                src={art.url}
-                srcSet={art.srcSet}
-                sizes="(width >= 64rem) 36rem, 100vw"
-                alt={art.alt}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                decoding="async"
-              />
-              <figcaption className="su-front__plate-cite">
-                {referenceCopy('artCite', { name: art.name })}
-              </figcaption>
-            </figure>
+              <span className="su-front__stack-art">
+                <img
+                  src={art.url}
+                  srcSet={art.srcSet}
+                  sizes="(width >= 64rem) 36rem, 100vw"
+                  alt={art.alt}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+              </span>
+              <span className="su-front__stack-foot">
+                <span className="su-front__stack-cite">
+                  <span className="su-front__stack-name">{art.name}</span>
+                  {art.cite && <span>{art.cite}</span>}
+                </span>
+              </span>
+            </a>
           ))}
-        </Box>
+        </section>
       )}
     </section>
   )

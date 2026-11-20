@@ -126,6 +126,11 @@ function cellBody(cell: ReactNode): ReactNode {
   return typeof cell === 'string' ? cell.replace(MARKUP, '$1') : cell
 }
 
+/** A bare count of the rows (a number, or a numeral as text): the tab no longer prints it. */
+function isTally(count: ReactNode): boolean {
+  return typeof count === 'number' || (typeof count === 'string' && /^\d+$/.test(count.trim()))
+}
+
 export function Ledger({
   tone = 'ink',
   paint: paintProp,
@@ -262,7 +267,10 @@ export function Ledger({
                       ) : (
                         <span className="su-entity-compact__title">{nameLabel}</span>
                       )}
-                      {count != null && <span className="su-ledger__count">{count}</span>}
+                      {/* A plain row count is not printed (best, revision 8); a budget ("7/7") or a note is. */}
+                      {count != null && !isTally(count) && (
+                        <span className="su-ledger__count">{count}</span>
+                      )}
                     </span>
                     {mark && <span className="su-ledger__mark">{mark}</span>}
                   </span>

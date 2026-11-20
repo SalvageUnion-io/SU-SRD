@@ -88,20 +88,18 @@
   min-width: 0;
 }
 
-/* The art frame: a hairline Box whose paper body holds a stack of the
-   book's artworks. Each card sits one step further back and up-right than
-   the one before it; every `--su-stack-step` the front card fades out and
-   comes back at the stack's rear, and the rest move up one. */
-.su-front__plate {
-  min-width: 0;
-}
-
+/* The art stack: the book's artworks, each in its own frame in its entity's
+   band colour, heavy at the foot, its name and book on a paper cut-out that
+   hangs from the foot band's top. Each card sits one step further back and
+   up-right than the one before it; every `--su-stack-step` the front card
+   fades out and comes back at the stack's rear, and the rest move up one. */
 .su-front__stack {
   --su-stack-step: 6s;
   --su-stack-offset: var(--space-8);
   aspect-ratio: 4 / 3;
   isolation: isolate;
-  max-height: 22rem;
+  max-height: 24rem;
+  min-width: 0;
   position: relative;
   width: 100%;
 }
@@ -112,14 +110,15 @@
   animation: su-front-stack calc(var(--su-stack-step) * var(--su-stack-count)) linear infinite;
   /* Card i starts i steps from its next turn at the front: 0, 1, 2… in order. */
   animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
-  background-color: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink-20);
+  background-color: var(--su-art-band);
+  color: var(--color-ink);
   display: flex;
-  inset: calc(var(--su-stack-offset) * (var(--su-stack-count) - 1) + var(--space-12))
-    calc(var(--su-stack-offset) * (var(--su-stack-count) - 1) + var(--space-12)) var(--space-12)
-    var(--space-12);
-  margin: 0;
+  flex-direction: column;
+  inset: calc(var(--su-stack-offset) * (var(--su-stack-count) - 1))
+    calc(var(--su-stack-offset) * (var(--su-stack-count) - 1)) 0 0;
+  padding: var(--space-6) var(--space-6) 0;
   position: absolute;
+  text-decoration: none;
   transform: translate(
     calc(var(--su-stack-offset) * var(--su-slot)),
     calc(var(--su-stack-offset) * var(--su-slot) * -1)
@@ -127,33 +126,47 @@
   z-index: calc(var(--su-stack-count) - var(--su-slot));
 }
 
-.su-front__stack-card img {
+/* The art on paper inside the frame. */
+.su-front__stack-art {
+  background-color: var(--color-paper);
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.su-front__stack-art img {
   height: 100%;
-  /* The artwork's white canvas takes the card's paper. */
-  mix-blend-mode: multiply;
   object-fit: contain;
   padding: var(--space-8);
   width: 100%;
 }
 
-.su-front__plate-cite {
-  background-color: var(--color-paper);
-  border: var(--bw-hairline) solid var(--color-ink-20);
-  border-bottom: 0;
-  border-right: 0;
-  color: var(--color-ink-2);
-  font-size: var(--text-caption);
-  margin: 0;
-  padding: var(--space-4) var(--space-8);
+/* The heavy foot: the band, the cut-out hanging from its top at the right. */
+.su-front__stack-foot {
+  display: flex;
+  justify-content: flex-end;
+  min-height: var(--space-32);
+  padding: 0 var(--space-8) var(--space-8);
 }
 
-/* The cite sits on the card's foot, shown on the front card alone. */
-.su-front__stack-card .su-front__plate-cite {
-  animation: su-front-stack-cite calc(var(--su-stack-step) * var(--su-stack-count)) linear infinite;
-  animation-delay: calc(var(--su-stack-step) * (var(--su-stack-count) - var(--su-stack-i)) * -1);
-  bottom: 0;
-  position: absolute;
-  right: 0;
+.su-front__stack-cite {
+  align-items: baseline;
+  align-self: flex-start;
+  background-color: var(--color-paper);
+  display: inline-flex;
+  font-size: var(--text-caption);
+  gap: var(--space-8);
+  padding: var(--space-4) var(--space-8) var(--space-6);
+}
+
+.su-front__stack-name {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.su-front__stack-card:hover .su-front__stack-name,
+.su-front__stack-card:focus-visible .su-front__stack-name {
+  text-decoration: underline;
 }
 
 /* One cycle is six steps, one a card (`HERO_STACK`'s six artworks): a card
@@ -208,29 +221,10 @@
   }
 }
 
-@keyframes su-front-stack-cite {
-  0%,
-  14% {
-    opacity: 1;
-  }
-  16.66%,
-  97.33% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
 /* Under reduced motion the stack stands still, the first artwork in front. */
 @media (prefers-reduced-motion: reduce) {
-  .su-front__stack-card,
-  .su-front__stack-card .su-front__plate-cite {
+  .su-front__stack-card {
     animation: none;
-  }
-
-  .su-front__stack-card:not(:first-child) .su-front__plate-cite {
-    opacity: 0;
   }
 }
 
@@ -251,7 +245,7 @@
 
   .su-front__stack {
     --su-stack-offset: var(--space-12);
-    max-height: 28rem;
+    max-height: 30rem;
   }
 }
 

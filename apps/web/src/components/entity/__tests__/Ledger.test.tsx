@@ -57,11 +57,17 @@ describe('Ledger: one framed table (L1, L2)', () => {
     expect(container.querySelector('tbody .su-box, tbody [data-grain]')).toBeNull()
   })
 
-  test('the title is the cut-out tab on the head strip, its count beside it', () => {
+  test('the title is the cut-out tab on the head strip; a plain row count is not printed', () => {
     const { container } = draw({ count: 2 })
     const tab = container.querySelector('thead .su-entity-compact__notch')
     expect(tab?.querySelector('.su-entity-compact__title')?.textContent).toBe('Systems')
-    expect(tab?.querySelector('.su-ledger__count')?.textContent).toBe('2')
+    expect(tab?.querySelector('.su-ledger__count')).toBeNull()
+  })
+
+  test('a budget beside the title is printed', () => {
+    const { container } = draw({ count: '7/7' })
+    const tab = container.querySelector('thead .su-entity-compact__notch')
+    expect(tab?.querySelector('.su-ledger__count')?.textContent).toBe('7/7')
   })
 
   test('each column label is a mini ink stamp over its column', () => {

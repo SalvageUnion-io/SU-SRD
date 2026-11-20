@@ -23,7 +23,6 @@ export const referenceCopy = messages({
   copyLinkFailed: 'The link could not be copied. Try again.',
   siteName: 'SalvageUnion.io',
   heroStack: 'Art from the book',
-  artCite: '{name} // Art by Leyline Press',
   pitchValue:
     "Everything you need to play the world's best post-apocalyptic Mech tabletop roleplaying game.",
   pitchLede:
