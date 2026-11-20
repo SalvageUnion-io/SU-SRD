@@ -9,7 +9,6 @@
  */
 
 import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
-import { widthAtLeast } from '../design/tokens'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -40,32 +39,6 @@ markSignedIn(document, readAccountHint(browserStorage()) !== null)
 watchStaticTokenOverflow()
 // A head's chips fill from its bottom-right corner (§4.7); an island's fit from `Head`, `CompactIndex`, `ChapterBand`.
 watchStaticChipFill()
-
-/**
- * A static Reference page's view act (Share) rides the area rail, as a
- * sheet's do through `RailActs`' portal. The page is served without React, so
- * the served acts move into the shown rail's slot at rail widths and back to
- * the band under them.
- */
-function placeStaticRailActs(): void {
-  const home = document.querySelector<HTMLElement>('.su-chapter-band__action')
-  const acts = home?.querySelector<HTMLElement>(':scope>.su-rail-acts')
-  if (!acts || !home) return
-  const media = window.matchMedia(widthAtLeast('lg'))
-  const place = () => {
-    let slot: HTMLElement | null = null
-    for (const each of document.querySelectorAll<HTMLElement>('[data-rail-acts]')) {
-      if (each.offsetParent !== null) slot = each
-    }
-    acts.dataset.static = ''
-    const target = media.matches && slot ? slot : home
-    // Back in the band, Share leads the call to action as it was served.
-    if (acts.parentElement !== target) target.prepend(acts)
-  }
-  place()
-  media.addEventListener('change', place)
-}
-if (document.querySelector('[data-share-page]')) placeStaticRailActs()
 
 /** Set once a search field has mounted; its own listener then answers Cmd+K. */
 let searchMounted = false
