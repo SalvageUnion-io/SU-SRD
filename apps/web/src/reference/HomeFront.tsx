@@ -144,7 +144,9 @@ export function HomeHero() {
               </span>
               <span className="su-front__stack-foot">
                 <span className="su-front__stack-cite">
-                  <span className="su-front__stack-name">{art.name}</span>
+                  <span className={cn('su-front__stack-name', capsLabel({ weight: 'bold' }))}>
+                    {art.name}
+                  </span>
                   {art.cite && <span>{art.cite}</span>}
                 </span>
               </span>
