@@ -172,6 +172,9 @@ export const pagesCopy = messages({
   salvageUnionSrd: 'Salvage Union SRD',
   siteName: 'SalvageUnion.io',
   contents: 'Contents',
+  referenceHome: 'Reference',
+  referenceHomeDescription:
+    'The Salvage Union rules, chapter by chapter: Pilots, Mechs, the Union Crawler, the Wasteland and the rules a table reaches for.',
   atTheTable: 'At the table',
   ogCardRender: 'OG card render',
   homebrew: 'Homebrew',

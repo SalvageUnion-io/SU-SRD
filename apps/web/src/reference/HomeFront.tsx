@@ -103,7 +103,7 @@ export function HomeHero() {
               <Button href={appPath('/')} linkAs="a" variant="primary" size="full">
                 {referenceCopy('startBuilding')}
               </Button>
-              <Button href="#contents" variant="default" size="full">
+              <Button href="/reference/" variant="default" size="full">
                 {referenceCopy('readTheRules')}
               </Button>
             </>
@@ -192,7 +192,7 @@ export function HomeDoors() {
       title={referenceCopy('threeWaysIn')}
       steps={doors}
       numbered={false}
-      hrefs={{ reference: '#contents', build: appPath('/'), play: appPath('/games/') }}
+      hrefs={{ reference: '/reference/', build: appPath('/'), play: appPath('/games/') }}
     />
   )
 }

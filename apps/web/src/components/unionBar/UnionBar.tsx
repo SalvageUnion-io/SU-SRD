@@ -29,6 +29,8 @@ type UnionBarProps = {
   /** The phone cluster below `lg`: search trigger, avatar and the drawer. */
   mobile?: ReactNode
   breadcrumbs?: BreadcrumbItem[]
+  /** The site's front door: no area link is current. */
+  noCurrent?: boolean
 }
 
 /** An app link: a route under the base. */
@@ -36,7 +38,14 @@ function BaseLink({ href = '/', ...rest }: AnchorHTMLAttributes<HTMLAnchorElemen
   return <a href={appPath(`/${href.replace(/^\/+/, '')}`)} {...rest} />
 }
 
-export function UnionBar({ product, search, actions, mobile, breadcrumbs }: UnionBarProps) {
+export function UnionBar({
+  product,
+  search,
+  actions,
+  mobile,
+  breadcrumbs,
+  noCurrent,
+}: UnionBarProps) {
   const app = product !== 'reference'
   return (
     <AppBar
@@ -44,7 +53,7 @@ export function UnionBar({ product, search, actions, mobile, breadcrumbs }: Unio
       // One origin (ADR-048): the reference is the site's root, the app
       // under its base. The tabs are site paths; the app's other links route
       // through `BaseLink`, so they are written as routes.
-      referenceHref="/"
+      referenceHref="/reference/"
       buildHref={appPath('/')}
       playHref={appPath('/games/')}
       LinkComponent={app ? BaseLink : 'a'}
@@ -57,6 +66,7 @@ export function UnionBar({ product, search, actions, mobile, breadcrumbs }: Unio
       actions={actions}
       mobile={mobile}
       breadcrumbs={breadcrumbs}
+      noCurrent={noCurrent}
     />
   )
 }

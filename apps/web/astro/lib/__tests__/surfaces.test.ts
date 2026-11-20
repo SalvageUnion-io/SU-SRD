@@ -29,7 +29,7 @@ const ldCrumbs = (html: string) =>
 const islands = (html: string, name: string) =>
   html.match(new RegExp(`data-island="${name}"`, 'g'))?.length ?? 0
 
-describe('home: the front door, then the manual’s Contents', () => {
+describe('home: the front door', () => {
   const html = page('/')
 
   it('is titled with the site’s name, in the front doors’ band', () => {
@@ -52,43 +52,23 @@ describe('home: the front door, then the manual’s Contents', () => {
   it('pitches the site with one rust action, beside the art plate', () => {
     const hero = html.slice(html.indexOf('su-front__hero'), html.indexOf('id="three-ways-in"'))
     expect(hero.match(/su-btn--primary/g)).toHaveLength(1)
-    expect(hero).toContain('href="#contents"')
+    expect(hero).toContain('href="/reference/"')
     expect(hero).toContain('su-front__plate')
     expect(html.match(/su-btn--primary/g)).toHaveLength(1)
   })
 
-  it('opens three ways in: the Reference below, Build and Play in the app', () => {
-    const doors = html.slice(html.indexOf('id="three-ways-in"'), html.indexOf('id="contents"'))
+  it('opens three ways in: the Reference’s home, Build and Play in the app', () => {
+    const doors = html.slice(html.indexOf('id="three-ways-in"'), html.indexOf('su-front__buy'))
     expect(doors.match(/class="su-start-here__item"/g)).toHaveLength(3)
-    for (const href of ['#contents', '/build/', '/games/']) {
+    for (const href of ['/reference/', '/build/', '/games/']) {
       expect(doors).toContain(`<a href="${href}" class="su-entity-index su-start-here__step`)
     }
     expect(doors).not.toContain('target="_blank"')
   })
 
-  it('indexes the book’s five chapters, with counts', () => {
-    for (const chapter of [
-      'Pilot Bay',
-      'Mech Workshop',
-      'Union Crawler',
-      'Denizens of the Wasteland',
-      'Rules &amp; Reference',
-    ]) {
-      expect(html).toContain(`<span>${chapter}</span>`)
-    }
-    expect(html).toContain('href="/chassis/"')
-  })
-
-  it('sets "At the table" as a section of the index', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-front__buy'))
-    expect(index).toContain('<span>At the table</span>')
-    expect(index).toContain('href="/roll-tables/core-mechanic/"')
-    expect(index).not.toContain('On Discord')
-  })
-
-  it('opens each chapter on its band alone, with no artwork', () => {
-    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('su-front__buy'))
-    expect(index).not.toContain('<img')
+  it('holds no Contents: the book’s index is the Reference’s home', () => {
+    expect(html).not.toContain('su-home__index')
+    expect(html).not.toContain('id="pilot-bay"')
   })
 
   it('lists the books it cites as one Ledger, each opening its page', () => {
@@ -106,7 +86,7 @@ describe('home: the front door, then the manual’s Contents', () => {
     expect(bot).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
-  it('reads title, tagline, the pitch, the three ways in, the index, the books, then Discord', () => {
+  it('reads title, tagline, the pitch, the three ways in, the books, then Discord', () => {
     const at = (needle: string) => html.indexOf(needle)
     expect(at('<h1')).toBeGreaterThan(-1)
     const order = [
@@ -114,11 +94,43 @@ describe('home: the front door, then the manual’s Contents', () => {
       'su-tagline',
       'su-front__hero',
       'id="three-ways-in"',
-      'id="pilot-bay"',
       'su-front__buy',
       'id="discord-bot"',
     ].map(at)
     expect(order).toEqual([...order].sort((a, b) => a - b))
+  })
+})
+
+describe('the Reference’s home: the manual’s Contents', () => {
+  const html = page('/reference')
+
+  it('is titled Reference', () => {
+    expect(h1s(html)).toEqual(['Reference'])
+  })
+
+  it('indexes the book’s five chapters, with counts', () => {
+    for (const chapter of [
+      'Pilot Bay',
+      'Mech Workshop',
+      'Union Crawler',
+      'Denizens of the Wasteland',
+      'Rules &amp; Reference',
+    ]) {
+      expect(html).toContain(`<span>${chapter}</span>`)
+    }
+    expect(html).toContain('href="/chassis/"')
+  })
+
+  it('sets "At the table" as a section of the index', () => {
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
+    expect(index).toContain('<span>At the table</span>')
+    expect(index).toContain('href="/roll-tables/core-mechanic/"')
+    expect(index).not.toContain('On Discord')
+  })
+
+  it('opens each chapter on its band alone, with no artwork', () => {
+    const index = html.slice(html.indexOf('su-home__index'), html.indexOf('<footer'))
+    expect(index).not.toContain('<img')
   })
 })
 
