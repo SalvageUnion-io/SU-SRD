@@ -489,6 +489,11 @@
   vertical-align: baseline;
 }
 
+/* A painted strip's column labels are cut-outs on its foot (L2). */
+.su-open:not(.su-open--sub) thead th[data-col] {
+  vertical-align: bottom;
+}
+
 .su-open thead .su-open__title {
   align-items: baseline;
 }
@@ -511,28 +516,20 @@
    with actions keeps its cut-out at its foot, notched into the body (below):
    the baseline would float it over the strip's paint. */
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
+/* A strip's cut-out always stands on its foot, notched into the body. What
+   does not fit beside it (a note, the buttons) wraps on to a line above it,
+   never under it: the strip wraps upward (wrap-reverse, so its cross start is
+   its foot). Its note and tallies stand on the foot beside it, on its text's
+   line ("TRAINING p.23"). */
+.su-rule-head:not(.su-rule-head--sub) {
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+}
+
 .su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
   align-items: baseline;
+  align-self: flex-start !important;
   height: auto;
-  padding-bottom: 0;
-}
-
-.su-rule-head:not(.su-rule-head--sub):not(:has(> .su-rule-head__actions))
-  > :is(.su-rule-head__tallies, .su-rule-head__note) {
-  align-self: baseline !important;
-}
-
-.su-rule-head:not(.su-rule-head--sub):not(:has(> .su-rule-head__actions)) > .su-rule-head__label {
-  align-items: baseline;
-  align-self: baseline;
-}
-
-/* With actions the cut-out stands at the foot, out of the baseline: its note
-   and tallies stand at the foot with it, on its text's line ("TRAINING p.23"),
-   never at the top of the strip. */
-.su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions)
-> :is(.su-rule-head__tallies, .su-rule-head__note) {
-  align-self: flex-end;
   padding-bottom: var(--space-2);
 }
 
@@ -540,6 +537,7 @@
    actions share one height). */
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
+  align-self: flex-start;
   box-sizing: border-box;
   height: var(--space-24);
   padding-block: var(--space-4) var(--space-2);
@@ -574,6 +572,16 @@
   padding-bottom: 0;
 }
 
+/* Bottom-aligned on its line, and at the foot of a phone's taller sort
+   button: no room stands under the cut-out. */
+.su-ledger__head > th:not(:first-child) > * {
+  vertical-align: bottom;
+}
+
+.su-ledger__head > th:not(:first-child) .su-ledger__sort {
+  align-items: flex-end;
+}
+
 .su-ledger__head > th:not(:first-child) .su-badge--stamp-solid {
   align-items: center;
   background-color: var(--color-paper);
@@ -585,12 +593,14 @@
 }
 
 .su-ledger__head .su-ledger__title-line {
-  align-items: baseline;
+  align-items: flex-end;
 }
 
+/* A mark beside the tab (HOMEBREW) stands on the foot's line with it, never
+   below the tab's foot. */
 .su-ledger__head .su-ledger__mark {
-  align-self: baseline !important;
-  margin-bottom: 0;
+  align-self: flex-end !important;
+  margin-bottom: var(--space-2);
 }
 
 /* A tree's strip keeps to one line: a note that does not fit beside the
@@ -840,13 +850,12 @@
   align-items: center;
   padding-block: var(--space-4);
   /* Where the buttons do not fit beside the title (a narrow side column, a
-     phone) they wrap to their own line under the strip, clear of it, still
-     compact and at the line's end. */
-  row-gap: var(--space-12);
+     phone) they wrap to their own line over it, still compact and at the
+     line's end, the title on the strip's foot. */
+  row-gap: var(--space-8);
 }
 
 .su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) > .su-rule-head__label {
-  align-self: flex-end;
   margin-bottom: calc(-1 * var(--space-4));
 }
 
