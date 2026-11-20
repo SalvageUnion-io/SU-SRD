@@ -563,6 +563,18 @@
   vertical-align: middle;
 }
 
+/* A button in the strip makes it taller than its labels' line: the tab stays
+   on the strip's foot, notched into the first row, and the column stamps
+   stand on the foot beside it, on the tab's text line, never floated over
+   the band's paint. */
+.su-ledger__table .su-ledger__head:has(> th .su-btn) > th:not(:has(.su-btn)) {
+  vertical-align: bottom;
+}
+
+.su-ledger__table .su-ledger__head:has(> th .su-btn) > th:not(:first-child, :has(.su-btn)) {
+  padding-bottom: var(--space-6);
+}
+
 .su-ledger__head .su-ledger__title-line {
   align-items: baseline;
 }
