@@ -65,6 +65,7 @@ import {
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
+import { cn } from '../lib/cn'
 import { useHydrateEntities, usePilots } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
@@ -302,6 +303,9 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             as="h2"
             title={playCopy('mediatorsKit')}
             className="su-mediator-kit-section"
+            // The Kit's two lists, each under its own tab, side by side: the
+            // section names the pair, never one list alone (Ledger law).
+            bodyClassName={cn('su-shelf-ledgers', 'su-mediator-kit')}
           >
             <ShelvesPart.Provider value="kit">
               <Shelves />

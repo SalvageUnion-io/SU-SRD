@@ -361,11 +361,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
 
-  // The Mediator's Kit (NPCs, Encounters) renders on the Games front
-  // (`ShelvesPart`), reading this page's hooks.
+  // The Mediator's Kit (NPCs, Encounters) on the Games front (`ShelvesPart`):
+  // its two columns stand straight in the Kit's section, which lays them out.
   if (part === 'kit') {
     return (
-      <div className="su-shelf-ledgers su-mediator-kit">
+      <>
         <div className="su-shelf-ledgers__col">
           <ShelfLedger
             id="shelf-npcs"
@@ -406,7 +406,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           <EncounterShelf confirm={confirm} />
         </div>
         {dialog}
-      </div>
+      </>
     )
   }
 
