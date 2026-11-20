@@ -20,7 +20,7 @@
  * client entry reveals both on one page load in a hundred.
  */
 
-import { Button, cn, FOCUS_RING } from '../components/index'
+import { Button, capsLabel, cn, FOCUS_RING } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
@@ -39,7 +39,7 @@ function WikiLink() {
   return (
     <a
       href="/greembeem"
-      className={cn('su-union-bar__quiet', FOCUS_RING)}
+      className={cn('su-union-bar__quiet', capsLabel({ tracking: 'inherit' }), FOCUS_RING)}
       hidden
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
     >
