@@ -121,7 +121,7 @@ export async function findAbilityTrees(page: Page): Promise<Finding[]> {
  * side by side, and lists every ability the dataset puts in that tree, and
  * none from another. `findDashTrees` returns one `dash-tree` finding per fault.
  */
-export const DASH_TREE_SELECTORS = {
+const DASH_TREE_SELECTORS = {
   group: 'section',
   heading: 'h2',
   tree: 'table.su-open--sub',
