@@ -126,9 +126,9 @@
   z-index: calc(var(--su-stack-count) - var(--su-slot));
 }
 
-/* The art on paper inside the frame. */
+/* The art on its own canvas's white, so the artwork has no visible edge. */
 .su-front__stack-art {
-  background-color: var(--color-paper);
+  background-color: #fff;
   display: flex;
   flex: 1;
   min-height: 0;
