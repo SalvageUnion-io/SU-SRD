@@ -78,7 +78,7 @@ export function CrawlerLiveSheet({
   const spLines = linesFromBreakdown(spParts, {
     base: `Tech ${crawler.techLevel} Crawler`,
     baseDetail: 'base',
-    installed: 'Crawler type bonus',
+    installed: buildSheetCopy('crawlerTypeBonus'),
   })
   const sp = resolvePool(crawler.currentSP, maxSP)
   // Cap override (ADR-022, Free Edit): pin Max SP as an absolute

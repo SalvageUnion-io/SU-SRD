@@ -241,17 +241,22 @@ export function CardPage({
         {body}
       </div>
     )
-    const words = !opening && (subLine || body) && (loreOnly ? prose : (
-      <SlabSection
-        as={sectionAs}
-        // A pattern's Page names the chassis it is built on ("Mule chassis").
-        title={bodyLabel ?? referenceEntityCopy('description')}
-        page
-        className="su-manual__lore"
-      >
-        {prose}
-      </SlabSection>
-    ))
+    const words =
+      !opening &&
+      (subLine || body) &&
+      (loreOnly ? (
+        prose
+      ) : (
+        <SlabSection
+          as={sectionAs}
+          // A pattern's Page names the chassis it is built on ("Mule chassis").
+          title={bodyLabel ?? referenceEntityCopy('description')}
+          page
+          className="su-manual__lore"
+        >
+          {prose}
+        </SlabSection>
+      ))
     // The chassis ability stands in the side column,
     // under the Description, its tab the paper of its panel.
     // The strip reads "Chassis ability" with the ability's name in it; its
@@ -268,7 +273,7 @@ export function CardPage({
             count={<Mention entityRef={lead.ref}>{lead.title}</Mention>}
             page
             className="su-manual__ability"
-            bodyClassName="su-entity-page__section-body su-chassis-ability"
+            bodyClassName={cn('su-entity-page__section-body', 'su-chassis-ability')}
           >
             <RowRules entity={data as RefMetaEntity} chassisName={action.chassisName} />
           </SlabSection>
@@ -343,7 +348,7 @@ export function CardPage({
                     'su-entity-page__section',
                     label === 'Next' && 'su-entity-page__section--end'
                   )}
-                  bodyClassName="su-entity-page__section-body su-entity-page__neighbours"
+                  bodyClassName={cn('su-entity-page__section-body', 'su-entity-page__neighbours')}
                 >
                   {abilities.map((ability) => (
                     <Entity

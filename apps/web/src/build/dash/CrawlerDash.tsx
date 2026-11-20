@@ -107,11 +107,16 @@ function leadOf(
 
 /** The lead's cell: their name, then their post in the book's words ("the Princeps"). */
 function LeadCell({ lead }: { lead: Lead }) {
-  if (!lead.name) return lead.position ? <>The {lead.position}</> : null
+  if (!lead.name)
+    return lead.position ? <>{buildSheetCopy('thePost', { post: lead.position })}</> : null
   return (
     <>
       <b className="su-bay-lead__name">{lead.name}</b>
-      {lead.position && <span className="su-bay-lead__post"> the {lead.position}</span>}
+      {lead.position && (
+        <span className="su-bay-lead__post">
+          {buildSheetCopy('thePostAfter', { post: lead.position })}
+        </span>
+      )}
     </>
   )
 }
@@ -424,8 +429,8 @@ export function CrawlerDash({
           {/* The Storage Bay as one deliberate object:
               "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
               chip over its count), then what is stored as its rows. */}
-          <DashGroup title={buildSheetCopy('storageBay')} tally="Unlimited">
-            <p className="su-dash-sub su-scrap__label">Scrap</p>
+          <DashGroup title={buildSheetCopy('storageBay')} tally={buildSheetCopy('unlimited')}>
+            <p className="su-dash-sub su-scrap__label">{buildSheetCopy('scrap')}</p>
             <dl className="su-scrap" aria-label={buildSheetCopy('scrapByTechLevel')}>
               {NUMERIC_TECH_LEVELS.map((level) => {
                 const count = scrapPoolBucket(pool, level)

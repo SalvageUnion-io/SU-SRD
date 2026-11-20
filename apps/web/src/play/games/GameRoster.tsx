@@ -95,7 +95,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const vitals = useTableRead('crew.vitals', { gameId })
 
   const makePrimary = useServerAction(useGamesCall('games.setPrimaryCrawler'), {
-    failure: 'That crawler could not be made primary. Try again.',
+    failure: playGamesCopy('primaryCrawlerFailed'),
   })
   const busy = makePrimary.pending
   const error = makePrimary.error
@@ -284,9 +284,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // unit under the columns the table reads — who holds it, and the numbers
   // Play spends. Its ⋯ menu rides the row, as a Compact's does.
   const MANIFEST: readonly OpenColumn[] = [
-    // MOCK (revision 3): a phone drops Member so HP and SP never clip.
+    // A phone drops Member so HP and SP never clip.
     { key: 'who', label: playGamesCopy('member'), kind: 'text' },
-    { key: 'tl', label: 'TL', title: 'Tech Level' },
+    { key: 'tl', label: playGamesCopy('tl'), title: playGamesCopy('techLevel') },
     { key: 'hp', label: 'HP', phone: true },
     { key: 'sp', label: 'SP', phone: true },
     { key: 'ep', label: 'EP' },

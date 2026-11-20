@@ -30,6 +30,7 @@ import { Fragment, useId, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { CSSVarStyle, SlabCount } from '../../components/index'
 import { cn, InlineRef, Mention, tokens } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export type OpenColumn = {
   key: string
@@ -149,7 +150,8 @@ function Row({
                 aria-expanded={open}
                 aria-controls={panel}
                 aria-label={
-                  row.detailLabel ?? `${typeof row.name === 'string' ? row.name : 'Row'} rules`
+                  row.detailLabel ??
+                  buildSheetCopy('rowRules', { name: typeof row.name === 'string' ? row.name : '' })
                 }
                 onClick={() => setOpen((value) => !value)}
               >
@@ -363,7 +365,7 @@ export function TechLevel({ level }: { level: number | string | undefined }) {
       // The dark swatches (TL 4 up) carry paper text.
       data-dark={typeof level === 'number' && level >= 4 ? '' : undefined}
       style={{ '--tl': `var(--color-tl-${key})` } as CSSVarStyle}
-      title={`Tech Level ${level}`}
+      title={buildSheetCopy('techLevelN', { level: String(level) })}
     >
       {level}
     </span>

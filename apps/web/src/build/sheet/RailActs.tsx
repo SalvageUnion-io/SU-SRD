@@ -9,8 +9,7 @@ import { createPortal } from 'react-dom'
  * where they were, the first row of the band, in the same plain style.
  *
  * A portal into the rail's slot (`AppBar`'s `[data-rail-acts]`): the acts keep
- * their handlers and state, only their place changes. The real change gives
- * the bar an `acts` slot the page fills.
+ * their handlers and state, only their place changes.
  */
 const RAIL_QUERY = '(width >= 64rem)'
 

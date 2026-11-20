@@ -99,7 +99,6 @@ export const playCopy = messages({
   pitchNote:
     'Free with a Discord sign-in. No Pilot yet? Build one first, or copy the Starter Set crew.',
   meetTheStarterCrew: 'Meet the Starter crew',
-  starterNote: 'Open any sheet to read it; sign in to copy one and play it.',
   artScout: 'A Scout Pilot',
   artMazona: 'The Mazona Chassis',
   artScylla: 'The Bio-Titan Scylla',
@@ -280,4 +279,8 @@ export const playCopy = messages({
   startGroupSessionOf: 'Start a group session of {game}',
   joinAs: 'Join as {name}',
   joinSessionAs: 'Join the session in {game} as {name}',
+  noGamesYet:
+    'You’re in no Games yet. Start one with + New Game, or join one with its invite link.',
+  gamesListOffline: 'Your Games list once the connection returns.',
+  mediatorsKit: 'Mediator’s Kit',
 })

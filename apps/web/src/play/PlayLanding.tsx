@@ -290,11 +290,11 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           isEmpty={games === undefined || games.length === 0}
           empty={
             games !== undefined ? (
-              'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
+              playCopy('noGamesYet')
             ) : connected ? (
               <Pending as="span" label={playCopy('yourGames2')} />
             ) : (
-              'Your Games list once the connection returns.'
+              playCopy('gamesListOffline')
             )
           }
         >
@@ -313,7 +313,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           <section id="mediators-kit" className="su-mediator-kit-section">
             {/* A plain ruled label, its tables each wear their own cut-out. */}
             <header className="su-rule-head su-rule-head--over">
-              <h2 className="su-rule-head__label">Mediator’s Kit</h2>
+              <h2 className="su-rule-head__label">{playCopy('mediatorsKit')}</h2>
             </header>
             <MockShelvesPart.Provider value="kit">
               <Shelves />

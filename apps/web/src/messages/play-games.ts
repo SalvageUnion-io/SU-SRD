@@ -54,13 +54,13 @@ export const playGamesCopy = messages({
   everyoneAtATableCan: 'Everyone at a table can read each other’s sheets.',
   joinThisGame: 'Join this Game',
   signInToJoinYour:
-    'Sign in to join. Your pilots, mechs and crawlers live on your account, and signing in is what seats you at the table.',
+    'Sign in to join. Your Pilots, Mechs and Crawlers live on your account, and signing in is what seats you at the table.',
   signInToJoin: 'Sign in to join',
   youAreOfflineSoThis: 'You are offline, so this invite cannot be checked right now.',
   joinAGame: 'Join a Game',
-  chooseThePilotToPlay: 'Choose the pilot to play.',
+  chooseThePilotToPlay: 'Choose the Pilot to play.',
   noneOfThisGamesPilots:
-    "None of this Game's pilots is saved in this browser. Create one, or take one from the roster, then play.",
+    "None of this Game's Pilots is saved in this browser. Create one, or take one from the roster, then play.",
   assignThisToYou: '{label} — assign this to you',
   awaitingYourAnswer: 'Awaiting your answer',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
@@ -88,7 +88,9 @@ export const playGamesCopy = messages({
   npcs: 'NPCs',
   prepInTheTrainingBay: 'Prep in the Training Bay',
   // The Game page's crew manifest.
-  mechsGroup: 'Mechs with no pilot',
+  mechsGroup: 'Mechs with no Pilot',
   crawlerGroup: 'Union Crawler',
-  unassignedSeat: 'Unassigned',
+  primaryCrawlerFailed: 'That crawler could not be made primary. Try again.',
+  tl: 'TL',
+  techLevel: 'Tech Level',
 })

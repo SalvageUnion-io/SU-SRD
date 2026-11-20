@@ -139,39 +139,36 @@ const SWITCH = {
   overflow: 'hidden',
 } satisfies CSSProperties
 
-/**
- * What each area holds, for the rail. Built for real
- * these come from `chapters.ts` (the Reference) and the app's routes.
- */
+/** What each area holds, for the rail. */
 const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: string }[] }> = {
   reference: {
-    name: 'The book',
+    name: compositionsCopy('railReference'),
     links: [
-      { label: 'Pilots', href: '/#pilot-bay' },
-      { label: 'Mechs', href: '/#mech-workshop' },
-      { label: 'Union Crawler', href: '/#union-crawler' },
-      { label: 'Wasteland', href: '/#denizens' },
-      { label: 'Rules', href: '/#rules-reference' },
-      { label: 'Guides', href: '/guides/' },
-      { label: 'Roll Tables', href: '/roll-tables/' },
+      { label: compositionsCopy('railPilots'), href: '/#pilot-bay' },
+      { label: compositionsCopy('railMechs'), href: '/#mech-workshop' },
+      { label: compositionsCopy('railUnionCrawler'), href: '/#union-crawler' },
+      { label: compositionsCopy('railWasteland'), href: '/#denizens' },
+      { label: compositionsCopy('railRules'), href: '/#rules-reference' },
+      { label: compositionsCopy('railGuides'), href: '/guides/' },
+      { label: compositionsCopy('railRollTables'), href: '/roll-tables/' },
     ],
   },
   build: {
-    name: 'Yours',
+    name: compositionsCopy('railYours'),
     links: [
-      { label: 'Pilots', href: '/build/#pilots' },
-      { label: 'Mechs', href: '/build/#mechs' },
-      { label: 'Crawlers', href: '/build/#crawlers' },
-      { label: 'Patterns', href: '/build/#patterns' },
-      { label: 'Starter Set', href: '/build/starter' },
+      { label: compositionsCopy('railPilots'), href: '/build/#pilots' },
+      { label: compositionsCopy('railMechs'), href: '/build/#mechs' },
+      { label: compositionsCopy('railCrawlers'), href: '/build/#crawlers' },
+      { label: compositionsCopy('railPatterns'), href: '/build/#patterns' },
+      { label: compositionsCopy('railStarterSet'), href: '/build/starter' },
     ],
   },
   play: {
-    name: 'At the table',
+    name: compositionsCopy('railPlay'),
     links: [
-      { label: 'Your Games', href: '/games/' },
-      { label: 'Join with a link', href: '/games/#join' },
-      { label: "Mediator's Kit", href: '/games/#kit' },
+      { label: compositionsCopy('railYourGames'), href: '/games/' },
+      { label: compositionsCopy('railJoin'), href: '/games/#join' },
+      { label: compositionsCopy('railKit'), href: '/games/#kit' },
     ],
   },
 }
@@ -280,7 +277,7 @@ export function AppBar({
                 size="compact"
                 className="su-union-bar__action su-union-bar__buy"
               >
-                Buy the game
+                {compositionsCopy('buyTheGame')}
                 <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
               </Button>
             )}
@@ -302,7 +299,7 @@ export function AppBar({
             key={area}
             className="su-union-bar__rail"
             data-area={area}
-            aria-label={`In ${RAIL[area].name}`}
+            aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
           >
             <span className="su-union-bar__rail-name">{RAIL[area].name}</span>
             {RAIL[area].links.map((link) => (

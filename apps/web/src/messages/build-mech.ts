@@ -97,7 +97,6 @@ export const mechCopy = messages({
   cargoCapacity: 'Cargo Capacity',
   loadout: 'Loadout',
   choose1: 'Choose 1',
-  itsSalvageValueIn: 'Its Salvage Value in Tech 1 Scrap',
   orStartFromAPattern: 'Or start from a Pattern',
   optional: 'Optional',
   needsSlots: 'Needs {count} Slots · {left} left',
