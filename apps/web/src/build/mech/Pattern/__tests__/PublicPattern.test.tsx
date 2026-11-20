@@ -131,7 +131,8 @@ describe('a shared pattern reads like the book and says a player made it', () =>
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(SIGNED_OUT)
 
-    expect(screen.getAllByText('Scrapper chassis').length).toBeGreaterThan(0)
+    // The band's relation chip names the chassis: `PATTERN OF | Scrapper`.
+    expect(screen.getAllByText('Scrapper').length).toBeGreaterThan(0)
     for (const part of ['Rigging Arm', 'Transport Hold', 'Comms Module']) {
       expect(screen.getAllByText(part).length).toBeGreaterThan(0)
     }

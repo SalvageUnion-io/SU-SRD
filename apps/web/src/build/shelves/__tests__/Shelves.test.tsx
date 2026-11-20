@@ -11,7 +11,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import {
@@ -38,6 +38,7 @@ const { useTray } = await import('../../../replica/collections')
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
+const { ShelvesPart } = await import('../shelvesPart')
 
 withSignedInBackend()
 
@@ -160,16 +161,23 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-async function renderShelves(status: SyncState['status'] = 'live') {
+/**
+ * The Training Bay's shelves (`bay`), or the Mediator's Kit the Games front
+ * draws from the same page (`kit`: NPCs and Encounters, ADR-066).
+ */
+async function renderShelves(status: SyncState['status'] = 'live', part: 'bay' | 'kit' = 'bay') {
   await act(async () => {
     render(
       <SyncContext.Provider value={connection(status)}>
         <ToasterMount />
-        <Shelves />
+        <ShelvesPart.Provider value={part}>
+          <Shelves />
+        </ShelvesPart.Provider>
       </SyncContext.Provider>
     )
   })
-  await settle(() => screen.queryByRole('region', { name: 'Pilots' }) !== null)
+  const first = part === 'kit' ? 'NPCs' : 'Pilots'
+  await settle(() => screen.queryByRole('region', { name: first }) !== null)
 }
 
 async function openMenu(name: string): Promise<HTMLElement> {
@@ -209,7 +217,8 @@ describe('only what is yours', () => {
     expect(within(pilots).queryByText('Crewmate Pilot')).toBeNull()
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByText('Spare Mech')).toBeNull()
-    expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
+    // The encounter tray is the Mediator's Kit, on the Games front.
+    expect(screen.queryByText(/Tray Grunt/)).toBeNull()
   })
 
   test('has no Showing filter: a unit’s Game is its tag', async () => {
@@ -294,13 +303,15 @@ describe('What a shelf says of a unit (L9)', () => {
 
 describe('Homebrew on a shelf (ruleset §3.9, L9)', () => {
   test('the pattern and NPC shelves wear the one HOMEBREW stamp; a shelf of your units wears none', async () => {
-    await renderShelves()
     const stamped = (id: string) =>
       /homebrew/i.test(document.querySelector(`#${id} thead`)?.textContent ?? '')
+    await renderShelves()
     expect(stamped('shelf-patterns')).toBe(true)
-    expect(stamped('shelf-npcs')).toBe(true)
     expect(stamped('shelf-pilots')).toBe(false)
     expect(stamped('shelf-mechs')).toBe(false)
+    cleanup()
+    await renderShelves('live', 'kit')
+    expect(stamped('shelf-npcs')).toBe(true)
   })
 })
 
@@ -422,7 +433,7 @@ describe('Patterns', () => {
 
 describe('the encounter tray on the NPC shelf', () => {
   test('a tray NPC is listed as such, and Delete… removes it from the tray', async () => {
-    await renderShelves()
+    await renderShelves('live', 'kit')
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText(/Tray Grunt/)).toBeTruthy()
     expect(within(npcs).getByText('Tray')).toBeTruthy()
