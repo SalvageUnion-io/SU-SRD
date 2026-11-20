@@ -167,11 +167,9 @@ body:has(.su-front--show) main {
   flex-direction: column;
 }
 
-/* The name is ink on the slideshow, its words cream; the pitch and the
-   slides' plates stay cream. */
 .su-front__show-name {
-  background-color: var(--color-ink);
-  color: var(--color-wk-bg);
+  background-color: var(--color-wk-bg);
+  color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
