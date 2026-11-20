@@ -27,8 +27,10 @@ import type { ChapterTone } from '../components/index'
 import { schemaHref } from './entityHref'
 
 type ChapterDefinition = {
-  /** The home page's anchor for the chapter (`/#mech-workshop`). */
+  /** The chapter's anchor on the Reference's Contents (`/reference/#mech-workshop`). */
   id: string
+  /** The chapter's own page (`/mechs/`): its band, then its every listing. */
+  path: string
   /** The book's chapter name. */
   title: string
   /** The chapter band's colour (ruleset, "The book's colour map"). */
@@ -43,11 +45,24 @@ type ChapterDefinition = {
 }
 
 const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
-  { id: 'pilot-bay', title: 'Pilot Bay', tone: 'pilot', categories: ['pilot'] },
-  { id: 'mech-workshop', title: 'Mech Workshop', tone: 'mech', categories: ['mech'] },
-  { id: 'union-crawler', title: 'Union Crawler', tone: 'crawler', categories: ['crawler'] },
+  { id: 'pilot-bay', path: 'pilots', title: 'Pilot Bay', tone: 'pilot', categories: ['pilot'] },
+  {
+    id: 'mech-workshop',
+    path: 'mechs',
+    title: 'Mech Workshop',
+    tone: 'mech',
+    categories: ['mech'],
+  },
+  {
+    id: 'union-crawler',
+    path: 'union-crawler',
+    title: 'Union Crawler',
+    tone: 'crawler',
+    categories: ['crawler'],
+  },
   {
     id: 'denizens',
+    path: 'wasteland',
     title: 'Denizens of the Wasteland',
     // The adversary brown its entities' cards wear.
     tone: 'adversary',
@@ -55,6 +70,7 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   },
   {
     id: 'rules-reference',
+    path: 'rules',
     title: 'Rules & Reference',
     tone: 'rules',
     categories: ['guides', 'reference'],
@@ -73,7 +89,7 @@ export type SrdChapter = {
   id: string
   title: string
   tone: ChapterTone
-  /** The chapter's anchor on the home page. */
+  /** The chapter's own page (`/mechs/`). */
   href: string
   rows: ChapterRow[]
 }
@@ -107,25 +123,25 @@ export function buildChapters(): SrdChapter[] {
       id: definition.id,
       title: definition.title,
       tone: definition.tone,
-      href: chapterHref(definition.id),
+      href: chapterHref(definition.path),
       rows,
     }
   })
 }
 
-/** A chapter's anchor on the home page. */
-const chapterHref = (id: string): string => `/reference/#${id}`
+/** A chapter's own page. */
+const chapterHref = (path: string): string => `/${path}/`
 
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
 
 /** The five chapters by name, colour and anchor: no catalog, so no ORM read. */
 export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
-  ({ id, title, tone }) => ({
+  ({ id, path, title, tone }) => ({
     id,
     title,
     tone,
-    href: chapterHref(id),
+    href: chapterHref(path),
   })
 )
 

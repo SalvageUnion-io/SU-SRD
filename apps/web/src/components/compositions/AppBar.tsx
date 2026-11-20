@@ -142,11 +142,11 @@ const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: 
   reference: {
     name: compositionsCopy('railReference'),
     links: [
-      { label: compositionsCopy('railPilots'), href: '/reference/#pilot-bay' },
-      { label: compositionsCopy('railMechs'), href: '/reference/#mech-workshop' },
-      { label: compositionsCopy('railUnionCrawler'), href: '/reference/#union-crawler' },
-      { label: compositionsCopy('railWasteland'), href: '/reference/#denizens' },
-      { label: compositionsCopy('railRules'), href: '/reference/#rules-reference' },
+      { label: compositionsCopy('railPilots'), href: '/pilots/' },
+      { label: compositionsCopy('railMechs'), href: '/mechs/' },
+      { label: compositionsCopy('railUnionCrawler'), href: '/union-crawler/' },
+      { label: compositionsCopy('railWasteland'), href: '/wasteland/' },
+      { label: compositionsCopy('railRules'), href: '/rules/' },
       { label: compositionsCopy('railGuides'), href: '/guides/' },
       { label: compositionsCopy('railRollTables'), href: '/roll-tables/' },
     ],

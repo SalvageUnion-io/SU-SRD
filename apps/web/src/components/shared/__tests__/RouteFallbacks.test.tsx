@@ -50,11 +50,11 @@ describe('RouteNotFound', () => {
     const chapters = within(main).getByRole('navigation', { name: 'Or open a chapter' })
     const links = within(chapters).getAllByRole('link')
     expect(links.map((link) => link.getAttribute('href'))).toEqual([
-      '/reference/#pilot-bay',
-      '/reference/#mech-workshop',
-      '/reference/#union-crawler',
-      '/reference/#denizens',
-      '/reference/#rules-reference',
+      '/pilots/',
+      '/mechs/',
+      '/union-crawler/',
+      '/wasteland/',
+      '/rules/',
     ])
   })
 

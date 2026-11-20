@@ -39,7 +39,7 @@ describe('buildChapters', () => {
 
   test('rows link to their listing; chapters to their anchor on the Reference’s home', () => {
     const mech = chapters.find((c) => c.id === 'mech-workshop')
-    expect(mech?.href).toBe('/reference/#mech-workshop')
+    expect(mech?.href).toBe('/mechs/')
     expect(mech?.rows[0]?.href).toBe('/chassis/')
   })
 })

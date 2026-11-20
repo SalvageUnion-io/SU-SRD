@@ -1,0 +1,6 @@
+---
+import { pilotBayPage as module } from '../../src/reference/pages/chapter.page'
+import Page from '../layouts/Page.astro'
+import { renderReference } from '../lib/reference'
+---
+<Page doc={renderReference(module, {}, undefined)} />

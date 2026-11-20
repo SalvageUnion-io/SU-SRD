@@ -140,6 +140,35 @@ describe('the Reference’s home: the manual’s Contents', () => {
   })
 })
 
+describe('a chapter’s own page: its band, then its every listing', () => {
+  const chapters = [
+    ['/pilots', 'Pilot Bay', '/classes/'],
+    ['/mechs', 'Mech Workshop', '/chassis/'],
+    ['/union-crawler', 'Union Crawler', '/crawlers/'],
+    ['/wasteland', 'Denizens of the Wasteland', '/creatures/'],
+    ['/rules', 'Rules & Reference', '/guides/'],
+  ] as const
+
+  for (const [route, title, listing] of chapters) {
+    it(`${route}/ is titled ${title}, says the tagline and indexes its listings`, () => {
+      const html = page(route)
+      expect(h1s(html)).toEqual([title.replace('&', '&amp;')])
+      expect(html).toContain('su-tagline')
+      expect(html).toContain(`href="${listing}"`)
+      expect(html).toContain('su-contents__chapter')
+    })
+  }
+
+  it('lists each listing’s entries as links to their pages', () => {
+    expect(page('/mechs')).toContain('href="/chassis/mule/"')
+  })
+
+  it('is where the area rail’s chapters land', () => {
+    const html = page('/reference')
+    for (const [route] of chapters) expect(html).toContain(`href="${route}/"`)
+  })
+})
+
 describe('a listing (a Ledger under a visible heading)', () => {
   const html = page('/chassis')
 
