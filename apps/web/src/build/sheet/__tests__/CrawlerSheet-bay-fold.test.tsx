@@ -117,10 +117,11 @@ describe('a crawler bay on the sheet', () => {
     expect(fold('Pilot Bay', 'Bay Info').getAttribute('aria-expanded')).toBe('false')
   })
 
-  test('a read-only sheet folds the same way', () => {
+  test("a read-only sheet's bay line starts shut and opens its rules", () => {
+    // Read is the crew manifest: a bay is a line, its rules a press away.
     render(<CrawlerSheet crawler={crawler} store={store()} readOnly />)
     expect(shown(TRAINING)).toBe(false)
-    fireEvent.click(fold('Pilot Bay', 'Bay Info'))
+    fireEvent.click(screen.getByRole('button', { name: 'Pilot Bay rules and crew' }))
     expect(shown(TRAINING)).toBe(true)
   })
 })

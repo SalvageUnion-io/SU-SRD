@@ -280,10 +280,21 @@ describe('LiveSheet — the condensed bar’s linked units', () => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
     const stamp = bar().getByText('Mara Vex')
+    // Its stylesheet rule wraps it; nothing inline holds it to one line.
+    expect(stamp.closest('.su-sheet-bar__name')).toBeTruthy()
     expect(stamp.style.textOverflow).toBe('')
-    expect(stamp.style.whiteSpace).toBe('normal')
+    expect(stamp.style.whiteSpace).not.toBe('nowrap')
   })
 })
+
+/** The condensed bar's figure reading `text` ("7/10"). */
+function figure(text: string): HTMLElement {
+  const found = [...document.querySelectorAll<HTMLElement>('.su-sheet-bar__figure')].find(
+    (el) => el.textContent === text
+  )
+  if (!found) throw new Error(`no ${text} figure`)
+  return found
+}
 
 describe('LiveSheet — condense strip gating', () => {
   test('resting state: strip is aria-hidden with pointer-events disabled', () => {
@@ -306,10 +317,10 @@ describe('LiveSheet — condense strip gating', () => {
     expect(wrapper.getAttribute('aria-hidden')).toBe('false')
     expect(wrapper.style.pointerEvents).toBe('')
     expect(wrapper.style.opacity).toBe('1')
-    // Live stat readout present in the condensed bar. The kind pill is NOT —
-    // the gutter wordmark carries the sheet's kind now.
-    expect(screen.getByText('7/10')).toBeTruthy()
-    expect(screen.queryByText('Pilot')).toBeNull()
+    // Live stat readout present in the condensed bar, the kind a quiet word
+    // after the name.
+    expect(figure('7/10')).toBeTruthy()
+    expect(bar().getByText('Pilot').closest('.su-sheet-bar__name')).toBeTruthy()
   })
 
   test('hero back in view: strip hides again', () => {
@@ -337,8 +348,8 @@ describe('LiveSheet — strip values', () => {
     act(() => {
       must(observerCallbacks[0])([ioEntry(false)], observerStub)
     })
-    expect(screen.getByText('7/10')).toBeTruthy()
-    expect(screen.getByText('0/6')).toBeTruthy()
+    expect(figure('7/10')).toBeTruthy()
+    expect(figure('0/6')).toBeTruthy()
   })
 
   test('variant sets the sheet tone class on the root', () => {
@@ -360,7 +371,7 @@ describe('LiveSheet — strip values', () => {
     // (`.su-sheet-live-stat-fold`: hidden, inline-flex from sm). It rides the
     // outer stat cell (the value text's parent).
     const fold = 'su-sheet-live-stat-fold'
-    const cell = (text: string) => must(screen.getByText(text).closest('.su-stat-cell'))
+    const cell = (text: string) => must(figure(text).closest('.su-sheet-bar__vital'))
     expect(cell('5/8').classList.contains(fold)).toBe(false)
     expect(cell('3/4').classList.contains(fold)).toBe(true)
   })

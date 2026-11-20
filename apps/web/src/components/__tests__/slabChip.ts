@@ -17,7 +17,5 @@ export function slabChip(title: string): HTMLElement | null {
 
 /** Whether a slab's count reads over its cap (rule tally or stat chip). */
 export function slabCountCritical(count: HTMLElement): boolean {
-  return (
-    count.dataset.state === 'critical' || count.classList.contains('su-stat-cell--critical')
-  )
+  return count.dataset.state === 'critical' || count.classList.contains('su-stat-cell--critical')
 }

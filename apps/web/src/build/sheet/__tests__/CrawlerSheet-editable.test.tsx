@@ -22,6 +22,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
+import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
@@ -316,9 +317,9 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
         liveCondition
       />
     )
-    const steppers = screen.getAllByRole('button', {
-      name: /status: Intact\. Activate to mark Damaged/,
-    })
+    // Read is the crew manifest: a bay's line opens to its Mark damaged.
+    expandCards()
+    const steppers = screen.getAllByRole('button', { name: 'Mark damaged' })
     expect(steppers.length).toBeGreaterThan(0)
     // Only the condition steps: Read still draws no Repair.
     expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()
