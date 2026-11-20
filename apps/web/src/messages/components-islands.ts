@@ -17,6 +17,7 @@ export const islandsCopy = messages({
   tl: 'TL',
   all: 'All',
   source: 'Source',
+  name: 'Name',
   allSources: 'All sources',
   tree: 'Tree',
   allTrees: 'All {count} trees',

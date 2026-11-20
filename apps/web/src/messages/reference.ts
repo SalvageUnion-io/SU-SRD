@@ -22,12 +22,12 @@ export const referenceCopy = messages({
   shareFailed: 'The page could not be shared. Try again.',
   copyLinkFailed: 'The link could not be copied. Try again.',
   siteName: 'SalvageUnion.io',
-  heroArt: 'A Mech faces the Bio-Titan Typhon',
-  heroArtCite: 'Typhon // Art by Leyline Press',
-  pitchValue: 'Every rule in the book. A builder for your crew. A table to play at.',
+  heroStack: 'Art from the book',
+  artCite: '{name} // Art by Leyline Press',
+  pitchValue:
+    "Everything you need to play the world's best post-apocalyptic Mech tabletop roleplaying game.",
   pitchLede:
-    'The free, fan-made companion to Salvage Union, the post-apocalyptic Mech tabletop RPG by Leyline Press.',
-  pitchNote: 'Reading needs no account. Building and playing are free with a Discord sign-in.',
+    'The free, fan-made companion to Salvage Union by Leyline Press: every rule in the book, a builder for your crew, and a table to play at.',
   startBuilding: 'Start building',
   readTheRules: 'Read the rules',
   threeWaysIn: 'Three ways in',

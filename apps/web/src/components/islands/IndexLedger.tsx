@@ -3,9 +3,7 @@
 import { useMemo, useState } from 'react'
 import type { EntityModel, RefEntity, RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
-import { bookHrefs } from '../../lib/bookHref'
 import { islandsCopy } from '../../messages/components-islands'
-import { CiteLine } from '../atoms/CiteLine'
 import { Stat } from '../atoms/Stat'
 import { paintFor } from '../entity'
 import { useEntitySurface } from '../entity/entitySurfaceContext'
@@ -216,11 +214,14 @@ function compareCells(a: string, b: string): number {
 export function IndexLedger({
   schemaId,
   noun,
+  plain = false,
   items,
 }: {
   schemaId: string
   /** The listing's plural name: the name column's label. */
   noun: string
+  /** MOCK (best, revision 8): the list is named by the page's own header, so its name column is a plain `Name`, no title cut-out. */
+  plain?: boolean
   items: readonly RefEntity[]
 }) {
   const surface = useEntitySurface()
@@ -258,29 +259,15 @@ export function IndexLedger({
         compareCells(by(a), by(b)) * (sort.descending ? -1 : 1) || a.name.localeCompare(b.name)
     )
   }, [built, columns, sort])
-  // The books the list is printed in, once, on the foot's cut-out; a list
-  // whose data names none has no foot.
-  const sources = useMemo(
-    () => [
-      ...new Set(
-        items
-          .map((item) => ('source' in item && item.source ? String(item.source) : ''))
-          .filter(Boolean)
-      ),
-    ],
-    [items]
-  )
-  const books = sources.map((source) => source.replace(/^Salvage Union /, ''))
-  // Each book links to its page (Source 2).
-  const bookLinks = bookHrefs(sources.map((source) => ({ book: source, source })))
+  // MOCK (best, revision 8): no count on the tab and no books on a foot cut-out.
   const first = built[0]
   if (!first) return null
   return (
     <Ledger
       label={noun}
       paint={paintFor(first.tone, { texture: surface.texture })}
-      nameLabel={noun}
-      count={rows.length}
+      nameLabel={plain ? islandsCopy('name') : noun}
+      plainTitle={plain}
       columns={columns}
       rows={rows.map((row) => ({
         id: row.id,
@@ -291,7 +278,6 @@ export function IndexLedger({
         ) : undefined,
         cells: row.cells,
       }))}
-      foot={books.length > 0 ? <CiteLine text={books.join(' // ')} hrefs={bookLinks} /> : undefined}
       sort={sort}
       onSort={(key) =>
         setSort((now) => ({ key, descending: now?.key === key ? !now.descending : false }))

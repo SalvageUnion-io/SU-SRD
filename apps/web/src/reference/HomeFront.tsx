@@ -1,8 +1,9 @@
 // The home page's parts under its band, each from the site's own primitives:
-// the pitch (`FrontPitch`) beside the hero plate (`CardImage hero`, art from
+// the pitch (`FrontPitch`) beside the framed art stack (a `Box`, art from
 // R2), the three ways in (`StartHere` tiles with art), Buy the game (a
 // `TitledBox` on ink holding the books as a Ledger, the licence on its cite
 // cut-out) and the Discord bot's panel.
+import type { CSSProperties } from 'react'
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import {
   findEntityBySlug,
@@ -14,8 +15,8 @@ import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
   Badge,
+  Box,
   Button,
-  CardImage,
   FrontPitch,
   StartHere,
   TitledBox,
@@ -36,9 +37,34 @@ function artOf(schema: RefEnumSchemaName, slug: string, alt: string) {
   return srcSet ? { url, srcSet, alt } : { url, alt }
 }
 
-/** The hero: the pitch at the left, the art plate at the right. */
+/** The hero stack's artworks, front first: a Bio-Titan, Mechs, a Pilot, a creature. */
+const HERO_STACK: readonly [RefEnumSchemaName, string][] = [
+  ['bio-titans', 'typhon'],
+  ['chassis', 'atlas'],
+  ['bio-titans', 'tyrant'],
+  ['classes', 'soldier'],
+  ['creatures', 'molebear'],
+  ['chassis', 'leviathan'],
+]
+
+/** Each artwork in the stack, with its entity's name for the cite. */
+function heroStackArt() {
+  return HERO_STACK.flatMap(([schema, slug]) => {
+    const entity = findEntityBySlug(schema, slug)
+    const name = entity && 'name' in entity ? String(entity.name) : undefined
+    const art = name ? artOf(schema, slug, name) : undefined
+    return art && name ? [{ key: `${schema}/${slug}`, name, ...art }] : []
+  })
+}
+
+/**
+ * The hero: the pitch at the left, the art in a frame at the right. The art
+ * is a stack of the book's artworks, the front one cycling to the back in
+ * turn (CSS only: the page is served without React); under reduced motion
+ * the stack stands still, its first artwork at the front.
+ */
 export function HomeHero() {
-  const art = artOf('bio-titans', 'typhon', referenceCopy('heroArt'))
+  const arts = heroStackArt()
   return (
     <section className="su-front__hero" aria-label={referenceCopy('siteName')}>
       <div className="su-front__pitch">
@@ -54,16 +80,41 @@ export function HomeHero() {
               </Button>
             </>
           }
-          note={referenceCopy('pitchNote')}
         >
           {referenceCopy('pitchLede')}
         </FrontPitch>
       </div>
-      {art && (
-        <div className="su-front__plate">
-          <CardImage hero plate {...art} />
-          <p className="su-front__plate-cite">{referenceCopy('heroArtCite')}</p>
-        </div>
+      {arts.length > 0 && (
+        <Box
+          as="section"
+          label={referenceCopy('heroStack')}
+          frame="hairline"
+          body="flush"
+          className="su-front__plate"
+          bodyClassName="su-front__stack"
+          bodyStyle={{ '--su-stack-count': arts.length } as CSSProperties}
+        >
+          {arts.map((art, index) => (
+            <figure
+              key={art.key}
+              className="su-front__stack-card"
+              style={{ '--su-stack-i': index } as CSSProperties}
+              aria-hidden={index > 0 || undefined}
+            >
+              <img
+                src={art.url}
+                srcSet={art.srcSet}
+                sizes="(width >= 64rem) 36rem, 100vw"
+                alt={art.alt}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+              <figcaption className="su-front__plate-cite">
+                {referenceCopy('artCite', { name: art.name })}
+              </figcaption>
+            </figure>
+          ))}
+        </Box>
       )}
     </section>
   )

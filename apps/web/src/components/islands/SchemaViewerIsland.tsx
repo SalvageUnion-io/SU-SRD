@@ -455,6 +455,7 @@ function SchemaViewer({
                     <IndexLedger
                       schemaId={schemaId}
                       noun={group.label || band?.title || ''}
+                      plain={!group.label || group.label === band?.title}
                       items={group.items}
                     />
                   ) : treeTracks.get(group.key) ? (
