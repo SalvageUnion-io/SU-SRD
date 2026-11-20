@@ -219,17 +219,12 @@ describe('a listing (a Ledger under a visible heading)', () => {
 })
 
 describe('a sparse Page fills its side track (EDL form 5)', () => {
-  it('a trait’s rail wears Used by, its users as Mentions; its neighbours are the foot’s pair', () => {
+  it('a trait’s rail wears Used by, its users as Mentions; no Previous or Next', () => {
     const html = page('/traits/hacking')
     const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
     expect(rail).toContain('Used by')
-    // Previous and Next are not the rail's: they are the Page's foot, under
-    // the body and the sidebar (`NeighbourRow`), Next at its end.
-    const foot = html.slice(html.indexOf('su-entity__foot'), html.indexOf('<footer'))
-    expect(html.indexOf('su-entity__foot')).toBeGreaterThan(html.indexOf('su-sparse-rail'))
-    expect(foot).toContain('su-entity-page__neighbour-row')
-    expect(foot).toMatch(/Previous:[\s\S]*Next:/)
-    expect(foot).toContain('su-entity-page__section--end')
+    // No Previous or Next on a reference entry's Page.
+    expect(html).not.toContain('su-entity-page__neighbour-row')
     expect(rail).toContain('Hacking Kit')
     // Every user, each with its kind, under the full count: never "and N more".
     expect(rail).toContain('22 uses')
@@ -238,11 +233,18 @@ describe('a sparse Page fills its side track (EDL form 5)', () => {
     expect(rail).not.toMatch(/and \d+ more/)
   })
 
-  it('a keyword nothing names draws no empty rail: its words run full width over its neighbours', () => {
+  it('a keyword nothing names draws no empty rail', () => {
     const html = page('/keywords/corporate-scrip')
     expect(html).not.toContain('su-sparse-rail')
     expect(html).not.toContain('>Used by<')
-    expect(html).toContain('su-entity-page__neighbour-row')
+    expect(html).not.toContain('su-entity-page__neighbour-row')
+  })
+
+  it('an ability keeps its Preceding and Next: cut-outs at the Page’s foot', () => {
+    const html = page('/abilities/bionic-arms')
+    const foot = html.slice(html.indexOf('su-entity__foot'), html.indexOf('<footer'))
+    expect(foot).toContain('su-entity-page__neighbour-row')
+    expect(foot).toMatch(/Preceding:[\s\S]*Bionic Senses[\s\S]*Next:[\s\S]*Bionic Legs/)
   })
 
   it('a Page with art and actions has no sparse rail', () => {

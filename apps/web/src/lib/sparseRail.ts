@@ -11,8 +11,7 @@ import { artUrlFor } from './sourceCovers'
 
 /**
  * What a sparse Page's side column holds (EDL form 5, the Page): who uses the
- * entity, the rules that explain it; and its neighbours in its list, which
- * the Page draws at its foot. Every
+ * entity and the rules that explain it. Every
  * piece is derived from the dataset as it stands; nothing new is stored.
  */
 
@@ -25,9 +24,6 @@ export type SparseRail = {
   /** Every record that names it, in the chapters' order: the rail shows them all. */
   usedBy: UsedByRow[]
   rules: Linked[]
-  /** Its neighbours in its list, drawn at the Page's foot (`NeighbourRow`), not in the rail. */
-  previous?: RefMetaEntity
-  next?: RefMetaEntity
 }
 
 /** Fields that are the record's identity, never its words. */
@@ -118,14 +114,8 @@ export function sparseRailFor(schema: RefEnumSchemaName, entity: RefEntity): Spa
     )
     .map(({ entity: other }) => linked(other))
   const kinds = new Map(getSchemaCatalog().schemas.map((meta) => [meta.id, meta.displayName]))
-  const siblings = all.filter(({ schema: s }) => s === schema)
-  const at = siblings.findIndex(({ entity: other }) => other.id === entity.id)
-  const previous = at > 0 ? siblings[at - 1]?.entity : undefined
-  const next = at >= 0 ? siblings[at + 1]?.entity : undefined
   return {
     usedBy: users.map(({ schema: s, entity: e }) => ({ ...linked(e), kind: kinds.get(s) ?? '' })),
     rules,
-    ...(previous ? { previous: previous as RefMetaEntity } : {}),
-    ...(next ? { next: next as RefMetaEntity } : {}),
   }
 }

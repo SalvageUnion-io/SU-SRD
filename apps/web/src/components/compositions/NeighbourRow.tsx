@@ -13,13 +13,11 @@ export type Neighbour = {
 }
 
 /**
- * NeighbourRow — the one way a Page shows what comes before and after it: an
- * ability's Preceding and Next in its tree, a reference entry's Previous and
- * Next in its list. Two half-width strips side by side where there is room
+ * NeighbourRow — an ability's Preceding and Next in its tree. Two half-width strips side by side where there is room
  * (stacked where there is not), each only its cut-out: the relation and the
  * neighbour's name, linked, with no body under it. The forward side's cut-out
- * sits at its end, so the pair reads back and forward. On the SRD a Page draws
- * it at its foot, under the body and the sidebar (`EntityPageFrame`'s `foot`).
+ * sits at its end, so the pair reads back and forward. On the SRD the Page draws
+ * it at its foot (`EntityPageFrame`'s `foot`).
  */
 export function NeighbourRow({
   neighbours,

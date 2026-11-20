@@ -16,7 +16,6 @@ import type {
   RefMetaEntity,
 } from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import type { Neighbour } from '../../../components/index'
 import {
   abilityTreeNeighbours,
   CHAPTER_BAND_COLOR,
@@ -36,7 +35,6 @@ import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
-import { referenceCopy } from '../../../messages/reference'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
@@ -88,28 +86,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   ) : columnsTable ? (
     <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
-  // A sparse Page's side column, and its neighbours at its foot.
+  // A sparse Page's side column.
   const sparse =
     !rollPage && !techLevelPage && isSparse(item)
       ? sparseRailFor(schemaId as RefEnumSchemaName, item)
       : null
-  const neighbours: Neighbour[] = sparse
-    ? [
-        {
-          label: referenceCopy('previousEntry'),
-          entities: sparse.previous ? [sparse.previous] : [],
-        },
-        {
-          label: referenceCopy('nextEntry'),
-          entities: sparse.next ? [sparse.next] : [],
-          end: true,
-        },
-      ]
-    : abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
-        label,
-        entities: abilities,
-        end: label === 'Next',
-      }))
+  // An ability's Preceding and Next in its tree, at the Page's foot.
+  const neighbours = abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
+    label,
+    entities: abilities,
+    end: label === 'Next',
+  }))
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -176,8 +163,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         exits={guideExitsFor(schemaId, item)}
         rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
         foot={
-          // What comes before and after it: a sparse entry's neighbours in its
-          // list, an ability's in its tree. Under the body and the sidebar.
+          // An ability's neighbours in its tree, under the body.
           <NeighbourRow as="h2" neighbours={neighbours} />
         }
       >

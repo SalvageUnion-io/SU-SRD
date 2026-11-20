@@ -26,8 +26,6 @@ export const referenceCopy = messages({
   usedBy: 'Used by',
   usedByCount: '{count} uses',
   relatedRules: 'Related rules',
-  previousEntry: 'Previous',
-  nextEntry: 'Next',
   showReference: 'Know the rules',
   showReferenceBody:
     'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',
