@@ -180,25 +180,32 @@ body:has(.su-front--show) main {
   padding: var(--space-4) var(--space-16) var(--space-12);
 }
 
-/* A slide's words stand on the art itself, in the same place on every slide
-   (the bottom left), legible by the ink shadow under every letter. */
+/* A slide's words, at the bottom right in the same place on every slide,
+   right-aligned on paper cut-outs that match the site's name at the top:
+   the title its own tab, the line and the button the paper under it,
+   flush, each as wide as its words. */
 .su-front__show-copy {
+  align-items: flex-end;
   bottom: var(--space-24);
-  color: var(--color-paper);
+  color: var(--color-ink);
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
-  left: var(--su-shell-edge, var(--space-24));
-  max-width: 32rem;
+  max-width: min(32rem, calc(100% - var(--space-24) * 2));
   position: absolute;
-  text-shadow:
-    0 1px 2px var(--color-ink),
-    0 0 var(--space-12) var(--color-ink);
+  right: var(--su-shell-edge, var(--space-24));
+  text-align: right;
   z-index: 1;
 }
 
-.su-front__show-copy .su-btn {
-  align-self: flex-start;
+.su-front__show-copy > * {
+  background-color: var(--color-paper);
+}
+
+.su-front__show-act {
+  padding: 0 var(--space-16) var(--space-12);
+}
+
+.su-front__show-act .su-btn {
   width: auto;
 }
 
@@ -208,10 +215,12 @@ body:has(.su-front--show) main {
   font-weight: var(--font-weight-bold);
   line-height: 1.05;
   margin: 0;
+  padding: var(--space-12) var(--space-16) var(--space-4);
 }
 
 .su-front__show-body {
   margin: 0;
+  padding: var(--space-4) var(--space-16) var(--space-12);
 }
 
 @keyframes su-front-show {
@@ -271,7 +280,6 @@ body:has(.su-front--show) main {
 
   .su-front__show-copy {
     bottom: var(--space-12);
-    left: var(--space-12);
     right: var(--space-12);
   }
 }
