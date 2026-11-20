@@ -4,28 +4,15 @@
 // `TitledBox` on ink holding the books as a Ledger, the licence on its cite
 // cut-out) and the Discord bot's panel.
 import type { CSSProperties } from 'react'
-import type { RefEnumSchemaName, RefMetaEntity } from 'salvageunion-reference'
+import type { RefEnumSchemaName } from 'salvageunion-reference'
 import {
-  citeLine,
   findEntityBySlug,
   getAssetUrl,
   getEntitySlug,
-  provenancePrintings,
-  resolveProvenance,
   SalvageUnionReference,
-  toEntityModel,
 } from 'salvageunion-reference'
 import type { StartHereStep } from '../components/index'
-import {
-  assetSrcSetFor,
-  Badge,
-  Button,
-  capsLabel,
-  FrontPitch,
-  StartHere,
-  TitledBox,
-} from '../components/index'
-import { widthAtLeast } from '../design/tokens'
+import { assetSrcSetFor, Badge, Button, capsLabel, StartHere, TitledBox } from '../components/index'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -46,114 +33,126 @@ function artOf(schema: RefEnumSchemaName, slug: string, alt: string) {
   return srcSet ? { url, srcSet, alt } : { url, alt }
 }
 
-/** The hero stack's artworks, front first: a Bio-Titan, Mechs, a Pilot, a creature. */
-const HERO_STACK: readonly [RefEnumSchemaName, string][] = [
-  ['bio-titans', 'typhon'],
-  ['chassis', 'atlas'],
-  ['bio-titans', 'tyrant'],
-  ['classes', 'soldier'],
-  ['creatures', 'molebear'],
-  ['chassis', 'leviathan'],
-]
-
-/**
- * Each artwork in the stack: its entity's name, its band colour (the tone its
- * card wears), the book it is printed in for the cut-out, and its page.
- */
-function heroStackArt() {
-  return HERO_STACK.flatMap(([schema, slug]) => {
-    const entity = findEntityBySlug(schema, slug)
-    const name = entity && 'name' in entity ? String(entity.name) : undefined
-    const art = entity && name ? artOf(schema, slug, name) : undefined
-    if (!entity || !name || !art) return []
-    const tone = toEntityModel(entity as RefMetaEntity).tone
-    const provenance = resolveProvenance(entity as RefMetaEntity)
-    // The first printing alone: the cut-out stays one short line.
-    const cite = provenance ? citeLine(provenancePrintings(provenance).slice(0, 1)) : undefined
-    return [
-      {
-        key: `${schema}/${slug}`,
-        name,
-        tone,
-        cite,
-        href: itemHref(schema, getEntitySlug(entity)),
-        ...art,
-      },
-    ]
-  })
+type Slide = {
+  key: string
+  title: string
+  body: string
+  action: string
+  href: string
+  external?: boolean
+  /** The slide's ground: a painting from the books, or a chassis drawn as a blueprint. */
+  art: { url: string; srcSet?: string; blueprint?: boolean } | undefined
 }
 
 /**
- * The hero: the pitch at the left, the art stack at the right. Each artwork
- * stands in its own frame in its entity's band colour, heavy at the foot,
- * where its name and book sit on a paper cut-out, and opens its entity's
- * page. The front one cycles to the back in turn (CSS only: the page is
- * served without React); under reduced motion the stack stands still, its
- * first artwork at the front.
+ * EXPERIMENT: paintings from the Workshop Manual's spreads, cropped clear of
+ * their printed quotes, served from `public/hero-art/` (local only, kept out
+ * of git: artwork lives in R2, ADR-033).
+ */
+const painting = (name: string) => ({ url: `/hero-art/${name}.jpg` })
+
+/** The five slides: what each part of the site is for, over a piece of the book's art. */
+function heroSlides(): Slide[] {
+  const chassis = artOf('chassis', 'atlas', '')
+  return [
+    {
+      key: 'reference',
+      title: referenceCopy('showReference'),
+      body: referenceCopy('showReferenceBody'),
+      action: referenceCopy('readTheRules'),
+      href: '/reference/',
+      art: painting('reference'),
+    },
+    {
+      key: 'build',
+      title: referenceCopy('showBuild'),
+      body: referenceCopy('showBuildBody'),
+      action: referenceCopy('startBuilding'),
+      href: appPath('/'),
+      art: chassis ? { url: chassis.url, srcSet: chassis.srcSet, blueprint: true } : undefined,
+    },
+    {
+      key: 'play',
+      title: referenceCopy('showPlay'),
+      body: referenceCopy('showPlayBody'),
+      action: referenceCopy('showPlayAction'),
+      href: appPath('/games/'),
+      art: painting('play'),
+    },
+    {
+      key: 'buy',
+      title: referenceCopy('showBuy'),
+      body: referenceCopy('showBuyBody'),
+      action: referenceCopy('buyFromLeylinePress'),
+      href: BUY_HREF,
+      external: true,
+      art: painting('buy'),
+    },
+    {
+      key: 'discord',
+      title: referenceCopy('showDiscord'),
+      body: referenceCopy('showDiscordBody'),
+      action: referenceCopy('showDiscordAction'),
+      href: DISCORD_INSTALL_URL,
+      external: true,
+      art: painting('discord'),
+    },
+  ]
+}
+
+/**
+ * EXPERIMENT (hero slideshow): the home is the slideshow, edge to edge and the
+ * whole height between the header and the footer. Each slide's art covers the
+ * ground; its words, and the site's pitch over every slide, stand on paper
+ * plates of their own, so the art is never dimmed. CSS only (the page is
+ * served without React); under reduced motion the first slide stands still.
  */
 export function HomeHero() {
-  const arts = heroStackArt()
+  const slides = heroSlides()
   return (
-    <section className="su-front__hero" aria-label={referenceCopy('siteName')}>
-      <div className="su-front__pitch">
-        <FrontPitch
-          value={referenceCopy('pitchValue')}
-          actions={
-            <>
-              <Button href={appPath('/')} linkAs="a" variant="primary" size="full">
-                {referenceCopy('startBuilding')}
+    <section
+      className="su-front__show"
+      aria-label={referenceCopy('siteName')}
+      style={{ '--su-show-count': slides.length } as CSSProperties}
+    >
+      <ul className="su-front__show-slides">
+        {slides.map((slide, index) => (
+          <li
+            key={slide.key}
+            className="su-front__show-slide"
+            data-blueprint={slide.art?.blueprint ? '' : undefined}
+            style={{ '--su-show-i': index } as CSSProperties}
+          >
+            {slide.art && (
+              <img
+                className="su-front__show-art"
+                src={slide.art.url}
+                srcSet={slide.art.srcSet}
+                sizes="100vw"
+                alt=""
+                // Every slide's art loads at once: a hidden slide's lazy image would wait for its turn.
+                loading="eager"
+                fetchPriority={index === 0 ? 'high' : 'low'}
+                decoding="async"
+              />
+            )}
+            <div className="su-front__show-copy">
+              <h2 className="su-front__show-title">{slide.title}</h2>
+              <p className="su-front__show-body">{slide.body}</p>
+              <Button
+                href={slide.href}
+                linkAs="a"
+                variant="primary"
+                size="full"
+                {...(slide.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              >
+                {slide.action}
               </Button>
-              <Button href="/reference/" variant="default" size="full">
-                {referenceCopy('readTheRules')}
-              </Button>
-            </>
-          }
-        >
-          {referenceCopy('pitchLede')}
-        </FrontPitch>
-      </div>
-      {arts.length > 0 && (
-        <section
-          className="su-front__plate su-front__stack"
-          aria-label={referenceCopy('heroStack')}
-          style={{ '--su-stack-count': arts.length } as CSSProperties}
-        >
-          {arts.map((art, index) => (
-            <a
-              key={art.key}
-              href={art.href}
-              className="su-front__stack-card su-focus-ring"
-              style={
-                {
-                  '--su-stack-i': index,
-                  '--su-art-band': `var(--color-${art.tone})`,
-                } as CSSProperties
-              }
-              // Only the first card takes focus: the rest are the stack behind it.
-              tabIndex={index > 0 ? -1 : undefined}
-            >
-              <span className="su-front__stack-art">
-                <img
-                  src={art.url}
-                  srcSet={art.srcSet}
-                  sizes={`${widthAtLeast('lg')} 36rem, 100vw`}
-                  alt={art.alt}
-                  loading={index === 0 ? 'eager' : 'lazy'}
-                  decoding="async"
-                />
-              </span>
-              <span className="su-front__stack-foot">
-                <span className="su-front__stack-cite">
-                  <span className={cn('su-front__stack-name', capsLabel({ weight: 'bold' }))}>
-                    {art.name}
-                  </span>
-                  {art.cite && <span>{art.cite}</span>}
-                </span>
-              </span>
-            </a>
-          ))}
-        </section>
-      )}
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
     </section>
   )
 }
@@ -192,7 +191,7 @@ export function HomeDoors() {
       title={referenceCopy('threeWaysIn')}
       steps={doors}
       numbered={false}
-      hrefs={{ reference: '/reference/', build: appPath('/'), play: appPath('/games/') }}
+      hrefs={{ reference: '#contents', build: appPath('/'), play: appPath('/games/') }}
     />
   )
 }
