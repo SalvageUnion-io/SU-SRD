@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { kindMatchCss } from '../../components/atoms/unionBarMatch'
 import { contrastRatio as contrast, resolveColor, TEXT_CONTRAST } from '../../design/contrast'
 import { color } from '../../design/tokens'
 
@@ -8,7 +9,9 @@ import { color } from '../../design/tokens'
  * K13: the footer matches the header. Both read one token pair, the chrome
  * (`--color-chrome`, `--color-on-chrome`), so neither can drift from the
  * other on any surface. This reads the stylesheet's last word on each (the
- * header's and the foot's override block in `best-site.css`).
+ * header's and the foot's override block in `best-site.css`). The area rail
+ * under the header stands on the page's band itself, its words in the band's
+ * foreground, never a translucent wash that shifts the band's colour.
  */
 const css = readFileSync(join(import.meta.dir, '..', 'best-site.css'), 'utf8')
 
@@ -37,5 +40,19 @@ describe('the footer matches the header (K13)', () => {
     const ground = resolveColor(color.chrome)
     if (!ink || !ground) throw new Error('the chrome tokens resolve')
     expect(contrast(ink, ground)).toBeGreaterThanOrEqual(TEXT_CONTRAST)
+  })
+})
+
+describe('the area rail wears the band (K13)', () => {
+  test('its words are the band’s foreground', () => {
+    const rail = rule('.su-union-bar[data-mode] .su-union-bar__rail[data-area]')
+    for (const step of ['fg', 'fg-85', 'fg-70', 'fg-60']) {
+      expect(rail).toContain(`--su-bar-${step}: var(--su-on-kind, var(--color-ink))`)
+    }
+  })
+
+  test('no band lays a wash under it', () => {
+    expect(css).not.toContain('--su-rail-ground')
+    expect(kindMatchCss('k', 'var(--color-crawler-band)', 'paper')).not.toContain('rail')
   })
 })

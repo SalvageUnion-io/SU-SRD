@@ -270,16 +270,15 @@
   }
 
   /* The rail wears the page's band (it floats over it), so ink header, rail
-     and band read as one. Its words are ink at full strength on every band;
-     on a dark band, and where a page has none, a paper strip
-     (`--su-rail-ground`, set with the band's kind) lies under them so ink
-     reads at AA. */
+     and band read as one: its words at full strength in the band's own
+     foreground (`--su-on-kind`), never a wash over the band. Where a page
+     has no band the rail is a paper strip with ink words. */
   .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--color-ink) !important;
-    --su-bar-fg-70: var(--color-ink) !important;
-    --su-bar-fg-85: var(--color-ink) !important;
-    --su-bar-fg-60: var(--color-ink) !important;
-    background-color: var(--su-rail-ground, var(--color-paper-85));
+    --su-bar-fg: var(--su-on-kind, var(--color-ink)) !important;
+    --su-bar-fg-70: var(--su-on-kind, var(--color-ink)) !important;
+    --su-bar-fg-85: var(--su-on-kind, var(--color-ink)) !important;
+    --su-bar-fg-60: var(--su-on-kind, var(--color-ink)) !important;
+    background-color: var(--color-paper-85);
     border-bottom: 0;
     border-top: 0;
     min-height: var(--size-full);
@@ -855,7 +854,7 @@
   :root:not([data-rail='dark']):has(.su-chapter-band:not([role='dialog'] *))
     .su-union-bar[data-mode]
     .su-union-bar__rail[data-area] {
-    background-color: var(--su-rail-ground, transparent);
+    background-color: transparent;
   }
 
   /* The band starts under the header's row, behind the rail (2.75rem). */
