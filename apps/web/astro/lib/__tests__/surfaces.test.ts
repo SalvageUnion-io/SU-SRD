@@ -223,13 +223,13 @@ describe('a sparse Page fills its side track (EDL form 5)', () => {
     const html = page('/traits/hacking')
     const rail = html.slice(html.indexOf('su-sparse-rail'), html.indexOf('<footer'))
     expect(rail).toContain('Used by')
-    // Previous and Next are not the rail's: they are the main column's foot,
-    // the ability tree's half-width pair (`NeighbourRow`), Next at its end.
-    expect(rail).not.toContain('>Previous<')
-    const main = html.slice(html.indexOf('su-entity__railed-main'), html.indexOf('su-sparse-rail'))
-    expect(main).toContain('su-entity-page__neighbour-row')
-    expect(main).toMatch(/>Previous<[\s\S]*>Next</)
-    expect(main).toContain('su-entity-page__section--end')
+    // Previous and Next are not the rail's: they are the Page's foot, under
+    // the body and the sidebar (`NeighbourRow`), Next at its end.
+    const foot = html.slice(html.indexOf('su-entity__foot'), html.indexOf('<footer'))
+    expect(html.indexOf('su-entity__foot')).toBeGreaterThan(html.indexOf('su-sparse-rail'))
+    expect(foot).toContain('su-entity-page__neighbour-row')
+    expect(foot).toMatch(/Previous:[\s\S]*Next:/)
+    expect(foot).toContain('su-entity-page__section--end')
     expect(rail).toContain('Hacking Kit')
     // Every user, each with its kind, under the full count: never "and N more".
     expect(rail).toContain('22 uses')

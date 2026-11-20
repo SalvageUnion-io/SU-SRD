@@ -179,6 +179,13 @@
   flex-grow: 1;
 }
 
+/* The Page's foot (Previous / Next): the body's last block, at the page's
+   bottom however short the words, under the body and the sidebar both. */
+.su-entity__foot {
+  margin-top: auto;
+  padding-top: var(--space-24);
+}
+
 .su-entity__body .su-entity-page__wide:empty {
   display: none;
 }

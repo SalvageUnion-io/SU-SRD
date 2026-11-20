@@ -126,6 +126,7 @@ const ROSTER = {
   /** The EDL's forms and modes, the entity module's face, and the Card and Page. */
   edl: [
     'Entity',
+    'NeighbourRow', // a Page's neighbours: the foot's cut-outs (EDL form 5)
     'MiniGroup', // a Mini and the Minis that belong to it, one border (no nesting, E6)
     'Mention',
     'PeekHost',
@@ -167,6 +168,7 @@ const ROSTER = {
   /** Named compositions: product surfaces built from the above. */
   compositions: [
     'AbilityTrack',
+    'abilityTreeNeighbours',
     'BrandCard',
     'OgCard',
     'ogCardForEntity',

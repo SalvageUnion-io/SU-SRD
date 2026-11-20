@@ -493,16 +493,26 @@ describe('nested cards read at one body size, their host’s', () => {
 })
 
 describe("an ability's Page: Preceding and Next on one row", () => {
-  test('both sections share one row, Next marked to sit at its end', () => {
+  test('in the app (a Page that opens Pages) both cut-outs share one row, Next at its end', () => {
     const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
-    const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)
+    const { container } = render(
+      <EntitySurfaceProvider value={{ openPage: () => {} }}>
+        <ReferenceEntityCard data={arms} presentation="page" />
+      </EntitySurfaceProvider>
+    )
     const row = container.querySelector('.su-entity-page__neighbour-row')
     const sections = [...(row?.children ?? [])]
     expect(sections.map((s) => s.querySelector('.su-slab-section__head')?.textContent)).toEqual([
-      'Preceding',
-      'Next',
+      'Preceding:\u00a0Bionic Senses',
+      'Next:\u00a0Bionic Legs',
     ])
     expect(sections[1]?.classList.contains('su-entity-page__section--end')).toBe(true)
     expect(sections[0]?.classList.contains('su-entity-page__section--end')).toBe(false)
+  })
+
+  test('on the SRD the card draws none: the Page frame draws them at its foot', () => {
+    const arms = need(SalvageUnionReference.Abilities.getByName('Bionic Arms'), 'bionic arms')
+    const { container } = render(<ReferenceEntityCard data={arms} presentation="page" />)
+    expect(container.querySelector('.su-entity-page__neighbour-row')).toBeNull()
   })
 })

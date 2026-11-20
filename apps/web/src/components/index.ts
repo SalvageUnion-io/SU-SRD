@@ -157,6 +157,7 @@ export { Footer } from './compositions/Footer'
 export { FrontPitch } from './compositions/FrontPitch'
 export type { NavDrawerCategory, NavDrawerItem } from './compositions/NavDrawer'
 export { NavDrawer } from './compositions/NavDrawer'
+export type { Neighbour } from './compositions/NeighbourRow'
 export { NeighbourRow } from './compositions/NeighbourRow'
 // OgCard — the 1200 × 630 link preview, built from ChapterBand and
 // the Union bar's foot; `ogCardForEntity` is a reference entity's card.
@@ -308,6 +309,7 @@ export type { EntityFormModel, EntityMode } from './entity/types'
 export { InlineMarkdown } from './markdownSection/InlineMarkdown'
 export { MarkdownSection } from './markdownSection/MarkdownSection'
 export { Content } from './referenceEntity/Content'
+export { abilityTreeNeighbours } from './referenceEntity/card/abilityTreeRelations'
 // BayInfo — a crawler bay's own rules under a folding Slab, its first section.
 export { BayInfo } from './referenceEntity/card/BayInfo'
 // EntityCardIdentityFooter — a card's foot band and its cite cut-out (ruleset

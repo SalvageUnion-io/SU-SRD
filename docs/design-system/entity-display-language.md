@@ -20,7 +20,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
    In a `data-entity-grid` every Compact is one height and each name line reserves two.
    **Index layout** (`layout="index"`) — an SRD index's Catalog: 3:4 art if any, name notched in the band, facts, lead; link only.
 4. **Compact contentful** (`ReferenceEntityCard`, `size="compact"`) — the whole entity: head, prose, actions and children as Minis (E6), table as a roll bar, cite; an open Compact (N8). **Full contentful** (`size="full"`): the same, ≥ 30rem.
-5. **Page** (`presentation="page"`) — the detail view, a Full contentful. From 64rem its side track holds the art or, on a sparse Page, info boxes (Used by, Related rules, neighbours; the first stands, the rest while room is left, none empty); trees and pattern Ledgers run full width.
+5. **Page** (`presentation="page"`) — the detail view, a Full contentful. From 64rem its side track holds the art or, on a sparse Page, info boxes (Used by, Related rules; none empty, never past words or screen); trees, pattern Ledgers and the foot's neighbour cut-outs run full width.
 6. **Peek** — E23, level 1 on its plate; one `PeekHost`.
 
 ## Modes

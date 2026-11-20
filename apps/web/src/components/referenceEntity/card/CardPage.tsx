@@ -9,6 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
+import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import { ChoiceRegion } from './ChoiceRegion'
@@ -173,8 +174,10 @@ export function CardPage({
     </>
   )
 
-  // Preceding and Next side by side on one row, Next's label at its end.
-  const neighbours = abilityTreeNeighbours(entity)
+  // Preceding and Next side by side on one row, Next's at its end. The app's
+  // Page (a dialog, `openPage`) draws them here; the SRD's Page frame draws
+  // them at its foot, under the body and the sidebar (`EntityPageFrame`).
+  const neighbours = useEntitySurface().openPage ? abilityTreeNeighbours(entity) : []
 
   // Every entity's Page is the manual's; a pattern's and a guide's keep the
   // art-led layout below.

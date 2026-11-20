@@ -78,6 +78,11 @@ type EntityPageFrameProps = {
   exits?: GuideExits | null
   /** A sparse Page's side column (`SparseRail`, EDL form 5), beside its body. */
   rail?: ReactNode
+  /**
+   * The Page's foot (`NeighbourRow`): under the body and the sidebar both, at
+   * the page's bottom.
+   */
+  foot?: ReactNode
   children: ReactNode
 }
 
@@ -92,6 +97,7 @@ export function EntityPageFrame({
   buy,
   exits,
   rail,
+  foot,
   children,
 }: EntityPageFrameProps) {
   return (
@@ -168,6 +174,7 @@ export function EntityPageFrame({
         ) : (
           children
         )}
+        {foot && <div className="su-entity__foot">{foot}</div>}
         {exits && <GuideExitsFoot {...exits} />}
       </div>
     </article>

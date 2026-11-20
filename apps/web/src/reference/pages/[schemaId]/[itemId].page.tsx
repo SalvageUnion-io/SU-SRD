@@ -9,9 +9,20 @@
  * band. A roll table gets its own page to roll on.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
+import type {
+  EnhancedSchemaMetadata,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+} from 'salvageunion-reference'
 import { truncate } from 'salvageunion-reference'
-import { CHAPTER_BAND_COLOR, NeighbourRow, resolveEntityPageMeta } from '../../../components/index'
+import type { Neighbour } from '../../../components/index'
+import {
+  abilityTreeNeighbours,
+  CHAPTER_BAND_COLOR,
+  NeighbourRow,
+  resolveEntityPageMeta,
+} from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
@@ -82,6 +93,23 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     !rollPage && !techLevelPage && isSparse(item)
       ? sparseRailFor(schemaId as RefEnumSchemaName, item)
       : null
+  const neighbours: Neighbour[] = sparse
+    ? [
+        {
+          label: referenceCopy('previousEntry'),
+          entities: sparse.previous ? [sparse.previous] : [],
+        },
+        {
+          label: referenceCopy('nextEntry'),
+          entities: sparse.next ? [sparse.next] : [],
+          end: true,
+        },
+      ]
+    : abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
+        label,
+        entities: abilities,
+        end: label === 'Next',
+      }))
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -147,6 +175,11 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
         rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
+        foot={
+          // What comes before and after it: a sparse entry's neighbours in its
+          // list, an ability's in its tree. Under the body and the sidebar.
+          <NeighbourRow as="h2" neighbours={neighbours} />
+        }
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
@@ -156,23 +189,6 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
-        {/* Its neighbours in its list, at the foot, as an ability's in its tree. */}
-        {sparse && (
-          <NeighbourRow
-            as="h2"
-            neighbours={[
-              {
-                label: referenceCopy('previousEntry'),
-                entities: sparse.previous ? [sparse.previous] : [],
-              },
-              {
-                label: referenceCopy('nextEntry'),
-                entities: sparse.next ? [sparse.next] : [],
-                end: true,
-              },
-            ]}
-          />
-        )}
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
           <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>

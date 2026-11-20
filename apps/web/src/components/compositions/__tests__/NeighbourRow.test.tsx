@@ -8,7 +8,7 @@ const traits = SalvageUnionReference.findAllIn('traits', () => true) as RefMetaE
 const [first, second] = traits as [RefMetaEntity, RefMetaEntity]
 
 describe('NeighbourRow', () => {
-  test('draws each side that has a neighbour, the forward side’s name at its end', () => {
+  test('each side is its cut-out alone, the relation and the name; the forward side at its end', () => {
     const { container } = render(
       <NeighbourRow
         as="h2"
@@ -18,22 +18,25 @@ describe('NeighbourRow', () => {
         ]}
       />
     )
-    expect(screen.getByRole('heading', { name: 'Previous' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Next' })).toBeTruthy()
+    const previous = screen.getByRole('heading', { name: new RegExp(`^Previous:.${first.name}$`) })
+    expect(previous).toBeTruthy()
+    expect(screen.getByRole('heading', { name: new RegExp(`^Next:.${second.name}$`) })).toBeTruthy()
+    // No body under either cut-out.
+    expect(container.querySelector('.su-slab-section__body')).toBeNull()
     expect(container.querySelectorAll('.su-entity-page__section--end')).toHaveLength(1)
-    expect(screen.getByText(second.name, { exact: false })).toBeTruthy()
   })
 
-  test('an empty side is not drawn, and a row with none is nothing', () => {
+  test('a side with several names lists them; an empty side is not drawn, and a row with none is nothing', () => {
     const { container, rerender } = render(
       <NeighbourRow
         neighbours={[
           { label: 'Previous', entities: [] },
-          { label: 'Next', entities: [first], end: true },
+          { label: 'Next', entities: [first, second], end: true },
         ]}
       />
     )
-    expect(screen.queryByText('Previous')).toBeNull()
+    expect(screen.queryByText(/Previous/)).toBeNull()
+    expect(container.textContent).toContain(`${first.name}, ${second.name}`)
     rerender(<NeighbourRow neighbours={[{ label: 'Previous', entities: [] }]} />)
     expect(container.innerHTML).toBe('')
   })
