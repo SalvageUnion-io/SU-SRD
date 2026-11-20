@@ -1,7 +1,7 @@
 /**
- * A Page's lore is titled Description (hard rule R43, ruleset §1.7): the
- * entity's own words sit under a Description Slab, never under a book's name.
- * With art they fill the side column beneath it (hard rule R61).
+ * A Page's lore leads its main column as plain prose (best, revision 8,
+ * replacing R43's Description Slab and R61's side column): no heading, no
+ * panel, before the stats and the rules.
  */
 import { expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -14,17 +14,21 @@ const page = () => {
   return render(<ReferenceEntityCard data={gopher} presentation="page" />).container
 }
 
-test('the entity’s own words sit under a Description Slab', () => {
+test('the entity’s own words are plain prose, under no Description heading', () => {
   const container = page()
-  const lore = container.querySelector('.su-manual__lore')
-  expect(lore?.querySelector('h2, h3')?.textContent).toBe('Description')
-  expect(lore?.querySelector('.su-entity-page__prose')?.textContent).toContain('Gopher')
+  expect(container.querySelector('.su-manual__lore')).toBeNull()
+  const prose = container.querySelector('.su-manual__main .su-entity-page__prose')
+  expect(prose?.textContent).toContain('Gopher')
+  expect(
+    [...container.querySelectorAll('h2, h3')].some((h) => h.textContent === 'Description')
+  ).toBe(false)
 })
 
-test('the Description fills the side column under the art', () => {
-  const side = page().querySelector('.su-manual__side')
-  expect([...(side?.children ?? [])].map((el) => el.classList.contains('su-manual__lore'))).toEqual(
-    [false, true]
-  )
+test('the words lead the main column; the side column holds the art', () => {
+  const container = page()
+  const main = container.querySelector('.su-manual__main')
+  expect(main?.firstElementChild?.classList.contains('su-entity-page__prose')).toBe(true)
+  const side = container.querySelector('.su-manual__side')
+  expect(side?.querySelector('.su-entity-page__prose')).toBeNull()
   expect(side?.firstElementChild?.classList.contains('su-manual__art')).toBe(true)
 })
