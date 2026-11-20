@@ -159,25 +159,41 @@ body:has(.su-front--show) main {
   z-index: 2;
 }
 
-/* The site's name and the pitch, one cut-out at the left, as wide as the name. */
+/* The site's name on its cut-out at the left, the pitch tucked under it on
+   cut-outs of its own, each line as wide as its words. */
 .su-front__show-brand {
-  background-color: var(--color-wk-bg);
+  align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  padding: 0 var(--space-16) var(--space-12);
-  width: min-content;
 }
 
+/* The name is ink on the slideshow, its words cream; the pitch and the
+   slides' plates stay cream. */
 .su-front__show-name {
-  color: var(--color-ink);
+  background-color: var(--color-ink);
+  color: var(--color-wk-bg);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
   line-height: 0.92;
   margin: 0;
-  padding-top: var(--space-12);
+  padding: var(--space-12) var(--space-16) var(--space-4);
   white-space: nowrap;
+}
+
+/* Each line's cut-out fills its line exactly (the face's content, then its
+   padding above and below), so the lines and the name stack flush, no gap
+   between them. */
+.su-front__show-brand > .su-front__show-pitch {
+  line-height: calc(1.15em + var(--space-6));
+  max-width: 30rem;
+}
+
+.su-front__show-pitch-line {
+  background-color: var(--color-wk-bg);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: calc(var(--space-6) / 2) var(--space-16);
 }
 
 /* A slide's words, at its lower right in the same place on every slide: one

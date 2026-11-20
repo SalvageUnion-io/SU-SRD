@@ -170,11 +170,14 @@ export function HomeHero() {
         ))}
       </ul>
       {/* The site's name on a cream cut-out under the header, the page's one
-          h1, and the pitch under it on the same paper. */}
+          h1, and the pitch tucked under it on cut-outs of its own, each line
+          as wide as its words. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
           <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
-          <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
+          <p className="su-front__show-pitch">
+            <span className="su-front__show-pitch-line">{referenceCopy('pitchValue')}</span>
+          </p>
         </div>
       </div>
     </section>
