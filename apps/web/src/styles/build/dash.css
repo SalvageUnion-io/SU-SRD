@@ -487,40 +487,6 @@
   padding-inline: var(--space-4);
 }
 
-/* ── 3. The header strip ────────────────────────────────────────────────── */
-
-.su-strip {
-  background-color: var(--color-paper);
-  border-bottom: var(--bw-pill) solid var(--color-ink);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.su-strip__row {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.su-strip__art {
-  align-self: stretch;
-  background-color: var(--color-paper);
-  border-right: var(--bw-hairline) solid var(--color-ink-20);
-  display: none;
-  flex: none;
-  padding: var(--space-8);
-  width: calc(var(--size-full) * 2 + var(--space-24));
-}
-
-.su-strip__art figure {
-  height: 100%;
-}
-
-.su-strip__art img {
-  height: 100%;
-  object-fit: contain;
-  width: 100%;
-}
-
 .su-strip__vitals {
   display: flex;
   flex: 3 1 24rem;
@@ -541,7 +507,6 @@
 
 /* A cell: a small label, a big numeral, a slim meter. */
 .su-strip__cell {
-  border-left: var(--bw-hairline) solid var(--color-ink-20);
   box-sizing: border-box;
   display: flex;
   flex: 1 1 0;
@@ -552,8 +517,8 @@
   padding: var(--space-12) var(--space-16);
 }
 
-.su-strip__vitals > .su-strip__cell:first-child {
-  border-left: 0;
+.su-strip__cell + .su-strip__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
 }
 
 .su-strip__label {
@@ -575,7 +540,7 @@
   color: var(--color-ink-75);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--tracking-caps-tight);
+  letter-spacing: var(--tracking-caps-snug);
   overflow: hidden;
   text-overflow: clip;
 }
@@ -763,10 +728,6 @@
 }
 
 @media (width >= 40rem) {
-  .su-strip__art {
-    display: block;
-  }
-
   .su-strip__vitals {
     border-left: 0;
   }
@@ -779,10 +740,6 @@
     border-top: var(--bw-hairline) solid var(--color-ink-20);
     flex-basis: 100%;
   }
-
-  .su-strip__figures > .su-strip__cell:first-child {
-    border-left: 0;
-  }
 }
 
 /* ── 4. The dashboard ───────────────────────────────────────────────────── */
@@ -794,10 +751,6 @@
 
 .su-dash-top {
   margin-inline: calc(-1 * var(--su-page-gutter-inline));
-}
-
-.su-dash-top .su-strip__row {
-  padding-inline: calc(var(--su-page-gutter-inline) - var(--space-16));
 }
 
 .su-dash {
@@ -942,15 +895,7 @@
 }
 
 .su-dash-more:hover {
-  /* design-tokens-ignore(rust-allowlist): MOCK, a disclosure is an action */
-  color: var(--color-rust);
-}
-
-/* An item named beside its picture (a chassis, a class, a crawler type). */
-.su-dash-entity {
-  align-items: flex-start;
-  display: flex;
-  gap: var(--space-12);
+  text-decoration: underline;
 }
 
 .su-dash-entity__name {
@@ -1144,7 +1089,7 @@
   padding: var(--space-8) var(--su-page-gutter-inline);
   position: sticky;
   top: 0;
-  z-index: 40; /* `layer.sticky` */
+  z-index: var(--z-sticky);
 }
 
 .su-dash-pin[data-stuck] {
@@ -1517,7 +1462,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-@container (width >= 46rem) {
+@container (width >= 48rem) {
   .su-trees {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1582,7 +1527,7 @@
 /* The numerals: the chapter rung, already on the ladder (§4.8). */
 .su-mast .su-strip__vitals .su-strip__num > b {
   font-size: var(--text-chapter);
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   line-height: 0.82;
 }
 
@@ -1650,21 +1595,6 @@
   font-weight: var(--font-weight-bold);
 }
 
-.su-mast__view {
-  align-items: center;
-  display: flex;
-  flex: 1 0 auto;
-  gap: var(--space-12);
-  justify-content: flex-end;
-  padding-block: var(--space-8);
-}
-
-.su-mast__view-count {
-  font-variant-numeric: tabular-nums;
-  margin-left: var(--space-4);
-  opacity: 0.7;
-}
-
 .su-mast .su-strip__foot {
   padding-inline: 0;
 }
@@ -1694,17 +1624,6 @@
   margin: 0;
 }
 
-/* The Motto: the line a player says aloud, at the title rung. */
-.su-mast-id__quote {
-  color: var(--color-ink);
-  font-family: var(--font-cond);
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-bold);
-  line-height: 1.15;
-  margin: var(--space-4) 0 0;
-  text-wrap: balance;
-}
-
 @media (width >= 40rem) {
   .su-mast {
     column-gap: var(--space-24);
@@ -1721,7 +1640,7 @@
   }
 }
 
-@media (width >= 72rem) {
+@media (width >= 80rem) {
   .su-mast {
     column-gap: var(--space-32);
     grid-template-columns: 12.5rem minmax(0, 1fr) minmax(0, 20rem);
@@ -1732,36 +1651,15 @@
     height: 12.5rem;
   }
 
+  .su-mast__board + .su-mast__identity {
+    border-left: var(--bw-hairline) solid var(--color-ink-20);
+  }
+
   .su-mast__identity {
     align-self: stretch;
-    border-left: var(--bw-hairline) solid var(--color-ink-20);
     border-top: 0;
     grid-column: auto;
     padding-inline-start: var(--space-32);
-  }
-}
-
-/* ── D. The Actions view ────────────────────────────────────────────────── */
-
-.su-actions-view {
-  column-gap: var(--space-32);
-  columns: 1;
-}
-
-.su-actions-view > .su-open {
-  break-inside: avoid;
-  margin-bottom: var(--space-28);
-}
-
-@media (width >= 48rem) {
-  .su-actions-view {
-    columns: 2;
-  }
-}
-
-@media (width >= 80rem) {
-  .su-actions-view {
-    columns: 3;
   }
 }
 
@@ -1771,19 +1669,6 @@
   .su-mast .su-strip__cell--figure {
     min-width: 0;
     padding-block: var(--space-8);
-  }
-
-  .su-mast__view {
-    flex-basis: 100%;
-    justify-content: stretch;
-  }
-
-  .su-mast__view > .su-seg {
-    flex: 1 1 auto;
-  }
-
-  .su-mast__view .su-seg__option {
-    flex: 1 1 0;
   }
 
   .su-open__detail-body {
@@ -1947,7 +1832,7 @@
   font-size: var(--text-body);
   gap: var(--space-8);
   justify-content: space-between;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--tracking-caps-tight);
   padding: var(--space-6) var(--space-8);
 }
 
@@ -1966,7 +1851,7 @@
   font-family: var(--font-cond);
   font-size: var(--text-badge);
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--tracking-caps-snug);
 }
 
 .su-chassis-plate__figures {
@@ -1988,7 +1873,7 @@
   line-height: 1.1;
 }
 
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-chassis-gallery__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-8);
@@ -2103,7 +1988,7 @@
 /* On a phone the Starter crew's head keeps one line:
    the title is not allowed to wrap, and the pilots' tally (the rows say it)
    goes. */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-open--pairs .su-open__title > .su-rule-head__label {
     font-size: var(--text-lede);
     white-space: nowrap;

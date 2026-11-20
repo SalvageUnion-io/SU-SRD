@@ -25,6 +25,7 @@ import {
   StartHere,
   TitledBox,
 } from '../components/index'
+import { widthAtLeast } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -135,7 +136,7 @@ export function HomeHero() {
                 <img
                   src={art.url}
                   srcSet={art.srcSet}
-                  sizes="(width >= 64rem) 36rem, 100vw"
+                  sizes={`${widthAtLeast('lg')} 36rem, 100vw`}
                   alt={art.alt}
                   loading={index === 0 ? 'eager' : 'lazy'}
                   decoding="async"

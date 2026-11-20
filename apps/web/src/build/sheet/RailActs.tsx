@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { capsLabel, cn } from '../../components/index'
+import { widthAtLeast } from '../../design/tokens'
 
 /** The acts read in caps, as the rail's links do (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -15,7 +16,7 @@ const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
  * A portal into the rail's slot (`AppBar`'s `[data-rail-acts]`): the acts keep
  * their handlers and state, only their place changes.
  */
-const RAIL_QUERY = '(width >= 64rem)'
+const RAIL_QUERY = widthAtLeast('lg')
 
 function findSlot(): HTMLElement | null {
   for (const slot of document.querySelectorAll<HTMLElement>('[data-rail-acts]')) {

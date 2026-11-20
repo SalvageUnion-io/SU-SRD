@@ -289,7 +289,7 @@
   font-family: var(--font-cond);
   font-size: var(--text-readout);
   font-weight: var(--font-weight-extrabold);
-  letter-spacing: 0.03em;
+  letter-spacing: var(--tracking-caps-tight);
   line-height: 1.05;
   overflow: hidden;
   padding: var(--space-8);
@@ -377,17 +377,6 @@
     padding-inline: var(--su-shell-edge);
   }
 
-  /* The alternate (`alt-dark-rail-*` shots; MOCK: `data-rail="dark"` on the
-     root, set by the shot script): a dark rail a step lighter than the
-     header's ink, paper text. */
-  :root[data-rail='dark'] .su-union-bar[data-mode] .su-union-bar__rail[data-area] {
-    --su-bar-fg: var(--color-paper) !important;
-    --su-bar-fg-70: var(--color-paper) !important;
-    --su-bar-fg-85: var(--color-paper) !important;
-    --su-bar-fg-60: var(--color-paper) !important;
-    background-color: color-mix(in srgb, var(--color-ink-deep) 85%, var(--color-paper));
-  }
-
   .su-union-bar .su-union-bar__rail-name {
     margin-inline: 0 var(--space-12);
   }
@@ -404,55 +393,6 @@
   --su-foot-mark: invert(1) !important;
   --su-foot-grain-paper: contents !important;
   --su-foot-grain-ink: none !important;
-}
-
-/* L-3: the tab row, on the masthead's foot. Tabs, not a boxed switch: the
-   current view carries an ink bar on the row's rule. */
-.su-dash-top:has(> .su-mast__tabs) > .su-mast {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-}
-
-.su-mast__tabs {
-  background-color: var(--color-paper);
-  border-bottom: var(--bw-pill) solid var(--color-ink);
-  padding-inline: var(--su-page-gutter-inline);
-}
-
-.su-mast__tabs .su-seg {
-  background: none;
-  border: 0;
-  box-shadow: none;
-  margin: 0;
-  min-inline-size: 0;
-  outline: 0;
-  padding: 0;
-  border-radius: 0;
-  display: flex;
-  gap: var(--space-24);
-}
-
-.su-mast__tabs .su-seg__option,
-.su-mast__tabs .su-seg__option + .su-seg__option {
-  background: none;
-  border: 0;
-  border-radius: 0;
-  color: var(--color-ink-75);
-  flex: none;
-  font-size: var(--text-readout);
-  min-height: var(--size-full);
-  padding-inline: var(--space-2);
-}
-
-.su-mast__tabs .su-seg__option:hover {
-  background: none;
-  color: var(--color-ink);
-}
-
-.su-mast__tabs .su-seg__option[aria-pressed='true'],
-.su-mast__tabs .su-seg__option[aria-pressed='true']:hover {
-  background: none;
-  box-shadow: inset 0 calc(-1 * var(--space-4)) 0 var(--color-ink);
-  color: var(--color-ink);
 }
 
 /* L-4: no borders on a table. */
@@ -490,9 +430,9 @@
 /* Revision 4, note 1: an ability's level is a small mark, not a column. */
 .su-trees .su-open-level {
   font-size: var(--text-badge);
-  height: 1.125rem;
-  min-width: 1.125rem;
-  width: 1.125rem;
+  height: var(--size-mini);
+  min-width: var(--size-mini);
+  width: var(--size-mini);
 }
 
 .su-trees .su-open__toggle {
@@ -515,7 +455,7 @@
 }
 
 /* A phone: the bays list keeps to the page (no sideways scroll, R44). */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-open.su-open--manifest .su-open__row > td[data-kind='text'],
   .su-open.su-open--manifest thead th[data-col][data-kind='text'] {
     padding-inline: var(--space-4);
@@ -527,7 +467,7 @@
   }
 }
 
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
     padding-inline: var(--space-4);
   }
@@ -545,39 +485,9 @@
   }
 }
 
-/* Revision 4, note 2: the Actions view is a tool. */
-.su-actions-tool {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-16);
-}
-
-.su-actions-tool__bar {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8) var(--space-16);
-}
-
-/* The field has its own line; the filters share the next. */
-.su-actions-tool__search {
-  flex: 1 1 100%;
-  margin-inline-end: max(0px, calc(100% - 32rem));
-  max-width: 32rem;
-}
-
-.su-open--actions .su-open__clamp {
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-}
-
-.su-open--actions :is(.su-open__under > td, .su-open__detail-body) {
-  max-width: 46rem;
-}
-
 /* L-1: at the measure, a sheet band's corner controls and the foot keep the
    page's edges too. */
-@media (width >= 84rem) {
+@media (width >= 80rem) {
   .su-chapter-band:not([data-measured]) .su-chapter-band__corner {
     padding-inline: var(--su-shell-edge);
   }
@@ -1050,7 +960,7 @@
 /* A strip's buttons fit inside the strip: none hangs under its edge. */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions .su-btn {
   font-size: var(--text-chip);
-  height: 1.5rem; /* design-tokens-ignore(raw-size): inside the 2rem strip */
+  height: 1.5rem; /* design-tokens-ignore(size-literal): inside the 2rem strip */
   min-height: 0;
   padding-block: 0;
 }
@@ -1208,7 +1118,7 @@
 }
 
 /* A phone: the lines take the rail's whole width under the tallies. */
-@media (width < 40rem) {
+@media not (width >= 40rem) {
   .su-mast__traits {
     border-top: var(--bw-hairline) solid var(--color-ink-20);
     flex-basis: 100%;
@@ -1219,9 +1129,9 @@
 /* A PILOT'S REAL NAME. Plain words on the callsign's
    baseline, inside the title's cut-out, in the body face at a lighter weight. */
 .su-title-aka {
-  margin-left: 0.6em;
+  margin-inline-start: var(--space-12);
   font-family: var(--font-body);
-  font-size: 0.36em;
+  font-size: var(--text-title);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -1244,7 +1154,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 2px var(--space-12);
+  gap: var(--space-2) var(--space-12);
   padding: var(--space-8) var(--space-12);
   background-color: var(--su-kind, var(--color-tl-1));
   color: var(--color-ink);
@@ -1253,20 +1163,20 @@
 .su-companion-cell__kind {
   grid-column: 1 / -1;
   font-family: var(--font-cond);
-  font-size: var(--text-xs, 0.6875rem);
-  letter-spacing: 0.08em;
+  font-size: var(--text-badge);
+  letter-spacing: var(--tracking-caps-snug);
 }
 .su-companion-cell__name {
   font-family: var(--font-cond);
-  font-size: 1.125rem;
+  font-size: var(--text-readout);
   font-weight: 700;
 }
 .su-companion-cell__block {
-  font-size: 0.8125rem;
+  font-size: var(--text-caption);
 }
 .su-companion-cell__vitals {
   grid-column: 1 / -1;
-  font-size: 0.8125rem;
+  font-size: var(--text-caption);
   font-variant-numeric: tabular-nums;
 }
 .su-companion-cell:hover .su-companion-cell__name,
@@ -1547,8 +1457,8 @@
 @media (prefers-reduced-motion: no-preference) {
   .su-dash-pin {
     transition:
-      background-color 150ms ease-out,
-      padding 150ms ease-out;
+      background-color var(--dur-fast) var(--ease),
+      padding var(--dur-fast) var(--ease);
   }
 }
 
@@ -1728,11 +1638,11 @@
 }
 
 .su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter::before {
-  background-color: var(--color-rust);
+  background-color: var(--color-status-bad);
 }
 
 .su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
-  color: var(--color-rust);
+  color: var(--color-status-bad);
 }
 
 /* The acts, compact, as the rail draws them. */
@@ -1745,13 +1655,6 @@
 .su-sheet-bar__acts :is(a, button) {
   min-height: 0 !important;
   padding-block: var(--space-4) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  /* biome-ignore lint/style/noDescendingSpecificity: MOCK, the condensed bar */
-  .su-sheet-gutter {
-    transition: none !important;
-  }
 }
 
 /* An app page that reads as a Reference Page (the Starter Set): its body is
@@ -1767,14 +1670,7 @@
    - frame: `--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint,
      round a thing that is one object (a tile, a card, a tracker);
    - divider: one hairline in ink-20 between parts of one surface;
-   - the 2px ink rule is the band's and a Ledger's strip foot only.
-   The sheet's tab row and its masthead dropped their 2px ink rules to the
-   divider. */
-.su-mast__tabs {
-  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
-}
-
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, borders by role and contained boxes */
+   - the 2px ink rule is the band's and a Ledger's strip foot only. */
 .su-mast {
   border-bottom-color: var(--color-ink-20);
   border-bottom-width: var(--bw-hairline);

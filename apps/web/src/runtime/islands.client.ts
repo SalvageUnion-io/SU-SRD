@@ -9,6 +9,7 @@
  */
 
 import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
+import { widthAtLeast } from '../design/tokens'
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
@@ -50,7 +51,7 @@ function placeStaticRailActs(): void {
   const home = document.querySelector<HTMLElement>('.su-chapter-band__action')
   const acts = home?.querySelector<HTMLElement>(':scope>.su-rail-acts')
   if (!acts || !home) return
-  const media = window.matchMedia('(width >= 64rem)')
+  const media = window.matchMedia(widthAtLeast('lg'))
   const place = () => {
     let slot: HTMLElement | null = null
     for (const each of document.querySelectorAll<HTMLElement>('[data-rail-acts]')) {

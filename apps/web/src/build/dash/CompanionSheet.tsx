@@ -22,6 +22,7 @@ import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-referenc
 import type { PhoneVital } from '../../components/index'
 import { ChapterBand, Chips, capsLabel, Mention, relation, Tag } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { space } from '../../design/tokens'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
 import { cn } from '../../lib/cn'
@@ -67,7 +68,7 @@ const SHEET = {
   containerType: 'inline-size',
   display: 'flex',
   flexDirection: 'column',
-  gap: 24,
+  gap: space[24],
 } satisfies CSSProperties
 
 const NO_CHIPS = { durations: [], facts: [], tags: [] }

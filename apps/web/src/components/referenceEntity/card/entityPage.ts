@@ -111,10 +111,12 @@ export function pageBodyStats(entity: RefMetaEntity): BookStat[] {
 }
 
 /**
- * Every book stat of an entity in the stat order (§2.6: a chassis reads TL, SV,
- * SP, EP, Sys, Mod, Heat, Cargo), for its Page's stat column (`CardPage`).
+ * A chassis's book stats in the stat order (§2.6: TL, SV, SP, EP, Sys, Mod,
+ * Heat, Cargo), for its Page's stat column (`CardPage`). Every other Page's
+ * stats ride its band, so its body repeats none.
  */
 export function pageStatLine(entity: RefMetaEntity): BookStat[] {
+  if (!statsInBody(entity)) return []
   // The numeral's frame holds a letter, not a word: a Bio-Chassis reads `B`.
   return bookStatsOf(toEntityModel(entity), entity).map((stat) =>
     stat.key === 'tech-level' ? { ...stat, value: String(stat.value).charAt(0) } : stat
