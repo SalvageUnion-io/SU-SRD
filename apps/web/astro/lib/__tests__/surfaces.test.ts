@@ -50,16 +50,26 @@ describe('home: the front door, its slideshow alone', () => {
   })
 
   it('says the tagline in its hand as a slide of its own, not in the head', () => {
-    const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).not.toContain('su-tagline')
     expect(show).toMatch(/su-front__show-plate--quote"><figure class="su-tagline"/)
   })
 
-  it('names the site in the head; the pitch is the first slide', () => {
-    const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
+  it('names the site in the head, the pitch under it; the first slide is the art alone', () => {
+    const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
+    expect(head).toContain('su-front__show-pitch')
     const first = show.slice(0, show.indexOf('</li>'))
-    expect(first).toContain('su-front__show-pitch')
+    expect(first).not.toContain('su-front__show-copy')
+  })
+
+  it('heads the first three action slides, each with its own line', () => {
+    const headings = [...show.matchAll(/su-front__show-heading">([^<]+)</g)].map((m) => m[1])
+    expect(headings).toEqual([
+      'A Full System Reference Document',
+      'Build your salvager',
+      'Join the union',
+    ])
   })
 
   it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {

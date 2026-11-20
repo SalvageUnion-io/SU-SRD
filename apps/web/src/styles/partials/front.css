@@ -131,20 +131,21 @@ body:has(.su-front--show) main {
   position: absolute;
 }
 
-/* The pitch, a slide's line: the title's face, a step under the name. */
-.su-front__show-pitch {
+/* The pitch under the site's name, and a slide's heading over its line: the
+   title's face, a step under the name. */
+.su-front__show-pitch,
+.su-front__show-heading {
   font-family: var(--font-cond);
   font-size: var(--text-title);
   font-weight: var(--font-weight-bold);
   line-height: 1.2;
   margin: 0;
-  max-width: 24rem;
   text-wrap: balance;
 }
 
-/* The site's name on a paper cut-out at the top left, the chapter title's
-   face at its size, and the pitch flowing flush out of its foot on the same
-   paper. */
+/* The site's name on a paper cut-out notched into the header at the top
+   left, the chapter title's face at its size, and the pitch flowing flush
+   out of its foot on the same paper. */
 .su-front__show-head {
   align-items: flex-start;
   display: flex;
@@ -154,31 +155,36 @@ body:has(.su-front--show) main {
   left: var(--su-shell-edge, var(--space-24));
   position: absolute;
   right: var(--su-shell-edge, var(--space-24));
-  top: var(--space-24);
+  top: 0;
   z-index: 2;
 }
 
-/* The site's name, a cut-out at the left. */
+/* The site's name and the pitch, one cut-out at the left, as wide as the name. */
 .su-front__show-brand {
+  background-color: var(--color-wk-bg);
   display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-16) var(--space-12);
+  width: min-content;
 }
 
 .su-front__show-name {
-  background-color: var(--color-wk-bg);
   color: var(--color-ink);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
   line-height: 0.92;
   margin: 0;
-  padding: var(--space-12) var(--space-16) var(--space-4);
+  padding-top: var(--space-12);
+  white-space: nowrap;
 }
 
 /* A slide's words, at its lower right in the same place on every slide: one
-   cream plate, as wide as its words (`shrinkWrap` fits the line), the line
-   first and its action at the right, on one row at every width. */
+   cream plate notched into the footer, as wide as its words, its heading and
+   line first and its action at the right, on one row at every width. */
 .su-front__show-copy {
-  bottom: var(--space-24);
+  bottom: 0;
   color: var(--color-ink);
   display: flex;
   right: var(--su-shell-edge, var(--space-24));
@@ -201,12 +207,18 @@ body:has(.su-front--show) main {
   width: auto;
 }
 
-.su-front__show-body {
-  /* Always left of the button, a phone included. One measure on every slide,
-     so each line sits on two even rows and the plate keeps its size. */
+/* Always left of the button, a phone included. One measure on every slide,
+   so each line sits on two even rows and the plate keeps its size. */
+.su-front__show-words {
+  display: flex;
   flex: 0 1 24rem;
-  margin: 0;
+  flex-direction: column;
+  gap: var(--space-4);
   min-width: 0;
+}
+
+.su-front__show-body {
+  margin: 0;
   text-wrap: balance;
 }
 
@@ -256,7 +268,6 @@ body:has(.su-front--show) main {
   .su-front__show-head {
     left: var(--space-12);
     right: var(--space-12);
-    top: var(--space-12);
   }
 
   .su-front__show-name {
@@ -264,8 +275,12 @@ body:has(.su-front--show) main {
   }
 
   .su-front__show-copy {
-    bottom: var(--space-12);
     right: var(--space-12);
+  }
+
+  .su-front__show-pitch,
+  .su-front__show-heading {
+    font-size: var(--text-lede);
   }
 }
 

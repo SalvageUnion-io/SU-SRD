@@ -27,12 +27,15 @@ export const referenceCopy = messages({
   usedByCount: '{count} uses',
   relatedRules: 'Related rules',
   showReference: 'Know the rules',
+  showReferenceHeading: 'A Full System Reference Document',
   showReferenceBody:
     'Every Chassis, System, Module, Ability and rule in the book, searchable and cited to its page.',
   showBuild: 'Build your crew',
+  showBuildHeading: 'Build your salvager',
   showBuildBody:
     'Make a Pilot, a Mech and a Union Crawler step by step, or start from the Starter Set crew.',
   showPlay: 'Play at the table',
+  showPlayHeading: 'Join the union',
   showPlayBody:
     'Roll, spend and take damage on live sheets, solo or with your whole crew in one shared Game.',
   showBuy: 'Get the books',

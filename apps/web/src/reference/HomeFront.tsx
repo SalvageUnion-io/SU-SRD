@@ -1,6 +1,7 @@
-// The home page: its slideshow (`HomeHero`), the site's name on a cream
-// cut-out and the pitch over five slides of the book's art, each a line and
-// one action named for the slide, then the tagline's slide.
+// The home page: its slideshow (`HomeHero`), the site's name and the pitch on
+// a cream cut-out under the header, over seven slides of the book's art, each
+// (but the first) a line and one action named for the slide on a cut-out over
+// the footer, then the tagline's slide.
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
@@ -17,8 +18,16 @@ type Slide = {
   /** The slide's ground: a painting from the books. */
   art: { url: string } | undefined
 } & (
-  | { kind: 'action'; title: string; body: string; href: string; external?: boolean }
-  /** The slide's words are the pitch, in the title's face. */
+  | {
+      kind: 'action'
+      title: string
+      /** The line over the body, in the title's face; some slides have none. */
+      heading?: string
+      body: string
+      href: string
+      external?: boolean
+    }
+  /** The slide's words are the pitch, which stands under the site's name: the art alone. */
   | { kind: 'pitch' }
   /** The slide's words are the tagline (`Tagline`), in its plate. */
   | { kind: 'quote' }
@@ -42,6 +51,7 @@ function heroSlides(): Slide[] {
       key: 'reference',
       kind: 'action',
       title: referenceCopy('showReference'),
+      heading: referenceCopy('showReferenceHeading'),
       body: referenceCopy('showReferenceBody'),
       href: '/reference/',
       art: painting('slide-city'),
@@ -50,6 +60,7 @@ function heroSlides(): Slide[] {
       key: 'build',
       kind: 'action',
       title: referenceCopy('showBuild'),
+      heading: referenceCopy('showBuildHeading'),
       body: referenceCopy('showBuildBody'),
       href: appPath('/'),
       art: painting('build'),
@@ -58,6 +69,7 @@ function heroSlides(): Slide[] {
       key: 'play',
       kind: 'action',
       title: referenceCopy('showPlay'),
+      heading: referenceCopy('showPlayHeading'),
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
       art: painting('slide-union'),
@@ -88,10 +100,10 @@ function heroSlides(): Slide[] {
 /**
  * The home is its slideshow, edge to edge and the whole height between the
  * header and the footer. Each slide's art covers the ground. The site's name
- * stands on a paper cut-out at the top with the pitch under it; each slide's
- * words stand on the art itself, in the same place every time, over a soft
- * scrim. CSS only (the page is served without React); under reduced motion
- * the first slide stands still.
+ * and the pitch stand on a paper cut-out notched into the header; each
+ * slide's words on one notched into the footer, in the same place every time.
+ * CSS only (the page is served without React); under reduced motion the
+ * first slide stands still.
  */
 export function HomeHero() {
   const slides = heroSlides()
@@ -124,42 +136,45 @@ export function HomeHero() {
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
-            {/* The slide's words on a cream plate at its lower right: its line,
-                then its action (named for the slide, which has no heading) at
-                the plate's right. */}
-            <div className="su-front__show-copy">
-              {slide.kind === 'quote' ? (
-                <div className="su-front__show-plate su-front__show-plate--quote">
-                  <Tagline />
-                </div>
-              ) : slide.kind === 'pitch' ? (
-                <div className="su-front__show-plate">
-                  <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
-                </div>
-              ) : (
-                <div className="su-front__show-plate">
-                  <p className="su-front__show-body">{slide.body}</p>
-                  <Button
-                    href={slide.href}
-                    linkAs="a"
-                    variant="primary"
-                    size="full"
-                    className="su-front__show-act"
-                    target={slide.external ? '_blank' : undefined}
-                    rel="noopener noreferrer"
-                  >
-                    {slide.title}
-                  </Button>
-                </div>
-              )}
-            </div>
+            {/* The slide's words on a cream cut-out at its lower right, on the
+                footer: its heading and line, then its action (named for the
+                slide) at the plate's right. The pitch's slide has none. */}
+            {slide.kind !== 'pitch' && (
+              <div className="su-front__show-copy">
+                {slide.kind === 'quote' ? (
+                  <div className="su-front__show-plate su-front__show-plate--quote">
+                    <Tagline />
+                  </div>
+                ) : (
+                  <div className="su-front__show-plate">
+                    <div className="su-front__show-words">
+                      {slide.heading && <p className="su-front__show-heading">{slide.heading}</p>}
+                      <p className="su-front__show-body">{slide.body}</p>
+                    </div>
+                    <Button
+                      href={slide.href}
+                      linkAs="a"
+                      variant="primary"
+                      size="full"
+                      className="su-front__show-act"
+                      target={slide.external ? '_blank' : undefined}
+                      rel="noopener noreferrer"
+                    >
+                      {slide.title}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </li>
         ))}
       </ul>
-      {/* The site's name on a cream cut-out, the page's one h1. */}
+      {/* The site's name on a cream cut-out under the header, the page's one
+          h1, and the pitch under it on the same paper. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
           <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
+          <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
         </div>
       </div>
     </section>
