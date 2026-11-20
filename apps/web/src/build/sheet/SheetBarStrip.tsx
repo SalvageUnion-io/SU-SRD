@@ -6,8 +6,12 @@
  */
 
 import type { CSSProperties, ReactNode } from 'react'
+import { capsLabel } from '../../components/index'
 import { cn } from '../../lib/cn'
 import type { LiveSheetStripItem } from './LiveSheet'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** A vital's fill (0–1), or nothing when it has no max. */
 function fillOf(item: LiveSheetStripItem): number | undefined {
@@ -36,7 +40,7 @@ export function SheetBarStrip({
 }) {
   return (
     <>
-      <span className="su-sheet-bar__name">
+      <span className={cn('su-sheet-bar__name', CAPS, CAPS)}>
         <b>{title}</b>
         {nameAside && <span>{nameAside}</span>}
         <small>{kind}</small>
@@ -52,7 +56,7 @@ export function SheetBarStrip({
             )}
             data-state={stateOf(item, fill)}
           >
-            <span className="su-sheet-bar__label">{item.label}</span>
+            <span className={cn('su-sheet-bar__label', CAPS, CAPS)}>{item.label}</span>
             <span className="su-sheet-bar__figure">
               <b>{item.value}</b>
               {item.max !== undefined && <i>/{item.max}</i>}

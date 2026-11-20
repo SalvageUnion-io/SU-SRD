@@ -11,6 +11,9 @@ import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
 
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
+
 /** The switcher's tabs keep their rule's tracking, which steps with the bar's width. */
 const TAB_CAPS = capsLabel({ tracking: 'inherit' })
 
@@ -301,12 +304,12 @@ export function AppBar({
             data-area={area}
             aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
           >
-            <span className="su-union-bar__rail-name">{RAIL[area].name}</span>
+            <span className={cn('su-union-bar__rail-name', CAPS, CAPS)}>{RAIL[area].name}</span>
             {RAIL[area].links.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className={cn('su-union-bar__rail-link', FOCUS_RING)}
+                className={cn('su-union-bar__rail-link', CAPS, FOCUS_RING)}
               >
                 {link.label}
               </a>

@@ -28,9 +28,10 @@ import {
   pilotMaxHP,
   resolveChassisRef,
 } from 'salvageunion-reference/rules'
-import { CiteLine } from '../../components/index'
+import { CiteLine, capsLabel } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { resolveClass } from '../../lib/classRef'
+import { cn } from '../../lib/cn'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import type { StarterRosterId } from '../../lib/starterSet/starterTemplates'
 import {
@@ -43,6 +44,9 @@ import { buildStarterSetCopy } from '../../messages/build-starter-set'
 import type { OpenColumn, OpenRow } from '../dash/OpenLedger'
 import { OpenLedger, TechLevel } from '../dash/OpenLedger'
 import { CopyStarterMenu } from './CopyStarterMenu'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const BOOK: Record<StarterRosterId, string> = {
   'starter-set': STARTER_SET_ADVENTURE,
@@ -82,7 +86,7 @@ function pairing(roster: ReturnType<typeof starterRoster>): Map<string, Mech> {
 function chassisMeta(mech: Mech, chassis: { name: string } | null | undefined) {
   if (!chassis) return null
   if (chassis.name.toLowerCase() === mech.name.toLowerCase()) return null
-  return <span className="su-open__meta">{chassis.name}</span>
+  return <span className={cn('su-open__meta', CAPS, CAPS)}>{chassis.name}</span>
 }
 
 function mechCells(mech: Mech | undefined) {

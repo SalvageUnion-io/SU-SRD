@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { capsLabel, cn } from '../../components/index'
+
+/** The acts read in caps, as the rail's links do (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /**
  * A page's acts (Read | Edit | Play, Share, ⋯) ride
@@ -45,6 +49,6 @@ export function RailActs({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const acts = <div className="su-rail-acts">{children}</div>
+  const acts = <div className={cn('su-rail-acts', CAPS)}>{children}</div>
   return slot ? createPortal(acts, slot) : acts
 }

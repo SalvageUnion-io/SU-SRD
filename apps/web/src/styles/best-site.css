@@ -41,7 +41,6 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps-wide);
   margin-inline: calc(var(--size-compact) + var(--space-12)) var(--space-12);
-  text-transform: uppercase;
 }
 
 .su-union-bar__rail-link {
@@ -54,7 +53,6 @@
   line-height: calc(var(--size-compact) - var(--bw-pill));
   padding-inline: var(--space-12);
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .su-union-bar__rail-link:hover {
@@ -111,12 +109,10 @@
 
 .su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
   align-items: flex-start !important;
-  background: linear-gradient(
-    to bottom,
-    var(--su-kind, var(--color-ink)) 0,
-    var(--su-kind, var(--color-ink)) calc(var(--su-tile-label) + var(--space-6)),
-    var(--color-paper) calc(var(--su-tile-label) + var(--space-6))
-  ) !important;
+  /* The head strip: a band of the kind's paint over the tile's paper. */
+  background: var(--color-paper) !important;
+  box-shadow: inset 0 calc(var(--su-tile-label) + var(--space-6)) 0 0
+    var(--su-kind, var(--color-ink));
   border: var(--bw-entity-compact) solid var(--su-kind, var(--color-ink-40)) !important;
   flex-direction: column !important;
   gap: 0 !important;
@@ -282,16 +278,12 @@
   width: 100%;
 }
 
-/* The slot before its art: the title set as a cover, ink on the book's blue. */
+/* The slot before its art: the title set as a cover, ink on the book's blue,
+   a strip of the book's paint at its head. */
 .su-front__cover-type {
   align-items: flex-end;
   background-color: var(--color-ink);
-  background-image: linear-gradient(
-    to bottom,
-    var(--su-kind, var(--color-wk-line)) 0,
-    var(--su-kind, var(--color-wk-line)) var(--space-12),
-    transparent var(--space-12)
-  );
+  box-shadow: inset 0 var(--space-12) 0 0 var(--su-kind, var(--color-wk-line));
   color: var(--color-paper);
   display: flex;
   font-family: var(--font-cond);
@@ -301,7 +293,6 @@
   line-height: 1.05;
   overflow: hidden;
   padding: var(--space-8);
-  text-transform: uppercase;
 }
 
 .su-front__cover:hover .su-front__cover-type {
@@ -794,7 +785,6 @@
   min-width: 0;
   outline-offset: calc(-1 * var(--space-2));
   padding: var(--bw-pill) var(--space-12) 0;
-  text-transform: uppercase;
   width: auto;
 }
 
@@ -889,7 +879,6 @@
 /* A strip's own controls (Show Homebrew, + New Game, Copy the crew to …)
    are compact buttons at the strip's end, on its line: never a full-width
    bar under it (revision 6, 16:47Z). */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's wrapped actions */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions {
   align-self: center;
   flex: 0 0 auto;
@@ -985,7 +974,6 @@
 /* A guide's phase (Post-Session) stands over steps that each wear their own
    cut-out: the phase is a plain ruled label, never a second cut-out over
    them (L-6). */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase strip */
 .su-guide--page .su-guide__section > .su-slab-section__head {
   background: none !important;
   border-bottom: var(--bw-pill) solid var(--color-ink);
@@ -997,7 +985,6 @@
   content: none;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the phase label's plate */
 .su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
   background: none !important;
   color: var(--color-ink);
@@ -1039,7 +1026,6 @@
    Kit over its NPC and Encounter tables) is a plain ruled label too (L-6).
    So is a section's head in a Peek: the Peek's own title cut-out stands
    right above it. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip */
 [role='dialog'] .su-rule-head.su-slab-section__head,
 .su-rule-head.su-rule-head--over {
   background: none !important;
@@ -1048,7 +1034,6 @@
   padding-block: var(--space-4);
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
 [role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
   background: none !important;
   color: var(--color-ink);
@@ -1063,7 +1048,6 @@
 }
 
 /* A strip's buttons fit inside the strip: none hangs under its edge. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the compact button's height */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__actions .su-btn {
   font-size: var(--text-chip);
   height: 1.5rem; /* design-tokens-ignore(raw-size): inside the 2rem strip */
@@ -1071,7 +1055,6 @@
   padding-block: 0;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
 .su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) {
   align-items: center;
   padding-block: var(--space-4);
@@ -1081,7 +1064,6 @@
   row-gap: var(--space-12);
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, the strip holds its buttons */
 .su-rule-head:not(.su-rule-head--sub):has(> .su-rule-head__actions) > .su-rule-head__label {
   align-self: flex-end;
   margin-bottom: calc(-1 * var(--space-4));
@@ -1105,17 +1087,6 @@
  * the title now that the acts ride the rail.
  * ══════════════════════════════════════════════════════════════════════ */
 
-/* A crawler's band takes the deeper crawler pink its rail and tables wear,
-   so rail and band are one colour there too (paper text 4.6:1). MOCK: the
-   band's own paint is matched by its inline colour; the real change is
-   `ChapterBand`'s tone. */
-.su-chapter-band[style*='206, 88, 152']:not([role='dialog'] *) {
-  background-color: var(
-    --su-kind,
-    rgb(184 74 134)
-  ) !important; /* design-tokens-ignore(raw-color): crawlerBand, as tokens.ts */
-}
-
 /* With its acts on the rail the corner holds nothing: it takes no room. */
 .su-chapter-band .su-chapter-band__corner:not(:has(*)) {
   display: none !important;
@@ -1123,20 +1094,17 @@
 
 /* Under 64rem the acts are the band's first row: no paint of their own, the
    band's colour and speckle run through them. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the strip's paint */
 .su-chapter-band .su-chapter-band__corner:has(> .su-rail-acts) {
   background-color: transparent;
 }
 
 /* Nothing above the title: the cut-out stands from the band's top (under
    the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
 .su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
   padding-top: 0 !important;
 }
 
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
   padding-top: var(--space-8);
 }
@@ -1175,7 +1143,6 @@
 }
 
 /* The row is as tall as the title cut-out, no taller. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, collapses the band */
 .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
   min-height: 0 !important;
 }
@@ -1288,7 +1255,6 @@
   font-family: var(--font-cond);
   font-size: var(--text-xs, 0.6875rem);
   letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 .su-companion-cell__name {
   font-family: var(--font-cond);
@@ -1348,7 +1314,6 @@
    a hairline. Band, rail and foot stay full bleed over it. A phone has no
    margin: nothing changes there. */
 :root {
-  --color-desk: color-mix(in srgb, var(--color-wk-bg) 84%, var(--color-ink));
   /* The column's padding is the title plate's own (its title's inset on the
      plate), so the content's edge lines up with the title's words. Never past
      the window's edge. */
@@ -1361,20 +1326,14 @@
 }
 
 @media (width >= 64rem) {
-  /* Painted on whatever lays the ground (the body; an SRD page's <main>),
-     pinned to the window so the column lines up across them. */
-  :root :is(body, main) {
-    /* !important: the app's sheet grounds are unlayered and would win. */
-    background-attachment: fixed !important;
-    background-image: linear-gradient(
-      to right,
-      var(--color-desk) 0,
-      var(--color-desk) var(--su-col-l),
-      var(--color-wk-bg) var(--su-col-l),
-      var(--color-wk-bg) var(--su-col-r),
-      var(--color-desk) var(--su-col-r),
-      var(--color-desk) 100%
-    ) !important;
+  /* Painted on whatever lays the ground (the body; an SRD page's <main>):
+     the desk is a band either side of the column, measured from the
+     window's centre, so the column lines up across them. Inset, so it lies
+     over the element's own ground and under its content. */
+  :is(body, main) {
+    box-shadow:
+      inset var(--su-column-edge) 0 0 0 var(--color-desk),
+      inset calc(-1 * var(--su-column-edge)) 0 0 0 var(--color-desk);
   }
 }
 
@@ -1407,7 +1366,7 @@
 
 /* The kicker's words stand where the title's do: the plate's padding in. */
 @media (width >= 64rem) {
-  :root .su-chapter-band__eyebrow {
+  :root .su-chapter-band > .su-chapter-band__eyebrow {
     padding-inline: var(--su-column-pad) !important;
   }
 }
@@ -1446,8 +1405,7 @@
    read as one surface, no seam of page ground between. */
 @media not (width >= 40rem) {
   .su-page-gutters:has(.su-mast) > .su-chapter-band__overflow + * {
-    background:
-      linear-gradient(var(--color-paper), var(--color-paper)) top / 100% var(--space-24) no-repeat;
+    box-shadow: inset 0 var(--space-24) 0 0 var(--color-paper);
   }
 }
 
@@ -1568,7 +1526,6 @@
   overflow: hidden;
   padding: var(--space-6) var(--space-8);
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -1699,7 +1656,6 @@
   line-height: 1;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__name > span {
@@ -1713,7 +1669,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__vital {
@@ -1733,7 +1688,6 @@
   font-size: var(--text-chip);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-caps);
-  text-transform: uppercase;
 }
 
 .su-sheet-bar__figure {
@@ -1756,11 +1710,7 @@
 
 /* The fill: a thin bar along the card's foot, the unit's paint. */
 .su-sheet-bar__meter {
-  background: linear-gradient(
-    to right,
-    var(--su-kind, var(--color-ink)) calc(var(--su-fill) * 100%),
-    var(--color-ink-10) calc(var(--su-fill) * 100%)
-  );
+  background-color: var(--color-ink-10);
   bottom: 0;
   height: var(--space-2);
   left: 0;
@@ -1768,16 +1718,21 @@
   right: 0;
 }
 
-.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
-  color: var(--color-rust);
+/* The fill, its share of the meter in the unit's paint. */
+.su-sheet-bar__meter::before {
+  background-color: var(--su-kind, var(--color-ink));
+  content: '';
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: calc(var(--su-fill) * 100%);
 }
 
-.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter {
-  background: linear-gradient(
-    to right,
-    var(--color-rust) calc(var(--su-fill) * 100%),
-    var(--color-ink-10) calc(var(--su-fill) * 100%)
-  );
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter::before {
+  background-color: var(--color-rust);
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
+  color: var(--color-rust);
 }
 
 /* The acts, compact, as the rail draws them. */

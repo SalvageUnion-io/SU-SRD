@@ -21,8 +21,11 @@
 import { Minus, Plus } from 'lucide-react'
 import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import type { CSSVarStyle, PhoneVital } from '../../components/index'
-import { cn, FOCUS_RING, tokens } from '../../components/index'
+import { capsLabel, cn, FOCUS_RING, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** The strip's art frame (`EntityPhoto`'s `frame`): a square thumbnail. */
 // biome-ignore lint/style/useComponentExportOnlyModules: the strip's own frame, beside it
@@ -124,12 +127,12 @@ function StripVital({ vital }: { vital: PhoneVital }) {
       data-vital={vital.key}
       data-counter={max === undefined ? '' : undefined}
     >
-      <p className="su-strip__label">
+      <p className={cn('su-strip__label', CAPS, CAPS)}>
         {label}
         <small>{max === undefined ? note : name}</small>
       </p>
       <div className="su-strip__read">
-        <p className="su-strip__num" data-over={over ? '' : undefined}>
+        <p className={cn('su-strip__num', CAPS, CAPS)} data-over={over ? '' : undefined}>
           <b>{shown}</b>
           {max !== undefined && <i>/{max}</i>}
         </p>
@@ -228,9 +231,9 @@ export function StripFigure({
   const bar = tl !== undefined ? `var(--color-tl-${String(tl).toLowerCase()})` : undefined
   return (
     <div className="su-strip__cell su-strip__cell--figure" title={name}>
-      <dt className="su-strip__label">{label}</dt>
+      <dt className={cn('su-strip__label', CAPS, CAPS)}>{label}</dt>
       <dd className="su-strip__value">
-        <span className="su-strip__num" data-over={over ? '' : undefined}>
+        <span className={cn('su-strip__num', CAPS, CAPS)} data-over={over ? '' : undefined}>
           <b>{value}</b>
           {max !== undefined && <i>/{max}</i>}
           {unit && <small>{unit}</small>}

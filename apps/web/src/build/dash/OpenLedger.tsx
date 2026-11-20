@@ -29,8 +29,11 @@ import type { ElementType, ReactNode } from 'react'
 import { Fragment, useId, useState } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import type { CSSVarStyle, SlabCount } from '../../components/index'
-import { cn, InlineRef, Mention, tokens } from '../../components/index'
+import { capsLabel, cn, InlineRef, Mention, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 export type OpenColumn = {
   key: string
@@ -171,7 +174,7 @@ function Row({
                 row.name
               )}
             </span>
-            {row.meta && <span className="su-open__meta">{row.meta}</span>}
+            {row.meta && <span className={cn('su-open__meta', CAPS, CAPS)}>{row.meta}</span>}
             {row.state && <span className="su-open__state">{row.state}</span>}
           </span>
         </th>
@@ -221,7 +224,7 @@ function Group({
   return (
     <tbody>
       {group.label !== undefined && (
-        <tr className="su-open__group">
+        <tr className={cn('su-open__group', CAPS, CAPS)}>
           <th colSpan={span} scope="rowgroup">
             <span className="su-open__group-line">
               {group.fold ? (
@@ -278,17 +281,17 @@ export function OpenLedger({
   const gutter = filled.some((group) => group.rows.some((row) => row.detail !== undefined))
   return (
     <table className={cn('su-open', className)}>
-      <thead>
+      <thead className={CAPS}>
         <tr>
           <th scope="col">
             <span className="su-open__title">
-              <Heading className="su-rule-head__label">{title}</Heading>
+              <Heading className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</Heading>
               {tallies.length > 0 && (
                 <span className="su-rule-head__tallies">
                   {tallies.map((entry) => (
                     <span
                       key={entry.label}
-                      className="su-rule-head__tally"
+                      className={cn('su-rule-head__tally', CAPS, CAPS)}
                       data-state={entry.state === 'critical' ? 'critical' : undefined}
                     >
                       <b>{entry.value}</b>
@@ -298,7 +301,7 @@ export function OpenLedger({
                   ))}
                 </span>
               )}
-              {note && <span className="su-rule-head__note">{note}</span>}
+              {note && <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>}
               {actions && <div className="su-rule-head__actions">{actions}</div>}
             </span>
           </th>

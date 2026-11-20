@@ -15,8 +15,9 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, Stat } from '../../components/index'
+import { Conditions, capsLabel, Stat } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { buildSheetCopy } from '../../messages/build-sheet'
@@ -32,6 +33,9 @@ import type { OpenColumn, OpenRow } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
 import { STRIP_ART, Strip, StripFigure } from './Strip'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const ABILITY_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
@@ -86,7 +90,9 @@ function abilityRow(entry: AbilityEntry, used: readonly string[], inTree = false
     under:
       model.lead || (inTree && action !== '') ? (
         <p className="su-open__clamp">
-          {inTree && action !== '' && <span className="su-open__meta">{action} · </span>}
+          {inTree && action !== '' && (
+            <span className={cn('su-open__meta', CAPS, CAPS)}>{action} · </span>
+          )}
           {model.lead}
         </p>
       ) : undefined,
@@ -122,7 +128,9 @@ export function PilotDash({
   const foot =
     pilot.conditions.length > 0 ? (
       <>
-        <span className="su-strip__foot-label">{buildSheetCopy('conditions')}</span>
+        <span className={cn('su-strip__foot-label', CAPS, CAPS)}>
+          {buildSheetCopy('conditions')}
+        </span>
         <Conditions conditions={[...pilot.conditions]} />
       </>
     ) : undefined
@@ -221,7 +229,7 @@ export function PilotDash({
       <div className="su-mast-id">
         {pilot.description && (
           <div className="su-mast-id__about">
-            <p className="su-mast-id__label">{buildSheetCopy('about')}</p>
+            <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
             <Prose text={pilot.description} lines={phone ? 3 : 5} />
           </div>
         )}
@@ -245,7 +253,7 @@ export function PilotDash({
         (fact) =>
           fact && (
             <div key={fact.key} className="su-mast-trait">
-              <dt className="su-mast-id__label">{fact.label}</dt>
+              <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{fact.label}</dt>
               <dd>{fact.value}</dd>
             </div>
           )

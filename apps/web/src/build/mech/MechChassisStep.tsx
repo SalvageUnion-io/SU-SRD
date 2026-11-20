@@ -8,11 +8,15 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import { assetSrcSetFor, EmptyState, ReferenceEntityCard } from '../../components/index'
+import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
+import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
@@ -236,8 +240,8 @@ function ChassisGallery({
   return (
     <section className="su-chassis-gallery">
       <header className="su-rule-head">
-        <h2 className="su-rule-head__label">{title}</h2>
-        <span className="su-rule-head__note">{note}</span>
+        <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</h2>
+        <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>
       </header>
       <div className="su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
         {pool.map((chassis) => {
@@ -260,7 +264,7 @@ function ChassisGallery({
                   <img src={art} srcSet={assetSrcSetFor(art)} sizes="240px" alt="" loading="lazy" />
                 )}
               </span>
-              <span className="su-chassis-plate__name">
+              <span className={cn('su-chassis-plate__name', CAPS, CAPS)}>
                 <b>{chassis.name}</b>
                 <span className="su-chassis-plate__cost">
                   <small>{mechCopy('sv')}</small> {chassis.salvageValue}

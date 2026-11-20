@@ -1,5 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import { color } from '../../../design/tokens'
 import { EmptyState } from '../../containers/EmptyState'
 import { Badge } from '../Badge'
@@ -14,6 +15,7 @@ import { Slab } from '../Slab'
 // biome-ignore lint/style/noRestrictedImports: the atom's own test; its hosts are Stat and VitalGauge (R12)
 import { StepButton } from '../SmallButtons'
 import { StatusBadge } from '../StatusBadge'
+import { SlabLookProvider } from '../slabLook'
 
 function rootEl(container: Element): HTMLElement {
   const el = container.firstElementChild
@@ -169,26 +171,38 @@ describe('EmptyState', () => {
 })
 
 describe('Slab', () => {
+  // A section head is the rule look by default (`auto`); these hold the stamp
+  // a Mini Slab and a stamp surface still wear.
+  const inStamp = (ui: ReactElement) =>
+    render(<SlabLookProvider value="stamp">{ui}</SlabLookProvider>)
+
+  test('a section head is a label on a rule by default; a Mini Slab keeps the stamp', () => {
+    render(<Slab label="Gear" />)
+    expect(screen.getByText('Gear').className).toContain('su-rule-head__label')
+    render(<Slab label="Talents" size="mini" />)
+    expect(screen.getByText('Talents').className).toContain(POSTER_STAMP)
+  })
+
   test('slab renders label and count', () => {
-    render(<Slab label="Systems" count="2" />)
+    inStamp(<Slab label="Systems" count="2" />)
     expect(screen.getByText('Systems')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
   })
 
   test('every slab is the solid ink stamp (R1): a dashed head reads as user-made', () => {
-    render(<Slab label="Abilities" />)
+    inStamp(<Slab label="Abilities" />)
     expect(screen.getByText('Abilities').className).toContain(POSTER_STAMP)
   })
 
   test('the count is muted, or takes the ground ink with countInk="inherit"', () => {
-    render(<Slab label="Classes" count="Choose 1" />)
+    inStamp(<Slab label="Classes" count="Choose 1" />)
     expect(screen.getByText('Choose 1').style.color).toBe(color.wkMuted)
-    render(<Slab label="Types" count="Pick one" countInk="inherit" />)
+    inStamp(<Slab label="Types" count="Pick one" countInk="inherit" />)
     expect(screen.getByText('Pick one').style.color).toBe('currentcolor')
   })
 
   test('a value count is a label-first Stat chip, not trailing text', () => {
-    const { container } = render(
+    const { container } = inStamp(
       <Slab label="Systems" count={{ label: 'Slots', value: 3, max: 6 }} />
     )
     const chip = container.querySelector('.su-stat-cell')
@@ -199,7 +213,7 @@ describe('Slab', () => {
   })
 
   test('an over-cap value count rides the critical border, its note after the chip', () => {
-    const { container } = render(
+    const { container } = inStamp(
       <Slab
         label="Systems"
         count={{ label: 'Slots', value: 7, max: 6, state: 'critical', note: 'as printed' }}

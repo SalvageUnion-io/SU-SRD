@@ -20,16 +20,21 @@ import {
   assetSrcSetFor,
   Badge,
   Button,
+  capsLabel,
   FrontPitch,
   StartHere,
   TitledBox,
 } from '../components/index'
 import { appPath } from '../lib/appBase'
+import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
 import { BUY_HREF } from '../lib/docPages'
 import { itemHref } from '../lib/entityHref'
 import { compositionsCopy } from '../messages/components-compositions'
 import { referenceCopy } from '../messages/reference'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** An entity's R2 art, or nothing when the dataset no longer has it. */
 function artOf(schema: RefEnumSchemaName, slug: string, alt: string) {
@@ -245,7 +250,7 @@ export function BuyTheGame() {
                   {cover ? (
                     <img src={cover} alt="" loading="lazy" />
                   ) : (
-                    <span className="su-front__cover-type" aria-hidden="true">
+                    <span className={cn('su-front__cover-type', CAPS, CAPS)} aria-hidden="true">
                       {book.name}
                     </span>
                   )}

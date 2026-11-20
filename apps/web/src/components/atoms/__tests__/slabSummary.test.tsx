@@ -6,6 +6,7 @@
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
 import { Slab } from '../Slab'
+import { SlabLookProvider } from '../slabLook'
 import { SUMMARY_BUDGET, slabSummary } from '../slabSummary'
 
 describe('slabSummary (C10)', () => {
@@ -44,13 +45,15 @@ describe('slabSummary (C10)', () => {
 describe('a Slab draws its summary through Chips (C2)', () => {
   test('each count is a measure in one strip, its note after the strip', () => {
     const { container } = render(
-      <Slab
-        label="Systems"
-        count={[
-          { label: 'Slots', value: 3, max: 6, note: 'as printed' },
-          { label: 'Modules', value: 2, max: 3 },
-        ]}
-      />
+      <SlabLookProvider value="stamp">
+        <Slab
+          label="Systems"
+          count={[
+            { label: 'Slots', value: 3, max: 6, note: 'as printed' },
+            { label: 'Modules', value: 2, max: 3 },
+          ]}
+        />
+      </SlabLookProvider>
     )
     const strip = container.querySelector('[data-chip-group]')
     const lanes = [...(strip?.querySelectorAll('[data-chip-class]') ?? [])]

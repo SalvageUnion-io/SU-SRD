@@ -20,10 +20,11 @@ import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
 import type { PhoneVital } from '../../components/index'
-import { ChapterBand, Chips, Mention, relation, Tag } from '../../components/index'
+import { ChapterBand, Chips, capsLabel, Mention, relation, Tag } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'
+import { cn } from '../../lib/cn'
 import { replacePartner } from '../../lib/partnerLookup'
 import { buildCompanionActions } from '../../lib/rules/actionList'
 import {
@@ -44,6 +45,9 @@ import type { OpenColumn, OpenRow } from './OpenLedger'
 import { OpenLedger, TechLevel } from './OpenLedger'
 import { RowRules } from './RowRules'
 import { STRIP_ART, Strip, StripFigure } from './Strip'
+
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const ABILITY_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text', phone: true },
@@ -280,14 +284,16 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
             traits={
               <dl className="su-mast-traits">
                 <div className="su-mast-trait">
-                  <dt className="su-mast-id__label">{buildSheetCopy('techLevel')}</dt>
+                  <dt className={cn('su-mast-id__label', CAPS, CAPS)}>
+                    {buildSheetCopy('techLevel')}
+                  </dt>
                   <dd>
                     <TechLevel level={partnerTechLevel(partner, undefined)} />
                   </dd>
                 </div>
                 {lines.map((line) => (
                   <div key={line.key} className="su-mast-trait">
-                    <dt className="su-mast-id__label">{line.label}</dt>
+                    <dt className={cn('su-mast-id__label', CAPS, CAPS)}>{line.label}</dt>
                     <dd>{line.value}</dd>
                   </div>
                 ))}
@@ -297,7 +303,7 @@ export function CompanionSheet({ hostKind, hostId, partnerId }: Props) {
               about !== '' ? (
                 <div className="su-mast-id">
                   <div className="su-mast-id__about">
-                    <p className="su-mast-id__label">{buildSheetCopy('about')}</p>
+                    <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
                     <Prose text={about} lines={5} />
                   </div>
                 </div>
