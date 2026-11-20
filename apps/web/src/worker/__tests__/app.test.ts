@@ -261,10 +261,10 @@ describe('the shell’s Union bar is marked for the route', () => {
   it('wears the Training Bay on its pages, its tab current', async () => {
     expect(await served('/patterns/')).toEqual({
       mode: 'build',
-      current: ['Training Bay'],
+      current: ['Builder'],
       hidden: false,
     })
-    expect(await served('/')).toEqual({ mode: 'build', current: ['Training Bay'], hidden: false })
+    expect(await served('/')).toEqual({ mode: 'build', current: ['Builder'], hidden: false })
   })
 
   it('marks, and hides, a Cockpit’s', async () => {
@@ -275,7 +275,7 @@ describe('the shell’s Union bar is marked for the route', () => {
     })
     expect(await served('/pilots/p1/play')).toEqual({
       mode: 'build',
-      current: ['Training Bay'],
+      current: ['Builder'],
       hidden: true,
     })
   })
