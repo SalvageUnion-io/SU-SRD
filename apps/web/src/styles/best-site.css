@@ -1584,15 +1584,23 @@
     order: calc(-3 * var(--su-fill, 0)) !important;
   }
 
-  /* The act keeps the row's far corner, out of the chips' flow. */
-  .su-chapter-band .su-chapter-band__row[data-chip-fill] {
-    position: relative;
+  /* The acts stay in the chips' flow (`chipFill` orders them last, the
+     name's auto margin pushing them to the far end): the bottom-right corner
+     on the name's line, on the chips' foot (§4.7). */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > .su-chapter-band__action {
+    align-self: flex-end;
+    margin-block: var(--space-8);
   }
 
-  .su-chapter-band .su-chapter-band__row[data-chip-fill] > .su-chapter-band__action {
-    bottom: var(--space-12);
-    position: absolute;
-    right: var(--su-band-act-edge, var(--space-16));
+  /* The spring before the acts (the fill's last item, `--su-fill: 1`, order
+     -3; the chip before them -6): no width of its own, so the fill never counts it; it takes the
+     line's free room so the acts end at the far edge. Its margin gives back
+     the one gap it adds to the line. */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill]:has(> .su-chapter-band__action)::after {
+    content: '';
+    flex: 1 0 0;
+    margin-inline-start: calc(-1 * var(--space-8));
+    order: -4;
   }
 }
 

@@ -784,7 +784,10 @@
     grid-row: span 2;
   }
 
-  .su-dash__col--wide {
+  /* A wide column takes the row; a lone column after it takes the next one
+     whole, never half a row with the other half empty. */
+  .su-dash__col--wide,
+  .su-dash__col--wide + .su-dash__col:last-child {
     grid-column: 1 / -1;
   }
 }

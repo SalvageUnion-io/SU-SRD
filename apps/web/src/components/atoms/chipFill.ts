@@ -420,9 +420,11 @@ export function fitChipFill(container: HTMLElement): void {
   const fullName = oneLineWidth(name)
   const nameWidth = ellipsizes(name) ? clippedName(name, fullName, room) : fullName
   // A head laid by CSS alone (a Page's controls band on a phone, its
-  // controls over its title) sends nothing out; nor does one with nowhere to send it.
-  // Nor does one not laid out (a closed tab): it fits once drawn.
-  const routes = room > 0 && s.flexDirection === 'row-reverse' && (!!row || moreWidth !== undefined)
+  // controls over its title: a column) sends nothing out; nor does one with
+  // nowhere to send it. Nor does one not laid out (a closed tab): it fits once
+  // drawn. A fitted head runs as a row either way (a band's chips beside its
+  // title run `row`, ordered by `--su-fill` as `row-reverse` places them).
+  const routes = room > 0 && s.flexDirection.startsWith('row') && (!!row || moreWidth !== undefined)
   // What this fit reads: the same again (its own writes resized the name or
   // a line), and nothing changes.
   const at = [room, gap, nameWidth, moreWidth ?? -1, ...widths].map((n) => n.toFixed(2)).join(',')

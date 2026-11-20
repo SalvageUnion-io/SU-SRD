@@ -146,8 +146,9 @@ export const designRoutes: readonly DesignRoute[] = [
  *   outside `designRoutes` since a field's label is the Eyebrow over its
  *   control (R16) (`design-walk.e2e.ts`'s value cells).
  * - `ability-trees`: ability trees on their tracks: a Core class's page, a
- *   Hybrid Class's, the abilities index's Tree, and every Starter pilot's sheet,
- *   each class's trees (`ability-trees.e2e.ts`).
+ *   Hybrid Class's and the abilities index's Tree (`ability-trees.e2e.ts`). A
+ *   Starter pilot's sheet reads as its dashboard, its trees as ledgers, no
+ *   track (`PilotDash`); the editable sheet's tracks are its unit tests'.
  * - `linked-head`: a contentful card met inside another, whose name links to
  *   its Page: a drone's and a vehicle's systems (`link-heads.e2e.ts`).
  */
@@ -188,12 +189,7 @@ const STARTER_SHEETS = [
 
 /** Traits a Starter Set sheet carries, by sheet; the rest carry none. */
 const STARTER_TRAITS: Partial<Record<(typeof STARTER_SHEETS)[number], readonly CorpusTrait[]>> = {
-  'pilot/starter-pilot-bonesaw': ['contentful-mini', 'ability-trees'],
-  'pilot/starter-pilot-driftwood': ['ability-trees'],
-  'pilot/starter-pilot-hotdog': ['ability-trees'],
-  'pilot/starter-pilot-judge': ['ability-trees'],
-  'pilot/starter-pilot-pickle': ['ability-trees'],
-  'pilot/starter-pilot-razor': ['ability-trees'],
+  'pilot/starter-pilot-bonesaw': ['contentful-mini'],
   'mech/starter-mech-mule': ['contentful-mini'],
   'crawler/starter-crawler-tenacity': ['contentful-mini', 'header-mini'],
 }
