@@ -63,11 +63,17 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toContain('href="https://discord.com/oauth2/authorize?client_id=')
   })
 
-  it('draws each slide’s art as its ground, so art not yet uploaded draws nothing', () => {
-    expect(show).not.toContain('<img')
-    expect(
-      show.match(/background-image:url\(https:\/\/assets\.salvageunion\.io\/hero\//g)
-    ).toHaveLength(5)
+  it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
+    const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
+    expect(arts).toHaveLength(5)
+    for (const art of arts) {
+      expect(art).toContain('alt=""')
+      expect(art).toMatch(/src="https:\/\/assets\.salvageunion\.io\/hero\//)
+      // A phone takes the 880px derivative, never the print-size master.
+      expect(art).toMatch(/hero\/[a-z-]+-880q80\.webp 880w/)
+    }
+    expect(arts[0]).toMatch(/fetchpriority="high"/i)
+    expect(arts.slice(1).every((art) => /fetchpriority="low"/i.test(art))).toBe(true)
   })
 
   it('holds no Contents: the book’s index is the Reference’s home', () => {

@@ -12,6 +12,7 @@ import {
   getEntitySlug,
   SalvageUnionReference,
 } from 'salvageunion-reference'
+import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import type { StartHereStep } from '../components/index'
 import { assetSrcSetFor, Badge, Button, capsLabel, StartHere, TitledBox } from '../components/index'
 import { appPath } from '../lib/appBase'
@@ -127,10 +128,16 @@ export function HomeHero() {
             style={{ '--su-show-i': index } as CSSProperties}
           >
             {slide.art && (
-              <span
+              // An <img>, not a background, so a phone takes the 880px
+              // derivative and the first slide (the page's LCP) loads first.
+              <img
                 className="su-front__show-art"
-                aria-hidden="true"
-                style={{ backgroundImage: `url(${slide.art.url})` }}
+                src={slide.art.url}
+                srcSet={`${assetDerivativeUrl(slide.art.url, 880)} 880w, ${slide.art.url} 2400w`}
+                sizes="100vw"
+                alt=""
+                decoding="async"
+                fetchPriority={index === 0 ? 'high' : 'low'}
               />
             )}
             <div className="su-front__show-copy">
