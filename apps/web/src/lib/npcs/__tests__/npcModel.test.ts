@@ -42,7 +42,7 @@ describe('a reference template fills the stat block, actions as slugs (Q3)', () 
     if (!ref) throw new Error('in npcs.json')
     const fill = statFillFromReference(ref)
     expect(fill.damageType).toBe('SP')
-    expect(fill.traits).toEqual([{ type: 'fast' }])
+    expect(fill.traits).toEqual([{ type: 'Fast' }])
   })
 })
 

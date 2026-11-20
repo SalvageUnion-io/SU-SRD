@@ -195,7 +195,7 @@ describe('under the Scene’s conditions', () => {
       />
     )
     const scene = within(screen.getByRole('list', { name: 'Scene conditions' }))
-    expect(scene.getByText('radiation storm')).toBeTruthy()
+    expect(scene.getByText('Radiation storm')).toBeTruthy()
     expect(scene.getByText('×2')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Push' }).getAttribute('title')).toBe(
       '+4 Heat, then the Heat Check'

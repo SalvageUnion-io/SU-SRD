@@ -352,7 +352,7 @@ describe('range', () => {
     const destroyed = { ...ok, condition: 'destroyed' as const }
     expect(actionReachable(destroyed, 'Close', 0, 10)).toBe(false)
 
-    const hot = mkAction({ range: ['Close'], traits: [{ type: 'hot', amount: 5 }] })
+    const hot = mkAction({ range: ['Close'], traits: [{ type: 'Hot', amount: 5 }] })
     hot.economy = { epCost: 0, heat: 5, maxUses: 0 }
     expect(actionReachable(hot, 'Close', 8, 10)).toBe(false) // 8 + 5 > 10
     expect(actionReachable(hot, 'Close', 3, 10)).toBe(true) // 3 + 5 <= 10
@@ -378,24 +378,24 @@ describe('resolve flow helpers', () => {
   })
 
   test('hasVariableHot: only when a Hot trait carries amount "X"', () => {
-    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 'X' }] }))).toBe(true)
-    expect(hasVariableHot(act({ traits: [{ type: 'hot', amount: 2 }] }))).toBe(false)
-    expect(hasVariableHot(act({ traits: [{ type: 'uses', amount: 'X' }] }))).toBe(false)
+    expect(hasVariableHot(act({ traits: [{ type: 'Hot', amount: 'X' }] }))).toBe(true)
+    expect(hasVariableHot(act({ traits: [{ type: 'Hot', amount: 2 }] }))).toBe(false)
+    expect(hasVariableHot(act({ traits: [{ type: 'Uses', amount: 'X' }] }))).toBe(false)
     expect(hasVariableHot(act({}))).toBe(false)
   })
 
   test('hotHeatFor: variable Hot uses the picked X; fixed Hot keeps its printed value', () => {
-    expect(heatAt(act({ traits: [{ type: 'hot', amount: 'X' }] }), 4)).toBe(4)
-    expect(heatAt(act({ traits: [{ type: 'hot', amount: 3 }] }), 4)).toBe(3)
+    expect(heatAt(act({ traits: [{ type: 'Hot', amount: 'X' }] }), 4)).toBe(4)
+    expect(heatAt(act({ traits: [{ type: 'Hot', amount: 3 }] }), 4)).toBe(3)
     // A fixed Hot with no numeric amount still costs at least 1 (matches actionEconomy).
-    expect(heatAt(act({ traits: [{ type: 'hot' }] }), 4)).toBe(1)
+    expect(heatAt(act({ traits: [{ type: 'Hot' }] }), 4)).toBe(1)
     // Mixed fixed + variable sum together.
     expect(
       heatAt(
         act({
           traits: [
-            { type: 'hot', amount: 2 },
-            { type: 'hot', amount: 'X' },
+            { type: 'Hot', amount: 2 },
+            { type: 'Hot', amount: 'X' },
           ],
         }),
         5
@@ -406,9 +406,9 @@ describe('resolve flow helpers', () => {
 
   test('economyForActivation: overrides Heat only for variable Hot, else passes through', () => {
     const base = { epCost: 2, heat: 1, maxUses: 0 }
-    const variable = act({ traits: [{ type: 'hot', amount: 'X' }] })
+    const variable = act({ traits: [{ type: 'Hot', amount: 'X' }] })
     expect(economyForActivation(base, variable, 3)).toEqual({ epCost: 2, heat: 3, maxUses: 0 })
-    const fixed = act({ traits: [{ type: 'hot', amount: 2 }] })
+    const fixed = act({ traits: [{ type: 'Hot', amount: 2 }] })
     expect(economyForActivation(base, fixed, 3)).toBe(base)
   })
 

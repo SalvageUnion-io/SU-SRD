@@ -266,12 +266,12 @@ export function hasCurrencyChoice(action: RefMetaAction): boolean {
 }
 
 /**
- * Whether the action's Hot cost is variable — a trait `{type:'hot', amount:'X'}`.
+ * Whether the action's Hot cost is variable — a trait `{type:'Hot', amount:'X'}`.
  * These need a player-picked amount (a `− X +` stepper); the stored data only
  * marks heat as variable, never a value/range.
  */
 export function hasVariableHot(action: RefMetaAction): boolean {
-  return (action.traits ?? []).some((t) => t.type === 'hot' && t.amount === 'X')
+  return (action.traits ?? []).some((t) => t.type === 'Hot' && t.amount === 'X')
 }
 
 /**

@@ -850,10 +850,10 @@
     "actions": ["Auto-Turret"],
     "traits": [
       {
-        "type": "immobile"
+        "type": "Immobile"
       },
       {
-        "type": "portable"
+        "type": "Portable"
       }
     ],
     "id": "f5f04072-9e81-4c9d-a835-b71f45120d66",
@@ -1170,7 +1170,7 @@
         ]
       }
     ],
-    "traits": [{ "type": "missile" }, { "type": "explosive", "amount": 1 }, { "type": "heavy" }],
+    "traits": [{ "type": "Missile" }, { "type": "Explosive", "amount": 1 }, { "type": "Heavy" }],
     "choices": [
       {
         "name": "Modification",
@@ -1281,7 +1281,7 @@
   },
   {
     "name": "Survey Drone",
-    "traits": [{ "type": "hover" }],
+    "traits": [{ "type": "Hover" }],
     "source": "Salvage Union Workshop Manual",
     "techLevel": 1,
     "moduleSlots": 1,

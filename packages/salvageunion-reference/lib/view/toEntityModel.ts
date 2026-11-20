@@ -135,11 +135,18 @@ function splitFacets(cells: FacetCell[]): {
   }
 }
 
+/** "heat SPIKE" → "Heat spike": how the glossaries spell their names. */
+function sentenceCase(name: string): string {
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase()
+}
+
 /**
- * A glossary entry by name: exact, else lower-cased (the glossaries store
- * lower-case names; a datavalue prints its rule capitalised). `undefined` when
- * the glossary does not carry it, or is not loaded.
+ * A glossary entry by name: exact, else in sentence case (the glossaries open
+ * their names on a capital, "Heat spike"; rules text may print one in Title
+ * Case or lower case). `undefined` when the glossary does not carry it, or is
+ * not loaded.
  */
+
 export function glossaryRef(
   schemaName: 'traits' | 'keywords',
   name: string
@@ -147,7 +154,7 @@ export function glossaryRef(
   if (!SalvageUnionReference.isLoaded(schemaName)) return undefined
   const entry =
     SalvageUnionReference.getByNameIn(schemaName, name) ??
-    SalvageUnionReference.getByNameIn(schemaName, name.toLowerCase())
+    SalvageUnionReference.getByNameIn(schemaName, sentenceCase(name))
   return entry
     ? { schemaName, id: entry.id, slug: getEntitySlug(entry), name: entry.name }
     : undefined

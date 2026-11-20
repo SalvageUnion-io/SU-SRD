@@ -50,9 +50,9 @@ describe('nameRefIndex', () => {
     expect(
       findNameRefs(text, nameRefIndex().index).map((m) => [m.ref.schemaName, m.ref.name])
     ).toEqual([
-      ['traits', 'dependable'],
+      ['traits', 'Dependable'],
       ['roll-tables', 'Critical Damage'],
-      ['keywords', 'heat check'],
+      ['keywords', 'Heat check'],
     ])
   })
 

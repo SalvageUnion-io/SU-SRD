@@ -8,13 +8,13 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "name": ".50 Cal Machine Gun",
@@ -41,16 +41,16 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -67,10 +67,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       }
     ],
@@ -99,17 +99,17 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 3
       }
     ],
@@ -133,10 +133,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       }
     ],
     "name": "30mm Autocannon",
@@ -160,7 +160,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Close"],
@@ -189,7 +189,7 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       }
     ],
@@ -298,10 +298,10 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": "X"
       }
     ],
@@ -345,7 +345,7 @@
     "activationCost": 1,
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 5
       }
     ],
@@ -379,11 +379,11 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": "X"
       },
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "activationCost": "X",
@@ -430,7 +430,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "amphibious"
+        "type": "Amphibious"
       }
     ],
     "name": "Amphibious Locomotion System",
@@ -452,7 +452,7 @@
     "id": "76a62ad6-0936-402c-80cd-440229d4ca5b",
     "traits": [
       {
-        "type": "hover"
+        "type": "Hover"
       }
     ],
     "name": "Anti-Gravity Belt",
@@ -474,7 +474,7 @@
     "activationCost": 1,
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 5
       }
     ],
@@ -517,7 +517,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": "Destroy"
       }
     ],
@@ -540,7 +540,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -558,7 +558,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -576,10 +576,10 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       },
       {
-        "type": "wield"
+        "type": "Wield"
       }
     ],
     "name": "Armoured Shield",
@@ -601,10 +601,10 @@
     "id": "907dd055-d699-47bc-ad85-ae7b958e1db0",
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "name": "Articulated Rigging Arm",
@@ -764,7 +764,7 @@
     ],
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Auto-Turret",
@@ -889,16 +889,16 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       },
       {
-        "type": "poison"
+        "type": "Poison"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 3
       }
     ],
@@ -910,7 +910,7 @@
     "id": "4da1f1ed-e662-4fee-a0ae-27a0d4083759",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Passive",
@@ -937,7 +937,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "167d2315-0770-4f18-812a-fef772daabed",
@@ -986,10 +986,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -1007,21 +1007,21 @@
     "id": "ab690522-2aba-472e-a50a-496e613c3f37",
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 2
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -1050,18 +1050,18 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       },
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -1087,7 +1087,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "id": "b243acbc-7610-4057-b8bc-7872780aab0a",
@@ -1104,7 +1104,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "0c2fb412-05b2-4207-995b-e42495427a75",
@@ -1127,10 +1127,10 @@
     },
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       },
       {
-        "type": "bio-equipment"
+        "type": "Bio-equipment"
       }
     ],
     "content": [],
@@ -1148,7 +1148,7 @@
     },
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "content": [
@@ -1181,7 +1181,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -1202,7 +1202,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "eebc847d-2e61-4d90-9648-c191b5ecc9a1",
@@ -1295,7 +1295,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -1336,10 +1336,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       }
     ],
     "id": "5db10ab3-6099-4c8e-82df-fc4f9b18eb18",
@@ -1446,7 +1446,7 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "name": "Blinding Blue Laser Rifle",
@@ -1470,7 +1470,7 @@
     },
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": "X"
       }
     ],
@@ -1498,10 +1498,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 3
       }
     ],
@@ -1575,10 +1575,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -1603,10 +1603,10 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       },
       {
-        "type": "armour"
+        "type": "Armour"
       }
     ],
     "name": "Camo Suit",
@@ -1707,7 +1707,7 @@
     "id": "a0b52cdf-12a5-46c9-8efd-26d3dd6262d4",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -1735,10 +1735,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "name": "Chainsaw Arm",
@@ -1950,7 +1950,7 @@
     "actionSource": "equipment",
     "traits": [
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ]
   },
@@ -1964,10 +1964,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -2015,14 +2015,14 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 5
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 3
       }
     ],
@@ -2052,7 +2052,7 @@
     "id": "4a6d5bbf-5da8-4d66-b1a1-2da9b13be155",
     "traits": [
       {
-        "type": "communicator"
+        "type": "Communicator"
       }
     ],
     "actionType": "Free",
@@ -2075,7 +2075,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Long"],
@@ -2182,7 +2182,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "id": "8d0d4ad3-1396-4613-80cc-2861a1b5763f",
@@ -2289,7 +2289,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Counter-Hacking",
@@ -2369,7 +2369,7 @@
     "id": "bf8bab9d-191a-49ef-ad82-b28193551ed5",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Custom Missile Launcher",
@@ -2431,7 +2431,7 @@
     "id": "27b22a70-8952-49bb-9dc7-35ecdd8ccd6e",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Custom Sniper Rifle",
@@ -2509,7 +2509,7 @@
     "id": "6a000b93-d5b1-4b38-90bc-2027f2f6202c",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Turn",
@@ -2534,10 +2534,10 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -2557,7 +2557,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "id": "65940c9e-3236-4ee9-9e34-3aff37763a87",
@@ -2596,7 +2596,7 @@
     "id": "14ac4c53-53ed-40a1-9fef-da177052b05f",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Short",
@@ -2649,7 +2649,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Denial of Service Attack",
@@ -2683,13 +2683,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 3
       }
     ],
@@ -2711,7 +2711,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "5476fa29-cb1a-4eaa-8394-a48f14585fb7",
@@ -2732,7 +2732,7 @@
     "id": "cbc8132a-94b6-4114-aa5e-e432f36ee74a",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 30
       }
     ],
@@ -2825,7 +2825,7 @@
     "id": "c0af420b-1690-42c9-99b4-b17f084a1191",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "actionType": "Turn",
@@ -2854,7 +2854,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "escape"
+        "type": "Escape"
       }
     ],
     "name": "Ejection System",
@@ -2877,7 +2877,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "escape"
+        "type": "Escape"
       }
     ],
     "name": "Ejector Pod",
@@ -2901,10 +2901,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "ion"
+        "type": "Ion"
       }
     ],
     "id": "655b6ea9-9cd6-4b2b-bbbb-3ce1f0647479",
@@ -2921,7 +2921,7 @@
     "id": "7bcbcd9c-10a5-441d-9b6f-732f63488833",
     "traits": [
       {
-        "type": "climbing"
+        "type": "Climbing"
       }
     ],
     "range": ["Medium"],
@@ -2979,7 +2979,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "range": ["Close"],
@@ -3096,7 +3096,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -3139,7 +3139,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "escape"
+        "type": "Escape"
       }
     ],
     "name": "Escape Hatch",
@@ -3161,10 +3161,10 @@
     "id": "353c5b25-8e84-48c9-a0f7-558ee463962f",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -3210,10 +3210,10 @@
     "id": "57cca86e-352d-4a10-9f87-d56fa6a6ad2b",
     "traits": [
       {
-        "type": "armour"
+        "type": "Armour"
       },
       {
-        "type": "flashy"
+        "type": "Flashy"
       }
     ],
     "name": "Executive Corpo Suit",
@@ -3235,21 +3235,21 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": "1d20"
       },
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": "1d20"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "name": "Experimental Particle Beam Cannon",
@@ -3362,7 +3362,7 @@
     "id": "c87a829a-2c0d-4630-922e-5eeaf1cc5aa8",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "actionType": "Reaction",
@@ -3406,7 +3406,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -3439,7 +3439,7 @@
     "id": "579c3a8f-75f7-4a24-b6a3-4dbbd20562f2",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -3529,14 +3529,14 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 1
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       }
     ],
     "name": "FM-3 Flamethrower",
@@ -3723,10 +3723,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -3750,7 +3750,7 @@
     "id": "ea03f9b9-502c-4ff5-8017-bef1d26b9ff8",
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "range": ["Medium"],
@@ -3778,7 +3778,7 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "id": "91a2fd03-ded5-4e51-970c-fdf246b5ede2",
@@ -3789,11 +3789,11 @@
     "id": "a6285ed4-ca12-43fc-ad27-e648df09ae24",
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -3817,10 +3817,10 @@
     "id": "d79c2029-b794-4e07-8c07-cd3aa3eecd5f",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       },
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Hacking Kit",
@@ -3856,7 +3856,7 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Long"],
@@ -3938,10 +3938,10 @@
     "id": "1edc18d4-c3c2-41ab-b594-675a2eaf015e",
     "traits": [
       {
-        "type": "armour"
+        "type": "Armour"
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       }
     ],
     "name": "Hazard Protection Suit",
@@ -3976,11 +3976,11 @@
     "actionSource": "modules",
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ]
@@ -4003,7 +4003,7 @@
     "id": "5e7bc919-095a-4888-8815-a65c0ef6819b",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -4097,16 +4097,16 @@
     },
     "traits": [
       {
-        "type": "deadly"
+        "type": "Deadly"
       },
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "name": "Heavy Duty Mining Rig",
@@ -4184,10 +4184,10 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 5
       }
     ],
@@ -4210,7 +4210,7 @@
     "id": "b9942624-b8a5-406c-a2de-efd25ae54e59",
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "actionType": "Turn",
@@ -4238,7 +4238,7 @@
     "id": "308c2b41-23fa-423f-afbb-8f8faaf80af3",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Holo Companion",
@@ -4395,10 +4395,10 @@
     "id": "81080d9b-8997-4c45-9b0a-804ce78490eb",
     "traits": [
       {
-        "type": "heavy"
+        "type": "Heavy"
       },
       {
-        "type": "hover"
+        "type": "Hover"
       }
     ],
     "name": "Hover Sled",
@@ -4449,16 +4449,16 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "rigging"
+        "type": "Rigging"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "name": "Hydraulic Crusher",
@@ -4544,11 +4544,11 @@
     "id": "ea8f66ad-5ade-4b08-9961-df8ac6637233",
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -4576,10 +4576,10 @@
     "id": "6beeb9e7-9e76-4e08-90b5-340ff65f2b26",
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "range": ["Close"],
@@ -4607,10 +4607,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "id": "cc732598-c273-481d-a37a-ce107cf1312c",
@@ -4626,10 +4626,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -4641,10 +4641,10 @@
     "id": "2a6e05c9-34c6-40c1-b44a-d906413a681f",
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "silent"
+        "type": "Silent"
       }
     ],
     "range": ["Close"],
@@ -4672,7 +4672,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "481f14da-1d3a-49c1-a973-68051980c042",
@@ -4688,10 +4688,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -4791,7 +4791,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -4823,7 +4823,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "f183cc63-d4ae-4802-9cbd-91eee1cb9e70",
@@ -4855,7 +4855,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "7b1ffa81-deaf-4096-80ba-90eaa164c495",
@@ -4942,7 +4942,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       }
     ],
     "content": [
@@ -4961,7 +4961,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "content": [
@@ -5048,7 +5048,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Integrated Frog Prince",
@@ -5147,13 +5147,13 @@
     },
     "traits": [
       {
-        "type": "anti-shielding"
+        "type": "Anti-shielding"
       },
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "ion"
+        "type": "Ion"
       }
     ],
     "name": "Ion Cannon",
@@ -5176,7 +5176,7 @@
     "id": "e1e94d13-e9e4-492b-b3c4-63c4f9985a18",
     "traits": [
       {
-        "type": "optics"
+        "type": "Optics"
       }
     ],
     "actionType": "Free",
@@ -5205,7 +5205,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "86a7997d-a983-49c2-bdc9-c1a4cef76e1e",
@@ -5222,18 +5222,18 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 5
       },
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 5
       },
       {
-        "type": "irradiated"
+        "type": "Irradiated"
       }
     ],
     "id": "eb025def-a5be-4540-b200-084e48b5f5c7",
@@ -5286,7 +5286,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Knife Missile",
@@ -5327,7 +5327,7 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "range": ["Long"],
@@ -5347,7 +5347,7 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "range": ["Long"],
@@ -5458,10 +5458,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       }
     ],
@@ -5508,7 +5508,7 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "name": "M2-X Mauler",
@@ -5531,7 +5531,7 @@
     "id": "50899a1f-cdc7-44b1-8cd1-58ba95cd1cdc",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Turn",
@@ -5715,10 +5715,10 @@
     ],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "wield"
+        "type": "Wield"
       }
     ],
     "name": "Mech Melee Armament",
@@ -5773,7 +5773,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Close"],
@@ -5823,7 +5823,7 @@
     "id": "b41120d0-1085-46b4-bd13-5f1351d892db",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Mecha Companion",
@@ -5872,7 +5872,7 @@
     "id": "67f792b6-8d4c-4fae-a6f8-f8b713fb7ff4",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Mecha Packmaster",
@@ -5985,13 +5985,13 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -6009,10 +6009,10 @@
     "id": "58ff1d96-d3f1-4e61-9b53-a8e4f2a2bbf4",
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "silent"
+        "type": "Silent"
       }
     ],
     "range": ["Close"],
@@ -6065,11 +6065,11 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 5
       }
     ],
@@ -6091,7 +6091,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Miniaturised EMP",
@@ -6139,13 +6139,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "name": "Mining Rig",
@@ -6173,18 +6173,18 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 2
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       },
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 6
       }
     ],
@@ -6247,19 +6247,19 @@
     },
     "traits": [
       {
-        "type": "anti-shielding"
+        "type": "Anti-shielding"
       },
       {
-        "type": "guided"
+        "type": "Guided"
       },
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "targeter"
+        "type": "Targeter"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 6
       }
     ],
@@ -6283,16 +6283,16 @@
     },
     "traits": [
       {
-        "type": "deadly"
+        "type": "Deadly"
       },
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "wield"
+        "type": "Wield"
       }
     ],
     "name": "Monomolecular Blade",
@@ -6310,13 +6310,13 @@
     "id": "13c89e02-a0f1-4efa-9c18-27598224e85e",
     "traits": [
       {
-        "type": "deadly"
+        "type": "Deadly"
       },
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "silent"
+        "type": "Silent"
       }
     ],
     "range": ["Close"],
@@ -6344,13 +6344,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "deadly"
+        "type": "Deadly"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -6368,10 +6368,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 3
       }
     ],
@@ -6425,7 +6425,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "range": ["Medium"],
@@ -6465,7 +6465,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "activationCost": 3,
@@ -6485,7 +6485,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "name": "Multi-Targeter",
@@ -6503,7 +6503,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "id": "efe6b2ed-5040-4a82-87ad-4dab8d01dc07",
@@ -6537,7 +6537,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -6560,7 +6560,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -6583,10 +6583,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -6605,16 +6605,16 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "guided"
+        "type": "Guided"
       },
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "targeter"
+        "type": "Targeter"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": "Destroy"
       }
     ],
@@ -6689,10 +6689,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       }
     ],
     "id": "f00aff83-c0a0-4a86-886d-fe22c2302d4c",
@@ -6715,18 +6715,18 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 2
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       }
     ],
     "name": "Napalm Launcher",
@@ -6749,13 +6749,13 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       }
     ],
@@ -6778,7 +6778,7 @@
     "id": "5b381c42-1ca5-41bb-b5f0-d7df743abf6f",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Turn",
@@ -6827,13 +6827,13 @@
     },
     "traits": [
       {
-        "type": "guided"
+        "type": "Guided"
       },
       {
-        "type": "targeter"
+        "type": "Targeter"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 30
       }
     ],
@@ -6871,7 +6871,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Network Takeover",
@@ -6893,7 +6893,7 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "communicator"
+        "type": "Communicator"
       }
     ],
     "range": ["Long"],
@@ -6957,10 +6957,10 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -7079,7 +7079,7 @@
     "id": "ae74d33a-a99f-42d7-a317-6846ef824d10",
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "actionType": "Turn",
@@ -7117,7 +7117,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Medium"],
@@ -7358,7 +7358,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 12
       }
     ],
@@ -7418,7 +7418,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "id": "9ccd7d4f-7746-4dde-9ac7-38e8ef443446",
@@ -7438,7 +7438,7 @@
     "id": "cd413c8f-3fc5-4abb-abc8-6b2bef91b73a",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "actionType": "Turn",
@@ -7467,7 +7467,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "id": "685f859f-3c32-483e-9b0d-98a12d0d61f6",
@@ -7483,7 +7483,7 @@
     "id": "34970ed4-5dec-417b-b2d7-447b38271e58",
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "range": ["Close"],
@@ -7511,7 +7511,7 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "id": "7feff15d-e417-4d08-b02d-d64c94893542",
@@ -7527,19 +7527,19 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 2
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       }
     ],
     "name": "Plasma Cannon",
@@ -7557,11 +7557,11 @@
     "id": "0766ba42-5339-4fae-97bf-5dc3bea32a1f",
     "traits": [
       {
-        "type": "armour",
+        "type": "Armour",
         "amount": 2
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       }
     ],
     "name": "Polycarbonate Carapace Armour",
@@ -7606,7 +7606,7 @@
     "id": "aff1af05-62dc-4473-88a1-aae1e2ea7ffd",
     "traits": [
       {
-        "type": "communicator"
+        "type": "Communicator"
       }
     ],
     "actionType": "Free",
@@ -7635,17 +7635,17 @@
     "id": "8fb19742-0b8e-4432-93ab-a2b53984a6eb",
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 2
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       }
     ],
     "range": ["Close"],
@@ -7668,7 +7668,7 @@
     "id": "28ecb9f7-0dc9-470c-8466-ddfcf6be59c9",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "actionType": "Reaction",
@@ -7692,10 +7692,10 @@
     "id": "f04735ab-8f1f-479e-a4c6-c01378bc43fb",
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "name": "Prawn Sifter",
@@ -7735,7 +7735,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -7765,7 +7765,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -7827,7 +7827,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "overheat"
+        "type": "Overheat"
       }
     ],
     "name": "Rad Wave Generator",
@@ -7883,10 +7883,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       }
     ],
@@ -7915,10 +7915,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -7970,10 +7970,10 @@
     "id": "a68fccea-f21c-4c87-bc60-226d6e77c6f6",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -7997,11 +7997,11 @@
     "id": "43d6fbfd-6fac-4b36-b4ff-833286cad3d7",
     "traits": [
       {
-        "type": "armour",
+        "type": "Armour",
         "amount": 1
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       }
     ],
     "name": "Reactive Armour",
@@ -8042,7 +8042,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "range": ["Medium"],
@@ -8173,10 +8173,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       }
     ],
@@ -8205,14 +8205,14 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -8224,7 +8224,7 @@
     "id": "5a8597de-1045-45d0-95bb-d77203b10bf6",
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "range": ["Close"],
@@ -8252,10 +8252,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       }
     ],
@@ -8280,7 +8280,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "range": ["Close"],
@@ -8301,7 +8301,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "range": ["Close"],
@@ -8350,10 +8350,10 @@
     "id": "b486ecdf-fe72-489a-a62d-7be471530cf0",
     "traits": [
       {
-        "type": "heavy"
+        "type": "Heavy"
       },
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "actionType": "Reaction",
@@ -8375,11 +8375,11 @@
     "id": "29be5f53-f028-4693-b1c5-88e526295e12",
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 4
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -8417,10 +8417,10 @@
     },
     "traits": [
       {
-        "type": "deadly"
+        "type": "Deadly"
       },
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "b9ede0e2-30ed-4de5-b8b0-781cd9167bb5",
@@ -8494,7 +8494,7 @@
     "id": "74b3430f-23d4-4c0e-8fa1-44a21612a073",
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "range": ["Medium"],
@@ -8522,7 +8522,7 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "id": "780c8a12-89f2-4ea7-933f-67e356953ac8",
@@ -8538,13 +8538,13 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -8556,7 +8556,7 @@
     "id": "27c181a5-3dbe-4cce-995e-5f3c97ac9957",
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "name": "Rigging Arm",
@@ -8586,10 +8586,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "id": "ddff4e0a-542d-4187-a22f-721502ceddb1",
@@ -8606,7 +8606,7 @@
     "id": "34d4a7d5-8911-4a8d-bf68-42d93768286d",
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "name": "Rigging Jack",
@@ -8639,17 +8639,17 @@
     "id": "66acba31-593d-4207-b0c6-a49f4f90f5a5",
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       },
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -8678,18 +8678,18 @@
     },
     "traits": [
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -8706,21 +8706,21 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       },
       {
-        "type": "jamming"
+        "type": "Jamming"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "name": "Rotary Minigun",
@@ -8756,7 +8756,7 @@
     "id": "6fa82f93-8aa9-4128-af22-7f9b655c6f89",
     "traits": [
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "name": "Salvaging Tools",
@@ -8837,10 +8837,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -8919,7 +8919,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "17a6e1fe-d087-4923-b863-322a0cf617a0",
@@ -8937,7 +8937,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "range": ["Close"],
@@ -8964,7 +8964,7 @@
     "id": "b61f51df-6829-42a7-9f00-1590a9d6c44f",
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "range": ["Close"],
@@ -9125,7 +9125,7 @@
     "id": "858adad7-3fb9-4c76-a6dc-fb874d88094e",
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "range": ["Long"],
@@ -9153,7 +9153,7 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "id": "d59c2720-ab52-4999-a830-da2525ce2dea",
@@ -9169,10 +9169,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 3
       }
     ],
@@ -9276,13 +9276,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -9322,7 +9322,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Spyware",
@@ -9392,10 +9392,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -9428,7 +9428,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Stealth Field Generator",
@@ -9489,13 +9489,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "poison"
+        "type": "Poison"
       },
       {
-        "type": "deadly"
+        "type": "Deadly"
       }
     ],
     "id": "110f09d1-2f84-4ec5-a9a2-df36461bde75",
@@ -9527,7 +9527,7 @@
     "id": "9cb466c6-a4fe-470c-809a-c484efaafddd",
     "traits": [
       {
-        "type": "scanner"
+        "type": "Scanner"
       }
     ],
     "actionType": "Short",
@@ -9562,7 +9562,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "f5462619-da12-4a7e-9b16-df8c3bbf3e4b",
@@ -9596,7 +9596,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "System and Software Hacker",
@@ -9800,7 +9800,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "1f3c356c-ea36-494e-b0ca-8353f49ee525",
@@ -9827,7 +9827,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "id": "286b990c-1a7c-4ec6-94f5-ca9c42dea9e5",
@@ -9897,7 +9897,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "range": ["Close"],
@@ -9939,7 +9939,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       }
     ],
     "name": "Teleport Beacon",
@@ -9966,7 +9966,7 @@
     "actionType": "Reaction",
     "traits": [
       {
-        "type": "escape"
+        "type": "Escape"
       }
     ],
     "activationCost": 2,
@@ -10041,7 +10041,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "shield"
+        "type": "Shield"
       }
     ],
     "id": "f8a16561-8b4a-4b8b-bccb-a15b020a0934",
@@ -10091,7 +10091,7 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "optics"
+        "type": "Optics"
       }
     ],
     "range": ["Long"],
@@ -10343,18 +10343,18 @@
     },
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 1
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 2
       },
       {
-        "type": "missile"
+        "type": "Missile"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 6
       }
     ],
@@ -10378,7 +10378,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "range": ["Long"],
@@ -10401,10 +10401,10 @@
     "id": "b524da6d-269f-4000-897b-8ceccdc36ffd",
     "traits": [
       {
-        "type": "silent"
+        "type": "Silent"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -10448,7 +10448,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Trojan Horse",
@@ -10599,7 +10599,7 @@
     "actionSource": "systems",
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ]
@@ -10641,7 +10641,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -10745,10 +10745,10 @@
     "actionType": "Free",
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       },
       {
-        "type": "guided"
+        "type": "Guided"
       }
     ],
     "name": "Weapon Guidance",
@@ -10770,10 +10770,10 @@
     "id": "7802f9b5-357c-4795-adb3-10e456917970",
     "traits": [
       {
-        "type": "heat spike"
+        "type": "Heat spike"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": "X"
       }
     ],
@@ -10796,7 +10796,7 @@
     "id": "729b8837-841f-46d5-b485-85167bd7efea",
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -10848,10 +10848,10 @@
     "activationCost": 1,
     "traits": [
       {
-        "type": "pilot equipment"
+        "type": "Pilot equipment"
       },
       {
-        "type": "armour"
+        "type": "Armour"
       }
     ],
     "name": "Wingsuit",
@@ -10875,7 +10875,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Worm",
@@ -10914,7 +10914,7 @@
     "id": "cedf17c6-5488-404e-87af-d18799d4ad20",
     "traits": [
       {
-        "type": "optics"
+        "type": "Optics"
       }
     ],
     "actionType": "Free",
@@ -10949,7 +10949,7 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 5
       }
     ],
@@ -10973,10 +10973,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "rigging"
+        "type": "Rigging"
       }
     ],
     "content": [
@@ -11013,7 +11013,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -11062,7 +11062,7 @@
     "actionSource": "systems",
     "traits": [
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ]
   },
@@ -11077,7 +11077,7 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "content": [
@@ -11100,7 +11100,7 @@
     },
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "content": [
@@ -11241,7 +11241,7 @@
     ],
     "traits": [
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       }
     ],
     "actionSource": "systems"
@@ -11264,10 +11264,10 @@
     ],
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "actionSource": "systems"
@@ -11283,11 +11283,11 @@
     },
     "traits": [
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 4
       },
       {
-        "type": "energy"
+        "type": "Energy"
       }
     ],
     "content": [
@@ -11321,10 +11321,10 @@
     ],
     "traits": [
       {
-        "type": "rigging"
+        "type": "Rigging"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "actionSource": "systems"
@@ -11353,18 +11353,18 @@
     },
     "traits": [
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 4
       },
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 4
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       }
     ],
     "content": [
@@ -11418,13 +11418,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -11472,7 +11472,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "name": "Pop Goes The Weasel",
@@ -11581,7 +11581,7 @@
     },
     "traits": [
       {
-        "type": "dependable"
+        "type": "Dependable"
       }
     ],
     "name": "DronTek Rifle",
@@ -11616,10 +11616,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "unwieldy"
+        "type": "Unwieldy"
       }
     ],
     "name": "Overcharged Green Laser Rifle",
@@ -11668,10 +11668,10 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "meld infection"
+        "type": "Meld infection"
       }
     ],
     "name": "Meld Rifle",
@@ -11712,16 +11712,16 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       },
       {
-        "type": "heavy"
+        "type": "Heavy"
       },
       {
-        "type": "deployable"
+        "type": "Deployable"
       }
     ],
     "content": [
@@ -11748,10 +11748,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -11801,7 +11801,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -11863,7 +11863,7 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       }
     ],
     "content": [
@@ -11890,10 +11890,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 4
       }
     ],
@@ -11927,11 +11927,11 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -11976,7 +11976,7 @@
     },
     "traits": [
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -12015,10 +12015,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -12057,7 +12057,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -12126,13 +12126,13 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "poison"
+        "type": "Poison"
       },
       {
-        "type": "deadly"
+        "type": "Deadly"
       }
     ],
     "content": [
@@ -12155,7 +12155,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -12216,10 +12216,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       }
     ],
     "content": [
@@ -12242,7 +12242,7 @@
     "actionType": "Turn",
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -12284,7 +12284,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "hover"
+        "type": "Hover"
       }
     ],
     "content": [
@@ -12366,10 +12366,10 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       },
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -12404,7 +12404,7 @@
     "actionType": "Passive",
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 6
       }
     ],
@@ -12465,7 +12465,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -12483,7 +12483,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "content": [
@@ -12527,7 +12527,7 @@
     },
     "traits": [
       {
-        "type": "multi-attack",
+        "type": "Multi-attack",
         "amount": 2
       }
     ],
@@ -12592,10 +12592,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "dependable"
+        "type": "Dependable"
       }
     ],
     "content": [
@@ -12682,7 +12682,7 @@
     "range": ["Long"],
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "content": [
@@ -12788,7 +12788,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 5
       }
     ],
@@ -13041,10 +13041,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "pinning"
+        "type": "Pinning"
       }
     ],
     "content": [
@@ -13067,10 +13067,10 @@
     },
     "traits": [
       {
-        "type": "energy"
+        "type": "Energy"
       },
       {
-        "type": "hot",
+        "type": "Hot",
         "amount": 2
       }
     ],
@@ -13094,10 +13094,10 @@
     },
     "traits": [
       {
-        "type": "ballistic"
+        "type": "Ballistic"
       },
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       }
     ],
@@ -13120,14 +13120,14 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 3
       },
       {
-        "type": "guided"
+        "type": "Guided"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 6
       }
     ],
@@ -13164,7 +13164,7 @@
     "activationCost": 1,
     "traits": [
       {
-        "type": "targeter"
+        "type": "Targeter"
       }
     ],
     "content": [
@@ -13260,7 +13260,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -13382,7 +13382,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "content": [
@@ -13399,7 +13399,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 1 },
-    "traits": [{ "type": "energy" }],
+    "traits": [{ "type": "Energy" }],
     "actionSource": "systems"
   },
   {
@@ -13416,7 +13416,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 2 },
-    "traits": [{ "type": "melee" }],
+    "traits": [{ "type": "Melee" }],
     "actionSource": "npcs"
   },
   {
@@ -13425,7 +13425,7 @@
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "damageType": "HP", "amount": 5 },
-    "traits": [{ "type": "ballistic" }],
+    "traits": [{ "type": "Ballistic" }],
     "actionSource": "npcs"
   },
   {
@@ -13435,8 +13435,8 @@
     "range": ["Medium"],
     "damage": { "damageType": "SP", "amount": 4 },
     "traits": [
-      { "type": "explosive", "amount": 1 },
-      { "type": "uses", "amount": 3 }
+      { "type": "Explosive", "amount": 1 },
+      { "type": "Uses", "amount": 3 }
     ],
     "actionSource": "npcs"
   },
@@ -13446,7 +13446,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 4 },
-    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "traits": [{ "type": "Melee" }, { "type": "Multi-attack", "amount": 2 }],
     "actionSource": "npcs"
   },
   {
@@ -13455,7 +13455,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 5 },
-    "traits": [{ "type": "melee" }],
+    "traits": [{ "type": "Melee" }],
     "content": [
       {
         "type": "paragraph",
@@ -13490,7 +13490,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "HP", "amount": 4 },
-    "traits": [{ "type": "melee" }, { "type": "silent" }],
+    "traits": [{ "type": "Melee" }, { "type": "Silent" }],
     "actionSource": "npcs"
   },
   {
@@ -13499,7 +13499,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "damageType": "SP", "amount": 6 },
-    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "traits": [{ "type": "Melee" }, { "type": "Multi-attack", "amount": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -13515,7 +13515,7 @@
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "damageType": "SP", "amount": 3 },
-    "traits": [{ "type": "burn", "amount": 3 }],
+    "traits": [{ "type": "Burn", "amount": 3 }],
     "content": [{ "type": "paragraph", "value": "Hits every target in Medium Range." }],
     "actionSource": "drones"
   },
@@ -13526,9 +13526,9 @@
     "range": ["Long"],
     "damage": { "damageType": "SP", "amount": 9 },
     "traits": [
-      { "type": "explosive", "amount": 2 },
-      { "type": "irradiated" },
-      { "type": "uses", "amount": 6 }
+      { "type": "Explosive", "amount": 2 },
+      { "type": "Irradiated" },
+      { "type": "Uses", "amount": 6 }
     ],
     "content": [
       {
@@ -13568,7 +13568,7 @@
     "name": "Control Signal (The Iron Lady)",
     "actionType": "Turn",
     "range": ["Medium"],
-    "traits": [{ "type": "hacking" }],
+    "traits": [{ "type": "Hacking" }],
     "content": [
       {
         "type": "paragraph",
@@ -13627,17 +13627,17 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 1
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -13650,7 +13650,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -13673,11 +13673,11 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -13712,11 +13712,11 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -13733,17 +13733,17 @@
     },
     "traits": [
       {
-        "type": "anti-organic"
+        "type": "Anti-organic"
       },
       {
-        "type": "burn",
+        "type": "Burn",
         "amount": 1
       },
       {
-        "type": "overheat"
+        "type": "Overheat"
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 3
       }
     ],
@@ -13756,7 +13756,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 1
       }
     ],
@@ -13779,11 +13779,11 @@
     },
     "traits": [
       {
-        "type": "explosive",
+        "type": "Explosive",
         "amount": 1
       },
       {
-        "type": "uses",
+        "type": "Uses",
         "amount": 2
       }
     ],
@@ -13855,7 +13855,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 2, "damageType": "SP" },
-    "traits": [{ "type": "melee" }],
+    "traits": [{ "type": "Melee" }],
     "content": [
       {
         "type": "paragraph",
@@ -13870,7 +13870,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 2, "damageType": "SP" },
-    "traits": [{ "type": "melee" }],
+    "traits": [{ "type": "Melee" }],
     "content": [
       {
         "type": "paragraph",
@@ -13910,7 +13910,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 3, "damageType": "SP" },
-    "traits": [{ "type": "multi-attack", "amount": 2 }],
+    "traits": [{ "type": "Multi-attack", "amount": 2 }],
     "actionSource": "creatures"
   },
   {
@@ -13920,8 +13920,8 @@
     "range": ["Medium"],
     "damage": { "amount": 2, "damageType": "SP" },
     "traits": [
-      { "type": "burn", "amount": 2 },
-      { "type": "explosive", "amount": 1 }
+      { "type": "Burn", "amount": 2 },
+      { "type": "Explosive", "amount": 1 }
     ],
     "actionSource": "creatures"
   },
@@ -13931,7 +13931,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 1, "damageType": "SP" },
-    "traits": [{ "type": "melee" }],
+    "traits": [{ "type": "Melee" }],
     "content": [
       {
         "type": "paragraph",
@@ -13946,7 +13946,7 @@
     "actionType": "Turn",
     "range": ["Close"],
     "damage": { "amount": 6, "damageType": "HP" },
-    "traits": [{ "type": "melee" }, { "type": "deadly" }],
+    "traits": [{ "type": "Melee" }, { "type": "Deadly" }],
     "content": [
       {
         "type": "paragraph",
@@ -14080,7 +14080,7 @@
     "actionType": "Turn",
     "range": ["Medium"],
     "damage": { "amount": 4, "damageType": "SP" },
-    "traits": [{ "type": "melee" }, { "type": "multi-attack", "amount": 2 }],
+    "traits": [{ "type": "Melee" }, { "type": "Multi-attack", "amount": 2 }],
     "content": [
       {
         "type": "paragraph",
@@ -14105,7 +14105,7 @@
     "id": "dd5a7429-429e-4831-b37a-2fe9cb308fa0",
     "name": "Summon Bio-Fauna",
     "actionType": "Turn",
-    "traits": [{ "type": "uses", "amount": 3 }],
+    "traits": [{ "type": "Uses", "amount": 3 }],
     "content": [
       {
         "type": "paragraph",
@@ -14123,7 +14123,7 @@
     "range": ["Close"],
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -14169,7 +14169,7 @@
     },
     "traits": [
       {
-        "type": "melee"
+        "type": "Melee"
       }
     ],
     "content": [
@@ -14188,7 +14188,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "content": [
@@ -14216,7 +14216,7 @@
     "range": ["Medium"],
     "traits": [
       {
-        "type": "hacking"
+        "type": "Hacking"
       }
     ],
     "content": [

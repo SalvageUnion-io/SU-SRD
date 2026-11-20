@@ -12,7 +12,7 @@ import { Mention, useDetailModal } from '../../index'
 import { EntityPageHost } from '../EntityPageHost'
 
 const vulnerable = () => {
-  const trait = SalvageUnionReference.Traits.getByName('vulnerable')
+  const trait = SalvageUnionReference.Traits.getByName('Vulnerable')
   if (!trait) throw new Error('vulnerable fixture missing')
   return toEntityModel(trait).ref
 }

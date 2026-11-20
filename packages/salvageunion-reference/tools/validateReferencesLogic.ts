@@ -25,9 +25,9 @@ function bag(filesByName: Record<string, unknown[]>, filename: string): Rec[] {
 }
 
 /**
- * Trait names are lower-case in traits.json ("ballistic"), while a trait
- * shortlist names them as the rules text does ("Ballistic") — the same Title
- * Case an `addTrait` effect is written in. Resolve trait names without case.
+ * Trait names open on a capital in traits.json ("Heat spike"), while a trait
+ * shortlist or an `addTrait` effect may write them in the rules text's Title
+ * Case ("Heat Spike"). Resolve trait names without case.
  */
 const CASE_INSENSITIVE_SCHEMAS = new Set(['traits'])
 

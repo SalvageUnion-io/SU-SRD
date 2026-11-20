@@ -48,10 +48,10 @@ describe('getItemStaticPaths', () => {
     }
   })
 
-  it("names a glossary page as the book prints it, for the words CSS can't reach", () => {
+  it("names a glossary page as the glossary spells it, for the words CSS can't reach", () => {
     const bioTitan = itemPaths.find(
       (p) => p.params.schemaId === 'keywords' && p.params.itemId === 'bio-titan'
     )
-    expect(bioTitan?.props.itemName).toBe('Bio-Titan')
+    expect(bioTitan?.props.itemName).toBe('Bio-titan')
   })
 })

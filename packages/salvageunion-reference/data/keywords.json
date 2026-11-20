@@ -2,7 +2,7 @@
   {
     "id": "be7568fc-8b20-4b81-9761-e8f352bbd20d",
     "source": "Salvage Union Workshop Manual",
-    "name": "actions",
+    "name": "Actions",
     "page": 20,
     "content": [
       {
@@ -21,7 +21,7 @@
   {
     "id": "d6e9a056-5b2b-4504-b41a-820dfa1af63e",
     "source": "Salvage Union Workshop Manual",
-    "name": "ability points",
+    "name": "Ability points",
     "page": 321,
     "content": [
       {
@@ -40,7 +40,7 @@
   {
     "id": "b93ce754-565c-44c6-bef1-832b44fbdc7e",
     "source": "Salvage Union Workshop Manual",
-    "name": "action scene",
+    "name": "Action scene",
     "page": 7,
     "content": [
       {
@@ -59,7 +59,7 @@
   {
     "id": "9b9373ca-0de6-40be-b5fe-b9b5283caf24",
     "source": "Salvage Union Workshop Manual",
-    "name": "advanced abilities",
+    "name": "Advanced abilities",
     "page": 23,
     "content": [
       {
@@ -78,7 +78,7 @@
   {
     "id": "8e66e653-471a-466f-8574-4c1f5b2e1129",
     "source": "Salvage Union Workshop Manual",
-    "name": "advanced tree",
+    "name": "Advanced tree",
     "page": 321,
     "content": [
       {
@@ -97,7 +97,7 @@
   {
     "id": "3154240c-9595-4431-b6ec-703ed9d67104",
     "source": "Salvage Union Workshop Manual",
-    "name": "bio-titan",
+    "name": "Bio-titan",
     "page": 11,
     "content": [
       {
@@ -116,7 +116,7 @@
   {
     "id": "c2229ef9-fc5a-427b-a9bf-ae0d8ca20a69",
     "source": "Salvage Union Workshop Manual",
-    "name": "blind",
+    "name": "Blind",
     "page": 72,
     "content": [
       {
@@ -135,7 +135,7 @@
   {
     "id": "9d906777-e5fc-450e-8527-31d5f6ca1511",
     "source": "Salvage Union Workshop Manual",
-    "name": "core abilities",
+    "name": "Core abilities",
     "page": 23,
     "content": [
       {
@@ -154,7 +154,7 @@
   {
     "id": "6ad15ade-695f-4435-a772-d869c72a125e",
     "source": "Salvage Union Workshop Manual",
-    "name": "core class",
+    "name": "Core class",
     "page": 23,
     "content": [
       {
@@ -173,7 +173,7 @@
   {
     "id": "59d39432-b9b3-4fac-b54f-8d8681f02192",
     "source": "Salvage Union Workshop Manual",
-    "name": "corpo",
+    "name": "Corpo",
     "page": 9,
     "content": [
       {
@@ -192,7 +192,7 @@
   {
     "id": "b0d9af15-c190-4077-8aad-2f90a3d66cd3",
     "source": "Salvage Union Workshop Manual",
-    "name": "creature",
+    "name": "Creature",
     "page": 80,
     "content": [
       {
@@ -211,7 +211,7 @@
   {
     "id": "47292eaf-8c7b-4da5-a0ee-619555c8e381",
     "source": "Salvage Union Workshop Manual",
-    "name": "damaged",
+    "name": "Damaged",
     "page": 219,
     "content": [
       {
@@ -230,7 +230,7 @@
   {
     "id": "7363725b-cb55-4944-b757-7c0dbe06891b",
     "source": "Salvage Union Workshop Manual",
-    "name": "death blow",
+    "name": "Death blow",
     "page": 239,
     "content": [
       {
@@ -249,7 +249,7 @@
   {
     "id": "28e73c47-0e16-48f5-b093-893614df3290",
     "source": "Salvage Union Workshop Manual",
-    "name": "destroyed",
+    "name": "Destroyed",
     "page": 43,
     "content": [
       {
@@ -268,7 +268,7 @@
   {
     "id": "7bf771dd-ed59-4506-8fcc-41c0e1e2e406",
     "source": "Salvage Union Workshop Manual",
-    "name": "difficult terrain",
+    "name": "Difficult terrain",
     "page": 69,
     "content": [
       {
@@ -287,7 +287,7 @@
   {
     "id": "2e5ded9a-fb13-4ad7-a5ce-aaf6a647259a",
     "source": "Salvage Union Workshop Manual",
-    "name": "downtime",
+    "name": "Downtime",
     "page": 3,
     "content": [
       {
@@ -306,7 +306,7 @@
   {
     "id": "f61bd5e5-84ac-498f-8bfa-0f57f71f0f82",
     "source": "Salvage Union Workshop Manual",
-    "name": "downtime action",
+    "name": "Downtime action",
     "page": 322,
     "content": [
       {
@@ -325,7 +325,7 @@
   {
     "id": "0e45a835-a366-4bde-8e6d-16c76506332c",
     "source": "Salvage Union Workshop Manual",
-    "name": "drone",
+    "name": "Drone",
     "page": 102,
     "content": [
       {
@@ -344,7 +344,7 @@
   {
     "id": "3182595c-00ad-4f53-a6f1-7dc0af455a22",
     "source": "Salvage Union Workshop Manual",
-    "name": "energy points",
+    "name": "Energy points",
     "page": 95,
     "content": [
       {
@@ -363,7 +363,7 @@
   {
     "id": "3aacdc9d-3e9d-46c1-823b-c533ec564502",
     "source": "Salvage Union Workshop Manual",
-    "name": "environmental effects",
+    "name": "Environmental effects",
     "page": 81,
     "content": [
       {
@@ -382,7 +382,7 @@
   {
     "id": "efbee281-773d-4843-8de4-a5706feb6dfb",
     "source": "Salvage Union Workshop Manual",
-    "name": "free action",
+    "name": "Free action",
     "page": 165,
     "content": [
       {
@@ -401,7 +401,7 @@
   {
     "id": "66cf5a17-af20-48c9-bdd8-28f3c8124ed9",
     "source": "Salvage Union Workshop Manual",
-    "name": "group",
+    "name": "Group",
     "page": 13,
     "content": [
       {
@@ -420,7 +420,7 @@
   {
     "id": "07004346-e4fd-4570-876f-0b83bde38c30",
     "source": "Salvage Union Workshop Manual",
-    "name": "heat",
+    "name": "Heat",
     "page": 30,
     "content": [
       {
@@ -439,7 +439,7 @@
   {
     "id": "e28c3f7d-d7e8-4e22-9141-c1a410c9dfcf",
     "source": "Salvage Union Workshop Manual",
-    "name": "heat check",
+    "name": "Heat check",
     "page": 30,
     "content": [
       {
@@ -458,7 +458,7 @@
   {
     "id": "803e9c04-65dc-47d4-9228-ca75a3301885",
     "source": "Salvage Union Workshop Manual",
-    "name": "hit points",
+    "name": "Hit points",
     "page": 323,
     "content": [
       {
@@ -477,7 +477,7 @@
   {
     "id": "a7c47530-e867-44b2-894a-f0a073de9608",
     "source": "Salvage Union Workshop Manual",
-    "name": "hybrid classes",
+    "name": "Hybrid classes",
     "page": 23,
     "content": [
       {
@@ -496,7 +496,7 @@
   {
     "id": "c67019ce-407c-4c49-9857-150f5ca55572",
     "source": "Salvage Union Workshop Manual",
-    "name": "incapacitated",
+    "name": "Incapacitated",
     "page": 255,
     "content": [
       {
@@ -515,7 +515,7 @@
   {
     "id": "ce6df5ca-658a-44ad-a359-0cf5aec5c882",
     "source": "Salvage Union Workshop Manual",
-    "name": "inoperable",
+    "name": "Inoperable",
     "page": 245,
     "content": [
       {
@@ -534,7 +534,7 @@
   {
     "id": "cbf82549-8256-4239-8398-d339989e7dc1",
     "source": "Salvage Union Workshop Manual",
-    "name": "intact",
+    "name": "Intact",
     "page": 323,
     "content": [
       {
@@ -553,7 +553,7 @@
   {
     "id": "71106278-56d3-4ed9-ba4e-b0008f1326d4",
     "source": "Salvage Union Workshop Manual",
-    "name": "integrated",
+    "name": "Integrated",
     "page": 33,
     "content": [
       {
@@ -572,7 +572,7 @@
   {
     "id": "31ec6f97-4deb-49e9-a9b7-0fa7dc6dd709",
     "source": "Salvage Union Workshop Manual",
-    "name": "irradiated",
+    "name": "Irradiated",
     "page": 296,
     "content": [
       {
@@ -591,7 +591,7 @@
   {
     "id": "780b3dce-92c7-4537-a528-69de6d836d4b",
     "source": "Salvage Union Workshop Manual",
-    "name": "lance",
+    "name": "Lance",
     "page": 79,
     "content": [
       {
@@ -610,7 +610,7 @@
   {
     "id": "ef8c21a5-5ac5-4408-9f19-0b7fddaf014d",
     "source": "Salvage Union Workshop Manual",
-    "name": "legendary abilities",
+    "name": "Legendary abilities",
     "page": 23,
     "content": [
       {
@@ -629,7 +629,7 @@
   {
     "id": "479401d2-7ab5-4502-906a-b65eeab6d82d",
     "source": "Salvage Union Workshop Manual",
-    "name": "long action",
+    "name": "Long action",
     "page": 28,
     "content": [
       {
@@ -648,7 +648,7 @@
   {
     "id": "82135b2c-f248-4998-868c-9f2072400dac",
     "source": "Salvage Union Workshop Manual",
-    "name": "major injury",
+    "name": "Major injury",
     "page": 36,
     "content": [
       {
@@ -667,7 +667,7 @@
   {
     "id": "3af12ade-34b3-441e-9e50-f1f10fc32cc5",
     "source": "Salvage Union Workshop Manual",
-    "name": "mech",
+    "name": "Mech",
     "page": 2,
     "content": [
       {
@@ -686,7 +686,7 @@
   {
     "id": "9d9b8c49-72e6-449b-a517-d2d77cec5f61",
     "source": "Salvage Union Workshop Manual",
-    "name": "meld",
+    "name": "Meld",
     "page": 61,
     "content": [
       {
@@ -705,7 +705,7 @@
   {
     "id": "8efebc98-128c-443b-a46c-86d604588676",
     "source": "Salvage Union Workshop Manual",
-    "name": "minor injury",
+    "name": "Minor injury",
     "page": 35,
     "content": [
       {
@@ -724,7 +724,7 @@
   {
     "id": "a9445246-9b18-4f5a-ac93-1d25de71384d",
     "source": "Salvage Union Workshop Manual",
-    "name": "module",
+    "name": "Module",
     "page": 11,
     "content": [
       {
@@ -743,7 +743,7 @@
   {
     "id": "7ec7ce66-dbb0-4376-8be6-93144e86daf3",
     "source": "Salvage Union Workshop Manual",
-    "name": "module slots",
+    "name": "Module slots",
     "page": 95,
     "content": [
       {
@@ -762,7 +762,7 @@
   {
     "id": "29769a23-8e85-4fdd-b88b-266492cdc601",
     "source": "Salvage Union Workshop Manual",
-    "name": "morale",
+    "name": "Morale",
     "page": 167,
     "content": [
       {
@@ -781,7 +781,7 @@
   {
     "id": "8a4f9f61-ba68-430f-8363-9d3782d05b44",
     "source": "Salvage Union Workshop Manual",
-    "name": "mount / dismount",
+    "name": "Mount / dismount",
     "page": 324,
     "content": [
       {
@@ -800,7 +800,7 @@
   {
     "id": "2bbefddb-ae36-43e5-8a5e-017ee2880ad5",
     "source": "Salvage Union Workshop Manual",
-    "name": "move",
+    "name": "Move",
     "page": 324,
     "content": [
       {
@@ -819,7 +819,7 @@
   {
     "id": "7c95e866-a72d-4c82-bf0c-d1de2a42f53a",
     "source": "Salvage Union Workshop Manual",
-    "name": "operable",
+    "name": "Operable",
     "page": 245,
     "content": [
       {
@@ -838,7 +838,7 @@
   {
     "id": "92ae5516-ec31-47fb-87f3-d2811bd2764f",
     "source": "Salvage Union Workshop Manual",
-    "name": "passive",
+    "name": "Passive",
     "page": 35,
     "content": [
       {
@@ -857,7 +857,7 @@
   {
     "id": "41ce844a-4f3e-47fc-a5f8-dd6dd1b0a144",
     "source": "Salvage Union Workshop Manual",
-    "name": "people",
+    "name": "People",
     "page": 139,
     "content": [
       {
@@ -876,7 +876,7 @@
   {
     "id": "2c752260-0890-485d-85a9-70675f707e92",
     "source": "Salvage Union Workshop Manual",
-    "name": "pilot",
+    "name": "Pilot",
     "page": 3,
     "content": [
       {
@@ -895,7 +895,7 @@
   {
     "id": "2bf2f5b9-3d9b-4387-8c4e-9ac9dc1891a8",
     "source": "Salvage Union Workshop Manual",
-    "name": "pilot equipment",
+    "name": "Pilot equipment",
     "page": 7,
     "content": [
       {
@@ -914,7 +914,7 @@
   {
     "id": "ee55337e-2ebc-4719-9b4d-a2b6f5072d7e",
     "source": "Salvage Union Workshop Manual",
-    "name": "prone",
+    "name": "Prone",
     "page": 42,
     "content": [
       {
@@ -933,7 +933,7 @@
   {
     "id": "4c758c78-6805-401f-b5b7-46f90baa8058",
     "source": "Salvage Union Workshop Manual",
-    "name": "push",
+    "name": "Push",
     "page": 30,
     "content": [
       {
@@ -952,7 +952,7 @@
   {
     "id": "e0d6e763-c185-43f1-ade2-4825688d3c7a",
     "source": "Salvage Union Workshop Manual",
-    "name": "range",
+    "name": "Range",
     "page": 22,
     "content": [
       {
@@ -971,7 +971,7 @@
   {
     "id": "a69cdac6-e696-4c35-beb0-5484753978d4",
     "source": "Salvage Union Workshop Manual",
-    "name": "ranged weapon",
+    "name": "Ranged weapon",
     "page": 67,
     "content": [
       {
@@ -990,7 +990,7 @@
   {
     "id": "59761eb1-64ac-446c-b7bb-0805c058a5cd",
     "source": "Salvage Union Workshop Manual",
-    "name": "reaction",
+    "name": "Reaction",
     "page": 51,
     "content": [
       {
@@ -1009,7 +1009,7 @@
   {
     "id": "76329dc0-27dc-48a3-88f9-c4b60710bd54",
     "source": "Salvage Union Workshop Manual",
-    "name": "retreat",
+    "name": "Retreat",
     "page": 42,
     "content": [
       {
@@ -1028,7 +1028,7 @@
   {
     "id": "d5cc7ca7-8d4c-42f2-8cf7-4134e2dd50c1",
     "source": "Salvage Union Workshop Manual",
-    "name": "round",
+    "name": "Round",
     "page": 24,
     "content": [
       {
@@ -1047,7 +1047,7 @@
   {
     "id": "b17e2393-2986-48d5-bf4b-9e2d63385879",
     "source": "Salvage Union Workshop Manual",
-    "name": "salvage value",
+    "name": "Salvage value",
     "page": 98,
     "content": [
       {
@@ -1066,7 +1066,7 @@
   {
     "id": "a6dd9274-a7a5-438f-97eb-a6bb0c6ea7e1",
     "source": "Salvage Union Workshop Manual",
-    "name": "scrap",
+    "name": "Scrap",
     "page": 3,
     "content": [
       {
@@ -1085,7 +1085,7 @@
   {
     "id": "f224541c-f883-4b7e-8335-7f3be438b4f4",
     "source": "Salvage Union Workshop Manual",
-    "name": "setback",
+    "name": "Setback",
     "page": 325,
     "content": [
       {
@@ -1104,7 +1104,7 @@
   {
     "id": "5b53d915-3249-48fa-a8a8-f38f375a014c",
     "source": "Salvage Union Workshop Manual",
-    "name": "severe environmental effects",
+    "name": "Severe environmental effects",
     "page": 325,
     "content": [
       {
@@ -1123,7 +1123,7 @@
   {
     "id": "18f2baa8-7971-4710-95fc-6c9ed52e66af",
     "source": "Salvage Union Workshop Manual",
-    "name": "short action",
+    "name": "Short action",
     "page": 48,
     "content": [
       {
@@ -1142,7 +1142,7 @@
   {
     "id": "7a201300-e68f-4576-9d07-671dd69cdd8b",
     "source": "Salvage Union Workshop Manual",
-    "name": "shutdown",
+    "name": "Shutdown",
     "page": 326,
     "content": [
       {
@@ -1161,7 +1161,7 @@
   {
     "id": "cfaafce5-a63a-40a0-bde1-0d9989181de7",
     "source": "Salvage Union Workshop Manual",
-    "name": "squad",
+    "name": "Squad",
     "page": 300,
     "content": [
       {
@@ -1180,7 +1180,7 @@
   {
     "id": "dde73211-0e6b-4581-adb4-651df8d2c884",
     "source": "Salvage Union Workshop Manual",
-    "name": "structure points",
+    "name": "Structure points",
     "page": 218,
     "content": [
       {
@@ -1199,7 +1199,7 @@
   {
     "id": "40c3906f-00f0-4d28-8b51-5103ab0e2458",
     "source": "Salvage Union Workshop Manual",
-    "name": "system",
+    "name": "System",
     "page": 3,
     "content": [
       {
@@ -1218,7 +1218,7 @@
   {
     "id": "ceb36207-e2f9-45ca-aacd-f4d0af058de2",
     "source": "Salvage Union Workshop Manual",
-    "name": "system slots",
+    "name": "System slots",
     "page": 95,
     "content": [
       {
@@ -1237,7 +1237,7 @@
   {
     "id": "4b85d8cd-8151-45f4-95dd-e3d164422a4d",
     "source": "Salvage Union Workshop Manual",
-    "name": "tech level",
+    "name": "Tech level",
     "page": 98,
     "content": [
       {
@@ -1256,7 +1256,7 @@
   {
     "id": "e362be59-f499-4d15-a1c5-117782975332",
     "source": "Salvage Union Workshop Manual",
-    "name": "turn",
+    "name": "Turn",
     "page": 28,
     "content": [
       {
@@ -1275,7 +1275,7 @@
   {
     "id": "c1fdf3c5-051a-4198-ac2e-24e7c77db96e",
     "source": "Salvage Union Workshop Manual",
-    "name": "turn action",
+    "name": "Turn action",
     "page": 28,
     "content": [
       {
@@ -1294,7 +1294,7 @@
   {
     "id": "d78979f8-e5b3-4f3c-892d-55ae376ef73e",
     "source": "Salvage Union Workshop Manual",
-    "name": "turrets",
+    "name": "Turrets",
     "page": 326,
     "content": [
       {
@@ -1313,7 +1313,7 @@
   {
     "id": "1881ea36-abbd-4ec5-b9d0-017db5991d52",
     "source": "Salvage Union Workshop Manual",
-    "name": "union crawler",
+    "name": "Union crawler",
     "page": 20,
     "content": [
       {
@@ -1332,7 +1332,7 @@
   {
     "id": "1d60c505-8f26-427a-8288-72d7fa649434",
     "source": "Salvage Union Workshop Manual",
-    "name": "vehicle",
+    "name": "Vehicle",
     "page": 29,
     "content": [
       {
@@ -1351,7 +1351,7 @@
   {
     "id": "12dccae6-3dda-437e-8234-d8f07e0e009d",
     "source": "Salvage Union Workshop Manual",
-    "name": "weapons system",
+    "name": "Weapons system",
     "page": 184,
     "content": [
       {
@@ -1370,7 +1370,7 @@
   {
     "id": "2c91c4bb-98c5-4714-88b5-8f5811f18274",
     "source": "Salvage Union Workshop Manual",
-    "name": "wheeled",
+    "name": "Wheeled",
     "page": 9,
     "content": [
       {
@@ -1389,7 +1389,7 @@
   {
     "id": "b87fd43c-f3fb-44a0-af49-7eb6afb30b03",
     "source": "We Were Here First!",
-    "name": "bio-system",
+    "name": "Bio-system",
     "page": 60,
     "content": [
       {
@@ -1417,7 +1417,7 @@
   {
     "id": "8bf406cd-dfc9-4e83-9b05-d1186c5a9000",
     "source": "We Were Here First!",
-    "name": "bio-module",
+    "name": "Bio-module",
     "page": 60,
     "content": [
       {
@@ -1445,7 +1445,7 @@
   {
     "id": "908e7718-0409-4a7b-b165-908ff108061a",
     "source": "We Were Here First!",
-    "name": "bio-chassis",
+    "name": "Bio-chassis",
     "page": 60,
     "content": [
       {
@@ -1469,7 +1469,7 @@
   {
     "id": "db7ec650-f93e-4397-a1f9-46ee2080fc71",
     "source": "False Flag",
-    "name": "anomalous zone",
+    "name": "Anomalous zone",
     "page": 9,
     "content": [
       {
@@ -1481,7 +1481,7 @@
   {
     "id": "983eeb85-ffca-411f-9fab-b65035046173",
     "source": "False Flag",
-    "name": "difficult terrain (False Flag)",
+    "name": "Difficult terrain (False Flag)",
     "page": 9,
     "content": [
       {
@@ -1493,7 +1493,7 @@
   {
     "id": "98451035-4cab-4368-a77e-c0a794c16876",
     "source": "False Flag",
-    "name": "freezing",
+    "name": "Freezing",
     "page": 9,
     "content": [
       {
@@ -1513,7 +1513,7 @@
   {
     "id": "085a8f47-515a-4d39-bb45-030be5d7d550",
     "source": "False Flag",
-    "name": "low visibility",
+    "name": "Low visibility",
     "page": 9,
     "content": [
       {
@@ -1525,7 +1525,7 @@
   {
     "id": "56be0f3d-b0dd-4bec-b147-8857af31d4ce",
     "source": "False Flag",
-    "name": "surface ice",
+    "name": "Surface ice",
     "page": 9,
     "content": [
       {
@@ -1537,7 +1537,7 @@
   {
     "id": "03719922-2f99-4b3c-bbc7-77916b0da014",
     "source": "False Flag",
-    "name": "corporate scrip",
+    "name": "Corporate scrip",
     "page": 9,
     "content": [
       {
@@ -1561,7 +1561,7 @@
   {
     "id": "494c010c-8766-4156-b210-f2091cb377b6",
     "source": "Salvage Union Workshop Manual",
-    "name": "radiation storm",
+    "name": "Radiation storm",
     "page": 305,
     "content": [
       {

@@ -89,7 +89,7 @@ export function equipmentMaxUses(equipment: RefEquipment | null): number | null 
   if (!equipment) return null
   const traits = getTraits(equipment)
   for (const trait of traits ?? []) {
-    if (trait.type === 'uses' && typeof trait.amount === 'number') {
+    if (trait.type === 'Uses' && typeof trait.amount === 'number') {
       return trait.amount
     }
   }

@@ -109,7 +109,11 @@ export function TraitPick({
 }) {
   const trait = readReference(
     'AnyNpcDesigner.trait',
-    () => SalvageUnionReference.Traits.getByName(type) ?? null,
+    // An NPC saved before the glossaries opened on a capital stores "fast".
+    () =>
+      SalvageUnionReference.Traits.getByName(type) ??
+      SalvageUnionReference.Traits.getByName(type.charAt(0).toUpperCase() + type.slice(1)) ??
+      null,
     null
   )
   const detail = useDetailModal(trait ?? undefined)

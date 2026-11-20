@@ -4,9 +4,10 @@
  * Five checks, all fixture-free (they flow from the schema/data, not from any
  * named entity):
  *
- *  1. Trait casing — every `traits[].type` must be lowercase. The convention is
- *     lowercase everywhere, and case-sensitive consumers (e.g. getInventorySlots
- *     matches `heavy`/`portable`) silently misbehave on a capitalized type.
+ *  1. Trait casing — every `traits[].type` opens on a capital, as traits.json
+ *     and keywords.json name it ("Heavy", "Hot"). One spelling everywhere, so a
+ *     case-sensitive consumer (e.g. getInventorySlots matching `Heavy`) never
+ *     silently misses a type spelled another way.
  *  2. removeTrait resolvability — a choice effect `removeTrait <X>` must target a
  *     trait the entity actually carries (a base `traits[]` entry, or one added by
  *     an `addTrait` effect on the same entity). Otherwise it is a silent no-op,
@@ -107,17 +108,18 @@ function collectChoiceEffects(entity: Entity): Effect[] {
   return effects
 }
 
-/** Flag any `traits[].type` that is not lowercase. */
+/** Flag any `traits[].type` whose first letter is not a capital. */
 export function findTraitCasingIssues(file: string, entities: Entity[]): TraitIssue[] {
   const issues: TraitIssue[] = []
   for (const entity of entities) {
     for (const type of collectTraitTypes(entity)) {
-      if (type !== type.toLowerCase()) {
+      const capital = type.charAt(0).toUpperCase() + type.slice(1)
+      if (type !== capital) {
         issues.push({
           file,
           entity: entityName(entity),
           kind: 'casing',
-          detail: `trait type "${type}" must be lowercase ("${type.toLowerCase()}")`,
+          detail: `trait type "${type}" must open on a capital ("${capital}")`,
         })
       }
     }

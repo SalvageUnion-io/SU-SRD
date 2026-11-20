@@ -34,7 +34,7 @@ function Page({ entityRef, label }: { entityRef: EntityRef; label: string }) {
 
 describe('PeekHost', () => {
   test('keyboard focus shows the Peek, describes the trigger, and Escape hides it', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => link.focus())
     const peek = await screen.findByRole('tooltip')
@@ -51,7 +51,7 @@ describe('PeekHost', () => {
   })
 
   test('focus a pointer press gave does not open it: the press is a click', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerDown(link, { pointerType: 'mouse' })
@@ -62,7 +62,7 @@ describe('PeekHost', () => {
   })
 
   test('hovering with a mouse shows it after a rest', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerOver(link, { pointerType: 'mouse' })
@@ -71,7 +71,7 @@ describe('PeekHost', () => {
   })
 
   test('a long press opens it and swallows the click that ends it', async () => {
-    render(<Page entityRef={refOf('traits', 'burn')} label="Burn" />)
+    render(<Page entityRef={refOf('traits', 'Burn')} label="Burn" />)
     const link = screen.getByRole('link', { name: 'Burn' })
     act(() => {
       fireEvent.pointerDown(link, { pointerType: 'touch', clientX: 10, clientY: 10 })
