@@ -5,11 +5,12 @@ import type { ChapterTone } from '../atoms/chapterBandColor'
 import { BreadcrumbTrail, ChapterBand, ChapterBandTrail } from '../index'
 
 /**
- * The page's chapter band, drawn by the island so the rail can sit on it: the
- * listing's search and filters are the band's controls (`asideAt="controls"`),
- * beside the name while they fit and wrapping up over it when they do not.
- * The island mounts with `createRoot`, outside the layout's tree, so the
- * band's trail comes as a prop rather than from `ChapterBandTrail`.
+ * The page's chapter band, drawn by the island so the view toggle can sit on
+ * it: a listing's band holds its name and the List | Catalog toggle alone
+ * (ledger L10); the search, the facets and what is filtered are one bar at
+ * the top of the list. The island mounts with `createRoot`, outside the
+ * layout's tree, so the band's trail comes as a prop rather than from
+ * `ChapterBandTrail`.
  */
 export type ListingBand = {
   /** The schema's plural name, notched into the band. */
@@ -22,17 +23,21 @@ export type ListingBand = {
 }
 
 /**
- * With a band, the page's head and body: the band with the rail as its
- * controls, then the listing on the page ground. Without one, the listing
- * alone, its rail heading it.
+ * With a band, the page's head and body: the band with the view toggle as its
+ * one control, then the filter bar and the listing on the page ground.
+ * Without one, the listing alone, its whole rail heading it.
  */
 export function ListingFrame({
   band,
-  rail,
+  view,
+  filters,
   children,
 }: {
   band: ListingBand | undefined
-  rail: ReactNode
+  /** The List | Catalog toggle, the band's one control. */
+  view: ReactNode
+  /** The search, the facets and what is filtered: the bar at the top of the list. */
+  filters: ReactNode
   children: ReactNode
 }) {
   if (!band) return children
@@ -48,12 +53,15 @@ export function ListingFrame({
           fill={band.fill}
           measure={PAGE_MEASURE}
           asideAt="controls"
-          aside={rail || undefined}
+          aside={view || undefined}
         >
           {band.title}
         </ChapterBand>
       </ChapterBandTrail.Provider>
-      <div className="su-listing-page su-page-body">{children}</div>
+      <div className="su-listing-page su-page-body">
+        {filters && <div className="su-listing-page__filters">{filters}</div>}
+        {children}
+      </div>
     </>
   )
 }
