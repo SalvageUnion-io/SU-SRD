@@ -43,7 +43,7 @@ type FactsProps = {
 
 export function Facts({
   facts,
-  className = 'su-dash-facts',
+  className,
   itemClassName = 'su-dash-fact',
   labelClassName,
   label,
@@ -54,7 +54,7 @@ export function Facts({
   )
   if (shown.length === 0) return null
   return (
-    <dl className={className} aria-label={label}>
+    <dl className={className ?? cn('su-grid', 'su-dash-facts')} aria-label={label}>
       {shown.map((fact) => (
         <div
           key={fact.key}

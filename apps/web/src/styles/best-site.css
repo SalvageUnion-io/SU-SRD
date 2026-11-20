@@ -152,14 +152,6 @@
   width: auto !important;
 }
 
-/* The frame goes: the head strip is the Ledger's only paint, a 2px ink rule
-   closes it, and the cite keeps its cut-out on the ground, bottom right. */
-.su-ledger > .su-entity-compact__frame {
-  background-color: transparent;
-  border-color: var(--color-ink);
-  border-width: 0 0 var(--bw-pill);
-}
-
 .su-ledger .su-box__body > :not(table) {
   background: none !important;
   background-image: none !important;
@@ -241,10 +233,9 @@
 }
 
 .su-front__shelf {
-  display: grid;
+  --su-grid-gap: var(--space-12);
+  --su-grid-min: 6.5rem;
   flex: 3 1 28rem;
-  gap: var(--space-12);
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
   list-style: none;
   margin: 0;
   min-width: 0;
@@ -387,7 +378,6 @@
 .su-open.su-open--sub,
 .su-open__detail .su-roll,
 .su-box.su-ledger,
-.su-ledger > .su-entity-compact__frame,
 .su-roll[data-frame='box'],
 .su-scrap {
   border-bottom: 0 !important;
@@ -530,7 +520,10 @@
 /* On the measure a chassis plate is narrower: its six figures sit three a
    line, as on a phone, so no two labels touch. */
 .su-chassis-gallery .su-chassis-plate__figures {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(
+      3,
+      1fr
+    ); /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */
   row-gap: var(--space-4);
 }
 
@@ -721,47 +714,6 @@
  * ink, its chips beside it, its text under it, zebra between.
  * ══════════════════════════════════════════════════════════════════════ */
 
-[data-rows] .su-entity-mini,
-[data-rows] .su-entity-mini > *,
-[data-rows] .su-entity-compact__frame,
-[data-rows] .su-entity-mini__pill[data-row] {
-  border-color: transparent !important;
-  border-width: 0 !important;
-  box-shadow: none;
-}
-
-[data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
-[data-rows]
-  .su-entity-compact__head[data-row]
-  :is(.su-entity-compact__name, .su-entity-compact__title) {
-  background: none !important;
-  color: var(--color-ink);
-}
-
-[data-rows] .su-entity-compact__head[data-row] {
-  background-image: none !important;
-}
-
-/* A list of rows: one column, no gaps, zebra in the page's colour. */
-[data-rows] .su-entity-mini-list {
-  display: flex !important;
-  flex-direction: column;
-  gap: 0 !important;
-}
-
-[data-rows] .su-entity-mini,
-[data-rows] .su-entity-compact__frame {
-  background-color: var(--color-paper);
-}
-
-[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-mini,
-[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-compact > .su-entity-compact__frame,
-[data-rows]
-  :is(li, .su-grid > *):nth-child(even):is(.su-entity-compact)
-  > .su-entity-compact__frame {
-  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
-}
-
 /* A roll table under a strip or in an opened row names itself in plain
    text on its strip: the cut-out above it is the block's one. */
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the roll table's own title */
@@ -794,10 +746,6 @@
    box below it never sits flush on the rule (MOCK, best, revision 7). */
 .su-slab-section:not(.su-slab-section--mini):has(> [data-rows]) {
   gap: 0 !important;
-}
-
-[data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
-  background-color: transparent !important;
 }
 
 /* The home page's three doors are cards with their own names: no strip
@@ -856,10 +804,9 @@
     width: 100%;
   }
 
+  /* One row: every book a share of it. */
   .su-front__shelf {
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-    grid-template-columns: none;
+    --su-grid-min: 0px;
   }
 }
 
@@ -1334,8 +1281,7 @@
 }
 
 /* No cap inside the track: the track is the measure. */
-.su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip),
-.su-manual__lore-prose {
+.su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip) {
   max-width: none;
 }
 
