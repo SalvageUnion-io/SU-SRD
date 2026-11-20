@@ -748,6 +748,19 @@
   gap: 0 !important;
 }
 
+/* A section whose body is a masonry of cards (an action grid, `MiniGrid`)
+   stands its cards a gap below its strip, and its name's cut-out is the
+   ground under it, not paper (best, revision 8): the cards are what is paper. */
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid) {
+  gap: var(--space-12) !important;
+}
+
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid)
+  > .su-rule-head
+  > .su-rule-head__label {
+  background-color: var(--su-ground, var(--color-wk-bg));
+}
+
 /* The home page's three doors are cards with their own names: no strip
    stands over them (it would stack two cut-outs). The heading is still
    read. The Contents' chapters open with their own bands, so its strip goes
