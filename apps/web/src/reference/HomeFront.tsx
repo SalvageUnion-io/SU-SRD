@@ -19,6 +19,7 @@ import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
 import { BUY_HREF } from '../lib/docPages'
 import { itemHref } from '../lib/entityHref'
+import { artUrlFor } from '../lib/sourceCovers'
 import { compositionsCopy } from '../messages/components-compositions'
 import { referenceCopy } from '../messages/reference'
 
@@ -244,10 +245,10 @@ export function BuyTheGame() {
         {/* The books as a shelf of covers.
             No cover art exists yet (sources carry none, R2 has none), so each
             slot is a typeset cover in the book's proportions; a real cover
-            drops into the same slot through `getAssetUrl`. */}
+            drops into the same slot through `artUrlFor`. */}
         <ul className="su-grid su-front__shelf" aria-label={referenceCopy('theBooksThisSiteCites')}>
           {books.map((book) => {
-            const cover = getAssetUrl(book)
+            const cover = artUrlFor(book)
             return (
               <li key={book.id}>
                 <a className="su-front__cover" href={itemHref('sources', getEntitySlug(book))}>

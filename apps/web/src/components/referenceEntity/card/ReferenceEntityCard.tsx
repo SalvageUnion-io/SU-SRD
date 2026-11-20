@@ -6,7 +6,6 @@ import {
   extractVisibleActions,
   foldedActionOf,
   formatCost,
-  getAssetUrl,
   getChoices,
   getReferenceEntityName,
   getTechLevel,
@@ -18,6 +17,7 @@ import {
   resolveProvenance,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { artUrlFor } from '../../../lib/sourceCovers'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -229,7 +229,7 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const assetUrl = getAssetUrl(entity)
+  const assetUrl = artUrlFor(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
 
   // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.

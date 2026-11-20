@@ -1,14 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
-import {
-  getAssetUrl,
-  getEntitySlug,
-  getModel,
-  getSources,
-  getTechLevel,
-  getTree,
-} from 'salvageunion-reference'
+import { getEntitySlug, getModel, getSources, getTechLevel, getTree } from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
@@ -27,6 +20,7 @@ import {
 } from '../../lib/listingParams'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
+import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
 import { islandsCopy } from '../../messages/components-islands'
@@ -211,7 +205,7 @@ function SchemaViewer({
   const missingArt = useMemo(() => {
     if (!hasArt) return undefined
     const order = new Map<string, number>()
-    for (const item of initialData) if (!getAssetUrl(item)) order.set(item.id, order.size)
+    for (const item of initialData) if (!artUrlFor(item)) order.set(item.id, order.size)
     return order
   }, [hasArt, initialData])
 
@@ -445,6 +439,7 @@ function SchemaViewer({
                             lead
                             priority={groupIndex === 0 && index < OPENING_ROW}
                             missingArt={missingArt?.get(item.id)}
+                            artUrl={artUrlFor(item)}
                           />
                         </li>
                       ))}
