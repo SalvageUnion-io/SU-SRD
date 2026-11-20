@@ -50,7 +50,6 @@ import {
   assetSrcSetFor,
   Button,
   ChapterBand,
-  capsLabel,
   Entity,
   FieldError,
   FrontPitch,
@@ -58,6 +57,7 @@ import {
   ModalShell,
   PageShell,
   Pending,
+  SlabSection,
   StartHere,
   Stat,
   tokens,
@@ -65,7 +65,6 @@ import {
 import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import { cn } from '../lib/cn'
 import { useHydrateEntities, usePilots } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
@@ -83,9 +82,6 @@ import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
-
-/** A caps label: the condensed face in capitals (ruleset §3.12). */
-const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
 
@@ -300,15 +296,17 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         {/* The Mediator's Kit lives with the tables
             it is for. */}
         {connected && (
-          <section id="mediators-kit" className="su-mediator-kit-section">
-            {/* A plain ruled label, its tables each wear their own cut-out. */}
-            <header className="su-rule-head su-rule-head--over" data-slab="">
-              <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{playCopy('mediatorsKit')}</h2>
-            </header>
+          // A band with its title's cut-out, as Your Games wears.
+          <SlabSection
+            id="mediators-kit"
+            as="h2"
+            title={playCopy('mediatorsKit')}
+            className="su-mediator-kit-section"
+          >
             <ShelvesPart.Provider value="kit">
               <Shelves />
             </ShelvesPart.Provider>
-          </section>
+          </SlabSection>
         )}
       </div>
     </PageShell>

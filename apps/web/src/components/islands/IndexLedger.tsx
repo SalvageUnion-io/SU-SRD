@@ -220,7 +220,7 @@ export function IndexLedger({
   schemaId: string
   /** The listing's plural name: the name column's label. */
   noun: string
-  /** MOCK (best, revision 8): the list is named by the page's own header, so its name column is a plain `Name`, no title cut-out. */
+  /** The list is named by the page's own header: its cut-out reads `Name`. */
   plain?: boolean
   items: readonly RefEntity[]
 }) {
@@ -267,7 +267,6 @@ export function IndexLedger({
       label={noun}
       paint={paintFor(first.tone, { texture: surface.texture })}
       nameLabel={plain ? islandsCopy('name') : noun}
-      plainTitle={plain}
       columns={columns}
       rows={rows.map((row) => ({
         id: row.id,

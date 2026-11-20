@@ -507,14 +507,20 @@
   padding-bottom: var(--space-4);
 }
 
-/* A section's strip with no table under it (Storage Bay, About). */
+/* A section's strip with no table under it (Storage Bay, About). A strip
+   with actions keeps its cut-out at its foot, notched into the body (below):
+   the baseline would float it over the strip's paint. */
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
-.su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label,
 .su-rule-head:not(.su-rule-head--sub) > :is(.su-rule-head__tallies, .su-rule-head__note) {
   align-items: baseline;
   align-self: baseline !important;
   height: auto;
   padding-bottom: 0;
+}
+
+.su-rule-head:not(.su-rule-head--sub):not(:has(> .su-rule-head__actions)) > .su-rule-head__label {
+  align-items: baseline;
+  align-self: baseline;
 }
 
 /* The cut-out is its strip's buttons' 24px (§4.7: a head's name and its
@@ -773,12 +779,9 @@
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
-/* A head that stands over blocks with their own cut-outs (the Mediator's
-   Kit over its NPC and Encounter tables) is a plain ruled label too (L-6).
-   So is a section's head in a Peek: the Peek's own title cut-out stands
-   right above it. */
-[role='dialog'] .su-rule-head.su-slab-section__head,
-.su-rule-head.su-rule-head--over {
+/* A section's head in a Peek is a plain ruled label: the Peek's own title
+   cut-out stands right above it. */
+[role='dialog'] .su-rule-head.su-slab-section__head {
   background: none !important;
   border-bottom: var(--bw-pill) solid var(--color-ink);
   min-height: 0;
@@ -786,13 +789,6 @@
 }
 
 [role='dialog'] .su-rule-head.su-slab-section__head > .su-rule-head__label {
-  background: none !important;
-  color: var(--color-ink);
-  padding-inline: 0;
-}
-
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, overrides the label's plate */
-.su-rule-head.su-rule-head--over > .su-rule-head__label {
   background: none !important;
   color: var(--color-ink);
   padding-inline: 0;
