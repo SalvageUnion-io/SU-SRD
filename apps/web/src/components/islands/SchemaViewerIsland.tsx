@@ -44,6 +44,8 @@ import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
 import { ListingRail, shortSource, tlButtonLabel } from './ListingRail'
 
+type RailPart = 'all' | 'view' | 'filters'
+
 /**
  * The schemas whose entity IS a tech level: its name already says the level.
  * A crawler tech level's ("Hamlet Crawler") does not, so its tile shows its TL
@@ -327,8 +329,9 @@ function SchemaViewer({
     toggleFacets: () => setFacetsOpen((open) => !open),
   }
 
-  const rail = (
+  const renderRail = (part: RailPart) => (
     <ListingRail
+      part={part}
       facets={{
         count: initialData.length,
         techLevels: orderedTechLevels,
@@ -400,13 +403,13 @@ function SchemaViewer({
   )
 
   return (
-    <ListingFrame band={band} rail={rail}>
+    <ListingFrame band={band} view={renderRail('view')} filters={renderRail('filters')}>
       <div
         className="su-listing"
         data-catalog={(view === 'catalog' && !hasArt) || undefined}
         data-view={view}
       >
-        {!band && rail}
+        {!band && renderRail('all')}
 
         {filteredData.length === 0 ? (
           <EmptyState
@@ -514,27 +517,29 @@ function ListingSkeleton({
     shape && view !== 'tree'
       ? shape.groups
       : [{ key: 'all', label: undefined, count: shape?.count ?? 12 }]
-  const rail = shape && (
-    <ListingRail
-      facets={{
-        count: shape.count,
-        techLevels: orderTechLevels(techLevels),
-        sources,
-        trees,
-        views,
-      }}
-      view={view}
-    />
-  )
+  const renderRail = (part: RailPart) =>
+    shape && (
+      <ListingRail
+        part={part}
+        facets={{
+          count: shape.count,
+          techLevels: orderTechLevels(techLevels),
+          sources,
+          trees,
+          views,
+        }}
+        view={view}
+      />
+    )
   return (
-    <ListingFrame band={band} rail={rail}>
+    <ListingFrame band={band} view={renderRail('view')} filters={renderRail('filters')}>
       <div
         className="su-listing"
         data-catalog={(catalog && !hasArt) || undefined}
         data-view={view}
         aria-hidden="true"
       >
-        {!band && rail}
+        {!band && renderRail('all')}
         <div className="su-listing__groups">
           {groups.map((group) => (
             <section key={group.key} className="su-listing__group">

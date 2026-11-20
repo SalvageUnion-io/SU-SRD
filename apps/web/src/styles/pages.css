@@ -276,6 +276,12 @@
   background-color: var(--color-wk-bg);
 }
 
+/* The filter bar at the top of the list (ledger L10): the search, the
+   facets and what is filtered, a block's gap above the list. */
+.su-listing-page__filters {
+  margin-bottom: var(--space-12);
+}
+
 .su-listing {
   /* A tile's art place from `sm`, and its band under it (the Catalog's
      placeholders, below). */

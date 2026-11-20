@@ -53,7 +53,7 @@ describe('SchemaViewerIsland', () => {
     expect(within(filterRail).getByRole('combobox', { name: 'Source' })).toBeTruthy()
   })
 
-  it('with a band, the rail is its controls: search and filters on the band, over the listing', () => {
+  it('with a band, the band holds only the view toggle; search and filters are the bar over the list (L10)', () => {
     const { container } = render(
       <SchemaViewerIsland
         schemaId="systems"
@@ -61,7 +61,7 @@ describe('SchemaViewerIsland', () => {
           title: 'Systems',
           tone: 'mech',
           trail: [
-            { name: 'Reference', url: '/' },
+            { name: 'Reference', url: '/reference/' },
             { name: 'Systems', url: '/systems/' },
           ],
         }}
@@ -74,12 +74,22 @@ describe('SchemaViewerIsland', () => {
     expect(within(band).getByRole('heading', { level: 1 }).textContent).toBe('Systems')
     // The trail rides the title's cut-out, as the layout's does.
     expect(within(band).getByRole('navigation', { name: 'Breadcrumb' })).toBeTruthy()
-    const rail = required(band.querySelector<HTMLElement>('.su-rail'), 'the rail on the band')
-    expect(within(rail).getByRole('searchbox', { name: 'Filter items by name' })).toBeTruthy()
-    expect(within(rail).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
-    // One rail, and the listing under the band on the page ground.
-    expect(container.querySelectorAll('.su-rail')).toHaveLength(1)
-    expect(container.querySelector('.su-listing-page .su-listing .su-rail')).toBeNull()
+    // The band's one control is List | Catalog: no search, no facet, no filter status.
+    expect(within(band).queryByRole('searchbox')).toBeNull()
+    expect(within(band).queryByRole('combobox')).toBeNull()
+    expect(within(band).queryByRole('group', { name: 'Tech Level' })).toBeNull()
+    expect(band.querySelector('.su-rail__status, .su-rail__facets, .su-rail__search')).toBeNull()
+    for (const rail of band.querySelectorAll<HTMLElement>('.su-rail')) {
+      expect(rail.dataset.part).toBe('view')
+    }
+    // The search and the facets are one bar at the top of the list, on the page ground.
+    const bar = required(
+      container.querySelector<HTMLElement>('.su-listing-page .su-listing-page__filters .su-rail'),
+      'the filter bar over the list'
+    )
+    expect(within(bar).getByRole('searchbox', { name: 'Filter items by name' })).toBeTruthy()
+    expect(within(bar).getByRole('group', { name: 'Tech Level' })).toBeTruthy()
+    expect(within(bar).queryByRole('group', { name: 'View' })).toBeNull()
   })
 
   it('renders filter buttons when multiple tech levels exist', () => {

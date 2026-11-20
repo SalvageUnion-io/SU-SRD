@@ -217,6 +217,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   L7: ['_ledger.ts#picked', 'Ledger.test.tsx', 'R16', 'K9'],
   L8: ['Ledger.test.tsx', '_pageWhole.ts#scroll'],
   L9: ['_ledger.ts', 'Ledger.test.tsx', 'ledgerColumns.test.tsx', 'Shelves.test.tsx'],
+  L10: ['SchemaViewerIsland.test.tsx', 'ListingRail.test.tsx'],
   // ── hard-rules.md ──
   R0: ['designRoutes.test.ts', 'design-walk.e2e.ts'],
   R1: ['chrome/slab-section', 'chrome/slab-style', 'SlabSection.test.tsx'],
