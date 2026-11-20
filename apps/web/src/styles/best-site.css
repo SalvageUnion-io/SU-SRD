@@ -1031,6 +1031,18 @@
   order: 2;
 }
 
+/* A Page's actions in the side track follow its words on a phone; split
+   from the main track's, they read on as the same list, under its one head. */
+.su-manual__side > .su-manual__side-actions {
+  order: 3;
+}
+
+@media not (width >= 64rem) {
+  .su-manual__side-actions--more > .su-rule-head {
+    display: none;
+  }
+}
+
 /* Its tab is cut from its panel's paper, so tab and text read as one. */
 .su-manual__ability > .su-rule-head {
   --su-head-cut: var(--color-paper);

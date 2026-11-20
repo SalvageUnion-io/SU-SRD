@@ -12,6 +12,7 @@ import { SlabSection } from '../../containers/SlabSection'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
+import { splitActions } from './actionSplit'
 import { ChoiceRegion } from './ChoiceRegion'
 import type { Down } from './cardChrome'
 import { cardKey, nestedTitleLevel, stackedTitleLevel } from './cardHelpers'
@@ -287,7 +288,24 @@ export function CardPage({
       </ul>
     )
     const statsAside = !hero && line.length > 0
-    const side = !!hero || statsAside
+    // A Page with art keeps its actions in the main track, under the art's
+    // column. One without holds them in the side track, beside its words; a
+    // Page that is mostly actions splits them between the two (`splitActions`).
+    const split = hero ? { main: otherActions, side: [] } : splitActions(entity, otherActions)
+    const actionsSection = (list: ReferenceCardEntity[], className?: string) =>
+      list.length > 0 && (
+        // One Actions section on every Page: a crawler's ability too.
+        <SlabSection
+          as={sectionAs}
+          title={actionSeal ? actionSeal.label : referenceEntityCopy('actions')}
+          page
+          className={className}
+          bodyClassName="su-entity-page__section-body"
+        >
+          {actionList(list)}
+        </SlabSection>
+      )
+    const side = !!hero || statsAside || split.side.length > 0
     return (
       <div className="su-entity-page su-manual">
         {side && (
@@ -295,6 +313,13 @@ export function CardPage({
             {hero && <div className="su-manual__art">{hero}</div>}
             {statsAside && stats}
             {ability}
+            {actionsSection(
+              split.side,
+              cn(
+                'su-manual__side-actions',
+                split.main.length > 0 && 'su-manual__side-actions--more'
+              )
+            )}
           </div>
         )}
         {/* The main track, always beside a side
@@ -306,17 +331,7 @@ export function CardPage({
           {!loreOnly && words}
           {!side && ability}
           {opening && loadout}
-          {otherActions.length > 0 && (
-            // One Actions section on every Page: a crawler's ability too.
-            <SlabSection
-              as={sectionAs}
-              title={actionSeal ? actionSeal.label : referenceEntityCopy('actions')}
-              page
-              bodyClassName="su-entity-page__section-body"
-            >
-              {actionList(otherActions)}
-            </SlabSection>
-          )}
+          {actionsSection(split.main)}
           {sections}
           {table && <div className="su-entity-page__table">{table}</div>}
           {patterns.length > 0 && (
