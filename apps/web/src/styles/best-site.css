@@ -1579,10 +1579,13 @@
     flex-wrap: wrap !important;
   }
 
+  /* The name wraps to the room its chips leave (`--su-name-basis`, chipFill)
+     so they, and the acts at the corner, stay on its line. Not `!important`:
+     the fit measures the name's one line with an inline `flex: none`. */
   .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
     align-self: flex-end !important;
-    flex: none !important;
-    margin-inline-end: var(--space-8) !important;
+    flex: 0 1 var(--su-name-basis, auto);
+    margin-inline-end: 0 !important;
     max-width: 75%;
     order: -1000 !important;
   }

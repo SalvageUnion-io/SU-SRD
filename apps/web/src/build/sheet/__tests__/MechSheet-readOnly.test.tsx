@@ -166,9 +166,9 @@ describe('MechSheet — no chassis stat column (C10)', () => {
   })
 })
 
-/** Read's chassis-ability group: the section its "Chassis ability" head names. */
+/** Read's chassis-ability group: the section its "Chassis ability" head (a dash group, h2) names. */
 function chassisAbility(): HTMLElement {
-  const head = screen.getByText('Chassis ability', { selector: 'h3, h3 *' })
+  const head = screen.getByText('Chassis ability', { selector: 'h2, h2 *' })
   const section = head.closest<HTMLElement>('section')
   if (!section) throw new Error('no chassis ability group')
   return section
