@@ -200,9 +200,10 @@
      uses) and must never carry text; the placeholder and separator uses it once
      had now resolve to `wk-muted`. */
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
-  /* The desk: the margin beside the page column from `lg`, warm ink over the
-     workshop ground, the same material in shadow (grounds by role). */
-  --color-desk: rgb(207, 203, 197); /* #cfcbc5, the page ground a sixth toward ink */
+  /* The desk: the margin beside the page column from `lg`, the ink itself
+     (the header's material), so the paper column stands on it as a sheet on
+     a dark bench. Nothing is set on it: the column holds every word. */
+  --color-desk: rgb(40, 32, 25); /* #282019, the ink */
   --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule */
   --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent */
 
