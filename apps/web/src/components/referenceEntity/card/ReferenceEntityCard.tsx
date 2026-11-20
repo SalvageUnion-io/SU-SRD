@@ -177,6 +177,7 @@ function ReferenceEntityCardInner({
   statsOverride,
   subtitleExtra,
   afterExtraContent,
+  asideExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
   className,
@@ -488,6 +489,7 @@ function ReferenceEntityCardInner({
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
         after={afterExtraContent}
+        aside={asideExtraContent}
         sectionAs={sectionAs}
         action={{
           NestedCard: ReferenceEntityCardInner,

@@ -342,10 +342,9 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
     )
   }
 
-  // The Core trees two across, on
-  // the path cards' shared rows; then every path the class
-  // advances along, its own (Legendary) first, then each Hybrid Class, all
-  // the same card with their trees side by side.
+  // The Core trees two across, on the path cards' shared rows. The paths the
+  // class advances along are `ClassAdvancement`'s, which a Page stands in its
+  // side track, under the art.
   return (
     <div className="su-ability-tree">
       <ClassBrief plan={plan} />
@@ -358,21 +357,33 @@ export function ClassAbilityTree({ classEntity }: ClassAbilityTreeProps) {
           </div>
         </SlabSection>
       )}
-      {plan.paths.length > 0 && (
-        <SlabSection title={componentsCopy('advancement')} page>
-          <ul className="su-class-paths">
-            {[...plan.paths]
-              .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
-              .map((path) => (
-                <PathCard
-                  key={path.hybrid?.id ?? path.advanced.tree}
-                  path={path}
-                  classEntity={classEntity}
-                />
-              ))}
-          </ul>
-        </SlabSection>
-      )}
+    </div>
+  )
+}
+
+/**
+ * Every path a (base) class advances along, its own (Legendary) first, then
+ * each Hybrid Class, all the same card with their trees side by side. A
+ * Hybrid Class's page has none: its trees are `ClassAbilityTree`'s.
+ */
+export function ClassAdvancement({ classEntity }: ClassAbilityTreeProps) {
+  const plan = useMemo(() => resolveClassPlan(classEntity), [classEntity])
+  if (plan.kind !== 'core' || plan.paths.length === 0) return null
+  return (
+    <div className="su-ability-tree">
+      <SlabSection title={componentsCopy('advancement')} page>
+        <ul className="su-class-paths">
+          {[...plan.paths]
+            .sort((a, b) => Number(Boolean(a.hybrid)) - Number(Boolean(b.hybrid)))
+            .map((path) => (
+              <PathCard
+                key={path.hybrid?.id ?? path.advanced.tree}
+                path={path}
+                classEntity={classEntity}
+              />
+            ))}
+        </ul>
+      </SlabSection>
     </div>
   )
 }

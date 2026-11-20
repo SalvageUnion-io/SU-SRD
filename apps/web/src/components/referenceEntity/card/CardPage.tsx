@@ -84,6 +84,8 @@ type CardPageProps = {
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
+  /** `asideExtraContent`: under the art in the side track, after `after` on a phone. */
+  aside?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -112,6 +114,7 @@ export function CardPage({
   actionSeal,
   patterns,
   after,
+  aside,
   sectionAs,
   action,
 }: CardPageProps) {
@@ -305,7 +308,7 @@ export function CardPage({
           {actionList(list)}
         </SlabSection>
       )
-    const side = !!hero || statsAside || split.side.length > 0
+    const side = !!hero || statsAside || split.side.length > 0 || !!aside
     return (
       <div className="su-entity-page su-manual">
         {side && (
@@ -320,6 +323,7 @@ export function CardPage({
                 split.main.length > 0 && 'su-manual__side-actions--more'
               )
             )}
+            {aside && <div className="su-manual__aside">{aside}</div>}
           </div>
         )}
         {/* The main track, always beside a side

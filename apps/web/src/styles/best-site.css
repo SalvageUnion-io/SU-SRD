@@ -1037,6 +1037,15 @@
   order: 3;
 }
 
+/* What stands under the art (a class's Advancement) follows everything the
+   Page appends on a phone. */
+.su-manual__side > .su-manual__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  order: 5;
+}
+
 @media not (width >= 64rem) {
   .su-manual__side-actions--more > .su-rule-head {
     display: none;

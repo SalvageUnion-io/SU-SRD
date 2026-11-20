@@ -166,6 +166,8 @@ export type ReferenceEntityCardProps = {
   statsOverride?: StatItem[]
   subtitleExtra?: ReactNode
   afterExtraContent?: ReactNode
+  /** On a Page, what stands in the side track under the art (a class's Advancement). */
+  asideExtraContent?: ReactNode
   /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
    * its own (the class pages' ability trees) rather than trailing body content.
    * The artwork and flavour prose become a centred lead row and the trailing
