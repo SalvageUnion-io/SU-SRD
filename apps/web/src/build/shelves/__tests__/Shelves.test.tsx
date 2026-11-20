@@ -38,7 +38,7 @@ const { useTray } = await import('../../../replica/collections')
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
-const { ShelvesPart } = await import('../shelvesPart')
+const { ShelvesPart } = await import('../shelvesPart.model')
 
 withSignedInBackend()
 

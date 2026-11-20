@@ -117,7 +117,7 @@ import {
   under,
   who,
 } from './shelfColumns'
-import { ShelvesPart } from './shelvesPart'
+import { ShelvesPart } from './shelvesPart.model'
 
 // ---------------------------------------------------------------------------
 // Data: the server's facts, read only when there is a server to ask
