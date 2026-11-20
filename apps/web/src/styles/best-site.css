@@ -517,9 +517,13 @@
   padding-bottom: 0;
 }
 
+/* The cut-out is its strip's buttons' 24px (§4.7: a head's name and its
+   actions share one height). */
 /* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
 .su-rule-head:not(.su-rule-head--sub) > .su-rule-head__label {
-  padding-block: var(--space-6) var(--space-4);
+  box-sizing: border-box;
+  height: var(--space-24);
+  padding-block: var(--space-4) var(--space-2);
 }
 
 /* A Reference or Bay list's strip. */
@@ -1637,4 +1641,11 @@ body:has(> #root) {
 body > #root {
   flex: 1 0 auto;
   min-height: 0 !important;
+}
+
+/* A head's read-out (a class's "Abilities | Up to 10") stands the head's 24px
+   too, as its cut-out and its buttons do (§4.7). */
+.su-rule-head:not(.su-rule-head--sub) .su-stat-cell {
+  height: var(--space-24);
+  min-height: 0;
 }
