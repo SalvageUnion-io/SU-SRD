@@ -48,6 +48,11 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-union-bar__rail"')
   })
 
+  it('says the tagline under the pitch, plain, on the art', () => {
+    const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
+    expect(head).toContain('su-tagline su-tagline--plain')
+  })
+
   it('pitches the site under its name, flush on the same cut-out', () => {
     const head = html.slice(html.indexOf('su-front__show-head'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
@@ -103,6 +108,10 @@ describe('the Reference’s home: the manual’s Contents', () => {
 
   it('is titled Reference', () => {
     expect(h1s(html)).toEqual(['Reference'])
+  })
+
+  it('says the tagline on its band, as every landing page does', () => {
+    expect(html).toMatch(/su-tagline"[^>]*>.*You’re in The Union/s)
   })
 
   it('indexes the book’s five chapters, with counts', () => {

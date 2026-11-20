@@ -10,6 +10,7 @@ import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import type { ContentsRow } from '../../components/index'
 import { ChapterBand, ContentsChapter } from '../../components/index'
+import { Tagline } from '../../components/Tagline'
 import { buildChapters } from '../../lib/chapters'
 import { SITE_URL, WEBSITE } from '../../lib/constants'
 import { itemHref } from '../../lib/entityHref'
@@ -60,7 +61,9 @@ function page(): PageResult {
     },
     children: (
       <div className="su-front">
-        <ChapterBand measure={PAGE_MEASURE}>{pagesCopy('referenceHome')}</ChapterBand>
+        <ChapterBand measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
+          {pagesCopy('referenceHome')}
+        </ChapterBand>
         <div className="su-front__body su-page-body">
           <section id="contents" aria-label={pagesCopy('contents')}>
             <div className="su-home__index su-front__index">

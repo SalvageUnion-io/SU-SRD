@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { Button, capsLabel } from '../components/index'
+import { Tagline } from '../components/Tagline'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -139,6 +140,7 @@ export function HomeHero() {
       <div className="su-front__show-head">
         <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
         <p className="su-front__show-value">{referenceCopy('pitchValue')}</p>
+        <Tagline plain />
       </div>
     </section>
   )
