@@ -181,10 +181,11 @@ body:has(.su-front--show) main {
 }
 
 /* A slide's words, at the bottom right in the same place on every slide,
-   right-aligned on paper that matches the site's name at the top: the
-   title, the line and the button one block, every piece the same width. */
+   right-aligned on paper that matches the site's name at the top: the title
+   its own tab, as wide as its words; the line and the button one plate under
+   it, as wide as the line. */
 .su-front__show-copy {
-  align-items: stretch;
+  align-items: flex-end;
   bottom: var(--space-24);
   color: var(--color-ink);
   display: flex;

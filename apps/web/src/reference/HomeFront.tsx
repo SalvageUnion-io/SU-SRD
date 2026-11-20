@@ -135,18 +135,20 @@ export function HomeHero() {
             )}
             <div className="su-front__show-copy">
               <h2 className="su-front__show-title">{slide.title}</h2>
-              <p className="su-front__show-body">{slide.body}</p>
-              <div className="su-front__show-act">
-                <Button
-                  href={slide.href}
-                  linkAs="a"
-                  variant="primary"
-                  size="full"
-                  target={slide.external ? '_blank' : undefined}
-                  rel="noopener noreferrer"
-                >
-                  {slide.action}
-                </Button>
+              <div className="su-front__show-plate">
+                <p className="su-front__show-body">{slide.body}</p>
+                <div className="su-front__show-act">
+                  <Button
+                    href={slide.href}
+                    linkAs="a"
+                    variant="primary"
+                    size="full"
+                    target={slide.external ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                  >
+                    {slide.action}
+                  </Button>
+                </div>
               </div>
             </div>
           </li>
