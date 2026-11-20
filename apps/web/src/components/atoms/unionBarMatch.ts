@@ -105,7 +105,10 @@ export function footerMatchCss(
  * and does not repaint the sheet.
  */
 export function kindMatchCss(key: string, band: string, foreground: Foreground): string {
-  const vars = `{--su-kind:${band};--su-on-kind:var(--color-${foreground})}`
+  // The area rail's words are ink on every band; on a band that carries
+  // paper (a dark one) the rail lays a paper strip under them so ink reads.
+  const railGround = foreground === 'paper' ? 'var(--color-paper-70)' : 'transparent'
+  const vars = `{--su-kind:${band};--su-on-kind:var(--color-${foreground});--su-rail-ground:${railGround}}`
   return (
     `:root:has(${LEADING_BAND}[${BAND_KEY_ATTRIBUTE}='${key}'])${vars}` +
     `:has(> ${BAND}[${BAND_KEY_ATTRIBUTE}='${key}'])${vars}`
