@@ -391,9 +391,7 @@ describe('Training Bay — items', () => {
     // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()
-    expect(
-      within(mechs).getByText('Mechs without a Pilot. A piloted Mech is on its Pilot’s row.')
-    ).toBeTruthy()
+    expect(within(mechs).getByText('None. A Mech with a Pilot is on its Pilot’s row.')).toBeTruthy()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
@@ -467,9 +465,9 @@ describe('Training Bay — Make a copy', () => {
     })
     // A copy only adds, so nothing asks first.
     expect(screen.queryByRole('alertdialog')).toBeNull()
-    await settle(() => screen.queryByText('Ghost · COPY OF Fen Oya') !== null)
+    await settle(() => screen.queryByText('Ghost 2 · COPY OF Fen Oya') !== null)
 
-    expect(screen.getByText('Ghost · COPY OF Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost 2 · COPY OF Fen Oya')).toBeTruthy()
     expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
     const names = useUnits
       .getState()
