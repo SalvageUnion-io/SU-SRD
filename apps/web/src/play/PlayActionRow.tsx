@@ -7,7 +7,8 @@
  *
  *  - **Closed** it says its effect in at most two short lines
  *    (`.su-play-act__effect`); an action whose chips say it all is its head
- *    alone. Its name Peeks the whole card.
+ *    alone. Its name Peeks and opens the entry it comes from (the ability,
+ *    item or chassis: `actionRow`'s source), as a link-mode Mini.
  *  - **On hand** it carries a rust Use (ruleset §1.4), which opens the resolve
  *    in place in the Mini's body (N3): the whole effect, its picks as CHOSEN
  *    chips (R60), then `PlayResolveSteps`, with Cancel in Use's place. A
@@ -41,6 +42,9 @@ import type { ResolveModel } from './useActionsDeck'
 import { usePlayWide } from './usePlayWide'
 
 type ActionEntry = Extract<ListEntry, { kind: 'action' }>
+
+/** The head opens its source's Page (E5), the surface's opener. */
+const OPENS_SOURCE = { kind: 'link' } as const
 
 type PlayActionRowProps = {
   entry: ActionEntry
@@ -151,6 +155,7 @@ export function PlayActionRow({
         size="mini"
         context="play"
         model={model}
+        mode={OPENS_SOURCE}
         instance={entry.action.condition === 'destroyed' ? { condition: 'destroyed' } : undefined}
         tint={companion?.tone ?? entry.source}
         {...(companion

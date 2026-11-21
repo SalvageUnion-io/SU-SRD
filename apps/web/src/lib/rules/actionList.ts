@@ -384,3 +384,22 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
 
   return out
 }
+
+/**
+ * The book entry an action comes from (the ability, the item, the chassis):
+ * what its row names, Peeks and opens, since an action has no page of its own.
+ * None where it no longer resolves.
+ */
+export function actionSource(pa: Pick<PlayAction, 'kind' | 'slug'>): RefMetaEntity | undefined {
+  const found =
+    pa.kind === 'chassis'
+      ? resolveChassisRef(pa.slug)
+      : pa.kind === 'system'
+        ? resolveSystem(pa.slug)
+        : pa.kind === 'module'
+          ? resolveModule(pa.slug)
+          : pa.kind === 'ability'
+            ? resolveAbilityBySlug(pa.slug)
+            : resolveEquipment(pa.slug)
+  return found ?? undefined
+}
