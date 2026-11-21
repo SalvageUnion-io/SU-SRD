@@ -171,6 +171,20 @@ describe('the Games calls', () => {
     })
   })
 
+  test('a creator who said they will be the Mediator is, as the Game starts', async () => {
+    const { call } = world()
+    const mine = (await call('games.create', { name: 'Tenacity', mediator: true })) as string
+    expect(await call('games.get', { gameId: mine })).toMatchObject({
+      organizer: true,
+      mediator: true,
+    })
+    const theirs = (await call('games.create', { name: 'Eldridge', mediator: false })) as string
+    expect(await call('games.get', { gameId: theirs })).toMatchObject({
+      organizer: true,
+      mediator: false,
+    })
+  })
+
   test('a roster’s names are read from each account, never from the Game', async () => {
     const { call, db } = world()
     const gameId = (await call('games.create', { name: 'Eldridge' })) as string

@@ -27,7 +27,6 @@
 import type { OwnableKind } from 'game-domain/entityKinds'
 import type { ProposalField, ProposalTarget } from 'game-domain/games/proposals'
 import {
-  clampProposalValue,
   fieldLabel,
   PROPOSAL_FIELDS,
   PROPOSAL_REASON_MAX,
@@ -40,7 +39,8 @@ import { Button, Field, Input, Select, TitledBox, tokens } from '../../component
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'
-import type { SentProposal } from './proposalLine.model'
+import type { ProposeMode, SentProposal } from './proposalLine.model'
+import { proposalAfter } from './proposalLine.model'
 import { SetbacksDialog } from './SetbacksDialog'
 
 const { space } = tokens
@@ -53,9 +53,10 @@ export type ProposeArgs = {
   reason?: string
 }
 
+/** A pair of fields on one row, the wider first: Target and Field, then Change and its number. */
 const ROW = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(4.5rem, 0.5fr)',
+  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
   gap: space[8],
   alignItems: 'end',
 } satisfies CSSProperties
@@ -103,18 +104,21 @@ export function ProposeDock({
     ? chosenField
     : fields[0].field
   const [to, setTo] = useState('')
+  // Set the value itself, or take or add an amount ("you take 3 damage").
+  const [mode, setMode] = useState<ProposeMode>('set')
   const [reason, setReason] = useState('')
   const [sending, setSending] = useState(false)
   const [setbacksOpen, setSetbacksOpen] = useState(false)
 
   const reading = target?.readings[field]
   const max = reading?.max ?? null
-  const value = clampProposalValue(to, max)
+  // A vital the sheet has never moved reads full (Heat: none), as the seat shows it.
+  const before = reading?.current ?? (field === 'currentHeat' ? 0 : max)
+  const value = proposalAfter(mode, to, before, max)
   const trimmed = reason.trim()
-  const before = reading?.current ?? null
   const preview =
     target === null || value === null
-      ? 'Pick a seat or a target, then the value you think it should be.'
+      ? 'Pick a seat or a target, then the value you think it should be, or an amount to take or add.'
       : [
           `${target.label}: ${fieldLabel(field)} ${before ?? '—'} → ${value}`,
           trimmed === '' ? null : `“${trimmed}”`,
@@ -155,6 +159,7 @@ export function ProposeDock({
         target={target}
         onPick={(draft) => {
           setChosenField(draft.field)
+          setMode('set')
           setTo(String(draft.to))
           setReason(draft.reason)
           toRef.current?.focus()
@@ -196,7 +201,24 @@ export function ProposeDock({
             ))}
           </Select>
         </Field>
-        <Field label={mediatorCopy('to')} htmlFor={`${id}-to`}>
+      </div>
+      <div style={ROW}>
+        <Field label={mediatorCopy('change')} htmlFor={`${id}-mode`}>
+          <Select
+            id={`${id}-mode`}
+            value={mode}
+            disabled={!canWrite}
+            onChange={(e) => setMode(e.target.value as ProposeMode)}
+          >
+            <option value="set">{mediatorCopy('setTo')}</option>
+            <option value="take">{mediatorCopy('take')}</option>
+            <option value="add">{mediatorCopy('addAmount')}</option>
+          </Select>
+        </Field>
+        <Field
+          label={mode === 'set' ? mediatorCopy('to') : mediatorCopy('amount')}
+          htmlFor={`${id}-to`}
+        >
           <Input
             ref={toRef}
             id={`${id}-to`}
@@ -221,7 +243,7 @@ export function ProposeDock({
       <div style={SEND_ROW}>
         <p id={`${id}-preview`} style={PREVIEW}>
           {preview}
-          {max !== null && value !== null && Number(to) > max
+          {mode === 'set' && max !== null && value !== null && Number(to) > max
             ? mediatorCopy('atMost', { max })
             : ''}
         </p>

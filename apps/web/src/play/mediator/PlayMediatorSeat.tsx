@@ -14,8 +14,8 @@
  *  - **Downtime** — the line says whether they are done with the step.
  *
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
- * pilot (see the problem, propose the fix), the ring on its pill and the other
- * seats dimmed beside it. Sheet, its chip group's last slot, opens their
+ * pilot (see the problem, propose the fix), the ring on its pill; the other
+ * seats stay at full strength, since their vitals are still being read. Sheet, its chip group's last slot, opens their
  * sheet read-only over Play; Up now beside it marks whose turn it is, for
  * every seat to read (a marker only: nothing is enforced).
  */
@@ -48,8 +48,6 @@ type PlayMediatorSeatProps = {
   onOpenSheet: () => void
   /** While Downtime runs: this seat's step line ("Step 3 · done ✓"). */
   stepLine: string | null
-  /** Propose is aimed at another seat: this one wears the one dim. */
-  dim: boolean
   /** The Mediator marked this pilot as up now. */
   upNow: boolean
   /** Mark, or unmark, this pilot as up now; absent while Play is read-only. */
@@ -62,7 +60,6 @@ export function PlayMediatorSeat({
   onPick,
   onOpenSheet,
   stepLine,
-  dim,
   upNow,
   onUpNow,
 }: PlayMediatorSeatProps) {
@@ -99,7 +96,6 @@ export function PlayMediatorSeat({
           onSelect: onPick,
           label: mediatorCopy('aimProposeHere', { label: `${shown}, ${reading}` }),
         }}
-        dim={dim}
         {...(pair.relations ? { relations: [...pair.relations] } : {})}
         state={
           <>

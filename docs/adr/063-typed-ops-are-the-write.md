@@ -74,6 +74,16 @@ offline queue would each be one more mechanism.
    (ADR-030 §2, ADR-037) and keep their own mutations and log rows, which the
    drawer reads beside the unit's ops. A body field that only bookkeeps (the
    `updatedAt` stamp) never conflicts.
+   Amended 2026-11-21: the feed also keeps **table events**, one line per
+   member act (a vital's change, an action begun, boarding, an assignment, a
+   join, the session's start and end, a proposal, the Stop Sign), written by
+   the Game room after the act (`rooms/game/events.ts`) as `change_log` rows
+   of field `event`, beside `roll` and `alert`. They are a record for readers,
+   never state: the Feed, the toasts and the bound Discord channel all read
+   this one stream, repeats within ten seconds merge into one line, the
+   newest 600 are kept, and a line marked `private` (a roll row's
+   `after.private`) is read by the Mediator alone and never mirrored. No
+   schema change: a room that has none reads as an empty feed.
 8. **ADR-007 maps directly.** A destructive change is only ever an op its
    player authors; automation authors none.
 9. **Offline, ops wait in an outbox** (Jrvs 2026-10-25: play your own units

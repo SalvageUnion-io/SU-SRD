@@ -172,6 +172,8 @@ export type ResolveModel =
       meltdown?: { onConfirm: () => void; onDismiss: () => void } | null
       applied: boolean
       applyRouted: boolean
+      /** Something was done with it (activated, rolled): its close reads Done, never Cancel. */
+      progressed: boolean
     }
 
 export type ActionsDeckProps = {
@@ -201,6 +203,8 @@ export type ActionsDeck = {
   /** Open an action's resolve on the seat, by its key. */
   open: (key: string) => void
   resolve: ResolveModel
+  /** The action that just finished (applied, and closed itself): its row says Done until another opens. */
+  doneKey: string | null
 }
 
 /** Every write here is Play's enforced transaction (ADR-022). */
@@ -259,6 +263,7 @@ export function useActionsDeck({
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
   const [haul, setHaul] = useState<string | null>(null)
+  const [doneKey, setDoneKey] = useState<string | null>(null)
 
   const selected = resolving === null ? null : (deck.find((a) => a.key === resolving.ref) ?? null)
   const roll: CoreRollResult | null = resolving?.roll ?? null
@@ -284,6 +289,7 @@ export function useActionsDeck({
 
   function open(action: PlayAction) {
     setCurrency(action.currency)
+    setDoneKey(null)
     resetLocal()
     onResolving({ ref: action.key, name: action.name, activated: false, applied: false })
   }
@@ -314,7 +320,10 @@ export function useActionsDeck({
       setApplyRouted(true)
       return
     }
-    step(current, { applied: true })
+    // A finished action closes itself: its row says Done, and the seat stops
+    // saying it is being resolved.
+    setDoneKey(current.ref)
+    close()
   }
 
   async function doRoll(current: SeatResolving) {
@@ -542,6 +551,7 @@ export function useActionsDeck({
       meltdown: meltdown ? { onConfirm: meltDown, onDismiss: () => setMeltdown(false) } : null,
       applied,
       applyRouted,
+      progressed: activated || roll !== null || salvageRoll !== null || applied,
     }
   })()
 
@@ -551,5 +561,6 @@ export function useActionsDeck({
       if (action) open(action)
     },
     resolve,
+    doneKey: resolving === null ? doneKey : null,
   }
 }

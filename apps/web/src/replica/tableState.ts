@@ -30,6 +30,7 @@ const STATE_TABLES = [
   'sentProposals',
   'rolls',
   'alerts',
+  'events',
   'crew',
   'sharing',
 ] as const

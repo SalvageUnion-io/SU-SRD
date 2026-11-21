@@ -52,6 +52,7 @@ import { PLAY_TXN } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { useTableAct, useTableRead } from '../../replica/useTable'
+import type { TableEvent } from '../../rooms/game/events'
 import { gameEncounters } from '../games/prep/gamePrep.model'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
@@ -118,6 +119,8 @@ export type PlayMediator = {
   broadcast: (message: string) => Promise<void>
   alerts: AlertLine[]
   rolls: RollLine[] | null
+  /** The table's event stream (`changeLog.events`); null while it loads. */
+  events: TableEvent[] | null
   /** Say why the server refused a write. */
   onFailure: (err: unknown) => void
   /** The clock presence and "2 min ago" are read against. */
@@ -205,6 +208,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const sent = useTableRead('ops.sent', { gameId, limit: sentLimit })
   const alerts = useTableRead('changeLog.alerts', { gameId, limit: FEED_ALERTS })
   const rolls = useTableRead('changeLog.rolls', { gameId, limit: FEED_ROLLS })
+  const events = useTableRead('changeLog.events', { gameId })
   const downtime = usePlayDowntime(mediatorTarget(gameId))
   const sceneState = useScene(gameId)
   const area = useSalvageArea(mediatorTarget(gameId))
@@ -488,6 +492,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     }),
     alerts: alerts ?? [],
     rolls: rolls ?? null,
+    events: events ?? null,
     onFailure,
     now,
     canWrite,

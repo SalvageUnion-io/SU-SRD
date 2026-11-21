@@ -21,7 +21,7 @@ import {
   mock,
   test,
 } from 'bun:test'
-import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { pilotFixture } from '../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../components/__tests__/serverMock'
@@ -201,9 +201,9 @@ describe('the Crew (play.md §7)', () => {
     const crew = within(screen.getByRole('list', { name: 'Crew' }))
     const links = crew.getAllByRole('button', { name: /Open their sheet/ })
     expect(links.map((l) => l.getAttribute('aria-label'))).toEqual([
-      'Mags, here, Boarded · Atlas, SP 22, fine. Open their sheet',
-      'Rook, here, On foot, Injured. Open their sheet',
-      'Wren, away, Boarded · Mule, SP 26, fine. Open their sheet',
+      'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9. Open their sheet',
+      'Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet',
+      'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
     // Presence is a chip on each crewmate's Mini (ruleset §1.3): two here, one away.
@@ -227,7 +227,7 @@ describe('the Crew (play.md §7)', () => {
       const rerender = await renderSide()
       const label = (name: string) =>
         screen.getByRole('button', { name: new RegExp(`^${name},`) }).getAttribute('aria-label')
-      expect(label('Rook')).toBe('Rook, here, On foot, Injured. Open their sheet')
+      expect(label('Rook')).toBe('Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet')
 
       // Rook climbs into Mule, healed; Mags takes a hit. The crew read answers anew.
       const crew = crewAt()
@@ -249,14 +249,16 @@ describe('the Crew (play.md §7)', () => {
       })
       answers({ 'crew.vitals': crew })
       await rerender()
-      expect(label('Rook')).toBe('Rook, here, Boarded · Mule, SP 26, fine. Open their sheet')
-      expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
+      expect(label('Rook')).toMatch(
+        /^Rook, here, Boarded · Mule, SP 26, fine, HP 10\/10, AP 5\/5, SP 26\/26/
+      )
+      expect(label('Mags')).toMatch(/^Mags, here, Boarded · Atlas, Injured, HP 2\/10/)
       expect(screen.getByText('▲ HP')).toBeTruthy()
 
       // Rook closes the tab: the room says so, and Rook turns away.
       presence.here = new Set(['u-bonesaw', 'u-mags'])
       await rerender()
-      expect(label('Rook')).toBe('Rook, away, Boarded · Mule, SP 26, fine. Open their sheet')
+      expect(label('Rook')).toMatch(/^Rook, away, Boarded · Mule, SP 26, fine/)
       expect(label('Mags')).toMatch(/^Mags, here,/)
     } finally {
       presence.here = CREW_HERE
@@ -310,7 +312,7 @@ describe('the Feed (play.md §8)', () => {
     expect(feedLines()).toEqual([
       expect.stringContaining('Mediator proposes Bonesaw HP → 5'),
       expect.stringContaining('You · Core Mechanic · 14 · Success'),
-      'Mags · Core Mechanic · 20 · Nailed it',
+      expect.stringContaining('Mags · Core Mechanic · 20 · Nailed it'),
     ])
   })
 
@@ -432,7 +434,9 @@ describe('Discord (play.md §9)', () => {
   test('nothing bound: the Tables say rolls stay in Play; nothing is sent', async () => {
     answers({ 'channelBindings.current': null })
     await renderSide()
-    expect(screen.getByText(/No channel is bound yet/)).toBeTruthy()
+    // A player cannot bind a Game's channel: told who can, offered no control.
+    expect(screen.getByText('None bound: the Mediator or Organiser connects one')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Set up a Discord channel' })).toBeNull()
     await roll([3])
     expect(postRoll).not.toHaveBeenCalled()
   })
@@ -441,6 +445,18 @@ describe('Discord (play.md §9)', () => {
     answers({ 'channelBindings.current': null })
     await renderSide({ gameId: null })
     expect(screen.queryByText(/No channel is bound yet/)).toBeNull()
+  })
+
+  test('nothing bound, the Mediator’s: the row sets one up, with the bot’s link and the command', async () => {
+    answers({ 'channelBindings.current': null })
+    await renderSide({ mediator: true })
+    expect(screen.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Set up a Discord channel' }))
+    const dialog = within(await screen.findByRole('dialog'))
+    expect(
+      dialog.getByRole('link', { name: 'Add the bot to your server' }).getAttribute('href')
+    ).toContain('discord.com/oauth2/authorize')
+    expect(dialog.getByRole('button', { name: 'Copy /su bind' })).toBeTruthy()
   })
 })
 

@@ -46,6 +46,7 @@ import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'
 import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
 import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
+import { SrdExplorer } from './mediator/SrdExplorer'
 import { usePlayMediator } from './mediator/usePlayMediator'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
@@ -55,7 +56,8 @@ import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { setPrivateRolls } from './playRolls.model'
-import { StopSignBanner, StopSignButton } from './StopSign'
+import { StopSignButton } from './StopSign'
+import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
@@ -88,8 +90,10 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     target: mediatorTarget(mediator.gameId),
     rollerName: 'Mediator',
     binding,
+    channel: { owner: { kind: 'game', gameName }, mayBind: true },
     rolls: mediator.rolls,
     alerts: mediator.alerts,
+    events: mediator.events,
     proposals: [],
   })
   const wide = usePlayWide()
@@ -108,6 +112,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const { here, of } = hereOf(mediator.seats)
   const running = mediator.downtime.downtime.running
   const sign = useStopSign(gameId)
+  const session = useGameSession(gameId)
 
   useEffect(() => {
     if (!focusTo || (!wide && tab !== 'propose')) return
@@ -148,6 +153,9 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       <PlayMediatorOpposition mediator={mediator} rollFor={rollFor} />
     ),
     tables: <MediatorTablesAndFeed mediator={mediator} side={side} />,
+    // The Reference beside the board (the player's `SrdExplorer`), so a rule is read
+    // without covering the seats; a phone opens it from the ⋯.
+    rules: <SrdExplorer />,
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}
@@ -161,7 +169,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   return (
     <PlayFrame
       wide={wide}
-      labels={['The table', running ? 'Downtime' : 'Opposition', 'Tables, Feed and Propose']}
+      labels={['The table', running ? 'Downtime' : 'Opposition', 'Rolls, Rules and Propose']}
       bar={
         <>
           <PlayBar
@@ -173,6 +181,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             stamp={wide ? 'Mediator' : undefined}
             short={!wide}
             tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+            paused={sign?.shown === true}
             live={status === 'live'}
             here={mediator.crew === null ? null : here}
             of={mediator.crew === null ? null : of}
@@ -187,16 +196,21 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             menu={<PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />}
           />
           {channel.dialog}
-          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
       }
       pinned={
         <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
       }
-      panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
+      panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
-      foot={<PlayFoot solo={false} tone={PHASE_TONE[running ? 'downtime' : 'scene']} />}
+      foot={
+        <PlayFoot
+          solo={false}
+          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+          note={session?.live ? playCopy('sessionLive') : undefined}
+        />
+      }
     />
   )
 }

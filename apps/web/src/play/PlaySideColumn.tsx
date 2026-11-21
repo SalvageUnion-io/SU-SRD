@@ -74,6 +74,7 @@ export function PlayTablesSection({
         mechTables={mechTables}
         solo={solo}
         binding={side.binding}
+        channel={side.channel}
         prepared={prepared}
         onField={onField}
       />

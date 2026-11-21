@@ -26,8 +26,8 @@
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
- * In a Game, Stop shows the Stop Sign, and while it is up a banner under the
- * bar says the game is paused (`StopSign.tsx`).
+ * In a Game, Stop shows the Stop Sign, and while it is up the band wears the
+ * stop colour and the pinned notice says the game is paused (`TableNotices`).
  * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
  * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066); solo there is no ⋯.
@@ -73,9 +73,10 @@ import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
-import { StopSignBanner, StopSignButton } from './StopSign'
+import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
+import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -126,6 +127,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
+  const session = useGameSession(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
@@ -238,6 +240,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               }
               stamp={playStamp(target)}
               tone={PHASE_TONE[play.situation]}
+              paused={sign?.shown === true}
               // Back to the pilot's own page (ADR-066); its Game is in ⋯.
               backHref={sheetPath('pilot', target.pilotId)}
               backLabel={playCopy('sheet')}
@@ -265,7 +268,6 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             />
             {channel.dialog}
             {!wide && moves.dialogs}
-            <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
           </>
         }
         pinned={
@@ -304,7 +306,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             />
           ) : undefined
         }
-        foot={<PlayFoot solo={solo} tone={PHASE_TONE[play.situation]} />}
+        foot={
+          <PlayFoot
+            solo={solo}
+            tone={PHASE_TONE[play.situation]}
+            note={session?.live ? playCopy('sessionLive') : undefined}
+          />
+        }
       />
     </ShowSheetContext.Provider>
   )

@@ -19,7 +19,12 @@
  */
 
 import type { BotRelay } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ROLL_PATH,
+  isPostableRoll,
+  ROLL_LABEL_MAX,
+  relayUrl,
+} from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -106,6 +111,15 @@ async function started(who: Caller, gameId: string, deps: CallDeps, start: () =>
     throw error
   }
   return republished(deps.game(gameId), gameId)
+}
+
+/**
+ * A Game's creator is its Organiser, and its Mediator too where they said so
+ * as they made it ("Will you be the Mediator?"): the Organiser's own appointment.
+ */
+async function mediatedByCreator(room: GameRoomStub, who: Caller, mediator: boolean | undefined) {
+  if (mediator !== true) return
+  await act(room, who.discordId, 'setMediator', { userId: who.discordId, mediator: true })
 }
 
 /** Have the room write its shared rows now, so the next list reads the change. */
@@ -223,13 +237,14 @@ const CALLS = {
   },
   'games.create': async (
     who: Caller,
-    a: { name: string; templateOrigin?: string },
+    { mediator, ...a }: { name: string; templateOrigin?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'create', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
   'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
@@ -308,13 +323,14 @@ const CALLS = {
   'templates.list': async () => templateList(),
   'templates.createGame': async (
     who: Caller,
-    a: { templateId: string; name?: string },
+    { mediator, ...a }: { templateId: string; name?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'createFromTemplate', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
 
@@ -420,7 +436,7 @@ const CALLS = {
     a: {
       gameId?: string
       pilotId?: string
-      roll: { tableName: string; rolls: number[] }
+      roll: { tableName: string; rolls: number[]; label?: string | undefined }
     },
     deps: CallDeps
   ): Promise<PostRollResult> => {
@@ -432,7 +448,7 @@ const CALLS = {
     const binding = await rollChannel(deps.db, who.discordId, gameId)
     if (binding === null) return { kind: 'unbound' }
     const { channelId } = binding
-    const { tableName, rolls } = a.roll
+    const { tableName, rolls, label } = a.roll
     if (!isPostableRoll(tableName, rolls)) {
       return { kind: 'failed', channelId, message: 'That roll cannot be posted.' }
     }
@@ -447,6 +463,9 @@ const CALLS = {
       tableName,
       rolls,
       roller,
+      ...(label !== undefined && label !== tableName
+        ? { label: label.slice(0, ROLL_LABEL_MAX) }
+        : {}),
       ...(isDiscord ? { ownerDiscordId: who.discordId } : {}),
     }
     try {
@@ -499,7 +518,11 @@ const CALL_ARGS = {
   'games.listMine': z.object({}),
   'games.get': GAME,
   'games.names': GAME,
-  'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
+  'games.create': z.object({
+    name: z.string(),
+    templateOrigin: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
@@ -511,7 +534,11 @@ const CALL_ARGS = {
   'invites.reset': GAME,
   'invites.redeem': z.object({ code: z.string() }),
   'templates.list': z.object({}),
-  'templates.createGame': z.object({ templateId: z.string(), name: z.string().optional() }),
+  'templates.createGame': z.object({
+    templateId: z.string(),
+    name: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'ownership.assign': GAME.extend({ entityId: z.string(), userId: z.string().optional() }),
   'ownership.unassign': GAME.extend({ entityId: z.string() }),
   'entities.remove': GAME.extend({ entityId: z.string() }),
@@ -523,7 +550,11 @@ const CALL_ARGS = {
   'channelBindings.postRoll': z.object({
     gameId: z.string().optional(),
     pilotId: z.string().optional(),
-    roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
+    roll: z.object({
+      tableName: z.string(),
+      rolls: z.array(z.number()),
+      label: z.string().optional(),
+    }),
   }),
 } satisfies Record<GameCallName, z.ZodType>
 

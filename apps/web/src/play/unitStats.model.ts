@@ -102,3 +102,16 @@ export function bayConditions(
     }
   })
 }
+
+/** An amount as typed ("3"): a whole number above zero, or null. */
+export function amountOf(text: string): number | null {
+  const trimmed = text.trim()
+  if (!/^\d{1,3}$/.test(trimmed)) return null
+  const n = Number(trimmed)
+  return n > 0 ? n : null
+}
+
+/** A vital after a change of `delta` (damage is negative), kept within 0…max. */
+export function vitalAfter(value: number, delta: number, max: number): number {
+  return Math.min(Math.max(value + delta, 0), max)
+}

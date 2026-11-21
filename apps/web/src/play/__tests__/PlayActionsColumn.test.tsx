@@ -134,10 +134,11 @@ function onHand(): HTMLElement {
 }
 /** The rows on hand, across every group. */
 const onHandRows = () => [...onHand().querySelectorAll('li[data-action-key]')]
-/** The `<li>` of the action named `name`: the one whose Use or Cancel names it. */
+/** The `<li>` of the action named `name`: the one whose Use, Cancel or Done names it. */
 function rowFor(name: string): HTMLElement {
   const button =
     screen.queryByRole('button', { name: `Use ${name}` }) ??
+    screen.queryByRole('button', { name: `Done with ${name}` }) ??
     screen.getByRole('button', { name: `Cancel ${name}` })
   const li = button.closest('li')
   if (!li) throw new Error(`no row for ${name}`)
@@ -505,11 +506,16 @@ describe('Use: the resolve, in the Compact', () => {
     expect(apply().disabled).toBe(true)
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(apply().disabled).toBe(false)
-    await click(apply())
-    expect(screen.getByText('Result applied ✓')).toBeTruthy()
-    expect(calls).toHaveLength(0)
+    // Start over rolls again from Activate.
     await click(screen.getByRole('button', { name: 'Start over' }))
     expect(document.querySelector('.su-roll [aria-current="true"]')).toBeNull()
+    await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
+    await click(apply())
+    // A finished action closes itself and its row says Done (LG-12).
+    const row = rowFor(primary().name)
+    expect(row.getAttribute('data-open')).toBeNull()
+    expect(row.getAttribute('data-done')).toBe('true')
+    expect(calls).toHaveLength(0)
   })
 
   test('the roll and Apply are spoken by a live region mounted before the roll', async () => {
@@ -520,7 +526,8 @@ describe('Use: the resolve, in the Compact', () => {
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
     await click(screen.getByRole('button', { name: 'Apply' }))
-    expect(live?.textContent).toMatch(/Result applied$/)
+    // The resolve closed; the row's own status says it.
+    expect(within(rowFor(primary().name)).getByRole('status').textContent).toBe('Result applied')
   })
 
   test('every step is written to the seat: open, activate, roll, back', async () => {
@@ -528,7 +535,8 @@ describe('Use: the resolve, in the Compact', () => {
     await click(use(primary().name))
     await click(screen.getByRole('button', { name: /^Activate/ }))
     await click(screen.getByRole('button', { name: 'Roll the die on Core Mechanic' }))
-    await click(screen.getByRole('button', { name: `Cancel ${primary().name}` }))
+    // Activated and rolled, its close reads Done: it never undoes the spend.
+    await click(screen.getByRole('button', { name: `Done with ${primary().name}` }))
     const steps = writes
       .filter((w) => w.name.startsWith('seat.'))
       .map((w) =>

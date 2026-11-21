@@ -13,7 +13,12 @@ import { MessageFlags } from 'discord-api-types/v10'
 import type { CommandButtonInteraction } from './commands/interactions'
 import type { LookupMessage } from './commands/lookup'
 import { buildLookupMessage, buildTableLookupMessage } from './commands/lookup'
-import { buildPostedRollMessage, buildRollMessage, buildSeeTableMessage } from './commands/roll'
+import {
+  buildPostedRollMessage,
+  buildRollMessage,
+  buildSeeTableMessage,
+  logPublicRoll,
+} from './commands/roll'
 import { v2Reply } from './container'
 import { decodeRollRequest, parseCustomId } from './customId'
 import { dieForTable } from './dice'
@@ -57,6 +62,7 @@ export async function handleButtonInteraction(
       return
     }
     await interaction.reply(posted)
+    await logPublicRoll(interaction, posted)
     return
   }
 
@@ -133,4 +139,6 @@ export async function handleButtonInteraction(
   }
 
   await interaction.reply(message)
+  // A re-roll in a Game's bound channel joins its Feed; a lookup's card carries no roll.
+  if (request) await logPublicRoll(interaction, message)
 }

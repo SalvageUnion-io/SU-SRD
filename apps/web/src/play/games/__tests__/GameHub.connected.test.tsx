@@ -788,38 +788,17 @@ describe('Safety (Core Book pp.12-13)', () => {
     expect(screen.queryByRole('switch')).toBeNull()
   })
 
-  test('while the Stop Sign is up, the page says the game is paused, without who', async () => {
+  test('while the Stop Sign is up, the head’s button says so by being disabled', async () => {
+    // The words and Resume play are the pinned notice's, over every screen (`TableNotices`).
     await renderConnected({
       'safety.stopSign': {
         stop: { shownAt: 1, mine: false },
         mayLift: false,
       },
     })
-    expect(screen.getByText('Stop Sign: the game is paused')).not.toBeNull()
-    expect(screen.queryByRole('button', { name: 'Resume play' })).toBeNull()
     expect(
       (screen.getByRole('button', { name: 'Show the Stop Sign' }) as HTMLButtonElement).disabled
     ).toBe(true)
-  })
-
-  test('whoever may lift it gets Resume play', async () => {
-    await renderConnected({
-      'safety.stopSign': {
-        stop: { shownAt: 1, mine: true },
-        mayLift: true,
-      },
-    })
-    expect(screen.queryByRole('button', { name: 'Resume play' })).not.toBeNull()
-  })
-
-  test('Resume play is one call', async () => {
-    await renderConnected({
-      'safety.stopSign': { stop: { shownAt: 1, mine: true }, mayLift: true },
-    })
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Resume play' }))
-    })
-    expect(mutations).toEqual([{ name: 'safety.liftStop', args: {} }])
   })
 
   test('Stop Sign on the section’s head shows it', async () => {

@@ -37,6 +37,7 @@ function clientReturning(result: SiteResult<unknown>): SiteClient {
     unbindChannel: answer,
     usage: answer,
     feedback: answer,
+    logRoll: answer,
   }
 }
 

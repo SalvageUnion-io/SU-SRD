@@ -951,10 +951,12 @@ describe('every Mediator capability is reachable here', () => {
     expect(screen.getByRole('list', { name: 'Pinned tables' })).toBeTruthy()
   })
 
-  test('the reference is ⋯ › Reference', async () => {
+  test('the Rules are a pane beside the board, so the ⋯ has no row for them', async () => {
     await renderCockpit()
+    const side = within(screen.getByRole('region', { name: 'Rolls, Rules and Propose' }))
+    expect(side.getByLabelText('Search the Reference')).toBeTruthy()
     await click(named('More'))
-    expect(screen.getByRole('menuitem', { name: 'Rules' })).toBeTruthy()
+    expect(screen.queryByRole('menuitem', { name: 'Rules' })).toBeNull()
   })
 
   test('the Game’s rolls and the alerts sent are the Feed', async () => {

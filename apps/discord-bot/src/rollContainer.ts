@@ -29,6 +29,7 @@
  * there while the colour ramp stays.
  */
 
+import { ROLL_LABEL_MAX } from 'game-domain/botWire'
 import type { RefRollTable, RollOnTableOutcome } from 'salvageunion-reference'
 import {
   DISCORD_NEUTRAL_ACCENT,
@@ -77,6 +78,8 @@ export function isTieredTable(table: RefRollTable): boolean {
 export type RollContext = {
   /** Display name of whoever rolled, for the context line. */
   roller?: string
+  /** What the roll was for (an ability, a system), when not the table itself. */
+  label?: string
 }
 
 /** Uppercase for the stencil voice, and normalise the dataset's mixed casing. */
@@ -85,9 +88,15 @@ function stencil(text: string): string {
 }
 
 /** `-# TABLE NAME · rolled by X` — the context line above the headline. */
-function contextLine(tableName: string, roller?: string): string {
+function contextLine(tableName: string, roller?: string, label?: string): string {
   const name = stencil(tableName)
-  return roller ? `-# ${name} · rolled by ${roller}` : `-# ${name}`
+  // One line of plain words: the label came from a client.
+  const what = label
+    ?.replace(/[\s`*_~|<>@#\\[\]()]+/g, ' ')
+    .trim()
+    .slice(0, ROLL_LABEL_MAX)
+  const head = what && stencil(what) !== name ? `${name} · ${stencil(what)}` : name
+  return roller ? `-# ${head} · rolled by ${roller}` : `-# ${head}`
 }
 
 /**
@@ -186,7 +195,7 @@ export function buildRollContainerData(
   )
 
   const blocks: ContainerBlock[] = [
-    { kind: 'text', content: contextLine(table.name, context.roller) },
+    { kind: 'text', content: contextLine(table.name, context.roller, context.label) },
   ]
 
   blocks.push({ kind: 'text', content: headline })

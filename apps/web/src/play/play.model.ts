@@ -11,7 +11,7 @@ import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import type { ChapterTone } from '../components/index'
-import { CHAPTER_BAND_COLOR } from '../components/index'
+import { CHAPTER_BAND_COLOR, tokens } from '../components/index'
 import { foregroundOn } from '../design/contrast'
 import { sharedCopy } from '../messages/components-shared'
 import { playCopy } from '../messages/play'
@@ -81,6 +81,16 @@ export const PHASE_TONE = {
   downtime: 'play',
   scene: 'denizen',
 } as const satisfies Record<PlayPhase, ChapterTone>
+
+/** The band while the Stop Sign is up (play.md §17): the stop colour, on every phase. */
+export function pausedBand() {
+  const background = tokens.color.statusBad
+  const foreground = foregroundOn(background, 'paper')
+  return {
+    ground: foreground === 'paper' ? ('ink' as const) : ('paper' as const),
+    style: { background, color: `var(--color-${foreground})` } satisfies CSSProperties,
+  }
+}
 
 /**
  * The foot's connection line: connected, a Game's screen reaches its table

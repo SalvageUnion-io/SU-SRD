@@ -11,6 +11,7 @@ import { POSTER_STAMP } from './posterStamp'
 import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
+import { VitalGaugeValue } from './VitalGaugeValue'
 import {
   C_HEAD,
   C_LABEL,
@@ -126,6 +127,8 @@ export type VitalGaugeProps = {
    * the track's end (a Live Sheet's vitals, which step in Read: R11).
    */
   steppers?: boolean | 'end'
+  /** The compact value as a button (`VitalGaugeValue`): the caller asks for an amount. */
+  onValuePress?: (() => void) | undefined
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -183,6 +186,7 @@ export function VitalGauge({
   onRevertOverride,
   provenance,
   steppers = false,
+  onValuePress,
   readOnly,
   danger,
   size = 'full',
@@ -356,14 +360,13 @@ export function VitalGauge({
           <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
-          <span
-            style={{
-              ...C_VALUE,
-              color: isOver ? color.statusBad : color.ink,
-            }}
+          <VitalGaugeValue
+            style={{ ...C_VALUE, color: isOver ? color.statusBad : color.ink }}
+            name={atomsCopy('changeByAmount', { label, value: shown, max })}
+            onPress={editable ? onValuePress : undefined}
           >
             {shown}/{max}
-          </span>
+          </VitalGaugeValue>
         </div>
         {/*
          * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a

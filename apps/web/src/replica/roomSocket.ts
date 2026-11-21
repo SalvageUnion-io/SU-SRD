@@ -53,6 +53,7 @@ const RECORD_TABLE: Record<RecordTable, Table | null> = {
   sentProposals: null,
   rolls: null,
   alerts: null,
+  events: null,
   crew: null,
   sharing: null,
 }
