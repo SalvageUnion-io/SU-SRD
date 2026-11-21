@@ -34,10 +34,16 @@ export function blankEncounter(name = buildPrepCopy('newEncounter')): EncounterC
   return { schemaVersion: 1, name, opposition: [], tables: [], notes: '' }
 }
 
-/** Make a copy: everything but its name, which says it is a copy (and still fits). */
-export function encounterCopy(encounter: Encounter): EncounterCreateInput {
+/**
+ * Make a copy: everything but its name, which says it is a copy (and still
+ * fits), numbered past the names `taken` on the shelf.
+ */
+export function encounterCopy(
+  encounter: Encounter,
+  taken: readonly string[] = []
+): EncounterCreateInput {
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = encounter
-  return { ...rest, name: copyName(encounter.name).slice(0, ENCOUNTER_MAX_NAME) }
+  return { ...rest, name: copyName(encounter.name, taken).slice(0, ENCOUNTER_MAX_NAME) }
 }
 
 /**

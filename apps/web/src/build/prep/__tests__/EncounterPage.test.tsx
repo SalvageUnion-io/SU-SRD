@@ -310,14 +310,33 @@ describe('the Encounters shelf', () => {
     expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
-  test('Make a copy asks, then shelves the copy', async () => {
+  test('Make a copy runs at once, and its toast opens the copy (SB-25)', async () => {
     await renderShelf()
     await click(screen.getByRole('button', { name: 'More for Ambush' }))
     await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Make a copy' }))
-    const dialog = screen.getByRole('alertdialog')
-    await click(within(dialog).getAllByRole('button').at(-1) as HTMLElement)
+    // No confirm stands between the press and the copy.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => useEncounters.getState().encounters.length === 2)
-    expect(useEncounters.getState().encounters).toHaveLength(2)
+    const copy = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
+    expect(copy?.name).toBe('COPY OF Ambush')
+    await settle(() => screen.queryByRole('button', { name: 'Open the copy' }) !== null)
+    await click(screen.getByRole('button', { name: 'Open the copy' }))
+    expect(assigned).toEqual([`/encounters/${copy?.id}`])
+  })
+
+  test('a second copy is numbered', async () => {
+    await renderShelf()
+    for (const expected of [2, 3]) {
+      await click(screen.getByRole('button', { name: 'More for Ambush' }))
+      await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Make a copy' }))
+      await settle(() => useEncounters.getState().encounters.length === expected)
+    }
+    expect(
+      useEncounters
+        .getState()
+        .encounters.map((e) => e.name)
+        .sort()
+    ).toEqual(['Ambush', 'COPY OF Ambush', 'COPY OF Ambush 2'])
   })
 
   test('Delete asks, then takes it off the shelf', async () => {

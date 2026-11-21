@@ -4,14 +4,18 @@
  * Play. User-made and only ever its maker's, so dashed and "Only me".
  *
  * "+ New encounter" makes a blank one and opens it; each item's "⋯" menu has
- * Open, Make a copy and Delete…, the last two through the page's one confirm.
+ * Open, Make a copy and Delete…. A copy only adds, so it runs at once and its
+ * toast opens it (`makeACopy`, as a unit's does); Delete asks through the
+ * page's one confirm.
  */
 
 import type { Encounter } from 'game-domain/schemas/encounter'
 import type { HeaderMenuItem } from '../../components/index'
-import { Button, toast } from '../../components/index'
+import { Button } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
+import { makeACopy } from '../../lib/copiedToast'
+import { namesOn } from '../../lib/copyEntity'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
@@ -46,14 +50,19 @@ export function EncounterShelf({
         {
           id: 'copy',
           label: buildPrepCopy('makeACopy'),
-          onSelect: writable(() =>
-            confirm({
-              ...ROW_ACTION_COPY.copyOnShelf(encounter.name),
-              onConfirm: async () => {
-                const created = await useEncounters.getState().create(encounterCopy(encounter))
-                toast.success(`Made ${created.name}.`)
-              },
-            })
+          onSelect: writable(
+            () =>
+              void makeACopy({
+                name: encounter.name,
+                make: async () => {
+                  const shelf = useEncounters.getState()
+                  const created = await shelf.create(
+                    encounterCopy(encounter, namesOn(shelf.encounters))
+                  )
+                  return { name: created.name, href: encounterHref(created.id) }
+                },
+                go,
+              })
           ),
         },
       ],
