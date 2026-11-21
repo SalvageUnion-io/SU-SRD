@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
-import { appliedMessages, batchAnswer, gameSnapshot, readClientMessage } from '../feed'
+import {
+  appliedMessages,
+  batchAnswer,
+  CHANGED_FIRST,
+  gameSnapshot,
+  readClientMessage,
+} from '../feed'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -154,7 +160,9 @@ describe('what the sender of a batch hears', () => {
     ).toEqual({ type: 'ack', opIds: ['a', 'b'], fresh: ['b'] })
     expect(
       batchAnswer(['a'], { ok: false, opId: 'a', reason: 'conflict', fields: ['motto', 'name'] })
-    ).toEqual({ type: 'declined', opIds: ['a'], reason: 'Changed elsewhere first: motto, name' })
+    ).toEqual({ type: 'declined', opIds: ['a'], reason: CHANGED_FIRST })
+    // Plain words, and no stored field's name (LG-03).
+    expect(CHANGED_FIRST).not.toMatch(/motto|name|current[A-Z]/)
     expect(batchAnswer(['a'], { ok: false, opId: 'a', reason: 'invalid', message: 'No' })).toEqual({
       type: 'declined',
       opIds: ['a'],
