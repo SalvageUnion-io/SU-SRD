@@ -15,6 +15,7 @@ import {
   opponentAsTray,
   opponentFrom,
   opponentNote,
+  oppositionWith,
   pinTable,
   unpinTable,
 } from '../encounter.model'
@@ -176,5 +177,18 @@ describe('Make a copy of a row (MD-27)', () => {
       ENCOUNTER_MAX_OPPOSITION
     )
     expect(duplicateOpponent({ opposition: [band] }, 'nope', 'new')).toEqual([band])
+  })
+})
+
+describe('a Reference denizen added from its page', () => {
+  test('joins the opposition at full strength, named apart; a full encounter takes none', async () => {
+    const { SalvageUnionReference } = await import('salvageunion-reference')
+    const squad = SalvageUnionReference.Squads.all()[0]
+    if (!squad) throw new Error('no squad')
+    const next = oppositionWith(ambush, 'squads', squad, 'o2', NOW)
+    expect(next).toHaveLength(2)
+    expect(next?.[1]).toMatchObject({ id: 'o2', refSchema: 'squads', name: squad.name })
+    const full = { opposition: Array.from({ length: ENCOUNTER_MAX_OPPOSITION }, () => band) }
+    expect(oppositionWith(full, 'squads', squad, 'o3', NOW)).toBeNull()
   })
 })

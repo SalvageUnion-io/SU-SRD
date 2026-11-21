@@ -14,6 +14,7 @@ export const referenceCopy = messages({
   techLevels: 'Tech Levels',
   app: 'APP',
   whereNext: 'Where next',
+  forTheMediator: 'For the Mediator',
   level: 'Level',
   wiki: 'WIKI',
   signInWithDiscord: 'Sign in with Discord',

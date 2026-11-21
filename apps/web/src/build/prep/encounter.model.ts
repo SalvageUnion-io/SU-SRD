@@ -21,7 +21,7 @@ import { copyName } from '../../lib/copyEntity'
 import { buildPrepCopy } from '../../messages/build-prep'
 import { npcKind } from '../../play/mediator/npcActions.model'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
-import { readTrayNpc } from '../../play/mediator/opposition.model'
+import { newTrayNpc, readTrayNpc } from '../../play/mediator/opposition.model'
 import type { EncounterCreateInput } from '../../replica/collections'
 
 /** An encounter's page, in the Training Bay. */
@@ -79,6 +79,27 @@ export function duplicateOpponent(
     ),
   }
   return [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)]
+}
+
+/**
+ * The opposition with one more drawn from a Reference denizen (its page's "Add
+ * to an encounter"), named apart from the rest; `null` with no room.
+ */
+export function oppositionWith(
+  encounter: Pick<Encounter, 'opposition'>,
+  schema: Parameters<typeof newTrayNpc>[0],
+  entity: Parameters<typeof newTrayNpc>[1],
+  id: string,
+  now: string
+): EncounterOpponent[] | null {
+  if (!hasRoomFor(encounter)) return null
+  const body = newTrayNpc(
+    schema,
+    entity,
+    encounter.opposition.map((o) => o.name),
+    now
+  )
+  return [...encounter.opposition, opponentFrom(body, id)]
 }
 
 /** Whether another opponent fits. */

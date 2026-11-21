@@ -190,6 +190,17 @@
 }
 
 /*
+ * A denizen's Mediator links (`MediatorActsFoot`): static markup the page
+ * shows only while somebody is signed in (`lib/accountState.ts`).
+ */
+.su-mediator-acts {
+  display: none;
+}
+html[data-srd-signed-in] .su-mediator-acts {
+  display: flex;
+}
+
+/*
  * The roll-table page (`RollTableView`): the table's prose, the
  * table, then the Randsum credit. A roll's result is a toast, not a panel.
  */

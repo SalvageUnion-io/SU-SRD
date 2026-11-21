@@ -91,6 +91,26 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
   }
 }
 
+/** The Reference kinds an encounter fields and the NPC designer starts from. */
+const DENIZEN_KINDS = ['npcs', 'squads', 'creatures', 'vehicles', 'drones', 'meld', 'bio-titans']
+
+/**
+ * A denizen page's way into the Mediator's tools, shown to a signed-in reader
+ * (`.su-mediator-acts`): field it in one of their encounters
+ * (`/encounters/add`), or design an NPC of their own from it (`/npcs/new`).
+ */
+export type MediatorLinks = { add: BuildLink; design: BuildLink }
+
+/** The page's Mediator links, or `null` where it is no denizen. */
+export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLinks | null {
+  if (!DENIZEN_KINDS.includes(schemaId)) return null
+  const from = new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })
+  return {
+    add: { href: `${appPath('/encounters/add')}?${from}`, label: 'Add to an encounter' },
+    design: { href: `${appPath('/npcs/new')}?${from}`, label: 'Design from this' },
+  }
+}
+
 /**
  * A pattern page's "Build With This": the mech wizard on the pattern's chassis
  * with the pattern's loadout prefilled (`/mechs/new?chassis=mule&pattern=hauler`).

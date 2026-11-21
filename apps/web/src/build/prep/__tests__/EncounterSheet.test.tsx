@@ -10,7 +10,7 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
-import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -65,6 +65,8 @@ const AMBUSH: Encounter = {
 const connection: SyncState = { status: 'live', canWrite: true, outdated: false }
 
 beforeEach(() => {
+  // The sheet names the Games its reader runs (the For field).
+  setQueryAnswers({ 'games.listMine': [] })
   useSheetModeStore.setState({ editing: true })
   toast.dismiss()
   resetStores()
