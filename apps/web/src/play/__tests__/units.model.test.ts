@@ -146,4 +146,12 @@ describe('hangarMechs', () => {
     ]
     expect(hangarMechs(options, 'shown').map((o) => o.mechId)).toEqual(['old-faithful', 'wreck'])
   })
+
+  test('a mech another of your pilots flies is theirs, not this pilot’s hangar (SB-28)', () => {
+    const options = [
+      option('old-faithful', 'yours'),
+      { ...option('thresher', 'yours'), flownByOther: true },
+    ]
+    expect(hangarMechs(options, null).map((o) => o.mechId)).toEqual(['old-faithful'])
+  })
 })

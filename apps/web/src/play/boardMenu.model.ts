@@ -73,6 +73,8 @@ export type BoardOption = {
   state: BoardState
   /** Why it can't be boarded, that it is a spare, or which of your pilots flies it; else null. */
   note: string | null
+  /** One of yours that another of your pilots is assigned: boardable, but not this pilot's hangar. */
+  flownByOther?: boolean
 }
 
 /** Whether choosing this option does anything: your own boards, a spare is assigned to you first. */
@@ -225,6 +227,7 @@ export function boardMenu(args: {
     if (option.state === 'yours' && flownBy !== undefined && mechId !== assigned?.id) {
       const flier = pilotName.get(flownBy)
       option.note = flier ? playCopy('pilotsMech', { name: flier }) : playCopy('anotherPilotsMech')
+      option.flownByOther = true
     }
     ranked.push({ option, rank: mechId === assigned?.id ? 0 : row.ownerId === viewerId ? 1 : 2 })
   }
