@@ -186,7 +186,7 @@ function Row({
                 row.name
               )}
             </span>
-            {row.meta && <span className={cn('su-open__meta', CAPS, CAPS)}>{row.meta}</span>}
+            {row.meta && <span className={cn('su-open__meta', CAPS)}>{row.meta}</span>}
             {row.state && <span className="su-open__state">{row.state}</span>}
           </span>
         </th>
@@ -243,7 +243,7 @@ function Group({
   return (
     <tbody>
       {group.label !== undefined && (
-        <tr className={cn('su-open__group', CAPS, CAPS)}>
+        <tr className={cn('su-open__group', CAPS)}>
           <th colSpan={span} scope="rowgroup">
             <span className="su-open__group-line">
               {group.fold ? (
@@ -310,7 +310,7 @@ export function OpenLedger({
           <th scope="col">
             {/* The tab is its section's head (L2): a Slab's row, as the outline reads it. */}
             <span className="su-open__title" data-slab="">
-              <Heading id={titleId} className={cn('su-rule-head__label', CAPS, CAPS)}>
+              <Heading id={titleId} className={cn('su-rule-head__label', CAPS)}>
                 {title}
               </Heading>
               {tallies.length > 0 && (
@@ -318,7 +318,7 @@ export function OpenLedger({
                   {tallies.map((entry) => (
                     <span
                       key={entry.label}
-                      className={cn('su-rule-head__tally', CAPS, CAPS)}
+                      className={cn('su-rule-head__tally', CAPS)}
                       data-state={entry.state === 'critical' ? 'critical' : undefined}
                       title={entry.title}
                     >
@@ -330,7 +330,7 @@ export function OpenLedger({
                   ))}
                 </span>
               )}
-              {note && <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>}
+              {note && <span className={cn('su-rule-head__note', CAPS)}>{note}</span>}
               {actions && <div className="su-rule-head__actions">{actions}</div>}
             </span>
           </th>

@@ -134,12 +134,12 @@ function StripVital({ vital }: { vital: PhoneVital }) {
       data-vital={vital.key}
       data-counter={max === undefined ? '' : undefined}
     >
-      <p className={cn('su-strip__label', CAPS, CAPS)}>
+      <p className={cn('su-strip__label', CAPS)}>
         {label}
         <small>{max === undefined ? note : name}</small>
       </p>
       <div className="su-strip__read">
-        <p className={cn('su-strip__num', CAPS, CAPS)} data-over={over ? '' : undefined}>
+        <p className={cn('su-strip__num', CAPS)} data-over={over ? '' : undefined}>
           <b>{shown}</b>
           {max !== undefined && <i>/{max}</i>}
         </p>
@@ -238,9 +238,9 @@ export function StripFigure({
   const bar = tl !== undefined ? `var(--color-tl-${String(tl).toLowerCase()})` : undefined
   return (
     <div className="su-strip__cell su-strip__cell--figure" title={name}>
-      <dt className={cn('su-strip__label', CAPS, CAPS)}>{label}</dt>
+      <dt className={cn('su-strip__label', CAPS)}>{label}</dt>
       <dd className="su-strip__value">
-        <span className={cn('su-strip__num', CAPS, CAPS)} data-over={over ? '' : undefined}>
+        <span className={cn('su-strip__num', CAPS)} data-over={over ? '' : undefined}>
           <b>{value}</b>
           {max !== undefined && <i>/{max}</i>}
           {unit && <small>{unit}</small>}

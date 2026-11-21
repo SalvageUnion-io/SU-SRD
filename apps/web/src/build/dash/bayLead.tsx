@@ -38,6 +38,7 @@ export function LeadCell({ lead, peekAt }: { lead: Lead; peekAt?: string | undef
   return (
     <>
       <b className="su-bay-lead__name">{lead.name}</b>
+      {lead.position && ' '}
       {lead.position && (
         <span className="su-bay-lead__post">
           <LeadPost peekAt={peekAt}>

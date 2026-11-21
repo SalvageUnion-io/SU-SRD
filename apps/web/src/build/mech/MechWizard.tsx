@@ -77,7 +77,6 @@ type MechWizardProps = {
 /** Where the book prints each list's rule (the lists' feet). */
 const BOOK = 'Salvage Union Workshop Manual'
 const LIST_CITES = {
-  chassis: { source: BOOK, page: 94, see: [{ label: mechCopy('mechChassis'), page: [100, 159] }] },
   systems: { source: BOOK, page: 95, see: [{ label: mechCopy('systems'), page: [162, 187] }] },
   modules: { source: BOOK, page: 95, see: [{ label: mechCopy('modules'), page: [188, 207] }] },
 } satisfies Record<string, BookCite>
@@ -409,7 +408,6 @@ export function MechWizard({
             onSelectChassis={selectChassis}
             onSelectPattern={selectPattern}
             onSelectCustom={selectCustom}
-            cite={LIST_CITES.chassis}
           />
         </>
       )}

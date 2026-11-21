@@ -371,7 +371,7 @@ export const buildSheetCopy = messages({
   companionOf: 'Companion of',
   nothingFitted: 'Nothing fitted.',
   thePost: 'The {post}',
-  thePostAfter: ' the {post}',
+  thePostAfter: 'the {post}',
   companionVitals: 'SP {sp}/{spMax} · EP {ep}/{epMax} · HEAT {heat}/{heatMax}',
   crawlerTypeBonus: 'Crawler type bonus',
   killedInAction: 'Killed in Action',

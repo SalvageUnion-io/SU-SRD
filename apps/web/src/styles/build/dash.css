@@ -2046,10 +2046,6 @@
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
-.su-scrap .su-scrap__cell[data-empty] .su-tl {
-  opacity: 0.45;
-}
-
 /* On a phone the Starter crew's head keeps one line:
    the title is not allowed to wrap, and the pilots' tally (the rows say it)
    goes. */

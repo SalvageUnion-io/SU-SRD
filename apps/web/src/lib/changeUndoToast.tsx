@@ -12,6 +12,7 @@
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { toast, tokens } from '../components/index'
+import { componentsCopy } from '../messages/components'
 
 /** The value each number's open line started from, by its key. */
 const origins = new Map<string, number>()
@@ -55,14 +56,18 @@ export function changeUndoToast({
     <span style={FIGURES}>
       {did ? `${did} · ` : ''}
       {label} {origin}
-      <ArrowRight size={tokens.iconSize.mini} aria-label="to" style={GLYPH} />
+      <ArrowRight
+        size={tokens.iconSize.mini}
+        aria-label={componentsCopy('changedTo')}
+        style={GLYPH}
+      />
       {to}
     </span>,
     {
       id,
       duration: 8000,
       action: {
-        label: 'Undo',
+        label: componentsCopy('undo'),
         onClick: () => {
           origins.delete(id)
           undo(origin)

@@ -115,7 +115,7 @@ export function PinnedVitals({
       <div ref={sentinel} aria-hidden="true" style={SENTINEL} />
       <div className="su-dash-pin" data-stuck={stuck ? '' : undefined}>
         {name && (
-          <span className={cn('su-dash-pin__name', CAPS, CAPS)} aria-hidden={!stuck}>
+          <span className={cn('su-dash-pin__name', CAPS)} aria-hidden={!stuck}>
             {name}
           </span>
         )}

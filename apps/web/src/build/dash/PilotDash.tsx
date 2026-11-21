@@ -100,7 +100,7 @@ function abilityRow(entry: AbilityEntry, used: readonly string[], inTree = false
       model.lead || (inTree && action !== '') ? (
         <p className="su-open__clamp">
           {inTree && action !== '' && (
-            <span className={cn('su-open__meta', CAPS, CAPS)}>{action} · </span>
+            <span className={cn('su-open__meta', CAPS)}>{action} · </span>
           )}
           {model.lead}
         </p>
@@ -137,9 +137,7 @@ export function PilotDash({
   const foot =
     pilot.conditions.length > 0 ? (
       <>
-        <span className={cn('su-strip__foot-label', CAPS, CAPS)}>
-          {buildSheetCopy('conditions')}
-        </span>
+        <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
         <Conditions conditions={[...pilot.conditions]} />
       </>
     ) : undefined
@@ -258,7 +256,7 @@ export function PilotDash({
       <div className="su-mast-id">
         {pilot.description && (
           <div className="su-mast-id__about">
-            <p className={cn('su-mast-id__label', CAPS, CAPS)}>{buildSheetCopy('about')}</p>
+            <p className={cn('su-mast-id__label', CAPS)}>{buildSheetCopy('about')}</p>
             <Prose text={pilot.description} lines={phone ? 3 : 5} />
           </div>
         )}

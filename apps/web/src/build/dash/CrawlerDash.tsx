@@ -128,7 +128,7 @@ function BayDetail({
   return (
     <div className="su-bay-detail">
       <div className="su-bay-detail__part">
-        <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('bayRules')}</p>
+        <p className={cn('su-dash-sub', CAPS)}>{buildSheetCopy('bayRules')}</p>
         <div className="su-dash-prose">
           <Content body={normal as ComponentProps<typeof Content>['body']} fontSize="sm" />
         </div>
@@ -144,7 +144,7 @@ function BayDetail({
       <div className="su-bay-detail__part">
         {damagedText && (
           <>
-            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('ifDamaged')}</p>
+            <p className={cn('su-dash-sub', CAPS)}>{buildSheetCopy('ifDamaged')}</p>
             <p className="su-dash-prose">{damagedText}</p>
           </>
         )}
@@ -159,7 +159,7 @@ function BayDetail({
             table wrote about them, which the line has no room for. */}
         {(entry.npcDescription?.trim() || (entry.npcFacts ?? []).length > 0) && (
           <section aria-label={buildSheetCopy('crewLead', { bayName: bay.name })}>
-            <p className={cn('su-dash-sub', CAPS, CAPS)}>{buildSheetCopy('crewLeadColumn')}</p>
+            <p className={cn('su-dash-sub', CAPS)}>{buildSheetCopy('crewLeadColumn')}</p>
             {entry.npcDescription?.trim() && (
               <p className="su-dash-prose">{entry.npcDescription}</p>
             )}

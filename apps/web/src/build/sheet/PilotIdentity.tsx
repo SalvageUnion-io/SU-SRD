@@ -140,7 +140,7 @@ export function UsedChip({
     return (
       <Badge shape="chip" style={USED_CHIP}>
         <UsedPip used />
-        Used
+        {buildSheetCopy('used')}
       </Badge>
     )
   }
