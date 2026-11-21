@@ -667,11 +667,11 @@ describe('the Opposition', () => {
     act(() => useEncounters.setState({ encounters: [] }))
   })
 
-  test('with nothing prepped, Run an encounter points to the Training Bay', async () => {
+  test('with nothing prepped, Run an encounter points to the Mediator’s Kit', async () => {
     await renderCockpit()
     await click(named('Run an encounter'))
     const dialog = within(screen.getByRole('alertdialog', { name: 'Run an encounter' }))
-    expect(dialog.getByRole('link', { name: 'Training Bay' })).toBeTruthy()
+    expect(dialog.getByRole('link', { name: 'Mediator’s Kit' })).toBeTruthy()
     await click(dialog.getAllByRole('button', { name: 'Close' }).at(-1) as HTMLElement)
     expect(sent().some((s) => s.name === 'mediator.runEncounter')).toBe(false)
   })

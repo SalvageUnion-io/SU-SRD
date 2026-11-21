@@ -23,6 +23,7 @@ import {
   isLegalCreationClass,
   isLegalStartingPattern,
 } from 'salvageunion-reference/rules'
+import { referenceCopy } from '../messages/reference'
 import { appPath } from './appBase'
 import { itemHref } from './entityHref'
 
@@ -106,8 +107,11 @@ export function mediatorLinksFor(schemaId: string, item: RefEntity): MediatorLin
   if (!DENIZEN_KINDS.includes(schemaId)) return null
   const from = new URLSearchParams({ from: `${schemaId}:${getEntitySlug(item)}` })
   return {
-    add: { href: `${appPath('/encounters/add')}?${from}`, label: 'Add to an encounter' },
-    design: { href: `${appPath('/npcs/new')}?${from}`, label: 'Design from this' },
+    add: {
+      href: `${appPath('/encounters/add')}?${from}`,
+      label: referenceCopy('addToAnEncounter'),
+    },
+    design: { href: `${appPath('/npcs/new')}?${from}`, label: referenceCopy('designFromThis') },
   }
 }
 

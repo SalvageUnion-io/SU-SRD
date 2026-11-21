@@ -21,7 +21,7 @@ import { NPC_TEMPLATE_KINDS, NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
-import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { ConfirmDialog, FieldError, Grid } from '../../components/app'
 import {
   Button,
@@ -39,7 +39,7 @@ import {
   TitledBox,
 } from '../../components/index'
 import type { DenizenTemplate } from '../../lib/npcs/npcModel'
-import { denizenTemplate, isDenizenKind, npcActionSlug } from '../../lib/npcs/npcModel'
+import { denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
@@ -64,11 +64,12 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
 import { ActionPick, TraitPick } from './NpcPickRows'
+import { ReferenceAdder } from './NpcReferenceAdder'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:
-    'Start from anything in the reference’s denizens (an NPC, a squad, a creature, a vehicle, a drone, a Meld, a Bio-Titan): it fills the stats, actions and traits, and you change what you like. Or start blank.',
+    'Start from anything in the reference’s denizens (an NPC, a Squad, a Creature, a Vehicle, a Drone, a Meld, a Bio-Titan): it fills the stats, actions and traits, and you change what you like. Or start blank.',
   stats: 'Hit points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
   actions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
@@ -78,9 +79,6 @@ const STEP_INTRO: Record<NpcStepId, string> = {
 
 /** The step beside its live preview, where there is room for both; stacked where not. */
 const STEP_COLUMNS = { alignItems: 'start' } satisfies CSSProperties
-
-/** A match: the outlined `Button` (R16), the row's width, its kind at the far end. */
-const RESULT_BUTTON = { justifyContent: 'space-between', width: '100%' } satisfies CSSProperties
 
 type AnyNpcDesignerProps = {
   /** The maker's display name, for the preview's "Made by". */
@@ -476,81 +474,6 @@ function ActionsStep({
         onTrait={(type) => onChange((prev) => addNpcTrait(prev, type))}
       />
     </>
-  )
-}
-
-/** The search that adds an action or a trait from the reference (D6). */
-function ReferenceAdder({
-  carriedActions,
-  carriedTraits,
-  onAction,
-  onTrait,
-}: {
-  carriedActions: readonly string[]
-  carriedTraits: readonly string[]
-  onAction: (slug: string) => void
-  onTrait: (type: string) => void
-}) {
-  const [query, setQuery] = useState('')
-  const q = query.trim().toLowerCase()
-  const matches = useMemo(() => {
-    if (q.length < 2) return []
-    const actions = readReference(
-      'ReferenceAdder.actions',
-      () => SalvageUnionReference.Actions.all(),
-      []
-    )
-      .filter((a) => a.name.toLowerCase().includes(q))
-      .map((a) => ({ kind: 'Action' as const, name: a.name }))
-    const traits = readReference(
-      'ReferenceAdder.traits',
-      () => SalvageUnionReference.Traits.all(),
-      []
-    )
-      .filter((t) => t.name.toLowerCase().includes(q))
-      .map((t) => ({ kind: 'Trait' as const, name: t.name }))
-    return [...traits, ...actions].slice(0, 8)
-  }, [q])
-
-  return (
-    <div style={COLUMN}>
-      <SearchField
-        aria-label={npcCopy('addAnActionOrTrait')}
-        placeholder={npcCopy('addAnActionOrTrait')}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {matches.length > 0 && (
-        <ul style={LIST} aria-label={npcCopy('matches')}>
-          {matches.map((m) => {
-            const slug = m.kind === 'Action' ? npcActionSlug(m.name) : m.name
-            const has =
-              m.kind === 'Action' ? carriedActions.includes(slug) : carriedTraits.includes(m.name)
-            return (
-              <li key={`${m.kind}:${m.name}`}>
-                <Button
-                  variant="default"
-                  style={RESULT_BUTTON}
-                  disabled={has}
-                  onClick={() => {
-                    if (m.kind === 'Action') onAction(slug)
-                    else onTrait(m.name)
-                    setQuery('')
-                  }}
-                >
-                  <span>
-                    {has
-                      ? npcCopy('alreadyListed', { displayTitle: displayTitle(m.name) })
-                      : npcCopy('add', { displayTitle: displayTitle(m.name) })}
-                  </span>
-                  <span>{m.kind}</span>
-                </Button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
   )
 }
 

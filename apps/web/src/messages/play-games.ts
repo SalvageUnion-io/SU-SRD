@@ -99,12 +99,12 @@ export const playGamesCopy = messages({
   leaveThisGame: 'Leave this Game…',
   leaveNamed: 'Leave {name}?',
   leaveBody:
-    'Your pilots and mechs in this Game go back to your Training Bay; nothing is deleted. You can join again with an invite.',
+    'Your Pilots and Mechs in this Game go back to your Training Bay; nothing is deleted. You can join again with an invite.',
   leave: 'Leave',
   removeMember: 'Remove {name} from this Game',
   removeNamed: 'Remove {name}?',
   removeBody:
-    'Their pilots and mechs go back to their Training Bay; nothing is deleted. They can join again with an invite.',
+    'Their Pilots and Mechs go back to their Training Bay; nothing is deleted. They can join again with an invite.',
   remove: 'Remove',
   couldNotLeave: 'That did not work. Try again.',
   mediator: 'Mediator',
