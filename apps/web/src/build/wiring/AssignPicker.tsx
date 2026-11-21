@@ -23,6 +23,11 @@
  * `exclude` drops the slot's current occupants, so "Change" never offers the
  * thing already there and "Add Crew" never offers someone already aboard.
  *
+ * In a Game, your own pilots and mechs still in your Training Bay are offered
+ * too, under their own Slab: picking one moves it into the Game (the Training
+ * Bay's move, ADR-037) and then assigns it, so an empty Game is never a dead
+ * end. What the move clears is said before the player commits.
+ *
  * ## Which way the link points
  *
  * Fixed by the schema, not by which sheet you are on (`linkTypeFor`): a mech is
@@ -40,7 +45,7 @@
  */
 
 import type { Container, ContainerFields } from 'game-domain/container'
-import { containerOf, sameContainer } from 'game-domain/container'
+import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import { linkTypeFor } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
@@ -51,12 +56,15 @@ import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button, PickDialog } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
+import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignLink } from '../../lib/links/assignLink'
+import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { LinkRefused } from '../../lib/links/linkRefused'
 import { readReference } from '../../lib/readReference'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { wiringCopy } from '../../messages/build-wiring'
+import { CONTAINER_MOVE } from '../../replica/provenance'
 import { WritesBlockedOffline } from '../../replica/sync'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -288,6 +296,26 @@ export function AssignPicker({
         ? offer(store?.mechs ?? liveMechs, mechCandidate)
         : offer(store?.crawlers ?? liveCrawlers, crawlerCandidate)
 
+  // In a Game, your own pilots and mechs still in the Training Bay: picked,
+  // each moves in first. A crawler moves only into a Game its owner runs, so it
+  // is never offered here.
+  const shelf =
+    scope?.kind === 'game' && (pick === 'pilot' || pick === 'mech')
+      ? (pick === 'pilot'
+          ? (store?.pilots ?? livePilots).map((e) => [e, pilotCandidate(e)] as const)
+          : (store?.mechs ?? liveMechs).map((e) => [e, mechCandidate(e)] as const)
+        )
+          .filter(([e]) => containerOf(e).kind === 'shelf' && !excluded.has(e.id))
+          .map(([, row]) => row)
+      : []
+  const shelfIds = new Set(shelf.map((row) => row.id))
+  const movesIn = shelfIds.has(selectedId) && scope?.kind === 'game' ? scope : null
+  const movingName = shelf.find((row) => row.id === selectedId)?.name ?? ''
+  const cleared =
+    movesIn === null
+      ? []
+      : assignmentsClearedByMove(useUnits.getState(), { type: pick, id: selectedId }, movesIn)
+
   function openDialog() {
     setSelectedId('')
     setError(null)
@@ -317,6 +345,11 @@ export function AssignPicker({
     setPending(true)
     setError(null)
     try {
+      // From the Training Bay: the same record moves into the Game first (a
+      // link never crosses containers), then is assigned.
+      if (shelfIds.has(pickedId) && scope?.kind === 'game') {
+        await useUnits.getState().update(pick, pickedId, moveTo(scope), CONTAINER_MOVE)
+      }
       await assignLink(from, to, store ?? useUnits.getState())
       if (control) control.onClose()
       else setOwnOpen(false)
@@ -348,7 +381,17 @@ export function AssignPicker({
         groups={[
           {
             key: pick,
+            ...(shelf.length > 0 ? { title: wiringCopy('inThisGame') } : {}),
             choices: candidates.map((c) => ({
+              id: c.id,
+              label: c.name,
+              model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
+            })),
+          },
+          {
+            key: 'shelf',
+            title: wiringCopy('fromYourTrainingBay'),
+            choices: shelf.map((c) => ({
               id: c.id,
               label: c.name,
               model: unitRowModel({ kind: pick, name: c.name, note: c.note, readings: c.readings }),
@@ -358,9 +401,22 @@ export function AssignPicker({
         empty={emptyCopy(pick, scope, inScope > 0)}
         selected={selectedId || null}
         onSelect={setSelectedId}
-        note={copy.note}
+        note={
+          movesIn === null
+            ? copy.note
+            : cleared.length > 0
+              ? ROW_ACTION_COPY.enterGame({
+                  name: movingName,
+                  kind: pick,
+                  game: null,
+                  cleared,
+                }).body.join(' ')
+              : wiringCopy('movesIntoThisGame', { name: movingName })
+        }
         error={error}
-        confirmLabel={pending ? copy.pending : copy.confirm}
+        confirmLabel={
+          pending ? copy.pending : movesIn === null ? copy.confirm : wiringCopy('moveInAndAssign')
+        }
         confirmAria={copy.confirmAria}
         confirm={selectedId ? () => void handleConfirm(selectedId) : undefined}
         pending={pending}
