@@ -214,7 +214,7 @@ describe('your own sheet', () => {
     expect(screen.queryByRole('note', { name: 'Read-only crew sheet' })).toBeNull()
     expect(screen.getByRole('button', { name: /^Share this pilot$/ })).toBeTruthy()
     // Print reads: no pencil until Edit is pressed.
-    const read = screen.getByRole('button', { name: 'Read' })
+    const read = screen.getByRole('button', { name: 'Sheet' })
     expect(read.getAttribute('aria-pressed')).toBe('true')
     expect(screen.queryByRole('button', { name: /^Manage abilities$/i })).toBeNull()
 

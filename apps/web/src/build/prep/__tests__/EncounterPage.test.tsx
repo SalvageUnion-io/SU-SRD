@@ -220,7 +220,7 @@ describe('an encounter page', () => {
     useSheetModeStore.setState({ editing: false })
     useEncounters.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
     await renderPage()
-    expect(screen.getByRole('button', { name: 'Read', pressed: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sheet', pressed: true })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Add opposition from the reference' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'More for Raider' })).toBeNull()
     expect(screen.queryByLabelText('Pin a table')).toBeNull()

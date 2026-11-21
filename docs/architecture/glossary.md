@@ -18,7 +18,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    "Dock" is only the Mech Bay's function action.
 8. **Player**, **Mediator**, **Organiser** — the roles, capitalised; Organiser in British spelling. "Table runner" in docs is the Mediator, or the Organiser while a Game has none.
 9. **Training Bay** and **Games** — the app's two areas (`PRODUCT.build`, `PRODUCT.play` in `game-domain/product`). Nav labels are verbs: the header and drawer read Reference | Build | Play (then Buy the game), each linking its landing page (`/reference/`, `/build/`, `/games/`); the logo is the marketing home, `/` (ADR-066 §7).
-   They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Games hub's band). **Play** is the header's word for the Games area and a mode of a pilot's page (Read | Edit | Play); no page is titled Play. The whole app is "the app" (the account: a salvageunion.io account).
+   They name pages (the Training Bay at `/`, "Patterns · Training Bay", the Games hub's band). **Play** is the header's word for the Games area and a mode of a pilot’s page (Sheet | Edit | Play); no page is titled Play. The whole app is "the app" (the account: a salvageunion.io account).
    The Training Bay and The Cantina are also SRD crawler bays, with Pilot Bay: the reference pages and search keep them as bays.
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.
 10. **Group session** — a Game's table sitting down to play: the table runner's **Start group session** and **End group session**; while it runs, "Session live" and **Join session**. Never a lock: Play opens without one.

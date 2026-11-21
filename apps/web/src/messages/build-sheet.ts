@@ -309,7 +309,7 @@ export const buildSheetCopy = messages({
   uses2: '{name} uses: {remaining}',
   remove: 'Remove {name}',
   readOrEditThis: 'Read or edit this {kind}',
-  read: 'Read',
+  read: 'Sheet',
   edit: 'Edit',
   theSheet: 'the sheet',
   units: 'Units',
