@@ -227,9 +227,9 @@
 }
 
 /* A phone's bar is its budgets, then Back, the ⋯ menu (Cancel, the escape)
-   and the Next; "Next:" before the step's name waits for sm. */
-.su-wiz-pill-cancel,
-.su-wiz-pill-next {
+   and the Next; "Next:" before the step's name is read at every width
+   (`NextLabel`'s own word, visually hidden) and seen from sm. */
+.su-wiz-pill-cancel {
   display: none;
 }
 
@@ -272,9 +272,16 @@
     display: inline-flex;
   }
 
-  .su-wiz-pill-next {
-    display: inline;
+  /* The word steps out of hiding (`.su-sr-only`): the same span, now in the line. */
+  .su-wiz-pill-next.su-sr-only {
+    clip-path: none;
+    height: auto;
+    margin: 0;
     margin-inline-end: var(--space-4);
+    overflow: visible;
+    position: static;
+    white-space: normal;
+    width: auto;
   }
 
   /* From sm the ⋯ menu shows only when it holds the off-rules escape. */

@@ -105,7 +105,6 @@ export const buildWizardCopy = messages({
   moreActions: 'More actions',
   offRulesRow: 'Off-rules build? Build it on the Live Sheet',
   count: '{name} count',
-  next: 'Next:',
   slots: 'Slots',
   slotsRequired: 'Slots required',
   sv: 'SV',

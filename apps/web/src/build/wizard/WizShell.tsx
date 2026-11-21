@@ -369,12 +369,9 @@ export function WizShell({
   const ctaLabel = isLast ? (
     submitLabel
   ) : (
-    <>
-      <span aria-hidden="true" className="su-wiz-pill-next">
-        {buildWizardCopy('next')}
-      </span>
-      <NextLabel to={steps[active + 1]} size="full" />
-    </>
+    // One "Next:", read at every width and seen from sm (`wizard.css`): a
+    // second, hidden copy beside it was read out twice by a text reader.
+    <NextLabel to={steps[active + 1]} size="full" wordClassName="su-wiz-pill-next" />
   )
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
   // The ink action bar: its trackers, ghost Back and Cancel, and the one rust
