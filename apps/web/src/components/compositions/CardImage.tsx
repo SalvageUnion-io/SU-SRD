@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { duration, ease } from '../../design/tokens'
+import { ease } from '../../design/tokens'
 import {
   CARD_IMAGE_CONTAINER_WIDTH,
   cardImageSizes,
@@ -61,7 +61,7 @@ const IMG = {
   objectFit: 'contain',
   transitionProperty: 'opacity',
   transitionTimingFunction: ease,
-  transitionDuration: duration.fast,
+  transitionDuration: 'var(--dur-fast)',
 } satisfies CSSProperties
 
 export function CardImage({

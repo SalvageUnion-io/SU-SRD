@@ -70,17 +70,14 @@
   width: 100%;
 }
 
-/* The search slot: its field fills the drawer whatever width the app's own
-   field asks for. That width is the app's own rule, which outranks this layer,
-   so only `!important` reaches past it from here. */
+/* The search slot: its field fills the drawer. */
 .su-nav-drawer__search {
   margin-bottom: var(--space-12);
 }
 
 .su-nav-drawer__search input,
 .su-nav-drawer__search input:focus {
-  /* biome-ignore lint/complexity/noImportantStyles: the slot's input carries the app's own width, which outranks this layer */
-  width: 100% !important;
+  width: 100%;
 }
 
 /* ── compositions/AbilityTrack ──

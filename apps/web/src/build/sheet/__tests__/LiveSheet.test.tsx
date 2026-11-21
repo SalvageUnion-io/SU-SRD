@@ -338,7 +338,7 @@ describe('LiveSheet — condense strip gating', () => {
   test('the strip transitions opacity for the CSS fade', () => {
     renderShell()
     expect(stripWrapper().style.transitionProperty).toContain('opacity')
-    expect(stripWrapper().style.transitionDuration).toBe('150ms')
+    expect(stripWrapper().style.transitionDuration).toBe('var(--dur-base)')
   })
 })
 

@@ -278,18 +278,35 @@
  * say what the author meant. This is the floor under them, not a replacement.
  */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every animation rule and inline style it covers, whatever their specificity or layer */
-    animation-duration: 0.01ms !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
-    animation-iteration-count: 1 !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too, and a per-site `reduce` guard covers only the components that remembered it */
-    transition-duration: 0.01ms !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion; nothing in the repo sets it today, and this keeps it that way */
-    scroll-behavior: auto !important;
+  /* An inline transition reads the duration tokens, so they go to nothing. */
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-phase: 0.01ms;
+    --dur-loop: 0.01ms;
   }
+
+  /* Unlayered and an id's weight (`:not(#\#)` matches every element), so it
+     out-ranks every animation class without `!important` (ruleset §4.10). */
+  :not(#\#),
+  :not(#\#)::before,
+  :not(#\#)::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+
+/* A toast's description reads in the toast's own paper: Sonner injects an
+   unlayered grey, which only an unlayered rule of more weight passes. */
+[data-sonner-toast] .su-toast__description:not(#\#) {
+  color: inherit;
+}
+
+/* The `hidden` attribute hides, whatever display a class gives the element. */
+[hidden]:not(#\#, [hidden='until-found']) {
+  display: none;
 }
 
 /*
@@ -438,4 +455,13 @@
   --ground: oklch(from var(--tone) 0.955 0.02 h);
   --tone-band: var(--tone);
   --on-tone-band: var(--color-paper);
+}
+
+/* Paper drops the chrome no page prints (`base.css` names the vocabulary):
+   unlayered and an id's weight, so it beats every display class. */
+@media print {
+  nav:not(#\#),
+  [data-print='hide']:not(#\#) {
+    display: none;
+  }
 }

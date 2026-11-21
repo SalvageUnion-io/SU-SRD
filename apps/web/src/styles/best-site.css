@@ -462,7 +462,6 @@
 /* A section's strip with no table under it (Storage Bay, About). A strip
    with actions keeps its cut-out at its foot, notched into the body (below):
    the baseline would float it over the strip's paint. */
-/* biome-ignore lint/style/noDescendingSpecificity: MOCK, this block overrides the strips above on purpose */
 /* A strip's cut-out always stands on its foot, notched into the body. What
    does not fit beside it (a note, the buttons) wraps on to a line above it,
    never under it: the strip wraps upward (wrap-reverse, so its cross start is

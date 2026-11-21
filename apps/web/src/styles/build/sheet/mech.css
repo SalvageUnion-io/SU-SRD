@@ -9,6 +9,12 @@
   padding-inline: var(--su-page-gutter-inline);
 }
 
+/* The condensed bar (`LiveSheet`) lays out here, not in its style object,
+   so paper's `data-print="hide"` (theme.css) hides it. */
+.su-sheet-bar {
+  display: flex;
+}
+
 /* The body column under the chapter band. */
 .su-sheet-live-body {
   padding: var(--space-16) var(--su-page-gutter-inline) var(--space-32);

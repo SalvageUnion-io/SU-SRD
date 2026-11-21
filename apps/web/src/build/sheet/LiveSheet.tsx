@@ -189,7 +189,7 @@ const BAR = {
   // sets it off the page it floats over.
   boxShadow: tokens.shadow.lift,
   columnGap: tokens.space[16],
-  display: 'flex',
+  // `display` is `.su-sheet-bar`'s, so paper's `data-print="hide"` passes it.
   flexWrap: 'wrap',
   insetInline: 0,
   minHeight: `${BAR_HEIGHT_PX}px`,
@@ -197,7 +197,7 @@ const BAR = {
   position: 'absolute',
   rowGap: tokens.space[4],
   top: 0,
-  transitionDuration: tokens.duration.fast,
+  transitionDuration: 'var(--dur-fast)',
   transitionProperty: 'opacity, visibility, translate',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
@@ -225,7 +225,7 @@ const STRIP = {
   flexWrap: 'nowrap',
   gap: tokens.space[8],
   minWidth: 0,
-  transitionDuration: tokens.duration.base,
+  transitionDuration: 'var(--dur-base)',
   transitionProperty: 'opacity, transform',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
@@ -366,7 +366,7 @@ export function LiveSheet({
           aria-label={buildSheetCopy('sheetControls')}
           aria-hidden={!condensed}
           data-print="hide"
-          className="su-sheet-gutter"
+          className="su-sheet-gutter su-sheet-bar"
           style={condensed ? BAR_SHOWN : BAR_HIDDEN}
         >
           {/* Condensed identity + live MiniStat strip. At rest this is hidden —

@@ -425,7 +425,7 @@ const CHROME_RULES: ChromeRule[] = [
     id: 'raw-duration',
     mode: 'zero',
     rule: 'chrome K3 — motion is tokens: `--dur-fast` for a state change, `--dur-base` for a move',
-    fix: 'Use `var(--dur-fast)` (colour, opacity, a shadow) or `var(--dur-base)` (transform, a slide); a loading loop runs `var(--dur-loop)`. In a style object, `duration.fast` / `duration.base` from design/tokens.ts.',
+    fix: "Use `var(--dur-fast)` (colour, opacity, a shadow) or `var(--dur-base)` (transform, a slide); a loading loop runs `var(--dur-loop)`. In a style object too, as `transitionDuration: 'var(--dur-fast)'`, so reduced motion reaches it.",
     css: rawDurationCss,
     script: rawDurationScript,
   },
@@ -515,7 +515,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/styles/theme.css',
     rules: ['raw-duration', 'raw-easing'],
     reason:
-      'The token definitions, and the reduced-motion backstop: `0.01ms !important` on every element is the guarantee that a reduce user sees no motion, not a duration anything animates at.',
+      "The token definitions, and the reduced-motion backstop: `0.01ms` on every element (an id's weight) is the guarantee that a reduce user sees no motion, not a duration anything animates at.",
   },
 ]
 
