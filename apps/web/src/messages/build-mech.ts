@@ -64,6 +64,8 @@ export const mechCopy = messages({
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:
     'Use “Save as pattern” from a Mech sheet’s More actions menu, or the Mech builder, to save a reusable template.',
+  signInToKeepPatterns:
+    'Sign in to keep patterns. A pattern is saved to your account, from a Mech sheet or the Mech builder.',
   savedMechPatterns: 'Saved Mech patterns',
   madeBy: 'Made by {madeBy}',
   itsChassisIsNotIn: 'Its chassis is not in the reference.',

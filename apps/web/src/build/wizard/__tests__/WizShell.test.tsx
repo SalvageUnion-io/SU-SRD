@@ -115,4 +115,38 @@ describe('WizShell', () => {
     )
     expect(onEscape).toHaveBeenCalledTimes(1)
   })
+
+  test('signed out: step 1 says saving needs a sign-in; Review keeps the build as a file (r2 D2, D3)', () => {
+    const kept: string[] = []
+    const shell = (active: number, signedOut: boolean) => (
+      <WizShell
+        kind="mech"
+        eyebrow="New Mech"
+        steps={['Chassis', 'Review']}
+        active={active}
+        title="Step"
+        onCancel={() => {}}
+        onNext={() => {}}
+        submitLabel="Create Mech"
+        tryNote={signedOut && active === 0 ? 'Try it now. Saving needs a free sign-in.' : undefined}
+        keepAsFile={
+          signedOut && active === 1
+            ? { onDownload: () => kept.push('file'), onPrint: () => kept.push('paper') }
+            : undefined
+        }
+      >
+        <p>Step content</p>
+      </WizShell>
+    )
+    const view = render(shell(0, true))
+    expect(screen.getByText('Try it now. Saving needs a free sign-in.')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
+    view.rerender(shell(1, true))
+    expect(screen.queryByText('Try it now. Saving needs a free sign-in.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Download' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Print' }))
+    expect(kept).toEqual(['file', 'paper'])
+    view.rerender(shell(1, false))
+    expect(screen.queryByRole('button', { name: 'Download' })).toBeNull()
+  })
 })

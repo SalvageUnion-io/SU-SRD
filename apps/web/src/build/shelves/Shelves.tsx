@@ -99,6 +99,7 @@ import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { BuildStartHere } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
+import { WizardDrafts } from '../wizard/WizardDrafts'
 import { AddAMech } from './AddAMech'
 import { EncounterShelf } from './EncounterShelf'
 import { MechShelf } from './MechShelf'
@@ -442,6 +443,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           {/* Every shelf is a Ledger, one framed list a kind. Your units on the
               left, pilots first (Play runs a pilot, its mech beside it); your
               plans and prep on the right, patterns first; one column on a phone. */}
+          {/* A build left mid-wizard is said here: its draft, and Resume. */}
+          <WizardDrafts />
           {/* An empty Training Bay keeps the front door's way in. */}
           {pilots.length + mechs.length + crawlers.length === 0 && (
             <BuildStartHere id="shelf-start" />

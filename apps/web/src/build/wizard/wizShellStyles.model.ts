@@ -116,6 +116,21 @@ export const stepNoteStyle = {
   paddingTop: tokens.space[12],
 } satisfies CSSProperties
 
+/** The Review step's keep-as-a-file row, ruled off under the build. */
+export const keepRowStyle = {
+  borderTop: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  margin: `${tokens.space[20]} 0 0`,
+  paddingTop: tokens.space[12],
+} satisfies CSSProperties
+
+/** The line under a step's title (signed out: saving needs a sign-in). */
+export const tryNoteStyle = {
+  color: tokens.color.ink,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.body,
+  margin: `0 0 ${tokens.space[12]}`,
+} satisfies CSSProperties
+
 /** Pinned to the viewport's foot; its ground, rule and bleed are `.su-wiz-footer`'s. */
 export const footerPillStyle = {
   alignItems: 'flex-end',

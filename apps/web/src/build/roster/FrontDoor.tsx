@@ -27,6 +27,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { rosterCopy } from '../../messages/build-roster'
 import { SignInControl } from '../account/SignInControl'
 import { StarterSetCrew } from '../starterSet/StarterSetCrew'
+import { WizardDrafts } from '../wizard/WizardDrafts'
 
 /** Each area's front door: its band, its pitch's words, where sign-in returns and the Starter section's id. */
 const AREAS = {
@@ -57,11 +58,13 @@ const AREAS = {
 type FrontDoorProps = {
   /** The area whose front door it is: its band's tone and name, its pitch. */
   area: keyof typeof AREAS
+  /** Above the pitch: what the visitor already has here (Build's kept drafts). */
+  lead?: ReactNode
   /** The area's own steps, between the pitch and the Starter crew (a `StartHere`). */
   steps: ReactNode
 }
 
-export function FrontDoor({ area, steps }: FrontDoorProps) {
+export function FrontDoor({ area, steps, lead }: FrontDoorProps) {
   const door = AREAS[area]
   return (
     <PageShell
@@ -72,6 +75,7 @@ export function FrontDoor({ area, steps }: FrontDoorProps) {
         </ChapterBand>
       }
     >
+      {lead}
       <FrontPitch
         value={door.pitch.value}
         actions={
@@ -127,5 +131,11 @@ export function BuildStartHere({ id, anchored = false }: { id: string; anchored?
 
 /** Build's front door: its pitch, its steps, the Starter crew. */
 export function BuildFrontDoor() {
-  return <FrontDoor area="build" steps={<BuildStartHere id="front-door-start" anchored />} />
+  return (
+    <FrontDoor
+      area="build"
+      lead={<WizardDrafts />}
+      steps={<BuildStartHere id="front-door-start" anchored />}
+    />
+  )
 }
