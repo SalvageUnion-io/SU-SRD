@@ -95,6 +95,7 @@ export const playCopy = messages({
     'Processed {processed} Inert Meld Nanite piles and found {found} Active Meld Nanites.',
   appliesEachLineCanBe: 'Applies, each line can be unticked if your table rules it differently.',
   willApply: 'Will apply',
+  applied: 'Applied',
   done: 'Done ✓',
   markDone: 'Mark done',
   skip: 'Skip',
