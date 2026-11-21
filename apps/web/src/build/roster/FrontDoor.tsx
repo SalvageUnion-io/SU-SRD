@@ -118,7 +118,7 @@ const BUILD_ANCHORS = { pilot: 'shelf-pilots', mech: 'shelf-mechs', crawler: 'sh
  * shows them, and so does a Training Bay with nothing in it yet. Only the
  * front door's wear the sub-nav's ids: the Training Bay's shelves have them.
  */
-export function BuildStartHere({ id, anchored = false }: { id: string; anchored?: boolean }) {
+function BuildStartHere({ id, anchored = false }: { id: string; anchored?: boolean }) {
   return (
     <StartHere
       id={id}
