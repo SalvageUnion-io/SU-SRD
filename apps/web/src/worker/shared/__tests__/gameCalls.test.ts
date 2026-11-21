@@ -48,9 +48,9 @@ function world(over: Partial<CallDeps> = {}) {
         runAct({ room: logic, actor, gameId, at: Date.now() }, name, args),
       republish: () => publisher.republish(),
       // The room's own disband also delivers each unit home; here it only ends the Game.
-      disband: async (actor: string) => {
+      disband: async (actor: string, opts?: { dropTemplateUnits?: boolean }) => {
         try {
-          logic.roster.disband(actor, Date.now())
+          logic.roster.disband(actor, Date.now(), opts)
           return { ok: true, value: null }
         } catch (error) {
           if (error instanceof RoomRefusal) return { ok: false, refusal: error.message }
@@ -103,6 +103,20 @@ function world(over: Partial<CallDeps> = {}) {
 }
 
 describe('the Games calls', () => {
+  test('games.liveSessions names the caller’s Games with a session running, and no others (r2 I1)', async () => {
+    const { call, game } = world()
+    const quiet = (await call('games.create', { name: 'Quiet' })) as string
+    const live = (await call('games.create', { name: 'Rust Choir' })) as string
+    expect(await call('games.liveSessions', {})).toEqual([])
+    await game(live).act(ORG.discordId, 'session.start', {} as never)
+    expect(await call('games.liveSessions', {})).toEqual([
+      { gameId: live, name: 'Rust Choir', startedAt: expect.any(Number) },
+    ])
+    expect(quiet).not.toBe(live)
+    // Somebody who is in neither Game hears of none.
+    expect(await call('games.liveSessions', {}, PLAYER)).toEqual([])
+  })
+
   test('a new Game is listed, its invite joins a player, and its roster names them', async () => {
     const { call, deps, game } = world()
     const gameId = (await call('games.create', { name: ' Tenacity ' })) as string

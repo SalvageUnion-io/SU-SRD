@@ -1,9 +1,12 @@
 /**
  * The Tables section's pinned tables (play.md §8), pure: the roll tables the
  * Situation needs to hand, by their names in the reference data. A fight, on
- * foot or Boarded, pins the combat tables; Downtime pins the Core Mechanic,
- * Critical Injury (a pilot heals between Scenes) and the Rumour table. Every
- * other table is a "Roll a table…" search away (`findTables`).
+ * foot or Boarded, pins the combat tables; Downtime pins the Core Mechanic
+ * and Critical Injury (a pilot heals between Scenes). Every other table is a
+ * "Roll a table…" search away (`findTables`).
+ *
+ * A rumour table is an adventure's own (False Flag p.8), never the core
+ * book's, so it is never pinned: Gather Cantina Rumours rolls a plain d20.
  *
  * Boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables
  * in place of Critical Damage and Reactor Overload (We Were Here First
@@ -25,7 +28,7 @@ const COMBAT_TABLES = [
 export const CORE_MECHANIC_TABLE = COMBAT_TABLES[0]
 
 /** Downtime's tables. */
-const DOWNTIME_TABLES = ['Core Mechanic', 'Critical Injury', 'Rumour'] as const
+const DOWNTIME_TABLES = ['Core Mechanic', 'Critical Injury'] as const
 
 /** The tables pinned for this Situation, the fight's for the mech's tables. */
 export function pinnedTables(

@@ -211,6 +211,26 @@ describe('the Play landing', () => {
     }
   })
 
+  // MD-03 again: a router link sets the hash with no `hashchange`, and a
+  // second press changes nothing, so the dialog never opened from the sub-nav.
+  test('pressing the sub-nav’s Join with a link opens Join a Game, with no hash change heard', async () => {
+    answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
+    expect(screen.queryByRole('dialog', { name: 'Join a Game' })).toBeNull()
+    const nav = document.createElement('a')
+    nav.href = '/games/#join'
+    nav.addEventListener('click', (event) => event.preventDefault())
+    document.body.append(nav)
+    try {
+      await act(async () => {
+        fireEvent.click(nav)
+      })
+      expect(screen.getByRole('dialog', { name: 'Join a Game' })).toBeTruthy()
+    } finally {
+      nav.remove()
+    }
+  })
+
   // LG-01: the replica holds every crewmate's pilot too (for Play's Crew
   // pane); a Game's doors are only for the pilots assigned to you.
   test('a crewmate’s pilot in the Game is no door of yours', async () => {

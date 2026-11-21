@@ -5,7 +5,9 @@
  */
 import { describe, expect, test } from 'bun:test'
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { EntitySurfaceProvider } from '../EntitySurface'
 import { PeekHost } from '../Peek'
+import { Chips } from '../parts/Chips'
 import { Facts } from '../parts/Facts'
 import { factRef } from '../parts/factRefs'
 import { statTerm, TRAINING_POINTS } from '../parts/statTerms'
@@ -87,5 +89,25 @@ describe('a chip that names a term', () => {
     press(screen.getByRole('button', { name: 'Training Points: 2, what it means' }))
     const peek = await screen.findByRole('tooltip')
     expect(peek.textContent).toContain('2 for an Advanced or Hybrid Class Ability')
+  })
+
+  test('an activation cost opens what it is paid in, where chips link (r2 A3)', () => {
+    const chips = { durations: [], cost: '4 AP', facts: [], tags: [] }
+    render(
+      <EntitySurfaceProvider value={{ hrefFor: (ref) => `/${ref.schemaName}/${ref.slug}/` }}>
+        <Chips chips={chips} size="compact" linkable />
+      </EntitySurfaceProvider>
+    )
+    const cost = screen.getByRole('link', { name: 'Ability points: 4' })
+    expect(cost.getAttribute('href')).toBe('/keywords/ability-points/')
+    expect(cost.getAttribute('data-peek')).toStartWith('keywords:')
+    // A stat chip: its first press Peeks (E27).
+    expect(cost.hasAttribute('data-peek-press')).toBe(true)
+    expect(cost.textContent).toBe('4 AP')
+    cleanup()
+    // Inside a link or a clickable card it only reads.
+    render(<Chips chips={chips} size="compact" />)
+    expect(screen.queryByRole('link')).toBeNull()
+    expect(screen.getByText('4 AP')).toBeTruthy()
   })
 })

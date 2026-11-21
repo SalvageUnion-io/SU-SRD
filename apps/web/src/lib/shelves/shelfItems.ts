@@ -189,6 +189,14 @@ export function npcReading(npc: Pick<Npc, 'hitPoints' | 'damageType' | 'currentH
   return vitalReading(npc.damageType, resolvePool(npc.currentHP, npc.hitPoints), npc.hitPoints)
 }
 
+/**
+ * A reading in an HP column: the figures alone, or with its own label where it
+ * is not Hit Points (`SP 39/39`), so a mech-scale NPC never reads as HP.
+ */
+export function hpColumnCell(reading: UnitReading): string {
+  return reading.label === VITAL.hp ? String(reading.value) : `${reading.label} ${reading.value}`
+}
+
 /** An encounter-tray NPC's reading, on the same footing. */
 export function encounterNpcReading(
   npc: Pick<EncounterNpc, 'currentHp' | 'maxHp' | 'statKind'>

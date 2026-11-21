@@ -38,6 +38,7 @@ import { useBarMode } from '../../lib/barLinks'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { routesCopy } from '../../messages/routes'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -89,7 +90,12 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   const name = held === null ? null : kind === 'pilot' ? pilotLabel(held) : held.name
   const inGame = kind === 'pilot' && gameId !== null
   const game = useGamesQuery('games.get', inGame && online ? { gameId } : 'skip')
-  const area = inGame ? (game?.name ?? PRODUCT.play) : PRODUCT.build
+  // An NPC is the Mediator's prep: its tab says so, not the Training Bay (MD-02).
+  const area = inGame
+    ? (game?.name ?? PRODUCT.play)
+    : kind === 'npc'
+      ? routesCopy('mediatorsKit')
+      : PRODUCT.build
   useBarMode(inGame ? 'play' : null)
   useEffect(() => {
     document.title = areaTitle(area, name || (kind === 'npc' ? 'NPC' : 'Sheet'))

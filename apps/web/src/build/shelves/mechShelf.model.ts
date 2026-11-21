@@ -8,6 +8,7 @@ import { computeMechCapacity, resolveChassisRef } from 'salvageunion-reference/r
 import type { LedgerSort } from '../../components/index'
 import { readReference } from '../../lib/readReference'
 import { mechScrap } from '../../lib/rules/mechScrap'
+import { localStore } from '../../lib/safeLocalStorage'
 
 export type MechBuildFigures = {
   /** The chassis's Tech Level; none without a chassis. */
@@ -17,9 +18,17 @@ export type MechBuildFigures = {
   modules: string
   /** Chassis and loadout, in Scrap. */
   scrap: number
+  /** A slot count is over its chassis's (the book's own printed loadout never is). */
+  over: boolean
 }
 
-const NONE: MechBuildFigures = { techLevel: undefined, systems: '', modules: '', scrap: 0 }
+const NONE: MechBuildFigures = {
+  techLevel: undefined,
+  systems: '',
+  modules: '',
+  scrap: 0,
+  over: false,
+}
 
 export function mechBuildFigures(
   mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'>
@@ -39,6 +48,10 @@ export function mechBuildFigures(
         systems: `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
         modules: `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
         scrap: mechScrap(mech).total,
+        over:
+          !capacity.asPrinted &&
+          (capacity.systemSlotsUsed > capacity.systemSlotsMax ||
+            capacity.moduleSlotsUsed > capacity.moduleSlotsMax),
       }
     },
     NONE
@@ -72,6 +85,30 @@ export function sortShelfRows<T extends { name: string }>(
         : String(x).localeCompare(String(y), undefined, { numeric: true })
     return order !== 0 ? order * flip : a.name.localeCompare(b.name)
   })
+}
+
+/** Where this browser keeps the Mechs shelf's sort. */
+export const MECH_SORT_KEY = 'su:shelf-mechs:sort'
+
+/** The remembered sort; none where storage is missing, blocked, empty or not a sort. */
+export function storedSort(): LedgerSort | undefined {
+  try {
+    const kept: unknown = JSON.parse(localStore()?.getItem(MECH_SORT_KEY) ?? 'null')
+    if (kept === null || typeof kept !== 'object') return undefined
+    const { key, descending } = kept as Record<string, unknown>
+    return typeof key === 'string' ? { key, descending: descending === true } : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/** Keep the sort for the next visit: a convenience that may quietly fail. */
+export function rememberSort(sort: LedgerSort): void {
+  try {
+    localStore()?.setItem(MECH_SORT_KEY, JSON.stringify(sort))
+  } catch {
+    // Storage refused (private mode, quota): the sort holds for this visit only.
+  }
 }
 
 /** A press on a column: that column ascending, or flipped where it already sorts. */

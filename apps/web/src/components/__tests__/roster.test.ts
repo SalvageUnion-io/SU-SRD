@@ -44,6 +44,7 @@ const ROSTER = {
     'Strip', // §1.2 a Live Sheet's masthead
     'StripFigure', // §1.2 the masthead's fixed figures
     'STRIP_ART', // §1.2 the masthead's art plate
+    'RuleBreakMark', // R71 the one mark of a build past its rules, by its count
   ],
   /** the chrome laws (K1–K11) and hard rule R16. */
   chrome: [
@@ -52,6 +53,7 @@ const ROSTER = {
     'ToasterMount',
     'toast',
     'toastRoll',
+    'holdToastsOnTop', // K5 a screen whose foot is controls (Play's tabs) holds its toasts over the bar
     'Banner',
     'FieldError',
     'CopiedIcon',

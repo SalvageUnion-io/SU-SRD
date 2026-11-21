@@ -12,13 +12,18 @@ export const playGamesCopy = messages({
   delete: 'Delete {value}?',
   deleteGame: 'Delete Game',
   deleting: 'Deleting…',
-  thisEndsTheTableFor: 'This ends the table for all {value} of you. It cannot be undone.',
+  thisEndsTheTableFor: 'This ends the table for {who}. It cannot be undone.',
+  thisEndsYourTable: 'This ends the table. It cannot be undone.',
   nothingAnybodyBuiltIsDestroyed: 'Nothing anybody built is destroyed:',
   anythingUnassignedComesToYou: 'Anything unassigned comes to you, in your {build}.',
   andAnythingUnassignedComeTo:
     '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
     "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
+  theRestGoesHome:
+    'Anything somebody built, was handed or changed is kept: it goes back to whoever holds it, in their {build}.',
+  alsoDeleteTemplateUnits: 'Also delete the {count} it came with?',
+  alsoDeleteUntouchedUnits: 'Also delete the {count} it came with that nobody has changed?',
   you: 'You',
   nameYou: '{name} (you)',
   nobodyToHandOverTo: 'Hand over needs another member: invite a crewmate first.',
@@ -128,7 +133,13 @@ export const playGamesCopy = messages({
   removeMember: 'Remove {name} from this Game',
   removeNamed: 'Remove {name}?',
   removeBody:
-    'Their Pilots and Mechs go back to their Training Bay; nothing is deleted. They can join again with an invite.',
+    'Their Pilots and Mechs go back to their Training Bay; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
+  resetInviteLinkToo: 'Reset the invite link too',
+  removedFrom: 'Removed {name} from {game}.',
+  removedAndReset:
+    'Removed {name} from {game}. The invite link is reset; the old one no longer works.',
+  removedNotReset:
+    'Removed {name} from {game}, but the invite link was not reset. Use Reset link to stop the old one working.',
   remove: 'Remove',
   couldNotLeave: 'That did not work. Try again.',
   mediator: 'Mediator',
@@ -137,6 +148,10 @@ export const playGamesCopy = messages({
   appointTheMediator: 'Appoint the Mediator',
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
+  handOverGoes:
+    'Goes across: the table, the opposition on its field, and the session list with its days and titles.',
+  handOverStays:
+    'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',
   yourPrep: 'Prep',
   encounters: 'Encounters',
@@ -152,6 +167,7 @@ export const playGamesCopy = messages({
   moveUp: 'Move up',
   moveDown: 'Move down',
   takeOutOfThisGame: 'Take out of this Game',
+  tookOutOfThisGame: 'Took {name} out of this Game.',
   newEncounterForThisGame: '+ New encounter',
   noEncountersForThisGame:
     'No encounters for this Game yet. Make one here, or add one from your Mediator’s Kit.',
@@ -164,9 +180,12 @@ export const playGamesCopy = messages({
     'An NPC you move into this Game is listed here, ready under Yours when you add opposition.',
   gameNotes: 'Game notes',
   gameNotesLabel: 'Notes',
-  onlyYouSeeThis: 'Only you see this. Your players never do.',
+  onlyYouSeeThis:
+    'Only you see this. Your players never do, and it stays yours if the table is handed over.',
   sessions: 'Sessions',
   noSessionsYet: 'No sessions yet. Add one for each time the table meets.',
+  nextSession: 'Next session',
+  sessionNumber: 'Session {n}',
   sessionDay: 'Day',
   sessionTitle: 'Title',
   sessionPrivateNote: 'Private note',

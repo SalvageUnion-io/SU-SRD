@@ -74,6 +74,27 @@ describe('EntitySearcher — a phone (390×844)', () => {
   )
 
   it(
+    'keeps the budget in view on an entry’s Page, where the rail is out of sight (r2 H1)',
+    () => {
+      const eq = nth(allEquipment(), 0)
+      render(
+        <EntitySearcher
+          schema="equipment"
+          selected={[]}
+          onToggle={() => {}}
+          idOf={(i) => i.id}
+          chosenLabel="Equipped"
+          budget={{ label: 'Inventory slots', used: 2, max: 5 }}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: eq.name }))
+      const bar = screen.getByRole('group', { name: `${eq.name} actions` })
+      expect(within(bar).getByText('Inventory slots')).toBeTruthy()
+    },
+    POOL_RENDER_MS
+  )
+
+  it(
     'hands focus to the entry now in the removed one’s place, then to the toggle',
     () => {
       const [a, b, c] = threeEquipment()

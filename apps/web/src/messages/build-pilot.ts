@@ -6,6 +6,8 @@ export const pilotCopy = messages({
   gain: 'Gain',
   lose: 'Lose',
   keep: 'Keep',
+  needs: 'Needs',
+  missing: 'Missing',
   class: 'Class',
   whereDidTheyComeFrom: 'Where did they come from?',
   eachAnswerSealsADifferent: 'each answer seals a different pair of trees.',

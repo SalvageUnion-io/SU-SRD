@@ -212,6 +212,11 @@
     padding-inline-start: var(--su-roll-tag-room);
   }
 
+  .su-roll__rows[data-side='right'] .su-roll__row[data-rolled] .su-roll__head {
+    padding-inline-end: 0;
+    padding-inline-start: calc(var(--su-roll-tag-room) - var(--space-12));
+  }
+
   .su-roll__bands[data-split] .su-roll__body {
     padding: var(--space-6) var(--space-8);
   }
@@ -251,6 +256,14 @@
   .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__head {
     display: inline-flex;
     margin-right: var(--space-6);
+  }
+
+  /* A dense split row runs its label into its words: no room is kept in it. */
+  .su-roll[data-density='dense']
+    .su-roll__bands[data-split]
+    .su-roll__row[data-rolled]
+    .su-roll__head {
+    padding-inline: 0;
   }
 
   .su-roll[data-density='dense'] .su-roll__bands[data-split] .su-roll__value {

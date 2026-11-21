@@ -161,8 +161,8 @@ type LiveSheetProps = {
   userMade?: { madeBy: string }
   /**
    * The name is a mech's pattern name, which the book prints in quotes: the
-   * band's title and the condensed bar read “Mazona”, and the band carries a
-   * PATTERN chip.
+   * band's title and the condensed bar read “Mazona”. The PATTERN chip is the
+   * `fromPattern` relation's alone: with no pattern to name there is no chip.
    */
   quoted?: boolean
 }
@@ -465,9 +465,6 @@ export function LiveSheet({
                 <>
                   {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                   {source === 'starter' && <Stat label={buildSheetCopy('starterKit')} />}
-                  {/* Its name is a pattern's: it says so, unless the PATTERN
-                      relation names the pattern. */}
-                  {quoted && !fromPattern && <Stat label={buildSheetCopy('pattern')} />}
                 </>
               }
               nodes={{

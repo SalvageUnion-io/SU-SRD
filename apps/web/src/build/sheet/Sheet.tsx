@@ -30,8 +30,7 @@ import { Button, HeaderMenu, toast, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { makeACopy } from '../../lib/copiedToast'
-import { copyForShelf, namesOn } from '../../lib/copyEntity'
+import { copyAsking, keptMech } from '../../lib/copiedToast'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
@@ -327,20 +326,10 @@ export function Sheet({
       {
         id: 'copy',
         label: buildSheetCopy('makeACopy'),
-        // A copy only adds: it runs at once, and its notice opens it.
+        // A copy only adds: it runs at once, and its notice opens it. A
+        // pilot with a mech is asked whether the mech comes too.
         onSelect: writable(
-          () =>
-            void makeACopy({
-              name: entity.name,
-              make: async () => {
-                const created = await storeState.create(
-                  kind,
-                  copyForShelf(entity, entity.name, namesOn(storeState.list(kind))) as never
-                )
-                return { name: created.name, href: sheetPath(kind, created.id) }
-              },
-              go,
-            })
+          () => void copyAsking(confirm, kind, entity.name, entity, go, { units: storeState })
         ),
       },
       // A mech saves as a pattern in a dialog over its sheet.
@@ -362,8 +351,8 @@ export function Sheet({
         onSelect: writable(() =>
           confirm({
             ...(inGame
-              ? ROW_ACTION_COPY.deleteFromGame(entity.name)
-              : ROW_ACTION_COPY.deleteBuild(entity.name)),
+              ? ROW_ACTION_COPY.deleteFromGame(entity.name, keptMech(kind, id, storeState))
+              : ROW_ACTION_COPY.deleteBuild(entity.name, keptMech(kind, id, storeState))),
             onConfirm: async () => {
               await storeState.delete(kind, id)
               go(back.href)
@@ -523,6 +512,14 @@ export function Sheet({
             entityName={entity.name}
             open={changeLogOpen}
             onOpenChange={setChangeLogOpen}
+            onRestore={
+              writesBlocked
+                ? undefined
+                : (before) => {
+                    patch(before)
+                    toast(buildSheetCopy('restored'))
+                  }
+            }
           />
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog

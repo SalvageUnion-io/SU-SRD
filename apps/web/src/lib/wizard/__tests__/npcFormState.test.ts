@@ -11,7 +11,9 @@ import {
   applyBlankStart,
   applyNpcTemplate,
   EMPTY_NPC_FORM,
+  npcFormFromNpc,
   npcFormToCreateInput,
+  npcFormToPatch,
   statsEditedSinceFill,
   toggleNpcAction,
   toggleNpcTrait,
@@ -174,5 +176,61 @@ describe('the create input', () => {
       templateRef: { schema: 'npcs', slug: 'veteran' },
     })
     expect(NpcSchema.safeParse(asRecord(input)).success).toBe(true)
+  })
+})
+
+// MD2-03: a saved NPC reopens in the designer and is saved in place.
+describe('a redesign', () => {
+  const saved = {
+    id: 'n1',
+    schemaVersion: 1 as const,
+    name: 'Captain Vex',
+    position: 'Raider warlord',
+    keepsake: 'A brass lighter',
+    hitPoints: 6,
+    damageType: 'HP' as const,
+    actions: ['green-laser-rifle-veteran'],
+    traits: [{ type: 'armoured' }],
+    currentHP: 6,
+    facts: ['Owes the Union.'],
+    templateRef: { schema: 'npcs' as const, slug: 'veteran' },
+    createdAt: '2026-11-21T00:00:00.000Z',
+    updatedAt: '2026-11-21T00:00:00.000Z',
+  }
+
+  test('opens on the NPC as it stands, everything it carries checked', () => {
+    const form = npcFormFromNpc(saved)
+    expect(form).toMatchObject({
+      name: 'Captain Vex',
+      position: 'Raider warlord',
+      hitPoints: '6',
+      actions: ['green-laser-rifle-veteran'],
+      offeredActions: ['green-laser-rifle-veteran'],
+      traits: [{ type: 'armoured' }],
+      templateChosen: true,
+    })
+    // Untouched, it saves back what it had.
+    expect(npcFormToPatch(form, saved)).toMatchObject({
+      name: 'Captain Vex',
+      hitPoints: 6,
+      keepsake: 'A brass lighter',
+    })
+  })
+
+  test('saves the stat block and identity, unsets a cleared line, and never the facts', () => {
+    const form = {
+      ...npcFormFromNpc(saved),
+      hitPoints: '4',
+      damageType: 'SP' as const,
+      position: ' ',
+      actions: [],
+    }
+    const patch = npcFormToPatch(form, saved)
+    expect(patch).toMatchObject({ hitPoints: 4, damageType: 'SP', actions: [] })
+    expect('position' in patch && patch.position === undefined).toBe(true)
+    expect('facts' in patch).toBe(false)
+    // HP it no longer has room for comes down to the new most.
+    expect(patch.currentHP).toBe(4)
+    expect('currentHP' in npcFormToPatch({ ...form, hitPoints: '9' }, saved)).toBe(false)
   })
 })

@@ -16,7 +16,7 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { DialogActions, FieldError } from '../../components/app'
 import { Button, Field, Input, ModalShell, Select } from '../../components/index'
@@ -126,6 +126,9 @@ export function BlankCreateDialog({
   )
   const { pending, error } = create
 
+  // Typing starts in the name, never on Close (MD2-04); a mech's dialog opens on its chassis.
+  const nameField = useRef<HTMLInputElement | null>(null)
+
   async function handleCreate() {
     const result = await create.run()
     if (!result.ok) return
@@ -142,6 +145,7 @@ export function BlankCreateDialog({
       }}
       title={buildWizardCopy('blank', { label })}
       width={kind === 'mech' ? 'default' : 'narrow'}
+      {...(kind === 'mech' ? {} : { initialFocus: nameField })}
     >
       <div style={dialogBodyStyle}>
         <p style={noteStyle}>{buildWizardCopy('anEmptySheetNoSteps')}</p>
@@ -154,6 +158,7 @@ export function BlankCreateDialog({
           htmlFor={`blank-${kind}-name`}
         >
           <Input
+            ref={nameField}
             id={`blank-${kind}-name`}
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -220,7 +225,6 @@ export function BlankCreateDialog({
             size="compact"
             onClick={() => void handleCreate()}
             disabled={pending || !canSubmit}
-            aria-label={buildWizardCopy('createBlank', { lowerCase: label.toLowerCase() })}
           >
             {pending ? buildWizardCopy('creating') : buildWizardCopy('create', { label })}
           </Button>

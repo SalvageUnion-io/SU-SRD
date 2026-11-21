@@ -185,9 +185,33 @@ export type NpcStatFill = Pick<
   templateRef: NpcTemplateRef
 }
 
+/** What each kind of denizen is called on its tab. */
+export const DENIZEN_KIND_LABEL: Record<NpcTemplateKind, string> = {
+  npcs: 'NPCs',
+  squads: 'Squads',
+  creatures: 'Creatures',
+  vehicles: 'Vehicles',
+  drones: 'Drones',
+  meld: 'Meld',
+  'bio-titans': 'Bio-Titans',
+}
+
 /** Whether a template's schema is one of the Reference's denizen kinds. */
 export function isDenizenKind(schema: string): schema is NpcTemplateKind {
   return (NPC_TEMPLATE_KINDS as readonly string[]).includes(schema)
+}
+
+/**
+ * Whether an NPC is redesigned in the designer (`/npcs/:id/design`): one
+ * designed as any NPC. A crawler's crew take their stats from their slot (D2).
+ */
+export function isRedesignable(npc: Pick<Npc, 'templateRef'>): boolean {
+  return npc.templateRef === undefined || isDenizenKind(npc.templateRef.schema)
+}
+
+/** An NPC's redesign page. */
+export function npcDesignHref(npcId: string): string {
+  return `/npcs/${npcId}/design`
 }
 
 /**

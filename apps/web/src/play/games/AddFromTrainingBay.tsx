@@ -25,9 +25,11 @@ import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useCrawlers, useOwnUnits } from '../../lib/entities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { assignLink } from '../../lib/links/assignLink'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { newInGameHref } from '../../lib/wizard/fromGame'
+import { componentsCopy } from '../../messages/components'
 import { playGamesCopy } from '../../messages/play-games'
 import { CONTAINER_MOVE } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
@@ -82,7 +84,7 @@ export function AddFromTrainingBay({
   function bring(choices: readonly BringChoice[]) {
     const next: Container = { kind: 'game', gameId }
     const store = useUnits.getState()
-    const { moves, keep } = bringPlan(choices, store.softLinks)
+    const { moves, keep, pair } = bringPlan(choices, store.softLinks)
     // What the move clears, less the links that come through it.
     const held = { ...store, softLinks: store.softLinks.filter((l) => !keep.includes(l)) }
     const clearing = moves.flatMap((unit) => {
@@ -98,10 +100,31 @@ export function AddFromTrainingBay({
       for (const { id: _id, createdAt: _createdAt, ...link } of keep) {
         await useUnits.getState().create('softLink', link)
       }
-      toast.success(
+      // One pilot on foot and one free mech, moved in together, are a pair
+      // (LG2-07): assigned on arrival, with the way back in the notice.
+      const drawn =
+        pair === null
+          ? null
+          : await assignLink(
+              { type: 'mech', id: pair.mech.id },
+              { type: 'pilot', id: pair.pilot.id }
+            )
+      const moved =
         names.length === 1
           ? playGamesCopy('broughtIn', { name: names[0] ?? '' })
           : playGamesCopy('broughtInMany', { count: String(names.length) })
+      if (pair === null || drawn === null) {
+        toast.success(moved)
+        return
+      }
+      toast.success(
+        `${moved} ${playGamesCopy('mechAssignedTo', { mech: pair.mech.name, pilot: pair.pilot.name })}`,
+        {
+          action: {
+            label: componentsCopy('undo'),
+            onClick: () => void useUnits.getState().delete('softLink', drawn.id),
+          },
+        }
       )
     }
     const failure =

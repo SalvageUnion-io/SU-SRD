@@ -27,6 +27,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { rosterCopy } from '../../messages/build-roster'
 import { SignInControl } from '../account/SignInControl'
 import { StarterSetCrew } from '../starterSet/StarterSetCrew'
+import { WizardDrafts } from '../wizard/WizardDrafts'
 
 /** Each area's front door: its band, its pitch's words, where sign-in returns and the Starter section's id. */
 const AREAS = {
@@ -57,11 +58,13 @@ const AREAS = {
 type FrontDoorProps = {
   /** The area whose front door it is: its band's tone and name, its pitch. */
   area: keyof typeof AREAS
+  /** Above the pitch: what the visitor already has here (Build's kept drafts). */
+  lead?: ReactNode
   /** The area's own steps, between the pitch and the Starter crew (a `StartHere`). */
   steps: ReactNode
 }
 
-export function FrontDoor({ area, steps }: FrontDoorProps) {
+export function FrontDoor({ area, steps, lead }: FrontDoorProps) {
   const door = AREAS[area]
   return (
     <PageShell
@@ -72,6 +75,7 @@ export function FrontDoor({ area, steps }: FrontDoorProps) {
         </ChapterBand>
       }
     >
+      {lead}
       <FrontPitch
         value={door.pitch.value}
         actions={
@@ -114,7 +118,7 @@ const BUILD_ANCHORS = { pilot: 'shelf-pilots', mech: 'shelf-mechs', crawler: 'sh
  * shows them, and so does a Training Bay with nothing in it yet. Only the
  * front door's wear the sub-nav's ids: the Training Bay's shelves have them.
  */
-export function BuildStartHere({ id, anchored = false }: { id: string; anchored?: boolean }) {
+function BuildStartHere({ id, anchored = false }: { id: string; anchored?: boolean }) {
   return (
     <StartHere
       id={id}
@@ -125,7 +129,26 @@ export function BuildStartHere({ id, anchored = false }: { id: string; anchored?
   )
 }
 
+/**
+ * What the Training Bay leads with: this tab's drafts (a build left
+ * mid-wizard, and Resume), then the way in while it holds nothing yet.
+ */
+export function ShelfLead({ empty }: { empty: boolean }) {
+  return (
+    <>
+      <WizardDrafts />
+      {empty && <BuildStartHere id="shelf-start" />}
+    </>
+  )
+}
+
 /** Build's front door: its pitch, its steps, the Starter crew. */
 export function BuildFrontDoor() {
-  return <FrontDoor area="build" steps={<BuildStartHere id="front-door-start" anchored />} />
+  return (
+    <FrontDoor
+      area="build"
+      lead={<WizardDrafts />}
+      steps={<BuildStartHere id="front-door-start" anchored />}
+    />
+  )
 }

@@ -5,6 +5,7 @@ import {
   datedSessions,
   gameEncounters,
   gamePrepPath,
+  heldSessions,
   lastOrder,
   looseEncounters,
   moveEncounter,
@@ -65,5 +66,16 @@ describe('the sessions list', () => {
     expect(datedSessions(plan).map((s) => s.id)).toEqual(['s1', 's2'])
     expect(sessionName(plan.sessions[1] ?? {})).toBe('Session')
     expect(removeSession(plan, 's1').sessions.map((s) => s.id)).toEqual(['s2'])
+  })
+
+  test('a held order keeps a re-dated session where it was; a new one follows', () => {
+    let plan = addSession(EMPTY_GAME_PLAN, 's1', '2026-12-01')
+    plan = addSession(plan, 's2', '2026-12-08')
+    const held = datedSessions(plan).map((s) => s.id)
+    plan = patchSession(plan, 's1', { date: '2026-12-20' })
+    expect(heldSessions(plan, held).map((s) => s.id)).toEqual(['s1', 's2'])
+    expect(heldSessions(plan, null).map((s) => s.id)).toEqual(['s2', 's1'])
+    plan = addSession(plan, 's3', '2026-11-01')
+    expect(heldSessions(plan, held).map((s) => s.id)).toEqual(['s1', 's2', 's3'])
   })
 })

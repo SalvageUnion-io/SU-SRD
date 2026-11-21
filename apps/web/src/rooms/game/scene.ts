@@ -67,6 +67,19 @@ export class GameScene {
     })
   }
 
+  /**
+   * Nobody is up any more (r2 E1): the room clears the marker itself when the
+   * group session ends and when Downtime begins, whoever asked for either.
+   */
+  clearUpNow(at: number): void {
+    if ((this.upNow()?.pilotId ?? null) === null) return
+    this.store.rows(
+      "update change_log set after = ?, ts = ? where field = 'upNow'",
+      JSON.stringify({ pilotId: null }),
+      at
+    )
+  }
+
   /** Put the Scene under exactly these conditions, each once; clearing the last clears the hours. */
   setConditions(actor: string, wanted: readonly string[], at: number): void {
     this.store.sql.transaction(() => {

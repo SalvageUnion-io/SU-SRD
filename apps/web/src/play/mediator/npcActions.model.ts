@@ -76,9 +76,14 @@ export function npcActions(npc: Pick<TrayNpc, 'id' | 'entity' | 'pattern'>): Npc
     .map(({ entry }) => entry)
 }
 
-/** What an NPC is, as its box's chip says it: NPC, Mech, Squad, Bio-Titan, … */
-export function npcKind(npc: Pick<TrayNpc, 'refSchema'>): string {
-  switch (npc.refSchema) {
+/**
+ * What an NPC is, as its box's chip says it: NPC, Mech, Squad, Bio-Titan, …
+ * One of the Mediator's own designs is the kind it was built from.
+ */
+export function npcKind(
+  npc: Pick<TrayNpc, 'refSchema'> & Partial<Pick<TrayNpc, 'builtKind'>>
+): string {
+  switch (npc.builtKind ?? npc.refSchema) {
     case 'chassis':
       return 'Mech'
     case 'squads':

@@ -401,6 +401,26 @@ export const EXEMPTIONS: readonly StringExemption[] = [
     reason:
       'The `copy/banned-variant` rule holds this file as the one place these words are spelled (`SEARCH_COPY`, chrome K8) and refuses them anywhere else, the catalogue included. They stay here until that rule names a catalogue key instead.',
   },
+  {
+    file: 'apps/web/src/components/islands/SearchIsland.tsx',
+    strings: ['min(30rem, calc(100dvh - 7rem))', 'min(30rem, 60dvh)'],
+    reason: 'CSS `max-height` values in a style object.',
+  },
+  {
+    file: 'apps/web/src/lib/listingPending.ts',
+    strings: [
+      'var d=document.documentElement,q=new URLSearchParams(location.search),v=null;',
+      '.some(function(k){return q.has(k)})&&v===null)return;',
+      'var lift=function(){d.removeAttribute(',
+    ],
+    reason: "Lines of a listing page's inline script: code a browser runs, never drawn.",
+  },
+  {
+    file: 'apps/web/src/lib/searchIndexBuild.ts',
+    strings: ['Crawler Downtime', 'Train your Pilot'],
+    reason:
+      "A guide and its step by their names in the reference data (`Guides.getByName`): the dataset's keys.",
+  },
 ]
 
 const squash = (s: string) => s.replace(/\s+/g, ' ').trim()

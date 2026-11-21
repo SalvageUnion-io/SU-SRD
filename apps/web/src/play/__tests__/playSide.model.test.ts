@@ -18,8 +18,11 @@ import {
   recordPlayChange,
   recordPlayRoll,
   reportingRoll,
+  rollLogEntry,
   setPrivateRolls,
+  veiledRollDescription,
 } from '../playRolls.model'
+import { proposalChange } from '../proposalAnswer.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
 import { CREW_HERE, crewAt } from './crewFixture'
@@ -214,6 +217,20 @@ describe('the Feed (play.md §8)', () => {
     expect(entries[3]?.kind === 'alert' && entries[3].text).toBe('Mediator · Storm incoming')
   })
 
+  test('a proposal reads from and to once the room says what the sheet holds (r2 C7)', () => {
+    expect(proposalChange({ field: 'currentHP', after: 0, current: 7 })).toBe('HP 7 → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0, current: null })).toBe('HP → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0 })).toBe('HP → 0')
+    const [first] = playFeedEntries({
+      rolls: [],
+      alerts: [],
+      proposals: [{ ...proposal, current: 7 }],
+      mine: [],
+      rollerName: 'Bonesaw',
+    })
+    expect(first?.kind === 'proposal' && first.text).toBe('Mediator proposes Bonesaw HP 7 → 5')
+  })
+
   test('my roll’s copy on the Game’s log is dropped: the screen’s carries its post state', () => {
     const mine = roll({ id: 'm1', at: 400 })
     const echo = crewRoll('r9', 400, playRollDescription('Bonesaw', mine))
@@ -257,6 +274,51 @@ describe('the Feed (play.md §8)', () => {
       'You · Core Mechanic · 14 · Success · Private',
       'You · Morale · 4 · Private',
     ])
+  })
+
+  test('a veiled roll carries its id for Reveal, on the log’s copy and on mine (r2 B1)', () => {
+    const mine = { ...roll({ id: 'm1', at: 400, label: 'Veteran · Rifle' }), veiled: true as const }
+    const event = (id: string, ts: number, text: string) => ({
+      _id: id,
+      ts,
+      kind: 'roll' as const,
+      text,
+      actorId: 'gm',
+      veiled: true as const,
+    })
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        event('e2', 400, playRollDescription('Mediator', mine)),
+        event('e1', 300, 'Mediator · Raider · Morale · 4'),
+      ],
+      proposals: [],
+      mine: [mine],
+      rollerName: 'Mediator',
+    })
+    expect(entries.map((e) => [e.kind, 'reveal' in e ? e.reveal : undefined])).toEqual([
+      ['mine', 'e2'],
+      ['roll', 'e1'],
+    ])
+  })
+
+  test('what the players read of a veiled roll names nothing that rolled (r2 B1)', () => {
+    const veteran = roll({ id: 'v', at: 1, rolls: [9], label: 'Veteran · Green Laser Rifle' })
+    expect(veiledRollDescription({ ...veteran, outcome: 'Tough Choice' })).toBe(
+      'Mediator rolled · 9 · Tough Choice'
+    )
+    expect(
+      rollLogEntry(
+        'g1',
+        {
+          description: 'Mediator · Veteran · 9',
+          result: { kind: 'table', roll: 9, outcome: 'Tough Choice' },
+          veiled: 'Mediator rolled · 9 · Tough Choice',
+        },
+        1
+      ).after
+    ).toMatchObject({ veiled: 'Mediator rolled · 9 · Tough Choice' })
   })
 
   test('solo: only my own', () => {
@@ -366,7 +428,8 @@ describe('the Tables (play.md §8)', () => {
       'Reactor Overload',
       'Critical Injury',
     ])
-    expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
+    // An adventure's rumour table is never pinned for every table (False Flag p.8).
+    expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury'])
   })
 
   test('boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables', () => {
@@ -376,7 +439,7 @@ describe('the Tables (play.md §8)', () => {
       'Bio-Chassis Overload Table',
       'Critical Injury',
     ])
-    expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
+    expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury'])
   })
 
   test('Find: names holding the query, those starting with it first, at most six', () => {
@@ -409,5 +472,40 @@ describe('Discord channels (play.md §9)', () => {
     )
     expect(channelTag(named)).toBe('#salvage-run')
     expect(channelTag(null)).toBeNull()
+  })
+})
+
+// MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
+describe('the Mediator on the Feed', () => {
+  const event = (kind: 'alert' | 'proposal' | 'session' | 'join', text: string, actorId: string) =>
+    ({ _id: text, ts: 1, kind, text, actorId }) as never
+  const lines = (viewerId: string) =>
+    playFeedEntries({
+      rolls: null,
+      alerts: [],
+      proposals: [],
+      mine: [],
+      rollerName: 'Med',
+      viewerId,
+      events: [
+        event('alert', 'Mediator · Dust on the ridge', 'med'),
+        event('proposal', 'Mediator proposes Bonesaw HP → 5', 'med'),
+        event('session', 'Mediator started the group session', 'med'),
+        event('proposal', 'Nell accepted: Bonesaw HP → 5', 'nell'),
+      ],
+    }).map((e) => e.text)
+
+  test('their own screen says You; everyone else’s says Mediator', () => {
+    expect(lines('med')).toEqual([
+      'You · Dust on the ridge',
+      'You propose Bonesaw HP → 5',
+      'You started the group session',
+      'Nell accepted: Bonesaw HP → 5',
+    ])
+    expect(lines('nell').slice(0, 3)).toEqual([
+      'Mediator · Dust on the ridge',
+      'Mediator proposes Bonesaw HP → 5',
+      'Mediator started the group session',
+    ])
   })
 })

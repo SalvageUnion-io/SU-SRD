@@ -28,6 +28,7 @@ import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../
 import { listingEntries } from '../../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
 import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
+import { listingPendingScript } from '../../../lib/listingPending'
 import { listingTraits } from '../../../lib/listingTraits'
 import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
@@ -113,6 +114,16 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     },
     children: (
       <div className="su-listing-shell">
+        {/* A filtered or sorted address: the served rows, the whole list, stay
+            out of sight from before the first paint (`listingPending`). */}
+        <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: the page's own script, built from constants
+          dangerouslySetInnerHTML={{ __html: listingPendingScript() }}
+        />
+        {/* With scripts off nothing filters: the list says so, once. */}
+        <noscript>
+          <p className="su-listing__noscript">{pagesCopy('listingNeedsScripts')}</p>
+        </noscript>
         {/* The island draws the chapter band (the plural name in the notch,
             the rail as its controls) and the listing under it. */}
         <Island

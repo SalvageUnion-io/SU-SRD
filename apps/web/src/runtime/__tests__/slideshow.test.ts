@@ -13,8 +13,12 @@ describe('turnedClock', () => {
     expect(turnedClock(STEP * 2.5, 1, { ...show8, held: true })).toBe(STEP * 3)
   })
 
-  test('Previous lands on the slide before, at the start of its turn', () => {
-    expect(turnedClock(STEP * 2.5, -1, { ...show8, held: false })).toBe(STEP)
+  test('Previous, turning: lands where the slide before starts its turn, a whole step ahead of it (r2 H6)', () => {
+    expect(turnedClock(STEP * 2.5, -1, { ...show8, held: false })).toBe(STEP * 0.8)
+  })
+
+  test('Previous, held: lands on the slide before standing still', () => {
+    expect(turnedClock(STEP * 2.5, -1, { ...show8, held: true })).toBe(STEP)
   })
 
   test('the slide sliding in is the one in view', () => {
@@ -24,7 +28,7 @@ describe('turnedClock', () => {
   })
 
   test('the show is a loop: Previous from the first is the last, Next from the last the first', () => {
-    expect(turnedClock(STEP * 0.5, -1, { ...show8, held: false })).toBe(STEP * 7)
+    expect(turnedClock(STEP * 0.5, -1, { ...show8, held: false })).toBe(STEP * 6.8)
     expect(turnedClock(STEP * 7.5, 1, { ...show8, held: true })).toBe(0)
     expect(turnedClock(STEP * 7.5, 1, { ...show8, held: false })).toBe(STEP * 7.8)
     // A second lap reads as the first.
@@ -77,8 +81,8 @@ describe('watchSlideshow', () => {
     press('[data-show-turn="1"]')
     expect(clocks.map((c) => c.currentTime)).toEqual(Array(8).fill(STEP * 1.8))
     press('[data-show-turn="-1"]')
-    // 1.8 steps: slide 2 is sliding in, so Previous is slide 1.
-    expect(clocks.map((c) => c.currentTime)).toEqual(Array(8).fill(STEP))
+    // 1.8 steps: slide 2 is sliding in, so Previous is slide 1, its turn afresh.
+    expect(clocks.map((c) => c.currentTime)).toEqual(Array(8).fill(STEP * 0.8))
   })
 
   test('held, Next lands on the slide standing still and the show stays held', () => {
@@ -87,6 +91,24 @@ describe('watchSlideshow', () => {
     press('[data-show-turn="1"]')
     expect(clocks[0]?.currentTime).toBe(STEP * 2)
     expect(root.hasAttribute('data-paused')).toBe(true)
+  })
+
+  test('a finger down on a slide’s plate holds the show until it lifts (r2 H6)', () => {
+    const { root } = show(8)
+    const plate = document.createElement('div')
+    plate.className = 'su-front__show-copy'
+    const act = document.createElement('a')
+    plate.append(act)
+    root.append(plate)
+    act.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(root.hasAttribute('data-touched')).toBe(true)
+    document.dispatchEvent(new Event('pointerup'))
+    expect(root.hasAttribute('data-touched')).toBe(false)
+    // The controls are not the slide: a press on them leaves it turning.
+    root
+      .querySelector('[data-show-turn="1"]')
+      ?.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+    expect(root.hasAttribute('data-touched')).toBe(false)
   })
 
   test('where nothing turns (reduced motion), a press changes nothing', () => {

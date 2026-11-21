@@ -25,6 +25,7 @@ import {
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
 import { proposalAfter, proposalLine } from '../proposalLine.model'
+import { choiceLine, runChoices } from '../runEncounter.model'
 import { setbackDraft } from '../setbacks.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
@@ -373,5 +374,26 @@ describe('proposalAfter (the Propose dock’s number)', () => {
   })
   test('an amount needs a current value to change', () => {
     expect(proposalAfter('take', '3', null, 10)).toBeNull()
+  })
+})
+
+describe('Run an encounter lists this Game’s first (MD2-17)', () => {
+  const e = (id: string, gameId?: string) => ({ id, gameId, opposition: [], tables: [] })
+  const names = (id: string) => (id === 'g2' ? 'Rust Run' : null)
+
+  test('this Game’s, then the Kit’s, then another Game’s, which is named', () => {
+    const list = runChoices(
+      [e('other', 'g2'), e('kit'), e('here', 'g1'), e('lost', 'g9')],
+      'g1',
+      names
+    )
+    expect(list.map((c) => [c.encounter.id, c.otherGame])).toEqual([
+      ['here', null],
+      ['kit', null],
+      ['other', 'Rust Run'],
+      ['lost', 'another Game'],
+    ])
+    expect(choiceLine(list[0] as never)).toBe('0 opposition · 0 tables')
+    expect(choiceLine(list[2] as never)).toBe('0 opposition · 0 tables · prepared for Rust Run')
   })
 })

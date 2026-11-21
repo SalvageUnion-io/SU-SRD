@@ -4,6 +4,7 @@ import {
   EMPTY_MECH_FORM_STATE,
   mechFormToCreateInput,
   mechFormToUpdatePatch,
+  withLeftoverScrap,
 } from '../mechFormState'
 
 describe('mechFormToUpdatePatch', () => {
@@ -90,5 +91,25 @@ describe('mechFormToCreateInput', () => {
     ])
     // Distinct ids, or they would collide in the host's array.
     expect(new Set((input.partners ?? []).map((p) => p.id)).size).toBe(4)
+  })
+})
+
+describe('withLeftoverScrap (r2 E7)', () => {
+  it('carries unspent Scrap in the hold as one Tech 1 line', () => {
+    const form = withLeftoverScrap({ ...EMPTY_MECH_FORM_STATE, chassisName: 'mule' }, 6)
+    expect(form.cargoLots).toHaveLength(1)
+    expect(form.cargoLots[0]).toMatchObject({
+      kind: 'bulk',
+      cat: 'SCRAP',
+      tl: 1,
+      qty: 6,
+      name: 'Tech 1 Scrap',
+    })
+    expect(mechFormToCreateInput(form).cargoLots).toEqual(form.cargoLots)
+  })
+
+  it('adds nothing when it is all spent', () => {
+    expect(withLeftoverScrap(EMPTY_MECH_FORM_STATE, 0)).toBe(EMPTY_MECH_FORM_STATE)
+    expect(withLeftoverScrap(EMPTY_MECH_FORM_STATE, -2)).toBe(EMPTY_MECH_FORM_STATE)
   })
 })

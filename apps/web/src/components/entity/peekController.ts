@@ -34,8 +34,11 @@ const PRESS_ON_OPEN_WINDOW = 700
 /** Focus this soon after a pointer press came from the press. */
 const POINTER_FOCUS_WINDOW = 600
 
+/** How a Peek was opened: a rest of the pointer, the keyboard's focus, or a press (a tap, a long press). */
+export type PeekOpening = 'hover' | 'focus' | 'press'
+
 export type PeekControllerCallbacks = {
-  open: (trigger: HTMLElement, address: string) => void
+  open: (trigger: HTMLElement, address: string, how: PeekOpening) => void
   close: () => void
 }
 
@@ -84,13 +87,13 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     pressAt = undefined
   }
 
-  const openNow = (trigger: HTMLElement) => {
+  const openNow = (trigger: HTMLElement, how: PeekOpening) => {
     clearOpen()
     clearClose()
     const address = trigger.getAttribute(PEEK_ATTRIBUTE)
     if (!address) return
     current = trigger
-    callbacks.open(trigger, address)
+    callbacks.open(trigger, address, how)
   }
   const closeNow = () => {
     clearOpen()
@@ -120,7 +123,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     if (trigger === pending) return
     clearOpen()
     pending = trigger
-    openTimer = setTimeout(() => openNow(trigger), PEEK_OPEN_DELAY)
+    openTimer = setTimeout(() => openNow(trigger, 'hover'), PEEK_OPEN_DELAY)
   }
 
   const onPointerOut = (event: PointerEvent) => {
@@ -138,7 +141,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     const trigger = triggerOf(event.target)
     if (!trigger) return
     if (performance.now() - lastPress < POINTER_FOCUS_WINDOW) return
-    openNow(trigger)
+    openNow(trigger, 'focus')
   }
 
   const onFocusOut = (event: FocusEvent) => {
@@ -163,7 +166,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
     pressTimer = setTimeout(() => {
       pressTimer = undefined
       swallowClick = true
-      openNow(trigger)
+      openNow(trigger, 'press')
     }, PEEK_LONG_PRESS)
   }
 
@@ -190,7 +193,7 @@ export function installPeekController(doc: Document, callbacks: PeekControllerCa
         event.stopPropagation()
       }
       // A trigger whose press does nothing else opens its Peek.
-      openNow(trigger)
+      openNow(trigger, 'press')
       return
     }
     // The long press opened the Peek: the click it ends with must not follow

@@ -31,7 +31,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R50 A Game's people are small cards in its page's sidebar** — header-only Minis, their roles chips; their units ride the Crew list.
 - **R53 One sub-section rung** (§4.9, E25) — a section inside a section is the Mini Slab (`SlabSection size="mini"`), at chip size; no eyebrow, coloured bar or sentence-case head stands in for a section head, bar the book's contents chapters on the Reference home (`ContentsChapter`).
 - **R54 A link looks like a link** — a standalone link is `Button href` or `InlineRef`, never bare `AppLink` text, and never larger than the note beside it.
-- **R56 A Game's, a person's, an index's name is never cut** (C2b) — the hub's doors drop to the body; people's chips wrap under.
+- **R56 A Game's, a person's, a seat's, an index's name is never cut** (C2b) — the hub's doors drop to the body; chips wrap under.
 - **R57 Class leads the pilot's Edit card** (§1.2) — its first row, above the photo: the name and a Change Class button.
 - **R58 Intact is quiet** (C8) — only Damaged and Destroyed wear a tone; Repair shows only while damaged.
 - **R59 A fact prints once** (C10) — no Uses trait beside a live Uses slot; granted gear's rules print under its ability only.
@@ -41,11 +41,11 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R65 An action says what it does, and all are there** (§1.4, R59) — Play's board lists them, never a sheet: every action of what the pilot and mech carry, the chassis ability and each companion's. A row's body is its effect alone: text the data tags `notInPlay` is left out, never reworded. Rows group by action type under Mini Slabs, Passive and untyped last.
 - **R67 A guided build asks four things** (N6, R16, L9) — a wizard has at most four steps, each a decision; what the book only tells you is its step's cited `Callout`, never a step. A step's options are a Ledger in select, the pick's card beside it. The bar is a reserved strip, never over content: the budget's count, Cancel, one rust Next.
 - **R70 Related units are one section** (R49) — a sheet's crew, mech, crawler and companions, each a link; in Read even empty, a place per slot.
-- **R71 One rule-breaking mark** — a count over its cap (slots, Cargo, Inventory) wears `RuleBreakMark` on its `StripFigure`, in words; the save toasts what broke and by how much. A printed over-slot pattern wears none.
+- **R71 One rule-breaking mark** — a count over its cap (slots, Cargo, Inventory) wears `RuleBreakMark` by its count, in words; a save toasts what broke and by how much. A printed over-slot pattern wears none.
 
 ## Measures
 
-- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every button and chip; a line one Size. No hidden hit area but a linked chip's or strip Mini control's 24px (WCAG). One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`.
+- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every button and chip; a line one Size. Hidden hit areas: a linked chip's, strip Mini control's 24px (WCAG); a phone step's, remove's 44px. One stepper (`StepButton`): a count steps by `Stat` in edit, a vital by `VitalGauge`'s `steppers`.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the first block ≤24px under the band; 12px between level-1 blocks; every stat value framed 1px, every stat label 14px (a short one 12).
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact, Mini or Ledger row; every Live Sheet list item is or holds one (`syntheticItemModel` for a carried thing the reference lacks); a Play list's line is a Mini.
 - **R68 A grid fills its rows** — a grid of items is the one fill grid (`.su-grid`): flex rows that wrap, a short last row growing to its width, to a cap (`--su-grid-max`); no empty track, no orphan cell. Masonry never has more columns than items. A pip track or table is no item grid.

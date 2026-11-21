@@ -12,7 +12,7 @@ import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
-import { abilityTrainingCost } from '../../lib/rules/training'
+import { abilityRequirementsUnmet, abilityTrainingCost } from '../../lib/rules/training'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
 import type { PilotSheetModel } from './pilotSheet.model'
@@ -72,6 +72,7 @@ export function PilotSheetPickers({
               payLabel: buildSheetCopy('spendTpAndAdd', { cost: price }),
               canPay: left >= price,
               onPay: () => actions.trainAbility(slug),
+              unmet: abilityRequirementsUnmet(pilot, slug),
             }
           }}
           filter={

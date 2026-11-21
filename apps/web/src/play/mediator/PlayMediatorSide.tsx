@@ -19,12 +19,12 @@
  *
  * What the sections share is the side's `useSideFeed`, called once per screen
  * by `PlayMediatorCockpit`. The roll dispatch lives there (`usePlayRollDispatch`):
- * each roll goes on the Game's log, private while the Feed's switch is on.
+ * each roll goes on the Game's log, private while the Rolls head's switch is on.
  * Headings are Slabs; the dock is a level-1 box.
  */
 
 import { proposalTargets } from 'game-domain/games/proposals'
-import type { CSSProperties, RefObject } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
@@ -58,9 +58,12 @@ const NOTES = {
 export function MediatorTablesAndFeed({
   mediator,
   side,
+  actions,
 }: {
   mediator: PlayMediator
   side: SideFeed
+  /** The Rolls head's own control: the Private rolls switch. */
+  actions?: ReactNode
 }) {
   const running = mediator.prep.running
   const briefing = flagOn('encounterSheet') ? (running?.briefing ?? '') : ''
@@ -90,6 +93,7 @@ export function MediatorTablesAndFeed({
         solo={false}
         prepared={running?.tables}
         onField={mediator.canWrite ? mediator.tray.field : undefined}
+        actions={actions}
       />
       {/* The Feed sits under the Table (`PlayMediatorCockpit`), where the
           column was empty, so Tables runs straight into Propose. */}
@@ -119,6 +123,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
         now={mediator.now}
         canWrite={mediator.canWrite}
         onPropose={mediator.propose}
+        onWithdraw={mediator.withdraw}
         toRef={toRef}
         // The dock's last chip (C8), never a line under it.
         controls={
@@ -138,6 +143,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
           limit={mediator.sentLimit}
           now={mediator.now}
           onMore={mediator.moreSent}
+          onWithdraw={mediator.canWrite ? mediator.withdraw : undefined}
         />
       </ModalShell>
     </section>

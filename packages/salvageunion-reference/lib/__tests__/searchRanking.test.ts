@@ -116,6 +116,24 @@ describe('question filler and word forms', () => {
     expect(tokenizeSearchQuery('the works')?.tokens).toEqual(['the', 'works'])
   })
 
+  test('a whole question is cut back to its key words (r2 H7)', () => {
+    expect(tokenizeSearchQuery('what happens when my mech hits 0 sp')).toEqual({
+      loweredQuery: 'mech 0 sp',
+      tokens: ['mech', '0', 'sp'],
+      rawQuery: 'what happens when my mech hits 0 sp',
+    })
+    expect(tokenizeSearchQuery('my mech has no energy points left?')?.tokens).toEqual([
+      'mech',
+      'no',
+      'energy',
+      'points',
+      'left',
+    ])
+    // A short query keeps a rule's own words: "hit" is Hit Points', not a question's.
+    expect(tokenizeSearchQuery('hit points')?.tokens).toEqual(['hit', 'points'])
+    expect(tokenizeSearchQuery('what is hit')?.tokens).toEqual(['hit'])
+  })
+
   test('a word is cut back to a stem another form holds', () => {
     expect(searchWordStem('salvaging')).toBe('salvag')
     expect(searchWordStem('overheating')).toBe('overheat')

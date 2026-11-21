@@ -28,15 +28,19 @@ export function isSearchShortcut(event: KeyboardEvent): boolean {
   )
 }
 
+/** The key cap a page is served with: a Mac's, since the server cannot know the keyboard. */
+const SERVED_HINT = '⌘K'
+
 /**
  * The served key caps read "⌘K" (the server cannot know the keyboard); this
  * corrects them before a search has mounted, so a reader off a Mac is never
- * shown a key they do not have.
+ * shown a key they do not have. A cap that names another key (the home's "/")
+ * is every keyboard's and stays.
  */
 export function correctShortcutHints(root: ParentNode, platform: string): void {
   const hint = modKeyHint(platform)
   for (const cap of root.querySelectorAll('.su-search-field__shortcut')) {
     const key = cap.querySelector('kbd')
-    if (key && key.textContent !== hint) key.textContent = hint
+    if (key && key.textContent === SERVED_HINT && hint !== SERVED_HINT) key.textContent = hint
   }
 }

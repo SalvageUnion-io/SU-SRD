@@ -17,6 +17,7 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { blankEncounter, encounterHref } from '../../../build/prep/encounter.model'
 import { useSheetModeStore } from '../../../build/sheet/sheetMode.model'
+import { undoToast } from '../../../build/sheet/undoToast.model'
 import { ShelfLedger } from '../../../build/shelves/ShelfLedger'
 import { PageShell } from '../../../components/app'
 import type { HeaderMenuItem } from '../../../components/index'
@@ -28,7 +29,7 @@ import { useHydrateOnMount } from '../../../lib/entities/useHydrateEntities'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
 import { runWrite } from '../../../lib/runWrite'
-import { encounterReading, npcReading } from '../../../lib/shelves/shelfItems'
+import { encounterReading, hpColumnCell, npcReading } from '../../../lib/shelves/shelfItems'
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { playGamesCopy } from '../../../messages/play-games'
 import { useEncounters } from '../../../replica/collections'
@@ -149,7 +150,16 @@ function PrepSections({ gameId }: { gameId: string }) {
           id: 'out',
           label: playGamesCopy('takeOutOfThisGame'),
           onSelect: writable(() =>
-            runWrite(() => update(encounter.id, { gameId: undefined, order: undefined }))
+            runWrite(async () => {
+              const { gameId: was, order } = encounter
+              await update(encounter.id, { gameId: undefined, order: undefined })
+              // At once, as every prep edit is, with the way back (MD2-20).
+              undoToast(
+                playGamesCopy('tookOutOfThisGame', { name: encounter.name }),
+                () => runWrite(() => update(encounter.id, { gameId: was, order })),
+                encounter.id
+              )
+            })
           ),
         },
       ],
@@ -228,7 +238,11 @@ function PrepSections({ gameId }: { gameId: string }) {
             { key: 'hp', label: 'HP', kind: 'figure' },
           ]}
           action={
-            <Button href="/npcs/new" variant="default" size="compact">
+            <Button
+              href={`/npcs/new?game=${encodeURIComponent(gameId)}`}
+              variant="default"
+              size="compact"
+            >
               {playGamesCopy('designAnNpc')}
             </Button>
           }
@@ -238,7 +252,7 @@ function PrepSections({ gameId }: { gameId: string }) {
             id: n.id,
             name: n.name,
             href: `/npcs/${n.id}`,
-            cells: [n.position ?? '', String(npcReading(n).value)],
+            cells: [n.position ?? '', hpColumnCell(npcReading(n))],
             menu: [],
           }))}
         />

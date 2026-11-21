@@ -139,6 +139,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     // A column's "Move in…" checks its moves against your Games.
     'games.listMine': [],
     'safety.stopSign': { stop: null, mayLift: false },
+    // The Game's Discord channel row (MD-20).
+    'channelBindings.current': null,
     ...over,
   }
 }
@@ -167,6 +169,33 @@ const drawnText = (el: Element) => {
   return copy.textContent
 }
 describe('a Manage page in Play (ADR-052 §5, §7)', () => {
+  // MD2-07: the description and the next session's day reached nobody after the invite.
+  test('every member reads what the Game is and when the table next meets', async () => {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const day = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const now = new Date()
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    const soon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3)
+    await renderHub({
+      'games.get': {
+        ...GAME,
+        description: 'Sundays, 7pm.',
+        sessionDays: [day(yesterday), day(soon)],
+      },
+    })
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('Sundays, 7pm.')).toBeTruthy()
+    const next = sidebar.getByText('Next session').closest('.su-stat-cell') as HTMLElement
+    expect(next.textContent).toContain(
+      soon.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+    )
+  })
+
+  test('a Game with no day set says nothing of a next session', async () => {
+    await renderHub()
+    expect(screen.queryByText('Next session')).toBeNull()
+  })
+
   test('the Game’s name on Play’s band, and none of Build’s controls', async () => {
     await renderHub()
     const title = screen.getByRole('heading', { level: 1, name: 'Union Crawler #430' })
@@ -251,10 +280,25 @@ describe('the sections under the roster', () => {
         within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
       )
     })
+    // The link they were sent is reset with them, unless unticked (r2 B4).
+    expect(mutations).toEqual([
+      { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
+      { name: 'invites.reset', args: { gameId: 'g1' } },
+    ])
+    expect(navigations).toEqual([])
+
+    mutations.length = 0
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
+    const removing = within(screen.getByRole('alertdialog'))
+    const tick = removing.getByRole('checkbox', { name: 'Reset the invite link too' })
+    expect((tick as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(tick)
+    await act(async () => {
+      fireEvent.click(removing.getByRole('button', { name: 'Remove' }))
+    })
     expect(mutations).toEqual([
       { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
     ])
-    expect(navigations).toEqual([])
 
     mutations.length = 0
     await openGameMenu()
@@ -358,6 +402,41 @@ describe('the sections under the roster', () => {
     expect(navigations).toEqual([{ to: '/games' }])
   })
 
+  // MD2-02: a template tried and deleted left its thirteen units in the Training Bay.
+  test('a template Game offers to take its untouched units, ticked when none was changed', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, templateUnits: { came: 13, untouched: 13 } },
+    })
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
+    const also = screen.getByRole('checkbox', {
+      name: 'Also delete the 13 units it came with?',
+    }) as HTMLInputElement
+    expect(also.checked).toBe(true)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
+    })
+    expect(mutations).toEqual([
+      { name: 'games.destroy', args: { gameId: 'g1', dropTemplateUnits: true } },
+    ])
+  })
+
+  test('with one of them changed the offer is unticked and counts only the untouched', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, templateUnits: { came: 13, untouched: 11 } },
+    })
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
+    const also = screen.getByRole('checkbox', {
+      name: 'Also delete the 11 units it came with that nobody has changed?',
+    }) as HTMLInputElement
+    expect(also.checked).toBe(false)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
+    })
+    expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
+  })
+
   test('a game with no crawler does not promise one', async () => {
     await renderHub({ 'games.get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     await openGameMenu()
@@ -419,6 +498,64 @@ describe('the seats, on the Pilots rows', () => {
     expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Seats')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
+  })
+})
+
+// MD2-10: a template Game listed every mech twice.
+describe('a free pair, as a template’s arrive', () => {
+  const pair = (mechOwner: string | null) => ({
+    pilots: [{ _id: 'p2', appId: 'a-p2', ownerId: null, body: { id: 'a-p2', callsign: 'Hotdog' } }],
+    mechs: [{ _id: 'm2', appId: 'a-m2', ownerId: mechOwner, body: { id: 'a-m2', name: 'Mule' } }],
+    crawlers: [],
+    softLinks: [{ type: 'mech-to-pilot', from: { id: 'a-m2' }, to: { id: 'a-p2' }, gameId: 'g1' }],
+  })
+
+  test('the mech is listed on its pilot’s line only, not under Mechs with no Pilot', async () => {
+    await renderHub({ 'games.listing': pair(null) })
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    expect(drawnText(crew)).toContain('in Mule')
+    expect(drawnText(crew).split('Mule')).toHaveLength(2)
+    expect(within(crew).queryByText('Mechs with no Pilot')).toBeNull()
+  })
+
+  test('held apart from its pilot, the mech keeps a line of its own', async () => {
+    await renderHub({ 'games.listing': pair('u2') })
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    expect(drawnText(crew).split('Mule').length).toBeGreaterThan(2)
+  })
+})
+
+// MD-20: the Game's page and its settings had no word of the Discord channel.
+describe('the Discord channel on the Game page', () => {
+  /** Connected, so the bound channel is read. */
+  async function renderLive(over: QueryAnswers = {}): Promise<void> {
+    answer(answers(over))
+    await act(async () => {
+      render(
+        <SyncContext.Provider value={{ status: 'live', canWrite: true, outdated: false }}>
+          <GameHub gameId="g1" />
+        </SyncContext.Provider>
+      )
+    })
+  }
+
+  test('a player reads who connects one; no control that could only say no', async () => {
+    await renderLive()
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('Discord channel')).toBeTruthy()
+    expect(sidebar.getByText('None bound: the Mediator or Organiser connects one')).toBeTruthy()
+    expect(sidebar.queryByRole('button', { name: /Discord/ })).toBeNull()
+  })
+
+  test('the Organiser is offered Set up there, and in Game settings', async () => {
+    await renderLive({ 'games.get': { ...GAME, organizer: true } })
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    expect(sidebar.getAllByRole('button', { name: /Discord channel/ }).length).toBe(1)
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
+    const settings = within(screen.getByRole('alertdialog', { name: 'Game settings' }))
+    expect(settings.getByText('Discord channel')).toBeTruthy()
   })
 })
 

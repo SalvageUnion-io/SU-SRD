@@ -15,6 +15,7 @@
 import { mayBindChannel } from 'game-domain/games/discord'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
+import { useViewerId } from '../replica/roomCalls'
 import type { ChannelOwner, PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
 import { playFeedEntries } from './feed.model'
@@ -62,7 +63,8 @@ export function useSideFeed({
   const dispatch = usePlayRollDispatch({ target, rollerName, binding })
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
-  const entries = playFeedEntries({ rolls, alerts, events, proposals, mine, rollerName })
+  const viewerId = useViewerId()
+  const entries = playFeedEntries({ rolls, alerts, events, proposals, mine, rollerName, viewerId })
   return { gameId: target.gameId, binding, channel, dispatch, entries }
 }
 

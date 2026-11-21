@@ -9,7 +9,9 @@
  * description, where a book pattern's prose goes. Saving keeps it to its
  * maker; they share it from its page or their Hangar, as every player thing.
  *
- * Damage, Heat and cargo stay on the mech (`patternFromMech`).
+ * Under the listing it says what the pattern uses and costs (`PatternTotals`):
+ * its chassis, slots filled of the chassis's, and Scrap, a count over its cap
+ * marked. Damage, Heat and cargo stay on the mech (`patternFromMech`).
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
@@ -36,6 +38,7 @@ import {
 } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { PatternTotals } from './PatternTotals'
 
 /** What a pattern is cut from: a mech's name, chassis and loadout. */
 export type PatternSource = Pick<Mech, 'name' | 'chassisRef' | 'systems' | 'modules'>
@@ -176,6 +179,8 @@ function SavePatternBody({
           {descriptionField}
         </>
       )}
+      {/* What is being saved, in figures: its chassis, slots and Scrap (r2 G4). */}
+      <PatternTotals unit={source} />
       <Text variant="hint">{mechCopy('damageHeatAndCargoStay')}</Text>
       {error && <FieldError>{error}</FieldError>}
       <DialogActions>

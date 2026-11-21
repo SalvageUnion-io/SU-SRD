@@ -136,6 +136,7 @@ function NpcActionRow({
     let said: string | undefined
     const die = reportingRoll(await rollFor(NPC_ACTION), NPC_ACTION, () => ({
       label: `${npc.name} · ${entry.name}`,
+      veiled: true as const,
       ...(said ? { outcome: said } : {}),
     }))(20)
     said = npcActionOutcome(die) || undefined

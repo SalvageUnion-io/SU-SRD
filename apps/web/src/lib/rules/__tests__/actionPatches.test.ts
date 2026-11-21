@@ -339,12 +339,26 @@ describe('range', () => {
     }
   }
 
-  test('actionInRange: no declared range = always in range; else exact band', () => {
+  test('actionInRange: no declared range = always in range; else any band inside it', () => {
     const utility = mkAction({})
     const close = mkAction({ range: ['Close'] })
     expect(actionInRange(utility.action, 'Far')).toBe(true)
     expect(actionInRange(close.action, 'Close')).toBe(true)
     expect(actionInRange(close.action, 'Far')).toBe(false)
+  })
+
+  test('actionInRange: a range band reaches every nearer band (Core Book p.237)', () => {
+    const medium = mkAction({ range: ['Medium'] })
+    expect(actionInRange(medium.action, 'Close')).toBe(true)
+    expect(actionInRange(medium.action, 'Medium')).toBe(true)
+    expect(actionInRange(medium.action, 'Long')).toBe(false)
+    const far = mkAction({ range: ['Far'] })
+    for (const band of ['Close', 'Medium', 'Long', 'Far'] as const)
+      expect(actionInRange(far.action, band)).toBe(true)
+    // Two bands listed: the farther one is the reach.
+    const two = mkAction({ range: ['Close', 'Long'] })
+    expect(actionInRange(two.action, 'Medium')).toBe(true)
+    expect(actionInRange(two.action, 'Far')).toBe(false)
   })
 
   test('actionReachable: destroyed, out-of-range, and heat-locked all fail', () => {

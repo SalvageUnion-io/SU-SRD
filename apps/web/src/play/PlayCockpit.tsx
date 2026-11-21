@@ -157,7 +157,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   })
   const pilotId = play.pilot?.id ?? null
   const mechId = play.boardedMech?.id ?? null
-  const writeVital = (kind: 'pilot' | 'mech', field: string, next: number, label?: string) => {
+  const writeVital = (
+    kind: 'pilot' | 'mech',
+    field: string,
+    next: number,
+    label?: string,
+    note?: string
+  ) => {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
     // The change says itself, with Undo.
@@ -180,6 +186,8 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
         label,
         from,
         to,
+        // An amount more than there was says it was capped (r2 C6).
+        ...(note === undefined ? {} : { did: note }),
         undo: (value) =>
           runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
       })

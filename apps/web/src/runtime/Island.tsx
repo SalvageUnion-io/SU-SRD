@@ -23,6 +23,7 @@ export type IslandName =
   | 'MobileSearchIsland'
   | 'AccountIsland'
   | 'AccountAvatarIsland'
+  | 'SessionBarIsland'
   | 'MobileNavIsland'
   | 'SchemaViewerIsland'
   | 'ReferenceEntityIsland'

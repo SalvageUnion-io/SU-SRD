@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { Toaster as SonnerToaster } from 'sonner'
 import { borderWidth, color, font, fontSize, radius, shadow } from '../../design/tokens'
+import { useToastsOnTop } from './toastPlacement'
 
 /** Sonner's own radius variable, set to the popup radius (ruleset §4.4). */
 const TOASTER = { '--border-radius': radius.card } as CSSProperties
@@ -19,8 +20,13 @@ const TOAST = {
 /**
  * A phone's toast stands clear of a tab row at the screen's foot and of the
  * home indicator: `--su-toast-bottom` (`styles/partials/atoms-leaves.css`).
+ * Held at the top (`toastPlacement.ts`), it stands under the status bar:
+ * `--su-toast-top`.
  */
-const MOBILE_OFFSET = { bottom: 'var(--su-toast-bottom)' } as const
+const MOBILE_OFFSET = {
+  bottom: 'var(--su-toast-bottom)',
+  top: 'var(--su-toast-top)',
+} as const
 
 /**
  * The toast region, as configured. Render it only through `ToasterMount`,
@@ -29,9 +35,11 @@ const MOBILE_OFFSET = { bottom: 'var(--su-toast-bottom)' } as const
  * until one draws.
  */
 export function Toaster() {
+  // A phone's Play screen holds its toasts over the bar, off its controls (r2 C4).
+  const onTop = useToastsOnTop()
   return (
     <SonnerToaster
-      position="bottom-right"
+      position={onTop ? 'top-center' : 'bottom-right'}
       mobileOffset={MOBILE_OFFSET}
       style={TOASTER}
       toastOptions={{

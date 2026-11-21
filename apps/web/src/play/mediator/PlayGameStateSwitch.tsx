@@ -4,7 +4,8 @@
  * Downtime, in the Situation switch's place.
  *
  *  - **Begin Downtime** starts it at the first step, which moves every
- *    player's screen into Downtime (their Situation follows the Game's row).
+ *    player's screen into Downtime (their Situation follows the Game's row),
+ *    so it asks once first, as ending does (r2 E2); the room tells the table.
  *    Running, the option reads "Downtime · Step 3".
  *  - **Scene** ends it. At the last step it simply ends; before it, it asks
  *    first, since a new Downtime starts from the first step and its upkeep is
@@ -48,6 +49,7 @@ export function PlayGameStateSwitch({
   fill?: boolean
 }) {
   const [confirmEnd, setConfirmEnd] = useState(false)
+  const [confirmBegin, setConfirmBegin] = useState(false)
   const { running, stepIndex } = downtime.downtime
   const count = downtimeStepCount()
   const last = (stepIndex ?? 0) >= count - 1
@@ -80,12 +82,22 @@ export function PlayGameStateSwitch({
           pressed={running}
           disabled={!canWrite}
           onClick={() => {
-            if (!running) downtime.begin()
+            if (!running) setConfirmBegin(true)
           }}
         >
           {downtimeOptionLabel(running, stepIndex)}
         </SegmentedOption>
       </Segmented>
+      <ConfirmDialog
+        open={confirmBegin}
+        onOpenChange={setConfirmBegin}
+        title={mediatorCopy('beginDowntimeAsk')}
+        body={mediatorCopy('beginDowntimeBody', { count })}
+        confirmLabel={mediatorCopy('beginDowntime')}
+        onConfirm={() => {
+          downtime.begin()
+        }}
+      />
       <ConfirmDialog
         open={confirmEnd}
         onOpenChange={setConfirmEnd}

@@ -64,8 +64,11 @@ export type PlayVitalProps = {
   tone: VitalTone
   /** First 0-based segment that reads as danger when lit (Heat's redline). */
   danger?: number
-  /** Live: − / + and the slider write this. Absent, the vital is a read-out. */
-  onChange?: (next: number) => void
+  /**
+   * Live: − / + and the slider write this. Absent, the vital is a read-out.
+   * `note` is the amount entry's, when what was typed was capped.
+   */
+  onChange?: (next: number, note?: string) => void
   /** What the current Downtime step sets this vital to, when it changes it. */
   restoresTo?: number
 }
@@ -103,7 +106,7 @@ export function PlayVital({
           max={max}
           danger={danger}
           readOnly={!live}
-          onChange={onChange}
+          onChange={onChange ? (next) => onChange(next) : undefined}
           onValuePress={live ? () => setAsking(true) : undefined}
           steppers={live}
           style={TONES[tone]}

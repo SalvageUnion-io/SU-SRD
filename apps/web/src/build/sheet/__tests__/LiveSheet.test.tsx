@@ -67,7 +67,7 @@ function renderShell(props: Partial<Parameters<typeof LiveSheet>[0]> = {}) {
       name="Mara Vex"
       strip={[
         { key: 'hp', label: 'HP', value: 7, max: 10 },
-        { key: 'cargo', label: 'Hold', value: 0, max: 6 },
+        { key: 'cargo', label: 'Cargo', value: 0, max: 6 },
       ]}
       renderBody={() => (
         <>
@@ -203,11 +203,11 @@ describe('LiveSheet — the chapter band', () => {
     )
   })
 
-  test('a pattern-named mech says so: “its name” and a PATTERN chip', () => {
+  test('a pattern-named mech with no pattern to name wears no bare PATTERN chip (r2 G2)', () => {
     renderShell({ variant: 'mech', name: 'Mazona', quoted: true })
     const title = screen.getByRole('heading', { level: 1, name: /“Mazona”/ })
     const band = must(title.closest<HTMLElement>('.su-chapter-band'))
-    expect(within(band).getByText('Pattern')).toBeTruthy()
+    expect(within(band).queryByText('Pattern')).toBeNull()
   })
 
   test('the band’s controls sit in its top-right corner, above the name', () => {

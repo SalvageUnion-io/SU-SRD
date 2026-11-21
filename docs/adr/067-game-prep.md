@@ -24,9 +24,23 @@ The Opposition picker leads with kind tabs and searches across every kind; a
 "Yours" tab lists the NPCs the Mediator designed. Fielding one stores a
 snapshot on the tray row or the encounter's opponent: `built: { npcId, name,
 actions, traits }`, beside the usual name, HP or SP. It is a copy, as a
-Reference draw is: editing or deleting the design later changes no fight
-already prepared. `refSchema` stays `npcs` with an empty `refSlug`, so readers
+Reference draw is. `refSchema` stays `npcs` with an empty `refSlug`, so readers
 that know nothing of `built` still read a valid row.
+
+Amended 2026-11-21 (second persona review):
+
+- **The snapshot keeps its kind.** `built` gains two optional fields, `kind`
+  (the template's schema, where the design was built from a denizen that is not
+  a plain NPC) and `bioSalvageValue`. A row built from a Bio-Titan is chipped
+  and badged a Bio-Titan and leaves a Bio-Titan's Bio-Salvage. A snapshot taken
+  before this has neither and reads as an NPC.
+- **Prep follows a redesign.** A saved NPC reopens in the designer
+  (`/npcs/<id>/design`, its sheet's "Edit design") and is saved in place.
+  Saving rewrites the snapshot on every encounter of its maker's that fields
+  it: the stat block, HP or SP, and the name where the opponent still went by
+  the design's. A fight already on a Game's field keeps the snapshot it was
+  run with, and deleting a design still changes nothing prepared. A crawler's
+  crew are not redesigned there: their slot sets their stats (ADR-044).
 
 ### 2. Any denizen is a template
 
@@ -68,6 +82,30 @@ Layer 1 builds the notes and the dated session list with a private note each.
 a migration. A scene names an encounter by id and never copies it. The plan
 is replaced whole on save; one Mediator writes it, so there is no merge.
 
+**Notes are their author's** (amended 2026-11-21, second persona review). A
+hand over showed the next Mediator every private note. The sessions (days,
+titles, scenes) are the Game's and pass with the table; `notes` and each
+session's `note` belong to the member who wrote them and never pass with the
+role. The stored row gains two optional fields, and nothing is migrated:
+
+```
+StoredGamePlan = GamePlan & { author?, byAuthor?: { [discordId]: { notes, sessions: { [sessionId]: note } } } }
+```
+
+`plan.get` answers a `GamePlan` holding only the caller's notes, so no client
+ever receives another author's. A save files the caller's notes under
+`byAuthor` and leaves everyone else's alone; a removed session takes its notes
+with it. A row written before this keeps its notes in place: they are
+`author`'s, and the room stamps `author` with whoever runs the table the first
+time a Mediator is appointed or stood down, so existing notes belong to
+whoever is Mediator now. Prepared encounters and NPCs were never the Game's
+(§3) and stay their maker's. The hand over dialog says what goes and what
+stays, and the new Mediator is told by a `role` event on the table's stream.
+
+**The session days are every member's.** A Game's read (`games.get`) carries
+`sessionDays`: the coming sessions' days, soonest first, and nothing else of
+the plan (never a title or a note). The Game's page shows the next one.
+
 ### 5. The Kit stands under Games
 
 The Mediator's Kit is a section of the Games hub (`/games/#mediators-kit`),
@@ -77,5 +115,5 @@ Kit when they belong to none. Their addresses do not change.
 
 ### Not decided
 
-Whether players ever see a session's date; scenes and their editor; an
-encounter shared between two Mediators.
+Scenes and their editor; an encounter shared between two Mediators, or handed
+on with the table.

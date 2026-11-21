@@ -14,9 +14,9 @@ export function useRunGames(connected: boolean) {
   return (games ?? []).filter((g) => g.tableRunner)
 }
 
-/** The band's GAME chip for an encounter, when its Game is one the viewer runs. */
+/** The band's GAME chip for an encounter (or an NPC), when its Game is one the viewer runs. */
 export function useEncounterGame(
-  encounter: Pick<Encounter, 'gameId'>,
+  encounter: { gameId?: Encounter['gameId'] | null },
   connected: boolean
 ): { name: string; href: string } | undefined {
   const game = useRunGames(connected).find((g) => g._id === encounter.gameId)

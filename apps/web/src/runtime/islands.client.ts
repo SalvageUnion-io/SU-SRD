@@ -9,8 +9,10 @@
  */
 
 import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
-import { readAccountHint } from '../lib/accountHint'
-import { browserStorage, markSignedIn } from '../lib/accountState'
+import { widthAtLeast } from '../design/breakpoint'
+import { readAccountHint, readLastGame } from '../lib/accountHint'
+import { browserStorage, markLastGame, markSignedIn } from '../lib/accountState'
+import { appPath } from '../lib/appBase'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
 import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
@@ -36,6 +38,10 @@ installTrustedTypesPolicy()
 // Sign in hides while somebody is signed in (`lib/accountBar.ts`); the
 // account islands read the same hint (`directives/signedIn.ts`).
 markSignedIn(document, readAccountHint(browserStorage()) !== null)
+// The home's welcome-back strip names the Game last opened, where the device remembers one.
+markLastGame(document, readLastGame(browserStorage()), (gameId) =>
+  appPath(`/games/${encodeURIComponent(gameId)}`)
+)
 
 // A contentful Mini's chips that do not fit beside its name go to its body's first row (C2b); an island's fit from `Mini`.
 watchStaticTokenOverflow()
@@ -81,18 +87,19 @@ document.addEventListener('click', (event) => {
   if (event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey)) return
   if (focusSearch()) event.preventDefault()
 })
-// The home's search is served out of sight (`.su-union-bar__search-onkey`): it
-// is open, in the bar, for as long as the focus is inside it.
-for (const field of document.querySelectorAll('.su-union-bar__search-onkey')) {
-  field.addEventListener('focusin', () => field.setAttribute('data-open', ''))
-  field.addEventListener('focusout', (event) => {
-    const to = (event as FocusEvent).relatedTarget
-    if (!(to instanceof Node) || !field.contains(to)) field.removeAttribute('data-open')
-  })
-}
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
+// A long page's floating "On this page": search and its sections in reach, on
+// a phone. Its script loads only at a phone's width, where the button draws.
+const phone = matchMedia(`not ${widthAtLeast('sm')}`)
+function startPageJump(): void {
+  if (!phone.matches) return
+  phone.removeEventListener('change', startPageJump)
+  void import('./pageJump').then(({ watchPageJump }) => watchPageJump(document))
+}
+phone.addEventListener('change', startPageJump)
+startPageJump()
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')
 // The home's slideshow: its Pause.

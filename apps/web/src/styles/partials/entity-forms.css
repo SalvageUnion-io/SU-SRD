@@ -1124,6 +1124,27 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   gap: var(--space-4);
 }
 
+/* A whole name (hard rule R56: a seat's at the Play table) is never cut: the
+   chips it cannot share its line with wrap to a line over it, on the paint,
+   so the name's tab still stands on the pill's foot; a name wider than the
+   Mini wraps between words. */
+.su-entity-mini__pill[data-whole-name] {
+  flex-wrap: wrap-reverse;
+}
+
+.su-entity-mini__pill[data-whole-name] .su-entity-mini__name {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.su-entity-mini__pill[data-whole-name] .su-entity-mini__chips {
+  flex-wrap: wrap;
+  margin-left: auto;
+  max-width: 100%;
+}
+
 .su-entity-mini__chips > *,
 .su-entity-mini__chips > .su-chip-lane > * {
   flex: none;
@@ -1571,6 +1592,18 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 .su-chips > .su-chip-lane > * > :is(.su-btn--default, .su-btn--ghost).su-btn.su-btn--mini {
   outline: var(--bw-chrome) solid currentcolor;
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
+}
+
+/* Under the pointer its plate stays opaque: the ink wash a button wears
+   elsewhere lets a head's tone through, and ink on a dark tone fails contrast. */
+.su-chips
+  > .su-chip-lane
+  > .su-btn--default.su-btn.su-btn--mini:hover:not(:disabled, [data-ground='ink'] *),
+.su-chips
+  > .su-chip-lane
+  > *
+  > .su-btn--default.su-btn.su-btn--mini:hover:not(:disabled, [data-ground='ink'] *) {
+  background-color: var(--color-wk-bg);
 }
 
 /* A rust button on a Compact's head band wears the ink keyline too (a Game's

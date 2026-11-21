@@ -12,13 +12,17 @@ import {
   HeaderMenu,
   tokens,
 } from '../../components/index'
+import type { KeepAsFileActs } from './KeepAsFile'
+import { KeepAsFile } from './KeepAsFile'
 import { SaveSignInDialog } from './SaveSignInDialog'
 import { WizardGameChip } from './WizardGameChip'
+import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
 import {
   bodyStyle,
   ctaLockedStyle,
   ctaStyle,
   footerPillStyle,
+  keepRowStyle,
   mainStyle,
   pillNavStyle,
   pillStyle,
@@ -33,6 +37,7 @@ import {
   stepNumberStyle,
   stepTitleCaps,
   stepTitleStyle,
+  tryNoteStyle,
 } from './wizShellStyles.model'
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
@@ -103,12 +108,21 @@ type WizShellProps = {
   submitLabel: string
   /** Saving signed out: the sign-in ask over the kept draft (`useWizardFlow`). */
   signIn?: { open: boolean; onClose: () => void }
+  /** A line under the step's title: signed out, step 1 says saving needs a sign-in. */
+  tryNote?: string | undefined
+  /** Signed out on the last step: the build kept as a file or on paper (`KeepAsFile`). */
+  keepAsFile?: KeepAsFileActs | undefined
   /**
    * Said on the action bar, above the Next: something the step offers out of
    * sight (`Or start from a Pattern`), and the element a press scrolls to.
    * Without it the bar says a locked Next's reason (`footerNote`).
    */
   prompt?: { text: string; targetId: string } | undefined
+  /**
+   * Where the thing a locked Next waits for is (the First Ability table), so
+   * the reason's press lands on it, not on the reason at the step's foot.
+   */
+  noteTargetId?: string | undefined
 }
 
 const STEP_NOTE_ID = 'wiz-step-note'
@@ -286,7 +300,7 @@ function WizRail({
   onStepClick: ((index: number) => void) | undefined
 }) {
   return (
-    <aside className="su-wiz-rail">
+    <aside className="su-wiz-rail" data-print="hide">
       {/* A phone's rail is one line and a track of notches; the h1 reads
           the same count to a screen reader. */}
       <p aria-hidden="true" className={cn('su-wiz-rail-line', railLineCaps)} style={railLineStyle}>
@@ -350,7 +364,10 @@ export function WizShell({
   submitLabel,
   confirmCancel = false,
   signIn,
+  tryNote,
+  keepAsFile,
   prompt,
+  noteTargetId,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   // Every step opens at the top with focus on its heading (WCAG 2.4.3), the
@@ -369,14 +386,17 @@ export function WizShell({
   const ctaLabel = isLast ? (
     submitLabel
   ) : (
-    <>
-      <span aria-hidden="true" className="su-wiz-pill-next">
-        {buildWizardCopy('next')}
-      </span>
-      <NextLabel to={steps[active + 1]} size="full" />
-    </>
+    // One "Next:", read at every width and seen from sm (`wizard.css`): a
+    // second, hidden copy beside it was read out twice by a text reader.
+    <NextLabel to={steps[active + 1]} size="full" wordClassName="su-wiz-pill-next" />
   )
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
+  // The prompt's line: gone once pressed, and while its target is on screen.
+  const promptTargetId = prompt?.targetId ?? noteTargetId ?? STEP_NOTE_ID
+  const promptKey = `${active}:${prompt?.text ?? footerNote ?? ''}`
+  const [used, setUsed] = useState<string | null>(null)
+  const inView = useInView(prompt || footerNote ? promptTargetId : undefined)
+
   // The ink action bar: its trackers, ghost Back and Cancel, and the one rust
   // Next, so nothing in it outgrows the Next. It declares its ink ground
   // (chrome K1), so its ghost buttons read paper.
@@ -494,9 +514,15 @@ export function WizShell({
                   {title}
                 </h1>
               </div>
+              {tryNote && <p style={tryNoteStyle}>{tryNote}</p>}
               <Box body="flush">
                 <div className={STEP_BODY}>
                   {children}
+                  {keepAsFile && (
+                    <div style={keepRowStyle}>
+                      <KeepAsFile {...keepAsFile} />
+                    </div>
+                  )}
                   {footerNote && (
                     <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>
                       {footerNote}
@@ -511,19 +537,19 @@ export function WizShell({
               (never a card floating over the step), so Back and Next stay in
               reach as the step scrolls. On a phone it is one line: one
               budget, the ⋯ menu and the Next filling the rest. */}
-          <footer className="su-wiz-footer" style={footerPillStyle}>
+          <footer className="su-wiz-footer" data-print="hide" style={footerPillStyle}>
             {/* What the step still asks for, or offers further down, said
                 where the Next is: a press scrolls to it. */}
-            {(prompt ?? footerNote) && (
+            {(prompt ?? footerNote) && promptShows({ key: promptKey, used, inView }) && (
               <Button
                 variant="ghost"
                 size="compact"
                 style={promptStyle}
-                onClick={() =>
-                  document
-                    .getElementById(prompt?.targetId ?? STEP_NOTE_ID)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
+                onClick={() => {
+                  const target = document.getElementById(promptTargetId)
+                  if (target) scrollToAsked(target)
+                  setUsed(promptKey)
+                }}
               >
                 {prompt?.text ??
                   buildWizardCopy('nextReason', {
@@ -534,7 +560,9 @@ export function WizShell({
             )}
             {actionPill}
           </footer>
-          {signIn && <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} />}
+          {signIn && (
+            <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} keep={keepAsFile} />
+          )}
         </div>
       </div>
     </div>

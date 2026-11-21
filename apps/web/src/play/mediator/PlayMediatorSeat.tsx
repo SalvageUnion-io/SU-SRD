@@ -16,8 +16,13 @@
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
  * pilot (see the problem, propose the fix), the ring on its pill; the other
  * seats stay at full strength, since their vitals are still being read. Sheet, its chip group's last slot, opens their
- * sheet read-only over Play; Up now beside it marks whose turn it is, for
- * every seat to read (a marker only: nothing is enforced).
+ * sheet read-only over Play. Mark up now is a toggle button on its own line
+ * in the body, apart from the Here badge it was taken for (r2 E1): it marks
+ * whose turn it is, for every seat to read (a marker only: nothing is
+ * enforced), and that player is told wherever they are (`TableNotices`).
+ *
+ * While Downtime runs nobody is Boarded (r2 E2): a seat aboard reads "In the
+ * Mech Bay".
  */
 
 import type { CSSProperties } from 'react'
@@ -64,6 +69,11 @@ export function PlayMediatorSeat({
   onUpNow,
 }: PlayMediatorSeatProps) {
   const away = !seat.present
+  // A step line is Downtime's: there the mechs are in the Mech Bay, nobody Boarded.
+  const mount =
+    stepLine !== null && seat.mech?.boarded === true
+      ? mediatorCopy('inTheMechBay', { mech: seat.mech.name })
+      : seat.mount
   const flagged = seat.vitals.find((v) => v.attention)
   // Aboard, the seat wears their mech's tone and readings and keeps their
   // name, with a MECH chip; on foot the pilot's, with the same chip (`crewPair`).
@@ -89,6 +99,8 @@ export function PlayMediatorSeat({
         size="mini"
         context="roster"
         model={unitRowModel({ kind: pair.kind, name: pair.name })}
+        // A seat's name is never cut (R56): in a narrow column its chips wrap over it.
+        wholeName
         mode={{
           kind: 'select',
           role: 'toggle',
@@ -113,18 +125,7 @@ export function PlayMediatorSeat({
         controls={
           // The chip group's last slots, at the strip's Size (C1a, C8).
           <>
-            {onUpNow ? (
-              <Toggle
-                size="mini"
-                pressed={upNow}
-                aria-label={mediatorCopy('upNowFor', { name: seat.name })}
-                onClick={onUpNow}
-              >
-                {mediatorCopy('upNow')}
-              </Toggle>
-            ) : upNow ? (
-              <Stat size="mini" label={mediatorCopy('upNow')} />
-            ) : null}
+            {!onUpNow && upNow ? <Stat size="mini" label={mediatorCopy('upNow')} /> : null}
             <Button
               variant="ghost"
               size="mini"
@@ -139,7 +140,7 @@ export function PlayMediatorSeat({
           text: false,
           children: (
             <>
-              <SeatMount seat={seat} />
+              <SeatMount mount={mount} />
               <div style={CHIPS}>
                 {seat.vitals.map((v) => (
                   <Stat
@@ -151,7 +152,20 @@ export function PlayMediatorSeat({
                   />
                 ))}
               </div>
-              <SeatLine seat={seat} stepLine={stepLine} />
+              <SeatLine seat={seat} mount={mount} stepLine={stepLine} />
+              {onUpNow ? (
+                <div style={CHIPS}>
+                  <Toggle
+                    size="compact"
+                    pressed={upNow}
+                    glyph={upNow ? '✓' : undefined}
+                    aria-label={mediatorCopy('upNowFor', { name: seat.name })}
+                    onClick={onUpNow}
+                  >
+                    {upNow ? mediatorCopy('upNow') : mediatorCopy('markUpNow')}
+                  </Toggle>
+                </div>
+              ) : null}
             </>
           ),
         }}
@@ -161,14 +175,22 @@ export function PlayMediatorSeat({
 }
 
 /** The mount in words ("Boarded · Buzzard", "On foot"); the mech itself is the head's relation chip. */
-function SeatMount({ seat }: { seat: MediatorSeat }) {
-  return <p style={NOTE_MUTED}>{seat.mount}</p>
+function SeatMount({ mount }: { mount: string }) {
+  return <p style={NOTE_MUTED}>{mount}</p>
 }
 
 /** What they are doing now: the step, the roll, the problem, or where they were last seen. */
-function SeatLine({ seat, stepLine }: { seat: MediatorSeat; stepLine: string | null }) {
+function SeatLine({
+  seat,
+  mount,
+  stepLine,
+}: {
+  seat: MediatorSeat
+  mount: string
+  stepLine: string | null
+}) {
   if (!seat.present) {
-    return <p style={NOTE_MUTED}>{mediatorCopy('lastSeen', { mount: seat.mount })}</p>
+    return <p style={NOTE_MUTED}>{mediatorCopy('lastSeen', { mount })}</p>
   }
   return (
     <>

@@ -20,6 +20,13 @@ const BAND_TOKEN: Record<string, string> = {
   build: 'pilot',
 }
 
+/**
+ * The rows Used by always shows (`pages-docs.css`, its 22rem floor): a longer
+ * list keeps that many in view however short the Page's words are, and the
+ * Page grows to hold them (Heat showed 7 of 81 beside an empty column, RR2-17).
+ */
+const USED_BY_FLOOR = 14
+
 export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: string }) {
   const { usedBy, rules } = rail
   const tone = BAND_TOKEN[chapterTone] ?? chapterTone
@@ -43,7 +50,9 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         <ul className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}>
           {usedBy.map((user) => (
             <li key={user.ref.id} className="su-sparse-rail__row">
-              <Mention entityRef={user.ref}>{user.name}</Mention>
+              <Mention entityRef={user.ref} goes>
+                {user.name}
+              </Mention>
               <span className="su-sparse-rail__kind">{user.kind}</span>
             </li>
           ))}
@@ -62,7 +71,9 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         <ul className="su-sparse-rail__list">
           {rules.map((rule) => (
             <li key={rule.ref.id}>
-              <Mention entityRef={rule.ref}>{rule.name}</Mention>
+              <Mention entityRef={rule.ref} goes>
+                {rule.name}
+              </Mention>
             </li>
           ))}
         </ul>
@@ -72,7 +83,10 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
   const [first, ...rest] = pieces
   return (
     <ReferenceSurface>
-      <aside className="su-sparse-rail" aria-label={referenceCopy('relatedRules')}>
+      <aside
+        className={cn('su-sparse-rail', usedBy.length > USED_BY_FLOOR && 'su-sparse-rail--long')}
+        aria-label={referenceCopy('relatedRules')}
+      >
         {first}
         {rest.length > 0 && <div className="su-sparse-rail__rest">{rest}</div>}
       </aside>

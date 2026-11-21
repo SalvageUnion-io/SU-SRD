@@ -201,6 +201,10 @@ describe('signed in', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^Build With This: a Mech from / }))
     })
+    // One confirm, as wherever a pattern is built from (r2 D4).
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Build' }))
+    })
     await settle(() => serverMocks.navigations.length > 0)
 
     const [mech] = useUnits.getState().mechs

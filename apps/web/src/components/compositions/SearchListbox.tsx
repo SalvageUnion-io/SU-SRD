@@ -244,6 +244,8 @@ function SearchLedger({
   const rows = run.flatMap(({ result, index }) => {
     const model = modelOf(result)
     if (!model) return []
+    const kind =
+      result.kind === 'entity' && result.page ? result.page.kind : schemaLabel(result.schemaId)
     return [
       {
         id: result.id,
@@ -254,12 +256,12 @@ function SearchLedger({
           id: optionId(index),
           role: 'option',
           'aria-selected': index === selectedIndex,
+          // The option is the name alone, its kind in the next cell: named
+          // with it, so four results called Stefanus are told apart by ear
+          // as they are by eye ("Stefanus, Pattern · Magpie").
+          'aria-label': `${model.title}, ${kind}`,
         },
-        cells: [
-          result.kind === 'entity' && result.page ? result.page.kind : schemaLabel(result.schemaId),
-          model.techLevel != null ? String(model.techLevel) : '',
-          model.cost ?? '',
-        ],
+        cells: [kind, model.techLevel != null ? String(model.techLevel) : '', model.cost ?? ''],
       },
     ]
   })

@@ -178,6 +178,13 @@ describe('Search API', () => {
       expect(first('tp')?.entityName).toBe('Crawler Downtime')
     })
 
+    test('a full question finds rules by its key words (r2 H7)', () => {
+      const names = search({ query: 'what happens when my mech hits 0 sp', limit: 10 }).map(
+        (r) => r.entityName
+      )
+      expect(names).toContain('Mech Damage')
+    })
+
     test('a name without its punctuation', () => {
       expect(first('biotitan')?.entityName).toBe('Bio-titan')
     })

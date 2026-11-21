@@ -77,6 +77,28 @@ export function datedSessions(plan: Pick<GamePlan, 'sessions'>): PlanSession[] {
     .map(({ session }) => session)
 }
 
+/**
+ * The sessions as the list shows them while one is being edited: in the order
+ * it last settled (`held`, session ids), so a new day never moves a form
+ * under the cursor (MD2-06). A session the order has not met comes after
+ * them, by its day. With nothing held, by day.
+ */
+export function heldSessions(
+  plan: Pick<GamePlan, 'sessions'>,
+  held: readonly string[] | null
+): PlanSession[] {
+  const dated = datedSessions(plan)
+  if (held === null) return dated
+  const place = (id: string) => {
+    const at = held.indexOf(id)
+    return at < 0 ? held.length : at
+  }
+  return dated
+    .map((session, i) => ({ session, i }))
+    .sort((a, b) => place(a.session.id) - place(b.session.id) || a.i - b.i)
+    .map(({ session }) => session)
+}
+
 /** The plan with one session changed, in place. A blank day or title is unset. */
 export function patchSession(
   plan: GamePlan,

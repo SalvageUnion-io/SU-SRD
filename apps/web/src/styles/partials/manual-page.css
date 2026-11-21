@@ -47,6 +47,19 @@
   order: 4;
 }
 
+/* A denizen the table fights (`.su-manual--fought`: a Bio-Titan, an NPC) is
+   opened mid-fight for its actions. A phone draws its art as a short banner
+   and its actions before its words, so they start in the first screen. */
+@media not (width >= 40rem) {
+  .su-manual--fought .su-entity-hero {
+    --su-hero-max-h: 9rem;
+  }
+
+  .su-manual--fought > .su-manual__main > .su-entity-page__prose {
+    order: 3;
+  }
+}
+
 /* With no side column the rules run the page's measure; a line of prose
    keeps a reading measure. */
 .su-entity-page.su-manual:not(.su-entity-page--art) > * {

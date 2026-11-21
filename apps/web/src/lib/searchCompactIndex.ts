@@ -63,12 +63,13 @@ export function searchCompactIndex(
     )
     if (!matches) continue
 
-    // A pattern is ranked as itself, never lifted by its host's kind.
+    // A pattern is ranked as itself, never lifted by its host's kind; a rule
+    // told inside a guide is a rule.
     const score = scoreSearchMatch({
       ...parsed,
       nameText,
       usedTypo,
-      ...(entry.pattern ? {} : { schemaName: entry.schemaName }),
+      ...(entry.pattern && !entry.rule ? {} : { schemaName: entry.schemaName }),
     })
 
     results.push({

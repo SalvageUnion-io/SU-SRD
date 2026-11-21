@@ -113,6 +113,8 @@ describe('SearchIsland', () => {
     const first = screen.getAllByRole('option')[0]
     expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
     expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
+    // The option is named with its kind, as the row reads (r2 G7).
+    expect(first?.getAttribute('aria-label')).toMatch(/^Ironmonger, Pattern · Magpie$/i)
     await act(async () => {
       fireEvent.keyDown(input, { key: 'Enter' })
     })

@@ -17,7 +17,7 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { gamePath } from 'game-domain/entityKinds'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { playCopy } from '../../messages/play'
@@ -42,6 +42,8 @@ export function PlayMediatorBarActions({
 }) {
   const router = useRouter({ warn: false })
   const [telling, setTelling] = useState(false)
+  // Typing starts in the alert, never on Close (MD2-04).
+  const alertField = useRef<HTMLInputElement | null>(null)
   const [reference, setReference] = useState(false)
   const gameHref = gamePath(mediator.gameId)
   const session = useGameSession(mediator.gameId)
@@ -127,8 +129,10 @@ export function PlayMediatorBarActions({
         onOpenChange={setTelling}
         title={mediatorCopy('tellTheTable')}
         width="default"
+        initialFocus={alertField}
       >
         <TellTheTable
+          field={alertField}
           alerts={mediator.alerts}
           now={mediator.now}
           canWrite={mediator.canWrite}

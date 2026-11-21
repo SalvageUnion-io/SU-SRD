@@ -8,6 +8,7 @@ import { selectableClasses } from './classOptions.model'
 import { PickList } from './PickList'
 import { abilityColumns } from './pickColumns'
 import type { PickColumn } from './pickLedger.model'
+import { FIRST_ABILITY_ID } from './wizPrompt.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]
@@ -113,7 +114,7 @@ export function ClassAbilityStep({
           />
         </div>
         {selectedClass !== undefined && (
-          <div>
+          <div id={FIRST_ABILITY_ID}>
             <PickList
               title={buildWizardCopy('firstAbility')}
               note={buildWizardCopy('choose1')}

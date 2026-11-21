@@ -1,6 +1,7 @@
 import { PreviewCard } from '@base-ui/react/preview-card'
 import type { CSSProperties, ErrorInfo, ReactNode } from 'react'
 import { Component, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { EntitySchemaName, RefEntity, RefObjectTable } from 'salvageunion-reference'
 import {
   EntitySchemaNames,
@@ -8,7 +9,7 @@ import {
   resolveTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { borderWidth, color, layer, space } from '../../design/tokens'
+import { borderWidth, color, layer, space, widthAtLeast } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
 import { entityCopy } from '../../messages/components-entity'
 import { InlineRef } from '../atoms/InlineRef'
@@ -37,6 +38,48 @@ const PEEK_OUT = {
 
 /** A peek hangs at the overlay layer, over the page and its sticky bars. */
 const PEEK_LAYER = { zIndex: layer.overlay } satisfies CSSProperties
+
+/**
+ * On a phone the Peek is a SHEET at the foot of the screen, never taller than
+ * it: a card hung from its trigger has no room there, and one that opened
+ * upward lost its name off the top.
+ */
+const PEEK_SHEET = {
+  position: 'fixed',
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: layer.overlay,
+  display: 'flex',
+  flexDirection: 'column',
+  maxHeight: '80dvh',
+  borderTop: `${borderWidth.entityCompact} solid ${color.ink}`,
+  background: color.paper,
+} satisfies CSSProperties
+
+/** The sheet's card scrolls inside it, so its way out stays at the foot. */
+const PEEK_SHEET_CARD = {
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflowY: 'auto',
+  overscrollBehavior: 'contain',
+} satisfies CSSProperties
+
+/** The sheet's way out, pinned under the scrolling card. */
+const PEEK_SHEET_OUT = {
+  ...PEEK_OUT,
+  flex: 'none',
+  borderTop: PEEK_OUT.border,
+} satisfies CSSProperties
+
+/** Whether the screen is a phone's (below the ladder's first rung), read as the Peek opens. */
+function onPhone(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    !window.matchMedia(widthAtLeast('sm')).matches
+  )
+}
 
 function isEntitySchema(name: string): name is EntitySchemaName {
   const names: ReadonlySet<string> = EntitySchemaNames
@@ -128,6 +171,7 @@ export function PeekPopup({
   onDismiss: () => void
 }) {
   const [loaded, setLoaded] = useState(false)
+  const [sheet] = useState(onPhone)
   useEffect(() => {
     let live = true
     // A term is the app's own words: no schema to read.
@@ -157,6 +201,48 @@ export function PeekPopup({
     if (loaded && !subject) onDismiss()
   }, [loaded, subject, onDismiss])
 
+  const card = subject ? (
+    subject.kind === 'term' ? (
+      <PeekTerm term={subject.term} />
+    ) : subject.kind === 'table' ? (
+      <PeekTable name={subject.name} table={subject.table} />
+    ) : size === 'mini' ? (
+      <PeekMini entity={subject.entity} down={down} />
+    ) : (
+      <PeekCard entity={subject.entity} down={down} />
+    )
+  ) : null
+  const out =
+    outLink ??
+    (termHref ? (
+      // Its way out, never a tab stop (E16): the term is the keyboard's link.
+      <InlineRef href={termHref} data-peek-out="" tabIndex={-1}>
+        {entityCopy('openPage')}
+      </InlineRef>
+    ) : null)
+
+  if (sheet) {
+    return createPortal(
+      <div
+        id={id}
+        role="tooltip"
+        data-peek-sheet=""
+        {...{ [PEEK_POPUP_ATTRIBUTE]: '' }}
+        style={PEEK_SHEET}
+      >
+        {card ? (
+          <PeekBoundary>
+            <div style={PEEK_SHEET_CARD}>{card}</div>
+            {out && <div style={PEEK_SHEET_OUT}>{out}</div>}
+          </PeekBoundary>
+        ) : (
+          <Skeleton />
+        )}
+      </div>,
+      document.body
+    )
+  }
+
   return (
     <PreviewCard.Root
       open
@@ -185,26 +271,10 @@ export function PeekPopup({
               width: size === 'mini' ? '360px' : '500px',
             }}
           >
-            {subject ? (
+            {card ? (
               <PeekBoundary>
-                {subject.kind === 'term' ? (
-                  <PeekTerm term={subject.term} />
-                ) : subject.kind === 'table' ? (
-                  <PeekTable name={subject.name} table={subject.table} />
-                ) : size === 'mini' ? (
-                  <PeekMini entity={subject.entity} down={down} />
-                ) : (
-                  <PeekCard entity={subject.entity} down={down} />
-                )}
-                {outLink && <div style={PEEK_OUT}>{outLink}</div>}
-                {termHref && (
-                  <div style={PEEK_OUT}>
-                    {/* Its way out, never a tab stop (E16): the term is the keyboard's link. */}
-                    <InlineRef href={termHref} data-peek-out="" tabIndex={-1}>
-                      {entityCopy('openPage')}
-                    </InlineRef>
-                  </div>
-                )}
+                {card}
+                {out && <div style={PEEK_OUT}>{out}</div>}
               </PeekBoundary>
             ) : (
               <Skeleton />

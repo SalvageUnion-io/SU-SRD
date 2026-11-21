@@ -26,7 +26,8 @@ export const islandsCopy = messages({
   traits: 'Traits',
   columns: 'Columns',
   columnSlot: 'Column {slot}',
-  bookOrder: 'In the book’s order. Press a column’s name to sort by it.',
+  bookOrder: 'In the book’s order.',
+  sortHint: 'Press a column’s name to sort by it.',
   sortedUp: 'Sorted by {column}, low to high.',
   sortedDown: 'Sorted by {column}, high to low.',
   sortedAz: 'Sorted by {column}, A to Z.',
@@ -47,6 +48,7 @@ export const islandsCopy = messages({
   showHomebrew: 'Show Homebrew',
   hideHomebrew: 'Hide Homebrew',
   homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
+  homebrewEvery: 'Every chassis’s Homebrew',
   homebrewOff:
     'Community patterns for this chassis, from players on the Reference. Not from the book.',
   homebrewNone: 'No player has shared a pattern yet.',
@@ -75,4 +77,9 @@ export const islandsCopy = messages({
   filters: 'Filters',
   referenceAndCharacterManager: 'Reference and Character Manager',
   nameFilter: 'name filter',
+  yourGames: 'Your Games',
+  sessionLiveIn: 'Session live · {game}',
+  joinSession: 'Join session',
+  dismiss: 'Dismiss',
+  dismissWhat: 'Dismiss: {what}',
 })

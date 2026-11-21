@@ -126,6 +126,8 @@ function CrewLine({
       size="mini"
       context="roster"
       model={unitRowModel({ kind: pair.kind, name: pair.name })}
+      // A crewmate's name is never cut (R56): in a narrow column its chips wrap over it.
+      wholeName
       mode={{
         kind: 'link',
         onOpen,

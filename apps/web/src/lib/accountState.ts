@@ -23,3 +23,24 @@ export function browserStorage(): Storage | null {
 export function markSignedIn(doc: Document, signedIn: boolean): void {
   doc.documentElement.toggleAttribute(SIGNED_IN_ATTRIBUTE, signedIn)
 }
+
+/** The home's link to the Game last opened (`HomeFront`), served hidden. */
+const LAST_GAME_ATTRIBUTE = 'data-last-game'
+
+/**
+ * Names the Game last opened on the home's welcome-back strip and points its
+ * link at it (`hrefFor`, the app's Game route); with none remembered the link
+ * stays out, and Games is the way in.
+ */
+export function markLastGame(
+  doc: Document,
+  game: { id: string; name: string } | null,
+  hrefFor: (gameId: string) => string
+): void {
+  for (const link of doc.querySelectorAll<HTMLAnchorElement>(`a[${LAST_GAME_ATTRIBUTE}]`)) {
+    link.hidden = game === null
+    if (!game) continue
+    link.textContent = game.name
+    link.href = hrefFor(game.id)
+  }
+}

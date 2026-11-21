@@ -9,10 +9,10 @@
  *
  * Enforcement regime: NONE, deliberately —
  * instantiate is a Blank-family shortcut and its write path is untouched.
- * It adds PRESENTATION only: saved MechPatterns carry no stored
- * `legalStarting` data tag (the flag is never computed — project data
- * convention), so the confirm dialog names the freeform nature before
- * stamping the mech.
+ * It adds PRESENTATION only: the one confirm says what is built, and warns
+ * where the loadout is past the starting rules (`pastStartingRules`, counted
+ * from the loadout: a saved pattern stores no `legalStarting` tag). A name
+ * already in the bay is numbered, and the build says what it made.
  *
  * Drawn as a Mini action chip in the pattern Compact's last slot (C8, hard rule
  * C8); a failure is the act's toast, never a line under the Compact.
@@ -24,9 +24,10 @@ import { useState } from 'react'
 import { ConfirmDialog } from '../../../components/app'
 import { Button } from '../../../components/index'
 import { useServerAction } from '../../../lib/connection/useServerAction'
-import { mechFromPattern } from '../../../lib/patterns/patterns'
+import { mechFromPattern, pastStartingRules } from '../../../lib/patterns/patterns'
 import { mechCopy } from '../../../messages/build-mech'
 import { useUnits } from '../../../replica/units'
+import { buildConfirmBody, builtToast, mechNamesTaken } from './buildConfirm.model'
 
 type InstantiateFromPatternProps = {
   pattern: MechPattern
@@ -45,7 +46,7 @@ export function InstantiateFromPattern({
   const build = useServerAction(
     () =>
       useUnits.getState().create('mech', {
-        ...mechFromPattern(pattern),
+        ...mechFromPattern(pattern, mechNamesTaken()),
         ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
       }),
     {
@@ -57,7 +58,9 @@ export function InstantiateFromPattern({
 
   async function handleInstantiate() {
     const result = await build.run()
-    if (result.ok) onSuccess(result.value.id)
+    if (!result.ok) return
+    builtToast(result.value.name)
+    onSuccess(result.value.id)
   }
 
   return (
@@ -77,7 +80,7 @@ export function InstantiateFromPattern({
         open={confirming}
         onOpenChange={setConfirming}
         title={mechCopy('buildAMechFrom', { name: pattern.name })}
-        body={mechCopy('thisMayExceedTheStarting')}
+        body={buildConfirmBody({ book: false, past: pastStartingRules(pattern) })}
         confirmLabel={mechCopy('build')}
         onConfirm={() => void handleInstantiate()}
       />

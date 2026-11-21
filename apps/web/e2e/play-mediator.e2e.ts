@@ -101,7 +101,8 @@ test(
       await expect(newest.getByText('Pending', { exact: true })).toBeVisible()
 
       const accept = player.page.getByRole('button', {
-        name: /^Accept: Mediator proposes .*HP → 4/,
+        // From what the sheet holds to what is asked (r2 C7).
+        name: /^Accept: Mediator proposes .*HP \d+ → 4/,
       })
       await expect(accept).toBeVisible({ timeout: 20_000 })
       // The reason reads on the Feed's own line; the notice over the bar says it too.
@@ -114,6 +115,11 @@ test(
 
       // --- 2. Begin Downtime → the player applies a step → Advance ---
       await gameState(page).getByRole('button', { name: 'Begin Downtime' }).click()
+      // It moves every player's screen, so it asks first (r2 C5).
+      await page
+        .getByRole('alertdialog', { name: 'Begin Downtime?' })
+        .getByRole('button', { name: 'Begin Downtime' })
+        .click()
       await expect(gameState(page).getByRole('button', { name: 'Downtime · Step 1' })).toBeVisible({
         timeout: 15_000,
       })

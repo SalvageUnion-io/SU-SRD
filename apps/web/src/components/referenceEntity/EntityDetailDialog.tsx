@@ -110,8 +110,14 @@ export function EntityDetailPage({
   title,
   titleAs = Dialog.Title,
   titleSize,
+  credit,
   children,
 }: Pick<EntityDetailDialogProps, 'entity' | 'pattern' | 'title' | 'children'> & {
+  /**
+   * A user-made entity's credit ("Your design"), in the place of the book
+   * citation and the Reference link: it has no page in either (ruleset §3.9).
+   */
+  credit?: ReactNode
   /** The title's element: the dialog's title by default. */
   titleAs?: ElementType
   /** The notched title's size, where the band is narrower than a page (`ChapterBand`'s). */
@@ -157,8 +163,9 @@ export function EntityDetailPage({
       {/* The foot wears the band, edge to edge with no ink rule, and names no
           kind (ruleset Source 2, E9). */}
       <EntityCardIdentityFooter
-        provenance={provenance}
-        externalLink={externalLink}
+        provenance={credit === undefined ? provenance : undefined}
+        externalLink={credit === undefined ? externalLink : undefined}
+        credit={credit}
         size="full"
         band={{ bandColor, onBand: foregroundOn(bandColor, 'ink') }}
         grain={band.tone === 'ink' ? 'paper' : 'ink'}

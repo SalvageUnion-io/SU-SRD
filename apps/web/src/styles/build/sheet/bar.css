@@ -63,6 +63,20 @@
   white-space: nowrap;
 }
 
+/* A figure marked to fold leaves a phone's bar (`mobilePriority: false`), so
+   the name keeps its room: this rule's own `display` otherwise outranks the
+   fold (`.su-sheet-live-stat-fold`, mech.css). */
+@media not (width >= 40rem) {
+  .su-sheet-bar__vital.su-sheet-live-stat-fold {
+    display: none;
+  }
+
+  /* And the name outranks what kind of unit it is: the page says that. */
+  .su-sheet-bar__name > small {
+    display: none;
+  }
+}
+
 .su-sheet-bar__label {
   font-family: var(--font-cond);
   font-size: var(--text-chip);

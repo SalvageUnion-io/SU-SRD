@@ -292,7 +292,7 @@ const loadingMarkScript = (text: string, rel: string) =>
 
 // ── Breakpoints (K2) ──────────────────────────────────────────────────────────
 
-/** The ladder, `breakpoint` in apps/web/src/design/tokens.ts (a test holds them equal). */
+/** The ladder, `breakpoint` in apps/web/src/design/breakpoint.ts (a test holds them equal). */
 export const BREAKPOINT_LADDER = ['40rem', '48rem', '64rem', '80rem'] as const
 
 /**

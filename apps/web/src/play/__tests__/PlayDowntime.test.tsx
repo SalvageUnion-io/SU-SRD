@@ -290,6 +290,55 @@ describe('a solo Downtime, end to end', () => {
     expect(calls).toHaveLength(0)
   })
 
+  test('a taken step shows the change that was made, never the next one', async () => {
+    const { pilot, mech, crawler } = units()
+    const train = STEPS.indexOf('Train your Pilot')
+    const { store } = stubStore(pilot, mech, crawler)
+    const view = render(
+      <Harness
+        pilot={pilot}
+        mech={mech}
+        situation="downtime"
+        store={store}
+        writes={[]}
+        downtime={{ stepIndex: train }}
+      />
+    )
+    expect(within(stepBox()).getByText('2→3')).toBeTruthy()
+    await click(button('Apply & mark done'))
+    // The pilot now has 3 TP: the line still reads what was applied.
+    const trained = { ...pilot, trainingPoints: 3 }
+    view.rerender(
+      <Harness
+        pilot={trained}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(trained, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: train }}
+      />
+    )
+    const applied = within(within(stepBox()).getByRole('list', { name: 'Applied' }))
+    expect(applied.getByText('2→3')).toBeTruthy()
+    expect(within(stepBox()).queryByText('3→4')).toBeNull()
+    expect(within(stepBox()).queryByText(/each line can be unticked/)).toBeNull()
+
+    // After a reload the step says Done and predicts nothing.
+    cleanup()
+    render(
+      <Harness
+        pilot={trained}
+        mech={mech}
+        situation="downtime"
+        store={stubStore(trained, mech, crawler).store}
+        writes={[]}
+        downtime={{ stepIndex: train, doneSteps: [train] }}
+      />
+    )
+    expect(within(stepBox()).getByText('Done ✓')).toBeTruthy()
+    expect(within(stepBox()).queryByText('3→4')).toBeNull()
+  })
+
   test('Skip marks the step done and writes nothing; the track moves to any step', async () => {
     const { pilot, mech, crawler } = units()
     const { store, calls } = stubStore(pilot, mech, crawler)
@@ -330,12 +379,21 @@ describe('a solo Downtime, end to end', () => {
         />
       )
       const onHand = within(screen.getByRole('list', { name: 'Downtime actions' }))
-      // Training and crafting open the unit's sheet over Play, never leave it.
+      // Crafting opens the crawler's sheet over Play; Spend TP opens the
+      // pilot's Manage Abilities, where Training Points are spent.
       expect(onHand.getByRole('button', { name: 'Spend TP' })).toBeTruthy()
       expect(onHand.getByRole('button', { name: 'Open' })).toBeTruthy()
       expect(onHand.queryByRole('link')).toBeNull()
-      await click(onHand.getByRole('button', { name: 'Roll the die on Rumour' }))
-      expect(heard.at(-1)).toMatchObject({ tableName: 'Rumour', rolls: [14] })
+      await click(onHand.getByRole('button', { name: 'Spend TP' }))
+      const picker = screen.getByRole('dialog', { name: 'Manage Abilities' })
+      await click(within(picker).getByRole('button', { name: /close/i }))
+      expect(screen.queryByRole('dialog', { name: 'Manage Abilities' })).toBeNull()
+      // No adventure's rumour table at a table that plays none: a plain d20.
+      expect(onHand.queryByRole('button', { name: 'Roll the die on Rumour' })).toBeNull()
+      expect(onHand.queryByText(/Vornaya/)).toBeNull()
+      await click(onHand.getByRole('button', { name: 'Roll d20' }))
+      expect(heard.at(-1)).toMatchObject({ tableName: 'Gather Cantina Rumours', rolls: [14] })
+      expect(onHand.getByText('14 · The Mediator says what you hear.')).toBeTruthy()
       const field = screen.getByRole('button', { name: 'Expand Field actions' })
       expect(field.getAttribute('aria-expanded')).toBe('false')
       await click(field)

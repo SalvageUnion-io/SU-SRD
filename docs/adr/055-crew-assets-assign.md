@@ -22,6 +22,11 @@ are retired: the verbs are **Assign to me**, **Assign to** a member and
   somebody holds.
 - **Its holder or the table runner** may unassign it.
 - A player never takes what a crewmate holds.
+- **A pilot's mech goes with them** where it was held as the pilot was (both
+  free, or both one member's): assigning or unassigning the pilot does the same
+  to that mech, so a template's pairs are handed out whole. A mech somebody
+  else holds is left alone. The Game page lists such a mech on its pilot's line
+  only; one held apart from its pilot keeps a line of its own.
 
 Both are `convex/ownership.ts` (`assign`, `unassign`); every act lands in the
 Change Log. Reassigning changes who edits, not what is on the sheet, so it needs

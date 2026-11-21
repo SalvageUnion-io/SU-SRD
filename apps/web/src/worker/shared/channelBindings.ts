@@ -229,3 +229,44 @@ export async function unbindChannel(
   await db.prepare('delete from channel_bindings where channel_id = ?1').bind(channelId).run()
   return { ok: true, unbound: summaryOf(held) }
 }
+
+type BindingView = {
+  channelId: string
+  channelName: string | null
+  boundAt: number
+  /** The roller's own channel, standing in for a Game that has none bound (`rollChannel`). */
+  own?: true
+}
+
+/** A Game's binding, or the player's solo play's, as these calls answer it. */
+async function bindingView(
+  db: SharedDb,
+  by: 'game' | 'solo',
+  value: string
+): Promise<BindingView | null> {
+  const row = await bindingBy(db, by, value)
+  return row === null
+    ? null
+    : { channelId: row.channel_id, channelName: row.channel_name, boundAt: row.bound_at }
+}
+
+export const gameBindingView = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
+export const soloBindingView = (db: SharedDb, discordId: string) =>
+  bindingView(db, 'solo', discordId)
+
+/**
+ * Where this caller's rolls post: solo, their own channel; in a Game, the
+ * Game's, or their own where the Game has none bound, so a channel someone
+ * bound always gets their rolls until it is unbound.
+ */
+export async function rollChannel(
+  db: SharedDb,
+  discordId: string,
+  gameId: string | null
+): Promise<BindingView | null> {
+  if (gameId === null) return soloBindingView(db, discordId)
+  const game = await gameBindingView(db, gameId)
+  if (game !== null) return game
+  const own = await soloBindingView(db, discordId)
+  return own === null ? null : { ...own, own: true }
+}

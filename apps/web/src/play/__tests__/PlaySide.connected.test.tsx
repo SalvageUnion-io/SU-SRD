@@ -206,6 +206,12 @@ describe('the Crew (play.md §7)', () => {
       'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
+    // A crewmate's name is whole (R56, r2 I3): its Mini wraps its chips rather than cut it.
+    const pills = [
+      ...screen.getByRole('list', { name: 'Crew' }).querySelectorAll('.su-entity-mini__pill'),
+    ]
+    expect(pills).toHaveLength(3)
+    expect(pills.every((pill) => pill.hasAttribute('data-whole-name'))).toBe(true)
     // Presence is a chip on each crewmate's Mini (ruleset §1.3): two here, one away.
     expect(crew.getAllByText('Here')).toHaveLength(2)
     expect(crew.getByText('Away')).toBeTruthy()

@@ -26,7 +26,7 @@ import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor, mediatorLinksFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
-import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../lib/constants'
+import { entityTitle, META_DESCRIPTION_MAX, SITE_URL, titleName } from '../../../lib/constants'
 import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { entityPageHead } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
@@ -129,7 +129,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
 
   return {
     meta: entityPageHead({
-      title: entityTitle(itemName, schemaName),
+      title: entityTitle(titleName(schemaId, itemName), schemaName),
       name: itemName,
       description: metaDescription,
       canonical: canonicalUrl,

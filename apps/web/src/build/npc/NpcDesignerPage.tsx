@@ -45,6 +45,8 @@ type NpcDesignerPageProps = {
   onCancel: () => void
   /** `&from=<schema>:<slug>` (any view): the denizen to design from. */
   from?: NpcTemplateRef
+  /** `&game=<id>` (any view): the Game the NPC is designed for, from its Prep. */
+  gameId?: string | undefined
 }
 
 export function NpcDesignerPage({
@@ -56,6 +58,7 @@ export function NpcDesignerPage({
   onCreated,
   onCancel,
   from,
+  gameId,
 }: NpcDesignerPageProps) {
   const { status } = useSync()
   const signedIn = isSignedIn(status)
@@ -102,6 +105,7 @@ export function NpcDesignerPage({
             onCreated={onCreated}
             onCancel={onCancel}
             startFrom={from}
+            gameId={gameId}
           />
         </TabPanel>
         <TabPanel value="crew">

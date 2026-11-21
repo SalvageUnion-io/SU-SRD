@@ -420,6 +420,8 @@ function FieldEditor({
           role="button"
           tabIndex={0}
           aria-label={ariaLabel}
+          // Prose is a block, not a control on a line (the sibling-height law reads this).
+          data-multiline={multiline || undefined}
           onClick={open}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {

@@ -92,13 +92,55 @@ describe('ChangeLogDrawer', () => {
       />
     )
 
-    await waitFor(() => expect(screen.getByText('callsign')).toBeTruthy())
+    await waitFor(() => expect(screen.getByText(/Callsign:/)).toBeTruthy())
     expect(screen.getByText('Wraith')).toBeTruthy()
     expect(screen.getByText('Override')).toBeTruthy()
-    expect(screen.getByText('Manual')).toBeTruthy()
+    // A hand edit is the plain case: no label, and never the field's code name (r2 C2).
+    expect(screen.queryByText('Manual')).toBeNull()
+    expect(screen.queryByText('callsign')).toBeNull()
     // A proposal still awaiting its answer says so, rather than reading as applied.
     expect(screen.getByText('Proposed')).toBeTruthy()
     expect(acts).toEqual([{ gameId: null, name: 'changeLog.forEntity', args: { entityId: 'p1' } }])
+  })
+
+  test("a chassis swap is one change in the sheet's words, and Restore puts all of it back", async () => {
+    await useUnits.getState().adopt('pilot', pilotFixture({ id: 'p1' }))
+    openRooms(null)
+    const systems = [
+      'chainsaw-arm',
+      'escape-hatch',
+      'locomotion-system',
+      'rigging-arm',
+      'red-laser',
+    ]
+    const entries = [
+      row({ _id: 'op2:chassisRef', field: 'chassisRef', before: 'scrapper', after: 'mazona' }),
+      row({ _id: 'op2:systems', field: 'systems', before: systems, after: systems.slice(0, 3) }),
+      row({ _id: 'op1:name', ts: 1_600_000_000_000, field: 'name', before: 'A', after: 'B' }),
+      row({ _id: 'op0:currentHP', ts: 1_500_000_000_000, state: 'proposed', field: 'currentHP' }),
+    ]
+    answerActs(({ name }) => (name === 'changeLog.forEntity' ? entries : undefined))
+    const restored: Record<string, unknown>[] = []
+
+    connected(
+      <ChangeLogDrawer
+        entityType="pilot"
+        entityId="p1"
+        entityName="Leaky"
+        open
+        onOpenChange={() => {}}
+        onRestore={(before) => restored.push(before)}
+      />
+    )
+
+    await waitFor(() => expect(screen.getByText('Removed Rigging Arm, Red Laser')).toBeTruthy())
+    expect(screen.getByText('Scrapper')).toBeTruthy()
+    expect(screen.getByText('Mazona')).toBeTruthy()
+    // One Restore a change, and none for a proposal still unanswered.
+    const buttons = screen.getAllByRole('button', { name: 'Restore' })
+    expect(buttons).toHaveLength(2)
+    fireEvent.click(buttons[0] as HTMLElement)
+    expect(restored).toEqual([{ chassisRef: 'scrapper', systems }])
   })
 
   test('shows an empty state when the entity has no logged changes', async () => {

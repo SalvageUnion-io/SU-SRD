@@ -7,7 +7,7 @@
  * Conventions: toBeTruthy() not toBeInTheDocument().
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
+import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import {
   act,
   cleanup,
@@ -199,6 +199,33 @@ describe('NewEntityScreen — mode routing', () => {
     expect(screen.getByLabelText(/callsign/i)).toBeTruthy()
   })
 
+  // MD2-04: the dialog opened on Close, and a typed space shut it.
+  test('the Blank Crawler dialog opens with its name focused', async () => {
+    // The dialog focuses on the next frame; the frame is run here, so the
+    // test waits on no timer.
+    const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+      run(0)
+      return 0
+    })
+    try {
+      await act(async () => {
+        render(
+          <NewEntityScreen
+            kind="crawler"
+            mode="blank"
+            wizard={null}
+            onModeChange={noop}
+            onCreated={noop}
+          />
+        )
+      })
+      const name = screen.getByRole('textbox', { name: /name/i })
+      expect(document.activeElement === name).toBe(true)
+    } finally {
+      frame.mockRestore()
+    }
+  })
+
   test('chooser doors fire onModeChange with the chosen mode', () => {
     const calls: Array<'guided' | 'blank' | undefined> = []
     render(
@@ -306,7 +333,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
       />
     )
 
-    const submit = screen.getByRole('button', { name: /create blank pilot/i })
+    const submit = screen.getByRole('button', { name: 'Create Pilot' })
     expect((submit as HTMLButtonElement).disabled).toBe(true)
 
     fireEvent.change(screen.getByLabelText(/^name/i), { target: { value: 'Juno Vale' } })
@@ -358,7 +385,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     })
     fireEvent.click(screen.getByRole('radio', { name: /mule/i }))
     // No name typed: the mech is made, named for its chassis until the sheet renames it.
-    fireEvent.click(screen.getByRole('button', { name: /create blank mech/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Create Mech' }))
     await waitFor(() => expect(created.length).toBe(1))
 
     const mech = useUnits.getState().get('mech', created[0] as string)
@@ -398,12 +425,15 @@ describe('BlankCreateDialog — blank pilot create', () => {
         book={{ chassis: 'magpie', pattern: 'stefanus' }}
       />
     )
-    const books = screen.getByRole('region', { name: 'Book Patterns' })
+    // Behind the open confirm, so read through it.
+    const books = screen.getByLabelText('Book Patterns')
     expect(within(books).getByText('Not a starting build')).toBeTruthy()
-    fireEvent.click(
-      within(books).getByRole('button', { name: 'Build With This: a Mech from Stefanus' })
-    )
-    fireEvent.click(await screen.findByRole('button', { name: 'Build' }))
+    // The pattern page's press was the choice: its one confirm is already up (r2 D4),
+    // worded for the book and warning, since Stefanus is past the starting rules.
+    const dialog = await screen.findByRole('alertdialog')
+    expect(within(dialog).getByText(/past the starting rules/)).toBeTruthy()
+    expect(within(dialog).getByText(/as the book prints it/)).toBeTruthy()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Build' }))
     await waitFor(() => expect(created.length).toBe(1))
     const mech = useUnits.getState().get('mech', created[0] as string)
     expect(mech?.chassisRef).toBe('magpie')

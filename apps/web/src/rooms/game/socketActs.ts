@@ -122,6 +122,7 @@ export const GAME_SOCKET_ACTS = {
   }),
   'ops.accept': z.object({ opId: z.string() }),
   'ops.decline': z.object({ opId: z.string() }),
+  'ops.withdraw': z.object({ opId: z.string() }),
   'changeLog.appendChangeLog': z.object({
     entries: z.array(
       z.object({
@@ -134,6 +135,7 @@ export const GAME_SOCKET_ACTS = {
     ),
   }),
   'changeLog.broadcast': z.object({ message: z.string() }),
+  'changeLog.reveal': z.object({ rollId: z.string() }),
   'changeLog.forEntity': FOR_ENTITY,
   'publicSheet.setPublic': SET_PUBLIC,
 } satisfies Partial<Record<GameActName, z.ZodType>>

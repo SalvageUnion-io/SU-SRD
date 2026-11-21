@@ -18,6 +18,7 @@ import type { Act } from './_hierarchy'
 import { actTwins, findHierarchy, readActs } from './_hierarchy'
 import { findLedgers } from './_ledger'
 import { findNesting } from './_nestingDepth'
+import { eachSheetInPane, findSheetPaneLayout } from './_playSheetPane'
 import { findRelationChips } from './_relationChips'
 import { findSheetGrammar } from './_sheetGrammar'
 import { findSiblingHeights, findTabSizes } from './_siblingHeights'
@@ -78,6 +79,16 @@ function designGates(page: Page): Gate[] {
   const acts: Act<DesignFamily>[] = []
   const cockpits = new Set<DesignFamily>()
   const overlaysRead: string[] = []
+  let paneSheets = 0
+  const sheetPane: Gate['scan'] = async ({ where }) => {
+    // The pane stands in the centre column, from `lg`: a phone's tabs show the sheet whole.
+    if ((await page.locator('.su-play-root [role="tab"]').count()) > 0) return []
+    const found: Placed[] = []
+    paneSheets += await eachSheetInPane(page, async (sheet) => {
+      found.push(...place(`${where}, ${sheet} in the sheet pane`, await findSheetPaneLayout(page)))
+    })
+    return found
+  }
 
   return [
     {
@@ -311,6 +322,32 @@ function designGates(page: Page): Gate[] {
         expect.soft(cells.cells, 'the walk read value cells').toBeGreaterThan(0)
         expect.soft(cells.seams, 'the walk read seam stamps').toBeGreaterThan(0)
         return seams
+      },
+    },
+    {
+      /**
+       * A sheet on the Play screen is laid out for its pane, not the window
+       * (play.md §18, `_playSheetPane.ts`): every sheet the pane may show, on
+       * the player's screen and solo, at each desktop width Play draws its
+       * columns at: a mid-size window (`MID`), 1280, a page's 1440 and 1920.
+       * Nothing overflows the pane (`overflow`), covers its head (`covered`),
+       * overlaps (`overlap`) or is squeezed to a word a line (`squeezed`).
+       */
+      gate: 'play-sheet-pane',
+      reads: (family) => family === 'play-player' || family === 'play-solo',
+      scan: sheetPane,
+      baseline: [],
+      finish: async ({ seed }) => {
+        const routes = designRoutes.filter(
+          (r) => r.family === 'play-player' || r.family === 'play-solo'
+        )
+        const wider = await walkDesignRoutes(page, sheetPane, {
+          seed,
+          routes,
+          widths: ['mid', 1280, 1920],
+        })
+        expect.soft(paneSheets, 'the walk read sheets in the Play pane').toBeGreaterThan(7)
+        return wider
       },
     },
     {

@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useId, useMemo } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
 import {
   getAssetUrl,
@@ -18,7 +18,6 @@ import {
   ReferenceEntityCard,
   Text,
 } from '../../components/index'
-import { appPath } from '../../lib/appBase'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
@@ -102,6 +101,9 @@ export function MechChassisStep({
   const selectedChassis = chassisName
     ? chassisPool.find((c) => nameToSlug(c.name) === chassisName)
     : undefined
+  // The dimmed pattern last pressed: its reason is said under the list (r2 D5).
+  const [pressed, setPressed] = useState<{ chassis: string; pattern: string } | null>(null)
+  const asked = pressed?.chassis === chassisName ? pressed.pattern : undefined
 
   // Every pattern the chassis prints is listed; only a `legalStarting` one
   // can be picked here, the rest are built as printed from New Mech.
@@ -164,20 +166,36 @@ export function MechChassisStep({
               selected={selectedPatternKey}
               onSelect={(key) => {
                 const row = patternRows.find((r) => r.key === key)
-                if (row?.beyond) return
+                if (row?.beyond) return setPressed({ chassis: chassisName, pattern: row.name })
+                setPressed(null)
                 if (row?.pattern) onSelectPattern(row.pattern)
                 else onSelectCustom()
               }}
               disabled={(row) => (row.beyond ? mechCopy('notAStartingPattern') : undefined)}
             />
-            {beyond.length > 0 && (
-              <Text variant="hint">
-                {mechCopy('dimmedPatternsAreBuilt')}{' '}
-                {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
-                <InlineRef href={appPath('/mechs/new')} style={NO_WRAP}>
-                  {mechCopy('newMechFromAPattern')}
+            {/* A pressed dimmed row answers here, with the way to build it; until
+                then the hint says what the dim means. Both links are routes: the
+                surface's link adds the app's base. */}
+            {asked !== undefined ? (
+              <Text variant="hint" role="status">
+                {mechCopy('patternNotStarting', { name: asked })}{' '}
+                <InlineRef
+                  href={`/mechs/new?chassis=${chassisName}&pattern=${nameToSlug(asked)}`}
+                  style={NO_WRAP}
+                >
+                  {mechCopy('buildNameAsPrinted', { name: asked })}
                 </InlineRef>
               </Text>
+            ) : (
+              beyond.length > 0 && (
+                <Text variant="hint">
+                  {mechCopy('dimmedPatternsAreBuilt')}{' '}
+                  {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
+                  <InlineRef href="/mechs/new" style={NO_WRAP}>
+                    {mechCopy('newMechFromAPattern')}
+                  </InlineRef>
+                </Text>
+              )
             )}
           </div>
         )}

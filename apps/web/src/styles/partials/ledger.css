@@ -594,6 +594,13 @@
   }
 }
 
+/* A shelf's mark (HOMEBREW) rides up over its title's tab before the strip
+   runs wider than the frame: the tab keeps the strip's foot, and the make at
+   the strip's end stays whole (R44). */
+.su-shelf-ledger .su-ledger__title-line {
+  flex-wrap: wrap-reverse;
+}
+
 /* Search: the dropdown's results as a Ledger.
  * The highlighted row is the picked row: filled with ink, its name on a
  * small paper tab.

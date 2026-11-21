@@ -36,11 +36,13 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PageShell } from '../../components/app'
 import { Button, Callout, Pending, SlabSection, Text } from '../../components/index'
+import { writeLastGame } from '../../lib/accountHint'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { areaTitle } from '../../lib/pageTitle'
+import { localStore } from '../../lib/safeLocalStorage'
 import { useTabTitle } from '../../lib/useTabTitle'
 import { playGamesCopy } from '../../messages/play-games'
 import { routesCopy } from '../../messages/routes'
@@ -169,6 +171,11 @@ export function GameHub({ gameId }: GameHubProps) {
   const game = useGamesQuery('games.get', { gameId: gameId })
   const session = useGameSession(gameId)
   useTabTitle(game ? areaTitle(PRODUCT.play, `${game.name} · ${routesCopy('game')}`) : null)
+  // The home's welcome-back strip names the Game last opened (`accountHint`).
+  const gameName = game?.name
+  useEffect(() => {
+    if (gameName) writeLastGame({ id: gameId, name: gameName }, localStore())
+  }, [gameId, gameName])
 
   return (
     <PageShell

@@ -13,6 +13,10 @@
  * Posted, a Post button for one the toggle kept private (the per-roll
  * override), or Not posted with the reason and Try again. Never silent.
  *
+ * A Mediator's Opposition roll reaches the players without its names (ADR-051
+ * §9b): its line here says so and offers Reveal, which shows the table the
+ * whole line (`changeLog.reveal`).
+ *
  * Feed lines are level 1 (play.md §12): plain text and buttons inside, no
  * frame inside a frame.
  */
@@ -26,6 +30,7 @@ import { useTableAct } from '../replica/useTable'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
+import { acceptedUndo } from './proposalAnswer.model'
 import type { PlayPostState } from './usePlayChannel'
 
 const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSProperties
@@ -33,6 +38,14 @@ const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSP
 const REASON = { display: 'block', color: tokens.color.wkMuted } satisfies CSSProperties
 
 const ACTIONS = { display: 'flex', gap: tokens.space[6] } satisfies CSSProperties
+
+/** A veiled roll's own row under its line: what the players miss, and Reveal. */
+const VEIL = {
+  display: 'flex',
+  alignItems: 'center',
+  flexWrap: 'wrap',
+  gap: tokens.space[6],
+} satisfies CSSProperties
 
 const STATE = {
   color: tokens.color.ink75, // design-tokens-ignore(muted-note): a post's status word
@@ -60,6 +73,27 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     failure: playCopy('answerDidNotLand'),
     toastId: 'play-proposal-answer',
   })
+  const reveal = useTableAct('changeLog.reveal', gameId)
+  const revealing = useServerAction((rollId: string) => reveal({ rollId }), {
+    failure: playCopy('revealDidNotLand'),
+    toastId: 'play-roll-reveal',
+  })
+  /** What a veiled roll's line says of itself, and the control that shows it to the table. */
+  const veil = (rollId: string | undefined, text: string) =>
+    rollId === undefined ? null : (
+      <span style={VEIL}>
+        <span style={STATE}>{playCopy('namesHidden')}</span>
+        <Button
+          variant="default"
+          size="mini"
+          disabled={!canWrite}
+          aria-label={playCopy('revealWhat', { text })}
+          onClick={() => void revealing.run(rollId)}
+        >
+          {playCopy('reveal')}
+        </Button>
+      </span>
+    )
 
   // An empty feed says nothing (no explainer line).
   if (entries.length === 0) return null
@@ -68,7 +102,10 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     void reply
       .run(() => apply({ opId: entry.proposalId }))
       .then((result) => {
-        if (result.ok) recordPlayChange(`Applied · ${entry.change}`)
+        if (!result.ok) return
+        recordPlayChange(`Applied · ${entry.change}`)
+        // Theirs to undo, as any change of a live number is (r2 C6).
+        acceptedUndo(entry.proposal)
       })
   }
 
@@ -117,6 +154,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
                 }
               >
                 {entry.text}
+                {veil(entry.reveal, entry.text)}
                 {post?.kind === 'failed' && (
                   <FieldError>
                     {playCopy('notPostedToDiscord', { message: post.message })}
@@ -130,6 +168,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             return (
               <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
                 {entry.text}
+                {entry.kind === 'roll' && veil(entry.reveal, entry.text)}
               </FeedLine>
             )
         }

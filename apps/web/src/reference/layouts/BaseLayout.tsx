@@ -23,6 +23,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { pageTitle } from '../../lib/pageTitle'
 import { SITE_MANIFEST } from '../../pwa'
 import { Island } from '../../runtime/Island'
+import { PageJump } from '../PageJump'
 import { TopNavigation } from '../TopNavigation'
 import type { DocumentMeta } from '../types'
 
@@ -232,6 +233,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             home={pathname === '/'}
             pathname={pathname}
           />
+          {/* A signed-in reader is told their table has started (r2 I1): the
+              app's "Session live" bar, on a Reference page too. */}
+          <Island name="SessionBarIsland" client="idle" when="signed-in" />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus
@@ -263,6 +267,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             foot={{ ...foot, measure: PAGE_MEASURE }}
           />
         </div>
+        {/* A long page's way back to search and its sections on a phone; the
+            home is its slideshow, one screen tall. */}
+        {pathname === '/' ? null : <PageJump />}
         {/* The page's one Peek: every Mention and Tag above carries only its
             entity's address, and this host shows it (no props, no SSR). It
             mounts on the first hover, press or focus on one. */}
