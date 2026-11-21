@@ -9,7 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
-import { ChipLink, factRef } from '../../entity'
+import { ChipLink, factRef, statTerm, TermChip } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
@@ -291,15 +291,16 @@ export function CardPage({
               className="su-stat-column__stat"
             />
           )
-          // A stat the glossary defines is a term (E27): a press, hover or
-          // focus opens its entry, where a `title` says nothing on a phone.
-          // One with no entry keeps its hint as a native tooltip (E23).
+          // A stat is a term (E27): a press, hover or focus opens its glossary
+          // entry, or, where the glossary has none (Cargo Capacity), its
+          // meaning in the app's words: a `title` says nothing on a phone.
           const ref = factRef(stat)
+          const term = ref ? undefined : statTerm(stat)
           return (
             <li
               key={stat.key}
               className="su-stat-column__cell"
-              title={ref ? undefined : stat.hoverText}
+              title={ref || term ? undefined : stat.hoverText}
             >
               {ref ? (
                 <ChipLink
@@ -308,6 +309,10 @@ export function CardPage({
                 >
                   {cell}
                 </ChipLink>
+              ) : term ? (
+                <TermChip term={term} value={String(stat.value)}>
+                  {cell}
+                </TermChip>
               ) : (
                 cell
               )}

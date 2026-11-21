@@ -19,6 +19,9 @@ import { useEntitySurface } from './entitySurfaceContext'
 import type { PeekLoader } from './Peek'
 import { PeekCard, PeekMini } from './PeekCard'
 import { PeekTable } from './PeekTable'
+import { PeekTerm } from './PeekTerm'
+import type { StatTerm } from './parts/statTerms'
+import { TERM_SCHEMA, termAt } from './parts/statTerms'
 import type { PeekSize } from './peekContext'
 import { PEEK_PRESS_ATTRIBUTE } from './peekContext'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
@@ -43,6 +46,7 @@ function isEntitySchema(name: string): name is EntitySchemaName {
 /** What a Peek shows: an entity's card, or the roll table a record carries. */
 type PeekSubject =
   | { kind: 'entity'; entity: RefEntity }
+  | { kind: 'term'; term: StatTerm }
   | { kind: 'table'; name: string; table: RefObjectTable }
 
 /**
@@ -52,6 +56,10 @@ type PeekSubject =
  * table (a folded roll Mini Peeks it, `CardRollTable`).
  */
 function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
+  if (schemaName === TERM_SCHEMA) {
+    const term = termAt(id)
+    return term ? { kind: 'term', term } : undefined
+  }
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined
   const [hostId, part] = id.split('/')
   const host = SalvageUnionReference.get(schemaName, hostId ?? id) as RefEntity | undefined
@@ -122,7 +130,9 @@ export function PeekPopup({
   const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     let live = true
-    load(schemaName).then(
+    // A term is the app's own words: no schema to read.
+    const ready = schemaName === TERM_SCHEMA ? Promise.resolve() : load(schemaName)
+    ready.then(
       () => live && setLoaded(true),
       // A schema that will not load has nothing to show: the Peek closes and
       // the trigger still links or opens as it always did.
@@ -177,7 +187,9 @@ export function PeekPopup({
           >
             {subject ? (
               <PeekBoundary>
-                {subject.kind === 'table' ? (
+                {subject.kind === 'term' ? (
+                  <PeekTerm term={subject.term} />
+                ) : subject.kind === 'table' ? (
                   <PeekTable name={subject.name} table={subject.table} />
                 ) : size === 'mini' ? (
                   <PeekMini entity={subject.entity} down={down} />

@@ -10,6 +10,7 @@ import { componentsCopy } from '../messages/components'
 import { capsLabel } from './atoms/capsLabel'
 import { FOCUS_RING } from './atoms/interaction'
 import { Box } from './containers/Box'
+import { TermChip, TRAINING_POINTS } from './entity'
 import { RowDress } from './entity/rowDress'
 import type { TreeTrack } from './index'
 import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
@@ -195,10 +196,13 @@ function ClassBrief({ plan }: { plan: Exclude<ClassPlan, { kind: 'none' }> }) {
                 paint={tierPaint(card.tier)}
                 chips={
                   card.cost && (
-                    <Chips
-                      size="mini"
-                      chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
-                    />
+                    // TP has no glossary entry: its box opens what it means (E27).
+                    <TermChip term={TRAINING_POINTS} value={String(card.cost)}>
+                      <Chips
+                        size="mini"
+                        chips={{ durations: [], facts: [], tags: [], cost: `${card.cost} TP` }}
+                      />
+                    </TermChip>
                   )
                 }
               >
