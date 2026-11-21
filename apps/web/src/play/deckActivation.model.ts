@@ -8,8 +8,9 @@
  *    the same rules as Mechs": `companionNow`, `replacePartner`);
  *  - the mech's: EP, Hot Heat and Uses (`activationPatch`).
  *
- * An EP or AP spend says itself with Undo (chrome K5, `changeUndoToast`),
- * which writes the value the spend started from. `onPaid` runs once the
+ * Every spend says itself with Undo (chrome K5, `changeUndoToast`): AP, or
+ * each of EP, Heat and the action's Uses it moved, and Undo writes back all of
+ * them as the spend found them. `onPaid` runs once the
  * spend has landed, or at once where the action spends nothing.
  */
 
@@ -25,7 +26,8 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
-import { changeUndoToast } from '../lib/changeUndoToast'
+import type { UndoChange } from '../lib/changeUndoToast'
+import { changesUndoToast, changeUndoToast } from '../lib/changeUndoToast'
 import { replacePartner } from '../lib/partnerLookup'
 import type { PlayAction, PlayActionCompanion, PlayActionCurrency } from '../lib/rules/actionList'
 import { activationPatch, pilotActivationPatch } from '../lib/rules/actionPatches'
@@ -155,15 +157,92 @@ function payCompanion(
       : units.store.update('mech', companion.host.id, { partners }, PLAY_TXN)
   }
   runWrite(() => write(patch), onPaid)
-  if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
-    changeUndoToast({
-      id: `partner:${companion.id}:currentEP`,
-      label: `${companion.name} EP`,
-      did: playCopy('usedAction', { name: action.name }),
-      from: before,
+  activationUndo({
+    id: `partner:${companion.id}:activation`,
+    prefix: `${companion.name} `,
+    action,
+    patch,
+    before: { currentEP: before, currentHeat: now.currentHeat, itemUses: now.partner.itemUses },
+    maxUses: economy.maxUses,
+    write: (fields) => {
+      const fresh = companionNow(units, companion)
+      return write(fields(fresh?.partner.itemUses))
+    },
+  })
+}
+
+/** What an activation's patch touched, as it stood before. */
+type ActivationBefore = {
+  currentEP: number
+  currentHeat: number
+  itemUses: Record<string, number> | undefined
+}
+
+/**
+ * The activation's Undo line (chrome K5): every number its patch moved (EP,
+ * Heat, the action's Uses), and an Undo that writes each one back as it was.
+ * An action that costs only Heat or Uses says itself too.
+ */
+function activationUndo({
+  id,
+  prefix,
+  action,
+  patch,
+  before,
+  maxUses,
+  write,
+}: {
+  id: string
+  /** Whose numbers, said before each label: a companion's name. */
+  prefix: string
+  action: PlayAction
+  patch: Partial<Mech>
+  before: ActivationBefore
+  maxUses: number
+  /** Writes the fields made from the unit's Uses as they are now. */
+  write: (
+    fields: (usesNow: Record<string, number> | undefined) => Partial<Mech>
+  ) => Promise<unknown>
+}) {
+  const changes: UndoChange[] = []
+  if (typeof patch.currentEP === 'number')
+    changes.push({
+      key: 'currentEP',
+      label: `${prefix}${playCopy('ep2')}`,
+      from: before.currentEP,
       to: patch.currentEP,
-      undo: (value) => runWrite(() => write({ currentEP: value })),
     })
+  if (typeof patch.currentHeat === 'number')
+    changes.push({
+      key: 'currentHeat',
+      label: `${prefix}${playCopy('heat')}`,
+      from: before.currentHeat,
+      to: patch.currentHeat,
+    })
+  const usesTo = patch.itemUses?.[action.slug]
+  if (typeof usesTo === 'number')
+    changes.push({
+      key: 'uses',
+      label: `${prefix}${playCopy('uses')}`,
+      from: Math.min(before.itemUses?.[action.slug] ?? maxUses, maxUses),
+      to: usesTo,
+    })
+  if (changes.length === 0) return
+  changesUndoToast({
+    id,
+    did: playCopy('usedAction', { name: action.name }),
+    changes,
+    undo: (start) =>
+      runWrite(() =>
+        write((usesNow) => {
+          const fields: Partial<Mech> = {}
+          if (start.currentEP !== undefined) fields.currentEP = start.currentEP
+          if (start.currentHeat !== undefined) fields.currentHeat = start.currentHeat
+          if (start.uses !== undefined) fields.itemUses = { ...usesNow, [action.slug]: start.uses }
+          return fields
+        })
+      ),
+  })
 }
 
 function payMech(
@@ -191,14 +270,23 @@ function payMech(
     return
   }
   runWrite(() => store.update('mech', mech.id, patch, PLAY_TXN), onPaid)
-  if (typeof patch.currentEP === 'number' && patch.currentEP !== before)
-    changeUndoToast({
-      id: `mech:${mech.id}:currentEP`,
-      label: 'EP',
-      did: playCopy('usedAction', { name: action.name }),
-      from: before,
-      to: patch.currentEP,
-      undo: (value) =>
-        runWrite(() => store.update('mech', mech.id, { currentEP: value }, PLAY_TXN)),
-    })
+  activationUndo({
+    id: `mech:${mech.id}:activation`,
+    prefix: '',
+    action,
+    patch,
+    before: {
+      currentEP: before,
+      currentHeat: resolveGauge(fresh.currentHeat),
+      itemUses: fresh.itemUses,
+    },
+    maxUses: economy.maxUses,
+    write: (fields) =>
+      store.update(
+        'mech',
+        mech.id,
+        fields(store.get('mech', mech.id)?.itemUses ?? fresh.itemUses),
+        PLAY_TXN
+      ),
+  })
 }

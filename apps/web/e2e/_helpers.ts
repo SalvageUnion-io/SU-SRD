@@ -280,34 +280,15 @@ export async function clickNext(page: Page): Promise<void> {
 // ---------------------------------------------------------------------------
 
 /**
- * Fill a wizard identity field by its visible `Field` label.
- *
- * These are not plain inputs. `Field` with `value` + `onSave` is in its edit
- * state: a `role="button"` readout that swaps to an input only once
- * activated, and it labels both halves `Edit <label lowercased>`. So filling one
- * is click-then-type, and `getByLabel(/^Name$/)` matches nothing at all.
- *
- * Falls back to a direct fill for the steps that do render a real input.
+ * Fill a wizard text field by its visible label: every wizard field is a live
+ * input (`WizTextField`, or a `Field` with `htmlFor`) that saves as it is
+ * typed, so a fill is all it takes. Reports whether the field is on this step.
  */
 export async function fillIdentity(page: Page, label: string, value: string): Promise<boolean> {
-  // Click-to-edit (`Field` with `value` + `onSave`): a role="button" readout
-  // that swaps to an input once activated, both named `Edit <label>`.
-  const editLabel = new RegExp(`^Edit ${label}$`, 'i')
-  const editor = page.getByLabel(editLabel).first()
-  if (await editor.isVisible().catch(() => false)) {
-    await editor.click().catch(() => {})
-    await page.getByLabel(editLabel).first().fill(value)
-    // Field's edit state commits on blur.
-    await page.keyboard.press('Tab')
-    return true
-  }
-  // Plain labelled input (`Field` with `htmlFor`) — the callsign step's shape.
-  const plain = page.getByLabel(new RegExp(`^${label}`, 'i')).first()
-  if (await plain.isVisible().catch(() => false)) {
-    await plain.fill(value)
-    return true
-  }
-  return false
+  const field = page.getByLabel(new RegExp(`^${label}`, 'i')).first()
+  if (!(await field.isVisible().catch(() => false))) return false
+  await field.fill(value)
+  return true
 }
 
 /** A Game's own page: where a build started from it returns to. */
@@ -380,8 +361,7 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
 
     if (await next.isDisabled()) {
       // Identity first — a name step is gated on text, not on a pick.
-      // `fillIdentity` reports whether the field was on this step at all, and
-      // handles both shapes the wizards use (click-to-edit and plain input).
+      // `fillIdentity` reports whether the field was on this step at all.
       for (const [label, value] of Object.entries(identity)) {
         await fillIdentity(page, label, value)
       }
@@ -497,13 +477,12 @@ export async function buildPilot(
  * Build a mech. Steps: Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review.
  *
- * The name field is labelled "Name / Pattern" — a mech's name IS its pattern —
- * so both spellings are offered; whichever is absent is a no-op.
+ * The name field is "Mech name" (the book's pattern name for it, p.94).
  */
 export async function buildMech(page: Page, name: string): Promise<void> {
   // Mule chassis — the one downstream specs assert on. See buildPilot.
   await runWizard(page, 'mechs', {
-    identity: { 'name / pattern': name, 'mech name': name },
+    identity: { 'mech name': name },
     create: /Create Mech/i,
     prefer: ['Mule'],
   })

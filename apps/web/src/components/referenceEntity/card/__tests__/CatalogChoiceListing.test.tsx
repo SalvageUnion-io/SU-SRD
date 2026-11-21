@@ -54,6 +54,12 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     // the modal (EntitySearcher) opens: its search field + the weapons pool appear
     expect(screen.getByLabelText('Search')).toBeTruthy()
     expect(screen.getByText('Red Laser')).toBeTruthy()
+    // A row's tap is the pick: it chooses and closes, no second act.
+    const row = document.querySelector('[data-searcher-open="Red Laser"]')
+    if (!(row instanceof HTMLElement)) throw new Error('no Red Laser row')
+    fireEvent.click(row)
+    expect(calls.at(-1)).toMatchObject({ [armamentBay().choices?.[0]?.id ?? '']: ['Red Laser'] })
+    expect(screen.queryByLabelText('Search')).toBeNull()
   })
 
   test('R60: read-only with a pick, the pick reads as made: its Mini, no Show options', () => {

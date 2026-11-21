@@ -1,15 +1,15 @@
 # The Hard Rules
 
-The laws said the way a machine checks them, and the chrome. Every law in the canon ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
-A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pendingRules.ts`): it reports under a ceiling until the screens hold it; at zero, delete the entry.
+Laws as machines check them, and the chrome. Every canon law ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
+A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pendingRules.ts`): it reports under a ceiling till the screens hold it; at zero, delete it.
 
 ## Coverage
 
-- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `apps/web/e2e/_designTable.ts`): every surface in Read and Edit, at phone and page widths, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the gates walk the reference corpus (`REFERENCE_CORPUS`). A route family with no entry, or a width missing, fails.
+- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `apps/web/e2e/_designTable.ts`): every surface in Read and Edit, phone and page widths, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the gates walk the reference corpus (`REFERENCE_CORPUS`). A route family with no entry, or a width missing, fails.
 
 ## Primitives
 
-- **R1 One section head, the solid Slab; one section, `SlabSection`** (§3.9, §5.7, §6.4) — a section is its Slab, one gap and its body (8px in a block, 12px on a Page), with the one fold (the Compact ghost `iconOnly` Button, its body hidden, never unmounted); its stamp, count chips and controls are Compact. `Slab` takes no `variant` or `style`. A Ledger's head is its tab (L2).
+- **R1 One section head, the solid Slab; one section, `SlabSection`** (§3.9, §5.7, §6.4) — a section is its Slab, one gap and its body (8px in a block, 12px on a Page), with the one fold (the Compact ghost `iconOnly` Button, its body hidden, never unmounted); its stamp, counts and controls are Compact. `Slab` takes no `variant` or `style`. A Ledger's head is its tab (L2).
 - **R7 Entity markup lives only in `entity/`** (§0, §6.3) — every host draws an entity, or stands in its frame, through the forms (`Entity`, `CompactFrame`, `Ledger`, a Mini's `dim`); no `su-entity-(row|token)__` class and no `entity/parts` import outside `components/entity/` and its stylesheet. Play draws vitals with `VitalGauge`.
 - **R8 One roll instrument** (§2.4, §3.4) — `RollTableInstrument`, open on a Page, panel or resolve, no toggle; a roll bar in a contentful card, `RollMini` nested in one; its stamp the one roll control, a result its marked row, one mark for every outcome. Play's rolls are `PlayRollInstrument` or `PlayRollTable`.
 - **R10 A surface sets its texture once** (§3.5.1, E13) — every brand-colour ground carries the speckle (`[data-grain]`) in every context, the Cockpit, its overlays and the Peek included; paper, cream, ink-deep, the page ground, buttons and fields never do.
@@ -53,16 +53,17 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 What frames the content (ruleset §4): one component per job (R16).
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
-- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Exceptions, each a component fit: the stat column's cell count and a Compact's art by room (E10).
+- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Exceptions: the stat column's cell count, a Compact's art by room (E10).
 - **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (period `--dur-loop`, 2s) or the home's slideshow (a slide out of turn hidden; a Pause), only under `prefers-reduced-motion: no-preference`.
-- **K4 Lift and layers** — one lift, `--shadow-lift` in warm ink, for what floats (popup, Peek plate, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page z-index comes from `layer` (`--z-*`); 0–3 is local stacking, a literal above 3 fails.
-- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition; a `FieldError` states a consequence where it applies. Offline is one notice in one wording, the bar's `SyncBadge`. Copied is the copy control's `Check` swap, never a toast. No notice wears a roll-tier colour (§3.4).
+- **K4 Lift and layers** — one lift, `--shadow-lift` in warm ink, for what floats (popup, Peek, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page, z-index is `layer`'s (`--z-*`); a literal above 3 fails.
+- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition; a `FieldError` states a consequence where it applies. Offline is one notice, the bar's `SyncBadge`. Copied is the copy control's `Check` swap, never a toast. No notice wears a roll-tier colour (§3.4).
 - **K6 One loading voice** — `Pending` inside a screen, `Skeleton` for a shape known ahead, `RoutePending` for a route; "Loading <thing>…", spelled by `loadingCopy` alone; only K3's loops are `@keyframes`.
 - **K7 Three dialog widths** — `ModalShell` is narrow (28rem), default (48rem) or page (72rem: the Page, the searcher); no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select in one radio group, Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
 - **K8 One empty state, one error per job** — `EmptyState` by place (a stamp on a Page or sheet section, quiet in app chrome, inline in a framed list), "No <things> yet."; a crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; "Try again", never "Retry"; `role="alert"` only in `FieldError`, `RecoveryPanel` and `Banner`.
-- **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink, 3:1 on every ground, Play included; no outline, underline, dashed, colour-only or `:focus` ring.
+- **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink, 3:1 on every ground; no outline, underline, dashed, colour-only or `:focus` ring.
 - **K10 Tabs, Segmented, Toggle, Switch by job** — `Tabs` pick a view (`role="tab"` only there), `Segmented` sets a value and `Toggle` is one press (`aria-pressed` only in those two), `Switch` a setting; no tab or segment label clipped.
 - **K11 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize` (Mini, Compact, Full), stroke 2; ⋯ `Ellipsis`, close `X`, back `BackLabel` (`ChevronLeft` and the place's name), next `NextLabel` (the place's name and `ChevronRight`), a value's change `ArrowRight`; never an arrow or ellipsis character in copy.
-- **K12 Link previews** — a page's 1200 × 630 card is its Page in small: its band and name, chips beside the name, its cite and path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color is the band.
+- **K12 Link previews** — a page's 1200 × 630 card is its Page in small: band and name, chips beside it, cite and path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color is the band.
 - **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
+- **K14 Every control in reach** — every control sits inside its frame at every width, and nothing invisible takes its press.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.

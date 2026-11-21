@@ -82,7 +82,8 @@ export function PickList<T>({
         const name = rowName(row)
         const copies = count?.value(row) ?? 0
         const picked = count ? copies > 0 : key === selected
-        const blocked = disabled?.(row)
+        // A row holding copies is never dimmed: its `+` alone says it is full.
+        const blocked = count && copies > 0 ? undefined : disabled?.(row)
         return {
           id: key,
           name,

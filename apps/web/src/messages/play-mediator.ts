@@ -49,7 +49,6 @@ export const mediatorCopy = messages({
   tellTheTable: 'Tell the table',
   more: 'More',
   gamePage: 'Game page',
-  reference: 'Reference',
   downtimeStepOf: 'Downtime · Step {value} of {count}',
   ofDone: '{done} of {of} done',
   whoIsDone: 'Who is done',
@@ -76,6 +75,7 @@ export const mediatorCopy = messages({
   noOppositionYetAddNpcs:
     'No opposition yet. Add NPCs, Mechs, Squads and Creatures from the reference; players never see them.',
   aimProposeHere: '{label}. Aim Propose here',
+  seatShown: '{name} ({kind})',
   here: 'Here',
   sheet: 'Sheet',
   openSSheet: 'Open {name}’s sheet',

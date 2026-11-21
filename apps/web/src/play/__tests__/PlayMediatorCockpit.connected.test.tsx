@@ -408,14 +408,16 @@ describe('the table', () => {
 
   test('a seat that stopped beating is away, and says where it was last seen', async () => {
     await renderCockpit()
-    const wren = screen.getByRole('button', { name: /^Wren, away/ }).closest('li') as HTMLElement
+    const wren = screen
+      .getByRole('button', { name: /^Mule \(Mech\), Wren, away/ })
+      .closest('li') as HTMLElement
     expect(wren.dataset.away).toBe('true')
     expect(within(wren).getByText('Last seen Boarded · Mule')).toBeTruthy()
   })
 
   test('tapping a seat aims Propose at that pilot and focuses To; the proposal sends', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')
     expect(document.activeElement).toBe(dock.getByLabelText('To'))
@@ -433,7 +435,7 @@ describe('the table', () => {
 
   test('Setbacks fills Propose with the book’s 2 HP default for the pilot aimed at', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     const dock = region('Propose')
     await click(dock.getByRole('button', { name: 'Setbacks' }))
     const dialog = within(screen.getByRole('dialog'))
@@ -888,7 +890,7 @@ describe('every Mediator capability is reachable here', () => {
   test('the reference is ⋯ › Reference', async () => {
     await renderCockpit()
     await click(named('More'))
-    expect(screen.getByRole('menuitem', { name: 'Reference' })).toBeTruthy()
+    expect(screen.getByRole('menuitem', { name: 'Rules' })).toBeTruthy()
   })
 
   test('the Game’s rolls and the alerts sent are the Feed', async () => {
@@ -932,7 +934,7 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     await renderCockpit()
     expect(screen.queryByRole('region', { name: 'The table' })).toBeNull()
     const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-    expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Tables', 'Propose'])
+    expect(tabs.map((t) => t.textContent)).toEqual(['Table', 'Opposition', 'Rolls', 'Propose'])
     const state = screen.getByRole('group', { name: 'Game state' })
     expect(state.closest('[role="tabpanel"]')).toBeNull()
     expect(openPanel().getByRole('heading', { name: 'The table' })).toBeTruthy()
@@ -940,19 +942,19 @@ describe('below `lg`, on a phone (play.md §11)', () => {
     expect(openPanel().getByRole('heading', { name: 'Feed' })).toBeTruthy()
     await click(phoneTab('Opposition'))
     expect(openPanel().getAllByText('Strikebreaker').length).toBeGreaterThan(0)
-    await click(phoneTab('Tables'))
+    await click(phoneTab('Rolls'))
     expect(
       openPanel()
         .getAllByRole('heading', { level: 2 })
         .map((h) => h.textContent)
-    ).toEqual(['Tables'])
+    ).toEqual(['Rolls'])
     await click(phoneTab('Propose'))
     expect(openPanel().getByRole('region', { name: 'Propose' })).toBeTruthy()
   })
 
   test('tapping a seat opens Propose, aimed at that pilot, with focus in To', async () => {
     await renderCockpit()
-    await click(screen.getByRole('button', { name: /^Rook, here/ }))
+    await click(screen.getByRole('button', { name: /^Rook \(Pilot\), here/ }))
     expect(phoneTab('Propose').getAttribute('aria-selected')).toBe('true')
     const dock = within(openPanel().getByRole('region', { name: 'Propose' }))
     expect((dock.getByLabelText('Target') as HTMLSelectElement).value).toBe('row-rook')

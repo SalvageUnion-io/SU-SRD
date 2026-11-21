@@ -198,7 +198,7 @@ describe('the Cockpit frame', () => {
     expect(headings('Units and Feed')).toEqual(expect.arrayContaining(['Units', 'Feed']))
     expect(headings('Actions')).toContain('Actions')
     const end = headings('Crew, Tables and Rules')
-    expect(end.slice(0, 2)).toEqual(['Crew', 'Tables'])
+    expect(end.slice(0, 2)).toEqual(['Crew', 'Rolls'])
     // The Reference closes the column, under the Tables.
     expect(end.length).toBeGreaterThan(2)
     expect(end).not.toContain('Feed')
@@ -224,7 +224,7 @@ describe('the Cockpit frame', () => {
     await renderCockpit({ gameId: null, gameName: null })
     const side = within(screen.getByRole('region', { name: 'Crew, Tables and Rules' }))
     const headings = side.getAllByRole('heading').map((h) => h.textContent)
-    expect(headings[0]).toBe('Tables')
+    expect(headings[0]).toBe('Rolls')
     expect(headings).not.toContain('Crew')
   })
 })

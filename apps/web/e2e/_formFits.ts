@@ -70,7 +70,8 @@ type FormSelectors = {
 const FORM_SELECTORS: FormSelectors = {
   item: 'li, [role="listitem"], [role="option"]',
   sheetItem: [
-    '.su-sheet-live-body li:not(.su-stat-column__cell)',
+    // A stat column's cells and the phone glance's are vitals, not items.
+    '.su-sheet-live-body li:not(.su-stat-column__cell, .su-phone-glance > li)',
     '.su-sheet-live-body .su-sheet-items > :not(li, ul, .su-sr-only)',
     '.su-sheet-live-body .su-sheet-pills > *',
   ].join(', '),

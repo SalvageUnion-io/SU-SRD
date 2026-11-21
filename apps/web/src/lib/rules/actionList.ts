@@ -265,15 +265,19 @@ function buildPartnerActions(
       companion,
     }))
   const printed = droneOwnLoadout(statBlock)
-  const slugs = (entities: readonly Parameters<typeof getEntitySlug>[0][]) =>
-    entities.map((e) => getEntitySlug(e))
+  // A drone's integrated hardware is seeded into its own lists when granted
+  // (`partnerGrants`), so a printed item already there is not dealt twice.
+  const slugs = (
+    entities: readonly Parameters<typeof getEntitySlug>[0][],
+    installed: readonly string[]
+  ) => entities.map((e) => getEntitySlug(e)).filter((slug) => !installed.includes(slug))
   return [
     ...own,
     ...itemActions({
       // A companion's record keeps no picks: its installed items read unpicked.
       choices: undefined,
-      systems: [...slugs(printed.systems), ...partner.systems],
-      modules: [...slugs(printed.modules), ...partner.modules],
+      systems: [...slugs(printed.systems, partner.systems), ...partner.systems],
+      modules: [...slugs(printed.modules, partner.modules), ...partner.modules],
       systemConditions: partner.systemConditions,
       moduleConditions: partner.moduleConditions,
       keyOf: (kind, slug) => `partner:${partner.id}:${kind}:${slug}`,
@@ -288,6 +292,15 @@ export function buildCompanionActions(
   partners: readonly PartnerInstance[] | undefined
 ): PlayAction[] {
   return (partners ?? []).flatMap((partner) => buildPartnerActions(partner, host))
+}
+
+/** Whether an action's printed record is a mech's, paid in EP. */
+function mechSourced(action: RefMetaAction): boolean {
+  return (
+    action.actionSource === 'systems' ||
+    action.actionSource === 'modules' ||
+    action.actionSource === 'chassis'
+  )
 }
 
 /** Resolve a pilot ability slug against the reference ORM. */
@@ -364,7 +377,12 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
       itemChoices.length > 0
         ? { from: itemChoices, selections: pilot.equipmentChoices?.[slug] ?? {} }
         : undefined
-    deckActions(equip).forEach((action, i) => {
+    deckActions(equip).forEach((printed, i) => {
+      // A pilot pays in AP: an action the book shares with a mech System (the
+      // Riveting Gun's repairs, Core Book p.80) reads its cost as the pilot's.
+      const action = mechSourced(printed)
+        ? { ...printed, actionSource: 'equipment' as const }
+        : printed
       out.push({
         key: `equipment:${slug}:${action.id ?? i}`,
         name: action.name,

@@ -167,6 +167,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   K11: ['controls/icon-size', 'copy/glyph'],
   K12: ['OgCard.test.tsx', 'ogCard.test.ts'],
   K13: ['chromeMatch.test.ts'],
+  K14: ['controls-in-reach.e2e.ts'],
   // ── entity-display-language.md ──
   E1: ['R35'],
   E2: ['R35', 'listingView.test.tsx', 'L9'],

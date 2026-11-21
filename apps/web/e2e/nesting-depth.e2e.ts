@@ -119,7 +119,7 @@ test.describe('signed in', { tag: '@pr' }, () => {
     test.setTimeout(5 * 60_000)
     // Big Brother: a chassis with drones, whose systems nest a level deeper.
     const failures = await walkWizard(page, 'mechs', {
-      identity: { 'name / pattern': 'Nesting', 'mech name': 'Nesting' },
+      identity: { 'mech name': 'Nesting' },
       prefer: ['Big Brother'],
     })
     expect(failures, 'entities nested past the three levels').toEqual([])
