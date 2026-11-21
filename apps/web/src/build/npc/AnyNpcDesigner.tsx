@@ -16,10 +16,11 @@
  * wizard (hard rule R16); drafts go through `wizardDraft.ts`.
  */
 
-import { NpcSchema } from 'game-domain/schemas/npc'
+import type { NpcTemplateKind, NpcTemplateRef } from 'game-domain/schemas/npc'
+import { NPC_TEMPLATE_KINDS, NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
-import type { RefNPC } from 'salvageunion-reference'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { RefEntity } from 'salvageunion-reference'
 import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { ConfirmDialog, FieldError, Grid } from '../../components/app'
 import {
@@ -35,7 +36,8 @@ import {
   Textarea,
   TitledBox,
 } from '../../components/index'
-import { npcActionSlug } from '../../lib/npcs/npcModel'
+import type { DenizenTemplate } from '../../lib/npcs/npcModel'
+import { denizenTemplate, isDenizenKind, npcActionSlug } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
@@ -64,7 +66,7 @@ import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcSt
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:
-    'Start from an NPC in the reference: it fills the stats, actions and traits, and you change what you like. Or start blank.',
+    'Start from anything in the reference’s denizens (an NPC, a squad, a creature, a vehicle, a drone, a Meld, a Bio-Titan): it fills the stats, actions and traits, and you change what you like. Or start blank.',
   stats: 'Hit points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
   actions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
@@ -84,15 +86,20 @@ type AnyNpcDesignerProps = {
   /** Called with the new NPC's id once it is saved. */
   onCreated: (npcId: string) => void
   onCancel: () => void
+  /** A denizen to start from (`?from=`, a Reference page's "Design from this"). */
+  startFrom?: NpcTemplateRef
 }
 
-export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerProps) {
+/** A template waiting to be applied: the denizen and the kind it is. */
+type Start = { schema: NpcTemplateKind; entity: DenizenTemplate }
+
+export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNpcDesignerProps) {
   const { canWrite } = useSync()
   const { form, setForm, formDirty, draftKey } = useWizardDraft<NpcFormState>('npc', {
     baseline: EMPTY_NPC_FORM,
   })
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
-  const [pendingStart, setPendingStart] = useState<RefNPC | 'blank' | null>(null)
+  const [pendingStart, setPendingStart] = useState<Start | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const flow = useWizardFlow({
@@ -115,28 +122,33 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   const { step, gate, submitError, shell } = flow
 
   const template = useMemo(
-    () =>
-      form.templateRef?.schema === 'npcs'
-        ? readReference(
-            'AnyNpcDesigner.template',
-            () => SalvageUnionReference.NPCs.getBySlug(form.templateRef?.slug ?? '') ?? undefined,
-            undefined
-          )
-        : undefined,
+    () => (denizenTemplate(form.templateRef) as RefEntity | null) ?? undefined,
     [form.templateRef]
   )
+
+  // Arriving from a Reference page: start from that denizen, once, and only
+  // where no start was chosen (a kept draft is the player's).
+  const arrived = useRef(false)
+  useEffect(() => {
+    if (arrived.current || startFrom === undefined) return
+    arrived.current = true
+    const entity = denizenTemplate(startFrom)
+    if (entity === null || !isDenizenKind(startFrom.schema)) return
+    const schema = startFrom.schema
+    setForm((prev) => (prev.templateChosen ? prev : applyNpcTemplate(prev, entity, schema)))
+  }, [startFrom, setForm])
 
   function update(patch: Partial<NpcFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
   /** Choose a template: fill at once, or ask first when the stats were edited (D4). */
-  function chooseTemplate(ref: RefNPC) {
+  function chooseTemplate(start: Start) {
     if (form.templateChosen && statsEditedSinceFill(form)) {
-      setPendingStart(ref)
+      setPendingStart(start)
       return
     }
-    setForm((prev) => applyNpcTemplate(prev, ref))
+    setForm((prev) => applyNpcTemplate(prev, start.entity, start.schema))
   }
 
   /** Start blank: the same question as a template, since it clears the same fields (D4). */
@@ -253,7 +265,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         title={
           pendingStart === 'blank'
             ? npcCopy('startBlank')
-            : `Start again from ${pendingStart?.name ?? 'this template'}?`
+            : `Start again from ${pendingStart?.entity.name ?? 'this template'}?`
         }
         body={
           pendingStart === 'blank'
@@ -265,7 +277,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         onConfirm={() => {
           const start = pendingStart
           if (start === 'blank') setForm((prev) => applyBlankStart(prev))
-          else if (start) setForm((prev) => applyNpcTemplate(prev, start))
+          else if (start) setForm((prev) => applyNpcTemplate(prev, start.entity, start.schema))
           setPendingStart(null)
         }}
       />
@@ -280,15 +292,23 @@ function TemplateStep({
   onBlank,
 }: {
   form: NpcFormState
-  onTemplate: (ref: RefNPC) => void
+  onTemplate: (start: Start) => void
   onBlank: () => void
 }) {
   const [query, setQuery] = useState('')
+  // Every denizen the Opposition fields, book NPCs first (ADR-067 §2).
   const all = useMemo(
-    () => readReference('TemplateStep.npcs', () => SalvageUnionReference.NPCs.all(), []),
+    () =>
+      readReference(
+        'TemplateStep.denizens',
+        () => SalvageUnionReference.getAllBySchemaNames([...NPC_TEMPLATE_KINDS]),
+        []
+      ),
     []
   )
-  const shown = all.filter((n) => n.name.toLowerCase().includes(query.trim().toLowerCase()))
+  const shown = all.filter(({ entity }) =>
+    entity.name.toLowerCase().includes(query.trim().toLowerCase())
+  )
   const blankChosen = form.templateChosen && form.templateRef === null
 
   return (
@@ -317,21 +337,20 @@ function TemplateStep({
               <span style={HINT}>{npcCopy('noTemplateSetTheStats')}</span>
             </TitledBox>
           </li>
-          {shown.map((npc) => (
-            <li key={npc.id}>
-              {/* A picker (E1): a Compact in select mode; the list names the kind. */}
+          {shown.map(({ schemaName, entity }) => (
+            <li key={`${schemaName}:${entity.id}`}>
+              {/* A picker (E1): a Compact in select mode, its kind on it. */}
               <Entity
                 size="compact"
-                entity={npc}
-                omit={OMIT_KIND}
+                entity={entity}
                 mode={{
                   kind: 'select',
                   role: 'radio',
                   selected:
-                    form.templateRef?.schema === 'npcs' &&
-                    form.templateRef.slug === nameToSlug(npc.name),
-                  onSelect: () => onTemplate(npc),
-                  label: npcCopy('startFrom', { name: npc.name }),
+                    form.templateRef?.schema === schemaName &&
+                    form.templateRef.slug === nameToSlug(entity.name),
+                  onSelect: () => onTemplate({ schema: schemaName, entity }),
+                  label: npcCopy('startFrom', { name: entity.name }),
                 }}
               />
             </li>
@@ -428,9 +447,6 @@ function ActionsStep({
     </>
   )
 }
-
-/** A list of one kind: its Compacts drop the kind stamp. */
-const OMIT_KIND = ['kind'] as const
 
 /** The search that adds an action or a trait from the reference (D6). */
 function ReferenceAdder({

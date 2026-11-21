@@ -6,12 +6,13 @@
  * goes nowhere; with nothing stored there is no chip.
  */
 
-import type { NpcTemplateRef } from 'game-domain/schemas/npc'
+import type { NpcTemplateKind, NpcTemplateRef } from 'game-domain/schemas/npc'
 import type { EntityRef, RefEntity } from 'salvageunion-reference'
-import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { resolveClass } from '../../lib/classRef'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
+import { denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
 import { srdPatternHref } from '../../lib/patternHref'
 import { savedPatternHref } from '../../lib/patterns/patterns'
 import { readReference } from '../../lib/readReference'
@@ -26,7 +27,7 @@ export type BandStamp = {
   entityRef?: EntityRef
 }
 
-type RefSchema = 'classes' | 'chassis' | 'crawlers' | 'npcs'
+type RefSchema = 'classes' | 'chassis' | 'crawlers' | NpcTemplateKind
 
 function stampOf(
   label: string,
@@ -66,13 +67,13 @@ export function crawlerStamp(typeRef: string | undefined): BandStamp | undefined
  * started blank, says nothing here.
  */
 export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | undefined {
-  if (templateRef?.schema !== 'npcs') return undefined
-  const npc = readReference(
-    'npcStamp',
-    () => SalvageUnionReference.NPCs.getBySlug(templateRef.slug) ?? null,
-    null
+  if (templateRef === undefined || !isDenizenKind(templateRef.schema)) return undefined
+  return stampOf(
+    'From',
+    templateRef.schema,
+    templateRef.slug,
+    denizenTemplate(templateRef) as (RefEntity & { name: string }) | null
   )
-  return stampOf('From', 'npcs', templateRef.slug, npc)
 }
 
 /**

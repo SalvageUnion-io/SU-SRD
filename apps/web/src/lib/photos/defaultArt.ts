@@ -12,6 +12,7 @@ import { findEntityBySlug, getAssetUrl } from 'salvageunion-reference'
 import { resolveChassisRef, resolveCrawlerRef } from 'salvageunion-reference/rules'
 import type { DefaultArt } from '../../components/shared/EntityPhoto'
 import { resolveClass } from '../classRef'
+import { isDenizenKind } from '../npcs/npcModel'
 import { readReference } from '../readReference'
 
 function artOf(entity: RefMetaEntity | null | undefined): DefaultArt | undefined {
@@ -39,10 +40,11 @@ export function crawlerTypeArt(type: string | undefined): DefaultArt | undefined
 
 /** A built NPC's book template's art, where it started from a standalone NPC. */
 export function npcTemplateArt(templateRef: NpcTemplateRef | undefined): DefaultArt | undefined {
-  if (templateRef?.schema !== 'npcs') return undefined
+  if (templateRef === undefined || !isDenizenKind(templateRef.schema)) return undefined
+  const schema = templateRef.schema
   return readReference(
     'photo:npc',
-    () => artOf(findEntityBySlug('npcs', templateRef.slug) as RefMetaEntity | null),
+    () => artOf(findEntityBySlug(schema, templateRef.slug) as RefMetaEntity | null),
     undefined
   )
 }

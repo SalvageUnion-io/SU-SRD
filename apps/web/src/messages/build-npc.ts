@@ -23,7 +23,7 @@ export const npcCopy = messages({
   clear: 'Clear',
   replace: 'Replace',
   findATemplate: 'Find a template',
-  findAnNpcInThe: 'Find an NPC in the reference',
+  findAnNpcInThe: 'Find a denizen in the reference',
   templates: 'Templates',
   startBlank2: 'Start blank',
   noTemplateSetTheStats: 'No template. Set the stats and pick the actions yourself.',

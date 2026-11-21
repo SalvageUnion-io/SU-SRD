@@ -18,10 +18,11 @@
 
 import { slotKey } from 'game-domain/links/linkRules'
 import type { Crawler } from 'game-domain/schemas/crawler'
-import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
+import type { Npc, NpcTemplateKind, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
+import { NPC_TEMPLATE_KINDS } from 'game-domain/schemas/npc'
 import type { CrewSlot, SoftLink } from 'game-domain/schemas/softLink'
-import type { RefNPC, RefObjectChoice } from 'salvageunion-reference'
-import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import type { RefEntity, RefNPC, RefObjectChoice } from 'salvageunion-reference'
+import { findEntityBySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { resolvePool } from 'salvageunion-reference/rules'
 import { readReference } from '../readReference'
 
@@ -124,7 +125,7 @@ function templateName(ref: NpcTemplateRef): string | null {
   return readReference(
     'npcModel.templateName',
     () => {
-      if (ref.schema === 'npcs') return SalvageUnionReference.NPCs.getBySlug(ref.slug)?.name ?? null
+      if (isDenizenKind(ref.schema)) return denizenTemplate(ref)?.name ?? null
       if (ref.schema === 'crawler-bays') {
         return SalvageUnionReference.CrawlerBays.getBySlug(ref.slug)?.name ?? null
       }
@@ -143,7 +144,7 @@ export function npcKicker(npc: Pick<NpcView, 'templateRef'>): string | undefined
   const ref = npc.templateRef
   if (ref === undefined) return undefined
   const name = templateName(ref)
-  if (ref.schema === 'npcs') return name === null ? undefined : `From ${name}`
+  if (isDenizenKind(ref.schema)) return name === null ? undefined : `From ${name}`
   if (ref.schema === 'crawler-bays')
     return name === null ? 'Crawler crew' : `Crawler crew · ${name}`
   return name === null ? 'Crawler crew' : `Crawler crew · ${name} type`
@@ -180,12 +181,44 @@ export type NpcStatFill = Pick<
   templateRef: NpcTemplateRef
 }
 
-/** A reference NPC's stat block, as a built NPC stores it: actions as slugs (Q3). */
-export function statFillFromReference(ref: RefNPC): NpcStatFill {
+/** Whether a template's schema is one of the Reference's denizen kinds. */
+export function isDenizenKind(schema: string): schema is NpcTemplateKind {
+  return (NPC_TEMPLATE_KINDS as readonly string[]).includes(schema)
+}
+
+/**
+ * A denizen as a template reads it: an NPC's stat block, where a vehicle, a
+ * drone or a Bio-Titan has Structure Points for its Hit Points.
+ */
+export type DenizenTemplate = Pick<RefNPC, 'id' | 'name' | 'content'> &
+  Partial<Pick<RefNPC, 'hitPoints' | 'damageType' | 'actions' | 'traits' | 'bioSalvageValue'>> & {
+    structurePoints?: number
+  }
+
+/** The denizen a template ref names, or null when the reference has none by it. */
+export function denizenTemplate(ref: NpcTemplateRef | null | undefined): DenizenTemplate | null {
+  if (!ref || !isDenizenKind(ref.schema)) return null
+  const schema = ref.schema
+  return readReference(
+    'npcModel.denizenTemplate',
+    () => findEntityBySlug(schema, ref.slug) as (RefEntity & DenizenTemplate) | null,
+    null
+  )
+}
+
+/**
+ * A denizen's stat block, as a built NPC stores it: actions as slugs (Q3).
+ * One with no Hit Points takes its Structure Points, as SP.
+ */
+export function statFillFromReference(
+  ref: DenizenTemplate,
+  schema: NpcTemplateKind = 'npcs'
+): NpcStatFill {
   return {
-    templateRef: { schema: 'npcs', slug: nameToSlug(ref.name) },
-    hitPoints: ref.hitPoints,
-    damageType: ref.damageType ?? 'HP',
+    templateRef: { schema, slug: nameToSlug(ref.name) },
+    hitPoints: ref.hitPoints ?? ref.structurePoints ?? 0,
+    damageType:
+      ref.damageType ?? (ref.hitPoints === undefined && ref.structurePoints ? 'SP' : 'HP'),
     actions: (ref.actions ?? []).map(npcActionSlug),
     traits: (ref.traits ?? []).map(
       (t): NpcTrait =>
