@@ -181,10 +181,15 @@ export const UNREADABLE: ServerMessage = {
  */
 export const CHANGED_FIRST = 'Someone else changed that first. Check it, then try again.'
 
+/** The same, when the change it met was the sender's own, on another screen (two tabs, a phone and a laptop). */
+export const CHANGED_FIRST_BY_YOU =
+  'You changed that on another screen first. Check it, then try again.'
+
 /** What the sender of a batch hears: `ack`, or why it was declined. */
 export function batchAnswer(opIds: string[], result: SubmitResult): ServerMessage {
   if (result.ok) return { type: 'ack', opIds, fresh: result.fresh }
-  return refusedBatch(opIds, result.reason === 'conflict' ? CHANGED_FIRST : result.message)
+  if (result.reason !== 'conflict') return refusedBatch(opIds, result.message)
+  return refusedBatch(opIds, result.own === true ? CHANGED_FIRST_BY_YOU : CHANGED_FIRST)
 }
 
 export function refusedBatch(opIds: string[], reason: string): ServerMessage {
