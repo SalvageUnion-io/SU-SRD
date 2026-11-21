@@ -76,7 +76,8 @@ function RowEffect({ text, name }: { text: string; name: string }) {
       {(cut || full) && (
         <Button
           variant="ghost"
-          size="mini"
+          // The Tabs' height, as every Button in the Actions band (R12).
+          size="compact"
           aria-expanded={full}
           // Its own name, beside the bar's More: "More of Jury Rig".
           aria-label={playCopy(full ? 'lessOf' : 'moreOf', { name })}
