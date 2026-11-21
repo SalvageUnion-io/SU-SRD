@@ -136,7 +136,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
       {onChange && (
         <div style={CONTROLS}>
           <Button
-            size="compact"
+            size="full"
             disabled={busy}
             onClick={() => input.current?.click()}
             aria-label={
@@ -153,7 +153,7 @@ export function EntityPhoto({ photo, fallback, name, onChange, frame }: EntityPh
           </Button>
           {photo && (
             <Button
-              size="compact"
+              size="full"
               disabled={busy}
               onClick={() => void removal.run()}
               aria-label={sharedCopy('removeSPhoto', { name })}

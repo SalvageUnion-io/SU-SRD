@@ -103,6 +103,7 @@ export function PlayFeedSection({
       title={playCopy('feed')}
       className={own ? 'su-play-split__feed' : undefined}
       bodyClassName={own ? 'su-play-split__lines' : undefined}
+      bodyScrolls={own}
     >
       <PlayFeed
         gameId={side.gameId}

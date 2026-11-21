@@ -1594,6 +1594,18 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
 }
 
+/* Under the pointer its plate stays opaque: the ink wash a button wears
+   elsewhere lets a head's tone through, and ink on a dark tone fails contrast. */
+.su-chips
+  > .su-chip-lane
+  > .su-btn--default.su-btn.su-btn--mini:hover:not(:disabled, [data-ground='ink'] *),
+.su-chips
+  > .su-chip-lane
+  > *
+  > .su-btn--default.su-btn.su-btn--mini:hover:not(:disabled, [data-ground='ink'] *) {
+  background-color: var(--color-wk-bg);
+}
+
 /* A rust button on a Compact's head band wears the ink keyline too (a Game's
    door on the Play hub). */
 .su-entity-compact__head .su-btn--primary:not(:disabled) {

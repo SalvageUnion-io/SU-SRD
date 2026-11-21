@@ -74,6 +74,8 @@ type SlabSectionProps = {
   /** The body's layout: its own gap between what it holds. */
   bodyClassName?: string
   bodyStyle?: CSSProperties
+  /** The body scrolls its own lines, so the keyboard reaches it (WCAG 2.1.1). */
+  bodyScrolls?: boolean
   children?: ReactNode
 }
 
@@ -113,6 +115,7 @@ export function SlabSection({
   style,
   bodyClassName,
   bodyStyle,
+  bodyScrolls = false,
   children,
 }: SlabSectionProps) {
   const inherited = useContext(RowDress)
@@ -181,6 +184,8 @@ export function SlabSection({
           id={fold ? disclosure.panelId : undefined}
           hidden={!open}
           className={cn('su-slab-section__body', bodyClassName)}
+          // A region that scrolls must be reachable by keyboard (WCAG 2.1.1)
+          tabIndex={bodyScrolls ? 0 : undefined}
           // A shut body wears no style object: its `display` would beat `hidden`.
           style={open ? bodyStyle : undefined}
           // On a Page what a strip heads are rows,

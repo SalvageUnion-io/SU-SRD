@@ -33,7 +33,9 @@ const CONTROL = [
   // it heads the pips, and is no control on the steppers' line beside them.
   'button:not(.su-chip-link):not(.su-vital-gauge__value-button)',
   'a.su-btn',
-  '[role=button]:not(.su-chip-link)',
+  // A multiline field's read state is prose as tall as it runs, as its
+  // `Textarea` is: neither is a control on a line.
+  '[role=button]:not(.su-chip-link):not([data-multiline])',
   '[role=radio]',
   '[role=tab]',
   'input:not([type=hidden]):not([type=checkbox]):not([type=radio])',
