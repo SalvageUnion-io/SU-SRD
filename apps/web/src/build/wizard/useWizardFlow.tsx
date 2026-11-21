@@ -86,6 +86,12 @@ export type WizardFlowOptions<
    * (`?game=<id>`, ADR-052 §3). Unset, the store decides.
    */
   gameId?: string | undefined
+  /**
+   * The saved unit this run redesigns (the NPC designer's Edit design): Save
+   * validates the form the same way, then hands it to `save`, which writes
+   * that unit in place, and nothing is created.
+   */
+  existing?: { id: string; save: (form: TForm) => Promise<unknown> } | undefined
 }
 
 /** The `WizShell` props every creation wizard passes the same way. */
@@ -138,6 +144,7 @@ export function useWizardFlow<
   onCancel,
   onOffRules,
   gameId,
+  existing,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
   // A reload reopens at the furthest step the draft reached, short of the
   // first step whose gate its picks no longer pass.
@@ -187,6 +194,10 @@ export function useWizardFlow<
         return null
       }
 
+      if (existing !== undefined) {
+        await existing.save(form)
+        return { id: existing.id }
+      }
       return useUnits
         .getState()
         .create(entityType, gameId === undefined ? rawInput : inGame(rawInput, gameId))

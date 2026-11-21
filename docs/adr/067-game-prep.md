@@ -24,9 +24,23 @@ The Opposition picker leads with kind tabs and searches across every kind; a
 "Yours" tab lists the NPCs the Mediator designed. Fielding one stores a
 snapshot on the tray row or the encounter's opponent: `built: { npcId, name,
 actions, traits }`, beside the usual name, HP or SP. It is a copy, as a
-Reference draw is: editing or deleting the design later changes no fight
-already prepared. `refSchema` stays `npcs` with an empty `refSlug`, so readers
+Reference draw is. `refSchema` stays `npcs` with an empty `refSlug`, so readers
 that know nothing of `built` still read a valid row.
+
+Amended 2026-11-21 (second persona review):
+
+- **The snapshot keeps its kind.** `built` gains two optional fields, `kind`
+  (the template's schema, where the design was built from a denizen that is not
+  a plain NPC) and `bioSalvageValue`. A row built from a Bio-Titan is chipped
+  and badged a Bio-Titan and leaves a Bio-Titan's Bio-Salvage. A snapshot taken
+  before this has neither and reads as an NPC.
+- **Prep follows a redesign.** A saved NPC reopens in the designer
+  (`/npcs/<id>/design`, its sheet's "Edit design") and is saved in place.
+  Saving rewrites the snapshot on every encounter of its maker's that fields
+  it: the stat block, HP or SP, and the name where the opponent still went by
+  the design's. A fight already on a Game's field keeps the snapshot it was
+  run with, and deleting a design still changes nothing prepared. A crawler's
+  crew are not redesigned there: their slot sets their stats (ADR-044).
 
 ### 2. Any denizen is a template
 

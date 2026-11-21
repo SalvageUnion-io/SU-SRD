@@ -92,11 +92,14 @@ export function FocusPane({
             title={entity.name}
             titleAs="h2"
             titleSize={fontSize.hero}
+            // The player's own: credited to them, with no page to cite or link (MD2-09).
+            credit={userMade ? compositionsCopy('yourDesign') : undefined}
           >
             <ReferenceEntityCard
               data={entity}
               presentation="page"
-              hide={hide}
+              // Its actions are what it is: a design has no Reference page to read them on.
+              hide={userMade ? { ...hide, actions: false } : hide}
               userMade={userMade}
               showChassisAbility={showChassisAbility}
             />

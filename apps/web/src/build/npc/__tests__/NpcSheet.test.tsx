@@ -166,3 +166,35 @@ describe('edits', () => {
     await waitFor(() => expect(useUnits.getState().npcs[0]?.motto).toBe('Hold the line.'))
   })
 })
+
+// MD2-03: Edit reached only the name and flavour.
+describe('Edit design', () => {
+  test('Edit offers the designer for an NPC designed as any NPC, and Read does not', async () => {
+    const { SheetModeContext } = await import('../../sheet/sheetMode.model')
+    const mode = (editing: boolean) => ({ editing, setEditing: () => undefined })
+    const sheet = (editing: boolean, npc = KESSLER) => (
+      <SyncContext.Provider value={CONNECTED}>
+        <SheetModeContext.Provider value={mode(editing) as never}>
+          <NpcSheet npc={npc} madeBy="alxjrvs" readOnly={false} confirm={() => undefined} />
+        </SheetModeContext.Provider>
+      </SyncContext.Provider>
+    )
+    let view!: ReturnType<typeof render>
+    await act(async () => {
+      view = render(sheet(false))
+    })
+    const design = () => screen.queryByRole('link', { name: 'Edit the design of Sergeant Kessler' })
+    expect(design()).toBeNull()
+    await act(async () => {
+      view.rerender(sheet(true))
+    })
+    expect(design()?.getAttribute('href')).toBe('/npcs/n1/design')
+    // A crawler's crew take their stats from their slot: no designer for them here.
+    await act(async () => {
+      view.rerender(
+        sheet(true, { ...KESSLER, templateRef: { schema: 'crawler-bays', slug: 'med-bay' } })
+      )
+    })
+    expect(design()).toBeNull()
+  })
+})

@@ -17,6 +17,12 @@ import { statFillFromReference } from '../npcs/npcModel'
 export const NPC_STEPS = ['template', 'stats', 'actions', 'identity', 'review'] as const
 export type NpcStepId = (typeof NPC_STEPS)[number]
 
+/**
+ * A saved NPC's redesign: the same steps without Template. What it was built
+ * from is kept; a new template is a new NPC.
+ */
+export const NPC_REDESIGN_STEPS = ['stats', 'actions', 'identity', 'review'] as const
+
 export const NPC_STEP_LABELS: Record<NpcStepId, string> = {
   template: 'Template',
   stats: 'Stats',
@@ -282,4 +288,55 @@ export function npcFormToCreateInput(form: NpcFormState): CreateInput<'npc'> {
     if (value !== undefined) Object.assign(input, { [key]: value })
   }
   return input
+}
+
+/**
+ * A saved NPC as the designer's form, to redesign it in place: its stat block
+ * and identity as they stand, every action and trait it carries offered and
+ * checked.
+ */
+export function npcFormFromNpc(npc: Npc): NpcFormState {
+  return {
+    templateRef: npc.templateRef ?? null,
+    templateChosen: true,
+    name: npc.name,
+    position: npc.position ?? '',
+    description: npc.description ?? '',
+    keepsake: npc.keepsake ?? '',
+    motto: npc.motto ?? '',
+    hitPoints: String(npc.hitPoints),
+    damageType: npc.damageType,
+    bioSalvageValue: npc.bioSalvageValue === undefined ? '' : String(npc.bioSalvageValue),
+    actions: [...npc.actions],
+    traits: [...npc.traits],
+    offeredActions: [...npc.actions],
+    offeredTraits: [...npc.traits],
+    filledFrom: null,
+    filledDescription: '',
+  }
+}
+
+/**
+ * The redesign as a patch on the saved NPC: the stat block and the identity
+ * the designer edits, a cleared line unset. Its facts, picture and crew
+ * choices are not the designer's and are left alone; HP it no longer has room
+ * for comes down to the new most.
+ */
+export function npcFormToPatch(form: NpcFormState, npc: Pick<Npc, 'currentHP'>): Partial<Npc> {
+  const view = npcFormView(form)
+  return {
+    name: form.name.trim(),
+    position: optional(form.position),
+    description: optional(form.description),
+    keepsake: optional(form.keepsake),
+    motto: optional(form.motto),
+    hitPoints: view.hitPoints,
+    damageType: form.damageType,
+    bioSalvageValue: view.bioSalvageValue,
+    actions: form.actions,
+    traits: form.traits,
+    ...(npc.currentHP !== undefined && npc.currentHP > view.hitPoints
+      ? { currentHP: view.hitPoints }
+      : {}),
+  }
 }

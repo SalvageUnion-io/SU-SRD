@@ -7,6 +7,7 @@
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../test/roomsStub'
+import { npcFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
@@ -17,7 +18,8 @@ afterAll(() => serverMocks.restore())
 
 const { SyncContext } = await import('../../../replica/syncContext')
 const { useUnits } = await import('../../../replica/units')
-const { AnyNpcDesigner } = await import('../AnyNpcDesigner')
+const { AnyNpcDesigner, NpcRedesigner } = await import('../AnyNpcDesigner')
+const { useEncounters } = await import('../../../replica/collections')
 
 withSignedInBackend()
 
@@ -229,5 +231,126 @@ describe('saving', () => {
       name: 'createUnit',
       args: expect.objectContaining({ id: npc?.id, kind: 'npc' }),
     })
+  })
+})
+
+// MD2-21: Review drew the finished card beside the live preview of the same card.
+describe('the review step', () => {
+  test('shows the card once', async () => {
+    await renderDesigner()
+    await pick('Start blank')
+    await click('Next: Stats')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '5' } })
+    })
+    await click('Next: Actions & traits')
+    await click('Next: Identity')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Vex' } })
+    })
+    // Beside a step, the live preview; on Review, the card alone.
+    expect(screen.getByRole('region', { name: 'Live preview' })).toBeTruthy()
+    await click('Next: Review')
+    expect(screen.queryByRole('region', { name: 'Live preview' })).toBeNull()
+    expect(screen.getAllByText('Made by alxjrvs')).toHaveLength(1)
+  })
+})
+
+// MD2-03: a saved NPC could not be changed beyond its name and flavour.
+describe('redesigning a saved NPC', () => {
+  const VEX = npcFixture({
+    id: 'n-vex',
+    name: 'Captain Vex',
+    position: 'Raider warlord',
+    hitPoints: 6,
+    actions: ['green-laser-rifle-veteran'],
+    templateRef: { schema: 'npcs', slug: 'veteran' },
+  })
+  const NOW = '2026-11-21T00:00:00.000Z'
+  const built = { npcId: 'n-vex', name: 'Captain Vex', actions: VEX.actions, traits: [] }
+  const opponent = (id: string, name: string) => ({
+    id,
+    refSchema: 'npcs' as const,
+    refSlug: '',
+    name,
+    maxHp: 6,
+    statKind: 'hp' as const,
+    built,
+  })
+  let saved: string[] = []
+
+  async function renderRedesign() {
+    await useUnits.getState().adopt('npc', VEX)
+    useEncounters.setState({
+      encounters: [
+        {
+          id: 'enc-1',
+          schemaVersion: 1,
+          name: 'Ambush',
+          opposition: [opponent('o1', 'Captain Vex'), opponent('o2', 'Red Leader')],
+          tables: [],
+          notes: '',
+          createdAt: NOW,
+          updatedAt: NOW,
+        },
+      ],
+      hydrated: true,
+    } as never)
+    saved = []
+    await act(async () => {
+      render(
+        <SyncContext.Provider value={CONNECTED}>
+          <NpcRedesigner
+            npc={VEX}
+            madeBy="alxjrvs"
+            onSaved={(id) => saved.push(id)}
+            onCancel={() => undefined}
+          />
+        </SyncContext.Provider>
+      )
+    })
+  }
+
+  test('opens on its stats as they stand, with no Template step', async () => {
+    await renderRedesign()
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '6')
+    expect(screen.queryByRole('radiogroup', { name: 'Template' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Change the template' })).toBeNull()
+    await click('Next: Actions & traits')
+    expect(
+      screen
+        .getByRole('button', { name: 'Carry Green Laser Rifle (Veteran)' })
+        .getAttribute('aria-pressed')
+    ).toBe('true')
+  })
+
+  test('saves onto the same NPC, and every encounter that fields it takes the change', async () => {
+    await renderRedesign()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '12' } })
+    })
+    await click('Next: Actions & traits')
+    await click('Next: Identity')
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText(/Name/), { target: { value: 'Warlord Vex' } })
+      fireEvent.change(screen.getByLabelText(/Position/), { target: { value: '' } })
+    })
+    await click('Next: Review')
+    await click('Save changes')
+    await waitFor(() => expect(saved).toEqual(['n-vex']))
+
+    // In place: still one NPC, the same id.
+    const npcs = useUnits.getState().npcs
+    expect(npcs).toHaveLength(1)
+    expect(npcs[0]).toMatchObject({ id: 'n-vex', name: 'Warlord Vex', hitPoints: 12 })
+    expect(npcs[0]?.position).toBeUndefined()
+    expect(roomActs.some((a) => a.name === 'createUnit')).toBe(false)
+
+    const opposition = useEncounters.getState().get('enc-1')?.opposition ?? []
+    expect(opposition.map((o) => [o.name, o.maxHp, o.built?.name])).toEqual([
+      ['Warlord Vex', 12, 'Warlord Vex'],
+      // One the Mediator named apart keeps its name.
+      ['Red Leader', 12, 'Warlord Vex'],
+    ])
   })
 })

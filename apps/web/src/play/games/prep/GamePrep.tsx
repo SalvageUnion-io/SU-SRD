@@ -28,7 +28,7 @@ import { useHydrateOnMount } from '../../../lib/entities/useHydrateEntities'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
 import { areaTitle } from '../../../lib/pageTitle'
 import { runWrite } from '../../../lib/runWrite'
-import { encounterReading, npcReading } from '../../../lib/shelves/shelfItems'
+import { encounterReading, hpColumnCell, npcReading } from '../../../lib/shelves/shelfItems'
 import { useTabTitle } from '../../../lib/useTabTitle'
 import { playGamesCopy } from '../../../messages/play-games'
 import { useEncounters } from '../../../replica/collections'
@@ -238,7 +238,7 @@ function PrepSections({ gameId }: { gameId: string }) {
             id: n.id,
             name: n.name,
             href: `/npcs/${n.id}`,
-            cells: [n.position ?? '', String(npcReading(n).value)],
+            cells: [n.position ?? '', hpColumnCell(npcReading(n))],
             menu: [],
           }))}
         />

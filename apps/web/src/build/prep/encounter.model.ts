@@ -108,6 +108,28 @@ export function oppositionWith(
   return [...encounter.opposition, opponentFrom(body, id)]
 }
 
+/**
+ * The opposition after one of the Mediator's designs was redesigned (ADR-067
+ * §1, as amended): every opponent drawn from it takes the design's new stat
+ * block (`built`, HP or SP), and its new name where it still went by the old
+ * one. `null` when the encounter fields none of it, or nothing changed.
+ */
+export function redesignedOpposition(
+  opposition: readonly EncounterOpponent[],
+  npcId: string,
+  design: { built: NonNullable<EncounterOpponent['built']>; maxHp: number; statKind: 'hp' | 'sp' }
+): EncounterOpponent[] | null {
+  let changed = false
+  const next = opposition.map((opponent) => {
+    if (opponent.built?.npcId !== npcId) return opponent
+    const renamed = opponent.name === opponent.built.name ? design.built.name : opponent.name
+    const updated = { ...opponent, ...design, name: renamed }
+    if (JSON.stringify(updated) !== JSON.stringify(opponent)) changed = true
+    return updated
+  })
+  return changed ? next : null
+}
+
 /** Whether another opponent fits. */
 export function hasRoomFor(encounter: Pick<Encounter, 'opposition'>): boolean {
   return encounter.opposition.length < ENCOUNTER_MAX_OPPOSITION
@@ -121,8 +143,8 @@ export function opponentAsTray(opponent: EncounterOpponent): TrayNpc {
 /**
  * What a row is, beside its name: its kind, then what it was drawn from where
  * the name no longer says ("Bio-Titan · Scylla" for a renamed Scylla, "Mech ·
- * Hussar" for a Hussar named after its pattern). A plain NPC under its own
- * name has nothing to add.
+ * Hussar" for a Hussar named after its pattern, "Bio-Titan" for a design built
+ * from one). A plain NPC under its own name has nothing to add.
  */
 export function opponentNote(opponent: EncounterOpponent): string | undefined {
   const { entity, pattern } = opponentAsTray(opponent)
@@ -130,8 +152,10 @@ export function opponentNote(opponent: EncounterOpponent): string | undefined {
   const source = [entity?.name, pattern?.name].filter(
     (part): part is string => typeof part === 'string' && part.toLowerCase() !== named
   )
-  if (opponent.refSchema === 'npcs' && source.length === 0) return undefined
-  return [npcKind(opponent), ...source].join(' · ')
+  // A design is the kind it was built from (its own name is its source).
+  const kind = { refSchema: opponent.refSchema, builtKind: opponent.built?.kind ?? null }
+  if ((kind.builtKind ?? kind.refSchema) === 'npcs' && source.length === 0) return undefined
+  return [npcKind(kind), ...source].join(' · ')
 }
 
 /** The tables with `name` pinned last, once; unchanged when it is pinned or there is no room. */

@@ -14,9 +14,13 @@
  *
  * The step machine and create are `useWizardFlow`'s, drawn by `WizShell` like every
  * wizard (hard rule R16); drafts go through `wizardDraft.ts`.
+ *
+ * `NpcRedesigner` is the same designer opened on a saved NPC (its sheet's
+ * "Edit design"): no Template step, the form filled from the NPC, and Save
+ * writes that NPC in place (`saveNpcRedesign`), never a new one.
  */
 
-import type { NpcTemplateKind, NpcTemplateRef } from 'game-domain/schemas/npc'
+import type { Npc, NpcTemplateKind, NpcTemplateRef } from 'game-domain/schemas/npc'
 import { NPC_TEMPLATE_KINDS, NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -49,8 +53,10 @@ import {
   applyBlankStart,
   applyNpcTemplate,
   EMPTY_NPC_FORM,
+  NPC_REDESIGN_STEPS,
   NPC_STEP_LABELS,
   NPC_STEPS,
+  npcFormFromNpc,
   npcFormToCreateInput,
   npcFormView,
   statsEditedSinceFill,
@@ -59,6 +65,7 @@ import {
 } from '../../lib/wizard/npcFormState'
 import { npcCopy } from '../../messages/build-npc'
 import { useSync } from '../../replica/syncContext'
+import type { WizardDraft } from '../wizard/useWizardDraft'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
@@ -66,6 +73,7 @@ import { NpcCard } from './NpcCard'
 import { ActionPick, TraitPick } from './NpcPickRows'
 import { ReferenceAdder } from './NpcReferenceAdder'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
+import { saveNpcRedesign } from './redesign'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template: npcCopy('introTemplate'),
@@ -86,6 +94,8 @@ type AnyNpcDesignerProps = {
   onCancel: () => void
   /** A denizen to start from (`?from=`, a Reference page's "Design from this"). */
   startFrom?: NpcTemplateRef
+  /** The Game the new NPC is made in (`?game=`, from that Game's Prep); unset, the Kit. */
+  gameId?: string | undefined
 }
 
 /** What each kind of denizen is called on its tab. */
@@ -102,11 +112,54 @@ const TEMPLATE_KIND_LABEL: Record<NpcTemplateKind, string> = {
 /** A template waiting to be applied: the denizen and the kind it is. */
 type Start = { schema: NpcTemplateKind; entity: DenizenTemplate }
 
-export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNpcDesignerProps) {
+export function AnyNpcDesigner(props: AnyNpcDesignerProps) {
+  const draft = useWizardDraft<NpcFormState>('npc', { baseline: EMPTY_NPC_FORM })
+  return <NpcDesignerSteps {...props} draft={draft} />
+}
+
+/** The designer on a saved NPC: its stats, actions and identity, saved in place. */
+export function NpcRedesigner({
+  npc,
+  madeBy,
+  onSaved,
+  onCancel,
+}: {
+  npc: Npc
+  madeBy: string
+  /** The redesign was saved onto the NPC. */
+  onSaved: (npcId: string) => void
+  onCancel: () => void
+}) {
+  // The NPC as it stood when the designer opened: saving it must not restart the form.
+  const [baseline] = useState(() => npcFormFromNpc(npc))
+  const [form, setForm] = useState(baseline)
+  const formDirty = JSON.stringify(form) !== JSON.stringify(baseline)
+  return (
+    <NpcDesignerSteps
+      madeBy={madeBy}
+      onCreated={onSaved}
+      onCancel={onCancel}
+      draft={{ form, setForm, formDirty, draftKey: `su-npc-redesign:${npc.id}` }}
+      existing={npc}
+    />
+  )
+}
+
+function NpcDesignerSteps({
+  madeBy,
+  onCreated,
+  onCancel,
+  startFrom,
+  gameId,
+  draft,
+  existing,
+}: AnyNpcDesignerProps & {
+  draft: WizardDraft<NpcFormState>
+  /** The saved NPC being redesigned; absent, a new one is designed. */
+  existing?: Npc
+}) {
   const { canWrite } = useSync()
-  const { form, setForm, formDirty, draftKey } = useWizardDraft<NpcFormState>('npc', {
-    baseline: EMPTY_NPC_FORM,
-  })
+  const { form, setForm, formDirty, draftKey } = draft
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
   const [pendingStart, setPendingStart] = useState<Start | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -114,10 +167,10 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
   const flow = useWizardFlow({
     entityType: 'npc',
     noun: 'NPC',
-    steps: NPC_STEPS,
+    steps: existing ? NPC_REDESIGN_STEPS : NPC_STEPS,
     stepLabels: NPC_STEP_LABELS,
     gateFor: (s) => npcCreationStepGate(s, form),
-    initialStep: 'template',
+    initialStep: existing ? 'stats' : 'template',
     submitStep: 'review',
     form,
     draftKey,
@@ -127,6 +180,10 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
     failureMessage: npcCopy('theNpcCouldNotBe'),
     onComplete: onCreated,
     onCancel,
+    gameId,
+    existing: existing
+      ? { id: existing.id, save: (next) => saveNpcRedesign(existing, next) }
+      : undefined,
   })
   const { step, gate, submitError, shell } = flow
 
@@ -179,17 +236,17 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
           tabs). The step sits beside its live preview. */}
       <WizShell
         kind="npc"
-        eyebrow={npcCopy('denizensNewNpc')}
+        eyebrow={existing ? npcCopy('denizensEditDesign') : npcCopy('denizensNewNpc')}
         band={false}
         {...shell}
         nextDisabled={shell.nextDisabled || writesBlocked}
         title={NPC_STEP_LABELS[step]}
         footerNote={!gate.ok ? gate.reason : undefined}
-        submitLabel={npcCopy('saveNpc')}
+        submitLabel={existing ? npcCopy('saveChanges') : npcCopy('saveNpc')}
       >
         <Grid min="24rem" gap={32} style={STEP_COLUMNS}>
           <section style={COLUMN} aria-label={NPC_STEP_LABELS[step]}>
-            {step !== 'template' && form.templateChosen && (
+            {step !== 'template' && form.templateChosen && !(existing && !template) && (
               <div style={ROW}>
                 <span className={CAPS_LABEL} style={CAPS}>
                   {npcCopy('template')}
@@ -200,27 +257,34 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
                     size="mini"
                     context="browse"
                     entity={template}
+                    // A redesign keeps what it was built from: there is no Template step to go to.
                     controls={
-                      <Button
-                        size="mini"
-                        aria-label={npcCopy('changeTheTemplate')}
-                        onClick={() => shell.onStepClick(0)}
-                      >
-                        {npcCopy('change')}
-                      </Button>
+                      existing ? undefined : (
+                        <Button
+                          size="mini"
+                          aria-label={npcCopy('changeTheTemplate')}
+                          onClick={() => shell.onStepClick(0)}
+                        >
+                          {npcCopy('change')}
+                        </Button>
+                      )
                     }
                   />
                 ) : (
                   <>
                     <span style={HINT}>{npcCopy('startedBlank')}</span>
-                    <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
-                      {npcCopy('change')}
-                    </Button>
+                    {!existing && (
+                      <Button variant="ghost" size="compact" onClick={() => shell.onStepClick(0)}>
+                        {npcCopy('change')}
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
             )}
-            <p style={HINT}>{STEP_INTRO[step]}</p>
+            <p style={HINT}>
+              {existing && step === 'review' ? npcCopy('introReviewRedesign') : STEP_INTRO[step]}
+            </p>
             {step !== 'review' && (
               <Button
                 variant="ghost"
@@ -238,20 +302,30 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
             {step === 'stats' && <StatsStep form={form} onChange={update} />}
             {step === 'actions' && <ActionsStep form={form} onChange={setForm} />}
             {step === 'identity' && <IdentityStep form={form} onChange={update} />}
-            {step === 'review' && <div>{preview}</div>}
+            {step === 'review' && (
+              <>
+                <div>{preview}</div>
+                <p style={NOTE}>
+                  <strong>{npcCopy('yoursNotTheBooks')}</strong> {npcCopy('aDesignedNpcKeeps')}
+                </p>
+              </>
+            )}
 
             {submitError && <FieldError>{submitError}</FieldError>}
           </section>
 
-          <section className="su-npc-preview" aria-label={npcCopy('livePreview')}>
-            <p className={CAPS_LABEL} style={CAPS}>
-              {npcCopy('livePreviewHowItWill')}
-            </p>
-            {preview}
-            <p style={NOTE}>
-              <strong>{npcCopy('yoursNotTheBooks')}</strong> {npcCopy('aDesignedNpcKeeps')}
-            </p>
-          </section>
+          {/* Review is the card itself: no second copy of it beside (MD2-21). */}
+          {step !== 'review' && (
+            <section className="su-npc-preview" aria-label={npcCopy('livePreview')}>
+              <p className={CAPS_LABEL} style={CAPS}>
+                {npcCopy('livePreviewHowItWill')}
+              </p>
+              {preview}
+              <p style={NOTE}>
+                <strong>{npcCopy('yoursNotTheBooks')}</strong> {npcCopy('aDesignedNpcKeeps')}
+              </p>
+            </section>
+          )}
         </Grid>
       </WizShell>
 

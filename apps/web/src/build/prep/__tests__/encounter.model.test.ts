@@ -17,6 +17,7 @@ import {
   opponentNote,
   oppositionWith,
   pinTable,
+  redesignedOpposition,
   unpinTable,
 } from '../encounter.model'
 
@@ -144,6 +145,25 @@ describe('what a row is, beside its name (MD-18)', () => {
     )
   })
 
+  // MD-18, MD2-15: a design keeps the kind it was built from.
+  test('a design built from a Bio-Titan says so; one built from an NPC has nothing to add', () => {
+    const built = { npcId: 'n1', name: 'The Relay Lurker', actions: [], traits: [] }
+    expect(
+      opponentNote(
+        row({
+          refSchema: 'npcs',
+          refSlug: '',
+          name: 'The Relay Lurker',
+          statKind: 'sp',
+          built: { ...built, kind: 'bio-titans' },
+        })
+      )
+    ).toBe('Bio-Titan')
+    expect(
+      opponentNote(row({ refSchema: 'npcs', refSlug: '', name: 'The Relay Lurker', built }))
+    ).toBeUndefined()
+  })
+
   test('a mech named after its pattern says its chassis', () => {
     expect(
       opponentNote(
@@ -190,5 +210,40 @@ describe('a Reference denizen added from its page', () => {
     expect(next?.[1]).toMatchObject({ id: 'o2', refSchema: 'squads', name: squad.name })
     const full = { opposition: Array.from({ length: ENCOUNTER_MAX_OPPOSITION }, () => band) }
     expect(oppositionWith(full, 'squads', squad, 'o3', NOW)).toBeNull()
+  })
+})
+
+// MD2-03: a redesign reaches every encounter that fields the design.
+describe('redesignedOpposition', () => {
+  const built = { npcId: 'n1', name: 'Captain Vex', actions: ['rifle'], traits: [] }
+  const vex: EncounterOpponent = {
+    id: 'o-vex',
+    refSchema: 'npcs',
+    refSlug: '',
+    name: 'Captain Vex',
+    maxHp: 6,
+    statKind: 'hp',
+    built,
+  }
+  const design = {
+    built: { ...built, name: 'Warlord Vex', actions: ['rifle', 'pistol'] },
+    maxHp: 12,
+    statKind: 'hp' as const,
+  }
+
+  test('each opponent drawn from it takes the new stat block, and the new name it went by', () => {
+    const second = { ...vex, id: 'o-vex-2', name: 'Captain Vex 2', groupId: 'g1' }
+    const next = redesignedOpposition([band, vex, second], 'n1', design)
+    expect(next?.[0]).toBe(band)
+    expect(next?.[1]).toEqual({ ...vex, ...design, name: 'Warlord Vex' })
+    // One the Mediator named apart keeps its name and its group.
+    expect(next?.[2]).toEqual({ ...second, ...design })
+  })
+
+  test('an encounter that fields none of it, or already has it, is left alone', () => {
+    expect(redesignedOpposition([band], 'n1', design)).toBeNull()
+    expect(
+      redesignedOpposition([{ ...vex, ...design, name: 'Warlord Vex' }], 'n1', design)
+    ).toBeNull()
   })
 })
