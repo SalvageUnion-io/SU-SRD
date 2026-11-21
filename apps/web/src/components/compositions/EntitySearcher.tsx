@@ -465,6 +465,7 @@ export function EntitySearcher({
       showChassisAbility={showChassisAbility}
       onAdd={() => focusedId && add(focusedId)}
       extra={focusExtra?.(focused)}
+      budgets={wide || budget === undefined ? undefined : [budget].flat()}
       userMade={userMade}
       onBack={wide ? undefined : back}
       backRef={backRef}

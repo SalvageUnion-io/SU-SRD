@@ -30,6 +30,7 @@ import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizTracker } from '../wizard/WizBudget'
 import { WizShell } from '../wizard/WizShell'
+import { FIRST_ABILITY_ID } from '../wizard/wizPrompt.model'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 
@@ -397,6 +398,8 @@ export function PilotWizard({
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={gate.ok ? undefined : gate.reason}
+      // The reason's press lands on the table it asks from, once a class opens it.
+      noteTargetId={step === 'classAbility' && form.classId ? FIRST_ABILITY_ID : undefined}
       submitLabel={pilotCopy('createPilot')}
     >
       {step === 'classAbility' && (

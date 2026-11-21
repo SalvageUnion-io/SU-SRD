@@ -359,6 +359,7 @@ export function MechWizard({
       // Spent, as the slots read filled: every budget counts up to its cap.
       <WizTracker
         label={mechCopy('scrapSpent')}
+        short={mechCopy('scrap')}
         value={MECH_CREATION_SCRAP_CAP - budget.remaining}
         max={MECH_CREATION_SCRAP_CAP}
         testId="scrap-spent"
@@ -372,6 +373,7 @@ export function MechWizard({
             <span className="su-wiz-pill-wide">
               <WizTracker
                 label={mechCopy('systemSlots')}
+                short={mechCopy('sys')}
                 value={capacity.systemSlotsUsed}
                 max={capacity.systemSlotsMax}
                 testId="system-slot-count"
@@ -380,6 +382,7 @@ export function MechWizard({
             <span className="su-wiz-pill-wide">
               <WizTracker
                 label={mechCopy('moduleSlots')}
+                short={mechCopy('mod')}
                 value={capacity.moduleSlotsUsed}
                 max={capacity.moduleSlotsMax}
                 testId="module-slot-count"

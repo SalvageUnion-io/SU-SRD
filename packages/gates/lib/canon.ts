@@ -240,7 +240,13 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
   R11a: ['oneForm.test.tsx'],
-  R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
+  R12: [
+    '_siblingHeights.ts',
+    '_typeFloor.ts',
+    'sizeHeights.test.ts',
+    'phoneTargets.test.ts',
+    'biome.jsonc#R12',
+  ],
   R15: [
     'select-mode/picker-opacity',
     'select-mode/level-2-seal',

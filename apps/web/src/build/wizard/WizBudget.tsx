@@ -13,9 +13,12 @@ export function WizTracker({
   value,
   max,
   pips = false,
+  short,
   testId,
 }: {
   label: string
+  /** The label a phone's bar reads (`Sys`), where three budgets share one line. */
+  short?: string
   value: number
   max: number
   pips?: boolean
@@ -24,7 +27,12 @@ export function WizTracker({
 }) {
   return (
     <span data-testid={testId}>
-      <Stat label={label} value={pips ? `${slotPips(value, max)}${value}` : value} max={max} />
+      <Stat
+        label={label}
+        {...(short ? { shortLabel: short } : {})}
+        value={pips ? `${slotPips(value, max)}${value}` : value}
+        max={max}
+      />
     </span>
   )
 }
