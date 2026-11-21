@@ -376,7 +376,7 @@
 /* Between a phone and `lg` a dense list (an index of seven stats) has no room
    left for its quiet line: the line gives way, as on a phone, and the cells
    sit closer, so every measure stays inside the frame (R44). */
-@media (width >= 40rem) and (width < 64rem) {
+@media (width >= 40rem) and (not (width >= 64rem)) {
   .su-ledger__table[data-dense] :is(th, td)[data-kind='quiet'] {
     display: none;
   }

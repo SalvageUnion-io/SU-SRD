@@ -1,4 +1,4 @@
-import { citeLine } from 'salvageunion-reference'
+import { componentsCopy } from '../../../messages/components'
 import { entityCopy } from '../../../messages/components-entity'
 
 /**
@@ -19,9 +19,7 @@ export type StatTerm = {
 /** The Peek address space of a term: no dataset schema, so nothing loads. */
 export const TERM_SCHEMA = 'term'
 
-const BOOK = 'Workshop Manual'
-
-const cite = (page: number) => citeLine([{ book: BOOK, page }]) ?? BOOK
+const cite = (page: number) => componentsCopy('workshopManualP', { page })
 
 const TERMS: readonly (StatTerm & { names: RegExp })[] = [
   {
