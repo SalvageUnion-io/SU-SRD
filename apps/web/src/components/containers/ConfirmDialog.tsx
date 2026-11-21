@@ -66,6 +66,11 @@ type ConfirmDialogProps = {
   tone?: 'danger' | 'default'
   /** The action. A returned promise holds the dialog in its pending state. */
   onConfirm: () => void | Promise<void>
+  /**
+   * A second way to say yes ("Pilot only" beside "Copy both"): a ghost button
+   * between Cancel and the confirm, run and awaited as the confirm is.
+   */
+  alternate?: { label: string; onConfirm: () => void | Promise<void> }
   /** Turn a rejection from `onConfirm` into the line the reader sees. */
   describeError?: (error: unknown) => ReactNode
   /**
@@ -113,6 +118,7 @@ export function ConfirmDialog({
   cancelLabel = 'Cancel',
   tone = 'default',
   onConfirm,
+  alternate,
   describeError = () => GENERIC_FAILURE,
   initialFocus,
 }: ConfirmDialogProps) {
@@ -140,13 +146,13 @@ export function ConfirmDialog({
     onOpenChange(next)
   }
 
-  async function handleConfirm() {
+  async function handleConfirm(run: () => void | Promise<void> = onConfirm) {
     if (inFlight.current) return
     inFlight.current = true
     setPending(true)
     setError(null)
     try {
-      await onConfirm()
+      await run()
     } catch (err) {
       // Explained, not dropped: the reason goes on the dialog, which stays
       // open so the reader can see that nothing happened.
@@ -196,6 +202,16 @@ export function ConfirmDialog({
           >
             {cancelLabel}
           </Button>
+          {alternate && (
+            <Button
+              variant="ghost"
+              size="compact"
+              disabled={pending}
+              onClick={() => void handleConfirm(alternate.onConfirm)}
+            >
+              {alternate.label}
+            </Button>
+          )}
           <Button
             ref={confirmRef}
             variant="primary"

@@ -29,9 +29,9 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { usePatterns } from '../../replica/collections'
 import { assignedRail } from './assignedRail'
 import { mechPatternStamp, mechStamp } from './bandStamps.model'
-import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
+import { mechBarStrip } from './mechBarStrip.model'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 type MechLiveSheetProps = SheetViewCommonProps & {
@@ -75,21 +75,16 @@ export function MechLiveSheet({
   const ep = resolvePool(mech.currentEP, maxEP)
   const heat = resolveGauge(mech.currentHeat, maxHeat)
 
-  // On phones the condensed bar leads with Heat + SP; EP/Hold fold
-  // until the sm breakpoint.
-  const strip: LiveSheetStripItem[] = [
-    { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
-    { key: 'ep', label: buildSheetCopy('ep'), value: ep, max: maxEP, mobilePriority: false },
-    { key: 'heat', label: buildSheetCopy('heat'), value: heat, max: maxHeat },
-    {
-      key: 'cargo',
-      label: buildSheetCopy('hold'),
-
-      value: cargoUsed,
-      max: maxCargo,
-      mobilePriority: false,
-    },
-  ]
+  const strip = mechBarStrip({
+    building: editable && !readOnly,
+    mech,
+    vitals: [
+      { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
+      { key: 'ep', label: buildSheetCopy('ep'), value: ep, max: maxEP, mobilePriority: false },
+      { key: 'heat', label: buildSheetCopy('heat'), value: heat, max: maxHeat },
+    ],
+    cargo: { value: cargoUsed, max: maxCargo },
+  })
 
   // Related units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.

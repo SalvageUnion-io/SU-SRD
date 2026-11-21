@@ -65,15 +65,13 @@ const IMG = { height: '100%', objectFit: 'contain', width: '100%' } satisfies CS
 
 /**
  * Upload, or Replace and Remove side by side, sharing the picture's width,
- * on the picture itself, along its foot (R49: its photo's controls sit on
- * the photo).
+ * on a line of their own under the picture: over it they covered the art's
+ * lower third (r2 G7).
  */
 const CONTROLS = {
-  bottom: tokens.space[8],
   display: 'flex',
   gap: tokens.space[8],
-  insetInline: tokens.space[8],
-  position: 'absolute',
+  marginTop: tokens.space[8],
 } satisfies CSSProperties
 
 const CONTROL = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties

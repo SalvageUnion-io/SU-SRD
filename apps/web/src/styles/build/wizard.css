@@ -101,13 +101,14 @@
   pointer-events: none;
 }
 
-/* A step's tab: a notch on a phone (its number and check are not drawn), the
-   34px number block from sm, the active one a Full 44px. */
+/* A step's tab: on a phone a bar on the track with its number whole (a done
+   step's check is not drawn), the 34px number block from sm, the active one
+   a Full 44px. */
 .su-wiz-rail-tab {
   flex: 1 1 0%;
-  height: var(--space-8);
-  overflow: hidden;
-  text-indent: 100%;
+  font-size: var(--text-chip);
+  height: var(--space-20);
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -138,8 +139,6 @@
     flex: none;
     font-size: var(--text-readout);
     height: 34px;
-    overflow: visible;
-    text-indent: 0;
     width: 34px;
   }
 
@@ -188,6 +187,12 @@
   padding: var(--space-20) var(--space-4);
 }
 
+/* What the action bar's prompt scrolls to lands a little under the screen's
+   top, never flush against it. */
+.su-wiz-step-body [id] {
+  scroll-margin-top: var(--space-12);
+}
+
 @media (width >= 40rem) {
   .su-wiz-step-body {
     padding: var(--space-20);
@@ -218,12 +223,24 @@
 .su-wiz-pill-start {
   flex: 1 0 100%;
   flex-wrap: wrap;
+  gap: var(--space-8);
 }
 
-/* A budget (`WizTracker`) stands as tall as the Full buttons beside it. */
-.su-wiz-pill-start .su-stat-cell {
-  box-sizing: border-box;
-  height: var(--size-full);
+/* A phone's budgets take one line over the buttons, at their own height and
+   in their short labels (`Sys`), so the bar is two lines, never three. */
+@media not (width >= 40rem) {
+  .su-wiz-pill-start {
+    flex-wrap: nowrap;
+    gap: var(--space-4);
+  }
+}
+
+/* From sm a budget (`WizTracker`) stands as tall as the Full buttons beside it. */
+@media (width >= 40rem) {
+  .su-wiz-pill-start .su-stat-cell {
+    box-sizing: border-box;
+    height: var(--size-full);
+  }
 }
 
 /* A phone's bar is its budgets, then Back, the ⋯ menu (Cancel, the escape)

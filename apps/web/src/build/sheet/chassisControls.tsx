@@ -26,7 +26,8 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
   return (
     <>
       <Button size="compact" onClick={() => setOpen(true)}>
-        {buildSheetCopy('changeChassis')}
+        {/* A mech made blank has none to change yet. */}
+        {mech.chassisRef === '' ? buildSheetCopy('chooseChassis') : buildSheetCopy('changeChassis')}
       </Button>
       <MechChassisPickerModal
         open={open}
@@ -47,7 +48,8 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
             left.length === 0
               ? mechCopy('chassisChanged', { name })
               : mechCopy('chassisChangedLeftOff', { name, names: left.join(', ') }),
-            () => patch(before)
+            () => patch(before),
+            mech.id
           )
         }}
       />

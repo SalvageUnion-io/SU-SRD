@@ -67,11 +67,18 @@ const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
  * copy of one thing is numbered (`COPY OF Leaky 2`), so no two rows read alike.
  */
 export function copyName(name: string, taken: readonly string[] = []): string {
-  const base = libCopy('copyOf', { name })
-  if (!taken.includes(base)) return base
+  return freeName(libCopy('copyOf', { name }), taken)
+}
+
+/**
+ * `name`, or numbered past the names `taken` ("Leaky Hauler 2"): a second
+ * thing made under one name still reads apart from the first.
+ */
+export function freeName(name: string, taken: readonly string[] = []): string {
+  if (!taken.includes(name)) return name
   let n = 2
-  while (taken.includes(`${base} ${n}`)) n += 1
-  return `${base} ${n}`
+  while (taken.includes(`${name} ${n}`)) n += 1
+  return `${name} ${n}`
 }
 
 /** The names on a shelf, as `copyName` takes them. */

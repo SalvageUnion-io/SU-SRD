@@ -242,7 +242,13 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
   R11a: ['oneForm.test.tsx'],
-  R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
+  R12: [
+    '_siblingHeights.ts',
+    '_typeFloor.ts',
+    'sizeHeights.test.ts',
+    'phoneTargets.test.ts',
+    'biome.jsonc#R12',
+  ],
   R15: [
     'select-mode/picker-opacity',
     'select-mode/level-2-seal',
@@ -320,7 +326,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R67: ['WizShell.test.tsx', 'mech-wizard.e2e.ts', 'pilot-wizard.e2e.ts', 'crawler-wizard.e2e.ts'],
   R68: ['_fillGrid.ts', 'fill-grid.e2e.ts', 'chrome-tokens/item-grid', 'Grid.test.tsx'],
   R70: ['Sheet-related-units.test.tsx', 'RelatedUnits.test.tsx'],
-  R71: ['ruleBreakMark.test.tsx', 'ruleBreaks.test.ts'],
+  R71: ['ruleBreakMark.test.tsx', 'ruleBreaks.test.ts', 'PatternTotals.test.tsx'],
 }
 
 /** A law's id as the canon and its citations spell it. */

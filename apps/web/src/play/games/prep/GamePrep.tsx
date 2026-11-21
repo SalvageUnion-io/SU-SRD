@@ -154,8 +154,10 @@ function PrepSections({ gameId }: { gameId: string }) {
               const { gameId: was, order } = encounter
               await update(encounter.id, { gameId: undefined, order: undefined })
               // At once, as every prep edit is, with the way back (MD2-20).
-              undoToast(playGamesCopy('tookOutOfThisGame', { name: encounter.name }), () =>
-                runWrite(() => update(encounter.id, { gameId: was, order }))
+              undoToast(
+                playGamesCopy('tookOutOfThisGame', { name: encounter.name }),
+                () => runWrite(() => update(encounter.id, { gameId: was, order })),
+                encounter.id
               )
             })
           ),

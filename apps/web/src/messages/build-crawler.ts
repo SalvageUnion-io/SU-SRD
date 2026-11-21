@@ -44,7 +44,6 @@ export const crawlerCopy = messages({
   resetsTheSpecialNpcKeeps: 'Resets the special NPC · keeps bays and their crew',
   noMatchingCrawlerTypes: 'No matching crawler types.',
   cancel: 'Cancel',
-  changeType: 'Change type…',
   changeCrawlerType2: 'Change crawler type?',
   changeType2: 'Change type',
   changing: 'Changing…',

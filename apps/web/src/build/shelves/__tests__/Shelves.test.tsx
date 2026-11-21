@@ -167,7 +167,10 @@ async function settle(done: () => boolean): Promise<void> {
  * The Training Bay's shelves (`bay`), or the Mediator's Kit the Games front
  * draws from the same page (`kit`: NPCs and Encounters, ADR-066).
  */
-async function renderShelves(status: SyncState['status'] = 'live', part: 'bay' | 'kit' = 'bay') {
+async function renderShelves(
+  status: SyncState['status'] = 'live',
+  part: 'bay' | 'kit' | 'patterns' = 'bay'
+) {
   await act(async () => {
     render(
       <SyncContext.Provider value={connection(status)}>
@@ -178,7 +181,7 @@ async function renderShelves(status: SyncState['status'] = 'live', part: 'bay' |
       </SyncContext.Provider>
     )
   })
-  const first = part === 'kit' ? 'NPCs' : 'Pilots'
+  const first = part === 'kit' ? 'NPCs' : part === 'patterns' ? 'Patterns' : 'Pilots'
   await settle(() => screen.queryByRole('region', { name: first }) !== null)
 }
 
@@ -435,6 +438,39 @@ describe('Patterns', () => {
     const name = screen.getByRole('textbox', { name: 'Pattern name' }) as HTMLInputElement
     expect(name.value).toBe('Iron Jaw')
     expect(assigned).toEqual([])
+  })
+
+  test('the Patterns page is this shelf alone: its rows, its menu and + From a Mech (r2 G5)', async () => {
+    await renderShelves('live', 'patterns')
+    expect(screen.queryByRole('region', { name: 'Pilots' })).toBeNull()
+    expect(screen.queryByRole('region', { name: 'Mechs' })).toBeNull()
+    const shelf = within(screen.getByRole('region', { name: 'Patterns' }))
+    expect(shelf.getByRole('link', { name: 'Brawler' })).toBeTruthy()
+    const menu = await openMenu('Brawler')
+    expect(within(menu).getByRole('menuitem', { name: 'Build With This' })).toBeTruthy()
+    expect(within(menu).getByRole('menuitem', { name: 'Delete…' })).toBeTruthy()
+    await act(async () => {
+      fireEvent.keyDown(menu, { key: 'Escape' })
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '+ From a Mech' }))
+    })
+    await act(async () => {
+      fireEvent.click(screen.getByRole('menuitem', { name: 'Iron Jaw' }))
+    })
+    expect((screen.getByRole('textbox', { name: 'Pattern name' }) as HTMLInputElement).value).toBe(
+      'Iron Jaw'
+    )
+  })
+
+  test('Build With This asks once, makes the mech and lands on it (r2 G5)', async () => {
+    await renderShelves()
+    await choose(await openMenu('Brawler'), 'Build With This')
+    await confirmDialog('Build')
+    await settle(() => assigned.length > 0)
+    const built = useUnits.getState().mechs.find((m) => m.name === 'Brawler')
+    expect(built?.chassisRef).toBe('titan')
+    expect(assigned).toEqual([`/mechs/${built?.id}`])
   })
 
   test('with no mechs, + From a mech says to build one first', async () => {

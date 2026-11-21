@@ -14,8 +14,6 @@ export const pillStyle = {
 export const pillTrackersStyle = {
   alignItems: 'center',
   display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[8],
 } satisfies CSSProperties
 
 /** A row on a phone, `display: contents` from sm (`.su-wiz-pill-nav`). */

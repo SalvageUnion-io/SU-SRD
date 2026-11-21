@@ -59,7 +59,12 @@ export function EncounterShelf({
                   const created = await shelf.create(
                     encounterCopy(encounter, namesOn(shelf.encounters))
                   )
-                  return { name: created.name, href: encounterHref(created.id) }
+                  return {
+                    name: created.name,
+                    href: encounterHref(created.id),
+                    exists: () =>
+                      useEncounters.getState().encounters.some((held) => held.id === created.id),
+                  }
                 },
                 go,
               })

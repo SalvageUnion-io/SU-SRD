@@ -3,7 +3,8 @@
  * Rename, and its Systems and Modules in the one picker (the count picker a
  * mech sheet's Manage opens), so a pattern is changed where it is, not by
  * building a mech from it and saving that over again. Each act's dialog is
- * titled as its button reads.
+ * titled as its button reads. The pickers open at the pattern's Tech Level and
+ * an edit over its chassis's slots says so, both as on a mech sheet.
  *
  * The page reads the pattern from the public query, so these read the shelf's
  * own copy for what is installed now and write through the store; the query
@@ -14,9 +15,11 @@ import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { Button, EntitySearcher } from '../../../components/index'
-import { loadoutSlots } from '../../../lib/patterns/patterns'
+import { loadoutSlots, patternChassis } from '../../../lib/patterns/patterns'
+import { mechRuleBreaks, ruleBreaksMade } from '../../../lib/rules/ruleBreaks'
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
+import { ruleBreakToast } from '../../sheet/ruleBreakToast.model'
 import { SheetPickerModal } from '../../sheet/SheetPickerModal'
 import { RenameDialog } from '../../shelves/RenameDialog'
 
@@ -35,10 +38,20 @@ const COPY = {
   },
 } as const
 
-/** Patch the maker's own pattern, once the shelf's copy of it has arrived. */
+/**
+ * Patch the maker's own pattern, once the shelf's copy of it has arrived. An
+ * edit that takes a count over its chassis, or further over, still saves and
+ * says so, as the mech sheet's does (R71).
+ */
 async function patchPattern(id: string, patch: Partial<MechPattern>): Promise<void> {
   await usePatterns.getState().hydrate()
+  const before = usePatterns.getState().mechPatterns.find((p) => p.id === id)
   await usePatterns.getState().update(id, patch)
+  if (!before) return
+  ruleBreakToast(
+    id,
+    ruleBreaksMade(mechRuleBreaks(before), mechRuleBreaks({ ...before, ...patch }))
+  )
 }
 
 export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
@@ -47,6 +60,9 @@ export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
   // The shelf's copy, live under the picker; the page's own until it arrives.
   const own = usePatterns((s) => s.mechPatterns.find((p) => p.id === pattern.id)) ?? pattern
   const slots = loadoutSlots(own)
+  // The pickers open on the pattern's Tech Level, as a mech's do; a lettered one (Bio) shows all.
+  const chassisTl = patternChassis(own)?.techLevel
+  const techLevel = typeof chassisTl === 'number' ? chassisTl : undefined
   const budget = {
     systems: { used: slots.systemSlotsUsed, max: slots.systemSlotsMax },
     modules: { used: slots.moduleSlotsUsed, max: slots.moduleSlotsMax },
@@ -86,6 +102,7 @@ export function PatternEditControls({ pattern }: { pattern: MechPattern }) {
             mode="count"
             selected={own[part]}
             idOf={(item) => nameToSlug(item.name)}
+            techLevel={techLevel}
             onAdd={(slug) => void patchPattern(own.id, { [part]: [...own[part], slug] })}
             onRemove={(index) =>
               void patchPattern(own.id, { [part]: own[part].filter((_, i) => i !== index) })

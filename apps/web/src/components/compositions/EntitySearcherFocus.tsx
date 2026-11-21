@@ -18,7 +18,8 @@ import { ChapterBandTrail } from '../atoms/ChapterBandTrail'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { EntityDetailPage } from '../referenceEntity/EntityDetailDialog'
-import type { PickCost, PoolEntity } from './entitySearcherTypes'
+import { BudgetChips } from './EntitySearcherBudget'
+import type { BudgetConfig, PickCost, PoolEntity } from './entitySearcherTypes'
 
 /**
  * The action bar reads the focused entity's state: a stamp saying how many
@@ -40,6 +41,7 @@ export function FocusPane({
   showChassisAbility,
   onAdd,
   extra,
+  budgets,
   userMade,
   onBack,
   backRef,
@@ -59,6 +61,12 @@ export function FocusPane({
   onAdd: () => void
   /** A choice that goes with adding (which pattern), beside the button. */
   extra?: ReactNode
+  /**
+   * The picker's budgets, where the Page has taken the list's place (narrow):
+   * the rail that reads them is out of sight, and this is where the choice is
+   * weighed (slots left against this entry's).
+   */
+  budgets?: BudgetConfig[] | undefined
   /** The player's own entity: the Page credits no book. */
   userMade?: boolean
   /** Narrow only: back to the list. */
@@ -115,6 +123,7 @@ export function FocusPane({
         className="su-searcher__actions"
         style={ACTION_BAR_STYLE}
       >
+        {budgets && <BudgetChips budgets={budgets} />}
         {canAdd && cost?.unmet && cost.unmet.length > 0 && (
           <ul aria-label={compositionsCopy('theBookAsksFirst')} style={UNMET_STYLE}>
             {cost.unmet.map((line) => (

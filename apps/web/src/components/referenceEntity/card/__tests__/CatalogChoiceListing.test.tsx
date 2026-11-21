@@ -54,22 +54,19 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     // the modal (EntitySearcher) opens: its search field + the weapons pool appear
     expect(screen.getByLabelText('Search')).toBeTruthy()
     expect(screen.getByText('Red Laser')).toBeTruthy()
-    // The one picker convention (PT-16): a row opens its Page, Choose marks
-    // it, Apply writes it and closes. A row's tap alone writes nothing.
+    // The one picker convention (PT-16, r2 G3): a row opens its Page and
+    // writes nothing; Choose there writes the pick and closes. No Apply step.
     const row = document.querySelector('[data-searcher-open="Red Laser"]')
     if (!(row instanceof HTMLElement)) throw new Error('no Red Laser row')
     fireEvent.click(row)
     expect(calls).toHaveLength(0)
     expect(screen.getByLabelText('Search')).toBeTruthy()
-    const apply = screen.getByRole('button', { name: 'Apply' })
-    expect((apply as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole('button', { name: 'Apply' })).toBeNull()
     fireEvent.click(
       within(screen.getByRole('group', { name: 'Red Laser actions' })).getByRole('button', {
         name: 'Choose',
       })
     )
-    expect(calls).toHaveLength(0)
-    fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
     expect(calls.at(-1)).toMatchObject({ [armamentBay().choices?.[0]?.id ?? '']: ['Red Laser'] })
     expect(screen.queryByLabelText('Search')).toBeNull()
   })
@@ -87,11 +84,6 @@ describe('Armament Bay — Weapons System catalog listing', () => {
     const row = document.querySelector('[data-searcher-open="Red Laser"]')
     if (!(row instanceof HTMLElement)) throw new Error('no Red Laser row')
     fireEvent.click(row)
-    fireEvent.click(
-      within(screen.getByRole('group', { name: 'Red Laser actions' })).getByRole('button', {
-        name: 'Choose',
-      })
-    )
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(calls).toHaveLength(0)
     expect(screen.queryByLabelText('Search')).toBeNull()

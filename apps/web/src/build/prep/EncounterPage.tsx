@@ -181,8 +181,10 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     fire((current) => ({
       opposition: current.opposition.filter((o) => o.id !== opponent.id),
     }))
-    undoToast(buildPrepCopy('removedOpponent', { name: opponent.name }), () =>
-      fire((current) => ({ opposition: restoredOpponent(current, opponent, at) }))
+    undoToast(
+      buildPrepCopy('removedOpponent', { name: opponent.name }),
+      () => fire((current) => ({ opposition: restoredOpponent(current, opponent, at) })),
+      encounter.id
     )
   }
 

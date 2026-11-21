@@ -24,7 +24,6 @@ export const buildWizardCopy = messages({
   noneDecideOnTheSheet: 'None — decide on the sheet',
   techLevel: 'Tech Level',
   cancel: 'Cancel',
-  createBlank: 'Create blank {lowerCase}',
   creating: 'Creating…',
   create: 'Create {label}',
   yourPilotsRealName: "Your Pilot's real name",

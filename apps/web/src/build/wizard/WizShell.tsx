@@ -16,6 +16,7 @@ import type { KeepAsFileActs } from './KeepAsFile'
 import { KeepAsFile } from './KeepAsFile'
 import { SaveSignInDialog } from './SaveSignInDialog'
 import { WizardGameChip } from './WizardGameChip'
+import { promptShows, scrollToAsked, useInView } from './wizPrompt.model'
 import {
   bodyStyle,
   ctaLockedStyle,
@@ -117,6 +118,11 @@ type WizShellProps = {
    * Without it the bar says a locked Next's reason (`footerNote`).
    */
   prompt?: { text: string; targetId: string } | undefined
+  /**
+   * Where the thing a locked Next waits for is (the First Ability table), so
+   * the reason's press lands on it, not on the reason at the step's foot.
+   */
+  noteTargetId?: string | undefined
 }
 
 const STEP_NOTE_ID = 'wiz-step-note'
@@ -361,6 +367,7 @@ export function WizShell({
   tryNote,
   keepAsFile,
   prompt,
+  noteTargetId,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   // Every step opens at the top with focus on its heading (WCAG 2.4.3), the
@@ -384,6 +391,12 @@ export function WizShell({
     <NextLabel to={steps[active + 1]} size="full" wordClassName="su-wiz-pill-next" />
   )
   const askCancel = () => (confirmCancel ? setConfirmingCancel(true) : onCancel())
+  // The prompt's line: gone once pressed, and while its target is on screen.
+  const promptTargetId = prompt?.targetId ?? noteTargetId ?? STEP_NOTE_ID
+  const promptKey = `${active}:${prompt?.text ?? footerNote ?? ''}`
+  const [used, setUsed] = useState<string | null>(null)
+  const inView = useInView(prompt || footerNote ? promptTargetId : undefined)
+
   // The ink action bar: its trackers, ghost Back and Cancel, and the one rust
   // Next, so nothing in it outgrows the Next. It declares its ink ground
   // (chrome K1), so its ghost buttons read paper.
@@ -527,16 +540,16 @@ export function WizShell({
           <footer className="su-wiz-footer" data-print="hide" style={footerPillStyle}>
             {/* What the step still asks for, or offers further down, said
                 where the Next is: a press scrolls to it. */}
-            {(prompt ?? footerNote) && (
+            {(prompt ?? footerNote) && promptShows({ key: promptKey, used, inView }) && (
               <Button
                 variant="ghost"
                 size="compact"
                 style={promptStyle}
-                onClick={() =>
-                  document
-                    .getElementById(prompt?.targetId ?? STEP_NOTE_ID)
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }
+                onClick={() => {
+                  const target = document.getElementById(promptTargetId)
+                  if (target) scrollToAsked(target)
+                  setUsed(promptKey)
+                }}
               >
                 {prompt?.text ??
                   buildWizardCopy('nextReason', {

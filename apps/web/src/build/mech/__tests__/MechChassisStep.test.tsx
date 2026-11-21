@@ -6,7 +6,7 @@
  * their own list, which do not repeat it.
  */
 import { describe, expect, it } from 'bun:test'
-import { render } from '@testing-library/react'
+import { fireEvent, render, within } from '@testing-library/react'
 import { MechChassisStep } from '../MechChassisStep'
 
 /** How many times the Mule's chassis ability prints. */
@@ -50,5 +50,23 @@ describe('MechChassisStep', () => {
       expect(token.querySelector('.su-entity-mini__body')?.textContent).toContain('The Mule')
       expect(token.textContent).not.toContain('[(CHASSIS)]')
     }
+  })
+
+  it('a dimmed pattern says why where it is pressed, and its link is the app route (r2 D5)', () => {
+    const { getByRole, queryByRole } = render(step('mule'))
+    // The help link is a route: the surface's link adds the app's base, once.
+    expect(getByRole('link', { name: 'New Mech, From a pattern' }).getAttribute('href')).toBe(
+      '/mechs/new'
+    )
+    expect(queryByRole('status')).toBeNull()
+    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    fireEvent.click(within(patterns).getByRole('radio', { name: 'Crusher' }))
+    const why = getByRole('status')
+    expect(why.textContent).toContain('Crusher')
+    expect(why.textContent).toContain('Not a starting Pattern')
+    // Its way on builds that pattern as printed: the New Mech screen, on its confirm.
+    expect(within(why).getByRole('link').getAttribute('href')).toBe(
+      '/mechs/new?chassis=mule&pattern=crusher'
+    )
   })
 })

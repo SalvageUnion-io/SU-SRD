@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { EntitySchemaName, RefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
@@ -15,7 +15,7 @@ type CatalogChoiceModalProps = {
   techLevel?: number
   /** Current selection (option values — entity names). */
   selected: string[]
-  /** Emit the next selection (single-select: [] to clear, [name] to pick). */
+  /** Emit the next selection (single-select: [name] to pick). */
   onSelect: (values: string[]) => void
 }
 
@@ -26,8 +26,8 @@ type CatalogChoiceModalProps = {
  * narrowed to exactly the entities the catalog resolves to (`filter`) so the
  * facets/pool match the rule (e.g. "any Weapons System of the crawler's Tech
  * Level"). It picks as every single-select picker does (Change Chassis): a
- * row opens its Page, Choose there marks it, replacing the prior pick, and
- * Apply writes it and closes. Enter in the search marks the first match.
+ * row opens its Page, and Choose there writes the pick, replacing the prior
+ * one, and closes. Enter in the search opens the first match.
  */
 export function CatalogChoiceModal({
   open,
@@ -48,19 +48,9 @@ export function CatalogChoiceModal({
     return new Set(list.map((e) => ('id' in e && typeof e.id === 'string' ? e.id : '')))
   }, [choice, techLevel])
 
-  // The pick being weighed: written on Apply, dropped on Cancel.
   const current = selected[0] ?? ''
-  const [picked, setPicked] = useState(current)
-  useEffect(() => {
-    if (open) setPicked(current)
-  }, [open, current])
 
   if (!schema) return null
-
-  function apply() {
-    if (picked !== current) onSelect(picked ? [picked] : [])
-    onClose()
-  }
 
   return (
     <ModalShell
@@ -75,9 +65,12 @@ export function CatalogChoiceModal({
       <EntitySearcher
         schema={schema as EntitySchemaName}
         mode="single"
-        selected={picked ? [picked] : []}
-        // Choosing replaces the prior pick; choosing the picked one clears it.
-        onToggle={(ref) => setPicked((prev) => (prev === ref ? '' : ref))}
+        selected={current ? [current] : []}
+        // Choose is the one confirming press (r2 G3): it writes the pick and closes.
+        onToggle={(ref) => {
+          if (ref !== current) onSelect([ref])
+          onClose()
+        }}
         // One entity is ever chosen: "Chosen only" filters nothing useful.
         facets={{ status: false }}
         filter={(item) => eligibleIds.has(item.id)}
@@ -86,14 +79,9 @@ export function CatalogChoiceModal({
         title={choice.name}
         onClose={onClose}
         railActions={
-          <>
-            <Button variant="ghost" size="compact" onClick={onClose}>
-              {referenceEntityCopy('cancel')}
-            </Button>
-            <Button size="compact" disabled={picked === current} onClick={apply}>
-              {referenceEntityCopy('apply')}
-            </Button>
-          </>
+          <Button variant="ghost" size="compact" onClick={onClose}>
+            {referenceEntityCopy('cancel')}
+          </Button>
         }
       />
     </ModalShell>

@@ -6,8 +6,10 @@
  * A type change is DESTRUCTIVE and stateful: it resets the crawler's special
  * type NPC to the new type's default, drops the orphaned old type's Keepsake/
  * Motto selections, and leaves every bay's live state untouched — one
- * multi-write, via the applyCrawlerCrewAndTypeEdit helper. A confirm step
- * guards the change.
+ * multi-write, via the applyCrawlerCrewAndTypeEdit helper. Choose on a type's
+ * Page is the pick (r2 G3: no Apply step); because the change is destructive it
+ * opens the one danger confirm, and backing out of that returns to the picker
+ * on the crawler's current type.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -94,9 +96,11 @@ export function CrawlerTypeEditModal({
           schema="crawlers"
           mode="single"
           selected={selected ? [selected] : []}
-          // Single-select: picking replaces the prior pick, picking the current
-          // one clears it (the confirm button then disables).
-          onToggle={(ref) => setSelected((prev) => (prev === ref ? null : ref))}
+          // Choose picks the type and asks at once: the confirm is its one guard.
+          onToggle={(ref) => {
+            setSelected(ref)
+            setConfirming(true)
+          }}
           // The crawler record stores its type as a slug.
           idOf={(item) => nameToSlug(item.name)}
           // Five types — a Tech-Level / status facet row would be chrome over a
@@ -108,26 +112,20 @@ export function CrawlerTypeEditModal({
           emptyMessage={crawlerCopy('noMatchingCrawlerTypes')}
           onClose={onClose}
           railActions={
-            <>
-              <Button variant="ghost" size="compact" onClick={onClose}>
-                {crawlerCopy('cancel')}
-              </Button>
-              <Button
-                variant="primary"
-                size="compact"
-                disabled={!changed}
-                onClick={() => setConfirming(true)}
-              >
-                {crawlerCopy('changeType')}
-              </Button>
-            </>
+            <Button variant="ghost" size="compact" onClick={onClose}>
+              {crawlerCopy('cancel')}
+            </Button>
           }
         />
       </ModalShell>
 
       <ConfirmDialog
         open={confirming && changed}
-        onOpenChange={setConfirming}
+        // Backing out drops the pick: the picker shows the crawler's own type again.
+        onOpenChange={(next) => {
+          setConfirming(next)
+          if (!next) setSelected(currentType)
+        }}
         title={crawlerCopy('changeCrawlerType2')}
         tone="danger"
         body={

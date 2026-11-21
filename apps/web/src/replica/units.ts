@@ -356,6 +356,23 @@ async function transferNow(ops: { updates?: TransferUpdate[] }, meta: ChangeMeta
   holdAll(prepared.map((pu) => ({ table: pu.type, row: pu.record })))
 }
 
+/** Who hears each write to a unit as it starts: its id. */
+const writeWatchers = new Set<(id: string) => void>()
+
+/**
+ * Hear every write to a unit as it starts (`update`, `delete`), by the unit's
+ * id: a notice that stands "until the next change to that sheet" leaves on it
+ * (`undoToast`). Answers the way to stop hearing.
+ */
+export function onUnitWrite(watch: (id: string) => void): () => void {
+  writeWatchers.add(watch)
+  return () => writeWatchers.delete(watch)
+}
+
+function wrote(id: string): void {
+  for (const watch of writeWatchers) watch(id)
+}
+
 export const units: UnitsApi = {
   hydrate: (type) => untilArrived(type).then(() => markArrived([type])),
 
@@ -392,6 +409,7 @@ export const units: UnitsApi = {
     patch: Partial<EntityForType<T>>,
     meta: ChangeMeta
   ) {
+    wrote(id)
     return inTurn([id], () => updateNow(type, id, patch, meta))
   },
 
@@ -421,6 +439,7 @@ export const units: UnitsApi = {
 
   async delete(type, id) {
     requireWritable()
+    wrote(id)
     // Read before sending: a link is addressed by its endpoints, and once the
     // row is gone there is nothing left to name it by.
     if (type === 'softLink') {

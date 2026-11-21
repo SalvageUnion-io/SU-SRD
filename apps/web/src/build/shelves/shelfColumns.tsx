@@ -60,9 +60,11 @@ export const NPC_COLUMNS = [
   GAME,
   fig(VITAL.hp, buildShelvesCopy('hitOrStructurePoints'), true),
 ]
+// Beside the other column the panel is narrow: it spares who sees a pattern
+// (its page says), so its make and each line's menu stay inside the frame.
 export const PATTERN_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
-  word('who', buildShelvesCopy('seenBy')),
+  spare(word('who', buildShelvesCopy('seenBy'))),
   fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
 ]
 

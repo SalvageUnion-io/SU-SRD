@@ -225,7 +225,6 @@ export function BlankCreateDialog({
             size="compact"
             onClick={() => void handleCreate()}
             disabled={pending || !canSubmit}
-            aria-label={buildWizardCopy('createBlank', { lowerCase: label.toLowerCase() })}
           >
             {pending ? buildWizardCopy('creating') : buildWizardCopy('create', { label })}
           </Button>

@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'bun:test'
-import { mechBuildFigures, nextSort, sortShelfRows } from '../mechShelf.model'
+import {
+  MECH_SORT_KEY,
+  mechBuildFigures,
+  nextSort,
+  rememberSort,
+  sortShelfRows,
+  storedSort,
+} from '../mechShelf.model'
 
 describe('mechBuildFigures', () => {
   test('a bare chassis: its Tech Level, empty slots of its own, its Scrap', () => {
@@ -16,7 +23,31 @@ describe('mechBuildFigures', () => {
       systems: '',
       modules: '',
       scrap: 0,
+      over: false,
     })
+  })
+
+  test('more slots than the chassis has is over (r2 G4); within them is not', () => {
+    const within = mechBuildFigures({ chassisRef: 'scrapper', systems: ['chainsaw'], modules: [] })
+    expect(within.over).toBe(false)
+    const past = mechBuildFigures({
+      chassisRef: 'scrapper',
+      systems: Array.from({ length: 12 }, () => 'mini-mortar'),
+      modules: [],
+    })
+    expect(past.over).toBe(true)
+  })
+})
+
+describe('the remembered sort (r2 G4)', () => {
+  test('a pressed sort is read back; nonsense in storage is no sort', () => {
+    localStorage.removeItem(MECH_SORT_KEY)
+    expect(storedSort()).toBeUndefined()
+    rememberSort({ key: 'Scrap', descending: true })
+    expect(storedSort()).toEqual({ key: 'Scrap', descending: true })
+    localStorage.setItem(MECH_SORT_KEY, '{nope')
+    expect(storedSort()).toBeUndefined()
+    localStorage.removeItem(MECH_SORT_KEY)
   })
 })
 

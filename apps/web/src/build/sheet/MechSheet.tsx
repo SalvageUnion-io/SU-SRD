@@ -18,12 +18,13 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import { FieldError } from '../../components/app'
-import { SlabSection, Stack, tokens } from '../../components/index'
+import { SlabSection, Stack, Text, tokens } from '../../components/index'
 import { SoftWarningDialog } from '../../components/shared/SoftWarningDialog'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'
 import { useUnits } from '../../replica/units'
 import { MechDash } from '../dash/MechDash'
+import { ChangeChassis } from './chassisControls'
 import { MechSheetPickers } from './MechSheetPickers'
 import type { ChassisLike } from './mechSheet.model'
 import { useMechSheetModel } from './mechSheet.model'
@@ -38,6 +39,14 @@ const SHEET = {
   display: 'flex',
   flexDirection: 'column',
   gap: tokens.space[24],
+} satisfies CSSProperties
+
+/** "No chassis yet" and its one act, on a line. */
+const NO_CHASSIS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: tokens.space[12],
 } satisfies CSSProperties
 
 type MechSheetProps = {
@@ -142,11 +151,19 @@ export function MechSheet({
         {mech.name}
       </h2>
 
-      {!model.chassis && (
-        <FieldError>
-          {buildSheetCopy('unknownChassisUsingStoredZero', { chassisRef: mech.chassisRef })}
-        </FieldError>
-      )}
+      {/* A mech made blank has no chassis yet: it says so and offers the choice.
+          A ref the reference lacks is the error it was. */}
+      {!model.chassis &&
+        (mech.chassisRef === '' ? (
+          <div style={NO_CHASSIS}>
+            <Text variant="note">{buildSheetCopy('noChassisYet')}</Text>
+            {!readOnly && <ChangeChassis mech={mech} patch={actions.patchMech} />}
+          </div>
+        ) : (
+          <FieldError>
+            {buildSheetCopy('unknownChassisUsingStoredZero', { chassisRef: mech.chassisRef })}
+          </FieldError>
+        ))}
 
       <MechDash
         mech={mech}

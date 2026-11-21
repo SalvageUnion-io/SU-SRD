@@ -2,12 +2,15 @@
  * A pattern Page's loadout at a glance: one Ledger, a line the chassis and a
  * line each System and Module (copies counted), their slots and Scrap in
  * columns, and the sums on the last line: slots filled of the chassis's and
- * what the build costs. The parts in full follow it on the Page.
+ * what the build costs. The parts in full follow it on the Page. A saved
+ * pattern's page shows the same Ledger (`PublicPattern`), where a count over
+ * its chassis wears the rule-breaking mark.
  */
 
 import type { RefChassis, RefEntity } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import { computeMechCapacity } from 'salvageunion-reference/rules'
+import { RuleBreakMark } from '../components/app'
 import type { LedgerColumn, LedgerRow } from '../components/index'
 import { Ledger } from '../components/index'
 import { mechScrap } from '../lib/rules/mechScrap'
@@ -80,6 +83,15 @@ export function PatternLoadout({
     systems: build.systems.map((ref) => ({ ref })),
     modules: build.modules.map((ref) => ({ ref })),
   })
+  // A count over its chassis wears the one mark (R71); a loadout the book prints over wears none.
+  const slots = (used: number, max: number) =>
+    !capacity.asPrinted && used > max ? (
+      <>
+        {used}/{max} <RuleBreakMark />
+      </>
+    ) : (
+      `${used}/${max}`
+    )
   const rows: LedgerRow[] = [
     {
       id: 'chassis',
@@ -104,8 +116,8 @@ export function PatternLoadout({
       total={{
         label: pagesCopy('total'),
         cells: [
-          `${capacity.systemSlotsUsed}/${capacity.systemSlotsMax}`,
-          `${capacity.moduleSlotsUsed}/${capacity.moduleSlotsMax}`,
+          slots(capacity.systemSlotsUsed, capacity.systemSlotsMax),
+          slots(capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
           mechScrap(build).total,
         ],
       }}

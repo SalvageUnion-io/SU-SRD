@@ -9,14 +9,13 @@
  * for (patterns are chosen in the next step).
  *
  * The loadout goes with the mech where it fits the new chassis
- * (`loadoutOnChassis`); the picker says, for the chassis being read, what will
- * not fit before Apply. Apply is the one press, as every picker's (the caller
- * offers Undo), so no second confirm follows it.
+ * (`loadoutOnChassis`); the chassis being read says, beside its Choose, what
+ * will not fit. Choose is the one confirming press (r2 G3: a picker that holds
+ * exactly one thing has no Apply step); the caller offers Undo.
  */
 
-import { useEffect, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
-import { Button, EntitySearcher, ModalShell } from '../../components/index'
+import { Button, EntitySearcher, ModalShell, Text } from '../../components/index'
 import { droppedNames, loadoutOnChassis } from '../../lib/rules/chassisSwap'
 import { mechCopy } from '../../messages/build-mech'
 import '../../styles/build/wizard.css'
@@ -39,32 +38,11 @@ export function MechChassisPickerModal({
   onOpenChange,
   onConfirm,
 }: MechChassisPickerModalProps) {
-  const [selected, setSelected] = useState(currentChassisRef)
-
-  // Reset the preview to the live chassis whenever the modal (re)opens.
-  useEffect(() => {
-    if (open) setSelected(currentChassisRef)
-  }, [open, currentChassisRef])
-
-  // A mech must always HAVE a chassis, so "nothing selected" is not an applyable
-  // state — only a different one is. The empty guard is load-bearing: single-select
-  // clears on clicking the chosen card (and via the rail's Remove), and without it
-  // Apply would enable on an empty ref and write `chassisRef: ''` — an unresolvable
-  // chassis plus a wiped loadout, since applying also clears systems/modules.
-  const changed = selected !== '' && selected !== currentChassisRef
-
-  // What the chassis being read will not hold, said before Apply.
-  const left = changed ? droppedNames(loadoutOnChassis(selected, loadout).dropped) : []
-  const subtitle = !changed
-    ? mechCopy('yourLoadoutStaysWhereItFits')
-    : left.length === 0
-      ? mechCopy('yourLoadoutFits')
-      : mechCopy('willNotFit', { names: left.join(', ') })
-
-  function apply() {
-    if (changed) onConfirm(selected)
-    onOpenChange(false)
-  }
+  /** What `chassisRef` will not hold of the loadout: said beside its Choose. */
+  const leftOff = (chassisRef: string) =>
+    chassisRef === currentChassisRef
+      ? []
+      : droppedNames(loadoutOnChassis(chassisRef, loadout).dropped)
 
   return (
     <ModalShell
@@ -77,10 +55,13 @@ export function MechChassisPickerModal({
       <EntitySearcher
         schema="chassis"
         mode="single"
-        selected={selected ? [selected] : []}
-        // Single-select: picking replaces the prior pick, picking the current
-        // one clears it back to "nothing chosen" (Apply then disables).
-        onToggle={(ref) => setSelected((prev) => (prev === ref ? '' : ref))}
+        selected={currentChassisRef ? [currentChassisRef] : []}
+        // Choose applies: the searcher only ever emits a chassis that is not
+        // the current one, and never an empty ref (a mech keeps a chassis).
+        onToggle={(ref) => {
+          if (ref !== '' && ref !== currentChassisRef) onConfirm(ref)
+          onOpenChange(false)
+        }}
         idOf={(item) => nameToSlug(item.name)}
         // Rendering the pattern list here would be the tallest section of the
         // tallest card, for a choice this modal cannot make.
@@ -92,18 +73,19 @@ export function MechChassisPickerModal({
         facets={{ status: false }}
         chosenLabel={mechCopy('chosen')}
         title={mechCopy('changeChassis')}
-        subtitle={subtitle}
+        subtitle={mechCopy('yourLoadoutStaysWhereItFits')}
         emptyMessage={mechCopy('noMatchingChassis')}
         onClose={() => onOpenChange(false)}
+        focusExtra={(item) => {
+          const left = leftOff(nameToSlug(item.name))
+          return left.length === 0 ? undefined : (
+            <Text variant="hint">{mechCopy('willNotFit', { names: left.join(', ') })}</Text>
+          )
+        }}
         railActions={
-          <>
-            <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
-              {mechCopy('cancel')}
-            </Button>
-            <Button size="compact" disabled={!changed} onClick={apply}>
-              {mechCopy('applyChassis')}
-            </Button>
-          </>
+          <Button variant="ghost" size="compact" onClick={() => onOpenChange(false)}>
+            {mechCopy('cancel')}
+          </Button>
         }
       />
     </ModalShell>

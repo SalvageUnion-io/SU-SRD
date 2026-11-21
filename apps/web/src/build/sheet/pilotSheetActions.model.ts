@@ -242,8 +242,10 @@ export function usePilotSheetActions({
     )
     // A removal that landed offers Undo: the abilities and partners as they were.
     if (saved && removing) {
-      undoToast(buildSheetCopy('removedName', { name }), () =>
-        write({ abilities: current.abilities, partners: current.partners })
+      undoToast(
+        buildSheetCopy('removedName', { name }),
+        () => write({ abilities: current.abilities, partners: current.partners }),
+        pilot.id
       )
     }
   }
@@ -276,8 +278,10 @@ export function usePilotSheetActions({
     })
     if (removing) {
       const name = SalvageUnionReference.Equipment.getBySlug(slug)?.name ?? slug
-      undoToast(buildSheetCopy('removedName', { name }), () =>
-        write({ equipment: current.equipment, partners: current.partners })
+      undoToast(
+        buildSheetCopy('removedName', { name }),
+        () => write({ equipment: current.equipment, partners: current.partners }),
+        pilot.id
       )
     }
   }
@@ -324,8 +328,10 @@ export function usePilotSheetActions({
     write({ genericInventory: next })
     if (next.length < before.length) {
       const gone = before.find((entry) => !next.some((kept) => kept.id === entry.id))
-      undoToast(buildSheetCopy('removedName', { name: gone?.name ?? buildSheetCopy('item') }), () =>
-        write({ genericInventory: before })
+      undoToast(
+        buildSheetCopy('removedName', { name: gone?.name ?? buildSheetCopy('item') }),
+        () => write({ genericInventory: before }),
+        pilot.id
       )
     }
   }

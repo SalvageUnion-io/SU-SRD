@@ -47,6 +47,37 @@
   position: absolute;
 }
 
+/* On a phone a thumb's target is 44px (r2 H1): the remove's reaches back
+   over the gap that stands it apart from the line's toggles, so a press
+   meant for Intact or a use never removes the item; a use's steps draw 40px
+   wide at their chip's height (R12), each in a 44px target of its own. */
+@media not (width >= 40rem) {
+  .su-sheet-item__remove {
+    margin-inline-start: var(--space-28);
+  }
+
+  .su-sheet-item__remove::after {
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+    inset-inline: calc(var(--size-mini) - var(--size-full)) 0;
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell {
+    min-width: var(--space-40);
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell::after {
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell:first-of-type::after {
+    inset-inline-start: calc(var(--space-40) - var(--size-full));
+  }
+
+  .su-stat-stepper:has(> .su-sheet-item__uses) .su-step-btn--cell:last-of-type::after {
+    inset-inline-end: calc(var(--space-40) - var(--size-full));
+  }
+}
+
 @media print {
   .su-sheet-item__repair,
   .su-sheet-item__remove {
