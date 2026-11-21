@@ -163,6 +163,8 @@ export const buildSheetCopy = messages({
   assignedSheets: 'Assigned sheets',
   chassis: 'Chassis',
   changeChassis: 'Change Chassis',
+  chooseChassis: 'Choose chassis',
+  noChassisYet: 'No chassis yet',
   chassisAbility: 'Chassis ability',
   chassisModder: 'Chassis Modder',
   addChassisAbility: 'Add Chassis Ability',
