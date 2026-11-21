@@ -23,6 +23,7 @@ import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
 import { PLAY_TXN } from '../replica/provenance'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 
 /** One roll as Play records it. */
 export type PlayRoll = {
@@ -156,7 +157,7 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
         dice = null
         const said = meta()
         const outcome =
-          said.outcome ?? (tableName === 'Core Mechanic' ? coreOutcome(read[0]) : undefined)
+          said.outcome ?? (tableName === CORE_MECHANIC_TABLE ? coreOutcome(read[0]) : undefined)
         recordPlayRoll({
           tableName,
           rolls: read,

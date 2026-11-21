@@ -62,7 +62,7 @@ export type ShelfRelation = {
 }
 
 /** Who can see an item, in the words its chip wears. */
-const WHO = { link: 'Shared by link', me: 'Only me' } as const
+const WHO = { link: buildShelvesCopy('sharedByLink'), me: buildShelvesCopy('onlyMe') } as const
 
 /** The class a pilot is, by the name the book gives it. */
 export function pilotFact(pilot: Pick<Pilot, 'classRef'>): string | undefined {
@@ -179,9 +179,9 @@ export function patternChips(
 function patternWho(sharing: PatternSharing, games: readonly ShelfGame[] | undefined): string {
   if (sharing.visibility === 'link') return WHO.link
   if (sharing.visibility !== 'game') return WHO.me
-  if (games === undefined) return 'Shared with a crew'
+  if (games === undefined) return buildShelvesCopy('sharedWithACrew')
   const game = games.find((g) => g._id === sharing.gameId)
-  return game === undefined ? WHO.me : `Shared with ${game.name}`
+  return game === undefined ? WHO.me : buildShelvesCopy('sharedWith', { game: game.name })
 }
 
 /** An NPC's reading is its hit (or structure) points: `HP 6/6`. */

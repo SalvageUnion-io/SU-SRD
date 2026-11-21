@@ -43,7 +43,7 @@ export function channelButtonLabel(
   if (binding == null) return playCopy('discordChannel')
   return (
     channelTag(binding) ??
-    (owner.kind === 'solo' || binding.own ? '# My channel' : '# Game channel')
+    (owner.kind === 'solo' || binding.own ? playCopy('myChannelTag') : playCopy('gameChannelTag'))
   )
 }
 
@@ -59,6 +59,8 @@ export function channelState(solo: boolean, binding: PlayBinding | null, mayBind
 /** Where the screen's rolls post: "Rolls post to #salvage-run", or whose channel. */
 export function postsToLabel(solo: boolean, binding?: PlayBinding | null): string {
   const tag = channelTag(binding)
-  if (tag !== null) return `Rolls post to ${tag}`
-  return solo || binding?.own ? 'Rolls post to my channel' : 'Rolls post to the Game’s channel'
+  if (tag !== null) return playCopy('rollsPostTo', { tag })
+  return solo || binding?.own
+    ? playCopy('rollsPostToMyChannel')
+    : playCopy('rollsPostToTheGamesChannel')
 }

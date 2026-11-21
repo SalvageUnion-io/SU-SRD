@@ -61,4 +61,10 @@ export const referenceCopy = messages({
   showDiscordBody: 'Look up any rule, reference, or roll without ever leaving your call.',
   buyThisBook: 'Buy this book',
   opensInNewTab: '(opens in a new tab)',
+
+  buildWithThis: 'Build With This',
+  buildAPilot: 'Build a Pilot',
+  buildAMech: 'Build a Mech',
+  buildACrawler: 'Build a crawler',
+  orPlayTheStarterSet: 'Or play the Starter Set',
 })

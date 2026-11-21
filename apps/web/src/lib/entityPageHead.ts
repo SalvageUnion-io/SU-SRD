@@ -4,6 +4,7 @@
  */
 
 import { assetSrcSetFor, heroImageSizes } from '../components/index'
+import { libCopy } from '../messages/lib'
 import type { DocumentMeta, StructuredData } from '../reference/types'
 import { PUBLISHER, SRD_CRUMB } from './constants'
 import type { ogMetaFor } from './ogCard'
@@ -39,7 +40,12 @@ type EntityPageHead = {
 }
 
 /** The site's words every entity page's structured data is keyed by. */
-const SITE_KEYWORDS = ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document'] as const
+const SITE_KEYWORDS = [
+  libCopy('salvageUnion'),
+  'TTRPG',
+  'SRD',
+  libCopy('systemReferenceDocument'),
+] as const
 
 /** An entity or pattern show page's `meta`. */
 export function entityPageHead(head: EntityPageHead): DocumentMeta {

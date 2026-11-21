@@ -35,6 +35,7 @@ import {
   STARTER_SET_TITLE,
   starterPages,
 } from '../lib/starterSet/starterTemplates'
+import { workerCopy } from '../messages/worker'
 import type { ShellMeta } from './shellMeta'
 import { applyCanonical, applyMeta } from './shellMeta'
 
@@ -51,7 +52,10 @@ const STARTER_SET: PublicPage = {
   path: '/starter',
   words: {
     title: STARTER_SET_TITLE,
-    description: `The Salvage Union Starter Set crew from ${STARTER_SET_ADVENTURE}, by ${STARTER_SET_PUBLISHER}: six Pilots, their Mechs and their Union Crawler. Read every sheet free; copy one to play.`,
+    description: workerCopy('starterSetDescription', {
+      adventure: STARTER_SET_ADVENTURE,
+      publisher: STARTER_SET_PUBLISHER,
+    }),
     themeColor: color.crawlerBand,
   },
 }

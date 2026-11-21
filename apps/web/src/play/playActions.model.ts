@@ -60,18 +60,18 @@ export type Need = 'boarded' | 'downtime' | 'afterDowntime'
 
 /** Why an action is not on hand, as its row says it. */
 export const NEED_TEXT: Record<Need, string> = {
-  boarded: 'needs Boarded',
-  downtime: 'needs Downtime',
-  afterDowntime: 'after Downtime',
+  boarded: playCopy('needsBoarded'),
+  downtime: playCopy('needsDowntime'),
+  afterDowntime: playCopy('afterDowntime'),
 }
 
 /** The Downtime actions the guide names that are not an action of a unit. */
 export type DowntimeActionId = 'train' | 'craftTrade' | 'rumours'
 
 const DOWNTIME_ACTIONS: readonly { id: DowntimeActionId; name: string }[] = [
-  { id: 'train', name: 'Train your Pilot' },
+  { id: 'train', name: playCopy('trainYourPilot') },
   { id: 'craftTrade', name: 'Craft · Trade' },
-  { id: 'rumours', name: 'Gather Cantina Rumours' },
+  { id: 'rumours', name: playCopy('gatherCantinaRumours') },
 ]
 
 /** Whose action a row is. A companion's waits on what its host's would. */
@@ -190,8 +190,8 @@ function rankOf(entry: ListEntry): number {
 
 /** Words a control row answers to in Find, besides its name. */
 const CONTROL_WORDS: Record<'reactor' | 'mount', string> = {
-  reactor: 'Push Heat Check Vent Shutdown Shut down',
-  mount: 'Board Dismount Eject',
+  reactor: playCopy('findWordsReactor'),
+  mount: playCopy('findWordsMount'),
 }
 
 /**
@@ -242,10 +242,11 @@ export function lockReason(
   heat: { current: number; cap: number; scale?: number },
   closeOnly = false
 ): string | null {
-  if (action.condition === 'destroyed') return 'Destroyed'
-  if (!actionInRange(action.action, range)) return `Out of Range at ${range}`
+  if (action.condition === 'destroyed') return playCopy('destroyed')
+  if (!actionInRange(action.action, range)) return playCopy('outOfRangeAt', { range })
   const scaled = { ...action, economy: economyUnderScene(action.economy, heat.scale ?? 1) }
-  if (!actionReachable(scaled, range, heat.current, heat.cap)) return 'Over the Heat Capacity'
+  if (!actionReachable(scaled, range, heat.current, heat.cap))
+    return playCopy('overTheHeatCapacity')
   // A ranged action needs a target it can see: at Close, or with no range declared, it has one.
   if (closeOnly && range !== 'Close' && (action.action.range?.length ?? 0) > 0) {
     return playCopy('lowVisibilityCloseOnly')

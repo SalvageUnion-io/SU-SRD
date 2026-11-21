@@ -98,7 +98,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         onOpenChange={setEjecting}
         tone="danger"
         title={playCopy('eject2')}
-        body={`${play.pilot ? pilotCallsign(play.pilot) : 'Your Pilot'} leaves ${boardedName ?? 'the Mech'} at once, wherever it is. The Mech stays where it stands.`}
+        body={playCopy('ejectBody', {
+          pilot: play.pilot ? pilotCallsign(play.pilot) : playCopy('yourPilotLeads'),
+          mech: boardedName ?? playCopy('theMech'),
+        })}
         confirmLabel={playCopy('eject')}
         onConfirm={() => {
           play.seat.eject()

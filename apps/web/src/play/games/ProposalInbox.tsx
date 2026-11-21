@@ -37,7 +37,7 @@ export function ProposalInbox({ gameId }: { gameId: string }) {
   const decline = useTableAct('ops.decline', gameId)
   const { canWrite } = useSync()
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playGamesCopy('answerDidNotLand'),
     toastId: 'proposal-answer',
   })
 

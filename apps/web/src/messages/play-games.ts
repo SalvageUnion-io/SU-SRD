@@ -182,4 +182,26 @@ export const playGamesCopy = messages({
   primaryCrawlerFailed: 'That crawler could not be made primary. Try again.',
   tl: 'TL',
   techLevel: 'Tech Level',
+
+  inviteLinkCopyFailed: 'The invite link could not be copied. Try again.',
+  copyInviteLink: 'Copy invite link',
+  gameDeleteFailed: 'That Game could not be deleted. Try again.',
+  goBackToWhoeverOwnsThem: '{who} go back to whoever owns them, in their {bay}.',
+  howInvitesWork:
+    'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.',
+  inviteLinkDoesNotWork: 'That invite link does not work.',
+  inviteLinkAskAgain:
+    'It may have been reset, or not copied whole. Ask whoever invited you for the current link.',
+  youreInvitedTo: "You're invited to ",
+  mediatedBy: ', mediated by {name}',
+  inviteNotUsed: 'That invite could not be used. Try again.',
+  answerDidNotLand: 'Your answer did not land. Try again.',
+  nobodyYet: 'Nobody yet',
+  theMediatorRunsTheTable:
+    'The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to the crew.',
+  tableHandOverFailed: 'The table could not be handed over. Try again.',
+  onFootUnit: 'on foot',
+  runsTheTable: 'Runs the table',
+  noPilotYet: 'No Pilot yet',
+  waitingForAPlayer: 'Waiting for a player',
 })

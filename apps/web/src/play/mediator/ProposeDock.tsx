@@ -118,7 +118,7 @@ export function ProposeDock({
   const trimmed = reason.trim()
   const preview =
     target === null || value === null
-      ? 'Pick a seat or a target, then the value you think it should be, or an amount to take or add.'
+      ? mediatorCopy('pickASeatOrATarget')
       : [
           `${target.label}: ${fieldLabel(field)} ${before ?? '—'} → ${value}`,
           trimmed === '' ? null : `“${trimmed}”`,

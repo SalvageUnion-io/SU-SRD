@@ -92,7 +92,10 @@ export function PlayNpcBox({
       <TitledBox
         as="section"
         title={npc.name}
-        label={`${npcKind(npc)}: ${npc.name}${npc.down ? ', down' : ''}`}
+        label={mediatorCopy(npc.down ? 'npcLabelDown' : 'npcLabel', {
+          kind: npcKind(npc),
+          name: npc.name,
+        })}
         tone="adversary"
         className="su-play-unit"
         reference={npc.down}

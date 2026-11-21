@@ -23,6 +23,7 @@ import { sheetPath } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
+import { libGamesCopy } from '../../messages/lib-games'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
 
@@ -161,7 +162,7 @@ export function tableCapabilities(args: {
     hasCrawler,
     canRaiseCrawler: tableRunner,
     canAddCrew,
-    addCrewBlocked: canAddCrew ? null : 'Only members of this Game can bring builds into it.',
+    addCrewBlocked: canAddCrew ? null : libGamesCopy('onlyMembersCanBring'),
     canOfferUnassigned: tableRunner,
   }
 }
@@ -213,7 +214,7 @@ export function moveDestinations(args: {
       ? shelf
       : currentGame !== undefined
         ? toGame(currentGame)
-        : { container: current, label: 'Unknown Game' }
+        : { container: current, label: libGamesCopy('unknownGame') }
   const others = (destinations: MoveDestination[]) =>
     destinations.filter((d) => !sameContainer(d.container, current))
 
@@ -372,7 +373,7 @@ export function crawlerRows(args: {
       kind: 'crawler' as const,
       serverId: row._id,
       appId: row.appId,
-      name: nameOf(row.body, 'Union Crawler'),
+      name: nameOf(row.body, libGamesCopy('unionCrawler')),
       ownerId: null,
       owner: null,
       localId: row.appId !== null && args.localIds.has(row.appId) ? row.appId : null,

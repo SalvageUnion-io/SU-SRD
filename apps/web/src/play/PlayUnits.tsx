@@ -173,7 +173,7 @@ export function PlayPilotUnit({
       chips={<Stat label={playCopy('pilot2')} size="mini" />}
       controls={
         <>
-          {stamp(live ? 'Live' : 'Read only')}
+          {stamp(live ? playCopy('live') : playCopy('readOnlyWords'))}
           {onOpenSheet ? <SheetButton name={pilotLabel(pilot)} onOpen={onOpenSheet} /> : null}
         </>
       }
@@ -213,9 +213,9 @@ export function PlayPilotUnit({
 export type MechPlace = 'boarded' | 'parked' | 'downtime'
 
 const MECH_STAMP: Record<MechPlace, string> = {
-  boarded: 'Boarded',
-  parked: 'Parked',
-  downtime: 'Mech Bay',
+  boarded: playCopy('boarded'),
+  parked: playCopy('parked'),
+  downtime: playCopy('mechBay'),
 }
 
 export type PlayMechUnitProps = {

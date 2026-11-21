@@ -9,6 +9,7 @@ import {
   getUniqueSources,
   techLevelRank,
 } from 'salvageunion-reference'
+import { libCopy } from '../messages/lib'
 
 /**
  * How a schema listing groups its entities. The island groups its live grid
@@ -30,7 +31,7 @@ export function orderTechLevels(techLevels: readonly TechLevel[]): TechLevel[] {
 
 /** A tech level as a group heading and a filter token say it. */
 export function tlName(level: TechLevel): string {
-  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : `Tech Level ${level}`
+  return level === 'B' ? 'Bio-tech' : level === 'N' ? 'Nanite' : libCopy('techLevel', { level })
 }
 
 /** A listing's groups, in the order the book prints them. */
@@ -136,8 +137,8 @@ export function groupEntities(items: RefEntity[], groupBy: GroupBy): ListingGrou
           : groupBy === 'bay'
             ? `${String(bay)} Bays`
             : hybrid
-              ? 'Hybrid Classes'
-              : 'Core Classes'
+              ? libCopy('hybridClasses')
+              : libCopy('coreClasses')
     const group = byKey.get(key) ?? { key, label, items: [] }
     group.items.push(item)
     byKey.set(key, group)

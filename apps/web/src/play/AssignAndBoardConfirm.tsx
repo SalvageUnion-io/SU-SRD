@@ -30,7 +30,10 @@ export function AssignAndBoardConfirm({
       body={
         assigning === null
           ? ''
-          : `${assigning.name} is an unassigned spare. Assign it to yourself to edit it in this Game, then board it. Boarding doesn’t pair it with ${play.pilot ? pilotCallsign(play.pilot) : 'your Pilot'}.`
+          : playCopy('assignAndBoardBody', {
+              name: assigning.name,
+              pilot: play.pilot ? pilotCallsign(play.pilot) : playCopy('yourPilot'),
+            })
       }
       confirmLabel={
         assigning === null

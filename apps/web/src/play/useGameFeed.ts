@@ -18,6 +18,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel } from 'salvageunion-reference/rules'
 import { gauge, pool } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
@@ -127,7 +128,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
 
 /** A resolve in progress, as the crew reads it. */
 export function describeResolve(pilotName: string, resolving: SeatResolving): string {
-  const head = `${pilotName} is resolving ${resolving.name}`
+  const head = playCopy('isResolving', { pilot: pilotName, name: resolving.name })
   if (resolving.roll !== undefined) {
     const label = coreRollBandLabel(resolving.roll.band)
     const tail = resolving.applied ? ', applied' : ''
@@ -166,9 +167,9 @@ type CrewMech = CrewVitals['mechs'][number]
 function mechProblems(status: CrewMech['status']): string[] {
   if (status === null) return []
   return [
-    ...(status.destroyed ? ['Mech destroyed'] : []),
+    ...(status.destroyed ? [playCopy('mechDestroyed')] : []),
     ...(status.overheating ? ['Overheating'] : []),
-    ...(status.shutdown ? ['Shut down'] : []),
+    ...(status.shutdown ? [playCopy('shutDown')] : []),
     ...[...status.destroyedSystems, ...status.destroyedModules].map((item) => `${item} destroyed`),
   ]
 }
@@ -229,11 +230,11 @@ export function crewLines(
     const unit =
       mech === undefined
         ? p.boarded
-          ? 'In a Mech'
-          : 'On foot'
+          ? playCopy('inAMech')
+          : playCopy('onFoot')
         : p.boarded
           ? `In ${mech.name} · SP ${vitalText('pool', mech.currentSP, mech.maxSP)}`
-          : `On foot · ${mech.name} parked`
+          : playCopy('onFootMechParked', { mech: mech.name })
     lines.push({
       pilotId: id,
       name: p.name,

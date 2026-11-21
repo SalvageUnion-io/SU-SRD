@@ -32,6 +32,7 @@
  */
 
 import { toast } from '../components/index'
+import { libCopy } from '../messages/lib'
 import { playerMessage } from './connection/useServerAction'
 import { captureException } from './observability'
 
@@ -52,7 +53,7 @@ export function reportWriteFailure(err: unknown): void {
   }
   console.error('[app] write failed', err)
   captureException(err)
-  toast('That change could not be saved.')
+  toast(libCopy('changeNotSaved'))
 }
 
 /**

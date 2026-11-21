@@ -15,6 +15,7 @@
  * not a seat here.
  */
 
+import { mediatorCopy } from '../../messages/play-mediator'
 import type { BoardSources } from '../boardMenu.model'
 import { crewSeatLines, problemsOf } from '../crew.model'
 import type { CrewVitals } from '../useGameFeed'
@@ -133,7 +134,9 @@ export function mediatorSeats(
         spoken(`HP ${line.hp}`),
         spoken(`AP ${line.ap}`),
         spoken(line.unit.replace(' · ', ', ')),
-        problems.length === 0 ? 'fine' : `needs attention: ${problems.join(', ').toLowerCase()}`,
+        problems.length === 0
+          ? 'fine'
+          : mediatorCopy('needsAttention', { problems: problems.join(', ').toLowerCase() }),
       ].join(', '),
     }
     return [{ seat, joinedAt: joined.get(pilot.ownerId) ?? Number.POSITIVE_INFINITY }]
@@ -194,5 +197,5 @@ export function doneOf(
 
 /** The bar's Downtime option: "Begin Downtime", or running, "Downtime · Step 3". */
 export function downtimeOptionLabel(running: boolean, stepIndex: number | null): string {
-  return running ? `Downtime · Step ${(stepIndex ?? 0) + 1}` : 'Begin Downtime'
+  return running ? `Downtime · Step ${(stepIndex ?? 0) + 1}` : mediatorCopy('beginDowntime')
 }

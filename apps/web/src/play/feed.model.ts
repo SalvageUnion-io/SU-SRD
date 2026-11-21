@@ -95,7 +95,7 @@ export function playFeedEntries({
       ts: p.ts,
       proposalId: p._id,
       change: proposalChange(p),
-      text: `Mediator proposes ${proposalChange(p)}`,
+      text: playCopy('mediatorProposes', { what: proposalChange(p) }),
       reason: p.reason,
     }))
   // A roll of mine this screen no longer holds (made before a reload, or on

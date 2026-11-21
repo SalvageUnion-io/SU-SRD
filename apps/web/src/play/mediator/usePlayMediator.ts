@@ -231,7 +231,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
 
   /** A refusal reads as the server's own words; anything else is reported. */
   const onFailure = (err: unknown) => {
-    toast.error(failureMessage(err, 'That did not reach the table. Try again.'), {
+    toast.error(failureMessage(err, mediatorCopy('didNotReachTheTable')), {
       id: 'mediator-write',
     })
   }

@@ -64,13 +64,11 @@ const COLUMN = {
 } satisfies CSSProperties
 
 /** How invites work, for a dead link and for a typed code from before links. */
-const HOW_INVITES_WORK =
-  'A Game is joined from the invite link its Organiser sends you. Open the link and sign in to join; there is no code to type.'
+const HOW_INVITES_WORK = playGamesCopy('howInvitesWork')
 
-const DEAD_HEADLINE = 'That invite link does not work.'
+const DEAD_HEADLINE = playGamesCopy('inviteLinkDoesNotWork')
 
-const DEAD_ASK =
-  'It may have been reset, or not copied whole. Ask whoever invited you for the current link.'
+const DEAD_ASK = playGamesCopy('inviteLinkAskAgain')
 
 const BACK = { href: '/games/', label: playGamesCopy('play') }
 
@@ -122,8 +120,9 @@ function DeadLink({
 function InviteWords({ preview }: { preview: InvitePreviewAnswer }) {
   return (
     <Text style={WORDS}>
-      You're invited to <strong>{preview.gameName}</strong>
-      {preview.mediatedBy ? `, mediated by ${preview.mediatedBy}` : ''}.
+      {playGamesCopy('youreInvitedTo')}
+      <strong>{preview.gameName}</strong>
+      {preview.mediatedBy ? playGamesCopy('mediatedBy', { name: preview.mediatedBy }) : ''}.
       {/* What the Game says of itself (ADR-067 §3), in its Organiser's words. */}
       {preview.description ? <span style={DESCRIPTION}>{preview.description}</span> : null}
     </Text>
@@ -142,7 +141,7 @@ function ConnectedInvite({ token, joinOnArrival = false }: InviteProps) {
   const navigate = useNavigate()
 
   const join = useServerAction(() => redeem({ code: token }), {
-    failure: 'That invite could not be used. Try again.',
+    failure: playGamesCopy('inviteNotUsed'),
   })
   // The arrival join runs once, whatever the live preview does after it.
   const arrived = useRef(false)

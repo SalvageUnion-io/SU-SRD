@@ -84,4 +84,9 @@ export const buildShelvesCopy = messages({
   thePreGeneratedCrewOf: 'The pre-generated crew of',
   byPublisherOpenAnySheet:
     ', by {publisher}. Open any sheet to read it, then make a copy to play it.',
+
+  sharedByLink: 'Shared by link',
+  onlyMe: 'Only me',
+  sharedWithACrew: 'Shared with a crew',
+  sharedWith: 'Shared with {game}',
 })

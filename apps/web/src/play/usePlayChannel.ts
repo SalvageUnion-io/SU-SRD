@@ -21,6 +21,7 @@
 import type { PostRollResult } from 'game-domain/games/discord'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { failureMessage } from '../lib/connection/useServerAction'
+import { playCopy } from '../messages/play'
 import { sendChangeLog } from '../replica/outbox'
 import { useGamesCall, useGamesQuery } from '../replica/roomCalls'
 import { useSync } from '../replica/syncContext'
@@ -28,6 +29,7 @@ import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, onPlayRoll, playRollDescription, rollLogEntry } from './playRolls.model'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 
 /** One roll's post, as its Feed line says it. */
 export type PlayPostState = { kind: 'posting' } | PostRollResult
@@ -82,7 +84,7 @@ export function usePlayRollDispatch({
         settle(roll.id, {
           kind: 'failed',
           channelId: null,
-          message: 'Not posted: Play is read-only for now.',
+          message: playCopy('notPostedReadOnly'),
         })
         return
       }
@@ -110,7 +112,7 @@ export function usePlayRollDispatch({
           settle(roll.id, {
             kind: 'failed',
             channelId: b?.channelId ?? null,
-            message: failureMessage(err, 'The roll did not reach Discord.'),
+            message: failureMessage(err, playCopy('rollDidNotReachDiscord')),
           })
         )
     },
@@ -129,7 +131,7 @@ export function usePlayRollDispatch({
               {
                 description: playRollDescription(name, roll),
                 result: {
-                  kind: roll.tableName === 'Core Mechanic' ? 'core' : 'table',
+                  kind: roll.tableName === CORE_MECHANIC_TABLE ? 'core' : 'table',
                   roll: roll.rolls[0] ?? null,
                   outcome: roll.outcome ?? '',
                 },

@@ -226,4 +226,20 @@ export const mediatorCopy = messages({
   hourReason: '{conditions}, hour {hour}',
   hourLine: '{label}: {said}.',
   hourAlert: 'Hour {hour} under {conditions}.',
+
+  nameCannotBeBlank: 'A name cannot be blank.',
+  deleteNpcTitle: 'Delete {name}?',
+  renameNpcTitle: 'Rename {name}',
+  thisNpc: 'this NPC',
+  thatDidNotWork: 'That did not work. Try again.',
+  gatherCantinaRumours: 'Gather Cantina Rumours',
+  moraleCheck: 'Morale check',
+  npcLabel: '{kind}: {name}',
+  npcLabelDown: '{kind}: {name}, down',
+  noProposalsYet: 'No proposals yet. Pick a seat, then propose the change you think it needs.',
+  pickASeatOrATarget:
+    'Pick a seat or a target, then the value you think it should be, or an amount to take or add.',
+  needsAttention: 'needs attention: {problems}',
+  beginDowntime: 'Begin Downtime',
+  didNotReachTheTable: 'That did not reach the table. Try again.',
 })

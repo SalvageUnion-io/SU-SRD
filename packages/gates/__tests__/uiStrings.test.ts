@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { isCopyAttr, lintUiStrings, uiStringFindings } from '../rules/uiStrings'
+import { EXEMPTIONS } from '../rules/uiStringsExemptions'
 
 /**
  * `tools/check-rule-sets.ts` (the `copy` check) ratchets UI strings typed at
@@ -109,5 +112,31 @@ describe('lintUiStrings', () => {
       true
     )
     expect(details.some((d) => d.startsWith('messages(…) outside'))).toBe(true)
+  })
+})
+
+describe('EXEMPTIONS', () => {
+  const [first] = EXEMPTIONS
+  if (!first) throw new Error('no exemption to test')
+  const [exempt] = first.strings
+  if (exempt === undefined) throw new Error('an exemption with no string')
+
+  test('waives the one string in the one file, and nothing else there', () => {
+    const src = `const a = ${JSON.stringify(exempt)}\nconst b = 'This sheet is read-only.'`
+    expect(found(first.file, src)).toEqual(['"This sheet is read-only."'])
+    expect(found('apps/web/src/elsewhere.ts', src)).toHaveLength(2)
+  })
+
+  test('every exemption says why, and names strings its file still holds', () => {
+    const root = join(import.meta.dir, '../../..')
+    const files = EXEMPTIONS.map((e) => e.file)
+    expect(new Set(files).size).toBe(files.length)
+    for (const e of EXEMPTIONS) {
+      expect(e.reason.length).toBeGreaterThan(20)
+      expect(e.strings.length).toBeGreaterThan(0)
+      expect(existsSync(join(root, e.file))).toBe(true)
+      const source = readFileSync(join(root, e.file), 'utf8')
+      for (const s of e.strings) expect(source).toContain(s)
+    }
   })
 })
