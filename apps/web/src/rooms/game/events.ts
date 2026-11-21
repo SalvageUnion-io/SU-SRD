@@ -9,6 +9,7 @@ import {
 import { seatOf } from '../seats'
 import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
+import { rollLineFor } from './log'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
 import { unitName } from './units'
@@ -30,6 +31,9 @@ import { unitName } from './units'
  *   follows ("HP 8 → 5", "×3") until the line is sealed (posted to Discord).
  * - **Private:** a row marked `private` (the Mediator's private roll) is
  *   served to Mediators only and is never mirrored (`isMirrored`).
+ * - **Veiled:** an Opposition roll is served to a player as its veiled line,
+ *   without the NPC's or the weapon's name, until a Mediator reveals it
+ *   (`log.ts`, ADR-051 §9b).
  */
 
 type TableEventKind =
@@ -55,6 +59,11 @@ export type TableEvent = {
   actorId: string | null
   /** Mediators' eyes only: never toasted to a player, never mirrored. */
   private?: true
+  /**
+   * A Mediator's copy of an Opposition roll the players read without its names
+   * (ADR-051 §9b): theirs to reveal. Never set on what a player is served.
+   */
+  veiled?: true
   /** The group session began or ended here: what "Last session" is cut by. */
   session?: 'start' | 'end'
   /** An assignment taken from this member: their screen says so itself (`assignmentNotices`). */
@@ -145,7 +154,7 @@ export class GameEvents {
          order by ts desc, id limit ?`,
         SERVED
       )
-      .map((row) => this.read(row))
+      .map((row) => this.read(row, member.mediator))
       .filter((event) => event.private !== true || member.mediator)
   }
 
@@ -275,6 +284,11 @@ export class GameEvents {
         if (op == null || op.state !== 'proposed') return []
         const verb = name === 'ops.accept' ? 'accepted' : 'declined'
         return say('proposal', `${who} ${verb}: ${this.proposalLine(op)}`)
+      }
+      case 'changeLog.reveal': {
+        // The roll's own line, now whole for everyone: its toast and Feed line rewrite in place.
+        const row = this.store.rows('select * from change_log where id = ?', String(a.rollId))[0]
+        return row === undefined ? [] : [this.read(row, false)]
       }
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.
@@ -407,7 +421,8 @@ export class GameEvents {
     )
   }
 
-  private read(row: Record<string, unknown>): TableEvent {
+  /** One row as `mediates` reads it: a veiled roll whole only for a Mediator. */
+  private read(row: Record<string, unknown>, mediates: boolean): TableEvent {
     const id = String(row.id)
     const ts = Number(row.ts)
     const actorId = row.actor_id == null ? null : String(row.actor_id)
@@ -416,14 +431,16 @@ export class GameEvents {
     if (row.field === 'alert') {
       return { _id: id, ts, kind: 'alert', text: `Mediator · ${String(after)}`, actorId }
     }
-    const roll = after as { description?: unknown; private?: unknown } | null
+    const roll = after as { private?: unknown } | null
+    const line = rollLineFor(after, mediates)
     return {
       _id: id,
       ts,
       kind: 'roll',
-      text: typeof roll?.description === 'string' ? roll.description : 'A roll',
+      text: line.description,
       actorId,
       ...(roll?.private === true ? { private: true as const } : {}),
+      ...(line.veiled === true ? { veiled: true as const } : {}),
     }
   }
 

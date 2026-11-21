@@ -90,6 +90,7 @@ export function PlayWreckSalvage({
     let said: string | undefined
     const die = reportingRoll(await rollFor(MECH_SALVAGE), MECH_SALVAGE, () => ({
       label: `${npc.name} · ${MECH_SALVAGE}`,
+      veiled: true as const,
       ...(said ? { outcome: said } : {}),
     }))(20)
     const result = mechSalvageResult(die)

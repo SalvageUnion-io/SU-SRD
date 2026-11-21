@@ -113,6 +113,8 @@ const GAME_ACTS = {
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
     c.room.log.broadcast(c.actor, a.message, c.at),
+  'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
+    c.room.log.reveal(c.actor, a.rollId),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
   'changeLog.alerts': (c: ActContext) => c.room.log.alerts(c.actor),
   'changeLog.events': (c: ActContext) => c.room.events.list(c.actor),

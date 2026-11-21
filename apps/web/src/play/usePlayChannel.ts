@@ -10,7 +10,8 @@
  *  - `usePlayRollDispatch(...)`: for every roll recorded while the screen is
  *    open, the Game's log row (in a Game) and the post (`postRoll`), with
  *    each roll's post state for its Feed line. A private roll (the
- *    Mediator's switch) is logged private and never posted. A
+ *    Mediator's switch) is logged private and never posted. An Opposition
+ *    roll is logged veiled, and its card names its table, never the NPC. A
  *    failure is shown, never swallowed, and a failed one can be tried again
  *    from its line (`postNow`).
  *
@@ -28,7 +29,13 @@ import { useSync } from '../replica/syncContext'
 import type { PlayBinding } from './channels.model'
 import type { PlayScreen, PlayTarget } from './play.model'
 import type { PlayRoll } from './playRolls.model'
-import { isDiceRoll, onPlayRoll, playRollDescription, rollLogEntry } from './playRolls.model'
+import {
+  isDiceRoll,
+  onPlayRoll,
+  playRollDescription,
+  rollLogEntry,
+  veiledRollDescription,
+} from './playRolls.model'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
 /** One roll's post, as its Feed line says it. */
@@ -102,7 +109,8 @@ export function usePlayRollDispatch({
           rolls: roll.rolls,
           // What the roll was for (an ability's name), which the card prints. The
           // Mediator's is left off: its label names the Opposition.
-          ...(t.pilotId !== null && roll.label && roll.label !== roll.tableName
+          // A veiled roll's never is (ADR-051 §9b).
+          ...(t.pilotId !== null && !roll.veiled && roll.label && roll.label !== roll.tableName
             ? { label: roll.label }
             : {}),
         },
@@ -136,6 +144,8 @@ export function usePlayRollDispatch({
                   outcome: roll.outcome ?? '',
                 },
                 ...(roll.private ? { private: true as const } : {}),
+                // The Opposition's names stay in the room (ADR-051 §9b).
+                ...(roll.veiled ? { veiled: veiledRollDescription(roll) } : {}),
               },
               roll.at
             ),

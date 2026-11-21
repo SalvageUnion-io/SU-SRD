@@ -44,6 +44,12 @@ export type PlayRoll = {
    * players, and it is never posted to Discord. Absent on every other roll.
    */
   private?: true
+  /**
+   * An Opposition roll (ADR-051 §9b): the Game's log keeps the whole line and
+   * serves the players `veiledRollDescription` in its place, until the
+   * Mediator reveals it. Absent on a table roll and on every player's roll.
+   */
+  veiled?: true
 }
 
 /** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
@@ -104,6 +110,19 @@ export function playRollDescription(rollerName: string, roll: PlayRoll): string 
 }
 
 /**
+ * What the players read of a veiled roll (ADR-051 §9b): that the Mediator
+ * rolled, the dice and what it came to; never what rolled ("Mediator rolled ·
+ * 9 · Tough Choice").
+ */
+export function veiledRollDescription(roll: Pick<PlayRoll, 'rolls' | 'outcome'>): string {
+  return [
+    'Mediator rolled',
+    ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
+    ...(roll.outcome ? [roll.outcome] : []),
+  ].join(' · ')
+}
+
+/**
  * Hear each roll as it is recorded, once: the dispatch's hook. Returns the
  * unsubscribe. Not for rendering; `usePlayRollLog` is.
  */
@@ -131,7 +150,7 @@ export function usePlayRollLog(): readonly PlayRoll[] {
 }
 
 /** What a reported roll says about itself besides its table and dice, read when it lands. */
-export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome'>
+export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'veiled'>
 
 /** The Core Mechanic's band for a die ("Success"), the outcome a Core roll reports. */
 function coreOutcome(die: number | undefined): string | undefined {
@@ -163,6 +182,7 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
           rolls: read,
           label: said.label,
           ...(outcome === undefined ? {} : { outcome }),
+          ...(said.veiled ? { veiled: true as const } : {}),
         })
       })
     }
@@ -186,6 +206,8 @@ export type LoggedRoll = {
   result: { kind: 'core' | 'table'; roll: number | null; outcome: string }
   /** The Mediator's private roll: the room keeps the row from the players. */
   private?: true
+  /** An Opposition roll: the line the room serves the players in `description`'s place. */
+  veiled?: string
 }
 
 /**
@@ -208,6 +230,7 @@ export function rollLogEntry<GameId extends string>(gameId: GameId, roll: Logged
       description: roll.description,
       result: roll.result,
       ...(roll.private ? { private: true as const } : {}),
+      ...(roll.veiled === undefined ? {} : { veiled: roll.veiled }),
     },
     source: PLAY_TXN.source,
   }

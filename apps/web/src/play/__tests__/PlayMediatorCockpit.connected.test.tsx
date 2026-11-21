@@ -41,8 +41,14 @@ const logged = () =>
     .filter((a) => a.name === LOG)
     .flatMap(
       (a) =>
-        (a.args as { entries: { field: string; after: { description: string; private?: true } }[] })
-          .entries
+        (
+          a.args as {
+            entries: {
+              field: string
+              after: { description: string; private?: true; veiled?: string }
+            }[]
+          }
+        ).entries
     )
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
@@ -586,6 +592,28 @@ describe('the Opposition', () => {
     expect(logged()[0]?.field).toBe('roll')
     expect(logged()[0]?.after.description).toMatch(/^Mediator · Strikebreaker · /)
     expect(logged()[0]?.after).not.toHaveProperty('private')
+    // The players' line names neither the NPC nor its weapon (r2 B1).
+    expect(logged()[0]?.after.veiled).toBe('Mediator rolled · 14 · Success')
+    // Nor does the bot's card: the Mediator's carries its table alone.
+    expect(JSON.stringify(postRoll.mock.calls[0])).not.toContain('Strikebreaker')
+  })
+
+  test('a veiled roll says the players miss its names, and Reveal shows the table the whole line (r2 B1)', async () => {
+    await renderCockpit({
+      'changeLog.events': [
+        {
+          _id: 'e-veiled',
+          ts: NOW - 1000,
+          kind: 'roll',
+          text: 'Mediator · Strikebreaker · Fists · 9 · Tough Choice',
+          actorId: 'u-gm',
+          veiled: true,
+        },
+      ],
+    })
+    expect(feedLines().some((l) => l.includes('Players see the result, not the names'))).toBe(true)
+    await click(named(/^Reveal to the table: /))
+    expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-veiled' } }])
   })
 
   test('Private rolls on: the roll is logged private, reads Private on the Feed and never reaches Discord', async () => {

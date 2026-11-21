@@ -229,4 +229,52 @@ describe('the table’s events', () => {
     expect(mediators.filter((e) => isMirrored(e))).toEqual([])
     expect(room.events.list(STRANGER)).toEqual([])
   })
+
+  test('an Opposition roll reaches players without its names, in the Feed and the log, until the Mediator reveals it (r2 B1)', () => {
+    const { room, act, texts } = seated()
+    const full = 'Mediator · Veteran · Green Laser Rifle (Veteran) · 9 · Tough Choice'
+    const veiled = 'Mediator rolled · 9 · Tough Choice'
+    room.log.append(MEDIATOR, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: full, veiled },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    // The room withholds the names: nothing a player is served carries them.
+    expect(texts(PLAYER)).toEqual([veiled])
+    expect(JSON.stringify(room.events.list(PLAYER))).not.toContain('Veteran')
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([veiled])
+    expect(room.events.list(PLAYER)[0]).not.toHaveProperty('veiled')
+    // The Mediator reads the whole line, marked as one the players do not.
+    const [own] = room.events.list(MEDIATOR)
+    expect(own).toMatchObject({ text: full, veiled: true })
+    expect(room.log.rolls(MEDIATOR)[0]).toMatchObject({ description: full, veiled: true })
+    // Only a Mediator reveals, and a revealed roll reads whole to the table.
+    expect(() => act(PLAYER, 'changeLog.reveal', { rollId: String(own?._id) })).toThrow(
+      'Only the Mediator'
+    )
+    const told = act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 2)
+    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: full }])
+    expect(texts(PLAYER)).toEqual([full])
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([full])
+    expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
+
+  test('a player’s roll is never veiled, whatever the client sent (r2 B1)', () => {
+    const { room, texts } = seated()
+    room.log.append(PLAYER, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: 'p1 · Core Mechanic · 14 · Success', veiled: 'Mediator rolled' },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    expect(texts(MEDIATOR)).toEqual(['p1 · Core Mechanic · 14 · Success'])
+    expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
 })

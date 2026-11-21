@@ -18,7 +18,9 @@ import {
   recordPlayChange,
   recordPlayRoll,
   reportingRoll,
+  rollLogEntry,
   setPrivateRolls,
+  veiledRollDescription,
 } from '../playRolls.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
@@ -257,6 +259,51 @@ describe('the Feed (play.md §8)', () => {
       'You · Core Mechanic · 14 · Success · Private',
       'You · Morale · 4 · Private',
     ])
+  })
+
+  test('a veiled roll carries its id for Reveal, on the log’s copy and on mine (r2 B1)', () => {
+    const mine = { ...roll({ id: 'm1', at: 400, label: 'Veteran · Rifle' }), veiled: true as const }
+    const event = (id: string, ts: number, text: string) => ({
+      _id: id,
+      ts,
+      kind: 'roll' as const,
+      text,
+      actorId: 'gm',
+      veiled: true as const,
+    })
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        event('e2', 400, playRollDescription('Mediator', mine)),
+        event('e1', 300, 'Mediator · Raider · Morale · 4'),
+      ],
+      proposals: [],
+      mine: [mine],
+      rollerName: 'Mediator',
+    })
+    expect(entries.map((e) => [e.kind, 'reveal' in e ? e.reveal : undefined])).toEqual([
+      ['mine', 'e2'],
+      ['roll', 'e1'],
+    ])
+  })
+
+  test('what the players read of a veiled roll names nothing that rolled (r2 B1)', () => {
+    const veteran = roll({ id: 'v', at: 1, rolls: [9], label: 'Veteran · Green Laser Rifle' })
+    expect(veiledRollDescription({ ...veteran, outcome: 'Tough Choice' })).toBe(
+      'Mediator rolled · 9 · Tough Choice'
+    )
+    expect(
+      rollLogEntry(
+        'g1',
+        {
+          description: 'Mediator · Veteran · 9',
+          result: { kind: 'table', roll: 9, outcome: 'Tough Choice' },
+          veiled: 'Mediator rolled · 9 · Tough Choice',
+        },
+        1
+      ).after
+    ).toMatchObject({ veiled: 'Mediator rolled · 9 · Tough Choice' })
   })
 
   test('solo: only my own', () => {

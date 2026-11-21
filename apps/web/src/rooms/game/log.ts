@@ -10,6 +10,11 @@ import type { GameStore } from './store'
  *
  * A roll logged `private` (ADR-051 §9a) is the Mediator's own: only a
  * Mediator and whoever rolled it read it back.
+ *
+ * A roll logged `veiled` (ADR-051 §9b) is the Opposition's: the row keeps the
+ * whole line, and the room serves a player the veiled line in its place (that
+ * the Mediator rolled, and what it came to) until a Mediator reveals it
+ * (`reveal`). The names never leave the room for a player's screen.
  */
 
 /** The most rows of each field a read returns: the feed's newest page. */
@@ -32,6 +37,32 @@ export type RollRow = {
   actorName: string | null
   /** Only a Mediator and its roller read it; absent on a roll the table reads. */
   private?: true
+  /** A Mediator's copy of a roll the players read without its names; absent once revealed. */
+  veiled?: true
+}
+
+/** A roll's row as its `after` keeps it. */
+type StoredRoll = {
+  description?: unknown
+  private?: unknown
+  /** The line a player reads in its place. */
+  veiled?: unknown
+  revealed?: unknown
+}
+
+/**
+ * A roll's line as one reader is served it (ADR-051 §9b): a veiled roll reads
+ * whole to a Mediator, marked, and as its veiled line to anyone else, until it
+ * is revealed.
+ */
+export function rollLineFor(
+  after: unknown,
+  mediates: boolean
+): { description: string; veiled?: true } {
+  const roll = after as StoredRoll | null
+  const whole = typeof roll?.description === 'string' ? roll.description : 'A roll'
+  if (typeof roll?.veiled !== 'string' || roll.revealed === true) return { description: whole }
+  return mediates ? { description: whole, veiled: true } : { description: roll.veiled }
 }
 
 export type AlertRow = { _id: string; message: string; ts: number; actorId: string | null }
@@ -66,6 +97,26 @@ export class GameLog {
     })
   }
 
+  /** Show the table a veiled roll whole (ADR-051 §9b): the Mediator's, and it stays shown. */
+  reveal(actor: string, rollId: string): void {
+    this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      const row = this.store.rows(
+        "select after from change_log where id = ? and field = 'roll'",
+        rollId
+      )[0]
+      const after = row === undefined ? null : (parsed(row.after) as StoredRoll | null)
+      if (after === null || typeof after.veiled !== 'string') {
+        throw new RoomRefusal('That is not a roll to reveal')
+      }
+      this.store.rows(
+        'update change_log set after = ? where id = ?',
+        JSON.stringify({ ...after, revealed: true }),
+        rollId
+      )
+    })
+  }
+
   /** The newest rolls, newest first, each named by its roller as the roster names them. */
   rolls(actor: string): RollRow[] {
     const mediates = this.store.member(actor)?.mediator === true
@@ -79,7 +130,7 @@ export class GameLog {
           _id: String(row.id),
           ts: Number(row.ts),
           source: String(row.source),
-          description: typeof after?.description === 'string' ? after.description : 'A roll',
+          ...rollLineFor(after, mediates),
           actorName:
             actorId === null ? null : (this.store.member(actorId)?.displayName ?? 'Crewmate'),
           ...(hidden ? { private: true as const } : {}),
@@ -120,10 +171,15 @@ export class GameLog {
   }
 }
 
-/** A row as the whole table reads it: only the Mediator's is ever private. */
+/** A row as the whole table reads it: only the Mediator's is ever private, or veiled. */
 function shared(after: unknown): unknown {
-  if (after === null || typeof after !== 'object' || !('private' in after)) return after ?? null
-  const { private: _, ...rest } = after as Record<string, unknown>
+  if (after === null || typeof after !== 'object') return after ?? null
+  const {
+    private: _private,
+    veiled: _veiled,
+    revealed: _revealed,
+    ...rest
+  } = after as Record<string, unknown>
   return rest
 }
 

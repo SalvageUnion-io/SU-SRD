@@ -272,6 +272,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName: 'Morale',
         rolls: [result.roll],
         label: `${npc.name} · Morale`,
+        veiled: true,
         outcome: result.label ?? result.value,
       })
     },
@@ -285,6 +286,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName,
         rolls: [result.roll],
         label: `${group.name} · ${tableName}`,
+        veiled: true,
         outcome: result.label ?? result.value,
       })
     },
@@ -322,6 +324,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName,
         rolls: [rolled.result.roll],
         label: `${npc.name} · ${tableName}`,
+        veiled: true,
         outcome: rolled.result.label ?? rolled.result.value,
       })
     },
@@ -363,6 +366,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
         tableName: heatCheck,
         rolls: overload === null ? [checked.roll] : [checked.roll, overload.roll],
         label: `${npc.name} · ${heatCheck}`,
+        veiled: true,
         outcome: result.label ?? result.value,
       })
     },
@@ -393,6 +397,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
             tableName: 'd20',
             rolls: [count],
             label: line.text,
+            veiled: true,
             outcome: `${count}`,
           })
         }
