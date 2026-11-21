@@ -15,7 +15,9 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
+import { resolveSystem } from '../../../lib/rules/mechItems'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
+import { choicesOf } from '../../wizard/pickColumns'
 import { MechSheet } from '../MechSheet'
 
 const TURRET = 'automated-weapon-turret'
@@ -104,5 +106,42 @@ describe('MechSheet — an item’s chosen options', () => {
     const last = must(must(update.mock.calls[1])[2])
     expect(last.systems).toEqual([])
     expect(last.itemChoices).toEqual({ other: { x: ['y'] } })
+  })
+
+  test('a System that asks a choice asks it as it is added (PT-31)', async () => {
+    const update = renderSheet(makeMech({ systems: [] }))
+    fireEvent.click(screen.getByRole('button', { name: 'Manage Systems' }))
+    const search = screen.getByRole('textbox', { name: 'Search' })
+    fireEvent.change(search, { target: { value: TURRET_NAME } })
+    await act(async () => {
+      fireEvent.keyDown(search, { key: 'Enter' })
+    })
+    expect(must(must(update.mock.calls[0])[2]).systems).toEqual([TURRET])
+    const page = screen.getByRole('dialog')
+    expect(within(page).queryByRole('textbox', { name: 'Search' })).toBeNull()
+    expect(within(page).getAllByRole('button', { pressed: false }).length).toBeGreaterThan(0)
+  })
+
+  test('Read marks a choice not yet made; a made one and a plain item wear no mark (PT-31)', () => {
+    const read = (mech: Mech) => {
+      const view = render(
+        <MechSheet
+          mech={mech}
+          chassis={fakeChassis}
+          store={makeSingleUnitStore('mech', mech)}
+          readOnly
+        />
+      )
+      const text = view.container.textContent ?? ''
+      view.unmount()
+      return text
+    }
+    expect(read(makeMech({ systems: [TURRET] }))).toContain('Choice not made')
+    expect(read(makeMech({ systems: [PLAIN] }))).not.toContain('Choice not made')
+    const turret = must(resolveSystem(TURRET))
+    const picks = Object.fromEntries(choicesOf(turret).map((choice) => [choice.id, ['Picked']]))
+    expect(read(makeMech({ systems: [TURRET], itemChoices: { [TURRET]: picks } }))).not.toContain(
+      'Choice not made'
+    )
   })
 })

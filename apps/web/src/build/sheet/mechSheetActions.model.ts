@@ -47,6 +47,8 @@ type MechSheetActionsOptions = {
   storeState: UnitsState
   /** The linked home crawler, or null — the repair scrap-pool deduction target. */
   crawler: Crawler | null
+  /** The assigned pilot's abilities: one can raise the mech's Cargo Capacity (ADR-029). */
+  pilotAbilities?: string[]
 }
 
 export type MechSheetActions = {
@@ -79,6 +81,7 @@ export function useMechSheetActions({
   store,
   storeState,
   crawler,
+  pilotAbilities,
 }: MechSheetActionsOptions): MechSheetActions {
   // Soft warnings (ADR-021) on the one mech BUILD edit the rules
   // evaluate: system removal. Play-state writes (SP/EP/heat, conditions, item
@@ -100,15 +103,18 @@ export function useMechSheetActions({
 
   /**
    * The one fire-and-forget write on this sheet — see the header note. A write
-   * that takes the loadout over its slots, or further over, still saves, and
-   * says so as it does (R71).
+   * that takes the loadout over its slots or the hold over its Cargo, or
+   * further over, still saves, and says so as it does (R71).
    */
   function write(fields: Partial<Mech>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void {
     if ('systems' in fields || 'modules' in fields || 'chassisRef' in fields) {
       const before = freshMech()
       ruleBreakToast(
         mech.id,
-        ruleBreaksMade(mechRuleBreaks(before), mechRuleBreaks({ ...before, ...fields }))
+        ruleBreaksMade(
+          mechRuleBreaks(before, pilotAbilities),
+          mechRuleBreaks({ ...before, ...fields }, pilotAbilities)
+        )
       )
     }
     runWrite(() => storeState.update('mech', mech.id, fields, meta))

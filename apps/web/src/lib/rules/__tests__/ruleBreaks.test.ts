@@ -5,7 +5,8 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { mechRuleBreaks, ruleBreaksMade } from '../ruleBreaks'
+import { makeUnitLot } from 'game-domain/schemas/cargoLot'
+import { cargoRuleBreaks, mechRuleBreaks, ruleBreaksMade } from '../ruleBreaks'
 
 const scrapper = (systems: string[], modules: string[] = []) => ({
   chassisRef: 'scrapper',
@@ -31,6 +32,25 @@ describe('mechRuleBreaks', () => {
     expect(
       mechRuleBreaks({ chassisRef: 'no-such-chassis', systems: ['chainsaw'], modules: [] })
     ).toEqual([])
+  })
+})
+
+describe('Cargo over its capacity (SB-21)', () => {
+  test('a hold within its capacity breaks nothing; one over it counts both numbers', () => {
+    expect(cargoRuleBreaks({ used: 6, cap: 6 })).toEqual([])
+    expect(cargoRuleBreaks({ used: 8, cap: 6 })).toEqual([
+      { stat: 'cargoCapacity', used: 8, max: 6 },
+    ])
+  })
+
+  test('a mech carrying more than its chassis holds breaks Cargo', () => {
+    const [found, ...rest] = mechRuleBreaks({
+      ...scrapper([]),
+      cargoLots: [makeUnitLot('Big Thing', { units: 99 })],
+    })
+    expect(rest).toEqual([])
+    expect(found?.stat).toBe('cargoCapacity')
+    expect(found?.used).toBe(99)
   })
 })
 

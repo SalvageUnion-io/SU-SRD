@@ -16,7 +16,7 @@ import { makeSingleUnitStore } from '../../../components/__tests__/mockEntitySto
 import { toast } from '../../../components/index'
 import { MechSheet } from '../MechSheet'
 import { PilotSheet } from '../PilotSheet'
-import { ruleBreakLine, ruleBreakToast } from '../ruleBreakToast.model'
+import { cargoBreakToast, ruleBreakLine, ruleBreakToast } from '../ruleBreakToast.model'
 
 beforeAll(hydrateStores)
 afterEach(() => mock.restore())
@@ -83,5 +83,25 @@ describe('R71 — one rule-breaking mark', () => {
     ruleBreakToast('mech-rb', [made])
     expect(warned).toHaveBeenCalledTimes(1)
     expect(warned.mock.calls[0]?.[0]).toBe('Saved, rule breaking: System Slots 16/12, 4 over.')
+  })
+
+  test('a load that takes Cargo over its capacity says so as it saves; one within it, and a refusal, say nothing', () => {
+    const warned = spyOn(toast, 'warning').mockImplementation(() => 'id')
+    const landed = (units: number) => ({
+      ok: true as const,
+      state: {
+        carrierLots: [makeUnitLot('Crate', { units })],
+        carrierCargoCap: 6,
+        depotLots: [],
+        scrapPool: {},
+      },
+      changed: { carrier: true, depot: false },
+    })
+    cargoBreakToast('mech-rb', { used: 0, cap: 6 }, landed(6))
+    cargoBreakToast('mech-rb', { used: 0, cap: 6 }, { ok: false, reason: 'No.' })
+    expect(warned).not.toHaveBeenCalled()
+    cargoBreakToast('mech-rb', { used: 0, cap: 6 }, landed(8))
+    expect(warned).toHaveBeenCalledTimes(1)
+    expect(warned.mock.calls[0]?.[0]).toBe('Saved, rule breaking: Cargo 8/6, 2 over.')
   })
 })

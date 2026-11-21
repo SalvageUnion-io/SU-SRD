@@ -45,6 +45,7 @@ import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
 import { cycleCondition } from '../../lib/rules/mechItems'
+import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import {
   equipmentMaxUses,
   equipmentSlotCost,
@@ -65,6 +66,7 @@ import type { AbilityEntry, AbilityTreeGroup, PilotSheetModel } from '../sheet/p
 import { inventoryEmpty } from '../sheet/pilotSheet.model'
 import type { PilotSheetActions } from '../sheet/pilotSheetActions.model'
 import { ConditionStep, EquipmentDetails, SheetRemoveButton, UsesStep } from '../sheet/rowControls'
+import { unmadeChoiceChip } from '../wizard/pickColumns'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { pilotVitalRows } from './pilotVitalRows.model'
@@ -283,9 +285,16 @@ export function PilotDash({
       const level = item?.facts.find((fact) => fact.key === 'tech-level')?.value
       const name = entity?.name ?? slug
       const hasChoices = Array.isArray(entity?.choices) && (entity?.choices.length ?? 0) > 0
-      const chips = chosen.map((picked) => (
+      const made = chosen.map((picked) => (
         <Stat key={picked} size="mini" label={buildSheetCopy('chosen')} value={picked} />
       ))
+      // A choice not yet made says so, Read too (PT-31). A granted drone's or
+      // companion's is set up on its own card (ADR-028).
+      const unmade =
+        entity && hasChoices && !isPartnerEquipment(slug)
+          ? unmadeChoiceChip(entity.choices ?? [], selections)
+          : undefined
+      const chips = unmade ? [...made, unmade] : made
       return {
         id: slug,
         name,

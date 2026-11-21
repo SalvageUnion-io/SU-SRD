@@ -263,4 +263,48 @@ describe('PilotSheet — equipment choice cards', () => {
       LIVE_SHEET_MANUAL
     )
   })
+
+  test('equipment that asks a choice asks it as it is added (PT-31)', async () => {
+    const pilot = makePilot({ equipment: [] })
+    const { store, updateMock } = makePilotStubStore(pilot)
+    render(<PilotSheet pilot={pilot} store={store} />)
+    fireEvent.click(screen.getByRole('button', { name: 'Manage Equipment' }))
+    const search = screen.getByRole('textbox', { name: 'Search' })
+    fireEvent.change(search, { target: { value: SNIPER_NAME } })
+    await act(async () => {
+      fireEvent.keyDown(search, { key: 'Enter' })
+    })
+    expect(updateMock.mock.calls[0]?.[2]).toMatchObject({ equipment: [SNIPER_ID] })
+    // Its Page stands in the picker's place, its choices ready to make.
+    const page = screen.getByRole('dialog')
+    expect(within(page).queryByRole('textbox', { name: 'Search' })).toBeNull()
+    await act(async () => {
+      fireEvent.click(within(page).getByRole('button', { name: /Ballistic/i }))
+    })
+    expect(updateMock).toHaveBeenLastCalledWith(
+      'pilot',
+      pilot.id,
+      { equipmentChoices: { [SNIPER_ID]: { [WEAPON_TYPE_CHOICE_ID]: ['Ballistic'] } } },
+      LIVE_SHEET_MANUAL
+    )
+  })
+
+  test('Read marks a choice not yet made, and drops the mark once each is made (PT-31)', async () => {
+    const unmade = makePilot()
+    const first = render(
+      <PilotSheet pilot={unmade} store={makePilotStubStore(unmade).store} readOnly />
+    )
+    expect(rowText(await readRow(SNIPER_NAME, false))).toContain('Choice not made')
+    first.unmount()
+    const made = makePilot({
+      equipmentChoices: {
+        [SNIPER_ID]: {
+          [WEAPON_TYPE_CHOICE_ID]: ['Energy'],
+          [MODIFICATION_CHOICE_ID]: ['Rangefinder'],
+        },
+      },
+    })
+    render(<PilotSheet pilot={made} store={makePilotStubStore(made).store} readOnly />)
+    expect(rowText(await readRow(SNIPER_NAME, false))).not.toContain('Choice not made')
+  })
 })

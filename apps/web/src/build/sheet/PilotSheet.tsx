@@ -153,6 +153,7 @@ export function PilotSheet({
         pilot={pilot}
         model={model}
         actions={actions}
+        store={store}
       />
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}

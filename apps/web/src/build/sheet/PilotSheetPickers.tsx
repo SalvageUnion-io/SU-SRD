@@ -6,13 +6,18 @@
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { RefAbility } from 'salvageunion-reference'
+import { useState } from 'react'
+import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
+import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
+import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { abilityTrainingCost } from '../../lib/rules/training'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import type { UnitsStore } from '../../replica/units'
 import type { PilotSheetModel } from './pilotSheet.model'
 import type { PilotSheetActions } from './pilotSheetActions.model'
+import { EquipmentChoiceDialog } from './rowControls'
 import { SheetPickerModal } from './SheetPickerModal'
 
 export type PilotPicker = 'abilities' | 'equipment'
@@ -23,6 +28,7 @@ export function PilotSheetPickers({
   pilot,
   model,
   actions,
+  store,
 }: {
   /** Which collection's picker is open. */
   picker: PilotPicker | null
@@ -30,7 +36,19 @@ export function PilotSheetPickers({
   pilot: Pilot
   model: PilotSheetModel
   actions: PilotSheetActions
+  /** Where an added item's choice is saved (`Pilot.equipmentChoices`). */
+  store: UnitsStore
 }) {
+  // Equipment that asks a choice asks it as it is added, as a mech's Systems
+  // do: its Page opens over the picker (hidden meanwhile, so two dialogs never
+  // share the focus trap), and closing it returns to the picker.
+  const [asking, setAsking] = useState<string | null>(null)
+  const askingEntity = asking ? resolveEquipment(asking) : undefined
+  function toggleEquipment(slug: string) {
+    const adding = !pilot.equipment.includes(slug)
+    actions.toggleEquipment(slug)
+    if (adding && asksAChoice(slug) && !pilot.equipmentChoices?.[slug]) setAsking(slug)
+  }
   return (
     <>
       <SheetPickerModal
@@ -70,7 +88,7 @@ export function PilotSheetPickers({
         />
       </SheetPickerModal>
       <SheetPickerModal
-        open={picker === 'equipment'}
+        open={picker === 'equipment' && !asking}
         onClose={onClose}
         title={buildSheetCopy('manageEquipment')}
         floating
@@ -78,7 +96,7 @@ export function PilotSheetPickers({
         <EntitySearcher
           schema="equipment"
           selected={pilot.equipment}
-          onToggle={actions.toggleEquipment}
+          onToggle={toggleEquipment}
           idOf={(item) => nameToSlug(item.name)}
           railName={pilot.name}
           chosenLabel={buildSheetCopy('equipped')}
@@ -90,6 +108,29 @@ export function PilotSheetPickers({
           }}
         />
       </SheetPickerModal>
+      {asking && askingEntity && (
+        <EquipmentChoiceDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAsking(null)
+          }}
+          slug={asking}
+          equipment={askingEntity as RefMetaEntity & { name: string }}
+          pilotId={pilot.id}
+          seed={pilot.equipmentChoices?.[asking]}
+          scalingParent={model.scalingParent}
+          store={store}
+        />
+      )}
     </>
   )
+}
+
+/**
+ * Whether the equipment asks a choice the pilot keeps (its own `choices`). A
+ * drone or companion it grants is set up on its own card (ADR-028).
+ */
+function asksAChoice(slug: string): boolean {
+  const entity = resolveEquipment(slug)
+  return (entity?.choices?.length ?? 0) > 0 && !isPartnerEquipment(slug)
 }
