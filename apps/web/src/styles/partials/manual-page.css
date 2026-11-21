@@ -35,6 +35,12 @@
   order: 3;
 }
 
+/* What leads a Page (a class's On this page) is its first block at every
+   width: over the art on a phone, as it is in the markup. */
+.su-manual > .su-manual__lead {
+  order: 0;
+}
+
 /* What a Page appends (a class's trees, a chassis's homebrew) follows the
    Description on a phone. */
 .su-manual > .su-manual__after {
@@ -240,6 +246,33 @@
   .su-manual > .su-manual__side.su-manual__side--after {
     grid-row: 2;
     margin-top: 0;
+  }
+}
+
+/* A Page with a lead: the lead runs the page's measure in a row of its own,
+   and both tracks start under it. */
+@media (width >= 64rem) {
+  .su-manual > .su-manual__lead {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .su-manual:has(> .su-manual__lead) > :is(.su-manual__side, .su-manual__main) {
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .su-manual:has(> .su-manual__lead):has(> .su-manual__side--after) {
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .su-manual:has(> .su-manual__lead):has(> .su-manual__side--after) > .su-manual__main {
+    grid-row: 2 / span 2;
+  }
+
+  .su-manual:has(> .su-manual__lead) > .su-manual__side.su-manual__side--after {
+    grid-row: 3;
   }
 }
 

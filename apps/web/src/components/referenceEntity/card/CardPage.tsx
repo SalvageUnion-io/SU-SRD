@@ -90,6 +90,8 @@ type CardPageProps = {
    * phone; its own side track, after the main one in the markup.
    */
   aside?: ReactNode
+  /** `leadExtraContent`: the Page's first block, before the art in the markup. */
+  lead?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -117,6 +119,7 @@ export function CardPage({
   sections,
   actionSeal,
   patterns,
+  lead,
   after,
   aside,
   sectionAs,
@@ -345,6 +348,7 @@ export function CardPage({
     const side = !!hero || statsAside || split.side.length > 0
     return (
       <div className="su-entity-page su-manual">
+        {lead && <div className="su-manual__lead">{lead}</div>}
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}

@@ -9,7 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ClassAbilityTree, ClassAdvancement } from '../ClassAbilityTree'
+import { ClassAbilityTree, ClassAdvancement, ClassContents } from '../ClassAbilityTree'
 import { EntityCardStatic } from '../EntityCardStatic'
 
 const classNamed = (name: string): RefClass => {
@@ -32,6 +32,7 @@ function ClassPage({
 }) {
   return (
     <>
+      <ClassContents classEntity={classEntity} />
       <ClassAbilityTree classEntity={classEntity} />
       <ClassAdvancement classEntity={classEntity} />
     </>
@@ -307,8 +308,6 @@ describe('ClassAbilityTree contents (On this page)', () => {
       expect(id.length).toBeGreaterThan(0)
       expect(container.querySelectorAll(`[id="${id}"]`).length).toBe(1)
     }
-    // It leads the trees, so a phone reader meets it before the long scroll.
-    expect(container.querySelector('.su-ability-tree')?.firstElementChild).toBe(nav)
   })
 
   test('a Hybrid Class lists its own sections too', () => {
@@ -321,17 +320,21 @@ describe('ClassAbilityTree contents (On this page)', () => {
 })
 
 describe("a class Page's markup reads in the order a phone draws it", () => {
-  test('the art, then the description, Training and Core trees, then Advancement', () => {
+  test('On this page, the art, then the description, Training and Core trees, then Advancement', () => {
     const { container } = render(<EntityCardStatic item={classNamed('Hacker')} />)
     const page = container.querySelector('.su-manual')
     const tracks = [...(page?.children ?? [])].map((track) => track.className)
     // Two side tracks: the art before the main track, what stands under it after.
+    // On this page leads them, at every width (RR-13): a phone reader meets
+    // it over the art, before the long scroll, and a desktop one over both tracks.
     expect(tracks).toEqual([
+      'su-manual__lead',
       'su-manual__side',
       'su-manual__main',
       'su-manual__side su-manual__side--after',
     ])
-    expect(page?.children[0]?.querySelector('.su-manual__art')).not.toBeNull()
+    expect(page?.children[0]?.querySelector('nav')?.getAttribute('aria-label')).toBe('On this page')
+    expect(page?.children[1]?.querySelector('.su-manual__art')).not.toBeNull()
     const headings = [...container.querySelectorAll('h2')].map((h) => h.textContent)
     expect(headings.indexOf('Hacking')).toBeGreaterThan(-1)
     expect(headings.indexOf('Advanced Hacking')).toBeGreaterThan(-1)
