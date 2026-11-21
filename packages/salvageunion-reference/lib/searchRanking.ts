@@ -47,8 +47,9 @@ const TYPO_PENALTY = 15
 
 /**
  * A normalised query: its words, and the same words as one string. A question's
- * filler ("how does salvaging work") is left out of both; `rawQuery` is the
- * query as typed, set only when something was left out.
+ * filler ("how does salvaging work") is left out of both, and a whole question
+ * ("what happens when my mech hits 0 sp") is cut back to its key words;
+ * `rawQuery` is the query as typed, set only when something was left out.
  */
 export type SearchQuery = { loweredQuery: string; tokens: string[]; rawQuery?: string }
 
@@ -86,6 +87,72 @@ const FILLER_WORDS = new Set([
   'your',
 ])
 
+/** How a question opens: with one of these, a query of several words is read as a question. */
+const QUESTION_OPENERS = new Set([
+  'are',
+  'can',
+  'could',
+  'do',
+  'does',
+  'how',
+  'if',
+  'is',
+  'should',
+  'what',
+  'when',
+  'where',
+  'which',
+  'who',
+  'why',
+  'will',
+])
+
+/** A question is this many words or more: "what is heat" is still a name with filler. */
+const QUESTION_MIN_WORDS = 4
+
+/**
+ * The words a whole question spends on asking ("what HAPPENS when my mech
+ * HITS 0 sp"): dropped from a question alone, since several are a rule's own
+ * words in a short query ("hit points", "get up").
+ */
+const QUESTION_WORDS = new Set([
+  'am',
+  'at',
+  'be',
+  'been',
+  'by',
+  'did',
+  'from',
+  'get',
+  'gets',
+  'go',
+  'goes',
+  'happen',
+  'happens',
+  'has',
+  'have',
+  'hit',
+  'hits',
+  'if',
+  'into',
+  'me',
+  'mean',
+  'means',
+  'much',
+  'reach',
+  'reaches',
+  'should',
+  'that',
+  'there',
+  'this',
+  'was',
+  'we',
+  'who',
+  'will',
+  'with',
+  'would',
+])
+
 const SENTENCE_MARKS = '?!,;:'
 
 /** A word without the sentence marks it ends on. A loop, not a pattern: a pattern backtracks on a long run of marks. */
@@ -100,8 +167,14 @@ export function tokenizeSearchQuery(query: string): SearchQuery | null {
   const rawQuery = query.trim().toLowerCase()
   if (!rawQuery) return null
   const words = rawQuery.split(/\s+/)
+  // A whole question is cut back to the words that name something.
+  const question =
+    words.length >= QUESTION_MIN_WORDS &&
+    (rawQuery.endsWith('?') || QUESTION_OPENERS.has(words[0] as string))
   // A question mark or a comma is the sentence's, not the word's.
-  const named = words.map(withoutSentenceMarks).filter((word) => word && !FILLER_WORDS.has(word))
+  const named = words
+    .map(withoutSentenceMarks)
+    .filter((word) => word && !FILLER_WORDS.has(word) && !(question && QUESTION_WORDS.has(word)))
   if (named.length === 0 || named.join(' ') === words.join(' ')) {
     return { loweredQuery: rawQuery, tokens: words }
   }
@@ -147,6 +220,8 @@ const ALIASES_AS_PRINTED: Readonly<Record<string, readonly string[]>> = {
   'Salvage Value': ['SV'],
   'Structure Points': ['SP'],
   'Tech Level': ['TL'],
+  // A rule with no entry of its own: the site's index gives it a row (`searchIndexBuild`).
+  'Training Points': ['TP'],
 }
 
 /** `ALIASES_AS_PRINTED`, lowered: a query and a name are matched lowered. */

@@ -58,4 +58,27 @@ describe('searchCompactIndex', () => {
     expect(searchCompactIndex(INDEX, { query: 'laser', schemas: ['chassis'] })).toEqual([])
     expect(searchCompactIndex(INDEX, { query: 'laser', limit: 2 })).toHaveLength(2)
   })
+
+  test('a rule told inside a guide ranks as a rule, a pattern as itself (r2 H7)', () => {
+    const rule: CompactSearchEntry = {
+      ...entry('Training Points', 'training points tp'),
+      schemaName: 'guides',
+      pattern: {
+        href: '/guides/crawler-downtime/#train-your-pilot',
+        kind: 'Rule · Crawler Downtime',
+      },
+      rule: true,
+    }
+    const guide: CompactSearchEntry = {
+      ...entry('Crawler Downtime', 'crawler downtime tp training points'),
+      schemaName: 'guides',
+    }
+    const names = (query: string) =>
+      searchCompactIndex([rule, guide], { query }).map((r) => r.entityName)
+    expect(names('tp')).toEqual(['Training Points', 'Crawler Downtime'])
+    expect(names('training points')).toEqual(['Training Points', 'Crawler Downtime'])
+    expect(searchCompactIndex([rule, guide], { query: 'tp' })[0]?.pattern?.href).toBe(
+      '/guides/crawler-downtime/#train-your-pilot'
+    )
+  })
 })

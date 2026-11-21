@@ -34,8 +34,9 @@ import {
 // this module is Node-only and already loads the ORM, so importing them costs
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
+import { TRAINING_POINTS } from '../components/entity'
 import type { EntityFormModel } from '../components/index'
-import { patternHref } from './entityHref'
+import { itemHref, patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
@@ -63,8 +64,56 @@ function rowModel(entity: RefEntity, pattern?: RefObjectAnyPattern): EntityFormM
   }
 }
 
+/** A search result's kind for a rule told inside a guide. */
+const RULE_KIND = 'Rule'
+
+/**
+ * Rules the dataset gives no entry of their own, each found by its name and
+ * opened where the book tells it: a guide's step. In the app's own words (a
+ * stat term's, `statTerms`), so no book text is added to the index.
+ */
+const RULE_ROWS: readonly { name: string; text: string; guide: string; step: string }[] = [
+  {
+    name: TRAINING_POINTS.name,
+    text: TRAINING_POINTS.text,
+    guide: 'Crawler Downtime',
+    step: 'Train your Pilot',
+  },
+]
+
+/** `RULE_ROWS` as index rows: the rule's name, opening its guide at the step that tells it. */
+function ruleEntries(): CompactSearchEntry[] {
+  const schema = getEntitySchemas().find((candidate) => candidate.id === 'guides')
+  return RULE_ROWS.flatMap((rule) => {
+    const guide = SalvageUnionReference.Guides.getByName(rule.guide)
+    const step = guide?.steps?.find((candidate) => candidate.name === rule.step)
+    if (!schema || !guide || !step) return []
+    const nameText = rule.name.toLowerCase()
+    const aliases = searchAliases(nameText)
+    return [
+      {
+        id: `${guide.id}:rule:${nameToSlug(rule.name)}`,
+        name: rule.name,
+        slug: nameToSlug(rule.name),
+        schemaName: 'guides' as const,
+        schemaTitle: schema.title,
+        text: [rule.name, rule.text, ...aliases].join(' ').toLowerCase(),
+        model: { ...rowModel(guide), title: rule.name },
+        ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
+        pattern: {
+          // The step's anchor on its guide's page (`guideAnchors`: its name as a slug).
+          href: `${itemHref('guides', getEntitySlug(guide))}#${nameToSlug(step.name)}`,
+          kind: `${RULE_KIND} · ${guide.name}`,
+        },
+        rule: true,
+      },
+    ]
+  })
+}
+
 export function buildSearchIndexEntries(): CompactSearchEntry[] {
-  const entries: CompactSearchEntry[] = []
+  // The rules' own rows lead: on equal terms a rule's name is found before the guide that tells it.
+  const entries: CompactSearchEntry[] = ruleEntries()
 
   for (const schema of getEntitySchemas()) {
     // Runtime-validated narrowing (string catalog id → schema name) instead
