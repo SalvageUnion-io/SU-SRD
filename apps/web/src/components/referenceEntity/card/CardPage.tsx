@@ -376,8 +376,12 @@ export function CardPage({
           {sections}
           {table && <div className="su-entity-page__table">{table}</div>}
           {patterns.length > 0 && (
-            // The Ledger's title tab names the section and keeps the count.
-            <PatternLedger chassis={entity} patterns={patterns} />
+            // The Ledger's title tab names the section and keeps the count. A
+            // section of its own: the stat tiles before it are the Page's,
+            // never controls beside this list (C8).
+            <section>
+              <PatternLedger chassis={entity} patterns={patterns} />
+            </section>
           )}
           <NeighbourRow
             as={sectionAs}

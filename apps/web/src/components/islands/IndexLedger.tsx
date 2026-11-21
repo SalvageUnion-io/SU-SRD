@@ -432,33 +432,37 @@ export function IndexLedger({
           ))}
         </fieldset>
       )}
-      <Ledger
-        label={noun}
-        paint={paintFor(first.tone, { texture: surface.texture })}
-        nameLabel={plain ? islandsCopy('name') : noun}
-        columns={columns}
-        rows={rows.map((row) => ({
-          id: row.id,
-          name: row.name,
-          entityRef: row.entityRef,
-          stamp: row.techLevel ? (
-            <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
-          ) : undefined,
-          cells: row.cells,
-        }))}
-        sort={sort}
-        onSort={sortBy}
-        {...(hasTechLevels
-          ? {
-              rank: {
-                key: SORT_TECH_LEVEL,
-                label: islandsCopy('tl'),
-                title: islandsCopy('techLevel'),
-              },
-            }
-          : {})}
-        dense={shown.length >= DENSE_COLUMNS}
-      />
+      {/* The list is a section of its own: the note and the phone's column
+          picks over it are the listing's tools, never controls beside it (C8). */}
+      <section>
+        <Ledger
+          label={noun}
+          paint={paintFor(first.tone, { texture: surface.texture })}
+          nameLabel={plain ? islandsCopy('name') : noun}
+          columns={columns}
+          rows={rows.map((row) => ({
+            id: row.id,
+            name: row.name,
+            entityRef: row.entityRef,
+            stamp: row.techLevel ? (
+              <Stat label={islandsCopy('tl')} value={row.techLevel} size="mini" />
+            ) : undefined,
+            cells: row.cells,
+          }))}
+          sort={sort}
+          onSort={sortBy}
+          {...(hasTechLevels
+            ? {
+                rank: {
+                  key: SORT_TECH_LEVEL,
+                  label: islandsCopy('tl'),
+                  title: islandsCopy('techLevel'),
+                },
+              }
+            : {})}
+          dense={shown.length >= DENSE_COLUMNS}
+        />
+      </section>
     </>
   )
 }

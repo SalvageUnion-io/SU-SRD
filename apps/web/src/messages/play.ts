@@ -157,6 +157,7 @@ export const playCopy = messages({
   noMechToBoard: 'No Mech to board',
   board2: 'Board {name}',
   boardChooseAMech: 'Board, choose a Mech',
+  chooseWhichMech: 'Choose a Mech',
   eject2: 'Eject?',
   pinnedVitals: 'Pinned vitals',
   sVitals: '{name}’s vitals',

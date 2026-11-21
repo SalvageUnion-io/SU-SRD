@@ -361,14 +361,13 @@ html[data-srd-signed-in] .su-front__show-yours {
     font-size: var(--text-display-lg);
   }
 
+  /* The Pause keeps the act's Full height beside it (§4.7). */
   .su-front__show-pause.su-btn {
-    block-size: var(--size-compact);
-    inline-size: var(--size-compact);
     left: var(--space-12);
   }
 
   .su-front__show-copy {
-    max-width: calc(100% - var(--space-12) * 2 - var(--space-8) - var(--size-compact));
+    max-width: calc(100% - var(--space-12) * 2 - var(--space-8) - var(--size-full));
     right: var(--space-12);
   }
 

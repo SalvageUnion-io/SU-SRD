@@ -163,6 +163,12 @@
   flex-grow: 1;
 }
 
+/* A Ledger that opens the body (a pattern's loadout) is a block of the Page:
+   one rhythm gap over the card it heads (R17). */
+.su-entity__body > .su-ledger {
+  margin-bottom: var(--space-12);
+}
+
 /* The Page's foot (Previous / Next): the body's last block, at the page's
    bottom however short the words, under the body and the sidebar both. */
 .su-entity__foot {

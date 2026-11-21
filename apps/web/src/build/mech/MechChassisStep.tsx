@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useId, useMemo } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
 import {
@@ -44,6 +45,9 @@ type PatternRow = {
 const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
   { key: 'loadout', label: mechCopy('loadout'), kind: 'line', value: (row) => row.line },
 ]
+
+/** The hint's link keeps to one line. */
+const NO_WRAP = { whiteSpace: 'nowrap' } satisfies CSSProperties
 
 const CUSTOM_KEY = 'custom-build'
 
@@ -169,7 +173,8 @@ export function MechChassisStep({
             {beyond.length > 0 && (
               <Text variant="hint">
                 {mechCopy('dimmedPatternsAreBuilt')}{' '}
-                <InlineRef href={appPath('/mechs/new')}>
+                {/* One line, so a press on its middle lands on it wherever the hint wraps. */}
+                <InlineRef href={appPath('/mechs/new')} style={NO_WRAP}>
                   {mechCopy('newMechFromAPattern')}
                 </InlineRef>
               </Text>

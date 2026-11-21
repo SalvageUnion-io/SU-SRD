@@ -33,17 +33,18 @@ export const PILOT_COLUMNS = [
   fig(VITAL.ap, buildShelvesCopy('abilityPoints')),
 ]
 // A mech a pilot flies is on that pilot's line; this shelf holds the rest.
-// Its build figures tell two mechs on one chassis apart, before its live ones.
+// Its build figures (Tech Level, slots filled, Scrap) tell two mechs on one
+// chassis apart; they and its live ones stand in the one stat order (§2.6).
 export const MECH_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
   GAME,
   fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
-  fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
-  fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed')),
-  fig(buildShelvesCopy('scrap'), buildShelvesCopy('scrapChassisAndLoadout'), true),
   fig(VITAL.sp, buildShelvesCopy('structurePoints'), true),
   fig(VITAL.ep, buildShelvesCopy('energyPoints')),
+  fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
+  fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed')),
   fig(VITAL.heat, buildShelvesCopy('heat')),
+  fig(buildShelvesCopy('scrap'), buildShelvesCopy('scrapChassisAndLoadout'), true),
 ]
 export const CRAWLER_COLUMNS = [
   word('type', buildShelvesCopy('type'), true),

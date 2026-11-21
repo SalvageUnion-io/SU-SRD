@@ -135,9 +135,11 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
             </Select>
           </Field>
         </div>
+        {/* Full, the height of the two fields it stands beside (§4.7). */}
         <Button
           type="button"
           variant="primary"
+          size="full"
           onClick={ask}
           disabled={!input || build.pending}
           aria-label={chosen ? mechCopy('buildWithThisAMech', { name: chosen.name }) : undefined}
