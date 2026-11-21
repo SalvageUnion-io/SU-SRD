@@ -241,6 +241,11 @@ type LedgerListProps = {
   note?: ReactNode
   /** A plain fact left of the sources on the foot band (`COSTS | its Salvage Value`). */
   footMeta?: CardFootMeta[]
+  /**
+   * Drawn inside a listbox (search results): the table is presentation, so
+   * each row's `role="option"` link sits directly in the listbox (SC 4.1.2).
+   */
+  presentation?: boolean
 }
 
 /** The indices of the columns some row fills: a list drops a column no row fills (L5). */
@@ -309,6 +314,7 @@ function LedgerList({
   select,
   note,
   footMeta,
+  presentation = false,
 }: LedgerListProps) {
   const group = useId()
   const surface = useEntitySurface()
@@ -364,7 +370,7 @@ function LedgerList({
         className="su-ledger__table"
         // The zebra tints from the list's own band.
         style={{ '--su-kind': paint.background } as CSSProperties}
-        aria-label={label}
+        {...(presentation ? { role: 'presentation' } : { 'aria-label': label })}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
       >
