@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { EntityRef, RefAbility, RefMetaEntity } from 'salvageunion-reference'
-import { getEntitySlug, isAbility, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, isAbility, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { classDrawingTree } from '../../../lib/rules/classPath'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
@@ -27,6 +27,13 @@ export type EntityRelation = {
   value: string
   /** The entity it opens and Peeks; absent, the chip only reads (no route). */
   ref?: EntityRef
+  /** Its place on that entity's page: the tree on its class's (`treeAnchor`). */
+  fragment?: string
+}
+
+/** A tree's heading on its class's page, what its `TREE` chip lands on: `tree-advanced-hacking`. */
+export function treeAnchor(tree: string): string {
+  return `tree-${nameToSlug(tree)}`
 }
 
 /** A tree's level as a number, or none for a tree with no order (Legendary `L`, Generic `G`). */
@@ -46,6 +53,7 @@ export function abilityTreeRelations(entity: RefMetaEntity): EntityRelation[] {
       ...(owner
         ? {
             ref: { schemaName: 'classes', id: owner.id, slug: getEntitySlug(owner), name: tree },
+            fragment: `#${treeAnchor(tree)}`,
           }
         : {}),
     },
@@ -78,11 +86,11 @@ export function relationChips(
   relations: readonly EntityRelation[],
   size: Size = 'compact'
 ): ReactNode[] {
-  return relations.map(({ label, value, ref }) =>
+  return relations.map(({ label, value, ref, fragment }) =>
     ref ? (
       <Tag
         key={`${label}-${value}`}
-        tag={relation(`${label}-${value}`, label, value, { ref })}
+        tag={relation(`${label}-${value}`, label, value, { ref, fragment })}
         linkable
         size={size}
         wrap

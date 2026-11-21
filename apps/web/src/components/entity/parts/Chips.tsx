@@ -9,7 +9,8 @@ import { Stat } from '../../atoms/Stat'
 import type { ChipClass, ChipSet } from './chipSet'
 import { CHIP_CLASSES, costCell, RANK_KEY } from './chipSet'
 import { Facts } from './Facts'
-import { Tags } from './Tags'
+import { actionTypeRef } from './factRefs'
+import { ChipLink, Tags } from './Tags'
 import type { TagItem } from './tagItems'
 
 /**
@@ -87,17 +88,31 @@ export function Chips({
   const own: Record<ChipClass, { nodes: ReactNode[]; count: number }> = {
     mark: { nodes: [], count: 0 },
     rank: {
-      nodes: rank.length ? [<Facts key="rank" cells={rank} size={size} />] : [],
+      nodes: rank.length ? [<Facts key="rank" cells={rank} size={size} linkable={linkable} />] : [],
       count: rank.length,
     },
     measure: {
-      nodes: measure.length ? [<Facts key="measure" cells={measure} size={size} />] : [],
+      nodes: measure.length
+        ? [<Facts key="measure" cells={measure} size={size} linkable={linkable} />]
+        : [],
       count: measure.length,
     },
     economy: {
       nodes: [
-        ...chips.durations.map((duration) => <Stat key={duration} label={duration} size={size} />),
-        ...(action.length ? [<Facts key="action" cells={action} size={size} />] : []),
+        ...chips.durations.map((duration) => {
+          const cell = <Stat key={duration} label={duration} size={size} />
+          const ref = linkable ? actionTypeRef(duration) : undefined
+          return ref ? (
+            <ChipLink key={duration} tag={{ key: duration, name: duration, ref }} linkable>
+              {cell}
+            </ChipLink>
+          ) : (
+            cell
+          )
+        }),
+        ...(action.length
+          ? [<Facts key="action" cells={action} size={size} linkable={linkable} />]
+          : []),
       ],
       count: chips.durations.length + action.length,
     },

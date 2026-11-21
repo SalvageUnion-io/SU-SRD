@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
 import { ChipButton } from '../../atoms/ChipButton'
@@ -41,6 +42,37 @@ export function Tag({
    */
   wrap?: boolean
 }) {
+  const cell = (
+    <Stat
+      label={tag.name}
+      value={tag.param?.trim() ? tag.param : undefined}
+      size={size}
+      state={tag.modified ? 'modified' : 'default'}
+      wrap={wrap}
+    />
+  )
+  return (
+    <ChipLink tag={tag} linkable={linkable}>
+      {cell}
+    </ChipLink>
+  )
+}
+
+/**
+ * What makes a chip a Tag: its `cell` (a `Stat`) opened as the entry it
+ * names — a link, the Page opener, or a span that only Peeks (`Tag`'s
+ * rules). A band's fact chips (`RNG | Close`, `TL | 2`) wear it around their
+ * own cell, so they link as a trait does.
+ */
+export function ChipLink({
+  tag,
+  linkable,
+  children,
+}: {
+  tag: TagItem
+  linkable: boolean
+  children: ReactNode
+}) {
   const { hrefFor, openPage, linkAs } = useEntitySurface()
   const insidePeek = useInsidePeek()
   const peek = usePeekAttrs(tag.ref)
@@ -52,15 +84,7 @@ export function Tag({
     opens && tag.href ? tag.href : routed && tag.fragment ? `${routed}${tag.fragment}` : routed
   const page = opens && !href ? tag.page : undefined
   const open = ref && !href && openPage ? () => openPage(ref) : undefined
-  const cell = (
-    <Stat
-      label={tag.name}
-      value={tag.param?.trim() ? tag.param : undefined}
-      size={size}
-      state={tag.modified ? 'modified' : 'default'}
-      wrap={wrap}
-    />
-  )
+  const cell = children
   const param = tag.param?.trim()
   const shared = {
     'data-tag': '',
