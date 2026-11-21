@@ -191,6 +191,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E24: ['_hierarchy.ts#title-size', '_hierarchy.ts#slab-size'],
   E25: ['_hierarchy.ts#heading-skip', '_hierarchy.ts#heading-depth'],
   E26: ['pageRelations.test.ts'],
+  E27: ['Peek.press.test.tsx', 'SparseRail.test.tsx', 'interaction.test.ts', 'E16'],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],
   N2: ['entity-nesting/head-only-token'],
   N3: ['entity-nesting/nested-card-level', '_nestingDepth.ts'],

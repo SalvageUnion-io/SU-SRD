@@ -13,7 +13,7 @@ Code: `apps/web/src/components/entity/`.
 
 Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in +MORE, C5) or **contentful** (overflow opens the content, C2b).
 
-1. **Mention** — an entity named in prose, in its type; links where a route exists, Peeks on hover or long-press.
+1. **Mention** — an entity named in prose, in its type; links where a route exists, Peeks on hover, focus or a press (E27).
 2. **Mini** (`<Entity size="mini">`) — `name [chips] [actions]`, one row filling its line, name cut out on its foot; links and Peeks as a Mention. Contentful (N3): then its text in its band's frame (R38).
 3. **Compact** (`<Entity size="compact">`) — every list: head (art window at the band's left, ≥ 18rem with art; tier, name cut out, chips beside it, mode slot), a body only for a lead, stamp or linked units.
    In a `data-entity-grid` every Compact is one height and each name line reserves two.
@@ -43,7 +43,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E11** A lead appears only on an SRD index, or as a Ledger's quiet line (L5).
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
-- **E13** Links, texture and user-made come from the surface and instance, once, never per call. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page, but the app's View in the Reference, never a tab stop.
+- **E13** Links, texture and user-made come from the surface and instance, once, never per call. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page, but a term's Open page (E27) and the app's View in the Reference, never a tab stop.
 - **E23** A Peek is one form below its trigger's (contentful Compact down to Mini), never beside a native tooltip.
 - **E17** No "//" line: a head's chips are one group, as [chips-and-actions.md](chips-and-actions.md) lays it; on ink each chip has a paper rule.
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
@@ -52,6 +52,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E24** A title's size is its form's: a Page band's the chapter rung (hero on a phone), a Compact's, Full's, index's or Peek's the title, a Page's own block display, a Mini's name caption; a Slab's stamp body, a Mini Slab's chip.
 - **E25** Headings follow the levels: h1 the band's title, h2 a level-0 section, h3 a level-1 title or sub-section, h4 level 2; none skipped, none at or above its section's.
 - **E26** A cross-reference goes both ways: a Page linking another (a part, a level, a book) is listed on it.
+- **E27** One link rule: a reference term (a Mention, a linked Tag or stat, a Used by or Related rules entry) is a real link to its Page, script or none. A plain press opens its Peek, with Open page; the next press, a modified one or Enter follows the link.
 
 ## Which form, where
 

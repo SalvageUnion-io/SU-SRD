@@ -24,6 +24,29 @@ describe('factRef', () => {
     })
   })
 
+  test('a stat the glossary defines names its keyword, so its abbreviation explains itself', () => {
+    const slugs = (
+      [
+        'Structure Points',
+        'Energy Points',
+        'Hit Points',
+        'System Slots',
+        'Module Slots',
+        'Heat Capacity',
+      ] as const
+    ).map((name) => factRef({ key: `book-${name}`, value: '4' })?.slug)
+    expect(slugs).toEqual([
+      'structure-points',
+      'energy-points',
+      'hit-points',
+      'system-slots',
+      'module-slots',
+      'heat',
+    ])
+    // No entry: it only reads.
+    expect(factRef({ key: 'book-Cargo Capacity', value: '6' })).toBeUndefined()
+  })
+
   test('any other fact only reads', () => {
     expect(factRef({ key: 'damage', value: '9 SP' })).toBeUndefined()
     expect(factRef({ key: 'range', value: 'Medium-ish' })).toBeUndefined()

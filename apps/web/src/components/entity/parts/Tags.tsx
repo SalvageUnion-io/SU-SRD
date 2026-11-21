@@ -5,7 +5,7 @@ import { ChipButton } from '../../atoms/ChipButton'
 import { FOCUS_RING } from '../../atoms/interaction'
 import { Stat } from '../../atoms/Stat'
 import { useEntitySurface } from '../entitySurfaceContext'
-import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { termPeekAttrs, useInsidePeek, usePeekAttrs } from '../peekContext'
 import type { TagItem } from './tagItems'
 
 /**
@@ -97,14 +97,26 @@ export function ChipLink({
     // A root-relative path goes through the app's router link, as a link-mode form's does.
     const Anchor = linkAs && href.startsWith('/') ? linkAs : 'a'
     return (
-      <Anchor href={href} className={cn('su-chip-link', FOCUS_RING)} {...shared} {...named}>
+      <Anchor
+        href={href}
+        className={cn('su-chip-link', FOCUS_RING)}
+        {...shared}
+        {...termPeekAttrs(peek)}
+        {...named}
+      >
         {cell}
       </Anchor>
     )
   }
   if (page) {
     return (
-      <a href={page} className={cn('su-chip-link', FOCUS_RING)} {...shared} {...named}>
+      <a
+        href={page}
+        className={cn('su-chip-link', FOCUS_RING)}
+        {...shared}
+        {...termPeekAttrs(peek)}
+        {...named}
+      >
         {cell}
       </a>
     )

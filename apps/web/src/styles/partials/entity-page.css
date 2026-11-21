@@ -34,6 +34,13 @@
   flex-basis: 100%;
 }
 
+/* A stat that names its glossary entry (`ChipLink`, E27): the link is the cell. */
+.su-stat-column__cell > .su-chip-link {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 /* Two classes: `.su-stat-cell` (atoms.css) comes later and sizes a Stat to its content. */
 .su-stat-column .su-stat-column__stat {
   display: flex;
