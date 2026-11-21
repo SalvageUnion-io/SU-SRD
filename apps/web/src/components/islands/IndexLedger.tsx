@@ -551,7 +551,17 @@ export function IndexLedger({
     <>
       {orderNote && (
         <p className="su-listing__order" aria-live="polite">
-          {sorted ? sortedLine(sorted) : islandsCopy('bookOrder')}
+          {sorted ? (
+            sortedLine(sorted)
+          ) : (
+            <span>
+              {islandsCopy('bookOrder')}{' '}
+              {/* A phone's row with no column beside its name has none to press (RR2-17). */}
+              <span className={onPhone.length === 0 ? 'su-listing__sort-hint' : undefined}>
+                {islandsCopy('sortHint')}
+              </span>
+            </span>
+          )}
           {sort && order && (
             <Button variant="ghost" size="compact" onClick={order.clear}>
               {islandsCopy('backToBookOrder')}

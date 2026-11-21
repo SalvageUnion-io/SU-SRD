@@ -55,7 +55,10 @@ type SearchIslandProps = {
 const LISTBOX = {
   ...POPUP_SURFACE.paper,
   marginTop: space[4],
-  maxHeight: '24rem',
+  // Room for every row it can hold, a thumb's height each (ten, the last the
+  // "more" row): at 24rem a phone hid the tenth under a scroll with no cue
+  // (RR2-17). It scrolls only where the screen is shorter than its rows.
+  maxHeight: 'min(30rem, calc(100dvh - 7rem))',
   overflowY: 'auto',
   position: 'absolute',
   top: '100%',
@@ -70,7 +73,7 @@ const LISTBOX_HOME = {
   bottom: '100%',
   marginBottom: space[4],
   marginTop: 0,
-  maxHeight: 'min(24rem, 60dvh)',
+  maxHeight: 'min(30rem, 60dvh)',
   top: 'auto',
 } satisfies CSSProperties
 

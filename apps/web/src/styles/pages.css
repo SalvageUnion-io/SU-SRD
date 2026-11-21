@@ -766,6 +766,14 @@ html[data-srd-signed-in] .su-mediator-acts {
   margin: 0 0 var(--space-8);
 }
 
+/* A list a phone draws with no column beside its names (Classes) offers none
+   to press there: the hint waits for the width that has them. */
+@media not (width >= 40rem) {
+  .su-listing__sort-hint {
+    display: none;
+  }
+}
+
 /* A phone's row holds two columns beside the name (ledger L8): the reader
    picks which. Wider, every column is there and the control is not. */
 .su-listing__columns {

@@ -17,6 +17,7 @@
  * is fetched until the switch is on.
  */
 
+import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { toEntityModel } from 'salvageunion-reference'
@@ -73,7 +74,7 @@ function useHomebrew(on: boolean, chassisRef: string | undefined): Load {
   return load
 }
 
-function HomebrewList({ load, empty }: { load: Load; empty: string }) {
+function HomebrewList({ load, empty }: { load: Load; empty: ReactNode }) {
   if (load.state === 'idle') return null
   return (
     <>
@@ -114,7 +115,7 @@ function HomebrewLedger({
 }: {
   rows: HomebrewRow[]
   /** Said when there are none; null while the players' are still coming. */
-  empty: string | null
+  empty: ReactNode | null
 }) {
   const entries = homebrewItems(rows).map(playerHomebrewEntry)
   const surface = useEntitySurface()
@@ -172,7 +173,18 @@ function ChassisHomebrew({ chassisRef }: { chassisRef: string }) {
       }
     >
       {on ? (
-        <HomebrewList load={load} empty={islandsCopy('homebrewNoneOnChassis')} />
+        <HomebrewList
+          load={load}
+          // None here is not the end of it: the note is the way to the rest (RR2-17).
+          empty={
+            <>
+              {islandsCopy('homebrewNoneOnChassis')}{' '}
+              <a href="/homebrew/" className="su-inline-ref su-inline-ref--link su-focus-ring">
+                {islandsCopy('homebrewEvery')}
+              </a>
+            </>
+          }
+        />
       ) : (
         <Text variant="hint">{islandsCopy('homebrewOff')}</Text>
       )}

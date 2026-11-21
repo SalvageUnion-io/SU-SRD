@@ -36,4 +36,16 @@ describe('SparseRail', () => {
     }
     expect(page.querySelector('.su-inline-ref--inert')).toBeNull()
   })
+
+  test('a long Used by keeps a floor of rows in view; a short one gives way as before (RR2-17)', () => {
+    const markup = (rail: ReturnType<typeof sparseRailFor>) =>
+      renderToStaticMarkup(<SparseRail rail={rail} tone="rules" />)
+    const heat = SalvageUnionReference.Keywords.getByName('Heat') as RefEntity
+    const long = sparseRailFor('keywords', heat)
+    expect(long.usedBy.length).toBeGreaterThan(14)
+    expect(markup(long)).toContain('su-sparse-rail--long')
+    expect(markup({ ...long, usedBy: long.usedBy.slice(0, 14) })).not.toContain(
+      'su-sparse-rail--long'
+    )
+  })
 })
