@@ -316,18 +316,97 @@ export function withPhoneColumns<Column extends { key: string; phone?: boolean }
 /** The ranges, nearest first: a Range column sorts by reach, not by spelling. */
 const RANGES = ['close', 'medium', 'long', 'far']
 
-/** A cell as a number: its own, or a range's place among the ranges. */
+/** Dice as a cell writes them: `2d20 SP`, `1d6+2`. */
+const DICE = /^(\d+)d(\d+)\s*([+-]\s*\d+)?/i
+
+/**
+ * A cell as a number: its own, dice by their average (`2d20` is 21), or a
+ * range's place among the ranges.
+ */
 function cellNumber(cell: string): number {
-  const range = RANGES.indexOf(cell.trim().toLowerCase())
-  return range === -1 ? Number.parseFloat(cell) : range
+  const text = cell.trim()
+  const range = RANGES.indexOf(text.toLowerCase())
+  if (range !== -1) return range
+  const dice = DICE.exec(text)
+  if (dice) {
+    const bonus = Number((dice[3] ?? '0').replace(/\s/g, ''))
+    return (Number(dice[1]) * (Number(dice[2]) + 1)) / 2 + bonus
+  }
+  return Number.parseFloat(text)
 }
 
 /** Numbers by value, a lettered tech level (B, N) after them. */
-function compareCells(a: string, b: string): number {
+function compareValues(a: string, b: string): number {
   const [x, y] = [cellNumber(a), cellNumber(b)]
   if (Number.isNaN(x) && Number.isNaN(y)) return a.localeCompare(b)
   if (Number.isNaN(x) || Number.isNaN(y)) return Number.isNaN(x) ? 1 : -1
   return x - y
+}
+
+/** Where a cell with no value to order stands: an `X` (a variable amount) after every value, a blank last. */
+function trailing(cell: string): number {
+  const text = cell.trim()
+  if (!text) return 2
+  return /^x(\s|$)/i.test(text) ? 1 : 0
+}
+
+/**
+ * A column's cells in order: the values up or down (`descending`), then the
+ * variable ones (`X SP`), then the blanks, which trail in both directions, so
+ * a row with nothing in the column never ranks above one that has.
+ */
+export function compareCells(a: string, b: string, descending = false): number {
+  const [x, y] = [trailing(a), trailing(b)]
+  if (x !== y) return x - y
+  if (x !== 0) return 0
+  return compareValues(a, b) * (descending ? -1 : 1)
+}
+
+type IndexModels = readonly { item: RefEntity; model: EntityModel }[]
+
+/** The cell `sort` orders a row by: its name, its Tech Level, or the sorted column's. */
+function sortValue(
+  sort: LedgerSort,
+  columns: readonly IndexColumn[],
+  schemaId: string
+): (entry: IndexModels[number]) => string {
+  if (sort.key === 'name') return ({ item }) => item.name
+  if (sort.key === SORT_TECH_LEVEL)
+    return ({ model }) =>
+      model.techLevel != null && !/tech-levels$/.test(schemaId) ? String(model.techLevel) : ''
+  const column = columns.find((candidate) => candidate.key === sort.key)
+  return ({ item, model }) => column?.value(item, model) ?? ''
+}
+
+/** `models` in `sort`'s order, ties by name; the book's order where nothing sorts. */
+function sortModels(
+  models: IndexModels,
+  columns: readonly IndexColumn[],
+  schemaId: string,
+  sort: LedgerSort | undefined
+): IndexModels {
+  if (!sort) return models
+  const by = sortValue(sort, columns, schemaId)
+  // A name is a word, never a value: it runs A to Z or back.
+  const compare =
+    sort.key === 'name'
+      ? (a: string, b: string) => a.localeCompare(b) * (sort.descending ? -1 : 1)
+      : (a: string, b: string) => compareCells(a, b, sort.descending)
+  return [...models].sort((a, b) => compare(by(a), by(b)) || a.item.name.localeCompare(b.item.name))
+}
+
+/**
+ * A listing's entities in the List's `sort`: what a view with no columns of
+ * its own (the Catalog) draws, so a sorted link reads the same in every view.
+ */
+export function sortIndexItems(
+  schemaId: string,
+  items: readonly RefEntity[],
+  sort: LedgerSort | undefined
+): readonly RefEntity[] {
+  if (!sort) return items
+  const models = items.map((item) => ({ item, model: toEntityModel(item as RefMetaEntity) }))
+  return sortModels(models, indexColumns(schemaId, models), schemaId, sort).map(({ item }) => item)
 }
 
 type IndexLedgerProps = {
@@ -402,18 +481,12 @@ export function IndexLedger({
   )
   const rows = useMemo(() => {
     if (!sort) return built
-    const index = columns.findIndex((column) => column.key === sort.key)
-    const by = (row: (typeof built)[number]) =>
-      sort.key === 'name'
-        ? row.name
-        : sort.key === SORT_TECH_LEVEL
-          ? row.techLevel
-          : (row.cells[index] ?? '')
-    return [...built].sort(
-      (a, b) =>
-        compareCells(by(a), by(b)) * (sort.descending ? -1 : 1) || a.name.localeCompare(b.name)
-    )
-  }, [built, columns, sort])
+    const rowOf = new Map(built.map((row) => [row.id, row]))
+    return sortModels(models, columns, schemaId, sort).flatMap(({ item }) => {
+      const row = rowOf.get(item.id)
+      return row ? [row] : []
+    })
+  }, [built, models, columns, schemaId, sort])
   // MOCK (best, revision 8): no count on the tab and no books on a foot cut-out.
   const first = built[0]
   if (!first) return null

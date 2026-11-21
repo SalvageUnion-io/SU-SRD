@@ -9,7 +9,7 @@ import type { RefEntity } from 'salvageunion-reference'
 import { getModel, getUniqueSources, getUniqueTechLevels } from 'salvageunion-reference'
 import { listingTraits } from '../../../lib/listingTraits'
 import { formatSort, parseSort } from '../../../lib/useListingFilters'
-import { IndexLedger } from '../IndexLedger'
+import { compareCells, IndexLedger } from '../IndexLedger'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 /** A whole schema's listing renders past Bun's 5 s default under coverage. */
@@ -99,6 +99,70 @@ describe('a sort in the address', () => {
       const rank = (level: string) => (/^\d+$/.test(level) ? Number(level) : 99)
       expect(levels.length).toBeGreaterThan(10)
       expect(levels).toEqual([...levels].sort((a, b) => rank(a) - rank(b)))
+    },
+    HEAVY
+  )
+})
+
+describe('sorting by damage (r2 H3)', () => {
+  const cells = ['2d20 SP', '3 SP', '', 'X SP', '9 SP', '', '4 SP', '1d6 HP']
+
+  it('low to high: numbers and dice (by their average) in order, then X, then the blanks', () => {
+    expect([...cells].sort((a, b) => compareCells(a, b, false))).toEqual([
+      '3 SP',
+      '1d6 HP',
+      '4 SP',
+      '9 SP',
+      '2d20 SP',
+      'X SP',
+      '',
+      '',
+    ])
+  })
+
+  it('high to low: the values run down, and X and the blanks still trail', () => {
+    expect([...cells].sort((a, b) => compareCells(a, b, true))).toEqual([
+      '2d20 SP',
+      '9 SP',
+      '4 SP',
+      '1d6 HP',
+      '3 SP',
+      'X SP',
+      '',
+      '',
+    ])
+  })
+
+  it(
+    'the List puts no blank above a system that deals damage, in either direction',
+    () => {
+      for (const sort of ['damage', '-damage']) {
+        window.location.href = `http://localhost/systems/?trait=Hot&sort=${sort}`
+        const { container } = listing('systems')
+        const at = heads(container).indexOf('DMG')
+        const dmg = Array.from(container.querySelectorAll('.su-listing__groups tbody tr')).map(
+          (row) => (row.children[at]?.textContent ?? '').replace('—', '').trim()
+        )
+        const firstBlank = dmg.indexOf('')
+        if (firstBlank !== -1) expect(dmg.slice(firstBlank).every((cell) => cell === '')).toBe(true)
+        expect(dmg[0]).not.toBe('')
+        expect(dmg[0]?.startsWith('X')).toBe(false)
+        cleanup()
+      }
+    },
+    HEAVY
+  )
+
+  it(
+    'the Catalog keeps the sort the address names',
+    () => {
+      window.location.href = 'http://localhost/chassis/?tl=3&sort=-name&view=catalog'
+      const { container } = listing('chassis')
+      const tiles = Array.from(container.querySelectorAll('.su-listing__tiles > li')).map(
+        (tile) => tile.querySelector('a')?.getAttribute('href') ?? ''
+      )
+      expect(tiles.length).toBeGreaterThan(2)
+      expect(tiles).toEqual([...tiles].sort((a, b) => b.localeCompare(a)))
     },
     HEAVY
   )

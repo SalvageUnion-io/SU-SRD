@@ -40,7 +40,7 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { IndexLedger } from './IndexLedger'
+import { IndexLedger, sortIndexItems } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
@@ -400,21 +400,24 @@ function SchemaViewer({
                   )}
                   {view === 'catalog' ? (
                     <ul className="su-listing__tiles">
-                      {group.items.map((item: RefEntity, index) => (
-                        <li key={item.id}>
-                          <Entity
-                            size="compact"
-                            layout="index"
-                            entity={item}
-                            mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
-                            omit={tileOmit}
-                            lead
-                            priority={groupIndex === 0 && index < OPENING_ROW}
-                            missingArt={missingArt?.get(item.id)}
-                            artUrl={artUrlFor(item)}
-                          />
-                        </li>
-                      ))}
+                      {/* The address's sort is the List's; the tiles keep it (r2 H3). */}
+                      {sortIndexItems(schemaId, group.items, filters.sort).map(
+                        (item: RefEntity, index) => (
+                          <li key={item.id}>
+                            <Entity
+                              size="compact"
+                              layout="index"
+                              entity={item}
+                              mode={{ kind: 'link', href: itemHref(schemaId, getEntitySlug(item)) }}
+                              omit={tileOmit}
+                              lead
+                              priority={groupIndex === 0 && index < OPENING_ROW}
+                              missingArt={missingArt?.get(item.id)}
+                              artUrl={artUrlFor(item)}
+                            />
+                          </li>
+                        )
+                      )}
                     </ul>
                   ) : view === 'list' ? (
                     // The List is one Ledger (ledger.md L1), a line an
