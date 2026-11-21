@@ -14,7 +14,7 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
 import { useUnits } from '../../../replica/units'
@@ -343,6 +343,35 @@ describe('PilotWizard — session drafts', () => {
     await clickButton('Discard')
     expect(onCancel).toHaveBeenCalledTimes(1)
     expect(sessionStorage.getItem('app-wizard-draft:pilot:new')).toBeNull()
+  })
+
+  it('a reload reopens at the furthest step reached, and every step up to it is open', async () => {
+    const { unmount } = render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
+    await pickRadio('Engineer')
+    await pickRadio('Engineering Expertise')
+    await clickNext()
+    const item = firstTech1Equipment()
+    await clickButton(`Increase ${item.name} count`)
+    await clickButton(`Increase ${item.name} count`)
+    await clickNext()
+    await act(async () => {
+      unmount()
+    })
+
+    render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Step 3')
+    const steps = within(screen.getByRole('navigation', { name: /steps/i })).getAllByRole(
+      'button'
+    ) as HTMLButtonElement[]
+    expect(steps.slice(0, 2).every((b) => !b.disabled)).toBe(true)
+    // Back to step 1: steps 2 and 3 stay a way forward.
+    await act(async () => {
+      fireEvent.click(must(steps[0]))
+    })
+    const again = within(screen.getByRole('navigation', { name: /steps/i })).getAllByRole(
+      'button'
+    ) as HTMLButtonElement[]
+    expect(must(again[2]).disabled).toBe(false)
   })
 })
 

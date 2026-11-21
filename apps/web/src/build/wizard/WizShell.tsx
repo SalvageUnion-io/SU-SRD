@@ -63,6 +63,8 @@ type WizShellProps = {
   steps: readonly string[]
   /** Index of the active step. */
   active: number
+  /** The furthest step reached (a reload or a step back keeps it): a way there. */
+  reached?: number
   /** When provided, completed stepper entries navigate back. */
   onStepClick?: (index: number) => void
   /** Step heading — the page's h1 over the step's content, read as 'Step n of N · {title}'. */
@@ -264,10 +266,12 @@ const arrowheadStyle = {
 function WizRail({
   steps,
   active,
+  reached,
   onStepClick,
 }: {
   steps: readonly string[]
   active: number
+  reached: number
   /** With it, a step already passed is a way back to it. */
   onStepClick: ((index: number) => void) | undefined
 }) {
@@ -288,7 +292,7 @@ function WizRail({
             index={i}
             active={i === active}
             done={i < active}
-            clickable={!!onStepClick && i < active}
+            clickable={!!onStepClick && i !== active && i <= reached}
             onClick={onStepClick ? () => onStepClick(i) : undefined}
           />
         ))}
@@ -321,6 +325,7 @@ export function WizShell({
   band = true,
   steps,
   active,
+  reached = active,
   onStepClick,
   title,
   children,
@@ -453,6 +458,7 @@ export function WizShell({
         <WizRail
           steps={steps}
           active={active}
+          reached={reached}
           onStepClick={onStepClick && !busy ? onStepClick : undefined}
         />
 
