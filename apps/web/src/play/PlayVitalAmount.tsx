@@ -28,6 +28,7 @@ export function PlayVitalAmount({
   max,
   onChange,
   onClose,
+  size = 'compact',
 }: {
   /** The stamp: HP, AP, SP, EP, Heat. */
   label: string
@@ -35,6 +36,8 @@ export function PlayVitalAmount({
   max: number
   onChange: (next: number) => void
   onClose: () => void
+  /** The controls' Size: Compact in a unit box, Full (44px) on the phone's pinned strip. */
+  size?: 'compact' | 'full'
 }) {
   const [amount, setAmount] = useState('')
   const n = amountOf(amount)
@@ -59,7 +62,7 @@ export function PlayVitalAmount({
       <Input
         autoFocus
         numeric
-        size="compact"
+        size={size}
         style={AMOUNT_INPUT}
         value={amount}
         aria-label={playCopy('amountOf', { label })}
@@ -67,7 +70,7 @@ export function PlayVitalAmount({
       />
       <Button
         type="button"
-        size="compact"
+        size={size}
         disabled={n === null}
         aria-label={playCopy('takeAmount', { label, amount: n ?? '' })}
         onClick={() => change(-1)}
@@ -76,7 +79,7 @@ export function PlayVitalAmount({
       </Button>
       <Button
         type="button"
-        size="compact"
+        size={size}
         disabled={n === null}
         aria-label={playCopy('addAmount', { label, amount: n ?? '' })}
         onClick={() => change(1)}

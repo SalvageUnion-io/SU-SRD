@@ -75,6 +75,7 @@ export function PlayPinnedVitals({
             max={asked.max}
             onChange={(next) => onWrite(picked.unit.kind, asked.field, next, asked.label)}
             onClose={() => setAsking(null)}
+            size="full"
           />
         </div>
       ) : picked ? (
