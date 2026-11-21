@@ -179,9 +179,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ))}
         {/* What links here, listed back (E26). */}
         <PageRelations relations={relationsFor(schemaId, item)} />
-        {/* A chassis's players' patterns, under the book's (ADR-061). */}
+        {/* A chassis's players' patterns, under the book's (ADR-061). It waits
+            for its switch (`interaction` holds the press that wakes it and
+            plays it back), or mounts in view when the reader left it on
+            (`mountsNow`). */}
         {schemaId === 'chassis' && (
-          <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
+          <Island name="HomebrewIsland" client="interaction" ssr props={{ chassisRef: itemId }}>
             <HomebrewIsland chassisRef={itemId} />
           </Island>
         )}

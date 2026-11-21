@@ -5,6 +5,7 @@
  */
 
 import { afterEach, describe, expect, test } from 'bun:test'
+import { SHOW_HOMEBREW_KEY } from '../../lib/homebrew/endpoint'
 import { listingViewStorageKey } from '../../lib/listingParams'
 import { mountsNow } from '../mountNow'
 
@@ -55,6 +56,12 @@ describe('mountsNow', () => {
     window.location.href = 'http://localhost/chassis/?q=mule'
     expect(mountsNow('SearchIsland', {})).toBe(false)
     expect(mountsNow('SearchIsland', { variant: 'hero' })).toBe(true)
+  })
+
+  test('a chassis’s Homebrew waits for its switch, unless the reader left it on', () => {
+    expect(mountsNow('HomebrewIsland', { chassisRef: 'mule' })).toBe(false)
+    window.localStorage.setItem(SHOW_HOMEBREW_KEY, 'on')
+    expect(mountsNow('HomebrewIsland', { chassisRef: 'mule' })).toBe(true)
   })
 
   test('any other island waits', () => {

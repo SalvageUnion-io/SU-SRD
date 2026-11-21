@@ -8,11 +8,14 @@
  * than showing the wrong cards until someone touches the rail. A hero search,
  * or the bar's on the Reference page, mounts at once for an address with a query
  * (`/reference/?q=mule`, where the retired search page's links land), to open on it.
+ * A chassis's Homebrew mounts at once when the reader left its switch on, to
+ * list them; off, it waits for a press, which is held and played back.
  *
  * Free of React and of the islands, like `interaction.ts`: the client entry
  * asks this on every page.
  */
 
+import { SHOW_HOMEBREW_KEY } from '../lib/homebrew/endpoint'
 import { LISTING_PARAMS, listingViewStorageKey } from '../lib/listingParams'
 import { SEARCH_PAGE, searchQuery } from '../lib/searchHref'
 
@@ -28,6 +31,7 @@ function stored(win: Window, key: string): string | null {
 }
 
 const MOUNTS_NOW: Record<string, Predicate> = {
+  HomebrewIsland: (_props, win) => stored(win, SHOW_HOMEBREW_KEY) === 'on',
   SearchIsland: (props, win) =>
     (props.variant === 'hero' || win.location.pathname === SEARCH_PAGE) &&
     searchQuery(win.location.search) !== undefined,
