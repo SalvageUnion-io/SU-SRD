@@ -6,7 +6,7 @@ import type { SubmitResult } from './units'
 import { unitName } from './units'
 
 /**
- * The table's event stream (ADR-068): one line per thing a member did in a
+ * The table's event stream (ADR-063 §7, as amended): one line per thing a member did in a
  * Game, in the order the room saw it. The Feed lists it, every other
  * member's screen toasts it, and the bound Discord channel mirrors it
  * (`../../worker/shared/tableEvents.ts`): one source, three readers.
@@ -24,7 +24,7 @@ import { unitName } from './units'
  *   served to Mediators only and is never mirrored (`isMirrored`).
  */
 
-export type TableEventKind =
+type TableEventKind =
   | 'vitals'
   | 'action'
   | 'roll'

@@ -352,6 +352,9 @@ export type LogRollArgs = {
 
 export type LogRollResult = { ok: true; logged: boolean }
 
+/** The table every check rolls on, whose Feed rows are kind `core`. */
+export const CORE_MECHANIC_TABLE = 'Core Mechanic'
+
 /** `feedback`: a `/su feedback` note, sent on for filing as a GitHub issue. */
 export type BotFeedbackArgs = { discordId: string; kind: 'suggestion' | 'report'; text: string }
 

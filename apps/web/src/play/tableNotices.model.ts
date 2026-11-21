@@ -10,7 +10,7 @@
 import type { TableEvent } from '../rooms/game/events'
 
 /** How long the Mediator's alert stays pinned unless dismissed. */
-export const ALERT_PINNED_MS = 10 * 60_000
+const ALERT_PINNED_MS = 10 * 60_000
 
 /** What a screen has already heard of one Game's events: each id's line as last toasted. */
 export type Heard = ReadonlyMap<string, string>

@@ -70,7 +70,7 @@ export type RollMessage =
   | { error: string }
 
 /** A roll that landed on a row: what the Game's Feed line says of it. */
-export type RolledRow = { tableName: string; rolls: number[]; outcome: string }
+type RolledRow = { tableName: string; rolls: number[]; outcome: string }
 
 /**
  * Put a public roll on its Game's Feed (`logRoll`): the site keeps it only

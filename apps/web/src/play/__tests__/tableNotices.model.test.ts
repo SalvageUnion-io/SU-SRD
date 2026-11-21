@@ -1,12 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
-import {
-  ALERT_PINNED_MS,
-  eventsToToast,
-  pausedTitle,
-  pinnedAlert,
-  resumedTitle,
-} from '../tableNotices.model'
+import { eventsToToast, pausedTitle, pinnedAlert, resumedTitle } from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
   ts: 1,
@@ -54,7 +48,7 @@ describe('pinnedAlert', () => {
   test('the newest recent alert stays pinned until dismissed or old', () => {
     expect(pinnedAlert([alert], new Set(), 'me', 2000)).toBe(alert)
     expect(pinnedAlert([alert], new Set(['al']), 'me', 2000)).toBeNull()
-    expect(pinnedAlert([alert], new Set(), 'me', 1000 + ALERT_PINNED_MS)).toBeNull()
+    expect(pinnedAlert([alert], new Set(), 'me', 1000 + 10 * 60_000)).toBeNull()
     expect(pinnedAlert([alert], new Set(), 'gm', 2000)).toBeNull()
   })
 })

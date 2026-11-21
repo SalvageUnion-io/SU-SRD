@@ -300,12 +300,12 @@ export const playCopy = messages({
   addAmount: 'Add {amount} to {label}',
   sessionLiveIn: 'Session live · {game}',
   sessionEndedIn: 'Session ended · {game}',
-  sessionEnded: 'Session ended',
   openTable: 'Open table',
   dismiss: 'Dismiss',
   dismissWhat: 'Dismiss: {what}',
   fromTheMediatorIn: 'From the Mediator · {game}',
   proposalIn: 'Proposal · {game}',
+  answerDidNotLand: 'Your answer did not land. Try again.',
   tableNotices: 'Your Games',
   pausedTitlePrefix: 'Paused · ',
   pausedIn: 'Stop Sign · {game}: the game is paused',
@@ -313,5 +313,4 @@ export const playCopy = messages({
   endGroupSessionBody:
     'The table is told the session has ended. Play stays open for everyone, and you can start another at any time.',
   keepPlaying: 'Keep playing',
-  groupSession: 'Group session',
 })

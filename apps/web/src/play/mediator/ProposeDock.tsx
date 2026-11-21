@@ -53,9 +53,10 @@ export type ProposeArgs = {
   reason?: string
 }
 
+/** A pair of fields on one row, the wider first: Target and Field, then Change and its number. */
 const ROW = {
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)',
   gap: space[8],
   alignItems: 'end',
 } satisfies CSSProperties
@@ -200,6 +201,8 @@ export function ProposeDock({
             ))}
           </Select>
         </Field>
+      </div>
+      <div style={ROW}>
         <Field label={mediatorCopy('change')} htmlFor={`${id}-mode`}>
           <Select
             id={`${id}-mode`}

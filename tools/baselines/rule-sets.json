@@ -208,7 +208,7 @@
       "apps/web/src/play/mediator/PlayNpcActions.tsx": 2,
       "apps/web/src/play/mediator/PlayNpcBox.tsx": 1,
       "apps/web/src/play/mediator/ProposalsList.tsx": 1,
-      "apps/web/src/play/mediator/ProposeDock.tsx": 2,
+      "apps/web/src/play/mediator/ProposeDock.tsx": 1,
       "apps/web/src/play/mediator/usePlayMediator.ts": 1,
       "apps/web/src/play/play.model.ts": 7,
       "apps/web/src/play/playActions.model.ts": 9,

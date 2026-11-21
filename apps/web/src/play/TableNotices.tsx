@@ -120,7 +120,7 @@ function GameNotices({
   const apply = useTableAct('ops.accept', gameId)
   const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playCopy('answerDidNotLand'),
     toastId: 'table-proposal-answer',
   })
   const pilots = gamePilots(usePilots(), gameId)

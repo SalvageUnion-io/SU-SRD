@@ -29,7 +29,7 @@ import type {
   UnbindChannelArgs,
   UnbindChannelResult,
 } from 'game-domain/botWire'
-import { isPostableRoll } from 'game-domain/botWire'
+import { CORE_MECHANIC_TABLE, isPostableRoll } from 'game-domain/botWire'
 import type { SheetTable } from 'game-domain/entityKinds'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
 import type { LogEntry } from '../rooms/game/log'
@@ -193,7 +193,7 @@ async function logRoll(
         after: {
           description,
           result: {
-            kind: tableName === 'Core Mechanic' ? 'core' : 'table',
+            kind: tableName === CORE_MECHANIC_TABLE ? 'core' : 'table',
             roll: rolls[0] ?? null,
             outcome,
           },
