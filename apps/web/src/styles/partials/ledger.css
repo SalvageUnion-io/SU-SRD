@@ -547,3 +547,11 @@
 .su-search-ledger .su-ledger__name {
   font-size: var(--text-body);
 }
+
+/* The cost column's mark before its COST stamp (L2): inline on the label's line. */
+.su-ledger__cost-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-inline-end: var(--space-2);
+  vertical-align: -0.125em;
+}
