@@ -175,8 +175,11 @@ export function useMechSheetActions({
     const fresh = freshMech()
     // A removal lands at once and offers Undo: the loadout as it was, choices and all.
     const offerUndo = (name: string | undefined, before: Partial<Mech>) =>
-      undoToast(buildSheetCopy('removedName', { name: name ?? buildSheetCopy('item') }), () =>
-        write({ ...before, ...(fresh.itemChoices ? { itemChoices: fresh.itemChoices } : {}) })
+      undoToast(
+        buildSheetCopy('removedName', { name: name ?? buildSheetCopy('item') }),
+        () =>
+          write({ ...before, ...(fresh.itemChoices ? { itemChoices: fresh.itemChoices } : {}) }),
+        mech.id
       )
     if (kind === 'module') {
       const gone = fresh.modules[index]

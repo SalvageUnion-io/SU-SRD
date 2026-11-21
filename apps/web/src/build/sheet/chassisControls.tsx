@@ -47,7 +47,8 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
             left.length === 0
               ? mechCopy('chassisChanged', { name })
               : mechCopy('chassisChangedLeftOff', { name, names: left.join(', ') }),
-            () => patch(before)
+            () => patch(before),
+            mech.id
           )
         }}
       />

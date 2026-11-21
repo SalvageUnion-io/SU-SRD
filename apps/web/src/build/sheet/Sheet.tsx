@@ -337,7 +337,11 @@ export function Sheet({
                   kind,
                   copyForShelf(entity, entity.name, namesOn(storeState.list(kind))) as never
                 )
-                return { name: created.name, href: sheetPath(kind, created.id) }
+                return {
+                  name: created.name,
+                  href: sheetPath(kind, created.id),
+                  exists: () => storeState.get(kind, created.id) !== null,
+                }
               },
               go,
             })
@@ -523,6 +527,14 @@ export function Sheet({
             entityName={entity.name}
             open={changeLogOpen}
             onOpenChange={setChangeLogOpen}
+            onRestore={
+              writesBlocked
+                ? undefined
+                : (before) => {
+                    patch(before)
+                    toast(buildSheetCopy('restored'))
+                  }
+            }
           />
           {/*
             Mounted here, beside the Change Log, for the same reason: the dialog

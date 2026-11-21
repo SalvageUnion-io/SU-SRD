@@ -6,7 +6,8 @@
  * history of _how_ that state got there lives one tap away. Entries are the
  * server's (`changeLog.forEntity`), newest first: edits from every device,
  * ownership changes, and the Mediator's proposals, applied or still pending.
- * This is read-only — the log is never mutated from the UI.
+ * The log itself is never mutated from the UI: Restore (the newest ten changes)
+ * is a new write that puts a change's fields back, and is logged as one.
  */
 
 import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
@@ -15,10 +16,20 @@ import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import type { BadgeTone } from '../../components/index'
-import { Badge, EmptyState, ModalShell, Pending, Text, tokens } from '../../components/index'
+import {
+  Badge,
+  Button,
+  EmptyState,
+  ModalShell,
+  Pending,
+  Text,
+  tokens,
+} from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
+import type { LogLine } from './changeLog.model'
+import { logChanges, RESTORABLE } from './changeLog.model'
 
 type ChangeLogDrawerProps = {
   entityType: EntityRef['type']
@@ -26,13 +37,20 @@ type ChangeLogDrawerProps = {
   entityName: string
   open: boolean
   onOpenChange: (open: boolean) => void
+  /**
+   * Put a change's fields back as they were: each of the newest ten changes
+   * offers it. Absent where the viewer may not write.
+   */
+  onRestore?: ((before: Record<string, unknown>) => void) | undefined
 }
 
-/** Kind → human label + its chip: a tone chip for the two kinds a rule wrote, quiet for a hand edit. */
-const KIND_META: Record<ChangeLogKind, { label: string; tone?: BadgeTone }> = {
+/**
+ * Kind → its chip, for the two kinds a rule wrote. A hand edit is the log's
+ * plain case and wears none.
+ */
+const KIND_META: Partial<Record<ChangeLogKind, { label: string; tone: BadgeTone }>> = {
   transaction: { label: buildSheetCopy('transaction'), tone: 'mech' },
   override: { label: buildSheetCopy('override'), tone: 'pilot' },
-  manual: { label: buildSheetCopy('manual') },
 }
 
 /** A kind's chip: the Badge chip, toned or quiet. */
@@ -61,19 +79,30 @@ const AFTER = { fontWeight: tokens.weight.medium, color: tokens.color.ink } sati
 /** The drawer body's fill; its padding steps up at `sm` (`.su-sheet-changelog-body`). */
 const BODY = { backgroundColor: tokens.color.paper } satisfies CSSProperties
 
-/** Compact display for a logged before/after value. An absent side is stored as null. */
-function formatValue(value: unknown): string {
-  if (value === undefined || value === null) return '—'
-  if (typeof value === 'string') return value.length === 0 ? '""' : value
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
-  const json = JSON.stringify(value)
-  return json.length > 80 ? `${json.slice(0, 79)}…` : json
+/** A change's lines stack, each whole. */
+const LINES = { display: 'grid', gap: tokens.space[4] } satisfies CSSProperties
+
+function Line({ line }: { line: LogLine }) {
+  if ('text' in line) return <span>{line.text}</span>
+  return (
+    <span>
+      {line.label}: <span style={BEFORE}>{line.before}</span>{' '}
+      {/* The value's change, a glyph at the line's Size (K11), never a text arrow. */}
+      <ArrowRight
+        size={tokens.iconSize.compact}
+        aria-label={buildSheetCopy('logTo')}
+        style={GLYPH}
+      />{' '}
+      <span style={AFTER}>{line.after}</span>
+    </span>
+  )
 }
 
 function ChangeLogEntries({
   entityType,
   entityId,
-}: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId'>) {
+  onRestore,
+}: Pick<ChangeLogDrawerProps, 'entityType' | 'entityId' | 'onRestore'>) {
   const entries = useEntityLog(entityType, entityId)
 
   if (entries === undefined) return <Pending />
@@ -87,26 +116,33 @@ function ChangeLogEntries({
   }
   return (
     <FeedList>
-      {entries.map((entry) => {
-        const kind = KIND_META[entry.kind]
+      {logChanges(entries).map((change, i) => {
+        const kind = KIND_META[change.kind]
         return (
           <FeedLine
-            key={entry._id}
+            key={change.id}
             head={
               <>
-                <KindChip label={kind.label} tone={kind.tone} />
-                {entry.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
-                <span>{entry.field}</span>
+                {kind && <KindChip label={kind.label} tone={kind.tone} />}
+                {change.state === 'proposed' && <KindChip label={buildSheetCopy('proposed')} />}
                 <span style={PUSH}>
-                  <FeedTime ts={entry.ts} format="datetime" />
+                  <FeedTime ts={change.ts} format="datetime" />
                 </span>
               </>
             }
+            end={
+              onRestore && i < RESTORABLE && change.state === 'applied' ? (
+                <Button size="compact" onClick={() => onRestore(change.before)}>
+                  {buildSheetCopy('restore')}
+                </Button>
+              ) : undefined
+            }
           >
-            <span style={BEFORE}>{formatValue(entry.before)}</span>{' '}
-            {/* The value's change, a glyph at the line's Size (K11), never a text arrow. */}
-            <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
-            <span style={AFTER}>{formatValue(entry.after)}</span>
+            <span style={LINES}>
+              {change.lines.map((line) => (
+                <Line key={line.key} line={line} />
+              ))}
+            </span>
           </FeedLine>
         )
       })}
@@ -120,6 +156,7 @@ export function ChangeLogDrawer({
   entityName,
   open,
   onOpenChange,
+  onRestore,
 }: ChangeLogDrawerProps) {
   const { status } = useSync()
   // Whether the entries MOUNT: they read the unit's room, so they render only on a live connection, as the Share dialog's
@@ -138,7 +175,7 @@ export function ChangeLogDrawer({
     >
       <div className="su-sheet-changelog-body" style={BODY}>
         {live ? (
-          <ChangeLogEntries entityType={entityType} entityId={entityId} />
+          <ChangeLogEntries entityType={entityType} entityId={entityId} onRestore={onRestore} />
         ) : (
           <Text variant="note">{buildSheetCopy('theChangeLogIsKept')}</Text>
         )}
