@@ -846,7 +846,10 @@ describe('every Mediator capability is reachable here', () => {
         primaryCrawlerId: null,
       },
     })
-    expect(screen.getByRole('link', { name: 'Raise one from the Game page' })).toBeTruthy()
+    // It points at the Game page's add controls, where a crawler is added.
+    expect(
+      screen.getByRole('link', { name: 'Add a crawler on the Game page' }).getAttribute('href')
+    ).toBe(`/games/${GAME}#add-crew`)
   })
 
   test('Opposition: Rename is the NPC’s ⋯ menu', async () => {

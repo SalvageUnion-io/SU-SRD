@@ -89,7 +89,7 @@ export const mediatorCopy = messages({
     'No one has a seat yet. A player takes one when a Pilot in this Game is assigned to them.',
   seats: 'Seats',
   thisGameHasNoUnion: 'This Game has no Union Crawler yet.',
-  raiseOneFromTheGame: 'Raise one from the Game page',
+  raiseOneFromTheGame: 'Add a crawler on the Game page',
   actions: '{name} · Actions',
   theReferenceGivesItNo: 'The reference gives it no actions.',
   sActions: '{name}’s actions',

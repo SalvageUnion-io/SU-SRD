@@ -54,6 +54,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import {
+  ADD_CREW_ANCHOR,
   bodyIdOf,
   crawlerRows,
   groupColumn,
@@ -68,6 +69,7 @@ import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
+import { AddFromTrainingBay } from './AddFromTrainingBay'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -372,6 +374,14 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
           {playGamesCopy('newCrawler')}
         </Button>
       )}
+      {caps.canAddCrew && (
+        <AddFromTrainingBay
+          gameId={gameId}
+          gameName={gameName}
+          crawler={caps.canRaiseCrawler && !caps.hasCrawler}
+          confirm={confirm}
+        />
+      )}
     </>
   )
   const note =
@@ -406,7 +416,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
               }
             : {})}
           lead={
-            <div className="su-open__controls">
+            <div className="su-open__controls" id={ADD_CREW_ANCHOR}>
               {newButtons}
               {note}
             </div>
