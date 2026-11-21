@@ -348,8 +348,8 @@
 /* `atoms/SmallButtons.tsx` (`StepButton`), the one +/− stepper: a frameless
  * ink plate, a paper one on an ink ground (the frame's `data-ground`, chrome
  * K1), hovering a step lighter, and a 44px tap
- * floor below `sm` that relaxes at `sm`. A `cell` button is 24px square at
- * the least (WCAG 2.5.8). */
+ * floor below `sm` that relaxes at `sm`. A `cell` button is its chip's height
+ * and 24px wide at the least (WCAG 2.5.8 spacing). */
 .su-step-btn {
   /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
@@ -383,10 +383,10 @@
 }
 
 /* A Stat's +/- stepper (`fit="cell"`, which also carries `.su-stat-step`)
- * is 24px square at the least on every pointer (WCAG 2.5.8): the chip beside
- * it centres on it. */
+ * draws at its chip's height on every pointer (R12) and 24px wide at the
+ * least, so the two steps' centres stand 24px apart (WCAG 2.5.8 spacing). */
 .su-step-btn--cell {
-  min-height: var(--space-24);
+  min-height: 0;
   min-width: var(--space-24);
 }
 
