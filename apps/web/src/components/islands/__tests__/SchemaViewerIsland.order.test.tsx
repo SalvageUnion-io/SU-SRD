@@ -194,4 +194,56 @@ describe("the List's columns", () => {
     fireEvent.change(slots[0] as HTMLElement, { target: { value: 'action' } })
     expect(new URLSearchParams(window.location.search).get('cols')).toBe('action,damage')
   })
+
+  const phoneHeads = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll('thead th[data-phone]'))
+      .map((th) => (th.textContent ?? '').trim())
+      .filter(Boolean)
+  const slotValues = () =>
+    within(screen.getByRole('group', { name: 'Columns' }))
+      .getAllByRole('combobox')
+      .map((slot) => (slot as HTMLSelectElement).value)
+
+  it(
+    'Equipment opens a phone on two real columns, and its two menus name them (r2 H2)',
+    () => {
+      const { container } = listing('equipment')
+      const shown = phoneHeads(container)
+      expect(shown.length).toBe(2)
+      const [first, second] = slotValues()
+      expect(first).toBeTruthy()
+      expect(second).toBeTruthy()
+      expect(first).not.toBe(second)
+      // No quiet line stands in for the columns.
+      expect(container.querySelector('table[data-phone-line]')).toBeNull()
+    },
+    HEAVY
+  )
+
+  it(
+    'a choice lands in the column it was made in (r2 H2)',
+    () => {
+      const { container } = listing('chassis')
+      const before = slotValues()
+      expect(before.length).toBe(2)
+      const second = phoneHeads(container)[1]
+      const options = Array.from(
+        within(screen.getByRole('group', { name: 'Columns' }))
+          .getAllByRole('combobox')[0]
+          ?.querySelectorAll('option') ?? []
+      ).map((option) => option.value)
+      // A column drawn AFTER the second slot's, chosen for the first slot.
+      const later = options[options.length - 1] as string
+      expect(before).not.toContain(later)
+      const slots = within(screen.getByRole('group', { name: 'Columns' })).getAllByRole('combobox')
+      fireEvent.change(slots[0] as HTMLElement, { target: { value: later } })
+      expect(slotValues()).toEqual([later, before[1] as string])
+      expect(new URLSearchParams(window.location.search).get('cols')).toBe(`${later},${before[1]}`)
+      // The table draws the first slot's column first.
+      const now = phoneHeads(container)
+      expect(now.length).toBe(2)
+      expect(now[1]).toBe(second as string)
+    },
+    HEAVY
+  )
 })

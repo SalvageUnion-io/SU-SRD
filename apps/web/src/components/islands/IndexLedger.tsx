@@ -260,6 +260,59 @@ const DENSE_COLUMNS = 4
 /** How many columns a phone's row holds beside its name and stamp (ledger L8). */
 const PHONE_COLUMNS = 2
 
+/** A measure before a word: the order a phone's spare slot is filled in. */
+function phoneRank(column: IndexColumn): number {
+  if (column.kind === 'figure') return 0
+  return ['range', 'damage'].includes(column.key) ? 1 : 2
+}
+
+/**
+ * The columns a phone's row shows, in its slots' order: the reader's choice,
+ * else the kind's own (its vitals). Where the reader picks them (`picked`) and
+ * those leave a slot empty, a measure fills it, so the row opens on
+ * real columns and no two slots read the same (Equipment, whose stats too few
+ * rows carry).
+ */
+export function phoneColumnKeys(
+  columns: readonly IndexColumn[],
+  chosen: readonly string[],
+  picked: boolean
+): readonly string[] {
+  const can = pickable(columns)
+  const valid = chosen.filter(
+    (key, at) => can.some((column) => column.key === key) && chosen.indexOf(key) === at
+  )
+  const own =
+    valid.length > 0
+      ? valid.slice(0, PHONE_COLUMNS)
+      : can.filter((column) => column.phone).map((column) => column.key)
+  if (!picked || can.length <= PHONE_COLUMNS || own.length >= PHONE_COLUMNS) return own
+  const spare = can
+    .filter((column) => !own.includes(column.key))
+    .sort((a, b) => phoneRank(a) - phoneRank(b))
+    .map((column) => column.key)
+  return [...own, ...spare].slice(0, PHONE_COLUMNS)
+}
+
+/**
+ * `columns` with a phone's `keys` marked, each sitting where its slot is: the
+ * chosen columns keep the places they hold between them, in the slots' order,
+ * so the first slot's column is drawn first.
+ */
+export function withPhoneColumns<Column extends { key: string; phone?: boolean }>(
+  columns: readonly Column[],
+  keys: readonly string[]
+): readonly Column[] {
+  const places = columns.flatMap((column, at) => (keys.includes(column.key) ? [at] : []))
+  const next = columns.map((column) => ({ ...column, phone: false }))
+  keys.forEach((key, slot) => {
+    const column = columns.find((candidate) => candidate.key === key)
+    const place = places[slot]
+    if (column && place !== undefined) next[place] = { ...column, phone: true }
+  })
+  return next
+}
+
 /** The ranges, nearest first: a Range column sorts by reach, not by spelling. */
 const RANGES = ['close', 'medium', 'long', 'far']
 
@@ -326,13 +379,10 @@ export function IndexLedger({
   )
   const found = useMemo(() => indexColumns(schemaId, models), [schemaId, models])
   // A phone's two columns: the reader's, else the kind's own (its vitals).
-  const columns = useMemo(() => {
-    const chosen = (phone?.columns ?? []).filter((key) =>
-      pickable(found).some((column) => column.key === key)
-    )
-    if (chosen.length === 0) return found
-    return found.map((column) => ({ ...column, phone: chosen.includes(column.key) }))
-  }, [found, phone?.columns])
+  const columns = useMemo(
+    () => withPhoneColumns(found, phoneColumnKeys(found, phone?.columns ?? [], Boolean(phone))),
+    [found, phone]
+  )
   const built = useMemo(
     () =>
       models.map(({ item, model }) => {
