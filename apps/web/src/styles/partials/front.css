@@ -143,9 +143,9 @@ body:has(.su-front--show) main {
   text-wrap: balance;
 }
 
-/* The site's name on a paper cut-out notched into the header at the top
-   left, the chapter title's face at its size, and the pitch flowing flush
-   out of its foot on the same paper. */
+/* The site's name on a cut-out in the header's dress (paper on ink-deep)
+   notched into it at the top left, the chapter title's face at its size, and
+   the pitch flowing flush out of its foot on the same ground. */
 .su-front__show-head {
   align-items: flex-start;
   display: flex;
@@ -168,8 +168,8 @@ body:has(.su-front--show) main {
 }
 
 .su-front__show-name {
-  background-color: var(--color-wk-bg);
-  color: var(--color-ink);
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
   font-family: var(--font-cond);
   font-size: var(--text-chapter);
   font-weight: var(--font-weight-bold);
@@ -188,18 +188,19 @@ body:has(.su-front--show) main {
 }
 
 .su-front__show-pitch-line {
-  background-color: var(--color-wk-bg);
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
   padding: calc(var(--space-6) / 2) var(--space-16);
 }
 
 /* A slide's words, at its lower right in the same place on every slide: one
-   cream plate notched into the footer, as wide as its words, its heading and
+   plate in the footer's dress (paper on ink-deep) notched into it, as wide as its words, its heading and
    line first and its action at the right, on one row at every width. */
 .su-front__show-copy {
   bottom: 0;
-  color: var(--color-ink);
+  color: var(--color-paper);
   display: flex;
   right: var(--su-shell-edge, var(--space-24));
   max-width: min(44rem, calc(100% - var(--space-24) * 2));
@@ -210,7 +211,7 @@ body:has(.su-front--show) main {
 
 .su-front__show-plate {
   align-items: center;
-  background-color: var(--color-wk-bg);
+  background-color: var(--color-ink-deep);
   display: flex;
   gap: var(--space-12) var(--space-16);
   padding: var(--space-12) var(--space-16);
