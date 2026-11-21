@@ -2,14 +2,12 @@
 // pattern, its name the link to its Page, Starting its only stamp, what it
 // changes said whole (a mech's loadout, each drone by the name the pattern
 // gives it; the actions a Bio-Titan's pattern adds: rules text is never cut,
-// only a name may end in "…"), and the patterns' sources once, on the foot's
-// cut-out (a citation is text, never a chip: E9). Its title tab names the
-// section and carries the count, so no Slab heads it.
+// only a name may end in "…"). It draws no foot (L6): each pattern's Page
+// cites it. Its title tab names the section and carries the count, so no Slab
+// heads it.
 import type { RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { entityRef, isBioTitanPattern, toEntityModel } from 'salvageunion-reference'
-import { bookHrefs } from '../../../lib/bookHref'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
-import { CiteLine } from '../../atoms/CiteLine'
 import { Stat } from '../../atoms/Stat'
 import { paintFor } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
@@ -43,13 +41,6 @@ function changesOf(pattern: RefObjectAnyPattern): string {
   ].join(', ')
 }
 
-/** "Workshop Manual · p.101": the book's name less the game's, and the page. */
-function citeOf(pattern: RefObjectAnyPattern): string {
-  const book = 'source' in pattern && pattern.source ? String(pattern.source) : ''
-  const page = 'page' in pattern && pattern.page != null ? ` · p.${pattern.page}` : ''
-  return `${book.replace(/^Salvage Union /, '')}${page}`
-}
-
 export function PatternLedger({
   chassis,
   patterns,
@@ -60,18 +51,6 @@ export function PatternLedger({
   const surface = useEntitySurface()
   const model = toEntityModel(chassis as RefMetaEntity)
   const host = entityRef(chassis as RefMetaEntity)
-  // Each distinct cite once, linked to its book's page (Source 2).
-  const cited = new Map<string, string>()
-  for (const pattern of patterns) {
-    const cite = citeOf(pattern)
-    if (cite && !cited.has(cite))
-      cited.set(cite, 'source' in pattern ? String(pattern.source ?? '') : '')
-  }
-  const cites = [...cited.keys()]
-  const hrefs = bookHrefs(
-    [...cited.values()].map((source) => ({ book: source, source })),
-    surface.hrefFor
-  )
   return (
     <Ledger
       label={referenceEntityCopy('patternsOf', { name: model.title })}
@@ -96,7 +75,6 @@ export function PatternLedger({
         ) : undefined,
         cells: [changesOf(pattern)],
       }))}
-      foot={<CiteLine text={cites.join(' // ')} hrefs={hrefs} />}
     />
   )
 }

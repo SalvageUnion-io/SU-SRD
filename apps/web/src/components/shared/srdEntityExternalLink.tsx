@@ -17,7 +17,7 @@ import { DocumentLinks } from '../islands/DocumentLinks'
  * and with no arrow: the Reference and the builder are one union (ruleset
  * §3.11, EDL E5).
  */
-export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
+export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity, options) => {
   const href = entityHref(entity)
   if (href === undefined) return undefined
 
@@ -35,6 +35,8 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
         }
         // `.su-srd-entity-external-link` (`styles/build/unitSlot.css`): its 24px target.
         className="su-srd-entity-external-link"
+        // On a Peek's plate: its way out, never a tab stop (E16).
+        {...(options?.inPeek ? { 'data-peek-out': '', tabIndex: -1 } : {})}
       >
         {sharedCopy('viewInTheReference')}
       </InlineRef>

@@ -43,9 +43,13 @@ export type EntitySurfaceValue = {
 
 /**
  * Builds an entity's external cross-link node, or `undefined` for an entity
- * with no page to link out to.
+ * with no page to link out to. On a Peek's plate (`inPeek`) it is out of the
+ * tab order, as the plate's name is (E16).
  */
-export type EntityExternalLinkBuilder = (entity: RefEntity) => ReactNode | undefined
+export type EntityExternalLinkBuilder = (
+  entity: RefEntity,
+  options?: { inPeek?: boolean }
+) => ReactNode | undefined
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
 export type EntityLinkComponent = ComponentType<

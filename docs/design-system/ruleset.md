@@ -1,11 +1,11 @@
 # The Primitives Ruleset — Salvage Union Design System
 
-Canon for every primitive and surface: a component that contradicts a rule is wrong; [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks it. Gates: [hard-rules.md](hard-rules.md).
+Canon for every primitive and surface: a component contradicting a rule is wrong; [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks it. Gates: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual
 
 1. **The book is the visual source of truth** — paper pages, colour only in bands, ink banners, framed numbers.
-2. **Chapter band** — a band in the section colour across a page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: citations on one line, book first, a bold `//` between, each book linked to its page, no kind, the source cut out top right in its body's ground; a Page's is its one footer, app links under it.
+2. **Chapter band** — a band in the section colour across a page, the title notched in on a paper cut-out, in ink. The foot band is text, never chips: citations on one line, book first, each by its one short name, linked to its page, a bold `//` between, no kind, cut out top right in its body's ground; a Page's is its one footer, app links under it.
 3. **Ink stamp + framed numeral** — the stat column (`STRUCTURE POINTS | 14`), label 14px, stat order (§2.6), four a row on a Page, two on a phone (R68); full words on a Page, short labels smaller (prose: Tech Level).
 4. **The ink banner** — tier numeral, title, cost pennant, metadata on ink with a rounded tail; on screen, the card's ink header.
 5. **"ROLL THE DIE:" and "//" lines** — an underlined ink stamp over banded d20 tables; italic trait lines split by "//"; on screen, one chip group (E17).

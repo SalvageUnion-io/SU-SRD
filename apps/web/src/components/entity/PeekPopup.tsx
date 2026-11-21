@@ -133,9 +133,10 @@ export function PeekPopup({
 
   const subject = loaded ? subjectAt(schemaName, entityId) : undefined
   // The app's "View in the Reference" (the surface's): the Peek's way to the
-  // entry's page. The SRD, which is the Reference, has none.
+  // entry's page, beside its name (E16). The SRD, which is the Reference, has none.
   const { externalLink } = useEntitySurface()
-  const outLink = subject?.kind === 'entity' ? externalLink?.(subject.entity) : undefined
+  const outLink =
+    subject?.kind === 'entity' ? externalLink?.(subject.entity, { inPeek: true }) : undefined
   useEffect(() => {
     if (loaded && !subject) onDismiss()
   }, [loaded, subject, onDismiss])

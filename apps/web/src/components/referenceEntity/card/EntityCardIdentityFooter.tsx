@@ -76,7 +76,7 @@ const truncate = {
  *
  * ONE line, right-aligned, and no kind (E9): every printing, the book first,
  * then each reprint, `//` between (`citeLine`) — "Workshop Manual · p.80 //
- * Salvage Union Starter Set (PH) · p.38". A user-made card puts its `credit`
+ * Starter Set (PH) · p.38". A user-made card puts its `credit`
  * ("Made by alxjrvs") where the citation goes.
  */
 const CITE = { display: 'inline-block', overflowWrap: 'break-word' } satisfies CSSProperties

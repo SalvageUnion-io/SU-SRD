@@ -15,7 +15,7 @@ const LINKS = [
 const GOPHER: FooterFoot = {
   printings: [
     { book: 'Workshop Manual', page: 112 },
-    { book: 'Salvage Union Starter Set (PC)', page: 26 },
+    { book: 'Starter Set (PC)', page: 26 },
   ],
   measure: '75rem',
 }
@@ -125,9 +125,7 @@ describe('Footer', () => {
     )
     const lines = container.querySelectorAll('.su-footer__citation')
     expect(lines).toHaveLength(1)
-    expect(lines[0]?.textContent).toBe(
-      'Workshop Manual · p.112 // Salvage Union Starter Set (PC) · p.26'
-    )
+    expect(lines[0]?.textContent).toBe('Workshop Manual · p.112 // Starter Set (PC) · p.26')
     expect(container.textContent).not.toContain('Also in')
   })
 

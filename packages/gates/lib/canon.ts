@@ -36,7 +36,7 @@ export const CANON_DOCS = {
 export const CANON: Readonly<Record<string, readonly string[]>> = {
   // ── ruleset.md: the source ──
   'Source 1': ['Source 2', 'Source 3', 'Source 4', 'Source 5', 'Source 6', 'check:rules-fidelity'],
-  'Source 2': ['C10', 'R44', 'EntityDetailDialog.test.tsx'],
+  'Source 2': ['C10', 'R44', 'EntityDetailDialog.test.tsx', 'cite.test.ts'],
   'Source 3': ['R17', '§2.6', 'R68'],
   'Source 4': ['E12'],
   'Source 5': ['R8', 'E17'],
