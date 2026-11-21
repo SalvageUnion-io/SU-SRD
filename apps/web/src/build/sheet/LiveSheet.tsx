@@ -34,7 +34,6 @@ import {
   KindLabel,
   LinkedUnits,
   relation,
-  SlabLookProvider,
   Stat,
   Tag,
   tokens,
@@ -583,9 +582,7 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
-            {/* A sheet's section heads
-                are labels on rules (`SlabLookProvider`), in Read and Edit. */}
-            <SlabLookProvider value="rule">{renderBody()}</SlabLookProvider>
+            {renderBody()}
           </EntitySurfaceProvider>
         </div>
       </div>

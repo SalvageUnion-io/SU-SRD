@@ -39,15 +39,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { PageShell } from '../../components/app'
-import {
-  Button,
-  Callout,
-  Pending,
-  SlabLookProvider,
-  SlabSection,
-  Text,
-  tokens,
-} from '../../components/index'
+import { Button, Callout, Pending, SlabSection, Text, tokens } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { areaTitle } from '../../lib/pageTitle'
 import { useTabTitle } from '../../lib/useTabTitle'
@@ -112,10 +104,8 @@ function GameSections({ game }: { game: Game }) {
   const sign = useStopSign(gameId)
 
   return (
-    // The Game page reads as a sheet
-    // dashboard — its section heads are labels on rules, and its crew is one
-    // manifest (`GameRoster`).
-    <SlabLookProvider value="rule">
+    // Its crew is one manifest (`GameRoster`).
+    <>
       {sign?.shown && (
         <div style={STOP_BANNER}>
           <StopSignBanner sign={sign} />
@@ -173,7 +163,7 @@ function GameSections({ game }: { game: Game }) {
           else window.location.assign(PLAY_HUB)
         }}
       />
-    </SlabLookProvider>
+    </>
   )
 }
 
