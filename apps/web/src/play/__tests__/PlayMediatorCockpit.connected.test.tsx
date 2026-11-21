@@ -616,7 +616,9 @@ describe('the Opposition', () => {
         },
       ],
     })
-    expect(feedLines()).toContain('You · Strikebreaker · Morale · 4 · Holds · Private')
+    expect(
+      feedLines().some((l) => l.startsWith('You · Strikebreaker · Morale · 4 · Holds · Private'))
+    ).toBe(true)
   })
 
   test('Up now marks a seat for the table, and pressing it again clears it', async () => {

@@ -284,7 +284,7 @@ describe('the Crew (play.md §7)', () => {
     expect(crew.getByText('Up now')).toBeTruthy()
     expect(
       crew.getByRole('button', {
-        name: 'Mags, here, Boarded · Atlas, SP 22, fine, Up now. Open their sheet',
+        name: 'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9, Up now. Open their sheet',
       })
     ).toBeTruthy()
     cleanup()

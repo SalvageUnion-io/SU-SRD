@@ -44,18 +44,17 @@
  */
 
 import { X } from 'lucide-react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tokens'
+import { iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { compositionsCopy } from '../../messages/components-compositions'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
-import { capsLabel } from '../atoms/capsLabel'
 import { InsidePeekContext } from '../atoms/insidePeek'
 import { SearchField } from '../atoms/SearchField'
 import { EmptyState } from '../containers/EmptyState'
@@ -70,6 +69,18 @@ import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/refe
 import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
+import {
+  BODY_STYLE,
+  HOSTED_STYLE,
+  LIST_SCROLL_STYLE,
+  ROW_TAG_STYLE,
+  SUBTITLE_CAPS,
+  SUBTITLE_STYLE,
+  SUMMARY_CAPS,
+  SUMMARY_ROW_STYLE,
+  SUMMARY_STYLE,
+  WIDE_QUERY,
+} from './entitySearcherStyles.model'
 import type {
   BudgetConfig,
   EntityLike,
@@ -566,61 +577,3 @@ export function EntitySearcher({
 // ---------------------------------------------------------------------------
 // Layout state + static styles
 // ---------------------------------------------------------------------------
-
-/**
- * The width at which the picker becomes three columns. Mirrors the
- * `.su-searcher` media query in styles/partials/controls.css — change both or
- * neither. CSS owns the LAYOUT; this only decides what the parts ARE at that
- * width: the rail a column or a bar, the Tech level chips inline or folded,
- * and whether an opened Mini takes the picker over.
- */
-const WIDE_QUERY = widthAtLeast('lg')
-
-// Static properties only — every property that changes with the breakpoint
-// lives in the `.su-searcher*` classes (the split rule).
-
-/** The body shrinks with the frame's cap (`.su-searcher-panel`), so the
- * searcher under the head takes what is left and scrolls in it. */
-const BODY_STYLE = { minHeight: 0 } satisfies CSSProperties
-
-/** In a host's frame, the searcher fills its body as its own frame's would. */
-const HOSTED_STYLE = {
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  minHeight: 0,
-} satisfies CSSProperties
-
-/** The subtitle: a line of the paper under the cut-out, as ModalShell's. */
-const SUBTITLE_STYLE = {
-  margin: 0,
-  padding: `${space[12]} ${space[16]} 0`,
-  fontSize: fontSize.chip,
-  lineHeight: 1.2,
-  color: color.wkMuted, // design-tokens-ignore(muted-note): the dialog subtitle, in caps
-} satisfies CSSProperties
-const SUBTITLE_CAPS = capsLabel()
-
-const LIST_SCROLL_STYLE = {
-  padding: `${space[12]} ${space[16]} ${space[16]}`,
-} satisfies CSSProperties
-const SUMMARY_ROW_STYLE = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: space[8],
-  margin: `0 0 ${space[8]}`,
-} satisfies CSSProperties
-const SUMMARY_STYLE = {
-  margin: 0,
-  color: color.wkMuted,
-} satisfies CSSProperties
-/** A row's "Above Tech N" tag: beside the Mini, never shrinking or taking its press. */
-const ROW_TAG_STYLE = {
-  alignSelf: 'center',
-  flex: 'none',
-  pointerEvents: 'none',
-  whiteSpace: 'nowrap',
-} satisfies CSSProperties
-const SUMMARY_CAPS = capsLabel({ size: 'badge' })

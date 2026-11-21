@@ -234,6 +234,7 @@ export function serveReads(
       kind: 'roll',
       text: r.description,
       actorId: null,
+      ...(r.private === true ? { private: true } : {}),
     })),
     ...(tables.alerts ?? []).map((a) => ({
       _id: a._id,

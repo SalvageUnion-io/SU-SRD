@@ -25,7 +25,7 @@ describe('the table’s events', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })
     expect(event).toMatchObject({ kind: 'vitals', actorId: PLAYER })
-    expect(texts()).toEqual(['p1 · HP → 6'])
+    expect(texts()).toEqual(['p1 · Pilot p1 · HP → 6'])
   })
 
   test('rapid repeats on one vital merge into the line they follow, keeping where it began', () => {
@@ -50,8 +50,8 @@ describe('the table’s events', () => {
       AT + 62_000
     )
     expect(second[0]?._id).toBe(first[0]?._id as string)
-    expect(third[0]?.text).toBe('p1 · HP 8 → 5')
-    expect(texts()).toEqual(['p1 · HP 8 → 5', 'p1 · HP → 8'])
+    expect(third[0]?.text).toBe('p1 · Pilot p1 · HP 8 → 5')
+    expect(texts()).toEqual(['p1 · Pilot p1 · HP 8 → 5', 'p1 · Pilot p1 · HP → 8'])
     // Past the window, or once the line is sealed (posted), a change starts a new line.
     act(
       PLAYER,
@@ -59,7 +59,7 @@ describe('the table’s events', () => {
       { ops: [op('p1', { currentHP: 4 }, { baseSeq: 4 })] },
       AT + 62_000 + MERGE_MS + 1
     )
-    expect(texts()[0]).toBe('p1 · HP 5 → 4')
+    expect(texts()[0]).toBe('p1 · Pilot p1 · HP 5 → 4')
     room.events.seal()
     act(
       PLAYER,
@@ -67,7 +67,7 @@ describe('the table’s events', () => {
       { ops: [op('p1', { currentHP: 3 }, { baseSeq: 5 })] },
       AT + 62_000 + MERGE_MS + 2
     )
-    expect(texts()[0]).toBe('p1 · HP 4 → 3')
+    expect(texts()[0]).toBe('p1 · Pilot p1 · HP 4 → 3')
     expect(texts()).toHaveLength(4)
   })
 
@@ -96,11 +96,11 @@ describe('the table’s events', () => {
     expect(texts()).toEqual([
       'Nell joined the Game',
       'Med ended the group session',
-      'Player accepted: p1 AP → 2',
-      'Mediator proposes p1 AP → 2',
+      'Player accepted: p1 · Pilot p1 AP → 2',
+      'Mediator proposes p1 · Pilot p1 AP → 2',
       'Med started the group session',
-      'p1 uses Patch',
-      'p1 boards Mech m1',
+      'p1 · Pilot p1 uses Patch',
+      'p1 · Pilot p1 boards Mech m1',
     ])
   })
 
