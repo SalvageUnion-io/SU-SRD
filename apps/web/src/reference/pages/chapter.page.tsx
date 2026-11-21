@@ -22,7 +22,7 @@ import {
   ChapterBandTrail,
   ContentsChapter,
 } from '../../components/index'
-import { indexLeadStat } from '../../components/islands/IndexLedger'
+import { indexLeadStat } from '../../components/islands/indexColumns.model'
 import { Tagline } from '../../components/Tagline'
 import type { SrdChapter } from '../../lib/chapters'
 import { buildChapters } from '../../lib/chapters'

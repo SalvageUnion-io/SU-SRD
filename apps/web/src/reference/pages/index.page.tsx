@@ -17,7 +17,7 @@ import { DEFAULT_DESCRIPTION, WEBSITE } from '../../lib/constants'
 import { pageTitle } from '../../lib/pageTitle'
 import { pagesCopy } from '../../messages/reference-pages'
 import { Island } from '../../runtime/Island'
-import { HomeHero } from '../HomeFront'
+import { HomeHero, HomeSearchBand } from '../HomeFront'
 import type { PageModule, PageResult } from '../types'
 import '../../lib/gameData'
 
@@ -42,11 +42,11 @@ function page(): PageResult {
       // one thing a reader can always do there: look something up.
       <div className="su-front su-front--show">
         <HomeHero />
-        <div className="su-front__search su-grain--paper" data-ground="ink">
+        <HomeSearchBand>
           <Island name="SearchIsland" client="interaction" ssr props={{ variant: 'home' }}>
             <HeroSearchStatic shortcut="/" />
           </Island>
-        </div>
+        </HomeSearchBand>
       </div>
     ),
   }

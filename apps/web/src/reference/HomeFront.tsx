@@ -5,7 +5,7 @@
 // footer, then the tagline's slide. Every slide has a way forward. A
 // signed-in reader also gets the doors to their own Training Bay and Games.
 import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
 import { Button, capsLabel, Toggle } from '../components/index'
@@ -104,6 +104,15 @@ function heroSlides(): Slide[] {
     // The tagline every landing page says, last.
     { key: 'union', kind: 'quote', art: painting('play') },
   ]
+}
+
+/** The home's search band under the show: an ink ground of its own (chrome K1), its field the child. */
+export function HomeSearchBand({ children }: { children: ReactNode }) {
+  return (
+    <div className="su-front__search su-grain--paper" data-ground="ink">
+      {children}
+    </div>
+  )
 }
 
 /**

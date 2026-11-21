@@ -9,7 +9,8 @@ import type { RefEntity } from 'salvageunion-reference'
 import { getModel, getUniqueSources, getUniqueTechLevels } from 'salvageunion-reference'
 import { listingTraits } from '../../../lib/listingTraits'
 import { formatSort, parseSort } from '../../../lib/useListingFilters'
-import { compareCells, IndexLedger, indexLeadStat } from '../IndexLedger'
+import { IndexLedger } from '../IndexLedger'
+import { compareCells, indexLeadStat } from '../indexColumns.model'
 import { SchemaViewerIsland } from '../SchemaViewerIsland'
 
 /** A whole schema's listing renders past Bun's 5 s default under coverage. */

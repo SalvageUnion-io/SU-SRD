@@ -21,10 +21,10 @@ export const PAGE_JUMP_LIST_ATTRIBUTE = 'data-page-jump-list'
 /** The sheet's id: its button's `popovertarget`. */
 export const PAGE_JUMP_SHEET_ID = 'su-page-jump-sheet'
 /** A page's own contents (`nav`), whose links the sheet repeats. */
-export const PAGE_CONTENTS_ATTRIBUTE = 'data-page-contents'
+const PAGE_CONTENTS_ATTRIBUTE = 'data-page-contents'
 
 /** A page this many screens tall is long. */
-export const LONG_PAGE_SCREENS = 2.5
+const LONG_PAGE_SCREENS = 2.5
 /** The button shows once the page has scrolled this many pixels: its header is out of sight. */
 const SHOW_AFTER = 240
 

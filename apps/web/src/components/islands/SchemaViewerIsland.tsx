@@ -40,8 +40,9 @@ import {
   trackForTree,
 } from '../index'
 import { ReferenceAbilityTrack } from '../ReferenceAbilityTrack'
-import { IndexLedger, sortIndexItems } from './IndexLedger'
+import { IndexLedger } from './IndexLedger'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
+import { sortIndexItems } from './indexColumns.model'
 import type { ListingBand } from './ListingFrame'
 import { ListingFrame } from './ListingFrame'
 import type { RailActions } from './ListingRail'
