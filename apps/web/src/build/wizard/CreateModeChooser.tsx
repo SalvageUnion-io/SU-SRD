@@ -33,6 +33,8 @@ type CreateModeChooserProps = {
   onBuilt: (id: string) => void
   /** A mech built for a pilot: that pilot's name. */
   forPilot?: string | undefined
+  /** A pilot made for a mech: that mech's name. */
+  forMech?: string | undefined
   /** The Game the build was started for (`?game=<id>`): its chip on the band. */
   gameId?: string | undefined
   /** A Reference pattern page's Build With This: the book pattern to open on, as slugs. */
@@ -85,6 +87,7 @@ export function CreateModeChooser({
   onBuilt,
   gameId,
   forPilot,
+  forMech,
   book,
 }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
@@ -134,6 +137,11 @@ export function CreateModeChooser({
         {forPilot !== undefined && (
           <Text variant="note" style={pilotNote}>
             {buildWizardCopy('forPilot', { name: forPilot })}
+          </Text>
+        )}
+        {forMech !== undefined && (
+          <Text variant="note" style={pilotNote}>
+            {buildWizardCopy('forMech', { name: forMech })}
           </Text>
         )}
         <div className="su-wiz-chooser-doors">

@@ -68,7 +68,9 @@ export const buildWizardCopy = messages({
   yourPatterns: 'Your Patterns',
   nextReason: 'First: {reason}',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
+  forMech: 'For {name}: the Pilot is assigned to it once they are made.',
   mechNotGivenTo: 'The Mech could not be given to {name}.',
+  pilotNotGivenTo: 'The Pilot could not be assigned to {name}.',
   mechAssignedTo: 'Assigned {mech} to {pilot}.',
   mechNotPaired:
     'The Mech was made, but could not be assigned to your Pilot. Assign it from the Crew.',
@@ -109,6 +111,7 @@ export const buildWizardCopy = messages({
   sv: 'SV',
   salvageValueItsCost: 'Salvage Value, its cost in Scrap',
   whatItDoes: 'What it does',
+  choiceNotMade: 'Choice not made',
   abilityPointsToUse: 'Ability Points to use',
   coreTrees: 'Core Trees',
   anyCoreTree: 'Any Core Tree',

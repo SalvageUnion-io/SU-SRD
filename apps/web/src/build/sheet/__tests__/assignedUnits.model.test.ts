@@ -76,6 +76,11 @@ describe('assignedUnitsFor', () => {
     expect(onShelf.slots.find((s) => s.kind === 'mech')?.createHref).toBe(
       `/mechs/new?pilot=${pilot.id}`
     )
+    // The other way round: a mech's "No Pilot" place makes its pilot.
+    const onMech = build({ kind: 'mech', entity: { ...mech, gameId: null } }, {})
+    expect(onMech.slots.find((s) => s.kind === 'pilot')?.createHref).toBe(
+      `/pilots/new?mech=${mech.id}`
+    )
     // A crawler's Mech Bay names no pilot.
     const bay = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
     expect(bay.slots.find((s) => s.kind === 'mech')?.createHref).toBe('/mechs/new')
