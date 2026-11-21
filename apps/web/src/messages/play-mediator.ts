@@ -203,6 +203,8 @@ export const mediatorCopy = messages({
   referenceData: 'reference data',
   back: '◀ Back',
   close: 'Close {label}',
+  rulesOpen: 'Open the Rules',
+  rulesShut: 'Close the Rules',
   noEntries: 'No entries.',
   everyPlayerSeesThisOn: 'Every player sees this on their Feed',
   alert: 'Alert',

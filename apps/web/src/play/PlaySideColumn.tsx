@@ -90,11 +90,20 @@ export function PlayFeedSection({
   side,
   idPrefix,
   canWrite,
+  own = false,
 }: SideSectionProps & {
   canWrite: boolean
+  /** The Feed scrolls its own lines under its head (`.su-play-split__feed`), from `lg`. */
+  own?: boolean
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')}>
+    <SlabSection
+      as="h2"
+      id={`${idPrefix}-feed`}
+      title={playCopy('feed')}
+      className={own ? 'su-play-split__feed' : undefined}
+      bodyClassName={own ? 'su-play-split__lines' : undefined}
+    >
       <PlayFeed
         gameId={side.gameId}
         entries={side.entries}

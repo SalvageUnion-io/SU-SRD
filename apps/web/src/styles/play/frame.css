@@ -66,6 +66,14 @@
   padding: var(--space-8);
 }
 
+/* A split pane's first part lists as the pane does (from `lg` it scrolls over the Feed). */
+.su-play-split__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
 .su-play-pane[hidden],
 .su-play-frame__tabs[hidden] {
   display: none;
@@ -147,6 +155,33 @@
     gap: var(--space-16);
     overflow: visible;
     padding: 0;
+  }
+
+  /* A pane split in two (the Mediator's Table): what it lists scrolls over
+     the Feed, which keeps its head in view and scrolls its own lines. */
+  .su-play-pane:has(> .su-play-split__feed) {
+    overflow: hidden;
+  }
+
+  .su-play-split__main {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .su-play-split__feed {
+    display: flex;
+    flex: 1 1 14rem;
+    flex-direction: column;
+    min-height: 14rem;
+  }
+
+  .su-play-split__feed > .su-play-split__lines {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   /* A docked pane sits at its column's foot (the Mediator's Propose). */

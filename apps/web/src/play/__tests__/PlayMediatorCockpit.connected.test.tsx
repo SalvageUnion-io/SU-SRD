@@ -1026,7 +1026,13 @@ describe('every Mediator capability is reachable here', () => {
   test('the Rules are a pane beside the board, so the ⋯ has no row for them', async () => {
     await renderCockpit()
     const side = within(screen.getByRole('region', { name: 'Rolls, Rules and Propose' }))
+    // Shut until asked for, so Propose is on the first screen (r2 I2).
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
+    expect(side.getByRole('button', { name: 'Propose' })).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Open the Rules' }))
     expect(side.getByLabelText('Search the Reference')).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Close the Rules' }))
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
     await click(named('More'))
     expect(screen.queryByRole('menuitem', { name: 'Rules' })).toBeNull()
   })

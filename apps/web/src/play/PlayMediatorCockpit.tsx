@@ -131,16 +131,20 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
     // and the column under the seats is never empty.
     table: (
       <>
-        <PlayMediatorTable
-          mediator={mediator}
-          picked={picked}
-          onPick={(seat) => {
-            setPicked(seat.rowId)
-            setTab('propose')
-            setFocusTo(true)
-          }}
-        />
-        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+        {/* From `lg` the seats scroll over the Feed, which keeps its head and
+            scrolls its own lines (`frame.css`, r2 I2). */}
+        <div className="su-play-split__main">
+          <PlayMediatorTable
+            mediator={mediator}
+            picked={picked}
+            onPick={(seat) => {
+              setPicked(seat.rowId)
+              setTab('propose')
+              setFocusTo(true)
+            }}
+          />
+        </div>
+        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} own />
       </>
     ),
     opposition: running ? (
@@ -162,8 +166,9 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       />
     ),
     // The Reference beside the board (the player's `SrdExplorer`), so a rule is read
-    // without covering the seats; a phone opens it from the ⋯.
-    rules: <SrdExplorer />,
+    // without covering the seats; a phone opens it from the ⋯. Shut until
+    // asked for, so Propose is on the first screen (r2 I2).
+    rules: <SrdExplorer fold="closed" />,
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}
