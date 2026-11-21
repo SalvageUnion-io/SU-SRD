@@ -22,11 +22,13 @@ export type PlayRollInstrumentProps = {
   roll: number | null
   /** The roll's words: "Roll the Die:" (the default), "Push:", "Heat Check:". */
   stamp?: string
+  /** The bar's title, where it says more than the table's name (its book). */
+  title?: string
   /** Roll it; absent, the stamp only reads. */
   onRoll?: () => void
 }
 
-export function PlayRollInstrument({ table, roll, stamp, onRoll }: PlayRollInstrumentProps) {
+export function PlayRollInstrument({ table, roll, stamp, title, onRoll }: PlayRollInstrumentProps) {
   const data = SalvageUnionReference.RollTables.getByName(table)?.table as
     | RefObjectTable
     | undefined
@@ -39,7 +41,7 @@ export function PlayRollInstrument({ table, roll, stamp, onRoll }: PlayRollInstr
       stamp={stamp}
       onRoll={onRoll}
       // The bar names the table it rolls on, as the Tables column's does.
-      title={table}
+      title={title ?? table}
       table={{
         kind: 'bands',
         rows: rows.map((row) => ({ ...row, value: <TraitProse text={row.value} /> })),

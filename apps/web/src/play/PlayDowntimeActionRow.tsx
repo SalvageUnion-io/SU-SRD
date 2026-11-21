@@ -5,7 +5,9 @@
  * Manage Abilities, which "Spend TP" opens here, over Play
  * (`PilotAbilityTrainer`); crafting is done on the crawler's sheet, which its
  * row opens (`useOpenSheet`, play.md §4); a rumour is a roll, made here and put
- * on Play's roll log with its row (`rollFor`, `playRolls.model.ts`).
+ * on Play's roll log (`rollFor`, `playRolls.model.ts`): a plain d20 the
+ * Mediator answers, or, at a table playing an adventure that prints a rumour
+ * table, a roll on that table, named with its book (`rumourTableFor`).
  *
  * A bay that blocks one is named on its line (Pilot Bay, Trading Bay), never a
  * gate: the table rules it. A Mini one a line in the list (ruleset §1.3;
@@ -26,12 +28,10 @@ import { NeedChip } from './PlayActionRow'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import type { DowntimeActionId } from './playActions.model'
 import { playLineModel } from './playLine.model'
+import { rumourTableFor } from './tables.model'
 import type { SheetTarget } from './useOpenSheet'
 import { useOpenSheet } from './useOpenSheet'
 import type { PlayActions } from './usePlayActions'
-
-/** The table an app rumour is rolled on. */
-const RUMOUR_TABLE = 'Rumour'
 
 type PlayDowntimeActionRowProps = {
   id: DowntimeActionId
@@ -41,6 +41,8 @@ type PlayDowntimeActionRowProps = {
   rollFor: PlayActions['rollFor']
   /** Why it is not on hand ("needs Downtime"), or null when it is. */
   need: string | null
+  /** The adventure the Game is playing, whose rumour table the rumours roll on; none rolls a plain d20. */
+  adventure?: string | null
   canWrite: boolean
 }
 
@@ -61,6 +63,7 @@ export function PlayDowntimeActionRow({
   crawler,
   rollFor,
   need,
+  adventure = null,
   canWrite,
 }: PlayDowntimeActionRowProps) {
   const [rumour, setRumour] = useState<{ roll: number; text: string } | null>(null)
@@ -68,11 +71,19 @@ export function PlayDowntimeActionRow({
   const setSheet = useOpenSheet()
   const away = need !== null
 
+  const rumourTable = rumourTableFor(adventure)
+
   async function rollRumour() {
+    // No adventure's table: a plain d20, which the Mediator answers.
+    if (rumourTable === null) {
+      const die = await rollFor(name, name)
+      setRumour({ roll: die(20), text: playCopy('rumourPlainRoll') })
+      return
+    }
     let said: string | undefined
-    const die = await rollFor(RUMOUR_TABLE, name, { outcome: () => said })
+    const die = await rollFor(rumourTable.table, name, { outcome: () => said })
     const roll = die(20)
-    const table = SalvageUnionReference.RollTables.getByName(RUMOUR_TABLE)?.table
+    const table = SalvageUnionReference.RollTables.getByName(rumourTable.table)?.table
     const row = resultForTable(table, roll)
     const text = row.success ? row.result.value : ''
     said = text || undefined
@@ -103,9 +114,13 @@ export function PlayDowntimeActionRow({
     </Button>
   ) : id === 'craftTrade' ? (
     open(crawler ? { kind: 'crawler', id: crawler.id, name: crawler.name } : null, 'Open')
+  ) : id === 'rumours' && rumourTable === null ? (
+    <Button size="mini" disabled={!canWrite} onClick={() => void rollRumour()}>
+      {playCopy('rollD20')}
+    </Button>
   ) : undefined
 
-  const rumours = id === 'rumours' && !away
+  const rumours = id === 'rumours' && !away && (rumourTable !== null || rumour !== null)
   return (
     <li className="su-play-act" data-away={away || undefined} data-action-key={`downtime:${id}`}>
       <Entity
@@ -127,13 +142,17 @@ export function PlayDowntimeActionRow({
               body: {
                 text: false,
                 children: (
-                  // The Rumour table, open (R8): its stamp the roll, the rumour its marked row.
+                  // The adventure's Rumour table, open (R8) and named with its
+                  // book: its stamp the roll, the rumour its marked row.
                   <div className="su-play-resolve">
-                    <PlayRollInstrument
-                      table={RUMOUR_TABLE}
-                      roll={rumour?.roll ?? null}
-                      onRoll={canWrite ? () => void rollRumour() : undefined}
-                    />
+                    {rumourTable && (
+                      <PlayRollInstrument
+                        table={rumourTable.table}
+                        title={playCopy('tableOfBook', rumourTable)}
+                        roll={rumour?.roll ?? null}
+                        onRoll={canWrite ? () => void rollRumour() : undefined}
+                      />
+                    )}
                     {rumour ? (
                       <p className="su-play-resolve__note" aria-live="polite">
                         {rumour.roll} · {rumour.text}

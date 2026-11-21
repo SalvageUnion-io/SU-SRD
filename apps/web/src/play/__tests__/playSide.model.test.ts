@@ -20,7 +20,7 @@ import {
   reportingRoll,
   setPrivateRolls,
 } from '../playRolls.model'
-import { findTables, pinnedTables } from '../tables.model'
+import { findTables, pinnedTables, rumourTableFor } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
 import { CREW_HERE, crewAt } from './crewFixture'
 
@@ -366,7 +366,8 @@ describe('the Tables (play.md §8)', () => {
       'Reactor Overload',
       'Critical Injury',
     ])
-    expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
+    // An adventure's rumour table is never pinned for every table (False Flag p.8).
+    expect(pinnedTables(true)).toEqual(['Core Mechanic', 'Critical Injury'])
   })
 
   test('boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables', () => {
@@ -376,7 +377,13 @@ describe('the Tables (play.md §8)', () => {
       'Bio-Chassis Overload Table',
       'Critical Injury',
     ])
-    expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury', 'Rumour'])
+    expect(pinnedTables(true, 'bio')).toEqual(['Core Mechanic', 'Critical Injury'])
+  })
+
+  test('a rumour table is its adventure’s: offered only at a table playing that book', () => {
+    expect(rumourTableFor(null)).toBeNull()
+    expect(rumourTableFor('Salvage Union Core Book')).toBeNull()
+    expect(rumourTableFor('False Flag')).toEqual({ table: 'Rumour', book: 'False Flag' })
   })
 
   test('Find: names holding the query, those starting with it first, at most six', () => {
