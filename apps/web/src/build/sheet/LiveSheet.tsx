@@ -238,8 +238,7 @@ const STRIP = {
 const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
 
 // At rest it is out of the flow as well as invisible: an invisible strip
-// still took the bar's first row on a phone and pushed Share and ⋯ onto a
-// row of their own.
+// still took the bar's first row on a phone, pushing Share and ⋯ down.
 const STRIP_HIDDEN = {
   ...STRIP,
   opacity: 0,

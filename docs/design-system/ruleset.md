@@ -1,6 +1,6 @@
 # The Primitives Ruleset — Salvage Union Design System
 
-Canon for every primitive: a component contradicting a rule is wrong; [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks it. Gates: [hard-rules.md](hard-rules.md).
+Canon for every primitive: a component breaking a rule is wrong; [the origin](https://claude.ai/artifact/5r8RNGXQc41ed6io4oYHXm) outranks it. Gates: [hard-rules.md](hard-rules.md).
 
 ## The source: the Workshop Manual
 
