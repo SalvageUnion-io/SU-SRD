@@ -21,8 +21,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import { pinFor } from 'salvageunion-reference/rules'
-import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
+import type { OpenColumn, OpenRow } from '../../components/index'
 import {
   AbilityTrack,
   Button,
@@ -39,7 +38,6 @@ import {
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
-import { changeUndoToast } from '../../lib/changeUndoToast'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
 import { cycleCondition } from '../../lib/rules/mechItems'
@@ -58,16 +56,13 @@ import type { AbilityEntry, AbilityTreeGroup, PilotSheetModel } from '../sheet/p
 import { inventoryEmpty } from '../sheet/pilotSheet.model'
 import type { PilotSheetActions } from '../sheet/pilotSheetActions.model'
 import { ConditionStep, EquipmentDetails, SheetRemoveButton, UsesStep } from '../sheet/rowControls'
-import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
+import { pilotVitalRows } from './pilotVitalRows.model'
 import { RowRules } from './RowRules'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
-
-/** Training Points, as its row and its Undo line say it. */
-const TP = 'TP'
 
 const ABILITY_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
@@ -85,108 +80,6 @@ const GEAR_COLUMNS: readonly OpenColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel'), phone: true },
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
-
-/**
- * A pilot's numbers as rows (HP, AP, then Training Points, a counter), named
- * from the one vitals map (R11) and written with one Undo toast a change
- * (K5); in Edit each max is a field, with where it comes from (ruleset §2.1).
- */
-// biome-ignore lint/style/useComponentExportOnlyModules: the rows the strip draws, beside it
-export function pilotVitalRows({
-  pilot,
-  model,
-  actions,
-  writes,
-  edit = false,
-}: {
-  pilot: Pilot
-  model: PilotSheetModel
-  actions: PilotSheetActions
-  writes: boolean
-  edit?: boolean
-}): PhoneVital[] {
-  const change = (
-    field: 'currentHP' | 'currentAP' | 'trainingPoints',
-    label: string,
-    from: number
-  ) =>
-    writes
-      ? (next: number) => {
-          actions.patchPilot({ [field]: next })
-          changeUndo(pilot, field, label, from, next, actions)
-        }
-      : undefined
-  const { maxHP, maxAP, hp, ap, tp, hpParts, apParts } = model
-  const onHp = change('currentHP', SHEET_VITALS.hp.short, hp)
-  const onAp = change('currentAP', SHEET_VITALS.ap.short, ap)
-  const onTp = change('trainingPoints', TP, tp)
-  return [
-    {
-      key: 'hp',
-      label: SHEET_VITALS.hp.short,
-      name: SHEET_VITALS.hp.label,
-      value: hp,
-      max: maxHP,
-      ...(onHp ? { onChange: onHp } : {}),
-      ...(edit
-        ? {
-            maxEdit: {
-              onMaxChange: (next: number) =>
-                actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) }),
-              breakdown: hpParts,
-              provenance: model.hpLines,
-              onRevertOverride: () => actions.overridePilotMax({ maxHpOverride: undefined }),
-            },
-          }
-        : {}),
-    },
-    {
-      key: 'ap',
-      label: SHEET_VITALS.ap.short,
-      name: SHEET_VITALS.ap.label,
-      value: ap,
-      max: maxAP,
-      ...(onAp ? { onChange: onAp } : {}),
-      ...(edit
-        ? {
-            maxEdit: {
-              onMaxChange: (next: number) =>
-                actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) }),
-              breakdown: apParts,
-              provenance: model.apLines,
-              onRevertOverride: () => actions.overridePilotMax({ maxApOverride: undefined }),
-            },
-          }
-        : {}),
-    },
-    {
-      key: 'tp',
-      label: TP,
-      name: buildSheetCopy('trainingPoints'),
-      note: buildSheetCopy('trainingPoints'),
-      value: tp,
-      ...(onTp ? { onChange: onTp } : {}),
-    },
-  ]
-}
-
-/** One change of a number, one line with Undo (K5). */
-function changeUndo(
-  pilot: Pilot,
-  field: 'currentHP' | 'currentAP' | 'trainingPoints',
-  label: string,
-  from: number,
-  to: number,
-  actions: PilotSheetActions
-) {
-  changeUndoToast({
-    id: `pilot:${pilot.id}:${field}`,
-    label,
-    from,
-    to,
-    undo: (value) => actions.patchPilot({ [field]: value }),
-  })
-}
 
 /**
  * One tree on its track under a slab naming it, as the class page draws it

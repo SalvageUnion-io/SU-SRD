@@ -1,5 +1,5 @@
 /**
- * CargoLotItem — one lot in The Hold (`StorageManifest`), on either side of the
+ * CargoLotItem — one lot in a hold, on either side of the
  * mech ⇄ crawler boundary, with the cap-checked move affordance both sides
  * share.
  */

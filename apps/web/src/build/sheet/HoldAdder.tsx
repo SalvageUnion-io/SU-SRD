@@ -1,5 +1,5 @@
 /**
- * HoldAdder — a Hold container's own intake form (`StorageManifest`).
+ * HoldAdder — a hold's own intake form.
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'

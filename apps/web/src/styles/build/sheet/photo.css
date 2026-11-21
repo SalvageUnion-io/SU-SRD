@@ -74,22 +74,3 @@
     flex: 0 0 11rem;
   }
 }
-
-/*
- * A phone's About tab (`.su-sheet-phone-wrap`, the
- * crawler's): the photo floats and the Description wraps round it, so no
- * empty column stands under the picture.
- */
-.su-sheet-phone-wrap .su-photo-beside-row {
-  display: block;
-}
-
-.su-sheet-phone-wrap .su-photo-beside-slot {
-  float: left;
-  margin: 0 var(--space-12) var(--space-4) 0;
-  width: 8rem;
-}
-
-.su-sheet-phone-wrap .su-photo-beside-below {
-  clear: both;
-}

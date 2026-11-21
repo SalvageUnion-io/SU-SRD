@@ -341,33 +341,6 @@
   padding-inline-start: var(--space-8);
 }
 
-/* Revision 4, note 1: an ability's level is a small mark, not a column. */
-.su-trees .su-open-level {
-  font-size: var(--text-badge);
-  height: var(--size-mini);
-  min-width: var(--size-mini);
-  width: var(--size-mini);
-}
-
-.su-trees .su-open__toggle {
-  margin-inline: calc(-1 * var(--space-6)) 0;
-  width: var(--space-16);
-}
-
-.su-trees .su-open tbody > .su-open__row > th {
-  padding-inline-start: var(--space-8);
-}
-
-/* The line under a name starts under the level mark, not under the name:
-   the only column left of the text is the opener's. */
-.su-trees .su-open .su-open__row[data-opens] + .su-open__under > td {
-  padding-inline-start: var(--space-24);
-}
-
-.su-trees .su-open .su-open__detail-body {
-  padding-inline-start: var(--space-8);
-}
-
 /* A phone: the bays list keeps to the page (no sideways scroll, R44). */
 @media not (width >= 40rem) {
   .su-open.su-open--manifest .su-open__row > td[data-kind='text'],

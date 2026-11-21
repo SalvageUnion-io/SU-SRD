@@ -161,7 +161,7 @@ type RepairControlProps = Pick<MechItemMiniProps, 'scrapPool' | 'scrapPoolLocked
  * modal confirm offering an optional crawler scrap-pool deduction; the
  * no-deduction path is always there (advisory, never a silent free flip).
  */
-export function RepairControl({
+function RepairControl({
   entity,
   scrapPool,
   scrapPoolLocked = null,
