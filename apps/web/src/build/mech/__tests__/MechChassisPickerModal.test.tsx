@@ -15,7 +15,7 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { openInSearcher, pickInSearcher } from '../../../components/__tests__/searcherPick'
 import { MechChassisPickerModal } from '../MechChassisPickerModal'
@@ -28,12 +28,16 @@ function twoChassis(): [{ name: string }, { name: string }] {
   return [first, second]
 }
 
-function renderPicker(onConfirm: (ref: string) => void = () => {}) {
+function renderPicker(
+  onConfirm: (ref: string) => void = () => {},
+  loadout: { systems: string[]; modules: string[] } = { systems: [], modules: [] }
+) {
   const [current, other] = twoChassis()
   render(
     <MechChassisPickerModal
       open
       currentChassisRef={nameToSlug(current.name)}
+      loadout={loadout}
       onOpenChange={() => {}}
       onConfirm={onConfirm}
     />
@@ -92,25 +96,29 @@ describe('MechChassisPickerModal', () => {
   )
 
   it(
-    'applies only a different chassis, by SLUG, and only after the danger dialog',
+    'applies only a different chassis, by SLUG, in one press, and says first what will not fit',
     async () => {
       const seen: string[] = []
-      const { other } = renderPicker((ref) => seen.push(ref))
+      // More one-slot systems than any chassis holds: some will not fit.
+      const small = SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1)
+      if (!small) throw new Error('no one-slot system')
+      const { other } = renderPicker((ref) => seen.push(ref), {
+        systems: new Array<string>(60).fill(nameToSlug(small.name)),
+        modules: [],
+      })
       const apply = () => screen.getByRole('button', { name: /apply chassis/i })
 
       // Inert until a DIFFERENT chassis is chosen.
       expect(apply().hasAttribute('disabled')).toBe(true)
+      expect(screen.getByText('Your loadout stays where it fits the new chassis.')).toBeDefined()
       await pickInSearcher(other.name)
       expect(apply().hasAttribute('disabled')).toBe(false)
+      expect(
+        screen.getByText(new RegExp(`Will not fit, and comes off: ${small.name} ×\\d+`))
+      ).toBeDefined()
 
+      // Apply is the one press: no second dialog (the sheet offers Undo).
       fireEvent.click(apply())
-      // Apply opens the confirm; it must not have written anything yet.
-      expect(seen).toEqual([])
-
-      // ConfirmDialog settles its pending state after the action resolves.
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /^change chassis$/i }))
-      })
       expect(seen).toEqual([nameToSlug(other.name)])
     },
     RENDER_TIMEOUT_MS

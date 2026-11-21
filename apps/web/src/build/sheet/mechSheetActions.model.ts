@@ -29,12 +29,14 @@ import { drawFromPool } from '../../lib/rules/crawlerEconomy'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { mechRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import { ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
+import { undoToast } from './undoToast.model'
 
 export type ItemKind = 'system' | 'module'
 
@@ -165,9 +167,16 @@ export function useMechSheetActions({
    */
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
+    // A removal lands at once and offers Undo: the loadout as it was, choices and all.
+    const offerUndo = (name: string | undefined, before: Partial<Mech>) =>
+      undoToast(buildSheetCopy('removedName', { name: name ?? buildSheetCopy('item') }), () =>
+        write({ ...before, ...(fresh.itemChoices ? { itemChoices: fresh.itemChoices } : {}) })
+      )
     if (kind === 'module') {
+      const gone = fresh.modules[index]
       const modules = fresh.modules.filter((_, i) => i !== index)
-      write({ modules, ...choicesLeft(fresh, fresh.modules[index], modules) })
+      write({ modules, ...choicesLeft(fresh, gone, modules) })
+      offerUndo((gone && resolveModule(gone)?.name) || gone, { modules: fresh.modules })
       return
     }
     const removed = fresh.systems[index]
@@ -175,6 +184,7 @@ export function useMechSheetActions({
     const patch = { systems, ...choicesLeft(fresh, removed, systems) }
     if (softWarnings.preview(patch).length === 0) {
       runWrite(() => softWarnings.saveAnyway())
+      offerUndo((removed && resolveSystem(removed)?.name) || removed, { systems: fresh.systems })
       return
     }
     setWarningSubtitle(`Remove ${(removed && resolveSystem(removed)?.name) || removed || 'system'}`)

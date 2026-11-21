@@ -27,6 +27,11 @@ import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
 import { SaveSignInDialog } from '../../wizard/SaveSignInDialog'
 
+const STACK = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: tokens.space[8],
+} satisfies CSSProperties
 const ROW = {
   alignItems: 'flex-end',
   display: 'flex',
@@ -90,7 +95,7 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   }
 
   return (
-    <section aria-label={mechCopy('bookPatterns')}>
+    <section aria-label={mechCopy('bookPatterns')} style={STACK}>
       <div style={ROW}>
         <div style={PICK}>
           <Field label={mechCopy('bookChassis')}>

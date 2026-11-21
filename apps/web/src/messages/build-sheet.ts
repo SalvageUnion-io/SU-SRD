@@ -163,6 +163,8 @@ export const buildSheetCopy = messages({
   cancelChassisAbility: 'Cancel',
   mechIdentity: 'Mech identity',
   mechName: 'Mech name',
+  removedName: 'Removed {name}.',
+  item: 'item',
   appearance: 'Appearance',
   noAppearanceRecorded: 'No appearance recorded.',
   noDescriptionWrittenYet: 'No description written yet.',

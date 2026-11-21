@@ -41,6 +41,7 @@ import { resolveEquipment } from '../../lib/rules/pilotInventory'
 import { pilotRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { abilityTrainingCost } from '../../lib/rules/training'
 import { runWrite } from '../../lib/runWrite'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
@@ -48,6 +49,7 @@ import { changedFields, freshEntity } from './freshEntity.model'
 import type { UsedTraitKey } from './PilotIdentity'
 import { ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
+import { undoToast } from './undoToast.model'
 
 type PilotSheetActionsOptions = {
   pilot: Pilot
@@ -135,15 +137,16 @@ export function usePilotSheetActions({
   }
 
   /**
-   * Preview a build patch: save immediately when clean, otherwise raise the
-   * confirm-and-proceed dialog. `label` describes the pending edit.
+   * Preview a build patch: save immediately when clean (true), otherwise raise
+   * the confirm-and-proceed dialog. `label` describes the pending edit.
    */
-  function saveBuildEdit(fields: Partial<Pilot>, label: string) {
+  function saveBuildEdit(fields: Partial<Pilot>, label: string): boolean {
     if (softWarnings.preview(fields).length === 0) {
       runWrite(() => softWarnings.saveAnyway())
-      return
+      return true
     }
     setWarningSubtitle(label)
+    return false
   }
 
   /**
@@ -199,7 +202,7 @@ export function usePilotSheetActions({
     const abilities = removing
       ? current.abilities.filter((a) => a !== slug)
       : [...current.abilities, slug]
-    saveBuildEdit(
+    const saved = saveBuildEdit(
       {
         abilities,
         // Abilities are the second grant-lifecycle edge, because they carry the
@@ -213,6 +216,12 @@ export function usePilotSheetActions({
       },
       `${removing ? 'Remove' : 'Add'} ${name}`
     )
+    // A removal that landed offers Undo: the abilities and partners as they were.
+    if (saved && removing) {
+      undoToast(buildSheetCopy('removedName', { name }), () =>
+        write({ abilities: current.abilities, partners: current.partners })
+      )
+    }
   }
 
   /**
@@ -226,7 +235,8 @@ export function usePilotSheetActions({
    */
   function toggleEquipment(slug: string) {
     const current = freshPilot()
-    const equipment = current.equipment.includes(slug)
+    const removing = current.equipment.includes(slug)
+    const equipment = removing
       ? current.equipment.filter((e) => e !== slug)
       : [...current.equipment, slug]
     write({
@@ -240,6 +250,12 @@ export function usePilotSheetActions({
           }
         : {}),
     })
+    if (removing) {
+      const name = SalvageUnionReference.Equipment.getBySlug(slug)?.name ?? slug
+      undoToast(buildSheetCopy('removedName', { name }), () =>
+        write({ equipment: current.equipment, partners: current.partners })
+      )
+    }
   }
 
   async function handleEquipmentConditionChange(slug: string, next: ItemCondition) {
@@ -280,7 +296,14 @@ export function usePilotSheetActions({
   }
 
   function handleGenericInventoryChange(next: GenericInventoryEntry[]) {
+    const before = freshPilot().genericInventory ?? []
     write({ genericInventory: next })
+    if (next.length < before.length) {
+      const gone = before.find((entry) => !next.some((kept) => kept.id === entry.id))
+      undoToast(buildSheetCopy('removedName', { name: gone?.name ?? buildSheetCopy('item') }), () =>
+        write({ genericInventory: before })
+      )
+    }
   }
 
   return {

@@ -1,20 +1,25 @@
 /**
  * A mech's chassis controls in Edit, in its Chassis Ability group's head (C8):
  *
- *   - `ChangeChassis`: the chassis swap. Destructive (it clears the installed
- *     loadout), so its picker keeps its own confirm step.
+ *   - `ChangeChassis`: the chassis swap. The loadout stays where it fits the
+ *     new chassis; what does not is named in the picker and in the toast that
+ *     follows, whose Undo puts the old chassis and loadout back.
  *   - `ChassisModderControl`: the seated pilot's Chassis Modder pick, the one
  *     Chassis Ability it adds (or changes, or removes).
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
 import { useState } from 'react'
+import { resolveChassisRef } from 'salvageunion-reference/rules'
 import { Button } from '../../components/index'
+import { droppedNames, loadoutOnChassis } from '../../lib/rules/chassisSwap'
+import { mechCopy } from '../../messages/build-mech'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { MechChassisPickerModal } from '../mech/MechChassisPickerModal'
 import { ChassisModderPickerModal } from './ChassisModderPickerModal'
 import type { MechSheetModel } from './mechSheet.model'
 import type { SheetPatch } from './sheetViewProps.model'
+import { undoToast } from './undoToast.model'
 
 export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }) {
   const [open, setOpen] = useState(false)
@@ -27,7 +32,24 @@ export function ChangeChassis({ mech, patch }: { mech: Mech; patch: SheetPatch }
         open={open}
         currentChassisRef={mech.chassisRef}
         onOpenChange={setOpen}
-        onConfirm={(chassisRef) => patch({ chassisRef, systems: [], modules: [] })}
+        loadout={mech}
+        onConfirm={(chassisRef) => {
+          const before = {
+            chassisRef: mech.chassisRef,
+            systems: mech.systems,
+            modules: mech.modules,
+          }
+          const swap = loadoutOnChassis(chassisRef, mech)
+          patch({ chassisRef, systems: swap.systems, modules: swap.modules })
+          const name = resolveChassisRef(chassisRef)?.name ?? chassisRef
+          const left = droppedNames(swap.dropped)
+          undoToast(
+            left.length === 0
+              ? mechCopy('chassisChanged', { name })
+              : mechCopy('chassisChangedLeftOff', { name, names: left.join(', ') }),
+            () => patch(before)
+          )
+        }}
       />
     </>
   )
