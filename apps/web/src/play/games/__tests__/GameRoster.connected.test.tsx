@@ -636,18 +636,108 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     expect(screen.queryByText('Move in…')).toBeNull()
   })
 
+  /** Leave the shared store as the test found it, the page still mounted. */
+  const forgetHeld = async (...held: ['pilot' | 'mech', string][]) => {
+    cleanup()
+    for (const [kind, id] of held) await useUnits.getState().forget(kind, id)
+  }
+
+  /** Nothing of the player's held here: what the files before this left is forgotten. */
+  const emptyBay = async () => {
+    const { pilots, mechs } = useUnits.getState()
+    for (const p of pilots) await useUnits.getState().forget('pilot', p.id)
+    for (const m of mechs) await useUnits.getState().forget('mech', m.id)
+  }
+
+  const openBring = async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Add from Training Bay' }))
+    return await screen.findByRole('dialog', { name: 'Bring into this Game' })
+  }
+
   test('Add from Training Bay brings one of your own in: the same record moves', async () => {
     setSyncStatus('live')
     await useUnits.getState().adopt('mech', mechFixture({ id: 'm-bay', name: 'Rust Bucket' }))
     await renderAs(ME, listing())
-    fireEvent.click(screen.getByRole('button', { name: 'Add from Training Bay' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Bring into this Game' })
-    fireEvent.click(within(dialog).getByRole('radio', { name: 'Rust Bucket' }))
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Rust Bucket' }))
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
     })
     await settle(() => useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId === 'g1')
     expect(useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId).toBe('g1')
+    await forgetHeld(['mech', 'm-bay'])
+  })
+
+  test('several at once, and a pilot brings their mech, still assigned (LG-08)', async () => {
+    setSyncStatus('live')
+    const store = useUnits.getState()
+    await store.adopt('pilot', pilotFixture({ id: 'p-bay', name: 'Razor' }))
+    await store.adopt('mech', mechFixture({ id: 'm-pair', name: 'Thresher' }))
+    await store.adopt('mech', mechFixture({ id: 'm-spare', name: 'Spare' }))
+    await store.create('softLink', {
+      from: { type: 'mech', id: 'm-pair' },
+      to: { type: 'pilot', id: 'p-bay' },
+      type: 'mech-to-pilot',
+    })
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    // The pair is one line: the mech rides under its pilot, not on its own.
+    expect(within(dialog).queryByRole('checkbox', { name: 'Thresher' })).toBeNull()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Spare' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const inGame = (kind: 'pilots' | 'mechs', id: string) =>
+      useUnits.getState()[kind].find((u) => u.id === id)?.gameId === 'g1'
+    const paired = () =>
+      useUnits
+        .getState()
+        .softLinks.some(
+          (l) => l.type === 'mech-to-pilot' && l.from.id === 'm-pair' && l.to.id === 'p-bay'
+        )
+    await settle(
+      () =>
+        inGame('pilots', 'p-bay') &&
+        inGame('mechs', 'm-pair') &&
+        inGame('mechs', 'm-spare') &&
+        paired()
+    )
+    expect(inGame('pilots', 'p-bay')).toBe(true)
+    expect(inGame('mechs', 'm-pair')).toBe(true)
+    expect(inGame('mechs', 'm-spare')).toBe(true)
+    // Nothing asked: the pair came through whole.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(paired()).toBe(true)
+    await forgetHeld(['mech', 'm-pair'], ['mech', 'm-spare'], ['pilot', 'p-bay'])
+  })
+
+  test('with nothing built it says so, and offers the ways to have one (LG-10)', async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    expect(within(dialog).getByText(/You have no Pilots or Mechs yet/)).toBeTruthy()
+    expect(within(dialog).queryByText(/is already in a Game/)).toBeNull()
+    const hrefOf = (name: string) => within(dialog).getByRole('link', { name }).getAttribute('href')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
+    expect(hrefOf('Starter Set')).toBe('/starter')
+    expect(within(dialog).getByRole('button', { name: 'Move in' }).hasAttribute('disabled')).toBe(
+      true
+    )
+  })
+
+  test('with everything in a Game already, it says that instead', async () => {
+    setSyncStatus('live')
+    await useUnits
+      .getState()
+      .adopt('mech', mechFixture({ id: 'm-away', name: 'Away', gameId: 'g2' }))
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    expect(within(dialog).getByText(/is already in a Game/)).toBeTruthy()
+    expect(within(dialog).getByRole('link', { name: 'Starter Set' })).toBeTruthy()
+    await forgetHeld(['mech', 'm-away'])
   })
 })
 
