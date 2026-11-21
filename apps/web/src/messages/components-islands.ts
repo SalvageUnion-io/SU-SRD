@@ -4,6 +4,7 @@ import { messages } from './define'
 
 export const islandsCopy = messages({
   didYouMean: 'Did you mean',
+  allOfListing: 'All {name}: the full list',
   nothingCloseTo: 'Nothing close to “{query}”',
   searchTheReferenceFor: 'Search the Reference for “{query}”',
   somethingWentWrong: 'Something went wrong',

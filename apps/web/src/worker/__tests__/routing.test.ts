@@ -99,6 +99,25 @@ describe('an earlier address of a site page 301s to where it lives now', () => {
   }
 })
 
+describe('an address is read whatever its case', () => {
+  it('sends a page asked for in capitals to the page as it is spelled', async () => {
+    const env = envWith({ '/404': PAGE, '/classes/hacker/': '<!doctype html>Hacker' })
+    const res = await worker.fetch(req('/classes/Hacker/?from=x'), env)
+
+    expect(res.status).toBe(301)
+    expect(res.headers.get('location')).toBe('/classes/hacker/?from=x')
+  })
+
+  it('a capitalised address with no page under it is still the 404 page', async () => {
+    const env = envWith()
+    const res = await worker.fetch(req('/classes/Nope/'), env)
+
+    expect(res.status).toBe(404)
+    expect(await res.text()).toBe(PAGE)
+    expect(env.ASSETS.asked).toEqual(['/classes/nope/', '/404'])
+  })
+})
+
 describe('any other miss is the 404 page, uncacheable', () => {
   for (const path of [
     '/nope-does-not-exist/',

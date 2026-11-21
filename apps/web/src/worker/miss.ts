@@ -13,6 +13,8 @@
  *     or one that is gone (the search page, an action's page, a touch icon by
  *     its conventional name) → a **301** to where it lives now
  *     (`../lib/redirects.ts`).
+ *   - `case-301`: a page asked for in other letter case, where the lower-case
+ *     address has a page → a **301** to it.
  *   - `not-found`: anything else → `404.html`, read through the asset
  *     binding, with a 404.
  *
@@ -99,7 +101,21 @@ export async function serveMiss(request: Request, env: { ASSETS: Assets }): Prom
     })
   }
 
-  // 4. Every other miss: the site's own 404 page.
+  // 4. A page asked for in other letter case (`/classes/Hacker/`): the page
+  // as it is spelled, when there is one. Every address the site emits is
+  // lower case; the app's own paths carry ids and are never rewritten.
+  const lower = url.pathname.toLowerCase()
+  if (lower !== url.pathname && !url.pathname.startsWith(appPath('/'))) {
+    const spelled = await env.ASSETS.fetch(new Request(new URL(lower, url), { method: 'GET' }))
+    if (spelled.ok) {
+      return new Response(null, {
+        status: 301,
+        headers: { location: `${lower}${url.search}`, 'cache-control': 'public, max-age=86400' },
+      })
+    }
+  }
+
+  // 5. Every other miss: the site's own 404 page.
   const page = await env.ASSETS.fetch(new Request(new URL(NOT_FOUND_PAGE, url), { method: 'GET' }))
   if (!page.ok) return notFound('Not found', { 'content-type': 'text/plain;charset=UTF-8' })
   return notFound(page.body, page.headers)
