@@ -472,7 +472,7 @@ export function MechWizard({
             'pattern',
             <MechFlavorStep
               field="patternName"
-              label={mechCopy('namePattern')}
+              label={mechCopy('mechName')}
               value={form.name}
               onChange={setMechName}
               placeholder={mechCopy('eGBullseyePatternMule')}

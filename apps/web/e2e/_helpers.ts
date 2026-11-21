@@ -469,13 +469,12 @@ export async function buildPilot(
  * Build a mech. Steps: Gain Scrap → Chassis → Statistics → Systems → Modules →
  * Quirk → Appearance → Pattern Name → Review.
  *
- * The name field is labelled "Name / Pattern" — a mech's name IS its pattern —
- * so both spellings are offered; whichever is absent is a no-op.
+ * The name field is "Mech name" (the book's pattern name for it, p.94).
  */
 export async function buildMech(page: Page, name: string): Promise<void> {
   // Mule chassis — the one downstream specs assert on. See buildPilot.
   await runWizard(page, 'mechs', {
-    identity: { 'name / pattern': name, 'mech name': name },
+    identity: { 'mech name': name },
     create: /Create Mech/i,
     prefer: ['Mule'],
   })

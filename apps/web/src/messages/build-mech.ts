@@ -51,7 +51,7 @@ export const mechCopy = messages({
   eGRattletrapSoundsLike: "e.g. Rattletrap — sounds like it's dying even when it's fine.",
   appearance: 'Appearance',
   howItLooksPlatingPaint: 'How it looks — plating, paint, silhouette.',
-  namePattern: 'Name / Pattern',
+  mechName: 'Mech name',
   eGBullseyePatternMule: 'e.g. Bullseye Pattern Mule',
   sharedByYourCrew: 'Shared by your crew',
   madeBySharedIn: '{name}, made by {madeBy}, shared in {gameName}',

@@ -21,7 +21,7 @@ const WIDTHS = [
 
 const WALKS: Record<WizardKind, { identity: Record<string, string>; prefer: string[] }> = {
   pilots: { identity: { name: 'Reach', callsign: 'Reach' }, prefer: ['Engineer'] },
-  mechs: { identity: { 'name / pattern': 'Reach' }, prefer: ['Mule'] },
+  mechs: { identity: { 'mech name': 'Reach' }, prefer: ['Mule'] },
   crawlers: { identity: { 'crawler name': 'Reach Wagon' }, prefer: ['Battle'] },
 }
 
