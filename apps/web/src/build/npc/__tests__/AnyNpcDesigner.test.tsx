@@ -95,7 +95,7 @@ describe('the template step', () => {
     await renderDesigner()
     await pick('Start from Veteran')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '9')
     await click('Next: Actions & traits')
     expect(
       screen
@@ -132,7 +132,7 @@ describe('starting over', () => {
     await pick('Start from Veteran')
     await click('Next: Stats')
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '12' } })
     })
     await click('Back')
   }
@@ -143,7 +143,7 @@ describe('starting over', () => {
     expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
     await click('Clear')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '')
   })
 
   test('declining the Start blank question keeps the edited stats', async () => {
@@ -151,7 +151,7 @@ describe('starting over', () => {
     await pick('Start blank')
     await click('Cancel')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '12')
   })
 
   test('Cancel on the first step asks before discarding a draft', async () => {
@@ -172,7 +172,7 @@ describe('any Reference denizen is a template (MD-09)', () => {
     await pick('Start from Scylla')
     expect(screen.getAllByText('From Scylla').length).toBeGreaterThan(0)
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).not.toHaveProperty('value', '')
+    expect(screen.getByLabelText(/Hit Points/)).not.toHaveProperty('value', '')
   })
 
   test('a search reads every kind at once', async () => {

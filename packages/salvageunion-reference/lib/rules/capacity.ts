@@ -178,7 +178,7 @@ export function computeMechCapacity(mech: MechInput): MechCapacityResult {
   if (systemSlotsUsed > systemSlotsMax) {
     violations.push({
       kind: 'system-over-slots',
-      message: `System slots exceeded: ${systemSlotsUsed} used, ${systemSlotsMax} available.`,
+      message: `System Slots exceeded: ${systemSlotsUsed} used, ${systemSlotsMax} available.`,
       details: { used: systemSlotsUsed, max: systemSlotsMax },
     })
   }

@@ -78,7 +78,7 @@ describe('each state', () => {
 
   test("another player's mech is disabled", () => {
     const o = option(menuFor([row('thresher', ME), row('hauler', VEX_OWNER)]), 'hauler')
-    expect(o).toMatchObject({ state: 'others', note: 'Another player’s mech' })
+    expect(o).toMatchObject({ state: 'others', note: 'Another player’s Mech' })
     expect(boardable(o)).toBe(false)
   })
 

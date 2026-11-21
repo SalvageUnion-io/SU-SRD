@@ -102,7 +102,7 @@ export function seatRows(
         key: member.userId,
         role,
         who,
-        unit: member.mediator ? 'Runs the table' : 'No pilot yet',
+        unit: member.mediator ? 'Runs the table' : 'No Pilot yet',
         pilot: null,
         hp: null,
       })

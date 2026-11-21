@@ -84,7 +84,7 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
     {
       value: 'private',
       label: LABEL.private,
-      description: 'Kept in your Training Bay. Build mechs from it any time.',
+      description: 'Kept in your Training Bay. Build Mechs from it any time.',
       disabled: false,
     },
     {

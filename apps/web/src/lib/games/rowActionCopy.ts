@@ -62,10 +62,10 @@ const UNNAMED_GAME = 'this Game'
  */
 function clearedAssignments(kind: RowActionKind, from: string): string {
   if (kind === 'pilot') {
-    return `Their crawler assignment in ${from} is cleared, and so is the mech they fly there, if any.`
+    return `Their crawler assignment in ${from} is cleared, and so is the Mech they fly there, if any.`
   }
   if (kind === 'mech') {
-    return `Its crawler assignment in ${from} is cleared, and so is the pilot flying it there, if any.`
+    return `Its crawler assignment in ${from} is cleared, and so is the Pilot flying it there, if any.`
   }
   if (kind === 'npc') {
     return `Their crew slot on a crawler in ${from} is cleared, and that slot goes back to the book's crew line.`

@@ -39,7 +39,7 @@ describe('buildLinkFor', () => {
   test('a creation guide opens the builder for what it creates; another guide gets none', () => {
     const guides = SalvageUnionReference.Guides.all()
     const mech = must(guides.find((g) => g.guideType === 'mech-creation'))
-    expect(buildLinkFor('guides', mech)).toMatchObject({ label: 'Build a mech' })
+    expect(buildLinkFor('guides', mech)).toMatchObject({ label: 'Build a Mech' })
     expect(buildLinkFor('guides', mech)?.href).toContain('/mechs/new')
     const other = must(guides.find((g) => !String(g.guideType).endsWith('-creation')))
     expect(buildLinkFor('guides', other)).toBeNull()
@@ -99,7 +99,7 @@ describe('guideExitsFor', () => {
 
   test('Create a Pilot builds a pilot, walks on to Create a Mech, offers the Starter Set', () => {
     expect(guideExitsFor('guides', guide('Create a Pilot'))).toEqual({
-      build: { href: `${appPath('/pilots/new?mode=guided')}`, label: 'Build a pilot' },
+      build: { href: `${appPath('/pilots/new?mode=guided')}`, label: 'Build a Pilot' },
       next: { href: '/guides/create-a-mech/', label: 'Create a Mech' },
       starterSet: { href: `${appPath('/starter')}`, label: 'Or play the Starter Set' },
     })

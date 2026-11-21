@@ -401,7 +401,7 @@ describe('BlankCreateDialog — blank pilot create', () => {
     const books = screen.getByRole('region', { name: 'Book Patterns' })
     expect(within(books).getByText('Not a starting build')).toBeTruthy()
     fireEvent.click(
-      within(books).getByRole('button', { name: 'Build With This: a mech from Stefanus' })
+      within(books).getByRole('button', { name: 'Build With This: a Mech from Stefanus' })
     )
     fireEvent.click(await screen.findByRole('button', { name: 'Build' }))
     await waitFor(() => expect(created.length).toBe(1))

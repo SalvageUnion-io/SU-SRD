@@ -58,7 +58,7 @@ function buildExamples() {
 
 const TITLE = pageTitle(pagesCopy('discordBot'))
 const DESCRIPTION =
-  'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
+  'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, System, Module, or piece of equipment with /su.'
 
 const PROSE_16 = proseColumn(space[16])
 const CODE = inlineCode()

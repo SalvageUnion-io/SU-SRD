@@ -71,7 +71,7 @@ export const sheetCommand = {
       .addStringOption((option) =>
         option
           .setName('entity')
-          .setDescription('One of your pilots, mechs or crawlers, or a sheet link')
+          .setDescription('One of your Pilots, Mechs or crawlers, or a sheet link')
           .setRequired(true)
           .setAutocomplete(true)
       )

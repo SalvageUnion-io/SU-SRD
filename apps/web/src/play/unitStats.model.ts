@@ -42,7 +42,7 @@ export function pilotVitals(
 /** Each injury, as the Units box and the Crew read it ("Major injury: broken arm"). */
 export function injuryLines(pilot: Pilot): string[] {
   return (pilot.injuries ?? []).map((injury) => {
-    const kind = injury.severity === 'major' ? 'Major injury' : 'Minor injury'
+    const kind = injury.severity === 'major' ? 'Major Injury' : 'Minor Injury'
     return injury.note ? `${kind}: ${injury.note}` : kind
   })
 }

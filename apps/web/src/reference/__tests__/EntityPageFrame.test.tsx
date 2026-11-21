@@ -38,7 +38,7 @@ describe('EntityPageFrame', () => {
       '/guides/create-a-mech/',
       STARTER_SET_HREF,
     ])
-    expect(within(exits).getByRole('link', { name: 'Build a pilot' })).toBeDefined()
+    expect(within(exits).getByRole('link', { name: 'Build a Pilot' })).toBeDefined()
     expect(within(exits).getByRole('link', { name: /Next: Create a Mech/ })).toBeDefined()
     expect(within(exits).getByRole('link', { name: 'Or play the Starter Set' })).toBeDefined()
     // The exits follow the body.

@@ -229,7 +229,7 @@ export function crewLines(
     const unit =
       mech === undefined
         ? p.boarded
-          ? 'In a mech'
+          ? 'In a Mech'
           : 'On foot'
         : p.boarded
           ? `In ${mech.name} · SP ${vitalText('pool', mech.currentSP, mech.maxSP)}`

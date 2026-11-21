@@ -70,7 +70,7 @@ import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcSt
 const STEP_INTRO: Record<NpcStepId, string> = {
   template:
     'Start from anything in the reference’s denizens (an NPC, a Squad, a Creature, a Vehicle, a Drone, a Meld, a Bio-Titan): it fills the stats, actions and traits, and you change what you like. Or start blank.',
-  stats: 'Hit points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
+  stats: 'Hit Points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
   actions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
   identity: 'Who they are. Only the name is required.',

@@ -157,17 +157,17 @@ export function useMechSheetModel({
   const spLines = linesFromBreakdown(spParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: 'Installed Systems & Modules',
   })
   const epLines = linesFromBreakdown(epParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: 'Installed Systems & Modules',
   })
   const heatLines = linesFromBreakdown(heatParts, {
     base: `${chassisName} chassis`,
     baseDetail: 'base',
-    installed: 'Installed systems & modules',
+    installed: 'Installed Systems & Modules',
   })
 
   const scrapPool = crawler ? (crawler.scrapPool ?? {}) : null

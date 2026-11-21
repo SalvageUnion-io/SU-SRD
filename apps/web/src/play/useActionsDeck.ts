@@ -496,7 +496,7 @@ export function useActionsDeck({
       controls: {
         activateDisabled,
         activateTitle: apUnavailable
-          ? 'No pilot to spend AP'
+          ? 'No Pilot to spend AP'
           : heatOk
             ? undefined
             : 'Activating would exceed the Heat Capacity',

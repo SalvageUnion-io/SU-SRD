@@ -116,7 +116,7 @@ export function classPathGroups(
   if (offRing.length > 0) {
     groups.push({
       kind: 'off-ring',
-      label: reachableNames.size > 0 ? "Not on this pilot's ring" : 'Advanced / Hybrid',
+      label: reachableNames.size > 0 ? "Not on this Pilot's ring" : 'Advanced / Hybrid',
       options: offRing.map((cls) => ({
         cls,
         note: 'asks origin',
