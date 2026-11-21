@@ -61,7 +61,9 @@
   padding: 0 !important;
 }
 
-.su-ledger__table tbody tr[data-band] {
+/* A picked row keeps its ink (ledger.css): the band's tint under paper words
+   reads as a disabled row. */
+.su-ledger__table tbody tr[data-band]:not([data-picked]) {
   background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
 }
 
