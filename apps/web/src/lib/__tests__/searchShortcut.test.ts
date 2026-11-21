@@ -36,4 +36,11 @@ describe('correctShortcutHints', () => {
     correctShortcutHints(root, 'Linux x86_64')
     expect(root.textContent).toBe('Ctrl K')
   })
+
+  test('a cap that names another key (the home’s "/") is every keyboard’s, and stays (r2 H6)', () => {
+    const root = document.createElement('div')
+    root.innerHTML = '<span class="su-search-field__shortcut"><kbd>/</kbd></span>'
+    correctShortcutHints(root, 'Linux x86_64')
+    expect(root.textContent).toBe('/')
+  })
 })

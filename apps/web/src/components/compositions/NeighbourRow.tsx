@@ -41,7 +41,9 @@ export function NeighbourRow({
               {entities.map((entity, index) => (
                 <span key={entity.id}>
                   {index > 0 && ', '}
-                  <Mention entityRef={entityRef(entity)}>{entity.name}</Mention>
+                  <Mention entityRef={entityRef(entity)} goes>
+                    {entity.name}
+                  </Mention>
                 </span>
               ))}
             </>

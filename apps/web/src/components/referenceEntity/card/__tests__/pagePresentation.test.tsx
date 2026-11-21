@@ -242,6 +242,23 @@ describe('the card as a page', () => {
     expect(loadout?.querySelector('.su-ec-frame')).toBeNull()
   })
 
+  test('a part fitted twice is one loadout line with its count (RR-15)', () => {
+    const atlas = need(SalvageUnionReference.Chassis.getByName('Atlas'), 'atlas')
+    const pattern = need(
+      atlas.patterns?.find((p) => p.name === 'Throne'),
+      'throne'
+    )
+    const { container } = render(
+      <ReferenceEntityCard data={atlas} pattern={pattern} presentation="page" />
+    )
+    const names = [
+      ...container.querySelectorAll('.su-entity-page__loadout tr.su-open__row .su-open__name'),
+    ].map((node) => node.textContent ?? '')
+    const flamethrowers = names.filter((name) => name.includes('FM-3 Flamethrower'))
+    expect(flamethrowers).toHaveLength(1)
+    expect(flamethrowers[0]).toContain('×2')
+  })
+
   test('patterns are one Ledger, a line each: its name the link, its loadout said whole', () => {
     const chassis = gopher()
     const count = chassis.patterns?.length ?? 0
@@ -296,6 +313,16 @@ describe('the card as a page', () => {
     )
     expect(names).toContain('Tail Sweep (Action)')
     expect(section.querySelectorAll('h3, h4, h5, h6')).toHaveLength(0)
+  })
+
+  test('a denizen the table fights says so, for a phone’s actions-first read; a chassis does not (r2 H5)', () => {
+    const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
+    const titan = render(<ReferenceEntityCard data={scylla} presentation="page" />)
+    expect(titan.container.querySelector('.su-manual.su-manual--fought')).not.toBeNull()
+    titan.unmount()
+    const chassis = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    expect(chassis.container.querySelector('.su-manual')).not.toBeNull()
+    expect(chassis.container.querySelector('.su-manual--fought')).toBeNull()
   })
 
   test('a bay’s crew NPC on its Page is drawn open, never a Mini (N8)', () => {

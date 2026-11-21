@@ -37,4 +37,10 @@ export type CompactSearchEntry = {
    * between chassis) and where its page is.
    */
   pattern?: { href: string; kind: string }
+  /**
+   * The row is a RULE told inside a guide (Training Points), not a pattern:
+   * it carries its own page and kind the same way (`pattern`), and ranks as
+   * the rules' own kinds do.
+   */
+  rule?: true
 }

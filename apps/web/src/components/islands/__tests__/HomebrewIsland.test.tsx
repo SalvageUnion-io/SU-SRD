@@ -79,7 +79,11 @@ describe('on a chassis page', () => {
     answer(() => new Response('[]'))
     render(<HomebrewIsland chassisRef="mule" />)
     await settle()
-    expect(screen.getByText('No player has shared a pattern for this chassis yet.')).toBeTruthy()
+    expect(screen.getByText(/No player has shared a pattern for this chassis yet\./)).toBeTruthy()
+    // None here is not a dead end: the note leads to every chassis's (RR2-17).
+    expect(
+      screen.getByRole('link', { name: 'Every chassis’s Homebrew' }).getAttribute('href')
+    ).toBe('/homebrew/')
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Hide Homebrew' }))

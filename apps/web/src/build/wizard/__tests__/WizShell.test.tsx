@@ -26,6 +26,13 @@ function renderStep() {
 }
 
 describe('WizShell', () => {
+  test('the Next button says "Next:" once, in the text a reader reads (RR2-19)', () => {
+    renderStep()
+    const next = screen.getByRole('button', { name: 'Next: Review' })
+    expect(next.textContent?.match(/Next:/g)).toHaveLength(1)
+    expect(next.querySelector('[aria-hidden="true"]:not(svg)')).toBeNull()
+  })
+
   test('every step opens at the top with focus on its heading, the first too (PT-20)', () => {
     const scrollTo = mock((..._args: unknown[]) => {})
     const original = window.scrollTo

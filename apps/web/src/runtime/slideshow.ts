@@ -6,8 +6,11 @@
  *   (`[data-paused]`, `front.css`) and wears the Toggle's pressed ink plate.
  * - **Previous** and **Next** turn the show by hand. The show is one CSS
  *   animation per slide, all on one clock, so a turn sets that clock: the
- *   slide landed on starts its turn afresh and, unless paused, the show
- *   carries on from it.
+ *   slide landed on starts its turn afresh, in either direction, so the show
+ *   waits a full step before it moves on by itself; paused, it stays.
+ * - **A touch** on a slide's words or its action holds the show for as long
+ *   as the finger is down (`[data-touched]`): a touch screen has no hover, and
+ *   a slide must never turn away under the press that reaches for its button.
  */
 
 /** The part of a step a slide spends sliding in (`su-front-show`: 2.5% of eight steps). */
@@ -16,9 +19,10 @@ const ENTRY = 0.2
 /**
  * The show's clock (ms) after a turn of `by` slides from `now`, in a loop of
  * `count` slides `step` ms each. Slide i stands still from `i * step`; the one
- * sliding in already counts as the one in view. Forward and turning, the
- * clock lands where the next slide starts to slide in, so the turn is seen;
- * back, or held, it lands on the slide standing still.
+ * sliding in already counts as the one in view. Turning, the clock lands where
+ * the slide it turns to starts to slide in, forward or back: the turn is seen,
+ * and that slide has its whole step before the show moves on. Held, it lands
+ * on the slide standing still.
  */
 export function turnedClock(
   now: number,
@@ -29,7 +33,7 @@ export function turnedClock(
   const phase = ((now % total) + total) % total
   const inView = Math.floor(phase / step + ENTRY) % count
   const target = (((inView + by) % count) + count) % count
-  const at = target * step - (by > 0 && !held ? step * ENTRY : 0)
+  const at = target * step - (held ? 0 : step * ENTRY)
   return (at + total) % total
 }
 
@@ -65,5 +69,15 @@ export function watchSlideshow(root: ParentNode): void {
     for (const button of show.querySelectorAll<HTMLButtonElement>('[data-show-turn]')) {
       button.addEventListener('click', () => turn(show, Number(button.dataset.showTurn)))
     }
+    // A finger down on a slide's plate holds the show until it lifts.
+    const doc = show.ownerDocument
+    const release = () => show.removeAttribute('data-touched')
+    show.addEventListener('pointerdown', (event) => {
+      const on =
+        event.target instanceof Element ? event.target.closest('.su-front__show-copy') : null
+      if (on) show.setAttribute('data-touched', '')
+    })
+    doc.addEventListener('pointerup', release)
+    doc.addEventListener('pointercancel', release)
   }
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { BookCite, ChoiceSelections, RefEquipment } from 'salvageunion-reference'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
+import { formatProvenance, getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { Badge, EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import { isStartingEquipment } from '../../lib/rules/startingEquipment'
@@ -153,6 +153,15 @@ export function EquipmentStep({
                   onCountChange(getEntitySlug(item), next)
                 },
               }}
+              // The list's foot cites the step's book; an item printed in
+              // another says its own book and page on its line (SB-03).
+              stamp={(item) =>
+                cite && item.source && item.source !== cite.source ? (
+                  <Badge shape="stamp" size="mini">
+                    {formatProvenance(item.source, undefined, item.page)}
+                  </Badge>
+                ) : undefined
+              }
               under={(item) => chosenChips(item, choices?.[getEntitySlug(item)])}
               detail={card}
               {...(cite

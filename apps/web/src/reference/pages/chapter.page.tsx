@@ -22,6 +22,7 @@ import {
   ChapterBandTrail,
   ContentsChapter,
 } from '../../components/index'
+import { indexLeadStat } from '../../components/islands/indexColumns.model'
 import { Tagline } from '../../components/Tagline'
 import type { SrdChapter } from '../../lib/chapters'
 import { buildChapters } from '../../lib/chapters'
@@ -54,10 +55,16 @@ function listingGroups(schemaId: string): ContentsGroup[] {
     const href = itemHref(schemaId, getEntitySlug(entity))
     return !seen.has(href) && seen.add(href)
   })
-  const row = (entity: RefEntity): ContentsRow => ({
-    label: entity.name,
-    href: itemHref(schemaId, getEntitySlug(entity)),
-  })
+  // One stat a name, the listing's own first measure (`indexLeadStat`).
+  const statOf = indexLeadStat(schemaId, items)
+  const row = (entity: RefEntity): ContentsRow => {
+    const stat = statOf(entity)
+    return {
+      label: entity.name,
+      href: itemHref(schemaId, getEntitySlug(entity)),
+      ...(stat !== undefined ? { stat } : {}),
+    }
+  }
   const byName = (list: RefEntity[]) =>
     [...list].sort((a, b) => a.name.localeCompare(b.name)).map(row)
   // A short list whose every entry has a tech level (the crawler's own) runs

@@ -250,6 +250,24 @@
     max-height: none;
   }
 
+  /* A long Used by (`SparseRail`'s floor) gives way only down to a screenful
+     of rows: beside a Page of few words the row grows to hold them, never a
+     slit seven rows tall. The rows' own height stays out of the row's (their
+     box is sized by the floor), so a longer Page still sets the rail's. */
+  .su-sparse-rail--long {
+    contain: none;
+  }
+
+  .su-sparse-rail--long .su-sparse-rail__used {
+    flex: 1 1 auto;
+  }
+
+  .su-sparse-rail--long .su-sparse-rail__scroll {
+    contain: size;
+    flex: 1 1 22rem;
+    min-height: 22rem;
+  }
+
   /* The rest are short (a rule or two, the list's neighbours) and always
      stand whole: Used by is what gives way. */
   .su-sparse-rail__rest {

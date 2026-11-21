@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test'
-import { entityTitle, SITE_URL, TITLE_MAX } from '../constants'
+import { entityTitle, SITE_URL, TITLE_MAX, titleName } from '../constants'
 import { SITE_NAME, THEME_COLOR } from '../documentHead'
 import { pageTitle } from '../pageTitle'
 
@@ -61,5 +61,22 @@ describe('entityTitle', () => {
     for (const name of ['A', 'Relics of a Time Gone By Exterior Encounters', 'x'.repeat(50)]) {
       expect(entityTitle(name, 'Roll Table').length).toBeLessThanOrEqual(TITLE_MAX)
     }
+  })
+})
+
+describe('titleName', () => {
+  it('a glossary term is titled as the book prints it (RR-22)', () => {
+    expect(titleName('keywords', 'Weapons system')).toBe('Weapons System')
+    expect(titleName('keywords', 'Mount / dismount')).toBe('Mount / Dismount')
+    expect(titleName('keywords', 'Difficult terrain (False Flag)')).toBe(
+      'Difficult Terrain (False Flag)'
+    )
+    expect(titleName('traits', 'Anti-organic')).toBe('Anti-organic')
+    expect(titleName('traits', 'Heat spike')).toBe('Heat Spike')
+  })
+
+  it('any other kind keeps its own name', () => {
+    expect(titleName('guides', 'Create a Mech')).toBe('Create a Mech')
+    expect(titleName('systems', 'pH Sensor')).toBe('pH Sensor')
   })
 })

@@ -83,18 +83,11 @@ export function TopNavigation({
       noCurrent={home}
       railCurrent={section ? { href: section, page: section === pathname } : undefined}
       breadcrumbs={breadcrumbs}
-      // The 404 carries its own. The home shows no search bar: its field is
-      // served out of sight and comes into the bar when "/" or Cmd/Ctrl+K (or
-      // "Look something up") focuses it (`.su-union-bar__search-onkey`,
-      // shell.css).
+      // The 404 carries its own, and so does the home: its field stands under
+      // its slideshow, always in view (r2 H6), where "/", Cmd/Ctrl+K and
+      // "Look something up" focus it.
       search={
-        pageHasSearch ? null : home ? (
-          <div className="su-union-bar__search-onkey">
-            <Island name="SearchIsland" client="interaction" ssr>
-              <SearchIsland />
-            </Island>
-          </div>
-        ) : (
+        pageHasSearch || home ? null : (
           <Island name="SearchIsland" client="interaction" ssr>
             <SearchIsland />
           </Island>

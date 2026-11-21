@@ -9,7 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import type { ChipClass, ChipSet } from './chipSet'
 import { CHIP_CLASSES, costCell, RANK_KEY } from './chipSet'
 import { Facts } from './Facts'
-import { actionTypeRef } from './factRefs'
+import { actionTypeRef, costRef } from './factRefs'
 import { ChipLink, Tags } from './Tags'
 import type { TagItem } from './tagItems'
 
@@ -122,7 +122,9 @@ export function Chips({
       count: chips.relations?.length ?? 0,
     },
     cost: {
-      nodes: chips.cost ? [<CostBox key="cost" cost={chips.cost} size={size} />] : [],
+      nodes: chips.cost
+        ? [<CostBox key="cost" cost={chips.cost} size={size} linkable={linkable} />]
+        : [],
       count: chips.cost ? 1 : 0,
     },
     state: { nodes: [], count: 0 },
@@ -189,15 +191,24 @@ function laneEnd(after: readonly number[]): CSSVarStyle {
 /**
  * A read cost ("2 EP") as the book prints it, the one chip that leads with its value: the ink pointy box
  * (`ActivationCost`), with a paper edge on an ink ground. Every form's read cost is this box,
- * last among its chips.
+ * last among its chips. Where chips link, it opens what it is paid in (`4 AP`,
+ * Ability Points) as every other stat chip opens its rule (E27).
  */
-function CostBox({ cost, size }: { cost: string; size: Size }) {
+function CostBox({ cost, size, linkable }: { cost: string; size: Size; linkable: boolean }) {
   const cell = costCell(cost)
-  return (
+  const box = (
     <ActivationCost
       cost={cell.value ?? cell.label}
       currency={cell.value ? cell.label : ''}
       size={size}
     />
+  )
+  const ref = linkable && cell.value ? costRef(cell.label) : undefined
+  return ref ? (
+    <ChipLink tag={{ key: 'cost', name: ref.name, param: cell.value, ref }} linkable>
+      {box}
+    </ChipLink>
+  ) : (
+    box
   )
 }

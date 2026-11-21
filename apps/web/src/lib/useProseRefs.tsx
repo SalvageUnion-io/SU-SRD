@@ -1,11 +1,13 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { useContext, useMemo } from 'react'
+import { useContext, useId, useMemo } from 'react'
+import type { EntityRef } from 'salvageunion-reference'
 import { mentionRef } from '../components/entity'
 import { useEntitySurface } from '../components/entity/entitySurfaceContext'
 import { Mention } from '../components/entity/forms/Mention'
 import { ProseOwnerContext } from '../components/entity/nameRefs'
 import { useInsidePeek } from '../components/entity/peekContext'
 import { space } from '../design/tokens'
+import { ProseSectionContext } from './proseSection'
 import { segmentProse } from './segmentProse'
 
 /** The blank line a `\n\n` paragraph break renders as. */
@@ -50,31 +52,35 @@ export function useParseTraitReferences(text: string | undefined): ReactNode {
   const pageRefs = insidePeek ? undefined : pageIndex
   const nameRefs = insidePeek ? undefined : nameIndex
   const owner = useContext(ProseOwnerContext)
+  const section = useContext(ProseSectionContext)
+  const run = useId()
   return useMemo(() => {
     if (!text) return null
     const segments = segmentProse(text, { nameRefs, pageRefs, owner })
     const [only] = segments
     if (segments.length === 1 && only?.kind === 'text') return text
+    // In a section a term links at its first mention alone (`ProseSection`),
+    // and is plain words after.
+    const linked = new Set<string>()
+    const again = (ref: EntityRef | undefined) => {
+      if (!section || !ref) return false
+      const term = `${ref.schemaName}:${ref.id}`
+      if (linked.has(term) || !section.claim(term, run)) return true
+      linked.add(term)
+      return false
+    }
     return segments.map((segment) => {
       const key = `${segment.kind}-${segment.start}`
-      switch (segment.kind) {
-        case 'text':
-          return segment.text
-        case 'break':
-          return <span key={key} style={PARAGRAPH_BREAK} />
-        case 'trait':
-          return (
-            <Mention key={key} entityRef={mentionRef(segment.name)}>
-              {segment.text}
-            </Mention>
-          )
-        default:
-          return (
-            <Mention key={key} entityRef={segment.ref}>
-              {segment.text}
-            </Mention>
-          )
-      }
+      if (segment.kind === 'text') return segment.text
+      if (segment.kind === 'break') return <span key={key} style={PARAGRAPH_BREAK} />
+      const ref = segment.kind === 'trait' ? mentionRef(segment.name) : segment.ref
+      // A book's page reference cites: it links every time.
+      if (segment.kind !== 'page' && again(ref)) return segment.text
+      return (
+        <Mention key={key} entityRef={ref}>
+          {segment.text}
+        </Mention>
+      )
     })
-  }, [text, pageRefs, nameRefs, owner])
+  }, [text, pageRefs, nameRefs, owner, section, run])
 }

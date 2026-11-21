@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url'
 import { getModel } from 'salvageunion-reference'
 import { APP_BASE } from '../../../src/lib/appBase'
 import { listingEntries } from '../../../src/lib/listingEntries'
+import { listingPendingScript } from '../../../src/lib/listingPending'
 import { executableInlineScripts } from '../../build/inlineScripts'
 import { NOT_IN_SITEMAP } from '../../build/sitemap'
 import { shells } from './pages'
@@ -52,10 +53,12 @@ describe('the page shells', () => {
     const first = resolved.find((r) => r.pattern === pattern)?.pages[0]
     const html = first?.render() ?? ''
     expect(html).toStartWith('<!doctype html>')
-    // A page's only inline script is its speculation rules, which the build
-    // hashes into the CSP with Astro's island scripts (`inlineScripts.ts`).
+    // A page's only inline scripts are its speculation rules and, on a
+    // listing, the one that holds the served rows back (`listingPending`); the
+    // build hashes both into the CSP with Astro's island scripts
+    // (`inlineScripts.ts`).
     const own = executableInlineScripts(html).filter((body) => !body.startsWith('{"prerender"'))
-    expect(own).toEqual([])
+    expect(own).toEqual(pattern === '/[schemaId]' ? [listingPendingScript()] : [])
   })
 
   it('server-renders a /<id>/ listing as links, without inlining its entities', () => {

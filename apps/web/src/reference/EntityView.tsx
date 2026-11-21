@@ -31,7 +31,7 @@ import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { EntityCardStatic } from '../components/EntityCardStatic'
 import { cardNeedsHydration } from '../lib/cardNeedsHydration'
 import { nameRefIndexWithout, nameRefsFor } from '../lib/nameRefIndex'
-import { pageRefsFor } from '../lib/pageRefIndex'
+import { pageRefIndexFor } from '../lib/pageRefIndex'
 import { getSchemaPreloadList } from '../lib/schemaPreloadDeps'
 import { Island } from '../runtime/Island'
 
@@ -56,7 +56,8 @@ type EntityViewProps = {
 }
 
 export function EntityView({ item, schemaId, pattern }: EntityViewProps) {
-  const pageRefs = pageRefsFor(schemaId, item)
+  // A guide's too: a loose "p. 235" beside a working link read as a leftover (RR-22).
+  const pageRefs = pageRefIndexFor(item)
   // The server resolves names against the whole dataset (less the entity's
   // own name); the island carries just the names its card draws.
   const names = nameRefIndexWithout(item.id)

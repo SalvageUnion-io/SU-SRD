@@ -12,6 +12,7 @@ import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
 import { InsidePeekContext } from '../../entity/peekContext'
 import { RowDress } from '../../entity/rowDress'
+import { ProseSection } from '../../ProseSection'
 import { TraitProse } from '../../TraitProse'
 import type { CardProseContext } from './CardProse'
 import { CardProse } from './CardProse'
@@ -217,7 +218,9 @@ export function GuideSteps({
     if (ladder) {
       options = (
         <div className="su-guide__ladder">
-          <div className="su-guide__ladder-prose">{stepProse}</div>
+          <div className="su-guide__ladder-prose">
+            <ProseSection>{stepProse}</ProseSection>
+          </div>
           <div className="su-guide__ladder-cards">{optionList(entities, step.name, true)}</div>
         </div>
       )
@@ -248,20 +251,23 @@ export function GuideSteps({
             optional={step.optional}
           />
           <div className="su-guide__body">
-            {!ladder && stepProse}
+            {/* A step is a section: a term links at its first mention in it. */}
+            {!ladder && <ProseSection>{stepProse}</ProseSection>}
             {options}
             {/* The step's table: the same embedded table an entity owns (R8),
               framed because it sits on the page; a wide one scrolls in
               its own box rather than pushing the page sideways. */}
             {table && !insidePeek && (
               <div className="su-guide__table">
-                <CardRollTable
-                  table={table.table}
-                  name={table.name}
-                  size={compact ? 'compact' : 'full'}
-                  disabled={!!isDown}
-                  tone={tableTone}
-                />
+                <ProseSection>
+                  <CardRollTable
+                    table={table.table}
+                    name={table.name}
+                    size={compact ? 'compact' : 'full'}
+                    disabled={!!isDown}
+                    tone={tableTone}
+                  />
+                </ProseSection>
               </div>
             )}
             {subGuide && (
@@ -306,7 +312,11 @@ export function GuideSteps({
       {/* A phone lists the contents above the steps, always open under their
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
-      <nav className="su-guide__toc-block" aria-label={referenceEntityCopy('onThisPage')}>
+      <nav
+        className="su-guide__toc-block"
+        aria-label={referenceEntityCopy('onThisPage')}
+        data-page-contents=""
+      >
         <Slab label={referenceEntityCopy('onThisPage')} flush />
         {contents}
       </nav>

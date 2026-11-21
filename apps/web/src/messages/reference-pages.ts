@@ -323,6 +323,8 @@ export const pagesCopy = messages({
   patternMeta: '{patternName}: a {hostName} Pattern for the Salvage Union tabletop RPG.',
   browseAll:
     'Browse all {pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.',
+  listingNeedsScripts:
+    'Filtering, sorting and the other views need JavaScript, which is off: this is the whole list, in the book’s order.',
   systemReferenceDocument: 'System Reference Document',
   aboutDescription:
     'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the {build}, where you build characters, and your {play}, where you play them.',

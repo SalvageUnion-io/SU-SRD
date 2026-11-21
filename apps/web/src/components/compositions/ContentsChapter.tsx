@@ -29,6 +29,8 @@ export type ContentsRow = {
   href: string
   /** Where a book prints it (`p.14`): the Starter Set landing's chapter maps. */
   page?: string
+  /** The entry's one stat (`SP 12`): a chapter's index, a stat a name (RR-18). */
+  stat?: string
   /** Open the row in place on a plain click, rather than following `href`. */
   onOpen?: () => void
 }
@@ -85,6 +87,7 @@ export function ContentsChapter({
           >
             <span>{row.label}</span>
             {row.page !== undefined && <span className="su-contents__page">{row.page}</span>}
+            {row.stat !== undefined && <span className="su-contents__page">{row.stat}</span>}
           </a>
         </li>
       ))}
