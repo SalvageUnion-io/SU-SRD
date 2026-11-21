@@ -2,11 +2,13 @@ import { entityHref } from '../../lib/entityHref'
 import { sharedCopy } from '../../messages/components-shared'
 import type { EntityExternalLinkBuilder } from '../index'
 import { InlineRef } from '../index'
+import { DocumentLinks } from '../islands/DocumentLinks'
 
 /**
  * The app's app-wide "View in the Reference" cross-link builder.
  *
- * Supplied as the entity surface's `externalLink` (set in `GameDataReady`),
+ * Supplied as the entity surface's `externalLink` (set at the app's root, above
+ * `EntityPageHost`, so the detail dialog it mounts reads it too),
  * so every FULL — non-compact, non-listing — entity card, including the
  * `useDetailModal` detail view, uniformly renders the link in its foot band.
  * Compact/listing cards stay uncluttered by design; an entity
@@ -21,18 +23,21 @@ export const srdEntityExternalLink: EntityExternalLinkBuilder = (entity) => {
 
   const entityName = 'name' in entity && typeof entity.name === 'string' ? entity.name : undefined
 
+  // A Reference page, never the app's route: a plain anchor (DocumentLinks).
   return (
-    <InlineRef
-      href={href}
-      aria-label={
-        entityName
-          ? sharedCopy('viewInTheReference2', { entityName })
-          : sharedCopy('viewInTheReference')
-      }
-      // `.su-srd-entity-external-link` (`styles/build/unitSlot.css`): its 24px target.
-      className="su-srd-entity-external-link"
-    >
-      {sharedCopy('viewInTheReference')}
-    </InlineRef>
+    <DocumentLinks>
+      <InlineRef
+        href={href}
+        aria-label={
+          entityName
+            ? sharedCopy('viewInTheReference2', { entityName })
+            : sharedCopy('viewInTheReference')
+        }
+        // `.su-srd-entity-external-link` (`styles/build/unitSlot.css`): its 24px target.
+        className="su-srd-entity-external-link"
+      >
+        {sharedCopy('viewInTheReference')}
+      </InlineRef>
+    </DocumentLinks>
   )
 }

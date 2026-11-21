@@ -4,13 +4,7 @@ import type { SchemaList } from '../../lib/useGameData'
 import { useGameData } from '../../lib/useGameData'
 import { sharedCopy } from '../../messages/components-shared'
 import { GameDataGate } from '../GameDataGate'
-import type { EntitySurfaceValue } from '../index'
-import { EntitySurfaceProvider } from '../index'
 import { RoutePending } from './RouteFallbacks'
-import { srdEntityExternalLink } from './srdEntityExternalLink'
-
-/** The app's "View in the Reference" cross-link, on the surface (E13). */
-const REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: srdEntityExternalLink }
 
 /**
  * Marks `body[data-game-data-ready="true"]` once the WHOLE dataset is in, so E2E
@@ -56,14 +50,10 @@ export function GameDataReady({
   /** What the route needs loaded before it renders; the whole dataset by default. */
   schemas?: SchemaList
 }) {
-  // App-wide "View in the Reference" cross-link injection: full
-  // entity cards and detail modals render srdEntityExternalLink in their foot
-  // band. Provided here — beside the preload gate that already wraps every
-  // route — so the builder only runs once the reference dataset is loaded.
   return (
     <GameDataGate schemas={schemas} fallback={<RoutePending label={sharedCopy('referenceData')} />}>
       <ReadyMarker />
-      <EntitySurfaceProvider value={REFERENCE_LINK}>{children}</EntitySurfaceProvider>
+      {children}
     </GameDataGate>
   )
 }
