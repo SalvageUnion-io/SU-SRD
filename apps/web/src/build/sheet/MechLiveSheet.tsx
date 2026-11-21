@@ -108,7 +108,7 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
-      fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id)?.name)}
+      fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id))}
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}

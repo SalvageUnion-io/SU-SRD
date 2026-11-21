@@ -47,6 +47,10 @@ import type { SheetBand } from './sheetViewProps.model'
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
 const NO_CHIPS = { durations: [], facts: [], tags: [] }
 
+/** The pattern relation's label: PATTERN while the mech is the pattern, BASED ON once its loadout changed. */
+const patternLabel = (stamp: PatternStamp) =>
+  stamp.changed ? buildSheetCopy('basedOn') : buildSheetCopy('pattern')
+
 /** No "View in the Reference" in a sheet's body (the surface's `externalLink`, E13). */
 const NO_REFERENCE_LINK: Partial<EntitySurfaceValue> = { externalLink: null }
 
@@ -485,7 +489,7 @@ export function LiveSheet({
                     {fromPattern &&
                       (fromPattern.href || fromPattern.page ? (
                         <Tag
-                          tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
+                          tag={relation('pattern', patternLabel(fromPattern), fromPattern.name, {
                             href: fromPattern.href,
                             page: fromPattern.page,
                           })}
@@ -493,7 +497,7 @@ export function LiveSheet({
                           wrap
                         />
                       ) : (
-                        <Stat label={buildSheetCopy('pattern')} value={fromPattern.name} wrap />
+                        <Stat label={patternLabel(fromPattern)} value={fromPattern.name} wrap />
                       ))}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />

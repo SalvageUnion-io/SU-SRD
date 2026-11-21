@@ -146,6 +146,7 @@ export const buildSheetCopy = messages({
   sheetControls: 'Sheet controls',
   starterKit: 'Starter Kit',
   pattern: 'Pattern',
+  basedOn: 'Based on',
   aSavedPattern: 'A saved pattern',
   madeBy: 'Made by',
   assignedSheets: 'Assigned sheets',
