@@ -237,12 +237,13 @@ body:has(.su-front--show) main {
 }
 
 /* One slide's turn in a show of seven (`heroSlides`): each holds a seventh
-   of the loop, fading in over its first fifth and out just past its end. */
+   of the loop, fading in over its first fifth and out just past its end.
+   Out of its turn, before it and after, a slide is hidden (K3): never seen,
+   pressed or focused over the one in view. */
 @keyframes su-front-show {
-  /* design-tokens-ignore(loading-mark): the home's slideshow, not a loading mark */
   0% {
     opacity: 0;
-    visibility: visible;
+    visibility: hidden;
   }
   2.857%,
   12.857% {
@@ -264,11 +265,35 @@ body:has(.su-front--show) main {
       both;
     animation-delay: calc(var(--su-show-step) * (var(--su-show-i) - 0.2));
   }
+
+  /* Held while an act is pointed at or anything is focused, and for good
+     once paused: the whole show is the screen, so hovering it is no sign. */
+  .su-front__show:is([data-paused], :focus-within, :has(.su-front__show-act:hover))
+  .su-front__show-slide {
+    animation-play-state: paused;
+  }
 }
 
-/* Under reduced motion the first slide stands still. */
+/* The Pause at the head's right, on the art. */
+.su-front__show-pause.su-btn {
+  flex: none;
+  margin-top: var(--space-12);
+}
+
+/* Under reduced motion the show never turns: its slides stand one under
+   another, each its own screen of art with its words and action in view, so
+   nothing is hidden and there is nothing to pause. */
 @media (prefers-reduced-motion: reduce) {
-  .su-front__show-slide:not(:first-child) {
+  .su-front__show-slides {
+    position: relative;
+  }
+
+  .su-front__show-slide {
+    min-block-size: 28rem;
+    position: relative;
+  }
+
+  .su-front__show-pause.su-btn {
     display: none;
   }
 }

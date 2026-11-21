@@ -155,7 +155,12 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§7.2': ['_valueCells.ts'],
   K1: ['chrome/ground-signal', 'chrome/paper-mix'],
   K2: ['chrome-tokens/raw-breakpoint'],
-  K3: ['chrome-tokens/raw-duration', 'chrome-tokens/raw-easing', 'chrome-tokens/motion-loop'],
+  K3: [
+    'chrome-tokens/raw-duration',
+    'chrome-tokens/raw-easing',
+    'chrome-tokens/motion-loop',
+    'chrome-tokens/slide-turn',
+  ],
   K4: ['tokens/raw-shadow', 'tokens/raw-z-index'],
   K5: ['chrome/one-toaster', 'chrome/offline-copy'],
   K6: ['chrome-tokens/loading-mark', 'copy/banned-variant'],
