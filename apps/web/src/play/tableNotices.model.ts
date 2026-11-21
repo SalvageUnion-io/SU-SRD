@@ -54,6 +54,17 @@ export function pinnedAlert(
   return alerts[0] ?? null
 }
 
+/**
+ * When the Game's last group session ended, while that is still news: the
+ * newest session event is its end, and recent. Read off the events, so a
+ * screen opened just after the end says so too.
+ */
+export function endedSession(events: readonly TableEvent[], now: number): number | null {
+  const last = events.filter((event) => event.session !== undefined).sort((a, b) => b.ts - a.ts)[0]
+  if (last === undefined || last.session !== 'end') return null
+  return now - last.ts < ALERT_PINNED_MS ? last.ts : null
+}
+
 /** The tab's title while a Stop Sign is up. */
 export function pausedTitle(title: string, prefix: string): string {
   return title.startsWith(prefix) ? title : `${prefix}${title}`

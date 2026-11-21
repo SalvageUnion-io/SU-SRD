@@ -154,7 +154,21 @@ describe('the pinned notices', () => {
     const door = screen.getByRole('link', { name: 'Join session' }) as HTMLAnchorElement
     expect(door.getAttribute('href')).toBe('/games/g1')
     await act(async () => {
-      serveAll(answers({ 'session.state': { live: false, startedAt: null } }))
+      serveAll(
+        answers({
+          'session.state': { live: false, startedAt: null },
+          'changeLog.events': [
+            {
+              _id: 'e-end',
+              ts: Date.now(),
+              kind: 'session',
+              text: 'Ash ended the group session',
+              actorId: 'gm',
+              session: 'end',
+            },
+          ],
+        })
+      )
     })
     expect(notice('session')).toBeNull()
     expect(notice('session-ended')?.textContent).toContain('Session ended · Tenacity')

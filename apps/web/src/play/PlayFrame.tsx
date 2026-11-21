@@ -13,7 +13,7 @@
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
- *    table | Opposition | Tables, Feed and Propose), then the foot. The end
+ *    table | Opposition | Rolls, Rules and Propose), then the foot. The end
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *

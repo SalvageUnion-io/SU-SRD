@@ -53,7 +53,7 @@ import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
-import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { HUB_ACTIONS, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
 import { LastSession } from './LastSession'
 import { LaunchPlay } from './LaunchPlay'
 import { MediatorPrep } from './MediatorPrep'
@@ -134,13 +134,13 @@ function GameSections({ game }: { game: Game }) {
               as="h2"
               id="invite-link-heading"
               title={playGamesCopy('inviteLink')}
-              actions={
-                <>
-                  <CopyInviteLink gameId={gameId} />
-                  <ResetInviteLink gameId={gameId} />
-                </>
-              }
-            />
+              // Under the heading, not on its line: the two buttons do not fit
+              // beside it in the side column, and wrapped they stood above it.
+              bodyStyle={HUB_ACTIONS}
+            >
+              <CopyInviteLink gameId={gameId} />
+              <ResetInviteLink gameId={gameId} />
+            </SlabSection>
           )}
           {/* Safety runs last, so the two columns end together. */}
           <GameSafety sign={sign} />

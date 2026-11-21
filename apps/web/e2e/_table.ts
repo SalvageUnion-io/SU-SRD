@@ -71,9 +71,7 @@ export async function setUpTable(page: Page): Promise<{ gameId: string; gameName
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Start this Game' }).first().click()
   await page.waitForURL(/\/games\/[^/]+$/, { timeout: 20_000 })
-  // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
-  await page.getByRole('button', { name: 'Appoint' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
+  // The creator is the Mediator: "Will you be the Mediator?" is answered Yes as given.
   await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 20_000 })
   await assignToMe(page, 'Bonesaw')
   await assignToMe(page, 'Scrapper')

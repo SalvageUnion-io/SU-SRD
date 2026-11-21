@@ -37,6 +37,9 @@ export function PlayCrewSheet({ gameId, pilotId, name, onClose }: PlayCrewSheetP
         if (!open) onClose()
       }}
       title={playCopy('readOnly', { name })}
+      // The page width: a sheet lays itself out by the window's width, so in a
+      // narrower dialog its vitals and its tables' last columns ran into each other.
+      width="page"
     >
       {pilotId !== null && <CrewSheetBody gameId={gameId} pilotId={pilotId} />}
     </ModalShell>

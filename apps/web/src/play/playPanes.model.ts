@@ -46,7 +46,8 @@ export type PaneSpec<Value extends string> = {
 /** `rules` is the Reference inside Play: a tab below `lg`, under the Tables from it. */
 export type PlayerPane = 'act' | 'units' | 'tables' | 'crew' | 'rules'
 
-export type MediatorPane = 'table' | 'opposition' | 'tables' | 'propose'
+/** `rules` is the Reference beside the board from `lg`; below it, the Mediator's ⋯ opens it. */
+export type MediatorPane = 'table' | 'opposition' | 'tables' | 'rules' | 'propose'
 
 /** In reading order: Units | Act | Crew, then Tables, as the columns stand from `lg`. */
 const PLAYER_PANES: readonly PaneSpec<PlayerPane>[] = [
@@ -91,13 +92,23 @@ const MEDIATOR_PANES: readonly PaneSpec<MediatorPane>[] = [
   { value: 'propose', label: 'Propose', column: 'end', dock: true },
 ]
 
+const MEDIATOR_RULES: PaneSpec<MediatorPane> = {
+  value: 'rules',
+  label: playCopy('rules'),
+  column: 'end',
+}
+
 /**
  * The Mediator's panes. While Downtime runs the second holds the step track
  * in the Opposition's place and says so; its place in the row never moves.
  */
-export function mediatorPanes(downtime: boolean): readonly PaneSpec<MediatorPane>[] {
-  if (!downtime) return MEDIATOR_PANES
-  return MEDIATOR_PANES.map((p) => (p.value === 'opposition' ? { ...p, label: 'Downtime' } : p))
+export function mediatorPanes(downtime: boolean, wide = false): readonly PaneSpec<MediatorPane>[] {
+  // From `lg` the Rules stand in the end column, under the Rolls and above the Propose dock.
+  const panes = wide
+    ? MEDIATOR_PANES.flatMap((p) => (p.value === 'propose' ? [MEDIATOR_RULES, p] : [p]))
+    : MEDIATOR_PANES
+  if (!downtime) return panes
+  return panes.map((p) => (p.value === 'opposition' ? { ...p, label: 'Downtime' } : p))
 }
 
 /** One unit's pinned vitals, under its name. */

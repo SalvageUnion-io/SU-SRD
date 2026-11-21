@@ -80,7 +80,7 @@ export const playGamesCopy = messages({
   thisSession: 'This session',
   sessionSince: 'Started {start}.',
   sessionFromTo: '{start} to {end}.',
-  sessionCounts: ' {rolls} rolls, {changes} vitals changes.',
+  sessionCounts: ' Rolls: {rolls}. Vitals changes: {changes}.',
   showAllLines: 'Show all {count}',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',
   apply: 'Apply',

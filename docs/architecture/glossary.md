@@ -23,5 +23,5 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    Code still says `cantina` only for the bay (`BAY.cantina`), the old commit scopes, ADR-021's file name and issue ids like CANTINA-CONVEX-9; everything else is `app`, `build` or `play`.
 10. **Group session** — a Game's table sitting down to play: the table runner's **Start group session** and **End group session**; while it runs, "Session live" and **Join session**. Never a lock: Play opens without one.
 11. **Crew** — the players' units at one table: a Game's crew, Play's Crew pane. A crawler bay's NPC is its **crew lead**, never "crew"; a crawler's assigned pilots stay its crew (3).
-12. **Rolls** and **Rules** — Play's two reference panes: **Rolls** the roll tables (tab, pane head, the Mediator's tab), **Rules** the SRD inside Play (tab, pane head, the Mediator's ⋯). Never "Tables" or "Reference" there: the Mediator's **Table** is the seats.
+12. **Rolls** and **Rules** — Play's two reference panes: **Rolls** the roll tables (tab, pane head, the Mediator's tab), **Rules** the SRD inside Play (tab, pane head; the Mediator's side pane, its ⋯ on a phone). Never "Tables" or "Reference" there: the Mediator's **Table** is the seats.
 13. **Units** — in Play, your own pilot, mech and crawler (the pane, the ⋯ row). A sheet's linked units are its **Related units**.

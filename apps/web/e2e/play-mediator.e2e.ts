@@ -58,8 +58,7 @@ test(
     test.setTimeout(10 * 60_000)
     const a11y: string[] = []
     await createGame(page, GAME)
-    await page.getByRole('button', { name: 'Appoint' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
+    // The creator said Yes to "Will you be the Mediator?", the dialog's given answer.
     await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 15_000 })
     const token = await makeInviteLink(page)
 

@@ -45,6 +45,7 @@ import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'
 import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
 import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
+import { SrdExplorer } from './mediator/SrdExplorer'
 import { usePlayMediator } from './mediator/usePlayMediator'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
@@ -137,6 +138,9 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       <PlayMediatorOpposition mediator={mediator} rollFor={rollFor} />
     ),
     tables: <MediatorTablesAndFeed mediator={mediator} side={side} />,
+    // The Reference beside the board (the player's `SrdExplorer`), so a rule is read
+    // without covering the seats; a phone opens it from the ⋯.
+    rules: <SrdExplorer />,
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}
@@ -150,7 +154,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   return (
     <PlayFrame
       wide={wide}
-      labels={['The table', running ? 'Downtime' : 'Opposition', 'Tables, Feed and Propose']}
+      labels={['The table', running ? 'Downtime' : 'Opposition', 'Rolls, Rules and Propose']}
       bar={
         <>
           <PlayBar
@@ -182,7 +186,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       pinned={
         <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
       }
-      panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
+      panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
       foot={

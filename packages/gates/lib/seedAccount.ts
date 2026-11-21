@@ -156,9 +156,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   // The Game, its Mediator (the Organizer) and its invite link.
   await createGame(page, SEED_GAME, base)
   const game = new URL(page.url()).pathname
-  await page.getByRole('button', { name: 'Appoint' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  // The hub's band offers Mediate once the Organizer is appointed.
+  // The creator said Yes to "Will you be the Mediator?" (the dialog's given answer), so
+  // the hub's band offers Mediate.
   await page.getByRole('link', { name: 'Mediate', exact: true }).waitFor(LONG)
   const token = await makeInviteLink(page)
 

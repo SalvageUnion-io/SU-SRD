@@ -113,6 +113,31 @@ html[data-signed-out-view]:not([data-signed-out-fonts]) .su-signed-out-static {
   display: none;
 }
 
+/* Under the Union bar, from `lg`: a page's band starts behind the header's
+   rail (`chapter-band-controls.css`), and notices standing between the two
+   would leave the rail with no band. So there the notices take no room of
+   their own: the band makes it under the rail (their measured height,
+   `useNoticesHeight`), and a page with no band makes it above its content. */
+@media (width >= 64rem) {
+  .su-table-notices[data-under-bar]:not(:empty) {
+    margin-bottom: calc(-1 * var(--su-table-notices-h, 0px));
+    padding-bottom: var(--space-8);
+  }
+
+  .su-table-notices[data-under-bar]:not(:empty) + #main-content:not(:has(.su-chapter-band)) {
+    padding-top: var(--su-table-notices-h, 0px);
+  }
+
+  .su-table-notices[data-under-bar]:not(:empty)
+    + #main-content
+    .su-chapter-band:not([role='dialog'] *) {
+    padding-top: calc(
+      2.75rem +
+      var(--su-table-notices-h, 0px)
+    ); /* design-tokens-ignore(raw-spacing): the rail's height */
+  }
+}
+
 .su-table-notice {
   align-items: center;
   display: flex;

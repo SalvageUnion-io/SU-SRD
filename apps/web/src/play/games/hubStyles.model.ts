@@ -40,3 +40,10 @@ export const HUB_BODY = {
   flexDirection: 'column',
   gap: space[8],
 } satisfies CSSProperties
+
+/** A section's actions as its body: a row under the heading, wrapping. */
+export const HUB_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+} satisfies CSSProperties

@@ -107,11 +107,16 @@ export function PlayMediatorBarActions({
                 } else window.location.assign(gameHref)
               },
             },
-            {
-              id: 'reference',
-              label: playCopy('rules'),
-              onSelect: () => setReference(true),
-            },
+            // From `lg` the Rules are a pane beside the board (`mediatorPanes`).
+            ...(wide
+              ? []
+              : [
+                  {
+                    id: 'reference',
+                    label: playCopy('rules'),
+                    onSelect: () => setReference(true),
+                  },
+                ]),
           ],
           channel ? [channel] : [],
         ]}

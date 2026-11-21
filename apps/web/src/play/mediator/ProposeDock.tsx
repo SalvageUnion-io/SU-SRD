@@ -111,7 +111,8 @@ export function ProposeDock({
 
   const reading = target?.readings[field]
   const max = reading?.max ?? null
-  const before = reading?.current ?? null
+  // A vital the sheet has never moved reads full (Heat: none), as the seat shows it.
+  const before = reading?.current ?? (field === 'currentHeat' ? 0 : max)
   const value = proposalAfter(mode, to, before, max)
   const trimmed = reason.trim()
   const preview =

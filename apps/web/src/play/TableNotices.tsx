@@ -15,7 +15,7 @@
 
 import { cockpitPath, gamePath, mediatePath } from 'game-domain/entityKinds'
 import { fieldLabel } from 'game-domain/games/proposals'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { usePilots } from '../lib/entities'
@@ -27,7 +27,13 @@ import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
 import type { Heard } from './tableNotices.model'
-import { eventsToToast, pausedTitle, pinnedAlert, resumedTitle } from './tableNotices.model'
+import {
+  endedSession,
+  eventsToToast,
+  pausedTitle,
+  pinnedAlert,
+  resumedTitle,
+} from './tableNotices.model'
 import { useGameSession } from './useGameSession'
 import { useStopSign } from './useStopSign'
 
@@ -36,13 +42,44 @@ const STRONG = { fontWeight: tokens.weight.bold } satisfies React.CSSProperties
 /** What this tab dismissed: alerts by id, a session's bar by when it started. */
 const dismissed = new Set<string>()
 
+/**
+ * The notices' height, published as `--su-table-notices-h` on the document:
+ * under the Union bar a page's band starts behind the header's rail, so from
+ * `lg` the notices take no room of their own and the band makes it for them
+ * (`screens.css`), which keeps the rail on its band.
+ */
+function useNoticesHeight() {
+  const observer = useRef<ResizeObserver | null>(null)
+  return useCallback((node: HTMLElement | null) => {
+    observer.current?.disconnect()
+    observer.current = null
+    const root = document.documentElement
+    if (node === null || typeof ResizeObserver === 'undefined') {
+      root.style.removeProperty('--su-table-notices-h')
+      return
+    }
+    const publish = () =>
+      root.style.setProperty('--su-table-notices-h', `${node.getBoundingClientRect().height}px`)
+    observer.current = new ResizeObserver(publish)
+    observer.current.observe(node)
+    publish()
+  }, [])
+}
+
 export function TableNotices({ pathname }: { pathname: string }) {
+  const measured = useNoticesHeight()
   const { status } = useSync()
   const person = useViewerId()
   const games = useGamesQuery('games.listMine', status === 'live' && person !== null ? {} : 'skip')
   if (person === null || games === undefined || games.length === 0) return null
+  const inPlay = hidesUnionBar(pathname)
   return (
-    <section className="su-table-notices" aria-label={playCopy('tableNotices')}>
+    <section
+      ref={measured}
+      className="su-table-notices"
+      data-under-bar={inPlay ? undefined : ''}
+      aria-label={playCopy('tableNotices')}
+    >
       {games.map((game) => (
         <GameNotices
           key={game._id}
@@ -50,7 +87,8 @@ export function TableNotices({ pathname }: { pathname: string }) {
           gameName={game.name}
           mediator={game.mediator}
           viewerId={person}
-          inPlay={hidesUnionBar(pathname)}
+          inPlay={inPlay}
+          ownPage={pathname.replace(/\/$/, '') === gamePath(game._id)}
         />
       ))}
     </section>
@@ -63,6 +101,7 @@ function GameNotices({
   mediator,
   viewerId,
   inPlay,
+  ownPage,
 }: {
   gameId: string
   gameName: string
@@ -70,6 +109,8 @@ function GameNotices({
   viewerId: string
   /** A Play screen is open: it is the session's own place, so no door to it. */
   inPlay: boolean
+  /** The Game's own page is open: its band says the session is live, and has the door. */
+  ownPage: boolean
 }) {
   const { canWrite } = useSync()
   const sign = useStopSign(gameId)
@@ -121,16 +162,9 @@ function GameNotices({
     }
   }, [paused])
 
-  // A session that ended while this tab watched says so, until dismissed.
+  // A session that just ended says so (the events' own record), until dismissed.
   const live = session?.live === true
-  const wasLive = useRef(false)
-  const [endedAt, setEndedAt] = useState<number | null>(null)
-  useEffect(() => {
-    if (session === null) return
-    if (wasLive.current && !live) setEndedAt(Date.now())
-    if (live) setEndedAt(null)
-    wasLive.current = live
-  }, [session, live])
+  const endedAt = endedSession(events ?? [], Date.now())
 
   const alert = pinnedAlert(events ?? [], dismissed, viewerId, Date.now())
   const sessionKey = `session:${gameId}`
@@ -223,7 +257,7 @@ function GameNotices({
           </Callout>
         </div>
       )}
-      {live && !inPlay && !dismissed.has(`${sessionKey}:live`) && (
+      {live && !inPlay && !ownPage && !dismissed.has(`${sessionKey}:live`) && (
         <div role="status" data-table-notice="session">
           <Callout tone="crawler">
             <div className="su-table-notice">
