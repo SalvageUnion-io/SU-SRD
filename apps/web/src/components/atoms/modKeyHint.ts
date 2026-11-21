@@ -1,13 +1,9 @@
 import { useSyncExternalStore } from 'react'
+import { modKeyHint } from '../../lib/searchShortcut'
 
 // The platform never changes under a page: there is nothing to subscribe to.
 const noSubscription = () => () => {
   // Nothing to unsubscribe.
-}
-
-/** "⌘K" where there is a Command key, else "Ctrl K". */
-export function modKeyHint(platform: string): string {
-  return /Mac|iPhone|iPad/.test(platform) ? '⌘K' : 'Ctrl K'
 }
 
 /**

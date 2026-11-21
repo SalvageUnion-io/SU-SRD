@@ -17,12 +17,17 @@
  * corpus to the browser.
  */
 
-import type { RefEntity } from 'salvageunion-reference'
+import type { RefEntity, RefMetaEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import {
   extractContentText,
   getEntitySlug,
+  getPatterns,
   isSchemaName,
+  nameToSlug,
   patternSearchText,
+  rulesSearchText,
+  searchAliases,
+  searchSquashedName,
   toEntityModel,
 } from 'salvageunion-reference'
 // `extractContentText` and `isSchemaName` are the package's own primitives —
@@ -30,14 +35,18 @@ import {
 // nothing and keeps the index's field extraction byte-identical to the
 // ORM-backed `search()` it mirrors.
 import type { EntityFormModel } from '../components/index'
+import { patternHref } from './entityHref'
 import { getEntitySchemas, getModel, SalvageUnionReference } from './gameData'
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 const TEXT_FIELDS = ['description', 'effect', 'goals', 'assets', 'weaknesses'] as const
 
+/** A search result's kind for a pattern, which has no schema to name it. */
+const PATTERN_KIND = 'Pattern'
+
 /** The Compact's parts of an entity's model, for a search result (no lead, no hints). */
-function rowModel(entity: RefEntity): EntityFormModel {
-  const m = toEntityModel(entity)
+function rowModel(entity: RefEntity, pattern?: RefObjectAnyPattern): EntityFormModel {
+  const m = toEntityModel(entity, undefined, pattern ? { pattern } : undefined)
   return {
     ref: m.ref,
     title: m.title,
@@ -89,9 +98,19 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         }
       }
 
+      // A guide's steps and a roll table's results are its rules too.
+      const rulesText = rulesSearchText(entity)
+      if (rulesText) parts.push(rulesText)
+
       // A pattern is found through its host ("Hill Worm" finds Typhon).
       const patternText = patternSearchText(entity)
       if (patternText) parts.push(patternText)
+
+      // The name as it may be typed instead: without its punctuation
+      // ("biotitan"), or by an alias ("sp").
+      const nameText = entity.name.toLowerCase()
+      const aliases = searchAliases(nameText)
+      parts.push(searchSquashedName(nameText), ...aliases)
 
       entries.push({
         id: entity.id,
@@ -101,7 +120,35 @@ export function buildSearchIndexEntries(): CompactSearchEntry[] {
         schemaTitle: schema.title,
         text: parts.join(' ').toLowerCase(),
         model: rowModel(entity),
+        ...(aliases.length > 0 ? { aliases: [...aliases] } : {}),
       })
+
+      // And by its own name, as a row of its own that opens its own page
+      // ("Stefanus" opens the pattern, not its chassis).
+      for (const pattern of getPatterns(entity as RefMetaEntity) ?? []) {
+        const slug = nameToSlug(pattern.name)
+        entries.push({
+          id: `${entity.id}:pattern:${slug}`,
+          name: pattern.name,
+          slug,
+          schemaName: schema.id,
+          schemaTitle: schema.title,
+          text: [
+            pattern.name,
+            searchSquashedName(pattern.name.toLowerCase()),
+            PATTERN_KIND,
+            entity.name,
+            extractContentText(pattern.content ?? []),
+          ]
+            .join(' ')
+            .toLowerCase(),
+          model: rowModel(entity, pattern),
+          pattern: {
+            href: patternHref(schema.id, getEntitySlug(entity), slug),
+            kind: `${PATTERN_KIND} · ${entity.name}`,
+          },
+        })
+      }
     }
   }
 

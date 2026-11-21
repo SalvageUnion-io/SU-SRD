@@ -516,7 +516,10 @@
   padding: var(--space-8);
 }
 
-.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) {
+/* The banded rows too: their tint (`ledger-strip.css`, later and as specific)
+   otherwise sits under the paper words, and the highlight reads as a grey. */
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']),
+.su-search-ledger .su-ledger__table tbody tr[data-band]:has([aria-selected='true']) {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }

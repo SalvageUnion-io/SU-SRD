@@ -26,4 +26,15 @@ export type CompactSearchEntry = {
    * the browser still never loads the corpus.
    */
   model?: EntityFormModel
+  /**
+   * The name as a reader may type it instead (`searchAliases`): a stat's
+   * abbreviation, a table's famous result. Lowered; also in `text`.
+   */
+  aliases?: string[]
+  /**
+   * A PATTERN's row: it has no schema of its own, so `schemaName` is its
+   * host's and these say what it is ("Pattern · Mule": pattern names repeat
+   * between chassis) and where its page is.
+   */
+  pattern?: { href: string; kind: string }
 }

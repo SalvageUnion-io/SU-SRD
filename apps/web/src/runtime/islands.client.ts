@@ -12,6 +12,7 @@ import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/ent
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
@@ -49,12 +50,13 @@ document.addEventListener(ISLAND_COMMIT, (event) => {
 })
 
 /**
- * Cmd+K / Ctrl+K before any search field has mounted: focus the server-rendered
- * field on show, which wakes its island (`interaction`), and the island's
- * mount keeps the focus. After that `SearchIsland` answers the shortcut itself.
+ * Cmd+K / Ctrl+K, or "/", before any search field has mounted: focus the
+ * server-rendered field on show, which wakes its island (`interaction`), and
+ * the island's mount keeps the focus. After that `SearchIsland` answers the
+ * shortcut itself.
  */
 function onSearchShortcut(event: KeyboardEvent): void {
-  if (searchMounted || !(event.metaKey || event.ctrlKey) || event.key !== 'k') return
+  if (searchMounted || !isSearchShortcut(event)) return
   for (const input of document.querySelectorAll<HTMLInputElement>(
     '[data-island="SearchIsland"] input'
   )) {
@@ -66,6 +68,8 @@ function onSearchShortcut(event: KeyboardEvent): void {
 }
 
 document.addEventListener('keydown', onSearchShortcut)
+// The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
+correctShortcutHints(document, navigator.platform)
 revealWikiLinks(document)
 watchSharePage(document)
 // The home's slide captions: each cut-out as wide as its own words.
