@@ -389,7 +389,7 @@ export function PartnerCard({
       <SheetPickerModal
         open={picker === kind}
         onClose={() => setPicker(null)}
-        title={isSystem ? buildSheetCopy('addSystems') : buildSheetCopy('addModules')}
+        title={isSystem ? buildSheetCopy('manageSystems') : buildSheetCopy('manageModules')}
         floating
       >
         <EntitySearcher

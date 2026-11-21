@@ -38,12 +38,15 @@ import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { pilotActivationPatch } from '../../lib/rules/actionPatches'
 import { isPartnerEquipment, pilotPartnerSeeds, syncPartners } from '../../lib/rules/partnerGrants'
 import { resolveEquipment } from '../../lib/rules/pilotInventory'
+import { pilotRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
+import { abilityTrainingCost } from '../../lib/rules/training'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { UsedTraitKey } from './PilotIdentity'
+import { ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 type PilotSheetActionsOptions = {
@@ -64,6 +67,8 @@ export type PilotSheetActions = {
   toggleUsed: (key: UsedTraitKey, next: boolean) => void
   handleConditionsChange: (next: string[]) => void
   toggleAbility: (slug: string) => void
+  /** Add an ability and pay its Training Points in the one write. */
+  trainAbility: (slug: string) => void
   toggleEquipment: (slug: string) => void
   handleEquipmentConditionChange: (slug: string, next: ItemCondition) => Promise<void>
   handleUsesChange: (slug: string, next: number) => void
@@ -105,8 +110,19 @@ export function usePilotSheetActions({
     return freshEntity(storeState, 'pilot', pilot)
   }
 
-  /** The one fire-and-forget write on this sheet — see the header note. */
+  /**
+   * The one fire-and-forget write on this sheet — see the header note. A write
+   * that takes the inventory over its slots, or further over, still saves, and
+   * says so as it does (R71).
+   */
   function write(fields: Partial<Pilot>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void {
+    if ('equipment' in fields || 'genericInventory' in fields) {
+      const before = freshPilot()
+      ruleBreakToast(
+        pilot.id,
+        ruleBreaksMade(pilotRuleBreaks(before), pilotRuleBreaks({ ...before, ...fields }))
+      )
+    }
     runWrite(() => storeState.update('pilot', pilot.id, fields, meta))
   }
 
@@ -175,9 +191,10 @@ export function usePilotSheetActions({
   // Advisory only (soft warnings), never rule-GATED: the cap, tree order and
   // the Advanced/Legendary prerequisites surface in a confirm dialog and the
   // user may always proceed.
-  function toggleAbility(slug: string) {
+  function toggleAbility(slug: string, pay = false) {
     const current = freshPilot()
     const removing = current.abilities.includes(slug)
+    const cost = pay && !removing ? (abilityTrainingCost(slug) ?? 0) : 0
     const name = SalvageUnionReference.Abilities.getBySlug(slug)?.name ?? slug
     const abilities = removing
       ? current.abilities.filter((a) => a !== slug)
@@ -191,6 +208,8 @@ export function usePilotSheetActions({
         // equipment slug does not move either way — it is a set, and it was
         // already there.
         partners: syncPartners(current.partners, pilotPartnerSeeds(current.equipment, abilities)),
+        // Training it pays its Training Points with the add (Core Book p.224).
+        ...(cost > 0 ? { trainingPoints: Math.max(0, (current.trainingPoints ?? 0) - cost) } : {}),
       },
       `${removing ? 'Remove' : 'Add'} ${name}`
     )
@@ -269,7 +288,8 @@ export function usePilotSheetActions({
     overridePilotMax,
     toggleUsed,
     handleConditionsChange,
-    toggleAbility,
+    toggleAbility: (slug) => toggleAbility(slug),
+    trainAbility: (slug) => toggleAbility(slug, true),
     toggleEquipment,
     handleEquipmentConditionChange,
     handleUsesChange,

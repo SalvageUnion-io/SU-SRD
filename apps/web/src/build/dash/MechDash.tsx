@@ -43,7 +43,6 @@ import {
   Field,
   Ledger,
   Mention,
-  Stat,
   TechLevel,
   tokens,
 } from '../../components/index'
@@ -228,7 +227,7 @@ export function MechDash({
         max={capacity.systemSlotsMax}
         meter="pips"
         tint="ink"
-        over={capacity.systemSlotsUsed > capacity.systemSlotsMax}
+        over={!capacity.asPrinted && capacity.systemSlotsUsed > capacity.systemSlotsMax}
       />
       <StripFigure
         label={STAT_LABELS.moduleSlots.short}
@@ -237,7 +236,7 @@ export function MechDash({
         max={capacity.moduleSlotsMax}
         meter="pips"
         tint="ink"
-        over={capacity.moduleSlotsUsed > capacity.moduleSlotsMax}
+        over={!capacity.asPrinted && capacity.moduleSlotsUsed > capacity.moduleSlotsMax}
       />
       <StripFigure
         label={STAT_LABELS.cargoCapacity.short}
@@ -497,7 +496,6 @@ export function MechDash({
               {free > 0 && (
                 <span className="su-dash-quiet">{buildSheetCopy('free', { free })}</span>
               )}
-              {over && <Stat size="mini" label={buildSheetCopy('overCapacity')} state="critical" />}
             </div>
             {/* Said on the page, not only in a tooltip a touch screen never shows. */}
             {edit && cargo.crawlerLocked !== null && (

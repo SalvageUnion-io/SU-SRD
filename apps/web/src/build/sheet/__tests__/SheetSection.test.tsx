@@ -66,7 +66,7 @@ describe("a collection section's Manage control", () => {
       expect(button.className).not.toContain('su-sheet-hbtn')
     }
     fireEvent.click(screen.getByRole('button', { name: 'Manage Equipment' }))
-    expect(screen.getByRole('dialog', { name: 'Add Equipment' })).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Manage Equipment' })).toBeTruthy()
   })
 
   test('Read draws none', () => {

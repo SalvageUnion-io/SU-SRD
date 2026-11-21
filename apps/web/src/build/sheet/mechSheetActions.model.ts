@@ -27,11 +27,13 @@ import type { SoftWarning } from 'salvageunion-reference/rules'
 import { useSoftWarnings } from '../../components/shared/useSoftWarnings'
 import { drawFromPool } from '../../lib/rules/crawlerEconomy'
 import { cycleCondition, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { mechRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { runWrite } from '../../lib/runWrite'
 import { LIVE_SHEET_MANUAL, LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import type { ChangeMeta, UnitsState } from '../../replica/units'
 import { destroyedUndoToast } from './destroyedUndoToast.model'
 import { changedFields, freshEntity } from './freshEntity.model'
+import { ruleBreakToast } from './ruleBreakToast.model'
 import type { SheetPatch } from './sheetViewProps.model'
 
 export type ItemKind = 'system' | 'module'
@@ -94,8 +96,19 @@ export function useMechSheetActions({
     return freshEntity(storeState, 'mech', mech)
   }
 
-  /** The one fire-and-forget write on this sheet — see the header note. */
+  /**
+   * The one fire-and-forget write on this sheet — see the header note. A write
+   * that takes the loadout over its slots, or further over, still saves, and
+   * says so as it does (R71).
+   */
   function write(fields: Partial<Mech>, meta: ChangeMeta = LIVE_SHEET_MANUAL): void {
+    if ('systems' in fields || 'modules' in fields || 'chassisRef' in fields) {
+      const before = freshMech()
+      ruleBreakToast(
+        mech.id,
+        ruleBreaksMade(mechRuleBreaks(before), mechRuleBreaks({ ...before, ...fields }))
+      )
+    }
     runWrite(() => storeState.update('mech', mech.id, fields, meta))
   }
 

@@ -308,6 +308,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R67: ['WizShell.test.tsx', 'mech-wizard.e2e.ts', 'pilot-wizard.e2e.ts', 'crawler-wizard.e2e.ts'],
   R68: ['_fillGrid.ts', 'fill-grid.e2e.ts', 'chrome-tokens/item-grid', 'Grid.test.tsx'],
   R70: ['Sheet-related-units.test.tsx', 'RelatedUnits.test.tsx'],
+  R71: ['ruleBreakMark.test.tsx', 'ruleBreaks.test.ts'],
 }
 
 /** A law's id as the canon and its citations spell it. */

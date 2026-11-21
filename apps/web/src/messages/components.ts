@@ -5,6 +5,7 @@ import { messages } from './define'
 export const componentsCopy = messages({
   undo: 'Undo',
   changedTo: 'to',
+  ruleBreaking: 'Rule breaking',
   legendary: 'Legendary',
   advance: 'Advance',
   hybrid: 'Hybrid',
