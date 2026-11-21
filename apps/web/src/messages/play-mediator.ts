@@ -54,6 +54,9 @@ export const mediatorCopy = messages({
   rename: 'Rename',
   gameState: 'Game state',
   scene: 'Scene',
+  beginDowntimeAsk: 'Begin Downtime?',
+  beginDowntimeBody:
+    'Every player’s screen moves to Downtime, step 1 of {count}, and the table is told. Nobody stays up now.',
   endDowntimeEarly: 'End Downtime early?',
   theTableIsOnStep:
     'The table is on step {value} of {count}. Everyone goes back to their seat. Beginning again starts from the first step, and upkeep is due again in {upkeepStepName}.',
@@ -68,7 +71,9 @@ export const mediatorCopy = messages({
   working: 'Working',
   away: 'Away',
   upNow: 'Up now',
-  upNowFor: 'Up now: {name}',
+  markUpNow: 'Mark up now',
+  upNowFor: 'Mark up now: {name}',
+  inTheMechBay: 'In the Mech Bay · {mech}',
   downtimeForTheTable: 'Downtime for the table',
   scrap: '{downtimeUpkeepScrap} Scrap',
   paid: 'Paid',

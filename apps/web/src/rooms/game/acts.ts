@@ -101,7 +101,12 @@ const GAME_ACTS = {
     c.room.play.clearResolving(c.actor, a.pilotId, c.at),
 
   'downtime.state': (c: ActContext) => c.room.play.downtime(c.actor),
-  'downtime.begin': (c: ActContext) => c.room.play.beginDowntime(c.actor, c.at),
+  'downtime.begin': (c: ActContext) => {
+    const began = c.room.play.beginDowntime(c.actor, c.at)
+    // A turn is a Scene's: nobody is up in Downtime (r2 E1).
+    if (began) c.room.scene.clearUpNow(c.at)
+    return began
+  },
   'downtime.advance': (c: ActContext) => c.room.play.advanceDowntime(c.actor),
   'downtime.setStep': (c: ActContext, a: { stepIndex: number }) =>
     c.room.play.setDowntimeStep(c.actor, a.stepIndex),
@@ -161,7 +166,11 @@ const GAME_ACTS = {
   'plan.set': (c: ActContext, a: { plan: unknown }) => c.room.plan.write(c.actor, a.plan, c.at),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
-  'session.end': (c: ActContext) => c.room.session.end(c.actor),
+  'session.end': (c: ActContext) => {
+    c.room.session.end(c.actor)
+    // The table got up: nobody is up now (r2 E1).
+    c.room.scene.clearUpNow(c.at)
+  },
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
   'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),
 

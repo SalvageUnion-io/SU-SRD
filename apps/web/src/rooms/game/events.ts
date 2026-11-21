@@ -44,6 +44,7 @@ type TableEventKind =
   | 'assign'
   | 'join'
   | 'session'
+  | 'downtime'
   | 'proposal'
   | 'alert'
   | 'stop'
@@ -64,6 +65,8 @@ export type TableEvent = {
    * (ADR-051 §9b): theirs to reveal. Never set on what a player is served.
    */
   veiled?: true
+  /** A roll a Mediator made: the one roll a screen toasts (`tableNotices.model.ts`). */
+  mediator?: true
   /** The group session began or ended here: what "Last session" is cut by. */
   session?: 'start' | 'end'
   /** An assignment taken from this member: their screen says so itself (`assignmentNotices`). */
@@ -123,6 +126,8 @@ export type EventsBefore = {
   resolving?: string | null
   proposal?: StoredOp | null
   session?: boolean
+  /** Whether a Downtime was running. */
+  downtime?: boolean
   stop?: boolean
   /** Whether the effect was switched on. */
   effectOn?: boolean
@@ -188,6 +193,11 @@ export class GameEvents {
       case 'session.start':
       case 'session.end':
         return { session: this.store.rows('select 1 from session where id = 1').length > 0 }
+      case 'downtime.begin':
+      case 'downtime.end':
+        return {
+          downtime: this.store.rows('select 1 from downtime_run where id = 1').length > 0,
+        }
       case 'safety.showStop':
       case 'safety.liftStop':
         return {
@@ -273,6 +283,15 @@ export class GameEvents {
                 session: 'end',
               }),
             ]
+          : []
+      // The whole table's screens change with these, so each is said (r2 E2).
+      case 'downtime.begin':
+        return value === true
+          ? [this.note(actor, at, { kind: 'downtime', text: `${who} began Downtime` })]
+          : []
+      case 'downtime.end':
+        return before.downtime === true
+          ? [this.note(actor, at, { kind: 'downtime', text: `${who} ended Downtime` })]
           : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
@@ -441,6 +460,9 @@ export class GameEvents {
       actorId,
       ...(roll?.private === true ? { private: true as const } : {}),
       ...(line.veiled === true ? { veiled: true as const } : {}),
+      ...(actorId !== null && this.store.member(actorId)?.mediator === true
+        ? { mediator: true as const }
+        : {}),
     }
   }
 

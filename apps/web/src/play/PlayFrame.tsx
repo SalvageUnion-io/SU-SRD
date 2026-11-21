@@ -9,7 +9,8 @@
  *    switch), and the tabs along the foot at thumb height, in the order the
  *    screen gives them. Closed panes stay mounted, `hidden`, so a
  *    half-typed Find, an open filter or a resolve in hand survives a switch.
- *    Table mode's `focus` takes the panes' place, the panes kept under it;
+ *    Toasts stand over the bar (`holdToastsOnTop`), never on a pane's
+ *    controls. Table mode's `focus` takes the panes' place, the panes kept under it;
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
@@ -46,7 +47,12 @@ import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { Tab, TabList, Tabs } from '../components/app'
-import { EntitySurfaceProvider, SlabLookProvider, tokens } from '../components/index'
+import {
+  EntitySurfaceProvider,
+  holdToastsOnTop,
+  SlabLookProvider,
+  tokens,
+} from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 import { NOTICES_RESIZED } from './tableNotices.model'
@@ -128,6 +134,9 @@ export function PlayFrame<Value extends string>({
   const id = useId()
   const hostRef = useRef<HTMLElement>(null)
   const hostH = useHostHeight(hostRef)
+  // Below `lg` the controls are at thumb height, where a toast at the foot
+  // lands: the toasts stand over the bar instead, above the pinned strip (r2 C4).
+  useEffect(() => (wide ? undefined : holdToastsOnTop()), [wide])
   const focused = !wide && focus !== undefined && focus !== null
   const sheetOn = !focused && sheet !== undefined && sheet !== null
   const tabbed = tabs ? tabs.flatMap((value) => panes.filter((p) => p.value === value)) : panes

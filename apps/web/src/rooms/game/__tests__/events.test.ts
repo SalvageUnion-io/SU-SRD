@@ -226,6 +226,9 @@ describe('the table’s events', () => {
     ])
     const mediators = room.events.list(MEDIATOR)
     expect(mediators.map((e) => e.kind)).toEqual(['alert', 'roll', 'roll'])
+    // A Mediator's roll says whose it is: a player's screen toasts those alone (r2 C4).
+    expect(room.events.list(PLAYER).map((e) => e.mediator)).toEqual([undefined, undefined])
+    expect(mediators.map((e) => e.mediator)).toEqual([undefined, true, undefined])
     expect(mediators.filter((e) => isMirrored(e))).toEqual([])
     expect(room.events.list(STRANGER)).toEqual([])
   })
@@ -276,5 +279,31 @@ describe('the table’s events', () => {
     ])
     expect(texts(MEDIATOR)).toEqual(['p1 · Core Mechanic · 14 · Success'])
     expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
+
+  test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {
+    const { act, texts } = seated()
+    const [began] = act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
+    expect(began).toMatchObject({ kind: 'downtime', actorId: MEDIATOR })
+    // A second press while it runs began nothing, and says nothing.
+    expect(act(MEDIATOR, 'downtime.begin', undefined as never, AT + 2)).toEqual([])
+    const [ended] = act(MEDIATOR, 'downtime.end', undefined as never, AT + 3)
+    expect(ended?.kind).toBe('downtime')
+    expect(act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)).toEqual([])
+    expect(texts(PLAYER)).toEqual(['Med ended Downtime', 'Med began Downtime'])
+    expect(isMirrored(began as never)).toBe(true)
+  })
+
+  test('Up now clears when the session ends and when Downtime begins (r2 E1)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p1')
+    act(MEDIATOR, 'session.end', undefined as never, AT + 2)
+    expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
+    expect(room.scene.updatedAt('scene')).toBe(AT + 2)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
+    expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
 })

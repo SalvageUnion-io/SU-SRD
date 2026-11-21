@@ -110,6 +110,8 @@ export const playCopy = messages({
   upNow: 'Up now',
   upNowYou: 'Up now · You',
   upNowName: 'Up now · {name}',
+  yourTurnNamed: 'Your turn · {name}',
+  yourTurnIn: 'The Mediator marked you as up now in {game}.',
   accept: 'Accept',
   accept2: 'Accept: {text}',
   decline: 'Decline',

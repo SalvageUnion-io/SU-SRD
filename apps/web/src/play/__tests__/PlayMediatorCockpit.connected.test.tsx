@@ -294,12 +294,22 @@ describe('the bar', () => {
     expect(bar.getByRole('button', { name: 'Game channel: where rolls post' })).toBeTruthy()
   })
 
-  test('Begin Downtime starts it for the whole table', async () => {
+  test('Begin Downtime asks once, then starts it for the whole table (r2 E2)', async () => {
     await renderCockpit()
     const state = within(screen.getByRole('group', { name: 'Game state' }))
     expect(state.getByRole('button', { name: 'Scene' }).getAttribute('aria-pressed')).toBe('true')
     await click(state.getByRole('button', { name: 'Begin Downtime' }))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: 'Begin Downtime?' }))
+    await click(ask.getByRole('button', { name: 'Begin Downtime' }))
     expect(names()).toEqual(['downtime.begin'])
+  })
+
+  test('while Downtime runs no seat reads Boarded: a seat aboard is in the Mech Bay (r2 E2)', async () => {
+    await renderCockpit(downtimeAt(2))
+    const seats = within(screen.getByRole('list', { name: 'Seats' }))
+    expect(seats.queryByText(/Boarded · /)).toBeNull()
+    expect(seats.getAllByText(/^In the Mech Bay · /).length).toBeGreaterThan(0)
   })
 
   test('running, it names the step; Scene ends it, asking first before the last step', async () => {
@@ -669,7 +679,7 @@ describe('the Opposition', () => {
 
   test('Up now marks a seat for the table, and pressing it again clears it', async () => {
     await renderCockpit()
-    const first = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    const first = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
     expect(first.getAttribute('aria-pressed')).toBe('false')
     await click(first)
     expect(sent()).toHaveLength(1)
@@ -678,7 +688,7 @@ describe('the Opposition', () => {
     cleanup()
     acts.length = 0
     await renderCockpit({ 'scenes.current': { conditions: [], hours: 0, upNow: marked } })
-    const again = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    const again = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
     expect(again.getAttribute('aria-pressed')).toBe('true')
     await click(again)
     expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])
