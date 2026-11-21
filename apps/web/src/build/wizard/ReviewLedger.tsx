@@ -1,5 +1,5 @@
 // A Review step's list of what was picked, as a Ledger in the wizard's band
-// paint: one line an entity (a copy count at its end), the same columns its
+// paint: one line an entity (a copy count at its end where any has copies), the same columns its
 // picker showed, its made choices under its name (hard rule R60), and the sums
 // on a last ink line.
 import type { ReactNode } from 'react'
@@ -40,6 +40,8 @@ export function ReviewLedger<T extends RefMetaEntity>({
     if (known) known.count += 1
     else rows.push({ entity, count: 1 })
   }
+  // A Qty column only where a pick has copies: one of each says nothing there.
+  const copies = rows.some((row) => row.count > 1)
   return (
     <Ledger
       label={title}
@@ -52,10 +54,10 @@ export function ReviewLedger<T extends RefMetaEntity>({
         name: entity.name,
         entityRef: modelOf(entity).ref,
         cells: columns.map((column) => column.value(entity)),
-        trailing: count > 1 ? `×${count}` : '',
+        ...(copies ? { trailing: count > 1 ? `×${count}` : '1' } : {}),
         under: chosenChips(entity, choices?.[nameToSlug(entity.name)]),
       }))}
-      trailingLabel={buildWizardCopy('qty')}
+      {...(copies ? { trailingLabel: buildWizardCopy('qty') } : {})}
       empty={empty}
       {...(total ? { total: { label: 'Total', cells: total(rows) } } : {})}
       {...(cite ? { foot: <CiteLine text={cite} /> } : {})}
