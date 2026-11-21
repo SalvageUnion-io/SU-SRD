@@ -370,6 +370,7 @@ export const buildSheetCopy = messages({
   bayRulesOf: '{name} rules and crew',
   scrapByTechLevel: 'Scrap by Tech Level',
   noSuchCompanion: 'No such companion.',
+  companionGone: 'Its {kind} no longer fields it.',
   backToItsHost: 'Back to its {kind}',
   companionOf: 'Companion of',
   nothingFitted: 'Nothing fitted.',
