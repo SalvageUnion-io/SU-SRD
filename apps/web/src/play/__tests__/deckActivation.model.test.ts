@@ -4,6 +4,7 @@
  * companion's on its pilot host.
  */
 import { afterEach, describe, expect, mock, test } from 'bun:test'
+import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { toast } from 'sonner'
 import type { PlayAction } from '../../lib/rules/actionList'
@@ -89,5 +90,84 @@ describe('a spend says itself with Undo', () => {
     undo?.({} as never)
     await Promise.resolve()
     expect(calls.at(-1)).toEqual({ type: 'pilot', id: 'p-undo', patch: { currentAP: 3 } })
+  })
+})
+
+describe("a mech's activation: Undo writes back everything it spent", () => {
+  afterEach(() => toast.dismiss())
+
+  const undoOf = (id: string) => {
+    const line = toast.getToasts().find((t) => t.id === id)
+    const action = line && 'action' in line ? line.action : undefined
+    return action && typeof action === 'object' && 'onClick' in action ? action.onClick : undefined
+  }
+
+  const mechWith = (id: string, over: Partial<Mech> = {}) =>
+    ({ id, chassisRef: 'mule', currentEP: 6, currentHeat: 1, ...over }) as unknown as Mech
+
+  test('EP, Heat and a Use: one line, and Undo restores all three', async () => {
+    const mech = mechWith('m-all', { itemUses: { 'hold-fast': 2, other: 1 } })
+    const { store, calls } = stubStore(mech)
+    payActivation(
+      { store, pilot, mech, crawler: null },
+      action(),
+      'EP',
+      { epCost: 2, heat: 1, maxUses: 3 },
+      () => {}
+    )
+    expect(calls).toEqual([
+      {
+        type: 'mech',
+        id: 'm-all',
+        patch: { currentEP: 4, currentHeat: 2, itemUses: { 'hold-fast': 1, other: 1 } },
+      },
+    ])
+    undoOf('mech:m-all:activation')?.({} as never)
+    await Promise.resolve()
+    expect(calls.at(-1)).toEqual({
+      type: 'mech',
+      id: 'm-all',
+      patch: { currentEP: 6, currentHeat: 1, itemUses: { 'hold-fast': 2, other: 1 } },
+    })
+  })
+
+  test('an action that costs only Heat says itself, and Undo takes the Heat off', async () => {
+    const mech = mechWith('m-heat')
+    const { store, calls } = stubStore(mech)
+    payActivation(
+      { store, pilot, mech, crawler: null },
+      action(),
+      'EP',
+      { epCost: 0, heat: 2, maxUses: 0 },
+      () => {}
+    )
+    expect(calls).toEqual([{ type: 'mech', id: 'm-heat', patch: { currentHeat: 3 } }])
+    const undo = undoOf('mech:m-heat:activation')
+    expect(undo).toBeDefined()
+    undo?.({} as never)
+    await Promise.resolve()
+    expect(calls.at(-1)).toEqual({ type: 'mech', id: 'm-heat', patch: { currentHeat: 1 } })
+  })
+
+  test('an action that costs only a Use says itself, and Undo gives the Use back', async () => {
+    const mech = mechWith('m-uses')
+    const { store, calls } = stubStore(mech)
+    payActivation(
+      { store, pilot, mech, crawler: null },
+      action(),
+      'EP',
+      { epCost: 0, heat: 0, maxUses: 2 },
+      () => {}
+    )
+    expect(calls).toEqual([{ type: 'mech', id: 'm-uses', patch: { itemUses: { 'hold-fast': 1 } } }])
+    const undo = undoOf('mech:m-uses:activation')
+    expect(undo).toBeDefined()
+    undo?.({} as never)
+    await Promise.resolve()
+    expect(calls.at(-1)).toEqual({
+      type: 'mech',
+      id: 'm-uses',
+      patch: { itemUses: { 'hold-fast': 2 } },
+    })
   })
 })
