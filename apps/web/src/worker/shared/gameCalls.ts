@@ -41,7 +41,7 @@ import { handOff } from '../../rooms/handoff'
 import { RoomRefusal } from '../../rooms/refusal'
 import type { GameRoomStub } from '../roomStubs'
 import { shownProfile, signInProfile } from './accounts'
-import { bindingBy } from './channelBindings'
+import { gameBindingView, rollChannel, soloBindingView } from './channelBindings'
 import type { SharedDb } from './db'
 import { gameOfInvite, gamesOf, memberAccountNames, membershipOf } from './games'
 
@@ -126,46 +126,6 @@ async function mediatedByCreator(room: GameRoomStub, who: Caller, mediator: bool
 async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   await room.republish()
   return value
-}
-
-type BindingView = {
-  channelId: string
-  channelName: string | null
-  boundAt: number
-  /** The roller's own channel, standing in for a Game that has none bound (`rollChannel`). */
-  own?: true
-}
-
-/** A Game's binding, or the player's solo play's, as these calls answer it. */
-async function bindingView(
-  db: SharedDb,
-  by: 'game' | 'solo',
-  value: string
-): Promise<BindingView | null> {
-  const row = await bindingBy(db, by, value)
-  return row === null
-    ? null
-    : { channelId: row.channel_id, channelName: row.channel_name, boundAt: row.bound_at }
-}
-
-const gameBinding = (db: SharedDb, gameId: string) => bindingView(db, 'game', gameId)
-const soloBinding = (db: SharedDb, discordId: string) => bindingView(db, 'solo', discordId)
-
-/**
- * Where this caller's rolls post: solo, their own channel; in a Game, the
- * Game's, or their own where the Game has none bound, so a channel someone
- * bound always gets their rolls until it is unbound.
- */
-async function rollChannel(
-  db: SharedDb,
-  discordId: string,
-  gameId: string | null
-): Promise<BindingView | null> {
-  if (gameId === null) return soloBinding(db, discordId)
-  const game = await gameBinding(db, gameId)
-  if (game !== null) return game
-  const own = await soloBinding(db, discordId)
-  return own === null ? null : { ...own, own: true }
 }
 
 /** Where a unit the player may see lives, and whether they may write it; null when nowhere. */
@@ -440,13 +400,13 @@ const CALLS = {
         gameId: game.gameId,
         gameName: game.name,
         mayBind: mayBindChannel(game),
-        binding: await gameBinding(deps.db, game.gameId),
+        binding: await gameBindingView(deps.db, game.gameId),
       })
     }
-    return { personal: await soloBinding(deps.db, who.discordId), games }
+    return { personal: await soloBindingView(deps.db, who.discordId), games }
   },
   'channelBindings.current': async (who: Caller, a: { gameId?: string }, deps: CallDeps) => {
-    if (a.gameId === undefined) return soloBinding(deps.db, who.discordId)
+    if (a.gameId === undefined) return soloBindingView(deps.db, who.discordId)
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
     return read === null ? null : rollChannel(deps.db, who.discordId, a.gameId)
   },
