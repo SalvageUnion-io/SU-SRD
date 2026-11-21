@@ -4,7 +4,8 @@
  *
  * One line per other seat in the Game: whether they are here (their player
  * has the Game open, `useGamePresence`), their callsign, their mount ("Boarded
- * · Atlas", "On foot") and one vital. Who needs looking at is `crewLines()`'s
+ * · Atlas", "On foot"), the one vital that flags them, and every number
+ * with its maximum (HP, AP; aboard, the mech's SP, EP and Heat). Who needs looking at is `crewLines()`'s
  * verdict, the server's `attention`, so every screen at the table flags the
  * same crewmates; this only picks which number says it.
  */
@@ -12,7 +13,7 @@
 import type { PairSide } from '../lib/units/crewPair'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
-import { crewLines, vitalCurrent } from './useGameFeed'
+import { crewLines, vitalCurrent, vitalText } from './useGameFeed'
 
 /**
  * What needs looking at, in words: the line's problems, else its parked mech's
@@ -49,6 +50,11 @@ export type CrewSeatLine = CrewLine & {
   /** The mech they are aboard, or null on foot: the mount chip's value. */
   boardedIn: string | null
   vital: CrewVital
+  /**
+   * Every number the crew reads of them, each with its maximum ("9/10"): HP
+   * and AP always, and aboard their mech's SP, EP and Heat.
+   */
+  vitals: { label: string; value: string }[]
   /** What is wrong, in words, or null: the line's accessible name says it. */
   problem: string | null
 }
@@ -116,6 +122,17 @@ export function crewSeatLines(
         mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
         boardedIn,
         vital: crewVital(pilot, mech, line.attention),
+        vitals: [
+          { label: 'HP', value: line.hp },
+          { label: 'AP', value: line.ap },
+          ...(pilot.boarded && mech !== undefined
+            ? [
+                { label: 'SP', value: vitalText('pool', mech.currentSP, mech.maxSP) },
+                { label: 'EP', value: vitalText('pool', mech.currentEP, mech.maxEP) },
+                { label: 'Heat', value: vitalText('gauge', mech.currentHeat, mech.maxHeat) },
+              ]
+            : []),
+        ],
         problem: crewProblem(line),
       },
     ]
@@ -141,6 +158,7 @@ export function crewLineLabel(line: CrewSeatLine): string {
     line.present ? 'here' : 'away',
     line.mount,
     line.problem ?? (line.vital.attention ? vital : `${vital}, fine`),
+    ...line.vitals.map((v) => `${v.label} ${v.value}`),
   ].join(', ')
 }
 

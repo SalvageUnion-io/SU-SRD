@@ -67,6 +67,8 @@ export type PlayActions = {
    * word when its action leaves the hand (`PlayOrphanResolve`).
    */
   resolvingUntouched: boolean
+  /** The action that just finished and closed itself: its row says Done. */
+  doneKey: string | null
   /** Open an on-hand action's resolve in its row (Use). */
   open: (key: string) => void
   /**
@@ -188,6 +190,7 @@ export function usePlayActions(play: Play, deps: PlayActionsDeps = {}): PlayActi
       !resolving.activated &&
       !resolving.applied,
     open: deck.open,
+    doneKey: deck.doneKey,
     heatScale,
     closeOnly: closeRangeOnly(play.scene.conditions),
     rollFor,

@@ -54,6 +54,7 @@ import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
 import { StopSignButton } from './StopSign'
+import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
@@ -103,6 +104,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const { here, of } = hereOf(mediator.seats)
   const running = mediator.downtime.downtime.running
   const sign = useStopSign(gameId)
+  const session = useGameSession(gameId)
 
   useEffect(() => {
     if (!focusTo || (!wide && tab !== 'propose')) return
@@ -182,7 +184,13 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
-      foot={<PlayFoot solo={false} tone={PHASE_TONE[running ? 'downtime' : 'scene']} />}
+      foot={
+        <PlayFoot
+          solo={false}
+          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+          note={session?.live ? playCopy('sessionLive') : undefined}
+        />
+      }
     />
   )
 }

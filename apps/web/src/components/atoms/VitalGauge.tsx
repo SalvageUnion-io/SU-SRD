@@ -2,6 +2,7 @@ import type { CSSProperties, KeyboardEvent, MouseEvent, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { StatBreakdown } from 'salvageunion-reference/rules'
 import { color, fontSize, space, weight } from '../../design/tokens'
+import { cn } from '../../lib/cn'
 import { atomsCopy } from '../../messages/components-atoms'
 import type { Size } from '../../styles/sizing'
 import { capsLabel } from './capsLabel'
@@ -126,6 +127,12 @@ export type VitalGaugeProps = {
    * the track's end (a Live Sheet's vitals, which step in Read: R11).
    */
   steppers?: boolean | 'end'
+  /**
+   * The compact rung's value is a button (Play's "change by an amount"): its
+   * press asks the caller for an amount, which the caller writes through
+   * `onChange`. Absent, the value is a read-out.
+   */
+  onValuePress?: () => void
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -183,6 +190,7 @@ export function VitalGauge({
   onRevertOverride,
   provenance,
   steppers = false,
+  onValuePress,
   readOnly,
   danger,
   size = 'full',
@@ -356,14 +364,26 @@ export function VitalGauge({
           <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
-          <span
-            style={{
-              ...C_VALUE,
-              color: isOver ? color.statusBad : color.ink,
-            }}
-          >
-            {shown}/{max}
-          </span>
+          {editable && onValuePress !== undefined ? (
+            <button
+              type="button"
+              className={cn('su-vital-gauge__value-button', FOCUS_RING)}
+              style={{ ...C_VALUE, color: isOver ? color.statusBad : color.ink }}
+              aria-label={`Change ${label} by an amount, now ${shown} of ${max}`}
+              onClick={onValuePress}
+            >
+              {shown}/{max}
+            </button>
+          ) : (
+            <span
+              style={{
+                ...C_VALUE,
+                color: isOver ? color.statusBad : color.ink,
+              }}
+            >
+              {shown}/{max}
+            </span>
+          )}
         </div>
         {/*
          * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a

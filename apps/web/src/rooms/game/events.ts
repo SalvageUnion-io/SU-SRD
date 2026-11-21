@@ -47,6 +47,8 @@ export type TableEvent = {
   actorId: string | null
   /** Mediators' eyes only: never toasted to a player, never mirrored. */
   private?: true
+  /** The group session began or ended here: what "Last session" is cut by. */
+  session?: 'start' | 'end'
 }
 
 /** How long a line stays open to a repeat. */
@@ -80,6 +82,7 @@ type Stored = {
   /** The line before its count. */
   base?: string
   private?: true
+  session?: 'start' | 'end'
 }
 
 /** What an act needs remembered from before it ran, to say what changed. */
@@ -198,9 +201,25 @@ export class GameEvents {
       case 'redeem':
         return value === 'joined' ? say('join', `${who} joined the Game`) : []
       case 'session.start':
-        return value === true ? say('session', `${who} started the group session`) : []
+        return value === true
+          ? [
+              this.note(actor, at, {
+                kind: 'session',
+                text: `${who} started the group session`,
+                session: 'start',
+              }),
+            ]
+          : []
       case 'session.end':
-        return before.session === true ? say('session', `${who} ended the group session`) : []
+        return before.session === true
+          ? [
+              this.note(actor, at, {
+                kind: 'session',
+                text: `${who} ended the group session`,
+                session: 'end',
+              }),
+            ]
+          : []
       case 'ops.propose': {
         const op = this.store.op(String(value))
         return op === null ? [] : say('proposal', `Mediator proposes ${this.proposalLine(op)}`)
@@ -390,5 +409,6 @@ function eventOf(id: string, ts: number, actorId: string | null, stored: Stored)
     text: stored.text,
     actorId,
     ...(stored.private === true ? { private: true as const } : {}),
+    ...(stored.session === undefined ? {} : { session: stored.session }),
   }
 }

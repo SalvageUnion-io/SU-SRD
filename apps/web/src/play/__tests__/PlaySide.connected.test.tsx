@@ -201,9 +201,9 @@ describe('the Crew (play.md §7)', () => {
     const crew = within(screen.getByRole('list', { name: 'Crew' }))
     const links = crew.getAllByRole('button', { name: /Open their sheet/ })
     expect(links.map((l) => l.getAttribute('aria-label'))).toEqual([
-      'Mags, here, Boarded · Atlas, SP 22, fine. Open their sheet',
-      'Rook, here, On foot, Injured. Open their sheet',
-      'Wren, away, Boarded · Mule, SP 26, fine. Open their sheet',
+      'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9. Open their sheet',
+      'Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet',
+      'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9. Open their sheet',
     ])
     expect(crew.getByText('▲ HP')).toBeTruthy()
     // Presence is a chip on each crewmate's Mini (ruleset §1.3): two here, one away.
@@ -227,7 +227,7 @@ describe('the Crew (play.md §7)', () => {
       const rerender = await renderSide()
       const label = (name: string) =>
         screen.getByRole('button', { name: new RegExp(`^${name},`) }).getAttribute('aria-label')
-      expect(label('Rook')).toBe('Rook, here, On foot, Injured. Open their sheet')
+      expect(label('Rook')).toBe('Rook, here, On foot, Injured, HP 4/10, AP 5/5. Open their sheet')
 
       // Rook climbs into Mule, healed; Mags takes a hit. The crew read answers anew.
       const crew = crewAt()
@@ -249,14 +249,16 @@ describe('the Crew (play.md §7)', () => {
       })
       answers({ 'crew.vitals': crew })
       await rerender()
-      expect(label('Rook')).toBe('Rook, here, Boarded · Mule, SP 26, fine. Open their sheet')
-      expect(label('Mags')).toBe('Mags, here, Boarded · Atlas, Injured. Open their sheet')
+      expect(label('Rook')).toMatch(
+        /^Rook, here, Boarded · Mule, SP 26, fine, HP 10\/10, AP 5\/5, SP 26\/26/
+      )
+      expect(label('Mags')).toMatch(/^Mags, here, Boarded · Atlas, Injured, HP 2\/10/)
       expect(screen.getByText('▲ HP')).toBeTruthy()
 
       // Rook closes the tab: the room says so, and Rook turns away.
       presence.here = new Set(['u-bonesaw', 'u-mags'])
       await rerender()
-      expect(label('Rook')).toBe('Rook, away, Boarded · Mule, SP 26, fine. Open their sheet')
+      expect(label('Rook')).toMatch(/^Rook, away, Boarded · Mule, SP 26, fine/)
       expect(label('Mags')).toMatch(/^Mags, here,/)
     } finally {
       presence.here = CREW_HERE

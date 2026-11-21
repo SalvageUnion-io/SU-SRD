@@ -88,11 +88,19 @@ describe('the Crew (play.md §7)', () => {
     expect(flagged({})).toEqual({ label: 'SP', value: '22', attention: true })
   })
 
+  test('every number with its maximum: HP and AP, and aboard the mech’s SP, EP and Heat (LG-16)', () => {
+    expect(lines.map((l) => l.vitals.map((v) => `${v.label} ${v.value}`))).toEqual([
+      ['HP 10/10', 'AP 5/5', 'SP 22/26', 'EP 6/6', 'Heat 0/9'],
+      ['HP 4/10', 'AP 5/5'],
+      ['HP 10/10', 'AP 5/5', 'SP 26/26', 'EP 6/6', 'Heat 0/9'],
+    ])
+  })
+
   test('the line’s words for a screen reader say all of it', () => {
     expect(lines.map(crewLineLabel)).toEqual([
-      'Mags, here, Boarded · Atlas, SP 22, fine',
-      'Rook, here, On foot, Injured',
-      'Wren, away, Boarded · Mule, SP 26, fine',
+      'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9',
+      'Rook, here, On foot, Injured, HP 4/10, AP 5/5',
+      'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9',
     ])
   })
 

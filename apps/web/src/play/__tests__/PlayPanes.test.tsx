@@ -368,12 +368,17 @@ describe('Act: resolve stays inline', () => {
     await renderPhone({ situation: 'boarded' })
     await click(screen.getByRole('button', { name: `Use ${actionName}` }))
     const row = () =>
-      screen.getByRole('button', { name: `Cancel ${actionName}` }).closest('li') as HTMLElement
+      document.querySelector('li.su-play-act[data-open], li.su-play-act[data-done]') as HTMLElement
     await click(within(row()).getByRole('button', { name: /^Activate/ }))
+    // Once anything is done with it, its close reads Done: closing undoes nothing.
+    expect(within(row()).getByRole('button', { name: `Done with ${actionName}` })).toBeTruthy()
     await click(within(row()).getByRole('button', { name: 'Roll the die on Core Mechanic' }))
     expect(row().querySelector('.su-roll__tag')?.textContent).toBe('Rolled 14')
     await click(within(row()).getByRole('button', { name: /^Apply/ }))
-    expect(within(row()).getByText('Result applied ✓')).toBeTruthy()
+    // The finished action closed itself and says Done.
+    expect(row().getAttribute('data-open')).toBeNull()
+    expect(within(row()).getByRole('status').textContent).toBe('Result applied')
+    expect(within(row()).getByRole('button', { name: `Use ${actionName}` })).toBeTruthy()
     expect(tab('Act').getAttribute('aria-selected')).toBe('true')
     expect(openPanel().contains(row())).toBe(true)
   })

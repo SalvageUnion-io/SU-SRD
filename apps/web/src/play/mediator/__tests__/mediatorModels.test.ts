@@ -24,7 +24,7 @@ import {
   trayEntries,
 } from '../opposition.model'
 import type { SentProposal } from '../proposalLine.model'
-import { proposalLine } from '../proposalLine.model'
+import { proposalAfter, proposalLine } from '../proposalLine.model'
 import { setbackDraft } from '../setbacks.model'
 import { TABLE_CREW, TABLE_MEMBERS, TABLE_SEATS } from './tableFixture'
 
@@ -356,5 +356,22 @@ describe('groups on the tray (ADR-059 §5)', () => {
     ]
     expect(groupRoll(members)?.value).toBe('2026-10-26T01:00:00.000Z')
     expect(groupRoll([row('c', band)])).toBeNull()
+  })
+})
+
+describe('proposalAfter (the Propose dock’s number)', () => {
+  test('Set to is the value itself, within the field', () => {
+    expect(proposalAfter('set', '5', 8, 10)).toBe(5)
+    expect(proposalAfter('set', '14', 8, 10)).toBe(10)
+    expect(proposalAfter('set', '', 8, 10)).toBeNull()
+  })
+  test('Take and Add change what the sheet has: "you take 3 damage" is 8 → 5', () => {
+    expect(proposalAfter('take', '3', 8, 10)).toBe(5)
+    expect(proposalAfter('take', '30', 8, 10)).toBe(0)
+    expect(proposalAfter('add', '2', 4, 6)).toBe(6)
+    expect(proposalAfter('add', '9', 4, 6)).toBe(6)
+  })
+  test('an amount needs a current value to change', () => {
+    expect(proposalAfter('take', '3', null, 10)).toBeNull()
   })
 })

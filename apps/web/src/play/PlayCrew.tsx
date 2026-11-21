@@ -38,6 +38,9 @@ const RESOLVING = {
   margin: 0,
 } satisfies CSSProperties
 
+/** A crewmate's numbers, each with its maximum, on one wrapping line. */
+const VITALS = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[4] } satisfies CSSProperties
+
 type PlayCrewProps = {
   gameId: string
   /** The pilot this screen plays: left out of the list. */
@@ -108,20 +111,23 @@ function CrewLine({ line, onOpen }: { line: CrewSeatLine; onOpen: () => void }) 
               label={`▲ ${vital.label}`}
               value={vital.value ?? undefined}
             />
-          ) : line.present ? (
-            <Stat
-              size="mini"
-              surface="plain"
-              label={vital.label}
-              value={vital.value ?? undefined}
-            />
           ) : null}
         </>
       }
-      // What they are resolving, in words: the Mini's body while there is one.
-      {...(line.resolving
-        ? { body: { text: false, children: <p style={RESOLVING}>{line.resolving}</p> } }
-        : {})}
+      // Every number with its maximum, then what they are resolving, in words.
+      body={{
+        text: false,
+        children: (
+          <>
+            <div style={VITALS}>
+              {line.vitals.map((v) => (
+                <Stat key={v.label} size="mini" surface="plain" label={v.label} value={v.value} />
+              ))}
+            </div>
+            {line.resolving ? <p style={RESOLVING}>{line.resolving}</p> : null}
+          </>
+        ),
+      }}
     />
   )
 }

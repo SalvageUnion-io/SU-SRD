@@ -54,6 +54,7 @@ import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
 import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { LastSession } from './LastSession'
 import { LaunchPlay } from './LaunchPlay'
 import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
@@ -114,6 +115,8 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
+          {/* The session's record, outside Play: nothing until the Game has had one. */}
+          <LastSession gameId={gameId} />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame

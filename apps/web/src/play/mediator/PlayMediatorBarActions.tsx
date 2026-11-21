@@ -6,7 +6,9 @@
  *  - **Tell the table** opens its form (`TellTheTable`)
  *    in a dialog: one word to every player at once (`changeLog.broadcast`),
  *    which lands on each of their Feeds, with the last five sent under it.
- *  - **⋯**: Start or End group session (`useGameSession`, play.md §10), the
+ *  - **Start / End group session** (`SessionControl`, play.md §10): a bar
+ *    button from `lg`, the ⋯'s row on a phone; End asks first.
+ *  - **⋯**: the
  *    Game's own page, the reference (the SRD Explorer, `SrdExplorer`) in
  *    an overlay over Play, and the Discord channel while none is bound.
  *
@@ -20,6 +22,8 @@ import type { HeaderMenuItem } from '../../components/index'
 import { Button, HeaderMenu, ModalShell } from '../../components/index'
 import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
+import { SessionControl } from '../SessionControl'
+import { useEndSession } from '../useEndSession'
 import { useGameSession } from '../useGameSession'
 import { SrdExplorer } from './SrdExplorer'
 import { TellTheTable } from './TellTheTable'
@@ -42,9 +46,12 @@ export function PlayMediatorBarActions({
   const gameHref = gamePath(mediator.gameId)
   const session = useGameSession(mediator.gameId)
   const mayRun = session?.canWrite && !session.pending
+  const end = useEndSession(session)
 
   return (
     <>
+      {/* On the board, not in a menu: the table's own switch (play.md §10). */}
+      {wide && <SessionControl session={session} />}
       {wide && (
         <Button variant="ink" size="compact" onClick={() => setTelling(true)}>
           {mediatorCopy('tellTheTable')}
@@ -67,20 +74,25 @@ export function PlayMediatorBarActions({
                   },
                 ],
               ]),
-          [
-            {
-              id: 'session',
-              label: session?.live ? playCopy('endGroupSession') : playCopy('startGroupSession'),
-              ...(mayRun
-                ? {
-                    onSelect: () => {
-                      if (session.live) session.end()
-                      else void session.start()
-                    },
-                  }
-                : {}),
-            },
-          ],
+          // A phone's bar is one line, so its session control is the ⋯'s row; End asks first.
+          wide
+            ? []
+            : [
+                {
+                  id: 'session',
+                  label: session?.live
+                    ? playCopy('endGroupSession')
+                    : playCopy('startGroupSession'),
+                  ...(mayRun
+                    ? {
+                        onSelect: () => {
+                          if (session.live) end.ask()
+                          else void session.start()
+                        },
+                      }
+                    : {}),
+                },
+              ],
           [
             {
               id: 'game',
@@ -104,6 +116,7 @@ export function PlayMediatorBarActions({
           channel ? [channel] : [],
         ]}
       />
+      {!wide && end.dialog}
       <ModalShell
         open={telling}
         onOpenChange={setTelling}

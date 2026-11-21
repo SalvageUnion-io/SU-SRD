@@ -219,6 +219,21 @@
   }
 }
 
+/* The compact value as a button (Play's change-by-an-amount): the read-out's
+ * own type, underlined so it reads as pressable. */
+.su-vital-gauge__value-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.su-vital-gauge__value-button:hover {
+  text-decoration-style: solid;
+}
+
 /* The ↺ revert glyph: muted, inking on hover. */
 .su-vital-gauge__revert {
   color: var(--color-wk-muted);

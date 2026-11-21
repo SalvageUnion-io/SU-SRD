@@ -51,6 +51,8 @@ type PlayActionRowProps = {
   entry: ActionEntry
   /** The seat's resolve, when it is this action's; null otherwise. */
   resolve: Extract<ResolveModel, { kind: 'resolve' }> | null
+  /** It just finished and closed itself: the row says Done. */
+  done?: boolean
   onUse: () => void
   canWrite: boolean
   /** Why it cannot run as it stands (out of range, over the Heat Cap), or null. */
@@ -111,6 +113,7 @@ function lockChip(locked: string | null, condition: string | undefined) {
 export function PlayActionRow({
   entry,
   resolve,
+  done = false,
   onUse,
   canWrite,
   locked,
@@ -132,9 +135,14 @@ export function PlayActionRow({
         size={size}
         className="su-play-act__use"
         onClick={resolve.onBack}
-        aria-label={playCopy('cancel2', { name: entry.name })}
+        // Closing never undoes a spend, so once anything was done it reads Done.
+        aria-label={
+          resolve.progressed
+            ? playCopy('actionDone2', { name: entry.name })
+            : playCopy('cancel2', { name: entry.name })
+        }
       >
-        {playCopy('cancel')}
+        {resolve.progressed ? playCopy('actionDone') : playCopy('cancel')}
       </Button>
     ) : (
       <Button
@@ -183,7 +191,12 @@ export function PlayActionRow({
       data-open={open || undefined}
       data-locked={(!away && locked !== null) || undefined}
       data-action-key={entry.key}
+      data-done={done || undefined}
     >
+      {/* Mounted with the row, so the finish is spoken as the resolve closes. */}
+      <span className="su-sr-only" role="status">
+        {done ? playCopy('resultApplied') : ''}
+      </span>
       <Entity
         size="mini"
         context="play"
@@ -197,7 +210,9 @@ export function PlayActionRow({
         dim={away || locked !== null || !canWrite}
         {...(away
           ? { state: <NeedChip need={NEED_TEXT[entry.need ?? 'boarded']} /> }
-          : lockChip(locked, entry.action.condition))}
+          : done
+            ? { state: <Stat size="mini" label={playCopy('actionDone')} /> }
+            : lockChip(locked, entry.action.condition))}
         {...(wide && control ? { controls: control } : {})}
         // Open, the Mini prints the whole effect (its model's prose), then
         // the steps; closed, the short line alone.

@@ -250,8 +250,9 @@ describe('the resolve', () => {
     expect(live?.textContent).toBe('')
     await clickRolling('Roll the Die')
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
+    // Apply finishes the action: its resolve closes (the row says Done, `PlayActionRow`).
     fireEvent.click(screen.getByText('Apply'))
-    expect(live?.textContent).toMatch(/Result applied$/)
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
   })
 
   test('the resolve offers Cancel / Start over and an Apply gated on a roll', async () => {
@@ -280,7 +281,7 @@ describe('the resolve', () => {
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
-    const applied = screen.queryByText('Result applied ✓')
+    const applied = container.querySelector('.su-play-resolve') === null
     const routed = screen.queryByText(/^Cascade Failure: a severe/)
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a

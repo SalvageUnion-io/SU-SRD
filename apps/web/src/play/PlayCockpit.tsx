@@ -75,6 +75,7 @@ import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playP
 import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
+import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -120,6 +121,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
+  const session = useGameSession(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
@@ -287,7 +289,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             />
           ) : undefined
         }
-        foot={<PlayFoot solo={solo} tone={PHASE_TONE[play.situation]} />}
+        foot={
+          <PlayFoot
+            solo={solo}
+            tone={PHASE_TONE[play.situation]}
+            note={session?.live ? playCopy('sessionLive') : undefined}
+          />
+        }
       />
     </ShowSheetContext.Provider>
   )
