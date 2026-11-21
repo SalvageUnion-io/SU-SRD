@@ -202,6 +202,28 @@ describe('the pinned notices', () => {
     })
   })
 
+  test('a Game the viewer was removed from says so, until dismissed (r2 B4)', async () => {
+    serveAll(answers())
+    const connected = { status: 'live' as const, canWrite: true, outdated: false }
+    const tree = () => (
+      <SyncContext.Provider value={connected}>
+        <TableNotices pathname="/pilots/p1" />
+      </SyncContext.Provider>
+    )
+    const view = render(tree())
+    expect(notice('removed')).toBeNull()
+    // The Games read answers again without the Game: its Organiser removed them.
+    await act(async () => {
+      serveAll(answers({ 'games.listMine': [] }))
+      view.rerender(tree())
+    })
+    expect(notice('removed')?.textContent).toContain('You are no longer in Tenacity')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Dismiss: You are no longer in/ }))
+    })
+    expect(notice('removed')).toBeNull()
+  })
+
   test('on a Play screen the session needs no door', async () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/pilots/p1/play')
     expect(notice('session')).toBeNull()

@@ -84,3 +84,27 @@ export function pausedTitle(title: string, prefix: string): string {
 export function resumedTitle(title: string, prefix: string): string {
   return title.startsWith(prefix) ? title.slice(prefix.length) : title
 }
+
+/** A Game as the notices remember it between two readings of the viewer's Games. */
+export type KnownGame = { _id: string; name: string }
+
+/** Games the viewer is leaving or deleting themselves: their own doing, so not announced. */
+const ownLeaving = new Set<string>()
+
+/** The viewer is leaving (or deleting) `gameId` themselves; call the answer if it did not happen. */
+export function leavingOnPurpose(gameId: string): () => void {
+  ownLeaving.add(gameId)
+  return () => {
+    ownLeaving.delete(gameId)
+  }
+}
+
+/**
+ * The Games the viewer was in at the last reading and is in no longer, not by
+ * their own doing (r2 B4): its Organiser removed them, or deleted it. Without
+ * this their Play screen just turns into a solo one.
+ */
+export function gamesGone(before: readonly KnownGame[], now: readonly KnownGame[]): KnownGame[] {
+  const still = new Set(now.map((game) => game._id))
+  return before.filter((game) => !still.has(game._id) && !ownLeaving.delete(game._id))
+}

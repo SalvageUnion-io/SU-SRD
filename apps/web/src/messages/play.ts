@@ -325,6 +325,9 @@ export const playCopy = messages({
   addAmount: 'Add {amount} to {label}',
   sessionLiveIn: 'Session live · {game}',
   sessionEndedIn: 'Session ended · {game}',
+  noLongerIn: 'You are no longer in {game}',
+  noLongerInBody:
+    'Its Organiser removed you, or deleted the Game. Your Pilots and Mechs from it are in your Training Bay.',
   dismiss: 'Dismiss',
   dismissWhat: 'Dismiss: {what}',
   fromTheMediatorIn: 'From the Mediator · {game}',

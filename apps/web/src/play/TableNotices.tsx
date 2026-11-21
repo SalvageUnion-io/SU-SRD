@@ -8,7 +8,8 @@
  *  - **Pinned**, until answered or dismissed: the Stop Sign (which also
  *    renames the tab, and turns Play's band, `PlayBar`), each proposal
  *    awaiting this player with Accept and Decline, the Mediator's newest
- *    alert, and "Session live" with its door, then "Session ended".
+ *    alert, and "Session live" with its door, then "Session ended"; and
+ *    a Game the viewer was removed from, which would otherwise just vanish.
  *  - **Toasts**: every other member's act, off the table's event stream
  *    (`tableNotices.model.ts`), the Feed's own source.
  */
@@ -26,10 +27,11 @@ import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
-import type { Heard } from './tableNotices.model'
+import type { Heard, KnownGame } from './tableNotices.model'
 import {
   endedSession,
   eventsToToast,
+  gamesGone,
   NOTICES_RESIZED,
   pausedTitle,
   pinnedAlert,
@@ -76,7 +78,19 @@ export function TableNotices({ pathname }: { pathname: string }) {
   const { status } = useSync()
   const person = useViewerId()
   const games = useGamesQuery('games.listMine', status === 'live' && person !== null ? {} : 'skip')
-  if (person === null || games === undefined || games.length === 0) return null
+  // A Game the viewer was in and is in no longer, not by their own doing (r2 B4).
+  const known = useRef<readonly KnownGame[] | null>(null)
+  const [gone, setGone] = useState<readonly KnownGame[]>([])
+  useEffect(() => {
+    if (games === undefined) return
+    const now = games.map((game) => ({ _id: game._id, name: game.name }))
+    const lost = known.current === null ? [] : gamesGone(known.current, now)
+    known.current = now
+    if (lost.length > 0) setGone((prev) => [...prev, ...lost])
+  }, [games])
+  if (person === null || games === undefined || (games.length === 0 && gone.length === 0)) {
+    return null
+  }
   const inPlay = hidesUnionBar(pathname)
   return (
     <section
@@ -85,6 +99,27 @@ export function TableNotices({ pathname }: { pathname: string }) {
       data-under-bar={inPlay ? undefined : ''}
       aria-label={playCopy('tableNotices')}
     >
+      {gone.map((game) => (
+        <div key={game._id} role="status" data-table-notice="removed">
+          <Callout tone="ink">
+            <div className="su-table-notice">
+              <div className="su-table-notice__text">
+                <Text style={STRONG}>{playCopy('noLongerIn', { game: game.name })}</Text>
+                <Text>{playCopy('noLongerInBody')}</Text>
+              </div>
+              <Button
+                size="compact"
+                aria-label={playCopy('dismissWhat', {
+                  what: playCopy('noLongerIn', { game: game.name }),
+                })}
+                onClick={() => setGone((prev) => prev.filter((g) => g._id !== game._id))}
+              >
+                {playCopy('dismiss')}
+              </Button>
+            </div>
+          </Callout>
+        </div>
+      ))}
       {games.map((game) => (
         <GameNotices
           key={game._id}

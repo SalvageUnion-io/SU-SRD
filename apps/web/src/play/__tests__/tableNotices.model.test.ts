@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
-import { eventsToToast, pausedTitle, pinnedAlert, resumedTitle } from '../tableNotices.model'
+import {
+  eventsToToast,
+  gamesGone,
+  leavingOnPurpose,
+  pausedTitle,
+  pinnedAlert,
+  resumedTitle,
+} from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
   ts: 1,
@@ -72,4 +79,21 @@ test('the paused title wears its prefix once, and loses it on resume', () => {
   expect(pausedTitle('Play', 'Paused · ')).toBe('Paused · Play')
   expect(pausedTitle('Paused · Play', 'Paused · ')).toBe('Paused · Play')
   expect(resumedTitle('Paused · Play', 'Paused · ')).toBe('Play')
+})
+
+describe('gamesGone (r2 B4)', () => {
+  const rust = { _id: 'g1', name: 'Rust Choir' }
+  const coast = { _id: 'g2', name: 'Rust Coast' }
+
+  test('a Game the viewer is in no longer is told once', () => {
+    expect(gamesGone([rust, coast], [coast])).toEqual([rust])
+    expect(gamesGone([coast], [coast])).toEqual([])
+  })
+
+  test('never their own leaving, and a leave that failed is forgotten', () => {
+    leavingOnPurpose('g1')
+    expect(gamesGone([rust], [])).toEqual([])
+    leavingOnPurpose('g1')()
+    expect(gamesGone([rust], [])).toEqual([rust])
+  })
 })
