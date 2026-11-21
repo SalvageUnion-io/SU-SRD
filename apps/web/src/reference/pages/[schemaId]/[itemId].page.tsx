@@ -31,6 +31,7 @@ import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { entityPageHead } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
+import { relationsFor } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
 import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
@@ -39,6 +40,7 @@ import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
+import { PageRelations } from '../../PageRelations'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
 import { SparseRail } from '../../SparseRail'
 import type { PageModule, PageResult, RouteContext } from '../../types'
@@ -175,6 +177,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
+        {/* What links here, listed back (E26). */}
+        <PageRelations relations={relationsFor(schemaId, item)} />
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
           <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>

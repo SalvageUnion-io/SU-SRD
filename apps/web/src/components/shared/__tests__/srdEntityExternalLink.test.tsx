@@ -43,6 +43,16 @@ describe('srdEntityExternalLink', () => {
     expect(container.querySelector('a')?.getAttribute('href')).toBe('/chassis/mule/')
   })
 
+  it("on a Peek's plate it is out of the tab order, as the plate's name is (E16)", () => {
+    const chassis = must(SalvageUnionReference.Chassis.getByName('Mule'))
+    const { container } = render(srdEntityExternalLink(chassis, { inPeek: true }))
+    const link = container.querySelector('a')
+    expect(link?.getAttribute('tabindex')).toBe('-1')
+    expect(link?.hasAttribute('data-peek-out')).toBe(true)
+    const card = render(srdEntityExternalLink(chassis)).container.querySelector('a')
+    expect(card?.hasAttribute('tabindex')).toBe(false)
+  })
+
   it('returns undefined for entities without a schemaName', () => {
     // A complete keyword entity that simply carries no schemaName tag.
     const entity: RefEntity = {

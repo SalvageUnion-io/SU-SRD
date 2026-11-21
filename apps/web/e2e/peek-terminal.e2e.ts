@@ -15,6 +15,8 @@ import { expect, test } from './fixtures'
  * - `open`: the one exception (E16), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
+ *   The app's plate adds View in the Reference (`[data-peek-out]`, also out of
+ *   the tab order); the SRD, read here, is the Reference and has none.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
  * - `inert`: a chip (a trait or relation Tag, an action's chip, a Mini's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
