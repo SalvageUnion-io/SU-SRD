@@ -74,7 +74,7 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('gives every slide a way forward', () => {
     const slides = show.split('class="su-front__show-slide"').slice(1)
-    expect(slides).toHaveLength(7)
+    expect(slides).toHaveLength(8)
     for (const slide of slides) expect(slide).toContain('su-front__show-act')
   })
 
