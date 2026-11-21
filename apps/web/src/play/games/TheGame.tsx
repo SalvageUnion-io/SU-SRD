@@ -19,6 +19,7 @@
  * Game should mean is the owner's decision.
  */
 
+import { mayBindChannel } from 'game-domain/games/discord'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
@@ -41,6 +42,7 @@ import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CREWMATE, useTableRead } from '../../replica/useTable'
+import { GameChannelRow } from './GameChannelRow'
 import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
 
@@ -238,6 +240,15 @@ export function TheGame({
           </li>
         ))}
       </ul>
+      {/* Where its rolls post, and the way to bind one (MD-20). */}
+      <GameChannelRow
+        gameId={gameId}
+        gameName={game.name}
+        mayBind={mayBindChannel({
+          mediator: members?.some((m) => m.userId === viewerId && m.mediator) ?? false,
+          organizer,
+        })}
+      />
       <GameSettingsDialog
         key={String(settings)}
         gameId={gameId}

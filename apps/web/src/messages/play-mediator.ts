@@ -30,7 +30,7 @@ export const mediatorCopy = messages({
   runLede:
     'From your Mediator’s Kit, this Game’s first. Running one copies its opposition in at full HP, so the saved encounter stays as you built it.',
   encounter: 'Encounter',
-  theOppositionOnTheTray: 'The Opposition on the tray',
+  theOppositionOnTheTray: 'The Opposition on the field',
   addToIt: 'Add to it',
   closeDialog: 'Close',
   runNamed: 'Run {name}',

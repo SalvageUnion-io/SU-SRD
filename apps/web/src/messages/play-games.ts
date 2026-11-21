@@ -12,7 +12,8 @@ export const playGamesCopy = messages({
   delete: 'Delete {value}?',
   deleteGame: 'Delete Game',
   deleting: 'Deleting…',
-  thisEndsTheTableFor: 'This ends the table for all {value} of you. It cannot be undone.',
+  thisEndsTheTableFor: 'This ends the table for {who}. It cannot be undone.',
+  thisEndsYourTable: 'This ends the table. It cannot be undone.',
   nothingAnybodyBuiltIsDestroyed: 'Nothing anybody built is destroyed:',
   anythingUnassignedComesToYou: 'Anything unassigned comes to you, in your {build}.',
   andAnythingUnassignedComeTo:

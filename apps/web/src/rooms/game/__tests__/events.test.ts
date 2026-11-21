@@ -150,10 +150,10 @@ describe('the table’s events', () => {
     act(STRANGER, 'redeem', { code, profile: { displayName: 'Nell', avatarUrl: null } }, AT + 8)
     expect(texts()).toEqual([
       'Nell joined the Game',
-      'Med ended the group session',
+      'Mediator ended the group session',
       'Player accepted: p1 · Pilot p1 AP → 2',
       'Mediator proposes p1 · Pilot p1 AP → 2',
-      'Med started the group session',
+      'Mediator started the group session',
       'p1 · Pilot p1 uses Patch',
       'p1 · Pilot p1 boards Mech m1',
     ])
@@ -206,7 +206,7 @@ describe('the table’s events', () => {
     expect(act(MEDIATOR, 'safety.showStop', undefined as never, AT + 6)).toEqual([])
     expect(texts()).toEqual([
       'The Stop Sign is up. Play is paused.',
-      'Med started the group session',
+      'Mediator started the group session',
     ])
   })
 

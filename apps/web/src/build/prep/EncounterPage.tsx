@@ -50,8 +50,11 @@ import { useGo } from '../../components/shared/useGo'
 import { useOwnUnits } from '../../lib/entities/entities'
 import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
+import { areaTitle } from '../../lib/pageTitle'
 import { reportWriteFailure } from '../../lib/runWrite'
+import { useTabTitle } from '../../lib/useTabTitle'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { routesCopy } from '../../messages/routes'
 import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
@@ -124,6 +127,8 @@ export function EncounterPage({ id }: { id: string }) {
 }
 
 function EncounterBody({ encounter }: { encounter: Encounter }) {
+  // The tab names the encounter, in the Mediator's Kit (MD-02); the route's head cannot.
+  useTabTitle(areaTitle(routesCopy('mediatorsKit'), encounter.name || routesCopy('encounter')))
   const { canWrite: connected } = useSync()
   // Read until Edit is pressed, as on every sheet (R11); nothing writes in Read.
   const mode = useSheetModeStore()

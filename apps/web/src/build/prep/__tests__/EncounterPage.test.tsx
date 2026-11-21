@@ -130,7 +130,14 @@ describe('an encounter page', () => {
   test('an unknown encounter says so and leads back to the Mediator’s Kit', async () => {
     await renderPage('missing')
     expect(screen.getByText('Encounter not found')).toBeTruthy()
-    expect(screen.getByText('Back to the Mediator’s Kit')).toBeTruthy()
+    // The back button says "Back to" itself: once (MD2-19).
+    expect(screen.getByRole('link', { name: 'Back to Mediator’s Kit' })).toBeTruthy()
+  })
+
+  // MD-02: every encounter's tab read "Encounter · Training Bay".
+  test('its tab names the encounter, in the Mediator’s Kit', async () => {
+    await renderPage()
+    expect(document.title).toBe('Ambush · Mediator’s Kit · SalvageUnion.io')
   })
 
   test('it shows the opposition, the pinned tables and the private notes', async () => {

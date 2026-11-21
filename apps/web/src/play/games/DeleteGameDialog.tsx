@@ -89,6 +89,14 @@ function countPhrase(n: number, singular: string): string | null {
   return `${n} ${n === 1 ? singular : `${singular}s`}`
 }
 
+/** "for both of you", "for all 4 of you"; alone, nobody else is counted (MD2-19). */
+const endsFor = (members: number) =>
+  members <= 1
+    ? playGamesCopy('thisEndsYourTable')
+    : playGamesCopy('thisEndsTheTableFor', {
+        who: members === 2 ? 'both of you' : `all ${members} of you`,
+      })
+
 const unitCount = (n: number) => `${n} ${n === 1 ? 'unit' : 'units'}`
 
 export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
@@ -134,7 +142,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       describeError={(err) => failureMessage(err, playGamesCopy('gameDeleteFailed'))}
       body={
         <>
-          <Text>{playGamesCopy('thisEndsTheTableFor', { value: game?.memberCount ?? 0 })}</Text>
+          <Text>{endsFor(game?.memberCount ?? 0)}</Text>
 
           {also ? (
             // The counts above would promise back what the tick deletes.

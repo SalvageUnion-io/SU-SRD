@@ -169,6 +169,17 @@ describe('the pinned notices', () => {
     expect(notice('role')).toBeNull()
   })
 
+  // LG2-11: the Mediator's door read "Open table" here and "Mediate" on their Game's row.
+  test('a live session’s door for the Mediator is Mediate, as everywhere', async () => {
+    await renderNotices({
+      'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }],
+      'session.state': { live: true, startedAt: 7 },
+    })
+    const door = screen.getByRole('link', { name: 'Mediate' }) as HTMLAnchorElement
+    expect(door.getAttribute('href')).toBe('/games/g1/mediate')
+    expect(screen.queryByRole('link', { name: 'Open table' })).toBeNull()
+  })
+
   test('a live session offers its door everywhere but on a Play screen, and says when it ends', async () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } })
     expect(notice('session')?.textContent).toContain('Session live · Tenacity')

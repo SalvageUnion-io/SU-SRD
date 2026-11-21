@@ -261,7 +261,7 @@ export class GameEvents {
           ? [
               this.note(actor, at, {
                 kind: 'session',
-                text: `${who} started the group session`,
+                text: `${this.runnerName(actor)} started the group session`,
                 session: 'start',
               }),
             ]
@@ -271,7 +271,7 @@ export class GameEvents {
           ? [
               this.note(actor, at, {
                 kind: 'session',
-                text: `${who} ended the group session`,
+                text: `${this.runnerName(actor)} ended the group session`,
                 session: 'end',
               }),
             ]
@@ -440,6 +440,19 @@ export class GameEvents {
 
   private memberName(userId: string): string {
     return this.store.member(userId)?.displayName ?? 'Crewmate'
+  }
+
+  /**
+   * Who ran the table's own act (the session), as every Feed names them: the
+   * Mediator by role, as their alerts and proposals do, so one screen never
+   * has three words for one person (MD2-12); their own screen says "You"
+   * (`feed.model.ts`). An Organiser running a table with no Mediator goes by
+   * name, or by that role when their account has none: never "Crewmate".
+   */
+  private runnerName(userId: string): string {
+    const member = this.store.member(userId)
+    if (member?.mediator) return 'Mediator'
+    return member?.displayName ?? (member?.organizer ? 'Organiser' : 'Crewmate')
   }
 
   private unitLabel(unitId: string): string {

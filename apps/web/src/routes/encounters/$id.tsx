@@ -5,7 +5,6 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router'
-import { PRODUCT } from 'game-domain/product'
 import { EncounterPage } from '../../build/prep/EncounterPage'
 import { RosterSkeleton } from '../../components/app'
 import { areaTitle } from '../../lib/pageTitle'
@@ -16,7 +15,9 @@ export const Route = createFileRoute('/encounters/$id')({
   loader: async () => {
     await Promise.all([useEncounters.getState().hydrate(), usePatterns.getState().hydrate()])
   },
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('encounter')) }] }),
+  head: () => ({
+    meta: [{ title: areaTitle(routesCopy('mediatorsKit'), routesCopy('encounter')) }],
+  }),
   component: EncounterRoute,
   pendingComponent: RosterSkeleton,
 })

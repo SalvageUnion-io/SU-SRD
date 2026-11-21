@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { PRODUCT } from 'game-domain/product'
 import type { NpcDesignerView } from '../../build/npc/NpcDesignerPage'
 import { NpcDesignerPage } from '../../build/npc/NpcDesignerPage'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
@@ -27,7 +26,9 @@ type NpcsNewSearch = {
  * here. Always the guided designer: an NPC has no Blank door (D4).
  */
 export const Route = createFileRoute('/npcs/new')({
-  head: () => ({ meta: [{ title: areaTitle(PRODUCT.build, routesCopy('designAnNpc')) }] }),
+  head: () => ({
+    meta: [{ title: areaTitle(routesCopy('mediatorsKit'), routesCopy('designAnNpc')) }],
+  }),
   validateSearch: (search: Record<string, unknown>): NpcsNewSearch => ({
     view: search.view === 'crew' ? 'crew' : 'any',
     ...(typeof search.crawler === 'string' && search.crawler ? { crawler: search.crawler } : {}),

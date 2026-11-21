@@ -13,6 +13,7 @@ export const routesCopy = messages({
   pattern: 'Pattern',
   retiredLink: 'Retired link',
   encounter: 'Encounter',
+  npc: 'NPC',
   designAnNpc: 'Design an NPC',
   editDesign: 'Edit design',
   /** The area an NPC's and an encounter's pages are titled with (ADR-067 §5). */

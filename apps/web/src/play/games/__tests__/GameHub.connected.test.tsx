@@ -139,6 +139,8 @@ function answers(over: QueryAnswers = {}): QueryAnswers {
     // A column's "Move in…" checks its moves against your Games.
     'games.listMine': [],
     'safety.stopSign': { stop: null, mayLift: false },
+    // The Game's Discord channel row (MD-20).
+    'channelBindings.current': null,
     ...over,
   }
 }
@@ -505,6 +507,40 @@ describe('a free pair, as a template’s arrive', () => {
     await renderHub({ 'games.listing': pair('u2') })
     const crew = screen.getByRole('table', { name: 'Crew' })
     expect(drawnText(crew).split('Mule').length).toBeGreaterThan(2)
+  })
+})
+
+// MD-20: the Game's page and its settings had no word of the Discord channel.
+describe('the Discord channel on the Game page', () => {
+  /** Connected, so the bound channel is read. */
+  async function renderLive(over: QueryAnswers = {}): Promise<void> {
+    answer(answers(over))
+    await act(async () => {
+      render(
+        <SyncContext.Provider value={{ status: 'live', canWrite: true, outdated: false }}>
+          <GameHub gameId="g1" />
+        </SyncContext.Provider>
+      )
+    })
+  }
+
+  test('a player reads who connects one; no control that could only say no', async () => {
+    await renderLive()
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('Discord channel')).toBeTruthy()
+    expect(sidebar.getByText('None bound: the Mediator or Organiser connects one')).toBeTruthy()
+    expect(sidebar.queryByRole('button', { name: /Discord/ })).toBeNull()
+  })
+
+  test('the Organiser is offered Set up there, and in Game settings', async () => {
+    await renderLive({ 'games.get': { ...GAME, organizer: true } })
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('None bound: rolls stay in Play')).toBeTruthy()
+    expect(sidebar.getAllByRole('button', { name: /Discord channel/ }).length).toBe(1)
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Game settings…' }))
+    const settings = within(screen.getByRole('alertdialog', { name: 'Game settings' }))
+    expect(settings.getByText('Discord channel')).toBeTruthy()
   })
 })
 

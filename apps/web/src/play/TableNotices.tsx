@@ -207,8 +207,9 @@ function GameNotices({
     : null
   const sessionKey = `session:${gameId}`
   const onePilot = pilots.length === 1 ? pilots[0] : undefined
+  // One name a door (glossary §9): the Mediator's is Mediate, wherever it is.
   const door = mediator
-    ? { href: mediatePath(gameId), label: playCopy('openTable') }
+    ? { href: mediatePath(gameId), label: playCopy('mediate') }
     : onePilot !== undefined
       ? { href: cockpitPath(onePilot.id), label: playCopy('joinSession') }
       : { href: gamePath(gameId), label: playCopy('joinSession') }

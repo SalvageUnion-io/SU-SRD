@@ -112,7 +112,7 @@ export const npcCopy = messages({
   delete3: 'Delete {name}',
   makeACopy: 'Make a copy',
   makeACopyOf: 'Make a copy of {name}',
-  madeACopy: 'Made {name}. It is in your Mediator’s Kit, in no Game.',
+  madeACopy: 'Made a copy, {name}. It is in your Mediator’s Kit, in no Game.',
   openTheCopy: 'Open the copy',
   at0HpNothingIs: 'At 0 HP. Nothing is removed: heal them on the HP track.',
   npcSheet: '{name} NPC sheet',

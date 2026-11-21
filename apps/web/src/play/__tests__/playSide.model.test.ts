@@ -411,3 +411,38 @@ describe('Discord channels (play.md §9)', () => {
     expect(channelTag(null)).toBeNull()
   })
 })
+
+// MD2-12: one Feed called the Mediator 'You', 'Mediator' and 'Crewmate'.
+describe('the Mediator on the Feed', () => {
+  const event = (kind: 'alert' | 'proposal' | 'session' | 'join', text: string, actorId: string) =>
+    ({ _id: text, ts: 1, kind, text, actorId }) as never
+  const lines = (viewerId: string) =>
+    playFeedEntries({
+      rolls: null,
+      alerts: [],
+      proposals: [],
+      mine: [],
+      rollerName: 'Med',
+      viewerId,
+      events: [
+        event('alert', 'Mediator · Dust on the ridge', 'med'),
+        event('proposal', 'Mediator proposes Bonesaw HP → 5', 'med'),
+        event('session', 'Mediator started the group session', 'med'),
+        event('proposal', 'Nell accepted: Bonesaw HP → 5', 'nell'),
+      ],
+    }).map((e) => e.text)
+
+  test('their own screen says You; everyone else’s says Mediator', () => {
+    expect(lines('med')).toEqual([
+      'You · Dust on the ridge',
+      'You propose Bonesaw HP → 5',
+      'You started the group session',
+      'Nell accepted: Bonesaw HP → 5',
+    ])
+    expect(lines('nell').slice(0, 3)).toEqual([
+      'Mediator · Dust on the ridge',
+      'Mediator proposes Bonesaw HP → 5',
+      'Mediator started the group session',
+    ])
+  })
+})

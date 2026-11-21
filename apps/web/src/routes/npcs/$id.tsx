@@ -6,11 +6,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { NpcSheetView } from '../../build/npc/NpcSheetView'
 import { SheetSkeleton } from '../../build/sheet/SheetSkeleton'
-import { loadSheet, sheetHead } from '../../lib/sheetRoute'
+import { areaTitle } from '../../lib/pageTitle'
+import { loadSheet } from '../../lib/sheetRoute'
+import { routesCopy } from '../../messages/routes'
 
 export const Route = createFileRoute('/npcs/$id')({
   loader: loadSheet,
-  head: sheetHead,
+  // The NPC's own name follows from the store (`useLocatedSheet`); it is the Mediator's Kit's.
+  head: () => ({ meta: [{ title: areaTitle(routesCopy('mediatorsKit'), routesCopy('npc')) }] }),
   component: NpcSheetPage,
   pendingComponent: SheetSkeleton,
 })
