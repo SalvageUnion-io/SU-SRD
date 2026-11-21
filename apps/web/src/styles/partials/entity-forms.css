@@ -25,6 +25,15 @@
   text-decoration: none;
 }
 
+/* A screen narrower than the floor and its page's gutters (a phone at 200%
+   zoom is 195px): the Compact gives way to the screen rather than push the
+   page sideways (WCAG 1.4.10, reflow). */
+@media (width < 14rem) {
+  .su-entity-compact {
+    min-width: 0;
+  }
+}
+
 /* The frame: its head's band paint (R38, `--su-band`; the subtle ink-40 for a
    `Box` with no band), round a Compact or `Box` with content
    under its head; no edge round one that is its head alone (`data-bodyless`),
