@@ -84,7 +84,7 @@ const RULES: Rule[] = [
     rule: 'ruleset §3.8 — no stylesheet rule sets words on a TL blue',
     fix:
       'Put the words on paper and let the TL colour frame them, as `.su-tl` does ' +
-      '(styles/build/dash.css). A case the book heads in TL: TL_TEXT_EXEMPT.',
+      '(styles/partials/open-ledger.css). A case the book heads in TL: TL_TEXT_EXEMPT.',
   },
 ]
 

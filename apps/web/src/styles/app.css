@@ -19,7 +19,6 @@
 @import './build/sheet.css';
 /* The sheet dashboard's grammar. */
 @import './build/dash.css';
-@import './best-site.css';
 /* src/components classes handed back their own type over this file's heading
    rule. */
 @import './build/libHandback.css';
@@ -66,4 +65,21 @@ h6 {
   font-family: var(--font-cond);
   font-weight: 700;
   letter-spacing: var(--tracking-caps-tight);
+}
+
+/* ── No page taller than it needs ─────────────────
+   The window is the column: the bar, the route, the foot; the route takes
+   only the spare height, so a short page ends on the window's edge with no
+   scroll, and a long one scrolls by its content alone. (`#root` stood a full
+   window tall with the foot outside it: a short page always scrolled by the
+   foot's height.) */
+body:has(> #root) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+body > #root {
+  flex: 1 0 auto;
+  min-height: 0;
 }

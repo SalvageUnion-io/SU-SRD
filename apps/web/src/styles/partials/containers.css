@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 14 of 20: the Containers group. `../index.css`
+ * The package stylesheet: the Containers group. `../index.css`
  * imports the parts in cascade order.
  */
 
@@ -404,4 +404,48 @@
 .su-header-menu-item--danger[data-highlighted]:not([data-disabled]) {
   background-color: var(--color-status-bad);
   color: var(--color-paper);
+}
+
+/* Rows sit on their strip, as a table's do; a row's text is on the row. A
+   mini strip (a divider: a tree's name over its cards) keeps its gap, so the
+   box below it never sits flush on the rule. Cards
+   on the page's ground (the doors) keep the Page's gap: they are no rows. */
+.su-slab-section:not(.su-slab-section--mini, .su-start-here):has(> [data-rows]) {
+  gap: 0;
+}
+
+/* A section whose body is a masonry of cards (an action grid, `MiniGrid`)
+   stands its cards a gap below its strip, and its name's cut-out is the
+   ground under it, not paper: the cards are what is paper. */
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid) {
+  gap: var(--space-12);
+}
+
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid)
+  > .su-rule-head
+  > .su-rule-head__label {
+  background-color: var(--su-ground, var(--color-wk-bg));
+}
+
+/* No box stands naked on the ground: a section whose body is words (a
+   Description, a chassis ability, a sheet's facts or prose, a guide step, a
+   pattern's own words) sits on a paper panel, as a Ledger's rows do, and its
+   tab is cut from the same paper (the cut-out law). */
+.su-slab-section:is(.su-manual__lore, .su-manual__ability),
+.su-slab-section:has(
+  > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+),
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child) {
+  --cutout-ground: var(--color-paper);
+}
+
+.su-slab-section:is(.su-manual__lore, .su-manual__ability) > .su-slab-section__body,
+.su-slab-section:has(
+    > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+  )
+  > .su-slab-section__body,
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child)
+  > .su-slab-section__body {
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }

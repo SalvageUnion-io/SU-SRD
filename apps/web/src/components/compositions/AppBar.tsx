@@ -256,7 +256,7 @@ export function AppBar({
         {!noCurrent &&
           (Object.keys(AREA_NAV) as Area[]).map((area) => (
             // All three are served; the bar's `data-mode` shows its own
-            // (`best-site.css`), so the rail follows the app's route marking.
+            // (`partials/shell.css`), so the rail follows the app's route marking.
             <nav
               key={area}
               className="su-union-bar__rail"

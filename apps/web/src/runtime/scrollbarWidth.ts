@@ -1,6 +1,6 @@
 /**
  * The window's scrollbar width as `--su-scrollbar` on <html>, so the page
- * column's centred measure (`100vw` less it, `best-site.css`) lands where the
+ * column's centred measure (`100vw` less it, `partials/page-shell.css`) lands where the
  * layout's own centring does.
  */
 export function trackScrollbarWidth(): void {

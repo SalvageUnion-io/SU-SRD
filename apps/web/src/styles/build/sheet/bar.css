@@ -1,0 +1,128 @@
+/*
+ * The sheet's condensed bar (`SheetBarStrip`, `LiveSheet`). `sheet.css`
+ * imports it.
+ *
+ * Once the band scrolls away it is the band in brief, one row at most 48px:
+ * the unit's paint full bleed; the name on its paper cut-out at the card
+ * column's edge (callsign, real name, what it is); each vital a tracker,
+ * figure over max on a thin fill, critical in rust; the band's acts at the
+ * end. A quick slide, none under reduced motion.
+ */
+
+:root .su-sheet-gutter {
+  padding-inline: calc(var(--su-page-gutter-inline) - var(--su-column-pad));
+}
+
+.su-sheet-gutter [data-sheet-strip] {
+  column-gap: var(--space-8);
+}
+
+.su-sheet-bar__name {
+  align-items: baseline;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  column-gap: var(--space-8);
+  display: inline-flex;
+  min-width: 0;
+  padding: var(--space-6) var(--su-column-pad, var(--space-12));
+  white-space: nowrap;
+}
+
+.su-sheet-bar__name > b {
+  font-family: var(--font-cond);
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.su-sheet-bar__name > span {
+  font-size: var(--text-body);
+  line-height: 1;
+}
+
+.su-sheet-bar__name > small {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+}
+
+.su-sheet-bar__vital {
+  align-items: baseline;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--color-ink);
+  column-gap: var(--space-6);
+  display: grid;
+  grid-template-columns: auto auto;
+  padding: var(--space-4) var(--space-8) var(--space-6);
+  position: relative;
+  white-space: nowrap;
+}
+
+.su-sheet-bar__label {
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+}
+
+.su-sheet-bar__figure {
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.su-sheet-bar__figure > b {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-sheet-bar__figure > i {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The fill: a thin bar along the card's foot, the unit's paint. */
+.su-sheet-bar__meter {
+  background-color: var(--color-ink-10);
+  bottom: 0;
+  height: var(--space-2);
+  left: 0;
+  position: absolute;
+  right: 0;
+}
+
+/* The fill, its share of the meter in the unit's paint. */
+.su-sheet-bar__meter::before {
+  background-color: var(--su-kind, var(--color-ink));
+  content: '';
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: calc(var(--su-fill) * 100%);
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__meter::before {
+  background-color: var(--color-status-bad);
+}
+
+.su-sheet-bar__vital[data-state='critical'] .su-sheet-bar__figure > b {
+  color: var(--color-status-bad);
+}
+
+/* The acts, compact, as the rail draws them. */
+.su-sheet-bar__acts {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+}
+
+.su-sheet-bar__acts :is(a, button) {
+  min-height: 0;
+  padding-block: var(--space-4);
+}

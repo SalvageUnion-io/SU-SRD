@@ -5,14 +5,12 @@
  */
 /* The page layouts. */
 @import './pages.css';
+@import './pages-class.css';
+@import './pages-docs.css';
 /* The Discord page's screenshots, in Discord's colours. */
 @import './discord-reply.css';
 /* The /about junk slab, the one CSS illustration. */
 @import './pilot-panel.css';
-/* The strip head and the unframed Ledger,
-   on the Reference and the front pages too. */
-@import './build/dash.css';
-@import './best-site.css';
 
 /* The Union bar's account controls (`lib/accountBar.ts`): Sign in gives way
    to the account menu while somebody is signed in, and an account island that

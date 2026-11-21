@@ -43,7 +43,7 @@ export type PageShellProps = {
   stack?: boolean
   /** The space between stacked children: a step of `tokens.space`. */
   gap?: LayoutGap
-  /** The measured layout's body width (`'75rem'`, `PAGE_MEASURE`). */
+  /** The measured layout's body width (`PAGE_MEASURE`, or a length such as `'40rem'`). */
   measure?: string
   /** The measured layout's band (and anything else full-bleed above the body). */
   band?: ReactNode

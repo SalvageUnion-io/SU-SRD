@@ -1,0 +1,114 @@
+/*
+ * The package stylesheet: the Ledger unframed (ledger.md L1) and its head
+ * strip. Its head strip stays in its kind's colour, the frame and the foot
+ * band go (L-4: tables have no borders), the rows band deeper, every label on
+ * the strip is a cut-out on its foot, and "+ New…" rides the strip.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+.su-box.su-ledger {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+}
+
+/* A picked row keeps its ink (ledger.css): the band's tint under paper words
+   reads as a disabled row. */
+.su-ledger__table tbody tr[data-band]:not([data-picked]) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* From `sm` a row stands taller, its fill cells too (`ledger.css` zeroes
+   theirs on a phone and in the head). */
+@media (width >= 40rem) {
+  .su-ledger__table tbody :is(th, td),
+  .su-ledger__table tbody [data-kind='fill'] {
+    padding-block: var(--space-8);
+  }
+}
+
+/* A button is never on a cut-out: the Ledger's "+ New…" rides the strip. */
+.su-ledger__head .su-ledger__action {
+  background-color: transparent;
+  padding: 0;
+}
+
+.su-ledger__head > th[data-kind='trailing']:has(.su-ledger__action) {
+  padding: var(--space-6) var(--space-8);
+  vertical-align: middle;
+}
+
+.su-ledger .su-box__body > :not(table) {
+  background: none;
+  background-image: none;
+}
+
+.su-ledger__table tbody tr + tr > * {
+  border: 0;
+}
+
+/* A Reference or Bay list's strip. */
+.su-ledger__table .su-ledger__head > th {
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+.su-ledger__table .su-ledger__head > th:first-child {
+  padding-top: var(--space-8);
+  vertical-align: baseline;
+}
+
+.su-ledger__table .su-ledger__head > th:has(.su-btn) {
+  padding-block: var(--space-6);
+  vertical-align: middle;
+}
+
+/* Every label in the strip is a paper cut-out on its foot, notched into the
+   first row as the title's tab is (L2), each on one line: the tab, then a
+   cut-out over each column. A button in the strip stays centred on it. */
+.su-ledger__table .su-ledger__head > th:not(:has(.su-btn)) {
+  vertical-align: bottom;
+}
+
+.su-ledger__table .su-ledger__head > th:not(:first-child, :has(.su-btn)) {
+  padding-bottom: 0;
+}
+
+/* Bottom-aligned on its line, and at the foot of a phone's taller sort
+   button: no room stands under the cut-out. */
+.su-ledger__head > th:not(:first-child) > * {
+  vertical-align: bottom;
+}
+
+.su-ledger__head > th:not(:first-child) .su-ledger__sort {
+  align-items: flex-end;
+}
+
+.su-ledger__head > th:not(:first-child) .su-badge--stamp-solid {
+  align-items: center;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  display: inline-flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  white-space: nowrap;
+}
+
+.su-ledger__head .su-ledger__title-line {
+  align-items: flex-end;
+}
+
+/* A mark beside the tab (HOMEBREW) stands on the foot's line with it, never
+   below the tab's foot. */
+.su-ledger__head .su-ledger__mark {
+  align-self: flex-end;
+  margin-bottom: var(--space-2);
+}
+
+/* ── The contrast floor (§3.8, §4.6) ──────────────
+   Every word passes 4.5:1 on what it stands on (3:1 large or a UI edge). */
+
+/* An empty cell's dash and an empty figure read at ink-75, not a ghost. */
+.su-ledger__table tbody [data-empty] {
+  color: var(--color-ink-75);
+}

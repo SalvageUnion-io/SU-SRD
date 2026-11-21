@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 7 of 20: the stat column and the entity page.
+ * The package stylesheet: the stat column and the entity page.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -173,6 +173,8 @@
   font-size: var(--text-readout);
   gap: var(--space-12);
   line-height: 1.6;
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }
 
 .su-entity-page__prose {
@@ -336,4 +338,85 @@
 
 .su-entity-page__section--end > .su-slab-section__head {
   flex-direction: row-reverse;
+}
+
+/* ── An entity page's stats, as a masthead ──────────────────────────────── */
+
+/* Each stat is its own tile, as the home
+   page's doors are: a paper card framed in the page's band paint, the
+   numeral large on top, and at its foot the band's strip with the label on
+   its paper cut-out, as a door's name sits under its art. No panel holds
+   them: they stand on the page's grid, a block apart, and wrap. */
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) {
+  --su-tile-label: calc(var(--text-body) + 2 * var(--space-4));
+  --su-grid-gap: var(--space-12);
+  background: none;
+  border: 0;
+  gap: var(--space-12);
+  padding: 0;
+}
+
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
+  align-items: flex-start;
+  /* The head strip: a band of the kind's paint over the tile's paper. */
+  background: var(--color-paper);
+  box-shadow: inset 0 calc(var(--su-tile-label) + var(--space-6)) 0 0
+    var(--su-kind, var(--color-ink));
+  /* A stat value's frame is the hairline (page rhythm, ruleset §3.7). */
+  border: var(--bw-hairline) solid var(--su-kind, var(--color-ink-40));
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  justify-content: flex-start;
+  min-height: 0;
+  outline: 0;
+  padding: 0;
+}
+
+/* Top-down: the strip heads the tile; the label is a cut-out facing down,
+   flush with the strip's foot so it opens into the numeral's paper below it
+   (the cut-out law), the strip showing above. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--su-tile-label-size, var(--text-body));
+  height: var(--su-tile-label);
+  justify-content: flex-start;
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  margin: var(--space-6) 0 0 var(--space-8);
+  min-height: 0;
+  padding: var(--space-4) var(--space-8);
+}
+
+/* A phone reads the short labels at the chip rung (ruleset Source 3). */
+@media not (width >= 40rem) {
+  .su-entity-page
+    .su-stat-column:not(.su-stat-column--compact)
+    .su-stat-column__stat
+    > .su-stat-plate--label:has(.su-stat-label--short) {
+    --su-tile-label-size: var(--text-chip);
+  }
+}
+
+/* The numeral: large, on the tile's paper, no frame of its own. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--value {
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  flex: 1 1 auto;
+  font-size: var(--text-hero);
+  justify-content: flex-start;
+  line-height: 1;
+  min-height: 0;
+  min-width: 0;
+  outline: 0;
+  padding: var(--space-12) var(--space-12) var(--space-8);
+  width: auto;
 }
