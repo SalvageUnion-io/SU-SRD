@@ -131,8 +131,8 @@ body:has(.su-front--show) main {
   position: absolute;
 }
 
-/* The pitch under the site's name, and a slide's heading over its line: the
-   title's face, a step under the name. */
+/* The first slide's pitch, and a slide's heading over its line: the title's
+   face, a step under the name. */
 .su-front__show-pitch,
 .su-front__show-heading {
   font-family: var(--font-cond);
@@ -144,9 +144,8 @@ body:has(.su-front--show) main {
 }
 
 /* The site's name on a cut-out in the header's dress (paper on ink-deep,
-   its speckle: `.su-grain--paper`)
-   notched into it at the top left, the chapter title's face at its size, and
-   the pitch flowing flush out of its foot on the same ground. */
+   its speckle: `.su-grain--paper`) notched into it at the top left, the
+   chapter title's face at its size. */
 .su-front__show-head {
   align-items: flex-start;
   display: flex;
@@ -160,8 +159,7 @@ body:has(.su-front--show) main {
   z-index: 2;
 }
 
-/* The site's name on its cut-out at the left, the pitch tucked under it on
-   cut-outs of its own, each line as wide as its words. */
+/* The site's name on its cut-out at the left. */
 .su-front__show-brand {
   align-items: flex-start;
   display: flex;
@@ -178,22 +176,6 @@ body:has(.su-front--show) main {
   margin: 0;
   padding: var(--space-12) var(--space-16) var(--space-4);
   white-space: nowrap;
-}
-
-/* Each line's cut-out fills its line exactly (the face's content, then its
-   padding above and below), so the lines and the name stack flush, no gap
-   between them. */
-.su-front__show-brand > .su-front__show-pitch {
-  line-height: calc(1.15em + var(--space-6));
-  max-width: 30rem;
-}
-
-.su-front__show-pitch-line {
-  background-color: var(--color-ink-deep);
-  color: var(--color-paper);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-  padding: calc(var(--space-6) / 2) var(--space-16);
 }
 
 /* A slide's words, at its lower right in the same place on every slide: one
