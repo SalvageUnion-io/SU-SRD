@@ -44,15 +44,18 @@ function Meter({
   danger,
   ink,
   cargo,
+  perRow,
 }: {
   value: number
   max: number
   danger?: number | undefined
   ink?: boolean
   cargo?: boolean
+  perRow?: number | undefined
 }) {
   const count = Math.max(max, value)
-  const tracks = { gridTemplateColumns: `repeat(${meterColumns(count)}, minmax(0, 1fr))` } // design-tokens-ignore(item-grid): a meter's segments, a fixed track
+  const columns = perRow ? Math.min(perRow, count) : meterColumns(count)
+  const tracks = { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } // design-tokens-ignore(item-grid): a meter's segments, a fixed track
   return (
     <span
       className="su-strip__meter"
@@ -194,6 +197,8 @@ export type StripFigureProps = {
   tint?: 'ink' | 'cargo' | { tl: number | string }
   /** The reading is over its cap. */
   over?: boolean
+  /** Pips to a row: a pilot's six inventory slots sit 3 × 2. */
+  perRow?: number
 }
 
 /** A fixed figure: label, numeral, and a small meter where there is one. */
@@ -206,6 +211,7 @@ export function StripFigure({
   meter,
   tint,
   over,
+  perRow,
 }: StripFigureProps) {
   const numeric = typeof value === 'number' ? value : Number(value)
   const tl = typeof tint === 'object' ? tint.tl : undefined
@@ -220,7 +226,13 @@ export function StripFigure({
           {unit && <small>{unit}</small>}
         </span>
         {meter === 'pips' && max !== undefined && max <= 24 ? (
-          <Meter value={numeric} max={max} ink={tint === 'ink'} cargo={tint === 'cargo'} />
+          <Meter
+            value={numeric}
+            max={max}
+            ink={tint === 'ink'}
+            cargo={tint === 'cargo'}
+            perRow={perRow}
+          />
         ) : meter === 'bar' ? (
           <span
             className="su-strip__bar"
