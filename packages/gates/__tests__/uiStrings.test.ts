@@ -135,7 +135,8 @@ describe('EXEMPTIONS', () => {
       expect(e.reason.length).toBeGreaterThan(20)
       expect(e.strings.length).toBeGreaterThan(0)
       expect(existsSync(join(root, e.file))).toBe(true)
-      const source = readFileSync(join(root, e.file), 'utf8')
+      // White space collapsed, as the rule reads a string that runs over lines.
+      const source = readFileSync(join(root, e.file), 'utf8').replace(/\s+/g, ' ')
       for (const s of e.strings) expect(source).toContain(s)
     }
   })
