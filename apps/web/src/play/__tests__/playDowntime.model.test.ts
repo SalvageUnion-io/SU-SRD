@@ -94,6 +94,66 @@ describe('the restore step', () => {
   })
 })
 
+describe('what else the restore step resets', () => {
+  test('a mech’s spent EP is shown going back to full', () => {
+    const mech = mechFixture({ id: 'm', name: 'Buzzard', chassisRef: 'mule', currentEP: 1 })
+    const [line] = plan({ mech, crawler: crawler(1) })
+    expect(line?.key).toBe('mech')
+    const ep = line?.chips.find((chip) => chip.label === 'EP')
+    expect(ep?.value).toMatch(/^1→\d+$/)
+  })
+
+  test('used abilities and the once-per-Downtime toggles are their own line, which may be skipped', () => {
+    const pilot = pilotFixture({
+      id: 'p',
+      name: 'Bonesaw',
+      usedAbilities: ['jury-rig', 'talk-shop'],
+      usedToggles: { motto: true },
+    })
+    const resets = plan({ pilot }).find((l) => l.key === 'resets')
+    expect(resets).toEqual({
+      key: 'resets',
+      title: 'Once-per-Downtime resets',
+      chips: [
+        { label: 'Abilities used', value: '2→0' },
+        { label: 'Once per Downtime', value: 'reset' },
+      ],
+      steps: ['clearUsed'],
+      skippable: true,
+    })
+    expect(stepsFor([resets as never], new Set()).clearUsed).toBe(true)
+  })
+})
+
+describe('the other steps', () => {
+  test('Train your Pilot plans one Training Point', () => {
+    const pilot = pilotFixture({ id: 'p', name: 'Rosa', callsign: 'Bonesaw', trainingPoints: 2 })
+    const [line] = plan({ stepName: 'Train your Pilot', pilot })
+    expect(line).toMatchObject({
+      key: 'train',
+      chips: [{ label: 'TP', value: '2→3' }],
+      steps: ['trainPilots'],
+    })
+  })
+
+  test('Upkeep says what it costs and whose it is to pay', () => {
+    const upkeep = (state: StepPlanInput['upkeep']) =>
+      plan({ stepName: 'Upkeep & Upgrade', crawler: crawler(2), upkeep: state })[0]
+    const outstanding = upkeep({ spent: false, canPay: true })
+    expect(outstanding?.chips[0]?.value).toMatch(/^\d+ Scrap · T2$/)
+    expect(outstanding?.chips[1]?.label).toBe('Outstanding')
+    expect(outstanding?.skippable).toBe(true)
+    const paid = upkeep({ spent: true, canPay: true })
+    expect(paid?.chips[1]?.label).toBe('Paid')
+    expect(paid?.skippable).toBe(false)
+    const theirs = upkeep({ spent: false, canPay: false })
+    expect(theirs?.chips[1]?.label).toMatch(/Mediator/)
+    expect(theirs?.skippable).toBe(false)
+    // No crawler, no Upkeep to plan.
+    expect(plan({ stepName: 'Upkeep & Upgrade' })).toEqual([])
+  })
+})
+
 describe('stepsFor', () => {
   test('the ticked lines switch on their steps, an unticked one leaves its own off', () => {
     const mech = mechFixture({ id: 'm', name: 'Buzzard', itemUses: { '50-cal-machine-gun': 1 } })

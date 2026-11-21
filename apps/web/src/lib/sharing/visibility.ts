@@ -17,6 +17,7 @@
  * connected settings (`ShareSettings.tsx`) decide which write each one makes.
  */
 import type { PublicKind } from 'game-domain/entityKinds'
+import { libSharingCopy } from '../../messages/lib-sharing'
 import type { PatternVisibility } from '../patterns/patterns'
 
 /** The kinds of player thing a player can share. */
@@ -35,8 +36,8 @@ export type VisibilityChoice = {
 }
 
 const LABEL: Record<Visibility, string> = {
-  private: 'Only me',
-  game: 'My Game’s crew',
+  private: libSharingCopy('onlyMe'),
+  game: libSharingCopy('myGamesCrew'),
   link: 'Public',
 }
 
@@ -50,29 +51,28 @@ export function sheetChoices(args: {
   gameName: string | null
 }): VisibilityChoice[] {
   const { inGame } = args
-  const game = args.gameName ?? 'its Game'
+  const game = args.gameName ?? libSharingCopy('itsGame')
   return [
     {
       value: 'private',
       label: LABEL.private,
       description: inGame
-        ? `It is in ${game}, so its crew can see it. Move it to your Training Bay to keep it to yourself.`
-        : 'Kept in your Training Bay. Nobody else can open it.',
+        ? libSharingCopy('sheetPrivateInGame', { game })
+        : libSharingCopy('sheetPrivateOnShelf'),
       disabled: inGame,
     },
     {
       value: 'game',
       label: LABEL.game,
       description: inGame
-        ? `Everyone in ${game} can see it, because it is there.`
-        : 'Move it into a Game to share it with that Game’s crew.',
+        ? libSharingCopy('sheetGameInGame', { game })
+        : libSharingCopy('sheetGameOnShelf'),
       disabled: !inGame,
     },
     {
       value: 'link',
       label: LABEL.link,
-      description:
-        'One live, read-only page anyone can open with no account. It follows every edit, and everything on it goes too, bio and appearance text included.',
+      description: libSharingCopy('sheetLink'),
       disabled: false,
     },
   ]
@@ -84,7 +84,7 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
     {
       value: 'private',
       label: LABEL.private,
-      description: 'Kept in your Training Bay. Build mechs from it any time.',
+      description: libSharingCopy('patternPrivate'),
       disabled: false,
     },
     {
@@ -92,14 +92,14 @@ export function patternChoices(args: { gameName: string | null }): VisibilityCho
       label: LABEL.game,
       description:
         args.gameName === null
-          ? 'Join or start a Game to share with its crew.'
-          : `Everyone in ${args.gameName} can see it and build from it.`,
+          ? libSharingCopy('patternNoGame')
+          : libSharingCopy('patternGame', { game: args.gameName }),
       disabled: args.gameName === null,
     },
     {
       value: 'link',
       label: LABEL.link,
-      description: 'A public pattern page, like a reference page, that anyone can read and copy.',
+      description: libSharingCopy('patternLink'),
       disabled: false,
     },
   ]

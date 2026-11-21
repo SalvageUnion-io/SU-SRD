@@ -53,6 +53,19 @@
   margin-inline-start: var(--space-8);
 }
 
+/* The rows' rank (`TL`), named at the name column's end, over the rows' own
+   stamps: a cut-out on the strip's foot that sorts by the rank, as a column's
+   does by its column. */
+.su-ledger__rank {
+  align-self: flex-end;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  letter-spacing: normal;
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-8);
+}
+
 .su-ledger__sort {
   background: none;
   border: 0;
@@ -360,6 +373,30 @@
   }
 }
 
+/* Between a phone and `lg` a dense list (an index of seven stats) has no room
+   left for its quiet line: the line gives way, as on a phone, and the cells
+   sit closer, so every measure stays inside the frame (R44). */
+@media (width >= 40rem) and (not (width >= 64rem)) {
+  .su-ledger__table[data-dense] :is(th, td)[data-kind='quiet'] {
+    display: none;
+  }
+
+  .su-ledger__table[data-dense] :is(th, td) {
+    padding-inline: var(--space-4);
+  }
+
+  /* A long name wraps rather than push the measures past the frame, and so
+     does a cell of words (a damage with its rider). */
+  .su-ledger__table[data-dense] tbody th {
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-ledger__table[data-dense] tbody [data-kind='text'] {
+    white-space: normal;
+  }
+}
+
 /* On a phone a row keeps its name, its stamp and the columns marked for it;
    a quiet line drops under the name when it is the row's only column. */
 @media not (width >= 40rem) {
@@ -425,6 +462,30 @@
     padding-inline: var(--space-4);
   }
 
+  /* A count's steps take a 44px target on a phone, each its own (SB-17): a
+     step draws 40px wide at its chip's height (R12), in a 44px row, and its
+     hit area reaches the 44px, the − over the count's edge and the + over
+     the cell's padding, so neither passes the frame (R44). */
+  .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell {
+    min-width: var(--space-40);
+  }
+
+  .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell::after {
+    inset-block: min(0px, calc(50% - var(--size-full) / 2));
+  }
+
+  .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell:first-of-type::after {
+    inset-inline-start: calc(var(--space-40) - var(--size-full));
+  }
+
+  .su-ledger__table tbody [data-kind='trailing'] .su-step-btn--cell:last-of-type::after {
+    inset-inline-end: calc(var(--space-40) - var(--size-full));
+  }
+
+  .su-ledger__table tbody tr:has(.su-stat-stepper) > * {
+    height: var(--size-full);
+  }
+
   /* Touch takes a taller picker row (§4.6). */
   .su-ledger__table tbody tr:has(.su-ledger__pick) > * {
     height: var(--space-40);
@@ -452,7 +513,13 @@
 }
 
 .su-shelf-ledgers__col:first-child {
-  flex: 1.35 1 30rem;
+  flex: 1.35 1 40rem;
+}
+
+/* A shelf answers to its own width, not the window's: beside the other
+   column it is far narrower than the page. */
+.su-shelf-ledger {
+  container-type: inline-size;
 }
 
 .su-shelf-ledgers__col,
@@ -506,6 +573,25 @@
   .su-shelf-ledger__flown {
     display: inline;
   }
+
+  /* A column's stamp keeps its caret only while the shelf sorts by it: the
+     shelf's own name still says it sorts, and the make stays whole. */
+  .su-shelf-ledger .su-ledger__head > th:not(:first-child) .su-ledger__arrow[data-idle] {
+    display: none;
+  }
+}
+
+/* A shelf of many figures (Mechs) sets its cells closer, and under 48rem
+   spares the columns marked for it, so its make and each line's menu stay
+   inside the frame. */
+.su-shelf-ledger .su-ledger__table:has([data-spare]) tr > :is(th, td):not(:first-child) {
+  padding-inline: var(--space-4);
+}
+
+@container not (width >= 48rem) {
+  .su-shelf-ledger .su-ledger__table :is(th, td)[data-spare] {
+    display: none;
+  }
 }
 
 /* Search: the dropdown's results as a Ledger.
@@ -516,7 +602,10 @@
   padding: var(--space-8);
 }
 
-.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) {
+/* The banded rows too: their tint (`ledger-strip.css`, later and as specific)
+   otherwise sits under the paper words, and the highlight reads as a grey. */
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']),
+.su-search-ledger .su-ledger__table tbody tr[data-band]:has([aria-selected='true']) {
   background-color: var(--color-ink);
   color: var(--color-paper);
 }
@@ -549,9 +638,12 @@
 }
 
 /* The cost column's mark before its COST stamp (L2): inline on the label's line. */
+/* `max-width: none`: under the reset's `max-width: 100%` a mark counts for
+   nothing in its column's narrowest width, and "Cost" ran off its stamp. */
 .su-ledger__cost-mark {
   display: inline-block;
   flex-shrink: 0;
   margin-inline-end: var(--space-2);
+  max-width: none;
   vertical-align: -0.125em;
 }

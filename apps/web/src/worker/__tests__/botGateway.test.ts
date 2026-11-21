@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
+import { exports as workerExports } from 'cloudflare:workers'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
-import { answerBot as answer } from '../botGateway'
+import { answerBot as answer, BotGateway } from '../botGateway'
 import type { BotRooms } from '../botSheets'
 import { publishGame, signedIn, testDb } from '../shared/__tests__/d1'
 
@@ -129,9 +130,61 @@ describe('answerBot', () => {
     )
   })
 
+  it('puts a public roll in a Game’s bound channel on that Game’s log, as its roller', async () => {
+    const db = await filled()
+    signedIn(db, { accountId: 'acct-sol', discordId: 'd-sol', name: 'sol' })
+    await answerBot(db, 'bindChannel', { discordId: 'd-rosa', channelId: 'c-1', game: 'g-1' })
+    const acts: unknown[] = []
+    const rooms = {
+      account: () => ({ profile: async () => null }),
+    } as unknown as BotRooms
+    const log = (gameId: string) => ({
+      act: async (actor: string, name: string, args: unknown) => {
+        acts.push({ gameId, actor, name, args })
+        return { ok: true }
+      },
+    })
+    const roll = { channelId: 'c-1', tableName: 'Core Mechanic', rolls: [14], outcome: 'Success' }
+    expect(await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa' }, rooms, log)).toEqual({
+      ok: true,
+      logged: true,
+    })
+    expect(acts).toHaveLength(1)
+    expect(acts[0]).toMatchObject({
+      gameId: 'g-1',
+      actor: 'd-rosa',
+      name: 'changeLog.appendChangeLog',
+      args: {
+        entries: [
+          {
+            entityType: 'game',
+            field: 'roll',
+            source: 'discord',
+            after: {
+              description: 'rosa · Core Mechanic · 14 · Success',
+              result: { kind: 'core', roll: 14, outcome: 'Success' },
+            },
+          },
+        ],
+      },
+    })
+    // Somebody not in the Game, an unbound channel, a roll no die made: nothing is logged.
+    const none = { ok: true, logged: false }
+    expect(await answerBot(db, 'logRoll', { ...roll, discordId: 'd-sol' }, rooms, log)).toEqual(
+      none
+    )
+    expect(
+      await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa', channelId: 'c-9' }, rooms, log)
+    ).toEqual(none)
+    expect(
+      await answerBot(db, 'logRoll', { ...roll, discordId: 'd-rosa', rolls: [99] }, rooms, log)
+    ).toEqual(none)
+    expect(acts).toHaveLength(1)
+  })
+
   it('cannot answer the rooms’ ops without the rooms', async () => {
     const db = await filled()
-    for (const op of ['sheet', 'mine'] as const) {
+    for (const op of ['sheet', 'mine', 'logRoll'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
     }
   })
@@ -151,5 +204,37 @@ describe('answerBot', () => {
     for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, args, rooms)).toBeNull()
     }
+  })
+})
+
+describe('the gateway the bot’s binding names', () => {
+  const namespaces = workerExports as Record<string, unknown>
+
+  afterEach(() => {
+    delete namespaces.AccountRoom
+    delete namespaces.GameRoom
+  })
+
+  it('answers over this Worker’s own rooms, each reached by name', async () => {
+    const db = await filled()
+    const reached: string[] = []
+    namespaces.AccountRoom = {
+      getByName: (discordId: string) => {
+        reached.push(`account:${discordId}`)
+        return { profile: async () => ({ displayName: 'Rosa', avatarUrl: null }) }
+      },
+    }
+    namespaces.GameRoom = { getByName: (gameId: string) => reached.push(`game:${gameId}`) }
+    const gateway = new BotGateway({} as never, { SHARED: db } as never)
+    expect(await gateway.answer('me', { discordId: 'd-rosa' })).toMatchObject({
+      ok: true,
+      user: { displayName: 'Rosa' },
+    })
+    expect(reached).toEqual(['account:d-rosa'])
+  })
+
+  it('answers nothing when the Worker has no shared database', async () => {
+    const gateway = new BotGateway({} as never, {} as never)
+    expect(await gateway.answer('me', { discordId: 'd-rosa' })).toBeNull()
   })
 })

@@ -24,7 +24,6 @@ import {
   isLegalCreationChassis,
   isLegalCreationClass,
   isLegalCreationCrawlerWeapon,
-  isLegalCreationEquipment,
   isLegalCreationModule,
   isLegalCreationSystem,
   isPilotAbilityPickComplete,
@@ -40,9 +39,11 @@ import {
   resolveModuleRef,
   resolveSystemRef,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
+import { isStartingEquipment } from './startingEquipment'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
 export type PilotWizardStepId =
@@ -76,7 +77,7 @@ export function npcCreationStepGate(
 ): StepGateResult {
   switch (step) {
     case 'template':
-      return form.templateChosen ? OK : { ok: false, reason: 'Choose a template, or start blank.' }
+      return form.templateChosen ? OK : { ok: false, reason: libRulesCopy('chooseATemplate') }
     case 'stats':
       return npcHitPointsGate(form.hitPoints)
     case 'actions':
@@ -92,12 +93,12 @@ export function npcCreationStepGate(
 
 /** An NPC needs a name — the one gate crawler crew shares with Any NPC. */
 export function npcNameGate(name: string): StepGateResult {
-  return name.trim() ? OK : { ok: false, reason: 'Give the NPC a name.' }
+  return name.trim() ? OK : { ok: false, reason: libRulesCopy('giveTheNpcAName') }
 }
 
 function npcHitPointsGate(text: string): StepGateResult {
   const hp = /^\d+$/.test(text.trim()) ? Number(text.trim()) : 0
-  return hp >= 1 ? OK : { ok: false, reason: 'An NPC needs at least 1 HP.' }
+  return hp >= 1 ? OK : { ok: false, reason: libRulesCopy('anNpcNeedsAtLeast1Hp') }
 }
 
 function findClass(classId: string): RefClass | undefined {
@@ -137,15 +138,15 @@ function findEquipment(slug: string): RefEquipment | undefined {
 function classAbilityGate(form: PilotWizardFormState): StepGateResult {
   const coreTrees = coreTreesOf(findClass(form.classId))
   if (!isLegalCreationClass(coreTrees)) {
-    return { ok: false, reason: 'Choose your class to continue' }
+    return { ok: false, reason: libRulesCopy('chooseYourClass') }
   }
   if (!isPilotAbilityPickComplete(form.abilities.length)) {
-    return { ok: false, reason: 'Choose your first Ability to continue' }
+    return { ok: false, reason: libRulesCopy('chooseYourFirstAbility') }
   }
   const abilitySlug = form.abilities[0]
   const ability = abilitySlug === undefined ? undefined : findAbility(abilitySlug)
   if (!ability || !isLegalCreationAbility(ability, coreTrees)) {
-    return { ok: false, reason: 'Choose your first Ability to continue' }
+    return { ok: false, reason: libRulesCopy('chooseYourFirstAbility') }
   }
   return OK
 }
@@ -155,28 +156,26 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
   if (isPilotEquipmentPickComplete(count)) {
     const allLegal = form.equipment.every((slug) => {
       const item = findEquipment(slug)
-      return item !== undefined && isLegalCreationEquipment(item)
+      return item !== undefined && isStartingEquipment(item)
     })
     if (allLegal) return OK
-    return { ok: false, reason: 'Only Tech 1 equipment is legal at creation' }
+    return { ok: false, reason: libRulesCopy('onlyTech1Equipment') }
   }
   if (count > PILOT_CREATION_EQUIPMENT_PICKS) {
     const excess = count - PILOT_CREATION_EQUIPMENT_PICKS
     return {
       ok: false,
-      reason: `Remove ${excess} equipment item${excess === 1 ? '' : 's'} to continue`,
+      reason: libRulesCopy(excess === 1 ? 'removeItemOne' : 'removeItemMany', { count: excess }),
     }
   }
   const remaining = pilotEquipmentPicksRemaining(count)
-  return {
-    ok: false,
-    reason: `Choose ${remaining} more equipment item${remaining === 1 ? '' : 's'} to continue`,
-  }
+  const reason = libRulesCopy(remaining === 1 ? 'pickItemOne' : 'pickItemMany', { remaining })
+  return { ok: false, reason }
 }
 
 function callsignGate(form: PilotWizardFormState): StepGateResult {
   if (form.name.trim() === '' || form.callsign.trim() === '') {
-    return { ok: false, reason: 'Enter a Name and Callsign to continue' }
+    return { ok: false, reason: libRulesCopy('enterANameAndCallsign') }
   }
   return OK
 }
@@ -250,7 +249,7 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
     const cls = findClass(classId)
     const coreTrees = coreTreesOf(cls)
     if (!isLegalCreationClass(coreTrees)) {
-      removed.push(cls?.name ?? 'class pick')
+      removed.push(cls?.name ?? libRulesCopy('classPick'))
       removed.push(...abilities.map(abilityName))
       classId = ''
       abilities = []
@@ -275,7 +274,7 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
 
   const legalEquipment = equipment.filter((slug) => {
     const item = findEquipment(slug)
-    return item !== undefined && isLegalCreationEquipment(item)
+    return item !== undefined && isStartingEquipment(item)
   })
   for (const slug of equipment) {
     if (!legalEquipment.includes(slug)) removed.push(equipmentName(slug))
@@ -363,14 +362,14 @@ export function maxAddableCopies(
 function mechChassisGate(form: MechWizardFormState): StepGateResult {
   const chassis = form.chassisName ? resolveChassisRef(form.chassisName) : null
   if (!chassis || !isLegalCreationChassis(chassis.techLevel)) {
-    return { ok: false, reason: 'Craft your Chassis to continue' }
+    return { ok: false, reason: libRulesCopy('craftYourChassis') }
   }
   return OK
 }
 
 function mechNameGate(form: MechWizardFormState): StepGateResult {
   if (form.name.trim() === '') {
-    return { ok: false, reason: 'Name your Pattern to continue' }
+    return { ok: false, reason: libRulesCopy('nameYourMech') }
   }
   return OK
 }
@@ -386,7 +385,7 @@ function mechLoadoutLegalityGate(form: MechWizardFormState): StepGateResult {
     return item !== null && isLegalCreationModule(item.techLevel)
   })
   if (!systemsLegal || !modulesLegal) {
-    return { ok: false, reason: 'Only Tech 1 Systems and Modules are legal at creation' }
+    return { ok: false, reason: libRulesCopy('onlyTech1SystemsAndModules') }
   }
   return OK
 }
@@ -394,7 +393,7 @@ function mechLoadoutLegalityGate(form: MechWizardFormState): StepGateResult {
 /** The 20-Scrap cap and both slot budgets must hold (belt for the Review). */
 function mechBudgetGate(form: MechWizardFormState): StepGateResult {
   if (mechCreationBudgetFor(form).remaining < 0) {
-    return { ok: false, reason: 'Over the 20 Tech 1 Scrap budget — remove items' }
+    return { ok: false, reason: libRulesCopy('overTheScrapBudget') }
   }
   const capacity = computeMechCapacity({
     chassisRef: form.chassisName,
@@ -402,10 +401,10 @@ function mechBudgetGate(form: MechWizardFormState): StepGateResult {
     modules: form.modules.map((ref) => ({ ref })),
   })
   if (capacity.violations.some((v) => v.kind === 'system-over-slots')) {
-    return { ok: false, reason: 'Over System Slot capacity — remove Systems' }
+    return { ok: false, reason: libRulesCopy('overSystemSlotCapacity') }
   }
   if (capacity.violations.some((v) => v.kind === 'module-over-slots')) {
-    return { ok: false, reason: 'Over Module Slot capacity — remove Modules' }
+    return { ok: false, reason: libRulesCopy('overModuleSlotCapacity') }
   }
   return OK
 }
@@ -554,7 +553,7 @@ export function clampMechCreationDraft(form: MechWizardFormState): MechDraftClam
   }
 
   if (cargoLots.length > 0) {
-    removed.push('starting cargo')
+    removed.push(libRulesCopy('startingCargo'))
     cargoLots = []
   }
 
@@ -610,24 +609,24 @@ function crawlerTypeResolves(typeRef: string | null): boolean {
 
 function crawlerTypeGate(form: CrawlerWizardFormState): StepGateResult {
   if (!crawlerTypeResolves(form.type)) {
-    return { ok: false, reason: 'Choose your Crawler type to continue' }
+    return { ok: false, reason: libRulesCopy('chooseYourCrawlerType') }
   }
   return OK
 }
 
 function crawlerWeaponsGate(form: CrawlerWizardFormState): StepGateResult {
   if (!isCrawlerWeaponPickComplete(form.systems.length)) {
-    return { ok: false, reason: 'Mount at least one Weapons System to continue' }
+    return { ok: false, reason: libRulesCopy('mountAtLeastOneWeaponsSystem') }
   }
   if (!form.systems.every(isLegalCrawlerWeaponRef)) {
-    return { ok: false, reason: 'Only Tech 1 Weapons Systems are legal at creation' }
+    return { ok: false, reason: libRulesCopy('onlyTech1WeaponsSystems') }
   }
   const slots = crawlerWeaponSlotsFor(form.type)
   if (form.systems.length > slots) {
     const excess = form.systems.length - slots
     return {
       ok: false,
-      reason: `Remove ${excess} Weapons System${excess === 1 ? '' : 's'} — this type mounts ${slots}`,
+      reason: libRulesCopy(excess === 1 ? 'dropWeaponOne' : 'dropWeaponMany', { excess, slots }),
     }
   }
   return OK
@@ -635,7 +634,7 @@ function crawlerWeaponsGate(form: CrawlerWizardFormState): StepGateResult {
 
 function crawlerNameGate(form: CrawlerWizardFormState): StepGateResult {
   if (form.name.trim() === '') {
-    return { ok: false, reason: 'Name your Crawler to continue' }
+    return { ok: false, reason: libRulesCopy('nameYourCrawler') }
   }
   return OK
 }
@@ -698,7 +697,7 @@ export function clampCrawlerCreationDraft(form: CrawlerWizardFormState): Crawler
   let systems = [...form.systems]
 
   if (type !== null && !crawlerTypeResolves(type)) {
-    removed.push(`type pick (${type})`)
+    removed.push(libRulesCopy('typePick', { type }))
     crew = { ...crew }
     delete crew[type]
     type = null

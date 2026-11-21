@@ -77,6 +77,8 @@ type StartHereProps = {
   title?: string
   /** Steps are numbered in order; doors (the home's, Play's) are not. */
   numbered?: boolean
+  /** An id for a step's tile, by key: what an in-page link to it names (`areaAnchors`). */
+  anchors?: Partial<Record<string, string>>
 }
 
 const STEPS = {
@@ -153,6 +155,7 @@ export function StartHere({
   steps = START_HERE_STEPS,
   title = compositionsCopy('startHere'),
   numbered = true,
+  anchors = {},
 }: StartHereProps) {
   return (
     <SlabSection title={title} id={id} as="h2" className="su-start-here" page>
@@ -160,7 +163,7 @@ export function StartHere({
         {steps.map((step, index) => {
           const href = hrefs[step.key]
           return (
-            <li key={step.key} className="su-start-here__item">
+            <li key={step.key} id={anchors[step.key]} className="su-start-here__item">
               {href ? (
                 <a
                   href={href}

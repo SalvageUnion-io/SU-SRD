@@ -26,8 +26,8 @@
  * a solo screen, which shares nothing, has none. Either
  * gives way to a read-only stamp when the connection drops or the tab is
  * outdated (`play.readOnly`).
- * In a Game, Stop shows the Stop Sign, and while it is up a banner under the
- * bar says the game is paused (`StopSign.tsx`).
+ * In a Game, Stop shows the Stop Sign, and while it is up the band wears the
+ * stop colour and the pinned notice says the game is paused (`TableNotices`).
  * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
  * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066); solo there is no ⋯.
@@ -41,6 +41,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -72,9 +73,10 @@ import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
 import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
-import { StopSignBanner, StopSignButton } from './StopSign'
+import { StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
+import { useGameSession } from './useGameSession'
 import { ShowSheetContext } from './useOpenSheet'
 import type { PlayActionsDeps } from './usePlayActions'
 import { usePlayChannelBinding } from './usePlayChannel'
@@ -89,6 +91,7 @@ import { situationRows, useSituationMoves } from './useSituationMoves'
 import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
+import { headedVital, vitalSettled } from './vitalWrites.model'
 
 /** The Rules pane holds the Reference's own frame, edge to edge. */
 const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
@@ -112,14 +115,19 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
-  const pilotName = play.pilot?.name
-  useTabTitle(pilotName ? areaTitle(PRODUCT.build, `${pilotName} · ${routesCopy('play')}`) : null)
+  // Callsign first, then the name, as everywhere a pilot is named.
+  const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
+  // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
+  // pilot plays from the Training Bay.
+  const titleArea = target.gameId === null ? PRODUCT.build : (target.gameName ?? PRODUCT.play)
+  useTabTitle(pilotName ? areaTitle(titleArea, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
     target.gameId !== null && status === 'live' ? { gameId: target.gameId } : 'skip'
   )
   const sign = useStopSign(target.gameId)
+  const session = useGameSession(target.gameId)
   const here = useGamePresence(target.gameId, 'seat')
   const wide = usePlayWide()
   const [tab, setTab] = useState<PlayerPane>('act')
@@ -153,14 +161,25 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
     // The change says itself, with Undo.
-    const from = pinned.find((u) => u.kind === kind)?.vitals.find((v) => v.label === label)?.value
-    runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
+    const shown = tableUnits(pinned)
+      .find((u) => u.kind === kind)
+      ?.vitals.find((v) => v.field === field)
+    const from = label === undefined ? undefined : shown?.value
+    // A press steps from where the vital is heading, so quick ones all apply (LG-03).
+    const key = `${id}:${field}`
+    const to = shown === undefined ? next : headedVital(key, shown.value, next, shown.max)
+    runWrite(() =>
+      useUnits
+        .getState()
+        .update(kind, id, { [field]: to }, PLAY_TXN)
+        .finally(() => (shown === undefined ? undefined : vitalSettled(key)))
+    )
     if (label !== undefined && from !== undefined)
       changeUndoToast({
         id: `${kind}:${id}:${field}`,
         label,
         from,
-        to: next,
+        to,
         undo: (value) =>
           runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
       })
@@ -221,6 +240,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
               }
               stamp={playStamp(target)}
               tone={PHASE_TONE[play.situation]}
+              paused={sign?.shown === true}
               // Back to the pilot's own page (ADR-066); its Game is in ⋯.
               backHref={sheetPath('pilot', target.pilotId)}
               backLabel={playCopy('sheet')}
@@ -248,7 +268,6 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             />
             {channel.dialog}
             {!wide && moves.dialogs}
-            <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
           </>
         }
         pinned={
@@ -287,7 +306,13 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
             />
           ) : undefined
         }
-        foot={<PlayFoot solo={solo} tone={PHASE_TONE[play.situation]} />}
+        foot={
+          <PlayFoot
+            solo={solo}
+            tone={PHASE_TONE[play.situation]}
+            note={session?.live ? playCopy('sessionLive') : undefined}
+          />
+        }
       />
     </ShowSheetContext.Provider>
   )

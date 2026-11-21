@@ -1,6 +1,7 @@
 /**
- * The search's address: the home page with the Union bar's search open on a
- * query, `/?q=portable+cryopod`. The Worker's retired-page redirects, the 404
+ * The search's address: the Reference page with the Union bar's search open on
+ * a query, `/reference/?q=portable+cryopod`. Not the home page, which serves
+ * no search field to open (RR-02). The Worker's retired-page redirects, the 404
  * page's suggestions and the home page's search form all build it here, and
  * the search island and its mount rule read it back here, so the page and the
  * parameter name live in one place.
@@ -9,12 +10,12 @@
  */
 
 /** The page the search opens on. */
-export const SEARCH_PAGE = '/'
+export const SEARCH_PAGE = '/reference/'
 
 /** The query's parameter on {@link SEARCH_PAGE}. */
 export const SEARCH_PARAM = 'q'
 
-/** The home page with its search open on `query`. */
+/** The Reference page with its search open on `query`. */
 export function searchHref(query: string): string {
   return `${SEARCH_PAGE}?${new URLSearchParams({ [SEARCH_PARAM]: query })}`
 }

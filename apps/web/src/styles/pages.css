@@ -163,6 +163,12 @@
   flex-grow: 1;
 }
 
+/* A Ledger that opens the body (a pattern's loadout) is a block of the Page:
+   one rhythm gap over the card it heads (R17). */
+.su-entity__body > .su-ledger {
+  margin-bottom: var(--space-12);
+}
+
 /* The Page's foot (Previous / Next): the body's last block, at the page's
    bottom however short the words, under the body and the sidebar both. */
 .su-entity__foot {
@@ -187,6 +193,17 @@
   gap: var(--space-8);
   margin-block-start: var(--space-24);
   padding-block-start: var(--space-16);
+}
+
+/*
+ * A denizen's Mediator links (`MediatorActsFoot`): static markup the page
+ * shows only while somebody is signed in (`lib/accountState.ts`).
+ */
+.su-mediator-acts {
+  display: none;
+}
+html[data-srd-signed-in] .su-mediator-acts {
+  display: flex;
 }
 
 /*
@@ -621,6 +638,9 @@
     flex-basis: 100%;
     flex-wrap: wrap;
     gap: var(--space-8);
+    /* The panel is the rail's width, never its widest strip's: the Tech Level
+       row wraps inside it (`Segmented wrap`). */
+    min-width: 0;
     padding: var(--space-12);
   }
 
@@ -732,4 +752,59 @@
   .su-rail {
     display: none;
   }
+}
+
+/* A listing's List says its order above itself (`IndexLedger`): the book's,
+   or the column it is sorted by, with the ways to change it. */
+.su-listing__order {
+  align-items: center;
+  color: var(--color-ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--text-caption);
+  gap: var(--space-4) var(--space-12);
+  margin: 0 0 var(--space-8);
+}
+
+/* A phone's row holds two columns beside the name (ledger L8): the reader
+   picks which. Wider, every column is there and the control is not. */
+.su-listing__columns {
+  align-items: center;
+  border: 0;
+  display: none;
+  gap: var(--space-8);
+  margin: 0 0 var(--space-8);
+  min-width: 0;
+  padding: 0;
+}
+
+.su-listing__columns > legend {
+  color: var(--color-ink-2);
+  float: left;
+  font-size: var(--text-caption);
+  margin-inline-end: var(--space-8);
+  padding: 0;
+}
+
+@media not (width >= 40rem) {
+  .su-listing__columns {
+    display: flex;
+  }
+
+  .su-listing__columns > .su-select,
+  .su-listing__columns > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .su-listing__columns > legend {
+    flex: none;
+  }
+}
+
+/* A listing opened on a filtered or sorted address: the served rows are the
+   unfiltered list, so they keep their place out of sight until the island
+   draws the right ones (`directives/interaction.ts`), rather than flash. */
+[data-island-pending] .su-listing__groups {
+  visibility: hidden;
 }

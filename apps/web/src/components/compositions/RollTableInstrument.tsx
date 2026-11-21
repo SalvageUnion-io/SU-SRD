@@ -123,7 +123,7 @@ export function RollTableInstrument({
   table,
   size,
   tone,
-  stamp = 'Roll the Die:',
+  stamp = compositionsCopy('rollTheDie'),
   onRoll,
   title,
   hint,

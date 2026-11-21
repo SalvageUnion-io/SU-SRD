@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 import { exports } from 'cloudflare:workers'
-import { pilotFixture } from '../../components/__tests__/fixtures'
+import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import type { UnitParcel } from '../../rooms/handoff'
 import { GameRoom } from '../rooms'
 import { testDb } from '../shared/__tests__/d1'
@@ -173,6 +173,68 @@ describe('the Game room Durable Object', () => {
     expect(shelves.get(ORGANIZER)?.left).toEqual(['g-end'])
     expect(shelves.get(PLAYER)?.left).toEqual(['g-end'])
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+  })
+
+  test('a member leaves, or the Organiser removes them: their units go home, never deleted (MD-11)', async () => {
+    shelves.clear()
+    const { game } = await seeded('g-leave')
+    // The Organiser stays: the Game is theirs to delete.
+    expect(await game.dismiss(ORGANIZER, ORGANIZER)).toEqual({
+      ok: false,
+      refusal: 'The Organiser cannot leave their own Game: delete it instead',
+    })
+    // Nobody but the Organiser removes someone else.
+    expect(await game.dismiss(PLAYER, ORGANIZER)).toMatchObject({ ok: false })
+    expect(await game.dismiss('d-stranger', PLAYER)).toEqual({
+      ok: false,
+      refusal: 'Not a member of this Game',
+    })
+    expect(await game.dismiss(PLAYER, PLAYER)).toEqual({ ok: true, value: null })
+    expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p1'])
+    expect(shelves.get(PLAYER)?.left).toEqual(['g-leave'])
+    expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
+    expect(game.act(PLAYER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+    expect(game.act(ORGANIZER, 'read', undefined as never)).toMatchObject({
+      ok: true,
+      value: { memberCount: 1 },
+    })
+  })
+
+  // Seen in the two-account walk: a leaver's pilot came home without its mech
+  // assigned. Each unit left alone, so the pairing was dropped with the first.
+  test('a leaver’s pilot and mech go home still assigned to each other', async () => {
+    shelves.clear()
+    const { game } = await seeded('g-pair')
+    const mech = mechFixture({ id: 'm1', name: 'Mech m1', chassisRef: 'iron-mongrel' })
+    game.act(PLAYER, 'createUnit', { id: 'm1', kind: 'mech', body: mech })
+    const pairing = {
+      type: 'mech-to-pilot' as const,
+      from: { type: 'mech' as const, id: 'm1' },
+      to: { type: 'pilot' as const, id: 'p1' },
+    }
+    expect(game.act(PLAYER, 'drawLink', { link: pairing })).toMatchObject({ ok: true })
+    expect(await game.dismiss(PLAYER, PLAYER)).toEqual({ ok: true, value: null })
+    // Both parcels carry the pairing, so the Training Bay keeps it once it
+    // holds both ends (the second to arrive: `AccountTransit.accept`).
+    const pairings = (p: UnitParcel) => p.links.filter((l) => l.type === 'mech-to-pilot').length
+    const home = shelves.get(PLAYER)?.parcels.map((p) => [p.unit.id, pairings(p)])
+    expect(home?.sort()).toEqual([
+      ['m1', 1],
+      ['p1', 1],
+    ])
+    expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
+    expect(await game.unit(ORGANIZER, 'm1')).toBeNull()
+  })
+
+  test('the Organiser removes a member the same way', async () => {
+    shelves.clear()
+    const { game } = await seeded('g-remove')
+    expect(await game.dismiss(ORGANIZER, PLAYER)).toEqual({ ok: true, value: null })
+    expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p1'])
+    expect(game.act(ORGANIZER, 'members', undefined as never)).toMatchObject({
+      ok: true,
+      value: [{ userId: ORGANIZER }],
+    })
   })
 
   test('a Game whose last member leaves is wiped', async () => {

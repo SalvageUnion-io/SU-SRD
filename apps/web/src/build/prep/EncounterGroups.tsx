@@ -9,7 +9,7 @@
 
 import type { EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { ConfirmDialog } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
@@ -139,6 +139,8 @@ export function GroupNameDialog({
 }) {
   const id = useId()
   const [typed, setTyped] = useState(group?.name ?? '')
+  // The dialog is its one field: typing starts there (MD-21).
+  const field = useRef<HTMLInputElement | null>(null)
   const needsAName = buildPrepCopy('groupNeedsAName')
   return (
     <ConfirmDialog
@@ -158,6 +160,7 @@ export function GroupNameDialog({
             {buildPrepCopy('groupName')}
           </Eyebrow>
           <Input
+            ref={field}
             id={id}
             value={typed}
             autoComplete="off"
@@ -166,6 +169,7 @@ export function GroupNameDialog({
           />
         </Stack>
       }
+      initialFocus={field}
       confirmLabel={group === null ? buildPrepCopy('create') : buildPrepCopy('rename')}
       onConfirm={async () => {
         const name = groupName(typed)

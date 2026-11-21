@@ -11,6 +11,12 @@ export const PARAM_TECH_LEVEL = 'tl'
 export const PARAM_SOURCE = 'source'
 export const PARAM_TREE = 'tree'
 export const PARAM_NAME = 'q'
+/** A trait every listed entity carries: `?trait=Hot`. */
+export const PARAM_TRAIT = 'trait'
+/** The List's sort: `?sort=sp` up by that column, `?sort=-sp` down. */
+export const PARAM_SORT = 'sort'
+/** The stat columns a phone's List shows, where the reader chose them: `?cols=range,damage`. */
+export const PARAM_COLUMNS = 'cols'
 /** A shared link's view: `?view=catalog` or `?view=tree`. */
 export const PARAM_VIEW = 'view'
 
@@ -20,6 +26,9 @@ export const LISTING_PARAMS: readonly string[] = [
   PARAM_SOURCE,
   PARAM_TREE,
   PARAM_NAME,
+  PARAM_TRAIT,
+  PARAM_SORT,
+  PARAM_COLUMNS,
   PARAM_VIEW,
 ]
 

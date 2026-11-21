@@ -95,7 +95,7 @@ describe('the template step', () => {
     await renderDesigner()
     await pick('Start from Veteran')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '9')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '9')
     await click('Next: Actions & traits')
     expect(
       screen
@@ -132,7 +132,7 @@ describe('starting over', () => {
     await pick('Start from Veteran')
     await click('Next: Stats')
     await act(async () => {
-      fireEvent.change(screen.getByLabelText(/Hit points/), { target: { value: '12' } })
+      fireEvent.change(screen.getByLabelText(/Hit Points/), { target: { value: '12' } })
     })
     await click('Back')
   }
@@ -143,7 +143,7 @@ describe('starting over', () => {
     expect(screen.getAllByText('Start blank?').length).toBeGreaterThan(0)
     await click('Clear')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '')
   })
 
   test('declining the Start blank question keeps the edited stats', async () => {
@@ -151,7 +151,7 @@ describe('starting over', () => {
     await pick('Start blank')
     await click('Cancel')
     await click('Next: Stats')
-    expect(screen.getByLabelText(/Hit points/)).toHaveProperty('value', '12')
+    expect(screen.getByLabelText(/Hit Points/)).toHaveProperty('value', '12')
   })
 
   test('Cancel on the first step asks before discarding a draft', async () => {
@@ -160,6 +160,27 @@ describe('starting over', () => {
     expect(screen.getAllByText('Discard this draft?').length).toBeGreaterThan(0)
     await click('Keep editing')
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeTruthy()
+  })
+})
+
+describe('any Reference denizen is a template (MD-09)', () => {
+  test('a kind tab lists it, and a Bio-Titan fills its Structure Points as SP', async () => {
+    await renderDesigner()
+    // Book NPCs first; another kind is one press away.
+    expect(screen.queryByRole('radio', { name: 'Start from Scylla' })).toBeNull()
+    await click('Bio-Titans')
+    await pick('Start from Scylla')
+    expect(screen.getAllByText('From Scylla').length).toBeGreaterThan(0)
+    await click('Next: Stats')
+    expect(screen.getByLabelText(/Hit Points/)).not.toHaveProperty('value', '')
+  })
+
+  test('a search reads every kind at once', async () => {
+    await renderDesigner()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Find a template'), { target: { value: 'scylla' } })
+    })
+    expect(screen.getByRole('radio', { name: 'Start from Scylla' })).toBeTruthy()
   })
 })
 

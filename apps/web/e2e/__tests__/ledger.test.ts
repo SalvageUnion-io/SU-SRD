@@ -54,6 +54,16 @@ describe('the Ledger at render', () => {
     expect(faults({ sorts: true })).toEqual(['sort: Systems: a head stamp sorts off an SRD index'])
     expect(faults({ sorts: true }, true)).toEqual([])
   })
+
+  test('sort: the Training Bay holds one sorting shelf, its Mechs', () => {
+    const shelf = (label: string) =>
+      findLedgerFaults([{ ...GOOD, label, sorts: true }], { index: false, shelves: true })
+    expect(shelf('Mechs')).toEqual([])
+    expect(shelf('Pilots')).toEqual(['sort: Pilots: a head stamp sorts off an SRD index'])
+    expect(faults({ label: 'Mechs', sorts: true })).toEqual([
+      'sort: Mechs: a head stamp sorts off an SRD index',
+    ])
+  })
 })
 
 describe('the Ledger as the page draws it', () => {

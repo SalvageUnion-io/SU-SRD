@@ -135,6 +135,7 @@ export {
   // One implementation, one behaviour.
   isSchemaName,
   patternSearchText,
+  rulesSearchText,
   type SearchOptions,
   type SearchResult,
   search,
@@ -146,7 +147,9 @@ export {
 export {
   matchSearchTokens,
   scoreSearchMatch,
+  searchAliases,
   searchNameWords,
+  searchSquashedName,
   tokenizeSearchQuery,
 } from './searchRanking'
 export { findEntityBySlug, getEntitySlug } from './slug'

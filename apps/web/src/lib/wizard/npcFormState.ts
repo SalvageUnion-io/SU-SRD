@@ -8,10 +8,9 @@
  * wizards' do.
  */
 
-import type { Npc, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
-import type { RefNPC } from 'salvageunion-reference'
+import type { Npc, NpcTemplateKind, NpcTemplateRef, NpcTrait } from 'game-domain/schemas/npc'
 import type { CreateInput } from '../../replica/types'
-import type { NpcStatFill } from '../npcs/npcModel'
+import type { DenizenTemplate, NpcStatFill } from '../npcs/npcModel'
 import { statFillFromReference } from '../npcs/npcModel'
 
 /** The designer's steps, in order. */
@@ -126,7 +125,7 @@ const BLANK_STATS: ReturnType<typeof statsOf> = {
 }
 
 /** A reference NPC's own description: its first paragraph. */
-function npcTemplateProse(ref: RefNPC | undefined): string {
+function npcTemplateProse(ref: Pick<DenizenTemplate, 'content'> | undefined): string {
   const first = ref?.content?.find((b) => b.type === 'paragraph')
   return typeof first?.value === 'string' ? first.value : ''
 }
@@ -141,8 +140,12 @@ function untouchedDescription(form: NpcFormState): boolean {
  * Identity the player wrote (D4), and pre-fills the description with the
  * template's own words until the player changes them (D5).
  */
-export function applyNpcTemplate(form: NpcFormState, ref: RefNPC): NpcFormState {
-  const fill = statFillFromReference(ref)
+export function applyNpcTemplate(
+  form: NpcFormState,
+  ref: DenizenTemplate,
+  schema: NpcTemplateKind = 'npcs'
+): NpcFormState {
+  const fill = statFillFromReference(ref, schema)
   const prose = npcTemplateProse(ref)
   return {
     ...form,

@@ -69,9 +69,19 @@ type RailEntry = {
 function useRailEntries(
   schema: EntitySchemaName,
   selected: string[],
-  idOf: (item: EntityLike) => string
+  idOf: (item: EntityLike) => string,
+  resolved?: readonly PoolEntity[]
 ): RailEntry[] {
   return useMemo(() => {
+    if (resolved) {
+      return resolved.map((entity, index) => ({
+        entity,
+        ref: idOf(entity),
+        index,
+        copy: index + 1,
+        total: 1,
+      }))
+    }
     const byId = new Map<string, PoolEntity>()
     for (const e of SalvageUnionReference.findAllIn(schema, () => true) as PoolEntity[]) {
       if (!byId.has(idOf(e))) byId.set(idOf(e), e)
@@ -86,7 +96,7 @@ function useRailEntries(
       seen.set(ref, copy)
       return [{ entity: found, ref, index, copy, total: totals.get(ref) ?? 1 }]
     })
-  }, [schema, selected, idOf])
+  }, [schema, selected, idOf, resolved])
 }
 
 /**
@@ -110,6 +120,7 @@ export function SelectionRail({
   chosenLabel,
   schema,
   selected,
+  resolved,
   idOf,
   budget,
   mode,
@@ -123,6 +134,9 @@ export function SelectionRail({
   chosenLabel: string
   schema: EntitySchemaName
   selected: string[]
+  /** The chosen list already resolved, shown instead of `selected` (a picker
+   * over several collections); its entries are not removed here. */
+  resolved?: readonly PoolEntity[]
   idOf: (item: EntityLike) => string
   budget?: BudgetConfig | BudgetConfig[]
   mode: 'toggle' | 'count' | 'single'
@@ -132,7 +146,7 @@ export function SelectionRail({
   actions?: ReactNode
 }) {
   const budgets = budget ? (Array.isArray(budget) ? budget : [budget]) : []
-  const entries = useRailEntries(schema, selected, idOf)
+  const entries = useRailEntries(schema, selected, idOf, resolved)
   const list = useDisclosure()
   const expanded = wide || list.open
   const headingId = useId()
@@ -141,7 +155,8 @@ export function SelectionRail({
   const removeRefs = useRef<Array<HTMLButtonElement | null>>([])
   const pendingFocus = useRef<{ position: number; length: number } | null>(null)
   const chosen = chosenLabel.toLowerCase()
-  const removable = mode !== 'single' && Boolean(mode === 'count' ? onRemove : onToggle)
+  const removable =
+    !resolved && mode !== 'single' && Boolean(mode === 'count' ? onRemove : onToggle)
 
   // The Remove button that had focus has just unmounted. Move focus once the
   // caller's `selected` has actually SHRUNK — so a caller that applies the
@@ -273,7 +288,11 @@ export function SelectionRail({
                 variant="ghost"
                 size="iconOnly"
                 {...list.toggleProps}
-                aria-label={`${list.open ? 'Hide' : 'Show'} ${chosenLabel.toLowerCase()}`}
+                aria-label={
+                  list.open
+                    ? compositionsCopy('hideChosen', { label: chosenLabel.toLowerCase() })
+                    : compositionsCopy('showChosen', { label: chosenLabel.toLowerCase() })
+                }
               >
                 <ChevronDown
                   aria-hidden="true"

@@ -30,11 +30,14 @@ import type { LinkProps } from '@tanstack/react-router'
 import { useRouter } from '@tanstack/react-router'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect, useMemo } from 'react'
 import { useMe } from '../../lib/account/accountApi'
+import { useBarMode } from '../../lib/barLinks'
 import type { ServerCrawler, ServerOwnable } from '../../lib/games/gameRoster'
 import { areaTitle } from '../../lib/pageTitle'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -81,10 +84,16 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
   // can only say "Sheet": it runs once per navigation, and a loader may not
   // read a player entity (`.claude/rules/tanstack-router.md`). One this browser
   // does not hold (a crewmate's) keeps the generic title.
-  const name = held?.name ?? null
+  // A pilot in a Game is that Game's: titled with it, under the Games tab
+  // (glossary §9). Every other sheet is the Training Bay's.
+  const name = held === null ? null : kind === 'pilot' ? pilotLabel(held) : held.name
+  const inGame = kind === 'pilot' && gameId !== null
+  const game = useGamesQuery('games.get', inGame && online ? { gameId } : 'skip')
+  const area = inGame ? (game?.name ?? PRODUCT.play) : PRODUCT.build
+  useBarMode(inGame ? 'play' : null)
   useEffect(() => {
-    document.title = areaTitle(PRODUCT.build, name || (kind === 'npc' ? 'NPC' : 'Sheet'))
-  }, [name, kind])
+    document.title = areaTitle(area, name || (kind === 'npc' ? 'NPC' : 'Sheet'))
+  }, [area, name, kind])
 
   const canonical = held === null && located ? located.id : id
   useEffect(() => {
@@ -128,6 +137,7 @@ export function useLocatedSheet<K extends EntityKind>(kind: K, id: string) {
     viewerId,
     sheetMode,
     /** The way back from a crewmate's sheet: that Game's own page, in Play. */
-    crew: gameId === null ? undefined : { href: gamePath(gameId), label: 'the crew' },
+    crew:
+      gameId === null ? undefined : { href: gamePath(gameId), label: buildSheetCopy('theCrew') },
   }
 }

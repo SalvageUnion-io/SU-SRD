@@ -342,7 +342,10 @@ export function PartnerCard({
         {/* Contentful Minis in a masonry grid, each Peeking its whole card. */}
         {slugs.length > 0 && (
           <MiniGrid
-            label={`${partner.name ?? 'Partner'} ${kind === 'system' ? 'systems' : 'modules'} installed`}
+            label={buildSheetCopy(
+              kind === 'system' ? 'partnerSystemsInstalled' : 'partnerModulesInstalled',
+              { name: partner.name ?? buildSheetCopy('partnerFallbackName') }
+            )}
             edit={!readOnly}
           >
             {slugs.map((slug, index) => (
@@ -389,7 +392,7 @@ export function PartnerCard({
       <SheetPickerModal
         open={picker === kind}
         onClose={() => setPicker(null)}
-        title={isSystem ? buildSheetCopy('addSystems') : buildSheetCopy('addModules')}
+        title={isSystem ? buildSheetCopy('manageSystems') : buildSheetCopy('manageModules')}
         floating
       >
         <EntitySearcher

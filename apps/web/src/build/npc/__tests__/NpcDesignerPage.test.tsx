@@ -117,7 +117,7 @@ describe('Crawler crew', () => {
 
   test('with no crawler named, the band says so plainly', async () => {
     await renderPage({ view: 'crew', crawlerId: 'gone' })
-    expect(screen.getByText('Union crawler · Crew')).toBeTruthy()
+    expect(screen.getByText('Union Crawler · Crew')).toBeTruthy()
     expect(screen.getByText(/That crawler is not one this browser holds/)).toBeTruthy()
   })
 })

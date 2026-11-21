@@ -167,6 +167,15 @@ export const CHECKS: readonly CheckSpec[] = [
     profiles: ['full'],
   },
   {
+    id: 'page-anchors',
+    guards:
+      "every in-page `#` link on the built reference pages lands on an element; the build refuses a finding too. Passes with a notice where no build is on disk (the app's own in-page links are held by its landing pages' tests)",
+    fix: 'give the target the id the link names, or point the link at an id its page has; `bun run build`, then `bun tools/check-page-anchors.ts` reruns it',
+    cmd: ['bun', 'tools/check-page-anchors.ts'],
+    areas: ['code'],
+    profiles: ['full'],
+  },
+  {
     id: 'doc-drift',
     guards:
       'cited paths, bun scripts and markdown links exist; no agent doc repeats a retired claim; each ADR once in ARCHITECTURE.md and named in the entry of any ADR it amends; ARCHITECTURE.md entries are a headline plus at most two lines; each Area carries a slug anchor and is cited by it, never by number; doc size budgets and session loads; no code comment narrates history',
@@ -257,8 +266,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'copy',
     guards:
-      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
-    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-rule-sets.ts --only=copy --update-baseline` (tools/baselines/rule-sets.json)',
+      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product; every word the app draws is in the message catalogue',
+    fix: 'write the spelling the finding names; `--report` lists every finding; a string moves into apps/web/src/messages/',
     cmd: ['bun', 'tools/check-rule-sets.ts', '--group=copy'],
     areas: ['code'],
     profiles: ALL,

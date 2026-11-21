@@ -22,6 +22,7 @@ import { srdEntityExternalLink } from '../components/shared/srdEntityExternalLin
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { preloadGameData } from '../lib/useGameData'
+import { TableNotices } from '../play/TableNotices'
 import { ReplicaSync } from '../replica/ReplicaSync'
 import { SyncProvider } from '../replica/SyncProvider'
 import { BAR_HIDDEN_ATTRIBUTE, hidesUnionBar } from '../shell/unionSlots'
@@ -137,6 +138,9 @@ function RootComponent() {
                 second one would be a duplicate landmark. `tabIndex={-1}` makes
                 following the link move focus here, not just the scroll, so the
                 next Tab lands in the content instead of back in the bar. */}
+          {/* What the reader's Games tell them, pinned over every screen:
+                the Stop Sign, a proposal, the Mediator's alert, a live session. */}
+          <TableNotices pathname={pathname} />
           <div id="main-content" tabIndex={-1}>
             <GameDataReady schemas={routeSchemas(pathname)}>
               <Outlet />

@@ -167,7 +167,8 @@ describe('MechSheet — The Hold (Stow)', () => {
     const tally = must(holdTally(container))
     expect(tally.textContent).toBe('8/6Slots')
     expect(tally.dataset.state).toBe('critical')
-    expect(screen.getByText(/over capacity/i)).toBeTruthy()
+    // The Cargo figure wears the one rule-breaking mark (R71).
+    expect(screen.getAllByText('Rule breaking')).toHaveLength(1)
   })
 
   test("the head reads the hold's slots truthfully, without tallying its lots", () => {

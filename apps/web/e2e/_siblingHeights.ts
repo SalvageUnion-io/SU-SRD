@@ -29,7 +29,9 @@ export type SiblingMismatch = {
 }
 
 const CONTROL = [
-  'button:not(.su-chip-link)',
+  // A compact gauge's value is its head's read-out, pressable (`VitalGaugeValue`):
+  // it heads the pips, and is no control on the steppers' line beside them.
+  'button:not(.su-chip-link):not(.su-vital-gauge__value-button)',
   'a.su-btn',
   '[role=button]:not(.su-chip-link)',
   '[role=radio]',

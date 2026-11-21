@@ -20,6 +20,7 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { CloseButton, EmptyState, MiniGrid, Slab } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayCompanions } from './PlayCompanions'
@@ -54,14 +55,14 @@ export function PlayUnitsColumn({
           pilot={pilot}
           crawler={crawler}
           live={units.live.pilot}
-          onOpenSheet={() => setSheet({ kind: 'pilot', id: pilot.id, name: pilot.name })}
+          onOpenSheet={() => setSheet({ kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) })}
         />
       ) : (
         <EmptyState variant="inline" body={playCopy('thePilotIsOnIts')} />
       )}
       {pilot ? (
         <PlayCompanions
-          host={{ kind: 'pilot', id: pilot.id, name: pilot.name }}
+          host={{ kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) }}
           partners={pilot.partners}
           crawlerTechLevel={resolveEffectiveCrawlerLevel(pilot, crawler)}
         />

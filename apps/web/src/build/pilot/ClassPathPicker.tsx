@@ -203,11 +203,13 @@ export function ClassPathPicker({
               <>
                 <Callout tone="ink">
                   <p style={ORIGIN_COPY}>
-                    <strong>{pilotCopy('whereDidTheyComeFrom')}</strong> A {consequence.title} is
-                    reached from {consequence.originChoices.join(' or ')}. This pilot is neither, so
-                    the sheet needs to know which —{' '}
-                    <strong>{pilotCopy('eachAnswerSealsADifferent')}</strong> You can leave it
-                    unanswered; nothing will be sealed.
+                    <strong>{pilotCopy('whereDidTheyComeFrom')}</strong>{' '}
+                    {pilotCopy('reachedFrom', {
+                      title: consequence.title,
+                      origins: consequence.originChoices.join(' or '),
+                    })}{' '}
+                    <strong>{pilotCopy('eachAnswerSealsADifferent')}</strong>{' '}
+                    {pilotCopy('youCanLeaveItUnanswered')}
                   </p>
                 </Callout>
                 <RadioCardGroup label={pilotCopy('originClass')}>
@@ -233,8 +235,8 @@ export function ClassPathPicker({
 
             {consequence.impliedOrigin !== undefined && (
               <Text variant="note">
-                Recorded as <strong>{consequence.impliedOrigin}</strong> — derived from this pilot's
-                trees, so nothing extra is stored.
+                {pilotCopy('recordedAs')} <strong>{consequence.impliedOrigin}</strong>{' '}
+                {pilotCopy('derivedFromThisPilotsTrees')}
               </Text>
             )}
           </>

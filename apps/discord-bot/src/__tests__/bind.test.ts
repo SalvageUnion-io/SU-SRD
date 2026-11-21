@@ -36,6 +36,7 @@ function client(overrides: Partial<SiteClient>): SiteClient {
     unbindChannel: unexpected,
     usage: unexpected,
     feedback: unexpected,
+    logRoll: unexpected,
     ...overrides,
   }
 }

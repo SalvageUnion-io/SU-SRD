@@ -21,6 +21,7 @@
  */
 
 import { useNavigate } from '@tanstack/react-router'
+import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import type { Photo } from 'game-domain/schemas/photo'
 import type { CSSProperties } from 'react'
@@ -43,6 +44,7 @@ import { EntityPhoto } from '../../../components/shared/EntityPhoto'
 import { chapterForSchema } from '../../../lib/chapters'
 import { playerMessage } from '../../../lib/connection/useServerAction'
 import { PAGE_MEASURE } from '../../../lib/pageMeasure'
+import { areaTitle } from '../../../lib/pageTitle'
 import type { PatternVisibility } from '../../../lib/patterns/patterns'
 import {
   asReferencePattern,
@@ -50,7 +52,9 @@ import {
   patternChassis,
   patternCopy,
 } from '../../../lib/patterns/patterns'
+import { useTabTitle } from '../../../lib/useTabTitle'
 import { mechCopy } from '../../../messages/build-mech'
+import { routesCopy } from '../../../messages/routes'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
 import { useUnits } from '../../../replica/units'
@@ -59,6 +63,7 @@ import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
 import { RailActs } from '../../sheet/RailActs'
+import { PatternEditControls } from './PatternEditControls'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -94,9 +99,9 @@ const NOTES = {
 } satisfies CSSProperties
 
 const VISIBILITY_COPY: Record<PatternVisibility, string> = {
-  private: 'Only you can see this pattern.',
-  link: 'Anyone with the link can read and copy this pattern.',
-  game: 'Your Game’s crew can read this pattern and build from it.',
+  private: mechCopy('visibilityPrivate'),
+  link: mechCopy('visibilityLink'),
+  game: mechCopy('visibilityGame'),
 }
 
 /**
@@ -129,8 +134,11 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   const [busy, setBusy] = useState<'build' | 'copy' | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
 
+  // The tab is named for the pattern, as a sheet's is for its unit.
+  useTabTitle(areaTitle(PRODUCT.build, `${pattern.name} · ${routesCopy('pattern')}`))
+
   // Where a book page cites its printings, this one credits its maker.
-  useCitePageCredit(`Homebrew // Made by ${madeBy}`)
+  useCitePageCredit(mechCopy('homebrewMadeBy', { madeBy }))
 
   const chassis = patternChassis(pattern)
   const refPattern = pagePattern(pattern)
@@ -165,7 +173,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     }
   }
 
-  const builtLine = `${builtCount} ${builtCount === 1 ? 'mech' : 'mechs'} built from it`
+  const builtLine = mechCopy(builtCount === 1 ? 'builtFromItOne' : 'builtFromItMany', {
+    count: builtCount,
+  })
 
   return (
     <main style={PAGE}>
@@ -225,6 +235,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                     {mechCopy('share')}
                   </Button>
                 )}
+                {editable && <PatternEditControls pattern={pattern} />}
                 <HomebrewControls appId={pattern.id} name={pattern.name} />
               </RailActs>
             ) : undefined

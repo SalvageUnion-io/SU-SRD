@@ -107,7 +107,7 @@ export function MechSheet({
     crawlerReadOnly,
     pilotAbilities,
   })
-  const actions = useMechSheetActions({ mech, store, storeState, crawler })
+  const actions = useMechSheetActions({ mech, store, storeState, crawler, pilotAbilities })
   const phone = usePhone()
   const partners = !readOnly && (mech.partners ?? []).length > 0 && (
     // The drones this mech's CHASSIS ABILITY fields (Little Sestra's Sestra
@@ -168,6 +168,7 @@ export function MechSheet({
         mech={mech}
         model={model}
         actions={actions}
+        store={store}
       />
 
       {/* Advisory confirm — only mounts when a build edit tripped a rule. */}

@@ -47,7 +47,7 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
 
     // The identity band stays available (maxima derive to 0, never crash): its
     // fields and the SP vitals gauge render even with no chassis resolved.
-    expect(screen.getByText(/pattern name/i)).toBeTruthy()
+    expect(screen.getByText(/mech name/i)).toBeTruthy()
     expect(screen.getAllByText('Structure Points').length).toBeGreaterThan(0)
     // The unresolvable system slug falls back to the one unknown-item line.
     expect(screen.getByText('mystery-system')).toBeTruthy()

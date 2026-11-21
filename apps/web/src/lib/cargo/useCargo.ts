@@ -15,6 +15,7 @@ import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import { mechMaxCargo } from 'salvageunion-reference/rules'
+import { libCargoCopy } from '../../messages/lib-cargo'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { ChangeMeta } from '../../replica/units'
 import { useUnits } from '../../replica/units'
@@ -64,7 +65,7 @@ type UseCargoOptions = {
  * (`assertMayEditCrawler`); saying so on the control beats a refusal toast after
  * the press.
  */
-export const CRAWLER_KEPT_BY_MEDIATOR = 'The Mediator keeps the crawler. Ask at the table.'
+export const CRAWLER_KEPT_BY_MEDIATOR = libCargoCopy('mediatorKeepsTheCrawler')
 
 export type UseCargoResult = {
   state: CargoBoundaryState
@@ -110,7 +111,7 @@ async function commitUpdates(
   } catch (error) {
     return {
       ok: false,
-      reason: failureMessage(error, 'That change could not be saved. Try again.'),
+      reason: failureMessage(error, libCargoCopy('changeNotSaved')),
     }
   }
 }
@@ -135,16 +136,16 @@ export function useCargo({
   }
 
   async function dispatch(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!mech)
       return {
         ok: false,
-        reason: 'No mech is assigned — nothing to transfer to or from.',
+        reason: libCargoCopy('noMechToTransfer'),
       }
     if (!crawler) {
       return {
         ok: false,
-        reason: 'No crawler is assigned — nothing to transfer to or from.',
+        reason: libCargoCopy('noCrawlerToTransfer'),
       }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
@@ -174,9 +175,9 @@ export function useCargo({
   // add/discard require only a docked mech — no crawler boundary. Persists the
   // mech side alone.
   async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!mech) {
-      return { ok: false, reason: 'No mech is assigned — nothing to store cargo in.' }
+      return { ok: false, reason: libCargoCopy('noMechToStoreCargoIn') }
     }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot. These
@@ -214,9 +215,9 @@ export function useCargo({
   // require only a linked crawler — no docked mech. Persists the crawler side
   // alone, and only `cargoLots` (these actions never touch the scrap pool).
   async function dispatchCrawlerLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (!crawler) {
-      return { ok: false, reason: 'No crawler is assigned — nothing to store cargo in.' }
+      return { ok: false, reason: libCargoCopy('noCrawlerToStoreCargoIn') }
     }
     if (crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
 

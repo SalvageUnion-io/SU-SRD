@@ -158,6 +158,19 @@ export const GAME_ROOM_SESSION: readonly string[] = [
 ]
 
 /**
+ * Step 7 of `GAME_ROOM` (ADR-067 §3-4): the Game's description, shown on its
+ * invite, and its Mediator's plan (`plan.ts`), at most one row.
+ */
+export const GAME_ROOM_PREP: readonly string[] = [
+  'alter table game add column description text',
+  `create table plan (
+        id integer primary key check (id = 1),
+        body text not null,
+        updated_at integer not null
+      )`,
+]
+
+/**
  * Step 3 of `GAME_ROOM`: what the table plays under, beside its units.
  *
  * - `scene`: the Scene's conditions and the hours passed under them.

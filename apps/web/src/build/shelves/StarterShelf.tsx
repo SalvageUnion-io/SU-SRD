@@ -47,8 +47,8 @@ export function StarterShelf() {
         bodyStyle={PANEL}
       >
         <p style={CREDIT}>
-          The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
-          Open any sheet to read it, then make a copy to play it.
+          {buildShelvesCopy('thePreGeneratedCrewOf')} <em>{STARTER_SET_ADVENTURE}</em>
+          {buildShelvesCopy('byPublisherOpenAnySheet', { publisher: STARTER_SET_PUBLISHER })}
         </p>
         <StarterCrewLedger />
       </SlabSection>

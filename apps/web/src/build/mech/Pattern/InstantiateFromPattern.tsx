@@ -49,7 +49,7 @@ export function InstantiateFromPattern({
         ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
       }),
     {
-      failure: 'The mech could not be built from this pattern. Try again.',
+      failure: mechCopy('mechNotBuiltFromPattern'),
       toastId: `build-from-pattern-${pattern.id}`,
     }
   )

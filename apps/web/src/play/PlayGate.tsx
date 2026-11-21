@@ -2,10 +2,11 @@
  * PlayGate — who may open Play for a pilot, decided live: the body of
  * `/pilots/$id/play`.
  *
- * Play opens for any pilot of yours, in a Game or solo. The store holds only
- * your own pilots (a crewmate's never reaches this browser), so a pilot the
- * store has is one you may play; the server refuses every write you may not
- * make, whatever this shows. Every other case is refused:
+ * Play opens for any pilot of yours, in a Game or solo. The replica also holds
+ * your Games' other pilots; one assigned to a crewmate or to nobody opens
+ * read-only and says whose it is (`pilotHolder`, `usePlaySituation`), and the
+ * server refuses every write you may not make, whatever this shows. Every
+ * other case is refused:
  *
  *  - an anonymous session: sign in first (nothing is played signed out);
  *  - a pilot this browser does not hold: not found;
@@ -31,6 +32,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { containerOf } from 'game-domain/container'
 import { cockpitPath, sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import { useEffect } from 'react'
 import { RoutePending } from '../components/shared/RouteFallbacks'
@@ -126,7 +128,7 @@ function SignedInPlayGate({ id, offline }: { id: string; offline: boolean }) {
       <PlayRefusal
         area="build"
         title={playCopy('youreNotInThisPilots')}
-        body={playCopy('playOpensForMembersOf', { name: pilot.name })}
+        body={playCopy('playOpensForMembersOf', { name: pilotLabel(pilot) })}
         link={TO_TRAINING_BAY}
       />
     )

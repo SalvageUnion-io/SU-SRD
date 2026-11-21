@@ -119,8 +119,10 @@ export type InstallOptions = {
   /**
    * Stub `@tanstack/react-router` with a plain `<a>` `Link` and a recording
    * `useNavigate`. Read what it recorded off the handle's `navigations`.
+   * `'probed'` also answers `useRouter()` with a router whose `navigate`
+   * records there, for code that probes for one (`useRouter({ warn: false })`).
    */
-  router?: boolean
+  router?: boolean | 'probed'
   /**
    * Anything else this file needs mocked. **Specifiers resolve relative to
    * THIS file**, not the caller — `'../../replica/units'`, not
@@ -195,12 +197,27 @@ export async function installServerMocks(options: InstallOptions = {}): Promise<
 
   if (realRouter !== null) {
     mock.module('@tanstack/react-router', () => ({
-      Link: ({ children, to }: { children: ReactNode; to: string }) =>
-        createElement('a', { href: to }, children),
+      // The link's name travels with it (`aria-label`), as `AppLink` hands it on.
+      Link: ({
+        children,
+        to,
+        'aria-label': label,
+      }: {
+        children: ReactNode
+        to: string
+        'aria-label'?: string
+      }) => createElement('a', { href: to, 'aria-label': label }, children),
       useNavigate: () => async (opts: unknown) => {
         navigations.push(opts)
       },
-      useRouter: () => undefined,
+      useRouter: () =>
+        options.router === 'probed'
+          ? {
+              navigate: async (opts: unknown) => {
+                navigations.push(opts)
+              },
+            }
+          : undefined,
     }))
   }
 

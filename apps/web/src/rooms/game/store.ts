@@ -38,6 +38,8 @@ export type UnitRow = {
 export type GameRow = {
   gameId: string
   name: string
+  /** A line or two on what the Game is, shown on its invite; null when unsaid. */
+  description: string | null
   templateOrigin: string | null
   primaryCrawlerId: string | null
   createdAt: number
@@ -67,6 +69,7 @@ export class GameStore {
     return {
       gameId: String(row.game_id),
       name: String(row.name),
+      description: (row.description as string | null) ?? null,
       templateOrigin: (row.template_origin as string | null) ?? null,
       primaryCrawlerId: (row.primary_crawler_id as string | null) ?? null,
       createdAt: Number(row.created_at),

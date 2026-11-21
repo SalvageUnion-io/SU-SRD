@@ -11,9 +11,9 @@
  * crew, is its own short group with the numbers a crawler has.
  *
  * Each name still opens its read-only sheet. One copy control rides a line —
- * the pilot's, whose menu is the crew's usual "Copy to…"; a mech on its own
- * line keeps its own. A single mech is copied from its sheet (`MakeACopy`),
- * so a paired line stays one line. The cite foot stays bottom-right.
+ * the pilot's "Make a copy", which brings the mech beside them, assigned; a
+ * mech on its own line keeps its own. A single paired mech is copied from its
+ * sheet (`MakeACopy`), so a paired line stays one line. The cite foot stays bottom-right.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'

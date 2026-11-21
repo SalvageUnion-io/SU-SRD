@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { main, runJob, shardTestFiles } from '../run-coverage'
+import { failureLines, main, runJob, shardTestFiles } from '../run-coverage'
 
 const root = mkdtempSync(join(tmpdir(), 'run-coverage-'))
 afterAll(() => rmSync(root, { recursive: true, force: true }))
@@ -88,6 +88,7 @@ describe('runJob', () => {
     expect(result.ok).toBe(false)
     expect(result.verdict).toStartWith('TESTS FAILED (exit 3)')
     expect(result.output).toContain('stub broke')
+    expect(result.failed.join('\n')).toContain('stub broke')
     expect(existsSync(join(root, 'ws/coverage/lcov.info'))).toBe(false)
   })
 
@@ -149,5 +150,23 @@ describe('main', () => {
     const r = await run({ 'm-also': 0, 'm-broken': 0 })
     expect(r.code).toBe(1)
     expect(r.logged.at(-1)).toMatch(/\n✗ m-broken {2}TESTS FAILED \(exit 3\)/)
+    expect(r.logged.at(-2)).toStartWith('\nm-broken, what failed:\n')
+  })
+})
+
+describe('failureLines', () => {
+  test('a failed test, a count that is not zero and an unhandled error; never a passing line', () => {
+    const output =
+      '(pass) a\n(fail) b > c [1ms]\n 0 fail\n 2 fail\n 1 error\nUnhandled error between tests\n'
+    expect(failureLines(output)).toEqual([
+      '(fail) b > c [1ms]',
+      ' 2 fail',
+      ' 1 error',
+      'Unhandled error between tests',
+    ])
+  })
+
+  test('with none named, the last lines that are not the coverage table', () => {
+    expect(failureLines('a.ts | 100.00 | 100.00 |\nkilled\n\n')).toEqual(['killed'])
   })
 })

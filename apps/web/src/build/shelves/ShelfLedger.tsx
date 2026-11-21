@@ -8,7 +8,7 @@
 // that could pass for canon (patterns, NPCs) wears the one dashed HOMEBREW
 // stamp beside its tab (ruleset §3.9, ledger.md L9).
 import type { ReactNode } from 'react'
-import type { HeaderMenuItem, LedgerColumn } from '../../components/index'
+import type { HeaderMenuItem, LedgerColumn, LedgerSort } from '../../components/index'
 import { Button, HeaderMenu, HomebrewStamp, InlineRef, Ledger, Text } from '../../components/index'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 
@@ -25,6 +25,8 @@ type ShelfLedgerRow = {
   menu: HeaderMenuItem[][]
   /** Its Play door (a pilot's Cockpit), before the ⋯ menu. */
   play?: string
+  /** The door's words where the line has room to name who it plays ("Play GHOST"); "Play" otherwise. */
+  playLabel?: string
 }
 
 type ShelfLedgerProps = {
@@ -44,6 +46,9 @@ type ShelfLedgerProps = {
   empty: string
   /** What the shelf is for, under it. */
   note?: string
+  /** With `onSort`, a column's label sorts the shelf by it. */
+  sort?: LedgerSort | undefined
+  onSort?: (key: string) => void
 }
 
 /** A cell that opens something (the paired unit, the Game). */
@@ -65,7 +70,7 @@ function trailingOf(row: ShelfLedgerRow): ReactNode {
           size="mini"
           aria-label={buildShelvesCopy('playName', { name: row.name })}
         >
-          {buildShelvesCopy('play')}
+          {row.playLabel ?? buildShelvesCopy('play')}
         </Button>
       )}
       {menu && (
@@ -94,6 +99,8 @@ export function ShelfLedger({
   action,
   empty,
   note,
+  sort,
+  onSort,
 }: ShelfLedgerProps) {
   // A list drops a column no row fills (ledger.md L5): the rest keep their order.
   const kept = columns.flatMap((column, index) =>
@@ -119,6 +126,7 @@ export function ShelfLedger({
         }))}
         action={action}
         empty={empty}
+        {...(onSort ? { onSort, ...(sort ? { sort } : {}) } : {})}
       />
       {note && <Text variant="note">{note}</Text>}
     </section>

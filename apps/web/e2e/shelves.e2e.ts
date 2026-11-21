@@ -26,12 +26,8 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
 
   // In: one pick, no confirm (nothing is linked to it).
   await moveToGame(page, 'Shelf Runner', 'Dustbowl Run')
-  // Its Game is a relation chip opening the Game's page in Play. A Training
-  // Bay row is header-only, so a chip that does not fit beside the name goes
-  // into its +MORE (chip law, C5): the chip is there, maybe not drawn.
-  const chip = pilots.locator('[data-chip-class="relation"] a[data-tag]', {
-    hasText: 'Dustbowl Run',
-  })
+  // Its Game is its line's Game column, a link to the Game's page in Play.
+  const chip = pilots.getByRole('link', { name: 'Dustbowl Run', exact: true })
   await expect(chip).toBeAttached({ timeout: 15_000 })
   await expect(chip).toHaveAttribute('href', new RegExp(`/games/${gameId}$`))
 
@@ -52,7 +48,7 @@ test('copy a pilot from the Starter Set onto the shelf', async ({ page }) => {
   await page.getByRole('button', { name: 'Expand Starter Set' }).click()
   await page
     .getByRole('region', { name: 'Starter Set' })
-    .getByRole('link', { name: 'Read Bonesaw' })
+    .getByRole('link', { name: 'Bonesaw', exact: true })
     .click()
   await page.waitForURL(/\/starter\/pilot\//, { timeout: 15_000 })
   await page.getByRole('button', { name: 'Make a copy' }).click()
@@ -111,7 +107,8 @@ test('delete a pilot from the Training Bay, and cancel a delete', async ({ page 
 
   const confirm = page.getByRole('alertdialog')
   await fromShelfMenu(page, 'Delete Me', 'Delete…')
-  await expect(confirm).toContainText('Delete Delete Me?')
+  // The confirm names the pilot as its line does, `TBD · Delete Me`.
+  await expect(confirm).toContainText('Delete Me?')
   await confirm.getByRole('button', { name: /^Delete$/ }).click()
   await expect(pilots.getByText('Delete Me')).toHaveCount(0, { timeout: 10_000 })
 

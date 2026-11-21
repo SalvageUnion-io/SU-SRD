@@ -4,7 +4,7 @@
  * opens the Game's page in Play; its chips are your role, how many are here,
  * the Downtime state and its Discord channel; its body is the crew as
  * header-only Minis; its doors are the ways into play: the group session
- * (Start group session, then Mediate) and Play or Join as <pilot>.
+ * (Start group session, then Mediate) and Play <pilot>.
  */
 
 import { cockpitPath, mediatePath, sheetPath } from 'game-domain/entityKinds'
@@ -61,7 +61,7 @@ export function gameChips(args: {
 /**
  * A Game's doors, in order: the table runner's first (Start group session
  * until one is live, then Mediate; Mediate while the session is unknown), then one for each pilot of yours in it
- * (Join as <pilot> while a session is live, else Play <pilot>), so a Mediator
+ * (Play <pilot>, by their callsign), so a Mediator
  * who also plays and a player with two pilots reach every one of them. None
  * when you neither mediate nor have a pilot there (its page is where you add one).
  */
@@ -87,19 +87,13 @@ export function gameDoors(
         ]
   return [
     ...runner,
-    ...pilots.map((pilot) =>
-      live
-        ? {
-            label: playCopy('joinAs', { name: pilot.name }),
-            href: cockpitPath(pilot.id),
-            ariaLabel: playCopy('joinSessionAs', { game: game.name, name: pilot.name }),
-          }
-        : {
-            label: `Play ${pilot.name}`,
-            href: cockpitPath(pilot.id),
-            ariaLabel: `Play ${pilot.name} in ${game.name}`,
-          }
-    ),
+    // A pilot's door says Play and the pilot, live or not (glossary §9): Join
+    // session is the Game's own door, on its page.
+    ...pilots.map((pilot) => ({
+      label: playCopy('playPilot', { name: pilot.name }),
+      href: cockpitPath(pilot.id),
+      ariaLabel: playCopy('playPilotIn', { name: pilot.name, game: game.name }),
+    })),
   ]
 }
 

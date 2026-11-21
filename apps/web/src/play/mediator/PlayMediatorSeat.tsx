@@ -14,13 +14,14 @@
  *  - **Downtime** — the line says whether they are done with the step.
  *
  * The Mini is a toggle (EDL Modes): pressed, its name aims Propose at this
- * pilot (see the problem, propose the fix), the ring on its pill and the other
- * seats dimmed beside it. Sheet, its chip group's last slot, opens their
- * sheet read-only over Play.
+ * pilot (see the problem, propose the fix), the ring on its pill; the other
+ * seats stay at full strength, since their vitals are still being read. Sheet, its chip group's last slot, opens their
+ * sheet read-only over Play; Up now beside it marks whose turn it is, for
+ * every seat to read (a marker only: nothing is enforced).
  */
 
 import type { CSSProperties } from 'react'
-import { Button, Entity, Stat, tokens } from '../../components/index'
+import { Button, Entity, Stat, Toggle, tokens } from '../../components/index'
 import { crewPair } from '../../lib/units/crewPair'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'
@@ -47,8 +48,10 @@ type PlayMediatorSeatProps = {
   onOpenSheet: () => void
   /** While Downtime runs: this seat's step line ("Step 3 · done ✓"). */
   stepLine: string | null
-  /** Propose is aimed at another seat: this one wears the one dim. */
-  dim: boolean
+  /** The Mediator marked this pilot as up now. */
+  upNow: boolean
+  /** Mark, or unmark, this pilot as up now; absent while Play is read-only. */
+  onUpNow?: () => void
 }
 
 export function PlayMediatorSeat({
@@ -57,27 +60,24 @@ export function PlayMediatorSeat({
   onPick,
   onOpenSheet,
   stepLine,
-  dim,
+  upNow,
+  onUpNow,
 }: PlayMediatorSeatProps) {
   const away = !seat.present
   const flagged = seat.vitals.find((v) => v.attention)
-  // Aboard, the seat is their mech with a PILOT chip naming them; else the
-  // pilot with a MECH chip for the one assigned: one Mini (`crewPair`).
+  // Aboard, the seat wears their mech's tone and readings and keeps their
+  // name, with a MECH chip; on foot the pilot's, with the same chip (`crewPair`).
   const pair = crewPair({
     pilot: { id: seat.pilotId, name: seat.name },
     mech: seat.mech,
     boarded: seat.mech?.boarded ?? false,
   })
   // The toggle's name opens on what it shows (WCAG 2.5.3): "Bonesaw (Pilot)",
-  // aboard "Mazona (Mech)", then the seat's reading.
-  const shown = mediatorCopy('seatShown', {
-    name: pair.name,
-    kind: pair.kind === 'mech' ? 'Mech' : 'Pilot',
-  })
-  const reading =
-    pair.kind === 'pilot' && seat.label.startsWith(`${seat.name}, `)
-      ? seat.label.slice(seat.name.length + 2)
-      : seat.label
+  // aboard or on foot, then the seat's reading.
+  const shown = mediatorCopy('seatShown', { name: pair.name, kind: 'Pilot' })
+  const reading = seat.label.startsWith(`${seat.name}, `)
+    ? seat.label.slice(seat.name.length + 2)
+    : seat.label
   return (
     <li
       className="su-play-seat"
@@ -96,7 +96,6 @@ export function PlayMediatorSeat({
           onSelect: onPick,
           label: mediatorCopy('aimProposeHere', { label: `${shown}, ${reading}` }),
         }}
-        dim={dim}
         {...(pair.relations ? { relations: [...pair.relations] } : {})}
         state={
           <>
@@ -112,15 +111,29 @@ export function PlayMediatorSeat({
           </>
         }
         controls={
-          // The chip group's last slot, at the strip's Size (C1a, C8).
-          <Button
-            variant="ghost"
-            size="mini"
-            aria-label={mediatorCopy('openSSheet', { name: seat.name })}
-            onClick={onOpenSheet}
-          >
-            {mediatorCopy('sheet')}
-          </Button>
+          // The chip group's last slots, at the strip's Size (C1a, C8).
+          <>
+            {onUpNow ? (
+              <Toggle
+                size="mini"
+                pressed={upNow}
+                aria-label={mediatorCopy('upNowFor', { name: seat.name })}
+                onClick={onUpNow}
+              >
+                {mediatorCopy('upNow')}
+              </Toggle>
+            ) : upNow ? (
+              <Stat size="mini" label={mediatorCopy('upNow')} />
+            ) : null}
+            <Button
+              variant="ghost"
+              size="mini"
+              aria-label={mediatorCopy('openSSheet', { name: seat.name })}
+              onClick={onOpenSheet}
+            >
+              {mediatorCopy('sheet')}
+            </Button>
+          </>
         }
         body={{
           text: false,

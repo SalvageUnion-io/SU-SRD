@@ -6,7 +6,9 @@
  * The spoils are what the opposition could leave behind: each Mech's Chassis,
  * Systems and Modules, its "loot table" (p.269), and each Vehicle or Drone's
  * Salvage Value in Scrap (p.246): Play's wreck rule (`wreckOf`), so Prep
- * promises what Play pays. Read-only: nothing here pays out.
+ * promises what Play pays. A Bio-Titan leaves Bio-Salvage equal to its SP
+ * (p.275), and an NPC the data gives a Bio-Salvage Value leaves that.
+ * Read-only: nothing here pays out.
  */
 
 import type { Crew, ThreatRead } from 'game-domain/rules/threat'
@@ -53,6 +55,23 @@ export type Spoil =
       salvageValue: number
       techLevel: number
     }
+  | {
+      kind: 'bio'
+      opponent: EncounterOpponent
+      /** Bio-Salvage: each trades as 1 Tech 1 Scrap, and crafts nothing (p.275). */
+      bioSalvage: number
+    }
+
+/**
+ * The Bio-Salvage an opponent leaves: a Bio-Titan's SP (Core Book p.275), or
+ * the Bio-Salvage Value the data states for an NPC; null when it leaves none.
+ */
+function bioSalvageOf(opponent: EncounterOpponent, entity: RefEntity | null): number | null {
+  if (opponent.refSchema === 'bio-titans') return opponent.maxHp > 0 ? opponent.maxHp : null
+  if (entity === null || !('bioSalvageValue' in entity)) return null
+  const value = entity.bioSalvageValue
+  return typeof value === 'number' && value > 0 ? value : null
+}
 
 const names = (value: unknown): string[] =>
   Array.isArray(value)
@@ -64,7 +83,8 @@ const names = (value: unknown): string[] =>
 /**
  * The spoils, opponent by opponent, in the order the opposition lists them:
  * a Mech as its Chassis and the loadout it was drawn with, a Vehicle or Drone
- * as its Salvage Value. Those that leave nothing (`wreckOf`) are left out.
+ * as its Salvage Value, a Bio-Titan as its Bio-Salvage. Those that leave
+ * nothing are left out.
  */
 export function spoilsOf(encounter: Encounter): Spoil[] {
   return encounter.opposition.flatMap((opponent): Spoil[] => {
@@ -82,6 +102,8 @@ export function spoilsOf(encounter: Encounter): Spoil[] {
         },
       ]
     }
+    const bioSalvage = bioSalvageOf(opponent, entity)
+    if (bioSalvage !== null) return [{ kind: 'bio', opponent, bioSalvage }]
     const wreck = wreckOf(opponent.refSchema, entity as Record<string, unknown> | null, [])
     if (wreck?.kind !== 'scrap') return []
     return [

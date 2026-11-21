@@ -4,6 +4,7 @@ import { messages } from './define'
 
 export const islandsCopy = messages({
   didYouMean: 'Did you mean',
+  allOfListing: 'All {name}: the full list',
   nothingCloseTo: 'Nothing close to “{query}”',
   searchTheReferenceFor: 'Search the Reference for “{query}”',
   somethingWentWrong: 'Something went wrong',
@@ -20,6 +21,17 @@ export const islandsCopy = messages({
   name: 'Name',
   allSources: 'All sources',
   tree: 'Tree',
+  trait: 'Trait',
+  allTraits: 'All {count} traits',
+  traits: 'Traits',
+  columns: 'Columns',
+  columnSlot: 'Column {slot}',
+  bookOrder: 'In the book’s order. Press a column’s name to sort by it.',
+  sortedUp: 'Sorted by {column}, low to high.',
+  sortedDown: 'Sorted by {column}, high to low.',
+  sortedAz: 'Sorted by {column}, A to Z.',
+  sortedZa: 'Sorted by {column}, Z to A.',
+  backToBookOrder: 'Book order',
   allTrees: 'All {count} trees',
   of: '{count} of {count2}',
   tl2: 'TL {level}',
@@ -33,6 +45,7 @@ export const islandsCopy = messages({
   homebrewFailed: 'Homebrew did not load. Try again later.',
   homebrewPatterns: 'Homebrew',
   showHomebrew: 'Show Homebrew',
+  hideHomebrew: 'Hide Homebrew',
   homebrewNoneOnChassis: 'No player has shared a pattern for this chassis yet.',
   homebrewOff:
     'Community patterns for this chassis, from players on the Reference. Not from the book.',
@@ -59,4 +72,7 @@ export const islandsCopy = messages({
   range: 'Range',
   dmg: 'DMG',
   damage: 'Damage',
+  filters: 'Filters',
+  referenceAndCharacterManager: 'Reference and Character Manager',
+  nameFilter: 'name filter',
 })

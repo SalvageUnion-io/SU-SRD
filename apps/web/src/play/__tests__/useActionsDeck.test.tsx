@@ -28,6 +28,7 @@ import {
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
+import { ToasterMount } from '../../components/index'
 import { buildMechActions, buildPilotActions } from '../../lib/rules/actionList'
 import { hasCurrencyChoice, hasVariableHot } from '../../lib/rules/actionPatches'
 import { actionEconomy, itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
@@ -250,8 +251,9 @@ describe('the resolve', () => {
     expect(live?.textContent).toBe('')
     await clickRolling('Roll the Die')
     expect(live?.textContent).toMatch(/^Rolled 14: \S/)
+    // Apply finishes the action: its resolve closes (the row says Done, `PlayActionRow`).
     fireEvent.click(screen.getByText('Apply'))
-    expect(live?.textContent).toMatch(/Result applied$/)
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
   })
 
   test('the resolve offers Cancel / Start over and an Apply gated on a roll', async () => {
@@ -280,7 +282,7 @@ describe('the resolve', () => {
     fireEvent.click(screen.getByText('Apply'))
     // Either the non-destructive auto-commit or the Cascade-Failure route note —
     // never both, and neither writes a destructive condition through the store.
-    const applied = screen.queryByText('Result applied ✓')
+    const applied = container.querySelector('.su-play-resolve') === null
     const routed = screen.queryByText(/^Cascade Failure: a severe/)
     expect(Boolean(applied) !== Boolean(routed)).toBe(true)
     // Apply performs no store write at all (the cost lands at Activate; a
@@ -677,7 +679,15 @@ describe('Area Salvage (Core Book p.248)', () => {
     const { store, calls } = stubStore(mech, pilot)
     const spent: string[] = []
     const { container } = render(
-      <ActionsDeck mech={mech} pilot={pilot} store={store} salvageArea={salvageArea(CAMP, spent)} />
+      <>
+        <ActionsDeck
+          mech={mech}
+          pilot={pilot}
+          store={store}
+          salvageArea={salvageArea(CAMP, spent)}
+        />
+        <ToasterMount />
+      </>
     )
     clickActionByName(container, 'Area Salvage')
     await clickRolling('Roll the Die')
@@ -687,20 +697,26 @@ describe('Area Salvage (Core Book p.248)', () => {
     expect(cargo?.patch.cargoLots).toEqual([
       expect.objectContaining({ cat: 'SCRAP', tl: 2, qty: 3, units: 3 }),
     ])
-    expect(screen.getAllByText('3 Tech 2 Scrap into Rig’s Cargo.').length).toBeGreaterThan(0)
+    // Apply finishes it like any other action (LG-12): the resolve closes, and
+    // what was loaded is said by a toast.
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
+    expect(await screen.findByText('3 Tech 2 Scrap into Rig’s Cargo.')).toBeTruthy()
   })
 
   test('on foot, the Scrap goes into the pilot’s inventory at three Slots each', async () => {
     const pilot = pilotFixture({ id: 'p1', name: 'Rook', callsign: 'Rook' })
     const { store, calls } = stubStore(pilot)
     const { container } = render(
-      <ActionsDeck
-        mech={null}
-        pilot={pilot}
-        situation="onFoot"
-        store={store}
-        salvageArea={salvageArea(CAMP)}
-      />
+      <>
+        <ActionsDeck
+          mech={null}
+          pilot={pilot}
+          situation="onFoot"
+          store={store}
+          salvageArea={salvageArea(CAMP)}
+        />
+        <ToasterMount />
+      </>
     )
     clickActionByName(container, 'Area Salvage')
     await clickRolling('Roll the Die')
@@ -711,8 +727,9 @@ describe('Area Salvage (Core Book p.248)', () => {
       expect.objectContaining({ name: 'Tech 2 Scrap', slotCost: 3, qty: 2 }),
     ])
     expect(
-      screen.getAllByText(/1 more stays in the area: there is no room for it\./).length
-    ).toBeGreaterThan(0)
+      await screen.findByText(/1 more stays in the area: there is no room for it\./)
+    ).toBeTruthy()
+    expect(container.querySelector('.su-play-resolve')).toBeNull()
   })
 
   test('with no area, or a picked-clean one, there is no roll', () => {

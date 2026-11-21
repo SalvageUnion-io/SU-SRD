@@ -5,12 +5,15 @@ import { messages } from './define'
 export const buildStarterSetCopy = messages({
   copyTo: 'Copy {name} to {label}?',
   makeACopy: 'Make a copy',
+  makeACopyOfName: 'Make a copy of {name}',
   copying: 'Copying…',
   copiedTo: 'Copied {name} to {label}.',
-  copyTo2: 'Copy {name} to…',
+  pilotAndMech: '{name} and {mech}',
+  yourTrainingBay: 'your Training Bay',
+  copyBody: 'This makes {name} a build of your own in {label}, to edit and play.',
+  copyPairBody:
+    'This makes {name} and their Mech, {mech}, builds of your own in {label}, the Mech already assigned.',
   signInToMakeA: 'Sign in to make a copy',
-  makeACopyOf: 'Make a copy of {name}?',
-  copiedToYourTrainingBay: 'Copied {name} to your Training Bay.',
   starterSet2: 'Starter Set',
   copyOneIntoYourTraining:
     'Copy one, or the whole crew, into your Training Bay or into one of your Games to play it.',
@@ -64,4 +67,9 @@ export const buildStarterSetCopy = messages({
   theBookBody:
     '{adventure} is the Starter Set’s campaign: maps, NPCs, monsters and a Mediator’s advice for this crew.',
   readAboutTheBook: 'Read about the book',
+  staysAsPublished:
+    "The {roster}'s {name} stays as {publisher} published it. Don't want the copy later? Delete it like any other build.",
+  notCopied: '{name} could not be copied. Try again.',
+  thePreGeneratedCrewOwnedBy:
+    'The pre-generated crew of {adventure}, owned by {publisher}. Read-only reference: open any sheet to read it.',
 })

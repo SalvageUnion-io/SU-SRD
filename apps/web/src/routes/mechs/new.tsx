@@ -24,6 +24,7 @@ function NewMechRoute() {
     <NewUnitRoute
       kind="mech"
       search={search}
+      book={{ chassis: search.chassis, pattern: search.pattern }}
       wizard={(props) => (
         <MechWizard
           {...props}

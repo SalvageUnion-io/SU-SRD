@@ -78,7 +78,7 @@ describe('sheetCard', () => {
     const card = sheetCard(PILOT, titleCaseSlug, ADDRESS)
     expect(card).toMatchObject({
       kind: 'sheet',
-      title: 'Bonesaw',
+      title: 'Bonesaw · Rosa Vance',
       kicker: 'Pilot · Engineer',
       byline: "Rosa's pilot · Reclamation of the Wastes",
       tone: color.pilot,

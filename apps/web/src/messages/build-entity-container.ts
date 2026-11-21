@@ -6,4 +6,5 @@ export const entityContainerCopy = messages({
   games: 'Games',
   in: 'In',
   moveToAGameOr: 'Move to a Game or your Training Bay',
+  buildNotMoved: 'This build could not be moved. Try again.',
 })

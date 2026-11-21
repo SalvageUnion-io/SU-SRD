@@ -4,7 +4,7 @@
  */
 
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { acceptingRooms, roomActs } from '../../../../../test/roomsStub'
 import { FIXTURE_NOW } from '../../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../../components/__tests__/serverMock'
@@ -117,7 +117,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
       'Rig first, rivet later.'
     )
     expect(usePageCredit.getState().credit).toBe('Homebrew // Made by alxjrvs')
-    expect(screen.getByText('3 mechs built from it')).toBeTruthy()
+    expect(screen.getByText('3 Mechs built from it')).toBeTruthy()
   })
 
   test('the foot forgets the credit once the page is gone', () => {
@@ -162,12 +162,44 @@ describe('a shared pattern reads like the book and says a player made it', () =>
 })
 
 describe('signed in', () => {
+  test('its maker renames it on its page, and the tab is named for it (U11)', async () => {
+    answerRoutes({
+      [STATUS]: NOT_LISTED,
+      [PAGE]: answer({ mine: true, visibility: 'private' }),
+    })
+    usePatterns.setState({ mechPatterns: [body as never], hydrated: true })
+    renderAs(CONNECTED)
+    expect(document.title).toContain('Tow Rig')
+    expect(screen.getByRole('button', { name: 'Edit Systems' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Edit Modules' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    const field = await screen.findByRole('textbox', { name: 'Pattern name' })
+    fireEvent.change(field, { target: { value: 'Tow Rig Mk II' } })
+    await act(async () => {
+      fireEvent.click(
+        within(field.closest('[role="dialog"]') as HTMLElement).getByRole('button', {
+          name: 'Rename',
+        })
+      )
+    })
+    await settle(() => usePatterns.getState().mechPatterns[0]?.name === 'Tow Rig Mk II')
+    expect(usePatterns.getState().mechPatterns[0]?.name).toBe('Tow Rig Mk II')
+  })
+
+  test('a reader who did not make it gets no edit', () => {
+    answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
+    renderAs(CONNECTED)
+    expect(screen.queryByRole('button', { name: 'Rename' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit Systems' })).toBeNull()
+  })
+
   test('Build With This makes a fresh mech that records its source, and opens it', async () => {
     answerRoutes({ [STATUS]: NOT_LISTED, [PAGE]: answer() })
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
+      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a Mech from / }))
     })
     await settle(() => serverMocks.navigations.length > 0)
 

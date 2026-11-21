@@ -18,6 +18,7 @@ import {
   recordPlayChange,
   recordPlayRoll,
   reportingRoll,
+  setPrivateRolls,
 } from '../playRolls.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
@@ -88,11 +89,19 @@ describe('the Crew (play.md §7)', () => {
     expect(flagged({})).toEqual({ label: 'SP', value: '22', attention: true })
   })
 
+  test('every number with its maximum: HP and AP, and aboard the mech’s SP, EP and Heat (LG-16)', () => {
+    expect(lines.map((l) => l.vitals.map((v) => `${v.label} ${v.value}`))).toEqual([
+      ['HP 10/10', 'AP 5/5', 'SP 22/26', 'EP 6/6', 'Heat 0/9'],
+      ['HP 4/10', 'AP 5/5'],
+      ['HP 10/10', 'AP 5/5', 'SP 26/26', 'EP 6/6', 'Heat 0/9'],
+    ])
+  })
+
   test('the line’s words for a screen reader say all of it', () => {
     expect(lines.map(crewLineLabel)).toEqual([
-      'Mags, here, Boarded · Atlas, SP 22, fine',
-      'Rook, here, On foot, Injured',
-      'Wren, away, Boarded · Mule, SP 26, fine',
+      'Mags, here, Boarded · Atlas, SP 22, fine, HP 10/10, AP 5/5, SP 22/26, EP 6/6, Heat 0/9',
+      'Rook, here, On foot, Injured, HP 4/10, AP 5/5',
+      'Wren, away, Boarded · Mule, SP 26, fine, HP 10/10, AP 5/5, SP 26/26, EP 6/6, Heat 0/9',
     ])
   })
 
@@ -236,6 +245,20 @@ describe('the Feed (play.md §8)', () => {
     ])
   })
 
+  test('a private roll says so, mine and the log’s (the Mediator’s Feed alone is served one)', () => {
+    const entries = playFeedEntries({
+      rolls: [{ ...crewRoll('r7', 300, 'Mediator · Morale · 4'), private: true }],
+      alerts: [],
+      proposals: [],
+      mine: [{ ...roll({ id: 'm1', at: 400 }), private: true }],
+      rollerName: 'Mediator',
+    })
+    expect(entries.map((e) => e.text)).toEqual([
+      'You · Core Mechanic · 14 · Success · Private',
+      'You · Morale · 4 · Private',
+    ])
+  })
+
   test('solo: only my own', () => {
     const entries = playFeedEntries({
       rolls: null,
@@ -316,6 +339,16 @@ describe('the roll log (playRolls)', () => {
       label: '120mm Cannon',
       outcome: 'Success',
     })
+  })
+
+  test('with private rolls on, a roll is recorded private; a change never is', () => {
+    setPrivateRolls(true)
+    expect(recordPlayRoll({ tableName: 'Morale', rolls: [4], label: 'Morale' }).private).toBe(true)
+    expect(recordPlayChange('Vent')).not.toHaveProperty('private')
+    setPrivateRolls(false)
+    expect(recordPlayRoll({ tableName: 'Morale', rolls: [4], label: 'Morale' })).not.toHaveProperty(
+      'private'
+    )
   })
 
   test('the Game’s log line: who, what for, the dice, what it came to', () => {

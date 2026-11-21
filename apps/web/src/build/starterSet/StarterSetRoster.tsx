@@ -5,7 +5,7 @@
  * It is a pseudo-Game rather than a Game. Nobody is a member, nothing in it can
  * change, and it is the same for everyone — signed out included, because
  * reading it needs no account. Each line opens the build's read-only sheet
- * (`/starter/:kind/:id`), and, signed in, offers "Copy to…" Shelves or one of
+ * (`/starter/:kind/:id`), and, signed in, offers "Make a copy" into Shelves or one of
  * the player's Games. The copy is theirs; the template is untouched
  * (`lib/starterSet/copyStarter.ts`).
  *
@@ -71,8 +71,10 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
             <Slab as="h2" label={buildStarterSetCopy('starterSet2')} flush />
           )}
           <Text variant="body">
-            The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
-            Read-only reference: open any sheet to read it.{' '}
+            {buildStarterSetCopy('thePreGeneratedCrewOwnedBy', {
+              adventure: STARTER_SET_ADVENTURE,
+              publisher: STARTER_SET_PUBLISHER,
+            })}{' '}
             {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}

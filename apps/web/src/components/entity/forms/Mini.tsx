@@ -23,6 +23,7 @@ import { chipCount } from '../parts/chipSet'
 import { KindLabel } from '../parts/KindLabel'
 import { bandFrame, paintFor } from '../parts/paint'
 import type { TagItem } from '../parts/tagItems'
+import { traitTags } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
@@ -210,7 +211,12 @@ export function Mini({
   })
   const own = tokenChipSet(chips, chips.cost)
   const quantity = own.quantity
-  const set = slots.relations?.length ? { ...own.set, relations: slots.relations } : own.set
+  // A contentful head that opens nothing (read, no controls) links its chips
+  // to their entries, as a Compact's does (E27): its traits keep their refs.
+  const chipsLink =
+    !!body && !insidePeek && !toggle && !target.href && !target.onOpen && !slots.uses && !slots.menu
+  const ownSet = chipsLink ? { ...own.set, tags: traitTags(model.traits) } : own.set
+  const set = slots.relations?.length ? { ...ownSet, relations: slots.relations } : ownSet
   const state = [
     quantity && <Stat key="quantity" label={quantity.label} value={quantity.value} size="mini" />,
     slots.state,
@@ -294,6 +300,7 @@ export function Mini({
           className="su-entity-mini__chips"
           chips={set}
           size="mini"
+          linkable={chipsLink}
           // A player made it: the HOMEBREW stamp leads its chips (ruleset §3.9).
           marks={userMade ? <HomebrewStamp /> : undefined}
           state={state}

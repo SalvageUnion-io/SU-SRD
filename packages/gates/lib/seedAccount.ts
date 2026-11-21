@@ -18,7 +18,15 @@
 import type { Page } from '@playwright/test'
 import { appPath } from 'game-domain/appAddress'
 import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
-import { copyStarter, editSheet, openApp, sheetHref, sheetLink, waitForReady } from './appPage'
+import {
+  copyStarter,
+  editSheet,
+  forgetSheetMode,
+  openApp,
+  sheetHref,
+  sheetLink,
+  waitForReady,
+} from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -149,16 +157,16 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await openApp(page, '/', base)
   const pilot = await sheetPath(page, 'pilot', SEED_IN_GAME)
   const solo = await sheetPath(page, 'pilot', SEED_SOLO)
-  const mech = await sheetPath(page, 'mech')
+  // Each pilot's copy brought their mech; the seed's own is the Mazona.
+  const mech = await sheetPath(page, 'mech', 'Mazona')
   const crawler = await sheetPath(page, 'crawler')
   await seedCarried(page, base, { pilot, mech, crawler })
 
   // The Game, its Mediator (the Organizer) and its invite link.
   await createGame(page, SEED_GAME, base)
   const game = new URL(page.url()).pathname
-  await page.getByRole('button', { name: 'Appoint' }).click()
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  // The hub's band offers Mediate once the Organizer is appointed.
+  // The creator said Yes to "Will you be the Mediator?" (the dialog's given answer), so
+  // the hub's band offers Mediate.
   await page.getByRole('link', { name: 'Mediate', exact: true }).waitFor(LONG)
   const token = await makeInviteLink(page)
 
@@ -167,8 +175,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.getByRole('button', { name: `More for ${SEED_IN_GAME}` }).click()
   await page.getByRole('menuitem', { name: 'Move to a Game…' }).first().click()
   await page.getByRole('dialog').getByRole('button', { name: SEED_GAME }).click()
-  const confirm = page.getByRole('dialog').getByRole('button', { name: /^Move/ })
-  if (await confirm.count()) await confirm.first().click()
+  // Bonesaw's mech stays behind, so the move says it clears that assignment.
+  await page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
   await page.getByText(`Moved ${SEED_IN_GAME} to ${SEED_GAME}.`).first().waitFor(LONG)
 
   // An NPC, from the Veteran.
@@ -192,6 +200,9 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   if (!soloId) throw new Error(`no pilot id in ${solo}`)
   const playSolo = appPath(cockpitPath(soloId))
   const playMediator = `${game}/mediate`
+
+  // The seed edited sheets to make them; its pages open as a first visit's do, in Read.
+  await forgetSheetMode(page)
 
   return {
     pilot,

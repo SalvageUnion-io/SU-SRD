@@ -11,11 +11,15 @@
  * else whatever this says.
  */
 
+import { useGameListing } from '../replica/gameListing'
+import { useViewerId } from '../replica/roomCalls'
+import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
+import { useTableRead } from '../replica/useTable'
 import { boardMenu } from './boardMenu.model'
 import type { PlayTarget } from './play.model'
-import { playReadOnly } from './play.model'
+import { pilotHolder, playReadOnly } from './play.model'
 import type { Play } from './situation.model'
 import { situationOf, soloMechOptions } from './situation.model'
 import { useGameBoardSources } from './useBoardSources'
@@ -25,8 +29,17 @@ import { useSeatAt } from './useSeat'
 
 export function usePlaySituation(target: PlayTarget): Play {
   const connection = useSync()
-  const { canWrite } = connection
   const store = useUnits()
+  // A pilot assigned to somebody else, or to nobody, is read here, not played
+  // (LG-02): every control is withdrawn rather than left to the room's refusal.
+  const inGame = isSignedIn(connection.status) ? target.gameId : null
+  const holder = pilotHolder({
+    pilotId: target.pilotId,
+    viewerId: useViewerId(),
+    pilots: useGameListing(inGame)?.pilots,
+    members: useTableRead('games.members', inGame === null ? 'skip' : { gameId: inGame }),
+  })
+  const canWrite = connection.canWrite && holder === null
   const pilot = store.get('pilot', target.pilotId)
   const seat = useSeatAt({ gameId: target.gameId, pilotId: target.pilotId })
   const downtime = usePlayDowntime(target)
@@ -76,6 +89,6 @@ export function usePlaySituation(target: PlayTarget): Play {
     downtime,
     scene,
     canWrite,
-    readOnly: playReadOnly(connection),
+    readOnly: playReadOnly(connection, holder),
   }
 }

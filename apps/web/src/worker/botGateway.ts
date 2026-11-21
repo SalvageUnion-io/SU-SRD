@@ -23,17 +23,22 @@ import type {
   BotUsageArgs,
   BotUsageResult,
   GamesResult,
+  LogRollArgs,
+  LogRollResult,
   MeResult,
   UnbindChannelArgs,
   UnbindChannelResult,
 } from 'game-domain/botWire'
+import { CORE_MECHANIC_TABLE, isPostableRoll } from 'game-domain/botWire'
 import type { SheetTable } from 'game-domain/entityKinds'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
+import type { LogEntry } from '../rooms/game/log'
 import type { BotRooms } from './botSheets'
 import { mine, sheet, shownName } from './botSheets'
 import { accountByDiscordId } from './shared/accounts'
 import {
   bindChannel,
+  bindingBy,
   CHANNEL_NOT_FOUND,
   GAME_NOT_FOUND,
   unbindChannel,
@@ -143,12 +148,71 @@ async function unbind(
   return unbindChannel(db, args.discordId, args.channelId.trim(), manageChannelsOf(args))
 }
 
+/** A Game room's one act the bot causes (`GameRoom.act`): a member's roll, onto the log. */
+export type RollLog = (gameId: string) => {
+  act(
+    actor: string,
+    name: 'changeLog.appendChangeLog',
+    args: { entries: LogEntry[] }
+  ): Promise<{ ok: boolean }>
+}
+
+/** The longest outcome a Discord roll's Feed line keeps. */
+const ROLL_OUTCOME_MAX = 160
+
+/**
+ * A public `/su roll` in a Game's bound channel, on that Game's Feed: the same
+ * row Play writes for a roll (`changeLog.appendChangeLog`), as the member who
+ * rolled, so the room's own rule (members only) decides. A channel bound to
+ * nothing, to solo play, or to a Game the roller is not in logs nothing.
+ */
+async function logRoll(
+  db: SharedDb,
+  rooms: BotRooms,
+  log: RollLog,
+  args: LogRollArgs
+): Promise<BotSuccess<LogRollResult>> {
+  const none = { ok: true, logged: false } as const
+  const { tableName, rolls } = args
+  if (typeof tableName !== 'string' || !Array.isArray(rolls) || !isPostableRoll(tableName, rolls)) {
+    return none
+  }
+  const binding = await bindingBy(db, 'channel', String(args.channelId))
+  const gameId = binding?.game_id ?? null
+  if (gameId === null) return none
+  const discordId = String(args.discordId)
+  if ((await membershipOf(db, gameId, discordId)) === null) return none
+  const name = await shownName(rooms, discordId, await accountByDiscordId(db, discordId))
+  const outcome = typeof args.outcome === 'string' ? args.outcome.slice(0, ROLL_OUTCOME_MAX) : ''
+  const description = [name, tableName, rolls.join(', '), ...(outcome ? [outcome] : [])].join(' · ')
+  const answer = await log(gameId).act(discordId, 'changeLog.appendChangeLog', {
+    entries: [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: {
+          description,
+          result: {
+            kind: tableName === CORE_MECHANIC_TABLE ? 'core' : 'table',
+            roll: rolls[0] ?? null,
+            outcome,
+          },
+        },
+        source: 'discord',
+        ts: Date.now(),
+      },
+    ],
+  })
+  return { ok: true, logged: answer.ok }
+}
+
 /** One op's answer, or null when the site cannot answer it (no database, or a room that fails). */
 export async function answerBot(
   db: SharedDb | undefined,
   op: BotOpName,
   args: Record<string, unknown>,
-  rooms?: BotRooms
+  rooms?: BotRooms,
+  log?: RollLog
 ): Promise<BotAnswer | null> {
   if (!db) return null
   switch (op) {
@@ -164,6 +228,10 @@ export async function answerBot(
       return bind(db, args as BindChannelArgs)
     case 'unbindChannel':
       return unbind(db, args as UnbindChannelArgs)
+    case 'logRoll':
+      return rooms && log
+        ? fromRooms(() => logRoll(db, rooms, log, args as unknown as LogRollArgs))
+        : null
     case 'mine':
       return rooms ? fromRooms(() => mine(db, rooms, String(args.discordId))) : null
     case 'sheet':
@@ -203,6 +271,13 @@ function workerRooms(): BotRooms {
 /** @public Loaded by workerd: the bot's binding names it as its `entrypoint`. */
 export class BotGateway extends WorkerEntrypoint<GatewayEnv> {
   answer(op: BotOpName, args: Record<string, unknown>): Promise<BotAnswer | null> {
-    return answerBot(this.env.SHARED, op, args, workerRooms())
+    const rooms = workerRooms()
+    return answerBot(
+      this.env.SHARED,
+      op,
+      args,
+      rooms,
+      (gameId) => rooms.game(gameId) as unknown as ReturnType<RollLog>
+    )
   }
 }

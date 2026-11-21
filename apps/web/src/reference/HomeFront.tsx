@@ -1,7 +1,9 @@
 // The home page: its slideshow (`HomeHero`), the site's name on an ink-deep
-// cut-out under the header, over seven slides of the book's art: first the
-// pitch, then each a line and one action named for the slide, on a cut-out
-// over the footer, then the tagline's slide.
+// cut-out under the header, over eight slides of the book's art: first the
+// pitch with the two ways most visits go (build, look something up), then
+// each a line and one action named for the slide, on a cut-out over the
+// footer, then the tagline's slide. Every slide has a way forward. A
+// signed-in reader also gets the doors to their own Training Bay and Games.
 import { Pause, Play } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
@@ -70,6 +72,16 @@ function heroSlides(): Slide[] {
       body: referenceCopy('showPlayBody'),
       href: appPath('/games/'),
       art: painting('slide-union'),
+    },
+    // The Mediator's side of Play: prep, then the table. On the ink ground
+    // until its painting is in the bucket (`hero/slide-mediator.webp`).
+    {
+      key: 'mediate',
+      kind: 'action',
+      title: referenceCopy('showMediate'),
+      body: referenceCopy('showMediateBody'),
+      href: appPath('/games/'),
+      art: undefined,
     },
     {
       key: 'buy',
@@ -143,12 +155,48 @@ export function HomeHero() {
                 slides have no action. */}
             <div className="su-front__show-copy">
               {slide.kind === 'pitch' ? (
-                <div className="su-front__show-plate su-grain--paper">
+                <div
+                  className="su-front__show-plate su-front__show-plate--pitch su-grain--paper"
+                  data-ground="ink"
+                >
                   <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
+                  {/* The two things a visit is for. "Look something up" opens
+                      the search where the script runs (`data-search-open`,
+                      `islands.client.ts`), else the Reference's Contents. */}
+                  <div className="su-front__show-acts">
+                    <Button
+                      href={appPath('/')}
+                      linkAs="a"
+                      variant="primary"
+                      size="full"
+                      className="su-front__show-act"
+                    >
+                      {referenceCopy('showStart')}
+                    </Button>
+                    <Button
+                      href="/reference/"
+                      linkAs="a"
+                      variant="default"
+                      size="full"
+                      className="su-front__show-act"
+                      data-search-open=""
+                    >
+                      {referenceCopy('showLookUp')}
+                    </Button>
+                  </div>
                 </div>
               ) : slide.kind === 'quote' ? (
                 <div className="su-front__show-plate su-front__show-plate--quote su-grain--paper">
                   <Tagline />
+                  <Button
+                    href={appPath('/')}
+                    linkAs="a"
+                    variant="primary"
+                    size="full"
+                    className="su-front__show-act"
+                  >
+                    {referenceCopy('showStart')}
+                  </Button>
                 </div>
               ) : (
                 <div className="su-front__show-plate su-grain--paper">
@@ -180,6 +228,24 @@ export function HomeHero() {
             {referenceCopy('siteName')}
           </h1>
         </div>
+        {/* A returning reader's own doors, served hidden and shown while
+            somebody is signed in (`html[data-srd-signed-in]`, as Sign in
+            hides): the page is one HTML for every reader. */}
+        <nav
+          className="su-front__show-yours su-grain--paper"
+          aria-label={referenceCopy('showWelcomeBack')}
+          data-ground="ink"
+        >
+          <span className={cn('su-front__show-yours-label', capsLabel())}>
+            {referenceCopy('showWelcomeBack')}
+          </span>
+          <Button href={appPath('/')} linkAs="a" variant="default" size="compact">
+            {referenceCopy('showTrainingBay')}
+          </Button>
+          <Button href={appPath('/games/')} linkAs="a" variant="default" size="compact">
+            {referenceCopy('showGames')}
+          </Button>
+        </nav>
       </div>
       {/* The show's Pause, a bare icon at its lower left (WCAG 2.2.2): Pause
           at rest, Play once pressed. Hidden until the page's script can press

@@ -33,6 +33,57 @@ describe('the Scene', () => {
   })
 })
 
+describe('up now', () => {
+  test('the Mediator marks whose turn it is, every seat reads it, and clearing it reads newer', () => {
+    const { room } = table()
+    room.scene.setUpNow(MEDIATOR, 'p1', AT)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: [], hours: 0, upNow: 'p1' })
+    expect(room.scene.updatedAt('scene')).toBe(AT)
+    room.scene.setConditions(MEDIATOR, ['freezing'], AT + 1)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p1')
+    room.scene.setUpNow(MEDIATOR, 'p2', AT + 2)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p2')
+    room.scene.setUpNow(MEDIATOR, null, AT + 3)
+    expect(room.scene.scene(PLAYER)).toEqual({ conditions: ['freezing'], hours: 0 })
+    expect(room.scene.updatedAt('scene')).toBe(AT + 3)
+    expect(room.scene.scene(STRANGER)).toEqual({ conditions: [], hours: 0 })
+    expect(() => room.scene.setUpNow(PLAYER, 'p1', AT)).toThrow('Only the Mediator')
+    expect(() => room.scene.setUpNow(MEDIATOR, '', AT)).toThrow()
+    // A marker is no roll and no alert.
+    expect(room.log.rolls(PLAYER)).toEqual([])
+    expect(room.log.alerts(PLAYER)).toEqual([])
+  })
+})
+
+describe("the Mediator's rolls", () => {
+  const roll = (description: string, hidden: boolean, ts: number) => ({
+    entityType: 'game',
+    field: 'roll',
+    after: { description, ...(hidden ? { private: true } : {}) },
+    source: 'play',
+    ts,
+  })
+
+  test('a shared one reaches every seat; a private one only the Mediator', () => {
+    const { room } = table()
+    room.log.append(MEDIATOR, [roll('Mediator · Morale · 4', false, AT)])
+    room.log.append(MEDIATOR, [roll('Mediator · Reaction · 9', true, AT + 1)])
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual(['Mediator · Morale · 4'])
+    expect(room.log.rolls(MEDIATOR)).toMatchObject([
+      { description: 'Mediator · Reaction · 9', private: true },
+      { description: 'Mediator · Morale · 4' },
+    ])
+    expect(room.log.rolls(MEDIATOR)[1]).not.toHaveProperty('private')
+  })
+
+  test("a player's roll is never private, whatever the client sent", () => {
+    const { room } = table()
+    room.log.append(PLAYER, [roll('Rook · Core Mechanic · 14', true, AT)])
+    expect(room.log.rolls(ORGANIZER)).toMatchObject([{ description: 'Rook · Core Mechanic · 14' }])
+    expect(room.log.rolls(PLAYER)[0]).not.toHaveProperty('private')
+  })
+})
+
 describe('the area being salvaged', () => {
   test('each roll spends 1 Supply, on the Tech Level it was set at, until it is picked clean', () => {
     const { room } = crewed()

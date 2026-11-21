@@ -35,6 +35,8 @@ type RailFacets = {
   techLevels: TechLevel[]
   sources: string[]
   trees: string[]
+  /** The traits a weapon or a piece of gear can be filtered by (`listingTraits`); none on most listings. */
+  traits?: string[]
   /** The views it offers (`listingViews`): Catalog | List, a tree listing's Catalog | Tree | List. */
   views: readonly ListingView[]
 }
@@ -43,6 +45,7 @@ type RailFilters = {
   techLevels: ReadonlySet<string>
   source: string
   tree: string
+  trait?: string
   name: string
 }
 
@@ -60,6 +63,7 @@ export type RailActions = {
   clearTechLevels: () => void
   setSource: (source: string) => void
   setTree: (tree: string) => void
+  setTrait: (trait: string) => void
   setView: (view: ListingView) => void
   toggleFacets: () => void
 }
@@ -70,6 +74,7 @@ const IDLE: RailActions = {
   clearTechLevels: noop,
   setSource: noop,
   setTree: noop,
+  setTrait: noop,
   setView: noop,
   toggleFacets: noop,
 }
@@ -117,7 +122,7 @@ type ListingRailProps = {
  * behind Filters.
  */
 export function ListingRail({
-  facets: { count, techLevels, sources, trees, views },
+  facets: { count, techLevels, sources, trees, traits = [], views },
   filters = NO_FILTERS,
   facetsOpen = false,
   view,
@@ -133,13 +138,18 @@ export function ListingRail({
   const hasTechLevels = hasToolbar && techLevels.length > 1
   const hasSources = hasToolbar && sources.length > 1
   const hasTrees = hasToolbar && trees.length > 1
-  const hasFacets = hasTechLevels || hasSources || hasTrees
+  const hasTraits = hasToolbar && traits.length > 1
+  const hasFacets = hasTechLevels || hasSources || hasTrees || hasTraits
   const hasNameFilter = hasToolbar
   const showView = part !== 'filters' && views.length > 1
   const showFilters = part !== 'view'
   if (part === 'view' && !showView) return null
   if (part === 'filters' && !hasNameFilter && !hasFacets && !status) return null
-  const activeFacets = filters.techLevels.size + (filters.source ? 1 : 0) + (filters.tree ? 1 : 0)
+  const activeFacets =
+    filters.techLevels.size +
+    (filters.source ? 1 : 0) +
+    (filters.tree ? 1 : 0) +
+    (filters.trait ? 1 : 0)
 
   return (
     <div
@@ -168,7 +178,7 @@ export function ListingRail({
           aria-controls="srd-rail-facets"
           onClick={on.toggleFacets}
         >
-          Filters
+          {islandsCopy('filters')}
           {activeFacets > 0 && (
             <>
               {' '}
@@ -196,7 +206,7 @@ export function ListingRail({
       {showFilters && hasFacets && (
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
-            <Segmented label={islandsCopy('techLevel')}>
+            <Segmented label={islandsCopy('techLevel')} wrap>
               <span className="su-rail__stamp" aria-hidden="true">
                 {islandsCopy('tl')}
               </span>
@@ -246,6 +256,23 @@ export function ListingRail({
               {trees.map((tree) => (
                 <option key={tree} value={tree}>
                   {tree}
+                </option>
+              ))}
+            </Select>
+          )}
+          {hasTraits && (
+            <Select
+              chevron
+              aria-label={islandsCopy('trait')}
+              className={MENU}
+              data-on={filters.trait ? true : undefined}
+              value={filters.trait ?? ''}
+              onChange={(e) => on.setTrait(e.target.value)}
+            >
+              <option value="">{islandsCopy('allTraits', { count: traits.length })}</option>
+              {traits.map((trait) => (
+                <option key={trait} value={trait}>
+                  {trait}
                 </option>
               ))}
             </Select>

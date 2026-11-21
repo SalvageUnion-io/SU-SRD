@@ -36,10 +36,9 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
-import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { PageShell } from '../../components/app'
-import { Button, Callout, Pending, SlabSection, Text, tokens } from '../../components/index'
+import { Button, Callout, Pending, SlabSection, Text } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { areaTitle } from '../../lib/pageTitle'
 import { useTabTitle } from '../../lib/useTabTitle'
@@ -47,7 +46,6 @@ import { playGamesCopy } from '../../messages/play-games'
 import { routesCopy } from '../../messages/routes'
 import type { GameCallResult } from '../../replica/roomCalls'
 import { useGamesQuery, useViewerId } from '../../replica/roomCalls'
-import { StopSignBanner } from '../StopSign'
 import { useGameSession } from '../useGameSession'
 import { useStopSign } from '../useStopSign'
 import { CopyInviteLink, ResetInviteLink } from './CopyInviteLink'
@@ -55,7 +53,8 @@ import { DeleteGameDialog } from './DeleteGameDialog'
 import { GameBand } from './GameBand'
 import { GameRoster } from './GameRoster'
 import { GameSafety } from './GameSafety'
-import { HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { HUB_ACTIONS, HUB_COLUMNS, HUB_MAIN, HUB_SIDEBAR } from './hubStyles.model'
+import { LastSession } from './LastSession'
 import { LaunchPlay } from './LaunchPlay'
 import { MediatorPrep } from './MediatorPrep'
 import { ProposalInbox } from './ProposalInbox'
@@ -69,7 +68,6 @@ type GameHubProps = {
 }
 
 /** The Stop Sign's banner leads the page: the sections start a block's gap under it. */
-const STOP_BANNER = { marginBottom: tokens.space[24] } satisfies CSSProperties
 
 /** Play's hub, where your Games are listed. */
 const PLAY_HUB = '/games/'
@@ -106,11 +104,6 @@ function GameSections({ game }: { game: Game }) {
   return (
     // Its crew is one manifest (`GameRoster`).
     <>
-      {sign?.shown && (
-        <div style={STOP_BANNER}>
-          <StopSignBanner sign={sign} />
-        </div>
-      )}
       <div style={HUB_COLUMNS}>
         <div style={HUB_MAIN}>
           {/* The crew manifest leads the
@@ -122,30 +115,33 @@ function GameSections({ game }: { game: Game }) {
           <ProposalInbox gameId={gameId} />
           {/* `ops.sent` is the Mediator's alone (`requireMediator`). */}
           {game.mediator && <ProposalsSent gameId={gameId} />}
+          {/* The session's record, outside Play: nothing until the Game has had one. */}
+          <LastSession gameId={gameId} />
         </div>
         <aside aria-labelledby="the-game-heading" style={HUB_SIDEBAR}>
           <TheGame
             gameId={gameId}
             viewerId={viewerId}
             organizer={game.organizer}
+            game={game}
             onDelete={() => setConfirmingDelete(true)}
+            onLeft={() => {
+              if (router) void router.navigate({ to: '/games' })
+            }}
           />
-          {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
-          {game.mediator && <MediatorPrep />}
+          {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
+          {game.tableRunner && <MediatorPrep gameId={gameId} />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
-            <SlabSection
-              as="h2"
-              id="invite-link-heading"
-              title={playGamesCopy('inviteLink')}
-              actions={
-                <>
-                  <CopyInviteLink gameId={gameId} />
-                  <ResetInviteLink gameId={gameId} />
-                </>
-              }
-            />
+            // Its buttons are wider than the strip's room beside the title in
+            // this column, so they are the section's body, under its title.
+            <SlabSection as="h2" id="invite-link-heading" title={playGamesCopy('inviteLink')}>
+              <div style={HUB_ACTIONS}>
+                <CopyInviteLink gameId={gameId} />
+                <ResetInviteLink gameId={gameId} />
+              </div>
+            </SlabSection>
           )}
           {/* Safety runs last, so the two columns end together. */}
           <GameSafety sign={sign} />

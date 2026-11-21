@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { openApp } from './_helpers'
+import { openApp, unitNamed } from './_helpers'
 
 /**
  * The Training Bay (`/`, ADR-052 §1): everything an account owns, on shelves
@@ -23,7 +23,7 @@ export function shelf(page: Page, name = 'Pilots'): Locator {
 /** An item's ⋯ menu ("More for <name>"), then one of its rows (`Delete…`, `Move to a Game…`). */
 export async function fromShelfMenu(page: Page, name: string, row: string): Promise<void> {
   await page
-    .getByRole('button', { name: `More for ${name}` })
+    .getByRole('button', { name: unitNamed(name, 'More for ') })
     .first()
     .click()
   await page.getByRole('menuitem', { name: row }).click()

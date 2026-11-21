@@ -169,6 +169,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   K12: ['OgCard.test.tsx', 'ogCard.test.ts'],
   K13: ['chromeMatch.test.ts'],
   K14: ['controls-in-reach.e2e.ts'],
+  K15: ['TableNotices.connected.test.tsx', 'PlayFrame.test.tsx'],
+  K16: ['PlayPanes.test.tsx'],
   // ── entity-display-language.md ──
   E1: ['R35'],
   E2: ['R35', 'listingView.test.tsx', 'L9'],
@@ -191,6 +193,13 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E24: ['_hierarchy.ts#title-size', '_hierarchy.ts#slab-size'],
   E25: ['_hierarchy.ts#heading-skip', '_hierarchy.ts#heading-depth'],
   E26: ['pageRelations.test.ts'],
+  E27: [
+    'Peek.press.test.tsx',
+    'TermChip.test.tsx',
+    'SparseRail.test.tsx',
+    'interaction.test.ts',
+    'E16',
+  ],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],
   N2: ['entity-nesting/head-only-token'],
   N3: ['entity-nesting/nested-card-level', '_nestingDepth.ts'],
@@ -308,6 +317,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R67: ['WizShell.test.tsx', 'mech-wizard.e2e.ts', 'pilot-wizard.e2e.ts', 'crawler-wizard.e2e.ts'],
   R68: ['_fillGrid.ts', 'fill-grid.e2e.ts', 'chrome-tokens/item-grid', 'Grid.test.tsx'],
   R70: ['Sheet-related-units.test.tsx', 'RelatedUnits.test.tsx'],
+  R71: ['ruleBreakMark.test.tsx', 'ruleBreaks.test.ts'],
 }
 
 /** A law's id as the canon and its citations spell it. */

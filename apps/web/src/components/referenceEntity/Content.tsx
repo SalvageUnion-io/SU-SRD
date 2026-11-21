@@ -8,6 +8,7 @@ import {
 import { statesMechanicalChange } from 'salvageunion-reference/rules'
 import { space, fontSize as typeScale, weight } from '../../design/tokens'
 import { useParseTraitReferences } from '../../lib/useProseRefs'
+import { referenceEntityCopy } from '../../messages/components-reference-entity'
 import { ActivationCost } from '../atoms/ActivationCost'
 import { Badge } from '../atoms/Badge'
 import { Slab } from '../atoms/Slab'
@@ -52,7 +53,7 @@ const autoStampStyle = {
 } satisfies CSSProperties
 
 /** What the AUTO stamp says, to a pointer's hover and to a screen reader. */
-const AUTO_NOTE = 'The app applies this rule'
+const AUTO_NOTE = referenceEntityCopy('theAppAppliesThisRule')
 
 const listItemStyle = {
   display: 'flex',
@@ -370,7 +371,8 @@ function ContentBlock({
         >
           {bearing && (
             <Badge shape="stamp" size="mini" title={AUTO_NOTE} style={autoStampStyle}>
-              Auto<span className="su-sr-only">: {AUTO_NOTE.toLowerCase()}.</span>
+              {referenceEntityCopy('auto')}
+              <span className="su-sr-only">: {AUTO_NOTE.toLowerCase()}.</span>
             </Badge>
           )}
           {runInLabel}

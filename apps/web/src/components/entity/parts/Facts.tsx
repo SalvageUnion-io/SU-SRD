@@ -2,7 +2,9 @@ import type { Size } from '../../../styles/sizing'
 import { Stat } from '../../atoms/Stat'
 import type { StatItem } from '../../containers/statsBarTypes'
 import { factRef } from './factRefs'
+import { statTerm } from './statTerms'
 import { ChipLink } from './Tags'
+import { TermChip } from './TermChip'
 
 /**
  * FACTS — the body's first cells: each a horizontal `Stat` at its `full`
@@ -42,6 +44,15 @@ export function Facts({
             wrap
           />
         )
+        // A stat with no glossary entry is defined in place (Cargo Capacity,
+        // Slots Required, DMG): its chip opens the meaning (E27).
+        const term = linkable && !ref && !stat.onChange ? statTerm(stat) : undefined
+        if (term)
+          return (
+            <TermChip key={stat.key} term={term} value={String(stat.value)}>
+              {cell}
+            </TermChip>
+          )
         if (!ref) return cell
         const name = stat.shortLabel ?? stat.label
         return (

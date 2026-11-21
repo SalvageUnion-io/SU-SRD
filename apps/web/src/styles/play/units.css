@@ -25,3 +25,11 @@
   flex-direction: column;
   gap: var(--space-6);
 }
+
+/* The amount form, in the open rows' place: the same quiet card. */
+.su-play-pins__amount {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  padding: var(--space-6) var(--space-8);
+}

@@ -34,8 +34,7 @@ import { apiV1Manifest } from '../endpoints/apiV1'
 import type { PageModule, PageResult } from '../types'
 
 const TITLE = pageTitle(pagesCopy('datasetApi'))
-const DESCRIPTION =
-  'The SalvageUnion.io Dataset API, version 1: every piece of Salvage Union game data as versioned, CORS-enabled JSON with a stability promise.'
+const DESCRIPTION = pagesCopy('apiDescription')
 
 /** The v1 tree, absolute: every endpoint below sits under it. */
 const BASE = `${SITE_URL}${API_V1_PATH}`
@@ -213,7 +212,7 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'TechArticle',
-        name: 'SalvageUnion.io Dataset API v1',
+        name: pagesCopy('datasetApiV1'),
         description: pagesCopy('documentationForThePublicJson'),
         url: `${SITE_URL}/api/`,
         isPartOf: WEBSITE,
@@ -225,21 +224,24 @@ function page(): PageResult {
         <SlabSection as="h2" title={pagesCopy('overview')} bodyStyle={PROSE_12} page>
           <p>{pagesCopy('allGameDataOnSalvageunion')}</p>
           <p>
-            CORS is fully open (<code style={CODE}>{pagesCopy('accessControlAllowOrigin')}</code>
-            ), so you can fetch from any origin, including browser JavaScript.
+            {pagesCopy('corsIsFullyOpen')}
+            <code style={CODE}>{pagesCopy('accessControlAllowOrigin')}</code>
+            {pagesCopy('soYouCanFetchFrom')}
           </p>
           <p>
             {pagesCopy('everyEndpointSitsUnder')} <code style={CODE}>{`${API_V1_PATH}/`}</code>.{' '}
             {pagesCopy('startAtTheManifest')} <code style={CODE}>{`${BASE}/index.json`}</code>
           </p>
           <p style={ASIDE}>
-            <strong>{pagesCopy('tip')}</strong> every page on this site has its data in the API. For
-            example, <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code> renders the HTML
-            index, and <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis.json`}</code> serves
-            the raw array. The same applies to individual entities:{' '}
-            <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code> is the page, and{' '}
-            <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis/${samples.slug}.json`}</code> its
-            data.
+            <strong>{pagesCopy('tip')}</strong> {pagesCopy('everyPageOnThisSite')}{' '}
+            <code style={CODE_ON_GROUND}>{schemaHref('chassis')}</code>{' '}
+            {pagesCopy('rendersTheHtmlIndexAnd')}{' '}
+            <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis.json`}</code>{' '}
+            {pagesCopy('servesTheRawArray')}{' '}
+            <code style={CODE_ON_GROUND}>{itemHref('chassis', samples.slug)}</code>{' '}
+            {pagesCopy('isThePageAnd')}{' '}
+            <code style={CODE_ON_GROUND}>{`${API_V1_PATH}/chassis/${samples.slug}.json`}</code>{' '}
+            {pagesCopy('itsData')}
           </p>
         </SlabSection>
 
@@ -330,10 +332,9 @@ function page(): PageResult {
               </code>
             </p>
             <p>
-              Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated
-              versions of the entity name (e.g., <code style={CODE}>{samples.name}</code> becomes{' '}
-              <code style={CODE}>{samples.slug}</code>). Slugs match the page URLs on the reference
-              site.
+              {pagesCopy('returnsASingleEntityBy')} <code style={CODE}>{samples.name}</code>{' '}
+              {pagesCopy('becomes')} <code style={CODE}>{samples.slug}</code>
+              {pagesCopy('slugsMatchThePageUrls')}
             </p>
             <p>
               <strong>{pagesCopy('example')}</strong>{' '}
@@ -418,7 +419,7 @@ function page(): PageResult {
         {/* Licensing note */}
         <SlabSection as="h2" title={pagesCopy('licensing')} bodyStyle={PROSE_12} page>
           <p>
-            Data returned by this API is published under the{' '}
+            {pagesCopy('dataReturnedByThisApi')}{' '}
             <InlineRef
               href="https://leyline.press/pages/salvage-union-open-game-licence-1-0b"
               target="_blank"
@@ -427,7 +428,7 @@ function page(): PageResult {
             >
               {pagesCopy('salvageUnionOpenGameLicence2')}
             </InlineRef>
-            . Salvage Union is created and published by{' '}
+            {pagesCopy('salvageUnionIsCreatedAnd')}{' '}
             <InlineRef
               href="https://leyline.press"
               target="_blank"
@@ -439,11 +440,8 @@ function page(): PageResult {
             .
           </p>
           <p>
-            The licence covers game text and mechanics only. Entity artwork is{' '}
-            <strong>{pagesCopy('not')}</strong> covered — those images are used on this site with
-            special permission from Leyline Press and may not be redistributed. Republication of
-            licensed text must include the legal notices required by the Salvage Union Open Game
-            Licence 1.0b.
+            {pagesCopy('theLicenceCoversGameText')} <strong>{pagesCopy('not')}</strong>{' '}
+            {pagesCopy('coveredThoseImagesAreUsed')}
           </p>
         </SlabSection>
       </DocPage>

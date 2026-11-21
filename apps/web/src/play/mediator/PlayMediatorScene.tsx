@@ -160,7 +160,11 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
           </Button>
         }
       />
-      {hourly ? null : <p style={NOTE}>{mediatorCopy('nothingHourly')}</p>}
+      {hourly ? null : (
+        <p style={NOTE}>
+          {on.size === 0 ? mediatorCopy('noSceneConditions') : mediatorCopy('nothingHourly')}
+        </p>
+      )}
       <MiniGrid label={mediatorCopy('sceneConditions')} play>
         {SCENE_CONDITION_IDS.map((id) => {
           const condition = SCENE_CONDITIONS[id]

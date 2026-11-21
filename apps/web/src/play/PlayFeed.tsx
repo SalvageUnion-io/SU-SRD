@@ -18,7 +18,7 @@
  */
 
 import type { CSSProperties } from 'react'
-import { FeedLine, FeedList, FieldError } from '../components/app'
+import { FeedLine, FeedList, FeedTime, FieldError } from '../components/app'
 import { Button, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
@@ -57,7 +57,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
   const apply = useTableAct('ops.accept', gameId)
   const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playCopy('answerDidNotLand'),
     toastId: 'play-proposal-answer',
   })
 
@@ -126,7 +126,12 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
             )
           }
           default:
-            return <FeedLine key={entry.key}>{entry.text}</FeedLine>
+            // The table's log reads with its times (a session's record).
+            return (
+              <FeedLine key={entry.key} end={<FeedTime ts={entry.ts} format="clock" />}>
+                {entry.text}
+              </FeedLine>
+            )
         }
       })}
     </FeedList>
@@ -153,7 +158,7 @@ function PostState({
     )
   }
   if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
-  const label = 'Try again'
+  const label = playCopy('tryAgain')
   return (
     <Button
       variant="default"

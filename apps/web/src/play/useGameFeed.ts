@@ -18,9 +18,11 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatResolving } from 'game-domain/schemas/seat'
 import { coreRollBandLabel } from 'salvageunion-reference/rules'
 import { gauge, pool } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import { isSignedIn } from '../replica/sync'
 import { useSync } from '../replica/syncContext'
 import { useTableRead } from '../replica/useTable'
+import type { TableEvent } from '../rooms/game/events'
 import type { ProposalRead } from '../rooms/game/proposals'
 import type { CrewVitals } from '../rooms/vitals'
 import type { BoardSources } from './boardMenu.model'
@@ -34,6 +36,8 @@ export type RollLine = {
   actorName: string | null
   /** Where the row came from: 'play'. */
   source: string
+  /** The Mediator's private roll: only a Mediator's Feed is served it. */
+  private?: true
 }
 
 /** One Mediator alert (`changeLog.alerts`). */
@@ -86,6 +90,8 @@ export type GameFeed = {
   rolls: RollLine[] | null
   /** Newest first. */
   alerts: AlertLine[]
+  /** The table's event stream, rolls and alerts included; null while it loads. */
+  events: TableEvent[] | null
   /** Proposals waiting for this player's answer, newest first: Play's Feed answers them inline (play.md §8). */
   proposals: PendingProposal[]
   /** Every crewmate's vitals and derived status; null until it arrives. */
@@ -107,12 +113,14 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
 
   const rolls = useTableRead('changeLog.rolls', inGame ? { gameId, limit: LOG_ROLLS } : 'skip')
   const alerts = useTableRead('changeLog.alerts', inGame ? { gameId, limit: LOG_ALERTS } : 'skip')
+  const events = useTableRead('changeLog.events', inGame ? { gameId } : 'skip')
   const pending = useTableRead('ops.pending', inGame ? { gameId } : 'skip')
   const crew = useTableRead('crew.vitals', inGame ? { gameId } : 'skip')
 
   return {
     rolls: rolls ?? null,
     alerts: alerts ?? [],
+    events: events ?? null,
     proposals: pending ?? [],
     crew: crew ?? null,
   }
@@ -120,7 +128,7 @@ export function useGameFeed(pilot: Pilot | null): GameFeed {
 
 /** A resolve in progress, as the crew reads it. */
 export function describeResolve(pilotName: string, resolving: SeatResolving): string {
-  const head = `${pilotName} is resolving ${resolving.name}`
+  const head = playCopy('isResolving', { pilot: pilotName, name: resolving.name })
   if (resolving.roll !== undefined) {
     const label = coreRollBandLabel(resolving.roll.band)
     const tail = resolving.applied ? ', applied' : ''
@@ -159,9 +167,9 @@ type CrewMech = CrewVitals['mechs'][number]
 function mechProblems(status: CrewMech['status']): string[] {
   if (status === null) return []
   return [
-    ...(status.destroyed ? ['Mech destroyed'] : []),
+    ...(status.destroyed ? [playCopy('mechDestroyed')] : []),
     ...(status.overheating ? ['Overheating'] : []),
-    ...(status.shutdown ? ['Shut down'] : []),
+    ...(status.shutdown ? [playCopy('shutDown')] : []),
     ...[...status.destroyedSystems, ...status.destroyedModules].map((item) => `${item} destroyed`),
   ]
 }
@@ -222,11 +230,11 @@ export function crewLines(
     const unit =
       mech === undefined
         ? p.boarded
-          ? 'In a mech'
-          : 'On foot'
+          ? playCopy('inAMech')
+          : playCopy('onFoot')
         : p.boarded
           ? `In ${mech.name} · SP ${vitalText('pool', mech.currentSP, mech.maxSP)}`
-          : `On foot · ${mech.name} parked`
+          : playCopy('onFootMechParked', { mech: mech.name })
     lines.push({
       pilotId: id,
       name: p.name,

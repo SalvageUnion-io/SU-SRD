@@ -17,6 +17,7 @@
  * the URL. Signed out, `NewEntityScreen` shows the sign-in panel instead.
  */
 
+import type { NpcTemplateRef } from 'game-domain/schemas/npc'
 import { Tab, TabList, TabPanel, Tabs } from '../../components/app'
 import { ChapterBand, tokens } from '../../components/index'
 import { useMe } from '../../lib/account/accountApi'
@@ -42,6 +43,8 @@ type NpcDesignerPageProps = {
   /** An Any NPC design was saved — go to its sheet. */
   onCreated: (npcId: string) => void
   onCancel: () => void
+  /** `&from=<schema>:<slug>` (any view): the denizen to design from. */
+  from?: NpcTemplateRef
 }
 
 export function NpcDesignerPage({
@@ -52,6 +55,7 @@ export function NpcDesignerPage({
   onCrewSelect,
   onCreated,
   onCancel,
+  from,
 }: NpcDesignerPageProps) {
   const { status } = useSync()
   const signedIn = isSignedIn(status)
@@ -62,10 +66,10 @@ export function NpcDesignerPage({
 
   const crew = view === 'crew'
   const eyebrow = crew
-    ? [crawler?.name ?? 'Union crawler', typeName ? `${typeName} type` : null, 'Crew']
+    ? [crawler?.name ?? npcCopy('unionCrawler'), typeName ? `${typeName} type` : null, 'Crew']
         .filter(Boolean)
         .join(' · ')
-    : 'Denizens · New NPC'
+    : npcCopy('denizensNewNpc')
 
   return (
     <main style={PAGE}>
@@ -93,7 +97,12 @@ export function NpcDesignerPage({
           {crew ? npcCopy('crawlerCrew') : npcCopy('designAnNpc')}
         </ChapterBand>
         <TabPanel value="any">
-          <AnyNpcDesigner madeBy={madeBy} onCreated={onCreated} onCancel={onCancel} />
+          <AnyNpcDesigner
+            madeBy={madeBy}
+            onCreated={onCreated}
+            onCancel={onCancel}
+            startFrom={from}
+          />
         </TabPanel>
         <TabPanel value="crew">
           <CrewBoard crawlerId={crawlerId} slot={slot} madeBy={madeBy} onSelect={onCrewSelect} />

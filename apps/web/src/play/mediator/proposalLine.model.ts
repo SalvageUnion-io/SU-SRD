@@ -4,7 +4,7 @@
  * before (ADR-030 §4, as amended), so a row names only the value it asks for.
  */
 
-import { fieldLabel } from 'game-domain/games/proposals'
+import { clampProposalValue, fieldLabel } from 'game-domain/games/proposals'
 import type { SentProposal } from '../../rooms/game/proposals'
 
 export type { SentProposal }
@@ -20,4 +20,26 @@ export function proposalLine(p: SentProposal): string {
   ]
     .filter((part) => part !== null)
     .join(' · ')
+}
+
+/** How the Propose dock reads its number: the value itself, or an amount taken from or added to what the sheet has. */
+export type ProposeMode = 'set' | 'take' | 'add'
+
+/**
+ * The value a proposal asks for (`after`): the number typed, or the sheet's
+ * current value less or plus it ("take 3 damage"), a whole number from 0 to
+ * the field's maximum when known. Null for no number, or an amount with no
+ * current value to change.
+ */
+export function proposalAfter(
+  mode: ProposeMode,
+  raw: string,
+  current: number | null,
+  max: number | null
+): number | null {
+  const typed = clampProposalValue(raw, mode === 'set' ? max : null)
+  if (typed === null || mode === 'set') return typed
+  if (current === null) return null
+  const next = Math.max(0, mode === 'take' ? current - typed : current + typed)
+  return max === null ? next : Math.min(next, max)
 }

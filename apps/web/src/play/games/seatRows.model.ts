@@ -5,7 +5,9 @@
  */
 
 import { sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { resolvePool } from 'salvageunion-reference/rules'
+import { playGamesCopy } from '../../messages/play-games'
 import type { GameListing } from '../../replica/gameListing'
 import type { ReadAnswer } from '../../replica/useTable'
 import type { CrewVitals } from '../../rooms/vitals'
@@ -73,7 +75,7 @@ export function seatRows(
     if (id !== null) mechName.set(id, text(m.body, 'name') ?? 'a mech')
   }
   const pilotOf = (pilot: Listing['pilots'][number]): NonNullable<SeatRow['pilot']> => {
-    const callsign = text(pilot.body, 'callsign') ?? text(pilot.body, 'name') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     const id = linkId(pilot)
     const mechId = id === null ? undefined : mechOfPilot.get(id)
     const mech = (mechId === undefined ? undefined : mechName.get(mechId)) ?? null
@@ -87,7 +89,7 @@ export function seatRows(
   }
   const unitOf = (pilot: Listing['pilots'][number]): string => {
     const { name, mech } = pilotOf(pilot)
-    return `${name} · ${mech ?? 'on foot'}`
+    return `${name} · ${mech ?? playGamesCopy('onFootUnit')}`
   }
 
   const rows: SeatRow[] = []
@@ -101,7 +103,7 @@ export function seatRows(
         key: member.userId,
         role,
         who,
-        unit: member.mediator ? 'Runs the table' : 'No pilot yet',
+        unit: member.mediator ? playGamesCopy('runsTheTable') : playGamesCopy('noPilotYet'),
         pilot: null,
         hp: null,
       })
@@ -120,12 +122,12 @@ export function seatRows(
   }
   const open = listing.pilots.filter((p) => p.ownerId === null)
   for (const pilot of open) {
-    const callsign = text(pilot.body, 'callsign') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     rows.push({
       key: pilot._id,
       role: 'Open',
       who: callsign,
-      unit: 'Waiting for a player',
+      unit: playGamesCopy('waitingForAPlayer'),
       pilot: { ...pilotOf(pilot), name: callsign },
       hp: hp.get(pilot._id) ?? null,
     })

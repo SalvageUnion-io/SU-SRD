@@ -29,7 +29,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
    `/schema/*` serves the same files byte for byte, the unversioned alias; each schema's `$id` is the URL it is served at; CORS on.
 8. **discord-bot** <a id="discord-bot"></a>
    A Worker answering HTTP interactions (no gateway, no `discord.js`); conventions in [its CLAUDE.md](../apps/discord-bot/CLAUDE.md).
-   Imports `game-domain` types, and values only from its leaf modules (botWire, product, appAddress, entityKinds, mechConditions; `noRestrictedImports`); changing them is cross-package. Lookup = embed: `discordEntryCard`.
+   Imports `game-domain` types, values only from leaf modules (botWire, product, appAddress, entityKinds, mechConditions, pilotLabel; `noRestrictedImports`); changes are cross-package. Lookup = embed: `discordEntryCard`.
 9. **game-domain** <a id="game-domain"></a>
    Zod schemas, roles, link/crew/downtime rules and bot wire types for the app, the rooms and the bot; import by subpath.
    Rules: pure → reference `lib/rules`; shared → here; client → `src/lib/rules`; `check rules-home` bars a rule in a product folder.
@@ -120,7 +120,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Duration effects are Play's and never persisted; every stated mechanical change is a contribution or a reasoned exemption.
 39. **UI words** · ADR-054 · [spec](architecture/messages.md) <a id="messages"></a>
     Every word the app draws is a key in `apps/web/src/messages/`, values as `{name}` placeholders; English only.
-    The `ui-strings` rule set ratchets the strings still typed at the call site.
+    The `ui-strings` rule set allows no string typed at the call site.
 40. **Addresses** · ADR-048, ADR-062 · [spec](architecture/addresses.md) <a id="addresses"></a>
     Reference `/`, Training Bay `/build/`, Play `/play/`, one app mapped by `appPath` / `routeInApp`; sheets `/build/<kind>s/:id`.
     Every retired address 301s once (`retiredTarget`).
@@ -144,7 +144,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050, ADR-064.
 34. **ADR-034 Persistence requires an account**
-    Signed out is read-only, every record is Convex-backed, the app is a PWA.
+    Signed out saves nothing, every record is Convex-backed, the app is a PWA.
     Amends ADR-022 and ADR-030; amended by ADR-058.
 36. **ADR-036 Retire snapshot shares**
     The public sheet is the only account-free share; no `/api/snapshots`. Amends ADR-032.
@@ -177,8 +177,8 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Built: offline, the player's own sheets come back from the device; Convex stays of record.
     Amends ADR-030 §1 and ADR-034; replaced by ADR-063 decision 9 (the outbox).
 59. **ADR-059 The Mediator's prep kit** · [full text](adr/059-mediator-prep-kit.md)
-    Built: encounters on the Training Bay shelf (opposition, tables, private notes), run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing to tell the table; encounters in the device copy.
-    Amends ADR-052 §1.
+    Built: encounters, run into a Game's Opposition as a copy. §5 (flagged): groups, waves, a briefing.
+    Amends ADR-052 §1; amended by ADR-067.
 60. **ADR-060 Feature flags** · [full text](adr/060-feature-flags.md)
     Built: `src/lib/flags.ts`; unfinished surfaces merge dark: off on production's origin, on in Previews, dev and test-seam builds.
 61. **ADR-061 Homebrew on the SRD** · [full text](adr/061-homebrew.md)
@@ -193,3 +193,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 66. **ADR-066 Reference | Training Bay | Games** · [full text](adr/066-training-bay-and-games.md)
     Header links Reference | Builder | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
     Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
+67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
+    Amends ADR-059.

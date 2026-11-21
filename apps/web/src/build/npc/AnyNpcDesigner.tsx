@@ -16,11 +16,12 @@
  * wizard (hard rule R16); drafts go through `wizardDraft.ts`.
  */
 
-import { NpcSchema } from 'game-domain/schemas/npc'
+import type { NpcTemplateKind, NpcTemplateRef } from 'game-domain/schemas/npc'
+import { NPC_TEMPLATE_KINDS, NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
-import { useMemo, useState } from 'react'
-import type { RefNPC } from 'salvageunion-reference'
-import { displayTitle, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type { RefEntity } from 'salvageunion-reference'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { ConfirmDialog, FieldError, Grid } from '../../components/app'
 import {
   Button,
@@ -31,11 +32,14 @@ import {
   ModalShell,
   RadioCardGroup,
   SearchField,
+  Segmented,
+  SegmentedOption,
   Select,
   Textarea,
   TitledBox,
 } from '../../components/index'
-import { npcActionSlug } from '../../lib/npcs/npcModel'
+import type { DenizenTemplate } from '../../lib/npcs/npcModel'
+import { denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
@@ -60,23 +64,19 @@ import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizShell } from '../wizard/WizShell'
 import { NpcCard } from './NpcCard'
 import { ActionPick, TraitPick } from './NpcPickRows'
+import { ReferenceAdder } from './NpcReferenceAdder'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
-  template:
-    'Start from an NPC in the reference: it fills the stats, actions and traits, and you change what you like. Or start blank.',
-  stats: 'Hit points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
-  actions:
-    'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
-  identity: 'Who they are. Only the name is required.',
-  review: 'Check the card, then save the NPC to your Training Bay.',
+  template: npcCopy('introTemplate'),
+  stats: npcCopy('introStats'),
+  actions: npcCopy('introActions'),
+  identity: npcCopy('introIdentity'),
+  review: npcCopy('introReview'),
 }
 
 /** The step beside its live preview, where there is room for both; stacked where not. */
 const STEP_COLUMNS = { alignItems: 'start' } satisfies CSSProperties
-
-/** A match: the outlined `Button` (R16), the row's width, its kind at the far end. */
-const RESULT_BUTTON = { justifyContent: 'space-between', width: '100%' } satisfies CSSProperties
 
 type AnyNpcDesignerProps = {
   /** The maker's display name, for the preview's "Made by". */
@@ -84,15 +84,31 @@ type AnyNpcDesignerProps = {
   /** Called with the new NPC's id once it is saved. */
   onCreated: (npcId: string) => void
   onCancel: () => void
+  /** A denizen to start from (`?from=`, a Reference page's "Design from this"). */
+  startFrom?: NpcTemplateRef
 }
 
-export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerProps) {
+/** What each kind of denizen is called on its tab. */
+const TEMPLATE_KIND_LABEL: Record<NpcTemplateKind, string> = {
+  npcs: 'NPCs',
+  squads: 'Squads',
+  creatures: 'Creatures',
+  vehicles: 'Vehicles',
+  drones: 'Drones',
+  meld: 'Meld',
+  'bio-titans': 'Bio-Titans',
+}
+
+/** A template waiting to be applied: the denizen and the kind it is. */
+type Start = { schema: NpcTemplateKind; entity: DenizenTemplate }
+
+export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNpcDesignerProps) {
   const { canWrite } = useSync()
   const { form, setForm, formDirty, draftKey } = useWizardDraft<NpcFormState>('npc', {
     baseline: EMPTY_NPC_FORM,
   })
   /** A restart waiting on the player's yes: a template, or `'blank'` (D4). */
-  const [pendingStart, setPendingStart] = useState<RefNPC | 'blank' | null>(null)
+  const [pendingStart, setPendingStart] = useState<Start | 'blank' | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const flow = useWizardFlow({
@@ -115,28 +131,33 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
   const { step, gate, submitError, shell } = flow
 
   const template = useMemo(
-    () =>
-      form.templateRef?.schema === 'npcs'
-        ? readReference(
-            'AnyNpcDesigner.template',
-            () => SalvageUnionReference.NPCs.getBySlug(form.templateRef?.slug ?? '') ?? undefined,
-            undefined
-          )
-        : undefined,
+    () => (denizenTemplate(form.templateRef) as RefEntity | null) ?? undefined,
     [form.templateRef]
   )
+
+  // Arriving from a Reference page: start from that denizen, once, and only
+  // where no start was chosen (a kept draft is the player's).
+  const arrived = useRef(false)
+  useEffect(() => {
+    if (arrived.current || startFrom === undefined) return
+    arrived.current = true
+    const entity = denizenTemplate(startFrom)
+    if (entity === null || !isDenizenKind(startFrom.schema)) return
+    const schema = startFrom.schema
+    setForm((prev) => (prev.templateChosen ? prev : applyNpcTemplate(prev, entity, schema)))
+  }, [startFrom, setForm])
 
   function update(patch: Partial<NpcFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
   }
 
   /** Choose a template: fill at once, or ask first when the stats were edited (D4). */
-  function chooseTemplate(ref: RefNPC) {
+  function chooseTemplate(start: Start) {
     if (form.templateChosen && statsEditedSinceFill(form)) {
-      setPendingStart(ref)
+      setPendingStart(start)
       return
     }
-    setForm((prev) => applyNpcTemplate(prev, ref))
+    setForm((prev) => applyNpcTemplate(prev, start.entity, start.schema))
   }
 
   /** Start blank: the same question as a template, since it clears the same fields (D4). */
@@ -228,9 +249,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
             </p>
             {preview}
             <p style={NOTE}>
-              <strong>{npcCopy('yoursNotTheBooks')}</strong> A designed NPC keeps its
-              template&rsquo;s link to the reference, but wears the user-made frame and your name.
-              It can go in your Training Bay, into a Game, or into a crawler&rsquo;s crew.
+              <strong>{npcCopy('yoursNotTheBooks')}</strong> {npcCopy('aDesignedNpcKeeps')}
             </p>
           </section>
         </Grid>
@@ -253,7 +272,9 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         title={
           pendingStart === 'blank'
             ? npcCopy('startBlank')
-            : `Start again from ${pendingStart?.name ?? 'this template'}?`
+            : npcCopy('startAgainFrom', {
+                name: pendingStart?.entity.name ?? npcCopy('thisTemplate'),
+              })
         }
         body={
           pendingStart === 'blank'
@@ -265,7 +286,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel }: AnyNpcDesignerPr
         onConfirm={() => {
           const start = pendingStart
           if (start === 'blank') setForm((prev) => applyBlankStart(prev))
-          else if (start) setForm((prev) => applyNpcTemplate(prev, start))
+          else if (start) setForm((prev) => applyNpcTemplate(prev, start.entity, start.schema))
           setPendingStart(null)
         }}
       />
@@ -280,15 +301,26 @@ function TemplateStep({
   onBlank,
 }: {
   form: NpcFormState
-  onTemplate: (ref: RefNPC) => void
+  onTemplate: (start: Start) => void
   onBlank: () => void
 }) {
   const [query, setQuery] = useState('')
+  // Every denizen the Opposition fields, book NPCs first (ADR-067 §2).
   const all = useMemo(
-    () => readReference('TemplateStep.npcs', () => SalvageUnionReference.NPCs.all(), []),
+    () =>
+      readReference(
+        'TemplateStep.denizens',
+        () => SalvageUnionReference.getAllBySchemaNames([...NPC_TEMPLATE_KINDS]),
+        []
+      ),
     []
   )
-  const shown = all.filter((n) => n.name.toLowerCase().includes(query.trim().toLowerCase()))
+  // One kind at a time, book NPCs first; a search reads every kind at once.
+  const [kind, setKind] = useState<NpcTemplateKind>('npcs')
+  const typed = query.trim().toLowerCase()
+  const shown = all.filter(({ schemaName, entity }) =>
+    typed === '' ? schemaName === kind : entity.name.toLowerCase().includes(typed)
+  )
   const blankChosen = form.templateChosen && form.templateRef === null
 
   return (
@@ -299,6 +331,20 @@ function TemplateStep({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+      <Segmented label={npcCopy('templateKind')} size="compact" wrap>
+        {NPC_TEMPLATE_KINDS.map((k) => (
+          <SegmentedOption
+            key={k}
+            pressed={typed === '' && k === kind}
+            onClick={() => {
+              setKind(k)
+              setQuery('')
+            }}
+          >
+            {TEMPLATE_KIND_LABEL[k]}
+          </SegmentedOption>
+        ))}
+      </Segmented>
       {/* One template or none: a radio (hard rule R15), each pick ringed and sealed. */}
       <RadioCardGroup label={npcCopy('template')}>
         <ul style={LIST} aria-label={npcCopy('templates')}>
@@ -317,21 +363,20 @@ function TemplateStep({
               <span style={HINT}>{npcCopy('noTemplateSetTheStats')}</span>
             </TitledBox>
           </li>
-          {shown.map((npc) => (
-            <li key={npc.id}>
-              {/* A picker (E1): a Compact in select mode; the list names the kind. */}
+          {shown.map(({ schemaName, entity }) => (
+            <li key={`${schemaName}:${entity.id}`}>
+              {/* A picker (E1): a Compact in select mode, its kind on it. */}
               <Entity
                 size="compact"
-                entity={npc}
-                omit={OMIT_KIND}
+                entity={entity}
                 mode={{
                   kind: 'select',
                   role: 'radio',
                   selected:
-                    form.templateRef?.schema === 'npcs' &&
-                    form.templateRef.slug === nameToSlug(npc.name),
-                  onSelect: () => onTemplate(npc),
-                  label: npcCopy('startFrom', { name: npc.name }),
+                    form.templateRef?.schema === schemaName &&
+                    form.templateRef.slug === nameToSlug(entity.name),
+                  onSelect: () => onTemplate({ schema: schemaName, entity }),
+                  label: npcCopy('startFrom', { name: entity.name }),
                 }}
               />
             </li>
@@ -426,84 +471,6 @@ function ActionsStep({
         onTrait={(type) => onChange((prev) => addNpcTrait(prev, type))}
       />
     </>
-  )
-}
-
-/** A list of one kind: its Compacts drop the kind stamp. */
-const OMIT_KIND = ['kind'] as const
-
-/** The search that adds an action or a trait from the reference (D6). */
-function ReferenceAdder({
-  carriedActions,
-  carriedTraits,
-  onAction,
-  onTrait,
-}: {
-  carriedActions: readonly string[]
-  carriedTraits: readonly string[]
-  onAction: (slug: string) => void
-  onTrait: (type: string) => void
-}) {
-  const [query, setQuery] = useState('')
-  const q = query.trim().toLowerCase()
-  const matches = useMemo(() => {
-    if (q.length < 2) return []
-    const actions = readReference(
-      'ReferenceAdder.actions',
-      () => SalvageUnionReference.Actions.all(),
-      []
-    )
-      .filter((a) => a.name.toLowerCase().includes(q))
-      .map((a) => ({ kind: 'Action' as const, name: a.name }))
-    const traits = readReference(
-      'ReferenceAdder.traits',
-      () => SalvageUnionReference.Traits.all(),
-      []
-    )
-      .filter((t) => t.name.toLowerCase().includes(q))
-      .map((t) => ({ kind: 'Trait' as const, name: t.name }))
-    return [...traits, ...actions].slice(0, 8)
-  }, [q])
-
-  return (
-    <div style={COLUMN}>
-      <SearchField
-        aria-label={npcCopy('addAnActionOrTrait')}
-        placeholder={npcCopy('addAnActionOrTrait')}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {matches.length > 0 && (
-        <ul style={LIST} aria-label={npcCopy('matches')}>
-          {matches.map((m) => {
-            const slug = m.kind === 'Action' ? npcActionSlug(m.name) : m.name
-            const has =
-              m.kind === 'Action' ? carriedActions.includes(slug) : carriedTraits.includes(m.name)
-            return (
-              <li key={`${m.kind}:${m.name}`}>
-                <Button
-                  variant="default"
-                  style={RESULT_BUTTON}
-                  disabled={has}
-                  onClick={() => {
-                    if (m.kind === 'Action') onAction(slug)
-                    else onTrait(m.name)
-                    setQuery('')
-                  }}
-                >
-                  <span>
-                    {has
-                      ? npcCopy('alreadyListed', { displayTitle: displayTitle(m.name) })
-                      : npcCopy('add', { displayTitle: displayTitle(m.name) })}
-                  </span>
-                  <span>{m.kind}</span>
-                </Button>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </div>
   )
 }
 

@@ -126,9 +126,10 @@ export function BrandCard({ kicker }: BrandCardProps) {
         </p>
         <div style={NOTCH}>
           <p className={TITLE_CAPS} style={TITLE}>
-            Salvage
+            {compositionsCopy('salvage')}
             <br />
-            Union<span style={TLD}>{compositionsCopy('io')}</span>
+            {compositionsCopy('union')}
+            <span style={TLD}>{compositionsCopy('io')}</span>
           </p>
         </div>
       </div>

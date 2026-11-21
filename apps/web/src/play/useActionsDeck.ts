@@ -32,6 +32,7 @@
  * Situation) decides what an activation spends and whether it touches Heat.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -55,7 +56,7 @@ import {
   resolveChassisRef,
   resolveGauge,
 } from 'salvageunion-reference/rules'
-import { rollForTable } from '../components/index'
+import { rollForTable, toast } from '../components/index'
 import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionList'
 import {
   buildCompanionActions,
@@ -82,6 +83,7 @@ import { companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 import type { SalvageAreaView } from './useSalvageArea'
 
 export type ResolveModel =
@@ -164,13 +166,13 @@ export type ResolveModel =
         roll: number | null
         /** The rolled row, as the screen reader says it. */
         rolled: { label: string; text: string } | null
-        /** What Apply carried, and what it left in the area. */
-        haul: string | null
       }
       /** A Push's Heat Check melted the reactor down; the player confirms it. */
       meltdown?: { onConfirm: () => void; onDismiss: () => void } | null
       applied: boolean
       applyRouted: boolean
+      /** Something was done with it (activated, rolled): its close reads Done, never Cancel. */
+      progressed: boolean
     }
 
 export type ActionsDeckProps = {
@@ -200,6 +202,8 @@ export type ActionsDeck = {
   /** Open an action's resolve on the seat, by its key. */
   open: (key: string) => void
   resolve: ResolveModel
+  /** The action that just finished (applied, and closed itself): its row says Done until another opens. */
+  doneKey: string | null
 }
 
 /** Every write here is Play's enforced transaction (ADR-022). */
@@ -257,7 +261,7 @@ export function useActionsDeck({
   const [applyRouted, setApplyRouted] = useState(false)
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
-  const [haul, setHaul] = useState<string | null>(null)
+  const [doneKey, setDoneKey] = useState<string | null>(null)
 
   const selected = resolving === null ? null : (deck.find((a) => a.key === resolving.ref) ?? null)
   const roll: CoreRollResult | null = resolving?.roll ?? null
@@ -278,11 +282,11 @@ export function useActionsDeck({
     setMeltdown(false)
     setApplyRouted(false)
     setHotX(1)
-    setHaul(null)
   }
 
   function open(action: PlayAction) {
     setCurrency(action.currency)
+    setDoneKey(null)
     resetLocal()
     onResolving({ ref: action.key, name: action.name, activated: false, applied: false })
   }
@@ -313,11 +317,14 @@ export function useActionsDeck({
       setApplyRouted(true)
       return
     }
-    step(current, { applied: true })
+    // A finished action closes itself: its row says Done, and the seat stops
+    // saying it is being resolved.
+    setDoneKey(current.ref)
+    close()
   }
 
   async function doRoll(current: SeatResolving) {
-    const result = performCoreRoll(await rollFor('Core Mechanic'))
+    const result = performCoreRoll(await rollFor(CORE_MECHANIC_TABLE))
     setPushLog(null)
     setMeltdown(false)
     setApplyRouted(false)
@@ -331,7 +338,7 @@ export function useActionsDeck({
     // or a Bio-Chassis's own table (We Were Here First p.79).
     const overloadTable = overloadTableName(overloadTableOf(resolveChassisRef(mech.chassisRef)))
     const heatRoll = await rollFor(overloadTable, { plainD20s: 1 })
-    const coreRoll = await rollFor('Core Mechanic')
+    const coreRoll = await rollFor(CORE_MECHANIC_TABLE)
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
     // The readout, a Meltdown and the reroll follow only a Push that landed.
@@ -356,33 +363,39 @@ export function useActionsDeck({
     const spent = await salvageArea.spend(pilot.id)
     if (spent === null) return
     const die = (await rollFor(AREA_SALVAGE_TABLE))(20)
-    setHaul(null)
     step(current, { salvage: { roll: die, areaTl: spent.techLevel }, applied: false })
   }
 
   /**
    * Area Salvage's Apply: the Scrap into the Cargo Slots of the mech aboard, or
    * on foot into the pilot's inventory, as much as fits; the rest stays in the
-   * area. Nothing found, or a 20's item alone, writes nothing.
+   * area. Nothing found, or a 20's item alone, writes nothing. Then it closes.
    */
   function doSalvageApply(current: SeatResolving, result: AreaSalvageResult) {
+    let said: string | null = null
     if (!onFoot && mech) {
       const fresh = s.get('mech', mech.id) ?? mech
       const cap = mechMaxCargo(fresh, undefined, { abilities: pilot?.abilities })
       const carried = areaSalvageToMech(fresh, cap, result)
       const { patch } = carried
       if (patch) runWrite(() => s.update('mech', mech.id, patch, meta))
-      setHaul(haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name })))
+      said = haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name }))
     } else if (pilot) {
       const fresh = s.get('pilot', pilot.id) ?? pilot
       const carried = areaSalvageToPilot(fresh, pilotMaxInventorySlots(fresh), result)
       const { patch } = carried
       if (patch) runWrite(() => s.update('pilot', pilot.id, patch, meta))
-      setHaul(
-        haulText(result, carried, playCopy('salvagePilotInventory', { name: fresh.callsign }))
+      said = haulText(
+        result,
+        carried,
+        playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) })
       )
     }
-    step(current, { applied: true })
+    // It finishes like any other action (LG-12): the row says Done, the seat
+    // stops saying it is being resolved, and a toast keeps what was loaded.
+    if (said !== null) toast(said, { id: `area-salvage-${current.ref}` })
+    setDoneKey(current.ref)
+    close()
   }
 
   /** The player's half of a meltdown: mark the mech Destroyed (ADR-007). */
@@ -400,7 +413,7 @@ export function useActionsDeck({
       // removed, or the deck changed under a reload. Say so, and let it go.
       return {
         kind: 'orphan',
-        text: `${resolving.name} is no longer in this deck.`,
+        text: playCopy('noLongerInThisDeck', { name: resolving.name }),
         onClear: close,
       }
     }
@@ -475,7 +488,10 @@ export function useActionsDeck({
         ? {
             hotX,
             activated,
-            projText: `Heat ${projectedHeat}/${actionHeat.heatCap}${heatOk ? '' : ' — over cap'}`,
+            projText: playCopy(heatOk ? 'heatProjected' : 'heatProjectedOverCap', {
+              heat: projectedHeat,
+              cap: actionHeat.heatCap,
+            }),
             over: !heatOk,
             onDec: () => setHotX((x) => Math.max(1, x - 1)),
             onInc: () => setHotX((x) => x + 1),
@@ -484,10 +500,10 @@ export function useActionsDeck({
       controls: {
         activateDisabled,
         activateTitle: apUnavailable
-          ? 'No pilot to spend AP'
+          ? playCopy('noPilotToSpendAp')
           : heatOk
             ? undefined
-            : 'Activating would exceed the Heat Capacity',
+            : playCopy('activatingWouldExceed'),
         onActivate: () =>
           payActivation(units, selected, effCurrency, eco, () =>
             step(current, { activated: true })
@@ -502,7 +518,11 @@ export function useActionsDeck({
                 disabled: roll === null || pushed || pushLocked,
                 pushed,
                 lockedReason: pushLocked
-                  ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +${pushHeat} Heat would pass the Heat Capacity.`
+                  ? playCopy('noPushAtHeatWouldPass', {
+                      heat: heatCtx.currentHeat,
+                      cap: heatCtx.heatCap,
+                      gain: pushHeat,
+                    })
                   : undefined,
                 onPush: () => void doPush(current),
               },
@@ -535,12 +555,12 @@ export function useActionsDeck({
             rolled: salvaged
               ? { label: salvaged.label, text: areaSalvageRowText(salvaged.roll) }
               : null,
-            haul,
           }
         : undefined,
       meltdown: meltdown ? { onConfirm: meltDown, onDismiss: () => setMeltdown(false) } : null,
       applied,
       applyRouted,
+      progressed: activated || roll !== null || salvageRoll !== null || applied,
     }
   })()
 
@@ -550,5 +570,6 @@ export function useActionsDeck({
       if (action) open(action)
     },
     resolve,
+    doneKey: resolving === null ? doneKey : null,
   }
 }

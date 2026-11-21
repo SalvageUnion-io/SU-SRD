@@ -45,6 +45,8 @@
  * somebody to take it; a shelf is already somebody's.
  */
 
+import { libCopy } from '../messages/lib'
+
 /** The loosest shape this needs: an opaque body that may carry a name. */
 export type CopyableBody = Record<string, unknown>
 
@@ -59,10 +61,21 @@ export type CopyableBody = Record<string, unknown>
  */
 const DROPPED_FIELDS = ['id', 'createdAt', 'updatedAt'] as const
 
-/** How a copy announces itself. Prefixed, so it sorts beside nothing and reads as derived. */
-export function copyName(name: string): string {
-  return `COPY OF ${name}`
+/**
+ * How a copy announces itself. Prefixed, so it sorts beside nothing and reads
+ * as derived. `taken` is the names already on the shelf it lands on: a second
+ * copy of one thing is numbered (`COPY OF Leaky 2`), so no two rows read alike.
+ */
+export function copyName(name: string, taken: readonly string[] = []): string {
+  const base = libCopy('copyOf', { name })
+  if (!taken.includes(base)) return base
+  let n = 2
+  while (taken.includes(`${base} ${n}`)) n += 1
+  return `${base} ${n}`
 }
+
+/** The names on a shelf, as `copyName` takes them. */
+export const namesOn = (rows: readonly { name: string }[]): string[] => rows.map((row) => row.name)
 
 /**
  * Build the create-input for a copy of `source`, destined for the copier's shelf.
@@ -76,18 +89,22 @@ export function copyName(name: string): string {
  *
  * `fallbackName` is used when the body carries no usable name, so a copy is
  * never called `COPY OF ` with nothing after it. Callers pass the name they are
- * already displaying.
+ * already displaying. `taken` is the names on the shelf, for the copy's number.
  *
  * The body is otherwise copied **verbatim** — conditions, damage, scrap, TP and
  * all. A copy of a character mid-campaign is that character mid-campaign; a
  * pristine one is what the wizard is for.
  */
-export function copyForShelf(source: CopyableBody, fallbackName: string): CopyableBody {
+export function copyForShelf(
+  source: CopyableBody,
+  fallbackName: string,
+  taken: readonly string[] = []
+): CopyableBody {
   const copy: CopyableBody = { ...source }
   for (const field of DROPPED_FIELDS) delete copy[field]
 
   const sourceName = typeof source.name === 'string' && source.name.length > 0 ? source.name : null
-  copy.name = copyName(sourceName ?? fallbackName)
+  copy.name = copyName(sourceName ?? fallbackName, taken)
 
   // Explicitly null, never absent: `null` IS the shelf, while an absent
   // `gameId` would let `entityStore.create` stamp whatever container happens

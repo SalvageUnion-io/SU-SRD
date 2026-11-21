@@ -2,7 +2,7 @@
  * "Copy the crew to…" — the Starter Set page's band control: the whole crew,
  * every Pilot, Mech and the Tenacity, copied in one go into a container the
  * player picks, linked to one another as the box links them
- * (`copyStarterCrew`). One build at a time is each Compact's "Copy to…".
+ * (`copyStarterCrew`). One build at a time is each line's "Make a copy".
  *
  * The destinations are the crawler's (`moveDestinations`): the Training Bay,
  * or a Game the player runs, since only a table's runner may bring a crawler

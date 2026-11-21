@@ -14,9 +14,11 @@
  * anyone with the link may read; a null answer becomes the plain private card.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { OgCardProps } from '../../components/compositions/ogCardText'
 import { color } from '../../design/tokens'
+import { libLinkPreviewCopy } from '../../messages/lib-link-preview'
 
 /** The kinds of player thing a link previews. */
 export type PreviewKind = 'pilot' | 'mech' | 'crawler' | 'npc' | 'pattern'
@@ -47,6 +49,8 @@ export type PreviewAnswer = {
 export type InvitePreviewAnswer = {
   gameName: string
   mediatedBy: string | null
+  /** What the Game says of itself (ADR-067 §3); absent when it says nothing. */
+  description?: string
 }
 
 /** Names a reference slug: a class, a chassis, a crawler type. */
@@ -95,7 +99,7 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
       return {
         kind: 'sheet',
         kicker: joinParts(['Pilot', classRef ? nameOf('classes', classRef) : undefined]),
-        title: text(body, 'callsign') ?? text(body, 'name') ?? 'Pilot',
+        title: pilotLabel(body as Record<string, unknown> | null),
         tone: color.pilot,
         stats: [],
         byline: joinParts([owned(ownerName, 'pilot'), gameName]),
@@ -118,12 +122,17 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
       const type = text(body, 'type')
       return {
         kind: 'sheet',
-        kicker: joinParts(['Union Crawler', type ? nameOf('crawlers', type) : undefined]),
-        title: text(body, 'name') ?? 'Union Crawler',
+        kicker: joinParts([
+          libLinkPreviewCopy('unionCrawler'),
+          type ? nameOf('crawlers', type) : undefined,
+        ]),
+        title: text(body, 'name') ?? libLinkPreviewCopy('unionCrawler'),
         tone: color.crawler,
         stats: [],
         // A Game's crawler is the crew's home, owned by nobody: the Game names it.
-        byline: gameName ? joinParts(['Crew crawler', gameName]) : owned(ownerName, 'crawler'),
+        byline: gameName
+          ? joinParts([libLinkPreviewCopy('crewCrawler'), gameName])
+          : owned(ownerName, 'crawler'),
         address,
       }
     }
@@ -142,8 +151,11 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
       const chassisRef = text(body, 'chassisRef')
       return {
         kind: 'userMade',
-        kicker: joinParts(['Mech Pattern', chassisRef ? nameOf('chassis', chassisRef) : undefined]),
-        title: text(body, 'name') ?? 'Mech Pattern',
+        kicker: joinParts([
+          libLinkPreviewCopy('mechPattern'),
+          chassisRef ? nameOf('chassis', chassisRef) : undefined,
+        ]),
+        title: text(body, 'name') ?? libLinkPreviewCopy('mechPattern'),
         tone: color.mech,
         stats: [],
         madeBy: ownerName ?? 'a player',
@@ -157,12 +169,12 @@ export function sheetCard(answer: PreviewAnswer, nameOf: NameOf, address: string
 export function inviteCard(answer: InvitePreviewAnswer, address: string): PreviewCard {
   return {
     kind: 'invite',
-    kicker: "You're invited · Player seat",
+    kicker: libLinkPreviewCopy('inviteKicker'),
     title: answer.gameName,
     tone: color.crawler,
     summary: answer.mediatedBy
-      ? `Mediated by ${answer.mediatedBy}.`
-      : `A Salvage Union Game on ${PRODUCT.wordmark}.`,
+      ? libLinkPreviewCopy('mediatedBy', { name: answer.mediatedBy })
+      : libLinkPreviewCopy('aGameOn', { site: PRODUCT.wordmark }),
     address,
   }
 }
@@ -189,7 +201,7 @@ export function previewWords(card: PreviewCard): {
     case 'private':
       return {
         title: 'Private',
-        description: "Its owner hasn't shared this.",
+        description: libLinkPreviewCopy('notShared'),
         themeColor: color.inkDeep,
       }
     case 'sheet':
@@ -201,7 +213,7 @@ export function previewWords(card: PreviewCard): {
     case 'userMade':
       return {
         title: card.title,
-        description: joinParts([card.kicker, `Made by ${card.madeBy}`]),
+        description: joinParts([card.kicker, libLinkPreviewCopy('madeBy', { name: card.madeBy })]),
         themeColor: bandOf(card.tone),
       }
     case 'invite':

@@ -22,7 +22,7 @@ const LAST_UPDATED = '29 October 2026'
 function page(): PageResult {
   return {
     meta: {
-      title: pageTitle('Discord Bot Privacy Policy'),
+      title: pageTitle(pagesCopy('discordBotPrivacyTitle')),
       description: pagesCopy('privacyPolicyForTheSalvage'),
     },
     children: (
@@ -37,10 +37,8 @@ function page(): PageResult {
             <ul style={LIST}>
               <li>
                 <strong>{pagesCopy('rollsAndLookups')}</strong> (<code>{pagesCopy('suRoll')}</code>,{' '}
-                <code>{pagesCopy('suLookup')}</code>): we keep no record; they answer in real time.
-                A roll’s card names who rolled, and its “Roll again” button carries the roller’s
-                Discord ID so that only they can use it. Other buttons carry the table or dice in
-                the button itself.
+                <code>{pagesCopy('suLookup')}</code>
+                {pagesCopy('weKeepNoRecord')}
               </li>
               <li>
                 <strong>{pagesCopy('usageCounts')}</strong> {pagesCopy('forEveryCommandAWeekly')}
@@ -50,28 +48,23 @@ function page(): PageResult {
                 {pagesCopy('feedbackBecomesAnIssue')}
               </li>
               <li>
-                <strong>{pagesCopy('yourLinkedAccount')}</strong> when you sign in to
-                salvageunion.io with Discord, your account keeps your Discord user ID, name and
-                avatar. The Bot uses that ID to recognise you in <code>{pagesCopy('suMe')}</code>,{' '}
-                <code>{pagesCopy('suGames')}</code> and <code>{pagesCopy('suSheet')}</code>, and
-                shows only what your account may see.
+                <strong>{pagesCopy('yourLinkedAccount')}</strong> {pagesCopy('whenYouSignInTo')}{' '}
+                <code>{pagesCopy('suMe')}</code>, <code>{pagesCopy('suGames')}</code>{' '}
+                {pagesCopy('and')} <code>{pagesCopy('suSheet')}</code>
+                {pagesCopy('andShowsOnlyWhatYour')}
               </li>
               <li>
-                <strong>{pagesCopy('boundChannels')}</strong> (<code>{pagesCopy('suBind')}</code>):
-                the channel’s ID and name, the Game it posts for (or none, for solo play), who bound
-                it and when. <code>{pagesCopy('suUnbind')}</code> deletes it, run by whoever bound
-                it or anyone with Manage Channels in that channel.
+                <strong>{pagesCopy('boundChannels')}</strong> (<code>{pagesCopy('suBind')}</code>
+                {pagesCopy('theChannelsIdAndName')} <code>{pagesCopy('suUnbind')}</code>{' '}
+                {pagesCopy('deletesItRunByWhoever')}
               </li>
               <li>
-                <strong>{pagesCopy('rollsFromPlay')}</strong> a roll made on salvageunion.io is
-                posted to the bound channel as a card naming the roller. Its buttons carry the
-                roller’s Discord ID so that only they can use them.
+                <strong>{pagesCopy('rollsFromPlay')}</strong> {pagesCopy('aRollMadeOnSalvageunion')}
               </li>
             </ul>
             <p style={AFTER_LIST}>
-              The Bot does <strong>{pagesCopy('not')}</strong> read message content, except the one
-              message you choose with “Look up in Salvage Union”, which it reads to answer you and
-              never stores. It never stores your messages.
+              {pagesCopy('theBotDoes')} <strong>{pagesCopy('not')}</strong>{' '}
+              {pagesCopy('readMessageContentExcept')}
             </p>
           </div>
 
@@ -84,13 +77,10 @@ function page(): PageResult {
             <Slab as="h2" label={pagesCopy('thirdParties')} />
             <ul style={LIST}>
               <li>
-                <strong>{pagesCopy('discord')}</strong> — your use of the Bot is also governed by
-                Discord’s Privacy Policy.
+                <strong>{pagesCopy('discord')}</strong> {pagesCopy('yourUseOfTheBot')}
               </li>
               <li>
-                <strong>{pagesCopy('cloudflare')}</strong> — hosts the Bot and salvageunion.io, logs
-                their errors, and stores salvageunion.io accounts, Games, sheets, bound channels and
-                feedback (in Durable Objects and D1) and the photos you upload (in R2).
+                <strong>{pagesCopy('cloudflare')}</strong> {pagesCopy('hostsTheBotAndSalvageunion')}
               </li>
               <li>
                 <strong>{pagesCopy('github')}</strong> {pagesCopy('hostsThePublicIssues')}
@@ -101,14 +91,12 @@ function page(): PageResult {
           <div>
             <Slab as="h2" label={pagesCopy('yourData')} />
             <p>
-              Signed in at salvageunion.io,{' '}
+              {pagesCopy('signedInAtSalvageunionIo')}{' '}
               <InlineRef href={appPath('/settings')} style={BOLD}>
                 {pagesCopy('settings')}
               </InlineRef>{' '}
-              lets you export everything your account holds or delete the account. Deleting it
-              removes your Discord link, your solo channel and any feedback not yet posted. A Game’s
-              bound channel stays with the Game until someone runs{' '}
-              <code>{pagesCopy('suUnbind')}</code>. For anything else, contact{' '}
+              {pagesCopy('letsYouExportEverything')} <code>{pagesCopy('suUnbind')}</code>
+              {pagesCopy('forAnythingElseContact')}{' '}
               <InlineRef href="mailto:privacy@salvageunion.io" style={BOLD}>
                 {pagesCopy('privacySalvageunionIo')}
               </InlineRef>
@@ -117,7 +105,7 @@ function page(): PageResult {
           </div>
 
           <p style={SMALL_PRINT}>
-            See also the{' '}
+            {pagesCopy('seeAlsoThe')}{' '}
             <InlineRef href="/bot/terms/" style={BOLD}>
               {pagesCopy('termsOfService')}
             </InlineRef>

@@ -1,4 +1,5 @@
 import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
+import { pilotLabel } from 'game-domain/pilotLabel'
 /**
  * The Downtime step box's plan (play.md §6): what the current step will apply,
  * line by line, read from the pure patches in `game-domain/rules/downtime`
@@ -116,7 +117,7 @@ function mechLine(mech: Mech, pilot: Pilot | null, crawler: Crawler | null): Pla
       chips: [],
       steps,
       skippable: false,
-      blocked: 'Mech Bay damaged: no restore or repair this Downtime',
+      blocked: playCopy('mechBayDamagedNoRestore'),
     }
   }
   const patch = downtimeMechPatch(
@@ -168,10 +169,10 @@ function pilotLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine 
     })
   if (patch.injuries !== undefined) {
     const healed = (pilot.injuries ?? []).length - patch.injuries.length
-    chips.push({ label: 'Injuries healed', value: String(healed) })
+    chips.push({ label: playCopy('injuriesHealed'), value: String(healed) })
   }
   if (chips.length === 0) return null
-  return { key: 'pilot', title: pilot.name, chips, steps, skippable: true }
+  return { key: 'pilot', title: pilotLabel(pilot), chips, steps, skippable: true }
 }
 
 function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | null, tl: number) {
@@ -203,7 +204,13 @@ function usesLine(pilot: Pilot | null, mech: Mech | null, crawler: Crawler | nul
     }
   }
   if (chips.length === 0) return null
-  const line: PlanLine = { key: 'uses', title: 'Uses recharge', chips, steps, skippable: true }
+  const line: PlanLine = {
+    key: 'uses',
+    title: playCopy('usesRecharge'),
+    chips,
+    steps,
+    skippable: true,
+  }
   return line
 }
 
@@ -212,10 +219,20 @@ function resetsLine(pilot: Pilot, crawler: Crawler | null, tl: number): PlanLine
   const patch = downtimePilotPatch(pilot, medBayOf(crawler), onlySteps(steps), tl)
   const chips: PlanChip[] = []
   if (patch.usedAbilities !== undefined)
-    chips.push({ label: 'Abilities used', value: arrow((pilot.usedAbilities ?? []).length, 0) })
-  if (patch.usedToggles !== undefined) chips.push({ label: 'Once per Downtime', value: 'reset' })
+    chips.push({
+      label: playCopy('abilitiesUsed'),
+      value: arrow((pilot.usedAbilities ?? []).length, 0),
+    })
+  if (patch.usedToggles !== undefined)
+    chips.push({ label: playCopy('oncePerDowntime'), value: 'reset' })
   if (chips.length === 0) return null
-  return { key: 'resets', title: 'Once-per-Downtime resets', chips, steps, skippable: true }
+  return {
+    key: 'resets',
+    title: playCopy('oncePerDowntimeResets'),
+    chips,
+    steps,
+    skippable: true,
+  }
 }
 
 /**
@@ -265,7 +282,7 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
     const tp = pilot.trainingPoints ?? 0
     lines.push({
       key: 'train',
-      title: pilot.name,
+      title: pilotLabel(pilot),
       chips: [{ label: 'TP', value: arrow(tp, tp + 1) }],
       steps: ['trainPilots'],
       skippable: true,
@@ -279,7 +296,13 @@ export function stepPlan(input: StepPlanInput): PlanLine[] {
           label: 'Upkeep',
           value: `${crawlerUpkeepCost(crawler.techLevel, crawler.type)} Scrap · T${crawler.techLevel}`,
         },
-        { label: upkeep.spent ? 'Paid' : upkeep.canPay ? 'Outstanding' : 'The Mediator pays it' },
+        {
+          label: upkeep.spent
+            ? 'Paid'
+            : upkeep.canPay
+              ? 'Outstanding'
+              : playCopy('theMediatorPaysIt'),
+        },
       ],
       steps: [],
       skippable: upkeep.canPay && !upkeep.spent,

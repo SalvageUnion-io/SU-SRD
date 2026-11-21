@@ -230,6 +230,7 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             breadcrumbs={trail}
             pageHasSearch={pathname === '/404/'}
             home={pathname === '/'}
+            pathname={pathname}
           />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following

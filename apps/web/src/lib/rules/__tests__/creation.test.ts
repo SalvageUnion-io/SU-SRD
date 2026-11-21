@@ -27,6 +27,7 @@ import {
   mechCreationStepGate,
   pilotCreationStepGate,
 } from '../creation'
+import { isStartingEquipment } from '../startingEquipment'
 
 function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
   const found = accessor.find((x) => x.name === name) as { id: string } | undefined
@@ -35,8 +36,8 @@ function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => bool
 }
 
 function tech1EquipmentSlug(): string {
-  const item = SalvageUnionReference.Equipment.find(
-    (e) => (e as { techLevel?: number }).techLevel === 1
+  const item = SalvageUnionReference.Equipment.find((e) =>
+    isStartingEquipment(e as { name: string; techLevel?: number })
   )
   if (!item) throw new Error('no Tech 1 equipment loaded')
   return getEntitySlug(item)
@@ -127,7 +128,15 @@ describe('pilotCreationStepGate', () => {
       equipment: [dup, higherTechEquipmentSlug()],
     })
     expect(illegal.ok).toBe(false)
-    expect(illegal.reason).toBe('Only Tech 1 equipment is legal at creation')
+    expect(illegal.reason).toBe('Only Tech 1 equipment from the list is legal at creation')
+
+    // Gear an Ability grants is Tech 1 in the data and still no starting pick (SB-03).
+    expect(
+      pilotCreationStepGate('equipment', {
+        ...legalForm(),
+        equipment: [dup, 'custom-sniper-rifle'],
+      }).ok
+    ).toBe(false)
   })
 
   it('callsign: both Name and Callsign must be non-empty', () => {
@@ -271,7 +280,7 @@ describe('mechCreationStepGate', () => {
   it('pattern: the name is required (a mech’s name IS its pattern)', () => {
     const blocked = mechCreationStepGate('pattern', { ...legalMechForm(), name: '  ' })
     expect(blocked.ok).toBe(false)
-    expect(blocked.reason).toBe('Name your Pattern to continue')
+    expect(blocked.reason).toBe('Name your Mech to continue')
     expect(mechCreationStepGate('pattern', legalMechForm()).ok).toBe(true)
   })
 
@@ -598,5 +607,59 @@ describe('maxAddableCopies', () => {
         { scrapRemaining: 0, slotsRemaining: 0 }
       )
     ).toBe(Number.POSITIVE_INFINITY)
+  })
+})
+
+describe('the gates a restored or hand-edited draft can still trip', () => {
+  it('equipment: more than the two picks says how many to remove', () => {
+    const item = tech1EquipmentSlug()
+    const three = pilotCreationStepGate('equipment', {
+      ...legalForm(),
+      equipment: [item, item, item],
+    })
+    expect(three).toEqual({ ok: false, reason: 'Remove 1 equipment item to continue' })
+    const five = pilotCreationStepGate('equipment', {
+      ...legalForm(),
+      equipment: [item, item, item, item, item],
+    })
+    expect(five).toEqual({ ok: false, reason: 'Remove 3 equipment items to continue' })
+  })
+
+  it('review: a loadout inside the Scrap budget but over a slot budget names the slots', () => {
+    // Mazona: SV 4, 7 system slots, 3 module slots; each item below is SV 1.
+    const mazona = {
+      ...legalMechForm(),
+      chassisName: slugOf('Mazona', SalvageUnionReference.Chassis),
+    }
+    const pod = slugOf('Cargo Pod', SalvageUnionReference.Systems)
+    const comms = slugOf('Comms Module', SalvageUnionReference.Modules)
+    expect(
+      mechCreationStepGate('review', {
+        ...mazona,
+        systems: new Array<string>(8).fill(pod),
+        modules: [],
+      })
+    ).toEqual({ ok: false, reason: 'Over System Slot capacity — remove Systems' })
+    expect(
+      mechCreationStepGate('review', {
+        ...mazona,
+        systems: [],
+        modules: new Array<string>(4).fill(comms),
+      })
+    ).toEqual({ ok: false, reason: 'Over Module Slot capacity — remove Modules' })
+  })
+
+  it('a pilot draft with abilities but no class loses them, named', () => {
+    const ability = slugOf('Engineering Expertise', SalvageUnionReference.Abilities)
+    const result = clampPilotCreationDraft({ ...legalForm(), classId: '', abilities: [ability] })
+    expect(result.form.abilities).toEqual([])
+    expect(result.removed).toEqual(['Engineering Expertise'])
+  })
+
+  it('a mech draft with a loadout but no chassis loses the loadout, named', () => {
+    const result = clampMechCreationDraft({ ...legalMechForm(), chassisName: '' })
+    expect(result.form.systems).toEqual([])
+    expect(result.form.modules).toEqual([])
+    expect(result.removed).toEqual(['Cargo Pod', 'Comms Module'])
   })
 })

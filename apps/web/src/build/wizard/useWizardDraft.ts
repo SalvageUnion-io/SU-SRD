@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import type { WizardKind } from '../../lib/wizard/wizardDraft'
 import { readWizardDraft, useWizardDraftSync, wizardDraftKey } from '../../lib/wizard/wizardDraft'
+import { buildWizardCopy } from '../../messages/build-wizard'
 
 type WizardDraftOptions<T> = {
   /** The pristine form: what a fresh wizard (or an empty draft) starts from. */
@@ -57,7 +58,7 @@ export function useWizardDraft<T>(
     const removed = clampRemovedRef.current
     if (removed && removed.length > 0) {
       clampRemovedRef.current = null
-      toast.info(`Draft trimmed to the starting rules — removed ${removed.join(', ')}.`)
+      toast.info(buildWizardCopy('draftTrimmed', { removed: removed.join(', ') }))
     }
   }, [])
   const formDirty = useWizardDraftSync(draftKey, form, baseline)

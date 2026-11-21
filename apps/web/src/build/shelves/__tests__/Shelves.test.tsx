@@ -22,6 +22,7 @@ import {
   softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
+import { areaAnchors } from '../../../components/unionBar/areaNav.model'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import { gameScope, serve } from '../../../replica/replica'
 import { holdSharedByLink } from '../../../replica/sharedByLink'
@@ -302,6 +303,43 @@ describe('What a shelf says of a unit (L9)', () => {
   })
 })
 
+describe('+ Add a Mech', () => {
+  test('offers your unassigned mechs first, and assigns the one picked', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    // Nia stands beside an unassigned mech of yours: her door opens the pick.
+    await act(async () => {
+      fireEvent.click(within(pilots).getByRole('button', { name: 'Add a Mech to Nia Vale' }))
+    })
+    const dialog = screen.getByRole('dialog', { name: 'Add a Mech to Nia Vale' })
+    // Building a new one stays one press away.
+    expect(
+      within(dialog).getByRole('link', { name: '+ Build a new Mech' }).getAttribute('href')
+    ).toBe('/mechs/new?pilot=p-nia')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('radio', { name: 'Iron Jaw' }))
+    })
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Assign' }))
+    })
+    await settle(() => useUnits.getState().softLinks.length === 1)
+    expect(useUnits.getState().softLinks.map((l) => [l.type, l.from.id, l.to.id])).toEqual([
+      ['mech-to-pilot', 'm-jaw', 'p-nia'],
+    ])
+    expect(await screen.findByText('Assigned Iron Jaw to Nia Vale.')).toBeTruthy()
+  })
+
+  test('with no unassigned mech beside the pilot, it is the link to build one', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    // Rook is in a Game where no mech of yours stands: straight to the wizard.
+    const row = within(pilots).getByText('Rook').closest('tr') as HTMLElement
+    expect(within(row).getByRole('link', { name: '+ Add a Mech' }).getAttribute('href')).toBe(
+      '/mechs/new?pilot=p-rook'
+    )
+  })
+})
+
 describe('a mech a pilot of yours flies', () => {
   test('rides its pilot’s line: the Mech column, and under the name for a phone', async () => {
     await useUnits.getState().adopt('softLink', softLinkFixture('mech-to-pilot', 'm-jaw', 'p-nia'))
@@ -336,8 +374,8 @@ describe('Disconnected', () => {
   test('shows what it holds, and offers nothing that writes', async () => {
     await renderShelves('offline')
     expect(screen.getByText('Nia Vale')).toBeTruthy()
-    expect(screen.queryByRole('link', { name: '+ New pilot' })).toBeNull()
-    expect(screen.queryByRole('button', { name: '+ From a mech' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '+ New Pilot' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '+ From a Mech' })).toBeNull()
 
     const menu = await openMenu('Nia Vale')
     for (const verb of ['Move to a Game…', 'Make a copy', 'Delete…']) {
@@ -388,7 +426,7 @@ describe('Patterns', () => {
   test('+ From a mech lists the mechs to start from', async () => {
     await renderShelves()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ From a Mech' }))
     })
     expect(screen.queryByRole('menuitem', { name: 'Spare Mech' })).toBeNull()
     await act(async () => {
@@ -403,10 +441,10 @@ describe('Patterns', () => {
     await useUnits.getState().forget('mech', 'm-jaw')
     await renderShelves()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ From a Mech' }))
     })
     expect(
-      screen.getByRole('menuitem', { name: 'Build a mech first' }).hasAttribute('data-disabled')
+      screen.getByRole('menuitem', { name: 'Build a Mech first' }).hasAttribute('data-disabled')
     ).toBe(true)
   })
 
@@ -416,11 +454,11 @@ describe('Patterns', () => {
     expect(assigned).toEqual(['/p/pattern/pat-1'])
   })
 
-  test('Make a copy asks first, then keeps a copy beside it', async () => {
+  test('Make a copy copies at once, and its notice opens the copy', async () => {
     await renderShelves()
     await choose(await openMenu('Brawler'), 'Make a copy')
-    expect(screen.getByRole('alertdialog').textContent).toContain('Make a copy of Brawler?')
-    await confirmDialog('Make a copy')
+    // A copy only adds: nothing asks first.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => usePatterns.getState().mechPatterns.length === 2)
     expect(
       usePatterns
@@ -429,6 +467,11 @@ describe('Patterns', () => {
         .sort()
     ).toEqual(['Brawler', 'COPY OF Brawler'])
     expect(await screen.findByText('Made COPY OF Brawler.')).toBeTruthy()
+    const copy = usePatterns.getState().mechPatterns.find((p) => p.name === 'COPY OF Brawler')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Open the copy' }))
+    })
+    expect(assigned).toEqual([`/p/pattern/${copy?.id}`])
   })
 
   test('Export downloads the pattern', async () => {
@@ -459,5 +502,15 @@ describe('the encounter tray on the NPC shelf', () => {
     await confirmDialog('Delete')
     await settle(() => useTray.getState().encounterNpcs.length === 0)
     expect(useTray.getState().encounterNpcs).toHaveLength(0)
+  })
+})
+
+// SB-07: every in-page link in Build's sub-nav has its target on the Training Bay.
+describe('Build’s sub-nav', () => {
+  test('each in-page link lands on a shelf', async () => {
+    await renderShelves()
+    const anchors = areaAnchors('build')
+    expect(anchors.length).toBeGreaterThan(0)
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
   })
 })

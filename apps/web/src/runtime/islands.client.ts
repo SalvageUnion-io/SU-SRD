@@ -12,10 +12,10 @@ import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/ent
 import { readAccountHint } from '../lib/accountHint'
 import { browserStorage, markSignedIn } from '../lib/accountState'
 import { initBrowserObservability, installChunkRecovery } from '../lib/observability'
+import { correctShortcutHints, isSearchShortcut } from '../lib/searchShortcut'
 import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
-import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
@@ -48,25 +48,50 @@ document.addEventListener(ISLAND_COMMIT, (event) => {
   if ((event.target as HTMLElement).dataset.island === 'SearchIsland') searchMounted = true
 })
 
-/**
- * Cmd+K / Ctrl+K before any search field has mounted: focus the server-rendered
- * field on show, which wakes its island (`interaction`), and the island's
- * mount keeps the focus. After that `SearchIsland` answers the shortcut itself.
- */
-function onSearchShortcut(event: KeyboardEvent): void {
-  if (searchMounted || !(event.metaKey || event.ctrlKey) || event.key !== 'k') return
+/** Focuses the page's search field (the first one drawn); false where it has none. */
+function focusSearch(): boolean {
   for (const input of document.querySelectorAll<HTMLInputElement>(
     '[data-island="SearchIsland"] input'
   )) {
     if (input.getClientRects().length === 0) continue
-    event.preventDefault()
     input.focus()
-    return
+    input.select()
+    return true
   }
+  return false
+}
+
+/**
+ * Cmd+K / Ctrl+K, or "/", before any search field has mounted: focus the
+ * server-rendered field on show, which wakes its island (`interaction`), and
+ * the island's mount keeps the focus. After that `SearchIsland` answers the
+ * shortcut itself.
+ */
+function onSearchShortcut(event: KeyboardEvent): void {
+  if (searchMounted || !isSearchShortcut(event)) return
+  if (focusSearch()) event.preventDefault()
 }
 
 document.addEventListener('keydown', onSearchShortcut)
-revealWikiLinks(document)
+// A link that opens search where the page has one (the home's "Look something
+// up"): with none, or without this script, it goes where it points.
+document.addEventListener('click', (event) => {
+  const link = event.target instanceof Element ? event.target.closest('[data-search-open]') : null
+  if (!link || event.defaultPrevented) return
+  if (event instanceof MouseEvent && (event.metaKey || event.ctrlKey || event.shiftKey)) return
+  if (focusSearch()) event.preventDefault()
+})
+// The home's search is served out of sight (`.su-union-bar__search-onkey`): it
+// is open, in the bar, for as long as the focus is inside it.
+for (const field of document.querySelectorAll('.su-union-bar__search-onkey')) {
+  field.addEventListener('focusin', () => field.setAttribute('data-open', ''))
+  field.addEventListener('focusout', (event) => {
+    const to = (event as FocusEvent).relatedTarget
+    if (!(to instanceof Node) || !field.contains(to)) field.removeAttribute('data-open')
+  })
+}
+// The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
+correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')

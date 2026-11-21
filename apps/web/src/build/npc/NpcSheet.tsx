@@ -2,7 +2,7 @@
  * NpcSheet — a built NPC's own page, `/npcs/:id` (ADR-044;
  * `docs/architecture/npc-builder.md` §4.2), on the shell every Live Sheet
  * shares (hard rule R11): `LiveSheet`'s chapter band, Read | Edit and the
- * corner actions (Share, then Move and Delete under "⋯"), a `SheetHero`
+ * corner actions (Share, then Move, Make a copy and Delete under "⋯"), a `SheetHero`
  * opening, its actions under a Slab.
  *
  * - The band names it once (the sheet's one h1), hatched as a full user-made
@@ -32,11 +32,13 @@ import {
   InlineRef,
   SlabSection,
   Tags,
+  toast,
   tokens,
   traitTags,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { copyForShelf } from '../../lib/copyEntity'
 import type { NpcView } from '../../lib/npcs/npcModel'
 import {
   isNpcDown,
@@ -48,6 +50,7 @@ import {
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
+import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -84,6 +87,8 @@ type NpcSheetProps = {
   confirm?: Confirm
   /** After the delete lands — where to go is the route's call. */
   onDeleted?: () => void
+  /** Open a copy this page just made (its toast's "Open the copy"). */
+  onOpenCopy?: (npcId: string) => void
   /**
    * Why a read-only page cannot be changed, as a note atop it (a shared NPC);
    * a crewmate's reads it on the crew sheet's banner instead (`CrewSheetBanner`).
@@ -106,6 +111,9 @@ const SHEET = {
   gap: tokens.space[24],
 } satisfies CSSProperties
 
+/** How long the copy's toast stays: long enough to reach for "Open the copy". */
+const COPY_TOAST_MS = 20_000
+
 const ACTIONS = {
   alignItems: 'center',
   display: 'flex',
@@ -119,6 +127,7 @@ export function NpcSheet({
   crewing,
   confirm,
   onDeleted,
+  onOpenCopy,
   readOnlyNote,
 }: NpcSheetProps) {
   const [shareOpen, setShareOpen] = useState(false)
@@ -135,16 +144,35 @@ export function NpcSheet({
     runWrite(() => useUnits.getState().update('npc', npc.id, fields, LIVE_SHEET_MANUAL))
   }
 
+  /** Make a copy: a new, separate NPC in the maker's Kit, in no Game (glossary 5). */
+  function copy() {
+    runWrite(async () => {
+      const created = await useUnits.getState().create('npc', copyForShelf(npc, npc.name) as never)
+      toast.success(npcCopy('madeACopy', { name: created.name }), {
+        duration: COPY_TOAST_MS,
+        ...(onOpenCopy
+          ? { action: { label: npcCopy('openTheCopy'), onClick: () => onOpenCopy(created.id) } }
+          : {}),
+      })
+    })
+  }
+
   function remove() {
     confirm?.({
       title: npcCopy('delete', { name: npc.name }),
       body: [
-        `This cannot be undone. ${npc.name} will be permanently removed${crewing ? `, and ${slotPhrase(crewing.slot)} on ${crewing.crawlerName} goes back to the book's crew line` : ''}.`,
+        crewing
+          ? npcCopy('deleteBodyCrewing', {
+              name: npc.name,
+              slot: slotPhrase(crewing.slot),
+              crawler: crewing.crawlerName,
+            })
+          : npcCopy('deleteBody', { name: npc.name }),
       ],
       confirmLabel: npcCopy('delete2'),
       pendingLabel: npcCopy('deleting'),
       tone: 'danger',
-      failure: `${npc.name} could not be deleted. Try again.`,
+      failure: npcCopy('notDeleted', { name: npc.name }),
       onConfirm: async () => {
         await useUnits.getState().delete('npc', npc.id)
         onDeleted?.()
@@ -154,7 +182,13 @@ export function NpcSheet({
 
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind="NPC" />
+      <>
+        {/* The way back to where the Mediator's NPCs are kept (ADR-067 §5). */}
+        <Button href={KIT_PATH} back variant="ink" size="compact">
+          {npcCopy('mediatorsKit')}
+        </Button>
+        <SheetModeToggle mode={sheetMode} kind="NPC" />
+      </>
     ) : undefined
 
   // The corner (as on every sheet): Share inline, the admin moves under "⋯".
@@ -177,6 +211,15 @@ export function NpcSheet({
             entity={npc}
             confirm={confirm}
           />
+          {!writesBlocked && (
+            <Button
+              variant="ghost"
+              onClick={copy}
+              aria-label={npcCopy('makeACopyOf', { name: npc.name })}
+            >
+              {npcCopy('makeACopy')}
+            </Button>
+          )}
           <Button
             variant="ghost"
             onClick={remove}
@@ -275,11 +318,11 @@ export function NpcSheet({
                         {traits.length > 0 && <Tags tags={traits} linkable />}
                         {crewing && (
                           <p style={NOTE}>
-                            Crews {slotPhrase(crewing.slot)} on{' '}
+                            {npcCopy('crewsSlotOn', { slot: slotPhrase(crewing.slot) })}{' '}
                             <InlineRef href={`/crawlers/${crewing.crawlerId}`}>
                               {crewing.crawlerName}
                             </InlineRef>
-                            . Whoever runs that crawler assigns and unassigns its crew.
+                            {npcCopy('whoeverRunsThatCrawler')}
                           </p>
                         )}
                       </div>

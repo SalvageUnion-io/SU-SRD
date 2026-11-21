@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { EntitySchemaName, RefObjectChoice } from 'salvageunion-reference'
 import { resolveCatalogChoiceEntities } from 'salvageunion-reference/rules'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
+import { Button } from '../../atoms/Button'
 import { EntitySearcher } from '../../compositions/EntitySearcher'
 import { ModalShell } from '../../containers/ModalShell'
 
@@ -24,8 +25,9 @@ type CatalogChoiceModalProps = {
  * (search + Tech-Level / trait facets + selection rail) in a `ModalShell`,
  * narrowed to exactly the entities the catalog resolves to (`filter`) so the
  * facets/pool match the rule (e.g. "any Weapons System of the crawler's Tech
- * Level"). Selection is single: tapping an entity's row picks it, replacing
- * the prior pick, and closes the picker.
+ * Level"). It picks as every single-select picker does (Change Chassis): a
+ * row opens its Page, Choose there marks it, replacing the prior pick, and
+ * Apply writes it and closes. Enter in the search marks the first match.
  */
 export function CatalogChoiceModal({
   open,
@@ -46,7 +48,19 @@ export function CatalogChoiceModal({
     return new Set(list.map((e) => ('id' in e && typeof e.id === 'string' ? e.id : '')))
   }, [choice, techLevel])
 
+  // The pick being weighed: written on Apply, dropped on Cancel.
+  const current = selected[0] ?? ''
+  const [picked, setPicked] = useState(current)
+  useEffect(() => {
+    if (open) setPicked(current)
+  }, [open, current])
+
   if (!schema) return null
+
+  function apply() {
+    if (picked !== current) onSelect(picked ? [picked] : [])
+    onClose()
+  }
 
   return (
     <ModalShell
@@ -60,19 +74,27 @@ export function CatalogChoiceModal({
     >
       <EntitySearcher
         schema={schema as EntitySchemaName}
-        // A row's tap is the pick: one tap chooses and closes, no detail and
-        // no second act between the player and the choice.
-        mode="browse"
-        selected={selected}
-        onOpen={(ref) => {
-          onSelect([ref])
-          onClose()
-        }}
+        mode="single"
+        selected={picked ? [picked] : []}
+        // Choosing replaces the prior pick; choosing the picked one clears it.
+        onToggle={(ref) => setPicked((prev) => (prev === ref ? '' : ref))}
+        // One entity is ever chosen: "Chosen only" filters nothing useful.
+        facets={{ status: false }}
         filter={(item) => eligibleIds.has(item.id)}
         chosenLabel={referenceEntityCopy('chosen')}
         emptyMessage={referenceEntityCopy('noMatchingEntities')}
         title={choice.name}
         onClose={onClose}
+        railActions={
+          <>
+            <Button variant="ghost" size="compact" onClick={onClose}>
+              {referenceEntityCopy('cancel')}
+            </Button>
+            <Button size="compact" disabled={picked === current} onClick={apply}>
+              {referenceEntityCopy('apply')}
+            </Button>
+          </>
+        }
       />
     </ModalShell>
   )

@@ -10,6 +10,7 @@ export const routesCopy = messages({
   settings: 'Settings',
   linkPreview: 'Link preview',
   sharedSheet: 'Shared sheet',
+  pattern: 'Pattern',
   retiredLink: 'Retired link',
   encounter: 'Encounter',
   designAnNpc: 'Design an NPC',
@@ -19,5 +20,6 @@ export const routesCopy = messages({
   play: 'Play',
   game: 'Game',
   mediate: 'Mediate',
+  prep: 'Prep',
   joinAGame: 'Join a Game',
 })

@@ -31,7 +31,7 @@ import type { ChapterTone } from '../components/index'
 import { Badge, Button, capsLabel, Speckle, tokens } from '../components/index'
 import { cn } from '../lib/cn'
 import type { PlayReadOnly } from './play.model'
-import { liveLabel, phaseBand } from './play.model'
+import { liveLabel, pausedBand, phaseBand } from './play.model'
 
 /**
  * The band: its controls on a line, the title's cut-out flush with its foot
@@ -121,6 +121,8 @@ export type PlayBarProps = {
   menu?: ReactNode
   /** The phase's band (`PHASE_TONE`); the Cantina's pink by default. */
   tone?: ChapterTone
+  /** The Stop Sign is up: the band wears the stop colour, whatever the phase. */
+  paused?: boolean
   /**
    * A phone's band. One crumb line on the band (the
    * Game · the phase), then the controls' line with `title` (who
@@ -145,9 +147,10 @@ export function PlayBar({
   channel,
   menu,
   tone = 'play',
+  paused = false,
   line,
 }: PlayBarProps) {
-  const band = phaseBand(tone)
+  const band = paused ? pausedBand() : phaseBand(tone)
   // The phone's one-line band, the title kept on its cut-out.
   if (line) {
     return (

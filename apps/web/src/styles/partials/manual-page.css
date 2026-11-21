@@ -35,6 +35,12 @@
   order: 3;
 }
 
+/* What leads a Page (a class's On this page) is its first block at every
+   width: over the art on a phone, as it is in the markup. */
+.su-manual > .su-manual__lead {
+  order: 0;
+}
+
 /* What a Page appends (a class's trees, a chassis's homebrew) follows the
    Description on a phone. */
 .su-manual > .su-manual__after {
@@ -221,4 +227,91 @@
     flex-direction: column;
     gap: var(--space-12);
   }
+}
+
+/* What stands under the art (`.su-manual__aside`) is a side track of its own, after the main track in the markup (the
+   order a phone draws): from `lg` it stands under the art, in the side
+   column's second row, and the main track runs beside both. The second row
+   takes what height the main track has to spare, so the art keeps its own. */
+@media (width >= 64rem) {
+  .su-manual:has(> .su-manual__side--after) {
+    grid-template-rows: auto 1fr;
+  }
+
+  .su-manual:has(> .su-manual__side--after) > .su-manual__main {
+    grid-row: 1 / span 2;
+  }
+
+  /* The grid's own row gap parts it from the art. */
+  .su-manual > .su-manual__side.su-manual__side--after {
+    grid-row: 2;
+    margin-top: 0;
+  }
+}
+
+/* A Page with a lead: the lead runs the page's measure in a row of its own,
+   and both tracks start under it. */
+@media (width >= 64rem) {
+  .su-manual > .su-manual__lead {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-top: 0;
+  }
+
+  .su-manual:has(> .su-manual__lead) > :is(.su-manual__side, .su-manual__main) {
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .su-manual:has(> .su-manual__lead):has(> .su-manual__side--after) {
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .su-manual:has(> .su-manual__lead):has(> .su-manual__side--after) > .su-manual__main {
+    grid-row: 2 / span 2;
+  }
+
+  .su-manual:has(> .su-manual__lead) > .su-manual__side.su-manual__side--after {
+    grid-row: 3;
+  }
+}
+
+/* A picker's focus pane (`.su-searcher__page`) is a column, never a page: it
+   keeps the phone's one column at every width, so the stat tiles fit it. */
+@media (width >= 64rem) {
+  .su-searcher__page .su-manual {
+    display: flex;
+  }
+
+  .su-searcher__page .su-manual > .su-manual__main,
+  .su-searcher__page .su-manual > .su-manual__side {
+    display: contents;
+  }
+
+  .su-searcher__page .su-manual > *,
+  .su-searcher__page .su-manual__main > *,
+  .su-searcher__page .su-manual__side > * {
+    margin-top: 0;
+  }
+}
+
+/* And it reads the short labels, as a phone does: four tiles share its width. */
+.su-searcher__page .su-stat-label--long {
+  display: none;
+}
+
+.su-searcher__page .su-stat-label--short {
+  display: inline;
+}
+
+.su-searcher__page
+  .su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label:has(.su-stat-label--short) {
+  --su-tile-label-size: var(--text-chip);
+}
+
+.su-searcher__page .su-manual__stats .su-stat-column__stat > .su-stat-plate--label {
+  padding: 0 var(--space-4);
 }

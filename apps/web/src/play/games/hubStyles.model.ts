@@ -40,3 +40,13 @@ export const HUB_BODY = {
   flexDirection: 'column',
   gap: space[8],
 } satisfies CSSProperties
+
+/**
+ * A sidebar section's buttons, as its body: under the title, never on a line
+ * above it (the strip wraps what does not fit over the cut-out).
+ */
+export const HUB_ACTIONS = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+} satisfies CSSProperties

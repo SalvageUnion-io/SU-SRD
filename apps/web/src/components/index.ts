@@ -67,7 +67,6 @@ export { Input, Textarea } from './atoms/inputs'
 export { FOCUS_RING } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
-export { useModKeyHint } from './atoms/modKeyHint'
 // A phone's vitals block, for the sheets and Play.
 export type { PhoneVital, PhoneVitalCell } from './atoms/PhoneVitals'
 // slotPips — a slot count as a line of pips, for a wizard's tracker tab.
@@ -94,6 +93,7 @@ export { Toggle } from './atoms/Toggle'
 export { ToggleCard } from './atoms/ToggleCard'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
+export { useModKeyHint } from './atoms/useModKeyHint'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'
@@ -278,7 +278,6 @@ export type { EntityFormModel, EntityMode } from './entity/types'
 // links) as a section; InlineMarkdown — one line of it, links only
 export { Content } from './referenceEntity/Content'
 export { abilityTreeNeighbours } from './referenceEntity/card/abilityTreeRelations'
-// BayInfo — a crawler bay's own rules under a folding Slab, its first section.
 // EntityCardIdentityFooter — a card's foot band and its cite cut-out (ruleset
 // Source 2); a Ledger, a rule brief and the Buy panel wear it too.
 export { EntityCardIdentityFooter } from './referenceEntity/card/EntityCardIdentityFooter'
@@ -310,8 +309,8 @@ export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
 // EntityDetailDialog — an entity's Page in a dialog: the app's open-in-place reading.
 export { EntityDetailDialog } from './referenceEntity/EntityDetailDialog'
-// Entity controls: the live preset (navigateControl).
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
+// Entity controls: the live preset (navigateControl).
 export { navigateControl } from './referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './referenceEntity/referenceEntityControlTypes'
 // TraitProse — prose whose trait and entity names resolve as it renders, one per row.

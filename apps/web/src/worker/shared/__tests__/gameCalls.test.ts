@@ -130,6 +130,61 @@ describe('the Games calls', () => {
     expect(reset).toEqual({ ok: false, refusal: 'Only the Organiser can do that' })
   })
 
+  test('the Organiser renames and describes a Game; its invite then says so (MD-12)', async () => {
+    const { call, deps } = world()
+    const gameId = (await call('games.create', { name: 'Tenacity' })) as string
+    const code = (await call('invites.link', { gameId })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    await call('games.update', { gameId, name: 'Rust Coast', description: 'A long haul north.' })
+    expect(await call('games.get', { gameId }, PLAYER)).toMatchObject({
+      name: 'Rust Coast',
+      description: 'A long haul north.',
+    })
+    expect(await invitePreview(deps.db, code)).toEqual({
+      gameName: 'Rust Coast',
+      mediatedBy: null,
+      description: 'A long haul north.',
+    })
+    expect(await gameCall('games.update', { gameId, name: 'Mine' }, PLAYER, deps)).toEqual({
+      ok: false,
+      refusal: 'Only the Organiser can do that',
+    })
+  })
+
+  test('the plan is kept for the table runner and refused to a player (MD-14)', async () => {
+    const { call, deps } = world()
+    const gameId = (await call('games.create', { name: 'Tenacity' })) as string
+    const code = (await call('invites.link', { gameId })) as string
+    await call('invites.redeem', { code }, PLAYER)
+    const plan = {
+      schemaVersion: 1,
+      notes: 'Glass Wastes',
+      sessions: [{ id: 's1', date: '2026-12-01', note: 'Ambush' }],
+    }
+    await call('plan.set', { gameId, plan })
+    expect(await call('plan.get', { gameId })).toEqual(plan)
+    expect((await gameCall('plan.get', { gameId }, PLAYER, deps))?.ok).toBe(false)
+    // What is not a plan is refused before it reaches the room.
+    expect(await gameCall('plan.set', { gameId, plan: { notes: 1 } }, ORG, deps)).toEqual({
+      ok: false,
+      refusal: 'Not what that call takes',
+    })
+  })
+
+  test('a creator who said they will be the Mediator is, as the Game starts', async () => {
+    const { call } = world()
+    const mine = (await call('games.create', { name: 'Tenacity', mediator: true })) as string
+    expect(await call('games.get', { gameId: mine })).toMatchObject({
+      organizer: true,
+      mediator: true,
+    })
+    const theirs = (await call('games.create', { name: 'Eldridge', mediator: false })) as string
+    expect(await call('games.get', { gameId: theirs })).toMatchObject({
+      organizer: true,
+      mediator: false,
+    })
+  })
+
   test('a roster’s names are read from each account, never from the Game', async () => {
     const { call, db } = world()
     const gameId = (await call('games.create', { name: 'Eldridge' })) as string

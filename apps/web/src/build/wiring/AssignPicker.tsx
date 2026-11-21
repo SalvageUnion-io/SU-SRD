@@ -47,6 +47,7 @@
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import { linkTypeFor } from 'game-domain/links/linkRules'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -104,62 +105,62 @@ type SlotCopy = {
 
 const SLOT_COPY: Partial<Record<Slot, SlotCopy>> = {
   'pilot.mech': {
-    assign: 'Assign Mech',
-    assignAria: 'Assign mech to pilot',
-    change: 'Change Mech',
-    changeAria: 'Change mech for this pilot',
+    assign: wiringCopy('assignMech'),
+    assignAria: wiringCopy('assignMechToPilot'),
+    change: wiringCopy('changeMech'),
+    changeAria: wiringCopy('changeMechForThisPilot'),
     title: wiringCopy('assignMechToPilot'),
     confirm: 'Assign',
-    confirmAria: 'Confirm mech assignment',
+    confirmAria: wiringCopy('confirmMechAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aPilotFliesOneMech'),
   },
   'pilot.crawler': {
-    assign: 'Assign Crawler',
-    assignAria: 'Assign crawler to pilot',
-    change: 'Change Crawler',
-    changeAria: 'Change crawler for this pilot',
+    assign: wiringCopy('assignCrawler'),
+    assignAria: wiringCopy('assignCrawlerToPilot'),
+    change: wiringCopy('changeCrawler'),
+    changeAria: wiringCopy('changeCrawlerForThisPilot'),
     title: wiringCopy('assignPilotToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm crawler assignment',
+    confirmAria: wiringCopy('confirmCrawlerAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aPilotCrewsOneCrawler'),
   },
   'mech.pilot': {
-    assign: 'Assign Pilot',
-    assignAria: 'Assign pilot to mech',
-    change: 'Change Pilot',
-    changeAria: 'Change pilot for this mech',
+    assign: wiringCopy('assignPilot'),
+    assignAria: wiringCopy('assignPilotToMech'),
+    change: wiringCopy('changePilot'),
+    changeAria: wiringCopy('changePilotForThisMech'),
     title: wiringCopy('assignPilotToMech'),
     confirm: 'Assign',
-    confirmAria: 'Confirm pilot assignment',
+    confirmAria: wiringCopy('confirmPilotAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechCarriesOnePilot'),
   },
   'mech.crawler': {
-    assign: 'Assign Crawler',
-    assignAria: 'Assign crawler to mech',
-    change: 'Change Crawler',
-    changeAria: 'Change crawler for this mech',
+    assign: wiringCopy('assignCrawler'),
+    assignAria: wiringCopy('assignCrawlerToMech'),
+    change: wiringCopy('changeCrawler'),
+    changeAria: wiringCopy('changeCrawlerForThisMech'),
     title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm crawler assignment',
+    confirmAria: wiringCopy('confirmCrawlerAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechIsAssignedTo'),
   },
   'crawler.pilot': {
-    assign: '+ Add Crew',
+    assign: wiringCopy('addCrew'),
     title: wiringCopy('addPilotToCrew'),
-    confirm: 'Add to Crew',
-    confirmAria: 'Confirm crew assignment',
+    confirm: wiringCopy('addToCrew'),
+    confirmAria: wiringCopy('confirmCrewAssignment'),
     pending: 'Adding…',
     note: wiringCopy('aPilotCrewsOneCrawler2'),
   },
   'crawler.mech': {
-    assign: '+ Assign Mech',
+    assign: wiringCopy('plusAssignMech'),
     title: wiringCopy('assignMechToCrawler'),
     confirm: 'Assign',
-    confirmAria: 'Confirm mech assignment',
+    confirmAria: wiringCopy('confirmMechAssignment'),
     pending: 'Assigning…',
     note: wiringCopy('aMechIsAssignedTo2'),
   },
@@ -188,8 +189,9 @@ function chassisName(chassisRef: string): string | undefined {
 
 const pilotCandidate = (p: Pilot): Candidate => ({
   id: p.id,
-  name: p.name,
-  readings: p.callsign ? [{ label: wiringCopy('callsign'), value: p.callsign }] : [],
+  // Callsign first, as everywhere a pilot is named (`pilotLabel`).
+  name: pilotLabel(p),
+  readings: [],
 })
 
 const mechCandidate = (m: Mech): Candidate => ({
@@ -211,18 +213,24 @@ const crawlerCandidate = (c: Crawler): Candidate => ({
 function emptyCopy(kind: Kind, scope: Container | null, anyAtAll: boolean): string {
   const many = MANY[kind]
   if (scope === null) {
-    return anyAtAll ? `No other ${many} to pick.` : `No ${many} yet — create one first.`
+    return anyAtAll
+      ? wiringCopy('noOtherToPick', { many })
+      : wiringCopy('noneYetCreateOneFirst', { many })
   }
   if (scope.kind === 'game') {
-    return anyAtAll ? `No other ${many} in this Game.` : `No ${many} in this Game yet.`
+    return anyAtAll
+      ? wiringCopy('noOtherInThisGame', { many })
+      : wiringCopy('noneInThisGameYet', { many })
   }
-  return anyAtAll ? `No other ${many} in your Training Bay.` : `No ${many} in your Training Bay.`
+  return anyAtAll
+    ? wiringCopy('noOtherInYourTrainingBay', { many })
+    : wiringCopy('noneInYourTrainingBay', { many })
 }
 
 /** Player copy for a failed assignment. Never the raw message of a defect. */
 function refusalCopy(err: unknown): string {
   if (err instanceof LinkRefused || err instanceof WritesBlockedOffline) return err.message
-  return failureMessage(err, 'That assignment could not be saved. Try again.')
+  return failureMessage(err, wiringCopy('assignmentNotSaved'))
 }
 
 type AssignPickerProps = {

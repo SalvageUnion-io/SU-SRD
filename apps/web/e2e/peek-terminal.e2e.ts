@@ -15,8 +15,8 @@ import { expect, test } from './fixtures'
  * - `open`: the one exception (E16), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
- *   The app's plate adds View in the Reference (`[data-peek-out]`, also out of
- *   the tab order); the SRD, read here, is the Reference and has none.
+ *   The app's plate adds View in the Reference, and a term's (E27) Open page
+ *   (`[data-peek-out]`): at most one, also out of the tab order.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
  * - `inert`: a chip (a trait or relation Tag, an action's chip, a Mini's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
@@ -131,7 +131,13 @@ function scanPlate(): string[] {
     '[tabindex]:not([tabindex="-1"])',
   ].join(',')
   for (const el of plate.querySelectorAll(controls)) {
-    if (!el.hasAttribute('data-peek-open')) out.push(`control: ${what(el)}`)
+    if (!el.hasAttribute('data-peek-open') && !el.hasAttribute('data-peek-out'))
+      out.push(`control: ${what(el)}`)
+  }
+  const outs = [...plate.querySelectorAll('[data-peek-out]')]
+  if (outs.length > 1) out.push(`open: ${outs.length} ways out, not one`)
+  for (const el of outs) {
+    if (el.getAttribute('tabindex') !== '-1') out.push(`open: ${what(el)} is in the tab order`)
   }
   const opens = [...plate.querySelectorAll('[data-peek-open]')]
   if (opens.length > 1) out.push(`open: ${opens.length} linked names, not one`)
@@ -156,7 +162,8 @@ async function peekAt(page: Page, trigger: Locator, where: string): Promise<stri
   await trigger.hover()
   const popup = page.locator('[data-peek-popup]')
   await expect(
-    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll').first(),
+    // An entity's head, a Mini, a roll table, or a term's Slab (E27, `PeekTerm`).
+    popup.locator('.su-entity-compact__head, .su-entity-mini, .su-roll, [data-slab]').first(),
     `${where}: the Peek draws its card`
   ).toBeVisible()
   const faults = (await page.evaluate(scanPlate)).map((f) => `${where}: ${f}`)

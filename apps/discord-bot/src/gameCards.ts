@@ -1,6 +1,7 @@
 import { appPath } from 'game-domain/appAddress'
 import { gamePath, kindOf, publicPath, sheetPath } from 'game-domain/entityKinds'
 import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { ItemCondition, RefEnumSchemaName } from 'salvageunion-reference'
 import {
@@ -473,9 +474,7 @@ function pilotSheet(body: EntityBody, derived: PilotDerived | null): RenderedShe
   })
 
   const conditions = chipRun(strArray(body, 'conditions'))
-  if (conditions !== null) {
-    fields.push({ name: 'Conditions', value: conditions, inline: true })
-  }
+  if (conditions !== null) fields.push({ name: 'Conditions', value: conditions, inline: true })
 
   const level = num(body, 'crawlerLevel')
   const subtitleParts = [refName('classes', classRef)]
@@ -483,7 +482,7 @@ function pilotSheet(body: EntityBody, derived: PilotDerived | null): RenderedShe
   const motto = str(body, 'motto')
 
   return {
-    name: str(body, 'callsign') ?? str(body, 'name') ?? 'Pilot',
+    name: pilotLabel(body),
     subtitle: `*${subtitleParts.join(' · ')}*${motto === null ? '' : `\n> ${motto}`}`,
     fields,
     thumbnail: refArtwork('classes', classRef),

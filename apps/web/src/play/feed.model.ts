@@ -1,8 +1,9 @@
 /**
  * The Feed's one list (play.md §8), pure: no React and no I/O.
  *
- * In a Game it merges the crew's rolls (`changeLog.rolls`, the Game's log),
- * the Mediator's alerts, the proposals awaiting my answer, and the rolls and
+ * In a Game it merges the table's event stream (`changeLog.events`: every
+ * member's vitals, actions, boarding and rolls, the Mediator's alerts, the
+ * session and the Stop Sign), the proposals awaiting my answer, and the rolls and
  * applied changes this screen recorded (`playRolls`). Solo there is no Game
  * log, so only my own. Proposals awaiting an answer come first, so Accept is
  * never scrolled away; everything else is newest first.
@@ -13,6 +14,8 @@
  */
 
 import { fieldLabel } from 'game-domain/games/proposals'
+import { playCopy } from '../messages/play'
+import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
@@ -30,6 +33,8 @@ export type FeedEntry =
       reason: string | null
     }
   | { kind: 'alert'; key: string; ts: number; text: string }
+  /** What a member did at the table (`rooms/game/events.ts`): a vital, an action, boarding, the session. */
+  | { kind: 'event'; key: string; ts: number; text: string }
   /** A crewmate's roll, from the Game's log. */
   | { kind: 'roll'; key: string; ts: number; text: string }
   /** A roll or a change made on this screen: "You · Core Mechanic · 14 · Success". */
@@ -39,6 +44,11 @@ export type FeedSources = {
   /** The Game's rolls, newest first; null solo or while loading. */
   rolls: readonly RollLine[] | null
   alerts: readonly AlertLine[]
+  /**
+   * The table's event stream (`changeLog.events`), rolls and alerts included:
+   * given, it is the Feed's one source and `rolls` and `alerts` are not read.
+   */
+  events?: readonly TableEvent[] | null
   proposals: readonly PendingProposal[]
   /** This screen's rolls and changes (`usePlayRollLog`), oldest first. */
   mine: readonly PlayRoll[]
@@ -62,12 +72,14 @@ export function mineText(roll: PlayRoll): string {
     roll.label,
     ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
     ...(roll.outcome ? [roll.outcome] : []),
+    ...(roll.private ? [playCopy('privateRoll')] : []),
   ].join(' · ')
 }
 
 export function playFeedEntries({
   rolls,
   alerts,
+  events = null,
   proposals,
   mine,
   rollerName,
@@ -83,33 +95,51 @@ export function playFeedEntries({
       ts: p.ts,
       proposalId: p._id,
       change: proposalChange(p),
-      text: `Mediator proposes ${proposalChange(p)}`,
+      text: playCopy('mediatorProposes', { what: proposalChange(p) }),
       reason: p.reason,
     }))
   // A roll of mine this screen no longer holds (made before a reload, or on
   // another screen) still reads as mine.
   const myPrefix = `${rollerName} · `
+  const mineAs = (description: string) =>
+    description.startsWith(myPrefix) ? `You · ${description.slice(myPrefix.length)}` : description
+  // A private roll says so on the Feeds that may read it (the Mediators').
+  const rollText = (description: string, hidden: boolean | undefined) =>
+    hidden ? `${mineAs(description)} · ${playCopy('privateRoll')}` : mineAs(description)
+  const logged: FeedEntry[] =
+    events !== null
+      ? events
+          .filter((e) => e.kind !== 'roll' || !echoes.has(`${e.ts}|${e.text}`))
+          .map(
+            (e): FeedEntry => ({
+              kind: e.kind === 'roll' || e.kind === 'alert' ? e.kind : 'event',
+              key: `event-${e._id}`,
+              ts: e.ts,
+              text: e.kind === 'roll' ? rollText(e.text, e.private) : e.text,
+            })
+          )
+      : [
+          ...(rolls ?? [])
+            .filter((r) => !echoes.has(`${r.ts}|${r.description}`))
+            .map(
+              (r): FeedEntry => ({
+                kind: 'roll',
+                key: `roll-${r._id}`,
+                ts: r.ts,
+                text: rollText(r.description, r.private),
+              })
+            ),
+          ...alerts.map(
+            (a): FeedEntry => ({
+              kind: 'alert',
+              key: `alert-${a._id}`,
+              ts: a.ts,
+              text: `Mediator · ${a.message}`,
+            })
+          ),
+        ]
   const rest: FeedEntry[] = [
-    ...(rolls ?? [])
-      .filter((r) => !echoes.has(`${r.ts}|${r.description}`))
-      .map(
-        (r): FeedEntry => ({
-          kind: 'roll',
-          key: `roll-${r._id}`,
-          ts: r.ts,
-          text: r.description.startsWith(myPrefix)
-            ? `You · ${r.description.slice(myPrefix.length)}`
-            : r.description,
-        })
-      ),
-    ...alerts.map(
-      (a): FeedEntry => ({
-        kind: 'alert',
-        key: `alert-${a._id}`,
-        ts: a.ts,
-        text: `Mediator · ${a.message}`,
-      })
-    ),
+    ...logged,
     ...mine.map(
       (r): FeedEntry => ({ kind: 'mine', key: r.id, ts: r.at, text: mineText(r), roll: r })
     ),

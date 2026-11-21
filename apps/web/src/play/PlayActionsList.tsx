@@ -102,7 +102,7 @@ export function PlayOrphanResolve({ actions }: { actions: PlayActions }) {
   if (stale && resolvingUntouched) return null
   return (
     <OrphanNote
-      text={`${entry?.name ?? 'An action'} is not on hand now.`}
+      text={playCopy('isNotOnHandNow', { name: entry?.name ?? playCopy('anAction') })}
       onClear={resolve.onBack}
     />
   )

@@ -39,8 +39,11 @@ describe('home: the front door, its slideshow alone', () => {
     expect(html).not.toContain('su-chapter-band')
   })
 
-  it('carries no search: that is the Reference’s (desktop field and phone trigger alike)', () => {
-    expect(islands(html, 'SearchIsland')).toBe(0)
+  it('shows no search bar, and serves the field out of sight for "/" and Cmd/Ctrl+K to open (RR-01)', () => {
+    expect(islands(html, 'SearchIsland')).toBe(1)
+    expect(html).toMatch(
+      /class="su-union-bar__search-onkey"><astro-island data-island="SearchIsland"/
+    )
     expect(islands(html, 'MobileSearchIsland')).toBe(0)
     expect(html).not.toContain('su-hero-search')
   })
@@ -55,23 +58,40 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toMatch(/su-front__show-plate--quote[^"]*"><figure class="su-tagline"/)
   })
 
-  it('names the site alone in the head; the first slide says the pitch on its plate, no action', () => {
+  it('names the site in the head; the first slide says the pitch over its two ways forward (SB-08)', () => {
     const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
     expect(head).not.toContain('su-front__show-pitch')
     const first = show.slice(0, show.indexOf('</li>'))
     expect(first).toContain('su-front__show-copy')
     expect(first).toContain('su-front__show-pitch')
-    expect(first).not.toContain('su-btn--primary')
+    expect(first).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Start building</)
+    // Opens the search where the script runs, else the Reference's Contents.
+    expect(first).toMatch(
+      /<a[^>]*href="\/reference\/"[^>]*data-search-open[^>]*>(?:<[^>]+>)*Look something up</
+    )
+  })
+
+  it('gives every slide a way forward', () => {
+    const slides = show.split('class="su-front__show-slide"').slice(1)
+    expect(slides).toHaveLength(8)
+    for (const slide of slides) expect(slide).toContain('su-front__show-act')
+  })
+
+  it('serves a signed-in reader the doors to their Training Bay and Games, out of the page until then (MD-28)', () => {
+    const yours = show.slice(show.indexOf('su-front__show-yours'))
+    expect(yours).toMatch(/href="\/build\/"[^>]*>(?:<[^>]+>)*Training Bay</)
+    expect(yours).toMatch(/href="\/games\/"[^>]*>(?:<[^>]+>)*Games</)
   })
 
   it('words each action slide by its line alone, no heading over it', () => {
     expect(show).not.toContain('su-front__show-heading')
   })
 
-  it('shows the pitch, five action slides each one action to one part of the site, then the tagline', () => {
-    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(7)
-    expect(show.match(/su-btn--primary/g)).toHaveLength(5)
+  it('shows the pitch, six action slides each one action to one part of the site, then the tagline', () => {
+    expect(show.match(/class="su-front__show-slide"/g)).toHaveLength(8)
+    // The six, and "Start building" on the pitch and on the tagline.
+    expect(show.match(/su-btn--primary/g)).toHaveLength(8)
     for (const href of ['/reference/', '/build/', '/games/']) {
       expect(show).toContain(`href="${href}"`)
     }
@@ -84,6 +104,7 @@ describe('home: the front door, its slideshow alone', () => {
       'Know the rules',
       'Build your crew',
       'Play at the table',
+      'Run the Game',
       'Get the books',
       'Roll in Discord',
     ]) {
@@ -93,7 +114,7 @@ describe('home: the front door, its slideshow alone', () => {
 
   it('draws each slide’s art as a decorative image (empty alt, so art not yet uploaded draws nothing), the first one first', () => {
     const arts = show.match(/<img[^>]*su-front__show-art[^>]*>/g) ?? []
-    // Seven slides, seven paintings, none twice.
+    // Eight slides, seven paintings (the Mediator's waits for its own), none twice.
     expect(arts).toHaveLength(7)
     expect(new Set(arts.map((art) => art.match(/src="([^"]+)"/)?.[1])).size).toBe(7)
     for (const art of arts) {
@@ -356,11 +377,18 @@ describe('a pattern page names and links its base chassis', () => {
     )
   })
 
-  it('stamps nothing and offers no build on a pattern the book does not mark legal', () => {
+  it('a pattern the book does not mark legal wears no stamp, and builds as printed from New Mech', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
-    expect(untagged).not.toContain('mechs/new')
-    expect(untagged).not.toContain('Build With This')
+    expect(untagged).toContain('Build With This')
+    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger')
+    expect(untagged).not.toContain('mode=guided')
+  })
+
+  it('opens on its loadout Ledger, with the slots filled and the Scrap summed', () => {
+    const loadout = page('/chassis/jackhammer/pattern/auger')
+    expect(loadout).toContain('aria-label="Auger loadout"')
+    expect(loadout).toMatch(/Total[\s\S]*?\d+\/\d+[\s\S]*?\d+\/\d+/)
   })
 })
 

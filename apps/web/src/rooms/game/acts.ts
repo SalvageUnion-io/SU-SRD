@@ -38,6 +38,8 @@ const GAME_ACTS = {
   members: (c: ActContext) => c.room.roster.members(c.actor),
   setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) =>
     c.room.roster.setMediator(c.actor, a.userId, a.mediator),
+  updateSettings: (c: ActContext, a: { name?: string; description?: string }) =>
+    c.room.roster.updateSettings(c.actor, a),
   updateProfile: (c: ActContext, a: { profile: Profile }) =>
     c.room.roster.updateProfile(c.actor, a.profile),
   inviteCode: (c: ActContext) => c.room.roster.inviteCode(c.actor, c.at),
@@ -113,6 +115,7 @@ const GAME_ACTS = {
     c.room.log.broadcast(c.actor, a.message, c.at),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
   'changeLog.alerts': (c: ActContext) => c.room.log.alerts(c.actor),
+  'changeLog.events': (c: ActContext) => c.room.events.list(c.actor),
   'changeLog.forEntity': (c: ActContext, a: { entityId: string }) =>
     entityLog(c.room.units.history(c.actor, a.entityId)),
 
@@ -134,13 +137,17 @@ const GAME_ACTS = {
   ) => c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at),
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
-  'mediator.endEncounter': (c: ActContext) => c.room.opposition.endEncounter(c.actor),
+  'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>
+    c.room.opposition.endEncounter(c.actor, { clear: a?.clear === true }),
+  'mediator.clearTray': (c: ActContext) => c.room.opposition.clearTray(c.actor),
 
   // The table's state, under the names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),
   'scenes.setConditions': (c: ActContext, a: { conditions: string[] }) =>
     c.room.scene.setConditions(c.actor, a.conditions, c.at),
   'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
+  'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) =>
+    c.room.scene.setUpNow(c.actor, a.pilotId, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),
@@ -148,6 +155,8 @@ const GAME_ACTS = {
     c.room.scene.spendSupply(c.actor, a.pilotId, c.at),
 
   'safety.stopSign': (c: ActContext) => c.room.safety.stopSign(c.actor),
+  'plan.get': (c: ActContext) => c.room.plan.read(c.actor),
+  'plan.set': (c: ActContext, a: { plan: unknown }) => c.room.plan.write(c.actor, a.plan, c.at),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
   'session.end': (c: ActContext) => c.room.session.end(c.actor),
@@ -199,6 +208,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'downtime.state',
   'changeLog.rolls',
   'changeLog.alerts',
+  'changeLog.events',
   'changeLog.forEntity',
   'mediator.npcs',
   'mediator.amMediator',
@@ -209,6 +219,8 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'salvageAreas.here',
   'safety.stopSign',
   'session.state',
+  'plan.get',
+  'plan.set',
 ])
 
 /** A refusal the player reads, apart from a defect, which the Worker logs. */

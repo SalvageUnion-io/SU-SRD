@@ -64,7 +64,7 @@ describe('what a Game room publishes', () => {
       kind: 'mech',
       appId: 'm1',
       pilotAbilities: ['a'],
-      linked: [{ kind: 'pilot', id: 'p1', name: 'p1' }],
+      linked: [{ kind: 'pilot', id: 'p1', name: 'p1 · Pilot p1' }],
       withheld: [],
     })
     expect(pilot?.preview).toEqual({
@@ -113,6 +113,7 @@ describe('what a Game room publishes', () => {
       gameId: 'g1',
       game: {
         name: 'Tenacity',
+        description: null,
         mediatedBy: 'Med',
         members: [
           { discordId: ORGANIZER, mediator: false, organizer: true },

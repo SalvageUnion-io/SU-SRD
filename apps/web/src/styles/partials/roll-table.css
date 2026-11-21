@@ -28,6 +28,8 @@
   min-width: 0;
   --su-roll-band: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
   --su-roll-range: 4rem;
+  /* The rolled pennant's width, kept clear beside a row that has no label line. */
+  --su-roll-tag-room: 6.5rem;
 }
 
 .su-roll[data-size='compact'] {
@@ -240,9 +242,10 @@
 }
 
 /* The rolled row is set in ink, its range cell and pennant on paper. The
-   pennant is pinned to the row's right edge, centred on its height, out of
-   the flow, so the rolled row keeps exactly its
-   unrolled height. */
+   pennant is pinned to the row's right edge on its first line (the label's,
+   whose right is empty), out of the flow, so a labelled row keeps exactly its
+   unrolled height and the outcome under it is never covered. A row with no
+   label gives the pennant its width beside the text instead. */
 .su-roll__row[data-rolled] {
   color: var(--color-paper);
 }
@@ -262,9 +265,12 @@
   padding: var(--space-2) var(--space-6) var(--space-2) var(--space-12);
   position: absolute;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: var(--space-6);
   white-space: nowrap;
+}
+
+.su-roll__row[data-rolled] .su-roll__body:not(:has(.su-roll__head)) {
+  padding-inline-end: var(--su-roll-tag-room);
 }
 
 .su-roll .su-roll__bar {

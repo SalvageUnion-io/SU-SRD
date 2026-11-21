@@ -3,7 +3,9 @@
  * `VitalGauge` (its Compact rung: label, value/max, the pips) and, while the
  * unit is live, its − / + (`steppers`: the `StepButton` pair an editable
  * `Stat` draws, ruleset §6.3). A live gauge is also the gauge's own slider (a
- * click on a pip, the arrow keys); a reference unit's is a read-out.
+ * click on a pip, the arrow keys), and its number is a button: pressed, it
+ * asks for an amount and takes or adds it in one write. A reference unit's
+ * is a read-out.
  *
  * In Downtime the mech's vitals say what the current step will restore:
  * `restoresTo` reads after the gauge as "→ 20", the gauge still showing what
@@ -15,10 +17,12 @@
 
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
 import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
+import { PlayVitalAmount } from './PlayVitalAmount'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -76,6 +80,19 @@ export function PlayVital({
   restoresTo,
 }: PlayVitalProps) {
   const live = onChange !== undefined
+  // "Take 3 damage" is one write: press the number, type the amount, − or +.
+  const [asking, setAsking] = useState(false)
+  if (live && asking) {
+    return (
+      <PlayVitalAmount
+        label={label}
+        value={value}
+        max={max}
+        onChange={onChange}
+        onClose={() => setAsking(false)}
+      />
+    )
+  }
   return (
     <div style={ROW}>
       <div style={GAUGE}>
@@ -87,6 +104,7 @@ export function PlayVital({
           danger={danger}
           readOnly={!live}
           onChange={onChange}
+          onValuePress={live ? () => setAsking(true) : undefined}
           steppers={live}
           style={TONES[tone]}
         />

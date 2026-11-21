@@ -61,7 +61,8 @@ test.describe('The Training Bay surfaces created entities with their identity', 
     // Each shelf item is one line that opens its live sheet (the Training
     // Bay), and the line is named by what it is — kind, class, name, HP — so a
     // screen-reader user can tell which unit each opens (WCAG 2.4.4).
-    const line = page.getByRole('link', { name: /Display Test Pilot/ })
+    // (Its Play door is named for it too: "Play DTP · Display Test Pilot".)
+    const line = page.getByRole('link', { name: 'DTP · Display Test Pilot', exact: true })
     await expect(line).toBeVisible({ timeout: 15_000 })
     await expect(line).toHaveAttribute('href', /\/build\/pilots\/(?!new)/)
   })

@@ -18,6 +18,7 @@ import {
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
 import { artUrlFor, isBookCover } from '../../../lib/sourceCovers'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -39,6 +40,8 @@ import { buildHeaderStats, resolveSubHeaderCells, resolveTechScaling } from './c
 import type { HeaderFill } from './cardChrome'
 import {
   cardDown,
+  madeByCredit,
+  patternBodyLabel,
   resolveCardColors,
   resolveCardInteraction,
   resolveFrameWidth,
@@ -177,6 +180,7 @@ function ReferenceEntityCardInner({
   statsOverride,
   subtitleExtra,
   afterExtraContent,
+  leadExtraContent,
   asideExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
@@ -326,7 +330,7 @@ function ReferenceEntityCardInner({
   // pick. A recommendation is not an action, so it is never rust (§3.1).
   const suggestedNode: ReactNode = suggested ? (
     <Badge key="suggested" shape="stamp" size="mini">
-      Suggested
+      {referenceEntityCopy('suggested')}
     </Badge>
   ) : undefined
 
@@ -481,13 +485,14 @@ function ReferenceEntityCardInner({
         loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={
           isPattern
-            ? `${resolvedChassisName ?? entityName} ${isBioTitanPattern(pattern) ? 'Bio-Titan' : 'chassis'}`
+            ? patternBodyLabel(resolvedChassisName ?? entityName, isBioTitanPattern(pattern))
             : undefined
         }
         table={rollTableNode}
         guide={guideStepsNode}
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
+        lead={leadExtraContent}
         after={afterExtraContent}
         aside={asideExtraContent}
         sectionAs={sectionAs}
@@ -556,7 +561,7 @@ function ReferenceEntityCardInner({
               externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
               linkBooks={!insidePeek}
               size={size}
-              credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
+              credit={userMade ? madeByCredit(madeBy) : undefined}
               band={{ onBand, bandColor }}
               grain={grain}
             />

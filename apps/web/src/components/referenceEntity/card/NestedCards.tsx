@@ -3,6 +3,7 @@ import { useContext, useState } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { entityRef, getReferenceEntityName, resolveTable } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { MiniGrid } from '../../containers/MiniGrid'
 import { Entity } from '../../entity/Entity'
@@ -266,7 +267,7 @@ function NestedMini({
   const { NestedCard } = host
   const [open, setOpen] = useState(false)
   const href = useEntitySurface().hrefFor(entityRef(data as RefMetaEntity))
-  const entityName = getReferenceEntityName(data) ?? 'Entity details'
+  const entityName = getReferenceEntityName(data) ?? referenceEntityCopy('entityDetails')
   // A nested ACTION drops its ` (Host)` suffix: its host is right above it.
   const title = titleOverride ?? stripHostParenthetical(entityName, host.entityName)
   const condition = conditionOf(host.isDown)

@@ -99,8 +99,11 @@ export const stepTitleStyle = {
 } satisfies CSSProperties
 export const stepTitleCaps = capsLabel({ size: 'title', weight: 'inherit' })
 
-/** The step's paper body, a plain block (not the box's flex column): 20px in. */
-export const stepBodyStyle = { padding: tokens.space[20] } satisfies CSSProperties
+/**
+ * The step's paper body, a plain block (not the box's flex column): 20px in,
+ * 8px on a phone, where a list needs the width (`.su-wiz-step-body`, wizard.css).
+ */
+export const STEP_BODY = 'su-wiz-step-body'
 
 /** The gate's reason (`footerNote`) under the step's content, ruled off from it. */
 export const stepNoteStyle = {
@@ -115,8 +118,16 @@ export const stepNoteStyle = {
 
 /** Pinned to the viewport's foot; its ground, rule and bleed are `.su-wiz-footer`'s. */
 export const footerPillStyle = {
+  alignItems: 'flex-end',
   display: 'flex',
-  justifyContent: 'flex-end',
+  flexDirection: 'column',
   position: 'sticky',
   zIndex: tokens.layer.sticky,
+} satisfies CSSProperties
+
+/** The action bar's prompt: one line over the bar, the footer's width. */
+export const promptStyle = {
+  alignSelf: 'stretch',
+  borderBottom: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  justifyContent: 'center',
 } satisfies CSSProperties

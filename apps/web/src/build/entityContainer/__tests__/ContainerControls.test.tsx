@@ -452,6 +452,27 @@ describe('MoveToGameDialog — "Move to a Game…" in a Training Bay item', () =
     })
   })
 
+  test('a pilot’s mech moves in with them and stays assigned, with nothing to ask (LG-08)', async () => {
+    const pilot = await heldPilot(null)
+    await pairedWithShelfMech()
+    wrap(<DialogHarness subject={{ type: 'pilot', id: 'p1', entity: pilot }} games={GAMES_RUN} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'The Long Haul' }))
+
+    await waitFor(() => expect(useUnits.getState().list('mech')[0]?.gameId).toBe('g2'))
+    expect(gameIdOf()).toBe('g2')
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    // The pairing came through the move: redrawn once both ends are in the Game.
+    await waitFor(() =>
+      expect(useUnits.getState().softLinks.map((l) => [l.type, l.from.id, l.to.id])).toEqual([
+        ['mech-to-pilot', 'm1', 'p1'],
+      ])
+    )
+    expect(serverWrites.filter((w) => w.name === 'entities.move').map((w) => w.args.appId)).toEqual(
+      ['p1', 'm1']
+    )
+  })
+
   test('a move that clears an assignment asks first and writes nothing until confirmed', async () => {
     const pilot = await heldPilot(null)
     await crewingShelfCrawler()

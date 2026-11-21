@@ -91,4 +91,11 @@ describe('copyName', () => {
     // for it in a list.
     expect(copyName('Reaper')).toBe('COPY OF Reaper')
   })
+
+  test('a second copy is numbered, so no two rows read alike', () => {
+    expect(copyName('Leaky', ['Leaky'])).toBe('COPY OF Leaky')
+    expect(copyName('Leaky', ['Leaky', 'COPY OF Leaky'])).toBe('COPY OF Leaky 2')
+    expect(copyName('Leaky', ['COPY OF Leaky', 'COPY OF Leaky 2'])).toBe('COPY OF Leaky 3')
+    expect(copyForShelf({ name: 'Leaky' }, 'Leaky', ['COPY OF Leaky']).name).toBe('COPY OF Leaky 2')
+  })
 })

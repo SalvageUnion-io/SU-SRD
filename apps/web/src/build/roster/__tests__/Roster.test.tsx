@@ -14,7 +14,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
@@ -168,7 +168,7 @@ describe('Roster — signed out, it is the front door', () => {
     // The intro band is gone: signing in is the header's.
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
-    expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Create Pilot|New Pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Backups: import and export' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
@@ -264,16 +264,25 @@ describe('Training Bay — one shelf per kind', () => {
     await renderShelves()
 
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
-    expect(hrefOf('+ New pilot')).toBe('/pilots/new')
-    expect(hrefOf('+ New mech')).toBe('/mechs/new')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new')
     expect(hrefOf('+ New crawler')).toBe('/crawlers/new')
-    expect(screen.getByRole('button', { name: '+ From a mech' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '+ From a Mech' })).toBeTruthy()
   })
 
   test('an empty shelf says so', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
+    expect(within(pilots).getByText('No Pilots yet.')).toBeTruthy()
+  })
+
+  test('a signed-in bay with nothing in it keeps Start here; one unit and it is gone', async () => {
+    await renderShelves()
+    expect(screen.getByRole('region', { name: 'Start here' })).toBeTruthy()
+    cleanup()
+    await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Start here' })).toBeNull()
   })
 
   test('the NPC shelf offers the designer', async () => {
@@ -345,7 +354,7 @@ describe('Training Bay — items', () => {
     await renderShelves()
 
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const link = within(pilots).getByRole('link', { name: 'Nia Vale' })
+    const link = within(pilots).getByRole('link', { name: 'Ghost · Nia Vale' })
     expect(link.getAttribute('href')).toBe(`/pilots/${id}`)
     const line = link.closest('tr')
     // What it is built as, never its kind (EDL E9: screen readers hear that).
@@ -373,7 +382,7 @@ describe('Training Bay — items', () => {
     // name for a phone, where the column is hidden.
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const itsMech = within(
-      within(pilots).getByRole('link', { name: 'Mara Vex' }).closest('tr') as HTMLElement
+      within(pilots).getByRole('link', { name: 'Ghost · Mara Vex' }).closest('tr') as HTMLElement
     ).getAllByRole('link', { name: 'Iron Fist' })
     expect(itsMech.map((a) => a.getAttribute('href'))).toEqual([
       `/mechs/${mech.id}`,
@@ -382,11 +391,13 @@ describe('Training Bay — items', () => {
     // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()
-    expect(within(mechs).getByText('Every Mech of yours has its Pilot.')).toBeTruthy()
+    expect(
+      within(mechs).getByText('Mechs without a Pilot. A piloted Mech is on its Pilot’s row.')
+    ).toBeTruthy()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 
-  test('the ⋯ menu offers Open, Move, Make a copy, Save as pattern (mechs), Export and Delete', async () => {
+  test('the ⋯ menu offers Open, Move, Make a copy, Rename and Save as pattern (mechs), Export and Delete', async () => {
     await seedEntity('mech', 'Iron Jaw')
     await renderShelves()
 
@@ -395,37 +406,71 @@ describe('Training Bay — items', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map((item) => item.textContent)
-    ).toEqual(['Open', 'Move to a Game…', 'Make a copy', 'Save as pattern', 'Export', 'Delete…'])
+    ).toEqual([
+      'Open',
+      'Move to a Game…',
+      'Make a copy',
+      'Rename…',
+      'Save as pattern',
+      'Export',
+      'Delete…',
+    ])
+  })
+
+  test('Rename… changes a mech’s name from the list', async () => {
+    const mech = await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    fireEvent.click(within(await openMenu('Iron Jaw')).getByRole('menuitem', { name: 'Rename…' }))
+    const field = await screen.findByRole('textbox', { name: 'Mech name' })
+    fireEvent.change(field, { target: { value: 'Iron Jaw Mk II' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Rename' }))
+    await waitFor(() => expect(useUnits.getState().get('mech', mech)?.name).toBe('Iron Jaw Mk II'))
+  })
+
+  test('the Mechs shelf says a build’s slots and Scrap, and a column sorts it', async () => {
+    await seedEntity('mech', 'Bravo')
+    await useUnits
+      .getState()
+      .create('mech', { ...baseMechInput, name: 'Alpha', chassisRef: 'mule' })
+    await renderShelves()
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    const names = () =>
+      within(mechs)
+        .getAllByRole('link')
+        .map((a) => a.textContent)
+        .filter((text) => text === 'Alpha' || text === 'Bravo')
+    expect(within(mechs).getByRole('button', { name: /sort by scrap/i })).toBeTruthy()
+    const byName = () => within(mechs).getByRole('button', { name: /sort by mechs/i })
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Alpha', 'Bravo'])
+    fireEvent.click(byName())
+    expect(names()).toEqual(['Bravo', 'Alpha'])
   })
 
   test('a pilot’s menu has no Save as pattern', async () => {
     await seedEntity('pilot', 'Kael Dusk')
     await renderShelves()
 
-    const menu = await openMenu('Kael Dusk')
+    const menu = await openMenu('Ghost · Kael Dusk')
     expect(within(menu).queryByRole('menuitem', { name: 'Save as pattern' })).toBeNull()
   })
 })
 
 describe('Training Bay — Make a copy', () => {
-  test('asks first, then puts a separate copy on the shelf', async () => {
+  test('copies at once, with no confirm, and puts a separate copy on the shelf', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Fen Oya')
+    const menu = await openMenu('Ghost · Fen Oya')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Make a copy' }))
     })
-    const dialog = screen.getByRole('alertdialog')
-    expect(dialog.textContent).toContain('Make a copy of Fen Oya?')
+    // A copy only adds, so nothing asks first.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    await settle(() => screen.queryByText('Ghost · COPY OF Fen Oya') !== null)
 
-    await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Make a copy' }))
-    })
-    await settle(() => screen.queryByText('COPY OF Fen Oya') !== null)
-
-    expect(screen.getByText('COPY OF Fen Oya')).toBeTruthy()
-    expect(screen.getByText('Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost · COPY OF Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
     const names = useUnits
       .getState()
       .list('pilot')
@@ -439,36 +484,38 @@ describe('Training Bay — delete flow', () => {
     await seedEntity('pilot', 'Mira Cole')
     await renderShelves()
 
-    const menu = await openMenu('Mira Cole')
+    const menu = await openMenu('Ghost · Mira Cole')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
 
     expect(screen.getByRole('alertdialog')).toBeTruthy()
-    expect(screen.getAllByText(/Delete Mira Cole/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/Delete Ghost · Mira Cole/i).length).toBeGreaterThan(0)
   })
 
   test('confirming removes it from the shelf', async () => {
     await seedEntity('pilot', 'Tov Heln')
     await renderShelves()
 
-    const menu = await openMenu('Tov Heln')
+    const menu = await openMenu('Ghost · Tov Heln')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete' }))
     })
-    await settle(() => screen.queryAllByText('Tov Heln').filter((n) => n.isConnected).length === 0)
+    await settle(
+      () => screen.queryAllByText('Ghost · Tov Heln').filter((n) => n.isConnected).length === 0
+    )
 
-    expect(screen.queryAllByText('Tov Heln').filter((n) => n.isConnected)).toHaveLength(0)
+    expect(screen.queryAllByText('Ghost · Tov Heln').filter((n) => n.isConnected)).toHaveLength(0)
   })
 
   test('cancelling leaves it where it was', async () => {
     await seedEntity('pilot', 'Fen Oya')
     await renderShelves()
 
-    const menu = await openMenu('Fen Oya')
+    const menu = await openMenu('Ghost · Fen Oya')
     await act(async () => {
       fireEvent.click(within(menu).getByRole('menuitem', { name: 'Delete…' }))
     })
@@ -476,7 +523,7 @@ describe('Training Bay — delete flow', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     })
 
-    expect(screen.getByText('Fen Oya')).toBeTruthy()
+    expect(screen.getByText('Ghost · Fen Oya')).toBeTruthy()
     expect(screen.queryByRole('alertdialog')).toBeFalsy()
   })
 })

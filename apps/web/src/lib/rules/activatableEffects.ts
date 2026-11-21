@@ -16,6 +16,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { StatLabel } from 'salvageunion-reference'
 import { SalvageUnionReference, STAT_LABELS } from 'salvageunion-reference'
 import { resolveInstalledRef } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 
 export type ActivatableEffect = {
   /** The declaring record's ref — the key play state toggles on. */
@@ -42,7 +43,10 @@ function describe(c: { stat: string; amount: unknown }): string {
   const stat = statName(c.stat)
   if (typeof c.amount === 'number') return `+${c.amount} ${stat}`
   if (c.amount && typeof c.amount === 'object' && 'fromStat' in c.amount) {
-    return `${stat} by this Mech's ${statName(String((c.amount as { fromStat: string }).fromStat))}`
+    return libRulesCopy('statByThisMechs', {
+      stat,
+      from: statName(String((c.amount as { fromStat: string }).fromStat)),
+    })
   }
   return `changes ${stat}`
 }

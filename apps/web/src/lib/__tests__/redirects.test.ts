@@ -235,10 +235,12 @@ describe('formerSitePath', () => {
   it('moves the site’s earlier page addresses', () => {
     expect(formerSitePath('/titans/apophis/')).toBe('/bio-titans/apophis/')
     expect(formerSitePath('/titans')).toBe('/bio-titans/')
-    expect(formerSitePath('/actions/portable-cryopod/')).toBe('/?q=portable+cryopod')
+    expect(formerSitePath('/actions/portable-cryopod/')).toBe('/reference/?q=portable+cryopod')
     expect(formerSitePath('/catalog-categories/guides/')).toBe('/guides/')
     expect(formerSitePath('/sheets/pilot')).toBe('/build/pilots/new')
-    expect(formerSitePath('/roll-tables/salvage-cache-table/')).toBe('/?q=salvage+cache+table')
+    expect(formerSitePath('/roll-tables/salvage-cache-table/')).toBe(
+      '/reference/?q=salvage+cache+table'
+    )
   })
 
   it('sends the touch icon’s conventional names to the one the page links', () => {

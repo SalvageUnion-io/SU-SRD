@@ -1,3 +1,5 @@
+import { libCopy } from '../messages/lib'
+
 /**
  * The app's one way to write a timestamp: always the viewer's own locale
  * and clock (`undefined`), so every surface reads the same.
@@ -17,8 +19,8 @@ export function formatDateTime(ts: number): string {
 /** "just now", "2 min ago", "3 h ago", "2 days ago" — how long before `now`. */
 export function formatAgo(ts: number, now: number): string {
   const minutes = Math.floor((now - ts) / 60_000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes} min ago`
+  if (minutes < 1) return libCopy('justNow')
+  if (minutes < 60) return libCopy('minAgo', { minutes })
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours} h ago`
   const days = Math.floor(hours / 24)

@@ -19,7 +19,8 @@ import type { SheetTable } from './entityKinds'
  * Every operation the bot may ask the site. The writes never touch
  * anybody's sheet: `bindChannel` and `unbindChannel` (`/su bind`, `/su
  * unbind`) are the bot's own apparatus, `usage` bumps a weekly command tally
- * and `feedback` hands on a `/su feedback` note (ADR-057).
+ * and `feedback` hands on a `/su feedback` note (ADR-057). `logRoll` puts a
+ * public `/su roll` made in a Game's bound channel on that Game's Feed.
  */
 const BOT_OP_NAMES = [
   'me',
@@ -30,6 +31,7 @@ const BOT_OP_NAMES = [
   'unbindChannel',
   'usage',
   'feedback',
+  'logRoll',
 ] as const
 
 /** One of {@link BOT_OP_NAMES}. */
@@ -241,12 +243,17 @@ export const relayUrl = (path: string): string => `https://relay${path}`
 export const BOT_RELAY_POST_ROLL_PATH = '/relay/post-roll'
 
 /** A roll as the card replays it (the table and its die, two on a columns table), and where. */
+/** The longest `label` a roll card prints; longer is cut. */
+export const ROLL_LABEL_MAX = 80
+
 export type PostRollRelayRequest = {
   tableName: string
   rolls: number[]
   channelId: string
   /** Who rolled, for the card's context line ("rolled by …"). */
   roller?: string
+  /** What the roll was for (an ability, a system), when it is not the table itself. */
+  label?: string
   /** The roller's Discord id: the only person whose `Roll again` works. */
   ownerDiscordId?: string
 }
@@ -286,6 +293,24 @@ export type PostAlertRelayRequest = { channelId: string; message: string }
 export const ALERT_POST_MAX = 2000
 
 /**
+ * The same door for the table's events (`rooms/game/events.ts`): what members
+ * did in the Game (vitals, actions, boarding, assignments, joining, the group
+ * session, proposals), one line each, a burst posted as one message. A roll,
+ * an alert and the Stop Sign keep their own posts, and a private event is
+ * never sent. It answers as the roll relay does.
+ */
+export const BOT_RELAY_POST_EVENTS_PATH = '/relay/post-events'
+
+/** The events' channel and their lines, oldest first. */
+export type PostEventsRelayRequest = { channelId: string; lines: string[] }
+
+/** The most lines one events post carries; a longer burst says how many more. */
+export const EVENTS_POST_MAX_LINES = 12
+
+/** The longest line an events post carries; longer is cut, with an ellipsis. */
+export const EVENT_LINE_MAX = 200
+
+/**
  * Whether a roll is one the card can replay: a named table and one die (two on
  * a columns table), each a whole number on the d20. The site checks it before
  * it relays (`channelBindings.postRoll`) and the relay again on receipt.
@@ -308,6 +333,27 @@ export type BotUsageArgs = { name: string; guildId?: string }
 
 /** `usage` answers only that it counted. */
 export type BotUsageResult = { ok: true }
+
+/**
+ * `logRoll`: a public roll the bot answered in `channelId`. Where that channel
+ * is bound to a Game the roller belongs to, the roll joins the Game's Feed;
+ * anywhere else it is counted nowhere (`logged: false`), which is not a refusal.
+ */
+export type LogRollArgs = {
+  discordId: string
+  channelId: string
+  tableName: string
+  rolls: number[]
+  /** What it came to, as the card's headline reads. */
+  outcome?: string
+  /** The roller's name in Discord, where they have set none in the app. */
+  roller?: string
+}
+
+export type LogRollResult = { ok: true; logged: boolean }
+
+/** The table every check rolls on, whose Feed rows are kind `core`. */
+export const CORE_MECHANIC_TABLE = 'Core Mechanic'
 
 /** `feedback`: a `/su feedback` note, sent on for filing as a GitHub issue. */
 export type BotFeedbackArgs = { discordId: string; kind: 'suggestion' | 'report'; text: string }

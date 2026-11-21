@@ -14,6 +14,7 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SeatMount } from 'game-domain/schemas/seat'
 import type { SoftLink } from 'game-domain/schemas/softLink'
+import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
 import type { PlayReadOnly, PlayTarget } from './play.model'
 import type { SceneState } from './useScene'
@@ -32,7 +33,7 @@ export function situationOf(downtimeRunning: boolean, mount: SeatMount): Situati
  * A solo pilot's mechs, as the Board menu offers them: every mech on the
  * owner's shelf (what `seats.board` accepts for a solo seat), the pilot's
  * assigned mech (`mech-to-pilot`) first. A destroyed mech is listed with its
- * reason and boards nothing.
+ * reason and boards nothing; one another pilot is assigned says so.
  */
 export function soloMechOptions(
   pilotId: string,
@@ -41,17 +42,24 @@ export function soloMechOptions(
 ): BoardOption[] {
   const assigned =
     softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilotId)?.from.id ?? null
+  // A mech another of your pilots is assigned: it still boards, and says whose.
+  const others = new Set(
+    softLinks.filter((l) => l.type === 'mech-to-pilot' && l.to.id !== pilotId).map((l) => l.from.id)
+  )
   return mechs
     .filter((mech) => containerOf(mech).kind === 'shelf')
-    .map(
-      (mech): BoardOption => ({
+    .map((mech): BoardOption => {
+      const destroyed = mechHasCondition(mech, 'Destroyed')
+      const flownByOther = others.has(mech.id) && mech.id !== assigned
+      return {
         mechId: mech.id,
         serverId: null,
         name: mech.name,
-        state: mechHasCondition(mech, 'Destroyed') ? 'destroyed' : 'yours',
-        note: mechHasCondition(mech, 'Destroyed') ? 'Destroyed' : null,
-      })
-    )
+        state: destroyed ? 'destroyed' : 'yours',
+        note: destroyed ? 'Destroyed' : flownByOther ? playCopy('anotherPilotsMech') : null,
+        ...(flownByOther ? { flownByOther } : {}),
+      }
+    })
     .sort((a, b) => Number(b.mechId === assigned) - Number(a.mechId === assigned))
 }
 

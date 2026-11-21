@@ -30,12 +30,10 @@ import { playCopy } from '../messages/play'
 import { ResolveCost, ResolveSpend } from './PlayResolveCost'
 import { PlayRollInstrument } from './PlayRollInstrument'
 import { SalvageAreaDialog } from './SalvageAreaDialog'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 import type { ResolveModel } from './useActionsDeck'
 
 type Resolving = Extract<ResolveModel, { kind: 'resolve' }>
-
-/** The table every action's roll reads (Core Book p.233), but Area Salvage's own. */
-const CORE_MECHANIC = 'Core Mechanic'
 
 const AREA = {
   alignItems: 'center',
@@ -83,7 +81,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             })}
           </p>
         )}
-        {salvage?.haul && <p>{salvage.haul}</p>}
         {view.pushLog && <p>{view.pushLog}</p>}
         {view.applied && <p>{playCopy('resultApplied')}</p>}
       </div>
@@ -133,7 +130,7 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       )}
 
       <PlayRollInstrument
-        table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC}
+        table={salvage ? AREA_SALVAGE_TABLE : CORE_MECHANIC_TABLE}
         roll={salvage ? salvage.roll : (roll?.roll ?? null)}
         stamp={push ? 'Push:' : undefined}
         onRoll={canWrite && salvageOpen ? (push ? push.onPush : controls.onRoll) : undefined}
@@ -163,7 +160,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         </Button>
       )}
       {view.applied && <p style={NOTE}>{playCopy('resultApplied2')}</p>}
-      {salvage?.haul && <p style={NOTE}>{salvage.haul}</p>}
       {salvage?.onSetArea && (
         <SalvageAreaDialog
           key={settingArea ? 'open' : 'closed'}

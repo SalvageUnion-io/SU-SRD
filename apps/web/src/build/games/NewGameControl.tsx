@@ -27,6 +27,8 @@ import {
   Input,
   ModalShell,
   Pending,
+  Segmented,
+  SegmentedOption,
   SlabSection,
   Text,
   tokens,
@@ -76,13 +78,18 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   const templates = useGamesQuery('templates.list', open ? {} : 'skip')
   const create = useGamesCall('games.create')
   const createFromTemplate = useGamesCall('templates.createGame')
+  // Most tables are started by whoever runs them, so Yes is the answer given.
+  const [mediates, setMediates] = useState(true)
   const go = useGo()
 
   const [name, setName] = useState('')
   const start = useServerAction(
+    // The creator is the Organiser, who appoints the Mediator: themselves, if they said so.
     (from: { name: string } | { templateId: TemplateId }) =>
-      'templateId' in from ? createFromTemplate(from) : create(from),
-    { failure: 'That Game could not be created. Try again.' }
+      'templateId' in from
+        ? createFromTemplate({ ...from, mediator: mediates })
+        : create({ ...from, mediator: mediates }),
+    { failure: buildGamesCopy('gameNotCreated') }
   )
   const { pending: busy, error } = start
 
@@ -107,6 +114,20 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
   return (
     <ModalShell open={open} onOpenChange={onOpenChange} title={buildGamesCopy('newGame')}>
       <div style={BODY}>
+        <div style={STACK}>
+          <div style={ROW}>
+            <Text variant="body">{buildGamesCopy('willYouBeTheMediator')}</Text>
+            <Segmented label={buildGamesCopy('willYouBeTheMediator')} size="compact">
+              <SegmentedOption pressed={mediates} onClick={() => setMediates(true)}>
+                {buildGamesCopy('yes')}
+              </SegmentedOption>
+              <SegmentedOption pressed={!mediates} onClick={() => setMediates(false)}>
+                {buildGamesCopy('no')}
+              </SegmentedOption>
+            </Segmented>
+          </div>
+          <Text variant="hint">{buildGamesCopy('organiserExplained')}</Text>
+        </div>
         <SlabSection as="h3" id="new-game-start" title={buildGamesCopy('startAGame')}>
           <div style={ROW}>
             <div style={GROW}>

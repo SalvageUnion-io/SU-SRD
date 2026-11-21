@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import type { Finding, RuleSet } from '../lib/ruleEngine'
-import { evaluate, formatFailures, increases, listFiles, ratchetCounts } from '../lib/ruleEngine'
+import { evaluate, formatFailures, listFiles } from '../lib/ruleEngine'
 import { chromeLaws, statTextFindings } from '../rules/chrome'
 import { markupFindings } from '../rules/chromeMarkup'
 import { classPrefix } from '../rules/classPrefix'
@@ -43,77 +43,28 @@ const SET: RuleSet = {
   exemptionsLive: 'nowhere',
   rules: [
     { id: 'z', rule: 'zero law', fix: 'fix z', mode: 'zero' },
-    { id: 'r', rule: 'ratchet law', fix: 'fix r', mode: 'ratchet' },
+    { id: 'r', rule: 'second law', fix: 'fix r', mode: 'zero' },
   ],
   scan: () => ({}),
 }
 
 describe('ruleEngine.evaluate', () => {
-  test('passes when zero rules are clean and ratchets sit exactly at baseline', () => {
-    const v = evaluate(SET, { z: [], r: finding(3) }, { r: { 'x.ts': 3 } })
-    expect(v.ok).toBe(true)
+  test('passes when every rule is clean', () => {
+    expect(evaluate(SET, { z: [], r: [] }).ok).toBe(true)
   })
 
-  test('a zero rule fails on any finding, with no baseline to hide behind', () => {
-    const v = evaluate(SET, { z: finding(1), r: [] }, { r: {} })
+  test('any finding fails its rule: there is no recorded count to hide behind', () => {
+    const v = evaluate(SET, { z: finding(1), r: [] })
     expect(v.ok).toBe(false)
-    expect(v.rules.find((r) => r.rule.id === 'z')?.problem).toBe('nonzero')
-  })
-
-  test('a ratchet fails when the count rises', () => {
-    const v = evaluate(SET, { z: [], r: finding(4) }, { r: { 'x.ts': 3 } })
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
-  })
-
-  test('a ratchet fails when the count FALLS but the baseline was not lowered', () => {
-    const v = evaluate(SET, { z: [], r: finding(2) }, { r: { 'x.ts': 3 } })
-    expect(v.ok).toBe(false)
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('unrecorded-improvement')
-    expect(formatFailures(v, 'UPDATE').join('\n')).toContain('run: UPDATE')
+    expect(v.rules.find((r) => r.rule.id === 'z')?.found).toBe(1)
+    expect(evaluate(SET, { z: [], r: finding(3) }).ok).toBe(false)
   })
 
   test('a set that takes no exemptions says so, never where to add one', () => {
     const { exemptionsLive: _, ...bare } = SET
-    const text = formatFailures(evaluate(bare, { z: finding(1), r: [] }, {}), 'UPDATE').join('\n')
+    const text = formatFailures(evaluate(bare, { z: finding(1), r: [] })).join('\n')
     expect(text).toContain('takes no exemptions')
     expect(text).not.toContain('EXEMPTIONS entry')
-  })
-
-  test('a missing baseline entry means zero allowed', () => {
-    const v = evaluate(SET, { z: [], r: finding(1) }, {})
-    expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')
-  })
-
-  test('a baseline entry for a zero rule or an unknown rule is stale and fails', () => {
-    const v = evaluate(SET, { z: [], r: [] }, { r: {}, z: {}, gone: { 'x.ts': 4 } })
-    expect(v.ok).toBe(false)
-    expect(v.staleBaselineKeys.sort()).toEqual(['gone', 'z'])
-  })
-
-  test('ratchetCounts records ratchet rules only, and increases() names only rises', () => {
-    const counts = ratchetCounts(SET, { z: finding(9), r: finding(2) })
-    expect(counts).toEqual({ r: { 'x.ts': 2 } })
-    expect(increases({ r: { 'x.ts': 3 } }, { r: { 'x.ts': 2 } })).toEqual([])
-    expect(increases({ r: { 'x.ts': 1 } }, { r: { 'x.ts': 2 } })).toEqual(['r x.ts: 1 → 2'])
-    // A file the baseline does not name counts from zero, even when the total holds.
-    expect(increases({ r: { 'x.ts': 2 } }, { r: { 'x.ts': 1, 'y.ts': 1 } })).toEqual([
-      'r y.ts: 0 → 1',
-    ])
-  })
-
-  test('a new finding in one file cannot hide behind a fix in another', () => {
-    const moved = [{ file: 'y.ts', line: 1, detail: 'd' }, ...finding(2)]
-    const v = evaluate(SET, { z: [], r: moved }, { r: { 'x.ts': 3 } })
-    const r = v.rules.find((x) => x.rule.id === 'r')
-    expect(r?.problem).toBe('regressed')
-    expect(r?.over).toEqual(['y.ts'])
-  })
-
-  test('an older total-only baseline is still read as a total', () => {
-    expect(evaluate(SET, { z: [], r: finding(3) }, { r: 3 }).ok).toBe(true)
-    expect(evaluate(SET, { z: [], r: finding(4) }, { r: 3 }).ok).toBe(false)
-    expect(increases({ r: 3 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual([])
-    expect(increases({ r: 2 }, { r: { 'x.ts': 2, 'y.ts': 1 } })).toEqual(['r: 2 → 3'])
   })
 })
 
@@ -140,7 +91,6 @@ describe('tokens rule set', () => {
 
   test('every rule is zero', () => {
     expect(designTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(designTokens, {})).toEqual({})
   })
 
   test('off-scale-space: space[10] and --space-10 are found; their definitions and 12 are not', () => {

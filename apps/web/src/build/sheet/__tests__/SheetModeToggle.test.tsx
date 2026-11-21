@@ -16,7 +16,7 @@ describe('Read | Edit | Play', () => {
     render(<SheetModeToggle mode={mode(false)} kind="pilot" play={{ name: 'Rook', onPlay }} />)
     const group = screen.getByRole('group', { name: /pilot/i })
     const options = within(group).getAllByRole('button')
-    expect(options.map((o) => o.textContent)).toEqual(['Read', 'Edit', 'Play'])
+    expect(options.map((o) => o.textContent)).toEqual(['Sheet', 'Edit', 'Play'])
     expect(options.map((o) => o.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false'])
     fireEvent.click(within(group).getByRole('button', { name: 'Play as Rook' }))
     expect(onPlay).toHaveBeenCalledTimes(1)
@@ -24,7 +24,7 @@ describe('Read | Edit | Play', () => {
 
   test('with nothing to play, Read | Edit alone; with no writes, Play alone', () => {
     const { unmount } = render(<SheetModeToggle mode={mode(true)} kind="mech" />)
-    expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Read', 'Edit'])
+    expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Sheet', 'Edit'])
     unmount()
     render(<SheetModeToggle mode={null} kind="pilot" play={{ name: 'Rook', onPlay: () => {} }} />)
     expect(screen.getAllByRole('button').map((o) => o.textContent)).toEqual(['Play'])

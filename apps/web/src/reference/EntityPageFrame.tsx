@@ -6,7 +6,7 @@ import type { ChapterTone, EntityPageMeta } from '../components/index'
 import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
 import { ReferenceSurface } from '../components/ReferenceSurface'
 import { iconSize } from '../design/tokens'
-import type { BuildLink, GuideExits } from '../lib/buildLink'
+import type { BuildLink, GuideExits, MediatorLinks } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { referenceCopy } from '../messages/reference'
 import { SharePageButton } from './SharePageButton'
@@ -61,6 +61,24 @@ function GuideExitsFoot({ build, next, starterSet }: GuideExits) {
   )
 }
 
+/**
+ * A denizen's foot for the Mediator (`mediatorLinksFor`): into an encounter of
+ * theirs, or the NPC designer started from it. Static markup, shown only while
+ * somebody is signed in (`html[data-srd-signed-in]`, pages.css).
+ */
+function MediatorActsFoot({ add, design }: MediatorLinks) {
+  return (
+    <nav className="su-guide-exits su-mediator-acts" aria-label={referenceCopy('forTheMediator')}>
+      <Button href={add.href} variant="primary" size="compact" className="su-page-action">
+        {add.label}
+      </Button>
+      <Button href={design.href} size="compact" className="su-page-action">
+        {design.label}
+      </Button>
+    </nav>
+  )
+}
+
 type EntityPageFrameProps = {
   /** The page title: the entity's name, or a pattern's quoted name. */
   title: ReactNode
@@ -78,6 +96,8 @@ type EntityPageFrameProps = {
   buy?: string
   /** A creation guide's way out (`guideExitsFor`), under the body. */
   exits?: GuideExits | null
+  /** A denizen's Mediator links (`mediatorLinksFor`), under the body, signed in only. */
+  mediator?: MediatorLinks | null
   /** A sparse Page's side column (`SparseRail`, EDL form 5), beside its body. */
   rail?: ReactNode
   /**
@@ -98,6 +118,7 @@ export function EntityPageFrame({
   build,
   buy,
   exits,
+  mediator,
   rail,
   foot,
   children,
@@ -187,6 +208,7 @@ export function EntityPageFrame({
           </ReferenceSurface>
         )}
         {exits && <GuideExitsFoot {...exits} />}
+        {mediator && <MediatorActsFoot {...mediator} />}
       </div>
     </article>
   )

@@ -3,6 +3,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { NpcDesignerView } from '../../build/npc/NpcDesignerPage'
 import { NpcDesignerPage } from '../../build/npc/NpcDesignerPage'
 import { NewEntityScreen } from '../../build/wizard/NewEntityScreen'
+import { isDenizenKind } from '../../lib/npcs/npcModel'
 import { areaTitle } from '../../lib/pageTitle'
 import { routesCopy } from '../../messages/routes'
 
@@ -10,6 +11,8 @@ type NpcsNewSearch = {
   view: NpcDesignerView
   crawler?: string
   slot?: string
+  /** `&from=<schema>:<slug>`: the Reference denizen to design from. */
+  from?: string
 }
 
 /**
@@ -25,13 +28,19 @@ export const Route = createFileRoute('/npcs/new')({
     view: search.view === 'crew' ? 'crew' : 'any',
     ...(typeof search.crawler === 'string' && search.crawler ? { crawler: search.crawler } : {}),
     ...(typeof search.slot === 'string' && search.slot ? { slot: search.slot } : {}),
+    ...(typeof search.from === 'string' && search.from ? { from: search.from } : {}),
   }),
   component: NpcsNewPage,
 })
 
 function NpcsNewPage() {
   const navigate = useNavigate()
-  const { view, crawler, slot } = Route.useSearch()
+  const { view, crawler, slot, from } = Route.useSearch()
+  const [fromSchema, fromSlug] = (from ?? '').split(':')
+  const startFrom =
+    fromSchema && fromSlug && isDenizenKind(fromSchema)
+      ? { schema: fromSchema, slug: fromSlug }
+      : undefined
 
   return (
     <NewEntityScreen
@@ -42,6 +51,7 @@ function NpcsNewPage() {
           view={view}
           crawlerId={crawler}
           slot={slot}
+          from={startFrom}
           onViewChange={(next) =>
             void navigate({
               to: '/npcs/new',

@@ -43,6 +43,11 @@ export type SearchComboboxResult =
       group: string
       schemaId: RefEnumSchemaName
       entity: SearchResult['entity'] & RefEntity
+      /**
+       * A result with a page that is not its schema's item page, and a kind
+       * that is not its schema's name: a pattern, under its host.
+       */
+      page?: { href: string; kind: string }
     }
   | {
       /**
@@ -88,19 +93,30 @@ export type UseSearchComboboxOptions = {
    * SearchIsland runs a build-time-generated compact index instead of
    * preloading the ~1.3 MB corpus just to power search.
    */
-  searchFn?: (options: Parameters<typeof search>[0]) => SearchResult[]
+  searchFn?: (options: Parameters<typeof search>[0]) => SearchHit[]
+}
+
+/** A hit, with what a pattern's row says of itself (the compact index's `pattern`). */
+type SearchHit = SearchResult & { pattern?: { href: string; kind: string } }
+
+/** A query with nothing but its letters and digits, as a kind's name is compared. */
+function squashed(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '')
 }
 
 function matchSchemas(query: string, slots: number): SearchComboboxResult[] {
   const q = query.toLowerCase().trim()
   if (!q) return []
+  // A kind is found without its punctuation too: "biotitan" finds Bio-Titans.
+  const bare = squashed(q)
 
   return getEntitySchemas()
     .filter(
       (s) =>
         s.displayName.toLowerCase().includes(q) ||
         s.displayNamePlural.toLowerCase().includes(q) ||
-        s.id.includes(q)
+        s.id.includes(q) ||
+        (bare.length > 2 && squashed(s.displayNamePlural).includes(bare))
     )
     .slice(0, slots)
     .map((s) => ({
@@ -119,11 +135,12 @@ const COUNT_LIMIT = 200
  * The row for the matches a full list left out: the kind with the most whose
  * NAME holds the query (what its listing's filter matches), or none.
  */
-function moreResult(hidden: readonly SearchResult[], query: string): SearchComboboxResult[] {
+function moreResult(hidden: readonly SearchHit[], query: string): SearchComboboxResult[] {
   const q = query.toLowerCase().trim()
   const counts = new Map<RefEnumSchemaName, number>()
   for (const hit of hidden) {
-    if (!hit.entityName.toLowerCase().includes(q)) continue
+    // A pattern is not a row of its host's listing.
+    if (hit.pattern || !hit.entityName.toLowerCase().includes(q)) continue
     counts.set(hit.schemaName, (counts.get(hit.schemaName) ?? 0) + 1)
   }
   const top = [...counts].sort((a, b) => b[1] - a[1])[0]
@@ -141,14 +158,16 @@ function moreResult(hidden: readonly SearchResult[], query: string): SearchCombo
   ]
 }
 
-function toEntityResult(result: SearchResult): SearchComboboxResult {
+function toEntityResult(result: SearchHit): SearchComboboxResult {
+  const { pattern } = result
   return {
     kind: 'entity',
     id: result.entityId,
     title: result.entityName,
-    group: schemaPluralLabel(result.schemaName),
+    group: pattern ? pattern.kind : schemaPluralLabel(result.schemaName),
     schemaId: result.schemaName,
     entity: result.entity,
+    ...(pattern ? { page: pattern } : {}),
   }
 }
 
@@ -259,7 +278,7 @@ export function useSearchCombobox({
     ? null
     : !ready
       ? query.trim()
-        ? loadingCopy('reference data')
+        ? loadingCopy(compositionsCopy('referenceData'))
         : null
       : results.length > 0
         ? `${results.length} result${results.length === 1 ? '' : 's'} found`

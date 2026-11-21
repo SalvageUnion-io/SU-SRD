@@ -4,15 +4,17 @@
  *
  * One line per other seat in the Game: whether they are here (their player
  * has the Game open, `useGamePresence`), their callsign, their mount ("Boarded
- * · Atlas", "On foot") and one vital. Who needs looking at is `crewLines()`'s
+ * · Atlas", "On foot"), the one vital that flags them, and every number
+ * with its maximum (HP, AP; aboard, the mech's SP, EP and Heat). Who needs looking at is `crewLines()`'s
  * verdict, the server's `attention`, so every screen at the table flags the
  * same crewmates; this only picks which number says it.
  */
 
 import type { PairSide } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
-import { crewLines, vitalCurrent } from './useGameFeed'
+import { crewLines, vitalCurrent, vitalText } from './useGameFeed'
 
 /**
  * What needs looking at, in words: the line's problems, else its parked mech's
@@ -49,6 +51,11 @@ export type CrewSeatLine = CrewLine & {
   /** The mech they are aboard, or null on foot: the mount chip's value. */
   boardedIn: string | null
   vital: CrewVital
+  /**
+   * Every number the crew reads of them, each with its maximum ("9/10"): HP
+   * and AP always, and aboard their mech's SP, EP and Heat.
+   */
+  vitals: { label: string; value: string }[]
   /** What is wrong, in words, or null: the line's accessible name says it. */
   problem: string | null
 }
@@ -81,7 +88,7 @@ function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: bool
       return flag({ label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) })
     if (status.overheating)
       return flag({ label: 'Heat', value: vitalCurrent('gauge', mech.currentHeat, mech.maxHeat) })
-    if (status.shutdown) return flag({ label: 'Shut down', value: null })
+    if (status.shutdown) return flag({ label: playCopy('shutDown'), value: null })
     if (sp !== null) return flag(sp)
   }
   return flag(hp)
@@ -113,9 +120,20 @@ export function crewSeatLines(
       {
         ...line,
         present: isHere(pilot, here),
-        mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
+        mount: boardedIn === null ? playCopy('onFoot') : `Boarded · ${boardedIn}`,
         boardedIn,
         vital: crewVital(pilot, mech, line.attention),
+        vitals: [
+          { label: 'HP', value: line.hp },
+          { label: 'AP', value: line.ap },
+          ...(pilot.boarded && mech !== undefined
+            ? [
+                { label: 'SP', value: vitalText('pool', mech.currentSP, mech.maxSP) },
+                { label: 'EP', value: vitalText('pool', mech.currentEP, mech.maxEP) },
+                { label: 'Heat', value: vitalText('gauge', mech.currentHeat, mech.maxHeat) },
+              ]
+            : []),
+        ],
         problem: crewProblem(line),
       },
     ]
@@ -141,6 +159,7 @@ export function crewLineLabel(line: CrewSeatLine): string {
     line.present ? 'here' : 'away',
     line.mount,
     line.problem ?? (line.vital.attention ? vital : `${vital}, fine`),
+    ...line.vitals.map((v) => `${v.label} ${v.value}`),
   ].join(', ')
 }
 

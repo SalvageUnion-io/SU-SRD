@@ -24,6 +24,7 @@ import {
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ChapterTone } from '../components/index'
+import { libCopy } from '../messages/lib'
 import { schemaHref } from './entityHref'
 
 type ChapterDefinition = {
@@ -45,25 +46,31 @@ type ChapterDefinition = {
 }
 
 const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
-  { id: 'pilot-bay', path: 'pilots', title: 'Pilot Bay', tone: 'pilot', categories: ['pilot'] },
+  {
+    id: 'pilot-bay',
+    path: 'pilots',
+    title: libCopy('pilotBay'),
+    tone: 'pilot',
+    categories: ['pilot'],
+  },
   {
     id: 'mech-workshop',
     path: 'mechs',
-    title: 'Mech Workshop',
+    title: libCopy('mechWorkshop'),
     tone: 'mech',
     categories: ['mech'],
   },
   {
     id: 'union-crawler',
     path: 'union-crawler',
-    title: 'Union Crawler',
+    title: libCopy('unionCrawler'),
     tone: 'crawler',
     categories: ['crawler'],
   },
   {
     id: 'denizens',
     path: 'wasteland',
-    title: 'Denizens of the Wasteland',
+    title: libCopy('denizensOfTheWasteland'),
     // The adversary brown its entities' cards wear.
     tone: 'adversary',
     categories: ['denizens'],
@@ -168,6 +175,21 @@ export function chapterForSchema(schemaId: string): ChapterRef {
     )
   )
   return CHAPTER_REFS.find((ref) => ref.id === definition?.id) ?? CONTENTS
+}
+
+/**
+ * The sub-navigation entry (`sections`, its hrefs) a Reference page sits
+ * under: the entry its address starts in (a guide under Guides), else its
+ * kind's chapter (a chassis under Mech Workshop). None for a page in no
+ * section (the home, the changelog).
+ */
+export function sectionHrefFor(pathname: string, sections: readonly string[]): string | undefined {
+  const first = pathname.split('/').filter(Boolean)[0]
+  if (!first) return undefined
+  const own = `/${first}/`
+  if (sections.includes(own)) return own
+  const chapter = chapterForSchema(first)
+  return chapter === CONTENTS || !sections.includes(chapter.href) ? undefined : chapter.href
 }
 
 /**

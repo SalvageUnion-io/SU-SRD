@@ -106,9 +106,11 @@ export function CrawlerTypeSelectStep({
             {isAugmented && (
               <Callout tone="crawler">
                 <span style={bonusStyle}>
-                  Every Pilot gains <strong>{buildWizardCopy('n1TrainingPoint')}</strong>, spendable
-                  on the <strong>{buildWizardCopy('augmentAbilityTreeOnly')}</strong>. Apply it on
-                  each Pilot&rsquo;s sheet yourself.
+                  {buildWizardCopy('everyPilotGains')}{' '}
+                  <strong>{buildWizardCopy('n1TrainingPoint')}</strong>
+                  {buildWizardCopy('spendableOnThe')}{' '}
+                  <strong>{buildWizardCopy('augmentAbilityTreeOnly')}</strong>
+                  {buildWizardCopy('applyItOnEachPilotsSheet')}
                 </span>
               </Callout>
             )}

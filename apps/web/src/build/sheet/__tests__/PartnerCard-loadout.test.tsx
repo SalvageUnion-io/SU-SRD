@@ -51,7 +51,7 @@ describe('PartnerCard — loadout editing', () => {
   test('Manage Systems opens the install picker', () => {
     renderCard()
     fireEvent.click(screen.getByRole('button', { name: /manage systems/i }))
-    expect(screen.getAllByText(/add systems/i).length).toBeGreaterThan(0)
+    expect(screen.getByRole('dialog', { name: 'Manage Systems' })).toBeTruthy()
   })
 
   test('Read offers no loadout controls', () => {

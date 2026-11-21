@@ -50,7 +50,7 @@ function ConnectedCopyInviteLink({
   // first await, which is what keeps WebKit's gesture alive for the clipboard.
   const copyLink = useServerAction(
     () => clipboardWriter(link({ gameId }).then((token) => inviteUrl(token))),
-    { failure: 'The invite link could not be copied. Try again.', toastId: 'invite-link-copy' }
+    { failure: playGamesCopy('inviteLinkCopyFailed'), toastId: 'invite-link-copy' }
   )
 
   // Copied is the control's own Check swap and a polite status, never a toast
@@ -70,7 +70,7 @@ function ConnectedCopyInviteLink({
           size="compact"
           icon={<Link2 aria-hidden="true" size={tokens.iconSize.compact} />}
         />
-        Copy invite link
+        {playGamesCopy('copyInviteLink')}
       </Button>
       <CopiedStatus copied={copied} />
     </>

@@ -1,7 +1,8 @@
 import { Dialog } from '@base-ui/react/dialog'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useRef, useState } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { containersCopy } from '../../messages/components-containers'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
 import { DialogActions } from './DialogActions'
@@ -67,9 +68,14 @@ type ConfirmDialogProps = {
   onConfirm: () => void | Promise<void>
   /** Turn a rejection from `onConfirm` into the line the reader sees. */
   describeError?: (error: unknown) => ReactNode
+  /**
+   * Where focus starts instead: the one field a dialog exists to fill (a
+   * name), so typing lands in it. Never for a `danger` confirm.
+   */
+  initialFocus?: RefObject<HTMLElement | null>
 }
 
-const GENERIC_FAILURE = 'That did not work. Try again.'
+const GENERIC_FAILURE = containersCopy('thatDidNotWork')
 
 const panelStyle = {
   display: 'flex',
@@ -105,6 +111,7 @@ export function ConfirmDialog({
   tone = 'default',
   onConfirm,
   describeError = () => GENERIC_FAILURE,
+  initialFocus,
 }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<ReactNode>(null)
@@ -158,7 +165,7 @@ export function ConfirmDialog({
       title={title}
       description={null}
       tone={danger ? 'danger' : 'action'}
-      initialFocus={danger ? cancelRef : confirmRef}
+      initialFocus={danger ? cancelRef : (initialFocus ?? confirmRef)}
     >
       <div style={panelStyle} aria-busy={pending || undefined}>
         <Dialog.Description render={<div />} style={bodyStyle}>

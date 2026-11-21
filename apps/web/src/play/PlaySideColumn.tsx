@@ -21,6 +21,7 @@
  */
 
 import type { RosterLine } from 'game-domain/rules/encounterRoster'
+import type { ReactNode } from 'react'
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { overloadTableOf, resolveChassisRef } from 'salvageunion-reference/rules'
 import { SlabSection } from '../components/index'
@@ -73,6 +74,7 @@ export function PlayTablesSection({
         mechTables={mechTables}
         solo={solo}
         binding={side.binding}
+        channel={side.channel}
         prepared={prepared}
         onField={onField}
       />
@@ -85,9 +87,14 @@ export function PlayFeedSection({
   side,
   idPrefix,
   canWrite,
-}: SideSectionProps & { canWrite: boolean }) {
+  actions,
+}: SideSectionProps & {
+  canWrite: boolean
+  /** The head's own control: the Mediator's Private rolls switch. */
+  actions?: ReactNode
+}) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')}>
+    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')} actions={actions}>
       <PlayFeed
         gameId={side.gameId}
         entries={side.entries}

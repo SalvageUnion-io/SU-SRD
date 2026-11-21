@@ -160,6 +160,41 @@ describe('Search API', () => {
     })
   })
 
+  describe('finding a rule without its name', () => {
+    const first = (query: string) => search({ query, limit: 5 })[0]
+
+    test('a question finds the guide it asks about', () => {
+      expect(first('how does salvaging work')?.entityName).toBe('Salvaging')
+    })
+
+    test('another form of a word finds its rule', () => {
+      const names = search({ query: 'overheating', limit: 5 }).map((r) => r.entityName)
+      expect(names).toContain('Overheat')
+    })
+
+    test('a stat abbreviation finds the stat', () => {
+      expect(first('sp')?.entityName).toBe('Structure points')
+      expect(first('ap')?.entityName).toBe('Ability points')
+      expect(first('tp')?.entityName).toBe('Crawler Downtime')
+    })
+
+    test('a name without its punctuation', () => {
+      expect(first('biotitan')?.entityName).toBe('Bio-titan')
+    })
+
+    test("a guide's step and a roll table's result are searched", () => {
+      const heat = search({ query: 'venting heat' }).find((r) => r.entityName === 'Heat')
+      expect(heat?.matchedFields).toContain('rules')
+      expect(first('nat 20')?.entityName).toBe('Core Mechanic')
+      expect(search({ query: 'nailed it' }).map((r) => r.entityName)).toContain('Core Mechanic')
+    })
+
+    test("prose-only matches put the rules' own kinds first", () => {
+      const kinds = search({ query: 'turn order', limit: 3 }).map((r) => r.schemaName)
+      expect(kinds[0]).toBe('roll-tables')
+    })
+  })
+
   describe('searchIn()', () => {
     test('should search within specific schema', () => {
       const systems = searchIn('systems', 'laser')

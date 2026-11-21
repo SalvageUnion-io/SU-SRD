@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 
 /**
  * The Games hub (`/games/`, ADR-066): + New Game and Join with a link on its
@@ -78,7 +78,11 @@ beforeAll(async () => {
   await hydrateStores()
   resetSync()
   const store = useUnits.getState()
-  await store.adopt('pilot', pilotFixture({ id: 'land-rook', name: 'Rook', gameId: 'land-g1' }))
+  // Rook goes by a callsign: a door says it, a list says it first.
+  await store.adopt(
+    'pilot',
+    pilotFixture({ id: 'land-rook', name: 'Rook', callsign: 'CASTLE', gameId: 'land-g1' })
+  )
   // The Mediator of Wastes plays a pilot there too.
   await store.adopt('pilot', pilotFixture({ id: 'land-vane', name: 'Vane', gameId: 'land-g2' }))
   await store.adopt('pilot', pilotFixture({ id: 'land-wren', name: 'Wren', gameId: null }))
@@ -153,9 +157,10 @@ describe('the Play landing', () => {
     expect(tenacity.getByRole('link', { name: 'Tenacity' }).getAttribute('href')).toBe(
       '/games/land-g1'
     )
-    const play = tenacity.getByRole('link', { name: 'Play Rook in Tenacity' })
+    // A pilot's door says Play and the callsign (glossary §9).
+    const play = tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })
     expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
-    expect(play.textContent).toBe('Play Rook')
+    expect(play.textContent).toBe('Play CASTLE')
     expect(tenacity.getByText('Player')).toBeTruthy()
     expect(tenacity.queryByRole('link', { name: /^Mediate/ })).toBeNull()
     // Presence, not a member count; Downtime as a chip with its step.
@@ -180,7 +185,59 @@ describe('the Play landing', () => {
     expect(heading.className).toContain('su-entity-compact__title--whole')
   })
 
-  test('a live group session: a chip says so, and your pilot’s door joins it', async () => {
+  // MD-03: "Join with a link" and "Mediator's Kit" in Play's sub-nav went to
+  // ids no element had, signed in or out.
+  test('every in-page link of Play’s sub-nav has its target, signed out and signed in', async () => {
+    const { areaAnchors } = await import('../../components/unionBar/areaNav.model')
+    const anchors = areaAnchors('play')
+    expect(anchors).toEqual(['join', 'mediators-kit'])
+    answerReads({})
+    await renderAs('signedOut')
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
+    cleanup()
+    answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
+    for (const id of anchors) expect(document.getElementById(id)).not.toBeNull()
+  })
+
+  test('arriving on #join opens Join a Game', async () => {
+    window.location.hash = '#join'
+    try {
+      answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+      await renderAs('live')
+      expect(screen.getByRole('dialog', { name: 'Join a Game' })).toBeTruthy()
+    } finally {
+      window.location.hash = ''
+    }
+  })
+
+  // LG-01: the replica holds every crewmate's pilot too (for Play's Crew
+  // pane); a Game's doors are only for the pilots assigned to you.
+  test('a crewmate’s pilot in the Game is no door of yours', async () => {
+    const { serve, gameScope, drop } = await import('../../replica/replica')
+    act(() =>
+      serve(
+        gameScope('land-g1'),
+        [],
+        [
+          {
+            table: 'pilot',
+            row: pilotFixture({ id: 'land-nell', name: 'Nell Vance', gameId: 'land-g1' }),
+            version: 1,
+            owner: 'u-crewmate',
+          },
+        ]
+      )
+    )
+    answerReads({ 'games.listMine': [TENACITY], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
+    const tenacity = card('Tenacity')
+    expect(tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })).toBeTruthy()
+    expect(tenacity.queryByRole('link', { name: /Nell Vance/ })).toBeNull()
+    act(() => drop('pilot', 'land-nell'))
+  })
+
+  test('a live group session: a chip says so, and your pilot’s door still says Play and the pilot', async () => {
     answerReads({
       'games.listMine': [TENACITY],
       'downtime.state': IN_DOWNTIME,
@@ -190,9 +247,11 @@ describe('the Play landing', () => {
     await renderAs('live')
     const tenacity = card('Tenacity')
     expect(tenacity.getByText('Session live')).toBeTruthy()
-    const join = tenacity.getByRole('link', { name: 'Join the session in Tenacity as Rook' })
-    expect(join.getAttribute('href')).toBe('/pilots/land-rook/play')
-    expect(join.textContent).toBe('Join as Rook')
+    // Join session is the Game's own door, on its page: a pilot's door has one meaning.
+    const play = tenacity.getByRole('link', { name: 'Play CASTLE in Tenacity' })
+    expect(play.getAttribute('href')).toBe('/pilots/land-rook/play')
+    expect(play.textContent).toBe('Play CASTLE')
+    expect(tenacity.queryByRole('link', { name: /^Join/ })).toBeNull()
   })
 
   test('a Game between Downtimes shows no Downtime chip; one with none of your pilots has no door', async () => {
@@ -211,16 +270,53 @@ describe('the Play landing', () => {
     ])
   })
 
-  test('no solo list: a pilot in no Game plays from its own page, and the empty state points to New Game and Join', async () => {
+  test('in no Game: Your Pilots still has a Play door a pilot, and the empty state says Play works solo', async () => {
     answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
     await renderAs('live')
-    expect(screen.queryByRole('region', { name: 'Play solo' })).toBeNull()
-    expect(screen.queryByRole('link', { name: 'Play Wren solo' })).toBeNull()
     expect(
       section('Your Games').getByText(
-        'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
+        'You’re in no Games yet. Start one with + New Game, or join one with its invite link. Play works solo too: your Pilots are below.'
       )
     ).toBeTruthy()
+    const pilots = section('Your Pilots')
+    // Every pilot of yours, in a Game or not, each door naming who it plays.
+    const wren = pilots.getByRole('link', { name: 'Play Wren' })
+    expect(wren.getAttribute('href')).toBe('/pilots/land-wren/play')
+    expect(wren.textContent).toBe('Play Wren')
+    expect(pilots.getByRole('link', { name: 'Play Kestrel' })).toBeTruthy()
+    // Callsign first, then the name; the door takes the callsign.
+    const rook = pilots.getByRole('link', { name: 'CASTLE · Rook' }).closest('tr') as HTMLElement
+    expect(within(rook).getByRole('link', { name: 'Play CASTLE · Rook' }).textContent).toBe(
+      'Play CASTLE'
+    )
+    // The mech a pilot flies rides its line.
+    const row = pilots.getByRole('link', { name: 'Wren' }).closest('tr') as HTMLElement
+    expect(within(row).getByRole('link', { name: 'Scrapper' })).toBeTruthy()
+  })
+
+  test('Your Pilots, bare: it says Play works solo and offers the way to build one', async () => {
+    const store = useUnits.getState()
+    const held = store.list('pilot')
+    await act(async () => {
+      for (const pilot of held) await store.forget('pilot', pilot.id)
+    })
+    try {
+      answerReads({ 'games.listMine': [], 'downtime.state': IN_DOWNTIME, ...QUIET })
+      await renderAs('live')
+      const pilots = section('Your Pilots')
+      expect(
+        pilots.getByText(
+          'No Pilots yet. Play works solo: build a Pilot, or copy one from the Starter Set, and play it from here with no Game.'
+        )
+      ).toBeTruthy()
+      expect(pilots.getByRole('link', { name: '+ New Pilot' }).getAttribute('href')).toBe(
+        '/pilots/new'
+      )
+    } finally {
+      await act(async () => {
+        for (const pilot of held) await store.adopt('pilot', pilot)
+      })
+    }
   })
 
   test('the head offers + New Game and Join; Join opens the invite screen from a link or its token', async () => {
@@ -367,9 +463,9 @@ describe('the Play landing', () => {
     const minis = [...(tenacity?.querySelectorAll('[data-entity-linked] > *') ?? [])].map(
       (mini) => mini.textContent ?? ''
     )
-    // The crawler first; Rook is aboard, so the Mini is Spectrum with a PILOT
-    // chip and its stats; Vesper is on foot, so the Mini is Vesper with a MECH
-    // chip. Never both halves of a pair.
+    // The crawler first; Rook is aboard, so the Mini is the mech's (its stats)
+    // still named Rook, with a MECH chip for Spectrum; Vesper is on foot, so the
+    // Mini is Vesper's with a MECH chip. Never both halves of a pair.
     expect(minis).toHaveLength(3)
     expect(minis[0]).toContain('Big Sal')
     expect(minis[1]).toContain('Spectrum')
@@ -382,7 +478,8 @@ describe('the Play landing', () => {
     const hrefs = [...(tenacity?.querySelectorAll('[data-entity-linked] a') ?? [])].map((a) =>
       a.getAttribute('href')
     )
-    expect(hrefs).toContain('/mechs/a-m1')
+    // A pair opens its pilot's sheet, aboard or on foot.
+    expect(hrefs).toContain('/pilots/a-p1')
     expect(hrefs).toContain('/pilots/a-p2')
   })
 

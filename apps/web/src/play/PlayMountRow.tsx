@@ -10,6 +10,7 @@
  * need is its chip.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import { ConfirmDialog } from '../components/app'
 import { Button, Entity, HeaderMenu } from '../components/index'
@@ -71,7 +72,8 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
           variant="button"
           disabled={off}
           label={playCopy('boardChooseAMech')}
-          trigger="Board"
+          // Its own words: Board is the rust act beside it and on a parked Mech (§3.14).
+          trigger={playCopy('chooseWhichMech')}
           sections={boardMenuSections(play.mechs, choose)}
         />
       )}
@@ -97,7 +99,10 @@ export function PlayMountRow({ play, need }: PlayMountRowProps) {
         onOpenChange={setEjecting}
         tone="danger"
         title={playCopy('eject2')}
-        body={`${play.pilot?.name ?? 'Your Pilot'} leaves ${boardedName ?? 'the Mech'} at once, wherever it is. The Mech stays where it stands.`}
+        body={playCopy('ejectBody', {
+          pilot: play.pilot ? pilotCallsign(play.pilot) : playCopy('yourPilotLeads'),
+          mech: boardedName ?? playCopy('theMech'),
+        })}
         confirmLabel={playCopy('eject')}
         onConfirm={() => {
           play.seat.eject()

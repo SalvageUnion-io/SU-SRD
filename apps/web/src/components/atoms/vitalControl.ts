@@ -36,6 +36,8 @@ export type PhoneVital = {
   danger?: number
   /** With it the row steps: − | +, the meter's taps and its arrow keys. */
   onChange?: (next: number) => void
+  /** With it (and `onChange`) the value is a button: the caller asks for an amount. */
+  onValuePress?: () => void
   /**
    * Edit's Free Edit of the max (ruleset §2.1): the max is a button that
    * opens a field, with where it comes from and a revert once overridden.

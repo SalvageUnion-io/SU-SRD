@@ -40,4 +40,15 @@ export const sharedCopy = messages({
   readOnlyUpdating: 'Read-only — updating',
   viewInTheReference: 'View in the Reference',
   viewInTheReference2: 'View {entityName} in the Reference',
+
+  writeBlockedSettling: 'Still signing in — that change was not saved. Try again in a moment.',
+  writeBlockedOffline: 'That change was not saved: your Games are read-only for now.',
+  writeBlockedSignedOut: 'Sign in to build and edit — nothing is saved without an account.',
+  writeBlockedOutdated:
+    'The app has been updated — that change was not saved. Reloading onto the new version.',
+  photoNotSaved: 'The photo could not be saved. Try again.',
+  photoNotRemoved: 'The photo could not be removed. Try again.',
+  replaceSPhoto: "Replace {name}'s photo",
+  uploadSPhoto: "Upload {name}'s photo",
+  thePage: 'the page',
 })

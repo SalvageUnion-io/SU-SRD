@@ -27,6 +27,7 @@ import type { CSSVarStyle } from '../../styles/cssVars'
 import { capsLabel } from './capsLabel'
 import { FOCUS_RING } from './interaction'
 import { trackSegmentState } from './pipRows'
+import { RuleBreakMark } from './RuleBreakMark'
 import { VitalMax } from './VitalMax'
 import type { PhoneVital } from './vitalControl'
 import { meterColumns, useVitalControl } from './vitalControl'
@@ -195,7 +196,7 @@ export type StripFigureProps = {
   meter?: 'pips' | 'bar'
   /** The bar's colour on the colour map (a Tech Level's), or the pips' kind. */
   tint?: 'ink' | 'cargo' | { tl: number | string }
-  /** The reading is over its cap. */
+  /** The reading is over its cap: it wears the one rule-breaking mark (R71). */
   over?: boolean
   /** Pips to a row: a pilot's six inventory slots sit 3 × 2. */
   perRow?: number
@@ -225,6 +226,7 @@ export function StripFigure({
           {max !== undefined && <i>/{max}</i>}
           {unit && <small>{unit}</small>}
         </span>
+        {over && <RuleBreakMark />}
         {meter === 'pips' && max !== undefined && max <= 24 ? (
           <Meter
             value={numeric}

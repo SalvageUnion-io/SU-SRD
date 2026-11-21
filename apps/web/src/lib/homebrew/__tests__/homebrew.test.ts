@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { homebrewPatternsUrl } from '../endpoint'
+import { homebrewPatternsUrl, SHOW_HOMEBREW_KEY } from '../endpoint'
 import {
   fetchHomebrewPatterns,
   homebrewHref,
   homebrewItem,
   homebrewItems,
   readShowHomebrew,
-  SHOW_HOMEBREW_KEY,
   writeShowHomebrew,
 } from '../homebrew'
 

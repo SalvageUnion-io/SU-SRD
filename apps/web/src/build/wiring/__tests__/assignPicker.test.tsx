@@ -230,7 +230,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/assign pilot to mech/i)
-    expect(offered()).toEqual(['Dag'])
+    expect(offered()).toEqual(['p-shelf-callsign · Dag'])
   })
 
   test('says where it looked when nothing qualifies', () => {
@@ -299,7 +299,7 @@ describe('AssignPicker — candidates share the subject’s container', () => {
       />
     )
     open(/add crew/i)
-    expect(offered()).toEqual(['Dag'])
+    expect(offered()).toEqual(['p-new-callsign · Dag'])
   })
 })
 

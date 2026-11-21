@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
+import { atomsCopy } from '../../messages/components-atoms'
 import { statBlockRowStarts } from './pipRows'
 
 type SlotGridProps = {
@@ -86,10 +87,11 @@ export function SlotGrid({
   const total = Math.max(safeCap, safeUsed)
   const over = safeUsed > safeCap
 
+  const summary = label ?? atomsCopy('slotsFilled', { used: safeUsed, cap: safeCap })
   return (
     <span
       role="img"
-      aria-label={`${label ?? `${safeUsed} of ${safeCap} slots filled`}${over ? ' — over capacity' : ''}`}
+      aria-label={over ? atomsCopy('overCapacity', { summary }) : summary}
       style={mini ? { ...GRID, ...MINI_GAP } : GRID}
     >
       {statBlockRowStarts(total, perRow).map((row) => (

@@ -17,7 +17,7 @@ import {
 } from '../../lib/rules/mechItems'
 import { buildDashCopy } from '../../messages/build-dash'
 import type { ItemKind } from '../sheet/mechSheetActions.model'
-import { chosenChips } from '../wizard/pickColumns'
+import { choicesOf, chosenChips, unmadeChoiceChip } from '../wizard/pickColumns'
 import { Cost } from './Cost'
 import { RowRules } from './RowRules'
 
@@ -54,7 +54,12 @@ export type Fitted = Pick<
   'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses' | 'itemChoices'
 >
 
-export function itemRows(mech: Fitted, kind: ItemKind): LedgerRow[] {
+export function itemRows(
+  mech: Fitted,
+  kind: ItemKind,
+  /** The carrier keeps its items' choices (a mech), so one not yet made is marked. */
+  keepsChoices = false
+): LedgerRow[] {
   const slugs = kind === 'system' ? mech.systems : mech.modules
   const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
   const keys = occurrenceKeys(slugs)
@@ -72,6 +77,11 @@ export function itemRows(mech: Fitted, kind: ItemKind): LedgerRow[] {
     const action = typeWord(model?.actionType)
     // A made choice reads as made on the row, Read too (R60): `CHOICE | Bobcat`.
     const chosen = entity ? chosenChips(entity, mech.itemChoices?.[slug]) : undefined
+    // A choice not yet made says so, Read too (PT-31).
+    const unmade =
+      entity && keepsChoices
+        ? unmadeChoiceChip(choicesOf(entity), mech.itemChoices?.[slug])
+        : undefined
     return {
       id: keys[index] ?? slug,
       // An item the data no longer holds keeps its slug.
@@ -86,9 +96,10 @@ export function itemRows(mech: Fitted, kind: ItemKind): LedgerRow[] {
           </span>
         ) : undefined,
       stamp:
-        condition !== 'intact' || chosen ? (
+        condition !== 'intact' || chosen || unmade ? (
           <>
             {chosen}
+            {unmade}
             {condition !== 'intact' && (
               <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
             )}

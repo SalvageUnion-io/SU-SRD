@@ -73,4 +73,20 @@ describe('the pinned vitals', () => {
     expect(cell('HP').hasAttribute('disabled')).toBe(true)
     expect(cell('SP').hasAttribute('disabled')).toBe(false)
   })
+
+  test("an open row's number asks for an amount and takes it in one write (LG-13)", () => {
+    const onWrite = mock((_kind: string, _field: string, _next: number, _label: string) => {})
+    render(<PlayPinnedVitals units={PINNED} live={{ pilot: true, mech: true }} onWrite={onWrite} />)
+    fireEvent.click(cell('HP'))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Change Bonesaw Hit Points by an amount, now 7 of 10' })
+    )
+    fireEvent.change(screen.getByRole('textbox', { name: 'HP amount' }), { target: { value: '3' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Take 3 from HP' }))
+    expect(onWrite).toHaveBeenCalledTimes(1)
+    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 4, 'HP')
+    // The form is gone, the rows are back.
+    expect(screen.queryByRole('textbox', { name: 'HP amount' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeTruthy()
+  })
 })

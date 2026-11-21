@@ -13,7 +13,7 @@
  *    a `sheet` (play.md §18) takes the open pane's, the tabs kept under it.
  *  - **From `lg`**: the same panes as three columns, start | centre | end
  *    (the player's Units | Actions | Crew, Tables and Feed; the Mediator's
- *    table | Opposition | Tables, Feed and Propose), then the foot. The end
+ *    table | Opposition | Rolls, Rules and Propose), then the foot. The end
  *    column stacks its panes in one scroller; a `dock` pane sits at its foot.
  *    A `sheet` stands in the centre column, its panes kept mounted under it.
  *
@@ -49,6 +49,7 @@ import { Tab, TabList, Tabs } from '../components/app'
 import { EntitySurfaceProvider, SlabLookProvider, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
+import { NOTICES_RESIZED } from './tableNotices.model'
 
 /**
  * Play's brand-colour grounds wear the speckle as the sheet's do (ruleset
@@ -233,10 +234,14 @@ function useHostHeight(hostRef: { current: HTMLElement | null }): number | undef
     // The window's resize catches its height; the observer, what moves the
     // host's top (a banner arriving). Absent in some test environments.
     window.addEventListener('resize', compute)
+    // The table's notices above the host: one leaving shrinks nothing the
+    // observer watches (the body keeps the window's height), so they say so.
+    window.addEventListener(NOTICES_RESIZED, compute)
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(compute)
     ro?.observe(document.body)
     return () => {
       window.removeEventListener('resize', compute)
+      window.removeEventListener(NOTICES_RESIZED, compute)
       ro?.disconnect()
     }
   }, [hostRef])

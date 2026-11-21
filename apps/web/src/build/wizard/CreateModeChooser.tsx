@@ -14,8 +14,10 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, Text, TitledBox, tokens } from '../../components/index'
+import { Button, ChapterBand, Slab, Text, TitledBox, tokens } from '../../components/index'
+import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { usePatterns } from '../../replica/collections'
+import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
 import { PatternList } from '../mech/Pattern/PatternList'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
@@ -31,8 +33,12 @@ type CreateModeChooserProps = {
   onBuilt: (id: string) => void
   /** A mech built for a pilot: that pilot's name. */
   forPilot?: string | undefined
+  /** A pilot made for a mech: that mech's name. */
+  forMech?: string | undefined
   /** The Game the build was started for (`?game=<id>`): its chip on the band. */
   gameId?: string | undefined
+  /** A Reference pattern page's Build With This: the book pattern to open on, as slugs. */
+  book?: { chassis?: string | undefined; pattern?: string | undefined } | undefined
 }
 
 const KIND_LABEL: Record<SheetKind, string> = {
@@ -45,15 +51,15 @@ const KIND_LABEL: Record<SheetKind, string> = {
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
     body: buildWizardCopy('stepThroughThePilotBay'),
-    cite: 'The Pilot Bay begins on p. 18.',
+    cite: buildWizardCopy('citePilotBay'),
   },
   mech: {
     body: buildWizardCopy('stepThroughTheMechBay'),
-    cite: 'The Mech Bay begins on p. 94.',
+    cite: buildWizardCopy('citeMechBay'),
   },
   crawler: {
     body: buildWizardCopy('stepThroughCrawlerCreationOne'),
-    cite: 'Union Crawlers begin on p. 212.',
+    cite: buildWizardCopy('citeUnionCrawlers'),
   },
 }
 
@@ -64,6 +70,7 @@ const doorText = { margin: 0 } satisfies CSSProperties
 const doorCite = { fontWeight: tokens.weight.bold, margin: 0 } satisfies CSSProperties
 /** A door's act, at its own width under the copy. */
 const doorAct = { alignSelf: 'flex-start' } satisfies CSSProperties
+const doorActs = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
 const MEASURE = '56rem'
@@ -80,16 +87,28 @@ export function CreateModeChooser({
   onBuilt,
   gameId,
   forPilot,
+  forMech,
+  book,
 }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
   // With no pattern saved yet, the pattern door's empty state waits under the
   // other two rather than push Guided below the fold.
+  // Read as the chooser draws: the draft is this tab's session's.
+  const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
   const hasPatterns = usePatterns((s) => s.hydrated && s.mechPatterns.length > 0)
   const patterns = kind === 'mech' && (
     <div style={patternDoor}>
       <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
         <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
+        <BookPatternBuild
+          chassis={book?.chassis}
+          pattern={book?.pattern}
+          onBuilt={onBuilt}
+          gameId={gameId}
+        />
+        {/* A section head is the one Slab (R53). */}
+        <Slab as="h3" label={buildWizardCopy('yourPatterns')} />
         <PatternList onInstantiated={onBuilt} gameId={gameId} />
       </TitledBox>
     </div>
@@ -119,14 +138,33 @@ export function CreateModeChooser({
             {buildWizardCopy('forPilot', { name: forPilot })}
           </Text>
         )}
+        {forMech !== undefined && (
+          <Text variant="note" style={pilotNote}>
+            {buildWizardCopy('forMech', { name: forMech })}
+          </Text>
+        )}
         <div className="su-wiz-chooser-doors">
-          {hasPatterns && patterns}
+          {(hasPatterns || book?.pattern !== undefined) && patterns}
           <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
-            <Button variant="primary" style={doorAct} onClick={onGuided}>
-              {buildWizardCopy('startGuided')}
-            </Button>
+            {/* A draft left mid-build is said here: resume it, or start again. */}
+            <div style={doorActs}>
+              <Button variant="primary" onClick={onGuided}>
+                {hasDraft ? buildWizardCopy('resumeYourDraft') : buildWizardCopy('startGuided')}
+              </Button>
+              {hasDraft && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    clearWizardDraft(wizardDraftKey(kind))
+                    onGuided()
+                  }}
+                >
+                  {buildWizardCopy('startOver')}
+                </Button>
+              )}
+            </div>
           </TitledBox>
 
           <TitledBox title={buildWizardCopy('blank2')} titleAs="h2">
@@ -136,7 +174,7 @@ export function CreateModeChooser({
               {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
-          {!hasPatterns && patterns}
+          {!hasPatterns && book?.pattern === undefined && patterns}
         </div>
       </div>
     </section>

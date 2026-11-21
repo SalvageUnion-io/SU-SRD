@@ -117,7 +117,7 @@ export function PlayDowntimeStep({
     if (downtime.markStepDone === null) return false
     const ok = await downtime.markStepDone(stepIndex, pilotPatch, mechShare)
     if (ok) setClaimedHere(true)
-    else setNote('This step is already done this Downtime.')
+    else setNote(playCopy('stepAlreadyDone'))
     return ok
   }
 
@@ -170,9 +170,13 @@ export function PlayDowntimeStep({
         })
       : null
     setNote(
-      [applied.length > 0 ? `Applied to ${applied.join(' and ')}.` : null, paid, processed]
+      [
+        applied.length > 0 ? playCopy('appliedTo', { what: applied.join(' and ') }) : null,
+        paid,
+        processed,
+      ]
         .filter(Boolean)
-        .join(' ') || 'Nothing to apply.'
+        .join(' ') || playCopy('nothingToApply')
     )
   }
 

@@ -17,7 +17,7 @@ import { expect, test } from './fixtures'
  *
  * The Organizer makes a Game and appoints themselves Mediator; a player joins
  * by a link and builds a pilot in it. Each opens Play from the Play landing:
- * the Mediator's "Start a group session of <Game>", the player's "Play Mira Voss in <Game>".
+ * the Mediator's "Start a group session of <Game>", the player's "Play Sparks in <Game>", the door naming its pilot by callsign.
  *
  *  1. **Propose → accept.** The Mediator taps the player's seat, which aims
  *     Propose, and proposes HP → 4; the proposal reads Pending. The player
@@ -42,12 +42,12 @@ const GAME = 'The Rust Belt Run'
 
 /**
  * The player's seat on the Mediator's table: its toggle Mini's name, a button
- * named by what it shows, "<callsign or name> (Pilot), here, …" (aboard, its
+ * named by what it shows, "<callsign · name> (Pilot), here, …" (aboard, its
  * Mech's first), pressed while Propose is aimed there.
  */
 function seat(page: Page) {
   return page.getByRole('list', { name: 'Seats' }).getByRole('button', {
-    name: /^(?:.+ \(Mech\), )?(Sparks|Mira Voss)(?: \(Pilot\))?, /,
+    name: /^(?:.+ \(Mech\), )?Sparks · Mira Voss(?: \(Pilot\))?, /,
   })
 }
 
@@ -58,8 +58,7 @@ test(
     test.setTimeout(10 * 60_000)
     const a11y: string[] = []
     await createGame(page, GAME)
-    await page.getByRole('button', { name: 'Appoint' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
+    // The creator said Yes to "Will you be the Mediator?", the dialog's given answer.
     await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 15_000 })
     const token = await makeInviteLink(page)
 
@@ -70,7 +69,7 @@ test(
       await buildPilot(player.page, 'Mira Voss', 'Sparks', gameId)
 
       // --- Both screens, from the Play landing ---
-      const playerPath = await playDoor(player.page, `Play Mira Voss in ${GAME}`)
+      const playerPath = await playDoor(player.page, `Play Sparks in ${GAME}`)
       await openPlay(player.page, playerPath)
       await expect(situation(player.page).getByRole('button', { name: 'On foot' })).toHaveAttribute(
         'aria-pressed',
@@ -105,7 +104,10 @@ test(
         name: /^Accept: Mediator proposes .*HP → 4/,
       })
       await expect(accept).toBeVisible({ timeout: 20_000 })
-      await expect(player.page.getByText('“Rifle Squad volley”')).toBeVisible()
+      // The reason reads on the Feed's own line; the notice over the bar says it too.
+      await expect(
+        player.page.getByRole('region', { name: 'Feed' }).getByText('“Rifle Squad volley”')
+      ).toBeVisible()
       await accept.click()
       await expect(accept).toHaveCount(0, { timeout: 15_000 })
       await expect(newest.getByText('Applied', { exact: true })).toBeVisible({ timeout: 20_000 })

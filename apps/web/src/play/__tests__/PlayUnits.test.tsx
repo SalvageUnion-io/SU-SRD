@@ -57,6 +57,36 @@ describe('a live pilot', () => {
     ])
   })
 
+  // LG-03: the gauge shows what the server last answered, so three presses
+  // before the first answer each read "one off 7"; all three must apply.
+  test('quick presses each step from where the vital is heading', async () => {
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
+    const minus = screen.getByRole('button', { name: 'Decrease HP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    expect(updates.map((u) => u.patch)).toEqual([
+      { currentHP: 6 },
+      { currentHP: 5 },
+      { currentHP: 4 },
+    ])
+    // Once they have landed, a press steps from what is shown again.
+    await Promise.resolve()
+    await Promise.resolve()
+    fireEvent.click(minus)
+    expect(updates.at(-1)?.patch).toEqual({ currentHP: 6 })
+  })
+
+  test('quick presses stop at the maximum and at zero', () => {
+    const { store, updates } = recordingStore()
+    render(<PlayPilotUnit pilot={{ ...pilot, currentAP: 1 }} crawler={null} live store={store} />)
+    const minus = screen.getByRole('button', { name: 'Decrease AP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    expect(updates.map((u) => u.patch)).toEqual([{ currentAP: 0 }, { currentAP: 0 }])
+  })
+
   test('the gauge is a slider too: an arrow key is the same write', () => {
     const { store, updates } = recordingStore()
     render(<PlayPilotUnit pilot={pilot} crawler={null} live store={store} />)
@@ -80,7 +110,7 @@ describe('a live pilot', () => {
     )
     expect(screen.getByText('TP')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
-    expect(screen.getByText('Minor injury: cracked rib')).toBeTruthy()
+    expect(screen.getByText('Minor Injury: cracked rib')).toBeTruthy()
     expect(screen.queryByText('No injuries')).toBeNull()
   })
 })

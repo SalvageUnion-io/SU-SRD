@@ -15,12 +15,14 @@ import {
   render as rtlRender,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react'
 import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
+import { wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `serverMock.ts`. The signed-out
@@ -34,6 +36,7 @@ const { withSignedInBackend } = await import('../../../replica/__tests__/signedI
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { NewEntityScreen } = await import('../NewEntityScreen')
+const { useSheetModeStore } = await import('../../sheet/sheetMode.model')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
 withSignedInBackend()
@@ -73,24 +76,36 @@ describe('parseCreateMode', () => {
 })
 
 describe('NewEntityScreen — signed out', () => {
-  test('is the sign-in panel in every status: building needs an account', () => {
-    for (const mode of [undefined, 'guided', 'blank'] as const) {
-      // Outside any provider the connection is Solo.
-      rtlRender(
-        <NewEntityScreen
-          kind="mech"
-          mode={mode}
-          wizard={<div data-testid="stub-wizard" />}
-          onModeChange={noop}
-          onCreated={noop}
-        />
-      )
-      expect(screen.getByRole('heading', { name: 'Sign in to build a mech' })).toBeTruthy()
-      expect(screen.queryByTestId('stub-wizard')).toBeNull()
-      expect(screen.queryByRole('button', { name: /guided/i })).toBeNull()
-      expect(screen.queryByRole('dialog')).toBeNull()
-      cleanup()
-    }
+  // Outside any provider the connection is Solo.
+  const signedOut = (mode: 'guided' | 'blank' | undefined, kind: 'mech' | 'npc' = 'mech') =>
+    rtlRender(
+      <NewEntityScreen
+        kind={kind}
+        mode={mode}
+        wizard={<div data-testid="stub-wizard" />}
+        onModeChange={noop}
+        onCreated={noop}
+      />
+    )
+
+  test('the chooser and the guided wizard run without an account (SB-06, PT-23)', async () => {
+    signedOut(undefined)
+    expect(await screen.findByRole('button', { name: /guided/i })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Sign in to build a mech' })).toBeNull()
+    cleanup()
+    signedOut('guided')
+    expect(await screen.findByTestId('stub-wizard')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Sign in to build a mech' })).toBeNull()
+  })
+
+  test('what is written at once asks for the account first: a blank sheet, an NPC', () => {
+    signedOut('blank')
+    expect(screen.getByRole('heading', { name: 'Sign in to build a mech' })).toBeTruthy()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    cleanup()
+    signedOut('guided', 'npc')
+    expect(screen.getByRole('heading', { name: 'Sign in to build an NPC' })).toBeTruthy()
+    expect(screen.queryByTestId('stub-wizard')).toBeNull()
   })
 })
 
@@ -121,8 +136,8 @@ describe('NewEntityScreen — signed out, deep-linked', () => {
     rtlRender(
       <NewEntityScreen
         kind="mech"
-        mode="guided"
-        returnTo="/mechs/new?mode=guided&chassis=mule"
+        mode="blank"
+        returnTo="/mechs/new?mode=blank&chassis=mule"
         wizard={<div data-testid="stub-wizard" />}
         onModeChange={noop}
         onCreated={noop}
@@ -131,7 +146,7 @@ describe('NewEntityScreen — signed out, deep-linked', () => {
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Sign in with Discord' }))
     })
-    expect(serverMocks.signIns).toEqual([['/mechs/new?mode=guided&chassis=mule']])
+    expect(serverMocks.signIns).toEqual([['/mechs/new?mode=blank&chassis=mule']])
   })
 })
 
@@ -323,18 +338,77 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(select.options.length).toBe(SalvageUnionReference.Classes.all().length + 1)
   })
 
-  test('mech chassis pick is UNFILTERED — every chassis at every Tech Level', () => {
+  test('blank mech: every chassis is a Ledger row, the name waits, and the sheet opens in Edit', async () => {
+    const created: string[] = []
+    useSheetModeStore.getState().setEditing(false)
     render(
       <NewEntityScreen
         kind="mech"
         mode="blank"
         wizard={null}
         onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+      />
+    )
+    // Unfiltered: a radio a chassis, at every Tech Level.
+    expect(screen.getAllByRole('radio').length).toBe(SalvageUnionReference.Chassis.all().length)
+
+    fireEvent.change(screen.getByLabelText(/search chassis/i), {
+      target: { value: 'mule' },
+    })
+    fireEvent.click(screen.getByRole('radio', { name: /mule/i }))
+    // No name typed: the mech is made, named for its chassis until the sheet renames it.
+    fireEvent.click(screen.getByRole('button', { name: /create blank mech/i }))
+    await waitFor(() => expect(created.length).toBe(1))
+
+    const mech = useUnits.getState().get('mech', created[0] as string)
+    expect(mech?.chassisRef).toBe('mule')
+    expect(mech?.name).toBe('Mule')
+    expect(useSheetModeStore.getState().editing).toBe(true)
+  })
+
+  test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {
+    sessionStorage.setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
+    const modes: unknown[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode={undefined}
+        wizard={null}
+        onModeChange={(mode) => modes.push(mode)}
         onCreated={noop}
       />
     )
-    const select = screen.getByLabelText<HTMLSelectElement>(/chassis \(optional\)/i)
-    expect(select.options.length).toBe(SalvageUnionReference.Chassis.all().length + 1)
+    expect(screen.queryByRole('button', { name: 'Start guided' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Resume your draft' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Start over' }))
+    expect(sessionStorage.getItem(wizardDraftKey('mech'))).toBeNull()
+    expect(modes).toEqual(['guided'])
+  })
+
+  test('a book pattern above Tech 1 builds from the chooser, as printed, after it asks', async () => {
+    const created: string[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode={undefined}
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+        book={{ chassis: 'magpie', pattern: 'stefanus' }}
+      />
+    )
+    const books = screen.getByRole('region', { name: 'Book Patterns' })
+    expect(within(books).getByText('Not a starting build')).toBeTruthy()
+    fireEvent.click(
+      within(books).getByRole('button', { name: 'Build With This: a Mech from Stefanus' })
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Build' }))
+    await waitFor(() => expect(created.length).toBe(1))
+    const mech = useUnits.getState().get('mech', created[0] as string)
+    expect(mech?.chassisRef).toBe('magpie')
+    expect(mech?.name).toBe('Stefanus')
+    expect(mech?.systems.length).toBeGreaterThan(0)
   })
 
   test('crawler dialog offers Tech Levels 1–6, defaulting to 1', () => {

@@ -9,6 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
+import { ChipLink, factRef, statTerm, TermChip } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
@@ -84,8 +85,13 @@ type CardPageProps = {
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
-  /** `asideExtraContent`: under the art in the side track, after `after` on a phone. */
+  /**
+   * `asideExtraContent`: under the art in the side track, after `after` on a
+   * phone; its own side track, after the main one in the markup.
+   */
   aside?: ReactNode
+  /** `leadExtraContent`: the Page's first block, before the art in the markup. */
+  lead?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
   sectionAs?: ElementType
@@ -113,6 +119,7 @@ export function CardPage({
   sections,
   actionSeal,
   patterns,
+  lead,
   after,
   aside,
   sectionAs,
@@ -278,16 +285,43 @@ export function CardPage({
         className="su-grid su-stat-column su-manual__stats"
         aria-label={`${action.hostName} stats`}
       >
-        {line.map((stat) => (
-          <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+        {line.map((stat) => {
+          const cell = (
             <Stat
               label={stat.label}
               shortLabel={stat.shortLabel}
               value={stat.value}
               className="su-stat-column__stat"
             />
-          </li>
-        ))}
+          )
+          // A stat is a term (E27): a press, hover or focus opens its glossary
+          // entry, or, where the glossary has none (Cargo Capacity), its
+          // meaning in the app's words: a `title` says nothing on a phone.
+          const ref = factRef(stat)
+          const term = ref ? undefined : statTerm(stat)
+          return (
+            <li
+              key={stat.key}
+              className="su-stat-column__cell"
+              title={ref || term ? undefined : stat.hoverText}
+            >
+              {ref ? (
+                <ChipLink
+                  tag={{ key: stat.key, name: stat.label, param: String(stat.value), ref }}
+                  linkable
+                >
+                  {cell}
+                </ChipLink>
+              ) : term ? (
+                <TermChip term={term} value={String(stat.value)}>
+                  {cell}
+                </TermChip>
+              ) : (
+                cell
+              )}
+            </li>
+          )
+        })}
       </ul>
     )
     const statsAside = !hero && line.length > 0
@@ -308,9 +342,13 @@ export function CardPage({
           {actionList(list)}
         </SlabSection>
       )
-    const side = !!hero || statsAside || split.side.length > 0 || !!aside
+    // What stands under the art (`aside`) is a side track of its own, after
+    // the main track in the markup: a phone draws it last, so the markup
+    // reads in the order every width shows it (WCAG 1.3.2).
+    const side = !!hero || statsAside || split.side.length > 0
     return (
       <div className="su-entity-page su-manual">
+        {lead && <div className="su-manual__lead">{lead}</div>}
         {side && (
           <div className="su-manual__side">
             {hero && <div className="su-manual__art">{hero}</div>}
@@ -323,7 +361,6 @@ export function CardPage({
                 split.main.length > 0 && 'su-manual__side-actions--more'
               )
             )}
-            {aside && <div className="su-manual__aside">{aside}</div>}
           </div>
         )}
         {/* The main track, always beside a side
@@ -339,8 +376,12 @@ export function CardPage({
           {sections}
           {table && <div className="su-entity-page__table">{table}</div>}
           {patterns.length > 0 && (
-            // The Ledger's title tab names the section and keeps the count.
-            <PatternLedger chassis={entity} patterns={patterns} />
+            // The Ledger's title tab names the section and keeps the count. A
+            // section of its own: the stat tiles before it are the Page's,
+            // never controls beside this list (C8).
+            <section>
+              <PatternLedger chassis={entity} patterns={patterns} />
+            </section>
           )}
           <NeighbourRow
             as={sectionAs}
@@ -352,6 +393,11 @@ export function CardPage({
           />
           {after && <div className="su-manual__after">{after}</div>}
         </div>
+        {aside && (
+          <div className="su-manual__side su-manual__side--after">
+            <div className="su-manual__aside">{aside}</div>
+          </div>
+        )}
       </div>
     )
   }

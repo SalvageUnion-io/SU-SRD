@@ -10,7 +10,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { Encounter } from 'game-domain/schemas/encounter'
-import { installServerMocks } from '../../../components/__tests__/serverMock'
+import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
 import type { SyncState } from '../../../replica/syncContext'
 
@@ -66,6 +66,8 @@ let assigned: string[] = []
 let assignSpy: ReturnType<typeof spyOn> | null = null
 
 beforeEach(() => {
+  // The sheet names the Games its reader runs (the For field).
+  setQueryAnswers({ 'games.listMine': [] })
   // Edit, where the writes are; Read is its own test.
   useSheetModeStore.setState({ editing: true })
   assigned = []
@@ -125,10 +127,10 @@ async function editField(label: string, value: string) {
 }
 
 describe('an encounter page', () => {
-  test('an unknown encounter says so and leads back to the Training Bay', async () => {
+  test('an unknown encounter says so and leads back to the Mediator’s Kit', async () => {
     await renderPage('missing')
     expect(screen.getByText('Encounter not found')).toBeTruthy()
-    expect(screen.getByText('Back to the Training Bay')).toBeTruthy()
+    expect(screen.getByText('Back to the Mediator’s Kit')).toBeTruthy()
   })
 
   test('it shows the opposition, the pinned tables and the private notes', async () => {
@@ -220,7 +222,7 @@ describe('an encounter page', () => {
     useSheetModeStore.setState({ editing: false })
     useEncounters.setState({ encounters: [{ ...AMBUSH, notes: '' }] } as never)
     await renderPage()
-    expect(screen.getByRole('button', { name: 'Read', pressed: true })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Sheet', pressed: true })).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Add opposition from the reference' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'More for Raider' })).toBeNull()
     expect(screen.queryByLabelText('Pin a table')).toBeNull()
@@ -263,14 +265,14 @@ describe('an encounter page', () => {
     }
   })
 
-  test('Delete, under the corner ⋯, asks first, then returns to the Training Bay', async () => {
+  test('Delete, under the corner ⋯, asks first, then returns to the Mediator’s Kit', async () => {
     await renderPage()
     await click(screen.getByRole('button', { name: 'More actions' }))
     await click(screen.getByRole('button', { name: 'Delete Ambush' }))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     await settle(() => assigned.length > 0)
     expect(current()).toBeNull()
-    expect(assigned).toEqual(['/'])
+    expect(assigned).toEqual(['/games/#mediators-kit'])
   })
 })
 
@@ -308,14 +310,33 @@ describe('the Encounters shelf', () => {
     expect(useSheetModeStore.getState().editing).toBe(true)
   })
 
-  test('Make a copy asks, then shelves the copy', async () => {
+  test('Make a copy runs at once, and its toast opens the copy (SB-25)', async () => {
     await renderShelf()
     await click(screen.getByRole('button', { name: 'More for Ambush' }))
     await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Make a copy' }))
-    const dialog = screen.getByRole('alertdialog')
-    await click(within(dialog).getAllByRole('button').at(-1) as HTMLElement)
+    // No confirm stands between the press and the copy.
+    expect(screen.queryByRole('alertdialog')).toBeNull()
     await settle(() => useEncounters.getState().encounters.length === 2)
-    expect(useEncounters.getState().encounters).toHaveLength(2)
+    const copy = useEncounters.getState().encounters.find((e) => e.id !== 'enc-1')
+    expect(copy?.name).toBe('COPY OF Ambush')
+    await settle(() => screen.queryByRole('button', { name: 'Open the copy' }) !== null)
+    await click(screen.getByRole('button', { name: 'Open the copy' }))
+    expect(assigned).toEqual([`/encounters/${copy?.id}`])
+  })
+
+  test('a second copy is numbered', async () => {
+    await renderShelf()
+    for (const expected of [2, 3]) {
+      await click(screen.getByRole('button', { name: 'More for Ambush' }))
+      await click(within(screen.getByRole('menu')).getByRole('menuitem', { name: 'Make a copy' }))
+      await settle(() => useEncounters.getState().encounters.length === expected)
+    }
+    expect(
+      useEncounters
+        .getState()
+        .encounters.map((e) => e.name)
+        .sort()
+    ).toEqual(['Ambush', 'COPY OF Ambush', 'COPY OF Ambush 2'])
   })
 
   test('Delete asks, then takes it off the shelf', async () => {

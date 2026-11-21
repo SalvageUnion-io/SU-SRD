@@ -190,6 +190,7 @@ const READ_TABLES: Record<string, { table: StateTable; records: (answer: unknown
   'ops.sent': { table: 'sentProposals', records: list },
   'changeLog.rolls': { table: 'rolls', records: list },
   'changeLog.alerts': { table: 'alerts', records: list },
+  'changeLog.events': { table: 'events', records: list },
   'crew.vitals': { table: 'crew', records: one },
   'shelf.patternSharing': { table: 'sharing', records: list },
 }
@@ -225,5 +226,23 @@ export function serveReads(
   if (answers['mediator.amMediator'] === true || answers['mediator.running'] != null) {
     tables.mediator = [{ id: 'mediator', running: answers['mediator.running'] ?? null }]
   }
+  // As the room serves them: its rolls and alerts are events too (`rooms/game/events.ts`).
+  tables.events ??= [
+    ...(tables.rolls ?? []).map((r) => ({
+      _id: r._id,
+      ts: r.ts,
+      kind: 'roll',
+      text: r.description,
+      actorId: null,
+      ...(r.private === true ? { private: true } : {}),
+    })),
+    ...(tables.alerts ?? []).map((a) => ({
+      _id: a._id,
+      ts: a.ts,
+      kind: 'alert',
+      text: `Mediator · ${String(a.message)}`,
+      actorId: null,
+    })),
+  ]
   serve(gameId, tables)
 }

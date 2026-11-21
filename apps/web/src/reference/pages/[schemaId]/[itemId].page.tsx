@@ -23,7 +23,7 @@ import {
   resolveEntityPageMeta,
 } from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
-import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
+import { buildLinkFor, guideExitsFor, mediatorLinksFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
 import { componentEmbedFor } from '../../../lib/componentEmbed'
 import { entityTitle, META_DESCRIPTION_MAX, SITE_URL } from '../../../lib/constants'
@@ -34,8 +34,9 @@ import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
 import { relationsFor } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
-import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
+import { isSparse, oneRelatedRules, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
@@ -89,10 +90,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
     <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
   // A sparse Page's side column.
-  const sparse =
+  // Its Related rules and the Page's own are one list.
+  const { rail: sparse, relations } = oneRelatedRules(
     !rollPage && !techLevelPage && isSparse(item)
       ? sparseRailFor(schemaId as RefEnumSchemaName, item)
-      : null
+      : null,
+    relationsFor(schemaId, item)
+  )
   // An ability's Preceding and Next in its tree, at the Page's foot.
   const neighbours = abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
     label,
@@ -116,9 +120,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const metaDescription = truncate(
     firstParagraph ||
       (statLine
-        ? `${itemName} — ${schemaName} for the Salvage Union TTRPG. ${statLine}.${traitLine}`
-        : itemDescription ||
-          `${itemName}: ${schemaName} reference for the Salvage Union tabletop RPG.`),
+        ? pagesCopy('entityMetaWithStats', { itemName, schemaName, statLine, traitLine })
+        : itemDescription || pagesCopy('entityMeta', { itemName, schemaName })),
     META_DESCRIPTION_MAX
   )
 
@@ -138,7 +141,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             additional: {
               additionalProperty: {
                 '@type': 'PropertyValue',
-                name: 'Tech Level',
+                name: pagesCopy('techLevel'),
                 value: displayData.techLevel,
               },
             },
@@ -163,6 +166,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         build={buildLinkFor(schemaId, item)}
         buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
+        mediator={mediatorLinksFor(schemaId, item)}
         rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
         foot={
           // An ability's neighbours in its tree, under the body.
@@ -178,10 +182,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             <EntityView item={item} schemaId={schemaId} />
           ))}
         {/* What links here, listed back (E26). */}
-        <PageRelations relations={relationsFor(schemaId, item)} />
-        {/* A chassis's players' patterns, under the book's (ADR-061). */}
+        <PageRelations relations={relations} />
+        {/* A chassis's players' patterns, under the book's (ADR-061). It waits
+            for its switch (`interaction` holds the press that wakes it and
+            plays it back), or mounts in view when the reader left it on
+            (`mountsNow`). */}
         {schemaId === 'chassis' && (
-          <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
+          <Island name="HomebrewIsland" client="interaction" ssr props={{ chassisRef: itemId }}>
             <HomebrewIsland chassisRef={itemId} />
           </Island>
         )}

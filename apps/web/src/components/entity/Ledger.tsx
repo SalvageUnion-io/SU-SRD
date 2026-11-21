@@ -46,6 +46,12 @@ export type LedgerColumn = {
   kind?: 'figure' | 'text' | 'quiet' | 'line'
   /** Kept on a phone; the others give way to the name. */
   phone?: boolean
+  /**
+   * A column the list can spare (`data-spare`): a host whose frame runs
+   * narrow drops it before the list runs wider than the frame (the Training
+   * Bay's shelves, by their own width).
+   */
+  spare?: boolean
 }
 
 /** A name linked to an address of its own; it Peeks when the row names an entity (L4). */
@@ -225,6 +231,13 @@ type LedgerListProps = {
   mark?: ReactNode
   /** With it, a column's label sorts by that column (`name` for the names). */
   onSort?: (key: string) => void
+  /**
+   * The rows' rank stamp (`TL`), named on the head strip beside the tab: with
+   * `onSort` it sorts by the rank, as a column's stamp does by its column.
+   */
+  rank?: { key: string; label: string; title?: string }
+  /** More columns than a narrow frame holds: between a phone and `lg` the quiet line gives way and the cells sit closer. */
+  dense?: boolean
   /** Names the table for a screen reader. */
   label: string
   /** At the head strip's end, on its own paper cut-out: the list's one make (`+ New pilot`). */
@@ -306,6 +319,8 @@ function LedgerList({
   sort,
   mark,
   onSort,
+  rank,
+  dense = false,
   label,
   action,
   empty,
@@ -373,6 +388,7 @@ function LedgerList({
         {...(presentation ? { role: 'presentation' } : { 'aria-label': label })}
         data-phone-line={phoneLine ? '' : undefined}
         data-trailing-fills={!roomy && hasTrailing ? '' : undefined}
+        data-dense={dense ? '' : undefined}
       >
         <thead>
           <tr
@@ -380,7 +396,7 @@ function LedgerList({
             data-grain={paint.grain}
             style={{ backgroundColor: paint.background, color: paint.color }}
           >
-            <th scope="col" aria-sort={ariaSort('name')}>
+            <th scope="col" aria-sort={ariaSort('name') ?? (rank && ariaSort(rank.key))}>
               {/* The title's cut-out: the Compact head's paper tab. */}
               <span className={TITLE_LINE}>
                 <span className="su-entity-compact__notch">
@@ -403,6 +419,9 @@ function LedgerList({
                   )}
                 </span>
                 {mark && <span className="su-ledger__mark">{mark}</span>}
+                {rank && onSort && (
+                  <span className="su-ledger__rank">{stamp(rank.key, rank.label, rank.title)}</span>
+                )}
               </span>
             </th>
             {columns.map((column) => (
@@ -411,6 +430,7 @@ function LedgerList({
                 scope="col"
                 data-kind={column.kind ?? 'figure'}
                 data-phone={column.phone || undefined}
+                data-spare={column.spare || undefined}
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
@@ -495,6 +515,7 @@ function LedgerList({
                       key={column.key}
                       data-kind={column.kind ?? 'figure'}
                       data-phone={column.phone || undefined}
+                      data-spare={column.spare || undefined}
                       data-line={column.key === phoneLine || undefined}
                       data-empty={isEmpty(row.cells[cell]) || undefined}
                       title={cellTitle(column, row.cells[cell])}
@@ -536,6 +557,7 @@ function LedgerList({
                   key={column.key}
                   data-kind={column.kind ?? 'figure'}
                   data-phone={column.phone || undefined}
+                  data-spare={column.spare || undefined}
                 >
                   {total.cells[index]}
                 </td>

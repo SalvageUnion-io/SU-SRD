@@ -16,14 +16,16 @@
  *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
  *    its doors, last in the chip group: where you mediate it, Start group
  *    session (`useGameSession`) until one is live, then Mediate; then Play
- *    <pilot> (Join as <pilot> while a session is live) for each pilot of
+ *    <pilot> for each pilot of
  *    yours in it (`playHub.model.ts`). Session live is a chip too. At its rule's end, as each
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
  *
- * No solo list: a pilot in no Game plays from its own page's Play mode, and
- * every Training Bay pilot line carries that door (ADR-066).
+ *  - **Your Pilots** (`YourPilots`): every pilot of yours with its Play door,
+ *    in a Game or not, so the header's Play always has something to play; a
+ *    pilot in no Game plays solo. Every Training Bay pilot line carries the
+ *    same door (ADR-066).
  *
  * Signed out there is nothing to play, so it is Play's front door
  * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
@@ -33,11 +35,12 @@
  * Game and Join wait for the connection.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
 import { FrontDoor } from '../build/roster/FrontDoor'
@@ -62,8 +65,9 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
 import { cn } from '../lib/cn'
-import { useHydrateEntities, usePilots } from '../lib/entities'
+import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
+import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
@@ -79,6 +83,7 @@ import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
+import { YourPilots } from './YourPilots'
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
 
@@ -179,6 +184,9 @@ function PlayFrontDoor() {
           title={playCopy('atTheTable')}
           steps={steps}
           numbered={false}
+          // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
+          // table is how you join one, and Mediate is what the Kit is for.
+          anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
         />
       }
     />
@@ -210,8 +218,8 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot'])
-  const pilots = usePilots()
+  // Your own: the replica also holds every crewmate's pilot, for Play (LG-01).
+  const pilots = useOwnUnits('pilot')
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -252,17 +260,23 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <PlayGameItem
               key={game._id}
               game={game}
-              pilots={gamePilots(pilots, game._id)}
+              // A door names its pilot by callsign: "Play GHOST".
+              pilots={gamePilots(pilots, game._id).map((p) => ({
+                id: p.id,
+                name: pilotCallsign(p),
+              }))}
               channel={channelOf.get(game._id) ?? null}
             />
           ))}
         </Shelf>
+        {/* What the header's Play can always play: your pilots, solo or in a Game. */}
+        <YourPilots games={games} />
         {/* The Mediator's Kit lives with the tables
             it is for. */}
         {connected && (
           // A band with its title's cut-out, as Your Games wears.
           <SlabSection
-            id="mediators-kit"
+            id={MEDIATORS_KIT_ANCHOR}
             as="h2"
             title={playCopy('mediatorsKit')}
             className="su-mediator-kit-section"
@@ -291,6 +305,15 @@ function JoinGame() {
   const [open, setOpen] = useState(false)
   const [pasted, setPasted] = useState('')
   const [wrong, setWrong] = useState(false)
+  // The sub-nav's "Join with a link" (`/games/#join`) lands here and opens it.
+  useEffect(() => {
+    const arrive = () => {
+      if (window.location.hash === '#join') setOpen(true)
+    }
+    arrive()
+    window.addEventListener('hashchange', arrive)
+    return () => window.removeEventListener('hashchange', arrive)
+  }, [])
 
   function join(event: FormEvent) {
     event.preventDefault()
@@ -305,7 +328,7 @@ function JoinGame() {
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
+      <Button id="join" variant="default" size="compact" onClick={() => setOpen(true)}>
         {playCopy('joinWithALink')}
       </Button>
       <ModalShell open={open} onOpenChange={setOpen} title={playCopy('joinAGame')}>
@@ -387,7 +410,9 @@ function PlayGameItem({
           doors.length > 0
             ? // A chip's height (C8). The first is your role's door, so rust
               // (ruleset §1.9, §3.13: Mediate where you mediate, else Play);
-              // any other is the paper plate beside it.
+              // any other is the paper plate beside it. Each is marked a
+              // role's door, the one act whose look the viewer's role picks
+              // (§3.14): a pilot's own line below says Play in rust.
               doors.map((door, index) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
@@ -396,6 +421,7 @@ function PlayGameItem({
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
                       void session?.start().then((started) => {
@@ -412,6 +438,7 @@ function PlayGameItem({
                     aria-label={door.ariaLabel}
                     variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
+                    data-role-door=""
                   >
                     {door.label}
                   </Button>

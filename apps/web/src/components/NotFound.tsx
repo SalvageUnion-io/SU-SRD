@@ -46,8 +46,8 @@ export function NotFound({ search, didYouMean, back }: NotFoundProps) {
       </ChapterBand>
       <div className="su-not-found__body su-page-body">
         <p className="su-not-found__lede">
-          <strong>{componentsCopy('n404SalvageOperationFailed')}</strong> This page was broken down,
-          relocated, or never existed. Search the Reference for it, or open a chapter.
+          <strong>{componentsCopy('n404SalvageOperationFailed')}</strong>{' '}
+          {componentsCopy('thisPageWasBrokenDown')}
         </p>
         {back}
         {didYouMean}

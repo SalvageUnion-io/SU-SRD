@@ -3,16 +3,25 @@
 import { messages } from './define'
 
 export const pagesCopy = messages({
+  loadout: 'Loadout',
+  loadoutOf: '{name} loadout',
+  sys: 'Sys',
+  systemSlots: 'System Slots',
+  mod: 'Mod',
+  moduleSlots: 'Module Slots',
+  scrap: 'Scrap',
+  salvageValue: 'Salvage Value, in Scrap',
+  total: 'Total',
   thePageYouAreLooking: 'The page you are looking for could not be found.',
   patternOf: 'Pattern of',
   aboutSalvageunionIoAnOpen:
     'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
   aboutTheSalvageUnionSrd: 'About the Salvage Union SRD',
-  inspiredByThePilotsOf: 'Inspired by the pilots of',
+  inspiredByThePilotsOf: 'Inspired by the Pilots of',
   n812Haven: '#812 Haven',
   of: 'of',
   theEldridgeCoast: 'The Eldridge Coast',
-  andUnionCrawlersEverywhere: 'And union crawlers everywhere',
+  andUnionCrawlersEverywhere: 'And Union Crawlers everywhere',
   weGetByWithA: '"We get by with a little help from our friends"',
   whatIsThis: 'What is this?',
   salvageUnion: 'Salvage Union',
@@ -150,7 +159,7 @@ export const pagesCopy = messages({
   theBotsReplyToSu2: "The bot's reply to /su lookup",
   addToYourDiscordServer: 'Add to your Discord server',
   theSalvageunionIoBotBrings:
-    'The SalvageUnion.io bot brings this reference to your table’s Discord server: roll on every Salvage Union table and look up any game entity — chassis, systems, modules, equipment, keywords, and more — without leaving the conversation. Results link back to the full entry on this site.',
+    'The SalvageUnion.io bot brings this reference to your table’s Discord server: roll on every Salvage Union table and look up any game entity — chassis, Systems, Modules, equipment, keywords, and more — without leaving the conversation. Results link back to the full entry on this site.',
   itAsksForNoServer:
     'It asks for no server permissions — it only ever replies to slash commands. Free and with no configuration; rolling and lookups need no account.',
   commands: 'Commands',
@@ -222,4 +231,108 @@ export const pagesCopy = messages({
   starterMechModules: 'Mech Modules',
   starterTraits: 'Traits',
   starterKeywords: 'Keywords',
+  thisIsAnUnofficialCommunity:
+    'This is an unofficial, community-built System Reference Document (SRD) for',
+  aPostApocalypticMech: ', a post-apocalyptic mech tabletop RPG published by',
+  itProvidesASearchable:
+    '. It provides a searchable, browsable reference for all game content released under the Salvage Union OGL.',
+  itsAppIsTheCharacter:
+    'Its app is the character builder and game manager: build Pilots, Mechs, and crawlers in the',
+  thenRunThemAtThe: ', then run them at the table in your',
+  withLiveSheetsYouCan:
+    ', with live sheets you can share. Reading needs no account: the Starter Set and any sheet shared by link open signed out. Sign in with Discord to build, and everything you make saves to your account.',
+  iAmNotTheOwner:
+    'I am not the owner or publisher of this content. Salvage Union and all associated names, marks, characters, and artwork are the property of Leyline Press. Game text and mechanics are used under the',
+  artworkIsNotCoveredBy:
+    '. Artwork is not covered by that licence and is reproduced with the special permission of Leyline Press. This is an unofficial fan project, and is not affiliated with Leyline Press.',
+  createdUsing: 'Created using',
+  corsIsFullyOpen: 'CORS is fully open (',
+  soYouCanFetchFrom: '), so you can fetch from any origin, including browser JavaScript.',
+  everyPageOnThisSite: 'every page on this site has its data in the API. For example,',
+  rendersTheHtmlIndexAnd: 'renders the HTML index, and',
+  servesTheRawArray: 'serves the raw array. The same applies to individual entities:',
+  isThePageAnd: 'is the page, and',
+  itsData: 'its data.',
+  returnsASingleEntityBy:
+    'Returns a single entity by its slug. Entity slugs are lowercase, hyphen-separated versions of the entity name (e.g.,',
+  becomes: 'becomes',
+  slugsMatchThePageUrls: '). Slugs match the page URLs on the reference site.',
+  dataReturnedByThisApi: 'Data returned by this API is published under the',
+  salvageUnionIsCreatedAnd: '. Salvage Union is created and published by',
+  theLicenceCoversGameText: 'The licence covers game text and mechanics only. Entity artwork is',
+  coveredThoseImagesAreUsed:
+    'covered — those images are used on this site with special permission from Leyline Press and may not be redistributed. Republication of licensed text must include the legal notices required by the Salvage Union Open Game Licence 1.0b.',
+  weKeepNoRecord:
+    '): we keep no record; they answer in real time. A roll’s card names who rolled, and its “Roll again” button carries the roller’s Discord ID so that only they can use it. Other buttons carry the table or dice in the button itself.',
+  whenYouSignInTo:
+    'when you sign in to salvageunion.io with Discord, your account keeps your Discord user ID, name and avatar. The Bot uses that ID to recognise you in',
+  and: 'and',
+  andShowsOnlyWhatYour: ', and shows only what your account may see.',
+  theChannelsIdAndName:
+    '): the channel’s ID and name, the Game it posts for (or none, for solo play), who bound it and when.',
+  deletesItRunByWhoever:
+    'deletes it, run by whoever bound it or anyone with Manage Channels in that channel.',
+  aRollMadeOnSalvageunion:
+    'a roll made on salvageunion.io is posted to the bound channel as a card naming the roller. Its buttons carry the roller’s Discord ID so that only they can use them.',
+  theBotDoes: 'The Bot does',
+  readMessageContentExcept:
+    'read message content, except the one message you choose with “Look up in Salvage Union”, which it reads to answer you and never stores. It never stores your messages.',
+  yourUseOfTheBot: '— your use of the Bot is also governed by Discord’s Privacy Policy.',
+  hostsTheBotAndSalvageunion:
+    '— hosts the Bot and salvageunion.io, logs their errors, and stores salvageunion.io accounts, Games, sheets, bound channels and feedback (in Durable Objects and D1) and the photos you upload (in R2).',
+  signedInAtSalvageunionIo: 'Signed in at salvageunion.io,',
+  letsYouExportEverything:
+    'lets you export everything your account holds or delete the account. Deleting it removes your Discord link, your solo channel and any feedback not yet posted. A Game’s bound channel stays with the Game until someone runs',
+  forAnythingElseContact: '. For anything else, contact',
+  seeAlsoThe: 'See also the',
+  theBotProvidesDiceRolling:
+    'The Bot provides dice-rolling and reference lookups for the Salvage Union tabletop roleplaying game via Discord slash commands (',
+  withASalvageunionIoAccount:
+    '). With a salvageunion.io account signed in with Discord, it also shows your account, Games and sheets, and posts Play’s rolls to a channel you bind. It is provided free of charge, “as is,” without warranty of any kind. We may change, suspend, or discontinue the Bot at any time.',
+  salvageUnionIsCopyrightedBy: 'Salvage Union is copyrighted by',
+  theBotIsAnUnofficial:
+    '. The Bot is an unofficial, community reference tool and is not affiliated with or endorsed by Leyline Press. Game data is drawn from the community reference at',
+  questionsAboutTheseTerms: 'Questions about these terms:',
+  featuresFixesAndSpeedUps:
+    'Features, fixes and speed-ups to the Reference and the app, newest first. For full commit history see the',
+  rollsAD20OnAny: 'Rolls a d20 on any Salvage Union table. Leave',
+  emptyToRollOnThe: 'empty to roll on the',
+  tableTheGamesBasicD20: 'table — the game’s basic d20 resolution roll.',
+  coreMechanicD20: '— Core Mechanic d20',
+  whatHappensAt0Sp: '— what happens at 0 SP',
+  whoActsFirst: '— who acts first',
+  looksUpAnyEntityIn: 'Looks up any entity in the reference — the same search as this site’s',
+  boxAutocompleteSearchesAsYou:
+    'box. Autocomplete searches as you type (multi-word queries and small typos are fine); the reply shows the entity’s key stats and links to its full page here.',
+  theseReadYour: 'These read your',
+  accountAndItsGames: 'account and its Games.',
+  withTheSameDiscordAccount:
+    'with the same Discord account and the bot knows you; until then each one says how.',
+  typing: 'Typing',
+  filtersDiscordsCommandPicker:
+    'filters Discord’s command picker to just this bot — no more fishing your roll out of a pile of identically-named commands from other bots.',
+  pairTheBotWithThe: 'Pair the bot with the app: the',
+  theCharacterBuilderAnd: ', the character builder, and',
+  theGameTableReadThe:
+    ', the Game table: read the Starter Set with no account, and sign in with Discord to build. Sheets can be shared into Discord as live public links.',
+  diceRollingPoweredBy: 'Dice rolling powered by',
+  entityMetaWithStats:
+    '{itemName} — {schemaName} for the Salvage Union TTRPG. {statLine}.{traitLine}',
+  entityMeta: '{itemName}: {schemaName} reference for the Salvage Union tabletop RPG.',
+  techLevel: 'Tech Level',
+  patternMeta: '{patternName}: a {hostName} Pattern for the Salvage Union tabletop RPG.',
+  browseAll:
+    'Browse all {pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.',
+  systemReferenceDocument: 'System Reference Document',
+  aboutDescription:
+    'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press, and its app: the {build}, where you build characters, and your {play}, where you play them.',
+  mapOfTheEldridgeCoast: 'Map of The Eldridge Coast, created using Shmeppy.com',
+  apiDescription:
+    'The SalvageUnion.io Dataset API, version 1: every piece of Salvage Union game data as versioned, CORS-enabled JSON with a stability promise.',
+  datasetApiV1: 'SalvageUnion.io Dataset API v1',
+  discordBotPrivacyTitle: 'Discord Bot Privacy Policy',
+  changelogDescription: 'Changes to the salvageunion.io reference site and its app over time.',
+  discordDescription:
+    'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, System, Module, or piece of equipment with /su.',
+  salvageUnionIoDiscordBot: 'SalvageUnion.io Discord Bot',
 })

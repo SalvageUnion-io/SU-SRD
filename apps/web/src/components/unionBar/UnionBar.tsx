@@ -31,6 +31,8 @@ type UnionBarProps = {
   breadcrumbs?: BreadcrumbItem[]
   /** The site's front door: no area link is current. */
   noCurrent?: boolean
+  /** The rail link the open page sits under (`AppBar`'s `railCurrent`). */
+  railCurrent?: { href: string; page: boolean }
 }
 
 export function UnionBar({
@@ -40,6 +42,7 @@ export function UnionBar({
   mobile,
   breadcrumbs,
   noCurrent,
+  railCurrent,
 }: UnionBarProps) {
   return (
     <AppBar
@@ -60,6 +63,7 @@ export function UnionBar({
       mobile={mobile}
       breadcrumbs={breadcrumbs}
       noCurrent={noCurrent}
+      railCurrent={railCurrent}
     />
   )
 }

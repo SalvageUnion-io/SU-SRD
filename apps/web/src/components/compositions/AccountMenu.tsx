@@ -10,7 +10,7 @@ import { HeaderMenu } from '../containers/HeaderMenu'
  * The trigger shows the player's display name beside their Discord avatar on
  * a square chip (two initials when there is no avatar, or it will not load); it
  * opens a `HeaderMenu` holding the player's own places, **Your Games** and
- * **Your Characters** (the Training Bay: their pilots, mechs and crawlers), then **Settings** and
+ * **Training Bay** (their pilots, mechs and crawlers; glossary §2), then **Settings** and
  * **Sign out**, then **About** and
  * **Changelog**, and in the app **Suggest or report** (ADR-057). The `compact` form is the avatar alone, for the phone's header
  * row, which has no room for a name.
@@ -80,7 +80,7 @@ export function AccountMenu({
           { id: 'games', label: compositionsCopy('yourGames'), onSelect: onGames },
           {
             id: 'training-bay',
-            label: compositionsCopy('yourCharacters'),
+            label: compositionsCopy('trainingBay'),
             onSelect: onTrainingBay,
           },
         ],

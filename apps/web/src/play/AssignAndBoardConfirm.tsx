@@ -4,6 +4,7 @@
  * offered: the Mount row and the Situation switch.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { ConfirmDialog } from '../components/app'
 import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
@@ -29,7 +30,10 @@ export function AssignAndBoardConfirm({
       body={
         assigning === null
           ? ''
-          : `${assigning.name} is an unassigned spare. Assign it to yourself to edit it in this Game, then board it. Boarding doesn’t pair it with ${play.pilot?.name ?? 'your Pilot'}.`
+          : playCopy('assignAndBoardBody', {
+              name: assigning.name,
+              pilot: play.pilot ? pilotCallsign(play.pilot) : playCopy('yourPilot'),
+            })
       }
       confirmLabel={
         assigning === null

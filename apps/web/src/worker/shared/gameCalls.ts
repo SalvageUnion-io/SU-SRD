@@ -19,11 +19,19 @@
  */
 
 import type { BotRelay } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ROLL_PATH, isPostableRoll, relayUrl } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ROLL_PATH,
+  isPostableRoll,
+  ROLL_LABEL_MAX,
+  relayUrl,
+} from 'game-domain/botWire'
 import type { EntityKind } from 'game-domain/entityKinds'
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
+import type { GamePlan } from 'game-domain/schemas/gamePlan'
+import { GamePlanSchema } from 'game-domain/schemas/gamePlan'
 import { z } from 'salvageunion-reference/zod'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../../rooms/game/acts'
 import type { GameRead, Profile } from '../../rooms/game/roster'
@@ -105,6 +113,15 @@ async function started(who: Caller, gameId: string, deps: CallDeps, start: () =>
   return republished(deps.game(gameId), gameId)
 }
 
+/**
+ * A Game's creator is its Organiser, and its Mediator too where they said so
+ * as they made it ("Will you be the Mediator?"): the Organiser's own appointment.
+ */
+async function mediatedByCreator(room: GameRoomStub, who: Caller, mediator: boolean | undefined) {
+  if (mediator !== true) return
+  await act(room, who.discordId, 'setMediator', { userId: who.discordId, mediator: true })
+}
+
 /** Have the room write its shared rows now, so the next list reads the change. */
 async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   await room.republish()
@@ -184,11 +201,8 @@ async function rollerName(
 ) {
   if (pilotId !== undefined && gameId !== null) {
     const unit = await act(deps.game(gameId), who.discordId, 'unit', { unitId: pilotId })
-    const body = unit?.kind === 'pilot' ? unit.body : null
-    for (const field of ['callsign', 'name']) {
-      const value = body?.[field]
-      if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-    }
+    const named = unit?.kind === 'pilot' ? pilotLabelOf(unit.body) : null
+    if (named !== null) return named
   }
   return (await profileOf(deps, who)).displayName ?? 'Crewmate'
 }
@@ -223,13 +237,14 @@ const CALLS = {
   },
   'games.create': async (
     who: Caller,
-    a: { name: string; templateOrigin?: string },
+    { mediator, ...a }: { name: string; templateOrigin?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'create', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
   'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
@@ -246,6 +261,35 @@ const CALLS = {
     const room = deps.game(a.gameId)
     await act(room, who.discordId, 'setMediator', { userId: a.userId, mediator: a.mediator })
     return republished(room, null)
+  },
+  /** The Game's name or description (ADR-067 §3), the Organiser's to change. */
+  'games.update': async (
+    who: Caller,
+    a: { gameId: string; name?: string; description?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const { gameId: _gameId, ...patch } = a
+    await act(room, who.discordId, 'updateSettings', patch)
+    return republished(room, null)
+  },
+  /** Leave (`userId` absent) or, as the Organiser, remove a member; their units go home first. */
+  'games.removeMember': async (
+    who: Caller,
+    a: { gameId: string; userId?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.dismiss(who.discordId, a.userId ?? who.discordId)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, null)
+  },
+  /** The Game's plan (ADR-067 §4): its table runner's alone. */
+  'plan.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
+    act(deps.game(a.gameId), who.discordId, 'plan.get', undefined as never),
+  'plan.set': async (who: Caller, a: { gameId: string; plan: GamePlan }, deps: CallDeps) => {
+    await act(deps.game(a.gameId), who.discordId, 'plan.set', { plan: a.plan })
+    return null
   },
   'games.setPrimaryCrawler': async (
     who: Caller,
@@ -279,13 +323,14 @@ const CALLS = {
   'templates.list': async () => templateList(),
   'templates.createGame': async (
     who: Caller,
-    a: { templateId: string; name?: string },
+    { mediator, ...a }: { templateId: string; name?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'createFromTemplate', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
 
@@ -391,7 +436,7 @@ const CALLS = {
     a: {
       gameId?: string
       pilotId?: string
-      roll: { tableName: string; rolls: number[] }
+      roll: { tableName: string; rolls: number[]; label?: string | undefined }
     },
     deps: CallDeps
   ): Promise<PostRollResult> => {
@@ -403,7 +448,7 @@ const CALLS = {
     const binding = await rollChannel(deps.db, who.discordId, gameId)
     if (binding === null) return { kind: 'unbound' }
     const { channelId } = binding
-    const { tableName, rolls } = a.roll
+    const { tableName, rolls, label } = a.roll
     if (!isPostableRoll(tableName, rolls)) {
       return { kind: 'failed', channelId, message: 'That roll cannot be posted.' }
     }
@@ -418,6 +463,9 @@ const CALLS = {
       tableName,
       rolls,
       roller,
+      ...(label !== undefined && label !== tableName
+        ? { label: label.slice(0, ROLL_LABEL_MAX) }
+        : {}),
       ...(isDiscord ? { ownerDiscordId: who.discordId } : {}),
     }
     try {
@@ -470,15 +518,27 @@ const CALL_ARGS = {
   'games.listMine': z.object({}),
   'games.get': GAME,
   'games.names': GAME,
-  'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
+  'games.create': z.object({
+    name: z.string(),
+    templateOrigin: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
+  'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
+  'games.removeMember': GAME.extend({ userId: z.string().optional() }),
+  'plan.get': GAME,
+  'plan.set': GAME.extend({ plan: GamePlanSchema }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
   'invites.link': GAME,
   'invites.reset': GAME,
   'invites.redeem': z.object({ code: z.string() }),
   'templates.list': z.object({}),
-  'templates.createGame': z.object({ templateId: z.string(), name: z.string().optional() }),
+  'templates.createGame': z.object({
+    templateId: z.string(),
+    name: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'ownership.assign': GAME.extend({ entityId: z.string(), userId: z.string().optional() }),
   'ownership.unassign': GAME.extend({ entityId: z.string() }),
   'entities.remove': GAME.extend({ entityId: z.string() }),
@@ -490,7 +550,11 @@ const CALL_ARGS = {
   'channelBindings.postRoll': z.object({
     gameId: z.string().optional(),
     pilotId: z.string().optional(),
-    roll: z.object({ tableName: z.string(), rolls: z.array(z.number()) }),
+    roll: z.object({
+      tableName: z.string(),
+      rolls: z.array(z.number()),
+      label: z.string().optional(),
+    }),
   }),
 } satisfies Record<GameCallName, z.ZodType>
 

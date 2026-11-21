@@ -35,6 +35,7 @@ import {
   originsForHybrid,
   resolveAdvancementTrees,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 
 type ClassPathGroupKind = 'reachable' | 'core' | 'off-ring'
 
@@ -106,7 +107,8 @@ export function classPathGroups(
 
   groups.push({
     kind: 'core',
-    label: reachableNames.size > 0 ? 'Re-home to a Core Class' : 'Core Classes',
+    label:
+      reachableNames.size > 0 ? libRulesCopy('rehomeToACoreClass') : libRulesCopy('coreClasses'),
     options: allClasses
       .filter(isCoreClass)
       .map((cls) => ({ cls, current: cls.id === currentClassRef })),
@@ -116,10 +118,10 @@ export function classPathGroups(
   if (offRing.length > 0) {
     groups.push({
       kind: 'off-ring',
-      label: reachableNames.size > 0 ? "Not on this pilot's ring" : 'Advanced / Hybrid',
+      label: reachableNames.size > 0 ? libRulesCopy('notOnThisPilotsRing') : 'Advanced / Hybrid',
       options: offRing.map((cls) => ({
         cls,
-        note: 'asks origin',
+        note: libRulesCopy('asksOrigin'),
         current: cls.id === currentClassRef,
       })),
     })
@@ -151,7 +153,7 @@ export function classPathConsequence(
       title: pending.name,
       gain: resolveAdvancementTrees(data, undefined, pending.name).open,
       lose: [],
-      keep: ['Every ability already learned'],
+      keep: [libRulesCopy('everyAbilityAlreadyLearned')],
       needsOrigin: false,
       originChoices: [],
     }
@@ -177,7 +179,7 @@ export function classPathConsequence(
 
   const lose: string[] = [...foreclosed.map((n) => `${n} — forever`)]
   if (trees.sealed.length > 0) {
-    lose.push(`${trees.sealed.join(' and ')} seal — no new picks`)
+    lose.push(libRulesCopy('sealNoNewPicks', { trees: trees.sealed.join(' and ') }))
   }
 
   return {
@@ -185,8 +187,8 @@ export function classPathConsequence(
     gain: [pending.name, ...gained],
     lose,
     keep: [
-      'Every ability already learned, permanently',
-      ...(gate === undefined ? [] : [`${gate} stays open`]),
+      libRulesCopy('everyAbilityAlreadyLearnedPermanently'),
+      ...(gate === undefined ? [] : [libRulesCopy('staysOpen', { gate })]),
     ],
     impliedOrigin,
     needsOrigin: impliedOrigin === undefined,

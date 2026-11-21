@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 import { ServerMessageSchema } from '../../protocol'
-import { appliedMessages, batchAnswer, gameSnapshot, readClientMessage } from '../feed'
+import {
+  appliedMessages,
+  batchAnswer,
+  CHANGED_FIRST,
+  CHANGED_FIRST_BY_YOU,
+  gameSnapshot,
+  readClientMessage,
+} from '../feed'
 import { AT, bodies, MEDIATOR, op, PLAYER, STRANGER, table } from './harness'
 
 /** A Game with a pilot boarded in a mech and one NPC on the tray. */
@@ -154,7 +161,14 @@ describe('what the sender of a batch hears', () => {
     ).toEqual({ type: 'ack', opIds: ['a', 'b'], fresh: ['b'] })
     expect(
       batchAnswer(['a'], { ok: false, opId: 'a', reason: 'conflict', fields: ['motto', 'name'] })
-    ).toEqual({ type: 'declined', opIds: ['a'], reason: 'Changed elsewhere first: motto, name' })
+    ).toEqual({ type: 'declined', opIds: ['a'], reason: CHANGED_FIRST })
+    // Their own change from another screen is not "someone else's".
+    expect(
+      batchAnswer(['a'], { ok: false, opId: 'a', reason: 'conflict', fields: ['name'], own: true })
+    ).toEqual({ type: 'declined', opIds: ['a'], reason: CHANGED_FIRST_BY_YOU })
+    expect(CHANGED_FIRST_BY_YOU).not.toMatch(/Someone|motto|current[A-Z]/)
+    // Plain words, and no stored field's name (LG-03).
+    expect(CHANGED_FIRST).not.toMatch(/motto|name|current[A-Z]/)
     expect(batchAnswer(['a'], { ok: false, opId: 'a', reason: 'invalid', message: 'No' })).toEqual({
       type: 'declined',
       opIds: ['a'],

@@ -50,10 +50,8 @@ type SheetViewProps = { kind: SheetKind; id: string }
 
 export function SheetView({ kind, id }: SheetViewProps) {
   const { status: sync } = useSync()
-  const { status, held, gameId, listing, members, viewerId, sheetMode, crew } = useLocatedSheet(
-    kind,
-    id
-  )
+  const { status, held, gameId, listing, listedRow, members, viewerId, sheetMode, crew } =
+    useLocatedSheet(kind, id)
 
   // The Game whose crawler this sheet's cargo reaches: the server's answer once
   // it has one, the local copy's until then (a linked crawler shares its
@@ -108,7 +106,10 @@ export function SheetView({ kind, id }: SheetViewProps) {
     return <SheetFallback kind={kind} status="unreadable" back={crew} />
   }
   return (
-    <CrewSheetBanner kind={kind}>
+    <CrewSheetBanner
+      kind={kind}
+      unassigned={kind !== 'crawler' && (listedRow as { ownerId?: string | null }).ownerId === null}
+    >
       <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} game={game} />
     </CrewSheetBanner>
   )

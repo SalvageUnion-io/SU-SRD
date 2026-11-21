@@ -211,6 +211,38 @@ body:has(.su-front--show) main {
   width: auto;
 }
 
+/* The pitch's plate: its words over its two actions. */
+.su-front__show-plate--pitch {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.su-front__show-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+}
+
+/* A returning reader's doors, at the head's right in the name's dress: out of
+   the page until somebody is signed in (`markSignedIn`). */
+.su-front__show-yours {
+  align-items: center;
+  background-color: var(--color-ink-deep);
+  color: var(--color-paper);
+  display: none;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-12) var(--space-16);
+}
+
+html[data-srd-signed-in] .su-front__show-yours {
+  display: flex;
+}
+
+.su-front__show-yours-label {
+  font-size: var(--text-caption);
+}
+
 /* Always left of the button, a phone included. One measure on every slide,
    so each line sits on two even rows and the plate keeps its size. */
 .su-front__show-words {
@@ -228,7 +260,7 @@ body:has(.su-front--show) main {
   text-wrap: balance;
 }
 
-/* One slide's turn in a show of seven (`heroSlides`): each holds a seventh
+/* One slide's turn in a show of eight (`heroSlides`): each holds an eighth
    of the loop, sliding in from the right over its first fifth of a step and
    out to the left as the next slides in behind it. Out of its turn, before it
    and after, a slide is hidden (K3): never seen, pressed or focused over the
@@ -238,12 +270,12 @@ body:has(.su-front--show) main {
     transform: translateX(100%);
     visibility: hidden;
   }
-  2.857%,
-  14.286% {
+  2.5%,
+  12.5% {
     transform: translateX(0);
     visibility: visible;
   }
-  17.143%,
+  15%,
   100% {
     transform: translateX(-100%);
     visibility: hidden;
@@ -329,19 +361,24 @@ body:has(.su-front--show) main {
     font-size: var(--text-display-lg);
   }
 
+  /* The Pause keeps the act's Full height beside it (§4.7). */
   .su-front__show-pause.su-btn {
-    block-size: var(--size-compact);
-    inline-size: var(--size-compact);
     left: var(--space-12);
   }
 
   .su-front__show-copy {
-    max-width: calc(100% - var(--space-12) * 2 - var(--space-8) - var(--size-compact));
+    max-width: calc(100% - var(--space-12) * 2 - var(--space-8) - var(--size-full));
     right: var(--space-12);
   }
 
   .su-front__show-pitch {
     font-size: var(--text-readout);
+  }
+
+  /* The tagline keeps its line: its action goes under it. */
+  .su-front__show-plate--quote {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .su-front__show-body {

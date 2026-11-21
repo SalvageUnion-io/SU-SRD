@@ -227,14 +227,17 @@
   padding: var(--space-6) 0;
 }
 
+/* A section's name that opens its full list reads as the link it is: ruled
+   under, heavier on hover. */
 .su-contents__title-link {
   color: inherit;
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: var(--bw-hairline);
+  text-underline-offset: 3px;
 }
 
 .su-contents__title-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration-thickness: var(--bw-pill);
 }
 
 /* A big list's sub-head (a tech level, a tree, a letter): small caps over
@@ -294,37 +297,48 @@
   min-height: var(--size-full);
 }
 
-/* A chapter's index (`chapter.page.tsx`) is one newspaper flow down as
-   many 20rem columns as fit: three at the page's measure, one on a phone.
-   A short list stays whole; a big one breaks on to the next column between
-   its runs (a long run between its rows), and no head is left at a
-   column's foot. */
+/* A chapter's index (`chapter.page.tsx`): its sections one under another,
+   each under its own heading, its rows running down as many 20rem columns as
+   fit beneath it (three at the page's measure, one on a phone). No list is
+   parted from its heading: a run stays whole under its sub-head, and a long
+   run (a Tech Level of thirty) takes the section's full width and columns of
+   its own under its sub-head, so the columns still stand level. */
 .su-chapter-flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.su-chapter-flow .su-contents__body,
+.su-chapter-flow .su-contents__group--long > .su-contents__rows {
   column-gap: var(--space-28);
   column-width: 20rem;
 }
 
-.su-chapter-flow > .su-contents__chapter {
-  display: block;
-  margin-block-end: var(--space-24);
-}
-
-.su-chapter-flow > .su-contents__chapter:not(:has(.su-contents__group)) {
-  break-inside: avoid;
-}
-
-.su-chapter-flow > .su-contents__chapter > :not(.su-contents__body),
 .su-chapter-flow .su-contents__group-head {
   break-after: avoid;
 }
 
-.su-chapter-flow .su-contents__group:not(.su-contents__group--long),
+.su-chapter-flow .su-contents__group,
 .su-chapter-flow .su-contents__rows > li {
   break-inside: avoid;
 }
 
-/* A long run (a Tech Level of thirty) may break between its rows, so the
-   columns stand level; its sub-head keeps its first row. */
+.su-chapter-flow .su-contents__group--long {
+  column-span: all;
+}
+
+/* The columns' tops stand level: a margin is cut at a column break but
+   kept at the first column's top, so a sub-head's air above is its run's own
+   padding, which every column keeps alike. */
+.su-chapter-flow .su-contents__group {
+  padding-top: var(--space-12);
+}
+
+.su-chapter-flow .su-contents__group-head {
+  margin-top: 0;
+}
+
 .su-chapter-flow .su-contents__rows {
   display: block;
 }
@@ -350,4 +364,20 @@
 .su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline),
 .su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
   color: var(--color-paper);
+}
+
+/* On a phone a notch aside drops under the band on to the page ground
+   (`chapter-band-controls.css`), so the tagline there is ink again. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline,
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline
+    * {
+    color: var(--color-ink);
+  }
 }

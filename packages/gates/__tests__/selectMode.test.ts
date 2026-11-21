@@ -2,7 +2,6 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ratchetCounts } from '../lib/ruleEngine'
 import { scanSelectCss, scanSelectSources, selectMode } from '../rules/selectMode'
 
 /**
@@ -18,7 +17,6 @@ describe('select-mode rule set', () => {
   test('every rule is zero', () => {
     expect(selectMode.id).toBe('select-mode')
     expect(selectMode.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(selectMode, {})).toEqual({})
   })
 })
 

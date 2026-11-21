@@ -29,7 +29,7 @@ export function ProposalsList({
   limit,
   now,
   onMore,
-  empty = 'No proposals yet. Pick a seat, then propose the change you think it needs.',
+  empty = mediatorCopy('noProposalsYet'),
 }: {
   /** Null while the first answer is on its way. */
   proposals: readonly SentProposal[] | null

@@ -122,6 +122,16 @@ describe('spoilsOf (Core Book p.246, 269)', () => {
     expect(spoilsOf(encounter([opponent('x', 'meld', 'meld-drone', 2)]))).toEqual([])
   })
 
+  test('a Bio-Titan leaves Bio-Salvage equal to its SP (Core Book p.275)', () => {
+    const [scylla] = spoilsOf(encounter([opponent('s', 'bio-titans', 'scylla', 39)]))
+    expect(scylla).toMatchObject({ kind: 'bio', bioSalvage: 39 })
+  })
+
+  test('an NPC the data gives a Bio-Salvage Value leaves that', () => {
+    const [mutant] = spoilsOf(encounter([opponent('c', 'npcs', 'chimerium-mutant', 5)]))
+    expect(mutant).toMatchObject({ kind: 'bio', bioSalvage: 1 })
+  })
+
   test('those the data gives nothing to salvage are left out', () => {
     expect(spoilsOf(encounter([opponent('r', 'npcs', 'raider', 3)]))).toEqual([])
   })

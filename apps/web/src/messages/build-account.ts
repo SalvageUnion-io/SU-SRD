@@ -54,7 +54,7 @@ export const buildAccountCopy = messages({
   downloadMyData: 'Download my data',
   deleteAccount: 'Delete account',
   deletesYourPilotsAndMechs:
-    'Deletes your pilots and mechs. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
+    'Deletes your Pilots and Mechs. Games you are in survive: their crawler stays, and one you organise passes to its longest-standing member. This cannot be undone.',
   deleteMyAccount: 'Delete my account',
   deleteYourAccount: 'Delete your account?',
   everythingYouOwnIsDeleted:
@@ -68,5 +68,8 @@ export const buildAccountCopy = messages({
   settings: 'Settings',
   signOut: 'Sign out',
   buildAndRunYourSalvage:
-    'Build and run your Salvage Union crew — pilots, mechs and Union Crawlers. Everything you build is kept in your account, saved as you go, and ready to share with a Game, so building needs you signed in.',
+    'Build and run your Salvage Union crew — Pilots, Mechs and Union Crawlers. Everything you build is kept in your account, saved as you go, and ready to share with a Game, so building needs you signed in.',
+  displayNameNotSaved: 'Your display name could not be saved. Try again.',
+  accountNotDeleted: 'Your account could not be deleted. Try again.',
+  signInWithDiscord: 'Sign in with Discord',
 })

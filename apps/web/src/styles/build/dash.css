@@ -286,7 +286,9 @@
    line's 24px (the opener's, the name's), its badge centred in it (§4.7);
    beside its row's other Mini controls it keeps their chip height. */
 .su-open__controls > .su-sheet-item__condition:only-child > button {
+  border-block-end-width: 0;
   height: var(--space-24);
+  margin-block-end: 0;
 }
 
 .su-strip__cell--figure {

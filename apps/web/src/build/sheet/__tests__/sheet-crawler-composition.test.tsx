@@ -107,7 +107,7 @@ describe('Sheet — pilot+crawler wired composition (no mech)', () => {
         softLinkStore={makeSoftLinkStoreMock([pilotToCrawlerLink])}
       />
     )
-    expect(screen.getByRole('button', { name: 'Assign mech to pilot' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign Mech to Pilot' })).toBeTruthy()
   })
 })
 

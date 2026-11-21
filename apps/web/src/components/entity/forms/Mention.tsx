@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
 import { InlineRef } from '../../atoms/InlineRef'
 import { useEntitySurface } from '../entitySurfaceContext'
-import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { termPeekAttrs, useInsidePeek, usePeekAttrs } from '../peekContext'
 
 export type MentionProps = {
   /**
@@ -16,8 +16,8 @@ export type MentionProps = {
 
 /**
  * MENTION (entity display language, E4): an entity named in prose. The name in
- * the prose's own type (`InlineRef`), the Page on click and the Peek on hover,
- * focus or long-press.
+ * the prose's own type (`InlineRef`), the Peek on hover, focus or a press, and
+ * the Page on the next press or the Peek's Open page (E27).
  *
  * Where it goes comes from the SURFACE: its route (`hrefFor`, the SRD) makes it
  * a link; else the Page opener (`openPage`, the app) makes it a button; else it is
@@ -35,7 +35,7 @@ export function Mention({ entityRef, children }: MentionProps) {
   const href = surface.hrefFor(entityRef)
   if (href) {
     return (
-      <InlineRef href={href} {...peek}>
+      <InlineRef href={href} {...termPeekAttrs(peek)}>
         {children}
       </InlineRef>
     )

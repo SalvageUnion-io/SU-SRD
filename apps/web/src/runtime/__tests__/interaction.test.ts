@@ -173,6 +173,38 @@ describe('watchInteraction with a page-wide trigger', () => {
     watch.finish()
   })
 
+  test("holds a term's press (`data-peek-press`) and presses it again once the host listens", () => {
+    trigger.setAttribute('data-peek-press', '')
+    const watch = watchInteraction(host, () => {}, { trigger: '[data-peek]' })
+    const press = new MouseEvent('click', { bubbles: true, cancelable: true, detail: 1 })
+    trigger.querySelector('span')?.dispatchEvent(press)
+    expect(press.defaultPrevented).toBe(true)
+    let pressed = 0
+    trigger.addEventListener('click', (event) => {
+      pressed++
+      event.preventDefault()
+    })
+    replayInteraction(host, watch.finish())
+    expect(pressed).toBe(1)
+  })
+
+  test("a term's modified press and the keyboard's Enter are the link's own", () => {
+    trigger.setAttribute('data-peek-press', '')
+    const watch = watchInteraction(host, () => {}, { trigger: '[data-peek]' })
+    for (const init of [
+      { detail: 1, ctrlKey: true },
+      { detail: 1, metaKey: true },
+      { detail: 0 },
+    ]) {
+      const follow = new MouseEvent('click', { bubbles: true, cancelable: true, ...init })
+      trigger.addEventListener('click', (event) => event.preventDefault(), { once: true })
+      const before = follow.defaultPrevented
+      trigger.dispatchEvent(follow)
+      expect(before).toBe(false)
+    }
+    expect(watch.finish().triggerPress).toBeNull()
+  })
+
   test('announces focus on the trigger again for a host that missed it', () => {
     const watch = watchInteraction(host, () => {}, { trigger: '[data-peek]' })
     trigger.focus()

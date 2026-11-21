@@ -11,6 +11,7 @@ import {
 import { borderWidth, color, layer, space } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
 import { entityCopy } from '../../messages/components-entity'
+import { InlineRef } from '../atoms/InlineRef'
 import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
@@ -18,7 +19,11 @@ import { useEntitySurface } from './entitySurfaceContext'
 import type { PeekLoader } from './Peek'
 import { PeekCard, PeekMini } from './PeekCard'
 import { PeekTable } from './PeekTable'
+import { PeekTerm } from './PeekTerm'
+import type { StatTerm } from './parts/statTerms'
+import { TERM_SCHEMA, termAt } from './parts/statTerms'
 import type { PeekSize } from './peekContext'
+import { PEEK_PRESS_ATTRIBUTE } from './peekContext'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
 
@@ -41,6 +46,7 @@ function isEntitySchema(name: string): name is EntitySchemaName {
 /** What a Peek shows: an entity's card, or the roll table a record carries. */
 type PeekSubject =
   | { kind: 'entity'; entity: RefEntity }
+  | { kind: 'term'; term: StatTerm }
   | { kind: 'table'; name: string; table: RefObjectTable }
 
 /**
@@ -50,6 +56,10 @@ type PeekSubject =
  * table (a folded roll Mini Peeks it, `CardRollTable`).
  */
 function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
+  if (schemaName === TERM_SCHEMA) {
+    const term = termAt(id)
+    return term ? { kind: 'term', term } : undefined
+  }
   if (!isEntitySchema(schemaName) || !SalvageUnionReference.isLoaded(schemaName)) return undefined
   const [hostId, part] = id.split('/')
   const host = SalvageUnionReference.get(schemaName, hostId ?? id) as RefEntity | undefined
@@ -120,7 +130,9 @@ export function PeekPopup({
   const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     let live = true
-    load(schemaName).then(
+    // A term is the app's own words: no schema to read.
+    const ready = schemaName === TERM_SCHEMA ? Promise.resolve() : load(schemaName)
+    ready.then(
       () => live && setLoaded(true),
       // A schema that will not load has nothing to show: the Peek closes and
       // the trigger still links or opens as it always did.
@@ -137,6 +149,10 @@ export function PeekPopup({
   const { externalLink } = useEntitySurface()
   const outLink =
     subject?.kind === 'entity' ? externalLink?.(subject.entity, { inPeek: true }) : undefined
+  // A term's Peek (E27): the page its link names, said in words under the
+  // card, since the press that opened the Peek did not follow the link.
+  const termHref =
+    !outLink && anchor.hasAttribute(PEEK_PRESS_ATTRIBUTE) ? anchor.getAttribute('href') : null
   useEffect(() => {
     if (loaded && !subject) onDismiss()
   }, [loaded, subject, onDismiss])
@@ -171,7 +187,9 @@ export function PeekPopup({
           >
             {subject ? (
               <PeekBoundary>
-                {subject.kind === 'table' ? (
+                {subject.kind === 'term' ? (
+                  <PeekTerm term={subject.term} />
+                ) : subject.kind === 'table' ? (
                   <PeekTable name={subject.name} table={subject.table} />
                 ) : size === 'mini' ? (
                   <PeekMini entity={subject.entity} down={down} />
@@ -179,6 +197,14 @@ export function PeekPopup({
                   <PeekCard entity={subject.entity} down={down} />
                 )}
                 {outLink && <div style={PEEK_OUT}>{outLink}</div>}
+                {termHref && (
+                  <div style={PEEK_OUT}>
+                    {/* Its way out, never a tab stop (E16): the term is the keyboard's link. */}
+                    <InlineRef href={termHref} data-peek-out="" tabIndex={-1}>
+                      {entityCopy('openPage')}
+                    </InlineRef>
+                  </div>
+                )}
               </PeekBoundary>
             ) : (
               <Skeleton />

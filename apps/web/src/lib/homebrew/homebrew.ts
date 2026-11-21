@@ -14,10 +14,7 @@ import type { RefChassis, RefObjectPattern } from 'salvageunion-reference'
 import { appPath } from '../appBase'
 import { asReferencePattern, patternChassis } from '../patterns/patterns'
 import type { HomebrewRow } from './endpoint'
-import { homebrewPatternsUrl } from './endpoint'
-
-/** Whether a reader asked chassis pages to show homebrew: a per-browser setting. */
-export const SHOW_HOMEBREW_KEY = 'su:show-homebrew'
+import { homebrewPatternsUrl, SHOW_HOMEBREW_KEY } from './endpoint'
 
 /** A homebrew pattern whose body parsed, with its chassis. */
 export type HomebrewItem = {

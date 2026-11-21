@@ -11,7 +11,7 @@
  * NPC Action table, whose stamp is the roll
  * and whose marked row is what it came to (ruleset §1.4, as a player's
  * action resolves). Every roll goes on Play's roll log (`reportingRoll`),
- * which keeps the Mediator's rolls off the Game's log and posts each to the
+ * which writes each to the Game's log and posts it to the
  * bound Discord channel. The Morale check is the
  * tray's own (`TrayWrites.morale`): the Morale table, open, its stamp the
  * roll, the NPC's last roll its marked row, kept on the NPC and in its box.
@@ -36,7 +36,7 @@ const NPC_ACTION = 'NPC Action'
 /** The table an NPC's Morale check reads. */
 const MORALE = 'Morale'
 
-const MORALE_CHECK = playLineModel({ name: 'Morale check', key: 'morale' })
+const MORALE_CHECK = playLineModel({ name: mediatorCopy('moraleCheck'), key: 'morale' })
 
 /** The row a die lands on, by its label ("Success"). */
 function npcActionOutcome(die: number): string {

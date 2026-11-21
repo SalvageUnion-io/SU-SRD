@@ -28,6 +28,7 @@ function client(overrides: Partial<SiteClient>): SiteClient {
     sheet: unexpected,
     usage: unexpected,
     feedback: unexpected,
+    logRoll: unexpected,
     ...overrides,
   }
 }

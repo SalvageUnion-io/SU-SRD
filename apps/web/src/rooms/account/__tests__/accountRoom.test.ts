@@ -2,7 +2,16 @@ import { describe, expect, test } from 'bun:test'
 import { downtimeClaimOpId, downtimeStepOpId } from 'game-domain/ops/downtimeStep'
 import { CRAFT_STEP_NAME, downtimeStepNames } from 'game-domain/rules/downtime'
 import { bunSql } from '../../__tests__/bunSql'
-import { AT, bodies, op, PLAYER, STRANGER, stubApplyOp, table } from '../../game/__tests__/harness'
+import {
+  AT,
+  bodies,
+  op,
+  PLAYER,
+  parcel,
+  STRANGER,
+  stubApplyOp,
+  table,
+} from '../../game/__tests__/harness'
 import type { GameRoomLogic } from '../../game/gameRoomLogic'
 import type { UnitHome } from '../../handoff'
 import { handOff } from '../../handoff'
@@ -248,6 +257,62 @@ describe('moving between the Shelf and a Game', () => {
     expect(room.shelf.store.unit('p1')).toMatchObject({ ownerId: PLAYER, headSeq: 1 })
     expect(room.shelf.history(PLAYER, 'p1')).toHaveLength(1)
     expect(game.units.list(PLAYER).some((u) => u.id === 'p1')).toBe(false)
+  })
+})
+
+describe('a unit handed to the Shelf', () => {
+  test('is refused when it is somebody else’s build, or is already here', () => {
+    const { room } = shelf()
+    expect(() =>
+      room.transit.accept(parcel(STRANGER, 'pilot', 'p9', bodies.pilot('p9')), PLAYER, AT)
+    ).toThrow('You can only move your own build')
+    expect(() =>
+      room.transit.accept(parcel(PLAYER, 'pilot', 'p1', bodies.pilot('p1')), PLAYER, AT)
+    ).toThrow('That is already in your Training Bay')
+    expect(
+      room.shelf
+        .list(PLAYER)
+        .map((u) => u.id)
+        .sort()
+    ).toEqual(['m1', 'p1'])
+  })
+
+  test('a pilot comes home assigned to the mech that is here, and sits where the Game left them', () => {
+    const { room, sql } = shelf()
+    const home = {
+      ...parcel(PLAYER, 'pilot', 'p2', bodies.pilot('p2')),
+      links: [
+        // Its mech is on the Shelf: the assignment comes with it.
+        {
+          type: 'mech-to-pilot' as const,
+          from: { type: 'mech' as const, id: 'm1' },
+          to: { type: 'pilot' as const, id: 'p2' },
+        },
+        // The other end stayed in the Game: nothing to draw.
+        {
+          type: 'mech-to-pilot' as const,
+          from: { type: 'mech' as const, id: 'm-elsewhere' },
+          to: { type: 'pilot' as const, id: 'p2' },
+        },
+      ],
+      seat: {
+        mount: { kind: 'boarded' as const, mechId: 'm1' },
+        range: 'Close',
+        activeEffects: ['smoke'],
+        ejected: false,
+      },
+    }
+    room.transit.accept(home, PLAYER, AT)
+    expect(
+      room.shelf
+        .links(PLAYER)
+        .filter((l) => l.to.id === 'p2')
+        .map((l) => l.from.id)
+    ).toEqual(['m1'])
+    expect(seatOf(sql, 'p2')).toEqual({ mount: { kind: 'boarded', mechId: 'm1' }, range: 'Close' })
+    // The same lease again changes nothing.
+    room.transit.accept(home, PLAYER, AT + 1)
+    expect(room.shelf.list(PLAYER).filter((u) => u.id === 'p2')).toHaveLength(1)
   })
 })
 

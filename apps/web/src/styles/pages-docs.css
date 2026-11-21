@@ -202,9 +202,17 @@
   gap: var(--space-12);
 }
 
-/* Used by's rows scroll in their box; stacked, a box at most a screenful. */
+/* Used by's rows scroll under their count, which never moves; stacked, the
+   rows are at most a screenful. */
+.su-sparse-rail__used-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .su-sparse-rail__scroll {
+  flex: 0 1 auto;
   max-height: 24rem;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -278,13 +286,6 @@
   justify-content: space-between;
   min-height: var(--space-24);
   padding-block: var(--space-2);
-}
-
-/* The count heads the rows and stays while they scroll. */
-.su-sparse-rail__count {
-  background-color: var(--color-paper);
-  position: sticky;
-  top: 0;
 }
 
 .su-sparse-rail__count,

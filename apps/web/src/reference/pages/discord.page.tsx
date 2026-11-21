@@ -57,8 +57,7 @@ function buildExamples() {
 }
 
 const TITLE = pageTitle(pagesCopy('discordBot'))
-const DESCRIPTION =
-  'Add the SalvageUnion.io bot to your Discord server: roll on every Salvage Union table and look up any chassis, system, module, or piece of equipment with /su.'
+const DESCRIPTION = pagesCopy('discordDescription')
 
 const PROSE_16 = proseColumn(space[16])
 const CODE = inlineCode()
@@ -98,7 +97,7 @@ const LEGAL_DOT = { color: color.wkFaint, paddingInline: space[6] } satisfies CS
 function Usage({ command }: { command: DiscordCommand }) {
   return (
     <>
-      /su {command.name}
+      {pagesCopy('su')} {command.name}
       {command.options.map((option) => (
         <span key={option.name} style={ITALIC}>
           {' '}
@@ -119,10 +118,9 @@ function commandDetail(
       return (
         <>
           <p>
-            Rolls a d20 on any Salvage Union table. Leave{' '}
-            <code style={CODE}>{pagesCopy('table')}</code> empty to roll on the{' '}
-            <strong>{pagesCopy('coreMechanic')}</strong> table — the game&rsquo;s basic d20
-            resolution roll.
+            {pagesCopy('rollsAD20OnAny')} <code style={CODE}>{pagesCopy('table')}</code>{' '}
+            {pagesCopy('emptyToRollOnThe')} <strong>{pagesCopy('coreMechanic')}</strong>{' '}
+            {pagesCopy('tableTheGamesBasicD20')}
           </p>
           <p>{pagesCopy('startTypingATableName', { rollTableCount: examples.rollTableCount })}</p>
           <p>
@@ -130,14 +128,15 @@ function commandDetail(
           </p>
           <ul style={LIST_4}>
             <li>
-              <code style={CODE}>{pagesCopy('suRoll')}</code> — Core Mechanic d20
+              <code style={CODE}>{pagesCopy('suRoll')}</code> {pagesCopy('coreMechanicD20')}
             </li>
             <li>
-              <code style={CODE}>{pagesCopy('suRollTableCriticalDamage')}</code> — what happens at 0
-              SP
+              <code style={CODE}>{pagesCopy('suRollTableCriticalDamage')}</code>{' '}
+              {pagesCopy('whatHappensAt0Sp')}
             </li>
             <li>
-              <code style={CODE}>{pagesCopy('suRollTableGroupInitiative')}</code> — who acts first
+              <code style={CODE}>{pagesCopy('suRollTableGroupInitiative')}</code>{' '}
+              {pagesCopy('whoActsFirst')}
             </li>
           </ul>
         </>
@@ -146,10 +145,9 @@ function commandDetail(
       return (
         <>
           <p>
-            Looks up any entity in the reference — the same search as this site&rsquo;s
-            <kbd style={KEY_CAP}>{pagesCopy('cmdK')}</kbd> box. Autocomplete searches as you type
-            (multi-word queries and small typos are fine); the reply shows the entity&rsquo;s key
-            stats and links to its full page here.
+            {pagesCopy('looksUpAnyEntityIn')}
+            <kbd style={KEY_CAP}>{pagesCopy('cmdK')}</kbd>{' '}
+            {pagesCopy('boxAutocompleteSearchesAsYou')}
           </p>
           <p>
             <strong>{pagesCopy('examples')}</strong>
@@ -186,7 +184,7 @@ function page(): PageResult {
       structuredData: {
         '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
-        name: 'SalvageUnion.io Discord Bot',
+        name: pagesCopy('salvageUnionIoDiscordBot'),
         applicationCategory: 'UtilitiesApplication',
         operatingSystem: 'Discord',
         description: pagesCopy('rollOnSalvageUnionTables'),
@@ -194,7 +192,7 @@ function page(): PageResult {
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         isPartOf: WEBSITE,
       },
-      breadcrumbs: [SRD_CRUMB, { name: 'Discord Bot', url: `${SITE_URL}/bot/` }],
+      breadcrumbs: [SRD_CRUMB, { name: pagesCopy('discordBot'), url: `${SITE_URL}/bot/` }],
     },
     children: (
       <DocPage
@@ -249,11 +247,11 @@ function page(): PageResult {
 
         <SlabSection as="h2" title={pagesCopy('withYourAccount')} bodyStyle={PROSE_12} page>
           <p>
-            These read your {PRODUCT.wordmark} account and its Games.{' '}
+            {pagesCopy('theseReadYour')} {PRODUCT.wordmark} {pagesCopy('accountAndItsGames')}{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
               {pagesCopy('signIn')}
             </InlineRef>{' '}
-            with the same Discord account and the bot knows you; until then each one says how.
+            {pagesCopy('withTheSameDiscordAccount')}
           </p>
           <ul style={LIST_8}>
             {withAccount.map((command) => (
@@ -271,15 +269,14 @@ function page(): PageResult {
         <SlabSection as="h2" title={pagesCopy('goodToKnow')} bodyStyle={PROSE_12} page>
           <ul style={LIST_8}>
             <li>
-              Typing <code style={CODE}>{pagesCopy('su')}</code> filters Discord&rsquo;s command
-              picker to just this bot — no more fishing your roll out of a pile of identically-named
-              commands from other bots.
+              {pagesCopy('typing')} <code style={CODE}>{pagesCopy('su')}</code>{' '}
+              {pagesCopy('filtersDiscordsCommandPicker')}
             </li>
             <li>{pagesCopy('theBotServesTheSame')}</li>
             <li>{pagesCopy('itNeverReadsMessagesIts')}</li>
           </ul>
           <p style={ASIDE}>
-            <strong>{pagesCopy('runningACampaign')}</strong> Pair the bot with the app: the{' '}
+            <strong>{pagesCopy('runningACampaign')}</strong> {pagesCopy('pairTheBotWithThe')}{' '}
             <InlineRef href={appPath('/')} style={BOLD}>
               {PRODUCT.build}
             </InlineRef>
@@ -288,18 +285,17 @@ function page(): PageResult {
                 (ADR-034). Never reword this to claim building or keeping work
                 without one.
               */}
-            , the character builder, and{' '}
+            {pagesCopy('theCharacterBuilderAnd')}{' '}
             <InlineRef href={appPath('/games/')} style={BOLD}>
               {PRODUCT.play}
             </InlineRef>
-            , the Game table: read the Starter Set with no account, and sign in with Discord to
-            build. Sheets can be shared into Discord as live public links.
+            {pagesCopy('theGameTableReadThe')}
           </p>
         </SlabSection>
 
         {/* Attribution */}
         <p style={ATTRIBUTION}>
-          Dice rolling powered by{' '}
+          {pagesCopy('diceRollingPoweredBy')}{' '}
           <InlineRef
             href="https://randsum.dev"
             target="_blank"

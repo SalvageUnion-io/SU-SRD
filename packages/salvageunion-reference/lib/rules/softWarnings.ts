@@ -105,7 +105,7 @@ function checkAdvancedGate(after: PilotSnapshot): SoftWarning[] {
     warn(
       'ADVANCED_ABILITY_PREREQUISITE',
       `"${abilityLabel(first)}" is an Advanced/Hybrid ability — it normally requires ` +
-        `6 Core abilities including a complete core tree (this pilot has ${coreCount}).`
+        `6 Core Abilities including a complete core tree (this Pilot has ${coreCount}).`
     ),
   ]
 }
@@ -123,7 +123,7 @@ function checkLegendaryGate(after: PilotSnapshot): SoftWarning[] {
       warn(
         'LEGENDARY_ABILITY_PREREQUISITE',
         `"${abilityLabel(firstLegendary)}" is a Legendary ability — it normally requires ` +
-          `6 Core and 3 Advanced/Hybrid abilities (this pilot has ${coreCount} core, ` +
+          `6 Core and 3 Advanced/Hybrid abilities (this Pilot has ${coreCount} core, ` +
           `${advancedCount} advanced).`
       )
     )
@@ -132,7 +132,7 @@ function checkLegendaryGate(after: PilotSnapshot): SoftWarning[] {
     warnings.push(
       warn(
         'ONE_LEGENDARY_LIMIT',
-        `This pilot has ${legendary.length} Legendary abilities; the rules allow at most one — ever.`
+        `This Pilot has ${legendary.length} Legendary abilities; the rules allow at most one — ever.`
       )
     )
   }
@@ -153,7 +153,7 @@ function checkClassPrerequisite(before: PilotSnapshot, after: PilotSnapshot): So
     warn(
       'CLASS_PREREQUISITE',
       `${after.className ?? 'This specialisation'} is an Advanced/Hybrid class — it normally ` +
-        `requires 6 Core abilities including a complete core tree (this pilot has ${coreCount}).`
+        `requires 6 Core Abilities including a complete core tree (this Pilot has ${coreCount}).`
     ),
   ]
 }
@@ -181,7 +181,7 @@ function checkAbilityCountCap(after: PilotSnapshot): SoftWarning[] {
   return [
     warn(
       'PILOT_ABILITY_CAP_EXCEEDED',
-      `This pilot has ${after.abilities.length} abilities; the rules cap is ${cap}` +
+      `This Pilot has ${after.abilities.length} abilities; the rules cap is ${cap}` +
         `${after.isSalvager ? ' (Salvager)' : ''}.`
     ),
   ]
@@ -213,7 +213,7 @@ function checkSystemDependencies(before: MechSnapshot, after: MechSnapshot): Sof
         warnings.push(
           warn(
             'SYSTEM_DEPENDENCY_REMOVED',
-            `"${remaining.ref}" depends on "${dep}", which was removed from this mech.`
+            `"${remaining.ref}" depends on "${dep}", which was removed from this Mech.`
           )
         )
       }
@@ -235,7 +235,7 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
   const warnings: SoftWarning[] = [
     warn(
       'TECH_LEVEL_DOWNGRADE',
-      'Tech level is being reduced. Per the rules, a scrap refund may be applicable.'
+      'Tech Level is being reduced. Per the rules, a scrap refund may be applicable.'
     ),
   ]
 
@@ -243,7 +243,7 @@ function checkTechLevelDowngrade(context: SoftWarningContext): SoftWarning[] {
     warnings.push(
       warn(
         'TECH_LEVEL_DOWNGRADE_NO_REFUND',
-        'Downgrading tech level without issuing a scrap refund. Confirm this is intentional.'
+        'Downgrading Tech Level without issuing a scrap refund. Confirm this is intentional.'
       )
     )
   }

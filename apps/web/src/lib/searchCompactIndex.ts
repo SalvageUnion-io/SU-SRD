@@ -29,6 +29,12 @@ import {
 import type { CompactSearchEntry } from './searchIndexTypes'
 
 /**
+ * A hit on the compact index: the package's result, with what a pattern's row
+ * says of itself (`CompactSearchEntry.pattern`), which no schema does.
+ */
+export type CompactSearchResult = SearchResult & { pattern?: CompactSearchEntry['pattern'] }
+
+/**
  * Search a compact index built by `searchIndexBuild.ts`. Same call/result
  * shape as `salvageunion-reference`'s `search()` (`SearchOptions` in,
  * `SearchResult[]` out) so it's a drop-in `searchFn` for
@@ -39,14 +45,14 @@ import type { CompactSearchEntry } from './searchIndexTypes'
 export function searchCompactIndex(
   index: readonly CompactSearchEntry[],
   options: SearchOptions
-): SearchResult[] {
+): CompactSearchResult[] {
   const { query, schemas: schemaFilter, limit } = options
   const parsed = tokenizeSearchQuery(query)
   if (!parsed) return []
-  const { loweredQuery, tokens } = parsed
+  const { tokens } = parsed
   const schemasToSearch = schemaFilter ? new Set(schemaFilter) : null
 
-  const results: SearchResult[] = []
+  const results: CompactSearchResult[] = []
 
   for (const entry of index) {
     if (schemasToSearch && !schemasToSearch.has(entry.schemaName)) continue
@@ -57,7 +63,13 @@ export function searchCompactIndex(
     )
     if (!matches) continue
 
-    const score = scoreSearchMatch({ nameText, loweredQuery, tokens, usedTypo })
+    // A pattern is ranked as itself, never lifted by its host's kind.
+    const score = scoreSearchMatch({
+      ...parsed,
+      nameText,
+      usedTypo,
+      ...(entry.pattern ? {} : { schemaName: entry.schemaName }),
+    })
 
     results.push({
       schemaName: entry.schemaName,
@@ -73,6 +85,7 @@ export function searchCompactIndex(
       entityName: entry.name,
       matchedFields: [],
       matchScore: score,
+      ...(entry.pattern ? { pattern: entry.pattern } : {}),
     })
   }
 

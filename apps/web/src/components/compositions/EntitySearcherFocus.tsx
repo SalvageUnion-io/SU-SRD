@@ -8,8 +8,9 @@
  * Removing is the sidebar's.
  */
 
-import type { CSSProperties, Ref } from 'react'
+import type { CSSProperties, ReactNode, Ref } from 'react'
 import { borderWidth, color, fontSize, space } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { BackLabel } from '../atoms/BackLabel'
 import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
@@ -17,7 +18,7 @@ import { ChapterBandTrail } from '../atoms/ChapterBandTrail'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { EntityDetailPage } from '../referenceEntity/EntityDetailDialog'
-import type { PoolEntity } from './entitySearcherTypes'
+import type { PickCost, PoolEntity } from './entitySearcherTypes'
 
 /**
  * The action bar reads the focused entity's state: a stamp saying how many
@@ -32,9 +33,12 @@ export function FocusPane({
   chosenLabel,
   railName,
   listName,
+  cost,
   hide,
   showChassisAbility,
   onAdd,
+  extra,
+  userMade,
   onBack,
   backRef,
 }: {
@@ -46,16 +50,28 @@ export function FocusPane({
   railName?: string
   /** The list the back bar returns to (the picker's title); "List" when it has none. */
   listName?: string
+  /** What adding it costs, where the sheet can pay it as it adds. */
+  cost?: PickCost
   hide: ReferenceEntityCardHideConfig
   showChassisAbility?: boolean
   onAdd: () => void
+  /** A choice that goes with adding (which pattern), beside the button. */
+  extra?: ReactNode
+  /** The player's own entity: the Page credits no book. */
+  userMade?: boolean
   /** Narrow only: back to the list. */
   onBack?: () => void
   backRef?: Ref<HTMLButtonElement>
 }) {
   const chosen = count > 0
   const addLabel =
-    mode === 'single' ? 'Choose' : chosen ? 'Add another' : railName ? `Add to ${railName}` : 'Add'
+    mode === 'single'
+      ? compositionsCopy('choose')
+      : chosen
+        ? compositionsCopy('addAnother')
+        : railName
+          ? compositionsCopy('addTo', { name: railName })
+          : compositionsCopy('add')
   const canAdd = mode === 'count' || !chosen
 
   return (
@@ -81,6 +97,7 @@ export function FocusPane({
               data={entity}
               presentation="page"
               hide={hide}
+              userMade={userMade}
               showChassisAbility={showChassisAbility}
             />
           </EntityDetailPage>
@@ -96,10 +113,17 @@ export function FocusPane({
         {chosen && (
           <Badge shape="stamp">{mode === 'count' ? `${count} ${chosenLabel}` : chosenLabel}</Badge>
         )}
+        {canAdd && cost && <Badge shape="stamp">{cost.label}</Badge>}
         <span style={GROW_STYLE} />
+        {extra}
         {canAdd && (
-          <Button variant="primary" size="compact" onClick={onAdd}>
+          <Button variant={cost?.canPay ? undefined : 'primary'} size="compact" onClick={onAdd}>
             {addLabel}
+          </Button>
+        )}
+        {canAdd && cost && (
+          <Button variant="primary" size="compact" disabled={!cost.canPay} onClick={cost.onPay}>
+            {cost.payLabel}
           </Button>
         )}
       </div>

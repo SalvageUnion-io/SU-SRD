@@ -7,6 +7,9 @@ import type { GameStore } from './store'
  * change no unit (ADR-063 §7). Any member reads them; a member appends
  * their rolls, and only the Mediator sends an alert. A unit's change is its
  * op, so a row about a unit is not kept: its history is `units.history`.
+ *
+ * A roll logged `private` (ADR-051 §9a) is the Mediator's own: only a
+ * Mediator and whoever rolled it read it back.
  */
 
 /** The most rows of each field a read returns: the feed's newest page. */
@@ -27,6 +30,8 @@ export type RollRow = {
   source: string
   description: string
   actorName: string | null
+  /** Only a Mediator and its roller read it; absent on a roll the table reads. */
+  private?: true
 }
 
 export type AlertRow = { _id: string; message: string; ts: number; actorId: string | null }
@@ -43,10 +48,10 @@ export class GameLog {
       throw new RoomRefusal('Alerts are written by the Mediator, not by a client append')
     }
     this.store.sql.transaction(() => {
-      this.store.requireMember(actor)
+      const { mediator } = this.store.requireMember(actor)
       for (const e of entries) {
         if (e.entityType !== 'game') continue
-        this.put(e.field, e.after ?? null, e.source, actor, e.ts)
+        this.put(e.field, mediator ? (e.after ?? null) : shared(e.after), e.source, actor, e.ts)
       }
     })
   }
@@ -63,17 +68,23 @@ export class GameLog {
 
   /** The newest rolls, newest first, each named by its roller as the roster names them. */
   rolls(actor: string): RollRow[] {
-    return this.newest(actor, 'roll').map((row) => {
-      const after = parsed(row.after) as { description?: unknown } | null
+    const mediates = this.store.member(actor)?.mediator === true
+    return this.newest(actor, 'roll').flatMap((row): RollRow[] => {
+      const after = parsed(row.after) as { description?: unknown; private?: unknown } | null
       const actorId = row.actor_id === null ? null : String(row.actor_id)
-      return {
-        _id: String(row.id),
-        ts: Number(row.ts),
-        source: String(row.source),
-        description: typeof after?.description === 'string' ? after.description : 'A roll',
-        actorName:
-          actorId === null ? null : (this.store.member(actorId)?.displayName ?? 'Crewmate'),
-      }
+      const hidden = after?.private === true
+      if (hidden && !mediates && actorId !== actor) return []
+      return [
+        {
+          _id: String(row.id),
+          ts: Number(row.ts),
+          source: String(row.source),
+          description: typeof after?.description === 'string' ? after.description : 'A roll',
+          actorName:
+            actorId === null ? null : (this.store.member(actorId)?.displayName ?? 'Crewmate'),
+          ...(hidden ? { private: true as const } : {}),
+        },
+      ]
     })
   }
 
@@ -107,6 +118,13 @@ export class GameLog {
       ts
     )
   }
+}
+
+/** A row as the whole table reads it: only the Mediator's is ever private. */
+function shared(after: unknown): unknown {
+  if (after === null || typeof after !== 'object' || !('private' in after)) return after ?? null
+  const { private: _, ...rest } = after as Record<string, unknown>
+  return rest
 }
 
 function parsed(value: unknown): unknown {

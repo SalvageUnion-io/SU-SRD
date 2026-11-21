@@ -30,7 +30,7 @@ export const DISCORD_COMMANDS: readonly DiscordCommand[] = [
   },
   {
     "name": "lookup",
-    "description": "Look up any Salvage Union entity (equipment, chassis, systems, keywords, …)",
+    "description": "Look up any Salvage Union entity (equipment, chassis, Systems, keywords, …)",
     "options": [
       {
         "name": "entity",

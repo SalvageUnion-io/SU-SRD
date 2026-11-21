@@ -11,6 +11,7 @@ import { POSTER_STAMP } from './posterStamp'
 import { StepButton } from './SmallButtons'
 import type { ProvenanceLine } from './StatProvenance'
 import { StatProvenance } from './StatProvenance'
+import { VitalGaugeValue } from './VitalGaugeValue'
 import {
   C_HEAD,
   C_LABEL,
@@ -126,6 +127,8 @@ export type VitalGaugeProps = {
    * the track's end (a Live Sheet's vitals, which step in Read: R11).
    */
   steppers?: boolean | 'end'
+  /** The compact value as a button (`VitalGaugeValue`): the caller asks for an amount. */
+  onValuePress?: (() => void) | undefined
   /** Non-interactive read-out (role="img"); over-capacity segments read red. */
   readOnly?: boolean
   /** First 0-based segment index that reads as danger (status-bad) when lit. */
@@ -183,6 +186,7 @@ export function VitalGauge({
   onRevertOverride,
   provenance,
   steppers = false,
+  onValuePress,
   readOnly,
   danger,
   size = 'full',
@@ -239,10 +243,11 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
 
-  const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
+  const plain = `${label} ${shown} of ${max}`
+  const summary = isOver ? atomsCopy('overCapacity', { summary: plain }) : plain
   // The slider's spoken value: the summary, plus the redline once a lit
   // segment sits past it (the same test that paints that segment danger).
-  const valueText = `${summary}${shown > dangerFrom ? ', over redline' : ''}`
+  const valueText = shown > dangerFrom ? atomsCopy('overRedline', { summary }) : summary
 
   const setValue = (next: number) => {
     if (!editable) return
@@ -356,14 +361,13 @@ export function VitalGauge({
           <span className={capsLabel({ size: 'badge' })} style={{ ...C_LABEL, color: color.ink }}>
             {label}
           </span>
-          <span
-            style={{
-              ...C_VALUE,
-              color: isOver ? color.statusBad : color.ink,
-            }}
+          <VitalGaugeValue
+            style={{ ...C_VALUE, color: isOver ? color.statusBad : color.ink }}
+            name={atomsCopy('changeByAmount', { label, value: shown, max })}
+            onPress={editable ? onValuePress : undefined}
           >
             {shown}/{max}
-          </span>
+          </VitalGaugeValue>
         </div>
         {/*
          * Pips follow the §4.5 row split (`statBlockRowStarts`: at most six a

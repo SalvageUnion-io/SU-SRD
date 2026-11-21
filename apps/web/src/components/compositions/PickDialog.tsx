@@ -52,6 +52,13 @@ type PickDialogProps = {
   /** The picked choice's id, or null. */
   selected: string | null
   onSelect: (id: string) => void
+  /**
+   * Several at once: the picked ids. Each Compact is then a toggle (its own
+   * checkbox, EDL Modes) and `onSelect` flips one; `selected` is not read.
+   */
+  many?: readonly string[]
+  /** Ways on from here, under the choices or the empty state (a link to build one). */
+  doors?: ReactNode
   /** A line under the choices: what picking does (a move, a reassignment). */
   note?: ReactNode
   /** A refusal, said where the player is still looking. */
@@ -80,6 +87,14 @@ const GROUPS = {
   gap: space[16],
 } satisfies CSSProperties
 
+/** The ways on, in a row that wraps. */
+const DOORS = {
+  alignItems: 'center',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: space[8],
+} satisfies CSSProperties
+
 /** One group: its Slab, then its Compacts 8px apart. */
 const GROUP = {
   display: 'flex',
@@ -87,11 +102,29 @@ const GROUP = {
   gap: space[8],
 } satisfies CSSProperties
 
+/** The choices' group: one radio group, or a labelled group of toggles for a pick of several. */
+function Choices({ label, many, children }: { label: string; many: boolean; children: ReactNode }) {
+  if (!many) {
+    return (
+      <RadioCardGroup label={label} style={GROUPS}>
+        {children}
+      </RadioCardGroup>
+    )
+  }
+  return (
+    // biome-ignore lint/a11y/useSemanticElements: a fieldset's legend would repeat the dialog's title above the Slabs
+    <div role="group" aria-label={label} style={GROUPS}>
+      {children}
+    </div>
+  )
+}
+
 /**
  * PickDialog — the one pick dialog (ruleset §6.6): a narrow `ModalShell`
  * (chrome K7) around one radio group of Compacts in select mode (EDL "Modes":
  * ink ring and the "Selected" seal), each run of them under its Slab, then
- * Cancel and the primary act in `DialogActions`. Nothing on offer is one
+ * Cancel and the primary act in `DialogActions`. With `many` the Compacts are
+ * toggles in a labelled group, for a pick of several at once. Nothing on offer is one
  * `EmptyState` (K8). Assigning a unit to a slot, moving one in from the
  * Training Bay and choosing the pilot to play are each this dialog with their own
  * choices and act.
@@ -102,10 +135,12 @@ export function PickDialog({
   title,
   description,
   groups,
-  loading = 'the choices',
+  loading = compositionsCopy('theChoices'),
   empty,
   selected,
   onSelect,
+  many,
+  doors,
   note,
   error,
   confirmLabel,
@@ -128,7 +163,7 @@ export function PickDialog({
         ) : shown.length === 0 ? (
           <EmptyState variant="quiet" body={empty} />
         ) : (
-          <RadioCardGroup label={title} style={GROUPS}>
+          <Choices label={title} many={many !== undefined}>
             {shown.map((group) => {
               const rows = group.choices.map((choice) => (
                 <Entity
@@ -137,8 +172,9 @@ export function PickDialog({
                   model={choice.model}
                   mode={{
                     kind: 'select',
-                    role: 'radio',
-                    selected: choice.id === selected,
+                    role: many === undefined ? 'radio' : 'toggle',
+                    selected:
+                      many === undefined ? choice.id === selected : many.includes(choice.id),
                     onSelect: () => onSelect(choice.id),
                     label: choice.label,
                   }}
@@ -165,8 +201,10 @@ export function PickDialog({
                 </div>
               )
             })}
-          </RadioCardGroup>
+          </Choices>
         )}
+
+        {doors && <div style={DOORS}>{doors}</div>}
 
         {note && <Text variant="note">{note}</Text>}
 

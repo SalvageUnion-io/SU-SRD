@@ -2,6 +2,7 @@ import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { FieldError } from '../../components/app'
 import { Box, ReferenceEntityCard } from '../../components/index'
+import { pilotInventoryUsed } from '../../lib/rules/pilotInventory'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { pilotCopy } from '../../messages/build-pilot'
 import { abilityColumns, equipmentColumns } from '../wizard/pickColumns'
@@ -65,7 +66,9 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
           </Recap>
           {submitError && <FieldError>{submitError}</FieldError>}
         </Box>
-        <StatsStep />
+        <StatsStep
+          inventoryUsed={pilotInventoryUsed({ equipment: form.equipment, genericInventory: [] })}
+        />
         <div className="su-wiz-ledgers">
           <ReviewLedger
             title={pilotCopy('abilities')}

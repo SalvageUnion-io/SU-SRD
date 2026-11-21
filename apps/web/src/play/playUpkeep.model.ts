@@ -29,12 +29,11 @@ export async function payDowntimeUpkeep({
   if (crawler === null) return null
   const tl = crawler.techLevel
   const paid = payUpkeepPatch(store.get('crawler', crawler.id) ?? crawler, tl)
-  if (!(await claim('upkeep', crawler.id, paid.patch)))
-    return 'Upkeep is already paid this Downtime.'
+  if (!(await claim('upkeep', crawler.id, paid.patch))) return playCopy('upkeepAlreadyPaid')
   const { short } = paid.payment
   if (short > 0) {
     const scrap = crawlerUpkeepCost(tl, crawler.type)
     return playCopy('upkeepShort', { scrap, tl, short, pool: paid.patch.upgradePool })
   }
-  return `Paid the Upkeep. Upgrade Pool now ${paid.patch.upgradePool}.`
+  return playCopy('paidTheUpkeep', { pool: paid.patch.upgradePool })
 }

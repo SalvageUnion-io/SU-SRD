@@ -112,7 +112,7 @@ export function RouteNotFound() {
  * and the app's wait on the reference data (`GameDataReady`) and on a Play
  * gate's session or Game.
  */
-export function RoutePending({ label = 'the page' }: { label?: string }) {
+export function RoutePending({ label = sharedCopy('thePage') }: { label?: string }) {
   return (
     <FullPageShell aria-busy="true">
       <Pending label={label} />

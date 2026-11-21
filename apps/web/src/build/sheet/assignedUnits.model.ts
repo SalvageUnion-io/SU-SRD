@@ -44,6 +44,7 @@ import {
 import { chassisTechLevel, techLevelReading } from '../../lib/units/readings'
 import type { UnitReading } from '../../lib/units/unitModel'
 import { newInGameHref } from '../../lib/wizard/fromGame'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { PickerControl } from '../wiring/AssignPicker'
 import type { SheetComposition } from './composition.model'
 import { partnerDisplayName } from './partnerDisplay.model'
@@ -100,12 +101,24 @@ const NEW_PATH = {
   crawler: '/crawlers/new',
 } as const satisfies Record<SheetKind, string>
 
-/** The wizard that makes a `kind` in the subject's container (ADR-052 §3). */
+/**
+ * The wizard that makes a `kind` in the subject's container (ADR-052 §3). A
+ * pilot's mech is made for that pilot (`?pilot=`, as the Training Bay's
+ * "+ Add a Mech" is) and a mech's pilot for that mech (`?mech=`): the wizard
+ * assigns the pair and comes back here.
+ */
 function createHrefFor(kind: SheetKind, subject: AssignedSubject): string {
   const container = containerOf(subject.entity)
-  return container.kind === 'game'
-    ? newInGameHref(NEW_PATH[kind], container.gameId)
-    : NEW_PATH[kind]
+  const href =
+    container.kind === 'game' ? newInGameHref(NEW_PATH[kind], container.gameId) : NEW_PATH[kind]
+  const pair =
+    kind === 'mech' && subject.kind === 'pilot'
+      ? 'pilot'
+      : kind === 'pilot' && subject.kind === 'mech'
+        ? 'mech'
+        : null
+  if (pair === null) return href
+  return `${href}${href.includes('?') ? '&' : '?'}${pair}=${encodeURIComponent(subject.entity.id)}`
 }
 
 /** The sheet's own entity, by its kind. */
@@ -138,8 +151,8 @@ type Place = {
 
 /** A place of many is named for what it adds. */
 const MANY_PLACEHOLDER: Partial<Record<SheetKind, string>> = {
-  mech: 'Dock a Mech',
-  pilot: 'Add a Pilot to the crew',
+  mech: buildSheetCopy('dockAMech'),
+  pilot: buildSheetCopy('addAPilotToTheCrew'),
 }
 
 function placesOf(subject: AssignedSubject, composition: SheetComposition): Place[] {
@@ -316,7 +329,11 @@ export function assignedUnitsFor(args: {
     const hidden = withheld.filter((unit) => unit.kind === kind)
     const named = place.many ? hidden : place.linked.length > 0 ? [] : hidden.slice(0, 1)
     for (const unit of named) {
-      units.push({ key: place.many ? unit.key : kind, kind, name: unit.name ?? 'Not shared' })
+      units.push({
+        key: place.many ? unit.key : kind,
+        kind,
+        name: unit.name ?? buildSheetCopy('notShared'),
+      })
     }
     if (place.many) {
       slots.push({

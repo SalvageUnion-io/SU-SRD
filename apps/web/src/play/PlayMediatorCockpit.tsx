@@ -33,6 +33,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
+import { Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
 import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
@@ -45,6 +46,7 @@ import { PlayMediatorDowntime } from './mediator/PlayMediatorDowntime'
 import { PlayMediatorOpposition } from './mediator/PlayMediatorOpposition'
 import { MediatorTablesAndFeed, PlayMediatorProposeSection } from './mediator/PlayMediatorSide'
 import { PlayMediatorTable } from './mediator/PlayMediatorTable'
+import { SrdExplorer } from './mediator/SrdExplorer'
 import { usePlayMediator } from './mediator/usePlayMediator'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
@@ -53,7 +55,9 @@ import { PlayFeedSection } from './PlaySideColumn'
 import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
-import { StopSignBanner, StopSignButton } from './StopSign'
+import { setPrivateRolls } from './playRolls.model'
+import { StopSignButton } from './StopSign'
+import { useGameSession } from './useGameSession'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
 import { useSideFeed } from './usePlaySide'
@@ -73,17 +77,23 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const mediator = usePlayMediator(gameId, gameName)
   useTabTitle(areaTitle(PRODUCT.play, `${routesCopy('mediate')} ${gameName}`))
   const binding = usePlayChannelBinding({ gameId })
-  // The Mediator's side (play.md §10): every roll posts while a channel is
-  // bound, and the Game's log is left out of the roll dispatch (the log is the
-  // crew's; the Opposition reaches them only through what is posted). Nothing awaits the
-  // Mediator's answer, so no proposal is on its Feed.
+  // The Mediator's side (play.md §10): every roll goes on the Game's log, so
+  // the players' Feeds show it and a reload keeps it, and posts while a channel
+  // is bound; with Private rolls on, a roll is kept from the players and from
+  // Discord. Nothing awaits the Mediator's answer, so no proposal is on its Feed.
+  const [privately, setPrivately] = useState(false)
+  useEffect(() => {
+    setPrivateRolls(privately)
+    return () => setPrivateRolls(false)
+  }, [privately])
   const side = useSideFeed({
     target: mediatorTarget(mediator.gameId),
     rollerName: 'Mediator',
     binding,
-    log: false,
+    channel: { owner: { kind: 'game', gameName }, mayBind: true },
     rolls: mediator.rolls,
     alerts: mediator.alerts,
+    events: mediator.events,
     proposals: [],
   })
   const wide = usePlayWide()
@@ -102,6 +112,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const { here, of } = hereOf(mediator.seats)
   const running = mediator.downtime.downtime.running
   const sign = useStopSign(gameId)
+  const session = useGameSession(gameId)
 
   useEffect(() => {
     if (!focusTo || (!wide && tab !== 'propose')) return
@@ -124,7 +135,16 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             setFocusTo(true)
           }}
         />
-        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+        <PlayFeedSection
+          side={side}
+          idPrefix="mediate"
+          canWrite={mediator.canWrite}
+          actions={
+            <Toggle size="compact" pressed={privately} onClick={() => setPrivately((on) => !on)}>
+              {playCopy('privateRolls')}
+            </Toggle>
+          }
+        />
       </>
     ),
     opposition: running ? (
@@ -133,6 +153,9 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       <PlayMediatorOpposition mediator={mediator} rollFor={rollFor} />
     ),
     tables: <MediatorTablesAndFeed mediator={mediator} side={side} />,
+    // The Reference beside the board (the player's `SrdExplorer`), so a rule is read
+    // without covering the seats; a phone opens it from the ⋯.
+    rules: <SrdExplorer />,
     propose: (
       <PlayMediatorProposeSection
         mediator={mediator}
@@ -146,7 +169,11 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   return (
     <PlayFrame
       wide={wide}
-      labels={['The table', running ? 'Downtime' : 'Opposition', 'Tables, Feed and Propose']}
+      labels={[
+        playCopy('theTable'),
+        running ? playCopy('downtimeWord') : playCopy('opposition'),
+        playCopy('rollsRulesAndPropose'),
+      ]}
       bar={
         <>
           <PlayBar
@@ -158,6 +185,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             stamp={wide ? 'Mediator' : undefined}
             short={!wide}
             tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+            paused={sign?.shown === true}
             live={status === 'live'}
             here={mediator.crew === null ? null : here}
             of={mediator.crew === null ? null : of}
@@ -172,16 +200,21 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             menu={<PlayMediatorBarActions mediator={mediator} wide={wide} channel={channel.row} />}
           />
           {channel.dialog}
-          <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
         </>
       }
       pinned={
         <PlayGameStateSwitch downtime={mediator.downtime} canWrite={mediator.canWrite} fill />
       }
-      panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
+      panes={mediatorPanes(running, wide).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
-      foot={<PlayFoot solo={false} tone={PHASE_TONE[running ? 'downtime' : 'scene']} />}
+      foot={
+        <PlayFoot
+          solo={false}
+          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
+          note={session?.live ? playCopy('sessionLive') : undefined}
+        />
+      }
     />
   )
 }

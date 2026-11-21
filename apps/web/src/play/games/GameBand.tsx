@@ -24,7 +24,9 @@ import { Badge, Button, ChapterBand } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
+import { SessionControl } from '../SessionControl'
 import type { GameSession } from '../useGameSession'
+import { gamePrepPath } from './prep/gamePrep.model'
 
 /**
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
@@ -74,17 +76,13 @@ export function GameBand({
                 <Button href={mediatePath(gameId)} variant="primary" size="compact">
                   {playGamesCopy('mediate')}
                 </Button>
-                {live && session && (
-                  // Any other control on a pink band is ink (R44).
-                  <Button
-                    variant="ink"
-                    size="compact"
-                    disabled={!session.canWrite || session.pending}
-                    onClick={session.end}
-                  >
-                    {playCopy('endGroupSession')}
-                  </Button>
-                )}
+                {/* The Game's Prep (ADR-067 §3): any other control on a pink band is ink (R44). */}
+                <Button href={gamePrepPath(gameId)} variant="ink" size="compact">
+                  {playGamesCopy('prep')}
+                </Button>
+                {/* Any other control on a pink band is ink (R44). Start and End
+                    are both here, as on the Mediator's bar; End asks first. */}
+                <SessionControl session={session ?? null} />
               </Cluster>
             )}
             {live && !mediates && (

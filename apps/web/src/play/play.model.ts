@@ -11,9 +11,10 @@ import { containerOf } from 'game-domain/container'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
 import type { ChapterTone } from '../components/index'
-import { CHAPTER_BAND_COLOR } from '../components/index'
+import { CHAPTER_BAND_COLOR, tokens } from '../components/index'
 import { foregroundOn } from '../design/contrast'
 import { sharedCopy } from '../messages/components-shared'
+import { playCopy } from '../messages/play'
 import type { SyncStatus } from '../replica/sync'
 import type { UnitsState } from '../replica/units'
 import type { Situation } from './situation.model'
@@ -81,6 +82,16 @@ export const PHASE_TONE = {
   scene: 'denizen',
 } as const satisfies Record<PlayPhase, ChapterTone>
 
+/** The band while the Stop Sign is up (play.md §17): the stop colour, on every phase. */
+export function pausedBand() {
+  const background = tokens.color.statusBad
+  const foreground = foregroundOn(background, 'paper')
+  return {
+    ground: foreground === 'paper' ? ('ink' as const) : ('paper' as const),
+    style: { background, color: `var(--color-${foreground})` } satisfies CSSProperties,
+  }
+}
+
 /**
  * The foot's connection line: connected, a Game's screen reaches its table
  * live and a solo one shares nothing. Otherwise none: the Play bar's
@@ -88,7 +99,7 @@ export const PHASE_TONE = {
  */
 export function connectionLine(status: SyncStatus, solo: boolean): string | null {
   if (status !== 'live') return null
-  return solo ? 'Solo · nothing is shared' : 'Connected · changes reach the table live'
+  return solo ? playCopy('soloNothingIsShared') : playCopy('connectedChangesReachTheTable')
 }
 
 /**
@@ -98,16 +109,59 @@ export function connectionLine(status: SyncStatus, solo: boolean): string | null
  */
 export type PlayReadOnly = { stamp: string; says: string }
 
-export function playReadOnly(connection: {
-  status: SyncStatus
-  canWrite: boolean
-  outdated?: boolean
-}): PlayReadOnly | null {
-  if (connection.canWrite) return null
+/**
+ * Who holds a pilot the viewer may not edit (ADR-030 §4): a crewmate, by name
+ * once the members have answered, or nobody. Play opens on it read-only.
+ */
+export type PilotHolder = { name: string | null; unassigned?: true }
+
+/**
+ * The holder of `pilotId` when it is not the viewer: null for the viewer's
+ * own, and while who holds it is not known (solo, signed out, the Game's
+ * listing not served yet), when the server's refusal still stands behind it.
+ */
+export function pilotHolder(args: {
+  pilotId: string
+  viewerId: string | null
+  /** The Game's pilots as its listing serves them (`useGameListing`). */
+  pilots: readonly { _id: string; appId: string | null; ownerId: string | null }[] | undefined
+  members: readonly { userId: string; displayName: string }[] | undefined
+}): PilotHolder | null {
+  if (args.viewerId === null) return null
+  const row = args.pilots?.find((p) => (p.appId ?? p._id) === args.pilotId)
+  if (row === undefined || row.ownerId === args.viewerId) return null
+  if (row.ownerId === null) return { name: null, unassigned: true }
+  return { name: args.members?.find((m) => m.userId === row.ownerId)?.displayName ?? null }
+}
+
+export function playReadOnly(
+  connection: {
+    status: SyncStatus
+    canWrite: boolean
+    outdated?: boolean
+  },
+  /** Who holds the pilot, when it is not the viewer's to play (`pilotHolder`). */
+  holder: PilotHolder | null = null
+): PlayReadOnly | null {
+  if (connection.canWrite) {
+    if (holder === null) return null
+    if (holder.unassigned) {
+      return {
+        stamp: playCopy('readOnlyUnassigned'),
+        says: playCopy('readOnlyUnassignedSays'),
+      }
+    }
+    return holder.name === null
+      ? { stamp: playCopy('readOnlyCrewmates'), says: playCopy('readOnlyCrewmatesSays') }
+      : {
+          stamp: playCopy('readOnlyHolders', { name: holder.name }),
+          says: playCopy('readOnlyHoldersSays', { name: holder.name }),
+        }
+  }
   if (connection.outdated) {
     return {
       stamp: 'Read-only · outdated',
-      says: 'Read-only: this tab is updating to the new build. Reload to keep playing.',
+      says: playCopy('readOnlyOutdatedSays'),
     }
   }
   switch (connection.status) {
@@ -115,11 +169,11 @@ export function playReadOnly(connection: {
     case 'offline':
       return { stamp: sharedCopy('offlineReadOnly'), says: sharedCopy('notConnectedYourGamesAre') }
     case 'syncing':
-      return { stamp: 'Read-only · connecting', says: 'Read-only while the connection settles.' }
+      return { stamp: 'Read-only · connecting', says: playCopy('readOnlyConnectingSays') }
     case 'signedOut':
-      return { stamp: 'Read-only · signed out', says: 'Read-only: sign in to play.' }
+      return { stamp: playCopy('readOnlySignedOut'), says: playCopy('readOnlySignedOutSays') }
     case 'live':
-      return { stamp: 'Read-only', says: 'Read-only: the server is not taking changes right now.' }
+      return { stamp: 'Read-only', says: playCopy('readOnlyServerSays') }
   }
 }
 

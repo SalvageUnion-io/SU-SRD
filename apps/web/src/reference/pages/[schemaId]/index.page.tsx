@@ -28,11 +28,13 @@ import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../
 import { listingEntries } from '../../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
 import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
+import { listingTraits } from '../../../lib/listingTraits'
 import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { artUrlFor } from '../../../lib/sourceCovers'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
 import type { PageModule, PageResult, RouteContext } from '../../types'
 
@@ -52,13 +54,15 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
-  const description = `Browse all ${pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
+  const description = pagesCopy('browseAll', { pluralName })
 
   // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
   // handful of tiles, so it has no TL facet.
   const techLevels = CATALOG_LISTINGS.has(schemaId) ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
+  // The weapons' and gear's traits: "which systems are Hot" is a filter.
+  const traits = listingTraits(data)
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // Art-less tiles take the Catalog's wider columns.
   const hasArt = data.some((item) => !!artUrlFor(item as RefMetaEntity))
@@ -91,7 +95,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         name: schemaName,
         description,
         url: canonicalUrl,
-        keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+        keywords: [
+          pagesCopy('salvageUnion'),
+          'TTRPG',
+          'SRD',
+          pagesCopy('systemReferenceDocument'),
+          schemaName,
+        ],
         isPartOf: WEBSITE,
         mainEntity: {
           '@type': 'ItemList',
@@ -115,6 +125,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels,
             sources,
             trees,
+            traits,
             preloadSchemas,
             hasArt,
             shape,
@@ -127,6 +138,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels={techLevels}
             sources={sources}
             trees={trees}
+            traits={traits}
             hasArt={hasArt}
             entryIds={entryIds}
           />

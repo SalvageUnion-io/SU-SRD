@@ -12,8 +12,10 @@
  * focus on Cancel. With nobody mediating yet it reads **Appoint**, and a
  * solo Organizer may appoint themselves.
  *
- * Rename, the Discord channel line and Archive are not here: the first two are
- * not built yet, and what archiving a Game should mean is the owner's decision.
+ * Game settings (rename, describe), Remove and Leave are `GameSettings`'s
+ * dialogs (ADR-067 §3), opened from here. The Discord channel line and
+ * Archive are not here: the first is not built yet, and what archiving a
+ * Game should mean is the owner's decision.
  */
 
 import type { CSSProperties } from 'react'
@@ -36,6 +38,7 @@ import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { CREWMATE, useTableRead } from '../../replica/useTable'
+import { GameSettingsDialog, LeaveGameDialog } from './GameSettings'
 import { HUB_BODY } from './hubStyles.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
@@ -66,9 +69,15 @@ export function TheGame({
   gameId,
   viewerId,
   organizer,
+  game,
   onDelete,
+  onLeft,
 }: {
   gameId: string
+  /** The Game's name and description, for its settings. */
+  game: { name: string; description?: string | null }
+  /** After the viewer has left the Game. */
+  onLeft: () => void
   viewerId: string | null
   /** The viewer organises this Game: Hand over and Delete are theirs. */
   organizer: boolean
@@ -87,6 +96,9 @@ export function TheGame({
   const { canWrite } = useSync()
   const [handing, setHanding] = useState(false)
   const [chosen, setChosen] = useState<string>('')
+  const [settings, setSettings] = useState(false)
+  // Who is going: the viewer (Leave) or a member the Organiser removes.
+  const [going, setGoing] = useState<{ userId: string; name: string } | null>(null)
 
   // The viewer is "You" when their account has no name (never "Crewmate (you)").
   const name = (m: { userId: string; displayName: string }) =>
@@ -126,6 +138,13 @@ export function TheGame({
               sections={[
                 [
                   {
+                    id: 'settings',
+                    label: playGamesCopy('gameSettingsMenu'),
+                    onSelect: canWrite ? () => setSettings(true) : undefined,
+                  },
+                ],
+                [
+                  {
                     id: 'delete',
                     label: playGamesCopy('deleteThisGame'),
                     tone: 'danger',
@@ -135,10 +154,37 @@ export function TheGame({
               ]}
             />
           </>
-        ) : undefined
+        ) : (
+          <HeaderMenu
+            variant="overflow"
+            size="compact"
+            trigger={null}
+            label={playGamesCopy('moreForTheGame')}
+            sections={[
+              [
+                {
+                  id: 'leave',
+                  label: playGamesCopy('leaveThisGame'),
+                  tone: 'danger',
+                  onSelect:
+                    canWrite && viewerId !== null
+                      ? () => setGoing({ userId: viewerId, name: playGamesCopy('you') })
+                      : undefined,
+                },
+              ],
+            ]}
+          />
+        )
       }
     >
-      {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
+      {appointing && (
+        <Stat
+          label={playGamesCopy('mediator')}
+          value={playGamesCopy('nobodyYet')}
+          size="mini"
+          wrap
+        />
+      )}
       {/* Why Hand over rests: there is nobody else at the table to take it. */}
       {organizer && members !== undefined && candidates.length === 0 && (
         <p style={REASON}>{playGamesCopy('nobodyToHandOverTo')}</p>
@@ -160,9 +206,38 @@ export function TheGame({
                   .join(' · ')}
               </span>
             )}
+            {organizer && !m.organizer && (
+              <span className="su-game-member__marks">
+                <Button
+                  variant="ghost"
+                  size="mini"
+                  disabled={!canWrite}
+                  aria-label={playGamesCopy('removeMember', { name: m.displayName })}
+                  onClick={() => setGoing({ userId: m.userId, name: m.displayName })}
+                >
+                  {playGamesCopy('remove')}
+                </Button>
+              </span>
+            )}
           </li>
         ))}
       </ul>
+      <GameSettingsDialog
+        key={String(settings)}
+        gameId={gameId}
+        name={game.name}
+        description={game.description ?? null}
+        open={settings}
+        onOpenChange={setSettings}
+      />
+      <LeaveGameDialog
+        gameId={gameId}
+        gameName={game.name}
+        member={going}
+        self={going !== null && going.userId === viewerId}
+        onClose={() => setGoing(null)}
+        onLeft={onLeft}
+      />
       <ConfirmDialog
         open={handing}
         onOpenChange={setHanding}
@@ -171,8 +246,7 @@ export function TheGame({
         body={
           <>
             <span>
-              The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to
-              the crew.
+              {playGamesCopy('theMediatorRunsTheTable')}
               {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
             <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
@@ -187,9 +261,7 @@ export function TheGame({
           </>
         }
         confirmLabel={appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
-        describeError={(err) =>
-          failureMessage(err, 'The table could not be handed over. Try again.')
-        }
+        describeError={(err) => failureMessage(err, playGamesCopy('tableHandOverFailed'))}
         onConfirm={async () => {
           if (chosen === '') return
           // Appoint first, so the table is never left without a Mediator.

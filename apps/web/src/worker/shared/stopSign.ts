@@ -1,16 +1,23 @@
 import type {
   BotRelay,
   PostAlertRelayRequest,
+  PostEventsRelayRequest,
   PostRollRelayResponse,
   PostStopRelayRequest,
 } from 'game-domain/botWire'
-import { BOT_RELAY_POST_ALERT_PATH, BOT_RELAY_POST_STOP_PATH, relayUrl } from 'game-domain/botWire'
+import {
+  BOT_RELAY_POST_ALERT_PATH,
+  BOT_RELAY_POST_EVENTS_PATH,
+  BOT_RELAY_POST_STOP_PATH,
+  relayUrl,
+} from 'game-domain/botWire'
 import type { SharedDb } from './db'
 
 /**
  * A Game room's posts to the table's Discord channel, through the bot Worker's
  * relay (`apps/discord-bot/src/worker/relay.ts`): the Stop Sign (the bot's
- * fixed words) and the Mediator's alert (Tell the table, its words). While a
+ * fixed words), the Mediator's alert (Tell the table, its words) and the
+ * table's events (what members did, one line each). While a
  * channel is bound everything posts there, with no opt-in; unbinding is how it
  * stops.
  *
@@ -51,6 +58,22 @@ export function postTableAlert(
 ): Promise<void> {
   return postToTable(env, gameId, runners, 'alert', BOT_RELAY_POST_ALERT_PATH, (channelId) => {
     const request: PostAlertRelayRequest = { channelId, message }
+    return request
+  })
+}
+
+/**
+ * The table's events (`rooms/game/events.ts`), to the Game's bound channel
+ * only: with none bound nothing posts, since a runner's own channel is theirs
+ * and not the table's log.
+ */
+export function postTableEvents(
+  env: StopSignEnv,
+  gameId: string,
+  lines: readonly string[]
+): Promise<void> {
+  return postToTable(env, gameId, [], 'events', BOT_RELAY_POST_EVENTS_PATH, (channelId) => {
+    const request: PostEventsRelayRequest = { channelId, lines: [...lines] }
     return request
   })
 }

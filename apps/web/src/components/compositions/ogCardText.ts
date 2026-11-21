@@ -1,4 +1,5 @@
 import { color, space } from '../../design/tokens'
+import { compositionsCopy } from '../../messages/components-compositions'
 import { textBand } from '../referenceEntity/referenceEntityHelpers'
 
 /**
@@ -162,7 +163,7 @@ function bylineOf(props: OgCardProps): string | undefined {
     case 'sheet':
       return props.byline
     case 'userMade':
-      return `Made by ${props.madeBy}`
+      return compositionsCopy('madeBy', { name: props.madeBy })
     case 'invite':
       return props.terms
     case 'private':
@@ -186,7 +187,7 @@ export function ogCardDescription(props: OgCardProps): string {
 }
 
 const PRIVATE_TITLE = 'Private'
-const PRIVATE_LINE = "Its owner hasn't shared this."
+const PRIVATE_LINE = compositionsCopy('itsOwnerHasntSharedThis')
 
 /** The string the notch prints: the name, in curly quotes for a quoted user-made card. */
 export function ogCardPrintedTitle(props: OgCardProps): string {

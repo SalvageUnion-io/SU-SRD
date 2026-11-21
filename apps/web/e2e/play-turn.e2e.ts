@@ -79,8 +79,11 @@ async function boardedTurn(page: Page): Promise<string> {
   await expect(marked.locator('.su-roll__label')).toHaveText('Success')
 
   await row.getByRole('button', { name: 'Apply', exact: true }).click()
-  await expect(row.getByRole('button', { name: 'Applied', exact: true })).toBeDisabled()
-  await expect(row.getByText('Result applied ✓')).toBeVisible()
+  // A finished action closes itself and reads Done (LG-12); the finish is said once, as a status.
+  await expect(row).toHaveAttribute('data-done', 'true')
+  await expect(row).not.toHaveAttribute('data-open', 'true')
+  await expect(row.getByRole('status')).toHaveText('Result applied')
+  await expect(row.getByText('Done', { exact: true })).toBeVisible()
   return name
 }
 

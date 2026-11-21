@@ -3,6 +3,8 @@ import {
   matchSearchTokens,
   scoreSearchMatch,
   searchNameWords,
+  searchSquashedName,
+  searchWordStem,
   tokenizeSearchQuery,
 } from '../searchRanking'
 
@@ -81,5 +83,61 @@ describe('scoreSearchMatch', () => {
   test('ORM-only refinements apply only when supplied', () => {
     expect(score('rifle', 'laser', { descriptionText: 'fires a laser' })).toBe(10)
     expect(score('rifle', 'laser', { matchedFieldCount: 2 })).toBe(10)
+  })
+
+  test('the looser readings of a name: an alias, no punctuation, another word form', () => {
+    expect(score('structure points', 'sp')).toBe(90)
+    expect(score('bio-titan', 'biotitan')).toBe(85)
+    expect(score('overheat', 'overheating')).toBe(20)
+    // Under every exact name, over every prefix.
+    expect(score('sp', 'sp')).toBe(100)
+  })
+
+  test("a question's filler is left out, and the name tiers still read the query as typed", () => {
+    expect(score('salvaging', 'how does salvaging work?')).toBe(100)
+    expect(score("let's make a deal", "let's make a deal")).toBe(100)
+  })
+
+  test("the rules' own kinds come ahead on equal terms", () => {
+    expect(score('rifle', 'turn', { schemaName: 'guides' })).toBe(4)
+    expect(score('rifle', 'turn', { schemaName: 'keywords' })).toBe(3)
+    expect(score('rifle', 'turn', { schemaName: 'systems' })).toBe(0)
+  })
+})
+
+describe('question filler and word forms', () => {
+  test('filler words are dropped while a naming word is left', () => {
+    expect(tokenizeSearchQuery('How does salvaging work?')).toEqual({
+      loweredQuery: 'salvaging',
+      tokens: ['salvaging'],
+      rawQuery: 'how does salvaging work?',
+    })
+    // Nothing but filler: the query is matched as typed.
+    expect(tokenizeSearchQuery('the works')?.tokens).toEqual(['the', 'works'])
+  })
+
+  test('a word is cut back to a stem another form holds', () => {
+    expect(searchWordStem('salvaging')).toBe('salvag')
+    expect(searchWordStem('overheating')).toBe('overheat')
+    expect(searchWordStem('abilities')).toBe('abilit')
+    expect(searchWordStem('damaged')).toBe('damag')
+    expect(searchWordStem('mechs')).toBe('mech')
+    expect(searchWordStem('chassis')).toBe('chassi')
+    // Too short to cut, or nothing to cut.
+    expect(searchWordStem('ring')).toBe('ring')
+    expect(searchWordStem('boss')).toBe('boss')
+    expect(searchWordStem('heat')).toBe('heat')
+  })
+
+  test('a token matches through its stem', () => {
+    const literal = (text: string) => (token: string) => text.includes(token)
+    expect(matchSearchTokens(['overheating'], [], literal('your reactor may overheat'))).toEqual({
+      matches: true,
+      usedTypo: false,
+    })
+  })
+
+  test('a name without its punctuation', () => {
+    expect(searchSquashedName('bio-titan')).toBe('biotitan')
   })
 })

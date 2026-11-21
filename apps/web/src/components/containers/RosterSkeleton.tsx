@@ -9,6 +9,7 @@
 
 import type { CSSProperties } from 'react'
 import { borderWidth, color, radius, space } from '../../design/tokens'
+import { containersCopy } from '../../messages/components-containers'
 import { Ghost } from '../atoms/Ghost'
 import { GhostRow, SkeletonFrame } from './Skeleton'
 
@@ -67,7 +68,7 @@ type RosterSkeletonProps = {
   label?: string
 }
 
-export function RosterSkeleton({ label = 'saved builds' }: RosterSkeletonProps) {
+export function RosterSkeleton({ label = containersCopy('savedBuilds') }: RosterSkeletonProps) {
   return (
     <SkeletonFrame label={label}>
       <div className="su-grid su-roster-skeleton">

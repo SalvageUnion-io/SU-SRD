@@ -11,6 +11,7 @@ import { headerFill, isAbility, parseContentBlockString } from 'salvageunion-ref
 import type { Foreground } from '../../../design/contrast'
 import { foregroundOn } from '../../../design/contrast'
 import { cn } from '../../../lib/cn'
+import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import type { Size } from '../../../styles/sizing'
 import { activateOnKey, FOCUS_RING } from '../../atoms/interaction'
 import { SELECT_DIM, SELECTED_RING } from '../../entity/modes/selectedRing'
@@ -20,7 +21,15 @@ import type { CardOuterProps } from './CardOuter'
 import type { DomainTone } from './entityCardTone'
 
 /** What the HOMEBREW stamp and a homebrew pill say when hovered (ruleset §3.9). */
-export const USER_MADE_TITLE = 'Made by a player, not from the Workshop Manual'
+export const USER_MADE_TITLE = referenceEntityCopy('madeByAPlayerNotFrom')
+
+/** A player-made card's credit: who made it, or "a player" where no name is shown. */
+export const madeByCredit = (madeBy: string | undefined) =>
+  referenceEntityCopy('madeBy', { name: madeBy ?? referenceEntityCopy('aPlayer') })
+
+/** What a pattern's page calls its host's body: the chassis by name, or the Bio-Titan. */
+export const patternBodyLabel = (name: string, bioTitan: boolean) =>
+  referenceEntityCopy(bioTitan ? 'bioTitanBody' : 'chassisBody', { name })
 
 /** What the stamp every player-made thing wears says (`HomebrewStamp`, ruleset §3.9). */
 export const HOMEBREW = 'Homebrew'
