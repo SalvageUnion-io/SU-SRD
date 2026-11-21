@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from 'bun:test'
+import { exports as workerExports } from 'cloudflare:workers'
 import { FEEDBACK_REFUSAL, FEEDBACK_THANKS } from 'game-domain/feedback'
-import { answerBot as answer } from '../botGateway'
+import { answerBot as answer, BotGateway } from '../botGateway'
 import type { BotRooms } from '../botSheets'
 import { publishGame, signedIn, testDb } from '../shared/__tests__/d1'
 
@@ -183,7 +184,7 @@ describe('answerBot', () => {
 
   it('cannot answer the rooms’ ops without the rooms', async () => {
     const db = await filled()
-    for (const op of ['sheet', 'mine'] as const) {
+    for (const op of ['sheet', 'mine', 'logRoll'] as const) {
       expect(await answerBot(db, op, { discordId: 'd-rosa' })).toBeNull()
     }
   })
@@ -203,5 +204,37 @@ describe('answerBot', () => {
     for (const op of ['sheet', 'mine'] as const) {
       expect(await answerBot(db, op, args, rooms)).toBeNull()
     }
+  })
+})
+
+describe('the gateway the bot’s binding names', () => {
+  const namespaces = workerExports as Record<string, unknown>
+
+  afterEach(() => {
+    delete namespaces.AccountRoom
+    delete namespaces.GameRoom
+  })
+
+  it('answers over this Worker’s own rooms, each reached by name', async () => {
+    const db = await filled()
+    const reached: string[] = []
+    namespaces.AccountRoom = {
+      getByName: (discordId: string) => {
+        reached.push(`account:${discordId}`)
+        return { profile: async () => ({ displayName: 'Rosa', avatarUrl: null }) }
+      },
+    }
+    namespaces.GameRoom = { getByName: (gameId: string) => reached.push(`game:${gameId}`) }
+    const gateway = new BotGateway({} as never, { SHARED: db } as never)
+    expect(await gateway.answer('me', { discordId: 'd-rosa' })).toMatchObject({
+      ok: true,
+      user: { displayName: 'Rosa' },
+    })
+    expect(reached).toEqual(['account:d-rosa'])
+  })
+
+  it('answers nothing when the Worker has no shared database', async () => {
+    const gateway = new BotGateway({} as never, {} as never)
+    expect(await gateway.answer('me', { discordId: 'd-rosa' })).toBeNull()
   })
 })
