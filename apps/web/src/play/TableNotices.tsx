@@ -30,6 +30,7 @@ import type { Heard } from './tableNotices.model'
 import {
   endedSession,
   eventsToToast,
+  NOTICES_RESIZED,
   pausedTitle,
   pinnedAlert,
   resumedTitle,
@@ -56,10 +57,14 @@ function useNoticesHeight() {
     const root = document.documentElement
     if (node === null || typeof ResizeObserver === 'undefined') {
       root.style.removeProperty('--su-table-notices-h')
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
       return
     }
-    const publish = () =>
+    const publish = () => {
       root.style.setProperty('--su-table-notices-h', `${node.getBoundingClientRect().height}px`)
+      // Play's frame sits under the notices and fills the window below them.
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
+    }
     observer.current = new ResizeObserver(publish)
     observer.current.observe(node)
     publish()

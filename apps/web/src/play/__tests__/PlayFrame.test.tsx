@@ -8,11 +8,12 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { EntitySurfaceProvider } from '../../components/entity/EntitySurface'
 import { useEntitySurface } from '../../components/entity/entitySurfaceContext'
 import { PlayFrame } from '../PlayFrame'
+import { NOTICES_RESIZED } from '../tableNotices.model'
 
 /** A ref no app routes by itself: only a surface's own `hrefFor` links it. */
 const REF = { schemaName: 'systems', id: 'x', slug: 'x', name: 'X', synthetic: true } as const
@@ -112,5 +113,26 @@ describe('PlayFrame — a sheet on the screen (play.md §18)', () => {
     expect(getByTestId('sheet')).toBeTruthy()
     expect(getByTestId('centre').closest('section')?.hidden).toBe(true)
     expect(getByRole('tablist')).toBeTruthy()
+  })
+})
+
+// LG-04: the pinned table notices sit above Play; when the last one is
+// answered or dismissed the frame takes the room back (the page never
+// scrolls, so nothing else would tell it its top moved).
+describe('PlayFrame — fills the window below its top', () => {
+  test('it takes back the room a dismissed notice leaves', () => {
+    const { container } = render(frame())
+    const host = container.querySelector('.su-play-root') as HTMLElement
+    let top = 77
+    host.getBoundingClientRect = () => ({ top }) as DOMRect
+    act(() => {
+      window.dispatchEvent(new Event('resize'))
+    })
+    expect(host.style.height).toBe(`${window.innerHeight - 77}px`)
+    top = 0
+    act(() => {
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
+    })
+    expect(host.style.height).toBe(`${window.innerHeight}px`)
   })
 })

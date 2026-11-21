@@ -9,6 +9,13 @@
 
 import type { TableEvent } from '../rooms/game/events'
 
+/**
+ * The window event the notices raise when their height changes: Play's frame
+ * fills the window below its own top, and a notice leaving moves that top
+ * without resizing anything the frame can watch.
+ */
+export const NOTICES_RESIZED = 'su-table-notices-resized'
+
 /** How long the Mediator's alert stays pinned unless dismissed. */
 const ALERT_PINNED_MS = 10 * 60_000
 
