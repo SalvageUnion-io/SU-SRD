@@ -68,7 +68,7 @@ async function sheetPath(page: Page, kind: string, name?: string): Promise<strin
 
 /**
  * The carried things the reference does not hold, so a sheet's lists show
- * them (hard rule R35: a sheet list's item is a Mini or Compact): a generic
+ * them (an open Ledger's rows, L9): a generic
  * entry in Bonesaw's inventory, a lot in the Mazona's hold and one in
  * Tenacity's Storage Bay, each through its sheet's own intake in Edit.
  */
@@ -78,24 +78,21 @@ async function seedCarried(
   sheets: { pilot: string; mech: string; crawler: string }
 ): Promise<void> {
   const carried = (name: string) =>
-    page.locator('.su-sheet-live-body .su-entity-mini__name').filter({ hasText: name }).first()
+    page.locator('.su-sheet-live-body .su-open__name').filter({ hasText: name }).first()
   await page.goto(`${base}${sheets.pilot}`, { waitUntil: 'networkidle' })
   await waitForReady(page)
   await editSheet(page)
   await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
   await carried('Scrap').waitFor(LONG)
-  for (const [path, open, into, lot] of [
-    [sheets.mech, '+ Load cargo', 'Load cargo into the mech hold', 'Salvaged Plating'],
-    [sheets.crawler, '+ Stow cargo', 'Stow cargo into the Storage Bay', 'Sealed Crate'],
+  for (const [path, into, lot] of [
+    [sheets.mech, 'Load cargo into the Mech hold', 'Salvaged Plating'],
+    [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
   ] as const) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle' })
     await waitForReady(page)
     await editSheet(page)
-    // An empty hold in Edit is one button until it is opened.
-    const opener = page.getByRole('button', { name: open, exact: true })
     const adder = page.getByRole('button', { name: into })
-    await opener.or(adder).first().waitFor(LONG)
-    if (await opener.isVisible()) await opener.click()
+    await adder.waitFor(LONG)
     await adder.scrollIntoViewIfNeeded()
     await adder
       .locator('xpath=ancestor::*[.//input[@aria-label="New cargo name"]][1]')
@@ -161,7 +158,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   const game = new URL(page.url()).pathname
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await page.getByText('You mediate').waitFor(LONG)
+  // The hub's band offers Mediate once the Organizer is appointed.
+  await page.getByRole('link', { name: 'Mediate', exact: true }).waitFor(LONG)
   const token = await makeInviteLink(page)
 
   // Bonesaw moves in from the Training Bay's ⋯ menu.

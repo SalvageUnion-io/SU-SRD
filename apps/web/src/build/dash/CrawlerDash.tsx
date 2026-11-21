@@ -392,13 +392,16 @@ export function CrawlerDash({
                   </div>
                 )
               })}
+              {/* The type's crew lead is a section of its own: the abilities' Mentions are no strip of theirs (C8). */}
               {edit && crawler.type && (
-                <TypeCrewLead
-                  crawler={crawler}
-                  typeRef={crawler.type}
-                  store={store}
-                  assigned={assignmentFor(crew, { kind: 'type' })}
-                />
+                <section className="su-dash-item" aria-label={buildSheetCopy('typeCrew')}>
+                  <TypeCrewLead
+                    crawler={crawler}
+                    typeRef={crawler.type}
+                    store={store}
+                    assigned={assignmentFor(crew, { kind: 'type' })}
+                  />
+                </section>
               )}
               {!edit && typeLead && (typeLead.name || typeLead.position) && (
                 <OpenLedger

@@ -838,6 +838,44 @@
   padding-block: 0;
 }
 
+/* An open Ledger's strip with controls (Edit's Manage, Mount) is a strip
+   with actions too: its cut-out the buttons' 24px on the strip's foot, the
+   buttons compact at the title's end, wrapping to a line over it. */
+.su-open:not(.su-open--sub) thead th:has(> .su-open__title > .su-rule-head__actions) {
+  vertical-align: bottom;
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title:has(> .su-rule-head__actions) {
+  /* wrap-reverse: the cross start is the foot. */
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  row-gap: var(--space-8);
+}
+
+.su-open:not(.su-open--sub)
+  thead
+  .su-open__title:has(> .su-rule-head__actions)
+  > .su-rule-head__label {
+  align-self: flex-start !important;
+  box-sizing: border-box;
+  height: var(--space-24);
+  padding-block: var(--space-4) var(--space-2);
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__actions {
+  align-self: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-block: var(--space-4);
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__actions .su-btn {
+  font-size: var(--text-chip);
+  height: 1.5rem; /* design-tokens-ignore(size-literal): the strip's buttons, as above */
+  min-height: 0;
+  padding-block: 0;
+}
+
 /* A Reference Page's call to action (Build With This) stays a rust button in
    the band; Share beside it on a phone sits on the button's centre line. */
 .su-chapter-band__action:has(> .su-rail-acts) {
