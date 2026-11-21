@@ -1851,6 +1851,14 @@
   white-space: nowrap;
 }
 
+/* A phone: Edit's controls wrap under the bay's name, so the manifest keeps
+   to a 320px page (no sideways scroll, R44). */
+@media not (width >= 40rem) {
+  .su-open--manifest .su-open__name-line:has(> .su-open__controls) {
+    flex-wrap: wrap;
+  }
+}
+
 .su-open--manifest .su-open__row > td[data-kind='text'] {
   font-weight: var(--font-weight-normal);
   white-space: normal;
