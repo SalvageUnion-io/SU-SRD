@@ -40,7 +40,7 @@ import {
 } from '../rooms/game/socketActs'
 import type { UnitRow } from '../rooms/game/store'
 import { GameStore } from '../rooms/game/store'
-import { handOff } from '../rooms/handoff'
+import { handOffTogether } from '../rooms/handoff'
 import type { PresenceMessage, SocketSeat } from '../rooms/presence'
 import { HERE_ACT, presentMembers, seatOf } from '../rooms/presence'
 import type { ClientMessage, ServerMessage } from '../rooms/protocol'
@@ -460,15 +460,18 @@ export class GameRoom extends Room {
     const leaving = answerOrRefuse(() => this.logic.roster.leaving(actor, userId))
     if (!leaving.ok) return leaving
     const to = { kind: 'account', userId } as const
-    for (const unitId of leaving.value) {
-      await handOff(this.logic.transit, accountHome(userId), {
+    // Together, so a pilot and their mech arrive still assigned to each other.
+    await handOffTogether(
+      this.logic.transit,
+      accountHome(userId),
+      leaving.value.map((unitId) => ({
         leaseId: crypto.randomUUID(),
         unitId,
         actor: userId,
         to,
         at,
-      })
-    }
+      }))
+    )
     this.logic.roster.forgetMember(userId)
     await accountHome(userId).leftGame(this.gameId)
     this.dropStrangers()

@@ -106,6 +106,43 @@ export async function handOff(
   await source.release(args.leaseId)
 }
 
+type Move = { leaseId: string; unitId: string; actor: string; to: HomeAddress; at: number }
+
+/**
+ * Move several units from `source` to `target` as one departure: every unit
+ * is offered before any is released, so each parcel still carries the links
+ * between them and the target keeps a pair (a pilot and the mech assigned to
+ * them) assigned, once it holds both ends. One at a time, the first release
+ * would drop the pairing before the second unit was offered.
+ *
+ * Each unit is still its own lease. A refused accept takes that unit and the
+ * ones not yet sent back, releases the ones that landed, and throws.
+ */
+export async function handOffTogether(
+  source: UnitHome,
+  target: UnitHome,
+  moves: readonly Move[]
+): Promise<void> {
+  const parcels: UnitParcel[] = []
+  for (const move of moves) parcels.push(await source.offer(move))
+  const landed: Move[] = []
+  for (const [i, move] of moves.entries()) {
+    try {
+      await target.accept(parcels[i] as UnitParcel, move.actor, move.at)
+    } catch (error) {
+      if ((await settleLease(source, target, move.leaseId, move.at)) !== 'released') {
+        for (const done of landed) await source.release(done.leaseId)
+        for (const rest of moves.slice(i + 1)) {
+          await settleLease(source, target, rest.leaseId, rest.at)
+        }
+        throw error
+      }
+    }
+    landed.push(move)
+  }
+  for (const move of landed) await source.release(move.leaseId)
+}
+
 /** Finish a handoff left between its steps, whichever way it went. */
 export async function settleLease(
   source: UnitHome,
