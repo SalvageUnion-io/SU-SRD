@@ -7,7 +7,6 @@ import {
   openSheetFor,
   openWizard,
   pickByName,
-  unselectedOptions,
   waitForReady,
 } from './_helpers'
 import { expect, test } from './fixtures'
@@ -40,7 +39,8 @@ test('build a crawler from scratch', async ({ page }) => {
   // depend on the crawler's tech level, so take the first on offer instead of
   // naming one.
   await advanceUntilVisible(page, page.getByRole('heading', { name: /Arm the Armament Bay/i }))
-  const weapon = unselectedOptions(page).first()
+  // A line's tap only shows its card: its count's + mounts it.
+  const weapon = page.getByRole('button', { name: /^Increase .+ count$/ }).first()
   await expect(weapon).toBeVisible()
   await weapon.click()
 
