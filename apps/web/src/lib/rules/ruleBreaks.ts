@@ -10,10 +10,11 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import { computeMechCapacity } from 'salvageunion-reference/rules'
+import { computeMechCapacity, mechMaxCargo } from 'salvageunion-reference/rules'
+import { carrierCargoUsage } from '../cargo/cargoTransfer'
 import { pilotInventoryCapacity, pilotInventoryUsed } from './pilotInventory'
 
-export type RuleBreakStat = 'systemSlots' | 'moduleSlots' | 'inventorySlots'
+export type RuleBreakStat = 'systemSlots' | 'moduleSlots' | 'cargoCapacity' | 'inventorySlots'
 
 /** One stat over its cap: `used` of `max`, `used - max` over. */
 export type RuleBreak = { stat: RuleBreakStat; used: number; max: number }
@@ -21,22 +22,37 @@ export type RuleBreak = { stat: RuleBreakStat; used: number; max: number }
 const over = (stat: RuleBreakStat, used: number, max: number): RuleBreak[] =>
   used > max ? [{ stat, used, max }] : []
 
-/** A mech's slot counts over its chassis's; none when the book prints the loadout that way. */
+/** A hold's Cargo over its capacity. */
+export function cargoRuleBreaks(usage: { used: number; cap: number }): RuleBreak[] {
+  return over('cargoCapacity', usage.used, usage.cap)
+}
+
+/**
+ * A mech's slot counts over its chassis's, and its Cargo over its capacity.
+ * The book's own printed loadout breaks no slot rule. `abilities` are the
+ * assigned pilot's: one of them can raise the mech's Cargo Capacity (ADR-029).
+ */
 export function mechRuleBreaks(
-  mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'>
+  mech: Pick<Mech, 'chassisRef' | 'systems' | 'modules'> &
+    Partial<Pick<Mech, 'cargoLots' | 'maxCargoOverride'>>,
+  abilities?: string[]
 ): RuleBreak[] {
   const capacity = computeMechCapacity({
     chassisRef: mech.chassisRef,
     systems: mech.systems.map((ref) => ({ ref })),
     modules: mech.modules.map((ref) => ({ ref })),
   })
-  // An unresolved chassis has no cap to break; a printed pattern's count is the book's.
-  if (capacity.asPrinted || capacity.violations.some((v) => v.kind === 'chassis-not-found')) {
-    return []
-  }
+  // An unresolved chassis has no cap to break.
+  if (capacity.violations.some((v) => v.kind === 'chassis-not-found')) return []
+  const cargo = cargoRuleBreaks(
+    carrierCargoUsage(mech.cargoLots ?? [], mechMaxCargo(mech, undefined, { abilities }))
+  )
+  // A printed pattern's slot count is the book's.
+  if (capacity.asPrinted) return cargo
   return [
     ...over('systemSlots', capacity.systemSlotsUsed, capacity.systemSlotsMax),
     ...over('moduleSlots', capacity.moduleSlotsUsed, capacity.moduleSlotsMax),
+    ...cargo,
   ]
 }
 

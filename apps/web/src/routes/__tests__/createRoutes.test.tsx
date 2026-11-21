@@ -216,6 +216,20 @@ describe('/pilots/new', () => {
     await mountAt('/pilots/new?mode=guided&class=astronaut')
     expect(await screen.findByText('Pilot wizard preselect: none')).toBeTruthy()
   })
+
+  // SB-02, the other way round: a mech's "No Pilot" + Create.
+  test('built for a mech: lands in its Game, is assigned to it, and opens the mech', async () => {
+    const { mechFixture } = await import('../../components/__tests__/fixtures')
+    const { useUnits } = await import('../../replica/units')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm1', name: 'Rig', gameId: 'g1' }))
+    const router = await mountAt('/pilots/new?mode=guided&mech=m1')
+    expect(await screen.findByText('blank lands in g1')).toBeTruthy()
+    expect(screen.getByText('Pilot wizard game: g1')).toBeTruthy()
+    assignedPairs.length = 0
+    await press('Pilot wizard: complete')
+    expect(assignedPairs).toEqual(['m1 → new-id'])
+    expect(at(router).pathname).toBe('/mechs/m1')
+  })
 })
 
 describe('/crawlers/new', () => {

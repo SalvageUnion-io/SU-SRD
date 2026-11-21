@@ -98,26 +98,52 @@ export function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: 
   )
 }
 
-/**
- * A piece of equipment that asks a choice: Details opens its Page (E5, C8),
- * where the choices are made and saved on the pilot (`equipmentChoices`).
- */
-export function EquipmentDetails({
-  slug,
-  equipment,
-  pilotId,
-  seed,
-  scalingParent,
-  store,
-}: {
+type EquipmentChoiceProps = {
   slug: string
   equipment: RefMetaEntity & { name: string }
   pilotId: string
   seed: ChoiceSelections | undefined
   scalingParent: Record<string, unknown> | undefined
   store: UnitsStore
-}) {
+}
+
+/**
+ * A piece of equipment that asks a choice: Details opens its Page (E5, C8),
+ * where the choices are made and saved on the pilot (`equipmentChoices`).
+ */
+export function EquipmentDetails(props: EquipmentChoiceProps) {
   const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button
+        variant="pencil"
+        size="mini"
+        aria-label={buildSheetCopy('itemDetails', { name: props.equipment.name })}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(true)}
+      >
+        {buildSheetCopy('details')}
+      </Button>
+      <EquipmentChoiceDialog open={open} onOpenChange={setOpen} {...props} />
+    </>
+  )
+}
+
+/**
+ * The equipment's Page with its choices to make: what Details opens, and what
+ * the equipment picker opens as soon as an item that asks a choice is added.
+ */
+export function EquipmentChoiceDialog({
+  open,
+  onOpenChange,
+  slug,
+  equipment,
+  pilotId,
+  seed,
+  scalingParent,
+  store,
+}: EquipmentChoiceProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { selections, setSelections } = useEntityChoices(
     'pilot',
     pilotId,
@@ -127,31 +153,19 @@ export function EquipmentDetails({
     store
   )
   return (
-    <>
-      <Button
-        variant="pencil"
-        size="mini"
-        aria-label={buildSheetCopy('itemDetails', { name: equipment.name })}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen(true)}
-      >
-        {buildSheetCopy('details')}
-      </Button>
-      <EntityDetailDialog
-        open={open}
-        onOpenChange={setOpen}
-        entity={equipment}
-        title={equipment.name}
-      >
-        <ReferenceEntityCard
-          data={equipment as never}
-          presentation="page"
-          selections={selections}
-          onSelectionChange={setSelections}
-          scalingParent={scalingParent}
-        />
-      </EntityDetailDialog>
-    </>
+    <EntityDetailDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      entity={equipment}
+      title={equipment.name}
+    >
+      <ReferenceEntityCard
+        data={equipment as never}
+        presentation="page"
+        selections={selections}
+        onSelectionChange={setSelections}
+        scalingParent={scalingParent}
+      />
+    </EntityDetailDialog>
   )
 }

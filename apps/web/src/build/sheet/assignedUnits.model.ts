@@ -103,14 +103,21 @@ const NEW_PATH = {
 /**
  * The wizard that makes a `kind` in the subject's container (ADR-052 §3). A
  * pilot's mech is made for that pilot (`?pilot=`, as the Training Bay's
- * "+ Add a Mech" is): the wizard assigns it to them and comes back here.
+ * "+ Add a Mech" is) and a mech's pilot for that mech (`?mech=`): the wizard
+ * assigns the pair and comes back here.
  */
 function createHrefFor(kind: SheetKind, subject: AssignedSubject): string {
   const container = containerOf(subject.entity)
   const href =
     container.kind === 'game' ? newInGameHref(NEW_PATH[kind], container.gameId) : NEW_PATH[kind]
-  if (kind !== 'mech' || subject.kind !== 'pilot') return href
-  return `${href}${href.includes('?') ? '&' : '?'}pilot=${encodeURIComponent(subject.entity.id)}`
+  const pair =
+    kind === 'mech' && subject.kind === 'pilot'
+      ? 'pilot'
+      : kind === 'pilot' && subject.kind === 'mech'
+        ? 'mech'
+        : null
+  if (pair === null) return href
+  return `${href}${href.includes('?') ? '&' : '?'}${pair}=${encodeURIComponent(subject.entity.id)}`
 }
 
 /** The sheet's own entity, by its kind. */

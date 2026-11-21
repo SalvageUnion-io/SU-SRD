@@ -24,9 +24,9 @@ import {
   pillStyle,
   pillTrackersStyle,
   promptStyle,
+  STEP_BODY,
   shellStyle,
   shellUnderBandStyle,
-  stepBodyStyle,
   stepFrameStyle,
   stepHeadStyle,
   stepNoteStyle,
@@ -353,11 +353,11 @@ export function WizShell({
   prompt,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
-  // A new step opens at the top with focus on its heading (WCAG 2.4.3): the
-  // step before it may have been left scrolled, at its Next. The first step
-  // is left where the page opened.
+  // Every step opens at the top with focus on its heading (WCAG 2.4.3), the
+  // first included: the page that led here (the chooser, a step's Next) may
+  // have been left scrolled.
   const headingRef = useRef<HTMLHeadingElement | null>(null)
-  const shownStep = useRef(active)
+  const shownStep = useRef<number | null>(null)
   useEffect(() => {
     if (shownStep.current === active) return
     shownStep.current = active
@@ -495,7 +495,7 @@ export function WizShell({
                 </h1>
               </div>
               <Box body="flush">
-                <div style={stepBodyStyle}>
+                <div className={STEP_BODY}>
                   {children}
                   {footerNote && (
                     <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>

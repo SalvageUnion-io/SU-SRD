@@ -224,6 +224,20 @@ export function chosenChips(
   ))
 }
 
+/**
+ * The mark a carried item wears while a choice it asks is not made, Read
+ * included: one hollow chip (the absence of a pick), whatever the count.
+ * `choices` are the ones its owner keeps; nothing once each has a pick.
+ */
+export function unmadeChoiceChip(
+  choices: readonly RefObjectChoice[],
+  selections: ChoiceSelections | undefined
+): ReactNode {
+  const open = choices.some((choice) => (selections?.[choice.id]?.length ?? 0) === 0)
+  if (!open) return undefined
+  return <Stat key="choice-not-made" label={buildWizardCopy('choiceNotMade')} size="mini" hollow />
+}
+
 /** How many of the entity's choices still want a pick. */
 export function openChoices(
   entity: RefMetaEntity,

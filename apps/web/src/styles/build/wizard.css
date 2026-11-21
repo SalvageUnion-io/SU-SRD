@@ -182,6 +182,18 @@
   padding: var(--space-20);
 }
 
+/* The step's paper body: on a phone its lists keep the width, so a count's
+   two 44px steps fit beside a name (SB-17). */
+.su-wiz-step-body {
+  padding: var(--space-20) var(--space-4);
+}
+
+@media (width >= 40rem) {
+  .su-wiz-step-body {
+    padding: var(--space-20);
+  }
+}
+
 /* The action bar's budget. One line at every width: the trackers, ghost Back
    and Cancel, the rust Next. On a phone it is docked to the screen's foot,
    edge to edge (chrome, not a card floating over the step's cards), and holds

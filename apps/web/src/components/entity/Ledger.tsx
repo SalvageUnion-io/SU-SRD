@@ -46,6 +46,12 @@ export type LedgerColumn = {
   kind?: 'figure' | 'text' | 'quiet' | 'line'
   /** Kept on a phone; the others give way to the name. */
   phone?: boolean
+  /**
+   * A column the list can spare (`data-spare`): a host whose frame runs
+   * narrow drops it before the list runs wider than the frame (the Training
+   * Bay's shelves, by their own width).
+   */
+  spare?: boolean
 }
 
 /** A name linked to an address of its own; it Peeks when the row names an entity (L4). */
@@ -411,6 +417,7 @@ function LedgerList({
                 scope="col"
                 data-kind={column.kind ?? 'figure'}
                 data-phone={column.phone || undefined}
+                data-spare={column.spare || undefined}
                 data-line={column.key === phoneLine || undefined}
                 aria-sort={ariaSort(column.key)}
               >
@@ -495,6 +502,7 @@ function LedgerList({
                       key={column.key}
                       data-kind={column.kind ?? 'figure'}
                       data-phone={column.phone || undefined}
+                      data-spare={column.spare || undefined}
                       data-line={column.key === phoneLine || undefined}
                       data-empty={isEmpty(row.cells[cell]) || undefined}
                       title={cellTitle(column, row.cells[cell])}
@@ -536,6 +544,7 @@ function LedgerList({
                   key={column.key}
                   data-kind={column.kind ?? 'figure'}
                   data-phone={column.phone || undefined}
+                  data-spare={column.spare || undefined}
                 >
                   {total.cells[index]}
                 </td>

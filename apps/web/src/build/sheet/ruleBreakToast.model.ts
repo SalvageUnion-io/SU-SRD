@@ -6,12 +6,16 @@
  */
 
 import { toast } from '../../components/index'
+import type { CargoTransferResult } from '../../lib/cargo/cargoTransfer'
+import { carrierCargoUsage } from '../../lib/cargo/cargoTransfer'
 import type { RuleBreak, RuleBreakStat } from '../../lib/rules/ruleBreaks'
+import { cargoRuleBreaks, ruleBreaksMade } from '../../lib/rules/ruleBreaks'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 const STAT_NAME: Record<RuleBreakStat, () => string> = {
   systemSlots: () => buildSheetCopy('systemSlots'),
   moduleSlots: () => buildSheetCopy('moduleSlots'),
+  cargoCapacity: () => buildSheetCopy('cargo'),
   inventorySlots: () => buildSheetCopy('inventorySlots'),
 }
 
@@ -29,4 +33,18 @@ export function ruleBreakLine(made: RuleBreak): string {
 export function ruleBreakToast(unitId: string, made: readonly RuleBreak[]) {
   for (const one of made)
     toast.warning(ruleBreakLine(one), { id: `rule-break:${unitId}:${one.stat}` })
+}
+
+/**
+ * A load into a hold that landed: said when it took Cargo over its capacity,
+ * or further over, like any other rule break. A refused load says nothing here.
+ */
+export function cargoBreakToast(
+  unitId: string,
+  before: { used: number; cap: number },
+  result: CargoTransferResult
+) {
+  if (!result.ok) return
+  const after = carrierCargoUsage(result.state.carrierLots, result.state.carrierCargoCap)
+  ruleBreakToast(unitId, ruleBreaksMade(cargoRuleBreaks(before), cargoRuleBreaks(after)))
 }

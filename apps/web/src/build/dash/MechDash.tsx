@@ -67,6 +67,7 @@ import { MechItemControls } from '../sheet/MechItemMini'
 import type { MechSheetModel } from '../sheet/mechSheet.model'
 import type { ItemKind, MechSheetActions } from '../sheet/mechSheetActions.model'
 import { slotCount } from '../sheet/mechSlots.model'
+import { cargoBreakToast } from '../sheet/ruleBreakToast.model'
 import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
@@ -300,7 +301,7 @@ export function MechDash({
     ) : undefined
   /** A collection's rows; in Edit each item's controls close its line. */
   const loadoutRows = (kind: ItemKind): LedgerRow[] => {
-    const rows = itemRows(mech, kind)
+    const rows = itemRows(mech, kind, true)
     if (!edit) return rows
     const slugs = kind === 'system' ? mech.systems : mech.modules
     const held = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
@@ -515,7 +516,14 @@ export function MechDash({
               <HoldAdder
                 verb="Load"
                 containerLabel={buildSheetCopy('mechHold')}
-                onAdd={(lot) => reportCargo(cargo.addMechLot(lot))}
+                onAdd={(lot) =>
+                  reportCargo(
+                    cargo.addMechLot(lot).then((result) => {
+                      cargoBreakToast(mech.id, cargo.usage, result)
+                      return result
+                    })
+                  )
+                }
               />
             )}
           </div>
