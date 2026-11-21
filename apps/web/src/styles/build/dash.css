@@ -1997,11 +1997,3 @@
     display: none;
   }
 }
-
-/* ── A Live Sheet's paper panels wear the ink grain (R10, ruleset §3.5.1) ──
-   The masthead, the Ledgers' rows and the Scrap board take the band and
-   foot's speckle over their paper, so the sheet reads as one printed
-   surface. The grain is `grainSvg`'s ink output (`.su-grain--ink`). */
-.su-sheet-live-body :is(.su-mast, .su-open tbody > tr, .su-scrap) {
-  background-image: url('../grain/ink.svg');
-}

@@ -5,8 +5,7 @@ import type { Finding } from './_findings'
 /**
  * Hard rule R10, "A surface sets its texture once" (ruleset §1.3, §3.5.1; EDL
  * E13), on the rendered page: the speckle is universal on brand-colour
- * grounds, the Cockpit and the Peek included, and never on paper (a Live
- * Sheet's paper panels aside, `sheetGrain.test.ts`), cream, the
+ * grounds, the Cockpit and the Peek included, and never on paper, cream, the
  * page ground (Play's included), the ink-deep, a button or a field.
  *
  * - `speckled`: every entity band (a Compact's, a TitledBox's or a unit box's

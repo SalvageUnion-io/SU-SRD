@@ -43,7 +43,7 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
    3. **§3.3 State is a treatment, not a hue** — strike / X / redline ride on the ontology hue; `status-bad` is the one damaged / redline / over-cap colour. Damaged dulls a band toward grey, Destroyed greys it; a Peek wears its trigger's band.
    4. **§3.4 Roll-tier colours are Discord-bot-only** — the web marks every outcome alike.
    5. **§3.5 No gradient shading; closed colour set** — no colour outside §4; hard stops on §4 tokens, no smooth blends.
-      1. **Texture: the light speckle** — ink speckle on colour bands, tone headers and Live Sheet paper panels, paper flecks on ink headers and unit stamps (R10).
+      1. **Texture: the light speckle** — ink speckle on colour bands and tone headers, paper flecks on ink headers and unit stamps (R10).
       2. **One shading exemption** — `.su-pilot-panel` on `/about`; no precedent.
    6. **§3.6 Copy is 1:1 with SRD data** — a name it prints is a Mention (E4): a trait's name alone, a table's with "Table".
    7. **§3.7 Stats render through Stat** — any `label | value` is a `Stat` (a list of them `Facts`), a text value too, never hand markup; a sentence says the number in words. Game data renders through the shared primitives.
