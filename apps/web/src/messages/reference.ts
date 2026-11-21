@@ -15,7 +15,6 @@ export const referenceCopy = messages({
   app: 'APP',
   whereNext: 'Where next',
   level: 'Level',
-  wiki: 'WIKI',
   signInWithDiscord: 'Sign in with Discord',
   shareThisPage: 'Share this page',
   share: 'Share',

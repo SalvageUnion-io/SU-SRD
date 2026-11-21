@@ -164,21 +164,6 @@
   }
 }
 
-/* Quiet links (About, Changelog): mixed case, a step back from the nav. */
-.su-union-bar__quiet {
-  color: var(--su-bar-fg-70);
-  flex-shrink: 0;
-  font-family: var(--font-body);
-  font-size: var(--text-caption);
-  text-decoration: none;
-  transition: color var(--dur-fast) var(--ease);
-}
-
-.su-union-bar__quiet:hover,
-.su-union-bar__quiet[aria-current='page'] {
-  color: var(--su-bar-fg);
-}
-
 .su-union-bar__end {
   align-items: center;
   display: none;
@@ -195,14 +180,12 @@
 }
 
 /* The bar's right-hand words ("Buy the game", Sign in on both sides, the
-   Wiki, the Account menu's trigger) read as its area links do: no box, the
+   Account menu's trigger) read as its area links do: no box, the
    tabs' caps, size, tracking and height, so every word on the row shares one
    baseline; 70% of the bar's foreground, full under the pointer. Scoped to
    the bar so it outranks the ghost Button and the menu trigger's own looks
    (button.css loads earlier). */
-.su-union-bar
-  .su-union-bar__end
-  :is(.su-union-bar__action, .su-union-bar__quiet, .su-header-menu-trigger) {
+.su-union-bar .su-union-bar__end :is(.su-union-bar__action, .su-header-menu-trigger) {
   background-color: transparent;
   border-color: transparent;
   color: var(--su-bar-fg-70);
@@ -217,7 +200,7 @@
 
 .su-union-bar
   .su-union-bar__end
-  :is(.su-union-bar__action, .su-union-bar__quiet, .su-header-menu-trigger):hover:not(:disabled) {
+  :is(.su-union-bar__action, .su-header-menu-trigger):hover:not(:disabled) {
   background-color: transparent;
   border-color: transparent;
   color: var(--su-bar-fg);
@@ -329,8 +312,7 @@
     width: 100%;
   }
 
-  .su-union-bar__end > :not(.su-union-bar__search),
-  .su-union-bar__search .su-union-bar__quiet {
+  .su-union-bar__end > :not(.su-union-bar__search) {
     display: none;
   }
 
