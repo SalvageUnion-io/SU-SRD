@@ -36,7 +36,7 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
    3. **Condition** — `StatusBadge`: a tri-state control, a glyph in listings, absent from Reference.
    4. **Rolls** — `RollTableInstrument` (R8): the result a readout plus a marked row (§3.4); Reference toasts it.
    5. **Cargo** — `SlotGrid`; Reference shows the cap only.
-   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type, RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`), the last read chip; action slots follow it (C8). A Ledger keeps it, dropping a column no row fills (L5).
+   6. **Stat order** — one everywhere; a form drops stats, never moves them: TL, Slots, SV · SP or HP, EP, Bio · SYS, MODS, Heat, Cargo; Upkeep, Upgrade · action type, RNG (Page `Close`, else `C`), DMG · traits A–Z, Uses last · cost, the book's pointy box (`2 EP`), the last read chip; action slots follow it (C8). A Ledger's columns too (L5).
 3. **§3 Cross-cutting laws**
    1. **§3.1 Rust = action, only action** — painted only by `Button` / `buttonVariants` and `InlineRef`, never aliased; destruction is rust behind `ConfirmDialog`; no state colour fills a button. Focus, selection and chrome accents are ink.
    2. **§3.2 Stamps label · slabs section · tags cite** — a section head is a Slab (R1), a related thing a relation chip (C11).
@@ -54,7 +54,7 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
    11. **§3.11 One union, two tools** — one Union bar; its tabs read Reference | Training Bay | Games (ADR-066), no second nav; the areas name their pages; bar and footer wear the leading band's colour (no band: the area's), no rule under the bar, no off-site arrows.
    12. **§3.12 Microcopy** — sentence case; game terms keep the book's casing ("End Downtime"), as do Game, Shelf and the roles ([glossary](../architecture/glossary.md)).
        Verbs: Copy, Move, Delete, Break down; Scrap is the currency, never the verb (p.248). Caps only through the stamp, `Button` and `capsLabel`; 11px caps are snug.
-   13. **§3.13 The emphasis ladder** — rust is what you came to do: a region's one door (Play, Build With This, a step's Next) and every Use; then ink, outline, ghost. On a band a rust button wears an ink keyline, any other is outlined: a read stamp and a button never share a look on one line (a Ledger's sorting stamp, L2, apart).
+   13. **§3.13 The emphasis ladder** — rust is what you came to do: a region's one door (Play, Build With This, a step's Next) and every Use; then ink, outline, ghost. On a band a rust button wears an ink keyline, any other is outlined, so no read stamp looks like a button (L2's sorter apart).
    14. **§3.14 One act, one emphasis** — an act (every + New one act) wears one variant on every screen (bar §1.9's door); a make is outlined.
 4. **§4 Foundations** — tokens, one home: `apps/web/src/styles/theme.css`.
    1. **§4.1 Colour roles** — `--color-paper` is the one light surface, `--color-wk-bg` the page ground, `--color-desk` the margin, `--color-band-cream` the one cream.
@@ -69,11 +69,12 @@ Canon for every primitive: a component breaking a rule is wrong; [the origin](ht
       A line's controls share one Size. A Button beside Tabs is their Size.
    8. **§4.8 The type ladder** — every font size is a `--text-*` rung: badge 11, chip 12, caption 13, body 14, lede 16, readout 17, title 22, display 31, hero 38, chapter 64; no other size, alias or literal (a link preview's own, K12). Rungs are rem: the reader's text size scales them.
    9. **§4.9 Rank rides the container** — band, then Slab, then frame, then Mini, a Slab's 14px stamp may sit over 22px titles; no stamp grows for rank.
+   10. **§4.10 One owner** — no `!important` beats its rule or style object; its count only falls.
 5. **§5 The irreducible set** — 12 atoms and one technique.
    1. **Stamp** — ink block, paper text: `Badge shape="stamp"`. 2. **Frame** — `Box`, `TitledBox` (cut-out); a note is a `Callout`. 3. **Badge** — the stamp-chip family.
    4. **Well** — labelled value: `Stat`, label first (steppers when edited). 5. **Gauge** — segmented current/max: `VitalGauge`. 6. **Btn** — the only mutator: `Button`.
    7. **Slab** — solid section stamp + leader rule, every section head. 8. **RollTable** — banded d20 map: `RollTableInstrument`. 9. **Condition** — tri-state glyph: `StatusBadge`.
-   10. **SlotGrid** — dashed addressable cargo cells. 11. **Icons** — `currentColor` `lucide-react` and local glyphs at the line's Size, stroke 2 (K11). 12. **Ledger** — a compared list's framed table: `Ledger` ([ledger.md](ledger.md)). The technique: StampSeam (§7.2), `STAMP_SEAM`.
+   10. **SlotGrid** — dashed addressable cargo cells. 11. **Icons** — `currentColor` `lucide-react` and local glyphs at the line's Size, stroke 2 (K11). 12. **Ledger** — a list's one table: `Ledger` ([ledger.md](ledger.md)). The technique: StampSeam (§7.2), `STAMP_SEAM`.
    - **Actions nest** — no tray: an action is a contentful Mini (N3) showing its effect alone, under an Actions Slab on a Page, grouped by type in Play, never on a sheet (R65).
    - **Nesting** — children stack in the parent's frame under their own titles, one tone each (E6); a child hides prose its parent shows.
    - **No titled box inside an entity** (N5) — a non-entity block in an entity is a Slab if a section (When Damaged), an unlabelled Callout if a note; an SRD Page's level-1 block may stay a TitledBox.

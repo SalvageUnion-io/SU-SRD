@@ -10,6 +10,7 @@
  *   - `srd-css`      — the site's single stylesheet entry (packages/gates/rules/srdCss.ts)
  *   - `tone-ground`  — no tech-level blue as a header ground (packages/gates/rules/toneGround.ts)
  *   - `class-prefix` — every package and app class is `su-*` (packages/gates/rules/classPrefix.ts)
+ *   - `important`    — no `!important` beats an owner; a stylesheet's held count only falls (packages/gates/rules/importantRatchet.ts)
  *   - `entity-nesting` — entities nest three levels deep, no titled box inside one (packages/gates/rules/entityNesting.ts)
  *   - `chrome`       — hard-rules' chrome laws: one ground signal, one focus ring, three dialog widths, one job per notice (packages/gates/rules/chrome.ts)
  *   - `select-mode`  — hard rule R15: one select dim, no level-2 seal (packages/gates/rules/selectMode.ts)

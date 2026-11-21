@@ -125,6 +125,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     '_hierarchy.ts',
   ],
   '§4.9': ['_hierarchy.ts#slab-size', 'R53'],
+  '§4.10': ['important/important'],
   '§5': ['roster.test.ts'],
   '§5.1': ['roster.test.ts'],
   '§5.2': ['roster.test.ts', 'R42'],
