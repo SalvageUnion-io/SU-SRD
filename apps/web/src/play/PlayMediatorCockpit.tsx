@@ -33,6 +33,7 @@ import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { rollForTable } from '../components/index'
+import { Toggle } from '../components/index'
 import { areaTitle } from '../lib/pageTitle'
 import { useTabTitle } from '../lib/useTabTitle'
 import { playCopy } from '../messages/play'
@@ -53,6 +54,7 @@ import { PlayFeedSection } from './PlaySideColumn'
 import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
+import { setPrivateRolls } from './playRolls.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
 import { usePlayChannelBinding } from './usePlayChannel'
 import { usePlayChannelControls } from './usePlayChannelControls'
@@ -73,15 +75,19 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   const mediator = usePlayMediator(gameId, gameName)
   useTabTitle(areaTitle(PRODUCT.play, `${routesCopy('mediate')} ${gameName}`))
   const binding = usePlayChannelBinding({ gameId })
-  // The Mediator's side (play.md §10): every roll posts while a channel is
-  // bound, and the Game's log is left out of the roll dispatch (the log is the
-  // crew's; the Opposition reaches them only through what is posted). Nothing awaits the
-  // Mediator's answer, so no proposal is on its Feed.
+  // The Mediator's side (play.md §10): every roll goes on the Game's log, so
+  // the players' Feeds show it and a reload keeps it, and posts while a channel
+  // is bound; with Private rolls on, a roll is kept from the players and from
+  // Discord. Nothing awaits the Mediator's answer, so no proposal is on its Feed.
+  const [privately, setPrivately] = useState(false)
+  useEffect(() => {
+    setPrivateRolls(privately)
+    return () => setPrivateRolls(false)
+  }, [privately])
   const side = useSideFeed({
     target: mediatorTarget(mediator.gameId),
     rollerName: 'Mediator',
     binding,
-    log: false,
     rolls: mediator.rolls,
     alerts: mediator.alerts,
     proposals: [],
@@ -124,7 +130,16 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
             setFocusTo(true)
           }}
         />
-        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+        <PlayFeedSection
+          side={side}
+          idPrefix="mediate"
+          canWrite={mediator.canWrite}
+          actions={
+            <Toggle size="mini" pressed={privately} onClick={() => setPrivately((on) => !on)}>
+              {playCopy('privateRolls')}
+            </Toggle>
+          }
+        />
       </>
     ),
     opposition: running ? (

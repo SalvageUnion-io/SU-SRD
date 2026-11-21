@@ -25,6 +25,8 @@ import { MEDIATOR_MEMBERS, MEDIATOR_SEATS, mediatorCrewAt, TABLE_HERE } from './
 
 /** What the Game's room was sent, by name. */
 const sent = acts
+/** Its names, less the roll's own row on the Game's log, which lands after the write. */
+const tray = () => sent.map((s) => s.name).filter((n) => n !== 'changeLog.appendChangeLog')
 
 const serverMocks = await installServerMocks({
   also: { '../../play/useGamePresence': () => ({ useGamePresence: () => TABLE_HERE }) },
@@ -199,7 +201,7 @@ describe('groups on the tray', () => {
   test('one Reaction roll for the whole group is sent for its members', async () => {
     await renderCockpit()
     await click(named('Roll Reaction for Raider Band'))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.recordGroupRoll']))
+    await waitFor(() => expect(tray()).toEqual(['mediator.recordGroupRoll']))
     expect(sent[0]).toMatchObject({ gameId: GAME })
     expect(sent[0]?.args).toMatchObject({
       groupId: 'band',
@@ -230,7 +232,7 @@ describe('groups on the tray', () => {
     const loner = within(screen.getByRole('region', { name: 'NPC: Loner' }))
     expect(loner.queryByText('Morale due')).toBeNull()
     await click(mule.getByRole('button', { name: 'Roll Morale for Mule' }))
-    await waitFor(() => expect(sent.map((s) => s.name)).toEqual(['mediator.updateNpc']))
+    await waitFor(() => expect(tray()).toEqual(['mediator.updateNpc']))
     expect(sent[0]?.args).toMatchObject({
       npcId: 'n-mule',
       patch: { lastMediatorRoll: { table: 'morale' } },

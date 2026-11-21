@@ -8,13 +8,14 @@
  *    none and solo; undefined while it loads or with no server to ask, null
  *    when nothing is bound.
  *  - `usePlayRollDispatch(...)`: for every roll recorded while the screen is
- *    open, the Game's log row (in a Game, but never the Mediator's) and the
- *    post (`postRoll`), with each roll's post state for its Feed line. A
+ *    open, the Game's log row (in a Game) and the post (`postRoll`), with
+ *    each roll's post state for its Feed line. A private roll (the
+ *    Mediator's switch) is logged private and never posted. A
  *    failure is shown, never swallowed, and a failed one can be tried again
  *    from its line (`postNow`).
  *
- * Every roll posts while a channel is bound, the Mediator's too: there is no
- * opt-in. `/su unbind` is how rolls stop posting.
+ * Every roll but a private one posts while a channel is bound, the Mediator's
+ * too: there is no opt-in. `/su unbind` is how rolls stop posting.
  */
 
 import type { PostRollResult } from 'game-domain/games/discord'
@@ -48,12 +49,6 @@ type DispatchArgs = {
   rollerName: string
   /** The bound channel, as `usePlayChannelBinding` read it. */
   binding: PlayBinding | null | undefined
-  /**
-   * Write each roll to the Game's log (the default). The Mediator's screen
-   * keeps its rolls off it: the log is the crew's to read, and the
-   * Opposition's rolls reach the players only when posted (play.md §10).
-   */
-  log?: boolean
 }
 
 export type PlayRollDispatch = {
@@ -67,15 +62,14 @@ export function usePlayRollDispatch({
   target,
   rollerName,
   binding,
-  log = true,
 }: DispatchArgs): PlayRollDispatch {
   const { canWrite } = useSync()
   const postRoll = useGamesCall('channelBindings.postRoll')
   const [posts, setPosts] = useState<ReadonlyMap<string, PlayPostState>>(() => new Map())
 
   // The listener reads the latest of these, so it subscribes once.
-  const latest = useRef({ target, rollerName, binding, canWrite, postRoll, log })
-  latest.current = { target, rollerName, binding, canWrite, postRoll, log }
+  const latest = useRef({ target, rollerName, binding, canWrite, postRoll })
+  latest.current = { target, rollerName, binding, canWrite, postRoll }
 
   const settle = useCallback((id: string, state: PlayPostState) => {
     setPosts((prev) => new Map(prev).set(id, state))
@@ -119,8 +113,8 @@ export function usePlayRollDispatch({
     () =>
       onPlayRoll((roll) => {
         if (!isDiceRoll(roll)) return
-        const { target: t, rollerName: name, canWrite: writable, log: toLog } = latest.current
-        if (t.gameId !== null && writable && toLog) {
+        const { target: t, rollerName: name, canWrite: writable } = latest.current
+        if (t.gameId !== null && writable) {
           void sendChangeLog([
             rollLogEntry(
               t.gameId,
@@ -131,12 +125,14 @@ export function usePlayRollDispatch({
                   roll: roll.rolls[0] ?? null,
                   outcome: roll.outcome ?? '',
                 },
+                ...(roll.private ? { private: true as const } : {}),
               },
               roll.at
             ),
           ])
         }
-        send(roll)
+        // A private roll stays off Discord: nothing mirrors it out of the room.
+        if (!roll.private) send(roll)
       }),
     [send]
   )

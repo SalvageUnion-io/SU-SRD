@@ -55,6 +55,8 @@ export const mediatorCopy = messages({
   done: 'Done',
   working: 'Working',
   away: 'Away',
+  upNow: 'Up now',
+  upNowFor: 'Up now: {name}',
   downtimeForTheTable: 'Downtime for the table',
   scrap: '{downtimeUpkeepScrap} Scrap',
   paid: 'Paid',

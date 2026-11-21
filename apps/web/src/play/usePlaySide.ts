@@ -43,7 +43,6 @@ export function useSideFeed({
   target,
   rollerName,
   binding,
-  log = true,
   rolls,
   alerts,
   proposals,
@@ -52,10 +51,8 @@ export function useSideFeed({
   /** Who the Feed and the Game's log say rolled from this screen. */
   rollerName: string
   binding: PlayBinding | null | undefined
-  /** Write each roll to the Game's log; the Mediator's screen does not. */
-  log?: boolean
 }): SideFeed {
-  const dispatch = usePlayRollDispatch({ target, rollerName, binding, log })
+  const dispatch = usePlayRollDispatch({ target, rollerName, binding })
   const [openedAt] = useState(() => Date.now())
   const mine = usePlayRollLog().filter((roll) => roll.at >= openedAt)
   const entries = playFeedEntries({ rolls, alerts, proposals, mine, rollerName })

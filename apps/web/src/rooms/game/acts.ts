@@ -141,6 +141,8 @@ const GAME_ACTS = {
   'scenes.setConditions': (c: ActContext, a: { conditions: string[] }) =>
     c.room.scene.setConditions(c.actor, a.conditions, c.at),
   'scenes.passHour': (c: ActContext) => c.room.scene.passHour(c.actor, c.at),
+  'scenes.setUpNow': (c: ActContext, a: { pilotId: string | null }) =>
+    c.room.scene.setUpNow(c.actor, a.pilotId, c.at),
   'salvageAreas.here': (c: ActContext) => c.room.scene.salvageArea(c.actor),
   'salvageAreas.set': (c: ActContext, a: { area: SalvageArea | null }) =>
     c.room.scene.setSalvageArea(c.actor, a.area, c.at),

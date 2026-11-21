@@ -103,6 +103,7 @@ export const GAME_SOCKET_ACTS = {
   'mediator.endEncounter': NONE,
   'scenes.setConditions': z.object({ conditions: z.array(z.string()) }),
   'scenes.passHour': NONE,
+  'scenes.setUpNow': z.object({ pilotId: z.string().nullable() }),
   'salvageAreas.set': SALVAGE_AREA_SET,
   'salvageAreas.spend': SALVAGE_AREA_SPEND,
   'safety.showStop': NONE,

@@ -165,6 +165,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 51. **ADR-051 Play mode, a Cockpit** · [full text](adr/051-play-mode.md)
     Built: one Cockpit layout, phone first: tabs below `lg`, Units | Actions | Crew, Tables, Feed; solo seats.
     Supersedes ADR-038 §1, §9 and its layout, and ADR-045; amends ADR-030; amended by ADR-052, ADR-066. As built: [play.md](architecture/play.md).
+    §9a: the Mediator's rolls are on the Game's log, a private one served to Mediators alone and never posted; Up now is a marker on the Scene's read.
 52. **ADR-052 Build owns your assets, Play owns Games** · [full text](adr/052-build-assets-play-games.md)
     Built: Build lists only what you own, a Game a chip, never a filter.
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062, ADR-066.

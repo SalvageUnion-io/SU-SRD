@@ -38,6 +38,11 @@ export type PlayRoll = {
   outcome?: string
   /** When, in ms. */
   at: number
+  /**
+   * The Mediator's private roll (play.md §10): the Game's log keeps it from the
+   * players, and it is never posted to Discord. Absent on every other roll.
+   */
+  private?: true
 }
 
 /** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
@@ -47,17 +52,31 @@ type Listener = (roll: PlayRoll) => void
 
 let log: readonly PlayRoll[] = []
 let next = 0
+let privately = false
 const listeners = new Set<Listener>()
 const watchers = new Set<() => void>()
 
 /** Record a roll made in Play: it lands on the Feed, the Game's log and, if asked, Discord. */
 export function recordPlayRoll(input: PlayRollInput): PlayRoll {
   next += 1
-  const roll: PlayRoll = { ...input, id: `play-roll-${next}`, at: input.at ?? Date.now() }
+  const roll: PlayRoll = {
+    ...input,
+    id: `play-roll-${next}`,
+    at: input.at ?? Date.now(),
+    ...(privately && input.rolls.length > 0 ? { private: true as const } : {}),
+  }
   log = [...log, roll]
   for (const listener of listeners) listener(roll)
   for (const watch of watchers) watch()
   return roll
+}
+
+/**
+ * Whether the rolls recorded from now on are private: the Mediator's screen's
+ * switch, off whenever that screen is not open.
+ */
+export function setPrivateRolls(on: boolean): void {
+  privately = on
 }
 
 /** Record an applied change (no dice): the Feed lists it, nothing is posted. */
@@ -154,6 +173,7 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
 /** Empty the log (tests). */
 export function clearPlayRolls(): void {
   log = []
+  privately = false
   for (const watch of watchers) watch()
 }
 
@@ -163,6 +183,8 @@ export type LoggedRoll = {
   description: string
   /** The die face, where one die decided it (a table names its row in `outcome`). */
   result: { kind: 'core' | 'table'; roll: number | null; outcome: string }
+  /** The Mediator's private roll: the room keeps the row from the players. */
+  private?: true
 }
 
 /**
@@ -181,7 +203,11 @@ export function rollLogEntry<GameId extends string>(gameId: GameId, roll: Logged
     kind: PLAY_TXN.kind,
     field: 'roll',
     before: null,
-    after: { description: roll.description, result: roll.result },
+    after: {
+      description: roll.description,
+      result: roll.result,
+      ...(roll.private ? { private: true as const } : {}),
+    },
     source: PLAY_TXN.source,
   }
 }

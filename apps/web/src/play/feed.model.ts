@@ -13,6 +13,7 @@
  */
 
 import { fieldLabel } from 'game-domain/games/proposals'
+import { playCopy } from '../messages/play'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
@@ -62,6 +63,7 @@ export function mineText(roll: PlayRoll): string {
     roll.label,
     ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
     ...(roll.outcome ? [roll.outcome] : []),
+    ...(roll.private ? [playCopy('privateRoll')] : []),
   ].join(' · ')
 }
 
@@ -97,9 +99,12 @@ export function playFeedEntries({
           kind: 'roll',
           key: `roll-${r._id}`,
           ts: r.ts,
-          text: r.description.startsWith(myPrefix)
-            ? `You · ${r.description.slice(myPrefix.length)}`
-            : r.description,
+          text: [
+            r.description.startsWith(myPrefix)
+              ? `You · ${r.description.slice(myPrefix.length)}`
+              : r.description,
+            ...(r.private ? [playCopy('privateRoll')] : []),
+          ].join(' · '),
         })
       ),
     ...alerts.map(

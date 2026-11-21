@@ -274,6 +274,27 @@ describe('the Crew (play.md §7)', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
+  test('Up now: the Mediator’s marker names the crewmate, or says it is you', async () => {
+    answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'mags' } })
+    await renderSide()
+    expect(screen.getByText('Up now · Mags')).toBeTruthy()
+    const crew = within(screen.getByRole('list', { name: 'Crew' }))
+    expect(crew.getByText('Up now')).toBeTruthy()
+    expect(
+      crew.getByRole('button', {
+        name: 'Mags, here, Boarded · Atlas, SP 22, fine, Up now. Open their sheet',
+      })
+    ).toBeTruthy()
+    cleanup()
+    answers({ 'scenes.current': { conditions: [], hours: 0, upNow: 'bonesaw' } })
+    await renderSide()
+    expect(screen.getByText('Up now · You')).toBeTruthy()
+    cleanup()
+    answers()
+    await renderSide()
+    expect(screen.queryByText(/^Up now/)).toBeNull()
+  })
+
   test('solo has no Crew', async () => {
     answers()
     await renderSide({ gameId: null })
