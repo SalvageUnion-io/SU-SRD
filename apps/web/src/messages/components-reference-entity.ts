@@ -5,8 +5,6 @@ import { messages } from './define'
 export const referenceEntityCopy = messages({
   level: 'Level',
   entityDisplayDetails: 'Entity display details',
-  bayInfo: 'Bay Info',
-  bayInfo2: '{subject} Bay Info',
   perTechLevel: 'Per Tech Level',
   actions: 'Actions',
   pattern: '{normalizePatternName} — {name} pattern',

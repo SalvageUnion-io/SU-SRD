@@ -145,7 +145,6 @@ const ROSTER = {
     'resolveEntityPageMeta',
     'isLegalStartingPatternOf',
     'WhenDamaged',
-    'BayInfo',
     'EntityRollMini',
     'EntityChoices',
     'LinkedUnits', // EDL: a linked unit is its header-only Mini, never a chip
