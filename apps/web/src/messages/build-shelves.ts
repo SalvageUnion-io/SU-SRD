@@ -4,6 +4,7 @@ import { messages } from './define'
 
 export const buildShelvesCopy = messages({
   movedTo: 'Moved {name} to {label}.',
+  movedPairTo: 'Moved {name} and {mech} to {label}.',
   move: 'Move {name}',
   move2: 'Move',
   whereTo: 'Where to',

@@ -7,7 +7,8 @@
  *  - **Out of a Game** — to the shelf or on to another Game — always asks
  *    (`leaveGame`): it takes the build off a roster the table was reading.
  *  - **Into a Game** asks only when it clears an assignment (`enterGame`,
- *    naming each, ADR-037); otherwise it moves at once.
+ *    naming each, ADR-037); otherwise it moves at once. A link the caller
+ *    carries through the move (`keep`) is not one it clears.
  *
  * A confirmed move runs bare (`move`), because the dialog shows its own
  * failure; an unasked one runs through `moveNow`, which owns its own pending and
@@ -35,6 +36,8 @@ export function requestMove(args: {
   move: (next: Container) => Promise<void>
   /** The move with its own pending and error handling, for a move that does not ask. */
   moveNow: (next: Container) => void
+  /** Links that come through the move (a pilot's mech moves with them): never named as cleared. */
+  keep?: readonly { id: string }[]
 }): void {
   const { entityType, entityId, name, current, next, gameName, confirm } = args
   if (current.kind === 'game' && !sameContainer(current, next)) {
@@ -49,9 +52,12 @@ export function requestMove(args: {
     })
     return
   }
+  const store = useUnits.getState()
+  const kept = new Set((args.keep ?? []).map((link) => link.id))
+  const held = { ...store, softLinks: store.softLinks.filter((link) => !kept.has(link.id)) }
   const cleared =
     next.kind === 'game'
-      ? assignmentsClearedByMove(useUnits.getState(), { type: entityType, id: entityId }, next)
+      ? assignmentsClearedByMove(held, { type: entityType, id: entityId }, next)
       : []
   if (next.kind === 'shelf' || cleared.length === 0) {
     args.moveNow(next)
