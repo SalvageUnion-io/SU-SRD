@@ -620,6 +620,11 @@
   width: auto;
 }
 
+/* The acts keep the one focus ring (K9) the strip's look takes off them. */
+.su-rail-acts :is(.su-seg__option, .su-btn):focus-visible {
+  box-shadow: var(--focus-ring-shadow);
+}
+
 .su-rail-acts :is(.su-seg__option, .su-btn):hover,
 .su-rail-acts .su-seg__option[aria-pressed='true'],
 .su-rail-acts .su-btn[aria-expanded='true'] {

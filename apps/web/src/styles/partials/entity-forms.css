@@ -1625,6 +1625,11 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   box-shadow: none;
 }
 
+/* A row's head keeps the one focus ring (K9) the rule above takes from it. */
+[data-rows] .su-entity-mini > :focus-visible {
+  box-shadow: var(--focus-ring-shadow);
+}
+
 [data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
 [data-rows]
   .su-entity-compact__head[data-row]
