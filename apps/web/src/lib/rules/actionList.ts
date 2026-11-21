@@ -294,6 +294,15 @@ export function buildCompanionActions(
   return (partners ?? []).flatMap((partner) => buildPartnerActions(partner, host))
 }
 
+/** Whether an action's printed record is a mech's, paid in EP. */
+function mechSourced(action: RefMetaAction): boolean {
+  return (
+    action.actionSource === 'systems' ||
+    action.actionSource === 'modules' ||
+    action.actionSource === 'chassis'
+  )
+}
+
 /** Resolve a pilot ability slug against the reference ORM. */
 function resolveAbilityBySlug(slug: string): RefAbility | null {
   return SalvageUnionReference.Abilities.getBySlug(slug) ?? null
@@ -368,7 +377,12 @@ export function buildPilotActions(pilot: Pilot): PlayAction[] {
       itemChoices.length > 0
         ? { from: itemChoices, selections: pilot.equipmentChoices?.[slug] ?? {} }
         : undefined
-    deckActions(equip).forEach((action, i) => {
+    deckActions(equip).forEach((printed, i) => {
+      // A pilot pays in AP: an action the book shares with a mech System (the
+      // Riveting Gun's repairs, Core Book p.80) reads its cost as the pilot's.
+      const action = mechSourced(printed)
+        ? { ...printed, actionSource: 'equipment' as const }
+        : printed
       out.push({
         key: `equipment:${slug}:${action.id ?? i}`,
         name: action.name,
