@@ -103,6 +103,7 @@ export const playCopy = messages({
   feed: 'Feed',
   privateRoll: 'Private',
   privateRolls: 'Private rolls',
+  mediatorRolled: 'Mediator rolled',
   namesHidden: 'Players see the result, not the names',
   reveal: 'Reveal',
   revealWhat: 'Reveal to the table: {text}',

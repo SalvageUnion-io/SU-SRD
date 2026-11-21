@@ -30,7 +30,7 @@ import { useTableAct } from '../replica/useTable'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
-import { acceptedUndo } from './proposalAnswer'
+import { acceptedUndo } from './proposalAnswer.model'
 import type { PlayPostState } from './usePlayChannel'
 
 const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSProperties

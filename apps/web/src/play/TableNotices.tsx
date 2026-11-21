@@ -29,7 +29,7 @@ import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
-import { acceptedUndo, proposalChange } from './proposalAnswer'
+import { acceptedUndo, proposalChange } from './proposalAnswer.model'
 import type { Heard, KnownGame } from './tableNotices.model'
 import {
   endedSession,

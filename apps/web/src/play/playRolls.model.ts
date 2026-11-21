@@ -23,6 +23,7 @@ import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
 import { localStore } from '../lib/safeLocalStorage'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
@@ -143,7 +144,7 @@ export function playRollDescription(rollerName: string, roll: PlayRoll): string 
  */
 export function veiledRollDescription(roll: Pick<PlayRoll, 'rolls' | 'outcome'>): string {
   return [
-    'Mediator rolled',
+    playCopy('mediatorRolled'),
     ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
     ...(roll.outcome ? [roll.outcome] : []),
   ].join(' · ')

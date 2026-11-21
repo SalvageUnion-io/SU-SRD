@@ -22,7 +22,7 @@ import {
   setPrivateRolls,
   veiledRollDescription,
 } from '../playRolls.model'
-import { proposalChange } from '../proposalAnswer'
+import { proposalChange } from '../proposalAnswer.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
 import { CREW_HERE, crewAt } from './crewFixture'

@@ -5,7 +5,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'
 import { useTableAct, useTableRead } from '../../replica/useTable'
-import { acceptedUndo, proposalChange } from '../proposalAnswer'
+import { acceptedUndo, proposalChange } from '../proposalAnswer.model'
 import { HUB_BODY } from './hubStyles.model'
 
 /**

@@ -17,7 +17,7 @@ import { playCopy } from '../messages/play'
 import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
-import { proposalChange } from './proposalAnswer'
+import { proposalChange } from './proposalAnswer.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
 
 export type FeedEntry =
