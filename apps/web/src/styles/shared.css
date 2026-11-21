@@ -341,7 +341,7 @@
 
 /* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
    and its tagline. */
-.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),
-.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
+.su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline),
+.su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
   color: var(--color-paper);
 }

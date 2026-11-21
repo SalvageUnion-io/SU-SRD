@@ -359,6 +359,8 @@ export function ChapterBand({
       // The band is the frame: one that prints paper is an ink ground, and the
       // controls in its aside and eyebrow read it in CSS (chrome K1).
       data-ground={foregroundOn(band, 'ink') === 'paper' ? 'ink' : 'paper'}
+      // The deep crawler pink's kicker and tagline carry paper (`shared.css`).
+      data-paint={band === color.crawlerBand ? 'crawler' : undefined}
       {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
         ...ROOT,
