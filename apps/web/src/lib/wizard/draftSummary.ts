@@ -19,7 +19,7 @@ import type { PilotWizardFormState } from './pilotFormState'
 import { preselectedChassis, preselectedClassId, preselectedCrawlerType } from './preselect'
 import { readWizardDraft, wizardDraftKey } from './wizardDraft'
 
-export const DRAFT_KINDS = ['pilot', 'mech', 'crawler'] as const satisfies readonly SheetKind[]
+const DRAFT_KINDS = ['pilot', 'mech', 'crawler'] as const satisfies readonly SheetKind[]
 
 export type DraftSummary = {
   kind: SheetKind

@@ -72,7 +72,7 @@ export const buildWizardCopy = messages({
   draftKept: 'Your {label} draft is kept in this tab. Resume it from the Training Bay.',
   tryItNow: 'Try it now. Saving needs a free sign-in.',
   signInToBuildThis:
-    'Building from a pattern saves the mech at once, which needs an account. Sign in with Discord and your choice is here when you come back.',
+    'Building from a pattern saves the Mech at once, which needs an account. Sign in with Discord and your choice is here when you come back.',
   notNow: 'Not now',
   download: 'Download',
   print: 'Print',

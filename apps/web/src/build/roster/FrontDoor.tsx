@@ -129,6 +129,19 @@ export function BuildStartHere({ id, anchored = false }: { id: string; anchored?
   )
 }
 
+/**
+ * What the Training Bay leads with: this tab's drafts (a build left
+ * mid-wizard, and Resume), then the way in while it holds nothing yet.
+ */
+export function ShelfLead({ empty }: { empty: boolean }) {
+  return (
+    <>
+      <WizardDrafts />
+      {empty && <BuildStartHere id="shelf-start" />}
+    </>
+  )
+}
+
 /** Build's front door: its pitch, its steps, the Starter crew. */
 export function BuildFrontDoor() {
   return (
