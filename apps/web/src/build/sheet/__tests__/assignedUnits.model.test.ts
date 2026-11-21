@@ -1,5 +1,5 @@
 /**
- * assignedUnitsFor — one Assigned units list for every kind: owner chips
+ * assignedUnitsFor — one Related units list for every kind: owner chips
  * wherever a Game names the holder, Unassign only on a link this sheet holds,
  * a docked mech read with its own pilot's piloting context.
  */

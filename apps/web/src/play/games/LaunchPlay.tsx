@@ -34,7 +34,8 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Button, PickDialog } from '../../components/index'
+import { PickDialog } from '../../components/app'
+import { Button } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
@@ -115,7 +116,14 @@ export function LaunchPlay({
 
   return (
     <>
-      <Button variant={door ? 'primary' : 'default'} size="compact" onClick={openPicker}>
+      {/* Play is rust only as its role's door (§1.9): the one act whose look
+          the viewer's role picks, so act-twin reads past it. */}
+      <Button
+        variant={door ? 'primary' : 'default'}
+        size="compact"
+        data-role-door=""
+        onClick={openPicker}
+      >
         {live ? playCopy('joinSession') : playGamesCopy('play')}
       </Button>
       <PickDialog

@@ -42,11 +42,12 @@ const GAME = 'The Rust Belt Run'
 
 /**
  * The player's seat on the Mediator's table: its toggle Mini's name, a button
- * named "<callsign or name>, here, …", pressed while Propose is aimed there.
+ * named by what it shows, "<callsign or name> (Pilot), here, …" (aboard, its
+ * Mech's first), pressed while Propose is aimed there.
  */
 function seat(page: Page) {
   return page.getByRole('list', { name: 'Seats' }).getByRole('button', {
-    name: /^(Sparks|Mira Voss), /,
+    name: /^(?:.+ \(Mech\), )?(Sparks|Mira Voss)(?: \(Pilot\))?, /,
   })
 }
 
@@ -59,7 +60,7 @@ test(
     await createGame(page, GAME)
     await page.getByRole('button', { name: 'Appoint' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-    await expect(page.getByText('You mediate')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 15_000 })
     const token = await makeInviteLink(page)
 
     const player = await secondAccount(browser, info)

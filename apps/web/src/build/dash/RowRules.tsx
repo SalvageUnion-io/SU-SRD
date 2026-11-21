@@ -60,9 +60,7 @@ export function RowRules({
   const marks = marksOf(model)
   return (
     <div className="su-row-rules">
-      {marks.length > 0 && (
-        <p className={cn('su-row-rules__marks', CAPS, CAPS)}>{marks.join(' · ')}</p>
-      )}
+      {marks.length > 0 && <p className={cn('su-row-rules__marks', CAPS)}>{marks.join(' · ')}</p>}
       {ownContent.length > 0 && (
         <div className="su-row-rules__text">
           <Content
@@ -89,9 +87,7 @@ export function RowRules({
             <p className="su-row-rules__action-head">
               <b>{action.name}</b>
               {actionMarks.length > 0 && (
-                <span className={cn('su-row-rules__marks', CAPS, CAPS)}>
-                  {actionMarks.join(' · ')}
-                </span>
+                <span className={cn('su-row-rules__marks', CAPS)}>{actionMarks.join(' · ')}</span>
               )}
               {actionModel.cost && <Cost cost={actionModel.cost} />}
             </p>

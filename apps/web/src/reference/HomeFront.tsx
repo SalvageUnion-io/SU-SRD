@@ -1,12 +1,14 @@
-// The home page: its slideshow (`HomeHero`), the site's name and the pitch on
-// a cream cut-out under the header, over seven slides of the book's art, each
-// (but the first) a line and one action named for the slide on a cut-out over
-// the footer, then the tagline's slide.
+// The home page: its slideshow (`HomeHero`), the site's name on an ink-deep
+// cut-out under the header, over seven slides of the book's art: first the
+// pitch, then each a line and one action named for the slide, on a cut-out
+// over the footer, then the tagline's slide.
+import { Pause, Play } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
-import { Button, capsLabel } from '../components/index'
+import { Button, capsLabel, Toggle } from '../components/index'
 import { Tagline } from '../components/Tagline'
+import { iconSize } from '../design/tokens'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
 import { DISCORD_INSTALL_URL } from '../lib/constants'
@@ -27,7 +29,7 @@ type Slide = {
       href: string
       external?: boolean
     }
-  /** The slide's words are the pitch, which stands under the site's name: the art alone. */
+  /** The slide's words are the pitch, alone in its plate. */
   | { kind: 'pitch' }
   /** The slide's words are the tagline (`Tagline`), in its plate. */
   | { kind: 'quote' }
@@ -100,10 +102,14 @@ function heroSlides(): Slide[] {
 /**
  * The home is its slideshow, edge to edge and the whole height between the
  * header and the footer. Each slide's art covers the ground. The site's name
- * and the pitch stand on a paper cut-out notched into the header; each
- * slide's words on one notched into the footer, in the same place every time.
- * CSS only (the page is served without React); under reduced motion the
- * first slide stands still.
+ * stands on an ink-deep cut-out notched into the header; each slide's words
+ * (the first's, the pitch) on one notched into the footer, in the same place
+ * every time.
+ * The show is CSS (the page is served without React): a slide out of its turn
+ * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
+ * It holds while an act is pointed at or focused, and its Pause (`watchSlideshow`, the
+ * page's script) stops it for good (WCAG 2.2.2). Under reduced motion it never
+ * turns: the slides stand one under another, every action in view.
  */
 export function HomeHero() {
   const slides = heroSlides()
@@ -136,50 +142,64 @@ export function HomeHero() {
                 loading={index === 0 ? 'eager' : 'lazy'}
               />
             )}
-            {/* The slide's words on a cream cut-out at its lower right, on the
+            {/* The slide's words on an ink-deep cut-out at its lower right, speckled as the header, on the
                 footer: its heading and line, then its action (named for the
-                slide) at the plate's right. The pitch's slide has none. */}
-            {slide.kind !== 'pitch' && (
-              <div className="su-front__show-copy">
-                {slide.kind === 'quote' ? (
-                  <div className="su-front__show-plate su-front__show-plate--quote">
-                    <Tagline />
+                slide) at the plate's right. The pitch's and the tagline's
+                slides have no action. */}
+            <div className="su-front__show-copy">
+              {slide.kind === 'pitch' ? (
+                <div className="su-front__show-plate su-grain--paper">
+                  <p className="su-front__show-pitch">{referenceCopy('pitchValue')}</p>
+                </div>
+              ) : slide.kind === 'quote' ? (
+                <div className="su-front__show-plate su-front__show-plate--quote su-grain--paper">
+                  <Tagline />
+                </div>
+              ) : (
+                <div className="su-front__show-plate su-grain--paper">
+                  <div className="su-front__show-words">
+                    {slide.heading && <p className="su-front__show-heading">{slide.heading}</p>}
+                    <p className="su-front__show-body">{slide.body}</p>
                   </div>
-                ) : (
-                  <div className="su-front__show-plate">
-                    <div className="su-front__show-words">
-                      {slide.heading && <p className="su-front__show-heading">{slide.heading}</p>}
-                      <p className="su-front__show-body">{slide.body}</p>
-                    </div>
-                    <Button
-                      href={slide.href}
-                      linkAs="a"
-                      variant="primary"
-                      size="full"
-                      className="su-front__show-act"
-                      target={slide.external ? '_blank' : undefined}
-                      rel="noopener noreferrer"
-                    >
-                      {slide.title}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
+                  <Button
+                    href={slide.href}
+                    linkAs="a"
+                    variant="primary"
+                    size="full"
+                    className="su-front__show-act"
+                    target={slide.external ? '_blank' : undefined}
+                    rel="noopener noreferrer"
+                  >
+                    {slide.title}
+                  </Button>
+                </div>
+              )}
+            </div>
           </li>
         ))}
       </ul>
-      {/* The site's name on a cream cut-out under the header, the page's one
-          h1, and the pitch tucked under it on cut-outs of its own, each line
-          as wide as its words. */}
+      {/* The site's name on an ink-deep cut-out under the header, speckled as it is, the page's one
+          h1. */}
       <div className="su-front__show-head">
         <div className="su-front__show-brand">
-          <h1 className={cn('su-front__show-name', capsLabel())}>{referenceCopy('siteName')}</h1>
-          <p className="su-front__show-pitch">
-            <span className="su-front__show-pitch-line">{referenceCopy('pitchValue')}</span>
-          </p>
+          <h1 className={cn('su-front__show-name su-grain--paper', capsLabel())}>
+            {referenceCopy('siteName')}
+          </h1>
         </div>
       </div>
+      {/* The show's Pause, a bare icon at its lower left (WCAG 2.2.2): Pause
+          at rest, Play once pressed. Hidden until the page's script can press
+          it. */}
+      <Toggle
+        pressed={false}
+        className="su-front__show-pause"
+        aria-label={referenceCopy('showPause')}
+        data-show-pause=""
+        hidden
+      >
+        <Pause size={iconSize.full} aria-hidden="true" className="su-front__show-pause-icon" />
+        <Play size={iconSize.full} aria-hidden="true" className="su-front__show-play-icon" />
+      </Toggle>
     </section>
   )
 }

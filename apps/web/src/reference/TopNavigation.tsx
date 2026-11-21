@@ -38,7 +38,7 @@ import { Island } from '../runtime/Island'
 function WikiLink() {
   return (
     <a
-      href="/greembeem"
+      href="/greembeem/"
       className={cn('su-union-bar__quiet', capsLabel({ tracking: 'inherit' }), FOCUS_RING)}
       hidden
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}

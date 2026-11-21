@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 12 of 20: Badge, SmallButtons,
+ * The package stylesheet: Badge, SmallButtons,
  * the stamps on a stamp. `../index.css` imports the parts in
  * cascade order.
  */
@@ -348,8 +348,8 @@
 /* `atoms/SmallButtons.tsx` (`StepButton`), the one +/− stepper: a frameless
  * ink plate, a paper one on an ink ground (the frame's `data-ground`, chrome
  * K1), hovering a step lighter, and a 44px tap
- * floor below `sm` that relaxes at `sm`. A `cell` button takes its height from
- * the cell beside it and its width from the caller, so it has no width floor. */
+ * floor below `sm` that relaxes at `sm`. A `cell` button is its chip's height
+ * and 24px wide at the least (WCAG 2.5.8 spacing). */
 .su-step-btn {
   /* Frameless by design: the `button` reset above sets `border: none`. */
   border-radius: var(--radius-card);
@@ -375,18 +375,28 @@
   background-color: var(--color-wk-bg);
 }
 
-/* A Stat's +/- stepper (`fit="cell"`, which also carries `.su-stat-step`)
- * draws at its chip's height on every pointer (R12). */
-.su-step-btn--cell {
-  min-height: 0;
-  min-width: 0;
-}
-
 @media (width >= 40rem) {
   .su-step-btn {
     min-height: 0;
     min-width: 0;
   }
+}
+
+/* A Stat's +/- stepper (`fit="cell"`, which also carries `.su-stat-step`)
+ * draws at its chip's height on every pointer (R12) and 24px wide at the
+ * least, so the two steps' centres stand 24px apart (WCAG 2.5.8 spacing). */
+.su-step-btn--cell {
+  min-height: 0;
+  min-width: var(--space-24);
+  position: relative;
+}
+
+/* Its target is 24px tall whatever it draws at (WCAG 2.5.8): a hit area
+   centred on it, never smaller than the button. */
+.su-step-btn--cell::after {
+  content: '';
+  inset: min(0px, calc(50% - var(--space-12)));
+  position: absolute;
 }
 
 /* A spent step (at its min or max) drains like a disabled rust button

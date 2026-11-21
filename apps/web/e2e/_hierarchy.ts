@@ -17,12 +17,14 @@ import { fromFaults } from './_findings'
  * - `stray-head` (R53): a heading that is no band title, Slab, entity title,
  *   contents chapter or screen-reader label; `nested-slab`: a Slab section in a Slab section,
  *   not Mini;
- * - `door-rust` (§3.13): a "+ New…" or "+ Design…" control rust beside its
- *   region's door (a Ledger's, a section's); `use-rust`: a Use
+ * - `door-rust` (§3.14): a "+ New…" or "+ Design…" control rust (a make is
+ *   outlined wherever it stands); `use-rust` (§3.13): a Use
  *   that is not rust; `band-keyline`: a rust control on a colour band without
  *   its ink keyline; `stamp-twin`: a button painted like a read stamp beside
  *   it on its line;
  * - `tool-title-clip` (C5): a TitledBox's title clipped to "…";
+ * - `act-twin` (§3.14, `actTwins`, over the whole walk): one act (its words,
+ *   every `+ New…` as one) drawn in two variants;
  * - `measure` (§1.10): a Reference or Manage band title whose words start off
  *   the page measure's left edge (its cut-out may hang into the margin); `first-screen`: a phone page whose first content starts below
  *   its first screen.
@@ -156,13 +158,7 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
   for (const c of controls) {
     const off = (c as HTMLButtonElement).disabled || c.getAttribute('aria-disabled') === 'true'
     if (isUse(c) && !off && !isRust(c)) out.push(`use-rust: ${name(c)}`)
-    if (isMake(c)) {
-      const region = c.closest('.su-ledger, .su-slab-section, section, main') ?? document.body
-      const door = controls.some(
-        (o) => o !== c && region.contains(o) && isRust(o) && !isMake(o) && !isUse(o)
-      )
-      if (door && isRust(c)) out.push(`door-rust: ${name(c)} is rust beside its region's door`)
-    }
+    if (isMake(c) && isRust(c)) out.push(`door-rust: ${name(c)} is rust; a make is outlined`)
     if (isRust(c)) {
       const on = ground(c)
       // A strip's Mini control draws its edge as an outline (its border is its hit area).
@@ -250,6 +246,72 @@ function scan({ ladder, context, phone }: Context & { ladder: number[] }): strin
       )
   }
   return out
+}
+
+/** One drawn button's act: its words (a make's family, `+ New…`, as one), its variant and where it stood. */
+export type Act<F extends string = string> = {
+  act: string
+  variant: string
+  family: F
+  where: string
+}
+
+type Look = { act: string; variant: string }
+
+/**
+ * Runs in the page: every drawn, labelled `Button` and its variant; a Toggle's
+ * pressed plate is state, not emphasis, and a role's door (`data-role-door`,
+ * §1.9) is rust by the viewer's role.
+ */
+function readActsIn(): Look[] {
+  const out: Look[] = []
+  for (const el of document.querySelectorAll('.su-btn:not([aria-pressed], [data-role-door])')) {
+    const r = el.getBoundingClientRect()
+    const s = getComputedStyle(el)
+    if (r.width < 2 || r.height < 2 || s.visibility === 'hidden' || Number(s.opacity) === 0)
+      continue
+    const words = (el.textContent ?? '').trim().replace(/\s+/g, ' ')
+    if (!words || words.length > 40) continue
+    const variant = [...el.classList]
+      .map((c) => c.match(/^su-btn--(default|primary|ghost|ink|quiet|pencil)$/)?.[1])
+      .find(Boolean)
+    if (!variant) continue
+    const act = /^\+\s*(?:New|Design)\b/i.test(words) ? '+ New…' : words.toLowerCase()
+    out.push({ act, variant })
+  }
+  return out
+}
+
+/** The page's acts as they stand (ruleset §3.14), for `actTwins`. */
+export async function readActs<F extends string>(
+  page: Page,
+  at: { family: F; where: string }
+): Promise<Act<F>[]> {
+  return (await page.evaluate(readActsIn)).map((a) => ({ ...a, ...at }))
+}
+
+/**
+ * `act-twin` (ruleset §3.14, one act, one emphasis): an act drawn in two
+ * variants anywhere on the walk, each variant with the first place it stood.
+ */
+export function actTwins<F extends string>(
+  acts: readonly Act<F>[]
+): { family: F; rule: 'act-twin'; line: string }[] {
+  const seen = new Map<string, Map<string, Act<F>>>()
+  for (const a of acts) {
+    const looks = seen.get(a.act) ?? new Map<string, Act<F>>()
+    if (!looks.has(a.variant)) looks.set(a.variant, a)
+    seen.set(a.act, looks)
+  }
+  return [...seen].flatMap(([act, looks]) => {
+    const [first, ...others] = [...looks.values()]
+    if (!first || others.length === 0) return []
+    return others.map((o) => ({
+      family: o.family,
+      rule: 'act-twin' as const,
+      line: `act-twin: "${act}" ${o.variant} at ${o.where}, ${first.variant} at ${first.where}`,
+    }))
+  })
 }
 
 /** Every hierarchy fault on the page as it stands (§4.8). */

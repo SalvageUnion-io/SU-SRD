@@ -45,7 +45,7 @@ export const DISCORD_SAMPLES: { roll: SampleReply; lookup: SampleReply } = {
         },
         {
           "kind": "text",
-          "content": "-# Workshop Manual · p.232 // Salvage Union Starter Set (CR) · p.14 · Powered by Randsum.dev"
+          "content": "-# Workshop Manual · p.232 // Starter Set (CR) · p.14 · Powered by Randsum.dev"
         },
         {
           "kind": "buttons",
@@ -85,7 +85,7 @@ export const DISCORD_SAMPLES: { roll: SampleReply; lookup: SampleReply } = {
         },
         {
           "kind": "text",
-          "content": "-# Workshop Manual · p.170 // Salvage Union Starter Set (PC) · p.55"
+          "content": "-# Workshop Manual · p.170 // Starter Set (PC) · p.55"
         }
       ]
     }

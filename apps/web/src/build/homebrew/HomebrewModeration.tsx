@@ -8,16 +8,8 @@
 
 import { publicPath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import {
-  Button,
-  Cluster,
-  InlineRef,
-  SlabSection,
-  Stack,
-  Text,
-  toast,
-  tokens,
-} from '../../components/index'
+import { Cluster } from '../../components/app'
+import { Button, InlineRef, SlabSection, Stack, Text, toast, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { HomebrewModeration as Queue } from '../../lib/sharing/reads'
 import { useHomebrewDismiss, useHomebrewSetHidden } from '../../lib/sharing/reads'

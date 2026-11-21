@@ -1,0 +1,178 @@
+/*
+ * The package stylesheet: the Union bar's trail and the page shell.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ══ Breadcrumbs (the Union bar's trail) ════════════════════════════════════
+ *
+ * One list, three placements: in the bar on desktop, in paper with the current
+ * page in bold (`--bar`), and on a row of its own under the bar below `lg`
+ * (`--row`), where the bar has no room; a page band carries it on its title's
+ * plate instead (`--band`, below), and then neither shows. Exactly one is
+ * displayed at any width.
+ */
+.su-crumbs {
+  align-items: baseline;
+  column-gap: var(--space-8);
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+  min-width: 0;
+}
+
+.su-crumbs__list {
+  column-gap: var(--space-6);
+}
+
+.su-crumbs__link {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.su-crumbs__here {
+  font-weight: var(--font-weight-bold);
+}
+
+.su-crumbs--bar {
+  color: var(--su-bar-fg);
+  display: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.su-crumbs--bar .su-crumbs__link {
+  color: var(--su-bar-fg-85);
+}
+
+.su-crumbs--bar .su-crumbs__link:hover {
+  color: var(--su-bar-fg);
+}
+
+.su-crumbs--bar .su-crumbs__separator {
+  color: var(--su-bar-fg-60);
+}
+
+.su-crumbs--row {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-hairline) solid var(--color-ink-15);
+  color: var(--color-ink);
+  display: flex;
+  flex-wrap: wrap;
+  padding: var(--space-8) var(--space-16);
+  position: sticky;
+  row-gap: var(--space-4);
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.su-crumbs--row .su-crumbs__list {
+  flex-wrap: wrap;
+}
+
+.su-crumbs--row .su-crumbs__link {
+  color: var(--color-ink);
+}
+
+.su-crumbs--row .su-crumbs__link:hover {
+  color: var(--color-ink-75);
+}
+
+.su-crumbs--row .su-crumbs__separator {
+  color: var(--color-wk-muted);
+}
+
+/* The trail row lines up with the bar above it. */
+@media (width >= 40rem) {
+  .su-crumbs--row {
+    padding-inline: var(--space-32);
+  }
+}
+
+/* The bar holds the trail only from 80rem: between `lg` and there the switcher,
+   the search and the account leave a deep trail no room (the current page
+   would fall outside the clipped box), so the row stays. */
+@media (width >= 80rem) {
+  .su-crumbs--bar {
+    display: flex;
+  }
+
+  .su-crumbs--row {
+    display: none;
+  }
+}
+
+/* ══ The page shell (`components/containers/PageShell.tsx`) ══════════════════════
+ *
+ * The shell's gutters, as custom properties as well as its padding, so a child
+ * that bleeds to the shell's edges (a `ChapterBand`) can undo exactly them.
+ */
+.su-page-shell,
+.su-page-gutters {
+  --su-page-gutter-inline: var(--space-16);
+  --su-page-gutter-block: var(--space-20);
+}
+
+.su-page-shell {
+  padding: var(--su-page-gutter-block) var(--su-page-gutter-inline);
+}
+
+@media (width >= 40rem) {
+  .su-page-shell,
+  .su-page-gutters {
+    --su-page-gutter-inline: var(--space-32);
+    --su-page-gutter-block: var(--space-40);
+  }
+}
+
+@media (width >= 64rem) {
+  .su-page-shell,
+  .su-page-gutters {
+    --su-page-gutter-inline: var(--space-48);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * THE LAYOUT SYSTEM.
+ *
+ *   L-1  One measure. Every page (front, listing, entity, sheet, guide,
+ *        wizard) sets its content on `--page-measure`, centred; the header's
+ *        brand and the area rail start on the same left edge.
+ *   L-2  One header. The site bar is ink on every page and never takes a
+ *        page's colour; under it the area rail is paper. Colour starts at
+ *        the page's title band and belongs to the entity.
+ *   L-3  One page order: title band → masthead (if the page has numbers) →
+ *        tab row (if it has views) → body → sources. The foot is ink.
+ *   L-4  Tables have no borders: a head strip in the entity's colour, zebra
+ *        rows, nothing else. An opened row keeps its ink edge (a state
+ *        mark, not a frame).
+ * ══════════════════════════════════════════════════════════════════════ */
+/* ── The page as a column on a desk ───────────────────────────────────────
+   From `lg` the margins are the desk, a step of ink under the page's ground;
+   the page's measure stands, a block of padding round its content, on the
+   page's own ground, edged in a hairline. Band, rail and foot stay full bleed
+   over it. A phone has no margin: nothing changes there. */
+:root {
+  --su-column-pad: min(var(--space-20), var(--su-shell-edge));
+  --su-column-edge: calc(var(--su-shell-edge) - var(--su-column-pad));
+  --su-col-l: max(0px, calc(50% - var(--page-measure) / 2 - var(--su-column-pad)));
+  --su-col-r: min(100%, calc(50% + var(--page-measure) / 2 + var(--su-column-pad)));
+  /* Paper mode measures the shell's edge without the scrollbar, so a sheet's
+     gutters land on the same centred measure as the band and the column. */
+  --su-shell-edge: max(
+    var(--space-16),
+    calc((100vw - var(--su-scrollbar, 0px) - var(--page-measure)) / 2)
+  );
+}
+
+/* Painted on whatever lays the ground (the body; an SRD page's <main>): the
+   desk is a band either side of the column, measured from the window's
+   centre, so the column lines up across them. Inset, so it lies over the
+   element's own ground and under its content. */
+@media (width >= 64rem) {
+  :is(body, main) {
+    box-shadow:
+      inset var(--su-column-edge) 0 0 0 var(--color-desk),
+      inset calc(-1 * var(--su-column-edge)) 0 0 0 var(--color-desk);
+  }
+}

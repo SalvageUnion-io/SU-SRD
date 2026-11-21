@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 13 of 20: the remaining Atoms: Conditions to
+ * The package stylesheet: the remaining Atoms: Conditions to
  * Text. `../index.css` imports the parts in cascade order.
  */
 
@@ -88,11 +88,9 @@
   color: var(--color-status-bad);
 }
 
-/* A toast's description reads in the toast's own paper. Sonner injects an
-   unlayered grey for it, which outranks any class in this layer. */
+/* A toast's description reads in the toast's own paper (its colour is
+   `theme.css`'s, unlayered, past Sonner's own grey). */
 .su-toast__description {
-  /* biome-ignore lint/complexity/noImportantStyles: Sonner's unlayered description colour outranks this layer */
-  color: inherit !important;
   opacity: 0.85;
 }
 

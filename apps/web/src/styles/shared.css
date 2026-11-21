@@ -329,3 +329,19 @@
   text-decoration-thickness: var(--bw-pill);
   text-underline-offset: 3px;
 }
+
+/* A measured page (front, listing, entity page, guide) drops its inner
+     padding there, so its text starts under the brand like a sheet's; a
+     window no wider than the measure keeps the shell's least gutter. */
+@media (width >= 80rem) {
+  .su-page-body {
+    padding-inline: max(0px, calc(var(--space-16) - (100vw - var(--page-measure)) / 2));
+  }
+}
+
+/* Crawler pink carries paper (6.4:1), never ink (3.3:1): the band's kicker
+   and its tagline. */
+.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline),
+.su-chapter-band[style*='184, 74, 134'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
+  color: var(--color-paper);
+}

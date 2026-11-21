@@ -18,9 +18,9 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import { ConfirmDialog } from '../../components/app'
 import {
   Button,
-  ConfirmDialog,
   capsLabel,
   Field,
   HeaderMenu,
@@ -35,13 +35,21 @@ import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
-import { useTableRead } from '../../replica/useTable'
+import { CREWMATE, useTableRead } from '../../replica/useTable'
 import { HUB_BODY } from './hubStyles.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 const { space } = tokens
+
+/** Why Hand over rests, said under the roles. */
+const REASON = {
+  color: tokens.color.ink2,
+  fontFamily: tokens.font.body,
+  fontSize: tokens.fontSize.caption,
+  margin: 0,
+} satisfies CSSProperties
 
 /** The members' small cards, one a line. */
 const LINES = {
@@ -80,8 +88,13 @@ export function TheGame({
   const [handing, setHanding] = useState(false)
   const [chosen, setChosen] = useState<string>('')
 
+  // The viewer is "You" when their account has no name (never "Crewmate (you)").
   const name = (m: { userId: string; displayName: string }) =>
-    m.userId === viewerId ? `${m.displayName} (you)` : m.displayName
+    m.userId !== viewerId
+      ? m.displayName
+      : m.displayName === CREWMATE
+        ? playGamesCopy('you')
+        : playGamesCopy('nameYou', { name: m.displayName })
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
@@ -126,6 +139,10 @@ export function TheGame({
       }
     >
       {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
+      {/* Why Hand over rests: there is nobody else at the table to take it. */}
+      {organizer && members !== undefined && candidates.length === 0 && (
+        <p style={REASON}>{playGamesCopy('nobodyToHandOverTo')}</p>
+      )}
       {/* The table's people as rows — the
           name, what they run, and the pilot they hold — not painted Minis. */}
       <ul aria-label={playGamesCopy('members')} data-names-whole="" style={LINES}>
@@ -137,7 +154,7 @@ export function TheGame({
               {m.organizer && <Stat label={playGamesCopy('organiser')} size="mini" />}
             </span>
             {pilotsOf(m.userId).length > 0 && (
-              <span className={cn('su-game-member__pilots', CAPS, CAPS)}>
+              <span className={cn('su-game-member__pilots', CAPS)}>
                 {pilotsOf(m.userId)
                   .map((pilot) => pilot.name)
                   .join(' · ')}

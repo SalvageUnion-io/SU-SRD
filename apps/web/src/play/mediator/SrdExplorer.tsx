@@ -49,6 +49,7 @@ import {
 } from '../../components/index'
 import { buildChapters } from '../../lib/chapters'
 import { useGameData } from '../../lib/useGameData'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -227,7 +228,7 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
 
   const frame: SrdFrame = (body, top) => (
     <TitledBox
-      title={mediatorCopy('reference')}
+      title={playCopy('rules')}
       tone="pilot"
       className="su-modal-panel"
       body="flush"

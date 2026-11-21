@@ -1,5 +1,5 @@
 import { useId, useMemo } from 'react'
-import type { BookCite, RefChassis } from 'salvageunion-reference'
+import type { RefChassis } from 'salvageunion-reference'
 import {
   getAssetUrl,
   nameToSlug,
@@ -8,13 +8,8 @@ import {
   visiblePatterns,
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
-import {
-  assetSrcSetFor,
-  capsLabel,
-  EmptyState,
-  PictureRadio,
-  ReferenceEntityCard,
-} from '../../components/index'
+import { PictureRadio } from '../../components/app'
+import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
@@ -108,8 +103,6 @@ type MechChassisStepProps = {
   onSelectPattern: (pattern: ChassisPattern) => void
   /** Custom build — no prefill; craft manually in step 2. */
   onSelectCustom: () => void
-  /** Where the book prints the step's rule, on the chassis list's foot. */
-  cite: BookCite
 }
 
 /**
@@ -128,7 +121,6 @@ export function MechChassisStep({
   onSelectChassis,
   onSelectPattern,
   onSelectCustom,
-  cite: _cite, // MOCK: the gallery drops the pick list's cite foot
 }: MechChassisStepProps) {
   const chassisPool = useMemo(
     () =>
@@ -226,8 +218,7 @@ export function MechChassisStep({
  * A chassis is chosen by its picture first (the owner: "huge draw"), so each
  * is a plate: its art, its name, its cost (Salvage Value), and the same six
  * figures the pick list printed, under their labels. One radio group; the
- * picked plate takes the ink frame. The step's cite would ride the foot as
- * the pick list's did; the mock drops it.
+ * picked plate takes the ink frame. The step's rule is its cited brief.
  */
 function ChassisGallery({
   title,
@@ -247,8 +238,8 @@ function ChassisGallery({
   return (
     <section className="su-chassis-gallery">
       <header className="su-rule-head" data-slab="">
-        <h2 className={cn('su-rule-head__label', CAPS, CAPS)}>{title}</h2>
-        <span className={cn('su-rule-head__note', CAPS, CAPS)}>{note}</span>
+        <h2 className={cn('su-rule-head__label', CAPS)}>{title}</h2>
+        <span className={cn('su-rule-head__note', CAPS)}>{note}</span>
       </header>
       <div className="su-grid su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
         {pool.map((chassis) => {
@@ -270,7 +261,7 @@ function ChassisGallery({
                   <img src={art} srcSet={assetSrcSetFor(art)} sizes="240px" alt="" loading="lazy" />
                 )}
               </span>
-              <span className={cn('su-chassis-plate__name', CAPS, CAPS)}>
+              <span className={cn('su-chassis-plate__name', CAPS)}>
                 <b id={`${plateId}-${slug}`}>{chassis.name}</b>
                 <span className="su-chassis-plate__cost">
                   <small>{mechCopy('sv')}</small> {chassis.salvageValue}

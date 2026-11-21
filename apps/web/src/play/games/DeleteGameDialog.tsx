@@ -30,7 +30,8 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties } from 'react'
-import { ConfirmDialog, Stack, Text } from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Stack, Text } from '../../components/index'
 import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'

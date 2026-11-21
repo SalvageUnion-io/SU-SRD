@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { ConfirmDialog } from '../../components/app'
 import {
-  ConfirmDialog,
   InlineRef,
   Segmented,
   SegmentedOption,

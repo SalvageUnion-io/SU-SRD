@@ -45,14 +45,8 @@
 import '../styles/play/play.css'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useId, useRef, useState } from 'react'
-import {
-  EntitySurfaceProvider,
-  SlabLookProvider,
-  Tab,
-  TabList,
-  Tabs,
-  tokens,
-} from '../components/index'
+import { Tab, TabList, Tabs } from '../components/app'
+import { EntitySurfaceProvider, SlabLookProvider, tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PaneSpec, PlayColumn } from './playPanes.model'
 

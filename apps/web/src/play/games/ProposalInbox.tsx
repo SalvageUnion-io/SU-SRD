@@ -1,6 +1,7 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { CSSProperties } from 'react'
-import { Button, FeedLine, FeedList, SlabSection, tokens } from '../../components/index'
+import { FeedLine, FeedList } from '../../components/app'
+import { Button, SlabSection, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useSync } from '../../replica/syncContext'

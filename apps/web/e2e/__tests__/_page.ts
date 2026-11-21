@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 
 /**
  * A page for a scanner's reader under happy-dom: `evaluate` runs the reader
- * on this document. happy-dom lays nothing out, so each element's box is the
+ * on this document, with the argument a scanner passes it. happy-dom lays nothing out, so each element's box is the
  * one its `data-box` gives (`left,top,width,height`), 100 by 20 at the origin
  * without one.
  *
@@ -17,7 +17,9 @@ export function documentPage(): { page: Page; restore: () => void } {
       .map(Number)
     return new DOMRect(left, top, width, height)
   }
-  const page = { evaluate: async (read: () => unknown) => read() } as unknown as Page
+  const page = {
+    evaluate: async (read: (arg?: unknown) => unknown, arg?: unknown) => read(arg),
+  } as unknown as Page
   return {
     page,
     restore: () => {

@@ -19,11 +19,19 @@ const CORE_BOOK = {
   aliases: ['Core Book'],
 } as const
 
-/** The name a cite prints for a book: the core book's one name, else the source as given. */
+/** The game's name, which every book's title but a few opens with; a cite drops it. */
+const GAME_PREFIX = /^Salvage Union\s+/i
+
+/**
+ * The one SHORT NAME a cite prints for a book (ruleset Source 2): the core
+ * book's ("Workshop Manual"), else its title less the game's name ("Starter
+ * Set"), so every cite names a book alike.
+ */
 export function bookName(source: string): string {
   const key = source.trim().toLowerCase()
   const core = [CORE_BOOK.source, CORE_BOOK.name, ...CORE_BOOK.aliases]
-  return core.some((name) => name.toLowerCase() === key) ? CORE_BOOK.name : source
+  if (core.some((name) => name.toLowerCase() === key)) return CORE_BOOK.name
+  return source.trim().replace(GAME_PREFIX, '')
 }
 
 /** One page, or a span of pages `[first, last]`. */

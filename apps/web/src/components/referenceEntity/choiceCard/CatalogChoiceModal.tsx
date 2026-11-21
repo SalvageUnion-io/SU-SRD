@@ -24,8 +24,8 @@ type CatalogChoiceModalProps = {
  * (search + Tech-Level / trait facets + selection rail) in a `ModalShell`,
  * narrowed to exactly the entities the catalog resolves to (`filter`) so the
  * facets/pool match the rule (e.g. "any Weapons System of the crawler's Tech
- * Level"). Selection is single: picking an entity replaces the prior pick,
- * clicking the chosen one clears it.
+ * Level"). Selection is single: tapping an entity's row picks it, replacing
+ * the prior pick, and closes the picker.
  */
 export function CatalogChoiceModal({
   open,
@@ -60,8 +60,14 @@ export function CatalogChoiceModal({
     >
       <EntitySearcher
         schema={schema as EntitySchemaName}
+        // A row's tap is the pick: one tap chooses and closes, no detail and
+        // no second act between the player and the choice.
+        mode="browse"
         selected={selected}
-        onToggle={(ref) => onSelect(selected.includes(ref) ? [] : [ref])}
+        onOpen={(ref) => {
+          onSelect([ref])
+          onClose()
+        }}
         filter={(item) => eligibleIds.has(item.id)}
         chosenLabel={referenceEntityCopy('chosen')}
         emptyMessage={referenceEntityCopy('noMatchingEntities')}

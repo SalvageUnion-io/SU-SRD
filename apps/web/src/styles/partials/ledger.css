@@ -190,6 +190,18 @@
   padding-block: var(--space-2);
 }
 
+/* A count's label is its column's stamp: the row keeps the figure and its
+   steps, so the count stays inside the frame at every width. */
+.su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper .su-stat-plate--label {
+  display: none;
+}
+
+/* A counted row's name wraps rather than push its count past the frame: the
+   longest name (and its SUGGESTED stamp) no longer sets the column. */
+.su-ledger__table tbody tr:has(.su-stat-stepper) > th {
+  white-space: normal;
+}
+
 /* The room no column takes goes to the line's end, so the fixed columns
    stand beside the names: an empty last cell (a phone drops it with the
    rest), or the trailing cell where the list has one (from `sm`: on a phone
@@ -408,13 +420,7 @@
     display: none;
   }
 
-  /* A count's label is its column's stamp on a phone: the row keeps the
-     figure and its steps, and its cells sit closer, so the list keeps to its
-     frame. */
-  .su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper .su-stat-plate--label {
-    display: none;
-  }
-
+  /* On a phone a count's cells sit closer, so the list keeps to its frame. */
   .su-ledger__table tbody tr:has(.su-stat-stepper) > * {
     padding-inline: var(--space-4);
   }
@@ -457,9 +463,10 @@
   min-width: 0;
 }
 
-/* A shelf's names wrap and its link cells cut short with an ellipsis, so the
-   list never runs wider than its frame and the make stays whole: the link
-   cells share the room left (`max-width: 0` lets each shrink to fit). */
+/* A shelf's names and its link cells wrap, never cut (R56: a Game's name is
+   whole), so the list never runs wider than its frame and the make stays
+   whole: the link cells share the room left (`max-width: 0` lets each
+   shrink to fit, its words wrapping). */
 .su-shelf-ledger .su-ledger__table tbody th {
   white-space: normal;
   width: auto;
@@ -473,9 +480,13 @@
 .su-shelf-ledger .su-ledger__table td[data-kind='text'] {
   max-width: 0;
   width: 18%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* A pilot's mech under its name, where the Mech column is hidden: a phone. */
+.su-shelf-ledger__flown {
+  display: none;
 }
 
 /* On a phone the make's cut-out is the widest thing on the strip: the cells
@@ -490,6 +501,10 @@
     max-width: none;
     white-space: normal;
     width: auto;
+  }
+
+  .su-shelf-ledger__flown {
+    display: inline;
   }
 }
 
@@ -531,4 +546,12 @@
 
 .su-search-ledger .su-ledger__name {
   font-size: var(--text-body);
+}
+
+/* The cost column's mark before its COST stamp (L2): inline on the label's line. */
+.su-ledger__cost-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-inline-end: var(--space-2);
+  vertical-align: -0.125em;
 }

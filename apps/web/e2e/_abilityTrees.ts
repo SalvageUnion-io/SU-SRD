@@ -115,32 +115,38 @@ export async function findAbilityTrees(page: Page): Promise<Finding[]> {
 }
 
 /**
- * A sheet's dashboard (`PilotDash`) draws its class's trees as ledgers, not
- * tracks: under its Abilities group, each tree is its own sub-ledger
- * (`table.su-open--sub`, titled by the tree), never more than `MAX_ACROSS`
- * side by side, and lists every ability the dataset puts in that tree, and
- * none from another. `findDashTrees` returns one `dash-tree` finding per fault.
+ * A sheet's dashboard (`PilotDash`) draws its class's trees as the class page
+ * does (R48): under its Abilities group, each tree is its own track under a
+ * stamp naming it (`.su-ability-tree__group` in `.su-pilot-trees`), never more
+ * than `MAX_ACROSS` side by side, and lists every ability the dataset puts in
+ * that tree as a Mini, and none from another. `findDashTrees` returns one
+ * `dash-tree` finding per fault.
  */
-const DASH_TREE_SELECTORS = {
+export const DASH_TREE_SELECTORS = {
   group: 'section',
   heading: 'h2',
-  tree: 'table.su-open--sub',
-  title: '.su-open__title',
-  name: '.su-open__row .su-open__name',
+  tree: '.su-pilot-trees > .su-ability-tree__group',
+  title: ':scope > .su-slab-section__head > :first-child',
+  name: '.su-entity-mini__name',
 }
 
-/** Runs in the page: each tree ledger's name, its abilities and where it starts. */
+/** Runs in the page: each tree's name, its abilities and where it starts. */
 function scanDashTrees(a: typeof DASH_TREE_SELECTORS) {
-  const text = (el: Element | null) => (el?.textContent ?? '').replace(/\s+/g, ' ').trim()
+  // What a reader sees: the screen-reader-only words (a Mini's kind) left out.
+  const text = (el: Element | null) => {
+    const copy = el?.cloneNode(true) as Element | undefined
+    for (const hidden of copy?.querySelectorAll('.su-sr-only') ?? []) hidden.remove()
+    return (copy?.textContent ?? '').replace(/\s+/g, ' ').trim()
+  }
   const group = [...document.querySelectorAll(a.group)].find(
     (s) => text(s.querySelector(a.heading)) === 'Abilities'
   )
   if (!group) return undefined
-  return [...group.querySelectorAll(a.tree)].map((table) => {
-    const r = table.getBoundingClientRect()
+  return [...group.querySelectorAll(a.tree)].map((tree) => {
+    const r = tree.getBoundingClientRect()
     return {
-      tree: text(table.querySelector(a.title)),
-      names: [...table.querySelectorAll(a.name)].map((n) => text(n)),
+      tree: text(tree.querySelector(a.title)),
+      names: [...tree.querySelectorAll(a.name)].map((n) => text(n)),
       top: r.top,
       drawn: r.width > 0 && r.height > 0,
     }
@@ -161,14 +167,14 @@ function abilityTrees(): Map<string, string[]> {
   return trees
 }
 
-/** Every dashboard tree ledger's fault on the page, each a `dash-tree` finding. */
+/** Every dashboard tree's fault on the page, each a `dash-tree` finding. */
 export async function findDashTrees(page: Page): Promise<Finding[]> {
   const read = await page.evaluate(scanDashTrees, DASH_TREE_SELECTORS)
   if (read === undefined)
     return fromFaults(['group: no Abilities group on the dashboard'], 'dash-tree')
   const faults: string[] = []
   const drawn = read.filter((t) => t.drawn)
-  if (drawn.length === 0) faults.push('group: the Abilities group draws no tree ledger')
+  if (drawn.length === 0) faults.push('group: the Abilities group draws no tree')
   const data = abilityTrees()
   const lines: { top: number; trees: string[] }[] = []
   for (const t of drawn) {
@@ -191,6 +197,6 @@ export async function findDashTrees(page: Page): Promise<Finding[]> {
       faults.push(`across: ${line.trees.length} trees on one line (${line.trees.join(', ')})`)
   }
   if (new Set(drawn.map((t) => t.tree)).size !== drawn.length)
-    faults.push('group: a tree is drawn as more than one ledger')
+    faults.push('group: a tree is drawn more than once')
   return fromFaults(faults, 'dash-tree')
 }

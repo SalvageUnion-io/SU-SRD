@@ -32,6 +32,7 @@
 
 import { containerOf } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
+import { gamePath } from 'game-domain/entityKinds'
 import { useMemo } from 'react'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
@@ -64,8 +65,10 @@ export function SheetView({ kind, id }: SheetViewProps) {
     sync === 'live' && tableId !== null ? { gameId: tableId } : 'skip'
   )
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
+  // The Game it is in, a GAME chip on the band.
+  const game = tableId !== null && table ? { name: table.name, href: gamePath(tableId) } : undefined
 
-  // Who holds each listed pilot and mech: the owner chips on Assigned units.
+  // Who holds each listed pilot and mech: the owner chips on Related units.
   const ownerOf = useMemo<OwnerOf | undefined>(
     () => (listing && members ? ownersFromListing(listing, members, viewerId) : undefined),
     [listing, members, viewerId]
@@ -91,6 +94,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
           others={others}
           crawlerReadOnly={crawlerReadOnly}
           ownerOf={ownerOf}
+          game={game}
         />
       </SheetModeContext.Provider>
     )
@@ -105,7 +109,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   }
   return (
     <CrewSheetBanner kind={kind}>
-      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} />
+      <Sheet kind={kind} id={id} store={store} back={crew} readOnly ownerOf={ownerOf} game={game} />
     </CrewSheetBanner>
   )
 }

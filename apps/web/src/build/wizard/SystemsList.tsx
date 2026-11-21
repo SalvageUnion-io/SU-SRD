@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { BookCite, RefSystem } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
-import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
+import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
 import { weaponColumns } from './pickColumns'
@@ -28,11 +28,13 @@ type SystemsListProps = {
   cite: BookCite | undefined
 }
 
-const COLUMNS = weaponColumns<RefSystem>()
+// No Traits column: the line's card beside it says them, and the line keeps
+// its mount's stepper inside its frame at every width.
+const COLUMNS = weaponColumns<RefSystem>().filter((column) => column.key !== 'traits')
 
 /**
  * Arm the Armament Bay (Union Crawler p.213), as a picker in the Ledger form (`PickList`, its count pick): the Tech 1
- * weapons a line each (timing, range, damage, traits), a mount's stepper at
+ * weapons a line each (timing, range, damage), a mount's stepper at
  * the line's end, the bay's mounts a meter over the list. The line in focus is
  * its contentful card beside the list (under its line on a phone). The parent
  * owns the weapons + TL filter; selection is HARD-capped at `maxSelectable`:
@@ -85,14 +87,6 @@ export function SystemsList({
           <div>
             <PickList
               title={buildWizardCopy('tech1WeaponsSystems')}
-              note={
-                <Stat
-                  label={buildWizardCopy('mounted')}
-                  value={installedWeaponCount}
-                  max={maxSelectable}
-                  size="mini"
-                />
-              }
               rows={systems}
               rowKey={getEntitySlug}
               rowName={(system) => system.name}

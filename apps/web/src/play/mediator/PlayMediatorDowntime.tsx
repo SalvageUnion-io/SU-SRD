@@ -27,16 +27,8 @@ import {
 } from 'game-domain/rules/downtime'
 import { useState } from 'react'
 import { crawlerUpkeepCost } from 'salvageunion-reference/rules'
-import {
-  Badge,
-  Button,
-  ConfirmDialog,
-  Entity,
-  rollForTable,
-  Slab,
-  Stat,
-  TitledBox,
-} from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Badge, Button, Entity, rollForTable, Slab, Stat, TitledBox } from '../../components/index'
 import { rollD20 } from '../../lib/dice'
 import { unitRowModel } from '../../lib/units/unitModel'
 import { mediatorCopy } from '../../messages/play-mediator'

@@ -36,7 +36,7 @@ export const CANON_DOCS = {
 export const CANON: Readonly<Record<string, readonly string[]>> = {
   // ── ruleset.md: the source ──
   'Source 1': ['Source 2', 'Source 3', 'Source 4', 'Source 5', 'Source 6', 'check:rules-fidelity'],
-  'Source 2': ['C10', 'R44', 'EntityDetailDialog.test.tsx'],
+  'Source 2': ['C10', 'R44', 'EntityDetailDialog.test.tsx', 'cite.test.ts'],
   'Source 3': ['R17', '§2.6', 'R68'],
   'Source 4': ['E12'],
   'Source 5': ['R8', 'E17'],
@@ -87,7 +87,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§3.5.2': ['tokens/gradient', 'designTokens.ts#su-pilot-panel'],
   '§3.6': ['check:rules-fidelity', 'nameRefIndex.test.ts'],
   '§3.7': ['chrome/stat-text', 'chrome/raw-dl'],
-  '§3.8': ['tone-ground/tl-ground', 'contrast.test.ts'],
+  '§3.8': ['tone-ground/tl-ground', 'tone-ground/tl-text', 'contrast.test.ts'],
   '§3.9': ['chrome-tokens/dashed', 'R1', 'PatternList.test.tsx'],
   '§3.10': ['chrome-tokens/left-rail'],
   '§3.11': ['AppBar.test.tsx', 'UnionBarSlots.test.tsx'],
@@ -97,12 +97,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'chrome-tokens/hand-caps',
     'chrome-tokens/badge-caps-snug',
   ],
-  '§3.13': [
-    '_hierarchy.ts#door-rust',
-    '_hierarchy.ts#use-rust',
-    '_hierarchy.ts#band-keyline',
-    '_hierarchy.ts#stamp-twin',
-  ],
+  '§3.13': ['_hierarchy.ts#use-rust', '_hierarchy.ts#band-keyline', '_hierarchy.ts#stamp-twin'],
+  '§3.14': ['design-walk.e2e.ts#act-twin', '_hierarchy.ts#act-twin', '_hierarchy.ts#door-rust'],
   '§4': ['tokens/raw-color'],
   '§4.1': ['tokens/raw-color', 'tokens/cool-ground', 'tokens/ink-mix'],
   '§4.2': ['tokens/raw-tracking', 'chrome-tokens/badge-caps-snug'],
@@ -129,6 +125,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     '_hierarchy.ts',
   ],
   '§4.9': ['_hierarchy.ts#slab-size', 'R53'],
+  '§4.10': ['important/important'],
   '§5': ['roster.test.ts'],
   '§5.1': ['roster.test.ts'],
   '§5.2': ['roster.test.ts', 'R42'],
@@ -155,7 +152,12 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   '§7.2': ['_valueCells.ts'],
   K1: ['chrome/ground-signal', 'chrome/paper-mix'],
   K2: ['chrome-tokens/raw-breakpoint'],
-  K3: ['chrome-tokens/raw-duration', 'chrome-tokens/raw-easing', 'chrome-tokens/motion-loop'],
+  K3: [
+    'chrome-tokens/raw-duration',
+    'chrome-tokens/raw-easing',
+    'chrome-tokens/motion-loop',
+    'chrome-tokens/slide-turn',
+  ],
   K4: ['tokens/raw-shadow', 'tokens/raw-z-index'],
   K5: ['chrome/one-toaster', 'chrome/offline-copy'],
   K6: ['chrome-tokens/loading-mark', 'copy/banned-variant'],
@@ -166,6 +168,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   K11: ['controls/icon-size', 'copy/glyph'],
   K12: ['OgCard.test.tsx', 'ogCard.test.ts'],
   K13: ['chromeMatch.test.ts'],
+  K14: ['controls-in-reach.e2e.ts'],
   // ── entity-display-language.md ──
   E1: ['R35'],
   E2: ['R35', 'listingView.test.tsx', 'L9'],
@@ -179,7 +182,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E11: ['R35'],
   E12: ['toEntityModel.test.ts', 'entityModelParity.test.ts'],
   E13: ['R10'],
-  E16: ['peek-terminal.e2e.ts'],
+  E16: ['peek-terminal.e2e.ts', 'srdEntityExternalLink.test.tsx'],
   E17: ['C2', 'C2b'],
   E19: ['R35'],
   E20: ['C2b', '_chipStrips.ts#fill', 'surfaces.test.ts'],
@@ -187,6 +190,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   E23: ['peekSize.test.tsx', 'CompactBody.test.tsx'],
   E24: ['_hierarchy.ts#title-size', '_hierarchy.ts#slab-size'],
   E25: ['_hierarchy.ts#heading-skip', '_hierarchy.ts#heading-depth'],
+  E26: ['pageRelations.test.ts'],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],
   N2: ['entity-nesting/head-only-token'],
   N3: ['entity-nesting/nested-card-level', '_nestingDepth.ts'],
@@ -212,9 +216,9 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   L1: ['_ledger.ts#frame', 'Ledger.test.tsx', 'chrome/raw-table'],
   L2: ['_ledger.ts#tab', '_ledger.ts#sort', 'Ledger.test.tsx'],
   L3: ['Ledger.test.tsx'],
-  L4: ['Ledger.test.tsx'],
+  L4: ['Ledger.test.tsx', 'PatternLedger.test.tsx'],
   L5: ['_ledger.ts#order', '_ledger.ts#empty', 'ledgerColumns.test.tsx'],
-  L6: ['Ledger.test.tsx'],
+  L6: ['Ledger.test.tsx', 'PatternLedger.test.tsx'],
   L7: ['_ledger.ts#picked', 'Ledger.test.tsx', 'R16', 'K9'],
   L8: ['Ledger.test.tsx', '_pageWhole.ts#scroll'],
   L9: ['_ledger.ts', 'Ledger.test.tsx', 'ledgerColumns.test.tsx', 'Shelves.test.tsx'],
@@ -226,6 +230,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R8: ['roll-instrument.e2e.ts'],
   R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
+  R11a: ['oneForm.test.tsx'],
   R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
   R15: [
     'select-mode/picker-opacity',
@@ -272,8 +277,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'damagedEffect.test.tsx',
     'CrawlerSheet-bay-fold.test.tsx',
     'CrewLeadMini.test.tsx',
-    '_nestingDepth.ts#R46',
     'toEntityModel.test.ts#counts its bays',
+    'CrawlerSheet-bay-count.test.tsx',
   ],
   R47: ['CrawlerTechLevelPage.test.tsx', 'CompactIndex.test.tsx'],
   R48: [
@@ -281,13 +286,14 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'PilotSheet-abilities.test.tsx',
     'ability-trees.e2e.ts',
   ],
-  R49: ['Box.test.tsx', 'AssignedUnits.test.tsx', 'unitOwners.model.test.ts'],
+  R49: ['Box.test.tsx', 'RelatedUnits.test.tsx', 'unitOwners.model.test.ts'],
   R50: ['GameHub.connected.test.tsx', 'Roster.test.tsx'],
   R52: ['chrome-tokens/muted-note'],
   R53: ['_hierarchy.ts#stray-head', '_hierarchy.ts#nested-slab'],
   R54: ['hierarchy/bare-applink', 'hierarchy.test.ts'],
   R56: [
     'chipFill.test.ts',
+    'shelfNames.test.ts',
     'PlayLanding.connected.test.tsx',
     'GameHub.connected.test.tsx',
     'indexName.test.ts',
@@ -297,19 +303,20 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R59: ['PilotSheet-equipment-choices.test.tsx'],
   R60: ['PilotSheet-equipment-choices.test.tsx', 'CatalogChoiceListing.test.tsx'],
   R61: ['SheetHero-fit.test.tsx', 'sheetGrammar.test.ts', 'pageDescription.test.tsx'],
-  R62: ['AssignedUnits.test.tsx', 'sheet-rail-links.test.tsx'],
+  R62: ['RelatedUnits.test.tsx', 'sheet-rail-links.test.tsx'],
   R65: ['PlayActionsColumn.test.tsx', 'playActions.model.test.ts'],
   R67: ['WizShell.test.tsx', 'mech-wizard.e2e.ts', 'pilot-wizard.e2e.ts', 'crawler-wizard.e2e.ts'],
   R68: ['_fillGrid.ts', 'fill-grid.e2e.ts', 'chrome-tokens/item-grid', 'Grid.test.tsx'],
+  R70: ['Sheet-related-units.test.tsx', 'RelatedUnits.test.tsx'],
 }
 
 /** A law's id as the canon and its citations spell it. */
-const LAW_ID = /^(?:R\d+|[EN]\d+|C\d+[ab]?|K\d+|L\d+|§\d+(?:\.\d+)*|Source \d+)$/
+const LAW_ID = /^(?:R\d+a?|[EN]\d+|C\d+[ab]?|K\d+|L\d+|§\d+(?:\.\d+)*|Source \d+)$/
 
 /** The ids each canon doc defines, in order. */
 export function lawsIn(doc: keyof typeof CANON_DOCS, text: string): string[] {
   const lines = text.split('\n')
-  if (doc === 'hard') return lines.flatMap((l) => l.match(/^- \*\*([RK]\d+) /)?.slice(1) ?? [])
+  if (doc === 'hard') return lines.flatMap((l) => l.match(/^- \*\*([RK]\d+a?) /)?.slice(1) ?? [])
   if (doc === 'ledger') return lines.flatMap((l) => l.match(/^- \*\*(L\d+) /)?.slice(1) ?? [])
   if (doc === 'chips')
     return lines.flatMap((l) => l.match(/^- \*\*(C\d+[ab]?)\*\*/)?.slice(1) ?? [])

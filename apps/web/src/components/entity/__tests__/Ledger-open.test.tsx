@@ -1,0 +1,51 @@
+/**
+ * Ledger's `whole`: a reference Page shows its whole self (R43, R44), so
+ * every row's rules stand open under it and no row draws an opener.
+ */
+
+import { describe, expect, test } from 'bun:test'
+import { fireEvent, render, screen } from '@testing-library/react'
+import type { LedgerColumn, LedgerRow } from '../../index'
+import { Ledger } from '../../index'
+
+const COLUMNS: LedgerColumn[] = [{ key: 'slots', label: 'Slots' }]
+const ROWS: LedgerRow[] = [
+  { id: 'a', name: 'Railgun', cells: [2], detail: <p>Railgun rules</p> },
+  { id: 'b', name: 'Firewall', cells: [1], detail: <p>Firewall rules</p> },
+]
+
+describe('Ledger whole', () => {
+  test('every row stands open, with no opener', () => {
+    render(
+      <Ledger open title="Systems" whole columns={COLUMNS} groups={[{ key: 'g', rows: ROWS }]} />
+    )
+    expect(screen.getByText('Railgun rules')).toBeTruthy()
+    expect(screen.getByText('Firewall rules')).toBeTruthy()
+    expect(document.querySelectorAll('[aria-expanded]')).toHaveLength(0)
+  })
+
+  test('without it, a row keeps its rules under an opener', () => {
+    render(<Ledger open title="Systems" columns={COLUMNS} groups={[{ key: 'g', rows: ROWS }]} />)
+    expect(screen.queryByText('Railgun rules')).toBeNull()
+    expect(document.querySelectorAll('[aria-expanded="false"]')).toHaveLength(2)
+  })
+})
+
+describe('Ledger folded group', () => {
+  test('a group that starts shut is one line, its count; pressed, its rows', () => {
+    render(
+      <Ledger
+        open
+        title="Abilities"
+        columns={COLUMNS}
+        groups={[{ key: 'g', label: 'Generic', fold: 'closed', rows: ROWS }]}
+      />
+    )
+    const fold = screen.getByRole('button', { name: /Generic/ })
+    expect(fold.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText('Railgun')).toBeNull()
+    fireEvent.click(fold)
+    expect(fold.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText('Railgun')).toBeTruthy()
+  })
+})

@@ -406,6 +406,8 @@ export function productBans(product: { build: string; play: string }): Banned[] 
 const BACK_GLYPHS = /←|‹|&larr;|&lsaquo;|&#8592;|&#x2190;|&#8249;|&#x2039;/i
 const ELLIPSIS_GLYPH = /⋯|&#8943;|&#x22ef;/i
 /** Next is `NextLabel` (`ChevronRight` and the place), never a forward arrow drawn as text. */
+/** A sort or up-down mark drawn as a character: lucide's ChevronsUpDown, ChevronUp, ChevronDown (K11). */
+const SORT_GLYPHS = /↕|⇅|⇵|&#8597;|&#x2195;|&varr;/i
 const FORWARD_GLYPHS = /›|→|&rsaquo;|&rarr;|&#8250;|&#x203a;|&#8594;|&#x2192;/i
 
 /**
@@ -433,6 +435,13 @@ export function glyphFindings(file: string, source: string): Finding[] {
         file,
         line: lineOf(Number(v.start)),
         detail: `"${text.trim()}": ⋯ is lucide's Ellipsis at its Size, never a text character`,
+      })
+    }
+    if (drawn && SORT_GLYPHS.test(text)) {
+      out.push({
+        file,
+        line: lineOf(Number(v.start)),
+        detail: `"${text.trim()}": a sort mark is lucide's ChevronsUpDown (or ChevronUp/Down) at its Size, never ↕ as text`,
       })
     }
     if (drawn && FORWARD_GLYPHS.test(text)) {

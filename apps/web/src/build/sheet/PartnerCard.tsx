@@ -41,18 +41,16 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { heatDangerFrom, linesFromBreakdown, summarizeBreakdown } from '../../components/app'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Button,
   EntitySearcher,
   Field,
-  heatDangerFrom,
-  linesFromBreakdown,
   MiniGrid,
   ReferenceEntityCard,
   SlabSection,
   Stack,
-  summarizeBreakdown,
 } from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
@@ -192,7 +190,7 @@ export function PartnerCard({
     patch({ [field]: pin }, LIVE_SHEET_OVERRIDE)
   }
 
-  // The mech's vitals, gauge for gauge (`MechVitals`): Edit pins a max with
+  // The mech's vitals, gauge for gauge (`mechVitalRows`): Edit pins a max with
   // its provenance and ↺ reverts it; Read draws the track alone.
   const vitals: {
     vital: SheetVital

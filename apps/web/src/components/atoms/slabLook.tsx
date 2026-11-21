@@ -1,24 +1,16 @@
 import { createContext, useContext } from 'react'
 
 /**
- * How a surface draws its section heads.
+ * How a surface draws its section heads, one look a site (R1: `Slab` takes no
+ * `variant`).
  *
- *   `stamp` (default) — the solid ink section stamp and its leader rule (R1).
- *   `rule`  — a label on a rule: the section's name in condensed caps over a
- *             2px ink rule, its tally in plain tabular numerals at the rule's
- *             end. A Live Sheet, a Game page and the Starter crew read this
- *             way in the mock; the Reference and Play keep the stamp.
- *
- * A surface sets it once (`SlabLookProvider`), so every `Slab` and
- * `SlabSection` under it changes together and no call site picks a variant.
+ *   `auto` (the default everywhere) — a section head is the ink strip with its
+ *          cut-out title, a Mini Slab inside a card the stamp, so the
+ *          Reference, the front pages and the app read as one site.
+ *   `stamp` — Play, approved as it is, pins the solid ink section stamp and
+ *          its leader rule on every head (`PlayFrame`).
  */
-/**
- * `auto`, the default everywhere, is the ink strip with
- * its cut-out title (`rule`) for a section head and the stamp for a Mini Slab
- * inside a card, so the Reference, the front pages and the app read as one
- * site. Play, approved as it is, pins `stamp`.
- */
-export type SlabLook = 'stamp' | 'rule' | 'auto'
+export type SlabLook = 'stamp' | 'auto'
 
 const SlabLookContext = createContext<SlabLook>('auto')
 

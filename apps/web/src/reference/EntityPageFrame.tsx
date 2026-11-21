@@ -1,8 +1,10 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { NextLabel } from '../components/app'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
+import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
+import { ReferenceSurface } from '../components/ReferenceSurface'
 import { iconSize } from '../design/tokens'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
@@ -102,69 +104,74 @@ export function EntityPageFrame({
 }: EntityPageFrameProps) {
   return (
     <article className="su-entity">
-      <ChapterBand
-        tone={tone}
-        fill={fill}
-        measure={PAGE_MEASURE}
-        aside={
-          <EntityPageStamps
-            meta={meta}
-            legalStartingPattern={legalStartingPattern}
-            parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
-          />
-        }
-        asideAt="notch"
-        action={
-          // The page's acts stand on the entity's header row, at its right
-          // end: Share, then its one call to action (Build With This, Buy
-          // this book), each a button in the band's control group (C8).
-          <>
-            <SharePageButton />
-            {buy && (
-              // The store is off the site: a new tab, in ink, never the
-              // page's rust (the front door's Buy the game is ink too).
-              <Button
-                href={buy}
-                linkAs="a"
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="ink"
-                size="compact"
-                className="su-page-action"
-              >
-                {referenceCopy('buyThisBook')}
-                <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
-              </Button>
-            )}
-            {build && (
-              // A link drawn as the shared Button (`Button href`): same tab, no
-              // off-site arrow — the Reference and Build are one union
-              // (ruleset §3.11).
-              <Button
-                href={build.href}
-                aria-label={build.ariaLabel}
-                variant="primary"
-                size="compact"
-                className="su-page-action"
-              >
-                {build.label}
-              </Button>
-            )}
-          </>
-        }
-        lead={
-          // An ability's level, left of its title as its Compact sets it: just the number.
-          meta.numeral && (
+      {/* The band and the foot are server-rendered outside the body's island:
+          the SRD's routes make their chips and neighbours links. */}
+      <ReferenceSurface>
+        <ChapterBand
+          tone={tone}
+          fill={fill}
+          measure={PAGE_MEASURE}
+          aside={
+            <EntityPageStamps
+              meta={meta}
+              legalStartingPattern={legalStartingPattern}
+              parent={parent && { label: parent.label, ref: parent.entityRef, href: parent.href }}
+            />
+          }
+          asideAt="notch"
+          action={
+            // The page's acts stand on the entity's header row, at its right
+            // end: Share, then its one call to action (Build With This, Buy
+            // this book), each a button in the band's control group (C8).
             <>
-              <span className="su-sr-only">{referenceCopy('level')} </span>
-              {meta.numeral}
+              <SharePageButton />
+              {buy && (
+                // The store is off the site: a new tab, outlined on the band
+                // (§3.13), never the page's rust.
+                <Button
+                  href={buy}
+                  linkAs="a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="default"
+                  size="compact"
+                  className="su-page-action"
+                >
+                  {referenceCopy('buyThisBook')}
+                  <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                  <span className="su-sr-only"> {referenceCopy('opensInNewTab')}</span>
+                </Button>
+              )}
+              {build && (
+                // A link drawn as the shared Button (`Button href`): same tab, no
+                // off-site arrow — the Reference and Build are one union
+                // (ruleset §3.11).
+                <Button
+                  href={build.href}
+                  aria-label={build.ariaLabel}
+                  variant="primary"
+                  size="compact"
+                  className="su-page-action"
+                >
+                  {build.label}
+                </Button>
+              )}
             </>
-          )
-        }
-      >
-        {title}
-        <KindLabel kind={meta.typeLabel} />
-      </ChapterBand>
+          }
+          lead={
+            // An ability's level, left of its title as its Compact sets it: just the number.
+            meta.numeral && (
+              <>
+                <span className="su-sr-only">{referenceCopy('level')} </span>
+                {meta.numeral}
+              </>
+            )
+          }
+        >
+          {title}
+          <KindLabel kind={meta.typeLabel} />
+        </ChapterBand>
+      </ReferenceSurface>
       <div className="su-entity__body su-page-body">
         {rail ? (
           <div className="su-entity__railed">
@@ -174,7 +181,11 @@ export function EntityPageFrame({
         ) : (
           children
         )}
-        {foot && <div className="su-entity__foot">{foot}</div>}
+        {foot && (
+          <ReferenceSurface>
+            <div className="su-entity__foot">{foot}</div>
+          </ReferenceSurface>
+        )}
         {exits && <GuideExitsFoot {...exits} />}
       </div>
     </article>

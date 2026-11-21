@@ -6,7 +6,7 @@
 
 import type { Mech } from 'game-domain/schemas/mech'
 import { CONDITION_LABELS, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
-import type { OpenColumn, OpenRow } from '../../components/index'
+import type { LedgerColumn, LedgerRow } from '../../components/index'
 import { Stat, TechLevel } from '../../components/index'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'
 import {
@@ -17,13 +17,14 @@ import {
 } from '../../lib/rules/mechItems'
 import { buildDashCopy } from '../../messages/build-dash'
 import type { ItemKind } from '../sheet/mechSheetActions.model'
+import { chosenChips } from '../wizard/pickColumns'
 import { Cost } from './Cost'
 import { RowRules } from './RowRules'
 
 // THE stat order (ledger.md, `ledgerOrder.ts`): where it comes from (TL,
 // Slots, SV), then what its action does (type, Range, Damage), the cost last
 // on the row's edge, where a player hunts for it mid-turn.
-export const ITEM_COLUMNS: readonly OpenColumn[] = [
+export const ITEM_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildDashCopy('tl'), title: buildDashCopy('techLevel') },
   {
     key: 'slots',
@@ -35,6 +36,8 @@ export const ITEM_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildDashCopy('action'), kind: 'text' },
   { key: 'range', label: buildDashCopy('rng'), title: buildDashCopy('range') },
   { key: 'damage', label: buildDashCopy('dmg'), title: buildDashCopy('damage') },
+  // A Uses count is a column, not a chip on the name (L4).
+  { key: 'uses', label: buildDashCopy('uses'), phone: true },
   {
     key: 'cost',
     label: buildDashCopy('cost'),
@@ -48,10 +51,10 @@ const typeWord = (type: string | undefined) => (type === 'DownTime' ? 'Downtime'
 /** What a row reads: a mech, or a companion (a mech in all but Push). */
 export type Fitted = Pick<
   Mech,
-  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses'
+  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses' | 'itemChoices'
 >
 
-export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
+export function itemRows(mech: Fitted, kind: ItemKind): LedgerRow[] {
   const slugs = kind === 'system' ? mech.systems : mech.modules
   const conditions = (kind === 'system' ? mech.systemConditions : mech.moduleConditions) ?? {}
   const keys = occurrenceKeys(slugs)
@@ -67,6 +70,8 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
     // Traits stay out of the collapsed row; the row's
     // open view (`RowRules`) lists them.
     const action = typeWord(model?.actionType)
+    // A made choice reads as made on the row, Read too (R60): `CHOICE | Bobcat`.
+    const chosen = entity ? chosenChips(entity, mech.itemChoices?.[slug]) : undefined
     return {
       id: keys[index] ?? slug,
       // An item the data no longer holds keeps its slug.
@@ -80,19 +85,12 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
               .join(' · ')}
           </span>
         ) : undefined,
-      state:
-        condition !== 'intact' || maxUses > 0 ? (
+      stamp:
+        condition !== 'intact' || chosen ? (
           <>
+            {chosen}
             {condition !== 'intact' && (
               <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
-            )}
-            {maxUses > 0 && (
-              <Stat
-                size="mini"
-                label={buildDashCopy('uses')}
-                value={itemUsesRemaining(maxUses, mech.itemUses?.[slug])}
-                max={maxUses}
-              />
             )}
           </>
         ) : undefined,
@@ -103,6 +101,7 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
         action,
         fact('range'),
         fact('damage'),
+        maxUses > 0 ? `${itemUsesRemaining(maxUses, mech.itemUses?.[slug])}/${maxUses}` : '',
         model?.cost ? <Cost key="cost" cost={model.cost} /> : '',
       ],
       dim: condition === 'destroyed',

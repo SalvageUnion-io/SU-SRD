@@ -1,8 +1,12 @@
 import { describe, expect, test } from 'bun:test'
-import * as barrel from '../index'
+import * as appOnly from '../app'
+import * as islands from '../index'
+
+/** Both barrels: the islands' (`index.ts`) and what only the app draws (`app.ts`). */
+const barrel = { ...islands, ...appOnly }
 
 /**
- * The roster gate: `components/index.ts` exports exactly what a law
+ * The roster gate: `components/index.ts` and `components/app.ts` export exactly what a law
  * names, so a new parallel primitive cannot land without amending the law
  * first. Each value export sits under the law that sanctions it; types are
  * erased and not counted.
@@ -34,7 +38,6 @@ const ROSTER = {
     'ActivationCost', // §6.1 the cost's pointed box, the one standout
     'ChipButton', // §6.1 Badge: a chip that is its own control (R16)
     'Ledger', // §5.12 Ledger: a compared or picked list's table (L9)
-    'OpenLedger', // L1 the Ledger's open form, a sheet's lists
     'TechLevel', // L4 a row's one rank stamp, the Tech Level swatch
     'Facts', // §3.7 a list of labelled values
     'Prose', // §3.7's words at length: a sheet's long text, folded

@@ -13,6 +13,7 @@ import {
   scanChromeSources,
 } from '../rules/chromeTokens'
 import { ENTITY_FRAME_STYLE_FILES } from '../rules/entityFrames'
+import { SLIDESHOW } from '../rules/slideshow'
 import { Exited, trapExit } from './trapExit'
 
 /**
@@ -323,6 +324,31 @@ describe('motion: chrome-tokens/raw-duration, raw-easing, motion-loop', () => {
       )
       expect(found['loading-mark']).toEqual([])
     }
+  })
+
+  test('slide-turn: the slideshow is the one other loop, a slide out of turn hidden', () => {
+    const show = (zero: string, end: string) =>
+      scan(
+        SLIDESHOW.file,
+        [
+          `${SLIDESHOW.keyframes} {`,
+          `  0% { opacity: 0; visibility: ${zero}; }`,
+          '  5% { opacity: 1; visibility: visible; }',
+          `  15%, 100% { opacity: 0; visibility: ${end}; }`,
+          '}',
+        ].join('\n')
+      )
+    const good = show('hidden', 'hidden')
+    expect(good['loading-mark']).toEqual([])
+    expect(good['slide-turn']).toEqual([])
+    expect(lines(show('visible', 'hidden'), 'slide-turn')).toEqual([1])
+    expect(lines(show('hidden', 'visible'), 'slide-turn')).toEqual([1])
+    // Its name in another file is a loop of its own.
+    const elsewhere = scan(
+      'apps/web/src/styles/x.css',
+      `${SLIDESHOW.keyframes} { to { opacity: 0; } }`
+    )
+    expect(lines(elsewhere, 'loading-mark')).toEqual([1])
   })
 
   test('theme.css, the definitions and the reduced-motion backstop, is exempt', () => {

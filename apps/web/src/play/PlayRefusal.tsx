@@ -13,7 +13,8 @@
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { SignInControl } from '../build/account/SignInControl'
-import { Button, ChapterBand, PageShell, Text, TitledBox, tokens } from '../components/index'
+import { PageShell } from '../components/app'
+import { Button, ChapterBand, Text, TitledBox, tokens } from '../components/index'
 
 /** The prompt's panel: the not-found panel's measure, on the page's gutters. */
 const PANEL = { maxWidth: '36rem', width: '100%' } satisfies CSSProperties

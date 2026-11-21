@@ -1,6 +1,6 @@
 /**
  * A unit's vitals as `current/max` readings (`SP | 9/13`), built one way for
- * every surface: a sheet's Assigned units (`rowStats`), the Training Bay, the
+ * every surface: a sheet's Related units (`rowStats`), the Training Bay, the
  * Play hub and a Game's roster (`pool`, `gauge`). Labels are the reference
  * vocabulary's short names (`STAT_LABELS`); AP has none there. An assigned
  * mech or crawler leads with its Tech Level (`techLevelReading`).

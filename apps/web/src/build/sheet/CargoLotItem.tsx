@@ -1,5 +1,5 @@
 /**
- * CargoLotItem — one lot in The Hold (`StorageManifest`), on either side of the
+ * CargoLotItem — one lot in a hold, on either side of the
  * mech ⇄ crawler boundary, with the cap-checked move affordance both sides
  * share.
  */
@@ -78,6 +78,35 @@ type CargoLotItemProps = {
  * The label + disabled reason come from the shared `moveAffordance`.
  */
 export function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: CargoLotItemProps) {
+  return (
+    <CargoLotLine
+      lot={lot}
+      actions={
+        readOnly ? undefined : (
+          <CargoLotControls
+            lot={lot}
+            side={side}
+            cargo={cargo}
+            linked={linked}
+            {...(onRemove ? { onRemove } : {})}
+          />
+        )
+      }
+    />
+  )
+}
+
+/**
+ * A lot's Edit controls, wherever its line is drawn (its `CargoLotLine`, a
+ * Ledger's row): this side's cap-checked move, and its remove.
+ */
+export function CargoLotControls({
+  lot,
+  side,
+  cargo,
+  linked,
+  onRemove,
+}: Omit<CargoLotItemProps, 'readOnly'>) {
   const { label, disabledReason } = moveAffordance(lot, side, cargo, linked)
 
   function handleMove() {
@@ -86,39 +115,32 @@ export function CargoLotItem({ lot, side, cargo, linked, readOnly, onRemove }: C
   }
 
   return (
-    <CargoLotLine
-      lot={lot}
-      actions={
-        readOnly ? undefined : (
-          <>
-            <Button
-              variant="pencil"
-              size="mini"
-              disabled={disabledReason !== null}
-              title={disabledReason ?? undefined}
-              aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
-              onClick={handleMove}
-            >
-              {label}
-            </Button>
-            {onRemove && (
-              <Button
-                variant="pencil"
-                size="mini"
-                aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
-                title={
-                  side === 'mech'
-                    ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
-                    : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
-                }
-                onClick={onRemove}
-              >
-                {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
-              </Button>
-            )}
-          </>
-        )
-      }
-    />
+    <>
+      <Button
+        variant="pencil"
+        size="mini"
+        disabled={disabledReason !== null}
+        title={disabledReason ?? undefined}
+        aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
+        onClick={handleMove}
+      >
+        {label}
+      </Button>
+      {onRemove && (
+        <Button
+          variant="pencil"
+          size="mini"
+          aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
+          title={
+            side === 'mech'
+              ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })
+              : buildSheetCopy('unstowFromTheStorageBay', { name: lot.name })
+          }
+          onClick={onRemove}
+        >
+          {side === 'mech' ? buildSheetCopy('unload') : buildSheetCopy('unstow')}
+        </Button>
+      )}
+    </>
   )
 }

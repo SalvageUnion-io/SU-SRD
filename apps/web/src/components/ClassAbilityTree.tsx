@@ -14,6 +14,7 @@ import type { TreeTrack } from './index'
 import { Chips, Head, Slab, SlabSection, Stat, TitledBox } from './index'
 import { MentionProse } from './MentionProse'
 import { ReferenceAbilityTrack } from './ReferenceAbilityTrack'
+import { treeAnchor } from './referenceEntity/card/abilityTreeRelations'
 
 const TREES_LABEL = cn('su-class-brief__trees-label', capsLabel({ tracking: 'snug' }))
 
@@ -44,11 +45,19 @@ function TreeSection({
   track,
   note,
   size = 'compact',
-}: AbilityTreeGroup & { track: TreeTrack; note?: string; size?: 'compact' | 'mini' }) {
+  anchored = size === 'compact',
+}: AbilityTreeGroup & {
+  track: TreeTrack
+  note?: string
+  size?: 'compact' | 'mini'
+  /** Its heading is where an ability's TREE chip lands (`treeAnchor`): once a page. */
+  anchored?: boolean
+}) {
   return (
     <SlabSection
       as="h2"
       title={tree}
+      {...(anchored ? { id: treeAnchor(tree) } : {})}
       count={note ?? noteFor(track)}
       page
       size="mini"
@@ -306,8 +315,16 @@ function PathCard({ path, classEntity }: { path: ClassPath; classEntity: RefClas
         <div className="su-class-path__body">
           {note && <p className="su-class-path__note">{note}</p>}
           <div className="su-class-path__trees" data-entity-fit="">
-            <TreeSection {...path.advanced} track={hybrid ? 'hybrid' : 'advanced'} size="mini" />
-            {path.legendary && <TreeSection {...path.legendary} track="legendary" size="mini" />}
+            {/* The class's own path holds its trees once: a TREE chip lands there. */}
+            <TreeSection
+              {...path.advanced}
+              track={hybrid ? 'hybrid' : 'advanced'}
+              size="mini"
+              anchored={!hybrid}
+            />
+            {path.legendary && (
+              <TreeSection {...path.legendary} track="legendary" size="mini" anchored={!hybrid} />
+            )}
           </div>
         </div>
         {/* The foot shares the head's colour, its citation on a paper cut-out,

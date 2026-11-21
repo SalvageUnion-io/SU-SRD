@@ -19,9 +19,10 @@ describe('the crew lead cell', () => {
     expect(post.hasAttribute('data-peek-press')).toBe(true)
   })
 
-  test('with no NPC to Peek, the post is words', () => {
-    render(<LeadCell lead={LEAD} />)
+  test('with no NPC to Peek, the post is words, a space after the name', () => {
+    const { container } = render(<LeadCell lead={LEAD} />)
     expect(screen.queryByRole('button')).toBeNull()
+    expect(container.textContent).toBe('Cara Voss the Princeps')
   })
 
   test('an unnamed lead is their post alone', () => {

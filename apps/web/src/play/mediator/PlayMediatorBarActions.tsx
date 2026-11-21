@@ -97,7 +97,7 @@ export function PlayMediatorBarActions({
             },
             {
               id: 'reference',
-              label: mediatorCopy('reference'),
+              label: playCopy('rules'),
               onSelect: () => setReference(true),
             },
           ],
@@ -119,12 +119,7 @@ export function PlayMediatorBarActions({
       </ModalShell>
       {/* Bare: the explorer wears the dialog's head, so a category's search
           and filters sit under it rather than in a second titled box. */}
-      <ModalShell
-        open={reference}
-        onOpenChange={setReference}
-        title={mediatorCopy('reference')}
-        bare
-      >
+      <ModalShell open={reference} onOpenChange={setReference} title={playCopy('rules')} bare>
         <SrdExplorer onClose={() => setReference(false)} />
       </ModalShell>
     </>

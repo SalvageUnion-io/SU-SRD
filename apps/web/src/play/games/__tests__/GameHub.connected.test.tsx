@@ -240,6 +240,22 @@ describe('the sections under the roster', () => {
     expect(members.hasAttribute('data-names-whole')).toBe(true)
   })
 
+  test('alone at the table, Hand over rests and says why; a nameless viewer is You', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+      'games.members': [
+        { userId: 'u1', displayName: null, mediator: true, organizer: true, joinedAt: 1 },
+      ],
+    })
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(within(members).getByText('You')).toBeTruthy()
+    expect(screen.queryByText('Crewmate (you)')).toBeNull()
+    expect((screen.getByRole('button', { name: 'Hand over' }) as HTMLButtonElement).disabled).toBe(
+      true
+    )
+    expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
+  })
+
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },
@@ -386,7 +402,8 @@ describe('the Mediator on the Game page', () => {
       ],
     })
 
-    expect(screen.getByText('You mediate')).toBeTruthy()
+    // The Mediate door alone says who mediates: no stamp beside it.
+    expect(screen.queryByText('You mediate')).toBeNull()
     expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe(
       '/games/g1/mediate'
     )
@@ -431,7 +448,7 @@ describe('who plays whom', () => {
 describe('the Mediator before they have proposed anything', () => {
   test('has no empty Proposals you sent', async () => {
     await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ops.sent': [] })
-    expect(screen.getByText('You mediate')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Mediate' })).toBeTruthy()
     expect(heading('Proposals you sent')).toBeNull()
   })
 })

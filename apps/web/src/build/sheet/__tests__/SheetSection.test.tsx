@@ -4,7 +4,7 @@
  *   - the section header row: a solid `Slab` (stamp label + leader rule +
  *     trailing controls) — the shape the sheets' field/collection sections use.
  *   - a collection section's Manage control: the house `Button` in the
- *     `SlabSection`'s `actions`, Compact as the fold beside it (§4.7), never
+ *     section head's `actions` (a `SlabSection`'s or a Ledger's), Compact (§4.7), never
  *     a header button of the sheets' own.
  */
 
@@ -55,13 +55,14 @@ const PILOT: Pilot = {
 const store = () => makeSingleUnitStore('pilot', PILOT)
 
 describe("a collection section's Manage control", () => {
-  test("is a Compact Button in its SlabSection's actions, and opens the picker", () => {
+  test("is a Compact Button in its section head's actions, and opens the picker", () => {
     render(<PilotSheet pilot={PILOT} store={store()} />)
     for (const name of ['Manage Abilities', 'Manage Equipment']) {
       const button = screen.getByRole('button', { name })
       expect(button.getAttribute('type')).toBe('button')
       expect(button.classList.contains('su-btn')).toBe(true)
-      expect(button.closest('.su-slab-section__head')).toBeTruthy()
+      // In its section's head: a group's slab, or its Ledger's rule head.
+      expect(button.closest('.su-slab-section__head, .su-open__title')).toBeTruthy()
       expect(button.className).not.toContain('su-sheet-hbtn')
     }
     fireEvent.click(screen.getByRole('button', { name: 'Manage Equipment' }))

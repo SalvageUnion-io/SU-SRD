@@ -77,7 +77,6 @@ type MechWizardProps = {
 /** Where the book prints each list's rule (the lists' feet). */
 const BOOK = 'Salvage Union Workshop Manual'
 const LIST_CITES = {
-  chassis: { source: BOOK, page: 94, see: [{ label: mechCopy('mechChassis'), page: [100, 159] }] },
   systems: { source: BOOK, page: 95, see: [{ label: mechCopy('systems'), page: [162, 187] }] },
   modules: { source: BOOK, page: 95, see: [{ label: mechCopy('modules'), page: [188, 207] }] },
 } satisfies Record<string, BookCite>
@@ -348,11 +347,12 @@ export function MechWizard({
   // the step's own meters show all three).
   const trackers = (() => {
     const scrap = (
+      // Spent, as the slots read filled: every budget counts up to its cap.
       <WizTracker
-        label={mechCopy('scrap')}
-        value={budget.remaining}
+        label={mechCopy('scrapSpent')}
+        value={MECH_CREATION_SCRAP_CAP - budget.remaining}
         max={MECH_CREATION_SCRAP_CAP}
-        testId="scrap-remaining"
+        testId="scrap-spent"
       />
     )
     switch (step) {
@@ -409,7 +409,6 @@ export function MechWizard({
             onSelectChassis={selectChassis}
             onSelectPattern={selectPattern}
             onSelectCustom={selectCustom}
-            cite={LIST_CITES.chassis}
           />
         </>
       )}
@@ -471,7 +470,7 @@ export function MechWizard({
             'pattern',
             <MechFlavorStep
               field="patternName"
-              label={mechCopy('namePattern')}
+              label={mechCopy('mechName')}
               value={form.name}
               onChange={setMechName}
               placeholder={mechCopy('eGBullseyePatternMule')}

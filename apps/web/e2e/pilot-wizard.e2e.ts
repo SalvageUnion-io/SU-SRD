@@ -70,8 +70,8 @@ test('build a pilot from scratch, then edit to add a second ability', async ({ p
   await expect(page.getByText(/Sparks/).first()).toBeVisible()
   await createPilot.click()
 
-  // After submission we land on the roster.
-  await page.waitForURL(/\/$/, { timeout: 15_000 })
+  // After submission the new pilot's sheet opens.
+  await page.waitForURL(/\/build\/pilots\/(?!new)/, { timeout: 15_000 })
   await waitForReady(page)
   await expect(page.getByText('Mira Voss').first()).toBeVisible({
     timeout: 15_000,

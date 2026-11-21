@@ -9,9 +9,6 @@ import type { UnitReading } from '../../lib/units/unitModel'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { ShelfLink } from './ShelfLedger'
 
-/** The crawler's bays reading, by its label on the rail. */
-export const BAYS = 'Bays'
-
 const fig = (key: string, title: string, phone = false): LedgerColumn => ({
   key,
   label: key,
@@ -48,7 +45,6 @@ export const CRAWLER_COLUMNS = [
   GAME,
   fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
   fig(VITAL.sp, buildShelvesCopy('structurePoints')),
-  fig(BAYS, buildShelvesCopy('baysIntact')),
 ]
 export const NPC_COLUMNS = [
   word('position', buildShelvesCopy('position')),
@@ -93,3 +89,24 @@ export const who = (chips: readonly { label: string }[]): string =>
 /** A unit's own labels (`Shared by link`), under its name. */
 export const under = (chips: readonly { label: string }[]): string | undefined =>
   chips.length > 0 ? chips.map((c) => c.label).join(' · ') : undefined
+
+/**
+ * A row's labels under its name, and a pilot's mech (`flown`) as a link there
+ * on a phone, where the Mech column is hidden: the mech is never out of reach.
+ */
+export const underWith = (
+  chips: readonly { label: string }[],
+  flown: readonly { name: string; href?: string | undefined }[]
+): ReactNode => {
+  const labels = under(chips)
+  const mech = flown[0]
+  if (!mech) return labels
+  return (
+    <>
+      {labels && <span>{labels}</span>}
+      <span className="su-shelf-ledger__flown">
+        {buildShelvesCopy('mech')} <ShelfLink href={mech.href}>{mech.name}</ShelfLink>
+      </span>
+    </>
+  )
+}

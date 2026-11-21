@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { CHAPTER_BAND_COLOR, EmptyState, InlineMarkdown, TitledBox } from '../components/index'
+import { InlineMarkdown } from '../components/app'
+import { CHAPTER_BAND_COLOR, EmptyState, TitledBox } from '../components/index'
 import { color, font, fontSize, space } from '../design/tokens'
 import { referenceCopy } from '../messages/reference'
 

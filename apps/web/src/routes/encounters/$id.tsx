@@ -7,7 +7,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PRODUCT } from 'game-domain/product'
 import { EncounterPage } from '../../build/prep/EncounterPage'
-import { RosterSkeleton } from '../../components/index'
+import { RosterSkeleton } from '../../components/app'
 import { areaTitle } from '../../lib/pageTitle'
 import { routesCopy } from '../../messages/routes'
 import { useEncounters, usePatterns } from '../../replica/collections'

@@ -48,7 +48,8 @@
 }
 
 .su-manual .su-entity-page__prose > .su-ec-block:not(.su-bonus-strip) {
-  max-width: 52rem;
+  /* No cap inside the track: the track is the measure. */
+  max-width: none;
 }
 
 /* From `lg` the side column floats right; every block beside it is its own
@@ -56,7 +57,9 @@
    measure once the column ends: nothing stands empty under the art. */
 @media (width >= 64rem) {
   .su-manual {
-    display: flow-root;
+    column-gap: var(--space-24);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   }
 
   /* What a Page appends joins the flow, block by block (a class's trees
@@ -80,11 +83,13 @@
   .su-manual > .su-manual__side {
     display: flex;
     flex-direction: column;
-    float: right;
     gap: var(--space-12);
     /* No foot margin: it would add to the page's foot under a shorter rules column. */
-    margin: 0 0 0 var(--space-24);
-    width: 24rem;
+    float: none;
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+    width: auto;
   }
 }
 
@@ -130,4 +135,90 @@
   font-style: italic;
   line-height: 1.5;
   max-width: 66ch;
+}
+
+/* ── The chassis ability in the side column ─────── */
+
+/* A phone reads it with the rules, after the art. */
+.su-manual__side > .su-manual__ability {
+  order: 2;
+}
+
+/* A Page's actions in the side track follow its words on a phone; split
+   from the main track's, they read on as the same list, under its one head. */
+.su-manual__side > .su-manual__side-actions {
+  order: 3;
+}
+
+/* What stands under the art (a class's Advancement) follows everything the
+   Page appends on a phone. */
+.su-manual__side > .su-manual__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  order: 5;
+}
+
+@media not (width >= 64rem) {
+  .su-manual__side-actions--more > .su-rule-head {
+    display: none;
+  }
+}
+
+/* Its tab is cut from its panel's paper, so tab and text read as one. */
+.su-manual__ability > .su-rule-head {
+  --su-head-cut: var(--color-paper);
+}
+
+/* A pattern's own words lead its rules on a phone, after the art. */
+.su-manual > .su-entity-page__opening {
+  order: 1;
+}
+
+/* ── Every Reference Page is two tracks ──────────
+   From `lg` a Page is a main track and a side track, the side there even
+   when it holds nothing, so a Page's strips, tiles, Ledgers and prose all
+   end at the main track's edge: the measure lives on the column, never on
+   the paragraph. A phone is one column, as before. */
+.su-manual > .su-manual__main {
+  display: contents;
+}
+
+.su-manual__main > * {
+  min-width: 0;
+  order: 2;
+}
+
+.su-manual__main > .su-manual__stats {
+  order: 0;
+}
+
+.su-manual__main > .su-entity-page__opening {
+  order: 1;
+}
+
+.su-manual__main > .su-manual__after {
+  order: 4;
+}
+
+@media (width >= 64rem) {
+  .su-manual > .su-manual__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .su-manual__main > *,
+  .su-manual__main > .su-manual__after > *,
+  .su-manual__main > .su-manual__after > .su-ability-tree > * {
+    margin-top: 0;
+  }
+
+  .su-manual__main > .su-manual__after {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+  }
 }

@@ -234,7 +234,7 @@ export function Slab({
         {counts.map((entry) => (
           <span
             key={String(entry.label)}
-            className={cn('su-rule-head__tally', CAPS, CAPS)}
+            className={cn('su-rule-head__tally', CAPS)}
             data-state={entry.state === 'critical' ? 'critical' : undefined}
             title={entry.title}
           >
@@ -246,9 +246,7 @@ export function Slab({
         ))}
       </span>
     ) : (
-      count != null && (
-        <span className={cn('su-rule-head__note', CAPS, CAPS)}>{count as ReactNode}</span>
-      )
+      count != null && <span className={cn('su-rule-head__note', CAPS)}>{count as ReactNode}</span>
     )
     return (
       <div

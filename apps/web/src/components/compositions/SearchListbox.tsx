@@ -272,6 +272,7 @@ function SearchLedger({
         count={rows.length}
         columns={SEARCH_COLUMNS}
         rows={rows}
+        presentation
       />
     </div>
   )

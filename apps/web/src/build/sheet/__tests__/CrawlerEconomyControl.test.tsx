@@ -311,7 +311,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
     fireEvent.change(screen.getByLabelText('To'), { target: { value: '4' } })
     expect(screen.getByTestId('trade-preview').textContent).toBe('4× T1 → 1× T4')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trade' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Make the trade' }))
     await screen.findByRole('status')
 
     expect(update.mock.calls[0]).toEqual([
@@ -354,7 +354,7 @@ describe('CrawlerEconomyControl — Trading Bay', () => {
     )
 
     expect(screen.getByRole('alert').textContent).toContain('Trading Bay is Damaged')
-    expect(screen.queryByRole('button', { name: 'Trade' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Make the trade' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Roll Availability (d20)' })).toBeNull()
   })
 })

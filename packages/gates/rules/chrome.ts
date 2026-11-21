@@ -359,7 +359,7 @@ const ROLE_HOMES = {
   // Its row's pick (a radio whose label is the row's name, L7) and an index's sorting head stamp (L2).
   ledger: 'apps/web/src/components/entity/Ledger.tsx',
   // The open form's row opener and a folding sub-group's head (L1, L3).
-  openLedger: 'apps/web/src/components/entity/OpenLedger.tsx',
+  ledgerOpen: 'apps/web/src/components/entity/LedgerOpen.tsx',
 } as const
 
 /** A JSX field element, to its self-closing end (`=>` in a handler holds no `/>`). */
@@ -558,7 +558,7 @@ const RULES: ChromeRule[] = [
     mode: 'zero',
     rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms and an index Ledger’s sorting head (L2)',
     fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws is an atom in components/atoms/ (`ChipButton`, `TrackStep`, `ToggleCard`, or a new one named in its law).',
-    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS, ROLE_HOMES.ledger, ROLE_HOMES.openLedger),
+    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS, ROLE_HOMES.ledger, ROLE_HOMES.ledgerOpen),
   },
   {
     id: 'stat-text',

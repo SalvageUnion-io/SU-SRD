@@ -185,8 +185,11 @@
   color: var(--color-ink);
   column-gap: var(--space-4);
   cursor: pointer;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  /* Label and value share a line where they fit; in a narrow cell (five
+     across a phone) the value wraps under its label rather than over it. */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
   min-height: calc(var(--size-full) + var(--space-8));
   padding: var(--space-8) var(--space-8) var(--space-6);
   row-gap: var(--space-6);
@@ -225,7 +228,7 @@
 .su-phone-glance__meter {
   background-color: var(--color-ink-10);
   border-radius: var(--radius-pip);
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   height: var(--space-4);
   overflow: hidden;
 }

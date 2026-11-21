@@ -39,14 +39,12 @@ import type { CSSProperties } from 'react'
 import { useReducer, useState } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { crawlerMaxSP, crawlerUpkeepCost, resolvePoolStart } from 'salvageunion-reference/rules'
+import { Cluster, DialogActions, FieldError } from '../../components/app'
 import {
   Button,
-  Cluster,
   capsLabel,
-  DialogActions,
   EmptyState,
   Eyebrow,
-  FieldError,
   ModalShell,
   rollForTable,
   Select,
@@ -557,7 +555,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   }
                   onClick={handleConvert}
                 >
-                  {buildSheetCopy('trade')}
+                  {buildSheetCopy('makeTheTrade')}
                 </Button>
               </div>
               {convertNote && (

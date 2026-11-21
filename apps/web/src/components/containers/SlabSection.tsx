@@ -32,7 +32,7 @@
 import { ChevronDown } from 'lucide-react'
 import type { CSSProperties, ElementType, ReactNode } from 'react'
 import { Children, useContext } from 'react'
-import { color, duration, ease, iconSize } from '../../design/tokens'
+import { color, ease, iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { Button } from '../atoms/Button'
@@ -89,7 +89,7 @@ const FOLD_BUTTON_MINI = {
 const CHEVRON = {
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: ease,
-  transitionDuration: duration.base,
+  transitionDuration: 'var(--dur-base)',
 } satisfies CSSProperties
 
 const CHEVRON_SHUT = { ...CHEVRON, rotate: '-90deg' } satisfies CSSProperties
@@ -177,7 +177,8 @@ export function SlabSection({
           id={fold ? disclosure.panelId : undefined}
           hidden={!open}
           className={cn('su-slab-section__body', bodyClassName)}
-          style={bodyStyle}
+          // A shut body wears no style object: its `display` would beat `hidden`.
+          style={open ? bodyStyle : undefined}
           // On a Page what a strip heads are rows,
           // never a second cut-out (`RowDress`).
           data-rows={page || rows ? '' : undefined}

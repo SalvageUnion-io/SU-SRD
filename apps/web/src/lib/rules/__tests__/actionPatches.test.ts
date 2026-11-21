@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'bun:test'
-import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { getEntitySlug, SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
 import type { Roll } from 'salvageunion-reference/rules'
 import { mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import type { PlayAction } from '../actionList'
@@ -268,6 +268,9 @@ describe('buildPilotActions', () => {
     expect(kitActions.every((pa) => pa.ownerName === 'First Aid Kit')).toBe(true)
     expect(kitActions.every((pa) => pa.condition === 'intact')).toBe(true)
     expect(gunActions.every((pa) => pa.condition === 'damaged')).toBe(true)
+    // The repairs it shares with the mech's Riveting Gun cost a pilot AP (p.80).
+    const repair = gunActions.find((pa) => pa.name === 'System Repair')
+    expect(repair ? toEntityModel(repair.action).cost : null).toBe('2 AP')
     expect(deck.every((pa) => pa.key.startsWith('equipment:'))).toBe(true)
   })
 

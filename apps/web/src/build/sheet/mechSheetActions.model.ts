@@ -153,11 +153,13 @@ export function useMechSheetActions({
   function removeItem(kind: ItemKind, index: number) {
     const fresh = freshMech()
     if (kind === 'module') {
-      write({ modules: fresh.modules.filter((_, i) => i !== index) })
+      const modules = fresh.modules.filter((_, i) => i !== index)
+      write({ modules, ...choicesLeft(fresh, fresh.modules[index], modules) })
       return
     }
     const removed = fresh.systems[index]
-    const patch = { systems: fresh.systems.filter((_, i) => i !== index) }
+    const systems = fresh.systems.filter((_, i) => i !== index)
+    const patch = { systems, ...choicesLeft(fresh, removed, systems) }
     if (softWarnings.preview(patch).length === 0) {
       runWrite(() => softWarnings.saveAnyway())
       return
@@ -253,4 +255,19 @@ export function useMechSheetActions({
       setWarningSubtitle(null)
     },
   }
+}
+
+/**
+ * The item choices left once `slug`'s copy goes: its picks go with the last
+ * copy, so re-installing it starts fresh, as the wizard's do (`madeChoices`).
+ */
+function choicesLeft(
+  mech: Mech,
+  slug: string | undefined,
+  remaining: readonly string[]
+): Pick<Mech, 'itemChoices'> | Record<string, never> {
+  const choices = mech.itemChoices
+  if (!slug || !choices || !(slug in choices) || remaining.includes(slug)) return {}
+  const { [slug]: _gone, ...kept } = choices
+  return { itemChoices: kept }
 }

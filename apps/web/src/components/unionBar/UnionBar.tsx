@@ -3,8 +3,8 @@ import { appPath } from '../../lib/appBase'
 import type { UnionMode } from '../../lib/barLinks'
 import { BUY_HREF } from '../../lib/docPages'
 import { MARK_SRC } from '../../lib/documentHead'
+import { AppBar } from '../app'
 import type { BreadcrumbItem } from '../atoms/BreadcrumbTrail'
-import { AppBar } from '../index'
 
 /**
  * UnionBar — the one Union bar both render modes draw (ruleset §3.11): the

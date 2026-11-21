@@ -4,7 +4,7 @@ import { ChapterFoot } from '../ChapterFoot'
 
 /**
  * The foot band (ruleset, "The source" 2): the site footer's one band, in the
- * colour of the page's leading band, which the stylesheet sets (`footerMatchCss`).
+ * header's chrome, which the stylesheet sets (K13).
  */
 describe('ChapterFoot', () => {
   test('carries its two ends: the citation and licence at its start, the links at its end', () => {

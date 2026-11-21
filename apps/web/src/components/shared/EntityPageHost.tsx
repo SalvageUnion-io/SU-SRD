@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
-import { SalvageUnionReference } from 'salvageunion-reference'
+import { nameRefIndex, SalvageUnionReference } from 'salvageunion-reference'
 import { useGameData } from '../../lib/useGameData'
+import { useDetailModal } from '../app'
 import type { EntitySurfaceValue } from '../index'
-import { EntitySurfaceProvider, PeekHost, useDetailModal } from '../index'
+import { EntitySurfaceProvider, PeekHost } from '../index'
 
 /**
  * The app's PAGE OPENER and PEEK (entity display language E4, E5): the surface's
@@ -15,6 +16,11 @@ import { EntitySurfaceProvider, PeekHost, useDetailModal } from '../index'
  * (`useDetailModal`). Both wait for the whole dataset (`useGameData`): every
  * route but the front door is held for it anyway, and the front door's chips
  * Peek and open cards that read schemas it does not hold for.
+ *
+ * With the dataset in, its surface also carries the names prose uses
+ * (`nameRefs`, the package's `nameRefIndex`, the Reference's own), so the
+ * app's rules text links "Pilot Equipment" and "Tech Level" as the Reference
+ * does.
  */
 export function EntityPageHost({ children }: { children: ReactNode }) {
   const [entity, setEntity] = useState<RefEntity | undefined>(undefined)
@@ -36,8 +42,10 @@ export function EntityPageHost({ children }: { children: ReactNode }) {
         setEntity(found)
         openDetail.current?.()
       },
+      // Built once, from the whole dataset: never from a part of it.
+      ...(dataReady ? { nameRefs: nameRefIndex().index } : {}),
     }),
-    []
+    [dataReady]
   )
   return (
     <EntitySurfaceProvider value={surface}>

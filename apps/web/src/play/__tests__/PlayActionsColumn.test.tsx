@@ -508,7 +508,7 @@ describe('Use: the resolve, in the Compact', () => {
     await click(apply())
     expect(screen.getByText('Result applied ✓')).toBeTruthy()
     expect(calls).toHaveLength(0)
-    await click(screen.getByRole('button', { name: 'Clear' }))
+    await click(screen.getByRole('button', { name: 'Start over' }))
     expect(document.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 

@@ -34,13 +34,10 @@ import {
   KindLabel,
   LinkedUnits,
   relation,
-  SlabLookProvider,
   Stat,
   Tag,
   tokens,
-  useMediaQuery,
 } from '../../components/index'
-import { widthAtLeast } from '../../design/tokens'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { BandStamp, PatternStamp } from './bandStamps.model'
 import { RailActs } from './RailActs'
@@ -164,8 +161,6 @@ type LiveSheetProps = {
    * PATTERN chip.
    */
   quoted?: boolean
-  /** The body pins its own vitals on a phone (`PinnedVitals`); the bar condenses from 40rem. */
-  pinsVitals?: boolean
 }
 
 /** Sticky bar height: one compact row. */
@@ -194,7 +189,7 @@ const BAR = {
   // sets it off the page it floats over.
   boxShadow: tokens.shadow.lift,
   columnGap: tokens.space[16],
-  display: 'flex',
+  // `display` is `.su-sheet-bar`'s, so paper's `data-print="hide"` passes it.
   flexWrap: 'wrap',
   insetInline: 0,
   minHeight: `${BAR_HEIGHT_PX}px`,
@@ -202,7 +197,7 @@ const BAR = {
   position: 'absolute',
   rowGap: tokens.space[4],
   top: 0,
-  transitionDuration: tokens.duration.fast,
+  transitionDuration: 'var(--dur-fast)',
   transitionProperty: 'opacity, visibility, translate',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
@@ -225,12 +220,12 @@ const BAR_HIDDEN = {
 } satisfies CSSProperties
 
 const STRIP = {
-  alignItems: 'center',
+  alignItems: 'stretch',
   display: 'flex',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   gap: tokens.space[8],
   minWidth: 0,
-  transitionDuration: tokens.duration.base,
+  transitionDuration: 'var(--dur-base)',
   transitionProperty: 'opacity, transform',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
@@ -238,8 +233,7 @@ const STRIP = {
 const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
 
 // At rest it is out of the flow as well as invisible: an invisible strip
-// still took the bar's first row on a phone and pushed Share and ⋯ onto a
-// row of their own.
+// still took the bar's first row on a phone, pushing Share and ⋯ down.
 const STRIP_HIDDEN = {
   ...STRIP,
   opacity: 0,
@@ -330,17 +324,15 @@ export function LiveSheet({
   out,
   userMade,
   quoted = false,
-  pinsVitals = false,
 }: LiveSheetProps) {
-  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
-  // should seam and fill the moment you scroll past IT, rather than waiting for
-  // a whole region to clear the viewport.
+  // A 1px sentinel beneath the bar, NOT the identity block: the bar seams and
+  // fills the moment you scroll past IT, not once a whole region clears.
   const topRef = useRef<HTMLDivElement | null>(null)
-  const scrolled = useCondensed(topRef)
-  const phone = !useMediaQuery(widthAtLeast('sm'), true)
-  const condensed = scrolled && !(pinsVitals && phone)
+  // The one sticky bar, at every width: the name and the vitals in brief.
+  const condensed = useCondensed(topRef)
 
   const title = quoted ? `“${name}”` : name
+  const game = band?.game
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -374,7 +366,7 @@ export function LiveSheet({
           aria-label={buildSheetCopy('sheetControls')}
           aria-hidden={!condensed}
           data-print="hide"
-          className="su-sheet-gutter"
+          className="su-sheet-gutter su-sheet-bar"
           style={condensed ? BAR_SHOWN : BAR_HIDDEN}
         >
           {/* Condensed identity + live MiniStat strip. At rest this is hidden —
@@ -491,10 +483,11 @@ export function LiveSheet({
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
                     {fromPattern &&
-                      (fromPattern.href ? (
+                      (fromPattern.href || fromPattern.page ? (
                         <Tag
                           tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
                             href: fromPattern.href,
+                            page: fromPattern.page,
                           })}
                           linkable
                           wrap
@@ -504,6 +497,13 @@ export function LiveSheet({
                       ))}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
+                    )}
+                    {game && (
+                      <Tag
+                        tag={relation('game', buildSheetCopy('game'), game.name, game)}
+                        linkable
+                        wrap
+                      />
                     )}
                   </>
                 ),
@@ -582,9 +582,7 @@ export function LiveSheet({
                 {out.note}
               </p>
             )}
-            {/* A sheet's section heads
-                are labels on rules (`SlabLookProvider`), in Read and Edit. */}
-            <SlabLookProvider value="rule">{renderBody()}</SlabLookProvider>
+            {renderBody()}
           </EntitySurfaceProvider>
         </div>
       </div>

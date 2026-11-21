@@ -96,7 +96,7 @@ describe('the tree chips on each form', () => {
     )
     expect(lanes.indexOf('relation')).toBeLessThan(lanes.indexOf('cost'))
     const links = [...container.querySelectorAll("[data-chip-class='relation'] a")]
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/classes/hauler/'])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/classes/hauler/#tree-leadership'])
   })
 
   test('a Card head carries them too', () => {

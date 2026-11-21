@@ -11,8 +11,8 @@
 
 import { useState } from 'react'
 import { SHEET_VITALS } from '../build/sheet/sheetVitals.model'
+import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/app'
 import type { CSSVarStyle, PhoneVitalCell } from '../components/index'
-import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/index'
 import { playCopy } from '../messages/play'
 import type { PinnedUnit } from './playPanes.model'
 import { tableUnits } from './tableMode.model'

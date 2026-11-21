@@ -90,12 +90,12 @@ export function MechLiveSheet({
     },
   ]
 
-  // Assigned units: the pilot it carries and the crawler it docks in, both
+  // Related units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
   const savedPatterns = usePatterns((s) => s.mechPatterns)
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
   return (
@@ -112,7 +112,6 @@ export function MechLiveSheet({
       // Read's header strip carries TL and
       // SV with the chassis's other figures, so the band leaves them out (R59).
       rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}
-      pinsVitals={readOnly}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {
@@ -130,7 +129,6 @@ export function MechLiveSheet({
           live={liveInRead}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
-          crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
           pilotAbilities={pilotAbilities}
         />

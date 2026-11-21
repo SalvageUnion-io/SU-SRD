@@ -31,3 +31,8 @@
 .su-chapter-band__eyebrow:has(> .su-shelves-band__status:empty) {
   padding-block: 0;
 }
+
+/* Borderless lists stacked in a column need air between them (L-4). */
+.su-shelf-ledgers .su-shelf-ledgers__col {
+  gap: var(--space-16);
+}

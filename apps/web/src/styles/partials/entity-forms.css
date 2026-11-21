@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 3 of 20: the entity forms: Compact and Mini.
+ * The package stylesheet: the entity forms: Compact and Mini.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -1620,28 +1620,33 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 [data-rows] .su-entity-mini > *,
 [data-rows] .su-entity-compact__frame,
 [data-rows] .su-entity-mini__pill[data-row] {
-  border-color: transparent !important;
-  border-width: 0 !important;
+  border-color: transparent;
+  border-width: 0;
   box-shadow: none;
+}
+
+/* A row's head keeps the one focus ring (K9) the rule above takes from it. */
+[data-rows] .su-entity-mini > :focus-visible {
+  box-shadow: var(--focus-ring-shadow);
 }
 
 [data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
 [data-rows]
   .su-entity-compact__head[data-row]
   :is(.su-entity-compact__name, .su-entity-compact__title) {
-  background: none !important;
+  background: none;
   color: var(--color-ink);
 }
 
 [data-rows] .su-entity-compact__head[data-row] {
-  background-image: none !important;
+  background-image: none;
 }
 
 /* A list of rows: one column, no gaps, zebra in the page's colour. */
 [data-rows] .su-entity-mini-list {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
-  gap: 0 !important;
+  gap: 0;
 }
 
 [data-rows] .su-entity-mini,
@@ -1658,5 +1663,5 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 [data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
-  background-color: transparent !important;
+  background-color: transparent;
 }

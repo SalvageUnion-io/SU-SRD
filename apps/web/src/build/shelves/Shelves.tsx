@@ -44,15 +44,9 @@ import { cockpitPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
+import { PageShell, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
-import {
-  Button,
-  ChapterBand,
-  HeaderMenu,
-  PageShell,
-  RosterSkeleton,
-  toast,
-} from '../../components/index'
+import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
@@ -106,7 +100,6 @@ import { MoveToGameDialog } from './MoveToGameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 import {
-  BAYS,
   CRAWLER_COLUMNS,
   inGame,
   MECH_COLUMNS,
@@ -116,6 +109,7 @@ import {
   paired,
   read,
   under,
+  underWith,
   who,
 } from './shelfColumns'
 import { ShelvesPart } from './shelvesPart.model'
@@ -342,10 +336,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   // -- the shelves ------------------------------------------------------------
 
-  // + New is rust only where its shelf has no door (§3.13): beside a Play it is ink.
-  const newLink = (href: string, label: string, door = false) =>
+  // + New is one act, outlined on every shelf (§3.14).
+  const newLink = (href: string, label: string) =>
     canWrite ? (
-      <Button href={href} variant={door ? 'ink' : 'primary'} size="compact">
+      <Button href={href} variant="default" size="compact">
         {label}
       </Button>
     ) : undefined
@@ -450,26 +444,21 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 title="Pilots"
                 tone="pilot"
                 columns={PILOT_COLUMNS}
-                action={newLink(
-                  '/pilots/new',
-                  '+ New pilot',
-                  status !== 'signedOut' && pilots.length > 0
-                )}
+                action={newLink('/pilots/new', '+ New pilot')}
                 empty="No pilots yet."
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
+                  const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
                   return {
                     id: p.id,
                     name: p.name,
                     href: `/pilots/${p.id}`,
-                    under: under(linkChip(sharedByLink, p.id)),
+                    // On a phone its mech rides under the name (the column is hidden).
+                    under: underWith(linkChip(sharedByLink, p.id), flies),
                     cells: [
                       pilotFact(p) ?? '',
                       // The pilot carries its mech; with none, Add a mech builds one for it.
-                      paired(
-                        crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames }),
-                        canWrite ? newMechFor(p.id) : undefined
-                      ),
+                      paired(flies, canWrite ? newMechFor(p.id) : undefined),
                       inGame(gameRelation(p, games)),
                       read(r, VITAL.hp),
                       read(r, VITAL.ap),
@@ -529,7 +518,6 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                       inGame(gameRelation(c, games)),
                       String(crawlerReading(c).value),
                       read(r, VITAL.sp),
-                      read(r, BAYS),
                     ],
                     menu: unitMenu('crawler', c, c),
                   }

@@ -369,12 +369,16 @@ describe('Training Bay — items', () => {
 
     await renderShelves()
 
-    // The pilot's line names its Mech (ADR-066 §4).
+    // The pilot's line names its Mech (ADR-066 §4): its column, and under the
+    // name for a phone, where the column is hidden.
     const pilots = screen.getByRole('region', { name: 'Pilots' })
     const itsMech = within(
       within(pilots).getByRole('link', { name: 'Mara Vex' }).closest('tr') as HTMLElement
-    ).getByRole('link', { name: 'Iron Fist' })
-    expect(itsMech.getAttribute('href')).toBe(`/mechs/${mech.id}`)
+    ).getAllByRole('link', { name: 'Iron Fist' })
+    expect(itsMech.map((a) => a.getAttribute('href'))).toEqual([
+      `/mechs/${mech.id}`,
+      `/mechs/${mech.id}`,
+    ])
     // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()

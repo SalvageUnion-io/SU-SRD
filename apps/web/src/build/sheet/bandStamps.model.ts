@@ -75,8 +75,12 @@ export function npcStamp(templateRef: NpcTemplateRef | undefined): BandStamp | u
   return stampOf('From', 'npcs', templateRef.slug, npc)
 }
 
-/** The pattern a mech was built from: its name, and its page when it has one. */
-export type PatternStamp = { name: string; href?: string }
+/**
+ * The pattern a mech was built from: its name, and its page when it has one —
+ * a saved pattern's an app route (`href`), a book pattern's a Reference page
+ * (`page`), which the app's router must never take.
+ */
+export type PatternStamp = { name: string; href?: string; page?: string }
 
 /**
  * Which pattern a mech was built from (`PATTERN | Nimble Hauler`, ADR-066 §4:
@@ -104,6 +108,6 @@ export function mechPatternStamp(
   const chassis = readReference('mechPatternStamp', () => resolveChassisRef(mech.chassisRef), null)
   const pattern = chassis?.patterns?.find((p) => nameToSlug(p.name) === ref)
   return chassis && pattern
-    ? { name: pattern.name, href: srdPatternHref(chassis, pattern) }
+    ? { name: pattern.name, page: srdPatternHref(chassis, pattern) }
     : { name: ref }
 }

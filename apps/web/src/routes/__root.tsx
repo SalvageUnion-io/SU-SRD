@@ -18,6 +18,7 @@ import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
+import { srdEntityExternalLink } from '../components/shared/srdEntityExternalLink'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { preloadGameData } from '../lib/useGameData'
@@ -51,7 +52,13 @@ import '../styles/app.css'
  */
 void preloadGameData(firstPaintSchemas(window.location.pathname), 'full')
 
-const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
+// "View in the Reference" (E13) is here, above `EntityPageHost`: the detail
+// dialog it mounts sits outside every route's own providers.
+const ENTITY_SURFACE: Partial<EntitySurfaceValue> = {
+  linkAs: AppLink,
+  appliesRules: true,
+  externalLink: srdEntityExternalLink,
+}
 
 export const Route = createRootRoute({
   // The default tab title, the front door's; a page with its own sets it in its route's `head`.

@@ -21,14 +21,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import {
-  ChapterBand,
-  PageShell,
-  Slab,
-  SlabLookProvider,
-  Text,
-  tokens,
-} from '../../components/index'
+import { PageShell } from '../../components/app'
+import { ChapterBand, Slab, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import {
@@ -69,9 +63,8 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
   useCopyCrewOnArrival(copy, confirm)
 
   const body = (
-    // The crew pages read as the sheets
-    // do — labels on rules, and the crew as a paired manifest.
-    <SlabLookProvider value="rule">
+    // The crew as a paired manifest.
+    <>
       <section aria-label={buildStarterSetCopy('starterSet2')}>
         <div style={headingLevel === 'h1' ? HEADER : SUB_HEADER}>
           {headingLevel === 'h2' && (
@@ -108,7 +101,7 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
         </section>
       )}
       {dialog}
-    </SlabLookProvider>
+    </>
   )
   if (headingLevel === 'h2') return body
   // Its own page sits on the page measure (ruleset §1.10), band and body alike.
