@@ -15,64 +15,13 @@ import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
+import { CHASSIS_COLUMNS } from './chassisColumns.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
-
-/**
- * A chassis's stats in the one column order (ruleset §2.6): its Salvage Value
- * in place, then its points and slots. What it costs is said once, on the foot.
- * A phone keeps two figures (L8); the pick's card under its list has the rest.
- */
-const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
-  {
-    key: 'sv',
-    label: mechCopy('sv'),
-    title: mechCopy('salvageValueItsCost'),
-    phone: true,
-    value: (c) => c.salvageValue,
-  },
-  {
-    key: 'sp',
-    label: mechCopy('sp'),
-    title: mechCopy('structurePoints'),
-    phone: true,
-    value: (c) => c.structurePoints,
-  },
-  {
-    key: 'ep',
-    label: mechCopy('ep'),
-    title: mechCopy('energyPoints'),
-    value: (c) => c.energyPoints,
-  },
-  {
-    key: 'sys',
-    label: mechCopy('sys'),
-    title: mechCopy('systemSlots'),
-    value: (c) => c.systemSlots,
-  },
-  {
-    key: 'mod',
-    label: mechCopy('mod'),
-    title: mechCopy('moduleSlots'),
-    value: (c) => c.moduleSlots,
-  },
-  {
-    key: 'heat',
-    label: mechCopy('heat'),
-    title: mechCopy('heatCapacity'),
-    value: (c) => c.heatCapacity,
-  },
-  {
-    key: 'cargo',
-    label: mechCopy('cargo'),
-    title: mechCopy('cargoCapacity'),
-    value: (c) => c.cargoCapacity,
-  },
-]
 
 /** A starting-pattern row: a book pattern, or the custom build. */
 type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }

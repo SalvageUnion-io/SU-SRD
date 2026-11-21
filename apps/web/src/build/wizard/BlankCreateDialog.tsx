@@ -5,8 +5,8 @@
  *
  *   Pilot:   Name*, Callsign*, optional class (UNFILTERED — all classes
  *            including specialisations).
- *   Mech:    Name*, optional chassis (UNFILTERED — any Tech Level, no
- *            scrap cost).
+ *   Mech:    optional chassis, in the Ledger picker (UNFILTERED — any Tech
+ *            Level, no scrap cost); its name can wait for the sheet.
  *   Crawler: Name*, Tech Level 1–6 (default 1 — bare stats derive from
  *            crawler-tech-levels.json; the default SRD bays are seeded).
  *
@@ -17,14 +17,17 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
-import { byTechLevelThenName, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import { DialogActions, FieldError } from '../../components/app'
 import { Button, Field, Input, ModalShell, Select } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { readReference } from '../../lib/readReference'
 import { createBlank } from '../../lib/wizard/blankCreate'
 import '../../styles/build/wizard.css'
+import { mechCopy } from '../../messages/build-mech'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { BlankChassisPick } from './BlankChassisPick'
 import { dialogBodyStyle, dialogNoteStyle } from './wizardStyles.model'
 
 const noteStyle = { ...dialogNoteStyle, margin: 0 } satisfies CSSProperties
@@ -53,21 +56,6 @@ function classOptions(): RefOption[] {
   return readReference(
     'BlankCreateDialog.classOptions',
     () => SalvageUnionReference.Classes.all().map((c) => ({ value: c.id, label: c.name })),
-    []
-  )
-}
-
-/** All chassis, slug-valued — any Tech Level, labelled with its TL. */
-function chassisOptions(): RefOption[] {
-  return readReference(
-    'BlankCreateDialog.chassisOptions',
-    () =>
-      [...SalvageUnionReference.Chassis.all()]
-        .sort((a, b) => byTechLevelThenName(a, b))
-        .map((c) => ({
-          value: nameToSlug(c.name),
-          label: buildWizardCopy('tl', { name: c.name, string: String(c.techLevel) }),
-        })),
     []
   )
 }
@@ -101,13 +89,16 @@ export function BlankCreateDialog({
   const [techLevel, setTechLevel] = useState(1)
 
   const label = KIND_LABEL[kind]
-  const pickOptions = useMemo(
-    () => (kind === 'pilot' ? classOptions() : kind === 'mech' ? chassisOptions() : []),
-    [kind]
-  )
+  const pickOptions = useMemo(() => (kind === 'pilot' ? classOptions() : []), [kind])
   const tlOptions = useMemo(() => (kind === 'crawler' ? techLevelOptions() : []), [kind])
 
-  const canSubmit = name.trim() !== '' && (kind !== 'pilot' || callsign.trim() !== '')
+  // A mech's name can wait for the sheet: it starts as its chassis's, or unnamed.
+  const canSubmit =
+    kind === 'mech' || (name.trim() !== '' && (kind !== 'pilot' || callsign.trim() !== ''))
+  const mechName = () =>
+    name.trim() ||
+    (refPick !== '' ? SalvageUnionReference.Chassis.getBySlug(refPick)?.name : undefined) ||
+    mechCopy('unnamedMech')
 
   const create = useServerAction(
     () => {
@@ -125,7 +116,7 @@ export function BlankCreateDialog({
       if (kind === 'mech') {
         return createBlank(
           'mech',
-          { name: name.trim(), ...(refPick !== '' ? { chassisRef: refPick } : {}) },
+          { name: mechName(), ...(refPick !== '' ? { chassisRef: refPick } : {}) },
           { gameId }
         )
       }
@@ -137,7 +128,10 @@ export function BlankCreateDialog({
 
   async function handleCreate() {
     const result = await create.run()
-    if (result.ok) onCreated(result.value)
+    if (!result.ok) return
+    // A blank sheet has nothing to read: it opens in Edit, on its prompts.
+    useSheetModeStore.getState().setEditing(true)
+    onCreated(result.value)
   }
 
   return (
@@ -147,17 +141,25 @@ export function BlankCreateDialog({
         if (!next) onClose()
       }}
       title={buildWizardCopy('blank', { label })}
-      width="narrow"
+      width={kind === 'mech' ? 'default' : 'narrow'}
     >
       <div style={dialogBodyStyle}>
         <p style={noteStyle}>{buildWizardCopy('anEmptySheetNoSteps')}</p>
 
-        <Field label={buildWizardCopy('name')} required htmlFor={`blank-${kind}-name`}>
+        {kind === 'mech' && <BlankChassisPick value={refPick} onChange={setRefPick} />}
+
+        <Field
+          label={kind === 'mech' ? buildWizardCopy('nameOptional') : buildWizardCopy('name')}
+          required={kind !== 'mech'}
+          htmlFor={`blank-${kind}-name`}
+        >
           <Input
             id={`blank-${kind}-name`}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={`${label} name`}
+            placeholder={
+              kind === 'mech' ? buildWizardCopy('nameItLaterOnTheSheet') : `${label} name`
+            }
             autoComplete="off"
           />
         </Field>
@@ -174,15 +176,8 @@ export function BlankCreateDialog({
           </Field>
         )}
 
-        {(kind === 'pilot' || kind === 'mech') && (
-          <Field
-            label={
-              kind === 'pilot'
-                ? buildWizardCopy('classOptional')
-                : buildWizardCopy('chassisOptional')
-            }
-            htmlFor={`blank-${kind}-pick`}
-          >
+        {kind === 'pilot' && (
+          <Field label={buildWizardCopy('classOptional')} htmlFor={`blank-${kind}-pick`}>
             <Select
               id={`blank-${kind}-pick`}
               value={refPick}

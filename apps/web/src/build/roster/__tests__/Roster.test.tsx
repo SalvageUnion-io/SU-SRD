@@ -276,6 +276,15 @@ describe('Training Bay — one shelf per kind', () => {
     expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
   })
 
+  test('a signed-in bay with nothing in it keeps Start here; one unit and it is gone', async () => {
+    await renderShelves()
+    expect(screen.getByRole('region', { name: 'Start here' })).toBeTruthy()
+    cleanup()
+    await seedEntity('mech', 'Iron Jaw')
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Start here' })).toBeNull()
+  })
+
   test('the NPC shelf offers the designer', async () => {
     await renderKit()
     const npcs = screen.getByRole('region', { name: 'NPCs' })
@@ -382,7 +391,9 @@ describe('Training Bay — items', () => {
     // A mech a pilot flies is on that pilot's line, not again on the Mechs ledger.
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByRole('link', { name: 'Iron Fist' })).toBeNull()
-    expect(within(mechs).getByText('Every Mech of yours has its Pilot.')).toBeTruthy()
+    expect(
+      within(mechs).getByText('Mechs without a Pilot. A piloted Mech is on its Pilot’s row.')
+    ).toBeTruthy()
     expect(screen.queryByText(/^Assigned: /)).toBeNull()
   })
 

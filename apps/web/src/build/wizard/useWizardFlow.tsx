@@ -29,6 +29,7 @@ import {
   writeWizardReached,
 } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useSync } from '../../replica/syncContext'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
 
@@ -102,6 +103,8 @@ type WizardShellProps = {
   onNext: () => void
   nextDisabled: boolean
   busy: boolean
+  /** Saving signed out asks for an account; the draft is kept (`SaveSignInDialog`). */
+  signIn: { open: boolean; onClose: () => void }
 }
 
 export type WizardFlow<TStep extends string> = {
@@ -151,6 +154,10 @@ export function useWizardFlow<
   const [reached, setReached] = useState(() => Math.max(steps.indexOf(step), 0))
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
+  // A wizard runs signed out; Save is where an account is asked for. The form
+  // is already this tab's session draft, so signing in comes back to it.
+  const { status, canWrite } = useSync()
+  const [askSignIn, setAskSignIn] = useState(false)
 
   const currentIndex = steps.indexOf(step)
 
@@ -189,6 +196,10 @@ export function useWizardFlow<
 
   async function handleSubmit() {
     setInvalid(null)
+    if (status === 'signedOut' && !canWrite) {
+      setAskSignIn(true)
+      return
+    }
     const result = await save.run()
     if (!result.ok || result.value === null) return
     toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
@@ -249,6 +260,7 @@ export function useWizardFlow<
       onNext: goNext,
       nextDisabled: !gate.ok,
       busy: save.pending,
+      signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
     },
   }
 }

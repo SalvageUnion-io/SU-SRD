@@ -102,7 +102,16 @@ const BUILD_STEPS = {
   crawler: appPath('/crawlers/new'),
 }
 
-/** Build's front door: Create a Pilot → Create a Mech → Join or make a Crawler. */
+/**
+ * Build's steps as doors: Create a Pilot, Create a Mech, Join or make a
+ * Crawler. Unnumbered, since none needs the one before it. The front door
+ * shows them, and so does a Training Bay with nothing in it yet.
+ */
+export function BuildStartHere({ id }: { id: string }) {
+  return <StartHere id={id} hrefs={BUILD_STEPS} numbered={false} />
+}
+
+/** Build's front door: its pitch, its steps, the Starter crew. */
 export function BuildFrontDoor() {
-  return <FrontDoor area="build" steps={<StartHere id="front-door-start" hrefs={BUILD_STEPS} />} />
+  return <FrontDoor area="build" steps={<BuildStartHere id="front-door-start" />} />
 }

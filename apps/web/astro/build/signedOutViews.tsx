@@ -40,9 +40,6 @@ const SURFACE: Partial<EntitySurfaceValue> = { linkAs: StaticAppLink, appliesRul
 /** Each signed-out view's screen, as its route draws it. */
 const VIEWS: Record<SignedOutViewRoute, ReactNode> = {
   '/': <BuildFrontDoor />,
-  '/pilots/new': <SignInGate kind="pilot" />,
-  '/mechs/new': <SignInGate kind="mech" />,
-  '/crawlers/new': <SignInGate kind="crawler" />,
   '/npcs/new': <SignInGate kind="npc" />,
 }
 

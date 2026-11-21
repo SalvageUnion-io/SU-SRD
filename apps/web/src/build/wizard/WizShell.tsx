@@ -12,6 +12,7 @@ import {
   HeaderMenu,
   tokens,
 } from '../../components/index'
+import { SaveSignInDialog } from './SaveSignInDialog'
 import { WizardGameChip } from './WizardGameChip'
 import {
   bodyStyle,
@@ -99,6 +100,8 @@ type WizShellProps = {
   busy?: boolean
   /** Final-step CTA label, e.g. 'Create Pilot ✦' / 'Save Pilot'. */
   submitLabel: string
+  /** Saving signed out: the sign-in ask over the kept draft (`useWizardFlow`). */
+  signIn?: { open: boolean; onClose: () => void }
 }
 
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
@@ -337,6 +340,7 @@ export function WizShell({
   busy = false,
   submitLabel,
   confirmCancel = false,
+  signIn,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   const isLast = active >= steps.length - 1
@@ -498,6 +502,7 @@ export function WizShell({
           <footer className="su-wiz-footer" style={footerPillStyle}>
             {actionPill}
           </footer>
+          {signIn && <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} />}
         </div>
       </div>
     </div>

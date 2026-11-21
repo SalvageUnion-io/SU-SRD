@@ -13,7 +13,7 @@ export const buildShelvesCopy = messages({
   moreFor: 'More for {name}',
   play: 'Play',
   addAMech: '+ Add a Mech',
-  everyMechHasItsPilot: 'Every Mech of yours has its Pilot.',
+  everyMechHasItsPilot: 'Mechs without a Pilot. A piloted Mech is on its Pilot’s row.',
   playName: 'Play {name}',
   youMediate: 'You mediate',
   starterSet: 'Starter Set',
