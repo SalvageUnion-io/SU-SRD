@@ -180,3 +180,15 @@ describe('any Reference denizen is a template (ADR-067 §2)', () => {
     expect(denizenTemplate({ schema: 'crawlers', slug: 'augmented' })).toBeNull()
   })
 })
+
+describe('an NPC that takes SP reads as Structure Points on its card', () => {
+  test('SP wears the SP stat; HP keeps Hit Points', () => {
+    const base = { name: 'Hull', hitPoints: 12, actions: [], traits: [] }
+    const sp = npcAsReferenceEntity({ ...base, damageType: 'SP' }) as Record<string, unknown>
+    expect(sp.structurePoints).toBe(12)
+    expect(sp.hitPoints).toBeUndefined()
+    const hp = npcAsReferenceEntity({ ...base, damageType: 'HP' }) as Record<string, unknown>
+    expect(hp.hitPoints).toBe(12)
+    expect(hp.structurePoints).toBeUndefined()
+  })
+})

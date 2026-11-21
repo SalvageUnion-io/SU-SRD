@@ -32,6 +32,7 @@ import { Route as PilotsNewRouteImport } from './routes/pilots/new'
 import { Route as SIdRouteImport } from './routes/s/$id'
 import { Route as StarterIndexRouteImport } from './routes/starter/index'
 import { Route as GamesGameIdMediateRouteImport } from './routes/games/$gameId_/mediate'
+import { Route as GamesGameIdPrepRouteImport } from './routes/games/$gameId_/prep'
 import { Route as GamesInviteTokenRouteImport } from './routes/games/invite/$token'
 import { Route as OgKindIdRouteImport } from './routes/og/$kind/$id'
 import { Route as PKindAppIdRouteImport } from './routes/p/$kind/$appId'
@@ -155,6 +156,11 @@ const GamesGameIdMediateRoute = GamesGameIdMediateRouteImport.update({
   path: '/games/$gameId/mediate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesGameIdPrepRoute = GamesGameIdPrepRouteImport.update({
+  id: '/games/$gameId_/prep',
+  path: '/games/$gameId/prep',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesInviteTokenRoute = GamesInviteTokenRouteImport.update({
   id: '/games/invite/$token',
   path: '/games/invite/$token',
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/patterns/': typeof PatternsIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/games/$gameId/mediate': typeof GamesGameIdMediateRoute
+  '/games/$gameId/prep': typeof GamesGameIdPrepRoute
   '/games/invite/$token': typeof GamesInviteTokenRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/patterns': typeof PatternsIndexRoute
   '/starter': typeof StarterIndexRoute
   '/games/$gameId/mediate': typeof GamesGameIdMediateRoute
+  '/games/$gameId/prep': typeof GamesGameIdPrepRoute
   '/games/invite/$token': typeof GamesInviteTokenRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
@@ -282,6 +290,7 @@ export interface FileRoutesById {
   '/patterns/': typeof PatternsIndexRoute
   '/starter/': typeof StarterIndexRoute
   '/games/$gameId_/mediate': typeof GamesGameIdMediateRoute
+  '/games/$gameId_/prep': typeof GamesGameIdPrepRoute
   '/games/invite/$token': typeof GamesInviteTokenRoute
   '/og/$kind/$id': typeof OgKindIdRoute
   '/p/$kind/$appId': typeof PKindAppIdRoute
@@ -316,6 +325,7 @@ export interface FileRouteTypes {
     | '/patterns/'
     | '/starter/'
     | '/games/$gameId/mediate'
+    | '/games/$gameId/prep'
     | '/games/invite/$token'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/patterns'
     | '/starter'
     | '/games/$gameId/mediate'
+    | '/games/$gameId/prep'
     | '/games/invite/$token'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/patterns/'
     | '/starter/'
     | '/games/$gameId_/mediate'
+    | '/games/$gameId_/prep'
     | '/games/invite/$token'
     | '/og/$kind/$id'
     | '/p/$kind/$appId'
@@ -413,6 +425,7 @@ export interface RootRouteChildren {
   PatternsIndexRoute: typeof PatternsIndexRoute
   StarterIndexRoute: typeof StarterIndexRoute
   GamesGameIdMediateRoute: typeof GamesGameIdMediateRoute
+  GamesGameIdPrepRoute: typeof GamesGameIdPrepRoute
   GamesInviteTokenRoute: typeof GamesInviteTokenRoute
   OgKindIdRoute: typeof OgKindIdRoute
   PKindAppIdRoute: typeof PKindAppIdRoute
@@ -585,6 +598,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GamesGameIdMediateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games/$gameId_/prep': {
+      id: '/games/$gameId_/prep'
+      path: '/games/$gameId/prep'
+      fullPath: '/games/$gameId/prep'
+      preLoaderRoute: typeof GamesGameIdPrepRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/invite/$token': {
       id: '/games/invite/$token'
       path: '/games/invite/$token'
@@ -661,6 +681,7 @@ const rootRouteChildren: RootRouteChildren = {
   PatternsIndexRoute: PatternsIndexRoute,
   StarterIndexRoute: StarterIndexRoute,
   GamesGameIdMediateRoute: GamesGameIdMediateRoute,
+  GamesGameIdPrepRoute: GamesGameIdPrepRoute,
   GamesInviteTokenRoute: GamesInviteTokenRoute,
   OgKindIdRoute: OgKindIdRoute,
   PKindAppIdRoute: PKindAppIdRoute,

@@ -125,10 +125,10 @@ async function editField(label: string, value: string) {
 }
 
 describe('an encounter page', () => {
-  test('an unknown encounter says so and leads back to the Training Bay', async () => {
+  test('an unknown encounter says so and leads back to the Mediator’s Kit', async () => {
     await renderPage('missing')
     expect(screen.getByText('Encounter not found')).toBeTruthy()
-    expect(screen.getByText('Back to the Training Bay')).toBeTruthy()
+    expect(screen.getByText('Back to the Mediator’s Kit')).toBeTruthy()
   })
 
   test('it shows the opposition, the pinned tables and the private notes', async () => {
@@ -263,14 +263,14 @@ describe('an encounter page', () => {
     }
   })
 
-  test('Delete, under the corner ⋯, asks first, then returns to the Training Bay', async () => {
+  test('Delete, under the corner ⋯, asks first, then returns to the Mediator’s Kit', async () => {
     await renderPage()
     await click(screen.getByRole('button', { name: 'More actions' }))
     await click(screen.getByRole('button', { name: 'Delete Ambush' }))
     await click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete' }))
     await settle(() => assigned.length > 0)
     expect(current()).toBeNull()
-    expect(assigned).toEqual(['/'])
+    expect(assigned).toEqual(['/games/#mediators-kit'])
   })
 })
 

@@ -5,7 +5,11 @@ import { messages } from './define'
 export const buildPrepCopy = messages({
   notFound: 'Encounter not found',
   notFoundBody: "This encounter may have been deleted, or it is on another account's shelf.",
-  backToTheTrainingBay: 'Back to the Training Bay',
+  backToTheTrainingBay: 'Back to the Mediator’s Kit',
+  mediatorsKit: 'Mediator’s Kit',
+  gamePrep: 'Game Prep',
+  forGame: 'For',
+  anyGame: 'Any Game',
   delete: 'Delete',
   lede: "Build it before the session; run it from your Game's Play when the fight starts. Running it copies the opposition in at full HP, so this stays as you built it.",
   name: 'Name',

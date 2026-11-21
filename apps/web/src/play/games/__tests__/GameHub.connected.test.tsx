@@ -432,12 +432,14 @@ describe('the Mediator on the Game page', () => {
     expect(heading('Your prep')).toBeNull()
   })
 
-  test('the Mediator gets a door to the prep the Training Bay keeps, counted', async () => {
-    await renderHub({ 'games.get': { ...GAME, mediator: true } })
-    expect(heading('Your prep')).toBeTruthy()
-    expect(
-      screen.getByRole('link', { name: 'Prep in the Training Bay' }).getAttribute('href')
-    ).toBe('/')
+  test('the table runner gets a door to this Game’s Prep, under its title (MD-02, MD-24)', async () => {
+    await renderHub({ 'games.get': { ...GAME, mediator: true, tableRunner: true } })
+    expect(heading('Prep')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Open this Game’s Prep' }).getAttribute('href')).toBe(
+      '/games/g1/prep'
+    )
+    // The band carries the same door, beside Mediate.
+    expect(screen.getByRole('link', { name: 'Prep' }).getAttribute('href')).toBe('/games/g1/prep')
   })
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {

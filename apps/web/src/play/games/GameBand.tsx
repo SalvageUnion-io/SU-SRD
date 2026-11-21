@@ -25,6 +25,7 @@ import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
 import type { GameSession } from '../useGameSession'
+import { gamePrepPath } from './prep/gamePrep.model'
 
 /**
  * The stamp shares its line with the Compact Mediate (§4.7): it is drawn that
@@ -73,6 +74,10 @@ export function GameBand({
                     before a session starts (ruleset §3.13). */}
                 <Button href={mediatePath(gameId)} variant="primary" size="compact">
                   {playGamesCopy('mediate')}
+                </Button>
+                {/* The Game's Prep (ADR-067 §3): any other control on a pink band is ink (R44). */}
+                <Button href={gamePrepPath(gameId)} variant="ink" size="compact">
+                  {playGamesCopy('prep')}
                 </Button>
                 {live && session && (
                   // Any other control on a pink band is ink (R44).

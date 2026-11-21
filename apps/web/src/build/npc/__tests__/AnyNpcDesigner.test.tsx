@@ -163,6 +163,27 @@ describe('starting over', () => {
   })
 })
 
+describe('any Reference denizen is a template (MD-09)', () => {
+  test('a kind tab lists it, and a Bio-Titan fills its Structure Points as SP', async () => {
+    await renderDesigner()
+    // Book NPCs first; another kind is one press away.
+    expect(screen.queryByRole('radio', { name: 'Start from Scylla' })).toBeNull()
+    await click('Bio-Titans')
+    await pick('Start from Scylla')
+    expect(screen.getAllByText('From Scylla').length).toBeGreaterThan(0)
+    await click('Next: Stats')
+    expect(screen.getByLabelText(/Hit points/)).not.toHaveProperty('value', '')
+  })
+
+  test('a search reads every kind at once', async () => {
+    await renderDesigner()
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('Find a template'), { target: { value: 'scylla' } })
+    })
+    expect(screen.getByRole('radio', { name: 'Start from Scylla' })).toBeTruthy()
+  })
+})
+
 describe('the preview', () => {
   test('is the card as others will see it: Homebrew, from Veteran, made by you', async () => {
     await renderDesigner()

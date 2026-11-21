@@ -23,10 +23,10 @@ export const mediatorCopy = messages({
   briefing: 'Briefing',
   briefingSent: 'Briefing sent to the table.',
   noEncountersYet: 'No encounters yet. Prep one in your',
-  trainingBay: 'Training Bay',
+  trainingBay: 'Mediator’s Kit',
   noEncountersTail: ': its opposition, the tables to hand and your notes.',
   runLede:
-    'From your Training Bay. Running one copies its opposition in at full HP, so the saved encounter stays as you built it.',
+    'From your Mediator’s Kit, this Game’s first. Running one copies its opposition in at full HP, so the saved encounter stays as you built it.',
   encounter: 'Encounter',
   theOppositionOnTheTray: 'The Opposition on the tray',
   addToIt: 'Add to it',

@@ -52,6 +52,7 @@ import { PLAY_TXN } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { useTableAct, useTableRead } from '../../replica/useTable'
+import { gameEncounters } from '../games/prep/gamePrep.model'
 import type { PlayReadOnly } from '../play.model'
 import { mediatorTarget, playReadOnly } from '../play.model'
 import { recordPlayRoll } from '../playRolls.model'
@@ -447,7 +448,11 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     }),
     area,
     prep: {
-      encounters,
+      // This Game's first, in the order its Prep keeps (ADR-067 §3); then the rest.
+      encounters: [
+        ...gameEncounters(encounters, gameId),
+        ...encounters.filter((e) => e.gameId !== gameId),
+      ],
       running: running == null ? null : readRunning(running),
       run: (encounterId, clear) =>
         runEncounter({

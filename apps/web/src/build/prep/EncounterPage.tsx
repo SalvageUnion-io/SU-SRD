@@ -52,6 +52,7 @@ import { flagOn } from '../../lib/flags'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { reportWriteFailure } from '../../lib/runWrite'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
 import { newBuiltTrayNpc, newTrayNpc } from '../../play/mediator/opposition.model'
@@ -62,6 +63,7 @@ import { SheetActionsMenu } from '../sheet/SheetActionsMenu'
 import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
+import { EncounterGameField } from './EncounterGame'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
 import { EncounterTables } from './EncounterTables'
 import { EncounterSpoils, ThreatReadLine } from './EncounterThreat'
@@ -83,6 +85,7 @@ import {
   setGroupWave,
   unpinTable,
 } from './encounter.model'
+import { useEncounterGame } from './useEncounterGame'
 
 const LIST = {
   display: 'flex',
@@ -111,7 +114,7 @@ export function EncounterPage({ id }: { id: string }) {
       <NotFoundPanel
         title={buildPrepCopy('notFound')}
         message={buildPrepCopy('notFoundBody')}
-        back={{ href: '/', label: buildPrepCopy('backToTheTrainingBay') }}
+        back={{ href: KIT_PATH, label: buildPrepCopy('backToTheTrainingBay') }}
       />
     )
   }
@@ -229,12 +232,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     )
   }
 
+  const inGame = useEncounterGame(encounter, connected)
+  // Where it is kept: its Game's Prep, else the Mediator's Kit.
+  const home = inGame
+    ? { href: inGame.href, label: buildPrepCopy('gamePrep') }
+    : { href: KIT_PATH, label: buildPrepCopy('mediatorsKit') }
+
   const deleteEncounter = () =>
     confirm({
       ...ROW_ACTION_COPY.deleteBuild(encounter.name),
       onConfirm: async () => {
         await useEncounters.getState().delete(encounter.id)
-        go('/')
+        go(home.href)
       },
     })
 
@@ -246,7 +255,18 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
         userMade={{ madeBy: buildPrepCopy('you') }}
         band={
           connected
-            ? { actions: <SheetModeToggle mode={mode} kind={buildPrepCopy('encounterKind')} /> }
+            ? {
+                actions: (
+                  <>
+                    {/* The way back to where it is kept: its Game's Prep, else the Kit. */}
+                    <Button href={home.href} back variant="ink" size="compact">
+                      {home.label}
+                    </Button>
+                    <SheetModeToggle mode={mode} kind={buildPrepCopy('encounterKind')} />
+                  </>
+                ),
+                game: inGame,
+              }
             : undefined
         }
         actions={
@@ -277,6 +297,12 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
                   }
                   fire(() => ({ name }))
                 }}
+              />
+            )}
+            {canWrite && (
+              <EncounterGameField
+                encounter={encounter}
+                onChange={(gameId) => fire(() => ({ gameId, order: undefined }))}
               />
             )}
             <Grid min="20rem" gap={32} style={ROW}>

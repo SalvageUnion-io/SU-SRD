@@ -32,6 +32,8 @@ import {
   ModalShell,
   RadioCardGroup,
   SearchField,
+  Segmented,
+  SegmentedOption,
   Select,
   Textarea,
   TitledBox,
@@ -71,7 +73,7 @@ const STEP_INTRO: Record<NpcStepId, string> = {
   actions:
     'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
   identity: 'Who they are. Only the name is required.',
-  review: 'Check the card, then save the NPC to your Training Bay.',
+  review: 'Check the card, then save the NPC to your Mediator’s Kit.',
 }
 
 /** The step beside its live preview, where there is room for both; stacked where not. */
@@ -88,6 +90,17 @@ type AnyNpcDesignerProps = {
   onCancel: () => void
   /** A denizen to start from (`?from=`, a Reference page's "Design from this"). */
   startFrom?: NpcTemplateRef
+}
+
+/** What each kind of denizen is called on its tab. */
+const TEMPLATE_KIND_LABEL: Record<NpcTemplateKind, string> = {
+  npcs: 'NPCs',
+  squads: 'Squads',
+  creatures: 'Creatures',
+  vehicles: 'Vehicles',
+  drones: 'Drones',
+  meld: 'Meld',
+  'bio-titans': 'Bio-Titans',
 }
 
 /** A template waiting to be applied: the denizen and the kind it is. */
@@ -242,7 +255,8 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
             <p style={NOTE}>
               <strong>{npcCopy('yoursNotTheBooks')}</strong> A designed NPC keeps its
               template&rsquo;s link to the reference, but wears the user-made frame and your name.
-              It can go in your Training Bay, into a Game, or into a crawler&rsquo;s crew.
+              It is kept in your Mediator&rsquo;s Kit, and can go into a Game or a crawler&rsquo;s
+              crew.
             </p>
           </section>
         </Grid>
@@ -306,8 +320,11 @@ function TemplateStep({
       ),
     []
   )
-  const shown = all.filter(({ entity }) =>
-    entity.name.toLowerCase().includes(query.trim().toLowerCase())
+  // One kind at a time, book NPCs first; a search reads every kind at once.
+  const [kind, setKind] = useState<NpcTemplateKind>('npcs')
+  const typed = query.trim().toLowerCase()
+  const shown = all.filter(({ schemaName, entity }) =>
+    typed === '' ? schemaName === kind : entity.name.toLowerCase().includes(typed)
   )
   const blankChosen = form.templateChosen && form.templateRef === null
 
@@ -319,6 +336,20 @@ function TemplateStep({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
+      <Segmented label={npcCopy('templateKind')} size="compact" wrap>
+        {NPC_TEMPLATE_KINDS.map((k) => (
+          <SegmentedOption
+            key={k}
+            pressed={typed === '' && k === kind}
+            onClick={() => {
+              setKind(k)
+              setQuery('')
+            }}
+          >
+            {TEMPLATE_KIND_LABEL[k]}
+          </SegmentedOption>
+        ))}
+      </Segmented>
       {/* One template or none: a radio (hard rule R15), each pick ringed and sealed. */}
       <RadioCardGroup label={npcCopy('template')}>
         <ul style={LIST} aria-label={npcCopy('templates')}>

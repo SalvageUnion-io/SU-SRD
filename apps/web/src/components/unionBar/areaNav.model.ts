@@ -41,7 +41,7 @@ export const AREA_NAV = {
     links: [
       { label: unionBarCopy('navYourGames'), href: appPath('/games/') },
       { label: unionBarCopy('navJoin'), href: appPath('/games/#join') },
-      { label: unionBarCopy('navKit'), href: appPath('/games/#kit') },
+      { label: unionBarCopy('navKit'), href: appPath('/games/#mediators-kit') },
     ],
   },
 } as const satisfies Record<string, AreaNav>

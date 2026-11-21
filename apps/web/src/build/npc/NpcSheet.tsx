@@ -50,6 +50,7 @@ import {
 import { npcTemplateArt } from '../../lib/photos/defaultArt'
 import { runWrite } from '../../lib/runWrite'
 import { npcCopy } from '../../messages/build-npc'
+import { KIT_PATH } from '../../play/games/prep/gamePrep.model'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
@@ -175,7 +176,13 @@ export function NpcSheet({
 
   const modeToggle =
     sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind="NPC" />
+      <>
+        {/* The way back to where the Mediator's NPCs are kept (ADR-067 §5). */}
+        <Button href={KIT_PATH} back variant="ink" size="compact">
+          {npcCopy('mediatorsKit')}
+        </Button>
+        <SheetModeToggle mode={sheetMode} kind="NPC" />
+      </>
     ) : undefined
 
   // The corner (as on every sheet): Share inline, the admin moves under "⋯".

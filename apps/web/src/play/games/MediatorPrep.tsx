@@ -1,22 +1,24 @@
 /**
- * MediatorPrep — the Mediator's door to their prep, on a Game's page
- * (ADR-066). Prep is made and kept in the Training Bay (its Encounters and NPCs
- * shelves, ADR-059) and run on the Mediator screen, whose Mediate is the
- * band's door; this section counts what is ready and links to where it is
- * kept, so the Game's page is never a second place to make it.
+ * MediatorPrep — the door to a Game's Prep, on its page (ADR-067 §3): what is
+ * ready for THIS Game (its encounters, the NPCs moved into it) and the way
+ * into its Prep page, where they are ordered beside the Game's notes and
+ * sessions. The Mediator's Kit on the Games front lists the same records
+ * across every Game.
  */
 
-import { Button, SlabSection } from '../../components/index'
-import { useHydrateEntities, useNpcs } from '../../lib/entities'
+import { Button, SlabSection, Text } from '../../components/index'
+import { useHydrateEntities, useOwnUnits } from '../../lib/entities'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { playGamesCopy } from '../../messages/play-games'
 import { useEncounters } from '../../replica/collections'
+import { HUB_ACTIONS } from './hubStyles.model'
+import { gamePrepPath } from './prep/gamePrep.model'
 
-export function MediatorPrep() {
+export function MediatorPrep({ gameId }: { gameId: string }) {
   useHydrateEntities(['npc'])
   useHydrateOnMount(() => useEncounters.getState().hydrate())
-  const encounters = useEncounters((s) => s.encounters.length)
-  const npcs = useNpcs().length
+  const encounters = useEncounters((s) => s.encounters.filter((e) => e.gameId === gameId).length)
+  const npcs = useOwnUnits('npc').filter((n) => n.gameId === gameId).length
   return (
     <SlabSection
       as="h2"
@@ -26,11 +28,15 @@ export function MediatorPrep() {
         { label: playGamesCopy('encounters'), value: encounters },
         { label: playGamesCopy('npcs'), value: npcs },
       ]}
-      actions={
-        <Button href="/" variant="default" size="compact">
-          {playGamesCopy('prepInTheTrainingBay')}
+    >
+      {/* The door is the section's body, under its title: beside it, it would
+          wrap above the title in this narrow column. */}
+      <Text variant="hint">{playGamesCopy('prepLede')}</Text>
+      <div style={HUB_ACTIONS}>
+        <Button href={gamePrepPath(gameId)} variant="default" size="compact">
+          {playGamesCopy('openPrep')}
         </Button>
-      }
-    />
+      </div>
+    </SlabSection>
   )
 }

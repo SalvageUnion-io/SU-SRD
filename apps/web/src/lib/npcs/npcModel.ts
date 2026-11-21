@@ -96,6 +96,9 @@ export function npcAsReferenceEntity(npc: NpcView): ReferenceNpc {
     source: 'Salvage Union Workshop Manual',
     page: 1,
     hitPoints: npc.hitPoints,
+    // One that takes SP wears the Structure Points stat, as a mech does: the
+    // card reads the stat's own key, never `damageType`.
+    ...(npc.damageType === 'SP' ? { hitPoints: undefined, structurePoints: npc.hitPoints } : {}),
     damageType: npc.damageType,
     actions: npc.actions.map(npcActionName),
     traits: npc.traits,

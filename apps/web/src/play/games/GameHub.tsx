@@ -134,8 +134,8 @@ function GameSections({ game }: { game: Game }) {
               if (router) void router.navigate({ to: '/games' })
             }}
           />
-          {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
-          {game.mediator && <MediatorPrep />}
+          {/* The table runner's door to this Game's Prep (ADR-067 §3). */}
+          {game.tableRunner && <MediatorPrep gameId={gameId} />}
           {/* The invite URL is administrative, so only the Organizer sees it
               (ADR-030 §3); the server refuses `invites.link` to anyone else. */}
           {game.organizer && (
