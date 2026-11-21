@@ -15,8 +15,11 @@
  * (ADR-010). One identity both ways: an entity is chosen when `selected` holds
  * its `idOf`, and adding it emits that same `idOf` (default the entity name).
  *
- * `mode="single"` covers the exactly-one swaps (chassis, crawler type): the
- * action bar says CHOOSE, and `railActions` carries the confirm affordance. `hide` drops the Card sections a picker cannot act on.
+ * `mode="single"` covers the exactly-one swaps (chassis, crawler type, a
+ * system's one option): pick a row to read it, and the action bar's CHOOSE is
+ * the one confirming press: the caller applies it and closes, with no Apply
+ * step after it. `railActions` carries Cancel. `hide` drops the Card sections
+ * a picker cannot act on.
  *
  * THE LAYOUT (in the `.su-searcher*` classes, styles/partials/controls.css):
  *   - from 64rem, the Mini list (a third of the width) and the chosen
@@ -101,10 +104,10 @@ type EntitySearcherProps = {
    * its ✕ in the rail removes it.
    * `count`: duplicates are legal — ADD ANOTHER appends a copy, and each copy
    * has its own ✕ in the rail.
-   * `single`: exactly one — the focused Page's CHOOSE picks it. The emission
-   * contract is the same as `toggle` (the caller replaces its selection rather
-   * than appending), so a single-select picker differs only in semantics, not
-   * in wiring.
+   * `single`: exactly one — the focused Page's CHOOSE picks it, and that
+   * press is the choice: the caller applies `onToggle`'s ref and closes. It is
+   * only ever emitted for an entity that is not the one chosen, and Enter in
+   * the search opens the first match to read instead of choosing it.
    * `browse`: nothing is chosen — a reference browser, not a picker (the
    * Play's SRD Explorer). No rail, no Status facet; a Mini's
    * click emits `onOpen`.
@@ -165,8 +168,7 @@ type EntitySearcherProps = {
    * ability despite the forced `hide.actions` (E19). */
   showChassisAbility?: boolean
   /**
-   * Actions pinned beneath the selection — e.g. the Apply/Cancel pair a
-   * destructive picker needs. Always visible: at the foot of the rail column,
+   * Actions pinned beneath the selection — e.g. a single picker's Cancel. Always visible: at the foot of the rail column,
    * or in the bottom bar on a narrow screen. Replaces DONE.
    */
   railActions?: ReactNode
@@ -334,6 +336,8 @@ export function EntitySearcher({
     const first = visible[0]
     if (browse || !first || !query.trim()) return
     const ref = idOf(first)
+    // A single pick applies on Choose, so Enter only opens the match to read.
+    if (mode === 'single') return open(ref)
     // Enter never removes: a toggle or single pick already made stays made.
     // It pays the cost where the sheet can, as the action bar's lead button does.
     if (mode === 'count' || !selected.includes(ref)) {

@@ -56,8 +56,6 @@ function renderModal(update: UpdateFn, onClose = mock(() => {})) {
   return { onClose }
 }
 
-const changeButton = () => screen.getByRole('button', { name: 'Change type…' })
-
 // A mounting Toaster replays every toast still active from earlier files.
 beforeEach(() => {
   toast.dismiss()
@@ -72,12 +70,10 @@ describe('CrawlerTypeEditModal', () => {
     renderModal((...args) => writes.push(args))
 
     expect(screen.getByTestId('rail-entry').textContent).toContain('Augmented')
-    expect(changeButton().hasAttribute('disabled')).toBe(true)
 
     // Opening the current type offers nothing to choose: it is the pick.
     const bar = await openInSearcher('Augmented')
     expect(within(bar).queryByRole('button', { name: 'Choose' })).toBeNull()
-    expect(changeButton().hasAttribute('disabled')).toBe(true)
     expect(writes).toEqual([])
   })
 
@@ -87,11 +83,8 @@ describe('CrawlerTypeEditModal', () => {
       writes.push(args)
     })
 
+    // Choose is the pick (r2 G3): it asks at once, with no Apply step between.
     await pickInSearcher('Battle')
-    expect(changeButton().hasAttribute('disabled')).toBe(false)
-    await act(async () => {
-      fireEvent.click(changeButton())
-    })
 
     // The danger dialog names the destination and has written nothing yet.
     const dialog = screen.getByRole('alertdialog', { name: 'Change crawler type?' })
@@ -120,21 +113,18 @@ describe('CrawlerTypeEditModal', () => {
     expect(await screen.findByText('Changed crawler type to Battle.')).toBeTruthy()
   })
 
-  test('Cancel in the confirm returns to the picker with the pick kept', async () => {
+  test('Cancel in the confirm returns to the picker on the crawler’s own type', async () => {
     const writes: unknown[] = []
     const { onClose } = renderModal((...args) => writes.push(args))
 
     await pickInSearcher('Engineering')
-    await act(async () => {
-      fireEvent.click(changeButton())
-    })
     const dialog = screen.getByRole('alertdialog', { name: 'Change crawler type?' })
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     })
 
     expect(screen.queryByRole('alertdialog', { name: 'Change crawler type?' })).toBeNull()
-    expect(screen.getByTestId('rail-entry').textContent).toContain('Engineering')
+    expect(screen.getByTestId('rail-entry').textContent).toContain('Augmented')
     expect(writes).toEqual([])
     expect(onClose).not.toHaveBeenCalled()
   })
@@ -146,9 +136,6 @@ describe('CrawlerTypeEditModal', () => {
 
     await pickInSearcher('Exploratory')
     await act(async () => {
-      fireEvent.click(changeButton())
-    })
-    await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Change type' }))
     })
 
@@ -156,9 +143,9 @@ describe('CrawlerTypeEditModal', () => {
       await screen.findByText('The crawler type could not be changed. Try again.')
     ).toBeTruthy()
     expect(onClose).not.toHaveBeenCalled()
-    // Back on the picker, the pick still in hand.
+    // Back on the picker, on the type the crawler still has.
     expect(screen.queryByRole('alertdialog', { name: 'Change crawler type?' })).toBeNull()
-    expect(screen.getByTestId('rail-entry').textContent).toContain('Exploratory')
+    expect(screen.getByTestId('rail-entry').textContent).toContain('Augmented')
   })
 
   test('the rail Cancel closes without writing', async () => {

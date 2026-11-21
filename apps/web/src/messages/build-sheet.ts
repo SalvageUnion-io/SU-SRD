@@ -172,7 +172,6 @@ export const buildSheetCopy = messages({
   chassisModderSubtitle:
     'Chassis Modder adds one Chassis Ability from any Mech your Crafting Bay could craft. Pick the chosen one again to remove it.',
   noMatchingChassisAbilities: 'No matching chassis abilities.',
-  applyChassisAbility: 'Apply',
   added: 'Added',
   cancelChassisAbility: 'Cancel',
   mechIdentity: 'Mech identity',

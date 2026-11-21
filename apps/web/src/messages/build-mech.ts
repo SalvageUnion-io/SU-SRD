@@ -15,7 +15,6 @@ export const mechCopy = messages({
   chassisChangedLeftOff: 'Chassis changed to {name}. Left off: {names}.',
   noMatchingChassis: 'No matching chassis.',
   cancel: 'Cancel',
-  applyChassis: 'Apply chassis',
   tech1Chassis: 'Tech 1 Chassis',
   chassis: 'Chassis',
   pickAChassisToReveal: 'Pick a chassis to reveal its starting patterns.',

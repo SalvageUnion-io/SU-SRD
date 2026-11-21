@@ -55,4 +55,27 @@ describe('EntitySearcher — single mode', () => {
     )
     expect(toggled).toEqual([other.id])
   })
+
+  it('Enter in the search opens the first match to read; only Choose picks it (r2 G3)', () => {
+    const [chosen, other] = SalvageUnionReference.Chassis.all()
+    if (!chosen || !other) throw new Error('Need two chassis in reference data')
+    const toggled: string[] = []
+    render(
+      <EntitySearcher
+        schema="chassis"
+        mode="single"
+        selected={[chosen.id]}
+        onToggle={(ref) => toggled.push(ref)}
+        idOf={(i) => i.id}
+        filter={(i) => i.id === chosen.id || i.id === other.id}
+        chosenLabel="Chosen"
+        title="Change Chassis"
+      />
+    )
+    const search = screen.getByLabelText('Search')
+    fireEvent.change(search, { target: { value: other.name } })
+    fireEvent.keyDown(search, { key: 'Enter' })
+    expect(toggled).toEqual([])
+    expect(screen.getByRole('group', { name: `${other.name} actions` })).toBeTruthy()
+  })
 })
