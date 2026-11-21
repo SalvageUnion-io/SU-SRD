@@ -310,15 +310,21 @@ export async function fillIdentity(page: Page, label: string, value: string): Pr
   return false
 }
 
-/** The Training Bay at `/`, or a Game's own page: where a finished build returns to. */
-function isContainerPage(pathname: string): boolean {
-  return pathname === at('/') || /^\/games\/[^/]+\/?$/.test(pathname)
+/** A Game's own page: where a build started from it returns to. */
+function isGamePage(pathname: string): boolean {
+  return /^\/games\/[^/]+\/?$/.test(pathname)
+}
+
+/** Where a finished build lands: the new unit's sheet, or the Game's page it started from. */
+function isLandingPage(pathname: string): boolean {
+  return isGamePage(pathname) || /\/(pilots|mechs|crawlers)\/(?!new)[^/]+\/?$/.test(pathname)
 }
 
 /**
- * Drive a `/new` wizard to completion and return once the redirect lands: `/`
- * for the Training Bay, or `/games/<id>` for a wizard started from a Game's page
- * (`?game=`), so a pilot built in a Game finishes too.
+ * Drive a `/new` wizard to completion and return once the redirect lands: the
+ * new unit's sheet (then back to the Training Bay, where callers go on), or
+ * `/games/<id>` for a wizard started from a Game's page (`?game=`), so a pilot
+ * built in a Game finishes too.
  *
  * Deliberately step-AGNOSTIC. These wizards have been restructured repeatedly —
  * the pilot went from 6 steps to 9, the mech to 9, the crawler to 6, and a
@@ -360,7 +366,9 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
           }
         }
         await create.click()
-        await page.waitForURL((url) => isContainerPage(url.pathname), { timeout: 30_000 })
+        await page.waitForURL((url) => isLandingPage(url.pathname), { timeout: 30_000 })
+        // Callers go on from the Training Bay, as a build from it used to land.
+        if (!isGamePage(new URL(page.url()).pathname)) await openApp(page, '/')
         return
       }
       await expect(next, `wizard ${kind} should offer Next or Create at step ${step}`).toBeVisible({

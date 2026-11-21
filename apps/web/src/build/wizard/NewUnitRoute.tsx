@@ -54,9 +54,14 @@ export function NewUnitRoute({
   // page (`?game=`), or the Training Bay.
   const goBack = useWizardReturn(search.game)
   // Finishing: a mech built for a pilot is assigned to it, then the pilot's
-  // page shows the pair; otherwise back where the build started.
+  // page shows the pair; a build started from a Game goes back to its page;
+  // otherwise the new sheet opens, its Related units offering Assign.
   const handleComplete = (id?: string) => {
-    if (pilot === undefined || id === undefined) return goBack()
+    if (id === undefined) return goBack()
+    if (pilot === undefined) {
+      if (search.game !== undefined) return goBack()
+      return void navigate({ to: SHEET_PATH[kind], params: { id } })
+    }
     assignLink({ type: 'mech', id }, { type: 'pilot', id: pilot.id }).then(
       () => void navigate({ to: '/pilots/$id', params: { id: pilot.id } }),
       (err: unknown) => {

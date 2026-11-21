@@ -1,4 +1,3 @@
-import { at } from './_base'
 import {
   addThroughPicker,
   advanceUntilVisible,
@@ -49,7 +48,8 @@ test('build a mech from scratch', async ({ page }) => {
   await advanceUntilVisible(page, createMech)
   await createMech.click()
 
-  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
+  // A finished build opens its new sheet.
+  await page.waitForURL(/\/build\/mechs\/(?!new)/, { timeout: 15_000 })
   await expect(page.getByText('Iron Fist').first()).toBeVisible({
     timeout: 15_000,
   })

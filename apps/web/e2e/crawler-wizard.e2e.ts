@@ -1,4 +1,3 @@
-import { at } from './_base'
 import {
   addThroughPicker,
   advanceUntilVisible,
@@ -53,7 +52,8 @@ test('build a crawler from scratch', async ({ page }) => {
   const createCrawler = page.getByRole('button', { name: /Create Crawler/i })
   await advanceUntilVisible(page, createCrawler)
   await createCrawler.click()
-  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
+  // A finished build opens its new sheet.
+  await page.waitForURL(/\/build\/crawlers\/(?!new)/, { timeout: 15_000 })
   await waitForReady(page)
   await expect(page.getByText('Iron Wagon').first()).toBeVisible({
     timeout: 15_000,
