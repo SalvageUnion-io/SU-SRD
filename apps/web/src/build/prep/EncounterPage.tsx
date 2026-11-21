@@ -11,8 +11,7 @@
  *    "⋯" menu (Rename…, Remove), drawn with + Add from the same picker
  *    Play's Opposition uses (`OppositionPicker`), the Mediator's own saved
  *    patterns included;
- *  - **Tables to hand**: the roll tables it pins in Play, found with "Pin a
- *    table…", each opening to read and try (`PlayRollTable`), Unpin beside it;
+ *  - **Tables to hand**: the roll tables it pins in Play (`EncounterTables`);
  *  - **Notes**: the Mediator's own, never shown to players;
  *  - **Briefing**: what the Pilots see, which Play offers to tell the table;
  *  - **Spoils**: what the opposition could leave behind (`EncounterThreat`).
@@ -27,25 +26,16 @@
  */
 
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
-import {
-  ENCOUNTER_MAX_BRIEFING,
-  ENCOUNTER_MAX_NOTES,
-  ENCOUNTER_MAX_TABLES,
-} from 'game-domain/schemas/encounter'
+import { ENCOUNTER_MAX_BRIEFING, ENCOUNTER_MAX_NOTES } from 'game-domain/schemas/encounter'
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
-import { SalvageUnionReference } from 'salvageunion-reference'
 import { Grid } from '../../components/app'
-import { RollMini } from '../../components/entity/forms/RollMini'
 import type { HeaderMenuItem } from '../../components/index'
 import {
   Button,
-  CHAPTER_BAND_COLOR,
   EmptyState,
   Field,
   HeaderMenu,
-  MiniGrid,
-  SearchField,
   SlabSection,
   Stack,
   Stat,
@@ -64,8 +54,6 @@ import { buildPrepCopy } from '../../messages/build-prep'
 import { OppositionDialogs, OppositionPicker } from '../../play/mediator/OppositionPicker'
 import type { SavedPattern, TrayNpc } from '../../play/mediator/opposition.model'
 import { newTrayNpc } from '../../play/mediator/opposition.model'
-import { PlayRollTable } from '../../play/PlayRollTable'
-import { findTables } from '../../play/tables.model'
 import { useEncounters, usePatterns } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { LiveSheet } from '../sheet/LiveSheet'
@@ -74,9 +62,11 @@ import { SheetModeToggle } from '../sheet/SheetModeToggle'
 import { SheetPickerModal } from '../sheet/SheetPickerModal'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
 import { GroupedOpposition, GroupNameDialog } from './EncounterGroups'
+import { EncounterTables } from './EncounterTables'
 import { EncounterSpoils, ThreatReadLine } from './EncounterThreat'
 import {
   addGroup,
+  duplicateOpponent,
   groupsOf,
   hasRoomFor,
   hasRoomForGroup,
@@ -111,9 +101,6 @@ const SHEET = {
   flexDirection: 'column',
   gap: tokens.space[24],
 } satisfies CSSProperties
-
-/** Room inside a table list for the open table's ring, as Play's Tables give it. */
-const TABLE_LIST = { padding: tokens.space[4] } satisfies CSSProperties
 
 /** The page, or why there is none: the encounter is the owner's alone, so absent is not found. */
 export function EncounterPage({ id }: { id: string }) {
@@ -194,6 +181,16 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
           id: 'rename',
           label: 'Rename…',
           onSelect: () => setRenaming(opponentAsTray(opponent)),
+        },
+        {
+          id: 'copy',
+          label: buildPrepCopy('makeACopy'),
+          onSelect: hasRoomFor(encounter)
+            ? () =>
+                fire((current) => ({
+                  opposition: duplicateOpponent(current, opponent.id, crypto.randomUUID()),
+                }))
+            : undefined,
         },
         { id: 'remove', label: 'Remove', onSelect: () => remove(opponent) },
       ],
@@ -457,113 +454,5 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
       />
       {dialog}
     </>
-  )
-}
-
-/** Tables to hand: the pinned ones, each opening to read and try, and "Pin a table…". */
-function EncounterTables({
-  tables,
-  canWrite,
-  onPin,
-  onUnpin,
-}: {
-  tables: readonly string[]
-  canWrite: boolean
-  onPin: (name: string) => void
-  onUnpin: (name: string) => void
-}) {
-  const [open, setOpen] = useState<string | null>(null)
-  const [query, setQuery] = useState('')
-  const all = SalvageUnionReference.RollTables.all().map((t) => t.name)
-  const found = findTables(
-    all.filter((name) => !tables.includes(name)),
-    query
-  )
-  const table = open === null ? undefined : SalvageUnionReference.RollTables.getByName(open)
-  const full = tables.length >= ENCOUNTER_MAX_TABLES
-
-  return (
-    <SlabSection
-      as="h2"
-      id="encounter-tables"
-      title={buildPrepCopy('tablesToHand')}
-      count={String(tables.length)}
-    >
-      {canWrite && !full && (
-        <SearchField
-          type="search"
-          placeholder={buildPrepCopy('pinATablePlaceholder')}
-          aria-label={buildPrepCopy('pinATable')}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') setQuery('')
-          }}
-        />
-      )}
-      {found.length > 0 && (
-        <MiniGrid label={buildPrepCopy('tablesFound')} style={TABLE_LIST}>
-          {found.map((name) => (
-            <li key={name} data-choice-toggle="">
-              <RollMini
-                name={name}
-                toggle={{
-                  pressed: false,
-                  onToggle: () => {
-                    onPin(name)
-                    setQuery('')
-                  },
-                }}
-              />
-            </li>
-          ))}
-        </MiniGrid>
-      )}
-      {tables.length === 0 ? (
-        <EmptyState variant="inline" body={buildPrepCopy('noTables')} />
-      ) : (
-        <MiniGrid label={buildPrepCopy('pinnedTables')} style={TABLE_LIST}>
-          {tables.map((name) => (
-            <li key={name} data-choice-toggle="">
-              <RollMini
-                name={name}
-                toggle={{
-                  pressed: open === name,
-                  onToggle: () => setOpen((current) => (current === name ? null : name)),
-                  dim: open !== null && open !== name,
-                }}
-              />
-            </li>
-          ))}
-        </MiniGrid>
-      )}
-      {open !== null && tables.includes(open) && (
-        <Stack gap={8}>
-          {table && (
-            <PlayRollTable
-              key={table.name}
-              table={table.table}
-              name={table.name}
-              size="mini"
-              tone={CHAPTER_BAND_COLOR.rules}
-            />
-          )}
-          {canWrite && (
-            <div>
-              <Button
-                size="mini"
-                variant="ghost"
-                onClick={() => {
-                  onUnpin(open)
-                  setOpen(null)
-                }}
-              >
-                {buildPrepCopy('unpin', { name: open })}
-              </Button>
-            </div>
-          )}
-        </Stack>
-      )}
-    </SlabSection>
   )
 }

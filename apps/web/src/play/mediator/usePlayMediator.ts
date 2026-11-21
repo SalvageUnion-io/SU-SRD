@@ -137,8 +137,8 @@ type MediatorPrep = {
   running: RunningEncounter | null
   /** Run one: its opposition joins the tray (`clear` empties the tray first). */
   run: (encounterId: string, clear: boolean) => Promise<{ added: number }>
-  /** Stop running it: its notes and tables leave Play; the Opposition stays. */
-  end: () => Promise<void>
+  /** Stop running it: its notes and tables leave Play; the Opposition stays unless `clear`. */
+  end: (clear?: boolean) => Promise<void>
   /** Bring a held-back wave onto the tray (ADR-059 §5). */
   bringIn: (wave: number) => Promise<{ added: number }>
 }
@@ -206,6 +206,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const removeNpc = useTableAct('mediator.removeNpc', gameId)
   const runEncounter = useTableAct('mediator.runEncounter', gameId)
   const endEncounter = useTableAct('mediator.endEncounter', gameId)
+  const clearTray = useTableAct('mediator.clearTray', gameId)
   const bringInWave = useTableAct('mediator.bringInWave', gameId)
   const recordGroupRoll = useTableAct('mediator.recordGroupRoll', gameId)
   const proposeMutation = useTableAct('ops.propose', gameId)
@@ -353,6 +354,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
       })
     },
     remove: (npc) => removeNpc({ npcId: npcId(npc) }),
+    clear: () => clearTray({}),
     rename: (npc, name) => updateNpc({ npcId: npcId(npc), patch: { name } }),
     field: async (lines) => {
       // One at a time, each name counted against the ones before it, so four
@@ -440,8 +442,8 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
           ...(flagOn('encounterSheet') ? { waves: true } : {}),
         }),
       bringIn: (wave) => bringInWave({ wave }),
-      end: async () => {
-        await endEncounter({})
+      end: async (clear = false) => {
+        await endEncounter(clear ? { clear: true } : {})
       },
     },
     sent: sent ?? null,

@@ -133,3 +133,25 @@ describe('waves and groups', () => {
     )
   })
 })
+
+describe('clearing the field (MD-19)', () => {
+  test('Clear the field empties the tray in one act, the Mediator’s alone', () => {
+    const { room } = table()
+    room.opposition.addNpc(MEDIATOR, { name: 'Raider' }, AT)
+    room.opposition.addNpc(MEDIATOR, { name: 'Raider 2' }, AT)
+    expect(() => room.opposition.clearTray(PLAYER)).toThrow('Only the Mediator')
+    expect(room.opposition.clearTray(MEDIATOR)).toEqual({ removed: 2 })
+    expect(room.opposition.tray(MEDIATOR)).toEqual([])
+  })
+
+  test('ending an encounter may clear the field with it; by default it stays', () => {
+    const { room } = table()
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR)
+    expect(room.opposition.tray(MEDIATOR)).toHaveLength(1)
+    room.opposition.runEncounter(MEDIATOR, encounter, { clear: false }, AT)
+    room.opposition.endEncounter(MEDIATOR, { clear: true })
+    expect(room.opposition.running(MEDIATOR)).toBeNull()
+    expect(room.opposition.tray(MEDIATOR)).toEqual([])
+  })
+})

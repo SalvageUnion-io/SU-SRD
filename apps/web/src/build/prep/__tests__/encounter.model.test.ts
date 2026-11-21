@@ -8,6 +8,7 @@ import {
 import { encounterLine, trayChoiceLabel } from '../../../play/mediator/runEncounter.model'
 import {
   blankEncounter,
+  duplicateOpponent,
   encounterCopy,
   encounterHref,
   hasRoomFor,
@@ -152,5 +153,28 @@ describe('what a row is, beside its name (MD-18)', () => {
 
   test('a unit under its own name still says its kind', () => {
     expect(opponentNote(band)).toBe('Squad')
+  })
+})
+
+describe('Make a copy of a row (MD-27)', () => {
+  test('the copy follows its source, named apart, in the same group', () => {
+    const grouped = { ...band, groupId: 'g' }
+    const next = duplicateOpponent({ opposition: [grouped, { ...band, id: 'o2' }] }, 'o1', 'new')
+    expect(next.map((o) => [o.id, o.name, o.groupId])).toEqual([
+      ['o1', 'Raider Band', 'g'],
+      ['new', 'Raider Band 2', 'g'],
+      ['o2', 'Raider Band', undefined],
+    ])
+  })
+
+  test('a full encounter, or a row that is gone, changes nothing', () => {
+    const full = Array.from({ length: ENCOUNTER_MAX_OPPOSITION }, (_, i) => ({
+      ...band,
+      id: `o${i}`,
+    }))
+    expect(duplicateOpponent({ opposition: full }, 'o1', 'new')).toHaveLength(
+      ENCOUNTER_MAX_OPPOSITION
+    )
+    expect(duplicateOpponent({ opposition: [band] }, 'nope', 'new')).toEqual([band])
   })
 })

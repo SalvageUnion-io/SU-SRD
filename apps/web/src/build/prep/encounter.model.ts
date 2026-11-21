@@ -6,6 +6,7 @@
  */
 
 import type { TrayNpcBody } from 'game-domain/games/encounters'
+import { instanceName } from 'game-domain/games/encounters'
 import type { Encounter, EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import {
   ENCOUNTER_MAX_GROUP_NAME,
@@ -54,6 +55,29 @@ export function opponentFrom(npc: TrayNpcBody, id: string): EncounterOpponent {
     maxHp: npc.maxHp,
     statKind: npc.statKind,
   }
+}
+
+/**
+ * The opposition with a copy of one opponent right after it, named apart
+ * ("Raider", then "Raider 2"), in the same group; unchanged with no room.
+ */
+export function duplicateOpponent(
+  encounter: Pick<Encounter, 'opposition'>,
+  opponentId: string,
+  id: string
+): EncounterOpponent[] {
+  const at = encounter.opposition.findIndex((o) => o.id === opponentId)
+  const source = encounter.opposition[at]
+  if (source === undefined || !hasRoomFor(encounter)) return [...encounter.opposition]
+  const copy = {
+    ...source,
+    id,
+    name: instanceName(
+      source.name,
+      encounter.opposition.map((o) => o.name)
+    ),
+  }
+  return [...encounter.opposition.slice(0, at + 1), copy, ...encounter.opposition.slice(at + 1)]
 }
 
 /** Whether another opponent fits. */

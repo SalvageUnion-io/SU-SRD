@@ -13,6 +13,9 @@
  * its box, with Roll; and each wave the running encounter holds back has
  * Bring in. Nothing is rolled, retreats or arrives on its own (ADR-007).
  *
+ * Clear the field, under the list, empties the tray in one confirm; End asks
+ * whether to clear it too while it holds anything (`ClearFieldDialogs`).
+ *
  * The Opposition is hidden from players (ADR-030 §5). + Add opens the picker
  * over the reference (`OppositionPicker`, saved patterns included), and Rename
  * and Delete ask first (`OppositionDialogs`). The chosen NPC is the screen's
@@ -24,11 +27,12 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { SheetPickerModal } from '../../build/sheet/SheetPickerModal'
 import type { rollForTable } from '../../components/index'
-import { Button, EmptyState, Slab, Stat, tokens } from '../../components/index'
+import { Button, EmptyState, Slab, Stat, toast, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { moraleDue } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SalvageAreaDialog } from '../SalvageAreaDialog'
+import { ClearFieldDialog, EndEncounterDialog } from './ClearFieldDialogs'
 import { OppositionDialogs, OppositionPicker } from './OppositionPicker'
 import type { TrayEntry, TrayNpc } from './opposition.model'
 import { trayEntries } from './opposition.model'
@@ -61,6 +65,8 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
   const [removing, setRemoving] = useState<TrayNpc | null>(null)
   const [renaming, setRenaming] = useState<TrayNpc | null>(null)
   const [settingArea, setSettingArea] = useState(false)
+  const [clearing, setClearing] = useState(false)
+  const [ending, setEnding] = useState(false)
   const { area } = mediator
   const chosen =
     npcs?.find((n) => n.id === chosenId) ?? npcs?.find((n) => !n.down) ?? npcs?.[0] ?? null
@@ -138,7 +144,8 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             size="mini"
             disabled={!canWrite}
             aria-label={mediatorCopy('endEncounter', { name: prep.running.name })}
-            onClick={() => fail(prep.end())}
+            // With the field empty there is nothing to ask about.
+            onClick={() => ((npcs?.length ?? 0) > 0 ? setEnding(true) : fail(prep.end()))}
           >
             {mediatorCopy('end')}
           </Button>
@@ -211,6 +218,18 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
           )}
         </ul>
       )}
+      {npcs !== null && npcs.length > 0 && (
+        <div style={RUNNING}>
+          <Button
+            variant="ghost"
+            size="mini"
+            disabled={!canWrite}
+            onClick={() => setClearing(true)}
+          >
+            {mediatorCopy('clearTheField')}
+          </Button>
+        </div>
+      )}
       {chosen !== null && (
         <PlayNpcActions
           key={chosen.id}
@@ -245,6 +264,21 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
             throw err
           }
         }}
+      />
+      <ClearFieldDialog
+        open={clearing}
+        onClose={() => setClearing(false)}
+        onTray={npcs?.length ?? 0}
+        onClear={async () => {
+          await tray.clear()
+          toast.success(mediatorCopy('fieldCleared'))
+        }}
+      />
+      <EndEncounterDialog
+        name={ending ? (prep.running?.name ?? null) : null}
+        onClose={() => setEnding(false)}
+        onTray={npcs?.length ?? 0}
+        onEnd={(clear) => prep.end(clear)}
       />
       <SalvageAreaDialog
         key={settingArea ? 'open' : 'closed'}

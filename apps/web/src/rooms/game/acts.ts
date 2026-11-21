@@ -134,7 +134,9 @@ const GAME_ACTS = {
   ) => c.room.opposition.runEncounter(c.actor, a.encounter, a, c.at),
   'mediator.bringInWave': (c: ActContext, a: { wave: number }) =>
     c.room.opposition.bringInWave(c.actor, a.wave, c.at),
-  'mediator.endEncounter': (c: ActContext) => c.room.opposition.endEncounter(c.actor),
+  'mediator.endEncounter': (c: ActContext, a?: { clear?: boolean }) =>
+    c.room.opposition.endEncounter(c.actor, { clear: a?.clear === true }),
+  'mediator.clearTray': (c: ActContext) => c.room.opposition.clearTray(c.actor),
 
   // The table's state, under the names a client's act carries.
   'scenes.current': (c: ActContext) => c.room.scene.scene(c.actor),

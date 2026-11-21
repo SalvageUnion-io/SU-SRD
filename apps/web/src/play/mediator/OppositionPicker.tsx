@@ -55,6 +55,8 @@ export type TrayWrites = {
   /** An important mech's Heat Check. */
   heatCheck: (npc: TrayNpc) => Promise<unknown>
   remove: (npc: TrayNpc) => Promise<unknown>
+  /** Clear the field: every NPC leaves the tray at once. */
+  clear: () => Promise<unknown>
   rename: (npc: TrayNpc, name: string) => Promise<unknown>
   /** Field an encounter row's roster (p.270): every line it names, how many it says. */
   field: (lines: readonly RosterLine[]) => Promise<number>
