@@ -73,7 +73,7 @@ export const playGamesCopy = messages({
   joinAGame: 'Join a Game',
   chooseThePilotToPlay: 'Choose the Pilot to play.',
   noneOfThisGamesPilots:
-    "None of this Game's Pilots is saved in this browser. Create one, or take one from the roster, then play.",
+    'No Pilot in this Game is assigned to you. Add one of yours, or use Assign to me on a free one in the Crew list, then play.',
   assignThisToYou: '{label} — assign this to you',
   awaitingYourAnswer: 'Awaiting your answer',
   proposalsAwaitingYourAnswer: 'Proposals awaiting your answer',

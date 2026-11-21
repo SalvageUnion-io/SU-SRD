@@ -180,6 +180,32 @@ describe('the Play landing', () => {
     expect(heading.className).toContain('su-entity-compact__title--whole')
   })
 
+  // LG-01: the replica holds every crewmate's pilot too (for Play's Crew
+  // pane); a Game's doors are only for the pilots assigned to you.
+  test('a crewmate’s pilot in the Game is no door of yours', async () => {
+    const { serve, gameScope, drop } = await import('../../replica/replica')
+    act(() =>
+      serve(
+        gameScope('land-g1'),
+        [],
+        [
+          {
+            table: 'pilot',
+            row: pilotFixture({ id: 'land-nell', name: 'Nell Vance', gameId: 'land-g1' }),
+            version: 1,
+            owner: 'u-crewmate',
+          },
+        ]
+      )
+    )
+    answerReads({ 'games.listMine': [TENACITY], 'downtime.state': IN_DOWNTIME, ...QUIET })
+    await renderAs('live')
+    const tenacity = card('Tenacity')
+    expect(tenacity.getByRole('link', { name: 'Play Rook in Tenacity' })).toBeTruthy()
+    expect(tenacity.queryByRole('link', { name: /Nell Vance/ })).toBeNull()
+    act(() => drop('pilot', 'land-nell'))
+  })
+
   test('a live group session: a chip says so, and your pilot’s door joins it', async () => {
     answerReads({
       'games.listMine': [TENACITY],

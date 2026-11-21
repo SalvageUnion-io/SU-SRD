@@ -62,6 +62,13 @@ export const playCopy = messages({
   here: 'Here',
   away: 'Away',
   readOnly: '{name} · read-only',
+  readOnlyHolders: 'Read-only · {name}’s Pilot',
+  readOnlyHoldersSays: 'Read-only: this Pilot is assigned to {name}. Only they can play it.',
+  readOnlyCrewmates: 'Read-only · a crewmate’s Pilot',
+  readOnlyCrewmatesSays: 'Read-only: this Pilot is assigned to a crewmate. Only they can play it.',
+  readOnlyUnassigned: 'Read-only · unassigned',
+  readOnlyUnassignedSays:
+    'Read-only: this Pilot is assigned to nobody. Use Assign to me on the Game’s page to play it.',
   theirSheet: 'their sheet',
   youAreReadingACrewmates:
     'You are reading a crewmate’s sheet. Only whoever holds it can make changes.',

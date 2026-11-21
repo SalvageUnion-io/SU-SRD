@@ -14,6 +14,7 @@ import type { ChapterTone } from '../components/index'
 import { CHAPTER_BAND_COLOR } from '../components/index'
 import { foregroundOn } from '../design/contrast'
 import { sharedCopy } from '../messages/components-shared'
+import { playCopy } from '../messages/play'
 import type { SyncStatus } from '../replica/sync'
 import type { UnitsState } from '../replica/units'
 import type { Situation } from './situation.model'
@@ -98,12 +99,55 @@ export function connectionLine(status: SyncStatus, solo: boolean): string | null
  */
 export type PlayReadOnly = { stamp: string; says: string }
 
-export function playReadOnly(connection: {
-  status: SyncStatus
-  canWrite: boolean
-  outdated?: boolean
-}): PlayReadOnly | null {
-  if (connection.canWrite) return null
+/**
+ * Who holds a pilot the viewer may not edit (ADR-030 §4): a crewmate, by name
+ * once the members have answered, or nobody. Play opens on it read-only.
+ */
+export type PilotHolder = { name: string | null; unassigned?: true }
+
+/**
+ * The holder of `pilotId` when it is not the viewer: null for the viewer's
+ * own, and while who holds it is not known (solo, signed out, the Game's
+ * listing not served yet), when the server's refusal still stands behind it.
+ */
+export function pilotHolder(args: {
+  pilotId: string
+  viewerId: string | null
+  /** The Game's pilots as its listing serves them (`useGameListing`). */
+  pilots: readonly { _id: string; appId: string | null; ownerId: string | null }[] | undefined
+  members: readonly { userId: string; displayName: string }[] | undefined
+}): PilotHolder | null {
+  if (args.viewerId === null) return null
+  const row = args.pilots?.find((p) => (p.appId ?? p._id) === args.pilotId)
+  if (row === undefined || row.ownerId === args.viewerId) return null
+  if (row.ownerId === null) return { name: null, unassigned: true }
+  return { name: args.members?.find((m) => m.userId === row.ownerId)?.displayName ?? null }
+}
+
+export function playReadOnly(
+  connection: {
+    status: SyncStatus
+    canWrite: boolean
+    outdated?: boolean
+  },
+  /** Who holds the pilot, when it is not the viewer's to play (`pilotHolder`). */
+  holder: PilotHolder | null = null
+): PlayReadOnly | null {
+  if (connection.canWrite) {
+    if (holder === null) return null
+    if (holder.unassigned) {
+      return {
+        stamp: playCopy('readOnlyUnassigned'),
+        says: playCopy('readOnlyUnassignedSays'),
+      }
+    }
+    return holder.name === null
+      ? { stamp: playCopy('readOnlyCrewmates'), says: playCopy('readOnlyCrewmatesSays') }
+      : {
+          stamp: playCopy('readOnlyHolders', { name: holder.name }),
+          says: playCopy('readOnlyHoldersSays', { name: holder.name }),
+        }
+  }
   if (connection.outdated) {
     return {
       stamp: 'Read-only · outdated',

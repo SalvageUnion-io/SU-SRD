@@ -62,7 +62,7 @@ import { RoutePending } from '../components/shared/RouteFallbacks'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
 import { cn } from '../lib/cn'
-import { useHydrateEntities, usePilots } from '../lib/entities'
+import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
@@ -210,8 +210,8 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot'])
-  const pilots = usePilots()
+  // Your own: the replica also holds every crewmate's pilot, for Play (LG-01).
+  const pilots = useOwnUnits('pilot')
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
