@@ -196,15 +196,26 @@ function scan({
    * laying it so for a moment and putting it back, before the next frame.
    */
   const growth = (head: HTMLElement, name: HTMLElement, strip?: HTMLElement | null) => {
+    // A line of its own (`flex-basis: 100%`: a show page's action, above its
+    // title on a phone) is no chip beside the name, so the fill never
+    // measures it (`chipFill.ts`'s `fillItems`); neither does this.
+    const own = [...head.children].filter(
+      (el): el is HTMLElement =>
+        el instanceof HTMLElement &&
+        el !== name &&
+        getComputedStyle(el).display !== 'contents' &&
+        getComputedStyle(el).flexBasis === '100%'
+    )
+    const saved = [head, name, strip, ...own].map((el) => el?.style.cssText ?? '')
+    for (const el of own) el.style.display = 'none'
     const drawn = head.getBoundingClientRect().height
     const width = name.getBoundingClientRect().width
-    const saved = [head, name, strip].map((el) => el?.style.cssText ?? '')
     name.style.width = `${width}px`
     name.style.flex = 'none'
     head.style.flexWrap = 'nowrap'
     if (strip) strip.style.flexWrap = 'nowrap'
     const one = head.getBoundingClientRect().height
-    ;[head, name, strip].forEach((el, i) => {
+    ;[head, name, strip, ...own].forEach((el, i) => {
       if (el) el.style.cssText = saved[i] ?? ''
     })
     return drawn - one

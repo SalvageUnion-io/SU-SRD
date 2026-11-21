@@ -55,13 +55,14 @@ describe('home: the front door, its slideshow alone', () => {
     expect(show).toMatch(/su-front__show-plate--quote[^"]*"><figure class="su-tagline"/)
   })
 
-  it('names the site in the head; the pitch is the first slide’s plate', () => {
+  it('names the site alone in the head; the first slide says the pitch on its plate, no action', () => {
     const head = html.slice(html.indexOf('class="su-front__show-head"'), html.indexOf('<footer'))
     expect(head).toContain('su-front__show-name')
     expect(head).not.toContain('su-front__show-pitch')
     const first = show.slice(0, show.indexOf('</li>'))
+    expect(first).toContain('su-front__show-copy')
     expect(first).toContain('su-front__show-pitch')
-    expect(first).not.toContain('su-front__show-act')
+    expect(first).not.toContain('su-btn--primary')
   })
 
   it('heads the first three action slides, each with its own line', () => {

@@ -129,4 +129,25 @@ describe('token cut-out scan', () => {
     document.body.innerHTML = withPaper(headerToken({ notchBg: PAPER }))
     expect(scan()).toEqual([`cut: Mule's tab is ${PAPER}, not its ground ${GROUND}`])
   })
+
+  /** A contentful Mini set plain (R45): no paint on its pill or tab, on `ground`. */
+  const plainToken = ({ rule = false, bodyBg = 'transparent' } = {}) =>
+    `<div class="su-entity-mini" data-contentful style="background-color: ${GROUND}"><span class="su-entity-mini__head"><span class="su-entity-mini__pill" data-box="0 24" style="background-color: transparent${rule ? '; border-bottom: 1px solid rgb(20, 20, 20)' : ''}"><span class="su-entity-mini__notch" data-box="5 24" style="background-color: transparent"><span class="su-entity-mini__name">Mule</span></span></span></span><div class="su-entity-mini__body" data-box="24 80" style="background-color: ${bodyBg}">Text</div></div>`
+
+  test('a plain name on the Mini’s own ground, its body sharing it, passes', () => {
+    document.body.innerHTML = withPaper(plainToken())
+    expect(scan()).toEqual([])
+    document.body.innerHTML = withPaper(plainToken({ bodyBg: GROUND }))
+    expect(scan()).toEqual([])
+  })
+
+  test('a plain head that rules over its body is found', () => {
+    document.body.innerHTML = withPaper(plainToken({ rule: true }))
+    expect(scan()).toEqual(["plain: Mule's head draws a rule over its body"])
+  })
+
+  test('a plain head over a body of another ground is found', () => {
+    document.body.innerHTML = withPaper(plainToken({ bodyBg: PAPER }))
+    expect(scan()).toEqual([`plain: Mule's body is ${PAPER}, not its head's ground ${GROUND}`])
+  })
 })

@@ -8,7 +8,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { ReactElement } from 'react'
@@ -167,5 +167,30 @@ describe('CompanionSheet', () => {
     cleanup()
     await show(view(true))
     expect(screen.getAllByRole('button', { name: /^Increase/ }).length).toBeGreaterThan(0)
+  })
+
+  test('a step writes the companion’s own vital on its host, the host’s other partners kept', async () => {
+    const mech = sestra()
+    await seed(mech)
+    const drone = must(mech.partners?.[0])
+    await show(
+      <CompanionSheet
+        hostKind="mech"
+        hostId={mech.id}
+        partnerId={drone.id}
+        store={useUnits}
+        writes
+      />
+    )
+    const partnerNow = () => useUnits.getState().get('mech', mech.id)?.partners?.[0]
+    const before = partnerNow()?.currentSP
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Decrease Structure Points' }))
+    })
+    await waitFor(() => expect(partnerNow()?.currentSP).not.toBe(before))
+    expect(partnerNow()?.id).toBe(drone.id)
+    expect(useUnits.getState().get('mech', mech.id)?.partners).toHaveLength(
+      mech.partners?.length ?? 0
+    )
   })
 })
