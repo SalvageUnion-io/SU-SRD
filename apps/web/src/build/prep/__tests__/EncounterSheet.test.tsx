@@ -120,6 +120,9 @@ describe("an encounter's groups", () => {
     await renderPage()
     await click(screen.getByRole('button', { name: 'Add a group' }))
     const dialog = screen.getByRole('alertdialog', { name: 'Add a group' })
+    // Typing starts in its one field (MD-21).
+    await settle(() => document.activeElement === within(dialog).getByRole('textbox'))
+    expect(document.activeElement).toBe(within(dialog).getByRole('textbox'))
     await click(within(dialog).getByRole('button', { name: 'Add group' }))
     expect(within(dialog).getByText('A group needs a name.')).toBeTruthy()
     await act(async () => {

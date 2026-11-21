@@ -351,3 +351,19 @@
 .su-chapter-band[data-paint='crawler'] :is(.su-chapter-band__eyebrow, .su-tagline) * {
   color: var(--color-paper);
 }
+
+/* On a phone a notch aside drops under the band on to the page ground
+   (`chapter-band-controls.css`), so the tagline there is ink again. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline,
+  .su-chapter-band[data-paint='crawler'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-tagline
+    * {
+    color: var(--color-ink);
+  }
+}
