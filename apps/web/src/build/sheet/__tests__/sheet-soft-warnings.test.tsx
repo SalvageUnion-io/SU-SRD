@@ -167,6 +167,82 @@ describe('PilotSheet — soft warnings on ability edits', () => {
   })
 })
 
+describe('PilotSheet — advancing warns before it breaks a rule (r2 E4)', () => {
+  /** Open Manage Abilities and read an ability's Page: its action bar. */
+  async function focusAbility(name: string) {
+    await click(/^Manage abilities$/i)
+    const dialog = screen.getByRole('dialog')
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name }))
+    })
+    return within(within(dialog).getByRole('group', { name: `${name} actions` }))
+  }
+
+  test('too few TP: the free Add is not the bold button, and asks before it adds', async () => {
+    const captured: CapturedUpdate[] = []
+    const pilot = makePilot({ abilities: [ABILITY_L1_SLUG], trainingPoints: 0 })
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
+
+    const bar = await focusAbility(ABILITY_L2)
+    const free = bar.getByRole('button', { name: 'Add to Yara Voss' })
+    expect(free.className).not.toContain('primary')
+    expect(bar.getByRole('button', { name: 'Spend 1 TP and add' })).toHaveProperty('disabled', true)
+    // In order in its tree: nothing the book asks first.
+    expect(bar.queryByRole('list', { name: 'The book asks first' })).toBeNull()
+
+    await act(async () => {
+      fireEvent.click(free)
+    })
+    expect(screen.getByText('Add Talk Shop without spending?')).toBeTruthy()
+    expect(screen.getByText(/costs 1 TP to train and this Pilot has 0/)).toBeTruthy()
+    expect(captured).toHaveLength(0)
+
+    await click(/save anyway/i)
+    expect(captured).toHaveLength(1)
+    expect(captured[0]?.patch).toMatchObject({ abilities: [ABILITY_L1_SLUG, ABILITY_L2_SLUG] })
+    expect(captured[0]?.patch).not.toHaveProperty('trainingPoints')
+  })
+
+  test('enough TP: the free Add stays, unasked, beside the bold Spend', async () => {
+    const captured: CapturedUpdate[] = []
+    const pilot = makePilot({ abilities: [ABILITY_L1_SLUG], trainingPoints: 1 })
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
+
+    const bar = await focusAbility(ABILITY_L2)
+    expect(bar.getByRole('button', { name: 'Spend 1 TP and add' }).className).toContain('primary')
+    const free = bar.getByRole('button', { name: 'Add to Yara Voss' })
+    expect(free.className).not.toContain('primary')
+    await act(async () => {
+      fireEvent.click(free)
+    })
+    expect(screen.queryByRole('button', { name: /save anyway/i })).toBeNull()
+    expect(captured).toHaveLength(1)
+  })
+
+  test('an unmet tree requirement is said on the bar, and still added after one confirm', async () => {
+    const captured: CapturedUpdate[] = []
+    const pilot = makePilot({ abilities: [], trainingPoints: 3 })
+    render(<PilotSheet pilot={pilot} store={makeCaptureStore('pilot', pilot, captured)} />)
+
+    const bar = await focusAbility('Mech Acquisition')
+    expect(
+      within(bar.getByRole('list', { name: 'The book asks first' })).getByText(
+        /level 1 and 2 of that tree haven't been taken/
+      )
+    ).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(bar.getByRole('button', { name: 'Spend 1 TP and add' }))
+    })
+    expect(captured).toHaveLength(0)
+    await click(/save anyway/i)
+    expect(captured[0]?.patch).toMatchObject({
+      abilities: ['mech-acquisition'],
+      trainingPoints: 2,
+    })
+  })
+})
+
 describe('MechSheet — soft warnings on system removal', () => {
   test('removing a system persists immediately (no dependency data to flag)', async () => {
     const captured: CapturedUpdate[] = []

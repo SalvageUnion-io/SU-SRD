@@ -31,6 +31,7 @@ import { isBaseAdvancedClass, isCoreClass, SalvageUnionReference } from 'salvage
 import type { AdvancementOption } from 'salvageunion-reference/rules'
 import {
   advancementOptionsFor,
+  enrichPilotSnapshot,
   liveAdvancementDataset,
   originsForHybrid,
   resolveAdvancementTrees,
@@ -67,6 +68,35 @@ export type ClassPathConsequence = {
   needsOrigin: boolean
   /** The Core classes to offer when `needsOrigin`. */
   originChoices: readonly string[]
+  /**
+   * What the book asks before an Advanced or Hybrid class is taken (Core Book
+   * p.23), and what of it this pilot has not met. Said beside the pick and
+   * confirmed once on it (`CLASS_PREREQUISITE`), never a gate. Empty for a
+   * Core class, which asks nothing.
+   */
+  needs: readonly string[]
+  missing: readonly string[]
+}
+
+/** The Core abilities an Advanced or Hybrid class asks for, and a whole tree's worth of one. */
+const CORE_ABILITIES_NEEDED = 6
+const TREE_ABILITIES = 3
+
+/** What of the Advanced / Hybrid bar the abilities do not meet, as the rules check counts it. */
+function advancedBarMissing(abilities: readonly string[]): string[] {
+  const core = enrichPilotSnapshot({ abilities: [...abilities] }).abilities.filter(
+    (a) => a.tier === 'core'
+  )
+  const perTree = new Map<string, number>()
+  for (const a of core) {
+    if (a.tree !== undefined) perTree.set(a.tree, (perTree.get(a.tree) ?? 0) + 1)
+  }
+  const missing: string[] = []
+  if (core.length < CORE_ABILITIES_NEEDED)
+    missing.push(libRulesCopy('coreAbilitiesOfSix', { count: core.length }))
+  if (![...perTree.values()].some((n) => n >= TREE_ABILITIES))
+    missing.push(libRulesCopy('noCoreTreeComplete'))
+  return missing
 }
 
 /**
@@ -141,7 +171,9 @@ export function classPathGroups(
 export function classPathConsequence(
   allClasses: readonly RefClass[],
   currentClassRef: string,
-  pendingRef: string
+  pendingRef: string,
+  /** The pilot's abilities, by slug: what `missing` is counted from. */
+  abilities: readonly string[] = []
 ): ClassPathConsequence | undefined {
   const data = liveAdvancementDataset()
   const current = allClasses.find((c) => c.id === currentClassRef)
@@ -156,6 +188,8 @@ export function classPathConsequence(
       keep: [libRulesCopy('everyAbilityAlreadyLearned')],
       needsOrigin: false,
       originChoices: [],
+      needs: [],
+      missing: [],
     }
   }
 
@@ -193,6 +227,8 @@ export function classPathConsequence(
     impliedOrigin,
     needsOrigin: impliedOrigin === undefined,
     originChoices: candidates,
+    needs: [libRulesCopy('sixCoreAbilitiesOneTree')],
+    missing: advancedBarMissing(abilities),
   }
 }
 

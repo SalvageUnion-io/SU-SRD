@@ -110,6 +110,35 @@ describe('classPathConsequence', () => {
   })
 })
 
+describe('classPathConsequence — what the book asks first (Core Book p.23)', () => {
+  it('a Core class asks nothing', () => {
+    const c = classPathConsequence(all(), idOf('Cyborg'), idOf('Hacker'), [])
+    expect(c?.needs).toEqual([])
+    expect(c?.missing).toEqual([])
+  })
+
+  it('a hybrid names its bar, and what a new pilot has not met of it', () => {
+    const c = classPathConsequence(all(), idOf('Engineer'), idOf('Union Rep'), [
+      'engineering-expertise',
+    ])
+    expect(c?.needs).toEqual(['6 Core Abilities, 3 of them one whole Core tree'])
+    expect(c?.missing).toEqual(['1 of 6 Core Abilities trained', 'No Core tree complete'])
+  })
+
+  it('six Core abilities with a whole tree miss nothing', () => {
+    const c = classPathConsequence(all(), idOf('Engineer'), idOf('Union Rep'), [
+      'engineering-expertise',
+      'talk-shop',
+      'mech-acquisition',
+      'jury-rig',
+      'mech-gyver',
+      'auto-turret',
+    ])
+    expect(c?.needs).toHaveLength(1)
+    expect(c?.missing).toEqual([])
+  })
+})
+
 describe('classChangePatch', () => {
   it('writes class and origin together in one patch', () => {
     const patch = classChangePatch(all(), idOf('Cyborg'), idOf('Hacker'))

@@ -24,7 +24,9 @@ import type { PickCost, PoolEntity } from './entitySearcherTypes'
  * The action bar reads the focused entity's state: a stamp saying how many
  * are chosen, then what can be done next. Toggle offers ADD until it is
  * chosen; count offers ADD ANOTHER; single offers CHOOSE until it is the one
- * chosen. ADD names the sheet it lands on (`railName`).
+ * chosen. ADD names the sheet it lands on (`railName`). Where adding has a
+ * cost the paying act is the bold button, never the free ADD, and what the
+ * book asks first that is unmet is said above them (`PickCost.unmet`).
  */
 export function FocusPane({
   entity,
@@ -110,6 +112,13 @@ export function FocusPane({
         className="su-searcher__actions"
         style={ACTION_BAR_STYLE}
       >
+        {canAdd && cost?.unmet && cost.unmet.length > 0 && (
+          <ul aria-label={compositionsCopy('theBookAsksFirst')} style={UNMET_STYLE}>
+            {cost.unmet.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
         {chosen && (
           <Badge shape="stamp">{mode === 'count' ? `${count} ${chosenLabel}` : chosenLabel}</Badge>
         )}
@@ -117,7 +126,7 @@ export function FocusPane({
         <span style={GROW_STYLE} />
         {extra}
         {canAdd && (
-          <Button variant={cost?.canPay ? undefined : 'primary'} size="compact" onClick={onAdd}>
+          <Button variant={cost ? undefined : 'primary'} size="compact" onClick={onAdd}>
             {addLabel}
           </Button>
         )}
@@ -149,3 +158,13 @@ const ACTION_BAR_STYLE = {
 } satisfies CSSProperties
 
 const GROW_STYLE = { flex: '1 1 auto' } satisfies CSSProperties
+
+/** The unmet requirements: a full row of the bar, above its buttons. */
+const UNMET_STYLE = {
+  flex: '1 0 100%',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+  fontSize: fontSize.caption,
+  color: color.ink,
+} satisfies CSSProperties

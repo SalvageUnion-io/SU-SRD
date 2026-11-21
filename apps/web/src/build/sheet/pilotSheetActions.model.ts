@@ -106,6 +106,9 @@ export function usePilotSheetActions({
     store,
   })
   const [warningSubtitle, setWarningSubtitle] = useState<string | null>(null)
+  // What the pending edit breaks that no rules check reads off the sheet: an
+  // ability added free with too few Training Points to pay for it.
+  const [extraWarnings, setExtraWarnings] = useState<SoftWarning[]>([])
 
   /** Freshest pilot record from the store, falling back to the render prop. */
   function freshPilot(): Pilot {
@@ -140,11 +143,16 @@ export function usePilotSheetActions({
    * Preview a build patch: save immediately when clean (true), otherwise raise
    * the confirm-and-proceed dialog. `label` describes the pending edit.
    */
-  function saveBuildEdit(fields: Partial<Pilot>, label: string): boolean {
-    if (softWarnings.preview(fields).length === 0) {
+  function saveBuildEdit(
+    fields: Partial<Pilot>,
+    label: string,
+    extra: SoftWarning[] = []
+  ): boolean {
+    if (softWarnings.preview(fields).length === 0 && extra.length === 0) {
       runWrite(() => softWarnings.saveAnyway())
       return true
     }
+    setExtraWarnings(extra)
     setWarningSubtitle(label)
     return false
   }
@@ -197,8 +205,13 @@ export function usePilotSheetActions({
   function toggleAbility(slug: string, pay = false) {
     const current = freshPilot()
     const removing = current.abilities.includes(slug)
-    const cost = pay && !removing ? (abilityTrainingCost(slug) ?? 0) : 0
+    const price = removing ? 0 : (abilityTrainingCost(slug) ?? 0)
+    const cost = pay ? price : 0
+    const left = current.trainingPoints ?? 0
     const name = SalvageUnionReference.Abilities.getBySlug(slug)?.name ?? slug
+    // Added free with too few Training Points to train it (Core Book p.224):
+    // asked once, never refused.
+    const unpaid = !pay && price > left
     const abilities = removing
       ? current.abilities.filter((a) => a !== slug)
       : [...current.abilities, slug]
@@ -214,7 +227,18 @@ export function usePilotSheetActions({
         // Training it pays its Training Points with the add (Core Book p.224).
         ...(cost > 0 ? { trainingPoints: Math.max(0, (current.trainingPoints ?? 0) - cost) } : {}),
       },
-      `${removing ? 'Remove' : 'Add'} ${name}`
+      unpaid
+        ? buildSheetCopy('addNameWithoutSpending', { name })
+        : `${removing ? 'Remove' : 'Add'} ${name}`,
+      unpaid
+        ? [
+            {
+              code: 'TRAINING_POINTS_SHORT',
+              message: buildSheetCopy('costsTpPilotHas', { name, cost: price, left }),
+              severity: 'warn',
+            },
+          ]
+        : []
     )
     // A removal that landed offers Undo: the abilities and partners as they were.
     if (saved && removing) {
@@ -319,14 +343,16 @@ export function usePilotSheetActions({
     handleSpendAP,
     handleAbilityUsedChange,
     handleGenericInventoryChange,
-    warnings: softWarnings.warnings,
+    warnings: [...extraWarnings, ...softWarnings.warnings],
     warningSubtitle,
     cancelBuildEdit: () => {
       softWarnings.fixIt()
+      setExtraWarnings([])
       setWarningSubtitle(null)
     },
     confirmBuildEdit: () => {
       runWrite(() => softWarnings.saveAnyway())
+      setExtraWarnings([])
       setWarningSubtitle(null)
     },
   }
