@@ -30,13 +30,20 @@ const byName = (schema: string, name: string): RefEntity => {
   return found as RefEntity
 }
 
-/** The refs a Page lists back, as `id` or `id:pattern`. */
+const listed = new Map<string, Set<string>>()
+
+/** The refs a Page lists back, as `id` or `id:pattern` (each Page built once). */
 function listedOn(schema: string, entity: RefEntity, key?: string): Set<string> {
-  return new Set(
+  const memo = `${schema}:${entity.id}:${key ?? ''}`
+  const known = listed.get(memo)
+  if (known) return known
+  const refs = new Set(
     relationsFor(schema, entity)
       .filter((relation) => !key || relation.key.startsWith(key))
       .flatMap((relation) => relation.rows.map((row) => idOf(row.ref)))
   )
+  listed.set(memo, refs)
+  return refs
 }
 
 const idOf = (ref: EntityRef) => (ref.pattern ? `${ref.id}:${ref.pattern}` : ref.id)
@@ -79,7 +86,7 @@ describe('E26: a cross-reference goes both ways', () => {
 
   test("every entry's cite links its books, and each book's Page lists the entry", () => {
     const books = new Map(all('sources').map((book) => [book.name, book]))
-    const listed = new Map([...books].map(([name, book]) => [name, listedOn('sources', book)]))
+    const byBook = new Map([...books].map(([name, book]) => [name, listedOn('sources', book)]))
     for (const schema of pageSchemas.filter((s) => s !== 'sources')) {
       for (const entity of all(schema)) {
         const printings = provenancePrintings(resolveProvenance(entity as RefMetaEntity))
@@ -88,10 +95,10 @@ describe('E26: a cross-reference goes both ways', () => {
           const book = printing.source ? books.get(printing.source) : undefined
           if (!book) continue
           expect(hrefs[index]).toBe(srdHrefFor(entityRef(book as RefMetaEntity)))
-          expect(listed.get(book.name)).toContain(entity.id)
+          expect(byBook.get(book.name)).toContain(entity.id)
         }
         for (const source of getSources(entity as RefMetaEntity)) {
-          if (books.has(source)) expect(listed.get(source)).toContain(entity.id)
+          if (books.has(source)) expect(byBook.get(source)).toContain(entity.id)
         }
       }
     }
