@@ -39,12 +39,11 @@ import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
 import { assetUrl } from 'salvageunion-reference'
-import { SignInControl } from '../build/account/SignInControl'
 import { NewGameControl } from '../build/games/NewGameControl'
+import { FrontDoor } from '../build/roster/FrontDoor'
 import { Shelf } from '../build/shelves/Shelf'
 import { Shelves } from '../build/shelves/Shelves'
 import { ShelvesPart } from '../build/shelves/shelvesPart.model'
-import { StarterSetCrew } from '../build/starterSet/StarterSetCrew'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
@@ -52,7 +51,6 @@ import {
   ChapterBand,
   Entity,
   FieldError,
-  FrontPitch,
   Input,
   ModalShell,
   PageShell,
@@ -168,57 +166,24 @@ const AT_THE_TABLE_ART = [
   tileArt('bio-titans/scylla.webp', playCopy('artScylla')),
 ]
 
-const FRONT_BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[24],
-} satisfies CSSProperties
-
-/** The Starter Set section: the pitch's second action jumps to it. */
-const STARTER_ID = 'play-starter'
-
 /**
- * Play signed out: its front door. The band on the page measure with its
- * kicker and tagline, as Build's front door; the pitch (`FrontPitch`) with
- * the page's one rust action (ruleset §3.13); "At the table" with art; then
- * the Starter Set's crew (`StarterSetCrew`), so a visitor with no Pilot has
- * something to open.
+ * Play signed out: its front door (`FrontDoor`), its steps "At the table",
+ * with art.
  */
 function PlayFrontDoor() {
   const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
   return (
-    <PageShell
-      measure={PAGE_MEASURE}
-      band={
-        <ChapterBand tone="play" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
-          {PRODUCT.play}
-        </ChapterBand>
-      }
-    >
-      <div style={FRONT_BODY}>
-        <FrontPitch
-          value={playCopy('pitchValue')}
-          actions={
-            <>
-              <SignInControl size="full" redirectTo="/games/" />
-              <Button href={`#${STARTER_ID}`} variant="default" size="full">
-                {playCopy('meetTheStarterCrew')}
-              </Button>
-            </>
-          }
-          note={playCopy('pitchNote')}
-        >
-          {playCopy('pitchLede')}
-        </FrontPitch>
+    <FrontDoor
+      area="play"
+      steps={
         <StartHere
           id="play-at-the-table"
           title={playCopy('atTheTable')}
           steps={steps}
           numbered={false}
         />
-        <StarterSetCrew id={STARTER_ID} />
-      </div>
-    </PageShell>
+      }
+    />
   )
 }
 
@@ -269,7 +234,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           action={
             connected ? (
               <div style={CONTROLS}>
-                <NewGameControl beside={games !== undefined && games.length > 0} />
+                <NewGameControl />
                 <JoinGame />
               </div>
             ) : undefined
