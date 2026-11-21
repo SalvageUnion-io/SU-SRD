@@ -452,9 +452,9 @@ describe('chrome-tokens/muted-note', () => {
 })
 
 describe('chrome-tokens/raw-breakpoint', () => {
-  test('the gate’s ladder is design/tokens.ts’s `breakpoint`', () => {
+  test('the gate’s ladder is design/breakpoint.ts’s `breakpoint`', () => {
     const tokens = readFileSync(
-      join(import.meta.dir, '../../../apps/web/src/design/tokens.ts'),
+      join(import.meta.dir, '../../../apps/web/src/design/breakpoint.ts'),
       'utf8'
     )
     const block = tokens.match(/export const breakpoint = \{([^}]*)\}/)?.[1] ?? ''
