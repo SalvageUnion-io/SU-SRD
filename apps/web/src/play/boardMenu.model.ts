@@ -69,7 +69,7 @@ export type BoardOption = {
   serverId: string | null
   name: string
   state: BoardState
-  /** Why it can't be boarded, or that it is a spare; null for your own. */
+  /** Why it can't be boarded, that it is a spare, or which of your pilots flies it; else null. */
   note: string | null
 }
 
@@ -215,6 +215,13 @@ export function boardMenu(args: {
         aboard: aboard.get(mechId) ?? null,
         owner: row.ownerId === null ? 'spare' : row.ownerId === viewerId ? 'yours' : 'others',
       }),
+    }
+    // One of yours another of your pilots is assigned: boardable, and says whose.
+    const flownBy = listing.softLinks.find(
+      (l) => l.type === 'mech-to-pilot' && l.from.id === mechId && l.to.id !== pilotId
+    )?.to.id
+    if (option.state === 'yours' && flownBy !== undefined && mechId !== assigned?.id) {
+      option.note = `${pilotName.get(flownBy) ?? 'Another pilot'}’s mech`
     }
     ranked.push({ option, rank: mechId === assigned?.id ? 0 : row.ownerId === viewerId ? 1 : 2 })
   }
