@@ -121,7 +121,7 @@ export function StatProvenance({
   children,
   className,
 }: StatProvenanceProps) {
-  const title = `${statLabel} · how this is derived`
+  const title = atomsCopy('howThisIsDerivedTitle', { statLabel })
   return (
     <PopoverPanel
       trigger={

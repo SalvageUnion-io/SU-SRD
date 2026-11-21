@@ -46,4 +46,9 @@ export const sharedCopy = messages({
   writeBlockedSignedOut: 'Sign in to build and edit — nothing is saved without an account.',
   writeBlockedOutdated:
     'The app has been updated — that change was not saved. Reloading onto the new version.',
+  photoNotSaved: 'The photo could not be saved. Try again.',
+  photoNotRemoved: 'The photo could not be removed. Try again.',
+  replaceSPhoto: "Replace {name}'s photo",
+  uploadSPhoto: "Upload {name}'s photo",
+  thePage: 'the page',
 })

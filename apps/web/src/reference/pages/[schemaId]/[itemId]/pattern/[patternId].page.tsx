@@ -60,7 +60,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   // as the host page and as each other.
   const firstParagraph = summary.description
   const metaDescription = truncate(
-    firstParagraph || `${patternName}: a ${hostName} Pattern for the Salvage Union tabletop RPG.`,
+    firstParagraph || pagesCopy('patternMeta', { patternName, hostName }),
     META_DESCRIPTION_MAX
   )
 

@@ -77,7 +77,7 @@ export function SearcherToolbar({
         )}
         {folded.length > 0 && (
           <Button size="compact" {...toggleProps} style={FILTERS_TOGGLE_STYLE}>
-            Filters
+            {compositionsCopy('filters')}
             {activeFilters > 0 && (
               <>
                 {' '}

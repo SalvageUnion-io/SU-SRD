@@ -2,6 +2,7 @@ import { Dialog } from '@base-ui/react/dialog'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useRef, useState } from 'react'
 import { color, font, fontSize, space } from '../../design/tokens'
+import { containersCopy } from '../../messages/components-containers'
 import { Button } from '../atoms/Button'
 import { FieldError } from '../atoms/FieldError'
 import { DialogActions } from './DialogActions'
@@ -74,7 +75,7 @@ type ConfirmDialogProps = {
   initialFocus?: RefObject<HTMLElement | null>
 }
 
-const GENERIC_FAILURE = 'That did not work. Try again.'
+const GENERIC_FAILURE = containersCopy('thatDidNotWork')
 
 const panelStyle = {
   display: 'flex',

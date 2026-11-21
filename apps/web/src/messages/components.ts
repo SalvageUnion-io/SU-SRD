@@ -36,4 +36,11 @@ export const componentsCopy = messages({
   n404SalvageOperationFailed: '404 · Salvage operation failed.',
   orOpenAChapter: 'Or open a chapter',
   randsumDev: 'Randsum.dev',
+  takeAbilitiesFromAnyOfThese: ': take Abilities from any of these.',
+  upTo: 'Up to {count}',
+  stayThenOne: 'Stay {article} {className}: {tree}, then one {name} Ability.',
+  rollTheDice: 'Roll the Dice:',
+  thisPageWasBrokenDown:
+    'This page was broken down, relocated, or never existed. Search the Reference for it, or open a chapter.',
+  diceRollingPoweredBy: 'Dice rolling powered by',
 })

@@ -34,6 +34,7 @@ import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
 import { artUrlFor } from '../../../lib/sourceCovers'
 import { getSchemaStaticPaths } from '../../../lib/staticPaths'
+import { pagesCopy } from '../../../messages/reference-pages'
 import { Island } from '../../../runtime/Island'
 import type { PageModule, PageResult, RouteContext } from '../../types'
 
@@ -53,7 +54,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const pluralName = schema.displayNamePlural || schemaName
   const chapter = chapterForSchema(schemaId)
   const canonicalUrl = `${SITE_URL}${schemaHref(schemaId)}`
-  const description = `Browse all ${pluralName} in the Salvage Union SRD (System Reference Document). Complete reference with stats, abilities, and details.`
+  const description = pagesCopy('browseAll', { pluralName })
 
   // Pre-compute filter facets at build time. A `CATALOG_LISTINGS` schema is a
   // handful of tiles, so it has no TL facet.
@@ -94,7 +95,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         name: schemaName,
         description,
         url: canonicalUrl,
-        keywords: ['Salvage Union', 'TTRPG', 'SRD', 'System Reference Document', schemaName],
+        keywords: [
+          pagesCopy('salvageUnion'),
+          'TTRPG',
+          'SRD',
+          pagesCopy('systemReferenceDocument'),
+          schemaName,
+        ],
         isPartOf: WEBSITE,
         mainEntity: {
           '@type': 'ItemList',

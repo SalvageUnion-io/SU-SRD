@@ -73,4 +73,7 @@ export const islandsCopy = messages({
   range: 'Range',
   dmg: 'DMG',
   damage: 'Damage',
+  filters: 'Filters',
+  referenceAndCharacterManager: 'Reference and Character Manager',
+  nameFilter: 'name filter',
 })

@@ -135,7 +135,7 @@ export function PickDialog({
   title,
   description,
   groups,
-  loading = 'the choices',
+  loading = compositionsCopy('theChoices'),
   empty,
   selected,
   onSelect,

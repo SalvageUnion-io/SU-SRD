@@ -243,10 +243,11 @@ export function VitalGauge({
   const segCount = Math.max(max, shown)
   const dangerFrom = danger ?? Number.POSITIVE_INFINITY
 
-  const summary = `${label} ${shown} of ${max}${isOver ? ' — over capacity' : ''}`
+  const plain = `${label} ${shown} of ${max}`
+  const summary = isOver ? atomsCopy('overCapacity', { summary: plain }) : plain
   // The slider's spoken value: the summary, plus the redline once a lit
   // segment sits past it (the same test that paints that segment danger).
-  const valueText = `${summary}${shown > dangerFrom ? ', over redline' : ''}`
+  const valueText = shown > dangerFrom ? atomsCopy('overRedline', { summary }) : summary
 
   const setValue = (next: number) => {
     if (!editable) return

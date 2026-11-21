@@ -35,6 +35,7 @@ import { Children, useContext } from 'react'
 import { color, ease, iconSize } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
+import { containersCopy } from '../../messages/components-containers'
 import { Button } from '../atoms/Button'
 import type { SlabCount } from '../atoms/Slab'
 import { Slab } from '../atoms/Slab'
@@ -126,7 +127,10 @@ export function SlabSection({
       variant="ghost"
       size={size === 'mini' ? 'mini' : 'iconOnly'}
       {...disclosure.toggleProps}
-      aria-label={`${disclosure.open ? 'Collapse' : 'Expand'} ${name}`.trim()}
+      aria-label={(disclosure.open
+        ? containersCopy('collapse', { name })
+        : containersCopy('expand', { name })
+      ).trim()}
       style={size === 'mini' ? FOLD_BUTTON_MINI : FOLD_BUTTON}
     >
       <ChevronDown

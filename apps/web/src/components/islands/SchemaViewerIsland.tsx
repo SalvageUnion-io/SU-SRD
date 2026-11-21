@@ -351,7 +351,7 @@ function SchemaViewer({
             {nameFilter && (
               <FilterToken
                 label={`“${nameFilter}”`}
-                name="name filter"
+                name={islandsCopy('nameFilter')}
                 onRemove={() => filters.setName('')}
               />
             )}
