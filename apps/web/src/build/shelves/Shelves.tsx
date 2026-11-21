@@ -116,6 +116,7 @@ import {
   paired,
   read,
   under,
+  underWith,
   who,
 } from './shelfColumns'
 import { ShelvesPart } from './shelvesPart.model'
@@ -458,18 +459,17 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 empty="No pilots yet."
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
+                  const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
                   return {
                     id: p.id,
                     name: p.name,
                     href: `/pilots/${p.id}`,
-                    under: under(linkChip(sharedByLink, p.id)),
+                    // On a phone its mech rides under the name (the column is hidden).
+                    under: underWith(linkChip(sharedByLink, p.id), flies),
                     cells: [
                       pilotFact(p) ?? '',
                       // The pilot carries its mech; with none, Add a mech builds one for it.
-                      paired(
-                        crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames }),
-                        canWrite ? newMechFor(p.id) : undefined
-                      ),
+                      paired(flies, canWrite ? newMechFor(p.id) : undefined),
                       inGame(gameRelation(p, games)),
                       read(r, VITAL.hp),
                       read(r, VITAL.ap),
