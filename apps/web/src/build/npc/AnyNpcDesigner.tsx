@@ -43,7 +43,7 @@ import {
   TitledBox,
 } from '../../components/index'
 import type { DenizenTemplate } from '../../lib/npcs/npcModel'
-import { denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
+import { DENIZEN_KIND_LABEL, denizenTemplate, isDenizenKind } from '../../lib/npcs/npcModel'
 import { readReference } from '../../lib/readReference'
 import { npcCreationStepGate } from '../../lib/rules/creation'
 import type { NpcFormState, NpcStepId } from '../../lib/wizard/npcFormState'
@@ -73,7 +73,7 @@ import { NpcCard } from './NpcCard'
 import { ActionPick, TraitPick } from './NpcPickRows'
 import { ReferenceAdder } from './NpcReferenceAdder'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
-import { saveNpcRedesign } from './redesign'
+import { saveNpcRedesign } from './redesign.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
   template: npcCopy('introTemplate'),
@@ -96,17 +96,6 @@ type AnyNpcDesignerProps = {
   startFrom?: NpcTemplateRef
   /** The Game the new NPC is made in (`?game=`, from that Game's Prep); unset, the Kit. */
   gameId?: string | undefined
-}
-
-/** What each kind of denizen is called on its tab. */
-const TEMPLATE_KIND_LABEL: Record<NpcTemplateKind, string> = {
-  npcs: 'NPCs',
-  squads: 'Squads',
-  creatures: 'Creatures',
-  vehicles: 'Vehicles',
-  drones: 'Drones',
-  meld: 'Meld',
-  'bio-titans': 'Bio-Titans',
 }
 
 /** A template waiting to be applied: the denizen and the kind it is. */
@@ -415,7 +404,7 @@ function TemplateStep({
               setQuery('')
             }}
           >
-            {TEMPLATE_KIND_LABEL[k]}
+            {DENIZEN_KIND_LABEL[k]}
           </SegmentedOption>
         ))}
       </Segmented>

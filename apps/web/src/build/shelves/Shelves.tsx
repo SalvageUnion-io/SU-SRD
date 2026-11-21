@@ -469,8 +469,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     under: underWith(linkChip(sharedByLink, p.id), flies),
                     cells: [
                       pilotFact(p) ?? '',
-                      // The pilot carries its mech; with none, Add a mech builds one for it.
-                      // or assigns one of yours that stands unassigned beside it.
+                      // The pilot carries its mech; with none, Add a mech builds or assigns one.
                       paired(
                         flies,
                         canWrite ? (

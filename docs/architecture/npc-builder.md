@@ -10,8 +10,7 @@ A built NPC is the app's fourth entity, designed by anyone and able to crew a cr
 4. **§4 Surfaces** — Designer (`/npcs/new`), sheet, crew board, an NPC shelf on Shelves (`apps/web/src/build/shelves/Shelves.tsx`), and linked slots on the crawler sheet (`apps/web/src/build/npc/`).
    - **§4.1 Designer** — Template → Stats → Actions & traits → Identity → Review beside a live preview; Any denizen is a template (ADR-067 §2); blank is a tile.
      Form state: `apps/web/src/lib/wizard/npcFormState.ts`. Gates: a name and HP ≥ 1; Roll only where data has a table.
-     Redesign: `/npcs/:id/design` opens the same steps, less Template, on a saved NPC and saves in place (`NpcRedesignPage`, `redesign.ts`); its encounters follow (ADR-067 §1).
-   - **§4.2 Sheet** — `/npcs/:id`: the user-made card and the identity panel, with move and delete; Edit offers "Edit design".
+   - **§4.2 Sheet** — `/npcs/:id`: the user-made card and the identity panel, with move, delete, redesign.
    - **§4.3 Crew board** — The crawler type's slot and one per bay: design, assign, unassign.
 5. **§5 Phone and accessibility** — Below 48rem: a one-line step strip, sticky Back/Next, a Preview button, full-height slot modal.
    Repeated controls name their target; the open slot carries `aria-current`; a Roll is announced once.

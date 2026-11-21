@@ -65,9 +65,12 @@ export type FeedSources = {
  */
 const MEDIATORS: ReadonlySet<TableEvent['kind']> = new Set(['alert', 'proposal', 'session'])
 
-export function asMine(text: string): string {
-  if (text.startsWith('Mediator proposes ')) return `You propose ${text.slice(18)}`
-  return text.startsWith('Mediator ') ? `You ${text.slice(9)}` : text
+function asMine(text: string): string {
+  const proposes = playCopy('mediatorProposes', { what: '' })
+  if (text.startsWith(proposes))
+    return playCopy('youPropose', { what: text.slice(proposes.length) })
+  const mediator = `${playCopy('feedMediator')} `
+  return text.startsWith(mediator) ? `${playCopy('feedYou')} ${text.slice(mediator.length)}` : text
 }
 
 function show(value: unknown): string {
