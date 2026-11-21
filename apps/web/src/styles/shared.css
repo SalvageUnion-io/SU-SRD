@@ -328,6 +328,17 @@
   column-span: all;
 }
 
+/* The columns' tops stand level: a margin is cut at a column break but
+   kept at the first column's top, so a sub-head's air above is its run's own
+   padding, which every column keeps alike. */
+.su-chapter-flow .su-contents__group {
+  padding-top: var(--space-12);
+}
+
+.su-chapter-flow .su-contents__group-head {
+  margin-top: 0;
+}
+
 .su-chapter-flow .su-contents__rows {
   display: block;
 }
