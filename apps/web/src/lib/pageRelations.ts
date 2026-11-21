@@ -29,7 +29,7 @@ import { buildChapters } from './chapters'
 import { nameRefIndexWithout } from './nameRefIndex'
 
 /** One entry a relation lists: its link, its name, and a cell a column. */
-export type RelationRow = { ref: EntityRef; name: string; cells: (string | number)[] }
+type RelationRow = { ref: EntityRef; name: string; cells: (string | number)[] }
 
 /** One list of a Page's relations, drawn as one Ledger. */
 export type Relation = {
@@ -41,7 +41,7 @@ export type Relation = {
 }
 
 /** How often a guide's rules use a keyword before the two cite each other. */
-export const GUIDE_USES = 3
+const GUIDE_USES = 3
 
 /** The kinds a roll table's prose names that list the table back. */
 const TABLE_TARGETS: ReadonlySet<string> = new Set([
@@ -220,10 +220,9 @@ const listOf = (key: string, label: string, rows: RelationRow[], kind?: string):
 
 /** Every list of `item`'s relations back, for its Page (`schema` its kind). */
 export function relationsFor(schema: string, item: RefEntity): Relation[] {
-  const copy = referenceCopy
   const out: Relation[] = []
   if (schema === 'systems' || schema === 'modules') {
-    out.push(...listOf('fitted-in', copy('fittedIn'), fittedIn(schema, item)))
+    out.push(...listOf('fitted-in', referenceCopy('fittedIn'), fittedIn(schema, item)))
   }
   if (schema === 'tech-levels') {
     const level = getTechLevel(item as RefMetaEntity)
@@ -231,9 +230,9 @@ export function relationsFor(schema: string, item: RefEntity): Relation[] {
       out.push(
         ...listOf(
           'at-level',
-          copy('atTechLevel', { name: item.name }),
+          referenceCopy('atTechLevel', { name: item.name }),
           atTechLevel(level),
-          copy('relationKind')
+          referenceCopy('relationKind')
         )
       )
     }
@@ -247,7 +246,7 @@ export function relationsFor(schema: string, item: RefEntity): Relation[] {
     out.push(
       ...listOf(
         crawler ? 'bays' : 'crawlers',
-        copy(crawler ? 'crawlerBays' : 'crawlerTypes'),
+        crawler ? referenceCopy('crawlerBays') : referenceCopy('crawlerTypes'),
         others.map((other) => rowOf(other))
       )
     )
@@ -257,7 +256,7 @@ export function relationsFor(schema: string, item: RefEntity): Relation[] {
     out.push(
       ...listOf(
         'guides',
-        copy('relatedRules'),
+        referenceCopy('relatedRules'),
         guides.map((g) => rowOf(g))
       )
     )
@@ -267,13 +266,13 @@ export function relationsFor(schema: string, item: RefEntity): Relation[] {
       .filter((keyword) => guideExplains(item, keyword))
       .map((k) => rowOf(k))
       .sort(byName)
-    out.push(...listOf('keywords', copy('keywords'), keywords))
+    out.push(...listOf('keywords', referenceCopy('keywords'), keywords))
   }
   if (TABLE_TARGETS.has(schema)) {
     const tables = inTables(item.id)
       .map((t) => rowOf(t))
       .sort(byName)
-    out.push(...listOf('tables', copy('rolledOn'), tables))
+    out.push(...listOf('tables', referenceCopy('rolledOn'), tables))
   }
   return out
 }

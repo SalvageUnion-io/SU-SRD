@@ -11,6 +11,18 @@ function entryRef(schemaName: 'tech-levels' | 'distances', name: string): Entity
     : undefined
 }
 
+/** The Salvage Value keyword's slug. */
+const SALVAGE_VALUE = 'salvage-value'
+
+/** A keyword by its slug, as a ref; none where keywords are not loaded. */
+function keywordRef(slug: string): EntityRef | undefined {
+  if (!SalvageUnionReference.isLoaded('keywords')) return undefined
+  const entry = SalvageUnionReference.Keywords.getBySlug(slug)
+  return entry
+    ? { schemaName: 'keywords', id: entry.id, slug: getEntitySlug(entry), name: entry.name }
+    : undefined
+}
+
 /**
  * The rule a band's fact chip names, so it links as a trait does: a Tech
  * Level its tech level's page (`TL | 4` → Tech 4), a range its distance
@@ -22,7 +34,7 @@ export function factRef(fact: { key: string; value: unknown }): EntityRef | unde
   if (fact.key === RANK_KEY)
     return /^\d+$/.test(value) ? entryRef('tech-levels', `Tech ${value}`) : undefined
   if (fact.key === 'range') return entryRef('distances', value)
-  if (/salvage ?value$/i.test(fact.key)) return glossaryRef('keywords', 'Salvage value')
+  if (/salvage ?value$/i.test(fact.key)) return keywordRef(SALVAGE_VALUE)
   return undefined
 }
 
