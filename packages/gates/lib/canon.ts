@@ -289,6 +289,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R54: ['hierarchy/bare-applink', 'hierarchy.test.ts'],
   R56: [
     'chipFill.test.ts',
+    'shelfNames.test.ts',
     'PlayLanding.connected.test.tsx',
     'GameHub.connected.test.tsx',
     'indexName.test.ts',
