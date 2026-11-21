@@ -54,6 +54,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { copyPattern, copyUnit } from '../../lib/copiedToast'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -115,7 +116,6 @@ import {
   underWith,
   who,
 } from './shelfColumns'
-import { copyPattern, copyUnit } from './shelfCopies'
 import { ShelvesPart } from './shelvesPart.model'
 
 // ---------------------------------------------------------------------------

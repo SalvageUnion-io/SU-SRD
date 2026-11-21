@@ -5,7 +5,7 @@
  * It is a pseudo-Game rather than a Game. Nobody is a member, nothing in it can
  * change, and it is the same for everyone — signed out included, because
  * reading it needs no account. Each line opens the build's read-only sheet
- * (`/starter/:kind/:id`), and, signed in, offers "Copy to…" Shelves or one of
+ * (`/starter/:kind/:id`), and, signed in, offers "Make a copy" into Shelves or one of
  * the player's Games. The copy is theirs; the template is untouched
  * (`lib/starterSet/copyStarter.ts`).
  *

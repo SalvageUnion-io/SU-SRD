@@ -12,7 +12,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    A sheet's **Related units** section lists what it is assigned to, and its companions (R70).
 4. **Move** — the same record changes container ("Move to a Game…", "Move to your Training Bay"). It is never a copy.
 5. **Make a copy** — a new, separate record (ADR-030 §2); the one label for copying wherever it is offered.
-   The Starter Set's "Copy to…" only picks where the copy lands.
+   The Starter Set's says it too: one confirm names where, and a pilot brings their mech.
 6. **Assign to** a member, and **Unassign** — who in a Game edits a pilot or mech (ADR-030 §4): the assigned member edits, the crew reads, the table runner reassigns. Never claim, pick up or own for it. A free one is **Assign to me**.
 7. **Board** — a pilot taking a mech's seat in Play (ADR-051 §3); "aboard" belongs to this, not to assignment.
    "Dock" is only the Mech Bay's function action.

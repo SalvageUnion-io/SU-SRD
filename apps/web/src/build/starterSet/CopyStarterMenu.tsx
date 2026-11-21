@@ -1,7 +1,13 @@
 /**
- * "Copy to…" on a Starter Set Compact: a Mini action chip in the Compact's last slot
- * (C8) that opens a menu (`HeaderMenu`) of where the copy may
- * go — the Training Bay, or one of the player's Games — and confirms.
+ * "Make a copy" of one Starter Set build, wherever it is offered: the sheet's
+ * band action (`MakeACopy`) and each line of the Starter Set page. One name
+ * for one act, and one confirm that names where the copy goes.
+ *
+ * A player with nowhere to copy to but the Training Bay gets a button; one in a
+ * Game gets the same words as a menu of where (the Training Bay, or one of
+ * their Games), then the same confirm. A pilot brings the mech their book
+ * pairs them with, already assigned (`copyStarterPilot`), and the confirm says
+ * so. Confirmed, the player lands on the copy.
  *
  * The destinations are the ones a build of that kind may be **moved** to
  * (`moveDestinations`, which mirrors the server's ADR-037 rules): a pilot or
@@ -15,10 +21,12 @@
 
 import { SHELF } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
-import { HeaderMenu, toast } from '../../components/index'
+import { sheetPath } from 'game-domain/entityKinds'
+import { Button, HeaderMenu, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
+import { useGo } from '../../components/shared/useGo'
 import { moveDestinations } from '../../lib/games/gameRoster'
-import { copyStarter } from '../../lib/starterSet/copyStarter'
+import { copyStarter, copyStarterPilot, starterMechOf } from '../../lib/starterSet/copyStarter'
 import {
   rosterOf,
   STARTER_SET_PUBLISHER,
@@ -35,20 +43,38 @@ type CopyStarterMenuProps = {
   name: string
   /** Opens the confirm. Owned by an ancestor that outlives the control. */
   confirm: Confirm
+  /** The sheet's one action is `full`; a line of the Starter Set page keeps `mini`. */
+  size?: 'mini' | 'full'
+  className?: string
 }
 
 type Destination = ReturnType<typeof moveDestinations>[number]
 
-function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStarterMenuProps) {
+function ConnectedCopyStarterMenu({
+  kind,
+  templateId,
+  name,
+  confirm,
+  size = 'mini',
+  className,
+}: CopyStarterMenuProps) {
   const games = useGamesQuery('games.listMine', {})
+  const go = useGo()
   const destinations = moveDestinations({ kind, current: SHELF, games: games ?? [] })
+  // A pilot's copy is the pair the page lists: the pilot and their mech.
+  const mech = kind === 'pilot' ? starterMechOf(templateId) : null
+  const what = mech === null ? name : buildStarterSetCopy('pilotAndMech', { name, mech: mech.name })
 
   function copyTo(target: Destination) {
     const to = target.container
+    // "your Training Bay" in a sentence (glossary §2); a Game by its name.
+    const where = to.kind === 'shelf' ? buildStarterSetCopy('yourTrainingBay') : target.label
     confirm({
-      title: buildStarterSetCopy('copyTo', { name, label: target.label }),
+      title: buildStarterSetCopy('copyTo', { name: what, label: where }),
       body: [
-        `This makes ${name} a build of your own in ${target.label}, to edit and play.`,
+        mech === null
+          ? buildStarterSetCopy('copyBody', { name, label: where })
+          : buildStarterSetCopy('copyPairBody', { name, mech: mech.name, label: where }),
         `The ${(rosterOf(templateId) ?? starterRoster('starter-set')).name}'s ${name} stays as ${STARTER_SET_PUBLISHER} published it. Don't want the copy later? Delete it like any other build.`,
       ],
       confirmLabel: buildStarterSetCopy('makeACopy'),
@@ -56,18 +82,41 @@ function ConnectedCopyStarterMenu({ kind, templateId, name, confirm }: CopyStart
       tone: 'default',
       failure: `${name} could not be copied. Try again.`,
       onConfirm: async () => {
-        await copyStarter(kind, templateId, to)
-        toast.success(buildStarterSetCopy('copiedTo', { name, label: target.label }))
+        const made =
+          kind === 'pilot'
+            ? await copyStarterPilot(templateId, to)
+            : await copyStarter(kind, templateId, to)
+        toast.success(buildStarterSetCopy('copiedTo', { name: what, label: where }))
+        // Land on the copy: it is the build they came for.
+        go(sheetPath(kind, made.id))
       },
     })
   }
 
+  const label = buildStarterSetCopy('makeACopy')
+  // On a page of builds each control names its own; the sheet's is the only one.
+  const named = size === 'mini' ? buildStarterSetCopy('makeACopyOfName', { name }) : undefined
+  const [only] = destinations
+  if (destinations.length === 1 && only !== undefined) {
+    return (
+      <Button
+        variant={size === 'full' ? 'primary' : 'default'}
+        size={size}
+        className={className}
+        aria-label={named}
+        onClick={() => copyTo(only)}
+      >
+        {label}
+      </Button>
+    )
+  }
   return (
     <HeaderMenu
       variant="button"
-      size="mini"
-      trigger="Copy to…"
-      label={buildStarterSetCopy('copyTo2', { name })}
+      size={size}
+      className={className}
+      trigger={label}
+      label={named ?? label}
       sections={[
         destinations.map((d) => ({
           id: serializeContainer(d.container),

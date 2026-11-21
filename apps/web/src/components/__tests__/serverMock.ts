@@ -197,8 +197,16 @@ export async function installServerMocks(options: InstallOptions = {}): Promise<
 
   if (realRouter !== null) {
     mock.module('@tanstack/react-router', () => ({
-      Link: ({ children, to }: { children: ReactNode; to: string }) =>
-        createElement('a', { href: to }, children),
+      // The link's name travels with it (`aria-label`), as `AppLink` hands it on.
+      Link: ({
+        children,
+        to,
+        'aria-label': label,
+      }: {
+        children: ReactNode
+        to: string
+        'aria-label'?: string
+      }) => createElement('a', { href: to, 'aria-label': label }, children),
       useNavigate: () => async (opts: unknown) => {
         navigations.push(opts)
       },

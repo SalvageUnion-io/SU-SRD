@@ -5,12 +5,18 @@
  * opens the copy.
  */
 
+import type { EntityKind } from 'game-domain/entityKinds'
+import type { MechPattern } from 'game-domain/schemas/pattern'
 import { toast } from '../components/index'
 import { componentsCopy } from '../messages/components'
+import { usePatterns } from '../replica/collections'
+import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
+import { copyForShelf, copyName } from './copyEntity'
+import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** Says a copy was made, until dismissed, with the way to it. */
-export function copiedToast(text: string, open: () => void): void {
+function copiedToast(text: string, open: () => void): void {
   toast.success(text, {
     duration: Number.POSITIVE_INFINITY,
     closeButton: true,
@@ -34,4 +40,37 @@ export async function makeACopy(args: {
   } catch (err) {
     toast.error(failureMessage(err, componentsCopy('couldNotBeCopied', { name: args.name })))
   }
+}
+
+type Go = (href: string) => void
+
+/** Copy one of your units onto the Training Bay, named "Copy of …". */
+export function copyUnit(
+  type: EntityKind,
+  name: string,
+  body: Parameters<typeof copyForShelf>[0],
+  go: Go
+): Promise<void> {
+  return makeACopy({
+    name,
+    make: async () => {
+      const created = await useUnits.getState().create(type, copyForShelf(body, name) as never)
+      return { name: created.name, href: `/${type}s/${created.id}` }
+    },
+    go,
+  })
+}
+
+/** Copy a saved pattern beside the original. */
+export function copyPattern(pattern: MechPattern, go: Go): Promise<void> {
+  return makeACopy({
+    name: pattern.name,
+    make: async () => {
+      const created = await usePatterns
+        .getState()
+        .create({ ...patternCopy(pattern), name: copyName(pattern.name) })
+      return { name: created.name, href: savedPatternHref(created.id) }
+    },
+    go,
+  })
 }

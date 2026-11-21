@@ -149,7 +149,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await openApp(page, '/', base)
   const pilot = await sheetPath(page, 'pilot', SEED_IN_GAME)
   const solo = await sheetPath(page, 'pilot', SEED_SOLO)
-  const mech = await sheetPath(page, 'mech')
+  // Each pilot's copy brought their mech; the seed's own is the Mazona.
+  const mech = await sheetPath(page, 'mech', 'Mazona')
   const crawler = await sheetPath(page, 'crawler')
   await seedCarried(page, base, { pilot, mech, crawler })
 
@@ -167,8 +168,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.getByRole('button', { name: `More for ${SEED_IN_GAME}` }).click()
   await page.getByRole('menuitem', { name: 'Move to a Game…' }).first().click()
   await page.getByRole('dialog').getByRole('button', { name: SEED_GAME }).click()
-  const confirm = page.getByRole('dialog').getByRole('button', { name: /^Move/ })
-  if (await confirm.count()) await confirm.first().click()
+  // Bonesaw's mech stays behind, so the move says it clears that assignment.
+  await page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
   await page.getByText(`Moved ${SEED_IN_GAME} to ${SEED_GAME}.`).first().waitFor(LONG)
 
   // An NPC, from the Veteran.

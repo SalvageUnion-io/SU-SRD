@@ -53,6 +53,8 @@ test(
         timeout: 20_000,
       })
       await moveToGame(player.page, PILOT, GAME)
+      // His mech came with the copy and stays behind: the move asks before it clears that.
+      await player.page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
       await expect(player.page.getByText(`Moved ${PILOT} to ${GAME}.`).first()).toBeVisible({
         timeout: 20_000,
       })
