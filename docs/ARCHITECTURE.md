@@ -170,6 +170,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Amends ADR-030 §6, ADR-051 §1; amended by ADR-059, ADR-062, ADR-066.
 55. **ADR-055 Crew assets are assigned, never claimed** · [full text](adr/055-crew-assets-assign.md)
     Built: in a Game the assigned member edits, the crew reads, the table runner reassigns; Game reads answer empty to ex-members.
+    A pilot's mech, held as they were, is assigned and unassigned with them.
     Amends ADR-030 §2, §4–6.
 57. **ADR-057 Usage signals and feedback** · [full text](adr/057-usage-signals-feedback.md)
     Built: daily aggregate totals and weekly counters, an admin page, feedback filed as public GitHub issues.

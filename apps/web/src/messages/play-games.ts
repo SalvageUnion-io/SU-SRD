@@ -19,6 +19,10 @@ export const playGamesCopy = messages({
     '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
     "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
+  theRestGoesHome:
+    'Anything somebody built, was handed or changed is kept: it goes back to whoever holds it, in their {build}.',
+  alsoDeleteTemplateUnits: 'Also delete the {count} it came with?',
+  alsoDeleteUntouchedUnits: 'Also delete the {count} it came with that nobody has changed?',
   you: 'You',
   nameYou: '{name} (you)',
   nobodyToHandOverTo: 'Hand over needs another member: invite a crewmate first.',
@@ -71,6 +75,7 @@ export const playGamesCopy = messages({
   assign: 'Assign',
   mechAssignedTo: 'Assigned {mech} to {pilot}.',
   mechNotAssigned: '{mech} could not be assigned. Try again.',
+  undo: 'Undo',
   broughtIn: '{name} moved into this Game.',
   broughtInMany: '{count} units moved into this Game.',
   couldNotBringIn: '{name} could not be moved. Try again.',

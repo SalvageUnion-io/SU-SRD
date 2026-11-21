@@ -385,6 +385,41 @@ describe('the sections under the roster', () => {
     expect(navigations).toEqual([{ to: '/games' }])
   })
 
+  // MD2-02: a template tried and deleted left its thirteen units in the Training Bay.
+  test('a template Game offers to take its untouched units, ticked when none was changed', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, templateUnits: { came: 13, untouched: 13 } },
+    })
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
+    const also = screen.getByRole('checkbox', {
+      name: 'Also delete the 13 units it came with?',
+    }) as HTMLInputElement
+    expect(also.checked).toBe(true)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
+    })
+    expect(mutations).toEqual([
+      { name: 'games.destroy', args: { gameId: 'g1', dropTemplateUnits: true } },
+    ])
+  })
+
+  test('with one of them changed the offer is unticked and counts only the untouched', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, templateUnits: { came: 13, untouched: 11 } },
+    })
+    await openGameMenu()
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Delete this Game…' }))
+    const also = screen.getByRole('checkbox', {
+      name: 'Also delete the 11 units it came with that nobody has changed?',
+    }) as HTMLInputElement
+    expect(also.checked).toBe(false)
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
+    })
+    expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
+  })
+
   test('a game with no crawler does not promise one', async () => {
     await renderHub({ 'games.get': { ...GAME, organizer: true, crawlerName: null, pilotCount: 0 } })
     await openGameMenu()
@@ -446,6 +481,30 @@ describe('the seats, on the Pilots rows', () => {
     expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Seats')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
+  })
+})
+
+// MD2-10: a template Game listed every mech twice.
+describe('a free pair, as a template’s arrive', () => {
+  const pair = (mechOwner: string | null) => ({
+    pilots: [{ _id: 'p2', appId: 'a-p2', ownerId: null, body: { id: 'a-p2', callsign: 'Hotdog' } }],
+    mechs: [{ _id: 'm2', appId: 'a-m2', ownerId: mechOwner, body: { id: 'a-m2', name: 'Mule' } }],
+    crawlers: [],
+    softLinks: [{ type: 'mech-to-pilot', from: { id: 'a-m2' }, to: { id: 'a-p2' }, gameId: 'g1' }],
+  })
+
+  test('the mech is listed on its pilot’s line only, not under Mechs with no Pilot', async () => {
+    await renderHub({ 'games.listing': pair(null) })
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    expect(drawnText(crew)).toContain('in Mule')
+    expect(drawnText(crew).split('Mule')).toHaveLength(2)
+    expect(within(crew).queryByText('Mechs with no Pilot')).toBeNull()
+  })
+
+  test('held apart from its pilot, the mech keeps a line of its own', async () => {
+    await renderHub({ 'games.listing': pair('u2') })
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    expect(drawnText(crew).split('Mule').length).toBeGreaterThan(2)
   })
 })
 

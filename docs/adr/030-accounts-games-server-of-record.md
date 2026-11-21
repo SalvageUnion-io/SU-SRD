@@ -160,6 +160,15 @@ A shelved crawler takes an owner (`null`/`null` stays invalid). What goes is
 the table: memberships, invites, the opposition tray and the soft links, so
 shelved entities land unwired.
 
+**A template's untouched units are the one exception, and only when asked.**
+A Game made from a template arrives with units nobody built. The delete
+dialog offers "Also delete the N units it came with?", ticked when every one
+of them is still as it arrived (unassigned, no op applied); ticked, those end
+with the Game instead of landing on the Organizer's shelf
+(`games.destroy`'s `dropTemplateUnits`). A unit somebody was handed or changed
+is never among them. Nothing is stored for this: a template unit is one made
+in the Game's first moment.
+
 ## The Change Log
 
 The log is synchronized, with `actorId`, a `state` of
