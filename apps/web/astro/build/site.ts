@@ -14,6 +14,7 @@ import type { AstroIntegration } from 'astro'
 import type { VitePluginPWAAPI } from 'vite-plugin-pwa'
 import { writePublicPages } from './appPlugins'
 import { assertUrlSafeAssets } from './assetNames'
+import { assertNoDeadAnchors } from './deadAnchors'
 import { assertNoDeadLinks } from './deadLinks'
 import { executableInlineScripts, scriptHash, withScriptHashes } from './inlineScripts'
 import { assertNoUuidLinks } from './linkAudit'
@@ -87,6 +88,7 @@ export function site({ pwa }: { pwa: () => VitePluginPWAAPI | undefined }): Astr
         await assertUrlSafeAssets(distDir)
         await assertNoUuidLinks(distDir)
         await assertNoDeadLinks(distDir, await readFile(ROUTE_TREE, 'utf-8'))
+        await assertNoDeadAnchors(distDir)
 
         writePublicPages(distDir, process.env.VITE_SITE_ORIGIN)
 
