@@ -72,6 +72,13 @@ describe('ruleEngine.evaluate', () => {
     expect(formatFailures(v, 'UPDATE').join('\n')).toContain('run: UPDATE')
   })
 
+  test('a set that takes no exemptions says so, never where to add one', () => {
+    const { exemptionsLive: _, ...bare } = SET
+    const text = formatFailures(evaluate(bare, { z: finding(1), r: [] }, {}), 'UPDATE').join('\n')
+    expect(text).toContain('takes no exemptions')
+    expect(text).not.toContain('EXEMPTIONS entry')
+  })
+
   test('a missing baseline entry means zero allowed', () => {
     const v = evaluate(SET, { z: [], r: finding(1) }, {})
     expect(v.rules.find((r) => r.rule.id === 'r')?.problem).toBe('regressed')

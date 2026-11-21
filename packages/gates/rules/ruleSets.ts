@@ -13,7 +13,7 @@ import { copyTerms } from './copyTerms'
 import { designTokens } from './designTokens'
 import { entityNesting } from './entityNesting'
 import { hierarchy } from './hierarchy'
-import { importantRatchet } from './importantRatchet'
+import { noImportant } from './noImportant'
 import { selectMode } from './selectMode'
 import { srdCss } from './srdCss'
 import { stylingOwnership } from './stylingOwnership'
@@ -27,7 +27,7 @@ export const RULE_SETS: readonly RuleSet[] = [
   srdCss,
   toneGround,
   classPrefix,
-  importantRatchet,
+  noImportant,
   entityNesting,
   chromeLaws,
   selectMode,

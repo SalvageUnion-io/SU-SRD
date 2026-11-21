@@ -59,8 +59,9 @@ export type RuleSet = {
   preflight?: (root: string) => void
   /** Every rule's findings, keyed by rule id. Pure given `root`. */
   scan: (root: string) => Record<string, Finding[]>
-  /** Where a genuinely-correct case is declared, printed after a failure. */
-  exemptionsLive: string
+  /** Where a genuinely-correct case is declared, printed after a failure; none
+   *  for a set that takes no exemptions. */
+  exemptionsLive?: string
   /** A line printed on success, after the count summary. */
   summary?: (root: string) => string
 }
@@ -260,10 +261,14 @@ export function formatFailures(verdict: SetVerdict, updateCommand: string): stri
     )
   }
   if (verdict.rules.some((r) => r.problem === 'nonzero' || r.problem === 'regressed')) {
-    lines.push(
-      `A genuinely-correct case needs an EXEMPTIONS entry in ${verdict.set.exemptionsLive}`
-    )
-    lines.push('(with a reason), not a higher number.', '')
+    if (verdict.set.exemptionsLive === undefined) {
+      lines.push('This law takes no exemptions: make the fix above.', '')
+    } else {
+      lines.push(
+        `A genuinely-correct case needs an EXEMPTIONS entry in ${verdict.set.exemptionsLive}`
+      )
+      lines.push('(with a reason), not a higher number.', '')
+    }
   }
   return lines
 }
