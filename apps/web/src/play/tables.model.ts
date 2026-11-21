@@ -6,15 +6,13 @@
  * "Roll a table…" search away (`findTables`).
  *
  * A rumour table is an adventure's own (False Flag p.8), never the core
- * book's: it is offered only at a table playing that adventure
- * (`rumourTableFor`), under its book's name.
+ * book's, so it is never pinned: Gather Cantina Rumours rolls a plain d20.
  *
  * Boarded in a Bio-Chassis, the fight pins its own Damage and Overload tables
  * in place of Critical Damage and Reactor Overload (We Were Here First
  * pp.78-79).
  */
 
-import { SalvageUnionReference } from 'salvageunion-reference'
 import type { OverloadTable } from 'salvageunion-reference/rules'
 import { damageTableName, overloadTableName } from 'salvageunion-reference/rules'
 
@@ -31,20 +29,6 @@ export const CORE_MECHANIC_TABLE = COMBAT_TABLES[0]
 
 /** Downtime's tables. */
 const DOWNTIME_TABLES = ['Core Mechanic', 'Critical Injury'] as const
-
-/** The roll table an adventure prints its Cantina rumours in, by its name in the reference data. */
-const RUMOUR_TABLE = 'Rumour'
-
-/**
- * The rumour table of the adventure a Game is playing, and the book it is
- * from; null for any other table (a solo pilot, a Game on no adventure or on
- * one that prints none), which rolls a plain d20 for the Mediator to answer.
- */
-export function rumourTableFor(adventure: string | null): { table: string; book: string } | null {
-  if (adventure === null) return null
-  const table = SalvageUnionReference.RollTables.getByName(RUMOUR_TABLE)
-  return table && table.source === adventure ? { table: table.name, book: table.source } : null
-}
 
 /** The tables pinned for this Situation, the fight's for the mech's tables. */
 export function pinnedTables(

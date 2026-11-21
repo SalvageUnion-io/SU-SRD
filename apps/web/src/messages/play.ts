@@ -391,7 +391,6 @@ export const playCopy = messages({
   gatherCantinaRumours: 'Gather Cantina Rumours',
   rollD20: 'Roll d20',
   rumourPlainRoll: 'The Mediator says what you hear.',
-  tableOfBook: '{table} · {book}',
   findWordsReactor: 'Push Heat Check Vent Shutdown Shut down',
   findWordsMount: 'Board Dismount Eject',
   outOfRangeAt: 'Out of Range at {range}',
