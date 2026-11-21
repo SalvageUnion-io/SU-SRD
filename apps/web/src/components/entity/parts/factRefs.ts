@@ -58,3 +58,17 @@ export function factRef(fact: { key: string; value: unknown }): EntityRef | unde
 export function actionTypeRef(name: string): EntityRef | undefined {
   return glossaryRef('keywords', name)
 }
+
+/** What a cost is paid in, by its abbreviation, each with its keyword's slug. */
+const COST_KEYWORDS: Readonly<Record<string, string>> = {
+  AP: 'ability-points',
+  EP: 'energy-points',
+  HP: 'hit-points',
+  SP: 'structure-points',
+}
+
+/** The keyword a cost box's currency names (`4 AP` → Ability Points): what the box links to. */
+export function costRef(currency: string): EntityRef | undefined {
+  const slug = COST_KEYWORDS[currency.trim().toUpperCase()]
+  return slug ? keywordRef(slug) : undefined
+}
