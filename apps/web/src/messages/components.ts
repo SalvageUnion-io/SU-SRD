@@ -4,6 +4,10 @@ import { messages } from './define'
 
 export const componentsCopy = messages({
   undo: 'Undo',
+  // Make a copy runs at once; its notice stays, with the way to the copy.
+  madeCopy: 'Made {name}.',
+  openTheCopy: 'Open the copy',
+  couldNotBeCopied: '{name} could not be copied. Try again.',
   changedTo: 'to',
   legendary: 'Legendary',
   advance: 'Advance',
