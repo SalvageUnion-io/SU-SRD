@@ -273,6 +273,12 @@
   padding-inline-end: var(--su-roll-tag-room);
 }
 
+/* A label as long as its line (a narrow column's "Catastrophic Damage") wraps
+   before the pennant, never under it. */
+.su-roll__row[data-rolled] .su-roll__head {
+  padding-inline-end: calc(var(--su-roll-tag-room) - var(--space-12));
+}
+
 .su-roll .su-roll__bar {
   align-items: center;
   background-color: var(--su-kind, var(--color-ink));

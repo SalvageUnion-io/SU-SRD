@@ -59,6 +59,7 @@ export function PlayTablesSection({
   prepared,
   mechTables,
   onField,
+  actions,
 }: SideSectionProps & {
   downtime: boolean
   solo: boolean
@@ -66,9 +67,11 @@ export function PlayTablesSection({
   mechTables?: OverloadTable
   /** The Mediator's: field a rolled encounter row on the Opposition. */
   onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
+  /** The head's own control: the Mediator's Private rolls switch. */
+  actions?: ReactNode
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('rolls')}>
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('rolls')} actions={actions}>
       <PlayTables
         downtime={downtime}
         mechTables={mechTables}
@@ -87,14 +90,20 @@ export function PlayFeedSection({
   side,
   idPrefix,
   canWrite,
-  actions,
+  own = false,
 }: SideSectionProps & {
   canWrite: boolean
-  /** The head's own control: the Mediator's Private rolls switch. */
-  actions?: ReactNode
+  /** The Feed scrolls its own lines under its head (`.su-play-split__feed`), from `lg`. */
+  own?: boolean
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-feed`} title={playCopy('feed')} actions={actions}>
+    <SlabSection
+      as="h2"
+      id={`${idPrefix}-feed`}
+      title={playCopy('feed')}
+      className={own ? 'su-play-split__feed' : undefined}
+      bodyClassName={own ? 'su-play-split__lines' : undefined}
+    >
       <PlayFeed
         gameId={side.gameId}
         entries={side.entries}

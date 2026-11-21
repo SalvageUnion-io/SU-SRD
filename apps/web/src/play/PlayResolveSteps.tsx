@@ -137,7 +137,8 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
       />
       {controls.push?.lockedReason && <p style={NOTE}>{controls.push.lockedReason}</p>}
 
-      <div className="su-play-resolve__steps">
+      {/* The ways forward stay on screen under the table, however long it is (r2 I3). */}
+      <div className="su-play-resolve__steps su-play-resolve__forward">
         <Button
           size="compact"
           style={GROW}

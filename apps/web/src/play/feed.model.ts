@@ -13,11 +13,11 @@
  * dropped: the screen's copy carries its Discord post state.
  */
 
-import { fieldLabel } from 'game-domain/games/proposals'
 import { playCopy } from '../messages/play'
 import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
+import { proposalChange } from './proposalAnswer.model'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
 
 export type FeedEntry =
@@ -31,14 +31,19 @@ export type FeedEntry =
       /** "Mediator proposes Bonesaw HP → 5". */
       text: string
       reason: string | null
+      /** The proposal itself: what an accepted one's Undo writes back. */
+      proposal: PendingProposal
     }
   | { kind: 'alert'; key: string; ts: number; text: string }
   /** What a member did at the table (`rooms/game/events.ts`): a vital, an action, boarding, the session. */
   | { kind: 'event'; key: string; ts: number; text: string }
-  /** A crewmate's roll, from the Game's log. */
-  | { kind: 'roll'; key: string; ts: number; text: string }
+  /**
+   * A crewmate's roll, from the Game's log. `reveal` is the roll's id on a
+   * Mediator's copy of a veiled one (ADR-051 §9b): theirs to show the table.
+   */
+  | { kind: 'roll'; key: string; ts: number; text: string; reveal?: string }
   /** A roll or a change made on this screen: "You · Core Mechanic · 14 · Success". */
-  | { kind: 'mine'; key: string; ts: number; text: string; roll: PlayRoll }
+  | { kind: 'mine'; key: string; ts: number; text: string; roll: PlayRoll; reveal?: string }
 
 export type FeedSources = {
   /** The Game's rolls, newest first; null solo or while loading. */
@@ -73,13 +78,12 @@ function asMine(text: string): string {
   return text.startsWith(mediator) ? `${playCopy('feedYou')} ${text.slice(mediator.length)}` : text
 }
 
-function show(value: unknown): string {
-  return value === null || value === undefined ? '—' : String(value)
-}
-
-/** "Bonesaw HP → 5": a proposal stores no before (ADR-030 §4), so only what it asks. */
-function proposalChange(p: PendingProposal): string {
-  return `${p.targetName ?? p.entityType} ${fieldLabel(p.field)} → ${show(p.after)}`
+/**
+ * "Bonesaw HP 7 → 5": a proposal stores no before (ADR-030 §4), so the from is
+ * the sheet as the room read it when it served this (`proposalChange`).
+ */
+function proposalWhat(p: PendingProposal): string {
+  return `${p.targetName ?? p.entityType} ${proposalChange(p)}`
 }
 
 /** One of my entries as its Feed line reads: "You · 120mm Cannon · 14 · Success". */
@@ -104,8 +108,13 @@ export function playFeedEntries({
 }: FeedSources): FeedEntry[] {
   const said = (e: TableEvent) =>
     viewerId !== null && e.actorId === viewerId && MEDIATORS.has(e.kind) ? asMine(e.text) : e.text
-  const echoes = new Set(
-    mine.filter(isDiceRoll).map((r) => `${r.at}|${playRollDescription(rollerName, r)}`)
+  const echoKey = (r: PlayRoll) => `${r.at}|${playRollDescription(rollerName, r)}`
+  const echoes = new Set(mine.filter(isDiceRoll).map(echoKey))
+  // The log's copy of a veiled roll this screen holds: its id is what Reveal names.
+  const veiledEchoes = new Map(
+    (events ?? [])
+      .filter((e) => e.kind === 'roll' && e.veiled === true)
+      .map((e) => [`${e.ts}|${e.text}`, e._id])
   )
   const pending: FeedEntry[] = [...proposals]
     .sort((a, b) => b.ts - a.ts)
@@ -114,8 +123,9 @@ export function playFeedEntries({
       key: `proposal-${p._id}`,
       ts: p.ts,
       proposalId: p._id,
-      change: proposalChange(p),
-      text: playCopy('mediatorProposes', { what: proposalChange(p) }),
+      change: proposalWhat(p),
+      text: playCopy('mediatorProposes', { what: proposalWhat(p) }),
+      proposal: p,
       reason: p.reason,
     }))
   // A roll of mine this screen no longer holds (made before a reload, or on
@@ -136,6 +146,7 @@ export function playFeedEntries({
               key: `event-${e._id}`,
               ts: e.ts,
               text: e.kind === 'roll' ? rollText(e.text, e.private) : said(e),
+              ...(e.kind === 'roll' && e.veiled === true ? { reveal: e._id } : {}),
             })
           )
       : [
@@ -160,9 +171,17 @@ export function playFeedEntries({
         ]
   const rest: FeedEntry[] = [
     ...logged,
-    ...mine.map(
-      (r): FeedEntry => ({ kind: 'mine', key: r.id, ts: r.at, text: mineText(r), roll: r })
-    ),
+    ...mine.map((r): FeedEntry => {
+      const reveal = veiledEchoes.get(echoKey(r))
+      return {
+        kind: 'mine',
+        key: r.id,
+        ts: r.at,
+        text: mineText(r),
+        roll: r,
+        ...(reveal === undefined ? {} : { reveal }),
+      }
+    }),
   ].sort((a, b) => b.ts - a.ts)
   return [...pending, ...rest]
 }

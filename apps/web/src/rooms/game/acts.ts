@@ -88,6 +88,8 @@ const GAME_ACTS = {
   },
   'ops.decline': (c: ActContext, a: { opId: string }) =>
     c.room.proposals.declineProposal(c.actor, a.opId),
+  'ops.withdraw': (c: ActContext, a: { opId: string }) =>
+    c.room.proposals.withdraw(c.actor, a.opId),
 
   'seats.forGame': (c: ActContext) => c.room.play.seats(c.actor),
   'seats.board': (c: ActContext, a: SeatArgs & { mechId: string }) =>
@@ -104,7 +106,12 @@ const GAME_ACTS = {
     c.room.play.clearResolving(c.actor, a.pilotId, c.at),
 
   'downtime.state': (c: ActContext) => c.room.play.downtime(c.actor),
-  'downtime.begin': (c: ActContext) => c.room.play.beginDowntime(c.actor, c.at),
+  'downtime.begin': (c: ActContext) => {
+    const began = c.room.play.beginDowntime(c.actor, c.at)
+    // A turn is a Scene's: nobody is up in Downtime (r2 E1).
+    if (began) c.room.scene.clearUpNow(c.at)
+    return began
+  },
   'downtime.advance': (c: ActContext) => c.room.play.advanceDowntime(c.actor),
   'downtime.setStep': (c: ActContext, a: { stepIndex: number }) =>
     c.room.play.setDowntimeStep(c.actor, a.stepIndex),
@@ -116,6 +123,8 @@ const GAME_ACTS = {
     c.room.log.append(c.actor, a.entries),
   'changeLog.broadcast': (c: ActContext, a: { message: string }) =>
     c.room.log.broadcast(c.actor, a.message, c.at),
+  'changeLog.reveal': (c: ActContext, a: { rollId: string }) =>
+    c.room.log.reveal(c.actor, a.rollId),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
   'changeLog.alerts': (c: ActContext) => c.room.log.alerts(c.actor),
   'changeLog.events': (c: ActContext) => c.room.events.list(c.actor),
@@ -162,7 +171,11 @@ const GAME_ACTS = {
   'plan.set': (c: ActContext, a: { plan: unknown }) => c.room.plan.write(c.actor, a.plan, c.at),
   'session.state': (c: ActContext) => c.room.session.session(c.actor),
   'session.start': (c: ActContext) => c.room.session.start(c.actor, c.at),
-  'session.end': (c: ActContext) => c.room.session.end(c.actor),
+  'session.end': (c: ActContext) => {
+    c.room.session.end(c.actor)
+    // The table got up: nobody is up now (r2 E1).
+    c.room.scene.clearUpNow(c.at)
+  },
   'safety.showStop': (c: ActContext) => c.room.safety.showStop(c.actor, c.at),
   'safety.liftStop': (c: ActContext) => c.room.safety.liftStop(c.actor, c.at),
 

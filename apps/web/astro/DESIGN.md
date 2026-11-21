@@ -45,6 +45,7 @@ Canonical URLs always carry a trailing slash.
 | `MobileSearchIsland` | interaction | **true** | chrome |
 | `MobileNavIsland` | interaction | **true** | chrome; props designed out |
 | `AccountIsland`, `AccountAvatarIsland` | idle | false | chrome, `when="signed-in"`: the shared account menu; Sign in is static markup |
+| `SessionBarIsland` | idle | false | chrome, `when="signed-in"`: "Session live" and its door (`games.liveSessions`) |
 | `SchemaViewerIsland` | interaction | **true** | SEO: the island's own band and listing |
 | `ReferenceEntityIsland` | visible | **true** | the stand-in is the static card itself (`EntityView`); swaps in once its data is loaded |
 | `RollTableIsland` | idle | **true** | `hydrate`: the bands are content |

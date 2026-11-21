@@ -308,6 +308,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'PlayLanding.connected.test.tsx',
     'GameHub.connected.test.tsx',
     'indexName.test.ts',
+    'PlaySide.connected.test.tsx',
   ],
   R57: ['Sheet-pilot-hero.test.tsx'],
   R58: ['StatusBadge.test.tsx', 'CrawlerSheet-editable.test.tsx'],

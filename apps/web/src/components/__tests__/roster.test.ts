@@ -52,6 +52,7 @@ const ROSTER = {
     'ToasterMount',
     'toast',
     'toastRoll',
+    'holdToastsOnTop', // K5 a screen whose foot is controls (Play's tabs) holds its toasts over the bar
     'Banner',
     'FieldError',
     'CopiedIcon',

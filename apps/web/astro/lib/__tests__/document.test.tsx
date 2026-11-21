@@ -140,6 +140,7 @@ describe('collected islands', () => {
       'MobileSearchIsland:interaction',
       'AccountAvatarIsland:idle',
       'MobileNavIsland:interaction',
+      'SessionBarIsland:idle',
       'PeekIsland:interaction',
     ])
     // …and none of them carries props. MobileNavIsland taking zero props is

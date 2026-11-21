@@ -77,4 +77,9 @@ export const islandsCopy = messages({
   filters: 'Filters',
   referenceAndCharacterManager: 'Reference and Character Manager',
   nameFilter: 'name filter',
+  yourGames: 'Your Games',
+  sessionLiveIn: 'Session live · {game}',
+  joinSession: 'Join session',
+  dismiss: 'Dismiss',
+  dismissWhat: 'Dismiss: {what}',
 })

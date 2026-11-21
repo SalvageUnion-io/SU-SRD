@@ -50,6 +50,7 @@ import {
   TitledBox,
   tokens,
 } from '../components/index'
+import { changeUndoToast } from '../lib/changeUndoToast'
 import { resolveClassName } from '../lib/classRef'
 import { activatableEffects } from '../lib/rules/activatableEffects'
 import { runWrite } from '../lib/runWrite'
@@ -110,20 +111,30 @@ function Relations({ items }: { items: readonly TagItem[] }) {
 
 /**
  * One fire-and-forget vital write, as the sheet sends it: `vital(field, shown,
- * max)` is a gauge's `onChange`, each press a step from where the vital is
- * heading (`vitalWrites.model`), so quick presses all apply.
+ * max, label)` is a gauge's `onChange`, each press a step from where the
+ * vital is heading (`vitalWrites.model`), so quick presses all apply.
+ *
+ * The change says itself with Undo, as the phone's pinned strip does
+ * ("HP 10 → 8 · Undo", `changeUndoToast`; r2 C6), on the vital's one line
+ * (`PlayCockpit`'s key), with the amount entry's note when it was capped.
  */
 function writer<K extends 'pilot' | 'mech' | 'crawler'>(store: UnitStore, kind: K, id: string) {
-  return (field: keyof EntityForType<K> & string, shown: number, max: number) => (next: number) => {
-    const key = `${id}:${field}`
-    const patch = { [field]: headedVital(key, shown, next, max) } as Partial<EntityForType<K>>
-    runWrite(() =>
-      store
-        .getState()
-        .update(kind, id, patch, PLAY_TXN)
-        .finally(() => vitalSettled(key))
-    )
-  }
+  const write = (field: string, value: number) =>
+    store.getState().update(kind, id, { [field]: value } as Partial<EntityForType<K>>, PLAY_TXN)
+  return (field: keyof EntityForType<K> & string, shown: number, max: number, label: string) =>
+    (next: number, note?: string) => {
+      const key = `${id}:${field}`
+      const to = headedVital(key, shown, next, max)
+      runWrite(() => write(field, to).finally(() => vitalSettled(key)))
+      changeUndoToast({
+        id: `${kind}:${id}:${field}`,
+        label,
+        from: shown,
+        to,
+        ...(note === undefined ? {} : { did: note }),
+        undo: (value) => runWrite(() => write(field, value)),
+      })
+    }
 }
 
 /** "Sheet", putting the unit’s sheet on the screen (`useOpenSheet`), a chip on the box’s band: Mini, the band's Size (ruleset §4.7). */
@@ -184,7 +195,7 @@ export function PlayPilotUnit({
           value={hp.value}
           max={hp.max}
           tone="pilot"
-          onChange={live ? vital('currentHP', hp.value, hp.max) : undefined}
+          onChange={live ? vital('currentHP', hp.value, hp.max, playCopy('hp')) : undefined}
         />
       ) : null}
       {ap ? (
@@ -193,7 +204,7 @@ export function PlayPilotUnit({
           value={ap.value}
           max={ap.max}
           tone="pilot"
-          onChange={live ? vital('currentAP', ap.value, ap.max) : undefined}
+          onChange={live ? vital('currentAP', ap.value, ap.max, playCopy('ap2')) : undefined}
         />
       ) : null}
       <div style={CHIPS}>
@@ -308,7 +319,7 @@ export function PlayMechUnit({
         max={s.maxSP}
         tone="mech"
         restoresTo={restore.sp}
-        onChange={live ? vital('currentSP', s.sp, s.maxSP) : undefined}
+        onChange={live ? vital('currentSP', s.sp, s.maxSP, playCopy('sp')) : undefined}
       />
       <PlayVital
         label={playCopy('ep2')}
@@ -316,7 +327,7 @@ export function PlayMechUnit({
         max={s.maxEP}
         tone="mech"
         restoresTo={restore.ep}
-        onChange={live ? vital('currentEP', s.ep, s.maxEP) : undefined}
+        onChange={live ? vital('currentEP', s.ep, s.maxEP, playCopy('ep2')) : undefined}
       />
       {showHeat ? (
         <PlayVital
@@ -326,7 +337,7 @@ export function PlayMechUnit({
           tone="mech"
           danger={s.maxHeat > 0 ? heatDangerFrom(s.maxHeat) : undefined}
           restoresTo={restore.heat}
-          onChange={live ? vital('currentHeat', s.heat, s.maxHeat) : undefined}
+          onChange={live ? vital('currentHeat', s.heat, s.maxHeat, playCopy('heat')) : undefined}
         />
       ) : null}
       {effects.length > 0 ? (
@@ -425,7 +436,7 @@ export function PlayCrawlerUnit({
         value={sp.value}
         max={sp.max}
         tone="crawler"
-        onChange={live ? vital('currentSP', sp.value, sp.max) : undefined}
+        onChange={live ? vital('currentSP', sp.value, sp.max, playCopy('sp')) : undefined}
       />
       {downtime ? (
         <div style={CHIPS}>

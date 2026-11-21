@@ -1,7 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
 import {
+  endedSession,
   eventsToToast,
+  gamesGone,
+  leavingOnPurpose,
+  myTurn,
+  onGamePages,
   pausedTitle,
   pinnedAlert,
   pinnedRole,
@@ -23,38 +28,57 @@ describe('eventsToToast', () => {
     expect(first.heard.get('a')).toBe('Nell · HP 8 → 5')
   })
 
-  test('a new event from someone else toasts once; a merged repeat toasts again under its id', () => {
+  const alert = (over: Partial<TableEvent> & { _id: string }) =>
+    event({ kind: 'alert', text: 'Mediator · Raiders close in', actorId: 'gm', ...over })
+
+  test('a new event that needs a look toasts once; a rewritten line toasts again under its id', () => {
     const { heard } = eventsToToast([], null, 'me')
-    const one = eventsToToast([event({ _id: 'a' })], heard, 'me')
+    const one = eventsToToast([alert({ _id: 'a' })], heard, 'me')
     expect(one.toast.map((e) => e._id)).toEqual(['a'])
-    expect(eventsToToast([event({ _id: 'a' })], one.heard, 'me').toast).toEqual([])
-    const merged = event({ _id: 'a', text: 'Nell · HP 8 → 3' })
-    expect(eventsToToast([merged], one.heard, 'me').toast).toEqual([merged])
+    expect(eventsToToast([alert({ _id: 'a' })], one.heard, 'me').toast).toEqual([])
+    // A veiled roll revealed: its line changed, so its toast updates in place.
+    const veiled = event({ _id: 'r', kind: 'roll', text: 'Mediator rolled · 9', mediator: true })
+    const rolled = eventsToToast([veiled], one.heard, 'me')
+    expect(rolled.toast).toEqual([veiled])
+    const shown = { ...veiled, text: 'Mediator · Veteran · Rifle · 9' }
+    expect(eventsToToast([shown], rolled.heard, 'me').toast).toEqual([shown])
+  })
+
+  test('crew toasts are quiet (r2 C4): a crewmate’s vitals, actions, boarding and rolls go to the Feed alone', () => {
+    const { heard } = eventsToToast([], null, 'me')
+    const quiet = [
+      event({ _id: 'v' }),
+      event({ _id: 'a', kind: 'action', text: 'Nell uses Crush' }),
+      event({ _id: 'b', kind: 'board', text: 'Nell boards Reaper' }),
+      event({ _id: 'as', kind: 'assign', text: 'Razor is assigned to Nell' }),
+      event({ _id: 'j', kind: 'join', text: 'Nell joined the Game' }),
+      event({ _id: 'r', kind: 'roll', text: 'Nell · Core Mechanic · 14 · Success' }),
+    ]
+    expect(eventsToToast(quiet, heard, 'me').toast).toEqual([])
+    const loud = [
+      event({ _id: 'p', kind: 'proposal', text: 'Mediator proposes Nell HP → 5', ts: 1 }),
+      alert({ _id: 'al', ts: 2 }),
+      event({ _id: 's', kind: 'session', text: 'Med started the group session', ts: 3 }),
+      event({ _id: 'd', kind: 'downtime', text: 'Med began Downtime', ts: 4 }),
+      event({ _id: 'mr', kind: 'roll', text: 'Mediator rolled · 9', mediator: true, ts: 5 }),
+    ]
+    expect(eventsToToast([...quiet, ...loud], heard, 'me').toast.map((e) => e._id)).toEqual([
+      'p',
+      'al',
+      's',
+      'd',
+      'mr',
+    ])
   })
 
   test('never my own act, and never the Stop Sign, which the banner says', () => {
     const { heard } = eventsToToast([], null, 'me')
     const events = [
-      event({ _id: 'mine', actorId: 'me' }),
+      alert({ _id: 'mine', actorId: 'me' }),
       event({ _id: 'stop', kind: 'stop', actorId: null }),
-      event({ _id: 'theirs', ts: 2 }),
+      alert({ _id: 'theirs', ts: 2 }),
     ]
     expect(eventsToToast(events, heard, 'me').toast.map((e) => e._id)).toEqual(['theirs'])
-  })
-
-  // MD-23: the unit's old holder is told in their own words
-  // (`assignmentNotices`), so the table's line is not a second toast for them.
-  test('an assignment taken from me is not toasted twice; everyone else hears the line', () => {
-    const { heard } = eventsToToast([], null, 'me')
-    const taken = event({
-      _id: 'un',
-      kind: 'assign',
-      text: 'Razor is unassigned',
-      actorId: 'gm',
-      about: 'me',
-    })
-    expect(eventsToToast([taken], heard, 'me').toast).toEqual([])
-    expect(eventsToToast([taken], heard, 'nell').toast).toEqual([taken])
   })
 })
 
@@ -98,10 +122,67 @@ describe('pinnedAlert', () => {
     expect(pinnedAlert([alert], new Set(), 'me', 1000 + 10 * 60_000)).toBeNull()
     expect(pinnedAlert([alert], new Set(), 'gm', 2000)).toBeNull()
   })
+
+  test('it clears when a new session starts (r2 C5)', () => {
+    const start = (ts: number) =>
+      event({ _id: `s${ts}`, kind: 'session', session: 'start', actorId: 'gm', ts })
+    // Sent during the running session: pinned.
+    expect(pinnedAlert([start(500), alert], new Set(), 'me', 2000)).toBe(alert)
+    // The next session began after it: last session's, so gone.
+    expect(pinnedAlert([start(500), alert, start(1500)], new Set(), 'me', 2000)).toBeNull()
+  })
+})
+
+describe('the session’s end (r2 C5)', () => {
+  const end = event({ _id: 'e', kind: 'session', session: 'end', actorId: 'gm', ts: 1000 })
+
+  test('it is news to the other members, never to whoever ended it', () => {
+    expect(endedSession([end], 2000, 'me')).toBe(1000)
+    expect(endedSession([end], 2000, 'gm')).toBeNull()
+    expect(endedSession([end], 1000 + 10 * 60_000, 'me')).toBeNull()
+  })
+
+  test('and only on that Game’s pages', () => {
+    const pages = (path: string) => onGamePages(path, '/games/g1', ['/pilots/p1'])
+    expect(pages('/games/g1/')).toBe(true)
+    expect(pages('/games/g1/mediate')).toBe(true)
+    expect(pages('/pilots/p1/play')).toBe(true)
+    expect(pages('/pilots/p1')).toBe(true)
+    expect(pages('/games/g10')).toBe(false)
+    expect(pages('/games/g2')).toBe(false)
+    expect(pages('/build/encounters/e1')).toBe(false)
+    expect(pages('/pilots/p2/play')).toBe(false)
+  })
+})
+
+describe('myTurn (r2 E1)', () => {
+  const pilots = [{ id: 'p1' }, { id: 'p2' }]
+  test('the viewer’s own pilot the Mediator marked, or nobody', () => {
+    expect(myTurn('p2', pilots)).toEqual({ id: 'p2' })
+    expect(myTurn('p9', pilots)).toBeNull()
+    expect(myTurn(undefined, pilots)).toBeNull()
+  })
 })
 
 test('the paused title wears its prefix once, and loses it on resume', () => {
   expect(pausedTitle('Play', 'Paused · ')).toBe('Paused · Play')
   expect(pausedTitle('Paused · Play', 'Paused · ')).toBe('Paused · Play')
   expect(resumedTitle('Paused · Play', 'Paused · ')).toBe('Play')
+})
+
+describe('gamesGone (r2 B4)', () => {
+  const rust = { _id: 'g1', name: 'Rust Choir' }
+  const coast = { _id: 'g2', name: 'Rust Coast' }
+
+  test('a Game the viewer is in no longer is told once', () => {
+    expect(gamesGone([rust, coast], [coast])).toEqual([rust])
+    expect(gamesGone([coast], [coast])).toEqual([])
+  })
+
+  test('never their own leaving, and a leave that failed is forgotten', () => {
+    leavingOnPurpose('g1')
+    expect(gamesGone([rust], [])).toEqual([])
+    leavingOnPurpose('g1')()
+    expect(gamesGone([rust], [])).toEqual([rust])
+  })
 })

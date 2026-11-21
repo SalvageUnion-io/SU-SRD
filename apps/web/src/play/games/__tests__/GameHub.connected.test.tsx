@@ -280,10 +280,25 @@ describe('the sections under the roster', () => {
         within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Remove' })
       )
     })
+    // The link they were sent is reset with them, unless unticked (r2 B4).
+    expect(mutations).toEqual([
+      { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
+      { name: 'invites.reset', args: { gameId: 'g1' } },
+    ])
+    expect(navigations).toEqual([])
+
+    mutations.length = 0
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Beefcake from this Game' }))
+    const removing = within(screen.getByRole('alertdialog'))
+    const tick = removing.getByRole('checkbox', { name: 'Reset the invite link too' })
+    expect((tick as HTMLInputElement).checked).toBe(true)
+    fireEvent.click(tick)
+    await act(async () => {
+      fireEvent.click(removing.getByRole('button', { name: 'Remove' }))
+    })
     expect(mutations).toEqual([
       { name: 'games.removeMember', args: { gameId: 'g1', userId: 'u2' } },
     ])
-    expect(navigations).toEqual([])
 
     mutations.length = 0
     await openGameMenu()

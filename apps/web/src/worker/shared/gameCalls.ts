@@ -215,6 +215,17 @@ const CALLS = {
     )
     return reads.flatMap((read) => (read === null ? [] : [gameView(read)]))
   },
+  /** The caller's Games with a session running: a Reference page's session bar holds no socket. */
+  'games.liveSessions': async (who: Caller, _: object, deps: CallDeps) => {
+    const games = await gamesOf(deps.db, who.discordId)
+    const live = games.map(async ({ gameId }) => {
+      const room = deps.game(gameId)
+      const session = await act(room, who.discordId, 'session.state', undefined as never)
+      const read = session.live ? await act(room, who.discordId, 'read', undefined as never) : null
+      return read === null ? null : { gameId, name: read.name, startedAt: session.startedAt }
+    })
+    return (await Promise.all(live)).filter((game) => game !== null)
+  },
   'games.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
     const read = await act(deps.game(a.gameId), who.discordId, 'read', undefined as never)
     return read === null ? null : gameView(read)
@@ -524,6 +535,7 @@ const KIND = z.enum(ENTITY_KINDS)
  */
 const CALL_ARGS = {
   'games.listMine': z.object({}),
+  'games.liveSessions': z.object({}),
   'games.get': GAME,
   'games.names': GAME,
   'games.create': z.object({

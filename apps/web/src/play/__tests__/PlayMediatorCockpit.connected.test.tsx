@@ -51,8 +51,14 @@ const logged = () =>
     .filter((a) => a.name === LOG)
     .flatMap(
       (a) =>
-        (a.args as { entries: { field: string; after: { description: string; private?: true } }[] })
-          .entries
+        (
+          a.args as {
+            entries: {
+              field: string
+              after: { description: string; private?: true; veiled?: string }
+            }[]
+          }
+        ).entries
     )
 const postRoll = mock(async (_args: unknown) => ({
   kind: 'posted',
@@ -299,12 +305,22 @@ describe('the bar', () => {
     expect(bar.getByRole('button', { name: 'Game channel: where rolls post' })).toBeTruthy()
   })
 
-  test('Begin Downtime starts it for the whole table', async () => {
+  test('Begin Downtime asks once, then starts it for the whole table (r2 E2)', async () => {
     await renderCockpit()
     const state = within(screen.getByRole('group', { name: 'Game state' }))
     expect(state.getByRole('button', { name: 'Scene' }).getAttribute('aria-pressed')).toBe('true')
     await click(state.getByRole('button', { name: 'Begin Downtime' }))
+    expect(names()).toEqual([])
+    const ask = within(screen.getByRole('alertdialog', { name: 'Begin Downtime?' }))
+    await click(ask.getByRole('button', { name: 'Begin Downtime' }))
     expect(names()).toEqual(['downtime.begin'])
+  })
+
+  test('while Downtime runs no seat reads Boarded: a seat aboard is in the Mech Bay (r2 E2)', async () => {
+    await renderCockpit(downtimeAt(2))
+    const seats = within(screen.getByRole('list', { name: 'Seats' }))
+    expect(seats.queryByText(/Boarded · /)).toBeNull()
+    expect(seats.getAllByText(/^In the Mech Bay · /).length).toBeGreaterThan(0)
   })
 
   test('running, it names the step; Scene ends it, asking first before the last step', async () => {
@@ -606,6 +622,28 @@ describe('the Opposition', () => {
     expect(logged()[0]?.field).toBe('roll')
     expect(logged()[0]?.after.description).toMatch(/^Mediator · Strikebreaker · /)
     expect(logged()[0]?.after).not.toHaveProperty('private')
+    // The players' line names neither the NPC nor its weapon (r2 B1).
+    expect(logged()[0]?.after.veiled).toBe('Mediator rolled · 14 · Success')
+    // Nor does the bot's card: the Mediator's carries its table alone.
+    expect(JSON.stringify(postRoll.mock.calls[0])).not.toContain('Strikebreaker')
+  })
+
+  test('a veiled roll says the players miss its names, and Reveal shows the table the whole line (r2 B1)', async () => {
+    await renderCockpit({
+      'changeLog.events': [
+        {
+          _id: 'e-veiled',
+          ts: NOW - 1000,
+          kind: 'roll',
+          text: 'Mediator · Strikebreaker · Fists · 9 · Tough Choice',
+          actorId: 'u-gm',
+          veiled: true,
+        },
+      ],
+    })
+    expect(feedLines().some((l) => l.includes('Players see the result, not the names'))).toBe(true)
+    await click(named(/^Reveal to the table: /))
+    expect(sent()).toEqual([{ name: 'changeLog.reveal', args: { rollId: 'e-veiled' } }])
   })
 
   test('Private rolls on: the roll is logged private, reads Private on the Feed and never reaches Discord', async () => {
@@ -621,6 +659,24 @@ describe('the Opposition', () => {
     await waitFor(() => expect(logged()).toHaveLength(1))
     expect(logged()[0]?.after.private).toBe(true)
     expect(postRoll).not.toHaveBeenCalled()
+  })
+
+  test('Private rolls is remembered for the Game across a reload, and sits in the Rolls head (r2 B2)', async () => {
+    await renderCockpit()
+    await click(named('Private rolls'))
+    cleanup()
+    await renderCockpit()
+    const again = named('Private rolls')
+    expect(again.getAttribute('aria-pressed')).toBe('true')
+    expect(again.closest('section')?.querySelector('h2')?.textContent).toBe('Rolls')
+    // And the next roll after the reload is private at once.
+    await click(named('Roll the die on Morale'))
+    await waitFor(() => expect(logged()).toHaveLength(1))
+    expect(logged()[0]?.after.private).toBe(true)
+    await click(again)
+    cleanup()
+    await renderCockpit()
+    expect(named('Private rolls').getAttribute('aria-pressed')).toBe('false')
   })
 
   test('a roll made before a reload is on the Feed from the Game’s log', async () => {
@@ -643,7 +699,7 @@ describe('the Opposition', () => {
 
   test('Up now marks a seat for the table, and pressing it again clears it', async () => {
     await renderCockpit()
-    const first = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    const first = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
     expect(first.getAttribute('aria-pressed')).toBe('false')
     await click(first)
     expect(sent()).toHaveLength(1)
@@ -652,7 +708,7 @@ describe('the Opposition', () => {
     cleanup()
     acts.length = 0
     await renderCockpit({ 'scenes.current': { conditions: [], hours: 0, upNow: marked } })
-    const again = screen.getAllByRole('button', { name: /^Up now: / })[0] as HTMLElement
+    const again = screen.getAllByRole('button', { name: /^Mark up now: / })[0] as HTMLElement
     expect(again.getAttribute('aria-pressed')).toBe('true')
     await click(again)
     expect(sent()).toEqual([{ name: 'scenes.setUpNow', args: { pilotId: null } }])
@@ -967,6 +1023,20 @@ describe('every Mediator capability is reachable here', () => {
     expect(dialog.getByText(/^Rook · HP → 6/)).toBeTruthy()
   })
 
+  test('a pending proposal is withdrawn from All proposals; an answered one offers nothing (r2 C7)', async () => {
+    await renderCockpit({
+      'ops.sent': [
+        { ...SENT_PROPOSAL, state: 'proposed' },
+        { ...SENT_PROPOSAL, _id: 'p-0', targetName: 'Mags', state: 'applied' },
+      ],
+    })
+    await click(named('All proposals'))
+    const dialog = within(screen.getByRole('dialog', { name: 'Proposals you sent' }))
+    expect(dialog.queryByRole('button', { name: /^Withdraw: Mags/ })).toBeNull()
+    await click(dialog.getByRole('button', { name: /^Withdraw: Rook · HP → 6/ }))
+    expect(sent()).toEqual([{ name: 'ops.withdraw', args: { opId: 'p-1' } }])
+  })
+
   test('the roll tables are the Tables section, and its rolls post', async () => {
     await renderCockpit()
     expect(screen.getByText('Rolls post to the Game’s channel')).toBeTruthy()
@@ -976,7 +1046,13 @@ describe('every Mediator capability is reachable here', () => {
   test('the Rules are a pane beside the board, so the ⋯ has no row for them', async () => {
     await renderCockpit()
     const side = within(screen.getByRole('region', { name: 'Rolls, Rules and Propose' }))
+    // Shut until asked for, so Propose is on the first screen (r2 I2).
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
+    expect(side.getByRole('button', { name: 'Propose' })).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Open the Rules' }))
     expect(side.getByLabelText('Search the Reference')).toBeTruthy()
+    await click(side.getByRole('button', { name: 'Close the Rules' }))
+    expect(side.queryByLabelText('Search the Reference')).toBeNull()
     await click(named('More'))
     expect(screen.queryByRole('menuitem', { name: 'Rules' })).toBeNull()
   })

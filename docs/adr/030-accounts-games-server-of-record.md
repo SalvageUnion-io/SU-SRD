@@ -82,6 +82,15 @@ Game page, and the player applies or declines it. Proposals persist until
 answered: no expiry, **no force-apply**. A newer proposal on the same field
 supersedes the older one. Alerts and cross-player writes are one mechanism.
 
+Amended (r2 C7, C6). A Mediator may **withdraw** a proposal still awaiting its
+answer (`ops.withdraw`): the op is `declined`, as a superseded one is, with
+`superseded_by` holding `withdrawn` (no op has that id), so the sent list
+reads Withdrawn. The proposal still stores no before; `ops.pending` serves the
+player the sheet's value as it is when read (`current`, absent on a sent
+row), so their notice says from and to ("HP 7 → 0"). A player who accepts one
+may undo it: their own write to their own sheet, like any other. Additive and
+optional: no table or column is added.
+
 **Assign, never claim** (ADR-055). Inside a Game, `ownerId` names who a
 pilot or mech is **assigned** to, not who owns it: the assigned member edits
 it, the rest of the crew reads it (§5), and the table runner may assign it to

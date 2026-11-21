@@ -6,6 +6,8 @@ export const playSafetyCopy = messages({
   safety: 'Safety',
   stopSign: 'Stop Sign',
   showTheStopSign: 'Show the Stop Sign',
+  stop: 'Stop',
+  holdToShow: 'Hold to show the Stop Sign',
   stopSignMeans:
     'Anyone can show the Stop Sign at any time, from here or from Play, with no reason needed. The game pauses on every screen, without saying who, and it posts to the Discord channel while one is bound.',
   pausedBody:

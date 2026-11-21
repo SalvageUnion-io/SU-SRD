@@ -83,6 +83,34 @@ describe('the table’s events', () => {
     expect(texts()).toHaveLength(4)
   })
 
+  test('separate hits stay separate lines: only a − / + nudge folds into the line before it (r2 I3)', () => {
+    const { act, texts } = seated()
+    const hp = (to: number, baseSeq: number, at: number) =>
+      act(PLAYER, 'submit', { ops: [op('p1', { currentHP: to }, { baseSeq })] }, at)
+    hp(10, 0, AT)
+    // Two hits a second apart: 3, then a mistaken 7.
+    const first = hp(7, 1, AT + 60_000)
+    const second = hp(0, 2, AT + 61_000)
+    expect(second[0]?._id).not.toBe(first[0]?._id as string)
+    expect(texts().slice(0, 2)).toEqual(['p1 · Pilot p1 · HP 7 → 0', 'p1 · Pilot p1 · HP 10 → 7'])
+    // A nudge after a hit starts its own line, and the next nudge folds into that one.
+    hp(1, 3, AT + 62_000)
+    hp(2, 4, AT + 63_000)
+    expect(texts().slice(0, 3)).toEqual([
+      'p1 · Pilot p1 · HP 0 → 2',
+      'p1 · Pilot p1 · HP 7 → 0',
+      'p1 · Pilot p1 · HP 10 → 7',
+    ])
+    // A hit between nudges ends the nudged line: the nudge after it is a new one.
+    hp(6, 5, AT + 64_000)
+    hp(5, 6, AT + 65_000)
+    expect(texts().slice(0, 3)).toEqual([
+      'p1 · Pilot p1 · HP 6 → 5',
+      'p1 · Pilot p1 · HP 2 → 6',
+      'p1 · Pilot p1 · HP 0 → 2',
+    ])
+  })
+
   test('a vital never written reads its start: a pool its maximum, Heat 0 (L10)', () => {
     const { act, texts } = seated()
     act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 2 })] })
@@ -238,7 +266,112 @@ describe('the table’s events', () => {
     ])
     const mediators = room.events.list(MEDIATOR)
     expect(mediators.map((e) => e.kind)).toEqual(['alert', 'roll', 'roll'])
+    // A Mediator's roll says whose it is: a player's screen toasts those alone (r2 C4).
+    expect(room.events.list(PLAYER).map((e) => e.mediator)).toEqual([undefined, undefined])
+    expect(mediators.map((e) => e.mediator)).toEqual([undefined, true, undefined])
     expect(mediators.filter((e) => isMirrored(e))).toEqual([])
     expect(room.events.list(STRANGER)).toEqual([])
+  })
+
+  test('an Opposition roll reaches players without its names, in the Feed and the log, until the Mediator reveals it (r2 B1)', () => {
+    const { room, act, texts } = seated()
+    const full = 'Mediator · Veteran · Green Laser Rifle (Veteran) · 9 · Tough Choice'
+    const veiled = 'Mediator rolled · 9 · Tough Choice'
+    room.log.append(MEDIATOR, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: full, veiled },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    // The room withholds the names: nothing a player is served carries them.
+    expect(texts(PLAYER)).toEqual([veiled])
+    expect(JSON.stringify(room.events.list(PLAYER))).not.toContain('Veteran')
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([veiled])
+    expect(room.events.list(PLAYER)[0]).not.toHaveProperty('veiled')
+    // The Mediator reads the whole line, marked as one the players do not.
+    const [own] = room.events.list(MEDIATOR)
+    expect(own).toMatchObject({ text: full, veiled: true })
+    expect(room.log.rolls(MEDIATOR)[0]).toMatchObject({ description: full, veiled: true })
+    // Only a Mediator reveals, and a revealed roll reads whole to the table.
+    expect(() => act(PLAYER, 'changeLog.reveal', { rollId: String(own?._id) })).toThrow(
+      'Only the Mediator'
+    )
+    const told = act(MEDIATOR, 'changeLog.reveal', { rollId: String(own?._id) }, AT + 2)
+    expect(told).toMatchObject([{ _id: own?._id, kind: 'roll', text: full }])
+    expect(texts(PLAYER)).toEqual([full])
+    expect(room.log.rolls(PLAYER).map((r) => r.description)).toEqual([full])
+    expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
+
+  test('a player’s roll is never veiled, whatever the client sent (r2 B1)', () => {
+    const { room, texts } = seated()
+    room.log.append(PLAYER, [
+      {
+        entityType: 'game',
+        field: 'roll',
+        after: { description: 'p1 · Core Mechanic · 14 · Success', veiled: 'Mediator rolled' },
+        source: 'play',
+        ts: AT + 1,
+      },
+    ])
+    expect(texts(MEDIATOR)).toEqual(['p1 · Core Mechanic · 14 · Success'])
+    expect(room.events.list(MEDIATOR)[0]).not.toHaveProperty('veiled')
+  })
+
+  test('Downtime beginning and ending are each one line for everyone (r2 E2)', () => {
+    const { act, texts } = seated()
+    const [began] = act(MEDIATOR, 'downtime.begin', undefined as never, AT + 1)
+    expect(began).toMatchObject({ kind: 'downtime', actorId: MEDIATOR })
+    // A second press while it runs began nothing, and says nothing.
+    expect(act(MEDIATOR, 'downtime.begin', undefined as never, AT + 2)).toEqual([])
+    const [ended] = act(MEDIATOR, 'downtime.end', undefined as never, AT + 3)
+    expect(ended?.kind).toBe('downtime')
+    expect(act(MEDIATOR, 'downtime.end', undefined as never, AT + 4)).toEqual([])
+    expect(texts(PLAYER)).toEqual(['Med ended Downtime', 'Med began Downtime'])
+    expect(isMirrored(began as never)).toBe(true)
+  })
+
+  test('Up now clears when the session ends and when Downtime begins (r2 E1)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'session.start', undefined as never, AT)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 1)
+    expect(room.scene.scene(PLAYER).upNow).toBe('p1')
+    act(MEDIATOR, 'session.end', undefined as never, AT + 2)
+    expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
+    expect(room.scene.updatedAt('scene')).toBe(AT + 2)
+    act(MEDIATOR, 'scenes.setUpNow', { pilotId: 'p1' }, AT + 3)
+    act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
+    expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
+  })
+
+  test('a sent proposal is withdrawn by a Mediator: it leaves the player’s list and reads Withdrawn (r2 C7)', () => {
+    const { act, room, texts } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 7 })] }, AT)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 0 }, AT + 1)
+    const [pending] = room.proposals.pending(PLAYER)
+    // The player's notice says from and to: the sheet as it is now, never stored on the proposal.
+    expect(pending).toMatchObject({ field: 'currentHP', current: 7, after: 0 })
+    const opId = String(pending?._id)
+    expect(() => act(PLAYER, 'ops.withdraw', { opId })).toThrow('Only the Mediator')
+    const [told] = act(MEDIATOR, 'ops.withdraw', { opId }, AT + 2)
+    expect(told).toMatchObject({
+      kind: 'proposal',
+      text: 'Mediator withdrew: p1 · Pilot p1 HP → 0',
+    })
+    expect(room.proposals.pending(PLAYER)).toEqual([])
+    expect(room.proposals.sent(MEDIATOR)[0]).toMatchObject({ _id: opId, state: 'withdrawn' })
+    // Withdrawn, it can be neither accepted nor withdrawn again.
+    expect(() => act(PLAYER, 'ops.accept', { opId }, AT + 3)).toThrow('already been answered')
+    expect(act(MEDIATOR, 'ops.withdraw', { opId }, AT + 4)).toEqual([])
+    expect(texts()[0]).toBe('Mediator withdrew: p1 · Pilot p1 HP → 0')
+  })
+
+  test('a vital never written is proposed from its start (r2 C7)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 4 }, AT + 1)
+    expect(room.proposals.pending(PLAYER)[0]?.current).toBe(10)
   })
 })

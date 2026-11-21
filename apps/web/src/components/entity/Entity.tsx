@@ -65,9 +65,10 @@ export type EntityProps = EntitySource &
     /** Compact only: the title's element — a heading where the Compact is a page's entry (default `span`). */
     titleAs?: ElementType
     /**
-     * Compact only: the name is never cut (hard rule R56, a Game's on the Play
+     * Compact: the name is never cut (hard rule R56, a Game's on the Play
      * hub): where it and the host's controls do not share the head's line, the
-     * controls are the body's first row.
+     * controls are the body's first row. Mini: a seat's name at the Play table
+     * is whole too, its chips wrapping to a line over it.
      */
     wholeName?: boolean
     /**
@@ -231,9 +232,16 @@ function EntityForm(props: EntityProps) {
           mode={mode}
           omit={omit}
           slots={
-            state || peekAt || relations || tint || uses !== undefined || controls !== undefined
+            state ||
+            peekAt ||
+            relations ||
+            tint ||
+            wholeName ||
+            uses !== undefined ||
+            controls !== undefined
               ? {
                   ...(tint ? { tint } : {}),
+                  ...(wholeName ? { wholeName } : {}),
                   ...(state ? { state } : {}),
                   ...(stateActs ? { stateActs } : {}),
                   ...(peekAt ? { peekAt } : {}),

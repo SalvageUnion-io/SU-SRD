@@ -1,0 +1,189 @@
+/*
+ * A sheet on the Play screen (`PlaySheetPane`, play.md §18) is laid out for
+ * its pane, not for the window. A Build page's sheet asks the viewport which
+ * rung it is on (`@media`, `dash.css`, the chapter band, the page shell); here
+ * the same sheet has only the centre column, so each rung the window reached
+ * and the pane did not is taken back, by the pane's own width
+ * (`play-sheet`, `frame.css`). The rungs are the sheet's: 80rem, 64rem, 48rem
+ * and 40rem. The e2e design walk holds it (`findSheetPaneLayout`).
+ */
+
+/* No header rail stands over the pane: the band starts under the pane's head,
+   never pulled up behind it. The page column's desk edges are the window's. */
+.su-play-sheet .su-chapter-band:not([role='dialog'] *),
+.su-play-sheet div:not([class]) + .su-chapter-band:not([role='dialog'] *) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.su-play-sheet .su-page-gutters {
+  --su-shell-edge: 0px;
+  --su-column-pad: 0px;
+  --su-column-edge: 0px;
+  --su-page-gutter-inline: var(--space-32);
+}
+
+/* ── Under 80rem of pane: the masthead keeps two columns, the dashboard two ── */
+@container play-sheet not (width >= 80rem) {
+  .su-play-sheet .su-mast {
+    column-gap: var(--space-24);
+    grid-template-columns: 9rem minmax(0, 1fr);
+  }
+
+  .su-play-sheet .su-mast__art {
+    grid-row: span 2;
+    height: auto;
+  }
+
+  .su-play-sheet .su-mast__board + .su-mast__identity {
+    border-left: 0;
+  }
+
+  .su-play-sheet .su-mast__identity {
+    align-self: auto;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    grid-column: 2;
+    padding-inline-start: 0;
+  }
+
+  .su-play-sheet .su-dash[data-cols='3'] {
+    gap: var(--space-32);
+    grid-template-columns: /* design-tokens-ignore(item-grid): the page's columns, a layout */ repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col:first-child {
+    grid-row: span 2;
+  }
+
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col--wide,
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col--wide + .su-dash__col:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Under 64rem: the figures wrap under the vitals ── */
+@container play-sheet not (width >= 64rem) {
+  .su-play-sheet .su-strip__figures {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+  }
+
+  .su-play-sheet .su-mast .su-strip__figures {
+    border-top: 0;
+  }
+}
+
+/* ── Under 48rem: the dashboard is one column ── */
+@container play-sheet not (width >= 48rem) {
+  .su-play-sheet .su-dash,
+  .su-play-sheet .su-dash[data-cols='3'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col:first-child {
+    grid-row: auto;
+  }
+
+  .su-play-sheet .su-dash .su-dash__col,
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col--wide,
+  .su-play-sheet .su-dash[data-cols='3'] > .su-dash__col--wide + .su-dash__col:last-child {
+    grid-column: auto;
+  }
+}
+
+/* ── Under 40rem: a phone's sheet, as the tabs draw it ── */
+@container play-sheet not (width >= 40rem) {
+  .su-play-sheet .su-page-gutters {
+    --su-page-gutter-inline: var(--space-16);
+    --su-page-gutter-block: var(--space-20);
+  }
+
+  .su-play-sheet .su-chapter-band__row {
+    align-items: stretch;
+    flex-direction: column-reverse;
+    justify-content: flex-start;
+    padding: var(--space-32) var(--space-16) 0;
+  }
+
+  .su-play-sheet .su-chapter-band__title {
+    font-size: var(--text-hero);
+    padding: var(--space-8) var(--space-12) 0;
+  }
+
+  .su-play-sheet .su-mast {
+    column-gap: 0;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .su-play-sheet .su-mast__art {
+    display: none;
+  }
+
+  .su-play-sheet .su-mast__identity {
+    grid-column: auto;
+  }
+
+  .su-play-sheet .su-mast .su-strip__vitals {
+    flex-direction: column;
+  }
+
+  .su-play-sheet .su-mast .su-strip__vitals > .su-strip__cell {
+    flex: none;
+    padding-inline: 0;
+  }
+
+  .su-play-sheet .su-mast .su-strip__vitals > .su-strip__cell + .su-strip__cell {
+    border-left: 0;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+  }
+
+  .su-play-sheet .su-mast .su-strip__cell--figure {
+    min-width: 0;
+    padding-block: var(--space-8);
+  }
+
+  .su-play-sheet .su-mast-traits {
+    grid-auto-flow: row;
+  }
+
+  .su-play-sheet .su-mast__traits {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+    padding-inline: 0;
+  }
+
+  .su-play-sheet .su-dash,
+  .su-play-sheet .su-dash[data-cols='3'],
+  .su-play-sheet .su-dash__col {
+    gap: var(--space-24);
+  }
+
+  .su-play-sheet .su-sheet-live-body {
+    padding-bottom: var(--space-32);
+  }
+
+  /* The sheet's lists keep a phone's columns: the name, its stamp and those
+     marked for a phone (`open-ledger.css`, `ledger.css`). */
+  .su-play-sheet .su-open .su-open__name {
+    font-size: var(--text-body);
+  }
+
+  .su-play-sheet .su-open thead th[data-col]:not([data-phone]),
+  .su-play-sheet .su-open__row > td:not([data-phone]),
+  .su-play-sheet .su-ledger__table :is(th, td):not(:first-child, [data-phone]) {
+    display: none;
+  }
+
+  .su-play-sheet .su-open__phone-only {
+    display: inline;
+  }
+
+  .su-play-sheet .su-open--manifest .su-open__row > th,
+  .su-play-sheet .su-ledger__table tbody th {
+    white-space: normal;
+    width: auto;
+  }
+}

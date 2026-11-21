@@ -22,6 +22,8 @@
 import { useSyncExternalStore } from 'react'
 import type { Roll } from 'salvageunion-reference/rules'
 import { coreRollBand, coreRollBandLabel } from 'salvageunion-reference/rules'
+import { localStore } from '../lib/safeLocalStorage'
+import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { CORE_MECHANIC_TABLE } from './tables.model'
 
@@ -44,6 +46,12 @@ export type PlayRoll = {
    * players, and it is never posted to Discord. Absent on every other roll.
    */
   private?: true
+  /**
+   * An Opposition roll (ADR-051 §9b): the Game's log keeps the whole line and
+   * serves the players `veiledRollDescription` in its place, until the
+   * Mediator reveals it. Absent on a table roll and on every player's roll.
+   */
+  veiled?: true
 }
 
 /** What a caller hands `recordPlayRoll`: the id is assigned, `at` defaults to now. */
@@ -80,6 +88,32 @@ export function setPrivateRolls(on: boolean): void {
   privately = on
 }
 
+/** Where this browser keeps a Game's Private rolls switch: `'on'`, or absent for off. */
+const privateRollsKey = (gameId: string) => `su:play:private-rolls:${gameId}`
+
+/**
+ * Whether the Mediator left Private rolls on for this Game (r2 B2): this
+ * browser's `localStorage`, so the switch holds across a reload and leaving
+ * the screen. Off where storage is missing, blocked or empty.
+ */
+export function storedPrivateRolls(gameId: string): boolean {
+  try {
+    return localStore()?.getItem(privateRollsKey(gameId)) === 'on'
+  } catch {
+    return false
+  }
+}
+
+/** Remember the switch for this Game. */
+export function rememberPrivateRolls(gameId: string, on: boolean): void {
+  try {
+    if (on) localStore()?.setItem(privateRollsKey(gameId), 'on')
+    else localStore()?.removeItem(privateRollsKey(gameId))
+  } catch {
+    // A full or blocked store only costs the remembered switch.
+  }
+}
+
 /** Record an applied change (no dice): the Feed lists it, nothing is posted. */
 export function recordPlayChange(label: string, at?: number): PlayRoll {
   return recordPlayRoll({ tableName: '', rolls: [], label, ...(at === undefined ? {} : { at }) })
@@ -98,6 +132,19 @@ export function playRollDescription(rollerName: string, roll: PlayRoll): string 
   return [
     rollerName,
     roll.label,
+    ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
+    ...(roll.outcome ? [roll.outcome] : []),
+  ].join(' · ')
+}
+
+/**
+ * What the players read of a veiled roll (ADR-051 §9b): that the Mediator
+ * rolled, the dice and what it came to; never what rolled ("Mediator rolled ·
+ * 9 · Tough Choice").
+ */
+export function veiledRollDescription(roll: Pick<PlayRoll, 'rolls' | 'outcome'>): string {
+  return [
+    playCopy('mediatorRolled'),
     ...(roll.rolls.length > 0 ? [roll.rolls.join(', ')] : []),
     ...(roll.outcome ? [roll.outcome] : []),
   ].join(' · ')
@@ -131,7 +178,7 @@ export function usePlayRollLog(): readonly PlayRoll[] {
 }
 
 /** What a reported roll says about itself besides its table and dice, read when it lands. */
-export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome'>
+export type PlayRollMeta = Pick<PlayRollInput, 'label' | 'outcome' | 'veiled'>
 
 /** The Core Mechanic's band for a die ("Success"), the outcome a Core roll reports. */
 function coreOutcome(die: number | undefined): string | undefined {
@@ -163,6 +210,7 @@ export function reportingRoll(roll: Roll, tableName: string, meta: () => PlayRol
           rolls: read,
           label: said.label,
           ...(outcome === undefined ? {} : { outcome }),
+          ...(said.veiled ? { veiled: true as const } : {}),
         })
       })
     }
@@ -186,6 +234,8 @@ export type LoggedRoll = {
   result: { kind: 'core' | 'table'; roll: number | null; outcome: string }
   /** The Mediator's private roll: the room keeps the row from the players. */
   private?: true
+  /** An Opposition roll: the line the room serves the players in `description`'s place. */
+  veiled?: string
 }
 
 /**
@@ -208,6 +258,7 @@ export function rollLogEntry<GameId extends string>(gameId: GameId, roll: Logged
       description: roll.description,
       result: roll.result,
       ...(roll.private ? { private: true as const } : {}),
+      ...(roll.veiled === undefined ? {} : { veiled: roll.veiled }),
     },
     source: PLAY_TXN.source,
   }

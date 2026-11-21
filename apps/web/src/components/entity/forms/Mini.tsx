@@ -35,6 +35,12 @@ const PILL = cn('su-entity-mini__pill', capsLabel())
 
 /** The host's parts in the Mini's chip group and lanes (`<Entity size="mini">` fills them). */
 export type MiniSlots = {
+  /**
+   * The name is never cut (R56, a seat's at the Play table): the chips it
+   * cannot share its line with wrap to a line over it, and a name wider than
+   * the Mini wraps between words.
+   */
+  wholeName?: boolean
   /** Peek this address in place of the entity's own (`embeddedPeekAddress`). */
   peekAt?: string
   /**
@@ -255,6 +261,7 @@ export function Mini({
       // stamp and cost box read the ground in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
       data-row={row ? '' : undefined}
+      data-whole-name={slots.wholeName ? '' : undefined}
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       className={PILL}

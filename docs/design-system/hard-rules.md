@@ -31,7 +31,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R50 A Game's people are small cards in its page's sidebar** — header-only Minis, their roles chips; their units ride the Crew list.
 - **R53 One sub-section rung** (§4.9, E25) — a section inside a section is the Mini Slab (`SlabSection size="mini"`), at chip size; no eyebrow, coloured bar or sentence-case head stands in for a section head, bar the book's contents chapters on the Reference home (`ContentsChapter`).
 - **R54 A link looks like a link** — a standalone link is `Button href` or `InlineRef`, never bare `AppLink` text, and never larger than the note beside it.
-- **R56 A Game's, a person's, an index's name is never cut** (C2b) — the hub's doors drop to the body; people's chips wrap under.
+- **R56 A Game's, a person's, a seat's, an index's name is never cut** (C2b) — the hub's doors drop to the body; chips wrap under.
 - **R57 Class leads the pilot's Edit card** (§1.2) — its first row, above the photo: the name and a Change Class button.
 - **R58 Intact is quiet** (C8) — only Damaged and Destroyed wear a tone; Repair shows only while damaged.
 - **R59 A fact prints once** (C10) — no Uses trait beside a live Uses slot; granted gear's rules print under its ability only.

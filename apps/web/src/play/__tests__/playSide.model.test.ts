@@ -18,8 +18,11 @@ import {
   recordPlayChange,
   recordPlayRoll,
   reportingRoll,
+  rollLogEntry,
   setPrivateRolls,
+  veiledRollDescription,
 } from '../playRolls.model'
+import { proposalChange } from '../proposalAnswer.model'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
 import { CREW_HERE, crewAt } from './crewFixture'
@@ -214,6 +217,20 @@ describe('the Feed (play.md §8)', () => {
     expect(entries[3]?.kind === 'alert' && entries[3].text).toBe('Mediator · Storm incoming')
   })
 
+  test('a proposal reads from and to once the room says what the sheet holds (r2 C7)', () => {
+    expect(proposalChange({ field: 'currentHP', after: 0, current: 7 })).toBe('HP 7 → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0, current: null })).toBe('HP → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0 })).toBe('HP → 0')
+    const [first] = playFeedEntries({
+      rolls: [],
+      alerts: [],
+      proposals: [{ ...proposal, current: 7 }],
+      mine: [],
+      rollerName: 'Bonesaw',
+    })
+    expect(first?.kind === 'proposal' && first.text).toBe('Mediator proposes Bonesaw HP 7 → 5')
+  })
+
   test('my roll’s copy on the Game’s log is dropped: the screen’s carries its post state', () => {
     const mine = roll({ id: 'm1', at: 400 })
     const echo = crewRoll('r9', 400, playRollDescription('Bonesaw', mine))
@@ -257,6 +274,51 @@ describe('the Feed (play.md §8)', () => {
       'You · Core Mechanic · 14 · Success · Private',
       'You · Morale · 4 · Private',
     ])
+  })
+
+  test('a veiled roll carries its id for Reveal, on the log’s copy and on mine (r2 B1)', () => {
+    const mine = { ...roll({ id: 'm1', at: 400, label: 'Veteran · Rifle' }), veiled: true as const }
+    const event = (id: string, ts: number, text: string) => ({
+      _id: id,
+      ts,
+      kind: 'roll' as const,
+      text,
+      actorId: 'gm',
+      veiled: true as const,
+    })
+    const entries = playFeedEntries({
+      rolls: null,
+      alerts: [],
+      events: [
+        event('e2', 400, playRollDescription('Mediator', mine)),
+        event('e1', 300, 'Mediator · Raider · Morale · 4'),
+      ],
+      proposals: [],
+      mine: [mine],
+      rollerName: 'Mediator',
+    })
+    expect(entries.map((e) => [e.kind, 'reveal' in e ? e.reveal : undefined])).toEqual([
+      ['mine', 'e2'],
+      ['roll', 'e1'],
+    ])
+  })
+
+  test('what the players read of a veiled roll names nothing that rolled (r2 B1)', () => {
+    const veteran = roll({ id: 'v', at: 1, rolls: [9], label: 'Veteran · Green Laser Rifle' })
+    expect(veiledRollDescription({ ...veteran, outcome: 'Tough Choice' })).toBe(
+      'Mediator rolled · 9 · Tough Choice'
+    )
+    expect(
+      rollLogEntry(
+        'g1',
+        {
+          description: 'Mediator · Veteran · 9',
+          result: { kind: 'table', roll: 9, outcome: 'Tough Choice' },
+          veiled: 'Mediator rolled · 9 · Tough Choice',
+        },
+        1
+      ).after
+    ).toMatchObject({ veiled: 'Mediator rolled · 9 · Tough Choice' })
   })
 
   test('solo: only my own', () => {

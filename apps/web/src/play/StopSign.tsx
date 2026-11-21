@@ -9,38 +9,115 @@
  */
 
 import { OctagonPause } from 'lucide-react'
-import { Button, tokens } from '../components/index'
+import type { CSSProperties } from 'react'
+import { useEffect, useRef } from 'react'
+import { Button, toast, tokens } from '../components/index'
 import { playSafetyCopy } from '../messages/play-safety'
 import type { StopSign } from './useStopSign'
+
+/** How long a phone's Stop Sign is held before it fires (r2 I3). */
+const STOP_HOLD_MS = 600
+
+/** The hold's clock, which a test runs itself. */
+type HoldTimer = { set: (run: () => void, ms: number) => number; clear: (id: number) => void }
+
+const WINDOW_TIMER: HoldTimer = {
+  set: (run, ms) => window.setTimeout(run, ms),
+  clear: (id) => window.clearTimeout(id),
+}
+
+const tellByToast = (message: string) => void toast(message, { id: 'stop-sign-hold' })
+
+/** The phone's label beside its octagon. */
+const LABELLED = {
+  alignItems: 'center',
+  display: 'inline-flex',
+  gap: tokens.space[4],
+} satisfies CSSProperties
 
 /**
  * The control: **Stop Sign**, by the one name on the bar and the Game page, rust, the one press anyone may make. Pressed while
  * the sign is up it does nothing more, so it says so by being disabled. On
- * the phone's bar, where a word would push ⋯ off the line, it is the
- * octagon alone.
+ * the phone's bar, where the whole name would push ⋯ off the line, it is the
+ * octagon and "Stop", and it fires on a hold (`STOP_HOLD_MS`), never on a
+ * brushed tap, which is told to hold; a keyboard's or a screen reader's press,
+ * which no finger brushes, fires it at once.
  */
 export function StopSignButton({
   sign,
   compact = false,
+  timer = WINDOW_TIMER,
+  tell = tellByToast,
 }: {
   sign: StopSign | null
   compact?: boolean
+  /** The hold's clock (a test's own). */
+  timer?: HoldTimer
+  /** Says a tap must be held (a toast). */
+  tell?: (message: string) => void
 }) {
+  // The running hold; `fired` once it ran out with the finger still down.
+  const hold = useRef<{ id: number | null; fired: boolean } | null>(null)
+  useEffect(
+    () => () => {
+      if (hold.current?.id != null) timer.clear(hold.current.id)
+    },
+    [timer]
+  )
   if (sign === null) return null
+  const disabled = !sign.canWrite || sign.shown || sign.pending
+  if (!compact) {
+    return (
+      <Button
+        variant="primary"
+        size="compact"
+        aria-label={playSafetyCopy('showTheStopSign')}
+        disabled={disabled}
+        onClick={sign.show}
+      >
+        {playSafetyCopy('stopSign')}
+      </Button>
+    )
+  }
+  const letGo = () => {
+    if (hold.current?.id != null) timer.clear(hold.current.id)
+    if (hold.current) hold.current.id = null
+  }
   return (
     <Button
       variant="primary"
-      size={compact ? 'iconOnly' : 'compact'}
+      size="compact"
       aria-label={playSafetyCopy('showTheStopSign')}
-      title={compact ? playSafetyCopy('showTheStopSign') : undefined}
-      disabled={!sign.canWrite || sign.shown || sign.pending}
-      onClick={sign.show}
+      title={playSafetyCopy('holdToShow')}
+      disabled={disabled}
+      onPointerDown={() => {
+        letGo()
+        const mine = { id: null as number | null, fired: false }
+        mine.id = timer.set(() => {
+          mine.id = null
+          mine.fired = true
+          sign.show()
+        }, STOP_HOLD_MS)
+        hold.current = mine
+      }}
+      onPointerUp={letGo}
+      onPointerLeave={letGo}
+      onPointerCancel={letGo}
+      // A long press is the hold, never the browser's menu.
+      onContextMenu={(event) => event.preventDefault()}
+      onClick={(event) => {
+        // A pointer's click ends a tap or a hold; any other press (a key, a
+        // screen reader) has no hold to make, so it fires.
+        const pressed = hold.current
+        hold.current = null
+        if (pressed === null && event.detail === 0) sign.show()
+        else if (pressed?.fired !== true) tell(playSafetyCopy('holdToShow'))
+      }}
     >
-      {compact ? (
-        <OctagonPause size={tokens.iconSize.compact} aria-hidden="true" />
-      ) : (
-        playSafetyCopy('stopSign')
-      )}
+      <span style={LABELLED}>
+        <OctagonPause size={tokens.iconSize.mini} aria-hidden="true" />
+        {playSafetyCopy('stop')}
+      </span>
     </Button>
   )
 }

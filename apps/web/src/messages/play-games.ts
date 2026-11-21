@@ -133,7 +133,13 @@ export const playGamesCopy = messages({
   removeMember: 'Remove {name} from this Game',
   removeNamed: 'Remove {name}?',
   removeBody:
-    'Their Pilots and Mechs go back to their Training Bay; nothing is deleted. They can join again with an invite.',
+    'Their Pilots and Mechs go back to their Training Bay; nothing is deleted. They are told, and can join again with an invite. The link they already have still works unless you reset it.',
+  resetInviteLinkToo: 'Reset the invite link too',
+  removedFrom: 'Removed {name} from {game}.',
+  removedAndReset:
+    'Removed {name} from {game}. The invite link is reset; the old one no longer works.',
+  removedNotReset:
+    'Removed {name} from {game}, but the invite link was not reset. Use Reset link to stop the old one working.',
   remove: 'Remove',
   couldNotLeave: 'That did not work. Try again.',
   mediator: 'Mediator',

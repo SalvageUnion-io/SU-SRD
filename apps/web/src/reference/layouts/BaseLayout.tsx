@@ -233,6 +233,9 @@ export function BaseLayout({ meta, pathname, children, foot }: BaseLayoutProps) 
             home={pathname === '/'}
             pathname={pathname}
           />
+          {/* A signed-in reader is told their table has started (r2 I1): the
+              app's "Session live" bar, on a Reference page too. */}
+          <Island name="SessionBarIsland" client="idle" when="signed-in" />
           {/*
             `tabIndex={-1}` is what makes the skip link actually work. Following
             a fragment moves the browser's scroll position but NOT its focus

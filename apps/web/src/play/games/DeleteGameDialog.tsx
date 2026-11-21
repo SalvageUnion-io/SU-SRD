@@ -46,6 +46,7 @@ import { space } from '../../design/tokens'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGamesCall } from '../../replica/roomCalls'
+import { leavingOnPurpose } from '../tableNotices.model'
 
 /** The little a confirm needs to know: what it is ending, and how big it is. */
 type DeletableGame = {
@@ -110,7 +111,14 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
 
   async function handleConfirm() {
     if (game === null) return
-    await destroy({ gameId: game._id, ...(also ? { dropTemplateUnits: true } : {}) })
+    // Their own doing: `TableNotices` does not tell them the Game is gone.
+    const undo = leavingOnPurpose(game._id)
+    try {
+      await destroy({ gameId: game._id, ...(also ? { dropTemplateUnits: true } : {}) })
+    } catch (err) {
+      undo()
+      throw err
+    }
     // The dialog then closes itself, through `onOpenChange(false)` → `onClose`.
     onDeleted?.()
   }

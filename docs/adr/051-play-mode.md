@@ -93,7 +93,8 @@ switch in the Play bar.
 
 Amends §8's "the Mediator private by default". A Mediator's roll is written to
 the Game's log as a player's is, so it survives a reload and reaches every
-Feed. The Mediator's Feed has a Private rolls switch, off by default. A roll
+Feed. The Mediator's Rolls pane has a Private rolls switch, off by default and
+remembered per Game in the browser (r2 B2). A roll
 made with it on carries `private: true` in its `change_log` row's `after`: the
 room serves that row only to Mediators and to its roller, drops the flag from
 any row a non-Mediator appends, and the client never posts it to Discord.
@@ -104,6 +105,28 @@ optional `upNow` of `scenes.current` and set by `scenes.setUpNow`. It orders
 nothing and gates nothing.
 
 Both are additive and optional: no table or column is added, and a room with
+neither reads as before.
+
+### 9b. An Opposition roll reaches players without its names (r2 B1)
+
+Supersedes §9a for rolls made from the Opposition pane (an NPC's action,
+Morale, Reaction, a Critical table, a Heat Check, a wreck's salvage, a fielded
+count): players read that the Mediator rolled and what it came to ("Mediator
+rolled · 9 · Tough Choice"), never the NPC's or the weapon's name. Table rolls
+and the Core Mechanic stay public, and Private rolls still keeps a roll from
+the players whole.
+
+Such a roll's `change_log` row keeps the whole line in `description` and
+carries `veiled`, the line a player reads in its place. The room serves a
+non-Mediator `veiled` as the roll's line (`rollLineFor`, on `changeLog.events`
+and `changeLog.rolls`, so the Feed, the toast and "Last session" all get it),
+so the names never leave the room for a player's screen; a Mediator is served
+the whole line with `veiled: true`. `changeLog.reveal` (a Mediator's) sets
+`revealed: true` on the row, after which everyone is served the whole line.
+The room drops both fields from any row a non-Mediator appends. The Discord
+card of a Mediator's roll names its table and never the NPC.
+
+Additive and optional: two optional keys in a roll row's `after`; a row with
 neither reads as before.
 
 ### 10. Phones get tabs, not a second layout
