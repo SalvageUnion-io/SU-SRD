@@ -164,14 +164,18 @@ function designGates(page: Page): Gate[] {
        * Ledger L9, a compared or picked list is one Ledger (ledger.md L1
        * to L9, `_ledger.ts`): one frame, the title on its tab with no Slab
        * over it, head stamps in the stat order (§2.6), `—` for none, a picked
-       * row inked; a head stamp sorts only on an SRD index.
+       * row inked; a head stamp sorts only on an SRD index and the Training
+       * Bay's Mechs shelf.
        */
       gate: 'ledger',
       scan: async ({ family, where }) =>
         // A Peek opens over an index (`designRoutes`), whose head stamps sort.
         place(
           where,
-          await findLedgers(page, { index: family === 'reference-index' || family === 'peek' })
+          await findLedgers(page, {
+            index: family === 'reference-index' || family === 'peek',
+            shelves: family === 'training-bay',
+          })
         ),
       baseline: [],
     },

@@ -64,10 +64,8 @@ test(
       ).toBeVisible({ timeout: 20_000 })
 
       // --- 4. Play: the pilot's Cockpit ---
+      // One pilot of theirs is no choice: Open table goes straight to his Cockpit (LG-24).
       await player.page.getByRole('button', { name: 'Open table', exact: true }).first().click()
-      const launch = player.page.getByRole('dialog', { name: 'Open table' })
-      await expect(launch.getByRole('radio', { name: PILOT })).toBeVisible({ timeout: 20_000 })
-      await launch.getByRole('button', { name: `Play ${PILOT}`, exact: true }).click()
       await player.page.waitForURL(/\/pilots\/[^/]+\/play$/, { timeout: 20_000 })
       await expect(player.page.locator('.su-play-root header h1')).toBeVisible({ timeout: 30_000 })
     } finally {

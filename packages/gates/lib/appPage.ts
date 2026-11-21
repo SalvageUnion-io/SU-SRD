@@ -96,6 +96,22 @@ export function sheetLink(page: Page, name: string, kind = '') {
 }
 
 /**
+ * Forget the sheet tab this browser last used (`su:sheet-mode`,
+ * `sheetMode.model.ts`), so the next sheet opens in Read, as a first visit's
+ * does. `editSheet` leaves Edit remembered: a walk that reads a sheet in Read
+ * after one in Edit, and a seed that hands its session on, call this first.
+ */
+export async function forgetSheetMode(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    try {
+      localStorage.removeItem('su:sheet-mode')
+    } catch {
+      // No storage here (about:blank, a blocked store): nothing is remembered.
+    }
+  })
+}
+
+/**
  * A door's path on Your Games, read off its link: "Play Bonesaw in <Game>" or,
  * once a group session is live, "Mediate <Game>" (`PlayLanding`), so Play is
  * reached the way a player reaches it. The browser path, the app's base included.

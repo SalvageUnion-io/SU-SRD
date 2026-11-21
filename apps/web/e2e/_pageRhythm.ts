@@ -21,8 +21,9 @@ import { NESTING_SELECTORS } from './_nestingDepth'
  * holds (a Card, a Compact, a Box: a pattern row, a class's path), a Mini list or
  * lone Mini no frame holds, a Slab no frame holds, and the page's own parts:
  * the art, the stat column, a pattern's opening, the table, a Legendary
- * track's "or", a Hybrid Class's trees line, a guide step's table and a
- * phone's "On this page" list, and the prose's text, its
+ * track's "or", a Hybrid Class's trees line, a guide step's table, a
+ * phone's "On this page" list and a class's (its Slab and its links, one
+ * block), and the prose's text, its
  * run of paragraphs one block. A block inside another block is the outer one's.
  */
 type RhythmFinding = {
@@ -69,7 +70,7 @@ const RHYTHM_SELECTORS: RhythmSelectors = {
   tokenList: '.su-entity-mini-list, .su-mini-grid',
   slab: '[data-slab]',
   parts:
-    '.su-slab-section--page, .su-class-brief, .su-entity-page__art, .su-entity-page__stats, .su-manual__art, .su-manual__stats, .su-ledger, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc',
+    '.su-slab-section--page, .su-class-brief, .su-entity-page__art, .su-entity-page__stats, .su-manual__art, .su-manual__stats, .su-ledger, .su-entity-page__opening, .su-entity-page__table, .su-ability-track__or, .su-class-brief__trees, .su-guide__table, .su-guide__toc-block .su-guide__toc, .su-class-contents',
   prose: '.su-entity-page__prose, .su-guide__body, .su-guide__ladder-prose',
   statValue: ':is(.su-entity-page__stats, .su-manual__stats) .su-stat-column__stat',
   statLabel:

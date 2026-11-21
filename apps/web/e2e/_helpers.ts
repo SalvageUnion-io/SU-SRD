@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 import { expect } from '@playwright/test'
-import { editSheet, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
+import { editSheet, forgetSheetMode, sheetLink, visit, waitForReady } from 'gates/lib/appPage'
 import { at } from './_base'
 
 /**
@@ -65,7 +65,7 @@ export async function openApp(page: Page, route: string): Promise<void> {
   await waitForReady(page)
 }
 
-export { editSheet, waitForReady }
+export { editSheet, forgetSheetMode, waitForReady }
 
 /** An entity to Peek from the Union bar's search: its schema and a name its Mini holds. */
 export type SearchPeek = { schema: string; name: string }
@@ -127,6 +127,15 @@ export function pageOverflow(page: Page): Promise<{ down: number; across: number
 /** `text` as a literal in a `RegExp`. */
 export function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * A unit's line by its name: a pilot reads `CALLSIGN · Name` wherever one is
+ * listed (`pilotLabel`, glossary §14), any other unit its name alone. `lead`
+ * is what the accessible name says first ("More for ", "Play ").
+ */
+export function unitNamed(name: string, lead = ''): RegExp {
+  return new RegExp(`^${escapeRegExp(lead)}(?:.+ · )?${escapeRegExp(name)}$`)
 }
 
 /** A `/new` wizard (`pilots`, `mechs`, `crawlers`). */

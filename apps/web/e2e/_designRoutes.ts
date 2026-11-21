@@ -10,7 +10,7 @@ import type { DesignDebt, DesignFamily, DesignFinding, DesignRoute } from './_de
 import { againstBaseline, corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
 import type { Finding, Placed } from './_findings'
 import { place } from './_findings'
-import { editSheet, openPeek, waitForReady } from './_helpers'
+import { editSheet, forgetSheetMode, openPeek, waitForReady } from './_helpers'
 import { holdPending } from './_pendingRules'
 import { MID } from './_play'
 
@@ -84,6 +84,8 @@ async function edit(page: Page): Promise<void> {
 
 /** Open a route and put it in its state; resolves when the page is at rest. */
 async function open(page: Page, route: DesignRoute, path: string): Promise<void> {
+  // A route opens as a first visit does: a sheet in Read, whatever the route before it pressed.
+  await forgetSheetMode(page)
   if (DESIGN_FAMILIES[route.family] === 'play') {
     await visit(page, path)
     await waitForReady(page)

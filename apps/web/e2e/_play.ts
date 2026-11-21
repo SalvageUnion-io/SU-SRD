@@ -5,7 +5,7 @@ import { runAxeOnPage } from 'gates/a11y'
 import { playDoor as openDoor } from 'gates/lib/appPage'
 import { routeInApp } from '../src/lib/appBase'
 import { ROOMS_PATH } from '../src/rooms/routes'
-import { openApp, pageOverflow, seedDice } from './_helpers'
+import { openApp, pageOverflow, seedDice, unitNamed } from './_helpers'
 
 /**
  * What the Play specs share (ADR-051, docs/architecture/play.md): opening a
@@ -65,7 +65,11 @@ export async function playDoor(page: Page, name: string | RegExp): Promise<strin
  */
 export async function pilotPlayPath(page: Page, name: string): Promise<string> {
   await openApp(page, '/')
-  const row = page.getByRole('region', { name: 'Pilots' }).getByRole('link', { name, exact: true })
+  // Its sheet link, not the Play door beside it ("Play <callsign> · <name>").
+  const row = page
+    .getByRole('region', { name: 'Pilots' })
+    .getByRole('link', { name: unitNamed(name) })
+    .and(page.locator(':not([href$="/play"])'))
   await expect(row, `the Training Bay lists ${name}`).toBeVisible({ timeout: 30_000 })
   const href = await row.first().getAttribute('href')
   const id = href?.match(/\/pilots\/([^/?#]+)/)?.[1]
