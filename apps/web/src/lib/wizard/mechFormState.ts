@@ -12,6 +12,7 @@
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
+import { makeScrapLot } from 'game-domain/schemas/cargoLot'
 import type { Mech } from 'game-domain/schemas/mech'
 import { startingPatternRef } from 'game-domain/startingPattern'
 import type { ChoiceSelections, RefChassis } from 'salvageunion-reference'
@@ -79,6 +80,19 @@ export function withPatternPrefill(
       new Array<string>(m.count ?? 1).fill(nameToSlug(m.name))
     ),
   }
+}
+
+/**
+ * The form with its unspent starting Scrap carried in the hold: one Tech 1
+ * Scrap line of `leftover` (Workshop Manual p.94: spare Scrap is kept, and a
+ * solo builder has no crawler to store it on). Unchanged with none left.
+ */
+export function withLeftoverScrap(
+  form: MechWizardFormState,
+  leftover: number
+): MechWizardFormState {
+  if (leftover <= 0) return form
+  return { ...form, cargoLots: [...form.cargoLots, makeScrapLot(1, leftover)] }
 }
 
 /** Wizard-owned mech fields — the ones the form captures. */
