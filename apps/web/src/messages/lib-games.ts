@@ -62,6 +62,7 @@ export const libGamesCopy = messages({
     'Only leaving the table? “Offer to the crew” hands them back instead — they stay in the Game for somebody else to pick up.',
   deleteFailed: '{name} could not be deleted. Try again.',
   deleteBuildBody: 'This action cannot be undone. {name} will be permanently removed.',
+  mechIsKept: 'Their Mech, {mech}, is kept, with no pilot.',
   scrapBody: "This deletes {name} for everyone in the Game and can't be undone.",
   moveFailed: '{name} could not be moved. Try again.',
   moveOutTitle: 'Move {name} out of {from}?',

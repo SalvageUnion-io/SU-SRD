@@ -54,7 +54,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'
 import { useServerAction } from '../../lib/connection/useServerAction'
-import { copyPattern, copyUnit } from '../../lib/copiedToast'
+import { copyAsking, copyPattern, keptMech } from '../../lib/copiedToast'
 import {
   useCrawlers,
   useHydrateEntities,
@@ -122,6 +122,7 @@ import {
 } from './shelfColumns'
 import type { RenameSubject } from './shelfMenu.model'
 import { deleteItem, renameItem } from './shelfMenu.model'
+import { showShelfRow } from './shelfRow.model'
 import { ShelvesPart } from './shelvesPart.model'
 
 // ---------------------------------------------------------------------------
@@ -238,8 +239,15 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         {
           id: 'copy',
           label: buildShelvesCopy('makeACopy'),
-          // A copy only adds: it runs at once, and its notice opens it.
-          onSelect: writable(() => void copyUnit(type, unit.name, copyBody, go)),
+          // A copy only adds: it runs at once (a pilot with a mech is asked
+          // whether the mech comes too), its notice opens it, and its new
+          // line is brought into view.
+          onSelect: writable(
+            () =>
+              void copyAsking(confirm, type, unit.name, copyBody, go, {
+                landed: (id) => showShelfRow(type, id),
+              })
+          ),
         },
         ...(type === 'mech'
           ? [
@@ -270,8 +278,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           writable(() =>
             confirm({
               ...(inGame
-                ? ROW_ACTION_COPY.deleteFromGame(unit.name)
-                : ROW_ACTION_COPY.deleteBuild(unit.name)),
+                ? ROW_ACTION_COPY.deleteFromGame(unit.name, keptMech(type, unit.id))
+                : ROW_ACTION_COPY.deleteBuild(unit.name, keptMech(type, unit.id))),
               onConfirm: () => useUnits.getState().delete(type, unit.id),
             })
           )

@@ -33,6 +33,8 @@ import { ConfirmDialog } from '../app'
 type ConfirmRequest = ConfirmCopy & {
   /** The action. Runs only on confirm; a rejection keeps the dialog open. */
   onConfirm: () => void | Promise<void>
+  /** A second yes beside the confirm (`ConfirmDialog`'s `alternate`). */
+  alternate?: { label: string; onConfirm: () => void | Promise<void> }
 }
 
 export type Confirm = (request: ConfirmRequest) => void
@@ -59,6 +61,7 @@ export function useConfirm(): { confirm: Confirm; dialog: ReactNode } {
         pendingLabel={request.pendingLabel}
         tone={request.tone}
         onConfirm={request.onConfirm}
+        {...(request.alternate ? { alternate: request.alternate } : {})}
         describeError={(err) => failureMessage(err, request.failure)}
       />
     )

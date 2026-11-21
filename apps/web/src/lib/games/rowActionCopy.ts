@@ -44,6 +44,10 @@ export type ConfirmCopy = {
   failure: string
 }
 
+/** The line saying a deleted pilot's mech stays, when they fly one. */
+const mechKept = (mech: string | undefined): string[] =>
+  mech ? [libGamesCopy('mechIsKept', { mech })] : []
+
 /** A pilot or an NPC is a person; a mech or a crawler is a thing. */
 function them(kind: RowActionKind): string {
   return kind === 'pilot' || kind === 'npc' ? 'them' : 'it'
@@ -205,10 +209,14 @@ export const ROW_ACTION_COPY = {
    * somebody else could have them, and a player who deletes when they meant to
    * hand over cannot undo it.
    */
-  deleteFromGame(name: string): ConfirmCopy {
+  deleteFromGame(name: string, mech?: string): ConfirmCopy {
     return {
       title: `Delete ${name}?`,
-      body: [libGamesCopy('deleteFromGameBody', { name }), libGamesCopy('deleteFromGameInstead')],
+      body: [
+        libGamesCopy('deleteFromGameBody', { name }),
+        ...mechKept(mech),
+        libGamesCopy('deleteFromGameInstead'),
+      ],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
       tone: 'danger',
@@ -216,11 +224,14 @@ export const ROW_ACTION_COPY = {
     }
   },
 
-  /** Deleting a build from the Roster — wherever it lives. */
-  deleteBuild(name: string): ConfirmCopy {
+  /**
+   * Deleting a build from the Roster — wherever it lives. A pilot's `mech` is
+   * named as kept: the delete takes the pilot alone.
+   */
+  deleteBuild(name: string, mech?: string): ConfirmCopy {
     return {
       title: `Delete ${name}?`,
-      body: [libGamesCopy('deleteBuildBody', { name })],
+      body: [libGamesCopy('deleteBuildBody', { name }), ...mechKept(mech)],
       confirmLabel: 'Delete',
       pendingLabel: 'Deleting…',
       tone: 'danger',
