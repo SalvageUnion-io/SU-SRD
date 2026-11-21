@@ -37,8 +37,7 @@
  *
  * A file whose lower-case terms are right as written is an `EXEMPTIONS` entry (`copyExemptions.ts`).
  *
- * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
- * is the baseline, a new finding fails, and a fixed one must be locked in.
+ * Both allow none: no count is recorded anywhere, so any finding fails.
  */
 
 import { readFileSync } from 'node:fs'
@@ -513,13 +512,13 @@ const RULES: readonly Rule[] = [
     id: 'lowercase-term',
     rule: 'a game term the dataset capitalises is written with a lower-case word',
     fix: 'capitalise it as the book does (Mech, Pilot, Tech Level, Hit Points)',
-    mode: 'ratchet',
+    mode: 'zero',
   },
   {
     id: 'banned-variant',
     rule: 'a spelling the book or the product does not use',
     fix: 'use the spelling the finding names',
-    mode: 'ratchet',
+    mode: 'zero',
   },
   {
     id: 'glyph',

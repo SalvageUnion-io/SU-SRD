@@ -2,7 +2,6 @@ import { afterAll, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ratchetCounts } from '../lib/ruleEngine'
 import { blankScriptComments, enclosingObject, parseCss } from '../lib/styleSource'
 import {
   ALERT_ATOMS,
@@ -29,7 +28,6 @@ describe('chrome tokens rule set', () => {
   test('every rule is zero, the entity-frame-ink rule (R38) too', () => {
     expect(chromeTokens.id).toBe('chrome-tokens')
     expect(chromeTokens.rules.filter((r) => r.mode !== 'zero').map((r) => r.id)).toEqual([])
-    expect(ratchetCounts(chromeTokens, {})).toEqual({})
   })
 })
 

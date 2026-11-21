@@ -2,11 +2,8 @@
  * The shared engine behind `tools/check-rule-sets.ts`'s rule sets — design
  * tokens, styling ownership, the stylesheet entry, the copy lint and more.
  *
- * One engine, because three copies of a `walk()`, an exemption lookup, a
- * baseline read, a ratchet comparison and a report drift in three directions:
- * a rule pinned at zero becomes a ratchet in name only, and a ratchet lets an
- * improvement go unrecorded, so a new violation can be added back without
- * failing anything.
+ * One engine, because three copies of a `walk()`, an exemption lookup and a
+ * report drift in three directions.
  *
  * What the engine owns, so no rule set has to:
  *
@@ -15,27 +12,19 @@
  *     trees;
  *   - **exemptions** — `isExempt`, one shape everywhere: a path fragment, the
  *     rules it waives, and a written reason;
- *   - **the verdict** — `evaluate`, which knows two kinds of rule:
- *       * `zero` — any finding fails. There is no baseline entry to maintain,
- *         because the only legal count is none;
- *       * `ratchet` — a committed baseline burning down, counted per file.
- *         No file's count may rise, AND none may fall without the baseline
- *         falling with it: an unrecorded improvement is slack that the next
- *         regression spends. Per file, because a total lets a new finding in
- *         one file hide behind a fix in another.
- *   - **the baseline file** — one JSON document keyed by rule set, holding
- *     ratchet rules only, each a file → count map.
+ *   - **the verdict** — `evaluate`: every rule is `zero`, so any finding
+ *     fails and no count is recorded anywhere.
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 export type Finding = { file: string; line: number; detail: string }
 
-type RuleMode = 'zero' | 'ratchet'
+type RuleMode = 'zero'
 
 export type Rule = {
-  /** Stable id, used by exemptions and the baseline. */
+  /** Stable id, used by exemptions. */
   id: string
   /** Which law this enforces — cited back to the author on failure. */
   rule: string
@@ -47,7 +36,7 @@ export type Rule = {
 export type Exemption = { file: string; rules: readonly string[]; reason: string }
 
 export type RuleSet = {
-  /** Stable id: the baseline key and the `--only=` value. */
+  /** Stable id: the `--only=` value. */
   id: string
   label: string
   rules: readonly Rule[]
@@ -65,18 +54,6 @@ export type RuleSet = {
   /** A line printed on success, after the count summary. */
   summary?: (root: string) => string
 }
-
-/** File -> findings allowed in it. */
-export type FileCounts = Record<string, number>
-
-/**
- * Rule set id -> ratchet rule id -> allowed count per file. A bare number is
- * the older total-only shape, read until `--update-baseline` rewrites it.
- */
-export type Baseline = Record<string, Record<string, FileCounts | number>>
-
-/** A baseline entry as file counts; a total-only number is one pseudo-file. */
-const TOTAL = '(total)'
 
 const SKIP_SEGMENTS = new Set(['node_modules', 'dist', 'generated'])
 
@@ -122,152 +99,44 @@ export function isExempt(
 type RuleVerdict = {
   rule: Rule
   found: number
-  allowed: number
   findings: Finding[]
-  /** Files holding more findings than their baseline, a ratchet's regression. */
-  over: string[]
-  /** Why this rule fails, or null when it passes. */
-  problem: 'nonzero' | 'regressed' | 'unrecorded-improvement' | null
 }
 
 export type SetVerdict = {
   set: RuleSet
   rules: RuleVerdict[]
-  /** Baseline entries naming a rule that is not a ratchet rule of this set. */
-  staleBaselineKeys: string[]
   ok: boolean
 }
 
-/** Compare one rule set's findings with its slice of the baseline. */
-export function evaluate(
-  set: RuleSet,
-  results: Record<string, Finding[]>,
-  baseline: Record<string, FileCounts | number> = {}
-): SetVerdict {
+/** One rule set's findings as a verdict: any finding fails its rule. */
+export function evaluate(set: RuleSet, results: Record<string, Finding[]>): SetVerdict {
   const rules = set.rules.map((rule): RuleVerdict => {
     const findings = results[rule.id] ?? []
-    const found = findings.length
-    if (rule.mode === 'zero') {
-      return { rule, found, allowed: 0, findings, over: [], problem: found > 0 ? 'nonzero' : null }
-    }
-    const entry = baseline[rule.id] ?? {}
-    const allowedBy = typeof entry === 'number' ? { [TOTAL]: entry } : entry
-    const allowed = Object.values(allowedBy).reduce((n, c) => n + c, 0)
-    const foundBy = typeof entry === 'number' ? { [TOTAL]: found } : countByFile(findings)
-    const over = Object.keys(foundBy).filter((f) => (foundBy[f] ?? 0) > (allowedBy[f] ?? 0))
-    const under = Object.keys(allowedBy).some((f) => (allowedBy[f] ?? 0) > (foundBy[f] ?? 0))
-    const problem = over.length > 0 ? 'regressed' : under ? 'unrecorded-improvement' : null
-    const overSet = new Set(
-      typeof entry === 'number' && over.length > 0 ? Object.keys(countByFile(findings)) : over
-    )
-    // A regression's report leads with the files that broke their allowance.
-    const ordered = [
-      ...findings.filter((f) => overSet.has(f.file)),
-      ...findings.filter((f) => !overSet.has(f.file)),
-    ]
-    return { rule, found, allowed, findings: ordered, over, problem }
+    return { rule, found: findings.length, findings }
   })
-  const ratchetIds = new Set(set.rules.filter((r) => r.mode === 'ratchet').map((r) => r.id))
-  const staleBaselineKeys = Object.keys(baseline).filter((id) => !ratchetIds.has(id))
-  return {
-    set,
-    rules,
-    staleBaselineKeys,
-    ok: staleBaselineKeys.length === 0 && rules.every((r) => r.problem === null),
-  }
-}
-
-/** Findings per file, keys sorted so a written baseline diffs cleanly. */
-function countByFile(findings: readonly Finding[]): FileCounts {
-  const counts: FileCounts = {}
-  for (const f of [...findings].sort((a, b) => a.file.localeCompare(b.file))) {
-    counts[f.file] = (counts[f.file] ?? 0) + 1
-  }
-  return counts
-}
-
-/** The per-file ratchet counts `--update-baseline` would write for one rule set. */
-export function ratchetCounts(
-  set: RuleSet,
-  results: Record<string, Finding[]>
-): Record<string, FileCounts> {
-  const out: Record<string, FileCounts> = {}
-  for (const rule of set.rules) {
-    if (rule.mode === 'ratchet') out[rule.id] = countByFile(results[rule.id] ?? [])
-  }
-  return out
-}
-
-/**
- * Ratchet rules whose count in some file is HIGHER than the committed one.
- *
- * `tools/check-rule-sets.ts --update-baseline` refuses them unless
- * `--allow-increase` is passed, for the one legitimate reason: a rule made
- * STRICTER counts what was always there. It may raise the baseline once, in its own commit,
- * with the reason written down. Drift may not.
- */
-export function increases(
-  previous: Record<string, FileCounts | number>,
-  next: Record<string, FileCounts>
-): string[] {
-  return Object.entries(next).flatMap(([id, counts]) => {
-    const before = previous[id]
-    if (typeof before === 'number') {
-      const total = Object.values(counts).reduce((n, c) => n + c, 0)
-      return total > before ? [`${id}: ${before} → ${total}`] : []
-    }
-    return Object.entries(counts)
-      .filter(([file, n]) => n > (before?.[file] ?? 0))
-      .map(([file, n]) => `${id} ${file}: ${before?.[file] ?? 0} → ${n}`)
-  })
-}
-
-export function readBaseline(path: string): Baseline {
-  if (!existsSync(path)) return {}
-  return JSON.parse(readFileSync(path, 'utf8')) as Baseline
+  return { set, rules, ok: rules.every((r) => r.found === 0) }
 }
 
 /** Human-readable failure report for one set. Empty when the set passed. */
-export function formatFailures(verdict: SetVerdict, updateCommand: string): string[] {
+export function formatFailures(verdict: SetVerdict): string[] {
   const lines: string[] = []
   for (const r of verdict.rules) {
-    if (r.problem === null) continue
+    if (r.found === 0) continue
     lines.push(`── ${verdict.set.id}/${r.rule.id} — ${r.rule.rule}`)
-    if (r.problem === 'nonzero') {
-      lines.push(`   must be zero, found ${r.found}`)
-    } else if (r.problem === 'regressed') {
-      lines.push(
-        `   ${r.allowed} allowed, ${r.found} found; over the baseline in ${r.over.join(', ')}`
-      )
-    } else {
-      lines.push(
-        `   improved: baseline says ${r.allowed}, found ${r.found}. Lock the gain in —`,
-        `   an unrecorded improvement is slack the next regression spends unnoticed.`,
-        `   run: ${updateCommand}`
-      )
-      lines.push('')
-      continue
-    }
+    lines.push(`   must be zero, found ${r.found}`)
     lines.push(`   fix: ${r.rule.fix}`, '')
     for (const f of r.findings.slice(0, 25)) lines.push(`   ${f.file}:${f.line}  ${f.detail}`)
     if (r.findings.length > 25) lines.push(`   … and ${r.findings.length - 25} more`)
     lines.push('')
   }
-  for (const key of verdict.staleBaselineKeys) {
-    lines.push(
-      `── ${verdict.set.id}: baseline names \`${key}\`, which is not a ratchet rule of this set.`,
-      `   Zero rules carry no baseline. run: ${updateCommand}`,
-      ''
-    )
-  }
-  if (verdict.rules.some((r) => r.problem === 'nonzero' || r.problem === 'regressed')) {
+  if (!verdict.ok) {
     if (verdict.set.exemptionsLive === undefined) {
       lines.push('This law takes no exemptions: make the fix above.', '')
     } else {
       lines.push(
         `A genuinely-correct case needs an EXEMPTIONS entry in ${verdict.set.exemptionsLive}`
       )
-      lines.push('(with a reason), not a higher number.', '')
+      lines.push('(with a reason).', '')
     }
   }
   return lines

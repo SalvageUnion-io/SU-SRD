@@ -32,8 +32,8 @@
  *
  * ## The rules
  *
- *   - `hard-coded` (ratchet) — today's uncatalogued strings are the baseline;
- *     a new one fails, and one moved into the catalogue must be locked in.
+ *   - `hard-coded` (zero) — a string typed at the call site fails; no count
+ *     is recorded anywhere.
  *   - `catalogue` (zero) — `messages(…)` is called only inside the catalogue;
  *     each module's export name is unique; a key is a literal at the call
  *     (`t(open ? 'hide' : 'show')` is fine), so every key a call says is
@@ -325,7 +325,7 @@ const RULES: readonly Rule[] = [
     id: 'hard-coded',
     rule: 'ADR-054 — a UI string typed at the call site instead of said from the message catalogue',
     fix: "add the words to the area's module in apps/web/src/messages/ (`messages({ key: 'Words {value}' })`) and say them by key (`areaCopy('key', { value })`)",
-    mode: 'ratchet',
+    mode: 'zero',
   },
   {
     id: 'catalogue',

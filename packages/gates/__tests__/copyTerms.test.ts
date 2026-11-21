@@ -22,7 +22,7 @@ import {
 } from '../rules/copyTerms'
 
 /**
- * `tools/check-rule-sets.ts` (the `copy` check) ratchets lower-case game terms and banned spellings in
+ * `tools/check-rule-sets.ts` (the `copy` check) refuses lower-case game terms and banned spellings in
  * shipped copy. These pin what the extractor reads as copy, how the term list
  * is weighed from the dataset, and what each rule flags, against fixtures.
  */

@@ -120,7 +120,7 @@ An Area's headline names the ADRs folded into it; its detail is the spec doc it 
     Duration effects are Play's and never persisted; every stated mechanical change is a contribution or a reasoned exemption.
 39. **UI words** · ADR-054 · [spec](architecture/messages.md) <a id="messages"></a>
     Every word the app draws is a key in `apps/web/src/messages/`, values as `{name}` placeholders; English only.
-    The `ui-strings` rule set ratchets the strings still typed at the call site.
+    The `ui-strings` rule set allows no string typed at the call site.
 40. **Addresses** · ADR-048, ADR-062 · [spec](architecture/addresses.md) <a id="addresses"></a>
     Reference `/`, Training Bay `/build/`, Play `/play/`, one app mapped by `appPath` / `routeInApp`; sheets `/build/<kind>s/:id`.
     Every retired address 301s once (`retiredTarget`).

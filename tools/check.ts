@@ -257,8 +257,8 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'copy',
     guards:
-      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product (ratcheted)',
-    fix: 'write the spelling the finding names; `--report` lists every finding; a ratchet that fell needs `bun tools/check-rule-sets.ts --only=copy --update-baseline` (tools/baselines/rule-sets.json)',
+      'copy capitalises the game terms keywords.json and the dataset capitalise; no TL, prose Heat Cap or off-spelling of the product; every word the app draws is in the message catalogue',
+    fix: 'write the spelling the finding names; `--report` lists every finding; a string moves into apps/web/src/messages/',
     cmd: ['bun', 'tools/check-rule-sets.ts', '--group=copy'],
     areas: ['code'],
     profiles: ALL,

@@ -5,7 +5,7 @@ import { isCopyAttr, lintUiStrings, uiStringFindings } from '../rules/uiStrings'
 import { EXEMPTIONS } from '../rules/uiStringsExemptions'
 
 /**
- * `tools/check-rule-sets.ts` (the `copy` check) ratchets UI strings typed at
+ * `tools/check-rule-sets.ts` (the `copy` check) refuses UI strings typed at
  * the call site and holds the message catalogue's shape (ADR-054). These pin
  * what counts as a UI string and what the catalogue rule refuses.
  */
