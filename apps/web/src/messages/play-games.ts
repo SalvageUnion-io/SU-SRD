@@ -19,7 +19,9 @@ export const playGamesCopy = messages({
     '{crawlerName} and anything unassigned come to you, in your {build}.',
   theCrewItsInviteLink:
     "The crew, its invite link, the opposition tray and the assignments between everyone's builds go with the Game.",
-  youMediate: 'You mediate',
+  you: 'You',
+  nameYou: '{name} (you)',
+  nobodyToHandOverTo: 'Hand over needs another member: invite a crewmate first.',
   mediate: 'Mediate',
   youAreNotInThis:
     'You are not in this Game. Ask its Organiser for the invite link, then open it to join.',

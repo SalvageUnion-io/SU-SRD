@@ -323,7 +323,9 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       state: (
         <>
           {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
-          {row.owner !== null && (row.owner.unassigned || row.owner.mine) && (
+          {/* The seal is the assign control: a row of yours says Mine in its
+              Member column, once (R59). */}
+          {row.owner?.unassigned && (
             <OwnerSeal
               owner={row.owner}
               assignable={row.can.assignSelf}
