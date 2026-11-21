@@ -95,4 +95,29 @@ describe('a press on a reference term', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.querySelector('[data-peek-out]')).not.toBeNull())
   })
+
+  test('on a phone the Peek is a sheet at the foot of the screen, Open page pinned under its card', async () => {
+    const real = window.matchMedia
+    // Below the ladder's first rung: no `(width >= …)` query matches.
+    window.matchMedia = ((query: string) =>
+      ({ matches: false, media: query }) as MediaQueryList) as typeof window.matchMedia
+    try {
+      const { link } = renderTerm()
+      expect(press(link)).toBe(false)
+      const peek = await screen.findByRole('tooltip')
+      expect(peek.hasAttribute('data-peek-sheet')).toBe(true)
+      expect(peek.style.position).toBe('fixed')
+      expect(peek.style.bottom).toBe('0px')
+      expect(peek.style.maxHeight).toBe('80dvh')
+      await waitFor(() => expect(peek.querySelector('[data-peek-out]')).not.toBeNull())
+      // The card scrolls; the way out is its sibling, outside the scroll.
+      const out = peek.querySelector('[data-peek-out]')?.parentElement
+      const card = peek.firstElementChild as HTMLElement
+      expect(card.style.overflowY).toBe('auto')
+      expect(card.contains(out ?? null)).toBe(false)
+      expect(out?.parentElement).toBe(peek)
+    } finally {
+      window.matchMedia = real
+    }
+  })
 })
