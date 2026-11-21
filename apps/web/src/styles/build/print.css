@@ -144,7 +144,11 @@
    * hard rule R7). */
   .su-stat-plate,
   [data-handback],
-  .su-eyebrow {
+  .su-eyebrow,
+  .su-rule-head__label,
+  .su-pilot-trees .su-poster-stamp,
+  .su-open__meta,
+  .su-tl {
     font-size: revert-layer;
     margin-bottom: revert-layer;
   }

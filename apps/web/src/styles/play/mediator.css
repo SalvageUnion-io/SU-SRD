@@ -68,3 +68,8 @@
   grid-column: 1 / -1;
   min-width: 0;
 }
+
+/* The Mediator's Kit's lists stand clear of their section's strip. */
+.su-mediator-kit-section .su-mediator-kit {
+  margin-top: var(--space-12);
+}

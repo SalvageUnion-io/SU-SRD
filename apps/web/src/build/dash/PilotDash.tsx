@@ -91,7 +91,10 @@ function TreeTrack({
   const byId = new Map(group.abilities.map((entry) => [entry.ability.id, entry]))
   const track = group.track ?? 'core'
   return (
+    // A tree's name is a heading under its group's (`DashGroup`'s h2); the
+    // Minis on its track hold none (N3).
     <SlabSection
+      as="h3"
       title={group.tree}
       count={track === 'legendary' ? buildSheetCopy('chooseOne') : undefined}
       size="mini"

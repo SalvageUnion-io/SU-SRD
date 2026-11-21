@@ -1,0 +1,405 @@
+/*
+ * The package stylesheet: the open Ledger (`.su-open`, `LedgerOpen`). Rows,
+ * not cards: one table whose head row is the label on its rule with the
+ * column labels at its end, a line a thing, its figures in fixed tabular
+ * columns. Its strip and banded rows are `open-ledger-strip.css`'s.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+.su-open {
+  border-collapse: collapse;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  width: 100%;
+}
+
+.su-open :is(th, td) {
+  font-weight: inherit;
+  padding: 0;
+  text-align: start;
+  vertical-align: baseline;
+}
+
+/* The head row: the label on its rule, the column labels at the rule's end. */
+.su-open thead th {
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  padding-bottom: var(--space-4);
+  vertical-align: bottom;
+}
+
+.su-open__title {
+  align-items: baseline;
+  column-gap: var(--space-12);
+  display: flex;
+  flex-wrap: wrap;
+  min-height: calc(var(--size-compact) - var(--space-4));
+  padding-top: var(--space-6);
+}
+
+/* In an open ledger the tally follows its label: the rule's end is the
+   column labels'. */
+.su-open__title > .su-rule-head__label {
+  flex: 0 1 auto;
+}
+
+/* The head's controls take the room between the tally and the columns. */
+.su-open__title > .su-rule-head__actions {
+  flex: 1 1 auto;
+  padding-bottom: var(--space-2);
+}
+
+.su-open__lead-note {
+  padding-block: var(--space-8);
+}
+
+/* A ledger's own controls, under its rule: the head keeps the column labels. */
+.su-open__controls {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+}
+
+.su-open thead th[data-col] {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1.3;
+  padding-inline: var(--space-6);
+  text-align: center;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-open thead th[data-col][data-kind='text'] {
+  text-align: start;
+}
+
+/* A sub-group's line (Turn, Short, a tree): a small label on a hairline. */
+.su-open .su-open__group > th {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-25);
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1.3;
+  padding: var(--space-12) 0 var(--space-2);
+}
+
+.su-open tbody:first-of-type > .su-open__group > th {
+  padding-top: var(--space-8);
+}
+
+.su-open__group-line {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-open__group-note {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-caps-tight);
+}
+
+.su-open__group-fold {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--space-4);
+  letter-spacing: inherit;
+  padding: 0;
+  text-transform: inherit;
+}
+
+.su-open__group-fold:hover {
+  color: var(--color-ink);
+}
+
+.su-open__group-fold > svg {
+  transition: rotate var(--dur-base) var(--ease);
+}
+
+.su-open__group-fold[aria-expanded='false'] > svg {
+  rotate: -90deg;
+}
+
+/* A row: its name, then its figures. */
+.su-open__row > :is(th, td) {
+  padding-block: var(--space-6) var(--space-4);
+}
+
+.su-open__row + .su-open__row > :is(th, td),
+.su-open__under + .su-open__row > :is(th, td),
+.su-open__detail + .su-open__row > :is(th, td) {
+  border-top: var(--bw-hairline) solid var(--color-ink-10);
+}
+
+.su-open__name-line {
+  align-items: baseline;
+  column-gap: var(--space-8);
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-2);
+}
+
+/* The opener and the name it opens stay on one line; the name wraps inside it. */
+.su-open__toggle + .su-open__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.su-open .su-open__name {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+}
+
+.su-open__lead {
+  align-self: center;
+  flex: none;
+}
+
+.su-open__meta {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.3;
+}
+
+.su-open__phone-only {
+  display: none;
+}
+
+.su-open__state,
+.su-open__controls {
+  align-items: center;
+  align-self: center;
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-4);
+}
+
+/* Edit's controls close the name's line, at its end. */
+.su-open__controls {
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.su-open__row > td {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.2;
+  padding-inline: var(--space-6);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.su-open__row > td[data-kind='text'] {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-normal);
+  text-align: start;
+  white-space: normal;
+}
+
+.su-open__row > td[data-empty] {
+  color: var(--color-ink-25);
+  font-weight: var(--font-weight-normal);
+}
+
+.su-open__row > td:last-child,
+.su-open thead th[data-col]:last-child {
+  padding-inline-end: 0;
+}
+
+.su-open__row > td .su-cost-edge {
+  vertical-align: middle;
+}
+
+/* The line under a row: what it does, at the body size, two lines at most. */
+.su-open__under > td {
+  color: var(--color-ink-75);
+  font-size: var(--text-body);
+  line-height: 1.4;
+  padding-bottom: var(--space-6);
+}
+
+.su-open__clamp {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  margin: 0;
+  overflow: hidden;
+}
+
+.su-open__clamp p {
+  display: inline;
+  margin: 0;
+}
+
+/* A dim row: an ability not yet taken, a destroyed item. */
+.su-open__row[data-dim] .su-open__name,
+.su-open__row[data-dim] > td {
+  color: var(--color-ink-55);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-open__row[data-dim] .su-open__name {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Its cost goes grey, never faint: the badge's words keep their contrast. */
+.su-open__row[data-dim] .su-cost-edge {
+  filter: grayscale(1);
+}
+
+/* A row that opens: its chevron is the row's first cell content. */
+.su-open__toggle {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-badge);
+  color: var(--color-ink-75);
+  cursor: pointer;
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  margin-inline: calc(-1 * var(--space-4)) calc(-1 * var(--space-2));
+  min-height: var(--space-24);
+  padding: 0;
+  width: var(--space-24);
+}
+
+.su-open__toggle:hover {
+  background-color: var(--color-ink-10);
+  color: var(--color-ink);
+}
+
+.su-open__toggle > svg {
+  transition: rotate var(--dur-base) var(--ease);
+}
+
+.su-open__toggle[aria-expanded='false'] > svg {
+  rotate: -90deg;
+}
+
+.su-open__detail > td {
+  padding: 0 0 var(--space-12) var(--space-24);
+}
+
+.su-open__empty {
+  color: var(--color-wk-muted);
+  font-size: var(--text-body);
+  margin: 0;
+  padding-block: var(--space-8);
+}
+
+/* The foot's cite cut-out: a paper tab hanging bottom-right off the last
+   row, on the page's own ground (the only cut-out a list wears besides its
+   title). */
+.su-open tfoot td {
+  padding-top: var(--space-2);
+  text-align: right;
+}
+
+/* A pair's second half on one line: the mech beside its pilot. */
+.su-open__pair {
+  align-items: baseline;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-6);
+}
+
+/* The second name on a paired line (a pilot's mech): a name, not a value. */
+.su-open__pair-name {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A Tech Level as a chip on paper, framed in its colour on the map: the
+   numeral in ink, never on the TL blue (ruleset §3.8). */
+.su-tl {
+  align-items: center;
+  background-color: var(--color-paper);
+  border: var(--bw-chrome) solid var(--tl, var(--color-ink-40));
+  border-radius: var(--radius-badge);
+  color: var(--color-ink);
+  display: inline-flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  height: var(--space-20);
+  justify-content: center;
+  line-height: 1;
+  min-width: var(--space-20);
+  padding-inline: var(--space-4);
+}
+
+/* An open ledger inside a group: its head is a sub-label on a hairline. */
+.su-open--sub thead th {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-25);
+  padding-bottom: var(--space-2);
+}
+
+.su-open--sub .su-open__title {
+  min-height: 0;
+  padding-top: var(--space-4);
+}
+
+.su-open--sub .su-rule-head__label {
+  color: var(--color-ink-75);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+}
+
+/* The crew manifest: a bay, who leads it, their Keepsake and Motto, their HP. */
+.su-open--manifest .su-open__row > th {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-open--manifest .su-open__row > td[data-kind='text'] {
+  color: var(--color-ink-75);
+  padding-inline: var(--space-12);
+}
+
+.su-open--manifest thead th[data-col][data-kind='text'] {
+  padding-inline: var(--space-12);
+}
+
+@media not (width >= 40rem) {
+  .su-open .su-open__name {
+    font-size: var(--text-body);
+  }
+
+  .su-open thead th[data-col]:not([data-phone]),
+  .su-open__row > td:not([data-phone]) {
+    display: none;
+  }
+
+  .su-open__phone-only {
+    display: inline;
+  }
+
+  /* A manifest's names wrap on a phone rather than running past the column. */
+  .su-open--manifest .su-open__row > th {
+    white-space: normal;
+    width: auto;
+  }
+}

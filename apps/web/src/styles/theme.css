@@ -34,7 +34,7 @@
 
   /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
      row, body and foot, and the app pages that share their column. */
-  --page-measure: 75rem;
+  --page-measure: 80rem;
 
   /* The type ladder (ruleset §4.8): every font size is one of these rungs
      (`fontSize` in design/tokens.ts says what each is for), in rem, so a

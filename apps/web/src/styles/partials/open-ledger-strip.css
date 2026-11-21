@@ -1,0 +1,542 @@
+/*
+ * The package stylesheet: the open Ledger's strip and rows (`LedgerOpen`,
+ * over `open-ledger.css`). The head is the Ledger's (ledger.md L2, L5): a
+ * strip of the kind's paint, the title on a paper cut-out at its left,
+ * tallies and column labels reversed on it. Rows band paper and cream (L3)
+ * on hairlines, at a comfortable height; a row with rules opens in place
+ * under itself. `../index.css` imports the parts in cascade order.
+ */
+
+.su-open thead th {
+  /* The ground of the body the tab opens into (R45): the page's ground for a
+     body that stands on it (cards, doors, a lede), the paper of the panel,
+     card or dialog it stands in (`--su-ground`, entity-forms.css), or what
+     the body sets (`--cutout-ground`). */
+  --su-head-cut: var(--cutout-ground, var(--su-ground));
+}
+
+.su-open thead th {
+  --su-head-cut: var(--color-paper);
+}
+
+.su-open:not(.su-open--sub) .su-open__title > .su-rule-head__label {
+  background-color: var(--su-head-cut);
+  color: var(--color-ink);
+  flex: 0 1 auto;
+  font-size: var(--text-readout);
+  line-height: 1;
+  padding: var(--space-6) var(--space-12) var(--space-4);
+}
+
+.su-open:not(.su-open--sub) thead :is(.su-rule-head__tally, .su-rule-head__note) {
+  align-self: center;
+  color: var(--su-on-kind, var(--color-paper));
+  padding-bottom: var(--space-2);
+}
+
+.su-open:not(.su-open--sub) thead .su-rule-head__tally > :is(i, small) {
+  color: var(--su-on-kind, var(--color-paper));
+}
+
+.su-open:not(.su-open--sub) thead .su-rule-head__tally[data-state='critical'] > b {
+  background-color: var(--color-status-bad);
+  color: var(--color-paper);
+  padding-inline: var(--space-4);
+}
+
+/* A Mention on the strip (the chassis a mech is built on) reads reversed. */
+.su-open:not(.su-open--sub) thead .su-rule-head__note a {
+  color: var(--su-on-kind, var(--color-paper));
+}
+
+.su-open:not(.su-open--sub) thead th {
+  background-color: var(--su-kind, var(--color-ink));
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.su-open:not(.su-open--sub) .su-open__title {
+  align-items: flex-end;
+  min-height: var(--size-compact);
+  padding: var(--space-6) var(--space-8) 0;
+}
+
+.su-open:not(.su-open--sub) thead th[data-col] {
+  color: var(--su-on-kind, var(--color-paper));
+  padding-block: var(--space-8) 0;
+  padding-inline: var(--space-8);
+  vertical-align: bottom;
+}
+
+/* A column's label: a paper cut-out on the strip's foot, notched into the
+   first row as the title's tab is (L2), on one line. Bottom-aligned on its
+   line, so no descender's room stands under it. */
+.su-open:not(.su-open--sub) thead .su-open__col-tab {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  display: inline-block;
+  vertical-align: bottom;
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  white-space: nowrap;
+}
+
+.su-open:not(.su-open--sub) thead th[data-col]:last-child {
+  padding-inline-end: var(--space-12);
+}
+
+/* A sub-ledger (a tree, a hold's lots): the title on an ink rule, no paint. */
+.su-open--sub thead th {
+  border-bottom: var(--bw-chrome) solid var(--color-ink);
+  padding-bottom: var(--space-4);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: a sub-table's label, never a main strip's (`:not(.su-open--sub)`) */
+.su-open--sub .su-rule-head__label {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-extrabold);
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: a sub-table's column labels, never a main strip's (`:not(.su-open--sub)`) */
+.su-open--sub thead th[data-col] {
+  padding-inline: var(--space-8);
+}
+
+/* ── The rows ───────────────────────────────────────────────────────────── */
+.su-open {
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+}
+
+.su-open--sub {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-40);
+}
+
+.su-open tbody > tr {
+  background-color: var(--color-paper);
+}
+
+.su-open tbody > tr[data-band] {
+  background-color: var(--su-zebra);
+}
+
+.su-open {
+  /* The band: the Ledger's cream, a step deeper so a row tracks across a
+     1440 page. */
+  --su-zebra: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+.su-open__row > :is(th, td) {
+  padding-block: var(--space-8);
+  vertical-align: middle;
+}
+
+.su-open tbody > .su-open__row > th {
+  padding-inline: var(--space-12) var(--space-8);
+}
+
+.su-open__row > td,
+.su-open__row > td[data-kind='text'] {
+  padding-inline: var(--space-8);
+}
+
+.su-open__row > td:last-child {
+  padding-inline-end: var(--space-12);
+}
+
+.su-open__row + .su-open__row > :is(th, td),
+.su-open__under + .su-open__row > :is(th, td),
+.su-open__detail + .su-open__row > :is(th, td) {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-open__name-line {
+  align-items: stretch;
+}
+
+/* The opener and the name it opens share one height (§4.7): the name's link
+   is at least the opener's 24px, and the opener stretches with a name that
+   wraps to a second line. */
+.su-open__name-line .su-inline-ref {
+  align-items: center;
+  display: inline-flex;
+  min-block-size: var(--space-24);
+}
+
+.su-open__row > td[data-kind='text'] {
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.su-open__under > td {
+  padding: 0 var(--space-12) var(--space-8);
+}
+
+/* The line under a name sits under the name, clear of the opener's column. */
+.su-open__row[data-opens] + .su-open__under > td {
+  padding-inline-start: calc(var(--space-12) + var(--space-24) + var(--space-2));
+}
+
+/* The lead numeral's column too (an ability's tier). */
+.su-open--generic .su-open__row[data-opens] + .su-open__under > td {
+  padding-inline-start: calc(var(--space-12) + var(--space-24) + var(--space-2));
+}
+
+/* Opened, the two-line summary gives way to the text in full. */
+.su-open__row[data-open] + .su-open__under {
+  display: none;
+}
+
+/* An open row and its text are one block: an ink edge down both. */
+.su-open__row[data-open] > th,
+.su-open__row[data-open] + .su-open__under + .su-open__detail > td,
+.su-open__row[data-open] + .su-open__detail > td {
+  box-shadow: inset var(--bw-entity) 0 0 var(--color-ink);
+}
+
+.su-open__row[data-open] .su-open__name {
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-open__detail > td {
+  padding: 0;
+}
+
+.su-open__detail-body {
+  padding: 0 var(--space-16) var(--space-14)
+    calc(var(--space-12) + var(--space-24) + var(--space-2));
+}
+
+.su-open__toggle {
+  margin-inline: calc(-1 * var(--space-4)) var(--space-2);
+}
+
+.su-open__toggle:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* A sub-group's line inside a painted ledger: a quiet band of its own. */
+.su-open .su-open__group > th {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 34%, var(--color-paper));
+  border-bottom: 0;
+  color: var(--color-ink);
+  padding: var(--space-4) var(--space-12);
+}
+
+.su-open tbody:first-of-type > .su-open__group > th {
+  padding-top: var(--space-4);
+}
+
+.su-open tbody > tr > td > .su-open__lead-note,
+.su-open__empty {
+  padding-inline: var(--space-12);
+}
+
+/* The rules an opened row prints: running text at the body size, measured. */
+.su-row-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  max-width: 46rem;
+  white-space: normal;
+}
+
+.su-row-rules__marks {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-tight);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.su-row-rules__text {
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  text-align: start;
+}
+
+.su-row-rules__text p {
+  margin: 0;
+}
+
+.su-row-rules__text p + p {
+  margin-top: var(--space-6);
+}
+
+.su-row-rules__action {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-8);
+}
+
+.su-row-rules__action-head {
+  align-items: baseline;
+  column-gap: var(--space-8);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--text-body);
+  margin: 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: an action head's figure, never a strip's tally */
+.su-row-rules__action-head > b {
+  font-weight: var(--font-weight-bold);
+}
+
+.su-row-rules .su-row-rules__action-head > .su-cost-edge {
+  margin-left: auto;
+}
+
+/* A loadout's two ledgers (Systems, Modules) share one set of column widths,
+   so a figure sits on the same line down both. */
+/* biome-ignore lint/style/noDescendingSpecificity: the strip's rule above keeps what both set; this adds the loadout's own */
+.su-open--loadout thead th[data-col] {
+  min-width: 3.5rem;
+  width: 3.5rem;
+}
+
+.su-open--loadout thead th[data-col][data-kind='text'] {
+  min-width: 6rem;
+  width: 6rem;
+}
+
+.su-open--generic .su-open__clamp {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+@media not (width >= 40rem) {
+  .su-open__detail-body {
+    padding-inline: var(--space-12);
+  }
+
+  .su-open__row[data-opens] + .su-open__under > td {
+    padding-inline-start: var(--space-12);
+  }
+}
+
+/* The name, then what marks it, close by; a live stamp rides the cell's end. */
+/* biome-ignore lint/style/noDescendingSpecificity: an opened row's name keeps the rule above; this sets every row's indent */
+.su-open__toggle + .su-open__name,
+/* biome-ignore lint/style/noDescendingSpecificity: an opened row's name keeps the rule above; this sets every row's indent */
+.su-open__toggle-gap + .su-open__name {
+  flex: 0 1 auto;
+}
+
+.su-open__state {
+  margin-left: auto;
+}
+
+.su-open__toggle-gap {
+  flex: none;
+  width: calc(var(--space-24) - var(--space-2));
+}
+
+/* The opener, the tier and the name hold one line; the name wraps inside it. */
+.su-open--generic .su-open__name-line {
+  flex-wrap: nowrap;
+}
+
+.su-open--generic .su-open__row[data-opens] + .su-open__under > td {
+  padding-inline-start: calc(
+    var(--space-12) +
+    var(--space-24) +
+    var(--space-2) +
+    var(--size-mini) +
+    var(--space-8)
+  );
+}
+
+/* A manifest (the bays, a crew): the name's cell holds one line, the words
+   beside it wrap inside their columns. */
+.su-open--manifest .su-open__name-line,
+/* biome-ignore lint/style/noDescendingSpecificity: the strip's rule above keeps what both set; this adds the bays list's own */
+.su-open--manifest .su-open__title {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+/* A phone: Edit's controls wrap under the bay's name, so the manifest keeps
+   to a 320px page (no sideways scroll, R44). */
+@media not (width >= 40rem) {
+  .su-open--manifest .su-open__name-line:has(> .su-open__controls) {
+    flex-wrap: wrap;
+  }
+}
+
+.su-open--manifest .su-open__row > td[data-kind='text'] {
+  font-weight: var(--font-weight-normal);
+  white-space: normal;
+}
+
+/* On a phone the Starter crew's head keeps one line:
+   the title is not allowed to wrap, and the pilots' tally (the rows say it)
+   goes. */
+@media not (width >= 40rem) {
+  /* biome-ignore lint/style/noDescendingSpecificity: the strip's rule above keeps what both set; this is the pairs list's phone size */
+  .su-open--pairs .su-open__title > .su-rule-head__label {
+    font-size: var(--text-lede);
+    white-space: nowrap;
+  }
+
+  .su-open--pairs thead .su-rule-head__tally {
+    display: none;
+  }
+}
+
+/* L-4: no borders on a table. */
+.su-open,
+.su-open.su-open--sub {
+  border-bottom: 0;
+  border-top: 0;
+}
+
+.su-open .su-open__row > :is(th, td) {
+  border: 0;
+}
+
+/* A sub-table (a tree, what is stored) heads itself with a lighter band of
+   the same colour instead of an ink rule. */
+.su-open.su-open--sub thead th {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 55%, var(--color-paper));
+  border-bottom: 0;
+  padding-block: var(--space-4);
+}
+
+.su-open.su-open--sub thead th:first-child {
+  padding-inline-start: var(--space-8);
+}
+
+/* A phone: the bays list keeps to the page (no sideways scroll, R44). */
+@media not (width >= 40rem) {
+  .su-open.su-open--manifest .su-open__row > td[data-kind='text'],
+  .su-open.su-open--manifest thead th[data-col][data-kind='text'] {
+    padding-inline: var(--space-4);
+  }
+
+  .su-open.su-open--manifest .su-open__row > td:last-child,
+  .su-open.su-open--manifest thead th:last-child {
+    padding-inline: var(--space-4) var(--space-8);
+  }
+
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):nth-child(4) {
+    padding-inline: var(--space-4);
+  }
+
+  .su-open.su-open--pairs .su-open__row > th {
+    padding-inline: var(--space-8) var(--space-4);
+  }
+
+  .su-open.su-open--pairs .su-open__title > .su-rule-head__label {
+    font-size: var(--text-readout);
+  }
+
+  .su-open.su-open--pairs :is(.su-open__row > td, thead th):is(:nth-child(2), :nth-child(3)) {
+    padding-inline: var(--space-4);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * ONE LINE IN A HEAD STRIP (L-5).
+ * The cut-out title, its tally and every column label share one baseline:
+ * the title's. A control in the strip (a button) is centred instead; it is
+ * not a label.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* A sheet table's strip. */
+.su-open thead th,
+.su-open.su-open--sub thead th {
+  vertical-align: baseline;
+}
+
+.su-open:not(.su-open--sub) thead th[data-col],
+.su-open.su-open--sub thead th[data-col] {
+  line-height: 1;
+  padding-block: 0;
+  vertical-align: baseline;
+}
+
+/* A painted strip's column labels are cut-outs on its foot (L2). */
+.su-open:not(.su-open--sub) thead th[data-col] {
+  vertical-align: bottom;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: a sub-table's title; a main strip's keeps the rule above */
+.su-open thead .su-open__title {
+  align-items: baseline;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: a title's parts sit on its baseline, over the strips above */
+.su-open thead .su-open__title > .su-rule-head__label,
+.su-open
+  thead
+  .su-open__title
+  :is(.su-rule-head__tallies, .su-rule-head__tally, .su-rule-head__note) {
+  align-self: baseline;
+  padding-bottom: 0;
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__label {
+  padding-bottom: var(--space-4);
+}
+
+/* A tree's strip keeps to one line: a note that does not fit beside the
+   title is dropped whole, never wrapped under it. */
+.su-open.su-open--sub thead .su-open__title {
+  flex-wrap: wrap;
+  max-height: 1.0625rem;
+  overflow: hidden;
+  row-gap: var(--space-8);
+}
+
+/* An open Ledger's strip with controls (Edit's Manage, Mount) is a strip
+   with actions too: its cut-out the buttons' 24px on the strip's foot, the
+   buttons compact at the title's end, wrapping to a line over it. */
+.su-open:not(.su-open--sub) thead th:has(> .su-open__title > .su-rule-head__actions) {
+  vertical-align: bottom;
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title:has(> .su-rule-head__actions) {
+  /* wrap-reverse: the cross start is the foot. */
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+  row-gap: var(--space-8);
+}
+
+.su-open:not(.su-open--sub)
+  thead
+  .su-open__title:has(> .su-rule-head__actions)
+  > .su-rule-head__label {
+  align-self: flex-start;
+  box-sizing: border-box;
+  height: var(--space-24);
+  padding-block: var(--space-4) var(--space-2);
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__actions {
+  align-self: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding-block: var(--space-4);
+}
+
+.su-open:not(.su-open--sub) thead .su-open__title > .su-rule-head__actions .su-btn {
+  font-size: var(--text-chip);
+  height: 1.5rem; /* design-tokens-ignore(size-literal): the strip's buttons, as above */
+  min-height: 0;
+  padding-block: 0;
+}
+
+/* Column labels on a pale tone strip, and a read-only Used mark's words, in
+   full ink. */
+/* biome-ignore lint/style/noDescendingSpecificity: the contrast floor */
+.su-open thead th[data-col] {
+  color: var(--color-ink);
+}

@@ -1,24 +1,17 @@
 /*
  * The guided builders' stylesheet: the wizard shell and steps
  * (`build/wizard/`), the mech, crawler and pilot builders, and the
- * Guided/Blank chooser.
- *
- * Everything static is a style object over the UI library's `tokens`, in the
- * component. What is here is what a style object cannot hold (ADR-046): a
- * responsive or stateful value (resting value included, since an inline
- * `style=` beats every rule here) and child-selector stacks.
- *
- * Imported once by `WizShell`, so every builder's chunk carries it, and by
+ * Guided/Blank chooser. Everything static is a style object over `tokens`;
+ * what is here is what a style object cannot hold (ADR-046): a responsive or
+ * stateful value (resting value included, since an inline `style=` beats
+ * every rule here) and child-selector stacks. Imported by `WizShell` and by
  * each component that renders outside the shell (the chooser, the Blank
  * dialog, the sheet's pickers); not from `app.css`. Unlayered, like the app's
- * other stylesheets.
- *
- * The breakpoints: sm 40rem, md 48rem, lg 64rem.
+ * other stylesheets. Breakpoints: sm 40rem, md 48rem, lg 64rem, xl 80rem.
  */
 
-/* — Stacks: a child-selector vertical rhythm.
-   `:where()` keeps it at zero specificity, so a child's
-   own margin still wins. — */
+/* — Stacks: a child-selector vertical rhythm. `:where()` keeps it at zero
+   specificity, so a child's own margin still wins. — */
 :where(.su-wiz-stack > :not(:last-child)) {
   margin-block-start: 0;
 }
@@ -189,11 +182,11 @@
   padding: var(--space-20);
 }
 
-/* The action bar's budget. One line at every
-   width: the trackers, ghost Back and Cancel, the rust Next. On a phone it is
-   docked to the screen's foot, edge to edge (chrome, not a card floating over
-   the step's cards), and holds the Scrap budget, the ⋯ menu (Back, Cancel, the
-   escape) and the Next; from sm it is the flat ink card at the pane's corner. */
+/* The action bar's budget. One line at every width: the trackers, ghost Back
+   and Cancel, the rust Next. On a phone it is docked to the screen's foot,
+   edge to edge (chrome, not a card floating over the step's cards), and holds
+   the Scrap budget, the ⋯ menu (Back, Cancel, the escape) and the Next; from
+   sm it is the flat ink card at the pane's corner. */
 .su-wiz-footer {
   background-color: var(--color-wk-bg);
   border-top: var(--bw-chrome) solid var(--color-ink);
@@ -595,4 +588,13 @@
 /* A pick's card under its list, 12px off it (R17). */
 .su-wiz-pick-under {
   margin-top: var(--space-12);
+}
+
+/* L-1: at the measure the rail and step keep the band's title's edge. */
+@media (width >= 80rem) {
+  .su-wiz-body {
+    box-sizing: border-box;
+    padding-inline: calc(var(--su-shell-edge) - var(--space-16) - var(--space-4))
+      calc(var(--su-shell-edge) - var(--space-40));
+  }
 }
