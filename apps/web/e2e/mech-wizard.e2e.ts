@@ -40,8 +40,8 @@ test('build a mech from scratch', async ({ page }) => {
   await advanceUntilVisible(page, addCargoPod)
   await installLoadoutItem(page, 'Cargo Pod')
 
-  // Name — a mech's name IS its pattern, behind a click-to-edit field.
-  const nameEditor = page.getByLabel(/^Edit name \/ pattern$/i)
+  // Name — a mech's name IS its pattern, a live field.
+  const nameEditor = page.getByLabel(/^name \/ pattern/i)
   await advanceUntilVisible(page, nameEditor)
   await fillIdentity(page, 'name / pattern', 'Iron Fist')
 
