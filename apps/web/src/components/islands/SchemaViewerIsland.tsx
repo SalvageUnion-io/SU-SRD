@@ -1,7 +1,14 @@
 import { X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { RefAbility, RefEntity } from 'salvageunion-reference'
-import { getEntitySlug, getModel, getSources, getTechLevel, getTree } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  getModel,
+  getSources,
+  getTechLevel,
+  getTree,
+  toEntityModel,
+} from 'salvageunion-reference'
 import { itemHref, srdHrefFor } from '../../lib/entityHref'
 import type { GroupBy, ListingShape, TechLevel } from '../../lib/listingGroups'
 import {
@@ -11,18 +18,13 @@ import {
   resolveGroupBy,
   tlName,
 } from '../../lib/listingGroups'
-import {
-  PARAM_NAME,
-  PARAM_SOURCE,
-  PARAM_TECH_LEVEL,
-  PARAM_TREE,
-  PARAM_VIEW,
-} from '../../lib/listingParams'
+import { entityTraitNames } from '../../lib/listingTraits'
 import type { ListingView } from '../../lib/listingView'
 import { TREE_LISTINGS, useListingView } from '../../lib/listingView'
 import { artUrlFor } from '../../lib/sourceCovers'
 import type { SchemaList } from '../../lib/useGameData'
 import { preloadGameData } from '../../lib/useGameData'
+import { useListingFilters } from '../../lib/useListingFilters'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
 import { GameDataGate } from '../GameDataGate'
@@ -61,27 +63,6 @@ const TILE_OMIT = ['ref-stat-cargoCapacity', 'ref-stat-heatCapacity']
  */
 const OPENING_ROW = 4
 
-/**
- * Read a single query-param value from the current URL. SSR-safe: the SSG
- * renders this island's `ssr` markup under Bun (no `window`), so guard every
- * location read.
- */
-function readUrlParam(name: string): string {
-  if (typeof window === 'undefined') return ''
-  return new URLSearchParams(window.location.search).get(name) ?? ''
-}
-
-/** Read a comma-separated query param into a Set of tokens. */
-function readUrlSet(name: string): Set<string> {
-  const raw = readUrlParam(name)
-  return new Set(raw ? raw.split(',').filter(Boolean) : [])
-}
-
-/** A single-choice param; an older shared link's comma list keeps its first entry. */
-function readUrlChoice(name: string): string {
-  return readUrlParam(name).split(',')[0] ?? ''
-}
-
 type SchemaViewerIslandProps = {
   schemaId: string
   /** The page's band; without one the rail heads the listing itself. */
@@ -91,6 +72,8 @@ type SchemaViewerIslandProps = {
   /** Ability trees to offer as a filter facet; only abilities carry a tree, so
    *  this defaults to empty and the facet is hidden for every other schema. */
   trees?: string[]
+  /** The traits to offer as a filter facet (`listingTraits`): the weapons' and gear's. */
+  traits?: string[]
   /** Which schemas to preload — defaults to `'all'`. Pass the per-route list
    *  from `../../lib/schemaPreloadDeps.ts` to load only what this listing needs. */
   preloadSchemas?: SchemaList
@@ -186,6 +169,7 @@ function SchemaViewer({
   techLevels,
   sources,
   trees = [],
+  traits = [],
   hasArt,
   listingView,
   serverRender = false,
@@ -211,41 +195,21 @@ function SchemaViewer({
     return order
   }, [hasArt, initialData])
 
-  // Filter state initializes from the URL on mount so a shared/bookmarked link
-  // restores the exact filtered view. Lazy initializers run once; the reads are
-  // window-guarded for SSR.
-  const [techLevelFilters, setTechLevelFilters] = useState<Set<string>>(() =>
-    readUrlSet(PARAM_TECH_LEVEL)
-  )
-  const [sourceFilter, setSourceFilter] = useState(() => readUrlChoice(PARAM_SOURCE))
-  const [treeFilter, setTreeFilter] = useState(() => readUrlChoice(PARAM_TREE))
-  const [nameFilter, setNameFilter] = useState(() => readUrlParam(PARAM_NAME))
+  const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
+  // The filters, the sort and a phone's columns open on the URL's query and
+  // write themselves back to it: a shared link restores the exact view.
+  const filters = useListingFilters({ techLevels: orderedTechLevels, view, viewInUrl })
+  const {
+    techLevelFilters,
+    source: sourceFilter,
+    tree: treeFilter,
+    trait: traitFilter,
+    name: nameFilter,
+    toggleTechLevel,
+    clear: clearFilters,
+  } = filters
   // On a phone the facets fold behind one button (the CSS decides when).
   const [facetsOpen, setFacetsOpen] = useState(false)
-
-  // Push filter state back into the URL (replaceState — bookmarkable/shareable
-  // without spamming history on every keystroke). Idempotent: only writes when
-  // the resulting query string actually differs from the current one, so the
-  // mount-time run never clobbers an incoming shared link.
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    const setOrDelete = (key: string, value: string) => {
-      if (value) params.set(key, value)
-      else params.delete(key)
-    }
-    setOrDelete(PARAM_TECH_LEVEL, [...techLevelFilters].join(','))
-    setOrDelete(PARAM_SOURCE, sourceFilter)
-    setOrDelete(PARAM_TREE, treeFilter)
-    setOrDelete(PARAM_NAME, nameFilter)
-    setOrDelete(PARAM_VIEW, viewInUrl ? view : '')
-    const qs = params.toString()
-    const nextUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname
-    const currentUrl = `${window.location.pathname}${window.location.search}`
-    if (nextUrl !== currentUrl) {
-      window.history.replaceState(window.history.state, '', nextUrl)
-    }
-  }, [techLevelFilters, sourceFilter, treeFilter, nameFilter, view, viewInUrl])
 
   const filteredData = useMemo(() => {
     const name = nameFilter.toLowerCase()
@@ -256,12 +220,12 @@ function SchemaViewer({
       }
       if (sourceFilter && !getSources(item).includes(sourceFilter)) return false
       if (treeFilter && getTree(item) !== treeFilter) return false
+      if (traitFilter && !entityTraitNames(toEntityModel(item)).includes(traitFilter)) return false
       if (name && !item.name.toLowerCase().includes(name)) return false
       return true
     })
-  }, [initialData, techLevelFilters, sourceFilter, treeFilter, nameFilter])
+  }, [initialData, techLevelFilters, sourceFilter, treeFilter, traitFilter, nameFilter])
 
-  const orderedTechLevels = useMemo(() => orderTechLevels(techLevels), [techLevels])
   // The Catalog is one flat grid, no group headings (a tree listing's by
   // name), but for the classes' Core and Hybrid headings, and the List is the
   // same entities a line each; the Tree groups.
@@ -300,31 +264,16 @@ function SchemaViewer({
   // pick a Mech or drone; its page shows every stat.
   const tileOmit = useMemo(() => [...omit, ...TILE_OMIT], [omit])
 
-  const toggleTechLevel = (level: TechLevel) => {
-    setTechLevelFilters((prev) => {
-      const next = new Set(prev)
-      const key = String(level)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      if (orderedTechLevels.every((tl) => next.has(String(tl)))) return new Set()
-      return next
-    })
-  }
-
-  const activeFacets = techLevelFilters.size + (sourceFilter ? 1 : 0) + (treeFilter ? 1 : 0)
-  const hasActiveFilters = activeFacets > 0 || nameFilter !== ''
-  const clearFilters = () => {
-    setTechLevelFilters(new Set())
-    setSourceFilter('')
-    setTreeFilter('')
-    setNameFilter('')
-  }
+  const hasActiveFilters =
+    techLevelFilters.size > 0 ||
+    [sourceFilter, treeFilter, traitFilter, nameFilter].some((filter) => filter !== '')
   const railActions: RailActions = {
-    setName: setNameFilter,
+    setName: filters.setName,
     toggleTechLevel,
-    clearTechLevels: () => setTechLevelFilters(new Set()),
-    setSource: setSourceFilter,
-    setTree: setTreeFilter,
+    clearTechLevels: filters.clearTechLevels,
+    setSource: filters.setSource,
+    setTree: filters.setTree,
+    setTrait: filters.setTrait,
     setView,
     toggleFacets: () => setFacetsOpen((open) => !open),
   }
@@ -337,12 +286,14 @@ function SchemaViewer({
         techLevels: orderedTechLevels,
         sources,
         trees,
+        traits,
         views,
       }}
       filters={{
         techLevels: techLevelFilters,
         source: sourceFilter,
         tree: treeFilter,
+        trait: traitFilter,
         name: nameFilter,
       }}
       facetsOpen={facetsOpen}
@@ -376,21 +327,28 @@ function SchemaViewer({
               <FilterToken
                 label={shortSource(sourceFilter)}
                 name={`source ${sourceFilter}`}
-                onRemove={() => setSourceFilter('')}
+                onRemove={() => filters.setSource('')}
               />
             )}
             {treeFilter && (
               <FilterToken
                 label={treeFilter}
                 name={`tree ${treeFilter}`}
-                onRemove={() => setTreeFilter('')}
+                onRemove={() => filters.setTree('')}
+              />
+            )}
+            {traitFilter && (
+              <FilterToken
+                label={traitFilter}
+                name={`trait ${traitFilter}`}
+                onRemove={() => filters.setTrait('')}
               />
             )}
             {nameFilter && (
               <FilterToken
                 label={`“${nameFilter}”`}
                 name="name filter"
-                onRemove={() => setNameFilter('')}
+                onRemove={() => filters.setName('')}
               />
             )}
             <Button variant="ghost" size="compact" onClick={clearFilters}>
@@ -455,6 +413,13 @@ function SchemaViewer({
                       noun={group.label || band?.title || ''}
                       plain={!group.label || group.label === band?.title}
                       items={group.items}
+                      order={{
+                        sort: filters.sort,
+                        sortBy: filters.sortBy,
+                        clear: filters.clearSort,
+                      }}
+                      phone={{ columns: filters.columns, setColumns: filters.setColumns }}
+                      orderNote={groupIndex === 0}
                     />
                   ) : treeTracks.get(group.key) ? (
                     <ReferenceAbilityTrack
@@ -502,6 +467,7 @@ function ListingSkeleton({
   techLevels,
   sources,
   trees = [],
+  traits = [],
   hasArt,
   shape,
   view,
@@ -526,6 +492,7 @@ function ListingSkeleton({
           techLevels: orderTechLevels(techLevels),
           sources,
           trees,
+          traits,
           views,
         }}
         view={view}

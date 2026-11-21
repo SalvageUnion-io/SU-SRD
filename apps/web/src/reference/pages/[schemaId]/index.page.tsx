@@ -28,6 +28,7 @@ import { getUniqueSources, getUniqueTechLevels, getUniqueTrees } from '../../../
 import { listingEntries } from '../../../lib/listingEntries'
 import type { ListingGroup, ListingShape } from '../../../lib/listingGroups'
 import { catalogGroupBy, groupEntities } from '../../../lib/listingGroups'
+import { listingTraits } from '../../../lib/listingTraits'
 import { CATALOG_LISTINGS } from '../../../lib/listingView'
 import { pageTitle } from '../../../lib/pageTitle'
 import { getSchemaPreloadList } from '../../../lib/schemaPreloadDeps'
@@ -59,6 +60,8 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   const techLevels = CATALOG_LISTINGS.has(schemaId) ? [] : getUniqueTechLevels(data)
   const sources = schemaId === 'sources' ? [] : getUniqueSources(data)
   const trees = schemaId === 'abilities' ? getUniqueTrees(data) : []
+  // The weapons' and gear's traits: "which systems are Hot" is a filter.
+  const traits = listingTraits(data)
   const preloadSchemas = getSchemaPreloadList(schemaId)
   // Art-less tiles take the Catalog's wider columns.
   const hasArt = data.some((item) => !!artUrlFor(item as RefMetaEntity))
@@ -115,6 +118,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels,
             sources,
             trees,
+            traits,
             preloadSchemas,
             hasArt,
             shape,
@@ -127,6 +131,7 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
             techLevels={techLevels}
             sources={sources}
             trees={trees}
+            traits={traits}
             hasArt={hasArt}
             entryIds={entryIds}
           />

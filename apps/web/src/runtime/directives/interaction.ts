@@ -23,6 +23,12 @@ export type InteractionOptions = {
   trigger?: string
 }
 
+/** On an island that mounts at once, until its first commit. */
+const PENDING_ATTRIBUTE = 'data-island-pending'
+
+/** The longest a pending island's stale markup stays out of sight. */
+const PENDING_LIMIT_MS = 4000
+
 /** The island's own element (`clientSwap`), and its stand-in's root inside Astro's slot. */
 function standInRoot(el: HTMLElement): HTMLElement {
   const own = el.querySelector<HTMLElement>(':scope > [data-island]') ?? el
@@ -49,10 +55,18 @@ const interaction: ClientDirective = (load, options, el) => {
   }
 
   if (mountsNow(name, props)) {
+    // The server's markup is not what this visit shows (a filtered or sorted
+    // listing): mark the island until its first commit, so the stylesheet can
+    // keep the wrong rows out of sight in their place instead of flashing
+    // them (`[data-island-pending]`). Lifted too if the island never comes.
+    el.setAttribute(PENDING_ATTRIBUTE, '')
+    const settle = () => el.removeAttribute(PENDING_ATTRIBUTE)
+    el.addEventListener(ISLAND_COMMIT, settle, { once: true })
+    setTimeout(settle, PENDING_LIMIT_MS)
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return
       observer.disconnect()
-      void hydrate()
+      hydrate().catch(settle)
     })
     observer.observe(boxOf(el))
     return

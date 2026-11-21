@@ -19,13 +19,19 @@ describe('mountsNow', () => {
     expect(mountsNow('SchemaViewerIsland', { schemaId: 'abilities' })).toBe(false)
   })
 
-  test.each(['tl=1', 'source=Core', 'tree=Hacker', 'q=mule', 'view=catalog'])(
-    'a listing on a link with %s mounts now',
-    (query) => {
-      window.location.href = `http://localhost/abilities/?${query}`
-      expect(mountsNow('SchemaViewerIsland', { schemaId: 'abilities' })).toBe(true)
-    }
-  )
+  test.each([
+    'tl=1',
+    'source=Core',
+    'tree=Hacker',
+    'q=mule',
+    'view=catalog',
+    'trait=Hot',
+    'sort=-sp',
+    'cols=range,damage',
+  ])('a listing on a link with %s mounts now', (query) => {
+    window.location.href = `http://localhost/abilities/?${query}`
+    expect(mountsNow('SchemaViewerIsland', { schemaId: 'abilities' })).toBe(true)
+  })
 
   test('a query the listing does not read changes nothing', () => {
     window.location.href = 'http://localhost/chassis/?utm_source=discord'
