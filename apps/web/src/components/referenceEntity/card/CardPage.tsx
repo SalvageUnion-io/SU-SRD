@@ -346,8 +346,13 @@ export function CardPage({
     // the main track in the markup: a phone draws it last, so the markup
     // reads in the order every width shows it (WCAG 1.3.2).
     const side = !!hero || statsAside || split.side.length > 0
+    // A denizen the table fights (it carries actions and no Tech Level: a
+    // Bio-Titan, an NPC) is opened for its actions: on a phone its art is a
+    // short banner and the actions come before its words (`manual-page.css`).
+    const fought =
+      !!hero && split.main.length > 0 && 'actions' in entity && !('techLevel' in entity)
     return (
-      <div className="su-entity-page su-manual">
+      <div className={cn('su-entity-page su-manual', fought && 'su-manual--fought')}>
         {lead && <div className="su-manual__lead">{lead}</div>}
         {side && (
           <div className="su-manual__side">

@@ -298,6 +298,16 @@ describe('the card as a page', () => {
     expect(section.querySelectorAll('h3, h4, h5, h6')).toHaveLength(0)
   })
 
+  test('a denizen the table fights says so, for a phone’s actions-first read; a chassis does not (r2 H5)', () => {
+    const scylla = need(SalvageUnionReference.BioTitans.getByName('Scylla'), 'scylla')
+    const titan = render(<ReferenceEntityCard data={scylla} presentation="page" />)
+    expect(titan.container.querySelector('.su-manual.su-manual--fought')).not.toBeNull()
+    titan.unmount()
+    const chassis = render(<ReferenceEntityCard data={gopher()} presentation="page" />)
+    expect(chassis.container.querySelector('.su-manual')).not.toBeNull()
+    expect(chassis.container.querySelector('.su-manual--fought')).toBeNull()
+  })
+
   test('a bay’s crew NPC on its Page is drawn open, never a Mini (N8)', () => {
     const bay = need(SalvageUnionReference.CrawlerBays.getByName('Cantina'), 'cantina')
     render(<ReferenceEntityCard data={bay} presentation="page" />)
