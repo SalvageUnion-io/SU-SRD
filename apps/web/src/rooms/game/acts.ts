@@ -113,6 +113,7 @@ const GAME_ACTS = {
     c.room.log.broadcast(c.actor, a.message, c.at),
   'changeLog.rolls': (c: ActContext) => c.room.log.rolls(c.actor),
   'changeLog.alerts': (c: ActContext) => c.room.log.alerts(c.actor),
+  'changeLog.events': (c: ActContext) => c.room.events.list(c.actor),
   'changeLog.forEntity': (c: ActContext, a: { entityId: string }) =>
     entityLog(c.room.units.history(c.actor, a.entityId)),
 
@@ -199,6 +200,7 @@ export const GAME_READ_ACTS: ReadonlySet<GameActName> = new Set<GameActName>([
   'downtime.state',
   'changeLog.rolls',
   'changeLog.alerts',
+  'changeLog.events',
   'changeLog.forEntity',
   'mediator.npcs',
   'mediator.amMediator',

@@ -1,5 +1,6 @@
 import type { ApplyOp } from '../ops'
 import type { RoomSql } from '../sql'
+import { GameEvents } from './events'
 import { GameLog } from './log'
 import { GameOpposition } from './opposition'
 import { GamePlay } from './play'
@@ -28,6 +29,7 @@ export class GameRoomLogic {
   readonly safety: GameSafety
   readonly session: GameSession
   readonly log: GameLog
+  readonly events: GameEvents
   /** Mints an id for what the room makes (a proposal's op). */
   readonly newId: () => string
 
@@ -49,5 +51,6 @@ export class GameRoomLogic {
     this.safety = new GameSafety(store)
     this.session = new GameSession(store)
     this.log = new GameLog(store, newId)
+    this.events = new GameEvents(store, newId)
   }
 }

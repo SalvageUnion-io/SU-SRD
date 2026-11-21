@@ -16,6 +16,7 @@ import type { z } from 'salvageunion-reference/zod'
 import type { PatternSharing } from '../rooms/account/sharing'
 import type { SoloSeatRead } from '../rooms/account/soloPlay'
 import type { GameActName, GameActResult } from '../rooms/game/acts'
+import type { TableEvent } from '../rooms/game/events'
 import type { AlertRow, RollRow } from '../rooms/game/log'
 import type { DowntimeRead } from '../rooms/game/play'
 import type { ProposalRead, SentProposal } from '../rooms/game/proposals'
@@ -148,6 +149,8 @@ const ANSWERED_BY: Record<ReadName, Answer> = {
   'ops.sent': { table: 'sentProposals', answer: newest(20) },
   'changeLog.rolls': { table: 'rolls', answer: newest(30) },
   'changeLog.alerts': { table: 'alerts', answer: newest(20) },
+  // Deltas append, so a reader sorts by `ts` (`feed.model.ts`).
+  'changeLog.events': { table: 'events' },
   'crew.vitals': { table: 'crew' },
   'shelf.patternSharing': { table: 'sharing' },
 }
@@ -169,6 +172,7 @@ type Reads = {
   'ops.sent': SentProposal[]
   'changeLog.rolls': RollRow[]
   'changeLog.alerts': AlertRow[]
+  'changeLog.events': TableEvent[]
   'crew.vitals': CrewVitals | null
   'shelf.patternSharing': (PatternSharing & { appId: string })[]
 }

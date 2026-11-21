@@ -63,7 +63,12 @@ export class GameLog {
 
   /** The newest rolls, newest first, each named by its roller as the roster names them. */
   rolls(actor: string): RollRow[] {
-    return this.newest(actor, 'roll').map((row) => {
+    // A private roll (`after.private`, the Mediator's) is a Mediator's to read, as in `events.ts`.
+    const mediates = this.store.member(actor)?.mediator === true
+    const readable = this.newest(actor, 'roll').filter(
+      (row) => mediates || (parsed(row.after) as { private?: unknown } | null)?.private !== true
+    )
+    return readable.map((row) => {
       const after = parsed(row.after) as { description?: unknown } | null
       const actorId = row.actor_id === null ? null : String(row.actor_id)
       return {

@@ -286,6 +286,24 @@ export type PostAlertRelayRequest = { channelId: string; message: string }
 export const ALERT_POST_MAX = 2000
 
 /**
+ * The same door for the table's events (`rooms/game/events.ts`): what members
+ * did in the Game (vitals, actions, boarding, assignments, joining, the group
+ * session, proposals), one line each, a burst posted as one message. A roll,
+ * an alert and the Stop Sign keep their own posts, and a private event is
+ * never sent. It answers as the roll relay does.
+ */
+export const BOT_RELAY_POST_EVENTS_PATH = '/relay/post-events'
+
+/** The events' channel and their lines, oldest first. */
+export type PostEventsRelayRequest = { channelId: string; lines: string[] }
+
+/** The most lines one events post carries; a longer burst says how many more. */
+export const EVENTS_POST_MAX_LINES = 12
+
+/** The longest line an events post carries; longer is cut, with an ellipsis. */
+export const EVENT_LINE_MAX = 200
+
+/**
  * Whether a roll is one the card can replay: a named table and one die (two on
  * a columns table), each a whole number on the d20. The site checks it before
  * it relays (`channelBindings.postRoll`) and the relay again on receipt.

@@ -21,6 +21,8 @@ import type {
   UnitSheet,
 } from '../rooms/game/acts'
 import { GAME_READ_ACTS, runAct } from '../rooms/game/acts'
+import type { TableEvent } from '../rooms/game/events'
+import { isMirrored } from '../rooms/game/events'
 import {
   appliedMessages,
   batchAnswer,
@@ -55,7 +57,7 @@ import { membershipGameIds } from './shared/games'
 import { RoomPublisher, sharedDb } from './shared/roomRows'
 import { AccountTotalsWriter } from './shared/signals'
 import type { StopSignEnv } from './shared/stopSign'
-import { postStopSign, postTableAlert } from './shared/stopSign'
+import { postStopSign, postTableAlert, postTableEvents } from './shared/stopSign'
 import { isShelfAct, runShelfAct } from './shelfActs'
 
 /**
@@ -267,6 +269,12 @@ export class AccountRoom extends Room {
   }
 }
 
+/** How long the table must be quiet before its events post to Discord. */
+const MIRROR_QUIET_MS = 3_000
+
+/** The longest a burst of events waits to post. */
+const MIRROR_MAX_MS = 10_000
+
 /**
  * @public A Game; loaded by workerd (`wrangler.jsonc` `exports`), named by
  * its Game id. The Worker and the bot name the player (`actor`, a Discord id,
@@ -305,11 +313,15 @@ export class GameRoom extends Room {
     name: N,
     args: GameActArgs<N>
   ): GameActAnswer<GameActResult<N>> {
-    const answer = runAct(
-      { room: this.logic, actor, gameId: this.gameId, at: Date.now() },
-      name,
-      args
-    )
+    const at = Date.now()
+    const before = GAME_READ_ACTS.has(name) ? null : this.logic.events.before(name, args)
+    const answer = runAct({ room: this.logic, actor, gameId: this.gameId, at }, name, args)
+    // What the act did, as the table's events: the Feed, the toasts, Discord.
+    const events =
+      answer.ok && before !== null
+        ? this.logic.events.after(actor, name, args, answer.value, before, at)
+        : []
+    this.mirror(events)
     if (name === 'safety.showStop' && answer.ok && answer.value === true) {
       this.ctx.waitUntil(this.postStop())
     }
@@ -334,12 +346,51 @@ export class GameRoom extends Room {
         // A Downtime step is read back off its op (`downtime` record's `doneSteps`).
         if (ids.some(isDowntimeStepOp)) this.broadcastSnapshots()
         else {
-          this.broadcast([{ type: 'record', table: 'crew', record: crewRecord(this.logic) }])
+          this.broadcast([
+            { type: 'record', table: 'crew', record: crewRecord(this.logic) },
+            // A vital's change is no private event, so every member hears the same record.
+            ...events.map((event) => ({
+              type: 'record' as const,
+              table: 'events' as const,
+              record: { appId: event._id, body: { ...event }, updatedAt: event.ts },
+            })),
+          ])
           this.published()
         }
       }
     }
     return answer
+  }
+
+  /** The lines waiting to post to the bound channel, by event id: a merged repeat rewrites its own. */
+  private readonly mirroring = new Map<string, string>()
+  private mirrorTimer: ReturnType<typeof setTimeout> | null = null
+  private mirrorSince = 0
+
+  /**
+   * Mirror events to the bound Discord channel, a burst as one message: it
+   * posts once the table has been quiet for `MIRROR_QUIET_MS`, or
+   * `MIRROR_MAX_MS` after the burst began. Posting seals the lines, so a
+   * later repeat starts a new one. A private event never enters
+   * (`isMirrored`).
+   */
+  private mirror(events: readonly TableEvent[]): void {
+    const lines = events.filter(isMirrored)
+    if (lines.length === 0) return
+    if (this.mirroring.size === 0) this.mirrorSince = Date.now()
+    for (const event of lines) this.mirroring.set(event._id, event.text)
+    if (this.mirrorTimer !== null) clearTimeout(this.mirrorTimer)
+    const wait = Math.max(
+      0,
+      Math.min(MIRROR_QUIET_MS, this.mirrorSince + MIRROR_MAX_MS - Date.now())
+    )
+    this.mirrorTimer = setTimeout(() => {
+      this.mirrorTimer = null
+      const posting = [...this.mirroring.values()]
+      this.mirroring.clear()
+      this.logic.events.seal()
+      this.ctx.waitUntil(postTableEvents(this.env as StopSignEnv, this.gameId, posting))
+    }, wait)
   }
 
   /** The Stop Sign to the bound channel, while it is still up. */

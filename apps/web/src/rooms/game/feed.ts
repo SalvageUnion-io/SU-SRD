@@ -52,7 +52,8 @@ function tableRecords(room: GameRoomLogic, actor: string) {
 /**
  * The table in play, as each member reads it: the roster, every pilot's
  * seat, the Downtime, the proposals waiting on them (and, for a Mediator,
- * every one sent), the newest rolls and alerts, and the crew's vitals.
+ * every one sent), the newest rolls and alerts, the table's events (`events.ts`)
+ * and the crew's vitals.
  */
 function playRecords(room: GameRoomLogic, actor: string) {
   const by = <T extends object>(rows: T[], appId: (row: T) => string, at: (row: T) => number) =>
@@ -92,6 +93,11 @@ function playRecords(room: GameRoomLogic, actor: string) {
       room.log.alerts(actor),
       (a) => a._id,
       (a) => a.ts
+    ),
+    events: by(
+      room.events.list(actor),
+      (e) => e._id,
+      (e) => e.ts
     ),
     crew: [crewRecord(room)],
   }

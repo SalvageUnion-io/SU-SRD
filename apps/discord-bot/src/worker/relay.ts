@@ -1,8 +1,8 @@
 /**
  * The relay: the site Worker asking the bot to post a Play roll into a bound
  * channel (`channelBindings.postRoll`, wire shapes in `game-domain/botWire`),
- * a Stop Sign (`handlePostStop`) or the Mediator's alert to the table
- * (`handlePostAlert`).
+ * a Stop Sign (`handlePostStop`), the Mediator's alert to the table
+ * (`handlePostAlert`) or the table's events (`handlePostEvents`).
  *
  * The bot is the one place holding both the bot token and the roll card, so
  * the site sends the roll and the bot renders it with `buildPostedRollMessage`:
@@ -22,12 +22,14 @@ import { DiscordAPIError, HTTPError, RateLimitError } from '@discordjs/rest'
 import { Routes } from 'discord-api-types/v10'
 import type {
   PostAlertRelayRequest,
+  PostEventsRelayRequest,
   PostRollRelayRequest,
   PostRollRelayResponse,
   PostStopRelayRequest,
 } from 'game-domain/botWire'
 import {
   BOT_RELAY_POST_ALERT_PATH,
+  BOT_RELAY_POST_EVENTS_PATH,
   BOT_RELAY_POST_ROLL_PATH,
   BOT_RELAY_POST_STOP_PATH,
   isPostableRoll,
@@ -38,6 +40,7 @@ import { encodeRollResult } from '../customId'
 import { reportError } from '../reportError'
 import { stopSignContainer } from '../stopSignContainer'
 import { tableAlertContainer } from '../tableAlertContainer'
+import { tableEventsContainer } from '../tableEventsContainer'
 import type { MessagePayload } from '../wire'
 import { toWire } from '../wire'
 import { oneShotRest } from './oneShotRest'
@@ -156,6 +159,22 @@ async function handlePostAlert(request: Request, env: Env): Promise<Response> {
   return postToChannel(env, channelId, v2Reply(tableAlertContainer(message)), 'handlePostAlert')
 }
 
+/** Handle `POST BOT_RELAY_POST_EVENTS_PATH`: the table's events (`tableEventsContainer`). */
+async function handlePostEvents(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => null)) as Partial<PostEventsRelayRequest> | null
+  const channelId = body !== null && typeof body === 'object' ? body.channelId : undefined
+  const lines = body !== null && typeof body === 'object' ? body.lines : undefined
+  if (
+    !isChannelId(channelId) ||
+    !Array.isArray(lines) ||
+    !lines.every((line) => typeof line === 'string') ||
+    lines.every((line) => line.trim().length === 0)
+  ) {
+    return answer({ ok: false, status: null, message: 'Those events cannot be posted.' }, 400)
+  }
+  return postToChannel(env, channelId, v2Reply(tableEventsContainer(lines)), 'handlePostEvents')
+}
+
 /** @public The site's way to post (its `BOT` service binding names it as its `entrypoint`). */
 export class Relay extends WorkerEntrypoint<Env> {
   override fetch(request: Request): Promise<Response> {
@@ -166,6 +185,8 @@ export class Relay extends WorkerEntrypoint<Env> {
       return handlePostStop(request, this.env)
     if (request.method === 'POST' && pathname === BOT_RELAY_POST_ALERT_PATH)
       return handlePostAlert(request, this.env)
+    if (request.method === 'POST' && pathname === BOT_RELAY_POST_EVENTS_PATH)
+      return handlePostEvents(request, this.env)
     return Promise.resolve(answer({ error: 'not found' }, 404))
   }
 }
