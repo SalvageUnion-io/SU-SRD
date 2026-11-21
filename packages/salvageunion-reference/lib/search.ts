@@ -9,7 +9,10 @@ import type { RefEntity, RefEnumSchemaName, RefMetaEntity } from './schemas/inde
 import {
   matchSearchTokens,
   scoreSearchMatch,
+  searchAliases,
   searchNameWords,
+  searchSquashedName,
+  searchWordStem,
   tokenizeSearchQuery,
 } from './searchRanking'
 
@@ -99,6 +102,32 @@ export function patternSearchText(entity: RefEntity): string {
 }
 
 /**
+ * The rules an entity holds beyond its opening text: a guide's steps (their
+ * names and prose: "Heat Check" is a step of Heat) and a roll table's results
+ * (their labels and prose: "Nailed it" is a result of the Core Mechanic).
+ * Shared with the reference site's compact index, as `patternSearchText` is.
+ */
+export function rulesSearchText(entity: RefEntity): string {
+  const record: Record<string, unknown> = entity
+  const parts: string[] = []
+  if (Array.isArray(record.steps)) {
+    for (const step of record.steps as unknown[]) {
+      if (typeof step !== 'object' || step === null) continue
+      if ('name' in step && typeof step.name === 'string') parts.push(step.name)
+      if ('content' in step) parts.push(extractContentText(step.content))
+    }
+  }
+  const table = record.table
+  if (typeof table === 'object' && table !== null) {
+    // A result is an object (its label and prose); the table's `type` is not one.
+    for (const row of Object.values(table)) {
+      if (typeof row === 'object') parts.push(extractContentText(row))
+    }
+  }
+  return parts.filter((part) => part.trim().length > 0).join(' ')
+}
+
+/**
  * Build the search index lazily on first access
  * Pre-computes searchable text for all entities
  */
@@ -157,8 +186,14 @@ function buildSearchIndex(): SearchIndexEntry[] {
           : ''
 
       const patternsText = patternSearchText(entity).toLowerCase()
+      const rulesText = rulesSearchText(entity).toLowerCase()
 
-      const fieldPairs: Array<readonly [string, string]> = [['name', nameText]]
+      // The name as it may be typed instead: without its punctuation
+      // ("biotitan"), or by an alias ("sp").
+      const nameForms = [nameText, searchSquashedName(nameText), ...searchAliases(nameText)]
+      const fieldPairs: Array<readonly [string, string]> = [
+        ['name', [...new Set(nameForms)].join(' ')],
+      ]
       if (descriptionText) fieldPairs.push(['description', descriptionText])
       if (goalsText) fieldPairs.push(['goals', goalsText])
       if (assetsText) fieldPairs.push(['assets', assetsText])
@@ -166,6 +201,7 @@ function buildSearchIndex(): SearchIndexEntry[] {
       if (contentText) fieldPairs.push(['content', contentText])
       if (actionsText) fieldPairs.push(['actions.content', actionsText])
       if (patternsText) fieldPairs.push(['patterns', patternsText])
+      if (rulesText) fieldPairs.push(['rules', rulesText])
 
       entries.push({
         schemaName: schemaId,
@@ -280,7 +316,8 @@ export function extractContentText(content: unknown): string {
 function matchedFieldsOf(indexEntry: SearchIndexEntry, tokens: string[]): string[] {
   const matchedFields: string[] = []
   for (const [fieldName, text] of indexEntry.fields) {
-    if (tokens.some((token) => text.includes(token))) matchedFields.push(fieldName)
+    if (tokens.some((token) => text.includes(token) || text.includes(searchWordStem(token))))
+      matchedFields.push(fieldName)
   }
   return matchedFields
 }
@@ -295,7 +332,7 @@ export function search(options: SearchOptions): SearchResult[] {
   if (!parsed) {
     return []
   }
-  const { loweredQuery, tokens } = parsed
+  const { tokens } = parsed
 
   // Create cache key from search options
   const cacheKey = JSON.stringify(options)
@@ -329,10 +366,10 @@ export function search(options: SearchOptions): SearchResult[] {
       const matchedFields = matchedFieldsOf(indexEntry, tokens)
       if (usedTypo && !matchedFields.includes('name')) matchedFields.push('name')
       const matchScore = scoreSearchMatch({
+        ...parsed,
         nameText: indexEntry.nameText,
-        loweredQuery,
-        tokens,
         usedTypo,
+        schemaName: indexEntry.schemaName,
         descriptionText: indexEntry.descriptionText,
         matchedFieldCount: matchedFields.length,
       })

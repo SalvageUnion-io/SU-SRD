@@ -22,8 +22,10 @@ import { Button } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
+import { AREA_NAV } from '../components/unionBar/areaNav.model'
 import { UnionBar } from '../components/unionBar/UnionBar'
 import { SIGN_IN_HREF } from '../lib/accountBar'
+import { sectionHrefFor } from '../lib/chapters'
 import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
 
@@ -46,6 +48,9 @@ function SignInLink() {
   )
 }
 
+/** The sub-navigation's entries, by href. */
+const REFERENCE_SECTIONS = AREA_NAV.reference.links.map((link) => link.href)
+
 type BreadcrumbItem = {
   name: string
   url: string
@@ -61,22 +66,35 @@ type TopNavigationProps = {
   pageHasSearch?: boolean
   /** The site's front door: no area link is current. */
   home?: boolean
+  /** The page's address: its section is marked in the sub-navigation. */
+  pathname?: string
 }
 
 export function TopNavigation({
   breadcrumbs,
   pageHasSearch = false,
   home = false,
+  pathname,
 }: TopNavigationProps) {
+  const section = pathname ? sectionHrefFor(pathname, REFERENCE_SECTIONS) : undefined
   return (
     <UnionBar
       product="reference"
       noCurrent={home}
+      railCurrent={section ? { href: section, page: section === pathname } : undefined}
       breadcrumbs={breadcrumbs}
-      // The 404 carries its own; the home needs none (search is the
-      // Reference's).
+      // The 404 carries its own. The home shows no search bar: its field is
+      // served out of sight and comes into the bar when "/" or Cmd/Ctrl+K (or
+      // "Look something up") focuses it (`.su-union-bar__search-onkey`,
+      // shell.css).
       search={
-        pageHasSearch || home ? null : (
+        pageHasSearch ? null : home ? (
+          <div className="su-union-bar__search-onkey">
+            <Island name="SearchIsland" client="interaction" ssr>
+              <SearchIsland />
+            </Island>
+          </div>
+        ) : (
           <Island name="SearchIsland" client="interaction" ssr>
             <SearchIsland />
           </Island>

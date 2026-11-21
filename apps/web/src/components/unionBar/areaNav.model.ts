@@ -17,11 +17,13 @@ export const AREA_NAV = {
   reference: {
     name: unionBarCopy('navReference'),
     links: [
-      { label: unionBarCopy('navPilots'), href: '/pilots/' },
-      { label: unionBarCopy('navMechs'), href: '/mechs/' },
+      // The book's chapters, each by the one name its page and the Contents
+      // give it (`lib/chapters.ts`; `chapters.test.ts` holds them equal).
+      { label: unionBarCopy('navPilotBay'), href: '/pilots/' },
+      { label: unionBarCopy('navMechWorkshop'), href: '/mechs/' },
       { label: unionBarCopy('navUnionCrawler'), href: '/union-crawler/' },
-      { label: unionBarCopy('navWasteland'), href: '/wasteland/' },
-      { label: unionBarCopy('navRules'), href: '/rules/' },
+      { label: unionBarCopy('navDenizens'), href: '/wasteland/' },
+      { label: unionBarCopy('navRulesReference'), href: '/rules/' },
       { label: unionBarCopy('navGuides'), href: '/guides/' },
       { label: unionBarCopy('navRollTables'), href: '/roll-tables/' },
     ],

@@ -50,7 +50,7 @@ export type ContentsChapterProps = {
   onFollow?: () => void
 }
 
-/** A run longer than this may break on to the next column of a flowing index. */
+/** A run longer than this takes columns of its own under its sub-head in a flowing index. */
 const LONG_RUN = 12
 
 /** A plain left click, the one an in-place open takes over. */

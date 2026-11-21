@@ -20,7 +20,10 @@
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  min-width: 12rem;
+  /* The floor, but never wider than the screen less its gutters (a phone at
+     200% zoom is 195px): there the Compact gives way rather than push the
+     page sideways (WCAG 1.4.10, reflow). */
+  min-width: min(12rem, calc(100vw - 2 * var(--space-32)));
   position: relative;
   text-decoration: none;
 }

@@ -103,6 +103,38 @@ describe('SearchIsland', () => {
     expect(listbox.textContent).toContain('No results found')
   })
 
+  test('a pattern is a result of its own, opening its own page (PT-26)', async () => {
+    const navigate = mock(() => {})
+    render(<SearchIsland navigate={navigate} />)
+    const input = screen.getByRole('combobox')
+
+    await typeAndSettle(input, 'ironmonger')
+
+    const first = screen.getAllByRole('option')[0]
+    expect(first?.getAttribute('href')).toBe('/chassis/magpie/pattern/ironmonger/')
+    expect(screen.getByRole('listbox').textContent).toContain('Pattern · Magpie')
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' })
+    })
+    expect(navigate).toHaveBeenCalledWith('/chassis/magpie/pattern/ironmonger/')
+  })
+
+  test('a question, a word form and a stat abbreviation find their rule (RR-04)', async () => {
+    render(<SearchIsland />)
+    const input = screen.getByRole('combobox')
+    const firstHref = () => screen.getAllByRole('option')[0]?.getAttribute('href')
+
+    await typeAndSettle(input, 'how does salvaging work')
+    expect(firstHref()).toBe('/guides/salvaging/')
+    await typeAndSettle(input, 'overheating')
+    expect(firstHref()).toBe('/traits/overheat/')
+    await typeAndSettle(input, 'sp')
+    expect(firstHref()).toBe('/keywords/structure-points/')
+    await typeAndSettle(input, 'biotitan')
+    // The kind's own listing first, then the keyword.
+    expect(firstHref()).toBe('/bio-titans/')
+  })
+
   test('Enter with no arrow selection opens the first result', async () => {
     const navigate = mock(() => {})
     render(<SearchIsland navigate={navigate} />)
@@ -226,7 +258,7 @@ describe('SearchIsland', () => {
     expect(categoryRows.length).toBeLessThanOrEqual(3)
   })
 
-  test('Escape closes the dropdown and lets go of focus; focusing again reopens it', async () => {
+  test('Escape ends the lookup: the list closes, the field empties and lets go of focus', async () => {
     render(<SearchIsland navigate={mock(() => {})} />)
     const input = screen.getByRole('combobox')
     await act(async () => {
@@ -241,11 +273,34 @@ describe('SearchIsland', () => {
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(input.getAttribute('aria-expanded')).toBe('false')
     expect(document.activeElement).not.toBe(input)
+    // The next lookup starts clean (RR-20): nothing to delete first.
+    expect((input as HTMLInputElement).value).toBe('')
 
     await act(async () => {
       fireEvent.focus(input)
     })
-    expect(screen.getByRole('listbox')).toBeTruthy()
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  test('"/" outside a field focuses the search; inside one it is typed', async () => {
+    render(
+      <div>
+        <SearchIsland navigate={mock(() => {})} />
+        <textarea aria-label="notes" />
+      </div>
+    )
+    const input = screen.getByRole('combobox')
+    const notes = screen.getByLabelText('notes')
+    await act(async () => {
+      notes.focus()
+      fireEvent.keyDown(notes, { key: '/' })
+    })
+    expect(document.activeElement).toBe(notes)
+    await act(async () => {
+      notes.blur()
+      fireEvent.keyDown(document.body, { key: '/' })
+    })
+    expect(document.activeElement).toBe(input)
   })
 
   test('a click outside closes the dropdown; a click inside keeps it open', async () => {

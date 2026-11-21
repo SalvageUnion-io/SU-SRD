@@ -11,6 +11,7 @@ import {
 import { borderWidth, color, layer, space } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
 import { entityCopy } from '../../messages/components-entity'
+import { InlineRef } from '../atoms/InlineRef'
 import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
@@ -19,6 +20,7 @@ import type { PeekLoader } from './Peek'
 import { PeekCard, PeekMini } from './PeekCard'
 import { PeekTable } from './PeekTable'
 import type { PeekSize } from './peekContext'
+import { PEEK_PRESS_ATTRIBUTE } from './peekContext'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
 
@@ -137,6 +139,10 @@ export function PeekPopup({
   const { externalLink } = useEntitySurface()
   const outLink =
     subject?.kind === 'entity' ? externalLink?.(subject.entity, { inPeek: true }) : undefined
+  // A term's Peek (E27): the page its link names, said in words under the
+  // card, since the press that opened the Peek did not follow the link.
+  const termHref =
+    !outLink && anchor.hasAttribute(PEEK_PRESS_ATTRIBUTE) ? anchor.getAttribute('href') : null
   useEffect(() => {
     if (loaded && !subject) onDismiss()
   }, [loaded, subject, onDismiss])
@@ -179,6 +185,14 @@ export function PeekPopup({
                   <PeekCard entity={subject.entity} down={down} />
                 )}
                 {outLink && <div style={PEEK_OUT}>{outLink}</div>}
+                {termHref && (
+                  <div style={PEEK_OUT}>
+                    {/* Its way out, never a tab stop (E16): the term is the keyboard's link. */}
+                    <InlineRef href={termHref} data-peek-out="" tabIndex={-1}>
+                      {entityCopy('openPage')}
+                    </InlineRef>
+                  </div>
+                )}
               </PeekBoundary>
             ) : (
               <Skeleton />

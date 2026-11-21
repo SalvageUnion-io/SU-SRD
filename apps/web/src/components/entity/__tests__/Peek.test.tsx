@@ -95,9 +95,11 @@ describe('PeekHost', () => {
     const peek = await screen.findByRole('tooltip')
     await waitFor(() => expect(peek.textContent).toContain('Salvaging Drill'))
     expect(peek.querySelector('[data-peek]')).toBeNull()
-    // Its one link is its name, to its Page, out of the tab order (E16).
-    expect(peek.querySelector('a:not([data-peek-open]), button')).toBeNull()
+    // Its links are its name and, a term's, Open page (E27): both to its
+    // Page, both out of the tab order (E16).
+    expect(peek.querySelector('a:not([data-peek-open], [data-peek-out]), button')).toBeNull()
     expect(peek.querySelector('[data-peek-open]')?.getAttribute('tabindex')).toBe('-1')
+    expect(peek.querySelector('[data-peek-out]')?.getAttribute('tabindex')).toBe('-1')
   })
 
   test('a Mini is a trigger: hovering or focusing it shows its whole card', async () => {

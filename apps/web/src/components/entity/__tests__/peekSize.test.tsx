@@ -97,12 +97,16 @@ describe('Peek size', () => {
           <ReferenceEntityCard data={entity} size={size} />
         </EntitySurfaceProvider>
       )
-      const sizesOf = (selector: string) =>
-        [...container.querySelectorAll(`${selector}[data-peek]`)].map((el) =>
-          el.getAttribute(PEEK_SIZE_ATTRIBUTE)
-        )
+      const sizesOf = (selector: string, nested?: boolean) =>
+        [...container.querySelectorAll(`${selector}[data-peek]`)]
+          .filter((el) => nested === undefined || !!el.closest('.su-entity-mini') === nested)
+          .map((el) => el.getAttribute(PEEK_SIZE_ATTRIBUTE))
       // The drill's trait Tags, and its actions as nested Minis.
-      const sizes = { tags: sizesOf('.su-chip-link'), minis: sizesOf('.su-entity-mini__head') }
+      const sizes = {
+        tags: sizesOf('.su-chip-link', false),
+        nested: sizesOf('.su-chip-link', true),
+        minis: sizesOf('.su-entity-mini__head'),
+      }
       unmount()
       return sizes
     }
@@ -111,6 +115,8 @@ describe('Peek size', () => {
     for (const size of full.tags) expect(size).toBeNull()
     expect(full.minis.length).toBeGreaterThan(0)
     for (const size of full.minis) expect(size).toBe('mini')
+    // A nested Mini's own chips (a head that opens nothing links them, E27).
+    for (const size of full.nested) expect(size).toBe('mini')
     const compact = peeksIn('compact').tags
     expect(compact.length).toBeGreaterThan(0)
     for (const size of compact) expect(size).toBe('mini')

@@ -21,6 +21,7 @@ import { HERO_SEARCH_PLACEHOLDER } from '../../lib/heroSearch'
 import { PARAM_NAME } from '../../lib/listingParams'
 import { searchCompactIndex } from '../../lib/searchCompactIndex'
 import { SEARCH_PAGE, searchQuery } from '../../lib/searchHref'
+import { isSearchShortcut } from '../../lib/searchShortcut'
 import { useSearchIndex } from '../../lib/useSearchIndex'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
@@ -44,7 +45,11 @@ type SearchIslandProps = {
   variant?: 'bar' | 'hero'
 }
 
-/** The dropdown, hung under the field: full width in the hero, 20rem in the bar. */
+/**
+ * The dropdown, hung under the field: full width in the hero; in the bar as
+ * wide as a name with its kind beside it needs (a 20rem list wrapped
+ * "Chimerium Salvaging Tools" over three lines), never past the screen.
+ */
 const LISTBOX = {
   ...POPUP_SURFACE.paper,
   marginTop: space[4],
@@ -57,7 +62,14 @@ const LISTBOX = {
 
 const LISTBOX_HERO = { ...LISTBOX, left: 0, width: '100%' } satisfies CSSProperties
 
-const LISTBOX_BAR = { ...LISTBOX, right: 0, width: '20rem' } satisfies CSSProperties
+const LISTBOX_BAR = {
+  ...LISTBOX,
+  minWidth: '100%',
+  right: 0,
+  // A reading width, never wider than the screen less its gutters.
+  maxWidth: '92vw',
+  width: '34rem',
+} satisfies CSSProperties
 
 const RELATIVE = { position: 'relative' } satisfies CSSProperties
 
@@ -67,7 +79,7 @@ function resultUrl(result: SearchComboboxResult): string {
   if (result.kind === 'more') {
     return `${schemaHref(result.schemaId)}?${new URLSearchParams({ [PARAM_NAME]: result.query })}`
   }
-  return itemHref(result.schemaId, getEntitySlug(result.entity))
+  return result.page?.href ?? itemHref(result.schemaId, getEntitySlug(result.entity))
 }
 
 export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = {}) {
@@ -114,6 +126,7 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     optionId,
     inputProps,
     announcement,
+    clear,
   } = useSearchCombobox({
     ready,
     moreRow: true,
@@ -133,16 +146,18 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!isOpen) return
-      if (e.key === 'Escape') {
-        setDismissedResults(results)
+      // Escape ends the lookup: the list closes and the field empties, so the
+      // next one starts clean.
+      if (e.key === 'Escape' && (isOpen || query)) {
+        clear()
         inputRef.current?.blur()
         return
       }
+      if (!isOpen) return
       // Arrows move the highlight; Enter opens it, or the first result.
       handleKeyDown(e)
     },
-    [isOpen, results, handleKeyDown]
+    [isOpen, query, clear, handleKeyDown]
   )
 
   // The hero, and the bar on the Reference page, open on the address's query
@@ -173,13 +188,14 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     return () => document.removeEventListener('click', handleClick)
   }, [results])
 
-  // Cmd+K / Ctrl+K to focus search
+  // Cmd+K / Ctrl+K, or "/" outside a field, to focus search with what it
+  // holds selected: typing replaces the last lookup.
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault()
-        inputRef.current?.focus()
-      }
+      if (!isSearchShortcut(e)) return
+      e.preventDefault()
+      inputRef.current?.focus()
+      inputRef.current?.select()
     }
     document.addEventListener('keydown', handleGlobalKeyDown)
     return () => document.removeEventListener('keydown', handleGlobalKeyDown)

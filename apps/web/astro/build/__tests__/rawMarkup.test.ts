@@ -46,10 +46,10 @@ describe('the raw-markup scan', () => {
 })
 
 describe('rendered pages', () => {
-  it('draws a rules-text trait as a Mention linked to its page, with its Peek', () => {
+  it('draws a rules-text trait as a Mention linked to its page, with its Peek on a press (E27)', () => {
     const html = renderRoute('/roll-tables/mechapult')
     expect(renderedBody(html)).toMatch(
-      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link su-focus-ring" data-peek="traits:[^"]+">Burn \(X\)<\/a>/
+      /<a href="\/traits\/burn\/" class="su-inline-ref su-inline-ref--link su-focus-ring" data-peek="traits:[^"]+" data-peek-press="">Burn \(X\)<\/a>/
     )
     expect(findRawMarkup(html)).toBeUndefined()
   })

@@ -4,8 +4,11 @@
 // Page's words leave and never more: the column is as tall as the main track
 // (`pages.css`). Used by lists every user, kind and name, never a capped
 // "and N more"; where the room runs out its rows scroll under a head that
-// names the full count, and the short pieces after it stand whole.
+// names the full count, and the short pieces after it stand whole. Every entry
+// is a term (E27): a real link to its page on the SRD's surface, so the
+// keyboard reaches it and it works with no script.
 import { cn, Mention, TitledBox } from '../components/index'
+import { ReferenceSurface } from '../components/ReferenceSurface'
 import type { SparseRail as Rail } from '../lib/sparseRail'
 import { referenceCopy } from '../messages/reference'
 
@@ -31,12 +34,13 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         tone={tone}
         className={cn('su-sparse-rail__piece', 'su-sparse-rail__used')}
         shrink
-        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__scroll')}
+        bodyClassName={cn('su-sparse-rail__body', 'su-sparse-rail__used-body')}
       >
+        {/* The count heads the rows and stays put: only the rows scroll. */}
         <p className="su-sparse-rail__count">
           {referenceCopy('usedByCount', { count: usedBy.length })}
         </p>
-        <ul className="su-sparse-rail__rows">
+        <ul className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}>
           {usedBy.map((user) => (
             <li key={user.ref.id} className="su-sparse-rail__row">
               <Mention entityRef={user.ref}>{user.name}</Mention>
@@ -67,9 +71,11 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
   ].filter(Boolean)
   const [first, ...rest] = pieces
   return (
-    <aside className="su-sparse-rail" aria-label={referenceCopy('relatedRules')}>
-      {first}
-      {rest.length > 0 && <div className="su-sparse-rail__rest">{rest}</div>}
-    </aside>
+    <ReferenceSurface>
+      <aside className="su-sparse-rail" aria-label={referenceCopy('relatedRules')}>
+        {first}
+        {rest.length > 0 && <div className="su-sparse-rail__rest">{rest}</div>}
+      </aside>
+    </ReferenceSurface>
   )
 }

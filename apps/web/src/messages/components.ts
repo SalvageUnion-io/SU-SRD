@@ -14,6 +14,7 @@ export const componentsCopy = messages({
   hybrid: 'Hybrid',
   core: 'Core',
   advanced: 'Advanced',
+  onThisPage: 'On this page',
   training: 'Training',
   abilities: 'Abilities',
   trees: 'Trees',

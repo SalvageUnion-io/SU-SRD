@@ -256,7 +256,7 @@ function SearchLedger({
           'aria-selected': index === selectedIndex,
         },
         cells: [
-          schemaLabel(result.schemaId),
+          result.kind === 'entity' && result.page ? result.page.kind : schemaLabel(result.schemaId),
           model.techLevel != null ? String(model.techLevel) : '',
           model.cost ?? '',
         ],

@@ -6,6 +6,7 @@ export const entityCopy = messages({
   rowRules: '{name} rules',
   techLevelN: 'Tech Level {level}',
   notShown: 'Not shown',
+  openPage: 'Open page',
   thisCardCouldNotBe: 'This card could not be drawn here.',
   rollTable: '(roll table)',
   rollTheDie: 'Roll the Die:',

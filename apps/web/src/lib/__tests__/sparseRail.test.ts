@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 import type { RefEntity } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { isSparse, sparseRailFor } from '../sparseRail'
+import { relationsFor } from '../pageRelations'
+import { isSparse, oneRelatedRules, sparseRailFor } from '../sparseRail'
 
 const find = (schema: 'traits' | 'keywords', slug: string) =>
   SalvageUnionReference.findAllIn(schema, () => true).find(
@@ -21,5 +22,29 @@ describe('sparseRailFor', () => {
     expect(isSparse(scrip)).toBe(true)
     const rail = sparseRailFor('keywords', scrip)
     expect(rail.usedBy).toEqual([])
+  })
+})
+
+describe('oneRelatedRules', () => {
+  test("a keyword's Page has one Related rules list: the rail's, the explaining guides first", () => {
+    const heat = find('keywords', 'heat')
+    const rail = sparseRailFor('keywords', heat)
+    const relations = relationsFor('keywords', heat)
+    const explained = relations.find((relation) => relation.key === 'guides')
+    expect(explained?.rows.length).toBeGreaterThan(0)
+    const one = oneRelatedRules(rail, relations)
+    expect(one.relations.some((relation) => relation.key === 'guides')).toBe(false)
+    const names = one.rail?.rules.map((rule) => rule.name) ?? []
+    expect(names.slice(0, explained?.rows.length)).toEqual(
+      explained?.rows.map((row) => row.name) ?? []
+    )
+    // Every rule once.
+    expect(new Set(names).size).toBe(names.length)
+    for (const rule of rail.rules) expect(names).toContain(rule.name)
+  })
+
+  test('a Page with no rail keeps its own list', () => {
+    const relations = relationsFor('keywords', find('keywords', 'heat'))
+    expect(oneRelatedRules(null, relations).relations).toBe(relations)
   })
 })

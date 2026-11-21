@@ -2478,7 +2478,7 @@
       },
       {
         "type": "paragraph",
-        "value": "At each Tech Level you may choose an additional modification for your Custom Sniper Rifle. In addition, its damage increases by 1 SP per Tech Level after the first, e.g. a Tech 3 Custom Sniper Rifle would deal 4 SP damage and you would be able to choose three modi- fications for it.",
+        "value": "At each Tech Level you may choose an additional modification for your Custom Sniper Rifle. In addition, its damage increases by 1 SP per Tech Level after the first, e.g. a Tech 3 Custom Sniper Rifle would deal 4 SP damage and you would be able to choose three modifications for it.",
         "notInPlay": [{ "role": "upkeep" }]
       }
     ],
@@ -7325,7 +7325,7 @@
       },
       {
         "type": "list-item",
-        "value": "You create the persona of someone at the top of their respective social hierarchy and in an immense position of power and influ- ence, such as a corpo executive, union leader, or general. You are able to access the highest ranks of society and the majority of people will treat you with deference.",
+        "value": "You create the persona of someone at the top of their respective social hierarchy and in an immense position of power and influence, such as a corpo executive, union leader, or general. You are able to access the highest ranks of society and the majority of people will treat you with deference.",
         "label": "6 AP"
       }
     ],

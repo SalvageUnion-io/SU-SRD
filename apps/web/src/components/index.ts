@@ -67,7 +67,6 @@ export { Input, Textarea } from './atoms/inputs'
 export { FOCUS_RING } from './atoms/interaction'
 // KofiButton — the Ko-fi support widget, with a plain link until its script loads
 export { KofiButton } from './atoms/KofiButton'
-export { useModKeyHint } from './atoms/modKeyHint'
 // A phone's vitals block, for the sheets and Play.
 export type { PhoneVital, PhoneVitalCell } from './atoms/PhoneVitals'
 // slotPips — a slot count as a line of pips, for a wizard's tracker tab.
@@ -94,6 +93,7 @@ export { Toggle } from './atoms/Toggle'
 export { ToggleCard } from './atoms/ToggleCard'
 // ToneStrip — the 8px colour band that opens a section from above (§3.10).
 export { ToneStrip } from './atoms/ToneStrip'
+export { useModKeyHint } from './atoms/useModKeyHint'
 // USER_MADE_HATCH — the hatch a user-made page wears on its colour bands
 // (ruleset §3.9): ChapterBand's `userMade`, and the page's hatched foot.
 export { USER_MADE_HATCH } from './atoms/userMadeHatch'

@@ -9,6 +9,7 @@ import { Stat } from '../../atoms/Stat'
 import { StatColumn } from '../../atoms/StatColumn'
 import { NeighbourRow } from '../../compositions/NeighbourRow'
 import { SlabSection } from '../../containers/SlabSection'
+import { ChipLink, factRef } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
@@ -84,7 +85,10 @@ type CardPageProps = {
   actionSeal?: { label: string; tone: string }
   /** A basic host's patterns, as full-width link rows. */
   patterns: RefObjectAnyPattern[]
-  /** `asideExtraContent`: under the art in the side track, after `after` on a phone. */
+  /**
+   * `asideExtraContent`: under the art in the side track, after `after` on a
+   * phone; its own side track, after the main one in the markup.
+   */
   aside?: ReactNode
   /** `afterExtraContent`. */
   after: ReactNode
@@ -278,16 +282,38 @@ export function CardPage({
         className="su-grid su-stat-column su-manual__stats"
         aria-label={`${action.hostName} stats`}
       >
-        {line.map((stat) => (
-          <li key={stat.key} className="su-stat-column__cell" title={stat.hoverText}>
+        {line.map((stat) => {
+          const cell = (
             <Stat
               label={stat.label}
               shortLabel={stat.shortLabel}
               value={stat.value}
               className="su-stat-column__stat"
             />
-          </li>
-        ))}
+          )
+          // A stat the glossary defines is a term (E27): a press, hover or
+          // focus opens its entry, where a `title` says nothing on a phone.
+          // One with no entry keeps its hint as a native tooltip (E23).
+          const ref = factRef(stat)
+          return (
+            <li
+              key={stat.key}
+              className="su-stat-column__cell"
+              title={ref ? undefined : stat.hoverText}
+            >
+              {ref ? (
+                <ChipLink
+                  tag={{ key: stat.key, name: stat.label, param: String(stat.value), ref }}
+                  linkable
+                >
+                  {cell}
+                </ChipLink>
+              ) : (
+                cell
+              )}
+            </li>
+          )
+        })}
       </ul>
     )
     const statsAside = !hero && line.length > 0
@@ -308,7 +334,10 @@ export function CardPage({
           {actionList(list)}
         </SlabSection>
       )
-    const side = !!hero || statsAside || split.side.length > 0 || !!aside
+    // What stands under the art (`aside`) is a side track of its own, after
+    // the main track in the markup: a phone draws it last, so the markup
+    // reads in the order every width shows it (WCAG 1.3.2).
+    const side = !!hero || statsAside || split.side.length > 0
     return (
       <div className="su-entity-page su-manual">
         {side && (
@@ -323,7 +352,6 @@ export function CardPage({
                 split.main.length > 0 && 'su-manual__side-actions--more'
               )
             )}
-            {aside && <div className="su-manual__aside">{aside}</div>}
           </div>
         )}
         {/* The main track, always beside a side
@@ -352,6 +380,11 @@ export function CardPage({
           />
           {after && <div className="su-manual__after">{after}</div>}
         </div>
+        {aside && (
+          <div className="su-manual__side su-manual__side--after">
+            <div className="su-manual__aside">{aside}</div>
+          </div>
+        )}
       </div>
     )
   }
