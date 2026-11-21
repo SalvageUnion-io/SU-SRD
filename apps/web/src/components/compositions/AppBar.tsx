@@ -9,6 +9,8 @@ import { BreadcrumbTrail } from '../atoms/BreadcrumbTrail'
 import { capsLabel } from '../atoms/capsLabel'
 import { FOCUS_RING } from '../atoms/interaction'
 import { Speckle } from '../atoms/Speckle'
+import type { Area } from '../unionBar/areaNav'
+import { AREA_NAV } from '../unionBar/areaNav'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -136,40 +138,6 @@ const SWITCH = {
   gap: space[4],
 } satisfies CSSProperties
 
-/** What each area holds, for the rail. */
-const RAIL: Record<AppBarProduct, { name: string; links: { label: string; href: string }[] }> = {
-  reference: {
-    name: compositionsCopy('railReference'),
-    links: [
-      { label: compositionsCopy('railPilots'), href: '/pilots/' },
-      { label: compositionsCopy('railMechs'), href: '/mechs/' },
-      { label: compositionsCopy('railUnionCrawler'), href: '/union-crawler/' },
-      { label: compositionsCopy('railWasteland'), href: '/wasteland/' },
-      { label: compositionsCopy('railRules'), href: '/rules/' },
-      { label: compositionsCopy('railGuides'), href: '/guides/' },
-      { label: compositionsCopy('railRollTables'), href: '/roll-tables/' },
-    ],
-  },
-  build: {
-    name: compositionsCopy('railYours'),
-    links: [
-      { label: compositionsCopy('railPilots'), href: '/build/#pilots' },
-      { label: compositionsCopy('railMechs'), href: '/build/#mechs' },
-      { label: compositionsCopy('railCrawlers'), href: '/build/#crawlers' },
-      { label: compositionsCopy('railPatterns'), href: '/build/#patterns' },
-      { label: compositionsCopy('railStarterSet'), href: '/build/starter' },
-    ],
-  },
-  play: {
-    name: compositionsCopy('railPlay'),
-    links: [
-      { label: compositionsCopy('railYourGames'), href: '/games/' },
-      { label: compositionsCopy('railJoin'), href: '/games/#join' },
-      { label: compositionsCopy('railKit'), href: '/games/#kit' },
-    ],
-  },
-}
-
 export function AppBar({
   product,
   referenceHref,
@@ -291,16 +259,16 @@ export function AppBar({
             any page. A phone reads the same map in the drawer. */}
         {/* The front door (`noCurrent`) is in no area, so it carries no rail. */}
         {!noCurrent &&
-          (Object.keys(RAIL) as AppBarProduct[]).map((area) => (
+          (Object.keys(AREA_NAV) as Area[]).map((area) => (
             // All three are served; the bar's `data-mode` shows its own
             // (`best-site.css`), so the rail follows the app's route marking.
             <nav
               key={area}
               className="su-union-bar__rail"
               data-area={area}
-              aria-label={compositionsCopy('railIn', { area: RAIL[area].name })}
+              aria-label={compositionsCopy('railIn', { area: AREA_NAV[area].name })}
             >
-              {RAIL[area].links.map((link) => (
+              {AREA_NAV[area].links.map((link) => (
                 <a
                   key={link.label}
                   href={link.href}

@@ -3,13 +3,14 @@ import { NAV_CATALOG } from '../../generated/navCatalog'
 import { SIGN_IN_HREF } from '../../lib/accountBar'
 import { readAccountHint } from '../../lib/accountHint'
 import { browserStorage } from '../../lib/accountState'
-import { appPath } from '../../lib/appBase'
 import { BUY_HREF, DOC_PAGES } from '../../lib/docPages'
 import { MARK_SRC } from '../../lib/documentHead'
 import { unionBarCopy } from '../../messages/components-union-bar'
 import { FOCUS_RING } from '../atoms/interaction'
 import type { NavDrawerCategory, NavDrawerItem } from '../index'
 import { Button, NavDrawer } from '../index'
+import type { AreaNav } from './areaNav'
+import { AREA_NAV } from './areaNav'
 
 /**
  * UnionDrawer — the Union bar's one phone drawer, the same in both render
@@ -75,29 +76,15 @@ export function UnionDrawer({ search, extra = signInFromHint(), LinkComponent }:
   // The drawer is the site's whole map, the three areas
   // in the bar's order. Your own things lead (the Training Bay, then Games);
   // the Reference follows as the book's chapters, as before.
+  const area = (id: string, tone: NavDrawerCategory['tone'], { name, links }: AreaNav) => ({
+    id,
+    tone,
+    title: name,
+    rows: [...links],
+  })
   const AREAS: NavDrawerCategory[] = [
-    {
-      id: 'area-training-bay',
-      title: unionBarCopy('drawerTrainingBay'),
-      tone: 'pilot',
-      rows: [
-        { label: unionBarCopy('drawerPilots'), href: appPath('/#pilots') },
-        { label: unionBarCopy('drawerMechs'), href: appPath('/#mechs') },
-        { label: unionBarCopy('drawerCrawlers'), href: appPath('/#crawlers') },
-        { label: unionBarCopy('drawerPatterns'), href: appPath('/#patterns') },
-        { label: unionBarCopy('drawerStarterSet'), href: appPath('/starter') },
-      ],
-    },
-    {
-      id: 'area-games',
-      title: unionBarCopy('drawerGames'),
-      tone: 'crawler',
-      rows: [
-        { label: unionBarCopy('drawerYourGames'), href: appPath('/games/') },
-        { label: unionBarCopy('drawerJoin'), href: appPath('/games/#join') },
-        { label: unionBarCopy('drawerKit'), href: appPath('/games/#kit') },
-      ],
-    },
+    area('area-training-bay', 'pilot', AREA_NAV.build),
+    area('area-games', 'crawler', AREA_NAV.play),
   ]
 
   return (
