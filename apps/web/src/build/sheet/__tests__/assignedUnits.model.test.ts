@@ -63,11 +63,22 @@ describe('assignedUnitsFor', () => {
   test("+ Create makes the unit in the sheet's own Game, so it can be assigned there", () => {
     const inGame = build({ kind: 'pilot', entity: { ...pilot, gameId: 'g1' } }, {})
     expect(inGame.slots.map((s) => s.createHref)).toEqual([
-      '/mechs/new?game=g1',
+      `/mechs/new?game=g1&pilot=${pilot.id}`,
       '/crawlers/new?game=g1',
     ])
     const onShelf = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
     expect(onShelf.slots.map((s) => s.createHref)).toEqual(['/mechs/new', '/pilots/new'])
+  })
+
+  // SB-02: the mech made from a pilot's "No Mech" place is that pilot's.
+  test('+ Create beside a pilot’s No Mech builds the mech for that pilot', () => {
+    const onShelf = build({ kind: 'pilot', entity: { ...pilot, gameId: null } }, {})
+    expect(onShelf.slots.find((s) => s.kind === 'mech')?.createHref).toBe(
+      `/mechs/new?pilot=${pilot.id}`
+    )
+    // A crawler's Mech Bay names no pilot.
+    const bay = build({ kind: 'crawler', entity: { ...crawler, gameId: null } }, {})
+    expect(bay.slots.find((s) => s.kind === 'mech')?.createHref).toBe('/mechs/new')
   })
 
   test('a pilot and a mech sheet wear owner chips, as a crawler sheet does', () => {
