@@ -51,6 +51,7 @@
 import { totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import { SlotGrid } from '../../components/app'
 import {
   Box,
   Button,
@@ -59,7 +60,6 @@ import {
   EmptyState,
   Eyebrow,
   SlabSection,
-  SlotGrid,
   Stat,
   Text,
   TitledBox,

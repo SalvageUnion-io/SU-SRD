@@ -12,12 +12,10 @@ import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { extractVisibleActions, toEntityModel } from 'salvageunion-reference'
+import { AdderBox, AdderField, Cluster } from '../../components/app'
 import type { ChoiceSelections } from '../../components/index'
 import {
-  AdderBox,
-  AdderField,
   Button,
-  Cluster,
   Content,
   Entity,
   EntityDetailDialog,

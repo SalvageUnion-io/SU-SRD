@@ -19,7 +19,8 @@
 
 import { PRODUCT } from 'game-domain/product'
 import type { ReactNode } from 'react'
-import { Button, ChapterBand, FrontPitch, PageShell, StartHere } from '../../components/index'
+import { FrontPitch, PageShell, StartHere } from '../../components/app'
+import { Button, ChapterBand } from '../../components/index'
 import { Tagline } from '../../components/Tagline'
 import { appPath } from '../../lib/appBase'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'

@@ -11,7 +11,8 @@
  */
 
 import { useState } from 'react'
-import { Button, ConfirmDialog, Entity, HeaderMenu } from '../components/index'
+import { ConfirmDialog } from '../components/app'
+import { Button, Entity, HeaderMenu } from '../components/index'
 import { playCopy } from '../messages/play'
 import { AssignAndBoardConfirm } from './AssignAndBoardConfirm'
 import type { BoardOption } from './boardMenu.model'

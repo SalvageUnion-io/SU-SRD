@@ -44,19 +44,17 @@ import { FrontDoor } from '../build/roster/FrontDoor'
 import { Shelf } from '../build/shelves/Shelf'
 import { Shelves } from '../build/shelves/Shelves'
 import { ShelvesPart } from '../build/shelves/shelvesPart.model'
+import { FieldError, PageShell, StartHere } from '../components/app'
 import type { StartHereStep } from '../components/index'
 import {
   assetSrcSetFor,
   Button,
   ChapterBand,
   Entity,
-  FieldError,
   Input,
   ModalShell,
-  PageShell,
   Pending,
   SlabSection,
-  StartHere,
   Stat,
   tokens,
 } from '../components/index'

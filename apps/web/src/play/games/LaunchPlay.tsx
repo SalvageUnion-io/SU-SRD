@@ -34,7 +34,8 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Button, PickDialog } from '../../components/index'
+import { PickDialog } from '../../components/app'
+import { Button } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'

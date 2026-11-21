@@ -19,7 +19,8 @@
 
 import { mediatePath } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
+import { Cluster } from '../../components/app'
+import { Badge, Button, ChapterBand } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'

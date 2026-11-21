@@ -33,13 +33,13 @@ import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
+import { heatDangerFrom } from '../components/app'
 import type { TagItem } from '../components/index'
 import {
   Badge,
   Button,
   Chips,
   Entity,
-  heatDangerFrom,
   relation,
   Segmented,
   SegmentedOption,

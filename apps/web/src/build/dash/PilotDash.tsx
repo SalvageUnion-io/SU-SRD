@@ -15,19 +15,9 @@
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
+import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn, OpenRow } from '../../components/index'
-import {
-  Conditions,
-  capsLabel,
-  Facts,
-  OpenLedger,
-  Prose,
-  STRIP_ART,
-  Stat,
-  Strip,
-  StripFigure,
-  TechLevel,
-} from '../../components/index'
+import { capsLabel, OpenLedger, Stat, TechLevel } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'

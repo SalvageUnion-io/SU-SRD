@@ -21,14 +21,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import {
-  ChapterBand,
-  PageShell,
-  Slab,
-  SlabLookProvider,
-  Text,
-  tokens,
-} from '../../components/index'
+import { PageShell } from '../../components/app'
+import { ChapterBand, Slab, SlabLookProvider, Text, tokens } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import {

@@ -44,15 +44,9 @@ import { cockpitPath } from 'game-domain/entityKinds'
 import { PRODUCT } from 'game-domain/product'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import { useContext, useState } from 'react'
+import { PageShell, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
-import {
-  Button,
-  ChapterBand,
-  HeaderMenu,
-  PageShell,
-  RosterSkeleton,
-  toast,
-} from '../../components/index'
+import { Button, ChapterBand, HeaderMenu, toast } from '../../components/index'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { Tagline } from '../../components/Tagline'

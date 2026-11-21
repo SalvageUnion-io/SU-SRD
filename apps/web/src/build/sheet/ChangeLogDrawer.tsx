@@ -13,18 +13,9 @@ import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import type { BadgeTone } from '../../components/index'
-import {
-  Badge,
-  EmptyState,
-  FeedLine,
-  FeedList,
-  FeedTime,
-  ModalShell,
-  Pending,
-  Text,
-  tokens,
-} from '../../components/index'
+import { Badge, EmptyState, ModalShell, Pending, Text, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'

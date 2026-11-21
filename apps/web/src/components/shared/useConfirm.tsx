@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useCallback, useState } from 'react'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import type { ConfirmCopy } from '../../lib/games/rowActionCopy'
-import { ConfirmDialog } from '../index'
+import { ConfirmDialog } from '../app'
 
 /**
  * One confirm dialog for a whole surface, opened imperatively.

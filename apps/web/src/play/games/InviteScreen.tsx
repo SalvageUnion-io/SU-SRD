@@ -3,16 +3,8 @@ import { invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useRef } from 'react'
 import { SignInControl } from '../../build/account/SignInControl'
-import {
-  Button,
-  Callout,
-  ChapterBand,
-  FieldError,
-  PageShell,
-  Text,
-  TitledBox,
-  tokens,
-} from '../../components/index'
+import { FieldError, PageShell } from '../../components/app'
+import { Button, Callout, ChapterBand, Text, TitledBox, tokens } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { InvitePreviewAnswer } from '../../lib/linkPreview/previewSummary'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'

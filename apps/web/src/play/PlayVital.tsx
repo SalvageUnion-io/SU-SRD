@@ -15,8 +15,9 @@
 
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
-import { tokens, VitalGauge } from '../components/index'
+import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'

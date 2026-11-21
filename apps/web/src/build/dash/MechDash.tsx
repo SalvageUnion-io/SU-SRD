@@ -17,20 +17,9 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn } from '../../components/index'
-import {
-  Conditions,
-  capsLabel,
-  Facts,
-  Mention,
-  OpenLedger,
-  Prose,
-  STRIP_ART,
-  Stat,
-  Strip,
-  StripFigure,
-  TechLevel,
-} from '../../components/index'
+import { capsLabel, Mention, OpenLedger, Stat, TechLevel } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { appPath } from '../../lib/appBase'
 import { bandFillFor } from '../../lib/chapters'

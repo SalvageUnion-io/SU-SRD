@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react'
-import { ConfirmDialog, Field, Text, Textarea, toast } from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Field, Text, Textarea, toast } from '../../components/index'
 import { failureMessage } from '../../lib/connection/useServerAction'
 import { useHomebrewReport } from '../../lib/sharing/reads'
 import { buildHomebrewCopy } from '../../messages/build-homebrew'

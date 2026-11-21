@@ -22,8 +22,9 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
+import { linesFromBreakdown, PhoneVitals } from '../../components/app'
 import type { PhoneVital } from '../../components/index'
-import { Button, linesFromBreakdown, PhoneVitals, Stat } from '../../components/index'
+import { Button, Stat } from '../../components/index'
 import { changeUndoToast } from '../../lib/changeUndoToast'
 import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'

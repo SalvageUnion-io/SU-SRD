@@ -11,8 +11,9 @@
 
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
+import { PhoneVitals, PhoneVitalsGlance } from '../../components/app'
 import type { PhoneVital, SlabCount } from '../../components/index'
-import { capsLabel, cn, PhoneVitals, PhoneVitalsGlance, SlabSection } from '../../components/index'
+import { capsLabel, cn, SlabSection } from '../../components/index'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })

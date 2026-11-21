@@ -22,7 +22,8 @@
  * freshest record from the store, never a stale closure.
  */
 
-import { Conditions, EmptyState, Input } from '../../components/index'
+import { Conditions } from '../../components/app'
+import { EmptyState, Input } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { CHIP_WELL } from './chipWell.model'
 import { useChipDraft } from './useChipDraft'

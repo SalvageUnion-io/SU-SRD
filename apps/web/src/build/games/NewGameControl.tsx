@@ -20,10 +20,10 @@
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { FieldError } from '../../components/app'
 import {
   Button,
   Field,
-  FieldError,
   Input,
   ModalShell,
   Pending,

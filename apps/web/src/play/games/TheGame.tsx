@@ -18,9 +18,9 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
+import { ConfirmDialog } from '../../components/app'
 import {
   Button,
-  ConfirmDialog,
   capsLabel,
   Field,
   HeaderMenu,

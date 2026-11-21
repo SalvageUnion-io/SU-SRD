@@ -12,7 +12,8 @@
 
 import { Ellipsis } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Button, PopoverPanel, tokens } from '../../components/index'
+import { PopoverPanel } from '../../components/app'
+import { Button, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 type SheetActionsMenuProps = {
