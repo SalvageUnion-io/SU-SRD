@@ -49,8 +49,8 @@ describe('mountsNow', () => {
     expect(mountsNow('SchemaViewerIsland', { schemaId: 'abilities' }, privateWindow)).toBe(false)
   })
 
-  test("the bar's search on the home page mounts now for a query, to open on it", () => {
-    window.location.href = 'http://localhost/?q=mule'
+  test("the bar's search on the Reference page mounts now for a query, to open on it", () => {
+    window.location.href = 'http://localhost/reference/?q=mule'
     expect(mountsNow('SearchIsland', {})).toBe(true)
     window.location.href = 'http://localhost/chassis/?q=mule'
     expect(mountsNow('SearchIsland', {})).toBe(false)

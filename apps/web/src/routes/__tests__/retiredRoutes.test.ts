@@ -91,12 +91,12 @@ describe('the retired app addresses', () => {
 
 describe('the retired search page', () => {
   for (const [from, to] of [
-    ['/search/?q=mule', '/?q=mule'],
-    ['/search?q=mule%20pattern', '/?q=mule%20pattern'],
-    ['/search/', '/'],
-    ['/search', '/'],
+    ['/search/?q=mule', '/reference/?q=mule'],
+    ['/search?q=mule%20pattern', '/reference/?q=mule%20pattern'],
+    ['/search/', '/reference/'],
+    ['/search', '/reference/'],
   ] as const) {
-    test(`${from} lands on the home page's search: ${to}`, async () => {
+    test(`${from} lands on the Reference page's search: ${to}`, async () => {
       const { status, location, asked } = await redirectOf(from)
       expect(status).toBe(301)
       expect(location).toBe(to)

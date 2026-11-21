@@ -6,8 +6,8 @@
  * that names a filter or a view, or a view the reader chose on an earlier
  * visit, is only known in the browser, so that listing mounts at once rather
  * than showing the wrong cards until someone touches the rail. A hero search,
- * or the bar's on the home page, mounts at once for an address with a query
- * (`/?q=mule`, where the retired search page's links land), to open on it.
+ * or the bar's on the Reference page, mounts at once for an address with a query
+ * (`/reference/?q=mule`, where the retired search page's links land), to open on it.
  *
  * Free of React and of the islands, like `interaction.ts`: the client entry
  * asks this on every page.

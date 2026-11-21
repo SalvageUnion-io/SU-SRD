@@ -7,8 +7,8 @@
  * form, where"); Cmd/Ctrl+K focuses it. Every result is a reference page,
  * followed in the same tab; Enter with no row highlighted opens the first.
  *
- * The hero, and the bar on the home page, open on the address's `?q=`: the
- * retired search page's address lands on the home page with it
+ * The hero, and the bar on the Reference page, open on the address's `?q=`: the
+ * retired search page's address lands on the Reference page with it
  * (`retiredSitePage`, `lib/redirects.ts`), as does the 404 hero's
  * no-JavaScript form, and the island mounts at once for it (`mountNow.ts`).
  */
@@ -145,8 +145,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
     [isOpen, results, handleKeyDown]
   )
 
-  // The hero, and the bar on the home page, open on the address's query
-  // (`/?q=mule`), once, as if typed.
+  // The hero, and the bar on the Reference page, open on the address's query
+  // (`/reference/?q=mule`), once, as if typed.
   const prefilled = useRef(false)
   useEffect(() => {
     if (prefilled.current || !(hero || window.location.pathname === SEARCH_PAGE)) return
