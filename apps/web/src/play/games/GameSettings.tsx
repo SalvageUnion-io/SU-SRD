@@ -75,7 +75,6 @@ export function GameSettingsDialog({
 /** The tick and its words, one press target. */
 const RESET_ROW = {
   alignItems: 'center',
-  cursor: 'pointer',
   display: 'flex',
   gap: tokens.space[8],
   minHeight: tokens.size.full,
@@ -130,14 +129,17 @@ export function LeaveGameDialog({
         ) : (
           <>
             <Text>{playGamesCopy('removeBody')}</Text>
-            <label htmlFor={`${id}-reset`} style={RESET_ROW}>
+            {/* Named by the words beside it, never a hand-rolled <label> (R16). */}
+            <span style={RESET_ROW}>
               <Checkbox
                 id={`${id}-reset`}
                 checked={resetLink}
                 onChange={(e) => setResetLink(e.target.checked)}
+                aria-labelledby={`${id}-reset-label`}
+                hitArea
               />
-              <Text>{playGamesCopy('resetInviteLinkToo')}</Text>
-            </label>
+              <span id={`${id}-reset-label`}>{playGamesCopy('resetInviteLinkToo')}</span>
+            </span>
           </>
         )
       }
