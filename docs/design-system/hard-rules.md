@@ -63,5 +63,5 @@ What frames the content (ruleset §4 extended). One component per job, chosen by
 - **K10 Tabs, Segmented, Toggle, Switch by job** — `Tabs` pick a view (`role="tab"` only there), `Segmented` sets a value and `Toggle` is one press (`aria-pressed` only in those two), `Switch` a setting; no tab or segment label clipped.
 - **K11 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize` (Mini, Compact, Full), stroke 2; ⋯ `Ellipsis`, close `X`, back `BackLabel` (`ChevronLeft` and the place's name), next `NextLabel` (the place's name and `ChevronRight`), a value's change `ArrowRight`; never an arrow or ellipsis character in copy.
 - **K12 Link previews** — a page's 1200 × 630 card is its Page in small: its band and name, chips beside the name, its cite and path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color is the band.
-- **K13 Chrome matches** — header and footer: `--color-chrome`/`--color-on-chrome`; the rail: its band, words `--su-on-kind`.
+- **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.
