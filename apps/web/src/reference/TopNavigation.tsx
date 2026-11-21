@@ -24,8 +24,10 @@ import { Button, capsLabel, cn, FOCUS_RING } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
+import { AREA_NAV } from '../components/unionBar/areaNav.model'
 import { UnionBar } from '../components/unionBar/UnionBar'
 import { SIGN_IN_HREF } from '../lib/accountBar'
+import { sectionHrefFor } from '../lib/chapters'
 import { WIKI_LINK_ATTRIBUTE } from '../lib/wikiLink'
 import { referenceCopy } from '../messages/reference'
 import { Island } from '../runtime/Island'
@@ -67,6 +69,9 @@ function SignInLink() {
   )
 }
 
+/** The sub-navigation's entries, by href. */
+const REFERENCE_SECTIONS = AREA_NAV.reference.links.map((link) => link.href)
+
 type BreadcrumbItem = {
   name: string
   url: string
@@ -82,17 +87,22 @@ type TopNavigationProps = {
   pageHasSearch?: boolean
   /** The site's front door: no area link is current. */
   home?: boolean
+  /** The page's address: its section is marked in the sub-navigation. */
+  pathname?: string
 }
 
 export function TopNavigation({
   breadcrumbs,
   pageHasSearch = false,
   home = false,
+  pathname,
 }: TopNavigationProps) {
+  const section = pathname ? sectionHrefFor(pathname, REFERENCE_SECTIONS) : undefined
   return (
     <UnionBar
       product="reference"
       noCurrent={home}
+      railCurrent={section ? { href: section, page: section === pathname } : undefined}
       breadcrumbs={breadcrumbs}
       // The WIKI link sits left of the search, so it rides the search slot; it
       // stays when the page carries its own search.

@@ -75,6 +75,11 @@ type AppBarProps = {
   product: AppBarProduct
   /** The site's front door (`/`) is in no area: no link is marked current. */
   noCurrent?: boolean
+  /**
+   * The rail link the open page sits under (its href), marked current: `page`
+   * where the page is that link's own, else the section it is inside.
+   */
+  railCurrent?: { href: string; page: boolean }
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
   /** Where "Build" goes — the app's home. */
@@ -145,6 +150,7 @@ export function AppBar({
   mobile,
   breadcrumbs,
   noCurrent = false,
+  railCurrent,
 }: AppBarProps) {
   const hasCrumbs = breadcrumbs !== undefined && breadcrumbs.length > 0
 
@@ -268,6 +274,13 @@ export function AppBar({
                   key={link.label}
                   href={link.href}
                   className={cn('su-union-bar__rail-link', CAPS, FOCUS_RING)}
+                  aria-current={
+                    railCurrent?.href === link.href
+                      ? railCurrent.page
+                        ? 'page'
+                        : 'true'
+                      : undefined
+                  }
                 >
                   {link.label}
                 </a>

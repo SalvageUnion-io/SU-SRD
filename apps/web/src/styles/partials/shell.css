@@ -407,7 +407,10 @@
   text-decoration: none;
 }
 
-.su-union-bar__rail-link:hover {
+/* The section the open page sits under is ruled under, as the bar's own
+   area is (ruleset §3.11), never rust. */
+.su-union-bar__rail-link:hover,
+.su-union-bar__rail-link[aria-current] {
   border-bottom-color: var(--su-bar-fg);
 }
 

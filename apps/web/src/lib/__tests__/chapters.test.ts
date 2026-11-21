@@ -1,11 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { AREA_NAV } from '../../components/unionBar/areaNav.model'
 import {
   bandFillFor,
   buildChapters,
+  CHAPTER_REFS,
   CONTENTS,
   chapterForSchema,
   listingBandFillFor,
+  sectionHrefFor,
 } from '../chapters'
 
 /**
@@ -126,5 +129,29 @@ describe('bandFillFor', () => {
     const [chassis] = SalvageUnionReference.Chassis.all()
     if (!chassis) throw new Error('fixtures missing')
     expect(bandFillFor('chassis', chassis)).toBeUndefined()
+  })
+})
+
+/** RR-17: one name per section, and the page's own section marked in the sub-navigation. */
+describe('the sub-navigation and the chapters', () => {
+  const links = AREA_NAV.reference.links
+
+  test('a chapter has one name: the sub-navigation says what its page and the Contents say', () => {
+    for (const chapter of CHAPTER_REFS) {
+      const link = links.find((item) => item.href === chapter.href)
+      expect(link?.label).toBe(chapter.title)
+    }
+  })
+
+  test('a page sits under its section: its own listing, else its chapter', () => {
+    const hrefs = links.map((link) => link.href)
+    expect(sectionHrefFor('/pilots/', hrefs)).toBe('/pilots/')
+    expect(sectionHrefFor('/guides/heat/', hrefs)).toBe('/guides/')
+    expect(sectionHrefFor('/roll-tables/', hrefs)).toBe('/roll-tables/')
+    expect(sectionHrefFor('/chassis/atlas/pattern/throne/', hrefs)).toBe('/mechs/')
+    expect(sectionHrefFor('/classes/hacker/', hrefs)).toBe('/pilots/')
+    expect(sectionHrefFor('/keywords/heat/', hrefs)).toBe('/rules/')
+    expect(sectionHrefFor('/', hrefs)).toBeUndefined()
+    expect(sectionHrefFor('/changelog/', hrefs)).toBeUndefined()
   })
 })

@@ -171,6 +171,21 @@ export function chapterForSchema(schemaId: string): ChapterRef {
 }
 
 /**
+ * The sub-navigation entry (`sections`, its hrefs) a Reference page sits
+ * under: the entry its address starts in (a guide under Guides), else its
+ * kind's chapter (a chassis under Mech Workshop). None for a page in no
+ * section (the home, the changelog).
+ */
+export function sectionHrefFor(pathname: string, sections: readonly string[]): string | undefined {
+  const first = pathname.split('/').filter(Boolean)[0]
+  if (!first) return undefined
+  const own = `/${first}/`
+  if (sections.includes(own)) return own
+  const chapter = chapterForSchema(first)
+  return chapter === CONTENTS || !sections.includes(chapter.href) ? undefined : chapter.href
+}
+
+/**
  * An ability's tier tone (`entityTone`) as its page's band: the colour its Compact
  * wears on the abilities index, so the two cannot disagree. Legendary pink is
  * the deeper crawler band, as the Compact paints it (it carries paper); Core is
