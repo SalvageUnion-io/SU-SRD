@@ -25,7 +25,7 @@ describe('the table’s events', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })
     expect(event).toMatchObject({ kind: 'vitals', actorId: PLAYER })
-    expect(texts()).toEqual(['p1 · Pilot p1 · HP → 6'])
+    expect(texts()).toEqual(['p1 · Pilot p1 · HP 10 → 6'])
   })
 
   test('rapid repeats on one vital merge into the line they follow, keeping where it began', () => {
@@ -51,7 +51,7 @@ describe('the table’s events', () => {
     )
     expect(second[0]?._id).toBe(first[0]?._id as string)
     expect(third[0]?.text).toBe('p1 · Pilot p1 · HP 8 → 5')
-    expect(texts()).toEqual(['p1 · Pilot p1 · HP 8 → 5', 'p1 · Pilot p1 · HP → 8'])
+    expect(texts()).toEqual(['p1 · Pilot p1 · HP 8 → 5', 'p1 · Pilot p1 · HP 10 → 8'])
     // Past the window, or once the line is sealed (posted), a change starts a new line.
     act(
       PLAYER,
@@ -69,6 +69,49 @@ describe('the table’s events', () => {
     )
     expect(texts()[0]).toBe('p1 · Pilot p1 · HP 4 → 3')
     expect(texts()).toHaveLength(4)
+  })
+
+  test('a vital never written reads its start: a pool its maximum, Heat 0 (L10)', () => {
+    const { act, texts } = seated()
+    act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 2 })] })
+    act(PLAYER, 'submit', { ops: [op('m1', { currentSP: 3 }, { baseSeq: 1 })] }, AT + 1)
+    const [sp, heat] = texts()
+    expect(heat).toBe('Mech m1 · Heat 0 → 2')
+    expect(sp).toMatch(/^Mech m1 · SP \d+ → 3$/)
+  })
+
+  test('an effect switched on or off, and a system damaged or repaired, each say so (L10)', () => {
+    const { act, texts } = seated()
+    act(PLAYER, 'seats.board', { pilotId: 'p1', mechId: 'm1' }, AT + 1)
+    act(PLAYER, 'seats.toggleEffect', { pilotId: 'p1', ref: 'hull-magnetiser' }, AT + 2)
+    act(PLAYER, 'seats.toggleEffect', { pilotId: 'p1', ref: 'hull-magnetiser' }, AT + 3)
+    act(
+      PLAYER,
+      'submit',
+      { ops: [op('m1', { systemConditions: { '50-cal-machine-gun': 'damaged' } })] },
+      AT + 4
+    )
+    const [repaired] = act(
+      PLAYER,
+      'submit',
+      {
+        ops: [
+          op(
+            'm1',
+            { systemConditions: { '50-cal-machine-gun': 'intact' }, moduleConditions: {} },
+            { baseSeq: 1 }
+          ),
+        ],
+      },
+      AT + 5
+    )
+    expect(repaired).toMatchObject({ kind: 'vitals', actorId: PLAYER })
+    expect(texts().slice(0, 4)).toEqual([
+      'Mech m1 · .50 Cal Machine Gun is repaired',
+      'Mech m1 · .50 Cal Machine Gun is damaged',
+      'p1 · Pilot p1 switches Hull Magnetiser off',
+      'p1 · Pilot p1 switches Hull Magnetiser on',
+    ])
   })
 
   test('boarding, an action, the session, a proposal and joining each say themselves', () => {

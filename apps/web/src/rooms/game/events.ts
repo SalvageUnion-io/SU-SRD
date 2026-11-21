@@ -1,5 +1,13 @@
 import { fieldLabel } from 'game-domain/games/proposals'
 import type { LinkShape } from 'game-domain/links/linkRules'
+import { SalvageUnionReference } from 'salvageunion-reference'
+import {
+  resolveInstalledRef,
+  resolveModuleRef,
+  resolveSystemRef,
+} from 'salvageunion-reference/rules'
+import { seatOf } from '../seats'
+import { unsetVital } from '../vitals'
 import type { GameActName } from './acts'
 import type { GameStore, StoredOp } from './store'
 import type { SubmitResult } from './units'
@@ -69,6 +77,19 @@ const VITALS: Readonly<Record<string, string>> = {
   currentHeat: 'Heat',
 }
 
+/** A mech's item conditions, by the sheet field that holds them (`ItemConditionMapSchema`). */
+const CONDITIONS = {
+  systemConditions: resolveSystemRef,
+  moduleConditions: resolveModuleRef,
+} as const
+
+/** A system or module's new condition, in the line's words. */
+const CONDITION_WORDS: Readonly<Record<string, string>> = {
+  intact: 'is repaired',
+  damaged: 'is damaged',
+  destroyed: 'is destroyed',
+}
+
 /** What a stored event row carries beside its line. */
 type Stored = {
   kind: TableEventKind
@@ -91,6 +112,8 @@ export type EventsBefore = {
   proposal?: StoredOp | null
   session?: boolean
   stop?: boolean
+  /** Whether the effect was switched on. */
+  effectOn?: boolean
 }
 
 /** Whether an event goes to the bound channel as a line: never a private one, nor one with its own post. */
@@ -135,6 +158,12 @@ export class GameEvents {
             ? (JSON.parse(row.resolving) as { name?: string } | null)
             : null
         return { resolving: resolving?.name ?? null }
+      }
+      case 'seats.toggleEffect': {
+        const row = this.store.rows('select * from seats where pilot_id = ?', String(a.pilotId))[0]
+        return {
+          effectOn: row !== undefined && seatOf(row).activeEffects.includes(String(a.ref)),
+        }
       }
       case 'ops.accept':
       case 'ops.decline':
@@ -185,6 +214,11 @@ export class GameEvents {
         const next = (a.resolving as { name?: unknown } | null)?.name
         if (typeof next !== 'string' || next === '' || next === before.resolving) return []
         return say('action', `${unit(a.pilotId)} uses ${next}`)
+      }
+      case 'seats.toggleEffect': {
+        // On and off are two lines: a repeat of either counts on its own.
+        const turn = before.effectOn === true ? 'off' : 'on'
+        return say('action', `${unit(a.pilotId)} switches ${effectName(String(a.ref))} ${turn}`)
       }
       case 'assign': {
         const to = typeof a.userId === 'string' ? this.memberName(a.userId) : who
@@ -277,8 +311,9 @@ export class GameEvents {
       for (const [field, label] of Object.entries(VITALS)) {
         const to = op.patch[field]
         if (typeof to !== 'number') continue
+        // A vital never written reads its start: the line always says "from" (L10).
         const was = op.before?.[field]
-        const from = typeof was === 'number' ? was : null
+        const from = typeof was === 'number' ? was : unsetVital(this.store, op.unitId, field)
         if (from === to) continue
         out.push(
           this.note(actor, at, {
@@ -288,6 +323,24 @@ export class GameEvents {
             vital: { who, label, from, to },
           })
         )
+      }
+      out.push(...this.conditions(actor, op, who, at))
+    }
+    return out
+  }
+
+  /** A system or module switched to damaged, destroyed or back: a line each. */
+  private conditions(actor: string, op: StoredOp, who: string, at: number): TableEvent[] {
+    const out: TableEvent[] = []
+    for (const [field, resolve] of Object.entries(CONDITIONS)) {
+      const next = op.patch[field]
+      if (next === null || typeof next !== 'object') continue
+      const was = (op.before?.[field] ?? {}) as Record<string, unknown>
+      for (const [ref, condition] of Object.entries(next as Record<string, unknown>)) {
+        const words = CONDITION_WORDS[String(condition)]
+        if (words === undefined || (was[ref] ?? 'intact') === condition) continue
+        const text = `${who} · ${resolve(ref)?.name ?? ref} ${words}`
+        out.push(this.note(actor, at, { kind: 'vitals', text }))
       }
     }
     return out
@@ -381,6 +434,16 @@ export class GameEvents {
   private proposalLine(op: StoredOp): string {
     const [field = '', after = null] = Object.entries(op.patch)[0] ?? []
     return `${this.unitLabel(op.unitId)} ${fieldLabel(field)} → ${after === null ? '—' : String(after)}`
+  }
+}
+
+/** What a switched effect is called: the system, module or ability that declares it. */
+function effectName(ref: string): string {
+  try {
+    const item = resolveInstalledRef(ref) as { name?: string } | null
+    return item?.name ?? SalvageUnionReference.Abilities.getBySlug(ref)?.name ?? ref
+  } catch {
+    return ref
   }
 }
 

@@ -5,7 +5,8 @@
  * and AP then the mech's SP, EP and Heat. Tapping a cell opens that unit's
  * `PhoneVitals` block under the card (its rows with their − | + at 44px), so
  * the five take one line of the screen until a number has to change; a second
- * tap closes it. A unit that isn't live is a read-out. From `lg` the Units
+ * tap closes it. A row's number asks for an amount (`PlayVitalAmount`: "take
+ * 3" is one write, LG-13). A unit that isn't live is a read-out. From `lg` the Units
  * column holds them, so nothing is pinned.
  */
 
@@ -14,6 +15,7 @@ import { SHEET_VITALS } from '../build/sheet/sheetVitals.model'
 import { heatDangerFrom, PhoneVitals, PhoneVitalsGlance } from '../components/app'
 import type { CSSVarStyle, PhoneVitalCell } from '../components/index'
 import { playCopy } from '../messages/play'
+import { PlayVitalAmount } from './PlayVitalAmount'
 import type { PinnedUnit } from './playPanes.model'
 import { tableUnits } from './tableMode.model'
 
@@ -42,9 +44,12 @@ export function PlayPinnedVitals({
   onWrite: (kind: PinnedUnit['kind'], field: string, next: number, label: string) => void
 }) {
   const [open, setOpen] = useState<string | null>(null)
+  // "Take 3 damage" in one write: an open row's number asks for the amount.
+  const [asking, setAsking] = useState<string | null>(null)
   if (units.length === 0) return null
   const all = tableUnits(units).flatMap((unit) => unit.vitals.map((v) => ({ unit, v })))
   const picked = all.find(({ v, unit }) => v.label === open && live[unit.kind])
+  const asked = picked?.unit.vitals.find((v) => v.label === asking)
   const cells: PhoneVitalCell[] = all.map(({ unit, v }) => {
     const redline = danger(v)
     return {
@@ -62,7 +67,17 @@ export function PlayPinnedVitals({
   return (
     <section aria-label={playCopy('pinnedVitals')} className="su-play-pins">
       <PhoneVitalsGlance cells={cells} />
-      {picked ? (
+      {picked && asked ? (
+        <div className="su-play-pins__amount" style={tone(picked.unit.kind)}>
+          <PlayVitalAmount
+            label={asked.label}
+            value={asked.value}
+            max={asked.max}
+            onChange={(next) => onWrite(picked.unit.kind, asked.field, next, asked.label)}
+            onClose={() => setAsking(null)}
+          />
+        </div>
+      ) : picked ? (
         <PhoneVitals
           label={playCopy('sVitals', { name: picked.unit.name })}
           style={tone(picked.unit.kind)}
@@ -74,6 +89,7 @@ export function PlayPinnedVitals({
             max: v.max,
             ...(danger(v) !== undefined ? { danger: danger(v) } : {}),
             onChange: (next: number) => onWrite(picked.unit.kind, v.field, next, v.label),
+            onValuePress: () => setAsking(v.label),
           }))}
         />
       ) : null}

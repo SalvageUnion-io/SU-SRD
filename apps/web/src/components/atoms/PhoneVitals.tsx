@@ -6,7 +6,8 @@
  * value over its max in plain tabular numerals, and a joined − | + pair, each
  * half a 44px target. A press steps by one; a hold repeats. The meter is the
  * one `role="slider"` tab stop a row has (arrow keys, Home, End), and a tap on
- * a segment sets the value.
+ * a segment sets the value. With `onValuePress` the value is a button too:
+ * the caller asks for an amount (Play's "take 3").
  *
  * A row with no `max` is a counter (Training Points, Upkeep): no meter, its
  * note in the meter's place. `foot` is the block's last row: conditions, a
@@ -121,10 +122,23 @@ function Row({ vital }: { vital: PhoneVital }) {
           {segments}
         </div>
       )}
-      <span className="su-phone-vitals__value" data-over={control.over ? '' : undefined}>
-        <b>{shown}</b>
-        {max !== undefined && <i>/{max}</i>}
-      </span>
+      {onChange && vital.onValuePress && max !== undefined ? (
+        <button
+          type="button"
+          className={cn('su-phone-vitals__value', FOCUS_RING)}
+          data-over={control.over ? '' : undefined}
+          aria-label={atomsCopy('changeByAmount', { label: name, value: shown, max })}
+          onClick={vital.onValuePress}
+        >
+          <b>{shown}</b>
+          <i>/{max}</i>
+        </button>
+      ) : (
+        <span className="su-phone-vitals__value" data-over={control.over ? '' : undefined}>
+          <b>{shown}</b>
+          {max !== undefined && <i>/{max}</i>}
+        </span>
+      )}
       {onChange && (
         <span className="su-phone-vitals__stepper">
           <button
