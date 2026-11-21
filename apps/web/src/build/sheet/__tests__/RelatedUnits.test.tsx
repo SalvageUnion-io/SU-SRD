@@ -88,7 +88,7 @@ describe('RelatedUnits', () => {
     }
     const { unmount } = render(<RelatedUnits editable={false} units={[]} slots={[slot]} />)
     expect(screen.getByText('Related units')).toBeTruthy()
-    expect(screen.getByText('No mech')).toBeTruthy()
+    expect(screen.getByText('No Mech')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Assign' })).toBeNull()
     expect(screen.queryByRole('link', { name: /Create/ })).toBeNull()
     unmount()

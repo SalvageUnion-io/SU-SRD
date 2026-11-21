@@ -38,12 +38,13 @@ const KIND_NAME: Record<SheetKind, string> = {
   crawler: 'Crawler',
 }
 
-/** A place's empty name: "No mech", "No pilot". */
-const NONE_KEY = {
-  pilot: 'noPilot',
-  mech: 'noMech',
-  crawler: 'noCrawler',
-} as const satisfies Record<SheetKind, string>
+/** A place's empty name: "No mech", "No pilot" (each key a literal, for the catalogue). */
+const noneOf = (kind: SheetKind): string =>
+  kind === 'pilot'
+    ? buildSheetCopy('noPilot')
+    : kind === 'mech'
+      ? buildSheetCopy('noMech')
+      : buildSheetCopy('noCrawler')
 
 export function RelatedUnits({
   units,
@@ -157,8 +158,7 @@ export function RelatedUnits({
             context="roster"
             model={unitRowModel({
               kind: slot.kind,
-              name:
-                writes && slot.placeholder ? slot.placeholder : buildSheetCopy(NONE_KEY[slot.kind]),
+              name: writes && slot.placeholder ? slot.placeholder : noneOf(slot.kind),
             })}
             {...(editable && slot.extra ? { body: { text: false, children: slot.extra } } : {})}
             {...(writes

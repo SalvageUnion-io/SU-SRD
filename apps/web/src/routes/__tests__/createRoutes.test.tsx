@@ -42,7 +42,7 @@ function wizardStub(name: string, preselect: (p: Props) => string) {
       h('p', null, `${name} game: ${named(p.gameId)}`),
       call(`${name}: cancel`, p.onCancel as () => void),
       call(`${name}: off rules`, p.onOffRules as () => void),
-      call(`${name}: complete`, p.onComplete as () => void)
+      call(`${name}: complete`, () => (p.onComplete as (id: string) => void)('new-id'))
     )
 }
 
@@ -231,11 +231,11 @@ describe('/crawlers/new', () => {
     expect(at(router).pathname).toBe('/crawlers/new-id')
   })
 
-  test('the builder finishing goes back to the Training Bay', async () => {
+  test('the builder finishing opens the new sheet', async () => {
     const router = await mountAt('/crawlers/new?mode=guided&type=no-such-type')
     expect(await screen.findByText('Crawler builder preselect: none')).toBeTruthy()
     await press('Crawler builder: complete')
-    expect(at(router).pathname).toBe('/')
+    expect(at(router).pathname).toBe('/crawlers/new-id')
   })
 })
 

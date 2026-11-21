@@ -5,8 +5,8 @@ import { messages } from './define'
 export const buildSheetCopy = messages({
   relatedUnits: 'Related units',
   game: 'Game',
-  noMech: 'No mech',
-  noPilot: 'No pilot',
+  noMech: 'No Mech',
+  noPilot: 'No Pilot',
   noCrawler: 'No crawler',
   unassign: 'Unassign',
   unitActions: '{name} actions',

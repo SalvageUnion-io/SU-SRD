@@ -65,7 +65,7 @@ describe('R70: Related units in Read', () => {
   test('a pilot with nothing linked draws a place per slot, and its companion', () => {
     const section = readSheet('pilot', 'p-rel')
     expect(section.textContent).toContain('Related units')
-    expect(section.textContent).toContain('No mech')
+    expect(section.textContent).toContain('No Mech')
     expect(section.textContent).toContain('No crawler')
     const companion = must(pilot.partners?.[0])
     expect(
@@ -77,7 +77,7 @@ describe('R70: Related units in Read', () => {
 
   test('a mech with nothing linked draws a place per slot, and its chassis drone', () => {
     const section = readSheet('mech', 'm-rel')
-    expect(section.textContent).toContain('No pilot')
+    expect(section.textContent).toContain('No Pilot')
     expect(section.textContent).toContain('No crawler')
     const drone = must(mech.partners?.[0])
     expect(
@@ -96,8 +96,8 @@ describe('R70: Related units in Read', () => {
 
   test('a sheet the viewer cannot write names each empty place plainly', () => {
     const section = readSheet('crawler', 'c-rel', true)
-    expect(section.textContent).toContain('No mech')
-    expect(section.textContent).toContain('No pilot')
+    expect(section.textContent).toContain('No Mech')
+    expect(section.textContent).toContain('No Pilot')
     expect(within(section).queryByRole('link', { name: /Create/ })).toBeNull()
   })
 })

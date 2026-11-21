@@ -367,7 +367,7 @@ export async function runWizard(page: Page, kind: WizardKind, walk: WizardWalk):
         }
         await create.click()
         await page.waitForURL((url) => isLandingPage(url.pathname), { timeout: 30_000 })
-        // Callers go on from the Training Bay, as a build from it used to land.
+        // Callers go on from the Training Bay, not the new sheet.
         if (!isGamePage(new URL(page.url()).pathname)) await openApp(page, '/')
         return
       }

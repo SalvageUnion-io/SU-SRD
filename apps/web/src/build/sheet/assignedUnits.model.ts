@@ -200,7 +200,7 @@ function readingsOf(
  * own sheet is an app sheet; elsewhere (a public or Starter Set sheet) a
  * companion opens nothing.
  */
-export function companionsOf(
+function companionsOf(
   subject: AssignedSubject,
   hrefFor: (kind: EntityRef['type'], id: string) => string | undefined
 ): AssignedUnit[] {

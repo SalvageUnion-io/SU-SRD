@@ -332,15 +332,15 @@ export function LiveSheet({
   quoted = false,
   pinsVitals = false,
 }: LiveSheetProps) {
-  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
-  // should seam and fill the moment you scroll past IT, rather than waiting for
-  // a whole region to clear the viewport.
+  // A 1px sentinel beneath the bar, NOT the identity block: the bar seams and
+  // fills the moment you scroll past IT, not once a whole region clears.
   const topRef = useRef<HTMLDivElement | null>(null)
   const scrolled = useCondensed(topRef)
   const phone = !useMediaQuery(widthAtLeast('sm'), true)
   const condensed = scrolled && !(pinsVitals && phone)
 
   const title = quoted ? `“${name}”` : name
+  const game = band?.game
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -505,11 +505,9 @@ export function LiveSheet({
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
-                    {band?.game && (
+                    {game && (
                       <Tag
-                        tag={relation('game', buildSheetCopy('game'), band.game.name, {
-                          href: band.game.href,
-                        })}
+                        tag={relation('game', buildSheetCopy('game'), game.name, game)}
                         linkable
                         wrap
                       />
