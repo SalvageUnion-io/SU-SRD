@@ -43,7 +43,9 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         <ul className={cn('su-sparse-rail__rows', 'su-sparse-rail__scroll')}>
           {usedBy.map((user) => (
             <li key={user.ref.id} className="su-sparse-rail__row">
-              <Mention entityRef={user.ref}>{user.name}</Mention>
+              <Mention entityRef={user.ref} goes>
+                {user.name}
+              </Mention>
               <span className="su-sparse-rail__kind">{user.kind}</span>
             </li>
           ))}
@@ -62,7 +64,9 @@ export function SparseRail({ rail, tone: chapterTone }: { rail: Rail; tone: stri
         <ul className="su-sparse-rail__list">
           {rules.map((rule) => (
             <li key={rule.ref.id}>
-              <Mention entityRef={rule.ref}>{rule.name}</Mention>
+              <Mention entityRef={rule.ref} goes>
+                {rule.name}
+              </Mention>
             </li>
           ))}
         </ul>

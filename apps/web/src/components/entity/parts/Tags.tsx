@@ -75,7 +75,11 @@ export function ChipLink({
 }) {
   const { hrefFor, openPage, linkAs } = useEntitySurface()
   const insidePeek = useInsidePeek()
-  const peek = usePeekAttrs(tag.ref)
+  // A chip that names a PLACE on its entry's page (`fragment`: an ability's
+  // Tree) is a way there, not a term: it opens on the first press, and its
+  // entry's Peek, which says nothing of that place, is not drawn (E27).
+  const place = Boolean(tag.fragment)
+  const peek = usePeekAttrs(place ? undefined : tag.ref)
   const opens = !insidePeek && linkable
   const ref = opens ? tag.ref : undefined
   // A relation to a player unit has no entry: its sheet is its own href.

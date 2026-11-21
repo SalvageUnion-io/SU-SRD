@@ -33,6 +33,23 @@ describe('Mention', () => {
     expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
     expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
     expect(link.className).toContain('su-inline-ref--link')
+    // A term in a sentence: its first press Peeks (E27).
+    expect(link.hasAttribute('data-peek-press')).toBe(true)
+  })
+
+  test('a row or a way onward (`goes`) opens on the first press: it Peeks on hover alone', () => {
+    const ref = burn()
+    render(
+      <EntitySurfaceProvider value={{ hrefFor }}>
+        <Mention entityRef={ref} goes>
+          Burn
+        </Mention>
+      </EntitySurfaceProvider>
+    )
+    const link = screen.getByRole('link', { name: 'Burn' })
+    expect(link.getAttribute('href')).toBe(`/traits/${ref.slug}/`)
+    expect(link.getAttribute('data-peek')).toBe(`traits:${ref.id}`)
+    expect(link.hasAttribute('data-peek-press')).toBe(false)
   })
 
   test('opens the Page where the surface has an opener, and not its host card', () => {

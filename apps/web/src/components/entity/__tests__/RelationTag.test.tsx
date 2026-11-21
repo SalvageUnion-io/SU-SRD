@@ -77,7 +77,12 @@ describe('a relation Tag', () => {
         />
       </EntitySurfaceProvider>
     )
-    expect(screen.getByRole('link').getAttribute('href')).toBe('/classes/engineer/#x')
+    const link = screen.getByRole('link')
+    expect(link.getAttribute('href')).toBe('/classes/engineer/#x')
+    // A way to a place (E27): the first press opens it, and the class's Peek,
+    // which says nothing of the tree, is not drawn.
+    expect(link.hasAttribute('data-peek-press')).toBe(false)
+    expect(link.hasAttribute('data-peek')).toBe(false)
   })
 
   test('inside a Peek it neither links nor Peeks', () => {

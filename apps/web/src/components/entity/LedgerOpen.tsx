@@ -89,7 +89,9 @@ function Row({
             {row.lead !== undefined && <span className="su-open__lead">{row.lead}</span>}
             <span className="su-open__name">
               {row.entityRef ? (
-                <Mention entityRef={row.entityRef}>{row.name}</Mention>
+                <Mention entityRef={row.entityRef} goes>
+                  {row.name}
+                </Mention>
               ) : row.href ? (
                 <InlineRef href={row.href}>{row.name}</InlineRef>
               ) : (

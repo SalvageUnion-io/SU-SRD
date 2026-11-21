@@ -502,7 +502,9 @@ function LedgerList({
                           {row.href ? (
                             <AddressedName row={row} href={row.href} />
                           ) : (
-                            <Mention entityRef={row.entityRef}>{row.name}</Mention>
+                            <Mention entityRef={row.entityRef} goes>
+                              {row.name}
+                            </Mention>
                           )}
                         </span>
                       )}

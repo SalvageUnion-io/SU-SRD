@@ -198,6 +198,8 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'TermChip.test.tsx',
     'SparseRail.test.tsx',
     'interaction.test.ts',
+    'Mention.test.tsx',
+    'RelationTag.test.tsx',
     'E16',
   ],
   N1: ['nesting-depth.e2e.ts', '_nestingDepth.ts'],

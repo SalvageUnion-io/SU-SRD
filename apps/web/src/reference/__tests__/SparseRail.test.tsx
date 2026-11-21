@@ -1,7 +1,8 @@
 /**
  * A sparse Page's side column (E27): every Used by and Related rules entry is
  * a real link to its page in the server's own markup, so the keyboard reaches
- * it and it works with no script, and each is a term whose press Peeks.
+ * it and it works with no script. Each is a way onward, not a term: its first
+ * press opens the page, and its Peek is hover's and focus's alone.
  */
 import { describe, expect, test } from 'bun:test'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -17,7 +18,7 @@ const explosive = () => {
 }
 
 describe('SparseRail', () => {
-  test('every entry is a link to its page, and a term (data-peek-press)', () => {
+  test('every entry is a link to its page that Peeks on hover and opens on the first press', () => {
     const rail = sparseRailFor('traits', explosive())
     expect(rail.usedBy.length).toBeGreaterThan(0)
     const html = renderToStaticMarkup(<SparseRail rail={rail} tone="rules" />)
@@ -29,7 +30,7 @@ describe('SparseRail', () => {
       const link = entry.querySelector('a')
       expect(link?.getAttribute('href')).toMatch(/^\/[a-z-]+\/[a-z0-9-]+\/$/)
       expect(link?.hasAttribute('data-peek')).toBe(true)
-      expect(link?.hasAttribute('data-peek-press')).toBe(true)
+      expect(link?.hasAttribute('data-peek-press')).toBe(false)
       // In the tab order: no tabindex takes it out.
       expect(link?.hasAttribute('tabindex')).toBe(false)
     }
