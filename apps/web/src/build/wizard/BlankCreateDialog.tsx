@@ -122,7 +122,7 @@ export function BlankCreateDialog({
       }
       return createBlank('crawler', { name: name.trim(), techLevel }, { gameId })
     },
-    { failure: `The ${label.toLowerCase()} could not be created. Try again.` }
+    { failure: buildWizardCopy('blankNotCreated', { label: label.toLowerCase() }) }
   )
   const { pending, error } = create
 

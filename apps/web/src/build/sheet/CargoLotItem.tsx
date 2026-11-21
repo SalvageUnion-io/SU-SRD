@@ -38,15 +38,15 @@ function moveAffordance(
   // them whichever sheet they are on.
   let disabledReason: string | null = !linked
     ? side === 'mech'
-      ? 'No crawler assigned — nothing to stow to.'
-      : 'No Mech assigned — nothing to load onto.'
+      ? buildSheetCopy('noCrawlerNothingToStow')
+      : buildSheetCopy('noMechNothingToLoad')
     : cargo.crawlerLocked
 
   if (side === 'crawler' && disabledReason === null) {
     // The reducer's own fit math, so the button and the load can't disagree.
     const fitsQty = loadableQty(lot, cargo.usage.free)
     if (fitsQty <= 0) {
-      disabledReason = `"${lot.name}" does not fit — ${cargo.usage.free} slots free.`
+      disabledReason = buildSheetCopy('doesNotFit', { name: lot.name, free: cargo.usage.free })
     }
     const partial = lot.kind === 'bulk' && lot.qty !== undefined && fitsQty < lot.qty
     label = partial && fitsQty > 0 ? `Load ${fitsQty}` : 'Load'
@@ -121,7 +121,7 @@ export function CargoLotControls({
         size="mini"
         disabled={disabledReason !== null}
         title={disabledReason ?? undefined}
-        aria-label={`${side === 'mech' ? 'Stow' : 'Load'} ${lot.name}`}
+        aria-label={buildSheetCopy(side === 'mech' ? 'stowName' : 'loadName', { name: lot.name })}
         onClick={handleMove}
       >
         {label}
@@ -130,7 +130,9 @@ export function CargoLotControls({
         <Button
           variant="pencil"
           size="mini"
-          aria-label={`${side === 'mech' ? 'Unload' : 'Unstow'} ${lot.name}`}
+          aria-label={buildSheetCopy(side === 'mech' ? 'unloadName' : 'unstowName', {
+            name: lot.name,
+          })}
           title={
             side === 'mech'
               ? buildSheetCopy('unloadFromTheMechHold', { name: lot.name })

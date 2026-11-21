@@ -44,6 +44,7 @@ import {
   NUMERIC_TECH_LEVELS,
   nextTierUpgradeCost,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 import { addToScrapPool, scrapPoolBucket } from '../cargo/cargoTransfer'
 
 // ---------------------------------------------------------------------------
@@ -376,11 +377,11 @@ export type TradingAvailability =
 
 /** Display text per band — mirrors the SRD Trading Bay Table (p.223). */
 export const TRADING_AVAILABILITY_LABEL: Record<TradingAvailability, string> = {
-  chassis: 'An Intact Mech Chassis is available for trade.',
-  'system-and-module': 'An Intact System and an Intact Module are available for trade.',
-  system: 'An Intact System is available for trade.',
-  module: 'An Intact Module is available for trade.',
-  nothing: 'Nothing is available for trade during this Downtime.',
+  chassis: libRulesCopy('tradeChassis'),
+  'system-and-module': libRulesCopy('tradeSystemAndModule'),
+  system: libRulesCopy('tradeSystem'),
+  module: libRulesCopy('tradeModule'),
+  nothing: libRulesCopy('tradeNothing'),
 }
 
 /** Maps a Trading Bay Table d20 roll to its availability band (p.223). */

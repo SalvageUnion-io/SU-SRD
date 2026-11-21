@@ -30,6 +30,7 @@ import {
   pilotInventoryCapacity,
   pilotInventoryUsed,
 } from '../../lib/rules/pilotInventory'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsState } from '../../replica/units'
 import type { ClassLike } from '../pilot/abilityTrees.model'
 import { treesFor } from '../pilot/abilityTrees.model'
@@ -326,7 +327,7 @@ export function usePilotSheetModel({
     base: 'Pilot',
     baseDetail: 'base',
     installed: 'Injuries',
-    installedDetail: 'rules A11',
+    installedDetail: buildSheetCopy('rulesA11'),
   })
   const apLines = linesFromBreakdown(apParts, { base: 'Pilot', baseDetail: 'base' })
   const hp = resolvePool(pilot.currentHP, maxHP)

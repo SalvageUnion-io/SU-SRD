@@ -170,7 +170,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
       const bundle = await buildEntityExport(type, id, useUnits.getState())
       downloadJson(exportFileName(type, name), bundle)
     },
-    { failure: 'That export did not download. Try again.', toastId: 'shelf-export' }
+    { failure: buildShelvesCopy('exportDidNotDownload'), toastId: 'shelf-export' }
   )
 
   const hydratedUnits = useHydrateEntities(['pilot', 'mech', 'crawler', 'npc', 'softLink'])
@@ -227,7 +227,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         { id: 'open', label: 'Open', onSelect: () => go(`/${type}s/${unit.id}`) },
         {
           id: 'move',
-          label: 'Move to a Game…',
+          label: buildShelvesCopy('moveToAGame'),
           // Moves need the server's list of Games.
           onSelect:
             canWrite && status === 'live'
@@ -236,7 +236,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         },
         {
           id: 'copy',
-          label: 'Make a copy',
+          label: buildShelvesCopy('makeACopy'),
           // A copy only adds: it runs at once, and its notice opens it.
           onSelect: writable(() => void copyUnit(type, unit.name, copyBody, go)),
         },
@@ -253,7 +253,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               ),
               {
                 id: 'pattern',
-                label: 'Save as pattern',
+                label: buildShelvesCopy('saveAsPattern'),
                 onSelect: writable(() => setSavingPattern(unit.id)),
               },
             ]
@@ -308,7 +308,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         ),
         {
           id: 'copy',
-          label: 'Make a copy',
+          label: buildShelvesCopy('makeACopy'),
           onSelect: writable(() => void copyPattern(pattern, go)),
         },
         {
@@ -345,7 +345,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const fromAMech: HeaderMenuItem[] =
     mechs.length === 0
-      ? [{ id: 'none', label: 'Build a Mech first' }]
+      ? [{ id: 'none', label: buildShelvesCopy('buildAMechFirst') }]
       : mechs.map((m) => ({
           id: m.id,
           label: m.name,
@@ -362,12 +362,12 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         <div className="su-shelf-ledgers__col">
           <ShelfLedger
             id="shelf-npcs"
-            title="NPCs"
+            title={buildShelvesCopy('npcs')}
             tone="adversary"
             homebrew
             columns={NPC_COLUMNS}
-            action={newLink('/npcs/new', '+ Design an NPC')}
-            empty="No NPCs yet. Design one and it is kept here."
+            action={newLink('/npcs/new', buildShelvesCopy('designAnNpc'))}
+            empty={buildShelvesCopy('noNpcsYet')}
             rows={[
               ...npcs.map((n) => ({
                 id: n.id,
@@ -450,11 +450,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             <div className="su-shelf-ledgers__col">
               <ShelfLedger
                 id="shelf-pilots"
-                title="Pilots"
+                title={buildShelvesCopy('pilots')}
                 tone="pilot"
                 columns={PILOT_COLUMNS}
-                action={newLink('/pilots/new', '+ New Pilot')}
-                empty="No Pilots yet."
+                action={newLink('/pilots/new', buildShelvesCopy('newPilot'))}
+                empty={buildShelvesCopy('noPilotsYet')}
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
                   const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
@@ -495,9 +495,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               <MechShelf
                 mechs={spareMechs}
                 readings={mechReadings}
-                action={newLink('/mechs/new', '+ New Mech')}
+                action={newLink('/mechs/new', buildShelvesCopy('newMech'))}
                 empty={
-                  mechs.length === 0 ? 'No Mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
+                  mechs.length === 0
+                    ? buildShelvesCopy('noMechsYet')
+                    : buildShelvesCopy('everyMechHasItsPilot')
                 }
                 line={(m) => ({
                   under: under(linkChip(sharedByLink, m.id)),
@@ -507,11 +509,11 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               />
               <ShelfLedger
                 id="shelf-crawlers"
-                title="Crawlers"
+                title={buildShelvesCopy('crawlers')}
                 tone="crawler"
                 columns={CRAWLER_COLUMNS}
-                action={newLink('/crawlers/new', '+ New crawler')}
-                empty="No crawlers yet."
+                action={newLink('/crawlers/new', buildShelvesCopy('newCrawler'))}
+                empty={buildShelvesCopy('noCrawlersYet')}
                 rows={crawlers.map((c) => {
                   const r = rowStats(crawlerRailItems(c))
                   return {
@@ -536,7 +538,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
             <div className="su-shelf-ledgers__col">
               <ShelfLedger
                 id="shelf-patterns"
-                title="Patterns"
+                title={buildShelvesCopy('patterns')}
                 tone="mech"
                 homebrew
                 columns={PATTERN_COLUMNS}
@@ -545,14 +547,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     <HeaderMenu
                       variant="button"
                       size="compact"
-                      trigger="+ From a Mech"
-                      label="+ From a Mech"
+                      trigger={buildShelvesCopy('fromAMech')}
+                      label={buildShelvesCopy('fromAMech')}
                       chevron={false}
                       sections={[fromAMech]}
                     />
                   ) : undefined
                 }
-                empty="No patterns yet. Save one from a Mech."
+                empty={buildShelvesCopy('noPatternsYet')}
                 rows={patterns.map((p) => ({
                   id: p.id,
                   name: p.name,

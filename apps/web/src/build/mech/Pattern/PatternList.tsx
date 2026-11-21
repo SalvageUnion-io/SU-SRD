@@ -97,7 +97,7 @@ export function PatternList({ onInstantiated, gameId }: PatternListProps) {
                   mode={{
                     kind: 'link',
                     href: savedPatternHref(pattern.id),
-                    attrs: { 'aria-label': `View pattern ${pattern.name}` },
+                    attrs: { 'aria-label': mechCopy('viewPattern', { name: pattern.name }) },
                   }}
                   lead
                   controls={

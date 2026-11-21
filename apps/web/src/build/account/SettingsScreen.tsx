@@ -78,10 +78,10 @@ function SignedInAccount() {
   const me = useMe()
   const exported = useAccountExport()
   const save = useServerAction(useUpdateProfile(), {
-    failure: 'Your display name could not be saved. Try again.',
+    failure: buildAccountCopy('displayNameNotSaved'),
   })
   const erase = useServerAction(deleteAccount, {
-    failure: 'Your account could not be deleted. Try again.',
+    failure: buildAccountCopy('accountNotDeleted'),
   })
 
   const [name, setName] = useState<string | null>(null)

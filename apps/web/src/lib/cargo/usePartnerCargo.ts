@@ -26,6 +26,7 @@ import type { UnitsStore } from '../../replica/units'
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import type { Crawler } from 'game-domain/schemas/crawler'
+import { libCargoCopy } from '../../messages/lib-cargo'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import type { ChangeMeta } from '../../replica/units'
 import { useUnits } from '../../replica/units'
@@ -99,11 +100,11 @@ export function usePartnerCargo({
     /** Boundary actions need a crawler; hold-local ones do not. */
     needsDepot: boolean
   ): Promise<CargoTransferResult> {
-    if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
+    if (readOnly) return { ok: false, reason: libCargoCopy('sheetIsReadOnly') }
     if (needsDepot && !crawler) {
       return {
         ok: false,
-        reason: 'No crawler is assigned — nothing to transfer to or from.',
+        reason: libCargoCopy('noCrawlerToTransfer'),
       }
     }
     if (needsDepot && crawlerLocked !== null) return { ok: false, reason: crawlerLocked }
@@ -163,7 +164,7 @@ export function usePartnerCargo({
     } catch (error) {
       return {
         ok: false,
-        reason: failureMessage(error, 'That change could not be saved. Try again.'),
+        reason: failureMessage(error, libCargoCopy('changeNotSaved')),
       }
     }
   }

@@ -181,7 +181,7 @@ function RepairControl({
     ? null
     : scrapPool && scrapPoolLocked !== null
       ? scrapPoolLocked
-      : 'No crawler assigned — no pool to deduct from'
+      : buildSheetCopy('noCrawlerNoPool')
 
   // Repair confirm — a modal (design: no inline confirm cluster / footer).
   const repairModal = confirmingRepair ? (

@@ -69,4 +69,7 @@ export const buildAccountCopy = messages({
   signOut: 'Sign out',
   buildAndRunYourSalvage:
     'Build and run your Salvage Union crew — Pilots, Mechs and Union Crawlers. Everything you build is kept in your account, saved as you go, and ready to share with a Game, so building needs you signed in.',
+  displayNameNotSaved: 'Your display name could not be saved. Try again.',
+  accountNotDeleted: 'Your account could not be deleted. Try again.',
+  signInWithDiscord: 'Sign in with Discord',
 })

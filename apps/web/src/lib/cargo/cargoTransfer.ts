@@ -41,6 +41,7 @@ import { isNumericTechLevel } from 'salvageunion-reference/rules'
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { makeScrapLot, totalLotUnits } from 'game-domain/schemas/cargoLot'
 import type { ScrapPool } from 'game-domain/schemas/crawler'
+import { libCargoCopy } from '../../messages/lib-cargo'
 
 export type CargoBoundaryState = {
   /** Lots in the carrier's hold — a mech's, or a partner's. */
@@ -190,7 +191,7 @@ function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferR
 /** Remove (discard) a lot from the mech hold entirely — no crawler required. */
 function removeCarrierLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   if (!state.carrierLots.some((l) => l.id === lotId)) {
-    return { ok: false, reason: `Cargo lot "${lotId}" is not in the Mech hold.` }
+    return { ok: false, reason: libCargoCopy('lotNotInMechHold', { id: lotId }) }
   }
   return {
     ok: true,
@@ -214,7 +215,7 @@ function addDepotLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferRes
 /** Remove (discard) a lot from the crawler's Storage Bay — no mech required. */
 function removeDepotLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   if (!state.depotLots.some((l) => l.id === lotId)) {
-    return { ok: false, reason: `Cargo lot "${lotId}" is not in the crawler Storage Bay.` }
+    return { ok: false, reason: libCargoCopy('lotNotInStorageBay', { id: lotId }) }
   }
   return {
     ok: true,
@@ -228,7 +229,7 @@ function stow(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   if (!lot)
     return {
       ok: false,
-      reason: `Cargo lot "${lotId}" is not in the Mech hold.`,
+      reason: libCargoCopy('lotNotInMechHold', { id: lotId }),
     }
 
   const carrierLots = state.carrierLots.filter((l) => l.id !== lotId)
@@ -263,11 +264,11 @@ function load(
   if (!lot)
     return {
       ok: false,
-      reason: `Cargo lot "${lotId}" is not in the crawler hold.`,
+      reason: libCargoCopy('lotNotInCrawlerHold', { id: lotId }),
     }
 
   const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
-  if (free <= 0) return { ok: false, reason: 'The Mech hold has no free cargo slots.' }
+  if (free <= 0) return { ok: false, reason: libCargoCopy('mechHoldHasNoFreeSlots') }
 
   const fits = loadableQty(lot, free)
 
@@ -276,7 +277,7 @@ function load(
     if (fits === 0) {
       return {
         ok: false,
-        reason: `"${lot.name}" needs ${lot.units} slots but only ${free} are free.`,
+        reason: libCargoCopy('needsSlots', { name: lot.name, units: lot.units, free }),
       }
     }
     return {
@@ -296,7 +297,7 @@ function load(
   if (moveQty <= 0) {
     return {
       ok: false,
-      reason: `"${lot.name}" needs ${per} slots per unit but only ${free} are free.`,
+      reason: libCargoCopy('needsSlotsPerUnit', { name: lot.name, per, free }),
     }
   }
 
@@ -325,17 +326,17 @@ function load(
 
 function withdrawScrap(state: CargoBoundaryState, tl: number, qty: number): CargoTransferResult {
   if (scrapTlKey(tl) === null) {
-    return { ok: false, reason: `"${tl}" is not a scrap Tech Level (1–6).` }
+    return { ok: false, reason: libCargoCopy('notAScrapTechLevel', { tl }) }
   }
-  if (qty <= 0) return { ok: false, reason: 'Nothing to withdraw.' }
+  if (qty <= 0) return { ok: false, reason: libCargoCopy('nothingToWithdraw') }
 
   const available = scrapPoolBucket(state.scrapPool, tl)
   if (available <= 0) {
-    return { ok: false, reason: `The Tech ${tl} scrap bucket is empty.` }
+    return { ok: false, reason: libCargoCopy('scrapBucketIsEmpty', { tl }) }
   }
 
   const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
-  if (free <= 0) return { ok: false, reason: 'The Mech hold has no free cargo slots.' }
+  if (free <= 0) return { ok: false, reason: libCargoCopy('mechHoldHasNoFreeSlots') }
 
   // 1 slot per scrap — partial-fill to whatever both the bucket and cap allow.
   const moveQty = Math.min(qty, available, free)

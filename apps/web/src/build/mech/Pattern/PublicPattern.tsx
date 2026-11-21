@@ -99,9 +99,9 @@ const NOTES = {
 } satisfies CSSProperties
 
 const VISIBILITY_COPY: Record<PatternVisibility, string> = {
-  private: 'Only you can see this pattern.',
-  link: 'Anyone with the link can read and copy this pattern.',
-  game: 'Your Game’s crew can read this pattern and build from it.',
+  private: mechCopy('visibilityPrivate'),
+  link: mechCopy('visibilityLink'),
+  game: mechCopy('visibilityGame'),
 }
 
 /**
@@ -138,7 +138,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
   useTabTitle(areaTitle(PRODUCT.build, `${pattern.name} · ${routesCopy('pattern')}`))
 
   // Where a book page cites its printings, this one credits its maker.
-  useCitePageCredit(`Homebrew // Made by ${madeBy}`)
+  useCitePageCredit(mechCopy('homebrewMadeBy', { madeBy }))
 
   const chassis = patternChassis(pattern)
   const refPattern = pagePattern(pattern)
@@ -173,7 +173,9 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
     }
   }
 
-  const builtLine = `${builtCount} ${builtCount === 1 ? 'mech' : 'mechs'} built from it`
+  const builtLine = mechCopy(builtCount === 1 ? 'builtFromItOne' : 'builtFromItMany', {
+    count: builtCount,
+  })
 
   return (
     <main style={PAGE}>

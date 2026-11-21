@@ -75,12 +75,16 @@ function ConnectedCopyStarterMenu({
         mech === null
           ? buildStarterSetCopy('copyBody', { name, label: where })
           : buildStarterSetCopy('copyPairBody', { name, mech: mech.name, label: where }),
-        `The ${(rosterOf(templateId) ?? starterRoster('starter-set')).name}'s ${name} stays as ${STARTER_SET_PUBLISHER} published it. Don't want the copy later? Delete it like any other build.`,
+        buildStarterSetCopy('staysAsPublished', {
+          roster: (rosterOf(templateId) ?? starterRoster('starter-set')).name,
+          name,
+          publisher: STARTER_SET_PUBLISHER,
+        }),
       ],
       confirmLabel: buildStarterSetCopy('makeACopy'),
       pendingLabel: buildStarterSetCopy('copying'),
       tone: 'default',
-      failure: `${name} could not be copied. Try again.`,
+      failure: buildStarterSetCopy('notCopied', { name }),
       onConfirm: async () => {
         const made =
           kind === 'pilot'

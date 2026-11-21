@@ -34,7 +34,7 @@ import { ContainerPicker } from '../entityContainer/ContainerPicker'
 import { requestMove } from '../entityContainer/requestMove.model'
 
 /** What "out of a Game" is called in the Training Bay. */
-const NOT_IN_A_GAME = 'Not in a Game'
+const NOT_IN_A_GAME = buildShelvesCopy('notInAGame')
 
 const BODY = {
   backgroundColor: tokens.color.paper,
@@ -124,7 +124,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
       move,
       moveNow: (to) => {
         move(to).catch((err: unknown) =>
-          toast.error(failureMessage(err, `${entity.name} could not be moved. Try again.`))
+          toast.error(failureMessage(err, buildShelvesCopy('notMoved', { name: entity.name })))
         )
       },
     })
@@ -155,7 +155,7 @@ export function MoveToGameDialog({ subject, onClose, games, confirm }: MoveToGam
                 )
           }
           onPick={(choice) => pick(choice.container, choice.label)}
-          loading="your Games"
+          loading={buildShelvesCopy('yourGames')}
           empty={
             subject?.type === 'crawler'
               ? buildShelvesCopy('aCrawlerGoesOnlyInto')

@@ -214,7 +214,10 @@ export function CrawlerWizard({
       const dropped = form.systems.slice(slots).map(weaponName)
       nextSystems = form.systems.slice(0, slots)
       toast.info(
-        `Type changed — this type mounts ${slots} Weapons System${slots === 1 ? '' : 's'}; removed ${dropped.join(', ')}.`
+        crawlerCopy(slots === 1 ? 'typeChangedMountsOne' : 'typeChangedMountsMany', {
+          slots,
+          removed: dropped.join(', '),
+        })
       )
     }
     updateForm({ type: typeSlug, crew: nextCrew, systems: nextSystems })
@@ -262,8 +265,14 @@ export function CrawlerWizard({
                 'Once all players have created their Pilot and Mech, the final step is for everyone to create the Union Crawler they share. Your Crawler type provides a unique Ability that only it can do, as well as a special NPC who resides on the Crawler and confers their own bonuses.'
               )}{' '}
               <span style={MUTED}>
-                (You have {pilotCount} Pilot{pilotCount === 1 ? '' : 's'} and {mechCount} Mech
-                {mechCount === 1 ? '' : 's'} saved so far.)
+                {crawlerCopy('youHaveSavedSoFar', {
+                  pilots: crawlerCopy(pilotCount === 1 ? 'pilotCountOne' : 'pilotCountMany', {
+                    count: pilotCount,
+                  }),
+                  mechs: crawlerCopy(mechCount === 1 ? 'mechCountOne' : 'mechCountMany', {
+                    count: mechCount,
+                  }),
+                })}
               </span>
             </>
           ),

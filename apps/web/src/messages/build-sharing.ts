@@ -19,4 +19,6 @@ export const buildSharingCopy = messages({
   shareOnReference: 'Share on the Reference',
   shareOnReferenceHint:
     'Shows it on its chassis’s page, in a Homebrew section beneath the book’s patterns, and on the Homebrew page, credited to you.',
+  shareNotSaved: 'That could not be saved. Try again.',
+  couldNotCopy: 'Could not copy. Select the link and copy it manually.',
 })

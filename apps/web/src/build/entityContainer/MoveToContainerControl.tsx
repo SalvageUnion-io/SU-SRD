@@ -122,7 +122,7 @@ function ConnectedMoveToContainerControl({
     onChanged?.()
   }
 
-  const moveNow = useServerAction(move, { failure: 'This build could not be moved. Try again.' })
+  const moveNow = useServerAction(move, { failure: entityContainerCopy('buildNotMoved') })
   const { pending, error } = moveNow
 
   function handlePick(next: Container) {

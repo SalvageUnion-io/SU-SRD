@@ -8,10 +8,11 @@
  */
 
 import { STAT_LABELS } from 'salvageunion-reference'
+import { buildSheetCopy } from '../../messages/build-sheet'
 
 export const SHEET_VITALS = {
   hp: STAT_LABELS.hitPoints,
-  ap: { label: 'Ability Points', short: 'AP' },
+  ap: { label: buildSheetCopy('abilityPoints'), short: 'AP' },
   sp: STAT_LABELS.structurePoints,
   ep: STAT_LABELS.energyPoints,
   heat: STAT_LABELS.heatCapacity,
