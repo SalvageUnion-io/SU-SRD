@@ -90,39 +90,18 @@
   min-width: 0;
 }
 
-/* On a phone a Page's band chips are Mini, as its action is (`shell.css`):
-   the title's line keeps room for them, so the band never grows once they
-   are laid out (R12: one Size on the line, Compact again from `sm`). */
+/* On a phone a Page's band chips keep the Compact height, short labels (TL,
+   SP, SV) at the chip's type (C2: a Page band's chips are Compact). */
 @media not (width >= 40rem) {
-  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
-    .su-stat-cell--compact {
-    height: var(--size-mini);
-    min-height: var(--size-mini);
-  }
-
   :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
     .su-stat-plate--compact {
     font-size: var(--text-chip);
     font-weight: var(--font-weight-normal);
   }
 
-  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
-    .su-stat-stepper:has(> .su-stat-cell--compact)
-    > .su-step-btn--cell {
-    height: var(--size-mini);
-    line-height: 1;
-  }
-
-  :is(.su-entity-stamps, .su-chapter-band__aside, .su-chapter-band__overflow)
-    .su-chip-lane
-    > .su-badge-stamp.su-rung-pad--full {
-    height: var(--size-mini);
-  }
-
   .su-entity-stamps .su-cost,
   .su-chapter-band__overflow .su-cost {
     font-size: var(--text-chip);
-    padding-block: 0;
   }
 }
 
