@@ -15,7 +15,10 @@ import { fromFaults } from './_findings'
  * - the home's slideshow: the site's name hangs from its top edge, a slide's
  *   plate stands on its foot.
  *
- * Each fault is `foot: <what> "<label>" <n>px off its strip's foot`.
+ * Each fault is `foot: <what> "<label>" <n>px off its strip's foot`. A
+ * section band's cut-out also wears the ground of the body it heads (R45):
+ * paper over a paper panel, the page's ground over cards or words that stand
+ * on it; a mismatch is `ground: band "<label>" <cut> over a <body> body`.
  * `findCutouts` reads the page; `findCutoutFaults`, pure, judges what it read
  * (`e2e/__tests__/cutouts.test.ts`).
  */
@@ -27,6 +30,8 @@ export type CutoutRead = {
   label: string
   /** Its strip's edge less its own (px): 0 when flush. */
   off: number
+  /** A band's cut-out: its paint and its body's ground, which must be one. */
+  ground?: { cut: string; body: string }
 }
 
 /** A cut-out within a pixel of its strip's edge is flush (sub-pixel layout rounds). */
@@ -38,14 +43,25 @@ export const CUTOUT_FIX =
   "(align-self at the strip's foot), with no baseline, padding or margin under it; " +
   'a band wraps upward (wrap-reverse), never under its label'
 
-/** Every cut-out off its strip's foot, with the fix. */
+/** The fix a ground fault prints. */
+const CUTOUT_GROUND_FIX =
+  "a cut-out wears its body's ground (R45): `--su-head-cut` follows `--su-ground`; " +
+  'a body that is paper on the page sets the strip paper, cards on the ground leave it'
+
+/** Every cut-out off its strip's foot, or off its body's ground, with the fix. */
 export function findCutoutFaults(reads: readonly CutoutRead[]): string[] {
-  return reads
-    .filter((r) => Math.abs(r.off) > TOLERANCE)
-    .map(
-      (r) =>
+  const faults: string[] = []
+  for (const r of reads) {
+    if (Math.abs(r.off) > TOLERANCE)
+      faults.push(
         `foot: ${r.what} "${r.label}" ${r.off.toFixed(1)}px off its strip's foot (${CUTOUT_FIX})`
-    )
+      )
+    if (r.ground && r.ground.cut !== r.ground.body)
+      faults.push(
+        `ground: ${r.what} "${r.label}" ${r.ground.cut} over a ${r.ground.body} body (${CUTOUT_GROUND_FIX})`
+      )
+  }
+  return faults
 }
 
 function readCutouts(page: Page): Promise<CutoutRead[]> {
@@ -57,6 +73,15 @@ function readCutouts(page: Page): Promise<CutoutRead[]> {
       return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 2 && r.height > 2
     }
     const words = (e: Element) => (e.textContent ?? '').trim().slice(0, 24)
+    const clear = (c: string) => c === '' || c === 'transparent' || c === 'rgba(0, 0, 0, 0)'
+    // The paint an element shows: its own, or the first painted ancestor's.
+    const groundOf = (e: Element | null): string => {
+      for (let at = e; at; at = at.parentElement) {
+        const c = getComputedStyle(at).backgroundColor
+        if (!clear(c)) return c
+      }
+      return ''
+    }
     const foot = (strip: Element, cut: Element, what: string) => {
       if (!shown(strip) || !shown(cut)) return
       const off = strip.getBoundingClientRect().bottom - cut.getBoundingClientRect().bottom
@@ -79,8 +104,17 @@ function readCutouts(page: Page): Promise<CutoutRead[]> {
       if (band.closest('thead')) continue
       for (const label of band.querySelectorAll(':scope > .su-rule-head__label')) {
         const paper = getComputedStyle(label).backgroundColor
-        if (paper === '' || paper === 'transparent' || paper === 'rgba(0, 0, 0, 0)') continue
+        if (clear(paper)) continue
         foot(band, label, 'band')
+        const body = band.nextElementSibling
+        const ground = body && !body.matches('.su-rule-head') && shown(body) ? groundOf(body) : ''
+        if (ground && shown(label))
+          out.push({
+            what: 'band',
+            label: words(label),
+            off: 0,
+            ground: { cut: paper, body: ground },
+          })
       }
     }
     const show = document.querySelector('.su-front__show')

@@ -713,8 +713,9 @@
 
 /* Rows sit on their strip, as a table's do; a row's text is on the row. A
    mini strip (a divider: a tree's name over its cards) keeps its gap, so the
-   box below it never sits flush on the rule (MOCK, best, revision 7). */
-.su-slab-section:not(.su-slab-section--mini):has(> [data-rows]) {
+   box below it never sits flush on the rule (MOCK, best, revision 7). Cards
+   on the page's ground (the doors) keep the Page's gap: they are no rows. */
+.su-slab-section:not(.su-slab-section--mini, .su-start-here):has(> [data-rows]) {
   gap: 0 !important;
 }
 
