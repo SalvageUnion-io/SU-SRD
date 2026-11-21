@@ -12,6 +12,7 @@ import { SlabSection } from '../../containers/SlabSection'
 import { ChipLink, factRef, statTerm, TermChip } from '../../entity'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import { Mention } from '../../entity/forms/Mention'
+import { ProseSection } from '../../ProseSection'
 import { abilityTreeNeighbours } from './abilityTreeRelations'
 import { splitActions } from './actionSplit'
 import { ChoiceRegion } from './ChoiceRegion'
@@ -436,7 +437,8 @@ export function CardPage({
               <div className="su-entity-page__prose">
                 {bodyLabel && <Slab as={sectionAs} label={bodyLabel} flush />}
                 {subLine}
-                {body}
+                {/* A guide's opening is a section of it: a term links once (`ProseSection`). */}
+                {guide ? <ProseSection>{body}</ProseSection> : body}
               </div>
             )}
             {leadActions.length > 0 && (

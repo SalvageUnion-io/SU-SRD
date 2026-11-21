@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { NameRefIndex } from '../../components/index'
 import { EntitySurfaceProvider } from '../../components/index'
+import { ProseSection } from '../../components/ProseSection'
 import { srdHrefFor } from '../entityHref'
 import { useParseTraitReferences } from '../useProseRefs'
 
@@ -19,6 +20,39 @@ const NAMES: NameRefIndex = {
 }
 
 describe('useParseTraitReferences', () => {
+  test('in a section a term links at its first mention alone, a page reference every time (RR2-15)', () => {
+    const { container, rerender } = render(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor, nameRefs: NAMES }}>
+        <ProseSection>
+          <Prose text="It gains the Dependable Trait." />
+          <Prose text="A Dependable Trait holds, and the Dependable Trait again." />
+        </ProseSection>
+        <ProseSection>
+          <Prose text="Another section's Dependable Trait." />
+        </ProseSection>
+      </EntitySurfaceProvider>
+    )
+    const paragraphs = () =>
+      [...container.querySelectorAll('p')].map((p) => p.querySelectorAll('a').length)
+    expect(paragraphs()).toEqual([1, 0, 1])
+    expect(container.querySelectorAll('p')[1]?.textContent).toBe(
+      'A Dependable Trait holds, and the Dependable Trait again.'
+    )
+    // A second render keeps the link where it was: the first run holds its claim.
+    rerender(
+      <EntitySurfaceProvider value={{ hrefFor: srdHrefFor, nameRefs: { ...NAMES } }}>
+        <ProseSection>
+          <Prose text="It gains the Dependable Trait." />
+          <Prose text="A Dependable Trait holds, and the Dependable Trait again." />
+        </ProseSection>
+        <ProseSection>
+          <Prose text="Another section's Dependable Trait." />
+        </ProseSection>
+      </EntitySurfaceProvider>
+    )
+    expect(paragraphs()).toEqual([1, 0, 1])
+  })
+
   test('plain text passes through untouched', () => {
     render(<Prose text="No references here." />)
     expect(screen.getByText('No references here.')).toBeTruthy()
