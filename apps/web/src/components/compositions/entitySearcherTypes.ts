@@ -45,6 +45,11 @@ export type PickCost = {
   /** There is enough to pay it. */
   canPay: boolean
   onPay: () => void
+  /**
+   * What the book asks first that this pick has not met ("level 1 of that
+   * tree hasn't been taken"): said on the action bar, never a gate.
+   */
+  unmet?: readonly string[]
 }
 
 /** One facet row: its label and its chips, a Field over its Segmented. */

@@ -260,6 +260,9 @@ export const buildSheetCopy = messages({
   manageAbilities: 'Manage Abilities',
   costsTp: 'Costs {cost} TP · {left} left',
   spendTpAndAdd: 'Spend {cost} TP and add',
+  addNameWithoutSpending: 'Add {name} without spending?',
+  costsTpPilotHas:
+    '{name} costs {cost} TP to train and this Pilot has {left}. Adding it spends none.',
   noAbilitiesLearnedYet: 'No abilities learned yet.',
   unknownAbilities: 'Unknown Abilities',
   genericAbilities: 'Generic Abilities',

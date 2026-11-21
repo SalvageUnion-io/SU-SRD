@@ -15,6 +15,10 @@
  * `shell` is every `WizShell` prop the wizards share
  * (stepper, Back / Next / Cancel, the step gate and the Off-Rules escape);
  * each wizard spreads it and adds only its own kind, copy and trackers.
+ *
+ * Leaving a unit's wizard any way but Create or Cancel (a nav link, the
+ * browser's Back) keeps its draft, and says so once, by toast: the Training
+ * Bay offers it back (`WizardDrafts`).
  */
 
 import { moveTo } from 'game-domain/container'
@@ -22,7 +26,10 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
+import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
+import { draftExportBundle } from '../../lib/export/draftExport'
 import type { StepGateResult } from '../../lib/rules/creation'
+import { wizardDraftSummary } from '../../lib/wizard/draftSummary'
 import {
   clearWizardDraft,
   readWizardReached,
@@ -105,6 +112,10 @@ type WizardShellProps = {
   busy: boolean
   /** Saving signed out asks for an account; the draft is kept (`SaveSignInDialog`). */
   signIn: { open: boolean; onClose: () => void }
+  /** Signed out, the first step says up front that saving needs a sign-in. */
+  tryNote: string | undefined
+  /** Signed out on the submit step: keep the build as a file, or print it. */
+  keepAsFile: { onDownload: () => void; onPrint: () => void } | undefined
 }
 
 export type WizardFlow<TStep extends string> = {
@@ -161,6 +172,23 @@ export function useWizardFlow<
 
   const currentIndex = steps.indexOf(step)
 
+  // Left with a draft kept (not created, not cancelled): said as it happens.
+  // The check waits a microtask, so a remount in the same commit says nothing.
+  const leaving = useRef({ mounted: false, settled: false, dirty: formDirty })
+  leaving.current.dirty = formDirty
+  useEffect(() => {
+    const state = leaving.current
+    state.mounted = true
+    return () => {
+      state.mounted = false
+      queueMicrotask(() => {
+        if (state.mounted || state.settled || !state.dirty || entityType === 'npc') return
+        const draft = wizardDraftSummary(entityType)
+        if (draft) toast.info(buildWizardCopy('draftKept', { label: draft.label }))
+      })
+    }
+  }, [entityType])
+
   useEffect(() => {
     if (currentIndex > reached) setReached(currentIndex)
   }, [currentIndex, reached])
@@ -194,15 +222,44 @@ export function useWizardFlow<
     { failure: failureMessage }
   )
 
+  const signedOut = status === 'signedOut' && !canWrite
+
+  /**
+   * The build as a file, for a reader with no account (`draftExportBundle`):
+   * validated as Save validates it, and the Training Bay's Import… reads it.
+   */
+  function download() {
+    if (entityType === 'npc') return
+    setInvalid(null)
+    const now = new Date().toISOString()
+    const input = toCreateInput(form)
+    const validation = schema.safeParse({
+      ...input,
+      id: 'temp-validate-only',
+      createdAt: now,
+      updatedAt: now,
+    })
+    if (!validation.success) {
+      const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
+      setInvalid(buildWizardCopy('validationError', { messages }))
+      return
+    }
+    downloadJson(
+      exportFileName(entityType, form.name.trim() || noun),
+      draftExportBundle(entityType, input, now)
+    )
+  }
+
   async function handleSubmit() {
     setInvalid(null)
-    if (status === 'signedOut' && !canWrite) {
+    if (signedOut) {
       setAskSignIn(true)
       return
     }
     const result = await save.run()
     if (!result.ok || result.value === null) return
     toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
+    leaving.current.settled = true
     clearWizardDraft(draftKey)
     onComplete(result.value.id)
   }
@@ -275,6 +332,7 @@ export function useWizardFlow<
       onEscape: !gate.ok && onOffRules ? onOffRules : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {
+        leaving.current.settled = true
         clearWizardDraft(draftKey)
         onCancel()
       },
@@ -283,6 +341,11 @@ export function useWizardFlow<
       nextDisabled: !gate.ok,
       busy: save.pending,
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
+      tryNote: signedOut && currentIndex === 0 ? buildWizardCopy('tryItNow') : undefined,
+      keepAsFile:
+        signedOut && step === submitStep && entityType !== 'npc'
+          ? { onDownload: download, onPrint: () => window.print() }
+          : undefined,
     },
   }
 }

@@ -114,8 +114,12 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await fillIdentity('mech name', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
 
-    // No crawler to bank the leftover Scrap to: the review says nothing of it (U12).
-    expect(screen.queryByText(/banks to your Union Crawler/)).toBeNull()
+    // The leftover Scrap is said, and goes into the hold on Create (r2 E7).
+    const leftover =
+      afterChassis -
+      cargoPod.salvageValue -
+      (SalvageUnionReference.Modules.getByName('Comms Module')?.salvageValue ?? 0)
+    expect(screen.getByText(`${leftover} Scrap left over goes into the hold.`)).toBeTruthy()
     await clickButton(/Create Mech/i)
 
     await waitFor(() => {
@@ -128,7 +132,9 @@ describe('MechWizard — book-order happy path (custom build)', () => {
       expect(m.chassisRef).toBe('mule')
       expect(m.systems).toEqual(['cargo-pod'])
       expect(m.modules).toEqual(['comms-module'])
-      expect(m.cargoLots).toEqual([]) // guided create grants no starting cargo
+      // The unspent Scrap is carried: one Tech 1 Scrap line, nothing else.
+      expect(m.cargoLots).toHaveLength(1)
+      expect(m.cargoLots[0]).toMatchObject({ cat: 'SCRAP', tl: 1, qty: leftover, kind: 'bulk' })
       expect(m.quirk).toBe('Rattles at speed')
       expect(m.currentHeat).toBeUndefined()
       expect(m.schemaVersion).toBe(1)
@@ -317,7 +323,7 @@ describe('MechWizard — preselected chassis', () => {
   }, 30000)
 })
 
-describe('MechWizard — leftover Scrap (U12)', () => {
+describe('MechWizard — leftover Scrap (U12, r2 E7)', () => {
   async function toReview() {
     renderWizard()
     await pickRadio('Mule')
@@ -326,19 +332,10 @@ describe('MechWizard — leftover Scrap (U12)', () => {
     await clickNext()
   }
 
-  it('says nothing of banking it with no crawler to bank it to', async () => {
+  it('says how much goes into the hold, crawler or none', async () => {
     await toReview()
+    const leftover = MECH_CREATION_SCRAP_CAP - mule().salvageValue
+    expect(screen.getByText(`${leftover} Scrap left over goes into the hold.`)).toBeTruthy()
     expect(screen.queryByText(/banks to your Union Crawler/)).toBeNull()
-  })
-
-  it('names the player’s crawler, linked, where there is one', async () => {
-    await useUnits
-      .getState()
-      .create('crawler', { schemaVersion: 1, name: 'Old Faithful', techLevel: 1, systems: [] })
-    await toReview()
-    expect(
-      screen.getByText(/Tech 1 Scrap is left over\. It banks to your Union Crawler,/)
-    ).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Old Faithful' })).toBeTruthy()
   })
 })

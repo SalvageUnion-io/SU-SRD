@@ -88,7 +88,7 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
   }
 
   function ask() {
-    // Signed out, the pick is kept in the address and asked for again after sign-in.
+    // Signed out, the pick rides the address sign-in returns to, and is asked for again there.
     if (status === 'signedOut' && !canWrite) return setAskSignIn(true)
     if (starting) return void run()
     setConfirming(true)
@@ -167,7 +167,14 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
         confirmLabel={mechCopy('build')}
         onConfirm={() => void run()}
       />
-      <SaveSignInDialog open={askSignIn} onClose={() => setAskSignIn(false)} />
+      {/* Nothing was edited here: the ask names the choice, kept in the address. */}
+      <SaveSignInDialog
+        open={askSignIn}
+        onClose={() => setAskSignIn(false)}
+        pick={`/mechs/new?chassis=${chassisSlug}&pattern=${patternSlug}${
+          gameId === undefined ? '' : `&game=${gameId}`
+        }`}
+      />
     </section>
   )
 }

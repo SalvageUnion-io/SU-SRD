@@ -96,7 +96,7 @@ import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
-import { BuildStartHere } from '../roster/FrontDoor'
+import { ShelfLead } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { AddAMech } from './AddAMech'
@@ -442,10 +442,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           {/* Every shelf is a Ledger, one framed list a kind. Your units on the
               left, pilots first (Play runs a pilot, its mech beside it); your
               plans and prep on the right, patterns first; one column on a phone. */}
-          {/* An empty Training Bay keeps the front door's way in. */}
-          {pilots.length + mechs.length + crawlers.length === 0 && (
-            <BuildStartHere id="shelf-start" />
-          )}
+          {/* A draft left mid-wizard; empty, the front door's way in. */}
+          <ShelfLead empty={pilots.length + mechs.length + crawlers.length === 0} />
           <div className="su-shelf-ledgers">
             <div className="su-shelf-ledgers__col">
               <ShelfLedger

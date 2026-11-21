@@ -24,8 +24,7 @@ export const mechCopy = messages({
     'No prefill — craft your Systems and Modules by hand in the next steps.',
   systems: 'Systems',
   modules: 'Modules',
-  tech1ScrapBanksTo: '{bankedScrap} Tech 1 Scrap is left over. It banks to your Union Crawler,',
-  noteItInItsScrapPool: ': note it in its Scrap Pool.',
+  scrapLeftOverGoesIntoHold: '{count} Scrap left over goes into the hold.',
   sp: 'SP',
   ep: 'EP',
   heat: 'HEAT',
@@ -64,6 +63,8 @@ export const mechCopy = messages({
   noPatternsYet: 'No Patterns yet',
   useSaveAsPatternFrom:
     'Use “Save as pattern” from a Mech sheet’s More actions menu, or the Mech builder, to save a reusable template.',
+  signInToKeepPatterns:
+    'Sign in to keep patterns. A pattern is saved to your account, from a Mech sheet or the Mech builder.',
   savedMechPatterns: 'Saved Mech patterns',
   madeBy: 'Made by {madeBy}',
   itsChassisIsNotIn: 'Its chassis is not in the reference.',

@@ -74,6 +74,7 @@ export const compositionsCopy = messages({
   choose: 'Choose',
   addAnother: 'Add another',
   addTo: 'Add to {name}',
+  theBookAsksFirst: 'The book asks first',
   add: 'Add',
   hideChosen: 'Hide {label}',
   showChosen: 'Show {label}',

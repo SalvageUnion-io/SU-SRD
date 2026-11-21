@@ -15,7 +15,9 @@ import { crawlerTechLevelOf } from 'game-domain/crawlerLevel'
  * mech is never repaired twice for one step. A taken step
  * never offers Apply or Skip again, so a reload or the Mediator's Back never
  * applies a step twice (Train's +1 TP). The step is per pilot: a member
- * running two pilots takes it for each, and is done once both have.
+ * running two pilots takes it for each, and is done once both have. A taken
+ * step lists the changes it made ("TP 0→1"), kept as they were applied, never
+ * the plan for a next time; after a reload it says Done and lists none.
  *
  * Upkeep is paid once per Downtime: its draw is the run's one Upkeep op
  * (`claim`), so a second press changes nothing. Process Nanites (the Craft
@@ -79,6 +81,8 @@ export function PlayDowntimeStep({
   const [unticked, setUnticked] = useState<ReadonlySet<string>>(new Set())
   const [claimedHere, setClaimedHere] = useState(false)
   const [note, setNote] = useState<string | null>(null)
+  // The changes this step made, as they read when it applied them.
+  const [applied, setApplied] = useState<readonly PlanLine[]>([])
 
   const plan = stepPlan({
     stepName: step.name,
@@ -95,6 +99,9 @@ export function PlayDowntimeStep({
   ).length
   // This pilot's step is taken (applied, skipped or marked done): never offered again this Downtime.
   const claimed = claimedHere || (downtime.doneSteps?.includes(stepIndex) ?? false)
+  // Taken, a line that states a change (`steps`) is the one made; a line that
+  // reads a state (Upkeep, Nanites) stays live.
+  const shown = claimed ? [...plan.filter((line) => line.steps.length === 0), ...applied] : plan
   const off = !play.canWrite
 
   function toggle(key: string) {
@@ -153,6 +160,7 @@ export function PlayDowntimeStep({
         ? { id: freshMech.id, patch: mechPatch }
         : undefined
     if (!(await take(pilotPatch, mechShare))) return
+    setApplied(plan.filter((l) => l.steps.length > 0 && l.skippable && !unticked.has(l.key)))
     if (freshMech && mechShare) applied.push(freshMech.name)
     if (freshPilot && Object.keys(pilotPatch).length > 0) applied.push(freshPilot.name)
     // What was applied lands on the Feed as a change (play.md §8).
@@ -192,11 +200,11 @@ export function PlayDowntimeStep({
 
   return (
     <TitledBox title={step.name} as="section" chips={chip}>
-      {plan.length > 0 ? (
+      {shown.length > 0 ? (
         <>
-          <p className="su-play-resolve__note">{playCopy('appliesEachLineCanBe')}</p>
-          <ul className="su-play-dt-lines" aria-label={playCopy('willApply')}>
-            {plan.map((line) => (
+          {!claimed && <p className="su-play-resolve__note">{playCopy('appliesEachLineCanBe')}</p>}
+          <ul className="su-play-dt-lines" aria-label={playCopy(claimed ? 'applied' : 'willApply')}>
+            {shown.map((line) => (
               <PlanLineItem
                 key={line.key}
                 line={line}

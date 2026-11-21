@@ -12,6 +12,8 @@ import {
   HeaderMenu,
   tokens,
 } from '../../components/index'
+import type { KeepAsFileActs } from './KeepAsFile'
+import { KeepAsFile } from './KeepAsFile'
 import { SaveSignInDialog } from './SaveSignInDialog'
 import { WizardGameChip } from './WizardGameChip'
 import {
@@ -19,6 +21,7 @@ import {
   ctaLockedStyle,
   ctaStyle,
   footerPillStyle,
+  keepRowStyle,
   mainStyle,
   pillNavStyle,
   pillStyle,
@@ -33,6 +36,7 @@ import {
   stepNumberStyle,
   stepTitleCaps,
   stepTitleStyle,
+  tryNoteStyle,
 } from './wizShellStyles.model'
 import '../../styles/build/wizard.css'
 import { cn } from '../../lib/cn'
@@ -103,6 +107,10 @@ type WizShellProps = {
   submitLabel: string
   /** Saving signed out: the sign-in ask over the kept draft (`useWizardFlow`). */
   signIn?: { open: boolean; onClose: () => void }
+  /** A line under the step's title: signed out, step 1 says saving needs a sign-in. */
+  tryNote?: string | undefined
+  /** Signed out on the last step: the build kept as a file or on paper (`KeepAsFile`). */
+  keepAsFile?: KeepAsFileActs | undefined
   /**
    * Said on the action bar, above the Next: something the step offers out of
    * sight (`Or start from a Pattern`), and the element a press scrolls to.
@@ -286,7 +294,7 @@ function WizRail({
   onStepClick: ((index: number) => void) | undefined
 }) {
   return (
-    <aside className="su-wiz-rail">
+    <aside className="su-wiz-rail" data-print="hide">
       {/* A phone's rail is one line and a track of notches; the h1 reads
           the same count to a screen reader. */}
       <p aria-hidden="true" className={cn('su-wiz-rail-line', railLineCaps)} style={railLineStyle}>
@@ -350,6 +358,8 @@ export function WizShell({
   submitLabel,
   confirmCancel = false,
   signIn,
+  tryNote,
+  keepAsFile,
   prompt,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
@@ -494,9 +504,15 @@ export function WizShell({
                   {title}
                 </h1>
               </div>
+              {tryNote && <p style={tryNoteStyle}>{tryNote}</p>}
               <Box body="flush">
                 <div className={STEP_BODY}>
                   {children}
+                  {keepAsFile && (
+                    <div style={keepRowStyle}>
+                      <KeepAsFile {...keepAsFile} />
+                    </div>
+                  )}
                   {footerNote && (
                     <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>
                       {footerNote}
@@ -511,7 +527,7 @@ export function WizShell({
               (never a card floating over the step), so Back and Next stay in
               reach as the step scrolls. On a phone it is one line: one
               budget, the ⋯ menu and the Next filling the rest. */}
-          <footer className="su-wiz-footer" style={footerPillStyle}>
+          <footer className="su-wiz-footer" data-print="hide" style={footerPillStyle}>
             {/* What the step still asks for, or offers further down, said
                 where the Next is: a press scrolls to it. */}
             {(prompt ?? footerNote) && (
@@ -534,7 +550,9 @@ export function WizShell({
             )}
             {actionPill}
           </footer>
-          {signIn && <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} />}
+          {signIn && (
+            <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} keep={keepAsFile} />
+          )}
         </div>
       </div>
     </div>

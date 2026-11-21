@@ -23,6 +23,7 @@ import {
 } from '../../../components/index'
 import { UnitRow } from '../../../components/shared/UnitRow'
 import { useMe } from '../../../lib/account/accountApi'
+import { hereInApp } from '../../../lib/hereInApp'
 import {
   asReferencePattern,
   patternChassis,
@@ -32,6 +33,7 @@ import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
 import type { CSSVarStyle } from '../../../styles/cssVars'
+import { SignInControl } from '../../account/SignInControl'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {
@@ -74,6 +76,16 @@ export function PatternList({ onInstantiated, gameId }: PatternListProps) {
   }
 
   if (patterns.length === 0) {
+    // Signed out a pattern has nowhere to be kept: say so, and offer the way in.
+    if (status === 'signedOut') {
+      return (
+        <EmptyState
+          headline={mechCopy('noPatternsYet')}
+          body={mechCopy('signInToKeepPatterns')}
+          action={<SignInControl redirectTo={hereInApp()} />}
+        />
+      )
+    }
     return (
       <EmptyState headline={mechCopy('noPatternsYet')} body={mechCopy('useSaveAsPatternFrom')} />
     )

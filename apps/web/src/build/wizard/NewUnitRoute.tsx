@@ -9,6 +9,7 @@ import { pairNewMechInGame } from '../../lib/links/mechlessPilot'
 import type { NewUnitSearch } from '../../lib/newUnitRoute'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { useUnits } from '../../replica/units'
+import { DraftGate } from './DraftGate'
 import { NewEntityScreen } from './NewEntityScreen'
 import { useWizardReturn } from './useWizardReturn'
 
@@ -134,18 +135,31 @@ export function NewUnitRoute({
       forMech={mech?.name}
       book={book}
       wizard={
-        <UnitWizard
-          render={wizard}
-          onComplete={handleComplete}
-          onCancel={goBack}
-          gameId={game}
-          onOffRules={() =>
+        // A link's pick against a kept draft's is asked before the wizard opens.
+        <DraftGate
+          kind={kind}
+          picks={search as NewUnitSearch<'class' | 'chassis' | 'pattern' | 'type'>}
+          onResume={() =>
             void navigate({
               to: NEW_PATH[kind],
-              search: { mode: 'blank', game: search.game, pilot: pilotId, mech: mechId },
+              search: { mode: 'guided', game: search.game, pilot: pilotId, mech: mechId },
+              replace: true,
             })
           }
-        />
+        >
+          <UnitWizard
+            render={wizard}
+            onComplete={handleComplete}
+            onCancel={goBack}
+            gameId={game}
+            onOffRules={() =>
+              void navigate({
+                to: NEW_PATH[kind],
+                search: { mode: 'blank', game: search.game, pilot: pilotId, mech: mechId },
+              })
+            }
+          />
+        </DraftGate>
       }
       onModeChange={(next) =>
         void navigate({ to: NEW_PATH[kind], search: (prev) => ({ ...prev, mode: next }) })

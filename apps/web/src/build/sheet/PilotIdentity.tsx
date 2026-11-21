@@ -394,6 +394,7 @@ export function PilotIdentityPanel({
           allClasses={allClasses}
           currentClassRef={pilot.classRef}
           pendingClassRef={pendingClass}
+          abilities={pilot.abilities}
           onSelect={setPendingClass}
           answeredOrigin={answeredOrigin}
           onAnswerOrigin={setAnsweredOrigin}

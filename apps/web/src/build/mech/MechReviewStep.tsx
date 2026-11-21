@@ -3,8 +3,7 @@ import type { RefModule, RefSystem } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageunion-reference/rules'
 import { FieldError } from '../../components/app'
-import { Callout, InlineRef, ReferenceEntityCard, tokens } from '../../components/index'
-import { appPath } from '../../lib/appBase'
+import { Callout, ReferenceEntityCard, tokens } from '../../components/index'
 import { readReference } from '../../lib/readReference'
 import { hasIntegratedLocomotion, LOCOMOTION } from '../../lib/rules/locomotion'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
@@ -21,14 +20,11 @@ type MechReviewStepProps = {
   form: MechWizardFormState
   submitError: string | null
   /**
-   * Unspent Tech 1 Scrap. With a crawler to bank it (`crawler`) the review
-   * says so and links that crawler, whose Scrap Pool is where the player
-   * notes it; with none, or nothing left, it says nothing. TEXT ONLY,
-   * deliberately: no cross-entity write (ADR-007 automation boundary).
+   * Unspent Tech 1 Scrap. Create puts it in the new mech's hold as one
+   * carried line (`withLeftoverScrap`), and the review says so; with nothing
+   * left it says nothing. The mech's own record: no cross-entity write.
    */
-  bankedScrap: number
-  /** The crawler the leftover banks to: this Game's, else the player's own. */
-  crawler?: { id: string; name: string } | undefined
+  leftoverScrap: number
   /** The slot budgets, for the lists' sums. */
   capacity: {
     systemSlotsUsed: number
@@ -45,14 +41,13 @@ type MechReviewStepProps = {
  * under it the build reads as it will on the sheet: the Systems and the
  * Modules a Ledger each (the picker's own columns, a copy count, each made
  * choice under its name, the slots and Scrap summed on an ink line), and
- * beside them the chassis as its contentful card, the look as Stats, and what
- * banks to the crawler.
+ * beside them the chassis as its contentful card, the look as Stats, and the
+ * Scrap left over, which goes into the hold.
  */
 export function MechReviewStep({
   form,
   submitError,
-  bankedScrap,
-  crawler,
+  leftoverScrap,
   capacity,
   namePart,
 }: MechReviewStepProps) {
@@ -134,13 +129,11 @@ export function MechReviewStep({
           </Recap>
         )}
         {/* An unlabelled note (ruleset §5, N5), as the crawler review's reminder:
-            only where there is Scrap left and a crawler to bank it. */}
-        {bankedScrap > 0 && crawler && (
+            only where there is Scrap left. */}
+        {leftoverScrap > 0 && (
           <Callout role="note">
             <span style={NOTE}>
-              {mechCopy('tech1ScrapBanksTo', { bankedScrap })}{' '}
-              <InlineRef href={appPath(`/crawlers/${crawler.id}`)}>{crawler.name}</InlineRef>
-              {mechCopy('noteItInItsScrapPool')}
+              {mechCopy('scrapLeftOverGoesIntoHold', { count: leftoverScrap })}
             </span>
           </Callout>
         )}

@@ -1,11 +1,11 @@
 # play — Games, Play
 
 Map: [play.md](../../../../docs/architecture/play.md). Play only plays: edits
-are the Build sheet's, but for `CrawlerEconomyControl.tsx`; conditions stay
+are the Build sheet's, but for `CrawlerEconomyControl.tsx`, Spend TP; conditions stay
 player-driven (`cycleItemCondition`).
 
-- `usePlaySituation` and the side hooks run once per screen (one form is
-  mounted), so the roll dispatch runs once.
+- `usePlaySituation` and the side hooks run once per screen (one form
+  mounts), so roll dispatch runs once.
 - Seat and Downtime writes go through `useGuardedWrite`, which refuses
   offline; a Downtime step is claimed before it applies. The Mediator's
   target has no pilot (`MediatorTarget`, `pilotId: null`).
