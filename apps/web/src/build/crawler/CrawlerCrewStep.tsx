@@ -2,13 +2,14 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import type { RefCrawler, RefEntity } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
-import { Field, tokens } from '../../components/index'
+import { tokens } from '../../components/index'
 import type { ResolvedNpc } from '../../lib/crawlerRefs'
 import { findNpcChoiceByName } from '../../lib/crawlerRefs'
 import type { CrawlerWizardFormState, CrewNpcForm } from '../../lib/wizard/crawlerFormState'
 import { crawlerCopy } from '../../messages/build-crawler'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
+import { WizTextField } from '../wizard/WizTextField'
 
 /** The step's lede, in the surrounding text colour. */
 const LEDE = {
@@ -85,34 +86,34 @@ export function CrawlerCrewStep({ bays, selectedType, crew, onChange }: CrawlerC
     const showMotto = findNpcChoiceByName(source.npc, 'Motto') !== undefined
     return (
       <div className="su-wiz-crew-fields">
-        <Field
+        <WizTextField
           label={crawlerCopy('name')}
           value={value.name ?? ''}
-          onSave={(next) => updateNpc(source.ref, { name: next })}
+          onChange={(next) => updateNpc(source.ref, { name: next })}
           placeholder={crawlerCopy('nameThisCrewLead')}
           ariaLabel={`${source.npc.position ?? 'crew'} name`}
         />
-        <Field
+        <WizTextField
           label={crawlerCopy('background')}
           value={value.description ?? ''}
-          onSave={(next) => updateNpc(source.ref, { description: next })}
+          onChange={(next) => updateNpc(source.ref, { description: next })}
           placeholder={crawlerCopy('appearanceAndPersonality')}
           ariaLabel={`${source.npc.position ?? 'crew'} background`}
         />
         {showKeepsake && (
-          <Field
+          <WizTextField
             label={crawlerCopy('keepsake')}
             value={value.keepsake ?? ''}
-            onSave={(next) => updateNpc(source.ref, { keepsake: next })}
+            onChange={(next) => updateNpc(source.ref, { keepsake: next })}
             placeholder={crawlerCopy('aPersonalItem')}
             ariaLabel={`${source.npc.position ?? 'crew'} keepsake`}
           />
         )}
         {showMotto && (
-          <Field
+          <WizTextField
             label={crawlerCopy('motto')}
             value={value.motto ?? ''}
-            onSave={(next) => updateNpc(source.ref, { motto: next })}
+            onChange={(next) => updateNpc(source.ref, { motto: next })}
             placeholder={crawlerCopy('aPersonalSaying')}
             ariaLabel={`${source.npc.position ?? 'crew'} motto`}
           />

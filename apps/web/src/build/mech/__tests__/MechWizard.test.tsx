@@ -113,13 +113,13 @@ describe('MechWizard — book-order happy path (custom build)', () => {
     await clickNext()
 
     // --- Step 3: Quirk + Appearance (flavor — never gates) ---
-    await fillIdentity('Edit quirk', 'Rattles at speed')
+    await fillIdentity('quirk', 'Rattles at speed')
     expect(getNextButton().disabled).toBe(false)
     await clickNext()
 
     // --- Step 4: Pattern Name (required; name IS pattern), over the review ---
     expect(getCreateButton().disabled).toBe(true)
-    await fillIdentity('Edit name / pattern', 'Iron Fist')
+    await fillIdentity('name / pattern', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
 
     // The text-only banking callout, then create.
@@ -195,7 +195,7 @@ describe('MechWizard — hard creation enforcement', () => {
     expect(getCreateButton().disabled).toBe(true)
     expect(screen.getByText('Name your Pattern to continue')).toBeTruthy()
     expect(useUnits.getState().list('mech').length).toBe(0)
-    await fillIdentity('Edit name / pattern', 'Iron Fist')
+    await fillIdentity('name / pattern', 'Iron Fist')
     expect(getCreateButton().disabled).toBe(false)
   })
 

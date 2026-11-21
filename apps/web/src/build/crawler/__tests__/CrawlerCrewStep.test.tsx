@@ -6,7 +6,7 @@
  * excluded) plus the selected crawler type's special NPC HEADING the list.
  * Each row is a line (the Bay, its lead, their HP) until opened; the open
  * row exposes the freeform set Name/Background/Keepsake/Motto through
- * click-to-edit IdentityFields, guarded off the NPC's own choices: the
+ * live text fields, guarded off the NPC's own choices: the
  * Augmented type's A.I. has only Name/Background.
  *
  * Uses real SalvageUnionReference data. NO mock.module().
@@ -32,10 +32,9 @@ function expandRow(name: string): void {
   fireEvent.click(screen.getByRole('radio', { name }))
 }
 
-/** Open a click-to-edit IdentityField and return its input. */
-function openField(editLabel: string): HTMLInputElement {
-  fireEvent.click(screen.getByRole('button', { name: editLabel }))
-  return screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
+/** A live text field, by its name. */
+function field(name: string): HTMLInputElement {
+  return screen.getByRole<HTMLInputElement>('textbox', { name: new RegExp(`^${name}$`, 'i') })
 }
 
 describe('CrawlerCrewStep', () => {
@@ -52,7 +51,7 @@ describe('CrawlerCrewStep', () => {
     expect(container.textContent).not.toContain('VR Tubes')
   })
 
-  it('an expanded standard bay exposes Name/Background/Keepsake/Motto IdentityFields', () => {
+  it('an expanded standard bay exposes Name/Background/Keepsake/Motto fields', () => {
     render(
       <CrawlerCrewStep
         bays={[bayByName('Command Bay')]}
@@ -62,13 +61,13 @@ describe('CrawlerCrewStep', () => {
       />
     )
     // Collapsed: no fields yet.
-    expect(screen.queryByRole('button', { name: /keepsake/i })).toBeNull()
+    expect(screen.queryByRole('textbox', { name: /keepsake/i })).toBeNull()
 
     expandRow('Command Bay')
-    expect(screen.getByRole('button', { name: /name$/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /background/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /keepsake/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /motto/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /name$/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /background/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /keepsake/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /motto/i })).toBeTruthy()
   })
 
   it('the selected type’s special NPC HEADS the roster with its full field set', () => {
@@ -81,18 +80,18 @@ describe('CrawlerCrewStep', () => {
     expect(text.indexOf('Battle')).toBeLessThan(text.indexOf('Command Bay'))
 
     expandRow('Battle')
-    expect(screen.getByRole('button', { name: /grizzled veteran keepsake/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /grizzled veteran motto/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /grizzled veteran keepsake/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /grizzled veteran motto/i })).toBeTruthy()
   })
 
   it('Augmented edge: A.I. NPC shows Name/Background only (no Keepsake/Motto)', () => {
     const augmented = must(SalvageUnionReference.Crawlers.getByName('Augmented'))
     render(<CrawlerCrewStep bays={[]} selectedType={augmented} crew={{}} onChange={() => {}} />)
     expandRow('Augmented')
-    expect(screen.getByRole('button', { name: /union crawler a\.i\. name/i })).toBeTruthy()
-    expect(screen.getByRole('button', { name: /union crawler a\.i\. background/i })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /keepsake/i })).toBeNull()
-    expect(screen.queryByRole('button', { name: /motto/i })).toBeNull()
+    expect(screen.getByRole('textbox', { name: /union crawler a\.i\. name/i })).toBeTruthy()
+    expect(screen.getByRole('textbox', { name: /union crawler a\.i\. background/i })).toBeTruthy()
+    expect(screen.queryByRole('textbox', { name: /keepsake/i })).toBeNull()
+    expect(screen.queryByRole('textbox', { name: /motto/i })).toBeNull()
   })
 
   it('edits a bay NPC field through onChange (merging crew state)', () => {
@@ -102,9 +101,7 @@ describe('CrawlerCrewStep', () => {
       <CrawlerCrewStep bays={[command]} selectedType={undefined} crew={{}} onChange={onChange} />
     )
     expandRow('Command Bay')
-    const input = openField('Edit princeps name')
-    fireEvent.change(input, { target: { value: 'Maddox' } })
-    fireEvent.blur(input, { target: { value: 'Maddox' } })
+    fireEvent.change(field('princeps name'), { target: { value: 'Maddox' } })
     expect(onChange).toHaveBeenCalledWith({
       crew: { [getEntitySlug(command)]: { name: 'Maddox' } },
     })
@@ -119,11 +116,7 @@ describe('CrawlerCrewStep', () => {
       <CrawlerCrewStep bays={[command]} selectedType={undefined} crew={crew} onChange={() => {}} />
     )
     expandRow('Command Bay')
-    expect(screen.getByRole('button', { name: 'Edit princeps name' }).textContent).toContain(
-      'Maddox'
-    )
-    expect(screen.getByRole('button', { name: 'Edit princeps motto' }).textContent).toContain(
-      'Hold the line'
-    )
+    expect(field('princeps name').value).toBe('Maddox')
+    expect(field('princeps motto').value).toBe('Hold the line')
   })
 })

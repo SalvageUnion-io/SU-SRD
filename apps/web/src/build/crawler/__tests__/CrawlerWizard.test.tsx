@@ -232,15 +232,15 @@ describe('CrawlerWizard — create mode', () => {
 
     // --- Step 3: Name your Crawler and its Crew (crew rows → fields) ---
     await expandRow('Battle')
-    await fillIdentity('Edit grizzled veteran name', 'Vex')
-    await fillIdentity('Edit grizzled veteran motto', 'No retreat')
+    await fillIdentity('grizzled veteran name', 'Vex')
+    await fillIdentity('grizzled veteran motto', 'No retreat')
     await expandRow('Command Bay')
-    await fillIdentity('Edit princeps name', 'Maddox')
-    await fillIdentity('Edit princeps keepsake', 'A medal')
+    await fillIdentity('princeps name', 'Maddox')
+    await fillIdentity('princeps keepsake', 'A medal')
 
     // The Crawler's name (+ scrap pool; NO upgrade pool input), in the same step.
     expect(screen.queryByLabelText(/Upgrade Pool/i)).toBeNull()
-    await fillIdentity('Edit crawler name', 'Bay Wagon')
+    await fillIdentity('crawler name', 'Bay Wagon')
     fireEvent.change(screen.getByLabelText(/Scrap T2/i), { target: { value: '3' } })
     await clickNext()
 

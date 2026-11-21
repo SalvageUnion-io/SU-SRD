@@ -82,12 +82,14 @@ export async function removeOne(name: string): Promise<void> {
   })
 }
 
-/** Fill a click-to-edit IdentityField: open, type, and blur to commit. */
-export async function fillIdentity(editLabel: string, value: string): Promise<void> {
-  await clickButton(editLabel)
-  const input = screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
+/**
+ * Type into a wizard's text field, named by its label (any case). No blur:
+ * the field is live, so the draft has the value as it is typed.
+ */
+export async function fillIdentity(label: string, value: string): Promise<void> {
+  const name = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}\\s*\\*?$`, 'i')
+  const input = screen.getByRole<HTMLInputElement>('textbox', { name })
   await act(async () => {
     fireEvent.change(input, { target: { value } })
-    fireEvent.blur(input, { target: { value } })
   })
 }
