@@ -4,7 +4,7 @@
 // each a line and one action named for the slide, on a cut-out over the
 // footer, then the tagline's slide. Every slide has a way forward. A
 // signed-in reader also gets the doors to their own Training Bay and Games.
-import { Pause, Play } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
@@ -114,8 +114,9 @@ function heroSlides(): Slide[] {
  * every time.
  * The show is CSS (the page is served without React): a slide out of its turn
  * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
- * It holds while an act is pointed at or focused, and its Pause (`watchSlideshow`, the
- * page's script) stops it for good (WCAG 2.2.2). Under reduced motion it never
+ * It holds while an act is pointed at or focused, its Pause (`watchSlideshow`, the
+ * page's script) stops it for good (WCAG 2.2.2), and Previous and Next turn it
+ * by hand, the slide they land on starting its turn afresh. Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
  */
 export function HomeHero() {
@@ -247,19 +248,39 @@ export function HomeHero() {
           </Button>
         </nav>
       </div>
-      {/* The show's Pause, a bare icon at its lower left (WCAG 2.2.2): Pause
-          at rest, Play once pressed. Hidden until the page's script can press
-          it. */}
-      <Toggle
-        pressed={false}
-        className="su-front__show-pause"
-        aria-label={referenceCopy('showPause')}
-        data-show-pause=""
-        hidden
-      >
-        <Pause size={iconSize.full} aria-hidden="true" className="su-front__show-pause-icon" />
-        <Play size={iconSize.full} aria-hidden="true" className="su-front__show-play-icon" />
-      </Toggle>
+      {/* The show's controls, bare icons at its lower left: Previous, Pause
+          (WCAG 2.2.2; Pause at rest, Play once pressed), Next. Hidden until
+          the page's script can press them. */}
+      <div className="su-front__show-controls" data-show-controls="" hidden>
+        <Button
+          variant="default"
+          size="full"
+          className="su-front__show-control"
+          aria-label={referenceCopy('showPrevious')}
+          data-show-turn="-1"
+        >
+          <ChevronLeft size={iconSize.full} aria-hidden="true" />
+        </Button>
+        <Toggle
+          pressed={false}
+          size="full"
+          className="su-front__show-control su-front__show-pause"
+          aria-label={referenceCopy('showPause')}
+          data-show-pause=""
+        >
+          <Pause size={iconSize.full} aria-hidden="true" className="su-front__show-pause-icon" />
+          <Play size={iconSize.full} aria-hidden="true" className="su-front__show-play-icon" />
+        </Toggle>
+        <Button
+          variant="default"
+          size="full"
+          className="su-front__show-control"
+          aria-label={referenceCopy('showNext')}
+          data-show-turn="1"
+        >
+          <ChevronRight size={iconSize.full} aria-hidden="true" />
+        </Button>
+      </div>
     </section>
   )
 }

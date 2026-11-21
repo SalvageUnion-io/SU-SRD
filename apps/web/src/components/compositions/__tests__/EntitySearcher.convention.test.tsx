@@ -6,8 +6,8 @@
  * above it and widens with "Show all Tech Levels".
  */
 
-import { describe, expect, it, mock } from 'bun:test'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { describe, expect, it, mock, spyOn } from 'bun:test'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { EntitySearcher } from '../EntitySearcher'
 import { POOL_RENDER_MS } from './entitySearcherHarness'
@@ -17,10 +17,19 @@ const slug = (item: { name: string }) => nameToSlug(item.name)
 describe('EntitySearcher — the picker convention', () => {
   it(
     'opens with the search field focused',
-    async () => {
-      render(<EntitySearcher schema="systems" mode="count" selected={[]} idOf={slug} />)
-      const search = screen.getByRole('textbox', { name: 'Search' })
-      await waitFor(() => expect(document.activeElement).toBe(search))
+    () => {
+      // The picker focuses on the next frame; the frame is run here, so the
+      // test waits on no timer another file may hold.
+      const frame = spyOn(globalThis, 'requestAnimationFrame').mockImplementation((run) => {
+        run(0)
+        return 0
+      })
+      try {
+        render(<EntitySearcher schema="systems" mode="count" selected={[]} idOf={slug} />)
+        expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'Search' }))
+      } finally {
+        frame.mockRestore()
+      }
     },
     POOL_RENDER_MS
   )

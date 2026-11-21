@@ -175,9 +175,11 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.getByRole('button', { name: `More for ${SEED_IN_GAME}` }).click()
   await page.getByRole('menuitem', { name: 'Move to a Game…' }).first().click()
   await page.getByRole('dialog').getByRole('button', { name: SEED_GAME }).click()
-  // Bonesaw's mech stays behind, so the move says it clears that assignment.
-  await page.getByRole('alertdialog').getByRole('button', { name: /^Move/ }).click()
-  await page.getByText(`Moved ${SEED_IN_GAME} to ${SEED_GAME}.`).first().waitFor(LONG)
+  // Bonesaw's mech goes with him, still assigned (P6), so the move asks nothing.
+  await page
+    .getByText(new RegExp(`^Moved ${SEED_IN_GAME}\\b.* to ${SEED_GAME}\\.$`))
+    .first()
+    .waitFor(LONG)
 
   // An NPC, from the Veteran.
   await openApp(page, '/npcs/new', base)
