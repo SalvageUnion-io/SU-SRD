@@ -115,7 +115,14 @@ export function LaunchPlay({
 
   return (
     <>
-      <Button variant={door ? 'primary' : 'default'} size="compact" onClick={openPicker}>
+      {/* Play is rust only as its role's door (§1.9): the one act whose look
+          the viewer's role picks, so act-twin reads past it. */}
+      <Button
+        variant={door ? 'primary' : 'default'}
+        size="compact"
+        data-role-door=""
+        onClick={openPicker}
+      >
         {live ? playCopy('joinSession') : playGamesCopy('play')}
       </Button>
       <PickDialog

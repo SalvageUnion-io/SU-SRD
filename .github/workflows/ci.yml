@@ -254,7 +254,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
-          E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights,ledger,fill-grid
+          E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights,ledger,fill-grid,act-twin
         run: bunx playwright test --grep @pr
 
       - name: Upload Playwright reports on failure

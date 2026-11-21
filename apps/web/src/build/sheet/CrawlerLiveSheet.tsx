@@ -232,8 +232,8 @@ export function CrawlerLiveSheet({
     />
   )
   // The phone's block (`PhoneVitals`): SP, the Upgrade pool toward its cost,
-  // and Upkeep as a counter; Pay / Fund / Trade are its foot, rust (the action
-  // colour).
+  // and Upkeep as a counter; Pay / Fund / Trade are its foot, outlined as
+  // everywhere they stand (§3.14).
   const phoneActions: { label: string; dialog: CrawlerEconomyDialog }[] = liveCondition
     ? [
         { label: buildSheetCopy('payUpkeep'), dialog: 'upkeep' },
@@ -292,7 +292,7 @@ export function CrawlerLiveSheet({
           ? phoneActions.map((action) => (
               <Button
                 key={action.dialog}
-                variant="primary"
+                variant="default"
                 size="full"
                 onClick={() => setEconDialog(action.dialog)}
               >

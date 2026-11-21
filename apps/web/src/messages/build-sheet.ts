@@ -72,6 +72,7 @@ export const buildSheetCopy = messages({
   notAnExactTradeThe: 'Not an exact trade — the Trading Bay never makes change.',
   tT: '{count}× T{fromTl} → {toCount}× T{toTl}',
   trade: 'Trade',
+  makeTheTrade: 'Make the trade',
   thePoolOnlyHoldsT: 'The pool only holds {bucket}× T{fromTl}.',
   applyTheExchangeToThe: 'Apply the exchange to the pool',
   sourceWares: 'Source Wares',

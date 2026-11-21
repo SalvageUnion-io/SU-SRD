@@ -359,12 +359,7 @@ export function CrawlerDash({
   const actionsFoot = (size: 'compact' | 'full') =>
     vitalActions.length > 0
       ? vitalActions.map((action) => (
-          <Button
-            key={action.key}
-            variant={size === 'full' ? 'primary' : 'default'}
-            size={size}
-            onClick={action.onClick}
-          >
+          <Button key={action.key} variant="default" size={size} onClick={action.onClick}>
             {action.label}
           </Button>
         ))

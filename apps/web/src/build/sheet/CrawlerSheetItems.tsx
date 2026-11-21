@@ -300,7 +300,7 @@ export function CrawlerBayCard({
         <>
           <Button
             size="mini"
-            variant="primary"
+            variant="default"
             title={
               damaged
                 ? buildSheetCopy('isDamagedItsFunctionIs', { name: bay.name })

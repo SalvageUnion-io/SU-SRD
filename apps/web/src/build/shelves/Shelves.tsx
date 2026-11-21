@@ -342,10 +342,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   // -- the shelves ------------------------------------------------------------
 
-  // + New is rust only where its shelf has no door (§3.13): beside a Play it is ink.
-  const newLink = (href: string, label: string, door = false) =>
+  // + New is one act, outlined on every shelf (§3.14).
+  const newLink = (href: string, label: string) =>
     canWrite ? (
-      <Button href={href} variant={door ? 'ink' : 'primary'} size="compact">
+      <Button href={href} variant="default" size="compact">
         {label}
       </Button>
     ) : undefined
@@ -450,11 +450,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 title="Pilots"
                 tone="pilot"
                 columns={PILOT_COLUMNS}
-                action={newLink(
-                  '/pilots/new',
-                  '+ New pilot',
-                  status !== 'signedOut' && pilots.length > 0
-                )}
+                action={newLink('/pilots/new', '+ New pilot')}
                 empty="No pilots yet."
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)

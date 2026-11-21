@@ -33,7 +33,7 @@ describe('ExoticTrade', () => {
     const { update } = setup({ bio: 3, chimerium: 1 })
     expect(screen.getByTestId('exotic-trade-preview').textContent).toBe('1× Bio-Salvage → 1× T1')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Trade' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make the trade' }))
     })
     const call = update.mock.calls.at(-1)
     expect(call?.[2]).toEqual({ scrapPool: { bio: 2, chimerium: 1, tl1: 1 } })
@@ -48,7 +48,7 @@ describe('ExoticTrade', () => {
     })
     expect(screen.getByTestId('exotic-trade-preview').textContent).toBe('1× Chimerium → 1× T6')
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Trade' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Make the trade' }))
     })
     expect(update.mock.calls.at(-1)?.[2]).toEqual({ scrapPool: { bio: 3, chimerium: 1, tl6: 1 } })
   })

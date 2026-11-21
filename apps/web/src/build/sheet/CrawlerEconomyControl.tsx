@@ -557,7 +557,7 @@ function TradeDialog({ crawler, store, rollFor, onClose }: DialogProps & RollFor
                   }
                   onClick={handleConvert}
                 >
-                  {buildSheetCopy('trade')}
+                  {buildSheetCopy('makeTheTrade')}
                 </Button>
               </div>
               {convertNote && (

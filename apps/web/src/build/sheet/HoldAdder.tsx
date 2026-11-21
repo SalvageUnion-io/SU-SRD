@@ -149,6 +149,7 @@ export function HoldAdder({
         />
       </AdderField>
       <Button
+        variant="pencil"
         size="compact"
         disabled={!canCommit}
         aria-label={buildSheetCopy('intoThe', { verb, kind, containerLabel })}

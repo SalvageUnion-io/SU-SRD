@@ -16,8 +16,7 @@
  *
  * Composes the shared primitives (style-unification pass §3): each readout is a
  * `Stat` value box (ruleset §3.7 — a label|value never hand-assembles its own
- * markup), and each action is a `Button` `variant="primary"` (§3.1 — rust is
- * the one action colour).
+ * markup), and each action an outlined `Button` (§3.14: one act, one look).
  *
  * Pure presentation — `CrawlerLiveSheet` still owns the economy-dialog state
  * and builds the readout data; this only renders it.
@@ -100,14 +99,14 @@ export function CrawlerEconFrame({ gauge, items }: CrawlerEconFrameProps) {
   )
 }
 
-/** The items' actions as the Vitals card's head chips: rust (§3.1), Mini. */
+/** The items' actions as the Vitals card's head chips: outlined, as Read draws them (§3.14), Mini. */
 export function CrawlerEconActions({ items }: { items: readonly EconLozItem[] }) {
   return items.map(
     ({ label, action }) =>
       action && (
         <Button
           key={label}
-          variant="primary"
+          variant="default"
           size="mini"
           aria-label={action.ariaLabel}
           title={action.ariaLabel}

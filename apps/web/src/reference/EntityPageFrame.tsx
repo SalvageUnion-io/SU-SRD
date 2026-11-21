@@ -121,14 +121,14 @@ export function EntityPageFrame({
           <>
             <SharePageButton />
             {buy && (
-              // The store is off the site: a new tab, in ink, never the
-              // page's rust (the front door's Buy the game is ink too).
+              // The store is off the site: a new tab, outlined on the band
+              // (§3.13), never the page's rust.
               <Button
                 href={buy}
                 linkAs="a"
                 target="_blank"
                 rel="noopener noreferrer"
-                variant="ink"
+                variant="default"
                 size="compact"
                 className="su-page-action"
               >
