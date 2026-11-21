@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { codeImportantFindings, importantFindings, noImportant } from '../rules/noImportant'
+import { Exited, trapExit } from './trapExit'
 
 const roots: string[] = []
 afterEach(() => {
@@ -56,5 +57,20 @@ describe('no !important (ruleset §4.10)', () => {
       'apps/web/src/components/B.tsx',
     ])
     expect(noImportant.summary?.(root)).toBe('1 stylesheets and 2 code files')
+  })
+})
+
+describe('no !important: the scan floor', () => {
+  const { errors } = trapExit()
+
+  test('a tree without the app’s stylesheets trips the floor instead of passing', () => {
+    const root = fixture({ 'apps/web/src/styles/a.css': '.a { color: red; }' })
+    expect(() => noImportant.preflight?.(root)).toThrow(new Exited(1))
+    expect(errors.join('\n')).toContain('!important (stylesheets): scanned 1 files')
+  })
+
+  test('this checkout passes both floors', () => {
+    expect(() => noImportant.preflight?.(join(import.meta.dir, '..', '..', '..'))).not.toThrow()
+    expect(errors).toEqual([])
   })
 })

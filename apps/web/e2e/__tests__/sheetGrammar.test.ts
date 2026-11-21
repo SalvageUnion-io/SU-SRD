@@ -6,7 +6,12 @@
  * finds without one.
  */
 import { afterAll, beforeEach, describe, expect, test } from 'bun:test'
-import { EMPTY_LINES, SHEET_VITAL_WORDS, scanSheetGrammar } from '../_sheetGrammar'
+import {
+  EMPTY_LINES,
+  findSheetGrammar,
+  SHEET_VITAL_WORDS,
+  scanSheetGrammar,
+} from '../_sheetGrammar'
 
 afterAll(() => {
   // The document is shared with every later file in the run: leave it empty.
@@ -291,6 +296,42 @@ describe('dashboard', () => {
     const body = dash('<div data-storage-side="mech"></div>', '<p>Weapons</p>')
     expect(scan(sheet({ body, kind: 'mech' }), true, true)).toEqual([
       { rule: 'aside', detail: 'mech: carried things outside the sidebar (mech)' },
+    ])
+  })
+})
+
+describe('findSheetGrammar', () => {
+  /** A browser page over this document; `opening` is whether the sheet's opening ever shows. */
+  const browser = (opening: boolean) => {
+    const waited: string[] = []
+    const page = {
+      locator: (selector: string) => ({
+        first: () => ({
+          waitFor: async () => {
+            waited.push(selector)
+            if (!opening) throw new Error('Timeout 30000ms exceeded')
+          },
+        }),
+      }),
+      evaluate: async <A, R>(read: (arg: A) => R, arg: A) => read(arg),
+    }
+    return { page: page as never, waited }
+  }
+
+  test('waits for the sheet’s opening, then scans in the state it is told', async () => {
+    document.body.innerHTML = sheet({ corner: SHARE })
+    const { page, waited } = browser(true)
+    expect(await findSheetGrammar(page, { edit: false, carries: false })).toEqual([
+      { rule: 'shell', detail: 'pilot: a writable sheet with no Read | Edit' },
+    ])
+    expect(waited).toEqual(['main[data-variant] :is(.su-sheet-hero, .su-dash)'])
+  })
+
+  test('a sheet whose opening never shows is still scanned, and says what is missing', async () => {
+    document.body.innerHTML = '<main><h1>Pilot</h1></main>'
+    const { page } = browser(false)
+    expect(await findSheetGrammar(page, { edit: true, carries: true })).toEqual([
+      { rule: 'shell', detail: 'no LiveSheet (`main[data-variant]`)' },
     ])
   })
 })

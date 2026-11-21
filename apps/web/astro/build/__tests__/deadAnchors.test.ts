@@ -5,7 +5,17 @@
  */
 
 import { describe, expect, it } from 'bun:test'
-import { deadAnchorsOn, fragmentLinks, pageIds } from '../deadAnchors'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import {
+  assertNoDeadAnchors,
+  deadAnchorReport,
+  deadAnchorsOn,
+  findDeadAnchors,
+  fragmentLinks,
+  pageIds,
+} from '../deadAnchors'
 
 describe('the fragment links a page carries', () => {
   it('are its own (#id) and another page of the site’s (/path/#id), decoded', () => {
@@ -59,5 +69,92 @@ describe('a page’s dead anchors', () => {
     expect(deadAnchorsOn('/abilities/worm/', pages['/abilities/worm/'] as string, site)).toEqual([
       '/classes/hacker/#gone',
     ])
+  })
+})
+
+describe('a built site, scanned whole', () => {
+  /** A site of pages under a fresh directory: `chassis/mule/index.html` → its HTML. */
+  function site(pages: Record<string, string>): string {
+    const dir = mkdtempSync(join(tmpdir(), 'dead-anchors-'))
+    for (const [file, html] of Object.entries(pages)) {
+      mkdirSync(join(dir, file, '..'), { recursive: true })
+      writeFileSync(join(dir, file), html)
+    }
+    return dir
+  }
+
+  it('holds when every in-page link lands, on its own page or another', async () => {
+    const dir = site({
+      'index.html': '<a href="#top">t</a><a href="/classes/hacker/#tree">h</a><p id="top">',
+      'classes/hacker/index.html': '<h2 id="tree">Tree</h2><a href="/#top">home</a>',
+      // A page addressed by its file, and one whose path is percent-encoded.
+      '404.html': '<a href="/classes/hacker/index.html#tree">h</a>',
+      'bio titans/index.html': '<p id="x">',
+      'guides/index.html': '<a href="/bio%20titans/#x">b</a>',
+    })
+    try {
+      expect(await findDeadAnchors(dir)).toEqual([])
+      await assertNoDeadAnchors(dir)
+    } finally {
+      rmSync(dir, { recursive: true })
+    }
+  })
+
+  it('finds a link whose target is missing, on the page or across pages', async () => {
+    const dir = site({
+      'index.html': '<a href="#gone">g</a><a href="/classes/hacker/#nope">n</a>',
+      'classes/hacker/index.html': '<h2 id="tree">Tree</h2><a href="/classes/hacker/#nope">n</a>',
+    })
+    try {
+      const dead = await findDeadAnchors(dir)
+      expect(dead.map(({ page, href }) => `${page} ${href}`).sort()).toEqual([
+        'classes/hacker/index.html /classes/hacker/#nope',
+        'index.html #gone',
+        'index.html /classes/hacker/#nope',
+      ])
+      await expect(assertNoDeadAnchors(dir)).rejects.toThrow(/2 in-page link\(s\) land on nothing/)
+    } finally {
+      rmSync(dir, { recursive: true })
+    }
+  })
+
+  it('judges neither the app’s shell nor a link into it, a page the build did not write, nor a path that cannot be decoded', async () => {
+    const dir = site({
+      // The app's shell: what stands at its anchors is drawn in the browser.
+      'build/index.html': '<a href="#pilots">p</a>',
+      'index.html':
+        '<a href="/build/#pilots">p</a><a href="/games/#mediators-kit">k</a>' +
+        '<a href="/not-built/#x">x</a><a href="/bad%E0%A4%A/#x">bad</a>',
+    })
+    try {
+      expect(await findDeadAnchors(dir)).toEqual([])
+    } finally {
+      rmSync(dir, { recursive: true })
+    }
+  })
+})
+
+describe('the failure’s words', () => {
+  it('name each dead href once with the pages that carry it, three at most', () => {
+    const report = deadAnchorReport([
+      ...['a.html', 'b.html', 'c.html', 'd.html', 'e.html'].map((page) => ({
+        page,
+        href: '/rules/#heat',
+      })),
+      { page: 'a.html', href: '#gone' },
+    ])
+    expect(report).toStartWith('2 in-page link(s) land on nothing.\n')
+    expect(report).toContain('  /rules/#heat\n    from a.html, b.html, c.html (+2)')
+    expect(report).toContain('  #gone\n    from a.html\n')
+    expect(report).not.toContain('more')
+  })
+
+  it('show twenty and count the rest', () => {
+    const report = deadAnchorReport(
+      Array.from({ length: 23 }, (_, i) => ({ page: 'a.html', href: `#h${i}` }))
+    )
+    expect(report).toContain('#h19')
+    expect(report).not.toContain('#h20')
+    expect(report).toContain('...and 3 more')
   })
 })

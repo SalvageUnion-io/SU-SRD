@@ -10,7 +10,7 @@
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import type { NestingFinding } from '../_nestingDepth'
-import { NESTING_SELECTORS, scanNesting } from '../_nestingDepth'
+import { findNesting, NESTING_SELECTORS, scanNesting } from '../_nestingDepth'
 
 const original = Element.prototype.getBoundingClientRect
 
@@ -289,5 +289,22 @@ describe('N8: one level deep is a Compact', () => {
 
   test('off a Page (oneDeep unset) a Mini at level 1 is the form', () => {
     expect(scan(page(token('The Smith', 'NPC')))).toEqual([])
+  })
+})
+
+describe('findNesting', () => {
+  const browser = {
+    evaluate: async <A, R>(read: (arg: A) => R, arg: A) => read(arg),
+  } as never
+
+  test('reads the page, each finding saying its rule, its chain and what is wrong', async () => {
+    document.body.innerHTML = `<main>${token('The Smith', 'NPC')}</main>`
+    // Off a Page, a Mini at level 1 is the form.
+    expect(await findNesting(browser)).toEqual([])
+    const found = await findNesting(browser, { oneDeep: true })
+    expect(found).toHaveLength(1)
+    expect(found[0]?.rule).toBe('N8')
+    expect(found[0]?.detail).toStartWith('N8 ')
+    expect(found[0]?.detail).toContain('The Smith')
   })
 })

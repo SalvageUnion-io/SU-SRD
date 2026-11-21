@@ -278,7 +278,6 @@ export type { EntityFormModel, EntityMode } from './entity/types'
 // links) as a section; InlineMarkdown — one line of it, links only
 export { Content } from './referenceEntity/Content'
 export { abilityTreeNeighbours } from './referenceEntity/card/abilityTreeRelations'
-// BayInfo — a crawler bay's own rules under a folding Slab, its first section.
 // EntityCardIdentityFooter — a card's foot band and its cite cut-out (ruleset
 // Source 2); a Ledger, a rule brief and the Buy panel wear it too.
 export { EntityCardIdentityFooter } from './referenceEntity/card/EntityCardIdentityFooter'
@@ -310,8 +309,8 @@ export { damagedEffectOf } from './referenceEntity/card/whenDamaged.model'
 export type { ChoiceSelections } from './referenceEntity/choiceCard/choiceSelectionHelpers'
 // EntityDetailDialog — an entity's Page in a dialog: the app's open-in-place reading.
 export { EntityDetailDialog } from './referenceEntity/EntityDetailDialog'
-// Entity controls: the live preset (navigateControl).
 export { quotePatternName } from './referenceEntity/pattern/quotePatternName'
+// Entity controls: the live preset (navigateControl).
 export { navigateControl } from './referenceEntity/referenceEntityControls'
 export type { ReferenceEntityControl } from './referenceEntity/referenceEntityControlTypes'
 // TraitProse — prose whose trait and entity names resolve as it renders, one per row.

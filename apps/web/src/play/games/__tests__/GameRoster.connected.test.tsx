@@ -725,6 +725,79 @@ describe('units in from Build (ADR-052 §3, §5)', () => {
     await forgetHeld(['mech', 'm-pair'], ['mech', 'm-spare'], ['pilot', 'p-bay'])
   })
 
+  /** Two Bay pilots crewing a Bay crawler: bringing either in alone leaves the crawler behind. */
+  const crewedBay = async () => {
+    setSyncStatus('live')
+    await emptyBay()
+    const store = useUnits.getState()
+    await store.adopt('crawler', crawlerFixture({ id: 'c-bay', name: 'Old Reliable' }))
+    await store.adopt('pilot', pilotFixture({ id: 'p-one', name: 'Razor' }))
+    await store.adopt('pilot', pilotFixture({ id: 'p-two', name: 'Gauge' }))
+    for (const id of ['p-one', 'p-two']) {
+      await store.create('softLink', {
+        from: { type: 'pilot', id },
+        to: { type: 'crawler', id: 'c-bay' },
+        type: 'pilot-to-crawler',
+      })
+    }
+  }
+  const crewOf = (id: string) =>
+    useUnits.getState().softLinks.some((l) => l.type === 'pilot-to-crawler' && l.from.id === id)
+  const inGame = (id: string) =>
+    useUnits.getState().pilots.find((p) => p.id === id)?.gameId === 'g1'
+  const forgetCrewedBay = async () => {
+    cleanup()
+    const store = useUnits.getState()
+    for (const id of ['p-one', 'p-two']) await store.forget('pilot', id)
+    await store.forget('crawler', 'c-bay')
+  }
+
+  test('bringing in one whose assignment stays behind asks first, naming what is cleared', async () => {
+    await crewedBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const ask = await screen.findByRole('alertdialog')
+    expect(ask.textContent).toContain('Move Razor into Tenacity?')
+    expect(ask.textContent).toContain('Old Reliable')
+    // Nothing has moved until the confirm is pressed.
+    expect(inGame('p-one')).toBe(false)
+    expect(crewOf('p-one')).toBe(true)
+
+    await confirmWith('Move')
+    await settle(() => inGame('p-one') && !crewOf('p-one'))
+    expect(inGame('p-one')).toBe(true)
+    expect(crewOf('p-one')).toBe(false)
+    // The crewmate who stayed is still the crawler's crew.
+    expect(crewOf('p-two')).toBe(true)
+    await forgetCrewedBay()
+  })
+
+  test('several at once ask once, each one’s cleared assignment under its own name', async () => {
+    await crewedBay()
+    await renderAs(ME, listing())
+    const dialog = await openBring()
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Razor' }))
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: 'Gauge' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    const ask = await screen.findByRole('alertdialog')
+    expect(ask.textContent).toContain('Move these into Tenacity?')
+    expect(ask.textContent).toMatch(/Razor: .*Old Reliable/)
+    expect(ask.textContent).toMatch(/Gauge: .*Old Reliable/)
+    expect(ask.textContent).toContain('you’ll need to make those assignments again')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(inGame('p-one')).toBe(false)
+    expect(inGame('p-two')).toBe(false)
+    expect(crewOf('p-one') && crewOf('p-two')).toBe(true)
+    await forgetCrewedBay()
+  })
+
   test('a mech of yours is paired with your pilot from its row: Assign to a Pilot… (LG-07)', async () => {
     setSyncStatus('live')
     await emptyBay()
