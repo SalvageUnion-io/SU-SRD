@@ -68,6 +68,30 @@ Layer 1 builds the notes and the dated session list with a private note each.
 a migration. A scene names an encounter by id and never copies it. The plan
 is replaced whole on save; one Mediator writes it, so there is no merge.
 
+**Notes are their author's** (amended 2026-11-21, second persona review). A
+hand over showed the next Mediator every private note. The sessions (days,
+titles, scenes) are the Game's and pass with the table; `notes` and each
+session's `note` belong to the member who wrote them and never pass with the
+role. The stored row gains two optional fields, and nothing is migrated:
+
+```
+StoredGamePlan = GamePlan & { author?, byAuthor?: { [discordId]: { notes, sessions: { [sessionId]: note } } } }
+```
+
+`plan.get` answers a `GamePlan` holding only the caller's notes, so no client
+ever receives another author's. A save files the caller's notes under
+`byAuthor` and leaves everyone else's alone; a removed session takes its notes
+with it. A row written before this keeps its notes in place: they are
+`author`'s, and the room stamps `author` with whoever runs the table the first
+time a Mediator is appointed or stood down, so existing notes belong to
+whoever is Mediator now. Prepared encounters and NPCs were never the Game's
+(§3) and stay their maker's. The hand over dialog says what goes and what
+stays, and the new Mediator is told by a `role` event on the table's stream.
+
+**The session days are every member's.** A Game's read (`games.get`) carries
+`sessionDays`: the coming sessions' days, soonest first, and nothing else of
+the plan (never a title or a note). The Game's page shows the next one.
+
 ### 5. The Kit stands under Games
 
 The Mediator's Kit is a section of the Games hub (`/games/#mediators-kit`),
@@ -77,5 +101,5 @@ Kit when they belong to none. Their addresses do not change.
 
 ### Not decided
 
-Whether players ever see a session's date; scenes and their editor; an
-encounter shared between two Mediators.
+Scenes and their editor; an encounter shared between two Mediators, or handed
+on with the table.

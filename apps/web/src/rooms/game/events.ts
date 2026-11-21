@@ -39,6 +39,7 @@ type TableEventKind =
   | 'board'
   | 'assign'
   | 'join'
+  | 'role'
   | 'session'
   | 'proposal'
   | 'alert'
@@ -57,7 +58,11 @@ export type TableEvent = {
   private?: true
   /** The group session began or ended here: what "Last session" is cut by. */
   session?: 'start' | 'end'
-  /** An assignment taken from this member: their screen says so itself (`assignmentNotices`). */
+  /**
+   * The member the event is about. An assignment taken from them: their
+   * screen says so itself (`assignmentNotices`). A `role` event: who mediates
+   * now, whose screen pins it.
+   */
   about?: string
 }
 
@@ -242,6 +247,12 @@ export class GameEvents {
         const link = a.link as LinkShape
         const verb = name === 'drawLink' ? 'is assigned to' : 'is unassigned from'
         return say('assign', `${unit(link.from.id)} ${verb} ${unit(link.to.id)}`)
+      }
+      case 'setMediator': {
+        // Standing down says nothing: the line that matters is who runs the table now.
+        if (a.mediator !== true) return []
+        const text = `${this.memberName(String(a.userId))} now mediates this Game`
+        return [this.note(actor, at, { kind: 'role', text, about: String(a.userId) })]
       }
       case 'redeem':
         return value === 'joined' ? say('join', `${who} joined the Game`) : []

@@ -148,6 +148,27 @@ describe('the pinned notices', () => {
     expect(notice('alert')).toBeNull()
   })
 
+  test('a hand over pins "You now mediate" for the new Mediator until dismissed (r2 B3)', async () => {
+    const made = {
+      _id: 'r-1',
+      ts: Date.now() - 1000,
+      kind: 'role',
+      text: 'Ash now mediates this Game',
+      actorId: 'org',
+      about: 'u1',
+    }
+    await renderNotices({
+      'games.listMine': [{ ...GAME, mediator: true, tableRunner: true }],
+      'changeLog.events': [made],
+    })
+    expect(notice('role')?.textContent).toContain('You now mediate · Tenacity')
+    expect(notice('role')?.textContent).toContain('Notes its last Mediator wrote stay theirs.')
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^Dismiss/ }))
+    })
+    expect(notice('role')).toBeNull()
+  })
+
   test('a live session offers its door everywhere but on a Play screen, and says when it ends', async () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } })
     expect(notice('session')?.textContent).toContain('Session live · Tenacity')

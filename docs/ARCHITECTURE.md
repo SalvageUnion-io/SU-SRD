@@ -194,4 +194,5 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
     Header links Reference | Builder | Games, logo `/`; Play is a pilot page's mode; no Games in Builder.
     Amends ADR-051 §1, ADR-052 §1, §4–§6, ADR-062 §1–§3.
 67. **ADR-067 Game Prep and plan** · [full text](adr/067-game-prep.md)
+    A plan's notes are their author's and never pass with the Mediator role; the session days are every member's.
     Amends ADR-059.

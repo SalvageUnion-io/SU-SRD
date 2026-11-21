@@ -34,10 +34,13 @@ const GAME_ACTS = {
     c.room.roster.create(c.actor, { ...a, gameId: c.gameId, at: c.at }),
   createFromTemplate: (c: ActContext, a: { templateId: string; name?: string; profile: Profile }) =>
     seedTemplate(c.room, c.actor, { ...a, gameId: c.gameId, at: c.at }),
-  read: (c: ActContext) => c.room.roster.read(c.actor),
+  read: (c: ActContext) => c.room.roster.read(c.actor, c.at),
   members: (c: ActContext) => c.room.roster.members(c.actor),
-  setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) =>
-    c.room.roster.setMediator(c.actor, a.userId, a.mediator),
+  setMediator: (c: ActContext, a: { userId: string; mediator: boolean }) => {
+    // Notes written before they had authors stay with whoever runs the table now.
+    c.room.plan.settle(c.at)
+    c.room.roster.setMediator(c.actor, a.userId, a.mediator)
+  },
   updateSettings: (c: ActContext, a: { name?: string; description?: string }) =>
     c.room.roster.updateSettings(c.actor, a),
   updateProfile: (c: ActContext, a: { profile: Profile }) =>

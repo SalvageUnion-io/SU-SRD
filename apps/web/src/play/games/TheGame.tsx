@@ -9,7 +9,8 @@
  * `requireOrganizer`), and it is the only way the flag is set: `games.create`
  * seats its creator with `mediator: false`. Hand over appoints the member you
  * choose, then stands down whoever mediated before, behind a confirm with
- * focus on Cancel. With nobody mediating yet it reads **Appoint**, and a
+ * focus on Cancel, which says what goes across and what stays: a Mediator's
+ * notes are their own and never pass with the role (ADR-067 §4). With nobody mediating yet it reads **Appoint**, and a
  * solo Organizer may appoint themselves.
  *
  * Game settings (rename, describe), Remove and Leave are `GameSettings`'s
@@ -249,6 +250,9 @@ export function TheGame({
               {playGamesCopy('theMediatorRunsTheTable')}
               {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
+            {/* What moves with the role and what never does (r2 B3). */}
+            <span>{playGamesCopy('handOverGoes')}</span>
+            <span>{playGamesCopy('handOverStays')}</span>
             <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
               <Select id={`${id}-who`} value={chosen} onChange={(e) => setChosen(e.target.value)}>
                 {candidates.map((m) => (

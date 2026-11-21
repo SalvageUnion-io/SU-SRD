@@ -30,10 +30,17 @@ export type GameRead = {
   crawlerName: string | null
   /** The primary crawler's id, or null before one exists. */
   primaryCrawlerId: string | null
+  /**
+   * The days the table next meets, soonest first, from yesterday on (a
+   * member's own clock picks today's): all of the plan a member is told.
+   */
+  sessionDays: string[]
 }
 
 /** What a profile shows on a roster, as the member's account room last sent it. */
 export type Profile = { displayName: string | null; avatarUrl: string | null }
+
+const DAY_MS = 24 * 60 * 60_000
 
 /** The longest name a Game takes: every member's list and the bot show it. */
 const GAME_NAME_MAX = 80
@@ -79,7 +86,9 @@ export class GameRoster {
   constructor(
     private readonly store: GameStore,
     private readonly units: GameUnits,
-    private readonly mintCode: () => string = randomInviteCode
+    private readonly mintCode: () => string = randomInviteCode,
+    /** The plan's session days from a day on (`GamePlanStore.sessionDays`). */
+    private readonly sessionDays: (from: string) => string[] = () => []
   ) {}
 
   /**
@@ -111,7 +120,7 @@ export class GameRoster {
   }
 
   /** The Game for one member, or null for anyone else: a non-member cannot tell it exists. */
-  read(actor: string): GameRead | null {
+  read(actor: string, at: number = Date.now()): GameRead | null {
     const game = this.store.game()
     const member = this.store.member(actor)
     if (game === null || member === null) return null
@@ -129,6 +138,7 @@ export class GameRoster {
       mechCount: this.store.units('mech').length,
       crawlerName: primary === null ? null : unitName(primary),
       primaryCrawlerId: primary?.id ?? null,
+      sessionDays: this.sessionDays(new Date(at - DAY_MS).toISOString().slice(0, 10)),
     }
   }
 

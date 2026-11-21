@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 import type { TableEvent } from '../../rooms/game/events'
-import { eventsToToast, pausedTitle, pinnedAlert, resumedTitle } from '../tableNotices.model'
+import {
+  eventsToToast,
+  pausedTitle,
+  pinnedAlert,
+  pinnedRole,
+  resumedTitle,
+} from '../tableNotices.model'
 
 const event = (over: Partial<TableEvent> & { _id: string }): TableEvent => ({
   ts: 1,
@@ -49,6 +55,32 @@ describe('eventsToToast', () => {
     })
     expect(eventsToToast([taken], heard, 'me').toast).toEqual([])
     expect(eventsToToast([taken], heard, 'nell').toast).toEqual([taken])
+  })
+})
+
+describe('pinnedRole (r2 B3)', () => {
+  const made = event({
+    _id: 'r1',
+    ts: 1000,
+    kind: 'role',
+    text: 'Nell now mediates this Game',
+    actorId: 'org',
+    about: 'nell',
+  })
+
+  test('whoever was handed the table is told, by toast and by a pin, until they dismiss it', () => {
+    const { heard } = eventsToToast([], null, 'nell')
+    expect(eventsToToast([made], heard, 'nell').toast).toEqual([made])
+    expect(pinnedRole([made], new Set(), 'nell', 2000)).toBe(made)
+    expect(pinnedRole([made], new Set(['r1']), 'nell', 2000)).toBeNull()
+    expect(pinnedRole([made], new Set(), 'ash', 2000)).toBeNull()
+  })
+
+  test('not for an Organiser who appointed themselves, nor once the table moved on', () => {
+    expect(pinnedRole([{ ...made, actorId: 'nell' }], new Set(), 'nell', 2000)).toBeNull()
+    const next = { ...made, _id: 'r2', ts: 1500, about: 'ash' }
+    expect(pinnedRole([made, next], new Set(), 'nell', 2000)).toBeNull()
+    expect(pinnedRole([made], new Set(), 'nell', 1000 + 8 * 24 * 60 * 60_000)).toBeNull()
   })
 })
 

@@ -137,6 +137,10 @@ export const playGamesCopy = messages({
   appointTheMediator: 'Appoint the Mediator',
   handTheTableOver: 'Hand the table over?',
   whoeverMediatesNowStandsDown: ' Whoever mediates now stands down.',
+  handOverGoes:
+    'Goes across: the table, the opposition on its field, and the session list with its days and titles.',
+  handOverStays:
+    'Stays with you: your Game notes and private session notes, and the encounters and NPCs in your Mediator’s Kit. The new Mediator starts with empty notes.',
   whoMediates: 'Who mediates',
   yourPrep: 'Prep',
   encounters: 'Encounters',
@@ -164,7 +168,8 @@ export const playGamesCopy = messages({
     'An NPC you move into this Game is listed here, ready under Yours when you add opposition.',
   gameNotes: 'Game notes',
   gameNotesLabel: 'Notes',
-  onlyYouSeeThis: 'Only you see this. Your players never do.',
+  onlyYouSeeThis:
+    'Only you see this. Your players never do, and it stays yours if the table is handed over.',
   sessions: 'Sessions',
   noSessionsYet: 'No sessions yet. Add one for each time the table meets.',
   sessionDay: 'Day',

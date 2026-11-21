@@ -21,6 +21,18 @@ function seated() {
 }
 
 describe('the table’s events', () => {
+  test('a Mediator appointed is a line about them; standing one down says nothing (r2 B3)', () => {
+    const { act } = seated()
+    const [event] = act('d-org', 'setMediator', { userId: PLAYER, mediator: true })
+    expect(event).toMatchObject({
+      kind: 'role',
+      text: 'Player now mediates this Game',
+      actorId: 'd-org',
+      about: PLAYER,
+    })
+    expect(act('d-org', 'setMediator', { userId: MEDIATOR, mediator: false })).toEqual([])
+  })
+
   test('a vital’s change is one line naming the unit, from and to', () => {
     const { act, texts } = seated()
     const [event] = act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 6 })] })

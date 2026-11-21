@@ -324,6 +324,10 @@ export const playCopy = messages({
   dismiss: 'Dismiss',
   dismissWhat: 'Dismiss: {what}',
   fromTheMediatorIn: 'From the Mediator · {game}',
+  youNowMediateIn: 'You now mediate · {game}',
+  youNowMediateBody:
+    'The table and its sessions are yours to run. Notes its last Mediator wrote stay theirs.',
+  youNowMediate: 'You now mediate this Game.',
   proposalIn: 'Proposal · {game}',
   answerDidNotLand: 'Your answer did not land. Try again.',
   tableNotices: 'Your Games',
