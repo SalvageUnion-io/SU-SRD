@@ -27,6 +27,7 @@ import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
 import type { HeaderMenuItem } from '../components/index'
+import { playCopy } from '../messages/play'
 
 /** A pilot or mech row as `useGameListing` returns it. */
 export type CrewRow = {
@@ -221,7 +222,8 @@ export function boardMenu(args: {
       (l) => l.type === 'mech-to-pilot' && l.from.id === mechId && l.to.id !== pilotId
     )?.to.id
     if (option.state === 'yours' && flownBy !== undefined && mechId !== assigned?.id) {
-      option.note = `${pilotName.get(flownBy) ?? 'Another pilot'}’s mech`
+      const flier = pilotName.get(flownBy)
+      option.note = flier ? playCopy('pilotsMech', { name: flier }) : playCopy('anotherPilotsMech')
     }
     ranked.push({ option, rank: mechId === assigned?.id ? 0 : row.ownerId === viewerId ? 1 : 2 })
   }

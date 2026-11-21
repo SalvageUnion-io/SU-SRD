@@ -226,6 +226,8 @@ export const playCopy = messages({
   openSSheet: 'Open {name}’s sheet',
   pilot: 'Pilot: {name}',
   pilot2: 'Pilot',
+  pilotsMech: '{name}’s Mech',
+  anotherPilotsMech: 'Another Pilot’s Mech',
   hp: 'HP',
   ap2: 'AP',
   noInjuries: 'No injuries',

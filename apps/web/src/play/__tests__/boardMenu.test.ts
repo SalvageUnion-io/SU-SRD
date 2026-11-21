@@ -72,7 +72,7 @@ describe('each state', () => {
     const mechs = [row('thresher', ME), row('mazona', ME)]
     const links = [...crew, ...onHen('thresher', 'mazona'), link('mech-to-pilot', 'mazona', 'vex')]
     const o = option(menuFor(mechs, { links }), 'mazona')
-    expect(o).toMatchObject({ state: 'yours', note: 'Vex’s mech' })
+    expect(o).toMatchObject({ state: 'yours', note: 'Vex’s Mech' })
     expect(boardable(o)).toBe(true)
   })
 
