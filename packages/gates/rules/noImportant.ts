@@ -26,7 +26,7 @@ const stylesheets = (root: string) => listFiles(root, DIRS, ['.css'])
 /** The code that could write one into a style: never a test, which may name it. */
 const code = (root: string) =>
   listFiles(root, DIRS, ['.ts', '.tsx', '.astro']).filter(
-    (f) => !/(^|\/)__tests__\/|\.test\.tsx?$/.test(f)
+    (f) => !/(^|\/)__tests__\//.test(f) && !/\.test\.tsx?$/.test(f)
   )
 
 const blank = (m: string) => m.replace(/[^\n]/g, ' ')
