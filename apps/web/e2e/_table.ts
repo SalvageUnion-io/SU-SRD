@@ -63,8 +63,8 @@ async function assignToMe(page: Page, name: string): Promise<void> {
  * the page on the Game's own page; resolves to the Game's id and name, which
  * the Play landing's doors are named by ("Play Bonesaw in <name>").
  *
- * The Mediator is waited for by the band's YOU MEDIATE stamp, not by the way
- * in it offers: that door moves to Play (ADR-051) while the stamp stays.
+ * The Mediator is waited for by the band's Mediate door: it alone says who
+ * mediates, with no stamp beside it.
  */
 export async function setUpTable(page: Page): Promise<{ gameId: string; gameName: string }> {
   await openApp(page, '/games/')
@@ -74,7 +74,7 @@ export async function setUpTable(page: Page): Promise<{ gameId: string; gameName
   // The Organizer appoints the Mediator, here themselves (TheGame's Appoint).
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await expect(page.getByText('You mediate')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 20_000 })
   await assignToMe(page, 'Bonesaw')
   await assignToMe(page, 'Scrapper')
   const gameId = new URL(page.url()).pathname.split('/').pop() ?? ''

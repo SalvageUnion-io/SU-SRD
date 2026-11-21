@@ -60,7 +60,7 @@ test(
     await createGame(page, GAME)
     await page.getByRole('button', { name: 'Appoint' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-    await expect(page.getByText('You mediate')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: 'Mediate' })).toBeVisible({ timeout: 15_000 })
     const token = await makeInviteLink(page)
 
     const player = await secondAccount(browser, info)
