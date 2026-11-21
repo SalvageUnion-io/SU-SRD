@@ -1,5 +1,23 @@
-import { describe, expect, test } from 'bun:test'
-import { codeImportantFindings, importantFindings } from '../rules/noImportant'
+import { afterEach, describe, expect, test } from 'bun:test'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
+import { codeImportantFindings, importantFindings, noImportant } from '../rules/noImportant'
+
+const roots: string[] = []
+afterEach(() => {
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true })
+})
+
+function fixture(files: Record<string, string>): string {
+  const root = mkdtempSync(join(tmpdir(), 'important-'))
+  roots.push(root)
+  for (const [path, contents] of Object.entries(files)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true })
+    writeFileSync(join(root, path), contents)
+  }
+  return root
+}
 
 describe('no !important (ruleset §4.10)', () => {
   test('each !important in a declaration is a finding, on its line', () => {
@@ -21,5 +39,22 @@ describe('no !important (ruleset §4.10)', () => {
       "const URL = 'https://example.com' // and !important in prose",
     ].join('\n')
     expect(codeImportantFindings('a.tsx', src).map((f) => f.line)).toEqual([1, 4])
+  })
+
+  test('the scan reads the stylesheets and code of the web app, never a test', () => {
+    const root = fixture({
+      'apps/web/src/styles/a.css': '.a { color: red !important; }',
+      'apps/web/src/components/B.tsx': "export const B = { color: 'red !important' }",
+      'apps/web/astro/c.astro': '<style>.c { margin: 0 !important }</style>',
+      'apps/web/src/components/__tests__/B.test.tsx': "expect('x !important')",
+      'apps/web/src/lib/d.test.ts': "expect('x !important')",
+    })
+    const files = noImportant.scan(root).important?.map((f) => f.file)
+    expect(files).toEqual([
+      'apps/web/src/styles/a.css',
+      'apps/web/astro/c.astro',
+      'apps/web/src/components/B.tsx',
+    ])
+    expect(noImportant.summary?.(root)).toBe('1 stylesheets and 2 code files')
   })
 })
