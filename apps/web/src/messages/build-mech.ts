@@ -102,7 +102,6 @@ export const mechCopy = messages({
   needsSlots: 'Needs {count} Slots · {left} left',
   needsScrap: 'Needs {count} Scrap · {left} left',
   scrapCost: '{count} Scrap',
-  slots: 'Slots',
   suggested: 'Suggested',
   itsSvInTech1: 'Its SV in Tech 1 Scrap',
   installedSystems: 'Installed Systems',

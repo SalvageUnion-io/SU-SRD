@@ -113,6 +113,5 @@ export const buildWizardCopy = messages({
   ability: 'Ability',
   weaponsMounted: 'Weapons mounted',
   tech1WeaponsSystems: 'Tech 1 Weapons Systems',
-  mounted: 'Mounted',
   mount: 'Mount',
 })
