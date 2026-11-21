@@ -122,20 +122,9 @@ export const footerPillStyle = {
   zIndex: tokens.layer.sticky,
 } satisfies CSSProperties
 
-/** The action bar's prompt: one ink line over the bar, a press scrolls to what it names. */
+/** The action bar's prompt: one line over the bar, the footer's width. */
 export const promptStyle = {
-  alignItems: 'center',
-  backgroundColor: tokens.color.paper,
-  border: 0,
-  borderBottom: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
-  color: tokens.color.ink,
-  cursor: 'pointer',
-  display: 'flex',
-  gap: tokens.space[4],
-  justifyContent: 'center',
-  minHeight: tokens.space[32],
-  padding: `${tokens.space[4]} ${tokens.space[12]}`,
   alignSelf: 'stretch',
-  textAlign: 'center',
+  borderBottom: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  justifyContent: 'center',
 } satisfies CSSProperties
-export const promptCaps = capsLabel({ size: 'caption', tracking: 'snug' })

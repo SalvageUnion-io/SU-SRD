@@ -23,7 +23,6 @@ import {
   pillNavStyle,
   pillStyle,
   pillTrackersStyle,
-  promptCaps,
   promptStyle,
   shellStyle,
   shellUnderBandStyle,
@@ -505,9 +504,9 @@ export function WizShell({
             {/* What the step still asks for, or offers further down, said
                 where the Next is: a press scrolls to it. */}
             {(prompt ?? footerNote) && (
-              <button
-                type="button"
-                className={promptCaps}
+              <Button
+                variant="ghost"
+                size="compact"
                 style={promptStyle}
                 onClick={() =>
                   document
@@ -520,7 +519,7 @@ export function WizShell({
                     reason: String(footerNote).replace(/ to continue$/, ''),
                   })}
                 <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
-              </button>
+              </Button>
             )}
             {actionPill}
           </footer>

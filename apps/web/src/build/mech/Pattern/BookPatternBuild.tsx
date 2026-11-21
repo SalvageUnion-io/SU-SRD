@@ -73,13 +73,13 @@ export function BookPatternBuild({ chassis, pattern, onBuilt, gameId }: BookPatt
 
   const build = useServerAction(
     async () => {
-      if (!input) throw new Error('No pattern picked')
+      if (!input) throw new Error(mechCopy('pickAChassisFirst'))
       return useUnits.getState().create('mech', {
         ...input,
         ...(gameId === undefined ? {} : moveTo({ kind: 'game', gameId })),
       })
     },
-    { failure: 'The mech could not be built from this pattern. Try again.' }
+    { failure: mechCopy('theMechCouldNotBe2') }
   )
 
   async function run() {

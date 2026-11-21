@@ -370,7 +370,7 @@ export function EntitySearcher({
       >
         {token}
         {aboveTechLevel(item.techLevel, techLevel) && (
-          <Badge shape="stamp" size="mini" surface="dashed" style={ROW_TAG_STYLE}>
+          <Badge shape="stamp" size="mini" surface="inverse" style={ROW_TAG_STYLE}>
             {compositionsCopy('aboveTech', { techLevel: techLevel ?? 0 })}
           </Badge>
         )}
