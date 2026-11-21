@@ -24,7 +24,6 @@ import {
   isLegalCreationChassis,
   isLegalCreationClass,
   isLegalCreationCrawlerWeapon,
-  isLegalCreationEquipment,
   isLegalCreationModule,
   isLegalCreationSystem,
   isPilotAbilityPickComplete,
@@ -43,6 +42,7 @@ import {
 import type { CrawlerWizardFormState } from '../wizard/crawlerFormState'
 import type { MechWizardFormState } from '../wizard/mechFormState'
 import type { PilotWizardFormState } from '../wizard/pilotFormState'
+import { isStartingEquipment } from './startingEquipment'
 
 /** Book-order pilot wizard step ids (Pilot Bay pp.18–19 + Review). */
 export type PilotWizardStepId =
@@ -155,10 +155,10 @@ function equipmentGate(form: PilotWizardFormState): StepGateResult {
   if (isPilotEquipmentPickComplete(count)) {
     const allLegal = form.equipment.every((slug) => {
       const item = findEquipment(slug)
-      return item !== undefined && isLegalCreationEquipment(item)
+      return item !== undefined && isStartingEquipment(item)
     })
     if (allLegal) return OK
-    return { ok: false, reason: 'Only Tech 1 equipment is legal at creation' }
+    return { ok: false, reason: 'Only Tech 1 equipment from the list is legal at creation' }
   }
   if (count > PILOT_CREATION_EQUIPMENT_PICKS) {
     const excess = count - PILOT_CREATION_EQUIPMENT_PICKS
@@ -275,7 +275,7 @@ export function clampPilotCreationDraft(form: PilotWizardFormState): PilotDraftC
 
   const legalEquipment = equipment.filter((slug) => {
     const item = findEquipment(slug)
-    return item !== undefined && isLegalCreationEquipment(item)
+    return item !== undefined && isStartingEquipment(item)
   })
   for (const slug of equipment) {
     if (!legalEquipment.includes(slug)) removed.push(equipmentName(slug))

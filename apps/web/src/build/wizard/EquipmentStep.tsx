@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { BookCite, ChoiceSelections, RefEquipment } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
-import { isLegalCreationEquipment } from 'salvageunion-reference/rules'
 import { EmptyState, ReferenceEntityCard, Stat } from '../../components/index'
 import { isPartnerEquipment } from '../../lib/rules/partnerGrants'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
+import { isStartingEquipment } from '../../lib/rules/startingEquipment'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import { PickList } from './PickList'
 import { chosenChips, equipmentColumns, openChoices } from './pickColumns'
@@ -66,7 +66,7 @@ export function EquipmentStep({
   // The injectable accessor is `unknown`-typed for test seams, so the ONE
   // cast lives here: the production accessor really returns `RefEquipment[]`.
   const equipment = surEquipment.findAll((e: unknown) =>
-    isLegalCreationEquipment(e as RefEquipment)
+    isStartingEquipment(e as RefEquipment)
   ) as RefEquipment[]
 
   const copies = (item: RefEquipment) =>

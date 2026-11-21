@@ -238,7 +238,9 @@ export const buildSheetCopy = messages({
   background: 'Background',
   changeClass: 'Change Class',
   ap: 'AP',
-  mockCrawlerLevel: 'Mock Crawler Level',
+  crawlerTechLevel: 'Crawler Tech Level',
+  noCrawlerItsTechLevel:
+    'No Crawler assigned. This Pilot’s maximums and some choices scale with a Crawler’s Tech Level: set it here until one is.',
   injuriesHaveReducedThisPilots:
     'Injuries have reduced this Pilot’s maximum HP to 0. Remove an injury if this was a bookkeeping error.',
   trainingPoints: 'Training Points',

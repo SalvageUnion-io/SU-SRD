@@ -5,6 +5,7 @@ import { resolveChassisRef, resolveModuleRef, resolveSystemRef } from 'salvageun
 import { FieldError } from '../../components/app'
 import { Callout, ReferenceEntityCard, tokens } from '../../components/index'
 import { readReference } from '../../lib/readReference'
+import { hasIntegratedLocomotion, LOCOMOTION } from '../../lib/rules/locomotion'
 import type { MechWizardFormState } from '../../lib/wizard/mechFormState'
 import { mechCopy } from '../../messages/build-mech'
 import { loadoutColumns } from '../wizard/pickColumns'
@@ -14,9 +15,6 @@ import { SavePatternButton } from './Pattern/SavePatternButton'
 
 /** A note's line in body type, as the crawler review's reminder. */
 const NOTE = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
-
-/** The system a mech moves by (its own text: without one the mech cannot move). */
-const LOCOMOTION = /locomotion/i
 
 type MechReviewStepProps = {
   form: MechWizardFormState
@@ -78,7 +76,10 @@ export function MechReviewStep({
       '',
       '',
     ]
-  const moves = chosenSystems.some((system) => LOCOMOTION.test(system.name))
+  // A mech moves by a fitted Locomotion System or by its chassis's own.
+  const moves =
+    chosenSystems.some((system) => LOCOMOTION.test(system.name)) ||
+    hasIntegratedLocomotion(form.chassisName)
   const columns = loadoutColumns<RefSystem | RefModule>(
     (item) => form.itemChoices?.[nameToSlug(item.name)]
   )

@@ -11,7 +11,7 @@
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
-import { Stat } from '../../components/index'
+import { Stat, Text } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { assignedRail } from './assignedRail'
 import { pilotStamp } from './bandStamps.model'
@@ -63,13 +63,17 @@ export function PilotLiveSheet({
     { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead },
     {
       crawler: (
-        <Stat
-          label={buildSheetCopy('mockCrawlerLevel')}
-          value={pilot.crawlerLevel ?? 1}
-          max={6}
-          mode="edit"
-          onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
-        />
+        // With no crawler assigned, its Tech Level is set by hand, and says why.
+        <span>
+          <Stat
+            label={buildSheetCopy('crawlerTechLevel')}
+            value={pilot.crawlerLevel ?? 1}
+            max={6}
+            mode="edit"
+            onChange={(v) => patch({ crawlerLevel: Math.max(1, v) })}
+          />
+          <Text variant="hint">{buildSheetCopy('noCrawlerItsTechLevel')}</Text>
+        </span>
       ),
     }
   )

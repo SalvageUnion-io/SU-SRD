@@ -10,6 +10,7 @@ import {
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
+import { hasIntegratedLocomotion } from '../../lib/rules/locomotion'
 import { withItemChoice } from '../../lib/wizard/itemChoices'
 import type { MechPattern, MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
@@ -430,6 +431,7 @@ export function MechWizard({
             modules={form.modules}
             onCountChange={setInstallCount}
             scrapRemaining={budget.remaining}
+            ownLocomotion={hasIntegratedLocomotion(form.chassisName)}
             slots={{
               systems: { used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
               modules: { used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
