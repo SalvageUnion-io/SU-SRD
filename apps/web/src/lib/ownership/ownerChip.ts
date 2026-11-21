@@ -2,7 +2,7 @@
  * The owner chip (ADR-030 §6): who holds an entity in a Game, as data. An
  * ownerless entity reads "Unassigned", never a blank (`UNASSIGNED_LABEL`). It
  * renders as the roster's `OwnerSeal` (`play/games/OwnerSeal.tsx`) and as a
- * linked unit's state chip in a sheet's `AssignedUnits` (`owner`).
+ * linked unit's state chip in a sheet's `RelatedUnits` (`owner`).
  */
 
 /** How an entity's ownership should read on a card. */

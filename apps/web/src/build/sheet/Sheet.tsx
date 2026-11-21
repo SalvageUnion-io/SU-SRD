@@ -128,12 +128,12 @@ type SheetProps = {
    *
    * The public-sheet query resolves the refs server-side, and this passes them
    * in explicitly rather than fabricating a pilot record — a synthetic pilot
-   * would surface in the Assigned Units rail as a unit that was never shared.
+   * would surface in the Related units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `useGameListing` (`readOnlySheetStore.model.ts`). Assigned units the store does not
+   * `useGameListing` (`readOnlySheetStore.model.ts`). Related units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
    * what only this holds (`holds` in `sheetViewProps.model.ts`).
@@ -141,11 +141,11 @@ type SheetProps = {
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Assigned units to name without reading — a public sheet's private assignments. */
+  /** Related units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
-  /** Who holds each unit in the Game: the owner chips on its Assigned units. */
+  /** Who holds each unit in the Game: the owner chips on its Related units. */
   ownerOf?: OwnerOf
 }
 
@@ -418,7 +418,7 @@ export function Sheet({
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   // A crawler has none: it homes a whole crew, many pilots and mechs, so one
   // Pilot and one Mech segment (and the sticky bar's linked Minis, which read
-  // the same set) misname it; its Assigned units list them all.
+  // the same set) misname it; its Related units list them all.
   let segments: LiveSheetSegment[] | undefined
   if (wired && kind !== 'crawler') {
     segments = []

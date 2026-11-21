@@ -10,7 +10,7 @@ import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
  * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges) and its action entry points
  * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
  * `economyActions` and rendered as the identity band's vitals card and its head
- * chips, plus the Assigned units (`assignedUnitsFor`) handed down as
+ * chips, plus the Related units (`assignedUnitsFor`) handed down as
  * `linkedUnits`. Owns the economy-dialog state.
  */
 
@@ -62,6 +62,7 @@ export function CrawlerLiveSheet({
   editable,
   readOnly,
   liveCondition = editable,
+  liveInRead = false,
   ownerOf,
   store,
   storeState,
@@ -176,7 +177,7 @@ export function CrawlerLiveSheet({
       : []),
   ]
 
-  // Assigned units: a crawler is a home for a CREW, with no single lead
+  // Related units: a crawler is a home for a CREW, with no single lead
   // pilot or docked mech. Both places are lists — every mech docked by its OWN
   // `mech-to-crawler` link (ADR-037), then every pilot wired to it — and each
   // keeps its Assign after the first. A mech is assigned independently of its
@@ -184,7 +185,7 @@ export function CrawlerLiveSheet({
   // docked mech with no pilot still is.
   const rail = assignedRail(
     { kind: 'crawler', entity: crawler },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
   // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/

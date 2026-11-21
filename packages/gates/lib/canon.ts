@@ -281,7 +281,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
     'PilotSheet-abilities.test.tsx',
     'ability-trees.e2e.ts',
   ],
-  R49: ['Box.test.tsx', 'AssignedUnits.test.tsx', 'unitOwners.model.test.ts'],
+  R49: ['Box.test.tsx', 'RelatedUnits.test.tsx', 'unitOwners.model.test.ts'],
   R50: ['GameHub.connected.test.tsx', 'Roster.test.tsx'],
   R52: ['chrome-tokens/muted-note'],
   R53: ['_hierarchy.ts#stray-head', '_hierarchy.ts#nested-slab'],
@@ -297,10 +297,11 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R59: ['PilotSheet-equipment-choices.test.tsx'],
   R60: ['PilotSheet-equipment-choices.test.tsx', 'CatalogChoiceListing.test.tsx'],
   R61: ['SheetHero-fit.test.tsx', 'sheetGrammar.test.ts', 'pageDescription.test.tsx'],
-  R62: ['AssignedUnits.test.tsx', 'sheet-rail-links.test.tsx'],
+  R62: ['RelatedUnits.test.tsx', 'sheet-rail-links.test.tsx'],
   R65: ['PlayActionsColumn.test.tsx', 'playActions.model.test.ts'],
   R67: ['WizShell.test.tsx', 'mech-wizard.e2e.ts', 'pilot-wizard.e2e.ts', 'crawler-wizard.e2e.ts'],
   R68: ['_fillGrid.ts', 'fill-grid.e2e.ts', 'chrome-tokens/item-grid', 'Grid.test.tsx'],
+  R70: ['Sheet-related-units.test.tsx', 'RelatedUnits.test.tsx'],
 }
 
 /** A law's id as the canon and its citations spell it. */

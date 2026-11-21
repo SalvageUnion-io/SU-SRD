@@ -116,22 +116,13 @@ type PilotDashProps = {
   actions: PilotSheetActions
   /** The viewer may write it, so HP, AP, Training Points and the Used marks step in Read (R11). */
   live: boolean
+  /** Related units, companions included (R70): under the pinned vitals on a phone, else heading the side column. */
   linkedUnits?: ReactNode
-  /** The pilot's companions: their own region under the columns. */
-  companions?: ReactNode
   /** A phone: the vitals pinned, the groups stacked. */
   phone: boolean
 }
 
-export function PilotDash({
-  pilot,
-  model,
-  actions,
-  live,
-  linkedUnits,
-  companions,
-  phone,
-}: PilotDashProps) {
+export function PilotDash({ pilot, model, actions, live, linkedUnits, phone }: PilotDashProps) {
   const vitals = pilotVitalRows({ pilot, model, actions, writes: live })
   const used = pilot.usedAbilities ?? []
   const foot =
@@ -294,6 +285,7 @@ export function PilotDash({
           foot={foot}
         />
       )}
+      {phone && linkedUnits}
       <Strip
         label={buildSheetCopy('unitVitals', { name: pilot.name })}
         art={phone ? undefined : art}
@@ -345,6 +337,7 @@ export function PilotDash({
           </DashGroup>
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: pilot.name })}>
+          {!phone && linkedUnits}
           {!inventoryEmpty(pilot, model) && (
             <div className="su-dash-group">
               <OpenLedger
@@ -383,10 +376,8 @@ export function PilotDash({
               />
             </div>
           )}
-          {linkedUnits}
         </DashColumn>
       </Dash>
-      {companions}
     </>
   )
 }

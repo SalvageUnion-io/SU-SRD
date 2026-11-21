@@ -16,7 +16,7 @@
  *     what the pilot carries: Inventory, each piece of equipment a contentful
  *     Mini (its head, then its text), a generic entry its Mini, the slots'
  *     SlotGrid under them; in Edit each item's controls in its chip group;
- *     then Assigned Units, the mech and crawler they field.
+ *     then Related units, the mech and crawler they field.
  * Read leaves an empty section out (ruleset §1.2).
  *
  * A phone in Read is `PhoneSheet` (R11): the vitals as `PhoneVitals`, then the
@@ -29,7 +29,7 @@
  *
  * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * a section of inputs/gauges is a CARD (here, the identity band), a section of
- * entity cards is a SLAB (Abilities, Inventory, Assigned Units) — cards already
+ * entity cards is a SLAB (Abilities, Inventory, Related units) — cards already
  * carry their own frame, so a second frame around them reads as one opaque
  * block.
  *
@@ -109,7 +109,7 @@ type PilotSheetProps = {
    */
   crawlerReadOnly?: boolean
   /**
-   * The Assigned Units section (mech + crawler), built by PilotLiveSheet from
+   * The Related units section (mech + crawler), built by PilotLiveSheet from
    * `composition` — PilotSheet has no composition access of its own, so this
    * is passed straight through, into the sidebar under Inventory. Undefined
    * when Read has nothing linked.
@@ -209,7 +209,6 @@ export function PilotSheet({
           actions={actions}
           live={live}
           linkedUnits={linkedUnits}
-          companions={companions(true)}
           phone={phoneRead}
         />
       ) : (
@@ -249,7 +248,7 @@ export function PilotSheet({
           }
           // ===== Inventory, the sidebar (ruleset §1.2) ===== None in Read
           // when nothing is carried: an empty section is left out, as an empty
-          // field is. Assigned Units follow it there (R49): what the pilot
+          // field is. Related units follow it there (R49): what the pilot
           // carries, then what they field.
           aside={
             readOnly && empty && !linkedUnits ? undefined : (

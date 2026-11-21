@@ -1,7 +1,7 @@
 # The Hard Rules
 
-The laws said the way a machine checks them, and the chrome. Every law in [ruleset.md](ruleset.md), [EDL](entity-display-language.md), [chips-and-actions.md](chips-and-actions.md), [ledger.md](ledger.md) and here names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate, or not at all.
-A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `apps/web/e2e/_pendingRules.ts`): it reports under a ceiling until the screens hold it. Burn the findings to zero, then delete the entry.
+The laws said the way a machine checks them, and the chrome. Every law in the canon ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
+A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pendingRules.ts`): it reports under a ceiling until the screens hold it; at zero, delete the entry.
 
 ## Coverage
 
@@ -36,9 +36,10 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `apps/we
 - **R59 A fact prints once** (C10) — no Uses trait beside a live Uses slot; granted gear's rules print under its ability only.
 - **R60 A made choice reads as made** (§1.2) — a pick is a `CHOSEN | <pick>` chip; in Read a filled choice is its pick's Mini; in a picker a chip line under its row (L7); on its action's row its changed values.
 - **R61 A box fits its content; a side column fills beneath** (§1.2, §1.7, §1.10) — opening panels are as tall as their content; from 64rem the Vitals head the sidebar; on a phone `HeroMore` follows them. A side column never ends in a void: what belongs with it sits under it, or the main column takes the full width below.
-- **R62 A unit Mini's acts ride its ⋯** (C8) — Change and Unassign are ⋯ menu rows, not head buttons.
+- **R62 A unit Mini's acts ride its ⋯** (C8) — Change and Unassign are its menu's rows.
 - **R65 An action says what it does, and all are there** (§1.4, R59) — Play's board lists them (`playActions.model.ts`), never a sheet: every action of what the pilot and mech carry, the chassis ability and each companion's. A row's body is its effect alone (`actionEffect.ts`): text the data tags `notInPlay` is left out, never reworded. Rows group by action type under Mini Slabs, Passive and untyped last.
 - **R67 A guided build asks four things** (N6, R16, L9) — a wizard has at most four steps, each a decision; what the book only tells you is its step's cited `Callout`, never a step. A step's options are a Ledger in select, the pick's card beside it. The bar is a reserved strip, never over content: the budget's count, Cancel, one rust Next (`NextLabel`).
+- **R70 Related units are one section** (R49) — a sheet's crew, mech, crawler and companions, each a link; in Read even empty, a place per slot.
 
 ## Measures
 
@@ -49,7 +50,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `apps/we
 
 ## Chrome
 
-What frames the content (ruleset §4 extended). One component per job, chosen by the job (R16).
+What frames the content (ruleset §4): one component per job (R16).
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame, as `data-grain` declares texture); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
 - **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Named exceptions, each a component fit: the stat column's cell count and a Compact's art by room (E10).

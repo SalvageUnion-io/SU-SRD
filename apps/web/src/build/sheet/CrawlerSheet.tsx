@@ -10,7 +10,7 @@
  *   Identity Band: edge wordmark ∥ Name/Type/Ability/Description fields ∥ the
  *     Economy rail (SP `VitalGauge` + Tech-LVL/Upkeep/Upgrade readouts, built
  *     by CrawlerLiveSheet and passed as `economy`) → Bays (2-column masonry, the
- *     Armament Bay's weapons inside their bay) → Assigned Units, under the
+ *     Armament Bay's weapons inside their bay) → Related units, under the
  *     bays (a crew of many pilots and mechs is a list that grows downward).
  *   The Storage Bay, what the crawler carries, is the permanent right
  *     sidebar: beside the sheet from the 64rem rung, under the opening on a
@@ -148,7 +148,7 @@ type CrawlerSheetProps = {
   vitalRows?: readonly PhoneVital[]
   vitalActions?: readonly { key: string; label: string; onClick: () => void }[]
   /**
-   * The Assigned Units rail content (docked mech + lead pilot rail row/
+   * The Related units rail content (docked mech + lead pilot rail row/
    * RailEmpty), built by CrawlerLiveSheet from `composition` — CrawlerSheet has
    * no composition access of its own, so this is passed straight through
    * into the content column, under the Bays.
@@ -367,7 +367,7 @@ export function CrawlerSheet({
     >
       {/* ===== The Workshop-Manual crawler sheet's regions, in the columns
           every sheet shares (`SheetColumns`): Identity → Bays (Armament
-          weapons inside their bay) → Assigned Units, and the Storage Bay, what
+          weapons inside their bay) → Related units, and the Storage Bay, what
           the crawler carries, in the sidebar (ruleset §1.2). ===== */}
       {readOnly ? (
         // Read is the sheet dashboard at
@@ -494,7 +494,7 @@ export function CrawlerSheet({
               </MiniGrid>
             </SlabSection>
           )}
-          {/* Assigned Units — under the Bays: a crawler's crew is every pilot
+          {/* Related units — under the Bays: a crawler's crew is every pilot
             and mech it homes, a list that grows down the content column. */}
           {linkedUnits}
         </SheetColumns>

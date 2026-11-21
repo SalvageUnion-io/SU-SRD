@@ -527,7 +527,7 @@ export async function openSheetFor(page: Page, name: string): Promise<void> {
 }
 
 /**
- * A linked unit on the open sheet's Assigned units: its relation chip
+ * A linked unit on the open sheet's Related units: its relation chip
  * (`PILOT | Bonesaw`, C11), a link to its sheet.
  */
 export function assignedUnit(page: Page, name: string) {
@@ -535,7 +535,7 @@ export function assignedUnit(page: Page, name: string) {
 }
 
 /**
- * Wire a pilot onto the mech sheet currently open, via the Assigned units'
+ * Wire a pilot onto the mech sheet currently open, via the Related units'
  * 'Assign Pilot' dialog. Resolves when the pilot's relation chip renders.
  */
 export async function assignPilotOnMechSheet(page: Page, pilotName: string): Promise<void> {
@@ -547,7 +547,7 @@ export async function assignPilotOnMechSheet(page: Page, pilotName: string): Pro
 }
 
 /**
- * Wire a crawler onto the pilot sheet currently open, via the Assigned units'
+ * Wire a crawler onto the pilot sheet currently open, via the Related units'
  * 'Assign Crawler' dialog. Resolves when the crawler's relation chip renders.
  */
 export async function assignCrawlerOnPilotSheet(page: Page, crawlerName: string): Promise<void> {

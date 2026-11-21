@@ -9,6 +9,7 @@ Code identifiers may differ (`organizer`, `softLinks`, a null `gameId`); copy fo
    The Training Bay lists everything you own, in a Game or not, and nothing else; a unit's Game is a chip there, never a filter or a place, and no Games are listed there (ADR-052, ADR-066).
 3. **Assign** — the one verb for an assignment (ADR-037): assign, unassign, assigned; a pilot to a mech, a pilot, mech or NPC to a crawler.
    Never linked, wired, docked or aboard for it; a crawler's assigned pilots are its crew. Code calls the record a soft link.
+   A sheet's **Related units** section lists what it is assigned to, and its companions (R70).
 4. **Move** — the same record changes container ("Move to a Game…", "Move to your Training Bay"). It is never a copy.
 5. **Make a copy** — a new, separate record (ADR-030 §2); the one label for copying wherever it is offered.
    The Starter Set's "Copy to…" only picks where the copy lands.

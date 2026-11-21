@@ -3,16 +3,16 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import type { ReactNode } from 'react'
 import { runWrite } from '../../lib/runWrite'
 import { AssignPicker } from '../wiring/AssignPicker'
-import { AssignedUnits } from './AssignedUnits'
 import type { AssignedSubject } from './assignedUnits.model'
-import { assignedUnitsFor, hasAssignedUnits } from './assignedUnits.model'
+import { assignedUnitsFor } from './assignedUnits.model'
+import { RelatedUnits } from './RelatedUnits'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
 
 /**
- * A kind sheet's Assigned units section (`assignedUnitsFor`), each link
- * unassigned through the store and assigned through `AssignPicker`. Nothing
- * linked in Read draws no section, so none reaches the sidebar either: an
- * empty sidebar would hold its column open.
+ * A kind sheet's Related units section (`assignedUnitsFor`, R70), each link
+ * unassigned through the store and assigned through `AssignPicker`. It draws
+ * in Read too, empty or not: each empty place offers Assign and + Create to a
+ * viewer who may write the sheet (`liveInRead`).
  */
 export function assignedRail(
   subject: AssignedSubject,
@@ -24,9 +24,17 @@ export function assignedRail(
     hrefFor,
     ownerOf,
     editable,
+    liveInRead = false,
   }: Pick<
     SheetViewCommonProps,
-    'composition' | 'withheld' | 'storeState' | 'holds' | 'hrefFor' | 'ownerOf' | 'editable'
+    | 'composition'
+    | 'withheld'
+    | 'storeState'
+    | 'holds'
+    | 'hrefFor'
+    | 'ownerOf'
+    | 'editable'
+    | 'liveInRead'
   >,
   /** What stands in for an empty place of one kind (a pilot's mock crawler level). */
   extra?: Partial<Record<SheetKind, ReactNode>>
@@ -48,7 +56,5 @@ export function assignedRail(
     ),
     ...(extra ? { extra } : {}),
   })
-  return hasAssignedUnits(assigned.units, editable) ? (
-    <AssignedUnits {...assigned} editable={editable} />
-  ) : undefined
+  return <RelatedUnits {...assigned} editable={editable} writes={editable || liveInRead} />
 }

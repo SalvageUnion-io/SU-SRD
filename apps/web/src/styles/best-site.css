@@ -1027,42 +1027,6 @@
   gap: var(--space-8);
 }
 
-/* A COMPANION IS ITS OWN CELL. Painted in the
-   companion's own colour (a drone wears its tech level), the whole cell a
-   link to the companion; its numbers in one quiet line. */
-.su-companion-cell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-12);
-  padding: var(--space-8) var(--space-12);
-  background-color: var(--su-kind, var(--color-tl-1));
-  color: var(--color-ink);
-  text-decoration: none;
-}
-.su-companion-cell__kind {
-  grid-column: 1 / -1;
-  font-family: var(--font-cond);
-  font-size: var(--text-badge);
-  letter-spacing: var(--tracking-caps-snug);
-}
-.su-companion-cell__name {
-  font-family: var(--font-cond);
-  font-size: var(--text-readout);
-  font-weight: 700;
-}
-.su-companion-cell__block {
-  font-size: var(--text-caption);
-}
-.su-companion-cell__vitals {
-  grid-column: 1 / -1;
-  font-size: var(--text-caption);
-  font-variant-numeric: tabular-nums;
-}
-.su-companion-cell:hover .su-companion-cell__name,
-.su-companion-cell:focus-visible .su-companion-cell__name {
-  text-decoration: underline;
-}
 .su-partner-anchor {
   scroll-margin-top: 6rem;
 }

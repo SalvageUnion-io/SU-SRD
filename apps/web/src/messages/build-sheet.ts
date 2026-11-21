@@ -3,7 +3,10 @@
 import { messages } from './define'
 
 export const buildSheetCopy = messages({
-  assignedUnits: 'Assigned units',
+  relatedUnits: 'Related units',
+  noMech: 'No mech',
+  noPilot: 'No pilot',
+  noCrawler: 'No crawler',
   unassign: 'Unassign',
   unitActions: '{name} actions',
   changeKind: 'Change {kind}',
@@ -372,7 +375,6 @@ export const buildSheetCopy = messages({
   nothingFitted: 'Nothing fitted.',
   thePost: 'The {post}',
   thePostAfter: ' the {post}',
-  companionVitals: 'SP {sp}/{spMax} · EP {ep}/{epMax} · HEAT {heat}/{heatMax}',
   crawlerTypeBonus: 'Crawler type bonus',
   killedInAction: 'Killed in Action',
   kindPilotLabel: 'Pilot',

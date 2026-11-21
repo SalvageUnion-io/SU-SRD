@@ -387,6 +387,7 @@ export function CrawlerDash({
           foot={actionsFoot('full')}
         />
       )}
+      {phone && linkedUnits}
       <Strip
         label={buildSheetCopy('unitVitals', { name: crawler.name })}
         art={phone ? undefined : art}
@@ -419,9 +420,9 @@ export function CrawlerDash({
             groups={[{ key: 'bays', rows: bayRows }]}
             className="su-open--manifest"
           />
-          {linkedUnits}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: crawler.name })}>
+          {!phone && linkedUnits}
           {/* The Storage Bay as one deliberate object:
               "Unlimited" on its head, Scrap as a six-cell board (a Tech Level
               chip over its count), then what is stored as its rows. */}

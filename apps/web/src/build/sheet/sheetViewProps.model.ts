@@ -67,7 +67,7 @@ export type SheetViewCommonProps = {
   holds: (kind: EntityRef['type'], id: string) => boolean
   /** Where a linked unit's View goes; `undefined` renders no View at all. */
   hrefFor: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Assigned units to name without reading (public sheets); usually empty. */
+  /** Related units to name without reading (public sheets); usually empty. */
   withheld: readonly WithheldUnit[]
   /** Persist a partial patch on the sheet's own entity (fire-and-forget). */
   patch: SheetPatch

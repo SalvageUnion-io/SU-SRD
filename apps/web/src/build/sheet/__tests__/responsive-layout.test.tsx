@@ -91,7 +91,7 @@ describe('Sheet responsive layout — wired composition (LiveSheet shell)', () =
 
   test('Sheet crawler body is the shared columns, its Storage Bay the sidebar', () => {
     // Every sheet's columns (`SheetColumns`, ruleset §1.2): the opening, then
-    // the main column (Bays → Assigned Units), and what the crawler carries,
+    // the main column (Bays → Related units), and what the crawler carries,
     // its Storage Bay, in the permanent right sidebar. The old `54fr`-split
     // macro grid stays gone.
     const { container } = render(

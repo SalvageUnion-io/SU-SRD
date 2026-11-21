@@ -18,11 +18,11 @@
  *       callout (`MechChassisCard`: name with a CHASSIS chip, art,
  *       description, Change Chassis in Edit), then The Hold
  *       (`StorageManifest side='mech'`), what the mech carries — cargo is
- *       reached for mid-session — then Assigned Units (R49).
+ *       reached for mid-session — then Related units (R49).
  *
  * Section containers follow the card-vs-slab rule (see `SlabSection`):
  * inputs/gauges get a CARD (the identity band, the Chassis card), entity-card
- * collections get a SLAB (The Hold, Systems, Modules, Assigned Units). Read
+ * collections get a SLAB (The Hold, Systems, Modules, Related units). Read
  * leaves an empty section out (hard rule R11).
  *
  * A phone in Read is `PhoneSheet` (R11): the vitals as `PhoneVitals`, then
@@ -125,7 +125,7 @@ type MechSheetProps = {
   /** The linked crawler's sheet: The Hold's stow target Mini opens it. */
   crawlerHref?: string
   /**
-   * The Assigned Units rail content (pilot + crawler rail row/RailEmpty), built
+   * The Related units rail content (pilot + crawler rail row/RailEmpty), built
    * by MechLiveSheet from `composition` — MechSheet has no composition access of
    * its own, so this is passed straight through into the R4 section.
    */
@@ -306,7 +306,7 @@ export function MechSheet({
     <>
       {/* ===== Partners — drones this mech's CHASSIS ABILITY fields (Little
     Sestra's Sestra Drone, Big Brother's four). Its own region rather than
-    a Assigned Units row: a partner is not a linked roster entity, it is part
+    a Related units row: a partner is not a linked roster entity, it is part
     of this mech's own kit — and it renders full width because it carries a
     nested loadout and a hold. No crawler tech level is threaded: a
     mech-granted drone is fixed by its stat block and never tracks the

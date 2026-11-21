@@ -4,7 +4,7 @@
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
  * renders the `SheetHero` band as its first region. This
- * component's remaining job is the condensed strip and the Assigned units
+ * component's remaining job is the condensed strip and the Related units
  * (`assignedUnitsFor`), handed to `PilotSheet` as `linkedUnits`.
  */
 
@@ -56,11 +56,11 @@ export function PilotLiveSheet({
     { key: 'ap', label: buildSheetCopy('ap'), value: ap, max: maxAP },
   ]
 
-  // Assigned units: the mech it flies and the crawler it crews; an empty
+  // Related units: the mech it flies and the crawler it crews; an empty
   // crawler place stands in the hand-set crawler level until one is assigned.
   const rail = assignedRail(
     { kind: 'pilot', entity: pilot },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead },
     {
       crawler: (
         <Stat

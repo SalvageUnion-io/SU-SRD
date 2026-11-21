@@ -155,7 +155,7 @@
   flex: 1 1 0%;
 }
 
-/* Assigned units (`AssignedUnits`, every kind): one line a unit, its
+/* Related units (`RelatedUnits`, every kind): one line a unit, its
    relation chip and, in Edit, its controls. */
 .su-sheet-linked {
   display: flex;

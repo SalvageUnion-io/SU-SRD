@@ -65,7 +65,7 @@ export function SheetView({ kind, id }: SheetViewProps) {
   )
   const crawlerReadOnly = tableId !== null && table?.tableRunner !== true
 
-  // Who holds each listed pilot and mech: the owner chips on Assigned units.
+  // Who holds each listed pilot and mech: the owner chips on Related units.
   const ownerOf = useMemo<OwnerOf | undefined>(
     () => (listing && members ? ownersFromListing(listing, members, viewerId) : undefined),
     [listing, members, viewerId]

@@ -90,12 +90,12 @@ export function MechLiveSheet({
     },
   ]
 
-  // Assigned units: the pilot it carries and the crawler it docks in, both
+  // Related units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
   const savedPatterns = usePatterns((s) => s.mechPatterns)
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
   return (
