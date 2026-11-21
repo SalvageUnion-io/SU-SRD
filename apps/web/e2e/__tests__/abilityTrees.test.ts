@@ -7,7 +7,14 @@
  * `data-box="left top bottom"` is its box, each 100px wide.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'bun:test'
-import { ABILITY_TREE_SELECTORS, MAX_ACROSS, SLACK, scanAbilityTrees } from '../_abilityTrees'
+import {
+  ABILITY_TREE_SELECTORS,
+  findAbilityTrees,
+  findDashTrees,
+  MAX_ACROSS,
+  SLACK,
+  scanAbilityTrees,
+} from '../_abilityTrees'
 
 const realRect = Element.prototype.getBoundingClientRect
 
@@ -101,5 +108,99 @@ describe('scanAbilityTrees', () => {
       'legendary'
     )}</div>`
     expect(scan()).toEqual([])
+  })
+})
+
+/**
+ * The dashboard's trees (`findDashTrees`): the page is this document, the
+ * scan run in it as Playwright would run it in the browser's.
+ */
+describe('findDashTrees', () => {
+  const page = {
+    evaluate: async <A, R>(scan: (arg: A) => R, arg: A) => scan(arg),
+  } as never
+
+  /** A tree's group at `left top`: its stamp, then a Mini per ability named. */
+  const dashTree = (name: string, abilities: string[], left = 0, top = 0) => `
+    <div class="su-ability-tree__group" data-box="${left} ${top} ${top + 200}">
+      <div class="su-slab-section__head"><span>${name}</span></div>
+      ${abilities
+        .map(
+          (ability) =>
+            `<span class="su-entity-mini__name"><span class="su-sr-only">Ability: </span>${ability}</span>`
+        )
+        .join('')}
+    </div>`
+
+  const dash = (trees: string) =>
+    `<section><h2>Vitals</h2></section>
+     <section><h2>Abilities</h2><div class="su-pilot-trees">${trees}</div></section>`
+
+  const FORGING = ['Jury Rig', 'Mech-Gyver', 'Auto-Turret']
+  const MECH_TECH = ['Mass Field Maintenance', 'If I cut this wire...', 'Mass Field Repair']
+  const KNOWLEDGE = ['Engineering Expertise', 'Talk Shop', 'Mech Acquisition']
+  const ADVANCED = ['Union Engineer', 'This one goes to 11...', 'Mass Energy Recharge']
+
+  const details = async () => (await findDashTrees(page)).map((finding) => finding.detail)
+
+  test('each tree listing its own abilities, three across, passes', async () => {
+    document.body.innerHTML = dash(
+      dashTree('Forging', FORGING, 0) +
+        dashTree('Mech-Tech', MECH_TECH, 120) +
+        dashTree('Mechanical Knowledge', KNOWLEDGE, 240) +
+        dashTree('Advanced Engineer', ADVANCED, 0, 300)
+    )
+    expect(await findDashTrees(page)).toEqual([])
+  })
+
+  test('every fault is a dash-tree finding', async () => {
+    document.body.innerHTML = '<section><h2>Vitals</h2></section>'
+    expect(await findDashTrees(page)).toEqual([
+      { rule: 'dash-tree', detail: 'group: no Abilities group on the dashboard' },
+    ])
+  })
+
+  test('an Abilities group that draws no tree is a fault', async () => {
+    document.body.innerHTML = dash(
+      '<div class="su-ability-tree__group"><div class="su-slab-section__head"><span>Forging</span></div></div>'
+    )
+    expect(await details()).toEqual(['group: the Abilities group draws no tree'])
+  })
+
+  test('a tree missing an ability, or listing another tree’s, is a fault', async () => {
+    document.body.innerHTML = dash(
+      dashTree('Forging', ['Jury Rig', 'Mech-Gyver', 'Talk Shop']) +
+        dashTree('Scrapyard Poetry', ['Ode'], 120)
+    )
+    expect(await details()).toEqual([
+      'tree: Forging leaves out Auto-Turret',
+      'tree: Forging lists Talk Shop, of another tree',
+      'tree: "Scrapyard Poetry" is no tree in the dataset',
+    ])
+  })
+
+  test('a fourth tree on one line is a fault, and so is a tree drawn twice', async () => {
+    document.body.innerHTML = dash(
+      dashTree('Forging', FORGING, 0) +
+        dashTree('Mech-Tech', MECH_TECH, 120) +
+        dashTree('Mechanical Knowledge', KNOWLEDGE, 240) +
+        dashTree('Forging', FORGING, 360)
+    )
+    expect(await details()).toEqual([
+      'across: 4 trees on one line (Forging, Mech-Tech, Mechanical Knowledge, Forging)',
+      'group: a tree is drawn more than once',
+    ])
+  })
+})
+
+describe('findAbilityTrees', () => {
+  test('reads the page’s trees, each fault a tree finding', async () => {
+    const page = {
+      evaluate: async <A, R>(scanIn: (arg: A) => R, arg: A) => scanIn(arg),
+    } as never
+    document.body.innerHTML = `<div>${[0, 120, 240, 360].map((x, i) => tree(`T${i}`, x, STACKED)).join('')}</div>`
+    expect(await findAbilityTrees(page)).toEqual([
+      { rule: 'tree', detail: 'across: 4 trees on one line (T0, T1, T2, T3)' },
+    ])
   })
 })
