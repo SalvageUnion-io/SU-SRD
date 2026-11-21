@@ -84,6 +84,7 @@ import {
   moveToGroup,
   opponentAsTray,
   opponentFrom,
+  opponentNote,
   oppositionBlocks,
   pinTable,
   removeGroup,
@@ -204,6 +205,7 @@ function EncounterBody({ encounter }: { encounter: Encounter }) {
     <UnitRow
       kind="npc"
       name={opponent.name}
+      note={opponentNote(opponent)}
       readings={[{ label: opponent.statKind === 'sp' ? 'SP' : 'HP', value: opponent.maxHp }]}
       trailing={
         canWrite ? (

@@ -78,8 +78,8 @@ export const buildPrepCopy = messages({
     'The book eyeballs a fight by these (Core p.255): the outnumbered side takes fewer actions, and higher Tech Levels hit and hold harder. Fights are not balanced, so there is no score.',
   spoils: 'Spoils',
   spoilsLede:
-    'What the Pilots could salvage from this opposition (Core p.246, 269). Nothing pays out from here.',
-  noSpoils: 'Nothing here leaves salvage in the book. Mechs, Vehicles and Meld do.',
+    'What the Pilots could salvage from this opposition (Core p.246, 269, 275). Nothing pays out from here.',
+  noSpoils: 'Nothing here leaves salvage in the book. Mechs, Vehicles, Drones and Bio-Titans do.',
   chassisSalvage: '{name} Chassis · Salvage Value {value}',
   chassisSalvageTech: '{name} Chassis · Tech {tech} · Salvage Value {value}',
   systems: 'Systems',
@@ -87,4 +87,5 @@ export const buildPrepCopy = messages({
   noLoadout: 'Drawn as the bare Chassis: no Systems or Modules.',
   scrap: '{value} Scrap',
   scrapTech: '{value} Tech {tech} Scrap',
+  bioSalvage: '{value} Bio-Salvage',
 })

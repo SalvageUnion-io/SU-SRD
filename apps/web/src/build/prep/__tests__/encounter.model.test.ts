@@ -13,6 +13,7 @@ import {
   hasRoomFor,
   opponentAsTray,
   opponentFrom,
+  opponentNote,
   pinTable,
   unpinTable,
 } from '../encounter.model'
@@ -113,5 +114,43 @@ describe('running one from Play', () => {
   test('the clear-first choice names what it removes', () => {
     expect(trayChoiceLabel(1)).toBe('Clear it first (removes 1 NPC on the tray)')
     expect(trayChoiceLabel(3)).toBe('Clear it first (removes 3 NPCs on the tray)')
+  })
+})
+
+describe('what a row is, beside its name (MD-18)', () => {
+  const row = (extra: Partial<EncounterOpponent>): EncounterOpponent => ({ ...band, ...extra })
+
+  test('a plain NPC under its own name has nothing to add', () => {
+    expect(
+      opponentNote(row({ refSchema: 'npcs', refSlug: 'raider', name: 'Raider' }))
+    ).toBeUndefined()
+  })
+
+  test('a renamed unit keeps its kind and what it was drawn from', () => {
+    expect(
+      opponentNote(
+        row({
+          refSchema: 'bio-titans',
+          refSlug: 'scylla',
+          name: 'The Relay Lurker',
+          statKind: 'sp',
+        })
+      )
+    ).toBe('Bio-Titan · Scylla')
+    expect(opponentNote(row({ refSchema: 'npcs', refSlug: 'raider', name: 'Vex' }))).toBe(
+      'NPC · Raider'
+    )
+  })
+
+  test('a mech named after its pattern says its chassis', () => {
+    expect(
+      opponentNote(
+        row({ refSchema: 'chassis', refSlug: 'mule', refPattern: 'hauler', name: 'Hauler' })
+      )
+    ).toBe('Mech · Mule')
+  })
+
+  test('a unit under its own name still says its kind', () => {
+    expect(opponentNote(band)).toBe('Squad')
   })
 })

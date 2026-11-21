@@ -18,6 +18,7 @@ import {
 import type { HeaderMenuItem } from '../../components/index'
 import { copyName } from '../../lib/copyEntity'
 import { buildPrepCopy } from '../../messages/build-prep'
+import { npcKind } from '../../play/mediator/npcActions.model'
 import type { TrayNpc } from '../../play/mediator/opposition.model'
 import { readTrayNpc } from '../../play/mediator/opposition.model'
 import type { EncounterCreateInput } from '../../replica/collections'
@@ -63,6 +64,22 @@ export function hasRoomFor(encounter: Pick<Encounter, 'opposition'>): boolean {
 /** An opponent read the way the Opposition reads a tray row, at full HP or SP. */
 export function opponentAsTray(opponent: EncounterOpponent): TrayNpc {
   return readTrayNpc({ _id: opponent.id, body: { ...opponent, currentHp: opponent.maxHp } })
+}
+
+/**
+ * What a row is, beside its name: its kind, then what it was drawn from where
+ * the name no longer says ("Bio-Titan · Scylla" for a renamed Scylla, "Mech ·
+ * Hussar" for a Hussar named after its pattern). A plain NPC under its own
+ * name has nothing to add.
+ */
+export function opponentNote(opponent: EncounterOpponent): string | undefined {
+  const { entity, pattern } = opponentAsTray(opponent)
+  const named = opponent.name.trim().toLowerCase()
+  const source = [entity?.name, pattern?.name].filter(
+    (part): part is string => typeof part === 'string' && part.toLowerCase() !== named
+  )
+  if (opponent.refSchema === 'npcs' && source.length === 0) return undefined
+  return [npcKind(opponent), ...source].join(' · ')
 }
 
 /** The tables with `name` pinned last, once; unchanged when it is pinned or there is no room. */
