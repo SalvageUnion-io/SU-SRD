@@ -14,7 +14,8 @@
  * Only the pilots assigned to you are yours to play, so only those are
  * offered: a crewmate's and an unassigned one stay on the Crew list, where
  * their sheets open and a free one is assigned first. With exactly one, there
- * is nothing to choose and the button opens Play for it. With several, the
+ * is nothing to choose and the button opens Play for it, also when it was
+ * pressed before the pilots had answered. With several, the
  * dialog (`PickDialog`) lists them, each its Compact in select mode (EDL
  * "Modes"), in the roster's own order, the first chosen. Nothing else is
  * asked: the mech and the crawler follow from the pilot's own assignments once
@@ -30,7 +31,7 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { pilotCallsign } from 'game-domain/pilotLabel'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { PickDialog } from '../../components/app'
 import { Button } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
@@ -71,6 +72,8 @@ export function LaunchPlay({
   // `preselect`, so a listing that answers after the picker opened still
   // arrives with their pilot chosen.
   const [picked, setPicked] = useState<string | null>(null)
+  // The door was pressed while the pilots were still loading.
+  const [waiting, setWaiting] = useState(false)
 
   // The same three questions `GameRoster` asks, so the Worker answers both from
   // one subscription each.
@@ -81,18 +84,13 @@ export function LaunchPlay({
   useHydrateEntities(['pilot'])
   const localPilots = usePilots()
 
-  // Nothing until the crew is known: a button that appears and then vanishes
-  // when the members answer would be worse than a beat of nothing.
-  if (members === undefined) return null
-
   const pilots = ownableRows({
     kind: 'pilot',
     rows: listing?.pilots ?? [],
     viewerId,
-    members,
+    members: members ?? [],
     localIds: new Set(localPilots.map((p) => p.id)),
   }).filter((row) => row.owner?.mine === true && row.localId !== null)
-  if (onlyWithPilots && pilots.length === 0) return null
   const selected = picked ?? preselect(pilots)
   const chosen = pilots.find((row) => row.serverId === selected) ?? null
   // One pilot of yours is no choice (LG-24).
@@ -101,9 +99,23 @@ export function LaunchPlay({
   function play(row: RosterRow | null) {
     if (row?.localId == null) return
     setOpen(false)
+    setWaiting(false)
     // The local id: the one `PlayGate` looks the pilot up by.
     void router?.navigate({ to: '/pilots/$id/play', params: { id: row.localId } })
   }
+
+  // The answer a press was waiting on shows one pilot of yours: in it goes,
+  // with no second press on a dialog that has nothing to choose.
+  const goIn = waiting && open ? (only?.localId ?? null) : null
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fires on the answer, not on `play`'s identity
+  useEffect(() => {
+    if (goIn !== null) play(only)
+  }, [goIn])
+
+  // Nothing until the crew is known: a button that appears and then vanishes
+  // when the members answer would be worse than a beat of nothing.
+  if (members === undefined) return null
+  if (onlyWithPilots && pilots.length === 0) return null
 
   // The Game's own door: Join session while one is live, else Open table. A
   // pilot's door, here the dialog's act, says Play (glossary §9).
@@ -113,6 +125,8 @@ export function LaunchPlay({
     if (only !== null) return play(only)
     setPicked(null)
     setOpen(true)
+    // Pressed before the pilots answered: the press still means "take me in".
+    setWaiting(listing === undefined)
   }
 
   const launch = () => play(chosen)

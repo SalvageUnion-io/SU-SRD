@@ -23,7 +23,7 @@ import { PickDialog } from '../../components/app'
 import { Button, toast } from '../../components/index'
 import type { Confirm } from '../../components/shared/useConfirm'
 import { failureMessage } from '../../lib/connection/useServerAction'
-import { useCrawlers, useMechs, usePilots } from '../../lib/entities'
+import { useCrawlers, useOwnUnits } from '../../lib/entities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { assignmentsClearedByMove } from '../../lib/links/clearedByMove'
 import { unitRowModel } from '../../lib/units/unitModel'
@@ -52,8 +52,10 @@ export function AddFromTrainingBay({
   const [selected, setSelected] = useState<readonly string[]>([])
   const { canWrite } = useSync()
   // Every hook on every render; the crawlers are offered only when allowed.
-  const pilots = usePilots()
-  const mechs = useMechs()
+  // The viewer's own: the replica holds every crewmate's too, which would
+  // make "nothing built yet" read "all of it is in a Game already" (LG-10).
+  const pilots = useOwnUnits('pilot')
+  const mechs = useOwnUnits('mech')
   const crawlers = useCrawlers()
   const softLinks = useUnits((s) => s.softLinks)
   const offer = bringChoices({
