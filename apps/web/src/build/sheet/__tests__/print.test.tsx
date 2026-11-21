@@ -235,7 +235,7 @@ describe('Print markup — stat pip rows', () => {
     expect(offPips.length).toBeGreaterThanOrEqual(6)
   })
 
-  test('MechSheet renders SP/EP/Heat pip rows with data-pip hooks', () => {
+  test('MechSheet renders SP/EP/Heat meters with state hooks', () => {
     const { container } = render(
       <Sheet
         kind="mech"
@@ -244,8 +244,9 @@ describe('Print markup — stat pip rows', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    // chassis stats vary, but with a resolved chassis there must be pip hooks.
-    const pips = container.querySelectorAll('[data-pip]')
+    // chassis stats vary, but with a resolved chassis there must be segments
+    // the print rules fill by state.
+    const pips = container.querySelectorAll('.su-strip__seg[data-state]')
     expect(pips.length).toBeGreaterThan(0)
   })
 

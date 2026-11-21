@@ -1572,6 +1572,18 @@
   padding-block: var(--space-12);
 }
 
+/* Edit keeps the photo at every width: it is where the photo is changed. */
+.su-mast[data-edit] .su-mast__art {
+  display: block;
+}
+
+@media not (width >= 40rem) {
+  .su-mast[data-edit] .su-mast__art {
+    justify-self: start;
+    max-width: 9rem;
+  }
+}
+
 .su-mast__art figure {
   height: 100%;
 }

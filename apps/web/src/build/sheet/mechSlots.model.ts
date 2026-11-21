@@ -1,5 +1,5 @@
 /**
- * A mech's slot counts as its sheet says them (`MechLoadout`, the pickers'
+ * A mech's slot counts as its sheet says them (`MechDash`, the pickers'
  * budgets): the `SLOTS | used/max` chip, and whether an over-slot count is
  * the book's own ("as printed", `computeMechCapacity`'s `asPrinted`).
  */

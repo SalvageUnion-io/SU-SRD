@@ -129,7 +129,6 @@ export function MechLiveSheet({
           live={liveInRead}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
-          crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
           pilotAbilities={pilotAbilities}
         />

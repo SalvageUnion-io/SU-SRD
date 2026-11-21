@@ -1,8 +1,7 @@
 /**
- * MechIdentityPanel — the mech hero's IDENTITY fields (the mech sibling of
- * PilotIdentityPanel): what the player wrote. The chassis's stats and ability
- * sit beside them in the hero; its name, art and description are its callout
- * at the hero card's foot (`MechChassisCard`).
+ * MechIdentityPanel — the mech's IDENTITY fields in Edit (the mech sibling of
+ * PilotIdentityPanel): what the player wrote, on the dashboard's masthead
+ * under the board (`MechDash`).
  *
  * The PATTERN NAME is the band's title, so Read leaves it out and Edit shows
  * it as the name's edit surface, as the pilot's
@@ -59,7 +58,7 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
   )
 }
 
-/** The mech's Appearance: one of the player's short fields, beside the photo. */
+/** The mech's Appearance: one of the player's short fields. */
 export function MechAppearanceField({
   mech,
   onSave,
@@ -79,13 +78,7 @@ export function MechAppearanceField({
   )
 }
 
-/**
- * The mech's Description: the long prose, running the identity card's full
- * width under the photo and the fields beside it, so no empty column stands
- * under the photo. It takes whatever height the card has
- * left (the identity card stretches to match the vitals beside it), as the
- * pilot's Bio does.
- */
+/** The mech's Description: the long prose, under the player's short fields. */
 export function MechDescriptionField({
   mech,
   onSave,
