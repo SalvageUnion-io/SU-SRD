@@ -120,19 +120,26 @@ describe('starting a game', () => {
     fireEvent.change(screen.getByLabelText('New Game name'), {
       target: { value: 'Union Crawler #430' },
     })
+    // Asked "Will you be the Mediator?", and Yes is the answer given.
+    expect(screen.getByRole('button', { name: 'Yes' }).getAttribute('aria-pressed')).toBe('true')
     await press('Create')
 
-    expect(mutations).toEqual([{ name: 'games.create', args: { name: 'Union Crawler #430' } }])
+    expect(mutations).toEqual([
+      { name: 'games.create', args: { name: 'Union Crawler #430', mediator: true } },
+    ])
     expect(assigned).toEqual(['/games/g-new'])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
   test('from a template, the new game is shown too', async () => {
     await renderOpen()
+    // Somebody who only organises says so, and is told what an Organiser is.
+    expect(screen.getByText(/You are this Game’s Organiser either way/)).toBeTruthy()
+    await press('No')
     await press('Start this Game')
 
     expect(mutations).toEqual([
-      { name: 'templates.createGame', args: { templateId: 'starter-set' } },
+      { name: 'templates.createGame', args: { templateId: 'starter-set', mediator: false } },
     ])
     expect(assigned).toEqual(['/games/g-template'])
   })

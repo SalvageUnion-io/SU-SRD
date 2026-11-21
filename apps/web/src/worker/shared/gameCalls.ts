@@ -110,6 +110,15 @@ async function started(who: Caller, gameId: string, deps: CallDeps, start: () =>
   return republished(deps.game(gameId), gameId)
 }
 
+/**
+ * A Game's creator is its Organiser, and its Mediator too where they said so
+ * as they made it ("Will you be the Mediator?"): the Organiser's own appointment.
+ */
+async function mediatedByCreator(room: GameRoomStub, who: Caller, mediator: boolean | undefined) {
+  if (mediator !== true) return
+  await act(room, who.discordId, 'setMediator', { userId: who.discordId, mediator: true })
+}
+
 /** Have the room write its shared rows now, so the next list reads the change. */
 async function republished<T>(room: GameRoomStub, value: T): Promise<T> {
   await room.republish()
@@ -228,13 +237,14 @@ const CALLS = {
   },
   'games.create': async (
     who: Caller,
-    a: { name: string; templateOrigin?: string },
+    { mediator, ...a }: { name: string; templateOrigin?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'create', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
   'games.destroy': async (who: Caller, a: { gameId: string }, deps: CallDeps) => {
@@ -284,13 +294,14 @@ const CALLS = {
   'templates.list': async () => templateList(),
   'templates.createGame': async (
     who: Caller,
-    a: { templateId: string; name?: string },
+    { mediator, ...a }: { templateId: string; name?: string; mediator?: boolean | undefined },
     deps: CallDeps
   ) => {
     const gameId = deps.newId()
     const profile = await profileOf(deps, who)
     return started(who, gameId, deps, async () => {
       await act(deps.game(gameId), who.discordId, 'createFromTemplate', { ...a, profile })
+      await mediatedByCreator(deps.game(gameId), who, mediator)
     })
   },
 
@@ -478,7 +489,11 @@ const CALL_ARGS = {
   'games.listMine': z.object({}),
   'games.get': GAME,
   'games.names': GAME,
-  'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
+  'games.create': z.object({
+    name: z.string(),
+    templateOrigin: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
@@ -486,7 +501,11 @@ const CALL_ARGS = {
   'invites.reset': GAME,
   'invites.redeem': z.object({ code: z.string() }),
   'templates.list': z.object({}),
-  'templates.createGame': z.object({ templateId: z.string(), name: z.string().optional() }),
+  'templates.createGame': z.object({
+    templateId: z.string(),
+    name: z.string().optional(),
+    mediator: z.boolean().optional(),
+  }),
   'ownership.assign': GAME.extend({ entityId: z.string(), userId: z.string().optional() }),
   'ownership.unassign': GAME.extend({ entityId: z.string() }),
   'entities.remove': GAME.extend({ entityId: z.string() }),
