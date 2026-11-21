@@ -10,7 +10,7 @@ import { classPrefix } from '../rules/classPrefix'
 import { designTokens, fontSizePx, scanTokenSources } from '../rules/designTokens'
 import { SRD_CSS_ENTRY, srdCss } from '../rules/srdCss'
 import { stylingOwnership } from '../rules/stylingOwnership'
-import { DATA_DIR, PENDING_TL_GROUNDS, toneGround } from '../rules/toneGround'
+import { DATA_DIR, PENDING_TL_GROUNDS, STYLES_DIR, toneGround } from '../rules/toneGround'
 
 /**
  * `tools/check-rule-sets.ts` gates merges on these rule sets. These tests pin the
@@ -1255,6 +1255,34 @@ describe('tone-ground rule set', () => {
     const found = toneGround.scan(root)['tl-ground'] ?? []
     expect(found.map((f) => f.detail)).toEqual([
       'PENDING_TL_GROUNDS.drones is stale: no drones header paints a TL ground now',
+    ])
+  })
+
+  test('tl-text: a stylesheet rule that sets words on a TL ground fails; a frame or an exempt rule passes', () => {
+    const root = fixture({
+      ...pending,
+      [`${STYLES_DIR}/partials/a.css`]: [
+        '.su-swatch {',
+        '  background-color: var(--tl, var(--color-ink-10));',
+        '  color: var(--color-ink);',
+        '}',
+        '.su-chip {',
+        '  background-color: var(--color-paper);',
+        '  border: 1px solid var(--color-tl-3);',
+        '  color: var(--color-ink);',
+        '}',
+        '.su-companion-cell {',
+        '  background-color: var(--color-tl-1);',
+        '  color: var(--color-ink);',
+        '}',
+      ].join('\n'),
+    })
+    expect(toneGround.scan(root)['tl-text']).toEqual([
+      {
+        file: `${STYLES_DIR}/partials/a.css`,
+        line: 1,
+        detail: '.su-swatch sets words on a TL ground',
+      },
     ])
   })
 

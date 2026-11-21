@@ -64,7 +64,7 @@ describe('listingBandFillFor', () => {
     expect(listingBandFillFor('modules')).toBe('var(--color-tl-1)')
     expect(listingBandFillFor('drones')).toBe('var(--color-tl-1)')
     expect(listingBandFillFor('chassis')).toBeUndefined()
-    expect(listingBandFillFor('equipment')).toBe('var(--color-tl-1)')
+    expect(listingBandFillFor('equipment')).toBeUndefined()
   })
 })
 
@@ -84,12 +84,12 @@ describe('bandFillFor', () => {
     expect(bandFillFor('modules', module)).toBe('var(--color-tl-2)')
   })
 
-  test('equipment, drones and vehicles wear their tech level’s band, as their cards do', () => {
+  test('drones and vehicles wear their tech level’s band, equipment its chapter’s, as their cards do', () => {
     const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
     const drone = SalvageUnionReference.Drones.all().find((e) => e.techLevel === 5)
     const vehicle = SalvageUnionReference.Vehicles.all()[0]
     if (!equipment || !drone || !vehicle) throw new Error('fixtures missing')
-    expect(bandFillFor('equipment', equipment)).toBe('var(--color-tl-1)')
+    expect(bandFillFor('equipment', equipment)).toBeUndefined()
     expect(bandFillFor('drones', drone)).toBe('var(--color-tl-5)')
     expect(bandFillFor('vehicles', vehicle)).toMatch(/^var\(--color-tl-/)
   })

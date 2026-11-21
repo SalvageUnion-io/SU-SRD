@@ -1,5 +1,7 @@
 // A wizard's budgets: `WizTracker` in the action bar, `WizMeter` on the step.
-import { Stat, slotPips } from '../../components/index'
+
+import { slotPips } from '../../components/app'
+import { Stat } from '../../components/index'
 
 /**
  * A wizard budget in the action pill (`SCRAP | 20/20`): the `Stat` cell, its

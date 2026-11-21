@@ -29,14 +29,13 @@ import { NpcSchema } from 'game-domain/schemas/npc'
 import type { CSSProperties } from 'react'
 import { useMemo, useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
+import { FieldError, Grid } from '../../components/app'
 import {
   Badge,
   Button,
   EmptyState,
   Entity,
   Field,
-  FieldError,
-  Grid,
   Input,
   ModalShell,
   Select,

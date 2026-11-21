@@ -8,18 +8,15 @@ import type { UnitsStore } from '../../replica/units'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { RefCrawlerBay } from 'salvageunion-reference'
+import { BayInfo, EntityChoices, MiniGroup, useDetailModal } from '../../components/app'
 import type { ChoiceSelections } from '../../components/index'
 import {
-  BayInfo,
   Button,
   Content,
   damagedEffectOf,
   Entity,
-  EntityChoices,
   EntityRollMini,
-  MiniGroup,
   tokens,
-  useDetailModal,
   WhenDamaged,
 } from '../../components/index'
 import { useEntityChoices } from '../../components/shared/useEntityChoices'
@@ -300,7 +297,7 @@ export function CrawlerBayCard({
         <>
           <Button
             size="mini"
-            variant="primary"
+            variant="default"
             title={
               damaged
                 ? buildSheetCopy('isDamagedItsFunctionIs', { name: bay.name })

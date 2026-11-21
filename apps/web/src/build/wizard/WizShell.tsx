@@ -2,16 +2,14 @@ import type { SheetKind } from 'game-domain/entityKinds'
 import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
+import { ConfirmDialog, NextLabel, TrackStep } from '../../components/app'
 import {
   Badge,
   Box,
   Button,
   ChapterBand,
-  ConfirmDialog,
   capsLabel,
   HeaderMenu,
-  NextLabel,
-  TrackStep,
   tokens,
 } from '../../components/index'
 import { WizardGameChip } from './WizardGameChip'

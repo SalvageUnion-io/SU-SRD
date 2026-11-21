@@ -19,16 +19,9 @@
  * row reads under the Morale line.
  */
 
+import { heatDangerFrom, useDetailModal } from '../../components/app'
 import type { rollForTable } from '../../components/index'
-import {
-  Button,
-  HeaderMenu,
-  heatDangerFrom,
-  Stat,
-  TitledBox,
-  Toggle,
-  useDetailModal,
-} from '../../components/index'
+import { Button, HeaderMenu, Stat, TitledBox, Toggle } from '../../components/index'
 import type { ImportantTable } from '../../lib/rules/opposition'
 import { criticalTable } from '../../lib/rules/opposition'
 import { mediatorCopy } from '../../messages/play-mediator'

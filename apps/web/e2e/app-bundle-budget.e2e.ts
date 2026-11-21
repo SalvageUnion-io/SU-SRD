@@ -106,11 +106,12 @@ test.describe('bundle-size budget', { tag: '@pr' }, () => {
     const totals = await captureRouteJs(page, '/')
     report('/ (roster)', totals, CEILING)
 
-    // The single-largest-chunk tripwire (~511 KB measured at 4.5.0, ~529 KB at
-    // 4.10.0 once sonner left the chunk the reference islands share with the
-    // app: `ToasterMount` and `toastRoll` load it on first use). A chunk group
-    // cannot split that shared chunk (`astro/build/appGraph.ts`); move app-only
-    // weight out of the islands' reach instead. Turning either splitting mechanism off re-forms a chunk well
+    // The single-largest-chunk tripwire: the chunk the reference islands share
+    // with the app (~529 KB at 4.10.0; ~460 KB once the app-only components
+    // left `components/index.ts` for `components/app.ts`, which no island
+    // imports). A chunk group cannot split that shared chunk
+    // (`astro/build/appGraph.ts`): keep app-only weight out of the islands'
+    // reach (`components/app.ts`, or a lazy import as sonner's). Turning either splitting mechanism off re-forms a chunk well
     // past it (a ~615 KB shared chunk before the `codeSplitting` groups, one
     // ~1.24 MB entry before autoCodeSplitting), so it asserts against the app
     // bundle without classifying chunks by name.

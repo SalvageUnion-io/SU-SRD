@@ -4,7 +4,8 @@ import { SHARE_PAGE_ATTRIBUTE } from '../lib/sharePage'
 import { referenceCopy } from '../messages/reference'
 
 /**
- * A reference page's SHARE, on its band before Build With This (EDL E20).
+ * A reference page's SHARE, on its band before Build With This (EDL E20),
+ * outlined as any non-rust button on a band (§3.13).
  * Static markup: the client entry makes it live (`watchSharePage`), so it
  * costs the page no React. It carries both icons, the share glyph at rest
  * and the Check a copy swaps in (`data-copied`), and its polite status right
@@ -15,7 +16,7 @@ export function SharePageButton() {
   return (
     <>
       <Button
-        variant="ink"
+        variant="default"
         size="compact"
         aria-label={referenceCopy('shareThisPage')}
         className="su-page-action su-share-page"

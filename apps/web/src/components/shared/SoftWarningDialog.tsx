@@ -17,8 +17,9 @@ import type { CSSProperties } from 'react'
 import type { SoftWarning } from 'salvageunion-reference/rules'
 import { color, space } from '../../design/tokens'
 import { sharedCopy } from '../../messages/components-shared'
+import { Banner, DialogActions } from '../app'
 import { Text } from '../atoms/Text'
-import { Banner, Button, DialogActions, ModalShell } from '../index'
+import { Button, ModalShell } from '../index'
 
 const BODY = {
   backgroundColor: color.paper,

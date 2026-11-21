@@ -34,13 +34,12 @@ import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
+import { FieldError, RosterSkeleton } from '../../components/app'
 import type { HeaderMenuItem, OpenColumn, OpenRow } from '../../components/index'
 import {
   Button,
-  FieldError,
   HeaderMenu,
   OpenLedger,
-  RosterSkeleton,
   SlabSection,
   Stat,
   TechLevel,

@@ -1,8 +1,9 @@
 import { ArrowUpRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { EntityRef } from 'salvageunion-reference'
+import { NextLabel } from '../components/app'
 import type { ChapterTone, EntityPageMeta } from '../components/index'
-import { Button, ChapterBand, EntityPageStamps, KindLabel, NextLabel } from '../components/index'
+import { Button, ChapterBand, EntityPageStamps, KindLabel } from '../components/index'
 import { ReferenceSurface } from '../components/ReferenceSurface'
 import { iconSize } from '../design/tokens'
 import type { BuildLink, GuideExits } from '../lib/buildLink'
@@ -125,14 +126,14 @@ export function EntityPageFrame({
             <>
               <SharePageButton />
               {buy && (
-                // The store is off the site: a new tab, in ink, never the
-                // page's rust (the front door's Buy the game is ink too).
+                // The store is off the site: a new tab, outlined on the band
+                // (§3.13), never the page's rust.
                 <Button
                   href={buy}
                   linkAs="a"
                   target="_blank"
                   rel="noopener noreferrer"
-                  variant="ink"
+                  variant="default"
                   size="compact"
                   className="su-page-action"
                 >

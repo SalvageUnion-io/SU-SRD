@@ -2,11 +2,10 @@ import { Copy } from 'lucide-react'
 import { useState } from 'react'
 import type { RefObjectTable } from 'salvageunion-reference'
 import { NO_EFFECT, plainTraitText, rollOnTable } from 'salvageunion-reference'
+import { CopiedIcon, CopiedStatus, useCopied } from '../components/app'
 import type { RollTableType } from '../components/index'
 import {
   Button,
-  CopiedIcon,
-  CopiedStatus,
   digestColumnsTable,
   digestRollTable,
   RollTableInstrument,
@@ -14,7 +13,6 @@ import {
   toast,
   toastRoll,
   tokens,
-  useCopied,
 } from '../components/index'
 import { dieForTable } from '../lib/dice'
 import { playCopy } from '../messages/play'

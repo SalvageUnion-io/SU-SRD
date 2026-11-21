@@ -41,18 +41,16 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { heatDangerFrom, linesFromBreakdown, summarizeBreakdown } from '../../components/app'
 import type { ReferenceEntityControl, StatItem } from '../../components/index'
 import {
   Button,
   EntitySearcher,
   Field,
-  heatDangerFrom,
-  linesFromBreakdown,
   MiniGrid,
   ReferenceEntityCard,
   SlabSection,
   Stack,
-  summarizeBreakdown,
 } from '../../components/index'
 import { usePartnerCargo } from '../../lib/cargo/usePartnerCargo'
 import { occurrenceKeys } from '../../lib/occurrenceKeys'

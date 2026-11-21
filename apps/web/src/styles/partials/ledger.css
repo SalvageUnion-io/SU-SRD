@@ -457,9 +457,10 @@
   min-width: 0;
 }
 
-/* A shelf's names wrap and its link cells cut short with an ellipsis, so the
-   list never runs wider than its frame and the make stays whole: the link
-   cells share the room left (`max-width: 0` lets each shrink to fit). */
+/* A shelf's names and its link cells wrap, never cut (R56: a Game's name is
+   whole), so the list never runs wider than its frame and the make stays
+   whole: the link cells share the room left (`max-width: 0` lets each
+   shrink to fit, its words wrapping). */
 .su-shelf-ledger .su-ledger__table tbody th {
   white-space: normal;
   width: auto;
@@ -473,9 +474,8 @@
 .su-shelf-ledger .su-ledger__table td[data-kind='text'] {
   max-width: 0;
   width: 18%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* A pilot's mech under its name, where the Mech column is hidden: a phone. */

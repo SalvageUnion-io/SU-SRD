@@ -117,11 +117,11 @@ describe('guide tone — no other domain is disturbed', () => {
     }
   })
 
-  test('equipment rides the tech-level ramp', () => {
+  test('equipment wears the pilot orange, never TL blue (ruleset §3.8)', () => {
     const item = SalvageUnionReference.Equipment.all().find((e) => typeof e.techLevel === 'number')
     if (!item) throw new Error('no equipment with a numeric tech level')
     const tone = resolveDomainTone('equipment', item)
-    expect(tone.bg).toMatch(/^var\(--color-tl-/)
+    expect(tone.bg).toBe('var(--color-pilot)')
     expect(tone.bgColor).toBeUndefined()
   })
 

@@ -10,7 +10,8 @@
 
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, SlabSection, SlotGrid, tokens } from '../../components/index'
+import { SlotGrid } from '../../components/app'
+import { Button, EmptyState, SlabSection, tokens } from '../../components/index'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { UnitsStore } from '../../replica/units'

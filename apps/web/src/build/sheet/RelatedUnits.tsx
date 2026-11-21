@@ -18,9 +18,9 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Fragment, useState } from 'react'
+import { Cluster } from '../../components/app'
 import {
   Button,
-  Cluster,
   Entity,
   HeaderMenu,
   MiniGrid,

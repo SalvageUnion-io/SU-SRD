@@ -7,7 +7,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { ActivationCost, capsLabel, cn, Radio, Stat } from '../components/index'
+import { Radio } from '../components/app'
+import { ActivationCost, capsLabel, cn, Stat } from '../components/index'
 import { color, font, fontSize, space, weight } from '../design/tokens'
 import { playCopy } from '../messages/play'
 import type { ResolveModel } from './useActionsDeck'

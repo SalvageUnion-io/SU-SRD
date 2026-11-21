@@ -21,23 +21,18 @@ import type { Mech } from 'game-domain/schemas/mech'
 import type { ComponentProps, ReactNode } from 'react'
 import { STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
+import { EntityChoices, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { CSSVarStyle, OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   Button,
   Content,
   capsLabel,
   damagedEffectOf,
-  EntityChoices,
   EntityRollMini,
   embeddedPeekAddress,
-  Facts,
   Mention,
   OpenLedger,
-  Prose,
-  STRIP_ART,
   Stat,
-  Strip,
-  StripFigure,
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
@@ -359,12 +354,7 @@ export function CrawlerDash({
   const actionsFoot = (size: 'compact' | 'full') =>
     vitalActions.length > 0
       ? vitalActions.map((action) => (
-          <Button
-            key={action.key}
-            variant={size === 'full' ? 'primary' : 'default'}
-            size={size}
-            onClick={action.onClick}
-          >
+          <Button key={action.key} variant="default" size={size} onClick={action.onClick}>
             {action.label}
           </Button>
         ))

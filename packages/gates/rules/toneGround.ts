@@ -25,7 +25,7 @@
  *
  * ## Pending schemas
  *
- * The rest of the gear (equipment, drones, vehicles) and the tech-level
+ * Pilot equipment wears the pilot's orange. The rest of the gear (drones, vehicles) and the tech-level
  * entries themselves still ride the ramp, undecided. They are listed below
  * with their reason, and an entry that no longer paints a TL ground fails as
  * stale, so the list only burns down.
@@ -49,13 +49,24 @@ const BOOK_TL_GROUNDS: Readonly<Record<string, string>> = {
 
 /** Schemas whose headers still paint a TL ground, each with why. */
 export const PENDING_TL_GROUNDS: Readonly<Record<string, string>> = {
-  equipment: 'pilot gear: its non-TL hue is an owner call (pilot orange?), not yet made',
   drones: 'mech-adjacent gear: not in the change that moved systems and modules',
   vehicles: 'crawler-adjacent gear: not in the change that moved systems and modules',
   'tech-levels': 'the tech-level entry IS the level; whether it keeps its blue is an owner call',
 }
 
 const RULE_ID = 'tl-ground'
+const TEXT_RULE_ID = 'tl-text'
+
+/** The stylesheets `tl-text` reads. */
+export const STYLES_DIR = 'apps/web/src/styles'
+
+/**
+ * Rules that may still set words on a TL ground, each with why: a drone
+ * companion's cell wears the drone's tech level (drones are pending above).
+ */
+const TL_TEXT_EXEMPT: Readonly<Record<string, string>> = {
+  '.su-companion-cell': 'a drone companion wears its tech level, as drones do (PENDING_TL_GROUNDS)',
+}
 
 const RULES: Rule[] = [
   {
@@ -66,6 +77,14 @@ const RULES: Rule[] = [
       'Give the schema a non-TL tone in `entityTone` (packages/salvageunion-reference/lib/' +
       'view/parts/fill.ts) and leave the tech level to the framed TECH LEVEL badge. A ' +
       'stale pending entry: delete it from PENDING_TL_GROUNDS.',
+  },
+  {
+    id: TEXT_RULE_ID,
+    mode: 'zero',
+    rule: 'ruleset §3.8 — no stylesheet rule sets words on a TL blue',
+    fix:
+      'Put the words on paper and let the TL colour frame them, as `.su-tl` does ' +
+      '(styles/build/dash.css). A case the book heads in TL: TL_TEXT_EXEMPT.',
   },
 ]
 
@@ -116,11 +135,59 @@ function headerGrounds(
 
 const isTlGround = (tone: string): boolean => tone.startsWith('tl-')
 
+function cssFiles(root: string, dir = STYLES_DIR): string[] {
+  let names: string[] = []
+  try {
+    names = readdirSync(join(root, dir), { withFileTypes: true }).map((d) =>
+      d.isDirectory() ? `${d.name}/` : d.name
+    )
+  } catch {
+    return []
+  }
+  return names.flatMap((n) =>
+    n.endsWith('/')
+      ? n === '__tests__/'
+        ? []
+        : cssFiles(root, `${dir}/${n.slice(0, -1)}`)
+      : n.endsWith('.css')
+        ? [`${dir}/${n}`]
+        : []
+  )
+}
+
+const TL_VALUE = /var\(--tl\b|--color-tl-/
+const BLOCK = /([^{}]+)\{([^{}]*)\}/g
+
+/** Every stylesheet rule that paints a TL ground and sets a text colour on it. */
+function tlText(root: string): Finding[] {
+  const out: Finding[] = []
+  for (const file of cssFiles(root)) {
+    const source = readFileSync(join(root, file), 'utf8').replace(/\/\*[\s\S]*?\*\//g, (c) =>
+      c.replace(/[^\n]/g, ' ')
+    )
+    for (const m of source.matchAll(BLOCK)) {
+      const selector = (m[1] ?? '').trim()
+      const body = m[2] ?? ''
+      const decls = body.split(';').map((d) => d.trim())
+      const ground = decls.some((d) => /^background(-color)?\s*:/.test(d) && TL_VALUE.test(d))
+      const ink = decls.some((d) => /^color\s*:/.test(d))
+      if (!ground || !ink || selector in TL_TEXT_EXEMPT) continue
+      out.push({
+        file,
+        line: source.slice(0, m.index).split('\n').length,
+        detail: `${selector} sets words on a TL ground`,
+      })
+    }
+  }
+  return out
+}
+
 export const toneGround: RuleSet = {
   id: 'tone-ground',
   label: 'tech-level grounds',
   rules: RULES,
-  exemptionsLive: 'packages/gates/rules/toneGround.ts (BOOK_TL_GROUNDS, PENDING_TL_GROUNDS)',
+  exemptionsLive:
+    'packages/gates/rules/toneGround.ts (BOOK_TL_GROUNDS, PENDING_TL_GROUNDS, TL_TEXT_EXEMPT)',
   preflight(root) {
     assertScanFloor('tone-ground (header grounds)', headerGrounds(root).length, 500)
   },
@@ -147,7 +214,7 @@ export const toneGround: RuleSet = {
         })
       }
     }
-    return { [RULE_ID]: findings }
+    return { [RULE_ID]: findings, [TEXT_RULE_ID]: tlText(root) }
   },
   summary: (root) => `${headerGrounds(root).length} entity headers`,
 }

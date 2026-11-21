@@ -24,19 +24,15 @@ import { useMemo } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
 import { getAssetUrl, STAT_LABELS, toEntityModel } from 'salvageunion-reference'
 import { installedSlots, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
+import { Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
 import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
   ChapterBand,
   Chips,
   capsLabel,
-  Facts,
   Mention,
   OpenLedger,
-  Prose,
   relation,
-  STRIP_ART,
-  Strip,
-  StripFigure,
   Tag,
   TechLevel,
 } from '../../components/index'

@@ -3,8 +3,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefEntity } from 'salvageunion-reference'
 import { nameRefIndex, SalvageUnionReference } from 'salvageunion-reference'
 import { useGameData } from '../../lib/useGameData'
+import { useDetailModal } from '../app'
 import type { EntitySurfaceValue } from '../index'
-import { EntitySurfaceProvider, PeekHost, useDetailModal } from '../index'
+import { EntitySurfaceProvider, PeekHost } from '../index'
 
 /**
  * The app's PAGE OPENER and PEEK (entity display language E4, E5): the surface's

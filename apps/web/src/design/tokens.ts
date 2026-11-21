@@ -284,12 +284,8 @@ const base = {
   // — Ink / paper / action —
   ink: 'rgb(40, 32, 25)',
   ink2: 'rgb(70, 61, 49)',
-  /** The dark header ground. */
+  /** The dark header ground: the chrome's, header and footer alike (K13). */
   inkDeep: 'rgb(27, 23, 18)',
-  /** The chrome: the header's and the footer's one ground (K13). */
-  chrome: 'rgb(27, 23, 18)',
-  /** The chrome's ink, on the header and the footer alike (K13). */
-  onChrome: 'rgb(251, 250, 247)',
 
   /** Ink at opacity — hairlines, placeholders, ghosts, disabled fills and
    *  shadows. Warm ink at opacity reads as the same material at distance,
@@ -344,6 +340,8 @@ const base = {
    *  WCAG AA on all three grounds it lands on (paper 5.73:1 · wkBg 5.07:1 ·
    *  wkBg2 4.68:1). */
   wkMuted: 'rgb(107, 98, 87)',
+  /** Muted text on a banded row, where `wkMuted` misses AA on a kind's tint: 78% ink. */
+  bandMuted: 'rgb(40 32 25 / 0.78)',
   /** NON-TEXT ONLY — 2.03:1 on paper. A hairline/divider tone. */
   wkFaint: 'rgb(167, 180, 189)',
   /** The desk beside the page column: the page ground a sixth toward ink. */

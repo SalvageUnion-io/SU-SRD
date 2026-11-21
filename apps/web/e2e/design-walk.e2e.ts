@@ -14,7 +14,8 @@ import type { Placed } from './_findings'
 import { place } from './_findings'
 import { chassisAbilityNames, findFormFits } from './_formFits'
 import { waitForReady } from './_helpers'
-import { findHierarchy } from './_hierarchy'
+import type { Act } from './_hierarchy'
+import { actTwins, findHierarchy, readActs } from './_hierarchy'
 import { findLedgers } from './_ledger'
 import { findNesting } from './_nestingDepth'
 import { findRelationChips } from './_relationChips'
@@ -74,6 +75,7 @@ function designGates(page: Page): Gate[] {
     cells.seams += seams
     return place(where, findings)
   }
+  const acts: Act<DesignFamily>[] = []
   const cockpits = new Set<DesignFamily>()
   const overlaysRead: string[] = []
 
@@ -142,6 +144,20 @@ function designGates(page: Page): Gate[] {
           await findHierarchy(page, { context: DESIGN_FAMILIES[family], phone: width === 'phone' })
         ),
       baseline: [],
+    },
+    {
+      /**
+       * Ruleset §3.14, one act, one emphasis (`_hierarchy.ts`, `actTwins`):
+       * each act's words, every `+ New…` as one, wear one Button variant over
+       * the whole walk. Its own gate, so the PR tier holds it.
+       */
+      gate: 'act-twin',
+      scan: async ({ family, where }) => {
+        acts.push(...(await readActs(page, { family, where })))
+        return []
+      },
+      baseline: [],
+      finish: async () => actTwins(acts),
     },
     {
       /**
