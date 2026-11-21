@@ -9,6 +9,7 @@
  */
 
 import { watchStaticChipFill, watchStaticTokenOverflow } from '../components/entity/staticRuntime'
+import { widthAtLeast } from '../design/breakpoint'
 import { readAccountHint, readLastGame } from '../lib/accountHint'
 import { browserStorage, markLastGame, markSignedIn } from '../lib/accountState'
 import { appPath } from '../lib/appBase'
@@ -18,7 +19,6 @@ import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { ISLAND_COMMIT } from './islandCommit'
-import { watchPageJump } from './pageJump'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
 import { watchSlideshow } from './slideshow'
@@ -90,8 +90,16 @@ document.addEventListener('click', (event) => {
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
-// A long page's floating "On this page" (a phone): search and its sections in reach.
-watchPageJump(document)
+// A long page's floating "On this page": search and its sections in reach, on
+// a phone. Its script loads only at a phone's width, where the button draws.
+const phone = matchMedia(`not ${widthAtLeast('sm')}`)
+function startPageJump(): void {
+  if (!phone.matches) return
+  phone.removeEventListener('change', startPageJump)
+  void import('./pageJump').then(({ watchPageJump }) => watchPageJump(document))
+}
+phone.addEventListener('change', startPageJump)
+startPageJump()
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')
 // The home's slideshow: its Pause.
