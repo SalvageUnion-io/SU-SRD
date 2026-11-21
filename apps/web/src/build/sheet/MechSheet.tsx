@@ -77,7 +77,7 @@ import { PhotoBeside } from './PhotoBeside'
 import { SheetColumns } from './SheetColumns'
 import { HeroMore, SheetHero } from './SheetHero'
 import { StorageManifest } from './StorageManifest'
-import { usePhoneRead } from './usePhoneRead'
+import { usePhone } from './usePhone'
 
 /** The sheet column: an inline-size container (the poster regions query it). */
 const SHEET = {
@@ -172,7 +172,7 @@ export function MechSheet({
 
   const { chassis, cargo } = model
   // A phone in Read leads with the numbers, then tabs (`PhoneSheet`).
-  const phoneRead = usePhoneRead(readOnly)
+  const phoneRead = usePhone() && readOnly
   const vitals = (phone: boolean) => (
     <MechVitals
       mech={mech}

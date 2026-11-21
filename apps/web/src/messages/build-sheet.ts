@@ -4,6 +4,7 @@ import { messages } from './define'
 
 export const buildSheetCopy = messages({
   assignedUnits: 'Assigned units',
+  chooseOne: 'Choose 1',
   unassign: 'Unassign',
   unitActions: '{name} actions',
   changeKind: 'Change {kind}',

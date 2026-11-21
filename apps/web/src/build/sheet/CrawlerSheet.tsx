@@ -91,7 +91,7 @@ import { storageShows } from './crawlerStorage.model'
 import { SheetColumns } from './SheetColumns'
 import { SheetHero } from './SheetHero'
 import { UnknownItemLine } from './UnknownItemLine'
-import { usePhoneRead } from './usePhoneRead'
+import { usePhone } from './usePhone'
 
 /** A column that may shrink below its content inside the region grids. */
 const SHRINK = { minWidth: 0 } satisfies CSSProperties
@@ -349,7 +349,7 @@ export function CrawlerSheet({
   }
 
   // A phone in Read is the numbers, then tabs (`CrawlerPhoneSheet`).
-  const phoneRead = usePhoneRead(readOnly)
+  const phoneRead = usePhone() && readOnly
 
   /** The Storage Bay(s), by their place in the bay list: the sidebar's. */
   const storageBays = bays.flatMap((entry, i) =>

@@ -66,6 +66,11 @@ export type OpenRow = {
   meta?: ReactNode
   /** What it is on this sheet: a stamp (Damaged), its Uses. */
   state?: ReactNode
+  /**
+   * Edit's controls for the row, in place after its state (C8): a condition's
+   * stepper, Uses, Details, the remove ✕. Read gives none; the row is the same.
+   */
+  controls?: ReactNode
   /** One per column, in order; `''` or `null` prints the empty mark. */
   cells: readonly ReactNode[]
   /** The line under the row: what it does. */
@@ -188,6 +193,7 @@ function Row({
             </span>
             {row.meta && <span className={cn('su-open__meta', CAPS)}>{row.meta}</span>}
             {row.state && <span className="su-open__state">{row.state}</span>}
+            {row.controls && <span className="su-open__controls">{row.controls}</span>}
           </span>
         </th>
         {columns.map((column, index) => {
@@ -304,7 +310,8 @@ export function OpenLedger({
   // The table is named by its title, as a screen reader lists it.
   const titleId = useId()
   return (
-    <table className={cn('su-open', className)} aria-labelledby={titleId}>
+    // `data-form`: a list's form, the same in Read and Edit (R11).
+    <table className={cn('su-open', className)} aria-labelledby={titleId} data-form="ledger">
       <thead className={CAPS}>
         <tr>
           <th scope="col">

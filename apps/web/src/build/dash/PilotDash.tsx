@@ -1,27 +1,37 @@
 /**
- * PilotDash — A pilot's Read sheet as a
- * dashboard, in the order the printed sheet is used at the table.
+ * PilotDash — a pilot's sheet as a dashboard, in the order the printed sheet
+ * is used at the table. Read and Edit are this one layout (R11): Edit adds
+ * its controls in place, never a second form.
  *
- *   The strip: the portrait, HP and AP live, Training Points, then the
- *     inventory's slots.
- *   What they know: the class's trees whole, a line an ability on its level,
- *     the taken ones in ink and the rest greyed, then any Generic abilities
- *     taken.
- *   What they carry and who they are: the Inventory, the three once-a-
- *     Downtime traits (Motto, Keepsake, Background, each with its Used mark),
- *     what was written about them, and their assigned units.
+ *   The strip: the portrait, HP, AP and Training Points, then the
+ *     inventory's slots; the once-a-Downtime traits beside them and About.
+ *     Edit: the portrait takes a new one, each max is a field (Free Edit),
+ *     Conditions are written, and the identity fields stand where Read
+ *     typesets them.
+ *   What they know: the class's trees as the class page draws them (R48),
+ *     the taken abilities in ink with their rules, the rest greyed, a
+ *     header line each. Edit: Manage Abilities, and each taken ability's
+ *     Spend AP and Used.
+ *   What they carry: the Inventory, then any Generic abilities taken, then
+ *     their assigned units. Edit: Manage Equipment, each item's condition,
+ *     Uses, Details and ✕, and the adder for a carried thing of the table's.
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
+import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import type { OpenColumn, OpenRow } from '../../components/index'
+import { pinFor } from 'salvageunion-reference/rules'
+import type { OpenColumn, OpenRow, PhoneVital } from '../../components/index'
 import {
+  AbilityTrack,
+  Button,
   Conditions,
   capsLabel,
   Facts,
   OpenLedger,
   Prose,
+  SlabSection,
   STRIP_ART,
   Stat,
   Strip,
@@ -29,22 +39,35 @@ import {
   TechLevel,
 } from '../../components/index'
 import { EntityPhoto } from '../../components/shared/EntityPhoto'
+import { changeUndoToast } from '../../lib/changeUndoToast'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
-import { resolveEquipment } from '../../lib/rules/pilotInventory'
+import { cycleCondition } from '../../lib/rules/mechItems'
+import { equipmentMaxUses, resolveEquipment } from '../../lib/rules/pilotInventory'
+import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
+import type { UnitsStore } from '../../replica/units'
+import { ChipListEditor } from '../sheet/ChipListEditor'
+import { CONDITION_DRAFT } from '../sheet/chipWell.model'
 import type { UsedTraitKey } from '../sheet/PilotIdentity'
-import { UsedChip } from '../sheet/PilotIdentity'
-import { pilotVitalRows } from '../sheet/PilotVitals'
-import type { AbilityEntry, PilotSheetModel } from '../sheet/pilotSheet.model'
+import { PilotIdentityPanel, UsedChip } from '../sheet/PilotIdentity'
+import { AbilityMenu, GenericEntryAdder, PilotAbilityItem } from '../sheet/PilotSheetItems'
+import type { PilotPicker } from '../sheet/PilotSheetPickers'
+import type { AbilityEntry, AbilityTreeGroup, PilotSheetModel } from '../sheet/pilotSheet.model'
 import { inventoryEmpty } from '../sheet/pilotSheet.model'
 import type { PilotSheetActions } from '../sheet/pilotSheetActions.model'
+import { ConditionStep, EquipmentDetails, SheetRemoveButton, UsesStep } from '../sheet/rowControls'
+import { SHEET_VITALS } from '../sheet/sheetVitals.model'
 import { Cost } from './Cost'
 import { Dash, DashColumn, DashGroup } from './Dash'
 import { RowRules } from './RowRules'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
+
+/** Training Points, as its row and its Undo line say it. */
+const TP = 'TP'
 
 const ABILITY_COLUMNS: readonly OpenColumn[] = [
   { key: 'action', label: buildSheetCopy('action'), kind: 'text' },
@@ -63,51 +86,140 @@ const GEAR_COLUMNS: readonly OpenColumn[] = [
   { key: 'slots', label: buildSheetCopy('slots'), phone: true },
 ]
 
-/** A tree's column is a third of the page: its one figure is the cost. */
-const TREE_COLUMNS: readonly OpenColumn[] = ABILITY_COLUMNS.filter(
-  (column) => column.key === 'cost'
-)
+/**
+ * A pilot's numbers as rows (HP, AP, then Training Points, a counter), named
+ * from the one vitals map (R11) and written with one Undo toast a change
+ * (K5); in Edit each max is a field, with where it comes from (ruleset §2.1).
+ */
+// biome-ignore lint/style/useComponentExportOnlyModules: the rows the strip draws, beside it
+export function pilotVitalRows({
+  pilot,
+  model,
+  actions,
+  writes,
+  edit = false,
+}: {
+  pilot: Pilot
+  model: PilotSheetModel
+  actions: PilotSheetActions
+  writes: boolean
+  edit?: boolean
+}): PhoneVital[] {
+  const change = (
+    field: 'currentHP' | 'currentAP' | 'trainingPoints',
+    label: string,
+    from: number
+  ) =>
+    writes
+      ? (next: number) => {
+          actions.patchPilot({ [field]: next })
+          changeUndo(pilot, field, label, from, next, actions)
+        }
+      : undefined
+  const { maxHP, maxAP, hp, ap, tp, hpParts, apParts } = model
+  const onHp = change('currentHP', SHEET_VITALS.hp.short, hp)
+  const onAp = change('currentAP', SHEET_VITALS.ap.short, ap)
+  const onTp = change('trainingPoints', TP, tp)
+  return [
+    {
+      key: 'hp',
+      label: SHEET_VITALS.hp.short,
+      name: SHEET_VITALS.hp.label,
+      value: hp,
+      max: maxHP,
+      ...(onHp ? { onChange: onHp } : {}),
+      ...(edit
+        ? {
+            maxEdit: {
+              onMaxChange: (next: number) =>
+                actions.overridePilotMax({ maxHpOverride: pinFor(next, hpParts) }),
+              breakdown: hpParts,
+              provenance: model.hpLines,
+              onRevertOverride: () => actions.overridePilotMax({ maxHpOverride: undefined }),
+            },
+          }
+        : {}),
+    },
+    {
+      key: 'ap',
+      label: SHEET_VITALS.ap.short,
+      name: SHEET_VITALS.ap.label,
+      value: ap,
+      max: maxAP,
+      ...(onAp ? { onChange: onAp } : {}),
+      ...(edit
+        ? {
+            maxEdit: {
+              onMaxChange: (next: number) =>
+                actions.overridePilotMax({ maxApOverride: pinFor(next, apParts) }),
+              breakdown: apParts,
+              provenance: model.apLines,
+              onRevertOverride: () => actions.overridePilotMax({ maxApOverride: undefined }),
+            },
+          }
+        : {}),
+    },
+    {
+      key: 'tp',
+      label: TP,
+      name: buildSheetCopy('trainingPoints'),
+      note: buildSheetCopy('trainingPoints'),
+      value: tp,
+      ...(onTp ? { onChange: onTp } : {}),
+    },
+  ]
+}
 
-function abilityRow(entry: AbilityEntry, used: readonly string[], inTree = false): OpenRow {
-  const model = toEntityModel(entry.ability)
-  const taken = !entry.unlearned
-  const action = model.actionType === 'DownTime' ? 'Downtime' : (model.actionType ?? '')
-  return {
-    id: entry.slug,
-    name: model.title,
-    entityRef: model.ref,
-    // The Action column gives way to the name on a phone, so the row keeps
-    // what it said beside the name (nothing is dropped, EDL/R11).
-    meta:
-      action === '' || inTree ? undefined : <span className="su-open__phone-only">{action}</span>,
-    // A tree's taken ability reads in full without a press: it is the pilot's own.
-    defaultOpen: inTree && taken,
-    lead: model.tier ? (
-      <span className="su-open-level" data-on={taken ? '' : undefined}>
-        {model.tier}
-      </span>
-    ) : undefined,
-    state:
-      taken && used.includes(entry.slug) ? (
-        <Stat size="mini" label={buildSheetCopy('used')} />
-      ) : undefined,
-    cells: inTree
-      ? [model.cost ? <Cost key="cost" cost={model.cost} /> : '']
-      : [action, model.cost ? <Cost key="cost" cost={model.cost} /> : ''],
-    // What it is in a line (the class page's own summary), its rules a press away.
-    // In a tree's narrow column the action type leads that line.
-    under:
-      model.lead || (inTree && action !== '') ? (
-        <p className="su-open__clamp">
-          {inTree && action !== '' && (
-            <span className={cn('su-open__meta', CAPS)}>{action} · </span>
-          )}
-          {model.lead}
-        </p>
-      ) : undefined,
-    detail: <RowRules entity={entry.ability} />,
-    dim: !taken,
-  }
+/** One change of a number, one line with Undo (K5). */
+function changeUndo(
+  pilot: Pilot,
+  field: 'currentHP' | 'currentAP' | 'trainingPoints',
+  label: string,
+  from: number,
+  to: number,
+  actions: PilotSheetActions
+) {
+  changeUndoToast({
+    id: `pilot:${pilot.id}:${field}`,
+    label,
+    from,
+    to,
+    undo: (value) => actions.patchPilot({ [field]: value }),
+  })
+}
+
+/**
+ * One tree on its track under a slab naming it, as the class page draws it
+ * (`ClassAbilityTree`, R48): each ability its Mini, the taken ones in ink with
+ * their rules, the rest greyed, header-only, in Read and Edit alike.
+ */
+function TreeTrack({
+  group,
+  render,
+}: {
+  group: AbilityTreeGroup
+  render: (entry: AbilityEntry) => ReactNode
+}) {
+  const byId = new Map(group.abilities.map((entry) => [entry.ability.id, entry]))
+  const track = group.track ?? 'core'
+  return (
+    <SlabSection
+      title={group.tree}
+      count={track === 'legendary' ? buildSheetCopy('chooseOne') : undefined}
+      size="mini"
+      className="su-ability-tree__group"
+      bodyClassName="su-ability-tree__track"
+    >
+      <AbilityTrack
+        abilities={group.abilities.map((entry) => entry.ability)}
+        track={track}
+        renderAbility={(ability: RefAbility) => {
+          const entry = byId.get(ability.id)
+          return entry ? render(entry) : null
+        }}
+      />
+    </SlabSection>
+  )
 }
 
 type PilotDashProps = {
@@ -116,10 +228,16 @@ type PilotDashProps = {
   actions: PilotSheetActions
   /** The viewer may write it, so HP, AP, Training Points and the Used marks step in Read (R11). */
   live: boolean
+  /** Edit: the same dashboard with its controls in place. */
+  edit?: boolean
+  /** Opens a collection's picker (Edit's Manage). */
+  onManage?: (picker: PilotPicker) => void
+  /** Where an item's choices are saved (Edit's Details). */
+  store: UnitsStore
   linkedUnits?: ReactNode
   /** The pilot's companions: their own region under the columns. */
   companions?: ReactNode
-  /** A phone: the vitals pinned, the groups stacked. */
+  /** A phone: the groups stacked, the About clamped shorter. */
   phone: boolean
 }
 
@@ -128,19 +246,33 @@ export function PilotDash({
   model,
   actions,
   live,
+  edit = false,
+  onManage,
+  store,
   linkedUnits,
   companions,
   phone,
 }: PilotDashProps) {
-  const vitals = pilotVitalRows({ pilot, model, actions, writes: live })
+  const writes = live || edit
+  const vitals = pilotVitalRows({ pilot, model, actions, writes, edit })
   const used = pilot.usedAbilities ?? []
-  const foot =
-    pilot.conditions.length > 0 ? (
-      <>
-        <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
-        <Conditions conditions={[...pilot.conditions]} />
-      </>
-    ) : undefined
+  const foot = edit ? (
+    <>
+      <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
+      <ChipListEditor
+        items={pilot.conditions}
+        onChange={actions.handleConditionsChange}
+        noun="condition"
+        draftWidth={CONDITION_DRAFT}
+        unique
+      />
+    </>
+  ) : pilot.conditions.length > 0 ? (
+    <>
+      <span className={cn('su-strip__foot-label', CAPS)}>{buildSheetCopy('conditions')}</span>
+      <Conditions conditions={[...pilot.conditions]} />
+    </>
+  ) : undefined
   const figures = (
     <StripFigure
       label={buildSheetCopy('inventory')}
@@ -161,14 +293,63 @@ export function PilotDash({
       fallback={classArt(pilot.classRef)}
       name={pilot.callsign || pilot.name}
       frame={STRIP_ART}
+      onChange={
+        edit
+          ? (photo) => store.getState().update('pilot', pilot.id, { photo }, LIVE_SHEET_MANUAL)
+          : undefined
+      }
     />
   )
+
+  /** A taken ability, in ink with its rules; an untaken one greyed, no controls (R48). */
+  const renderAbility = ({ slug, ability, unlearned }: AbilityEntry) => (
+    <div key={slug} className={unlearned ? 'su-pilot-ability--unlearned' : undefined}>
+      <PilotAbilityItem
+        ability={ability}
+        currentAP={model.ap}
+        used={used.includes(slug)}
+        onSpend={actions.handleSpendAP}
+        onToggleUsed={(next) => actions.handleAbilityUsedChange(slug, next)}
+        readOnly={!edit || !!unlearned}
+        full={!unlearned}
+      />
+    </div>
+  )
+  const takenAny =
+    model.classTrees.some((group) => group.abilities.some((entry) => !entry.unlearned)) ||
+    model.unresolvedAbilities.length > 0
+
   const generic = model.genericAbilities.filter((entry) => !entry.unlearned)
+  const genericRows: OpenRow[] = generic.map((entry) => {
+    const ability = toEntityModel(entry.ability)
+    const action = ability.actionType === 'DownTime' ? 'Downtime' : (ability.actionType ?? '')
+    const isUsed = used.includes(entry.slug)
+    return {
+      id: entry.slug,
+      name: ability.title,
+      entityRef: ability.ref,
+      meta: action === '' ? undefined : <span className="su-open__phone-only">{action}</span>,
+      state: isUsed && !edit ? <Stat size="mini" label={buildSheetCopy('used')} /> : undefined,
+      controls: edit ? (
+        <AbilityMenu
+          ability={entry.ability}
+          currentAP={model.ap}
+          used={isUsed}
+          onSpend={actions.handleSpendAP}
+          onToggleUsed={(next) => actions.handleAbilityUsedChange(entry.slug, next)}
+        />
+      ) : undefined,
+      cells: [action, ability.cost ? <Cost key="cost" cost={ability.cost} /> : ''],
+      detail: <RowRules entity={entry.ability} />,
+    }
+  })
+
   const gear: OpenRow[] = [
     ...model.ordinaryEquipment.map((slug): OpenRow => {
       const entity = resolveEquipment(slug)
       const condition = pilot.equipmentConditions?.[slug] ?? 'intact'
-      const uses = pilot.equipmentUses?.[slug]
+      const usesLeft = pilot.equipmentUses?.[slug]
+      const maxUses = equipmentMaxUses(entity)
       const selections = pilot.equipmentChoices?.[slug]
       // The player's item: its picks and the crawler's Tech Level change its
       // Range, Damage and traits, as its card does (R60).
@@ -186,35 +367,86 @@ export function PilotDash({
       const granted = model.granted.has(slug) || (pilot.abilities ?? []).includes(slug)
       const item = entity ? toEntityModel(entity, instance) : undefined
       const level = item?.facts.find((fact) => fact.key === 'tech-level')?.value
+      const name = entity?.name ?? slug
+      const hasChoices = Array.isArray(entity?.choices) && (entity?.choices.length ?? 0) > 0
+      const chips = chosen.map((picked) => (
+        <Stat key={picked} size="mini" label={buildSheetCopy('chosen')} value={picked} />
+      ))
       return {
         id: slug,
-        name: entity?.name ?? slug,
+        name,
         entityRef: item?.ref,
-        state:
-          condition !== 'intact' || uses !== undefined || chosen.length > 0 ? (
-            <>
-              {condition !== 'intact' && (
-                <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
-              )}
-              {uses !== undefined && (
-                <Stat size="mini" label={buildSheetCopy('uses')} value={uses} />
-              )}
-              {chosen.map((name) => (
-                <Stat key={name} size="mini" label={buildSheetCopy('chosen')} value={name} />
-              ))}
-            </>
-          ) : undefined,
+        meta: entity ? undefined : buildSheetCopy('unknown'),
+        state: edit ? (
+          chips.length > 0 ? (
+            chips
+          ) : undefined
+        ) : condition !== 'intact' || usesLeft !== undefined || chips.length > 0 ? (
+          <>
+            {condition !== 'intact' && (
+              <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
+            )}
+            {usesLeft !== undefined && (
+              <Stat size="mini" label={buildSheetCopy('uses')} value={usesLeft} />
+            )}
+            {chips}
+          </>
+        ) : undefined,
+        controls: edit ? (
+          <>
+            <ConditionStep
+              name={name}
+              condition={condition}
+              onCycle={() =>
+                runWrite(() =>
+                  actions.handleEquipmentConditionChange(slug, cycleCondition(condition))
+                )
+              }
+            />
+            {maxUses !== null && (
+              <UsesStep
+                name={name}
+                remaining={usesLeft ?? maxUses}
+                max={maxUses}
+                onChange={(next) => actions.handleUsesChange(slug, next)}
+              />
+            )}
+            {entity && hasChoices && (
+              <EquipmentDetails
+                slug={slug}
+                equipment={entity as RefMetaEntity & { name: string }}
+                pilotId={pilot.id}
+                seed={selections}
+                scalingParent={model.scalingParent}
+                store={store}
+              />
+            )}
+            {!model.granted.has(slug) && (
+              <SheetRemoveButton name={name} onRemove={() => actions.toggleEquipment(slug)} />
+            )}
+          </>
+        ) : undefined,
         cells: [entity ? <TechLevel key="tl" level={level ?? entity.techLevel} /> : '', 1],
         dim: condition === 'destroyed',
         detail: entity && !granted ? <RowRules entity={entity} instance={instance} /> : undefined,
       }
     }),
     ...model.genericInventory.map(
-      (entry): OpenRow => ({
+      (entry, index): OpenRow => ({
         id: entry.id,
         name: entry.qty && entry.qty > 1 ? `${entry.name} ×${entry.qty}` : entry.name,
         meta: entry.note,
         cells: ['', entry.slotCost],
+        controls: edit ? (
+          <SheetRemoveButton
+            name={entry.name}
+            onRemove={() =>
+              actions.handleGenericInventoryChange(
+                model.genericInventory.filter((_, i) => i !== index)
+              )
+            }
+          />
+        ) : undefined,
       })
     ),
   ]
@@ -244,99 +476,115 @@ export function PilotDash({
     trait('keepsake', buildSheetCopy('keepsake'), pilot.keepsake),
     trait('background', buildSheetCopy('background'), pilot.background),
   ]
-  // The printed sheet opens with who the pilot is: the Motto as the line you
-  // say at the table, Keepsake and Background under it, each with its
-  // once-a-Downtime Used mark.
-  // The masthead's right column is About (the Bio,
-  // clamped, with More; Appearance under it). Motto, Keepsake and Background,
-  // each with its once-a-Downtime Used mark, are short lines on the figures'
-  // rail, beside Inventory. The side column keeps only tables.
-  const identity =
-    pilot.description || pilot.appearance.trim() !== '' ? (
-      <div className="su-mast-id">
-        {pilot.description && (
-          <div className="su-mast-id__about">
-            <p className={cn('su-mast-id__label', CAPS)}>{buildSheetCopy('about')}</p>
-            <Prose text={pilot.description} lines={phone ? 3 : 5} />
-          </div>
-        )}
-        {pilot.appearance.trim() !== '' && (
-          <Facts
-            facts={[
-              {
-                key: 'appearance',
-                label: buildSheetCopy('appearance'),
-                value: pilot.appearance,
-                wide: true,
-              },
-            ]}
-          />
-        )}
-      </div>
-    ) : undefined
-  const traitLines = traits.some(Boolean) ? (
-    <Facts
-      className="su-mast-traits"
-      itemClassName="su-mast-trait"
-      labelClassName="su-mast-id__label"
-      facts={traits}
+  // The masthead's right column is About (the Bio, clamped, with More;
+  // Appearance under it). Motto, Keepsake and Background, each with its
+  // once-a-Downtime Used mark, are short lines on the figures' rail. Edit
+  // writes all of them in the same place: the identity fields.
+  const identity = edit ? (
+    <PilotIdentityPanel
+      pilot={pilot}
+      onToggleUsed={actions.toggleUsed}
+      patch={actions.patchPilot}
     />
+  ) : pilot.description || pilot.appearance.trim() !== '' ? (
+    <div className="su-mast-id">
+      {pilot.description && (
+        <div className="su-mast-id__about">
+          <p className={cn('su-mast-id__label', CAPS)}>{buildSheetCopy('about')}</p>
+          <Prose text={pilot.description} lines={phone ? 3 : 5} />
+        </div>
+      )}
+      {pilot.appearance.trim() !== '' && (
+        <Facts
+          facts={[
+            {
+              key: 'appearance',
+              label: buildSheetCopy('appearance'),
+              value: pilot.appearance,
+              wide: true,
+            },
+          ]}
+        />
+      )}
+    </div>
   ) : undefined
+  const traitLines =
+    !edit && traits.some(Boolean) ? (
+      <Facts
+        className="su-mast-traits"
+        itemClassName="su-mast-trait"
+        labelClassName="su-mast-id__label"
+        facts={traits}
+      />
+    ) : undefined
+  const manage = (picker: PilotPicker, label: string) =>
+    edit && onManage ? (
+      <Button size="compact" onClick={() => onManage(picker)}>
+        {label}
+      </Button>
+    ) : undefined
+  const empty = inventoryEmpty(pilot, model)
   return (
     <>
       <Strip
         label={buildSheetCopy('unitVitals', { name: pilot.name })}
-        art={phone ? undefined : art}
+        art={phone && !edit ? undefined : art}
         vitals={vitals}
         figures={figures}
         foot={foot}
         identity={identity}
         traits={traitLines}
+        edit={edit}
       />
       <Dash>
         <DashColumn wide label={buildSheetCopy('abilities')}>
-          <DashGroup title={buildSheetCopy('abilities')}>
-            {/* The class's trees side by side, as the class page prints them (R48). */}
-            <div className="su-grid su-trees">
-              {model.classTrees.map((group) => (
+          {(takenAny || edit) && (
+            <DashGroup
+              title={buildSheetCopy('abilities')}
+              actions={manage('abilities', buildSheetCopy('manageAbilities'))}
+            >
+              {!takenAny && (
+                <p className="su-dash-quiet">{buildSheetCopy('noAbilitiesLearnedYet')}</p>
+              )}
+              {/* The class's trees side by side, as the class page prints them (R48). */}
+              {model.classTrees.length > 0 && (
+                <div className="su-pilot-trees" data-form="track">
+                  {model.classTrees.map((group) => (
+                    <TreeTrack key={group.tree} group={group} render={renderAbility} />
+                  ))}
+                </div>
+              )}
+              {model.unresolvedAbilities.length > 0 && (
                 <OpenLedger
-                  key={group.tree}
-                  className="su-open--sub"
+                  className="su-open--sub su-open--generic"
                   as="h3"
-                  title={group.tree}
-                  columns={TREE_COLUMNS}
+                  title={buildSheetCopy('unknownAbilities')}
+                  columns={ABILITY_COLUMNS}
                   groups={[
                     {
-                      key: group.tree,
-                      rows: group.abilities.map((entry) => abilityRow(entry, used, true)),
+                      key: 'unknown',
+                      rows: model.unresolvedAbilities.map((slug) => ({
+                        id: slug,
+                        name: slug,
+                        meta: buildSheetCopy('unknown'),
+                        cells: ['', ''],
+                        controls: edit ? (
+                          <SheetRemoveButton
+                            name={slug}
+                            onRemove={() => actions.toggleAbility(slug)}
+                          />
+                        ) : undefined,
+                      })),
                     },
                   ]}
                 />
-              ))}
-            </div>
-            {model.unresolvedAbilities.length > 0 && (
-              <OpenLedger
-                className="su-open--sub su-open--generic"
-                as="h3"
-                title={buildSheetCopy('generic')}
-                columns={ABILITY_COLUMNS}
-                groups={[
-                  {
-                    key: 'unknown',
-                    rows: model.unresolvedAbilities.map((slug) => ({
-                      id: slug,
-                      name: slug,
-                      cells: ['', ''],
-                    })),
-                  },
-                ]}
-              />
-            )}
-          </DashGroup>
+              )}
+            </DashGroup>
+          )}
         </DashColumn>
         <DashColumn label={buildSheetCopy('whatCarries', { name: pilot.name })}>
-          {!inventoryEmpty(pilot, model) && (
-            <div className="su-dash-group">
+          {(!empty || edit) && (
+            <div className="su-dash-group" data-sheet-carried="">
               <OpenLedger
                 as="h2"
                 title={buildSheetCopy('inventory')}
@@ -346,30 +594,29 @@ export function PilotDash({
                   max: model.slotsCap,
                   ...(model.overCapacity ? { state: 'critical' as const } : {}),
                 }}
+                actions={manage('equipment', buildSheetCopy('manageEquipment'))}
                 columns={GEAR_COLUMNS}
                 groups={[{ key: 'gear', rows: gear }]}
+                empty={buildSheetCopy('nothingCarried')}
               />
-              {/* The slot cells are gone; the head's count says it. */}
+              {edit && (
+                <GenericEntryAdder
+                  onAdd={(entry) =>
+                    actions.handleGenericInventoryChange([...model.genericInventory, entry])
+                  }
+                />
+              )}
             </div>
           )}
           {generic.length > 0 && (
-            // Every pilot's Generic Abilities are a
-            // table of the side column, under Inventory: a row each, header
-            // only, opening its rules in place.
+            // Every pilot's Generic Abilities are a table of the side column,
+            // under Inventory: a row each, header only, opening its rules in place.
             <div className="su-dash-group">
               <OpenLedger
                 as="h2"
                 title={buildSheetCopy('genericAbilities')}
                 columns={ABILITY_COLUMNS}
-                groups={[
-                  {
-                    key: 'generic',
-                    rows: generic.map((entry) => ({
-                      ...abilityRow(entry, used),
-                      under: undefined,
-                    })),
-                  },
-                ]}
+                groups={[{ key: 'generic', rows: genericRows }]}
               />
             </div>
           )}

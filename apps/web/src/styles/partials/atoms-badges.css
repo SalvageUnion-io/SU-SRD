@@ -382,6 +382,18 @@
   min-width: 0;
 }
 
+/* Its target is 24px whatever it draws at (WCAG 2.5.8): a hit area centred
+   on it, never smaller than the button. */
+.su-step-btn--cell {
+  position: relative;
+}
+
+.su-step-btn--cell::after {
+  content: '';
+  inset: min(0px, calc(50% - var(--space-12)));
+  position: absolute;
+}
+
 @media (width >= 40rem) {
   .su-step-btn {
     min-height: 0;

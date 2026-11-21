@@ -211,7 +211,7 @@ describe('Print markup — stat pip rows', () => {
   // present in the markup with correct filled/empty state, which is the
   // selector the print rules depend on.
 
-  test('PilotSheet renders HP/AP pip rows with filled + empty pips', () => {
+  test('PilotSheet renders HP/AP meters with filled + empty segments', () => {
     const pilotWithPartialStats: Pilot = {
       ...fakePilot,
       id: 'pip-pilot-1',
@@ -226,11 +226,11 @@ describe('Print markup — stat pip rows', () => {
         softLinkStore={makeSoftLinkStoreMock()}
       />
     )
-    const onPips = container.querySelectorAll('[data-pip="on"]')
-    const offPips = container.querySelectorAll('[data-pip="off"]')
-    // HP (6 on / 4 off) + AP (3 on / 2 off) appear in the hero StatBlocks,
-    // the condensed MiniStat strip AND the PilotSheet body pip rows — assert
-    // the print hook is present with both states rather than an exact count.
+    const onPips = container.querySelectorAll('.su-strip__seg[data-state="on"]')
+    const offPips = container.querySelectorAll('.su-strip__seg[data-state="off"]')
+    // HP (6 on / 4 off) + AP (3 on / 2 off) on the masthead's meters, which
+    // the print rules fill by state — assert both states are present rather
+    // than an exact count.
     expect(onPips.length).toBeGreaterThanOrEqual(9)
     expect(offPips.length).toBeGreaterThanOrEqual(6)
   })

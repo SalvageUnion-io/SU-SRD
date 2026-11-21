@@ -68,14 +68,12 @@ describe("a live vital's meter", () => {
     const { view } = renderVital({
       maxEdit: { onMaxChange, onRevertOverride, breakdown: { overridden: true, derived: 4 } },
     })
-    fireEvent.click(
-      view.getByRole('button', { name: 'Override Structure Points max (currently 5)' })
-    )
-    const field = view.getByRole('spinbutton', { name: 'Set Structure Points max' })
+    fireEvent.click(view.getByRole('button', { name: 'Override SP max (currently 5)' }))
+    const field = view.getByRole('spinbutton', { name: 'Set SP max' })
     fireEvent.change(field, { target: { value: '7' } })
     fireEvent.keyDown(field, { key: 'Enter' })
     expect(onMaxChange).toHaveBeenCalledWith(7)
-    fireEvent.click(view.getByRole('button', { name: 'Revert Structure Points max to derived 4' }))
+    fireEvent.click(view.getByRole('button', { name: 'Revert SP max to derived 4' }))
     expect(onRevertOverride).toHaveBeenCalled()
   })
 

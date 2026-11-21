@@ -111,7 +111,7 @@ function StripVital({ vital }: { vital: PhoneVital }) {
           {max !== undefined &&
             (maxEdit ? (
               <i>
-                /<VitalMax label={name} max={max} edit={maxEdit} />
+                /<VitalMax label={label} max={max} edit={maxEdit} />
               </i>
             ) : (
               <i>/{max}</i>
@@ -261,6 +261,7 @@ export function Strip({
   foot,
   identity,
   traits,
+  edit = false,
 }: {
   /** Names the strip: "Mazona vitals". */
   label: string
@@ -272,11 +273,13 @@ export function Strip({
   identity?: ReactNode
   /** The unit's short lines (Motto, Keepsake, Background; Quirk, Appearance), inline on the figures' rail. */
   traits?: ReactNode
+  /** Edit: the identity is its fields, laid under the board at its width. */
+  edit?: boolean
 }) {
   return (
     <div className="su-dash-top" data-print-keep="">
       {/* biome-ignore lint/a11y/useSemanticElements: a labelled group, not a landmark */}
-      <div role="group" aria-label={label} className="su-mast">
+      <div role="group" aria-label={label} className="su-mast" data-edit={edit ? '' : undefined}>
         {art && <div className="su-mast__art">{art}</div>}
         <div className="su-mast__board">
           {vitals.length > 0 && (

@@ -61,7 +61,11 @@ describe('Live Sheet — cap override (P2.2)', () => {
     render(<Sheet kind="pilot" id={pilot.id} />)
 
     // The override indicator renders on the HP gauge, naming the derived value.
-    await waitFor(() => expect(screen.getByText(/overridden from 10/i)).toBeTruthy())
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /revert hp max to derived 10/i }).getAttribute('title')
+      ).toBe('Revert to derived (10)')
+    )
 
     // One-click revert to the derived baseline.
     await act(async () => {
