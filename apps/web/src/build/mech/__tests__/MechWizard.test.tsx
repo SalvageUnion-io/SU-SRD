@@ -222,7 +222,7 @@ describe('MechWizard — hard creation enforcement', () => {
 // ---------------------------------------------------------------------------
 
 describe('MechWizard — legalStarting pattern strip', () => {
-  it('offers ONLY legalStarting patterns and prefills the loadout + name from the pick', async () => {
+  it('picks ONLY legalStarting patterns, lists the rest dimmed, and prefills the loadout + name from the pick', async () => {
     const chassis = mule()
     const legal = legalStartingPatterns(chassis.patterns)
     expect(legal.length).toBeGreaterThan(0)
@@ -233,9 +233,15 @@ describe('MechWizard — legalStarting pattern strip', () => {
     renderWizard()
     await pickRadio('Mule')
 
-    // The flagged pattern is a row of the pattern list; an unflagged one never is.
+    // The flagged pattern is a row of the pattern list; an unflagged one is
+    // listed too, dimmed with its reason, and a press on it picks nothing.
     expect(screen.getByRole('radio', { name: pattern.name })).toBeTruthy()
-    expect(screen.queryByRole('radio', { name: must(unflagged).name })).toBeNull()
+    const beyond = screen.getByRole('radio', { name: must(unflagged).name })
+    expect(beyond.closest('[data-blocked]')?.getAttribute('title')).toMatch(
+      /Not a starting Pattern/
+    )
+    await pickRadio(must(unflagged).name)
+    expect((beyond as HTMLInputElement).checked).toBe(false)
 
     await pickRadio(pattern.name)
     // Prefill debits the budget: remaining drops below the bare-chassis value.

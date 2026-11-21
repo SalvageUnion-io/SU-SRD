@@ -49,6 +49,8 @@ type NewEntityScreenProps = {
   gameId?: string | undefined
   /** A mech built for a pilot: that pilot's name, on the chooser. */
   forPilot?: string | undefined
+  /** `/mechs/new`: the book pattern its deep link names, for the chooser. */
+  book?: { chassis?: string | undefined; pattern?: string | undefined } | undefined
 }
 
 export function NewEntityScreen({
@@ -60,6 +62,7 @@ export function NewEntityScreen({
   returnTo,
   gameId,
   forPilot,
+  book,
 }: NewEntityScreenProps) {
   const connection = useSync()
   // A blank sheet and a designed NPC are written at once: they need the account first.
@@ -85,6 +88,7 @@ export function NewEntityScreen({
                 onBuilt={onCreated}
                 gameId={gameId}
                 forPilot={forPilot}
+                book={book}
               />
               <BlankCreateDialog
                 kind={kind}

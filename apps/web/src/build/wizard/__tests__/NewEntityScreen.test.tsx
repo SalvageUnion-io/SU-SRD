@@ -15,6 +15,7 @@ import {
   render as rtlRender,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react'
 import { PilotSchema } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
@@ -363,6 +364,31 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(mech?.chassisRef).toBe('mule')
     expect(mech?.name).toBe('Mule')
     expect(useSheetModeStore.getState().editing).toBe(true)
+  })
+
+  test('a book pattern above Tech 1 builds from the chooser, as printed, after it asks', async () => {
+    const created: string[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode={undefined}
+        wizard={null}
+        onModeChange={noop}
+        onCreated={(id) => created.push(id)}
+        book={{ chassis: 'magpie', pattern: 'stefanus' }}
+      />
+    )
+    const books = screen.getByRole('region', { name: 'Book Patterns' })
+    expect(within(books).getByText('Not a starting build')).toBeTruthy()
+    fireEvent.click(
+      within(books).getByRole('button', { name: 'Build With This: a mech from Stefanus' })
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Build' }))
+    await waitFor(() => expect(created.length).toBe(1))
+    const mech = useUnits.getState().get('mech', created[0] as string)
+    expect(mech?.chassisRef).toBe('magpie')
+    expect(mech?.name).toBe('Stefanus')
+    expect(mech?.systems.length).toBeGreaterThan(0)
   })
 
   test('crawler dialog offers Tech Levels 1–6, defaulting to 1', () => {

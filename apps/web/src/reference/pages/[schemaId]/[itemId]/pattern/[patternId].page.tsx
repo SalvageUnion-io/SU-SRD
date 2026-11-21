@@ -7,8 +7,13 @@
  * other page's.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
-import { toEntityModel, truncate } from 'salvageunion-reference'
+import type {
+  EnhancedSchemaMetadata,
+  RefChassis,
+  RefEntity,
+  RefObjectAnyPattern,
+} from 'salvageunion-reference'
+import { isBioTitanPattern, toEntityModel, truncate } from 'salvageunion-reference'
 import { isLegalStartingPatternOf, resolveEntityPageMeta } from '../../../../../components/index'
 import { patternBuildLinkFor } from '../../../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../../../lib/chapters'
@@ -24,6 +29,7 @@ import { getPatternStaticPaths } from '../../../../../lib/staticPaths'
 import { pagesCopy } from '../../../../../messages/reference-pages'
 import { EntityPageFrame } from '../../../../EntityPageFrame'
 import { EntityView } from '../../../../EntityView'
+import { PatternLoadout } from '../../../../PatternLoadout'
 import type { PageModule, PageResult, RouteContext } from '../../../../types'
 
 type Params = { schemaId: string; itemId: string; patternId: string }
@@ -97,6 +103,10 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         {/* The pattern renders through the same Entity unit as every other page —
             the interactive island card (in its pattern view) plus the static
             SEO / no-JS sub-content. */}
+        {/* A mech pattern opens on its loadout at a glance, with its totals. */}
+        {schemaId === 'chassis' && !isBioTitanPattern(pattern) && (
+          <PatternLoadout chassis={host as RefChassis} pattern={pattern} />
+        )}
         <EntityView item={host} schemaId={schemaId} pattern={pattern} />
       </EntityPageFrame>
     ),

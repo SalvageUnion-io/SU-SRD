@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
+import { isLegalCreationChassis } from 'salvageunion-reference/rules'
 import { must } from '../../components/__tests__/must'
 import { appPath } from '../appBase'
 import { buildLinkFor, guideExitsFor, patternBuildLinkFor, STARTER_SET_HREF } from '../buildLink'
@@ -64,17 +65,20 @@ describe('patternBuildLinkFor', () => {
     })
   })
 
-  test('every tagged pattern gets the link; an untagged one none', () => {
+  test('every pattern gets the link: a starting one to the wizard, any other to New Mech', () => {
     for (const chassis of SalvageUnionReference.Chassis.all()) {
       for (const pattern of chassis.patterns ?? []) {
-        const link = patternBuildLinkFor('chassis', chassis, pattern)
-        expect({ pattern: pattern.name, linked: link !== null }).toEqual({
+        const link = must(patternBuildLinkFor('chassis', chassis, pattern))
+        const guided = pattern.legalStarting === true && isLegalCreationChassis(chassis.techLevel)
+        expect({ pattern: pattern.name, guided: link.href.includes('mode=guided') }).toEqual({
           pattern: pattern.name,
-          linked: pattern.legalStarting === true,
+          guided,
         })
       }
     }
-    expect(patternBuildLinkFor('chassis', mule(), patternOf('Crusher'))).toBeNull()
+    expect(patternBuildLinkFor('chassis', mule(), patternOf('Crusher'))?.href).toBe(
+      appPath('/mechs/new?chassis=mule&pattern=crusher')
+    )
   })
 
   test("a Bio-Titan's pattern gets no link", () => {

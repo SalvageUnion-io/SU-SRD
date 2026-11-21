@@ -14,8 +14,9 @@
 
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
-import { Button, ChapterBand, Text, TitledBox, tokens } from '../../components/index'
+import { Button, ChapterBand, Eyebrow, Text, TitledBox, tokens } from '../../components/index'
 import { usePatterns } from '../../replica/collections'
+import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
 import { PatternList } from '../mech/Pattern/PatternList'
 import { WizardGameChip } from './WizardGameChip'
 import '../../styles/build/wizard.css'
@@ -33,6 +34,8 @@ type CreateModeChooserProps = {
   forPilot?: string | undefined
   /** The Game the build was started for (`?game=<id>`): its chip on the band. */
   gameId?: string | undefined
+  /** A Reference pattern page's Build With This: the book pattern to open on, as slugs. */
+  book?: { chassis?: string | undefined; pattern?: string | undefined } | undefined
 }
 
 const KIND_LABEL: Record<SheetKind, string> = {
@@ -80,6 +83,7 @@ export function CreateModeChooser({
   onBuilt,
   gameId,
   forPilot,
+  book,
 }: CreateModeChooserProps) {
   const label = KIND_LABEL[kind]
   const guided = GUIDED_COPY[kind]
@@ -90,6 +94,15 @@ export function CreateModeChooser({
     <div style={patternDoor}>
       <TitledBox title={buildWizardCopy('fromAPattern')} titleAs="h2" tone="mech">
         <p style={doorText}>{buildWizardCopy('aPatternIsYourPlan')}</p>
+        <BookPatternBuild
+          chassis={book?.chassis}
+          pattern={book?.pattern}
+          onBuilt={onBuilt}
+          gameId={gameId}
+        />
+        <Eyebrow as="h3" tone="muted">
+          {buildWizardCopy('yourPatterns')}
+        </Eyebrow>
         <PatternList onInstantiated={onBuilt} gameId={gameId} />
       </TitledBox>
     </div>
@@ -120,7 +133,7 @@ export function CreateModeChooser({
           </Text>
         )}
         <div className="su-wiz-chooser-doors">
-          {hasPatterns && patterns}
+          {(hasPatterns || book?.pattern !== undefined) && patterns}
           <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
@@ -136,7 +149,7 @@ export function CreateModeChooser({
               {buildWizardCopy('startBlank')}
             </Button>
           </TitledBox>
-          {!hasPatterns && patterns}
+          {!hasPatterns && book?.pattern === undefined && patterns}
         </div>
       </div>
     </section>

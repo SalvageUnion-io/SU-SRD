@@ -36,10 +36,13 @@ export function NewUnitRoute({
   kind,
   search,
   wizard,
+  book,
 }: {
   kind: SheetKind
   search: NewUnitSearch
   wizard: (props: UnitWizardProps) => ReactNode
+  /** `/mechs/new` only: the book pattern its deep link names, for the chooser. */
+  book?: { chassis?: string | undefined; pattern?: string | undefined }
 }) {
   const navigate = useNavigate()
   const { mode, pilot: pilotId } = search
@@ -78,6 +81,7 @@ export function NewUnitRoute({
       returnTo={returnTo}
       gameId={game}
       forPilot={pilot?.name}
+      book={book}
       wizard={
         <UnitWizard
           render={wizard}

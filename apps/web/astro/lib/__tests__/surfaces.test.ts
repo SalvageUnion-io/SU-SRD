@@ -356,11 +356,18 @@ describe('a pattern page names and links its base chassis', () => {
     )
   })
 
-  it('stamps nothing and offers no build on a pattern the book does not mark legal', () => {
+  it('a pattern the book does not mark legal wears no stamp, and builds as printed from New Mech', () => {
     const untagged = page('/chassis/jackhammer/pattern/auger')
     expect(untagged).not.toContain('Legal Starting Pattern')
-    expect(untagged).not.toContain('mechs/new')
-    expect(untagged).not.toContain('Build With This')
+    expect(untagged).toContain('Build With This')
+    expect(untagged).toContain('mechs/new?chassis=jackhammer&amp;pattern=auger')
+    expect(untagged).not.toContain('mode=guided')
+  })
+
+  it('opens on its loadout Ledger, with the slots filled and the Scrap summed', () => {
+    const loadout = page('/chassis/jackhammer/pattern/auger')
+    expect(loadout).toContain('aria-label="Auger loadout"')
+    expect(loadout).toMatch(/Total[\s\S]*?\d+\/\d+[\s\S]*?\d+\/\d+/)
   })
 })
 

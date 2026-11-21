@@ -9,7 +9,15 @@ import {
 } from 'salvageunion-reference'
 import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
 import { PictureRadio } from '../../components/app'
-import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
+import {
+  assetSrcSetFor,
+  capsLabel,
+  EmptyState,
+  InlineRef,
+  ReferenceEntityCard,
+  Text,
+} from '../../components/index'
+import { appPath } from '../../lib/appBase'
 import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
@@ -24,7 +32,14 @@ const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 export type ChassisPattern = RefChassis['patterns'][number]
 
 /** A starting-pattern row: a book pattern, or the custom build. */
-type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }
+type PatternRow = {
+  key: string
+  name: string
+  line: string
+  pattern?: ChassisPattern
+  /** A printed pattern past the starting budget: listed, not picked here. */
+  beyond?: boolean
+}
 
 const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
   { key: 'loadout', label: mechCopy('loadout'), kind: 'line', value: (row) => row.line },
@@ -60,7 +75,8 @@ type MechChassisStepProps = {
  * figures in fixed columns, exactly one picked (radio). The pick stands beside
  * the lists as its contentful card (its art, its ability as a contentful
  * Mini: N3, E19). "Or start from a pattern" is the same picker: the chassis's
- * `legalStarting` patterns and Custom build, a name and a loadout line each.
+ * `legalStarting` patterns and Custom build, a name and a loadout line each,
+ * then the rest it prints, dimmed (built as printed from New Mech).
  * Only Tech 1 chassis the 20 Scrap can buy render, a chassis costs its Salvage
  * Value, and a pattern prefills step 2 and debits the same pool.
  */
@@ -83,9 +99,11 @@ export function MechChassisStep({
     ? chassisPool.find((c) => nameToSlug(c.name) === chassisName)
     : undefined
 
-  const patternPool: ChassisPattern[] = selectedChassis
-    ? legalStartingPatterns(visiblePatterns(selectedChassis.patterns))
-    : []
+  // Every pattern the chassis prints is listed; only a `legalStarting` one
+  // can be picked here, the rest are built as printed from New Mech.
+  const printed: ChassisPattern[] = selectedChassis ? visiblePatterns(selectedChassis.patterns) : []
+  const patternPool: ChassisPattern[] = legalStartingPatterns(printed)
+  const beyond = printed.filter((pattern) => !patternPool.includes(pattern))
 
   // Compare NORMALIZED: mechs saved before the data dropped the " Pattern"
   // suffix still store e.g. "Hauler Pattern", which must keep matching the
@@ -106,6 +124,12 @@ export function MechChassisStep({
       name: mechCopy('customBuild'),
       line: mechCopy('noPrefillCraftYourSystems'),
     },
+    ...beyond.map((pattern) => ({
+      key: pattern.name,
+      name: pattern.name,
+      line: loadoutLine(pattern),
+      beyond: true,
+    })),
   ]
   const selectedPatternKey = isCustom
     ? CUSTOM_KEY
@@ -136,10 +160,20 @@ export function MechChassisStep({
               selected={selectedPatternKey}
               onSelect={(key) => {
                 const row = patternRows.find((r) => r.key === key)
+                if (row?.beyond) return
                 if (row?.pattern) onSelectPattern(row.pattern)
                 else onSelectCustom()
               }}
+              disabled={(row) => (row.beyond ? mechCopy('notAStartingPattern') : undefined)}
             />
+            {beyond.length > 0 && (
+              <Text variant="hint">
+                {mechCopy('dimmedPatternsAreBuilt')}{' '}
+                <InlineRef href={appPath('/mechs/new')}>
+                  {mechCopy('newMechFromAPattern')}
+                </InlineRef>
+              </Text>
+            )}
           </div>
         )}
       </div>

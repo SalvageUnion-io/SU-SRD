@@ -5,9 +5,10 @@
  * the crawler wizard on that type. The app's `/…/new` routes read the slug
  * (`apps/web/src/lib/wizard/preselect.ts`) and keep it through sign-in.
  *
- * Offered only where the wizard would accept the pick — a Tech 1 chassis, a
- * core class, any crawler type — by the same rules its pickers filter on, so
- * the button never lands on a wizard that silently ignores it.
+ * A page's own link is offered only where the wizard would accept the pick — a
+ * Tech 1 chassis, a core class, any crawler type — by the same rules its
+ * pickers filter on, so the button never lands on a wizard that silently
+ * ignores it. A pattern page always has one (`patternBuildLinkFor`).
  *
  * A creation guide ends on its exits (`guideExitsFor`): the same wizard, unseeded,
  * the next guide, and the Starter Set.
@@ -92,11 +93,12 @@ export function buildLinkFor(schemaId: string, item: RefEntity): BuildLink | nul
 }
 
 /**
- * A pattern page's "Build With This": the mech wizard on the pattern's chassis
- * with the pattern's loadout prefilled (`/mechs/new?chassis=mule&pattern=hauler`).
- * Offered only for a pattern the wizard's own pattern strip offers — a
- * `legalStarting` pattern of a Tech 1 chassis — so a Bio-Titan's or a
- * higher-tech pattern has none.
+ * A pattern page's "Build With This", on every mech pattern. A `legalStarting`
+ * pattern of a Tech 1 chassis opens the guided wizard with its loadout
+ * prefilled (`/mechs/new?mode=guided&chassis=mule&pattern=hauler`); any other
+ * opens New Mech on its book patterns with this one picked
+ * (`/mechs/new?chassis=magpie&pattern=stefanus`), built as printed. A
+ * Bio-Titan's pattern is no mech, so it has none.
  */
 export function patternBuildLinkFor(
   schemaId: string,
@@ -104,13 +106,15 @@ export function patternBuildLinkFor(
   pattern: RefObjectAnyPattern
 ): BuildLink | null {
   if (schemaId !== 'chassis' || !('techLevel' in host) || host.techLevel === undefined) return null
-  if (!isLegalCreationChassis(host.techLevel)) return null
-  if (!('legalStarting' in pattern) || !isLegalStartingPattern(pattern.legalStarting)) return null
+  const pick = { chassis: getEntitySlug(host), pattern: nameToSlug(pattern.name) }
+  const starting =
+    isLegalCreationChassis(host.techLevel) &&
+    'legalStarting' in pattern &&
+    isLegalStartingPattern(pattern.legalStarting)
   return {
-    href: wizardHref('/mechs/new', {
-      chassis: getEntitySlug(host),
-      pattern: nameToSlug(pattern.name),
-    }),
+    href: starting
+      ? wizardHref('/mechs/new', pick)
+      : `${appPath('/mechs/new')}?${new URLSearchParams(pick)}`,
     label: BUILD_WITH_THIS,
     ariaLabel: `${BUILD_WITH_THIS}: the ${pattern.name} mech`,
   }

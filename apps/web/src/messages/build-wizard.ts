@@ -62,7 +62,8 @@ export const buildWizardCopy = messages({
   startBlank: 'Start blank',
   fromAPattern: 'From a pattern',
   aPatternIsYourPlan:
-    'A pattern is your plan: a Chassis and its loadout. Build With This makes a Mech of it, fresh.',
+    'A pattern is a plan for a mech: one the book prints, at any Tech Level, or one of your own. Build With This makes the mech.',
+  yourPatterns: 'Your Patterns',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   mechNotGivenTo: 'The Mech could not be given to {name}.',
   qty: 'Qty',
