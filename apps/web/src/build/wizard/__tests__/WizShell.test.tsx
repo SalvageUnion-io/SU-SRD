@@ -26,6 +26,41 @@ function renderStep() {
 }
 
 describe('WizShell', () => {
+  test('a new step opens at the top with focus on its heading; the first is left as the page opened', () => {
+    const scrollTo = mock((..._args: unknown[]) => {})
+    const original = window.scrollTo
+    window.scrollTo = scrollTo as unknown as typeof window.scrollTo
+    const step = (active: number, title: string) => (
+      <WizShell
+        kind="mech"
+        eyebrow="New Mech"
+        steps={['Gain Scrap', 'Chassis', 'Review']}
+        active={active}
+        title={title}
+        onCancel={() => {}}
+        onNext={() => {}}
+        submitLabel="Create Mech"
+      >
+        <p>Step content</p>
+      </WizShell>
+    )
+    try {
+      const view = render(step(0, 'Gain Scrap'))
+      expect(scrollTo).not.toHaveBeenCalled()
+      expect(document.activeElement).toBe(document.body)
+      view.rerender(step(1, 'Choose your Chassis'))
+      expect(scrollTo).toHaveBeenCalledTimes(1)
+      const h1 = screen.getByRole('heading', { level: 1 })
+      expect(document.activeElement).toBe(h1)
+      expect(h1.getAttribute('tabindex')).toBe('-1')
+      // The same step drawn again moves nothing.
+      view.rerender(step(1, 'Choose your Chassis'))
+      expect(scrollTo).toHaveBeenCalledTimes(1)
+    } finally {
+      window.scrollTo = original
+    }
+  })
+
   test("the step's title is the page's h1, read with its place in the steps", () => {
     renderStep()
     const h1 = screen.getByRole('heading', { level: 1 })

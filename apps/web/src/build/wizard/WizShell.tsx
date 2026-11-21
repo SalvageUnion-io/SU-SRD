@@ -1,7 +1,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import { Check } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ConfirmDialog, NextLabel, TrackStep } from '../../components/app'
 import {
   Badge,
@@ -339,6 +339,17 @@ export function WizShell({
   confirmCancel = false,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
+  // A new step opens at the top with focus on its heading (WCAG 2.4.3): the
+  // step before it may have been left scrolled, at its Next. The first step
+  // is left where the page opened.
+  const headingRef = useRef<HTMLHeadingElement | null>(null)
+  const shownStep = useRef(active)
+  useEffect(() => {
+    if (shownStep.current === active) return
+    shownStep.current = active
+    window.scrollTo(0, 0)
+    headingRef.current?.focus({ preventScroll: true })
+  }, [active])
   const isLast = active >= steps.length - 1
   // From sm the Next names its step in words ("Next: Systems & modules").
   const ctaLabel = isLast ? (
@@ -471,7 +482,7 @@ export function WizShell({
                 <Badge shape="stamp" size="full" aria-hidden="true" style={stepNumberStyle}>
                   {active + 1}
                 </Badge>
-                <h1 className={stepTitleCaps} style={stepTitleStyle}>
+                <h1 ref={headingRef} tabIndex={-1} className={stepTitleCaps} style={stepTitleStyle}>
                   <span className="su-sr-only">
                     {buildWizardCopy('stepOf', { value: active + 1, count: steps.length })}{' '}
                   </span>
