@@ -23,6 +23,7 @@
  */
 
 import { hasCondition, storedMechConditions } from 'game-domain/mechConditions'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { mechHasCondition } from 'game-domain/rules/crewStatus'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { SeatMount, SeatResolving } from 'game-domain/schemas/seat'
@@ -162,7 +163,7 @@ export function boardMenu(args: {
   const pilotName = new Map<string, string>()
   for (const p of listing?.pilots ?? []) {
     const id = linkId(p)
-    if (id !== null) pilotName.set(id, nameOf(p.body, 'Another pilot'))
+    if (id !== null) pilotName.set(id, pilotLabelOf(bodyOf(p.body)) ?? 'Another pilot')
   }
   const aboard = new Map<string, string>()
   for (const seat of sources.seats) {

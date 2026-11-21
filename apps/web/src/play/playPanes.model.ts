@@ -18,6 +18,7 @@
  * screen's own pane components at every width.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
@@ -126,7 +127,7 @@ export function pinnedUnits({
   const units: PinnedUnit[] = [
     {
       kind: 'pilot',
-      name: pilot.name,
+      name: pilotLabel(pilot),
       vitals: pilotVitals(pilot, crawler).gauges,
     },
   ]

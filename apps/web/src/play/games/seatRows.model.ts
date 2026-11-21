@@ -5,6 +5,7 @@
  */
 
 import { sheetPath } from 'game-domain/entityKinds'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { resolvePool } from 'salvageunion-reference/rules'
 import type { GameListing } from '../../replica/gameListing'
 import type { ReadAnswer } from '../../replica/useTable'
@@ -73,7 +74,7 @@ export function seatRows(
     if (id !== null) mechName.set(id, text(m.body, 'name') ?? 'a mech')
   }
   const pilotOf = (pilot: Listing['pilots'][number]): NonNullable<SeatRow['pilot']> => {
-    const callsign = text(pilot.body, 'callsign') ?? text(pilot.body, 'name') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     const id = linkId(pilot)
     const mechId = id === null ? undefined : mechOfPilot.get(id)
     const mech = (mechId === undefined ? undefined : mechName.get(mechId)) ?? null
@@ -120,7 +121,7 @@ export function seatRows(
   }
   const open = listing.pilots.filter((p) => p.ownerId === null)
   for (const pilot of open) {
-    const callsign = text(pilot.body, 'callsign') ?? 'Pilot'
+    const callsign = pilotLabel(pilot.body as Record<string, unknown> | null)
     rows.push({
       key: pilot._id,
       role: 'Open',

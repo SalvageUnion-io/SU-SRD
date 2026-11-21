@@ -12,6 +12,7 @@
  * (`PlayMediatorCockpit`) calls too.
  */
 
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import type { PlayBinding } from './channels.model'
 import type { FeedSources } from './feed.model'
@@ -75,7 +76,7 @@ export function usePlaySide({ target, play }: PlayColumnProps): PlaySide {
   const side = useSideFeed({
     target,
     // The name the crew calls them by, as the Game's log and the bot's card print it.
-    rollerName: play.pilot?.callsign || play.pilot?.name || 'Pilot',
+    rollerName: pilotLabel(play.pilot),
     binding,
     rolls: inGame ? feed.rolls : null,
     alerts: inGame ? feed.alerts : [],

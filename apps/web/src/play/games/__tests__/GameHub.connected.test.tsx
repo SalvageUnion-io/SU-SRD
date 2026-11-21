@@ -530,11 +530,11 @@ describe('Play from the Game page', () => {
     for (const [id] of HELD) await store.forget('pilot', id)
   })
 
-  const launcher = () => screen.queryByRole('button', { name: 'Play' })
+  const launcher = () => screen.queryByRole('button', { name: 'Open table' })
 
   async function openPicker(): Promise<HTMLElement> {
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: 'Play' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Open table' }))
     })
     return screen.getByRole('dialog')
   }
@@ -585,7 +585,7 @@ describe('Play from the Game page', () => {
     const dialog = await openPicker()
     expect(offered(dialog)).toEqual(['Vex Arlo (Pilot)MineSelected', 'Mira (Pilot)Mine'])
     await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Play Vex Arlo' }))
     })
     expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
   })
@@ -611,7 +611,7 @@ describe('Play from the Game page', () => {
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
 
     await act(async () => {
-      fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Play Vex Arlo' }))
     })
     expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -650,6 +650,8 @@ describe('Play from the Game page', () => {
     expect(launch.hasAttribute('disabled')).toBe(true)
 
     fireEvent.click(radio)
+    // The act names the pilot once one is picked (glossary §9).
+    expect(launch.textContent).toBe('Play Pre-gen')
     expect(launch.hasAttribute('disabled')).toBe(false)
     await act(async () => {
       fireEvent.click(launch)
@@ -683,7 +685,7 @@ describe('Play from the Game page', () => {
       fireEvent.click(within(dialog).getAllByRole('radio')[i] as HTMLElement)
       navigations.length = 0
       await act(async () => {
-        fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
+        fireEvent.click(within(dialog).getByRole('button', { name: /^Play / }))
       })
       ids.push((navigations[0] as { params: { id: string } }).params.id)
       dialog = await openPicker()

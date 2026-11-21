@@ -16,14 +16,16 @@
  *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
  *    its doors, last in the chip group: where you mediate it, Start group
  *    session (`useGameSession`) until one is live, then Mediate; then Play
- *    <pilot> (Join as <pilot> while a session is live) for each pilot of
+ *    <pilot> for each pilot of
  *    yours in it (`playHub.model.ts`). Session live is a chip too. At its rule's end, as each
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
  *
- * No solo list: a pilot in no Game plays from its own page's Play mode, and
- * every Training Bay pilot line carries that door (ADR-066).
+ *  - **Your Pilots** (`YourPilots`): every pilot of yours with its Play door,
+ *    in a Game or not, so the header's Play always has something to play; a
+ *    pilot in no Game plays solo. Every Training Bay pilot line carries the
+ *    same door (ADR-066).
  *
  * Signed out there is nothing to play, so it is Play's front door
  * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
@@ -33,6 +35,7 @@
  * Game and Join wait for the connection.
  */
 
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
 import { gamePath, invitePath } from 'game-domain/entityKinds'
@@ -79,6 +82,7 @@ import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
+import { YourPilots } from './YourPilots'
 
 type GameSummary = GameCallResult<'games.listMine'>[number]
 
@@ -252,11 +256,17 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             <PlayGameItem
               key={game._id}
               game={game}
-              pilots={gamePilots(pilots, game._id)}
+              // A door names its pilot by callsign: "Play GHOST".
+              pilots={gamePilots(pilots, game._id).map((p) => ({
+                id: p.id,
+                name: pilotCallsign(p),
+              }))}
               channel={channelOf.get(game._id) ?? null}
             />
           ))}
         </Shelf>
+        {/* What the header's Play can always play: your pilots, solo or in a Game. */}
+        <YourPilots games={games} />
         {/* The Mediator's Kit lives with the tables
             it is for. */}
         {connected && (

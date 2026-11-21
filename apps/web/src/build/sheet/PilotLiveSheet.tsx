@@ -9,6 +9,7 @@
  */
 
 import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import { isPilotDead, pilotMaxAP, pilotMaxHP, resolvePool } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
@@ -76,7 +77,7 @@ export function PilotLiveSheet({
 
   // The band's title is the callsign; a real name that differs follows it as
   // plain words.
-  const callsign = pilot.callsign.trim() || pilot.name
+  const callsign = pilotCallsign(pilot)
   const givenName = pilot.name.trim()
   const realName =
     givenName !== '' && givenName.toLowerCase() !== callsign.toLowerCase() ? givenName : undefined

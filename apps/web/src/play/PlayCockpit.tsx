@@ -41,6 +41,7 @@
 import { useRouter } from '@tanstack/react-router'
 import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
@@ -112,8 +113,12 @@ type PlayCockpitProps = {
 export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
-  const pilotName = play.pilot?.name
-  useTabTitle(pilotName ? areaTitle(PRODUCT.build, `${pilotName} · ${routesCopy('play')}`) : null)
+  // Callsign first, then the name, as everywhere a pilot is named.
+  const pilotName = play.pilot ? pilotLabel(play.pilot) : undefined
+  // A pilot in a Game is that Game's: its tab says so (glossary §9); a solo
+  // pilot plays from the Training Bay.
+  const titleArea = target.gameId === null ? PRODUCT.build : (target.gameName ?? PRODUCT.play)
+  useTabTitle(pilotName ? areaTitle(titleArea, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',

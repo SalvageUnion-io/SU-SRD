@@ -193,7 +193,7 @@ describe('what a row offers', () => {
   test('no row opens Play: that is the hub’s Play', async () => {
     await renderAs(ME, listing({ pilots: [MY_PILOT, THEIR_PILOT], mechs: [MY_MECH] }))
     // Even your own pilot.
-    expect(screen.queryByRole('button', { name: 'Play' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Open table' })).toBeNull()
     expect(screen.queryByRole('link', { name: /^(Play|Mediate)$/ })).toBeNull()
   })
 

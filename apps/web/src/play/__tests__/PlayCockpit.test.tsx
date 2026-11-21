@@ -53,7 +53,9 @@ const { PlayCockpit } = await import('../PlayCockpit')
 beforeAll(async () => {
   await hydrateStores()
   resetSync()
-  await useUnits.getState().adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren' }))
+  await useUnits
+    .getState()
+    .adopt('pilot', pilotFixture({ id: 'cockpit-wren', name: 'Wren', callsign: 'Fixture' }))
 })
 
 afterAll(async () => {
@@ -83,7 +85,7 @@ describe('the Cockpit frame', () => {
   test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to its sheet', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
+    expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
@@ -243,7 +245,7 @@ describe('below `lg`: the same panes as tabs (play.md §11)', () => {
       // The band's crumb names the Game and the phase; the title says who is playing.
       expect(bar.getByText('Tenacity')).toBeTruthy()
       expect(bar.getByText(/On foot/)).toBeTruthy()
-      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
+      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Fixture · Wren')
       expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
       // No Situation switch on a phone: On foot, Board and Downtime are ⋯ rows.
       expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()

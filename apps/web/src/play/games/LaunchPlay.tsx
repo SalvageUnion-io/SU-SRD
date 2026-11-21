@@ -1,7 +1,8 @@
 /**
- * LaunchPlay — a member's way into Play for a pilot from the Game hub: a
- * **Play** chip button in the Game band (`GameBand`'s `actions`), and a dialog
- * that asks which pilot to play. The Mediator's own way in is the band's
+ * LaunchPlay — a member's way into Play for a pilot from the Game hub: the
+ * Game's door in its band (`GameBand`'s `actions`), **Open table**, or **Join
+ * session** while a group session is live, and a dialog that asks which pilot
+ * to play, its act **Play** and the pilot. The Mediator's own way in is the band's
  * **Mediate** link; a Mediator who also plays a pilot here gets Play beside it,
  * and one who plays none sees no Play (`onlyWithPilots`).
  *
@@ -33,6 +34,7 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
+import { pilotCallsign } from 'game-domain/pilotLabel'
 import { useState } from 'react'
 import { PickDialog } from '../../components/app'
 import { Button } from '../../components/index'
@@ -56,7 +58,7 @@ export function LaunchPlay({
   gameId,
   onlyWithPilots = false,
   live = false,
-  door = false,
+  door: roleDoor = false,
 }: {
   gameId: string
   /** Show nothing until this browser holds one of the Game's pilots (the Mediator's Play). */
@@ -102,6 +104,10 @@ export function LaunchPlay({
   const selected = picked ?? preselect(pilots)
   const chosen = pilots.find((row) => row.serverId === selected) ?? null
 
+  // The Game's own door: Join session while one is live, else Open table. A
+  // pilot's door, here the dialog's act, says Play (glossary §9).
+  const door = live ? playCopy('joinSession') : playCopy('openTable')
+
   function openPicker() {
     setPicked(null)
     setOpen(true)
@@ -119,17 +125,17 @@ export function LaunchPlay({
       {/* Play is rust only as its role's door (§1.9): the one act whose look
           the viewer's role picks, so act-twin reads past it. */}
       <Button
-        variant={door ? 'primary' : 'default'}
+        variant={roleDoor ? 'primary' : 'default'}
         size="compact"
         data-role-door=""
         onClick={openPicker}
       >
-        {live ? playCopy('joinSession') : playGamesCopy('play')}
+        {door}
       </Button>
       <PickDialog
         open={open}
         onOpenChange={setOpen}
-        title={playGamesCopy('play')}
+        title={door}
         description={playGamesCopy('chooseThePilotToPlay')}
         loading="pilots"
         groups={
@@ -159,7 +165,12 @@ export function LaunchPlay({
         empty={playGamesCopy('noneOfThisGamesPilots')}
         selected={selected}
         onSelect={setPicked}
-        confirmLabel={playGamesCopy('play')}
+        // The pick is a pilot, so its act says Play and who (glossary §9).
+        confirmLabel={
+          chosen === null
+            ? playGamesCopy('play')
+            : playCopy('playPilot', { name: pilotCallsign(chosen.body) })
+        }
         confirm={chosen === null ? undefined : launch}
       />
     </>

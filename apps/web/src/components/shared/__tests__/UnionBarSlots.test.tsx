@@ -5,7 +5,7 @@
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import { inAppRoute, unionHere } from '../../../lib/barLinks'
+import { inAppRoute, unionHere, useBarMode } from '../../../lib/barLinks'
 import { pageOrigin } from '../../../lib/site'
 import { renderUnionBar } from '../../../shell/unionBar'
 import { hidesUnionBar, slotSelector } from '../../../shell/unionSlots'
@@ -76,6 +76,32 @@ describe('UnionBarSlots', () => {
     expect(current()).toEqual(['Build'])
     rerender(<UnionBarSlots pathname="/games/g1" />)
     expect(current()).toEqual(['Play'])
+  })
+
+  test('a page that says its own tab holds it while it is on screen: a pilot in a Game is under Play', () => {
+    const tools = () => within(screen.getByRole('navigation', { name: 'Salvage Union tools' }))
+    const current = () =>
+      tools()
+        .getAllByRole('link')
+        .filter((tab) => tab.getAttribute('aria-current') === 'true')
+        .map((tab) => tab.textContent)
+    const InGame = ({ inGame }: { inGame: boolean }) => {
+      useBarMode(inGame ? 'play' : null)
+      return null
+    }
+    const page = (inGame: boolean | null) => (
+      <>
+        <UnionBarSlots pathname="/pilots/p1" />
+        {inGame === null ? null : <InGame inGame={inGame} />}
+      </>
+    )
+    const { rerender } = render(page(true))
+    expect(current()).toEqual(['Play'])
+    rerender(page(false))
+    expect(current()).toEqual(['Build'])
+    rerender(page(true))
+    rerender(page(null))
+    expect(current()).toEqual(['Build'])
   })
 
   test('the bar wears its tab’s colour as you route', () => {

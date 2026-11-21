@@ -7,6 +7,7 @@ import {
   isSlotted,
 } from 'game-domain/links/linkRules'
 import { parseUnit } from 'game-domain/ops/applyOp'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import type { ApplyOp, OpInput } from '../ops'
 import { RoomRefusal } from '../refusal'
 import type { GameStore, Member, StoredOp, UnitRow } from './store'
@@ -37,14 +38,11 @@ export function parseUnitBody(
   return result.data as Record<string, unknown>
 }
 
-/** What a sheet is called on a roster or a proposal: a pilot's callsign first. */
+/** What a sheet is called on a roster or a proposal: a pilot's callsign, then their name (`pilotLabelOf`). */
 export function unitName(unit: Pick<UnitRow, 'kind' | 'body'>): string | null {
-  const fields = unit.kind === 'pilot' ? ['callsign', 'name'] : ['name']
-  for (const field of fields) {
-    const value = unit.body[field]
-    if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-  }
-  return null
+  if (unit.kind === 'pilot') return pilotLabelOf(unit.body)
+  const value = unit.body.name
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
 }
 
 const UNASSIGNED = 'That entity is unassigned — it must be assigned before it can be edited'

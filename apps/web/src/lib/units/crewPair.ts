@@ -2,8 +2,9 @@
  * A pilot and the mech assigned to it, as ONE linked Mini:
  * its form follows where the pilot is.
  *
- *  - **Boarded**: the mech's Mini, its live readings (SP, EP, Heat) as its
- *    chips and a relation chip naming who is aboard (`PILOT | Bonesaw`).
+ *  - **Boarded**: the mech's Mini (its tone, its live readings SP, EP, Heat
+ *    as its chips) that keeps the pilot's name as its own, the mech a relation
+ *    chip (`MECH | Mule`): a pilot never changes name by boarding.
  *  - **Not boarded** (or with no mech): the pilot's Mini, its readings (HP,
  *    AP) as its chips and a relation chip naming its mech (`MECH | Mule`).
  *
@@ -47,7 +48,11 @@ export function crewPair(args: {
   if (boarded && mech !== null) {
     return {
       ...pairSide('mech', mech),
-      relations: [relation(`pilot-${pilot.id}`, 'Pilot', pilot.name, { href: pilot.href })],
+      // The line stays the pilot's by name and opens their sheet; the mech
+      // they are aboard is the chip, as it is on foot.
+      name: pilot.name,
+      href: pilot.href,
+      relations: [relation(`mech-${mech.id}`, 'Mech', mech.name, { href: mech.href })],
     }
   }
   return {

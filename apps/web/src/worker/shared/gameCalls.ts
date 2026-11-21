@@ -24,6 +24,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
+import { pilotLabelOf } from 'game-domain/pilotLabel'
 import { z } from 'salvageunion-reference/zod'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../../rooms/game/acts'
 import type { GameRead, Profile } from '../../rooms/game/roster'
@@ -184,11 +185,8 @@ async function rollerName(
 ) {
   if (pilotId !== undefined && gameId !== null) {
     const unit = await act(deps.game(gameId), who.discordId, 'unit', { unitId: pilotId })
-    const body = unit?.kind === 'pilot' ? unit.body : null
-    for (const field of ['callsign', 'name']) {
-      const value = body?.[field]
-      if (typeof value === 'string' && value.trim().length > 0) return value.trim()
-    }
+    const named = unit?.kind === 'pilot' ? pilotLabelOf(unit.body) : null
+    if (named !== null) return named
   }
   return (await profileOf(deps, who)).displayName ?? 'Crewmate'
 }

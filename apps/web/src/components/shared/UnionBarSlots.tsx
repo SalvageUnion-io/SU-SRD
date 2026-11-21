@@ -3,7 +3,7 @@ import { useRouter } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { useEffect, useLayoutEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { inAppRoute, markUnionBar, unionHere } from '../../lib/barLinks'
+import { inAppRoute, markUnionBar, unionHere, useBarModeStore } from '../../lib/barLinks'
 import type { UnionSlot } from '../../shell/unionSlots'
 import { slotSelector, UNION_SLOTS } from '../../shell/unionSlots'
 import { UnionDrawer } from '../unionBar/UnionDrawer'
@@ -95,7 +95,9 @@ export function UnionBarSlots({
   // Where you are, as the route changes: the shell arrives marked for the
   // route it was served on (`markUnionRoute`), and this moves the mark with
   // you. A layout effect, so a route change repaints the bar with the page.
-  const mode = unionHere(pathname)
+  // A page may say its own tab (a pilot in a Game is under Games, `useBarMode`).
+  const held = useBarModeStore((s) => s.mode)
+  const mode = held ?? unionHere(pathname)
   useLayoutEffect(() => {
     const bar = document.querySelector('.su-union-bar')
     if (bar) markUnionBar(bar, mode)

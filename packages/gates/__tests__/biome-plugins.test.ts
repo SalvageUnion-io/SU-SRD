@@ -87,6 +87,10 @@ const FIXTURES: Record<string, string> = {
     "export const anyKey = (m: any) => m.all().find((c) => c.slug === 'x' || c.name === 'X')", // 20: flagged
     'export const byField = () => SalvageUnionReference.Chassis.find((c) => c.tier === 1)',
     "export const indexed = () => SalvageUnionReference.Chassis.getById('x')",
+    'export const who = (p: { callsign: string; name: string }) => p.callsign || p.name', // 23: flagged
+    "export const whom = (p?: { callsign?: string }) => p?.callsign ?? 'Pilot'", // 24: flagged
+    'export const trimmed = (p: { callsign: string; name: string }) => p.callsign.trim() || p.name', // 25: flagged
+    'export const sign = (p: { callsign: string }) => p.callsign',
     '',
   ].join('\n'),
   [ROUTE_ERRORS]: [
@@ -253,6 +257,17 @@ describe('noWindowOpen', () => {
 describe('noModelFindByKey', () => {
   test('flags a find by id, name or slug, alone or in an || chain, not a find by another field', () => {
     expect(flagged(SOURCE, 'plugin', 'Look a reference entity up by index')).toEqual([19, 20])
+  })
+})
+
+describe('noInlinePilotName', () => {
+  test('flags a callsign read with a fallback beside it, not a callsign read alone', () => {
+    expect(flagged(SOURCE, 'plugin', 'Name a pilot through pilotLabel')).toEqual([23, 24, 25])
+  })
+
+  test('does not apply to tests or outside the apps', () => {
+    expect(flagged(TEST_FILE, 'plugin', 'Name a pilot through pilotLabel')).toEqual([])
+    expect(flagged(OTHER_TEST, 'plugin', 'Name a pilot through pilotLabel')).toEqual([])
   })
 })
 

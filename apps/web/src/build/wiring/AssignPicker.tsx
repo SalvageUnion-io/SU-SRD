@@ -47,6 +47,7 @@
 import type { Container, ContainerFields } from 'game-domain/container'
 import { containerOf, moveTo, sameContainer } from 'game-domain/container'
 import { linkTypeFor } from 'game-domain/links/linkRules'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -188,8 +189,9 @@ function chassisName(chassisRef: string): string | undefined {
 
 const pilotCandidate = (p: Pilot): Candidate => ({
   id: p.id,
-  name: p.name,
-  readings: p.callsign ? [{ label: wiringCopy('callsign'), value: p.callsign }] : [],
+  // Callsign first, as everywhere a pilot is named (`pilotLabel`).
+  name: pilotLabel(p),
+  readings: [],
 })
 
 const mechCandidate = (m: Mech): Candidate => ({

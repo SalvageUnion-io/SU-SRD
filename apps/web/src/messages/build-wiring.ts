@@ -24,6 +24,5 @@ export const wiringCopy = messages({
     'A pilot crews one crawler — adding one already assigned to another moves them here.',
   aMechIsAssignedTo2:
     'A mech is assigned to one crawler — assigning one from another bay moves it here. Its pilot is assigned separately.',
-  callsign: 'Callsign',
   tl: 'TL',
 })

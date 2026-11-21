@@ -4,6 +4,8 @@
  * The shell's bar is marked for the route it is served on by the same decision
  * (`markUnionRoute`, `worker/shellMeta.ts`), so the right tab paints first.
  */
+import { useEffect } from 'react'
+import { create } from 'zustand'
 import { routeInApp } from './appBase'
 import { pageOrigin } from './site'
 
@@ -18,6 +20,23 @@ export type UnionMode = 'build' | 'play'
  */
 export function unionHere(path: string): UnionMode {
   return path === '/games' || path.startsWith('/games/') ? 'play' : 'build'
+}
+
+/**
+ * A page that knows better than its path: a pilot in a Game is that Game's, so
+ * its sheet and its Play mode sit under the Games tab (glossary §9) though they
+ * live at `/pilots/…`. The page says so while it is on screen (`useBarMode`);
+ * `UnionBarSlots` reads it ahead of `unionHere`.
+ */
+export const useBarModeStore = create<{ mode: UnionMode | null }>(() => ({ mode: null }))
+
+/** Hold the bar's tab at `mode` while this page is mounted; `null` leaves the path to decide. */
+export function useBarMode(mode: UnionMode | null): void {
+  useEffect(() => {
+    if (mode === null) return
+    useBarModeStore.setState({ mode })
+    return () => useBarModeStore.setState({ mode: null })
+  }, [mode])
 }
 
 /**

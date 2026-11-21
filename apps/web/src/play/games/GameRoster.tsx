@@ -298,8 +298,6 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     chips: Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'>,
     label: string
   ) => chips.readings?.find((reading) => reading.label === label)?.value ?? ''
-  const callsignOf = (row: RosterRow) =>
-    row.kind === 'pilot' && typeof row.body.callsign === 'string' ? row.body.callsign.trim() : ''
   const classNameOf = (row: RosterRow) =>
     row.kind === 'pilot' && typeof row.body.classRef === 'string'
       ? (resolveClass(row.body.classRef)?.name ?? '')
@@ -312,8 +310,8 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const tl = readingOf(chips, 'TL') || mechOf('TL')
     return {
       id: row.serverId,
-      // A pilot goes by their callsign, else their name.
-      name: callsignOf(row) || row.name,
+      // A pilot's callsign, then their name (`pilotLabel`, in `ownableRows`).
+      name: row.name,
       href: rosterSheetHref(row),
       // A pilot's line wears their Class, then the mech they are in.
       meta:

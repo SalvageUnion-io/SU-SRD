@@ -21,6 +21,7 @@ import { sameContainer } from 'game-domain/container'
 import type { SheetKind } from 'game-domain/entityKinds'
 import { sheetPath } from 'game-domain/entityKinds'
 import { hasMediator, runsTable } from 'game-domain/games/roles'
+import { pilotLabel } from 'game-domain/pilotLabel'
 import { PRODUCT } from 'game-domain/product'
 import type { OwnerChip } from '../ownership/ownerChip'
 import { ownerChipFor } from '../ownership/ownerChip'
@@ -329,7 +330,7 @@ export function ownableRows(args: {
       kind: args.kind,
       serverId: row._id,
       appId: row.appId,
-      name: nameOf(row.body, args.kind === 'pilot' ? 'Pilot' : 'Mech'),
+      name: args.kind === 'pilot' ? pilotLabel(bodyOf(row.body)) : nameOf(row.body, 'Mech'),
       ownerId: row.ownerId,
       owner,
       localId,

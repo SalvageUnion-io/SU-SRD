@@ -43,7 +43,13 @@ const CRAWLER = 'units-tenacity'
 const GAME_CRAWLER = 'units-game-crawler'
 const RESTORE_STEP = downtimeGuideSteps().findIndex((s) => s.name === RESTORE_STEP_NAME)
 
-const pilot = pilotFixture({ id: PILOT, name: 'Bonesaw', currentHP: 7, currentAP: 3 })
+const pilot = pilotFixture({
+  id: PILOT,
+  name: 'Bonesaw',
+  callsign: 'Bonesaw',
+  currentHP: 7,
+  currentAP: 3,
+})
 
 beforeAll(async () => {
   await hydrateStores()
