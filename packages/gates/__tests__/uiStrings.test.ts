@@ -1,8 +1,10 @@
-import { describe, expect, test } from 'bun:test'
-import { existsSync, readFileSync } from 'node:fs'
+import { afterAll, describe, expect, test } from 'bun:test'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { isCopyAttr, lintUiStrings, uiStringFindings } from '../rules/uiStrings'
+import { isCopyAttr, lintUiStrings, uiStringFindings, uiStrings } from '../rules/uiStrings'
 import { EXEMPTIONS } from '../rules/uiStringsExemptions'
+import { Exited, trapExit } from './trapExit'
 
 /**
  * `tools/check-rule-sets.ts` (the `copy` check) refuses UI strings typed at
@@ -112,6 +114,91 @@ describe('lintUiStrings', () => {
       true
     )
     expect(details.some((d) => d.startsWith('messages(…) outside'))).toBe(true)
+  })
+})
+
+describe('what else counts', () => {
+  test('words in a template literal are a UI string, its holes aside', () => {
+    const hole = '$' + '{n}'
+    const src = `export const A = ({ n }) => <p>{\`Your crew of ${hole} is ready\`}</p>`
+    expect(found('a.tsx', src).join(' ')).toContain('Your crew of')
+    // A template with no words is not copy.
+    const bare = `export const A = ({ n }) => <p>{\`${hole}/${hole}\`}</p>`
+    expect(found('a.tsx', bare)).toEqual([])
+  })
+
+  test('a catalogue module’s other exports are not translators', () => {
+    const sources = new Map([
+      [
+        'apps/web/src/messages/build-sheet.ts',
+        [
+          "import { messages } from './define'",
+          'export const LIMIT = 3',
+          'export const sheetCopy = messages({',
+          "  done: 'Done',",
+          '})',
+        ].join('\n'),
+      ],
+      [
+        'apps/web/src/build/sheet/A.tsx',
+        "import { LIMIT, sheetCopy } from '../../messages/build-sheet'\nexport const A = () => sheetCopy('done').slice(0, LIMIT)",
+      ],
+    ])
+    expect(lintUiStrings(sources).catalogue).toEqual([])
+  })
+})
+
+describe('uiStrings preflight and scan', () => {
+  const { errors } = trapExit()
+  const temps: string[] = []
+  afterAll(() => {
+    for (const t of temps) rmSync(t, { recursive: true, force: true })
+  })
+  const tree = (files: Record<string, string> = {}) => {
+    const root = mkdtempSync(join(tmpdir(), 'ui-strings-'))
+    temps.push(root)
+    for (const [rel, text] of Object.entries(files)) {
+      mkdirSync(join(root, rel, '..'), { recursive: true })
+      writeFileSync(join(root, rel), text)
+    }
+    return root
+  }
+
+  test('an empty tree trips the scan floor instead of passing', () => {
+    expect(() => uiStrings.preflight?.(tree())).toThrow(new Exited(1))
+    expect(errors.join('\n')).toContain('ui-strings: scanned 0 files')
+  })
+
+  test('this checkout passes the floor', () => {
+    expect(() => uiStrings.preflight?.(join(import.meta.dir, '..', '..', '..'))).not.toThrow()
+    expect(errors).toEqual([])
+  })
+
+  test('scan reads the app’s shipped source, and skips what is not shipped copy', () => {
+    const typed = 'export const A = () => <p>Your crew is ready</p>\n'
+    const root = tree({
+      'apps/web/src/messages/build-sheet.ts':
+        "import { messages } from './define'\nexport const sheetCopy = messages({ done: 'Done' })\n",
+      'apps/web/src/build/A.tsx': typed,
+      'apps/web/src/build/Said.tsx':
+        "import { sheetCopy } from '../messages/build-sheet'\nexport const S = () => <p>{sheetCopy('done')}</p>\n",
+      // Not shipped copy: tests, generated files, declarations, flags, and what the Worker says to itself.
+      'apps/web/src/build/__tests__/fixture.tsx': typed,
+      'apps/web/src/build/A.test.tsx': typed,
+      'apps/web/src/_generated/routes.tsx': typed,
+      'apps/web/src/env.d.ts': 'declare const A: string\n',
+      'apps/web/src/lib/flags.ts':
+        "export const FLAGS = { encounterSheet: 'Encounter sheet groups' }\n",
+      'apps/web/src/worker/shared/db.tsx': typed,
+      'apps/web/src/rooms/game/store.tsx': typed,
+      'apps/web/src/worker/auth/session.tsx': typed,
+      // Outside the app: another workspace's words are not this gate's.
+      'apps/discord-bot/src/reply.tsx': typed,
+    })
+    const result = uiStrings.scan(root)
+    expect(result['hard-coded']?.map((f) => f.file)).toEqual(['apps/web/src/build/A.tsx'])
+    expect(result.catalogue).toEqual([])
+    expect(uiStrings.summary?.(root)).toBe('3 files, 1 catalogue modules')
   })
 })
 
