@@ -56,6 +56,11 @@
     print-color-adjust: exact;
   }
 
+  /* A Live Sheet's paper panels print clean: their grain is the screen's. */
+  .su-sheet-live-body :is(.su-mast, .su-open tbody > tr, .su-scrap) {
+    background-image: none;
+  }
+
   /* -------------------------------------------------------------------------
    * Typography — minimum 12pt body; clear heading scale
    *

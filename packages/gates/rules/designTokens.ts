@@ -263,7 +263,7 @@ const TOKEN_RULES: TokenRule[] = [
   {
     id: 'texture-placement',
     mode: 'zero',
-    rule: 'ruleset §3.5.1 — the speckle sits on every brand-colour band and ink header, Play and the Peek included, never on paper, buttons, fields or tooltips',
+    rule: 'ruleset §3.5.1 — the speckle sits on every brand-colour band and ink header, Play and the Peek included, and on a Live Sheet’s paper panels (`sheetGrain.test.ts`), never on other paper, buttons, fields or tooltips',
     // The light speckle is ink grain on a colour band and paper
     // flecks on an ink ground, in every context (R10). On a button it reads
     // as dirt on the one thing that must read clean; on a field it fights the

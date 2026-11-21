@@ -224,7 +224,7 @@ export const CANON: Readonly<Record<string, readonly string[]>> = {
   R1: ['chrome/slab-section', 'chrome/slab-style', 'SlabSection.test.tsx'],
   R7: ['styling/entity-markup', 'biome.jsonc#R7'],
   R8: ['roll-instrument.e2e.ts'],
-  R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx'],
+  R10: ['tokens/texture-placement', '_texture.ts', 'PlayFrame.test.tsx', 'sheetGrain.test.ts'],
   R11: ['_sheetGrammar.ts', 'sheetGrammar.test.ts', 'SheetModeToggle.test.tsx'],
   R11a: ['oneForm.test.tsx'],
   R12: ['_siblingHeights.ts', '_typeFloor.ts', 'sizeHeights.test.ts', 'biome.jsonc#R12'],
