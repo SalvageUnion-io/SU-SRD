@@ -78,6 +78,7 @@ export function ProposeDock({
   now,
   canWrite,
   onPropose,
+  onWithdraw,
   toRef,
   controls,
 }: {
@@ -90,6 +91,8 @@ export function ProposeDock({
   canWrite: boolean
   /** Resolves when the server has the proposal; rejects with its refusal. */
   onPropose: (args: ProposeArgs) => Promise<void>
+  /** Take a pending proposal back (r2 C7). */
+  onWithdraw?: ((opId: string) => void) | undefined
   /** The To field, which picking a seat card focuses. */
   toRef: RefObject<HTMLInputElement | null>
   /** The head's controls, its chip group's last slot (C8): All proposals. */
@@ -265,7 +268,13 @@ export function ProposeDock({
           </span>
           <FeedList>
             {recent.map((p) => (
-              <ProposalRow key={p._id} proposal={p} now={now} showTime={false} />
+              <ProposalRow
+                key={p._id}
+                proposal={p}
+                now={now}
+                showTime={false}
+                onWithdraw={canWrite ? onWithdraw : undefined}
+              />
             ))}
           </FeedList>
         </section>

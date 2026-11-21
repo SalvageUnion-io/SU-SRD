@@ -121,6 +121,14 @@ describe('the pinned notices', () => {
     expect(notice('proposal')?.textContent).toContain(
       'Mediator proposes Static AP → 2 · “Drained by the hack”'
     )
+    // With the sheet's value from the room, the notice says from and to (r2 C7).
+    await act(async () => {
+      serveAll(answers({ 'ops.pending': [{ ...proposal, _id: 'p-0', current: 5 }] }))
+    })
+    expect(notice('proposal')?.textContent).toContain('Mediator proposes Static AP 5 → 2')
+    await act(async () => {
+      serveAll(answers({ 'ops.pending': [proposal] }))
+    })
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Accept: Static AP → 2' }))
     })

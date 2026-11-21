@@ -13,11 +13,11 @@
  * dropped: the screen's copy carries its Discord post state.
  */
 
-import { fieldLabel } from 'game-domain/games/proposals'
 import { playCopy } from '../messages/play'
 import type { TableEvent } from '../rooms/game/events'
 import type { PlayRoll } from './playRolls.model'
 import { isDiceRoll, playRollDescription } from './playRolls.model'
+import { proposalChange } from './proposalAnswer'
 import type { AlertLine, PendingProposal, RollLine } from './useGameFeed'
 
 export type FeedEntry =
@@ -31,6 +31,8 @@ export type FeedEntry =
       /** "Mediator proposes Bonesaw HP → 5". */
       text: string
       reason: string | null
+      /** The proposal itself: what an accepted one's Undo writes back. */
+      proposal: PendingProposal
     }
   | { kind: 'alert'; key: string; ts: number; text: string }
   /** What a member did at the table (`rooms/game/events.ts`): a vital, an action, boarding, the session. */
@@ -59,13 +61,12 @@ export type FeedSources = {
   rollerName: string
 }
 
-function show(value: unknown): string {
-  return value === null || value === undefined ? '—' : String(value)
-}
-
-/** "Bonesaw HP → 5": a proposal stores no before (ADR-030 §4), so only what it asks. */
-function proposalChange(p: PendingProposal): string {
-  return `${p.targetName ?? p.entityType} ${fieldLabel(p.field)} → ${show(p.after)}`
+/**
+ * "Bonesaw HP 7 → 5": a proposal stores no before (ADR-030 §4), so the from is
+ * the sheet as the room read it when it served this (`proposalChange`).
+ */
+function proposalWhat(p: PendingProposal): string {
+  return `${p.targetName ?? p.entityType} ${proposalChange(p)}`
 }
 
 /** One of my entries as its Feed line reads: "You · 120mm Cannon · 14 · Success". */
@@ -102,8 +103,9 @@ export function playFeedEntries({
       key: `proposal-${p._id}`,
       ts: p.ts,
       proposalId: p._id,
-      change: proposalChange(p),
-      text: playCopy('mediatorProposes', { what: proposalChange(p) }),
+      change: proposalWhat(p),
+      text: playCopy('mediatorProposes', { what: proposalWhat(p) }),
+      proposal: p,
       reason: p.reason,
     }))
   // A roll of mine this screen no longer holds (made before a reload, or on

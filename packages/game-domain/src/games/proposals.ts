@@ -51,6 +51,7 @@ export const PROPOSAL_STATE_WORD = {
   applied: 'Applied',
   declined: 'Declined',
   superseded: 'Superseded',
+  withdrawn: 'Withdrawn',
 } as const
 
 /**

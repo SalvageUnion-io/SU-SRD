@@ -73,6 +73,7 @@ import type { SavedPattern, TrayNpc } from './opposition.model'
 import { newBuiltTrayNpc, newTrayNpc, readSavedPattern, readTrayNpc } from './opposition.model'
 import type { ProposeArgs } from './ProposeDock'
 import type { SentProposal } from './proposalLine.model'
+import { useWithdrawProposal } from './useWithdrawProposal'
 
 /** A wreck's salvage that hauls nothing: it is settled, and nothing is written. */
 export const NOTHING = (): null => null
@@ -116,6 +117,8 @@ export type PlayMediator = {
   sentLimit: number
   moreSent: () => void
   propose: (args: ProposeArgs) => Promise<void>
+  /** Take back a proposal still awaiting its answer (r2 C7). */
+  withdraw: (opId: string) => void
   broadcast: (message: string) => Promise<void>
   alerts: AlertLine[]
   rolls: RollLine[] | null
@@ -222,6 +225,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
   const bringInWave = useTableAct('mediator.bringInWave', gameId)
   const recordGroupRoll = useTableAct('mediator.recordGroupRoll', gameId)
   const proposeMutation = useTableAct('ops.propose', gameId)
+  const withdraw = useWithdrawProposal(gameId)
   const broadcastMutation = useTableAct('changeLog.broadcast', gameId)
   const setConditions = useTableAct('scenes.setConditions', gameId)
   const passHour = useTableAct('scenes.passHour', gameId)
@@ -492,6 +496,7 @@ export function usePlayMediator(gameId: string, gameName: string): PlayMediator 
     propose: said(async (args: ProposeArgs) => {
       await proposeMutation(args)
     }),
+    withdraw,
     broadcast: said(async (message: string) => {
       await broadcastMutation({ message })
     }),

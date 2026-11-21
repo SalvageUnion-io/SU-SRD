@@ -123,6 +123,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
         now={mediator.now}
         canWrite={mediator.canWrite}
         onPropose={mediator.propose}
+        onWithdraw={mediator.withdraw}
         toRef={toRef}
         // The dock's last chip (C8), never a line under it.
         controls={
@@ -142,6 +143,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
           limit={mediator.sentLimit}
           now={mediator.now}
           onMore={mediator.moreSent}
+          onWithdraw={mediator.canWrite ? mediator.withdraw : undefined}
         />
       </ModalShell>
     </section>

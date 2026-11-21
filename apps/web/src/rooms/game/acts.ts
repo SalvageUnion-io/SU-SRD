@@ -85,6 +85,8 @@ const GAME_ACTS = {
   },
   'ops.decline': (c: ActContext, a: { opId: string }) =>
     c.room.proposals.declineProposal(c.actor, a.opId),
+  'ops.withdraw': (c: ActContext, a: { opId: string }) =>
+    c.room.proposals.withdraw(c.actor, a.opId),
 
   'seats.forGame': (c: ActContext) => c.room.play.seats(c.actor),
   'seats.board': (c: ActContext, a: SeatArgs & { mechId: string }) =>

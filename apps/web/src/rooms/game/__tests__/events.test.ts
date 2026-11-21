@@ -306,4 +306,32 @@ describe('the table’s events', () => {
     act(MEDIATOR, 'downtime.begin', undefined as never, AT + 4)
     expect(room.scene.scene(PLAYER)).not.toHaveProperty('upNow')
   })
+
+  test('a sent proposal is withdrawn by a Mediator: it leaves the player’s list and reads Withdrawn (r2 C7)', () => {
+    const { act, room, texts } = seated()
+    act(PLAYER, 'submit', { ops: [op('p1', { currentHP: 7 })] }, AT)
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 0 }, AT + 1)
+    const [pending] = room.proposals.pending(PLAYER)
+    // The player's notice says from and to: the sheet as it is now, never stored on the proposal.
+    expect(pending).toMatchObject({ field: 'currentHP', current: 7, after: 0 })
+    const opId = String(pending?._id)
+    expect(() => act(PLAYER, 'ops.withdraw', { opId })).toThrow('Only the Mediator')
+    const [told] = act(MEDIATOR, 'ops.withdraw', { opId }, AT + 2)
+    expect(told).toMatchObject({
+      kind: 'proposal',
+      text: 'Mediator withdrew: p1 · Pilot p1 HP → 0',
+    })
+    expect(room.proposals.pending(PLAYER)).toEqual([])
+    expect(room.proposals.sent(MEDIATOR)[0]).toMatchObject({ _id: opId, state: 'withdrawn' })
+    // Withdrawn, it can be neither accepted nor withdrawn again.
+    expect(() => act(PLAYER, 'ops.accept', { opId }, AT + 3)).toThrow('already been answered')
+    expect(act(MEDIATOR, 'ops.withdraw', { opId }, AT + 4)).toEqual([])
+    expect(texts()[0]).toBe('Mediator withdrew: p1 · Pilot p1 HP → 0')
+  })
+
+  test('a vital never written is proposed from its start (r2 C7)', () => {
+    const { act, room } = seated()
+    act(MEDIATOR, 'ops.propose', { entityId: 'p1', field: 'currentHP', after: 4 }, AT + 1)
+    expect(room.proposals.pending(PLAYER)[0]?.current).toBe(10)
+  })
 })

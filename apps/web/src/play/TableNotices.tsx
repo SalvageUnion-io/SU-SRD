@@ -17,7 +17,6 @@
  */
 
 import { cockpitPath, gamePath, mediatePath, sheetPath } from 'game-domain/entityKinds'
-import { fieldLabel } from 'game-domain/games/proposals'
 import { pilotLabel } from 'game-domain/pilotLabel'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
@@ -30,6 +29,7 @@ import { useSync } from '../replica/syncContext'
 import { useTableAct, useTableRead } from '../replica/useTable'
 import { hidesUnionBar } from '../shell/unionSlots'
 import { gamePilots } from './play.model'
+import { acceptedUndo, proposalChange } from './proposalAnswer'
 import type { Heard, KnownGame } from './tableNotices.model'
 import {
   endedSession,
@@ -249,7 +249,6 @@ function GameNotices({
     : onePilot !== undefined
       ? { href: cockpitPath(onePilot.id), label: playCopy('joinSession') }
       : { href: gamePath(gameId), label: playCopy('joinSession') }
-  const show = (value: unknown) => (value === null || value === undefined ? '—' : String(value))
 
   return (
     <>
@@ -289,7 +288,8 @@ function GameNotices({
         </div>
       )}
       {(pending ?? []).map((p) => {
-        const what = `${p.targetName ?? p.entityType} ${fieldLabel(p.field)} → ${show(p.after)}`
+        // From and to: the size of it, before they answer (r2 C7).
+        const what = `${p.targetName ?? p.entityType} ${proposalChange(p)}`
         return (
           <div key={p._id} role="status" data-table-notice="proposal">
             <Callout tone="pilot">
@@ -307,7 +307,13 @@ function GameNotices({
                     size="compact"
                     disabled={!canWrite}
                     aria-label={playCopy('accept2', { text: what })}
-                    onClick={() => void reply.run(() => apply({ opId: p._id }))}
+                    onClick={() =>
+                      void reply
+                        .run(() => apply({ opId: p._id }))
+                        .then((result) => {
+                          if (result.ok) acceptedUndo(p)
+                        })
+                    }
                   >
                     {playCopy('accept')}
                   </Button>

@@ -84,7 +84,7 @@ describe('the pinned vitals', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'HP amount' }), { target: { value: '3' } })
     fireEvent.click(screen.getByRole('button', { name: 'Take 3 from HP' }))
     expect(onWrite).toHaveBeenCalledTimes(1)
-    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 4, 'HP')
+    expect(onWrite).toHaveBeenLastCalledWith('pilot', 'currentHP', 4, 'HP', undefined)
     // The form is gone, the rows are back.
     expect(screen.queryByRole('textbox', { name: 'HP amount' })).toBeNull()
     expect(screen.getByRole('button', { name: 'Decrease Bonesaw Hit Points' })).toBeTruthy()

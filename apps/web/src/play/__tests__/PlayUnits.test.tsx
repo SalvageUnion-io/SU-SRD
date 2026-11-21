@@ -14,6 +14,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { crawlerFixture, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
+import { ToasterMount } from '../../components/index'
 import { PLAY_TXN } from '../../replica/provenance'
 import type { ChangeMeta, EntityType } from '../../replica/units'
 import { PlayCrawlerUnit, PlayHangarMech, PlayMechUnit, PlayPilotUnit } from '../PlayUnits'
@@ -54,6 +55,30 @@ describe('a live pilot', () => {
     expect(updates).toEqual([
       { type: 'pilot', id: 'w-pilot', patch: { currentHP: 6 }, meta: PLAY_TXN },
       { type: 'pilot', id: 'w-pilot', patch: { currentAP: 4 }, meta: PLAY_TXN },
+    ])
+  })
+
+  // r2 C6: the phone's pinned strip said "HP 10 → 8 · Undo"; the desktop box said nothing.
+  test('a change says itself with Undo, and Undo writes back what the run started from', async () => {
+    const { store, updates } = recordingStore()
+    render(
+      <>
+        <ToasterMount />
+        <PlayPilotUnit pilot={pilot} crawler={null} live store={store} />
+      </>
+    )
+    const minus = screen.getByRole('button', { name: 'Decrease HP' })
+    fireEvent.click(minus)
+    fireEvent.click(minus)
+    const undo = await screen.findByRole('button', { name: 'Undo' })
+    const line = undo.closest('[data-sonner-toast]')?.textContent ?? ''
+    expect(line).toContain('HP 7')
+    expect(line).toContain('5')
+    fireEvent.click(undo)
+    expect(updates.map((u) => u.patch)).toEqual([
+      { currentHP: 6 },
+      { currentHP: 5 },
+      { currentHP: 7 },
     ])
   })
 

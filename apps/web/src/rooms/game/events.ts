@@ -189,6 +189,7 @@ export class GameEvents {
         return { holder: this.store.unit(String(a.unitId))?.ownerId ?? null }
       case 'ops.accept':
       case 'ops.decline':
+      case 'ops.withdraw':
         return { proposal: this.store.op(String(a.opId)) }
       case 'session.start':
       case 'session.end':
@@ -308,6 +309,12 @@ export class GameEvents {
         // The roll's own line, now whole for everyone: its toast and Feed line rewrite in place.
         const row = this.store.rows('select * from change_log where id = ?', String(a.rollId))[0]
         return row === undefined ? [] : [this.read(row, false)]
+      }
+      case 'ops.withdraw': {
+        const op = before.proposal
+        return value === true && op != null
+          ? say('proposal', `Mediator withdrew: ${this.proposalLine(op)}`)
+          : []
       }
       case 'safety.showStop':
         // Nobody is named: who showed it stays in the room.

@@ -2,6 +2,7 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { normalizeReason, PROPOSAL_REASON_MAX } from 'game-domain/games/proposals'
 import type { OpState } from '../ops'
 import { RoomRefusal } from '../refusal'
+import { unsetVital } from '../vitals'
 import type { GameStore, StoredOp, UnitRow } from './store'
 import type { GameUnits, SubmitResult } from './units'
 import { BatchRefused, PROPOSAL_SOURCE, unitName } from './units'
@@ -22,14 +23,29 @@ export type ProposalRead = {
   after: unknown
   reason: string | null
   ts: number
+  /**
+   * What the sheet holds now, on a proposal awaiting its answer (`pending`):
+   * the notice's "HP 7 → 0". Read when served, never stored (ADR-030 §4).
+   */
+  current?: number | null
 }
 
 export type SentProposal = ProposalRead & {
-  /** The op's state, or `superseded` for a declined one a newer proposal replaced. */
-  state: OpState | 'superseded'
+  /**
+   * The op's state; `superseded` for a declined one a newer proposal replaced,
+   * `withdrawn` for one its Mediator took back.
+   */
+  state: OpState | 'superseded' | 'withdrawn'
   mine: boolean
   actorName: string | null
 }
+
+/**
+ * What `superseded_by` holds on a proposal a Mediator withdrew (r2 C7): the
+ * op is `declined`, as a superseded one is, and this says by whom. No op has
+ * this id, so it never names a successor.
+ */
+const WITHDRAWN = 'withdrawn'
 
 /** The most proposals `sent` returns. */
 const MAX_SENT = 100
@@ -95,7 +111,12 @@ export class GameProposals {
     for (const op of this.store.opsIn('proposed')) {
       const unit = this.store.unit(op.unitId)
       if (unit === null || unit.ownerId !== actor) continue
-      out.push(proposalRead(op, unit))
+      const read = proposalRead(op, unit)
+      const held = unit.body[read.field]
+      out.push({
+        ...read,
+        current: typeof held === 'number' ? held : unsetVital(this.store, unit.id, read.field),
+      })
     }
     return out.sort((a, b) => b.ts - a.ts)
   }
@@ -116,7 +137,12 @@ export class GameProposals {
       const unit = this.store.unit(op.unitId)
       out.push({
         ...proposalRead(op, unit),
-        state: op.supersededBy !== null ? 'superseded' : op.state,
+        state:
+          op.supersededBy === WITHDRAWN
+            ? 'withdrawn'
+            : op.supersededBy !== null
+              ? 'superseded'
+              : op.state,
         mine: op.author === actor,
         actorName: this.store.member(op.author)?.displayName ?? null,
       })
@@ -162,6 +188,20 @@ export class GameProposals {
   private proposal(id: string): StoredOp | null {
     const op = this.store.op(id)
     return op?.source === PROPOSAL_SOURCE ? op : null
+  }
+
+  /**
+   * Take a proposal back before it is answered (r2 C7): any Mediator's, as
+   * the sent list is. True when this withdrew it; an answered one is left be.
+   */
+  withdraw(actor: string, proposalId: string): boolean {
+    return this.store.sql.transaction(() => {
+      this.store.requireMediator(actor)
+      const proposal = this.proposal(proposalId)
+      if (proposal === null || proposal.state !== 'proposed') return false
+      this.store.putOp({ ...proposal, state: 'declined', supersededBy: WITHDRAWN })
+      return true
+    })
   }
 
   /** Decline a proposal on your own unit. Kept, not deleted: the log is append-only. */

@@ -122,6 +122,7 @@ export const GAME_SOCKET_ACTS = {
   }),
   'ops.accept': z.object({ opId: z.string() }),
   'ops.decline': z.object({ opId: z.string() }),
+  'ops.withdraw': z.object({ opId: z.string() }),
   'changeLog.appendChangeLog': z.object({
     entries: z.array(
       z.object({

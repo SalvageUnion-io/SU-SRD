@@ -30,6 +30,7 @@ import { useTableAct } from '../replica/useTable'
 import type { FeedEntry } from './feed.model'
 import type { PlayRoll } from './playRolls.model'
 import { recordPlayChange } from './playRolls.model'
+import { acceptedUndo } from './proposalAnswer'
 import type { PlayPostState } from './usePlayChannel'
 
 const HEAD = { display: 'block', fontWeight: tokens.weight.bold } satisfies CSSProperties
@@ -101,7 +102,10 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     void reply
       .run(() => apply({ opId: entry.proposalId }))
       .then((result) => {
-        if (result.ok) recordPlayChange(`Applied · ${entry.change}`)
+        if (!result.ok) return
+        recordPlayChange(`Applied · ${entry.change}`)
+        // Theirs to undo, as any change of a live number is (r2 C6).
+        acceptedUndo(entry.proposal)
       })
   }
 

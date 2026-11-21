@@ -22,6 +22,7 @@ import {
   setPrivateRolls,
   veiledRollDescription,
 } from '../playRolls.model'
+import { proposalChange } from '../proposalAnswer'
 import { findTables, pinnedTables } from '../tables.model'
 import type { AlertLine, PendingProposal, RollLine } from '../useGameFeed'
 import { CREW_HERE, crewAt } from './crewFixture'
@@ -214,6 +215,20 @@ describe('the Feed (play.md §8)', () => {
     const first = entries[0]
     expect(first?.kind === 'proposal' && first.text).toBe('Mediator proposes Bonesaw HP → 5')
     expect(entries[3]?.kind === 'alert' && entries[3].text).toBe('Mediator · Storm incoming')
+  })
+
+  test('a proposal reads from and to once the room says what the sheet holds (r2 C7)', () => {
+    expect(proposalChange({ field: 'currentHP', after: 0, current: 7 })).toBe('HP 7 → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0, current: null })).toBe('HP → 0')
+    expect(proposalChange({ field: 'currentHP', after: 0 })).toBe('HP → 0')
+    const [first] = playFeedEntries({
+      rolls: [],
+      alerts: [],
+      proposals: [{ ...proposal, current: 7 }],
+      mine: [],
+      rollerName: 'Bonesaw',
+    })
+    expect(first?.kind === 'proposal' && first.text).toBe('Mediator proposes Bonesaw HP 7 → 5')
   })
 
   test('my roll’s copy on the Game’s log is dropped: the screen’s carries its post state', () => {

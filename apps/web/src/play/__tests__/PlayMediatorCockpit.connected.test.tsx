@@ -1003,6 +1003,20 @@ describe('every Mediator capability is reachable here', () => {
     expect(dialog.getByText(/^Rook · HP → 6/)).toBeTruthy()
   })
 
+  test('a pending proposal is withdrawn from All proposals; an answered one offers nothing (r2 C7)', async () => {
+    await renderCockpit({
+      'ops.sent': [
+        { ...SENT_PROPOSAL, state: 'proposed' },
+        { ...SENT_PROPOSAL, _id: 'p-0', targetName: 'Mags', state: 'applied' },
+      ],
+    })
+    await click(named('All proposals'))
+    const dialog = within(screen.getByRole('dialog', { name: 'Proposals you sent' }))
+    expect(dialog.queryByRole('button', { name: /^Withdraw: Mags/ })).toBeNull()
+    await click(dialog.getByRole('button', { name: /^Withdraw: Rook · HP → 6/ }))
+    expect(sent()).toEqual([{ name: 'ops.withdraw', args: { opId: 'p-1' } }])
+  })
+
   test('the roll tables are the Tables section, and its rolls post', async () => {
     await renderCockpit()
     expect(screen.getByText('Rolls post to the Game’s channel')).toBeTruthy()

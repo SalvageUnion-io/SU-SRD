@@ -41,7 +41,14 @@ export function PlayPinnedVitals({
   /** Which units take writes (`usePlayUnits().live`). */
   live: Record<PinnedUnit['kind'], boolean>
   /** The Units pane's write: the unit, the record field, the clamped value, the vital's label. */
-  onWrite: (kind: PinnedUnit['kind'], field: string, next: number, label: string) => void
+  /** `note` is the amount entry's, when what was typed was capped. */
+  onWrite: (
+    kind: PinnedUnit['kind'],
+    field: string,
+    next: number,
+    label: string,
+    note?: string
+  ) => void
 }) {
   const [open, setOpen] = useState<string | null>(null)
   // "Take 3 damage" in one write: an open row's number asks for the amount.
@@ -73,7 +80,9 @@ export function PlayPinnedVitals({
             label={asked.label}
             value={asked.value}
             max={asked.max}
-            onChange={(next) => onWrite(picked.unit.kind, asked.field, next, asked.label)}
+            onChange={(next, note) =>
+              onWrite(picked.unit.kind, asked.field, next, asked.label, note)
+            }
             onClose={() => setAsking(null)}
             size="full"
           />
