@@ -17,6 +17,7 @@ import { watchSharePage } from '../lib/sharePage'
 import { registerSiteWorker } from '../lib/sw/siteWorker'
 import { installTrustedTypesPolicy } from '../lib/trustedTypes'
 import { ISLAND_COMMIT } from './islandCommit'
+import { watchPageJump } from './pageJump'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
 import { watchSlideshow } from './slideshow'
@@ -93,6 +94,8 @@ for (const field of document.querySelectorAll('.su-union-bar__search-onkey')) {
 // The served key caps say "⌘K"; off a Mac they say "Ctrl K" from the start.
 correctShortcutHints(document, navigator.platform)
 watchSharePage(document)
+// A long page's floating "On this page" (a phone): search and its sections in reach.
+watchPageJump(document)
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')
 // The home's slideshow: its Pause.

@@ -808,3 +808,94 @@ html[data-srd-signed-in] .su-mediator-acts {
 [data-island-pending] .su-listing__groups {
   visibility: hidden;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * A LONG PAGE'S "ON THIS PAGE", ON A PHONE (`PageJump`).
+ * The header scrolls away with the page, so a small button floats at the
+ * screen's lower right once the page has moved (`watchPageJump` shows it) and
+ * opens a sheet at the screen's foot: search first, then the page's sections.
+ * The sheet is the browser's popover, in the top layer. From `sm` up the
+ * header's field is a scroll away and the contents stand beside the page.
+ * ══════════════════════════════════════════════════════════════════════ */
+.su-page-jump {
+  inset-block-end: var(--space-16);
+  inset-inline-end: var(--space-16);
+  position: fixed;
+  z-index: var(--z-sticky);
+}
+
+@media (width >= 40rem) {
+  .su-page-jump {
+    display: none;
+  }
+}
+
+@media print {
+  .su-page-jump {
+    display: none;
+  }
+}
+
+.su-page-jump__open {
+  box-shadow: var(--shadow-lift);
+}
+
+.su-page-jump__sheet {
+  background: var(--color-paper);
+  border: 0;
+  border-block-start: var(--bw-entity-compact) solid var(--color-ink);
+  color: var(--color-ink);
+  inset: auto 0 0;
+  margin: 0;
+  max-block-size: 70dvh;
+  max-inline-size: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--space-16);
+  inline-size: 100%;
+}
+
+.su-page-jump__sheet:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+.su-page-jump__sheet::backdrop {
+  background: var(--color-ink-50);
+}
+
+.su-page-jump__search {
+  gap: var(--space-8);
+  justify-content: flex-start;
+}
+
+/* A page with one section, or none, has no list to title. */
+.su-page-jump:not([data-sections]) :is(.su-page-jump__title, .su-page-jump__list) {
+  display: none;
+}
+
+.su-page-jump__title {
+  margin: 0;
+}
+
+.su-page-jump__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-page-jump__item {
+  background: none;
+  border: 0;
+  border-block-end: var(--bw-hairline) solid var(--color-ink-20);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  inline-size: 100%;
+  min-block-size: var(--size-full);
+  padding: var(--space-8) 0;
+  text-align: start;
+}

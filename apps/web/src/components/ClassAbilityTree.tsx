@@ -394,7 +394,11 @@ export function ClassContents({ classEntity }: ClassAbilityTreeProps) {
     }
   }
   return (
-    <nav className="su-class-contents" aria-label={componentsCopy('onThisPage')}>
+    <nav
+      className="su-class-contents"
+      aria-label={componentsCopy('onThisPage')}
+      data-page-contents=""
+    >
       <Slab label={componentsCopy('onThisPage')} flush />
       <ul className="su-class-contents__list">
         {entries.map((entry) => (

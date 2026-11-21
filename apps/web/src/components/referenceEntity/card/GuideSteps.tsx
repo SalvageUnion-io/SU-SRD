@@ -306,7 +306,11 @@ export function GuideSteps({
       {/* A phone lists the contents above the steps, always open under their
           slab; a wide screen sets them in the rail. Only one of the two is
           ever displayed. */}
-      <nav className="su-guide__toc-block" aria-label={referenceEntityCopy('onThisPage')}>
+      <nav
+        className="su-guide__toc-block"
+        aria-label={referenceEntityCopy('onThisPage')}
+        data-page-contents=""
+      >
         <Slab label={referenceEntityCopy('onThisPage')} flush />
         {contents}
       </nav>
