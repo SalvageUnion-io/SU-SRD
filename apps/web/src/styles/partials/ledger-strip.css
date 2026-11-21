@@ -80,11 +80,11 @@
   vertical-align: bottom;
 }
 
-.su-ledger__head > th:not(:first-child) .su-ledger__sort {
+.su-ledger__head :is(th:not(:first-child), .su-ledger__rank) .su-ledger__sort {
   align-items: flex-end;
 }
 
-.su-ledger__head > th:not(:first-child) .su-badge--stamp-solid {
+.su-ledger__head :is(th:not(:first-child), .su-ledger__rank) .su-badge--stamp-solid {
   align-items: center;
   background-color: var(--color-paper);
   color: var(--color-ink);

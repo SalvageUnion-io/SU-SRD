@@ -31,7 +31,6 @@ export const islandsCopy = messages({
   sortedDown: 'Sorted by {column}, high to low.',
   sortedAz: 'Sorted by {column}, A to Z.',
   sortedZa: 'Sorted by {column}, Z to A.',
-  sortByTechLevel: 'Sort by Tech Level',
   backToBookOrder: 'Book order',
   allTrees: 'All {count} trees',
   of: '{count} of {count2}',

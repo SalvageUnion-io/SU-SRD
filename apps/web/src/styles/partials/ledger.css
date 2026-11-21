@@ -53,6 +53,19 @@
   margin-inline-start: var(--space-8);
 }
 
+/* The rows' rank (`TL`), named at the name column's end, over the rows' own
+   stamps: a cut-out on the strip's foot that sorts by the rank, as a column's
+   does by its column. */
+.su-ledger__rank {
+  align-self: flex-end;
+  display: inline-flex;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  letter-spacing: normal;
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-8);
+}
+
 .su-ledger__sort {
   background: none;
   border: 0;
@@ -357,6 +370,30 @@
 @media (width >= 64rem) {
   .su-ledger__table tbody .su-ledger__detail[data-at='narrow'] {
     display: none;
+  }
+}
+
+/* Between a phone and `lg` a dense list (an index of seven stats) has no room
+   left for its quiet line: the line gives way, as on a phone, and the cells
+   sit closer, so every measure stays inside the frame (R44). */
+@media (width >= 40rem) and (width < 64rem) {
+  .su-ledger__table[data-dense] :is(th, td)[data-kind='quiet'] {
+    display: none;
+  }
+
+  .su-ledger__table[data-dense] :is(th, td) {
+    padding-inline: var(--space-4);
+  }
+
+  /* A long name wraps rather than push the measures past the frame, and so
+     does a cell of words (a damage with its rider). */
+  .su-ledger__table[data-dense] tbody th {
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-ledger__table[data-dense] tbody [data-kind='text'] {
+    white-space: normal;
   }
 }
 
