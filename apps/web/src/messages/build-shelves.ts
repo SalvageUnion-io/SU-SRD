@@ -80,6 +80,11 @@ export const buildShelvesCopy = messages({
   noCrawlersYet: 'No crawlers yet.',
   patterns: 'Patterns',
   fromAMech: '+ From a Mech',
+  buildWithThis: 'Build With This',
+  buildAMechFrom: 'Build a Mech from {name}?',
+  build: 'Build',
+  building: 'Building…',
+  mechNotBuilt: 'The Mech could not be built. Try again.',
   noPatternsYet: 'No patterns yet. Save one from a Mech.',
   thePreGeneratedCrewOf: 'The pre-generated crew of',
   byPublisherOpenAnySheet:

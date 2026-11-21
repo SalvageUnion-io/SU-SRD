@@ -68,7 +68,7 @@ import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
-import { savedPatternHref } from '../../lib/patterns/patterns'
+import { mechFromPattern, pastStartingRules, savedPatternHref } from '../../lib/patterns/patterns'
 import { usePatternSharing, useSharedByLink } from '../../lib/sharing/reads'
 import type { PatternSharing, ShelfGame } from '../../lib/shelves/shelfItems'
 import {
@@ -95,6 +95,7 @@ import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
+import { buildConfirmBody, builtToast, mechNamesTaken } from '../mech/Pattern/buildConfirm.model'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
 import { BuildStartHere } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
@@ -298,6 +299,28 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     return [
       [
         { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
+        {
+          id: 'build',
+          label: buildShelvesCopy('buildWithThis'),
+          // One confirm, as wherever a pattern is built from; you land on the mech.
+          onSelect: writable(() =>
+            confirm({
+              title: buildShelvesCopy('buildAMechFrom', { name: pattern.name }),
+              body: [buildConfirmBody({ book: false, past: pastStartingRules(pattern) })],
+              confirmLabel: buildShelvesCopy('build'),
+              pendingLabel: buildShelvesCopy('building'),
+              tone: 'default',
+              failure: buildShelvesCopy('mechNotBuilt'),
+              onConfirm: async () => {
+                const mech = await useUnits
+                  .getState()
+                  .create('mech', mechFromPattern(pattern, mechNamesTaken()))
+                builtToast(mech.name)
+                go(`/mechs/${mech.id}`)
+              },
+            })
+          ),
+        },
         renameItem(
           {
             name: pattern.name,
@@ -353,6 +376,69 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         }))
 
   const ready = hydratedUnits && hydratedPatterns && hydratedTray
+
+  // The Patterns shelf: the Training Bay's panel, and the Patterns page whole.
+  const patternShelf = (
+    <ShelfLedger
+      id="shelf-patterns"
+      title={buildShelvesCopy('patterns')}
+      tone="mech"
+      homebrew
+      columns={PATTERN_COLUMNS}
+      action={
+        canWrite ? (
+          <HeaderMenu
+            variant="button"
+            size="compact"
+            trigger={buildShelvesCopy('fromAMech')}
+            label={buildShelvesCopy('fromAMech')}
+            chevron={false}
+            sections={[fromAMech]}
+          />
+        ) : undefined
+      }
+      empty={buildShelvesCopy('noPatternsYet')}
+      rows={patterns.map((p) => ({
+        id: p.id,
+        name: p.name,
+        href: savedPatternHref(p.id),
+        cells: [
+          chassisFact(p.chassisRef) ?? '',
+          who(
+            patternChips(
+              sharing?.find((s) => s.appId === p.id),
+              games
+            )
+          ),
+          String(patternReading(p)?.value ?? ''),
+        ],
+        menu: patternMenu(p),
+      }))}
+    />
+  )
+  const patternDialogs = (
+    <>
+      {dialog}
+      <RenameDialog subject={renaming} onClose={() => setRenaming(null)} />
+      <SavePatternDialog
+        source={patternSource ?? { name: '', chassisRef: '', systems: [], modules: [] }}
+        open={patternSource !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setSavingPattern(null)
+        }}
+      />
+    </>
+  )
+
+  // The Patterns page (`ShelvesPart`): this shelf alone, with everything it opens.
+  if (part === 'patterns') {
+    return (
+      <>
+        {hydratedUnits && hydratedPatterns ? patternShelf : <RosterSkeleton />}
+        {patternDialogs}
+      </>
+    )
+  }
 
   // The Mediator's Kit (NPCs, Encounters) on the Games front (`ShelvesPart`):
   // its two columns stand straight in the Kit's section, which lays them out.
@@ -536,42 +622,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               />
             </div>
             <div className="su-shelf-ledgers__col">
-              <ShelfLedger
-                id="shelf-patterns"
-                title={buildShelvesCopy('patterns')}
-                tone="mech"
-                homebrew
-                columns={PATTERN_COLUMNS}
-                action={
-                  canWrite ? (
-                    <HeaderMenu
-                      variant="button"
-                      size="compact"
-                      trigger={buildShelvesCopy('fromAMech')}
-                      label={buildShelvesCopy('fromAMech')}
-                      chevron={false}
-                      sections={[fromAMech]}
-                    />
-                  ) : undefined
-                }
-                empty={buildShelvesCopy('noPatternsYet')}
-                rows={patterns.map((p) => ({
-                  id: p.id,
-                  name: p.name,
-                  href: savedPatternHref(p.id),
-                  cells: [
-                    chassisFact(p.chassisRef) ?? '',
-                    who(
-                      patternChips(
-                        sharing?.find((s) => s.appId === p.id),
-                        games
-                      )
-                    ),
-                    String(patternReading(p)?.value ?? ''),
-                  ],
-                  menu: patternMenu(p),
-                }))}
-              />
+              {patternShelf}
               {/* The Mediator's Kit moved to Games. */}
               {/* The read-only crews stand under the
                   side column's Patterns, at its width. */}
@@ -586,15 +637,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         games={games}
         confirm={confirm}
       />
-      {dialog}
-      <RenameDialog subject={renaming} onClose={() => setRenaming(null)} />
-      <SavePatternDialog
-        source={patternSource ?? { name: '', chassisRef: '', systems: [], modules: [] }}
-        open={patternSource !== undefined}
-        onOpenChange={(open) => {
-          if (!open) setSavingPattern(null)
-        }}
-      />
+      {patternDialogs}
     </PageShell>
   )
 }
