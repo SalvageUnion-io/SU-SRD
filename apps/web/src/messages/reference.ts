@@ -50,7 +50,6 @@ export const referenceCopy = messages({
   showBuy: 'Get the books',
   showBuyBody: 'Get the Source Books direct from Leyline Press, available in Print and Digital',
   showDiscord: 'Roll in Discord',
-  showPause: 'Pause the slides',
   showDiscordBody: 'Look up any rule, reference, or roll without ever leaving your call.',
   buyThisBook: 'Buy this book',
   opensInNewTab: '(opens in a new tab)',

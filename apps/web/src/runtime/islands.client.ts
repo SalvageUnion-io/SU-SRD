@@ -19,7 +19,6 @@ import { revealWikiLinks } from '../lib/wikiLink'
 import { ISLAND_COMMIT } from './islandCommit'
 import { trackScrollbarWidth } from './scrollbarWidth'
 import { shrinkWrap } from './shrinkWrap'
-import { watchSlideshow } from './slideshow'
 import { whenShown } from './whenShown'
 
 // Browser error reporting to the Worker (production builds), from the single client entry.
@@ -70,8 +69,6 @@ revealWikiLinks(document)
 watchSharePage(document)
 // The home's slide captions: each cut-out as wide as its own words.
 shrinkWrap(document, '.su-front__show-body')
-// The home's slideshow: its Pause.
-watchSlideshow(document)
 
 // A guide page served as static HTML: its contents mark the section in view.
 // Plain DOM in its own chunk, fetched only on such a page; a guide card that

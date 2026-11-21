@@ -5,7 +5,7 @@
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
-import { Button, capsLabel, Toggle } from '../components/index'
+import { Button, capsLabel } from '../components/index'
 import { Tagline } from '../components/Tagline'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
@@ -104,8 +104,7 @@ function heroSlides(): Slide[] {
  * slide's words on one notched into the footer, in the same place every time.
  * The show is CSS (the page is served without React): a slide out of its turn
  * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
- * It holds while an act is pointed at or focused, and its Pause (`watchSlideshow`, the
- * page's script) stops it for good (WCAG 2.2.2). Under reduced motion it never
+ * It holds while an act is pointed at or focused. Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
  */
 export function HomeHero() {
@@ -186,11 +185,6 @@ export function HomeHero() {
             </span>
           </p>
         </div>
-        {/* The show's one outline beside each slide's rust act (§1.8): hidden
-            until the page's script can press it. */}
-        <Toggle pressed={false} className="su-front__show-pause" data-show-pause="" hidden>
-          {referenceCopy('showPause')}
-        </Toggle>
       </div>
     </section>
   )
