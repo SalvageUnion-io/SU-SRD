@@ -134,6 +134,7 @@ export function EntityPageFrame({
               >
                 {referenceCopy('buyThisBook')}
                 <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                <span className="su-sr-only"> {referenceCopy('opensInNewTab')}</span>
               </Button>
             )}
             {build && (

@@ -81,4 +81,5 @@ export const compositionsCopy = messages({
   railKit: "Mediator's Kit",
   railIn: 'In {area}',
   buyTheGame: 'Buy the game',
+  opensInNewTab: '(opens in a new tab)',
 })

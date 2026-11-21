@@ -68,7 +68,7 @@ describe('UnionBarSlots', () => {
       tools()
         .getAllByRole('link')
         .map((tab) => tab.textContent)
-    ).toEqual(['Reference', 'Build', 'Play', 'Buy the game'])
+    ).toEqual(['Reference', 'Build', 'Play', 'Buy the game (opens in a new tab)'])
     expect(current()).toEqual(['Play'])
     rerender(<UnionBarSlots pathname="/starter/" />)
     expect(current()).toEqual(['Build'])

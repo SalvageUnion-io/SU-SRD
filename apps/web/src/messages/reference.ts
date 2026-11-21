@@ -43,4 +43,5 @@ export const referenceCopy = messages({
   showDiscord: 'Roll in Discord',
   showDiscordBody: 'Look up any rule, reference, or roll without ever leaving your call.',
   buyThisBook: 'Buy this book',
+  opensInNewTab: '(opens in a new tab)',
 })

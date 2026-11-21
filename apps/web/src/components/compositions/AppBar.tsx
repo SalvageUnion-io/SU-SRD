@@ -268,6 +268,7 @@ export function AppBar({
               >
                 {compositionsCopy('buyTheGame')}
                 <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                <span className="su-sr-only"> {compositionsCopy('opensInNewTab')}</span>
               </a>
             )}
           </nav>
