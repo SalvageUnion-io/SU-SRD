@@ -505,6 +505,15 @@ export function LiveSheet({
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
                     )}
+                    {band?.game && (
+                      <Tag
+                        tag={relation('game', buildSheetCopy('game'), band.game.name, {
+                          href: band.game.href,
+                        })}
+                        linkable
+                        wrap
+                      />
+                    )}
                   </>
                 ),
               }}

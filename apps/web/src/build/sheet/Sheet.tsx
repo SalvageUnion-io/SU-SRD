@@ -145,6 +145,8 @@ type SheetProps = {
   withheld?: readonly WithheldUnit[]
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
+  /** The Game the unit is in, named and linked on its band. */
+  game?: SheetBand['game']
   /** Who holds each unit in the Game: the owner chips on its Related units. */
   ownerOf?: OwnerOf
 }
@@ -191,6 +193,7 @@ export function Sheet({
   withheld = NONE_WITHHELD,
   ownerOf,
   bandActions,
+  game,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -463,6 +466,7 @@ export function Sheet({
       />
     ) : null
   const band: SheetBand = {
+    game,
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>

@@ -32,6 +32,8 @@ export type WithheldUnit = { key: string; kind: EntityRef['type']; name?: string
  */
 export type SheetBand = {
   actions?: ReactNode
+  /** The Game the unit is in: a GAME relation chip on the band, linking to its page. */
+  game?: { name: string; href: string } | undefined
 }
 
 export type SheetViewCommonProps = {
