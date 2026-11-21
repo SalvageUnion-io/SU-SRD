@@ -19,7 +19,16 @@ const WHY: Record<EntityKind, string> = {
   npc: 'You are reading a crewmate’s NPC. Only whoever made it can change it.',
 }
 
-export function CrewSheetBanner({ kind, children }: { kind: EntityKind; children: ReactNode }) {
+export function CrewSheetBanner({
+  kind,
+  unassigned = false,
+  children,
+}: {
+  kind: EntityKind
+  /** A pilot or mech assigned to nobody: no crewmate holds it (MD-23). */
+  unassigned?: boolean
+  children: ReactNode
+}) {
   return (
     <div className="su-page-gutters">
       <div
@@ -29,7 +38,7 @@ export function CrewSheetBanner({ kind, children }: { kind: EntityKind; children
         className="su-sheet-gutter"
         style={READ_ONLY_BANNER}
       >
-        {WHY[kind]}
+        {unassigned ? buildSheetCopy('readOnlyUnassignedSheet') : WHY[kind]}
       </div>
       {children}
     </div>
