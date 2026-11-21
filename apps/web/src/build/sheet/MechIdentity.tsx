@@ -46,7 +46,7 @@ export function MechIdentityPanel({ mech, patch, after }: MechIdentityPanelProps
         {/* Read omits the pattern name: it is the band's title. */}
         {patch && (
           <Field
-            label={buildSheetCopy('patternName')}
+            label={buildSheetCopy('mechName')}
             value={mech.name}
             onSave={savePatternName}
             prominent

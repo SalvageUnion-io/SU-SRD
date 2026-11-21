@@ -3,6 +3,15 @@
 import { messages } from './define'
 
 export const pagesCopy = messages({
+  loadout: 'Loadout',
+  loadoutOf: '{name} loadout',
+  sys: 'Sys',
+  systemSlots: 'System Slots',
+  mod: 'Mod',
+  moduleSlots: 'Module Slots',
+  scrap: 'Scrap',
+  salvageValue: 'Salvage Value, in Scrap',
+  total: 'Total',
   thePageYouAreLooking: 'The page you are looking for could not be found.',
   patternOf: 'Pattern of',
   aboutSalvageunionIoAnOpen:

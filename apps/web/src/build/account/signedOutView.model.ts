@@ -1,6 +1,6 @@
 /**
  * Signed-out views: what a screen shows a visitor with no account (the
- * Roster's front door, a `/…/new` route's sign-in panel), and what each needs
+ * Roster's front door, the NPC designer's sign-in panel), and what each needs
  * of the reference data, so that a first visit paints it without waiting for
  * the whole dataset.
  *
@@ -25,9 +25,6 @@ import { FRONT_DOOR_SCHEMAS } from '../roster/frontDoor.model'
  */
 export const SIGNED_OUT_VIEWS = {
   '/': FRONT_DOOR_SCHEMAS,
-  '/pilots/new': [],
-  '/mechs/new': [],
-  '/crawlers/new': [],
   '/npcs/new': [],
 } as const satisfies Record<string, readonly string[]>
 

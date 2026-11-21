@@ -49,6 +49,14 @@ type SearcherPoolOptions = {
   browse: boolean
   /** The chosen-list noun, for the Status facet's "… only" chip. */
   chosenLabel: string
+  /** The Tech Level the picker opens on (`EntitySearcher`'s `techLevel`). */
+  homeTechLevel?: number
+}
+
+/** Whether `tl` is above `home`: a lettered level (Bio, Nanite) always is. */
+export function aboveTechLevel(tl: TechLevelLike | undefined, home: number | undefined): boolean {
+  if (home === undefined || tl === undefined) return false
+  return typeof tl !== 'number' || tl > home
 }
 
 type SearcherPool = {
@@ -68,6 +76,8 @@ type SearcherPool = {
   showRow: FacetRowConfig | null
   /** How many facet chips are narrowing the pool. */
   activeFilters: number
+  /** Drop the Tech level chips: every level shows. Null when none is set. */
+  showAllTechLevels: (() => void) | null
 }
 
 export function useSearcherPool({
@@ -78,9 +88,16 @@ export function useSearcherPool({
   facets,
   browse,
   chosenLabel,
+  homeTechLevel,
 }: SearcherPoolOptions): SearcherPool {
   const [query, setQuery] = useState('')
-  const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => new Set())
+  // Opens on the home Tech Level and every numbered one under it; the chips
+  // (and "Show all Tech Levels") widen it from there.
+  const [activeTls, setActiveTls] = useState<Set<TechLevelLike>>(() => {
+    const home = new Set<TechLevelLike>()
+    if (homeTechLevel !== undefined) for (let tl = 1; tl <= homeTechLevel; tl++) home.add(tl)
+    return home
+  })
   const [activeCats, setActiveCats] = useState<Set<string>>(() => new Set())
   const [activeTraits, setActiveTraits] = useState<Set<string>>(() => new Set())
   const [status, setStatus] = useState<'all' | 'equipped' | 'available'>('all')
@@ -263,5 +280,6 @@ export function useSearcherPool({
     facetRows,
     showRow,
     activeFilters,
+    showAllTechLevels: showTl && activeTls.size > 0 ? () => setActiveTls(new Set()) : null,
   }
 }

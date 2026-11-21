@@ -45,7 +45,7 @@
 
 import { X } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { EntitySchemaName } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { color, fontSize, iconSize, space, widthAtLeast } from '../../design/tokens'
@@ -53,8 +53,10 @@ import { cn } from '../../lib/cn'
 import { useDisclosure } from '../../lib/useDisclosure'
 import { useMediaQuery } from '../../lib/useMediaQuery'
 import { compositionsCopy } from '../../messages/components-compositions'
+import { Badge } from '../atoms/Badge'
 import { Button } from '../atoms/Button'
 import { capsLabel } from '../atoms/capsLabel'
+import { InsidePeekContext } from '../atoms/insidePeek'
 import { SearchField } from '../atoms/SearchField'
 import { EmptyState } from '../containers/EmptyState'
 import { TitledBox } from '../containers/TitledBox'
@@ -67,9 +69,15 @@ import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/refe
 import { SearcherToolbar } from './EntitySearcherFilters'
 import { FocusPane } from './EntitySearcherFocus'
 import { SelectionRail, SelectionStatus } from './EntitySearcherRail'
-import type { BudgetConfig, EntityLike, FacetConfig, PoolEntity } from './entitySearcherTypes'
+import type {
+  BudgetConfig,
+  EntityLike,
+  FacetConfig,
+  PickCost,
+  PoolEntity,
+} from './entitySearcherTypes'
 import { NO_RESULTS } from './searchCopy'
-import { TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
+import { aboveTechLevel, TECH_LEVEL_ROW, useSearcherPool } from './useSearcherPool'
 
 type EntitySearcherProps = {
   /** Which reference collection to search. */
@@ -103,6 +111,18 @@ type EntitySearcherProps = {
   /** Narrow the pool (e.g. only weapons). Default: the whole collection. */
   filter?: (item: EntityLike) => boolean
   facets?: FacetConfig
+  /**
+   * The Tech Level of what the picks land on (a mech's): the picker opens on
+   * that level and under, "Show all Tech Levels" widens it, and an entry above
+   * it is tagged. Never blocks a pick (Free Edit).
+   */
+  techLevel?: number
+  /**
+   * What adding an entry costs, where the sheet can pay it as it adds (an
+   * ability's Training Points): the focused Page's action bar says the cost
+   * and offers to pay it, beside the plain add. Never blocks the add.
+   */
+  cost?: (item: EntityLike) => PickCost | undefined
   /** Optional soft budget(s) shown in the rail (never blocks selection). */
   budget?: BudgetConfig | BudgetConfig[]
   /** Who the picks land on, e.g. the pilot or mech name: the rail heading and
@@ -163,6 +183,8 @@ export function EntitySearcher({
   idOf = nameOf,
   filter,
   facets,
+  techLevel,
+  cost,
   budget,
   railName,
   chosenLabel = 'Selected',
@@ -179,8 +201,26 @@ export function EntitySearcher({
   // caller's to suppress.
   const cardHide: ReferenceEntityCardHideConfig = { ...hide, actions: true, choices: true }
   const browse = mode === 'browse'
-  const { query, setQuery, pool, visible, countOf, facetRows, showRow, activeFilters } =
-    useSearcherPool({ schema, selected, idOf, filter, facets, browse, chosenLabel })
+  const {
+    query,
+    setQuery,
+    pool,
+    visible,
+    countOf,
+    facetRows,
+    showRow,
+    activeFilters,
+    showAllTechLevels,
+  } = useSearcherPool({
+    schema,
+    selected,
+    idOf,
+    filter,
+    facets,
+    browse,
+    chosenLabel,
+    homeTechLevel: techLevel,
+  })
   // The server snapshot is narrow, so a server render never commits to the
   // three columns.
   const wide = useMediaQuery(WIDE_QUERY, false)
@@ -242,6 +282,30 @@ export function EntitySearcher({
     else onToggle?.(ref)
   }
 
+  // The one picker convention: the search field has focus when a picker
+  // opens beside its detail pane, and Enter adds the first match. The picker
+  // stays open, the match's line and the sidebar counting what was added. A
+  // phone keeps its keyboard down until the field is pressed.
+  const searchRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (browse || !window.matchMedia(WIDE_QUERY).matches) return
+    const frame = requestAnimationFrame(() => searchRef.current?.focus())
+    return () => cancelAnimationFrame(frame)
+  }, [browse])
+  function addFirstMatch() {
+    const first = visible[0]
+    if (browse || !first || !query.trim()) return
+    const ref = idOf(first)
+    // Enter never removes: a toggle or single pick already made stays made.
+    // It pays the cost where the sheet can, as the action bar's lead button does.
+    if (mode === 'count' || !selected.includes(ref)) {
+      const price = cost?.(first)
+      if (price?.canPay) price.onPay()
+      else add(ref)
+    }
+    if (wide) setFocusId(ref)
+  }
+
   // ---- Toolbar: Tech level beside the search when there is room ----
   const techRow = facetRows.find((row) => row.label === TECH_LEVEL_ROW) ?? null
   const inline = wide ? techRow : null
@@ -250,8 +314,15 @@ export function EntitySearcher({
     <SearcherToolbar
       search={
         <SearchField
+          ref={searchRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== 'Enter') return
+            e.preventDefault()
+            addFirstMatch()
+          }}
+          enterKeyHint={browse ? undefined : 'done'}
           placeholder={compositionsCopy('searchByNameOrTrait')}
           aria-label={compositionsCopy('search')}
           autoComplete="off"
@@ -298,6 +369,11 @@ export function EntitySearcher({
         data-selected={count > 0 || undefined}
       >
         {token}
+        {aboveTechLevel(item.techLevel, techLevel) && (
+          <Badge shape="stamp" size="mini" surface="inverse" style={ROW_TAG_STYLE}>
+            {compositionsCopy('aboveTech', { techLevel: techLevel ?? 0 })}
+          </Badge>
+        )}
         {count > 0 && <SelectedSeal word={count > 1 ? `${count} ${chosenLabel}` : chosenLabel} />}
       </div>
     )
@@ -306,10 +382,21 @@ export function EntitySearcher({
   const browser = (
     <div ref={listRef} className="su-searcher__browser" hidden={takeover}>
       <div className="su-searcher__scroll" style={LIST_SCROLL_STYLE}>
-        <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
-          {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
-        </p>
-        <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
+        <div style={SUMMARY_ROW_STYLE}>
+          <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
+            {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
+          </p>
+          {techLevel !== undefined && showAllTechLevels && (
+            <Button variant="ghost" size="mini" onClick={showAllTechLevels}>
+              {compositionsCopy('showAllTechLevels')}
+            </Button>
+          )}
+        </div>
+        {/* A picker's entry opens its Page beside the list, so it has no hover
+            card over the rows under it. */}
+        <InsidePeekContext.Provider value={!browse}>
+          <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
+        </InsidePeekContext.Provider>
         {visible.length === 0 && emptyMessage && (
           <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
         )}
@@ -326,6 +413,7 @@ export function EntitySearcher({
       chosenLabel={chosenLabel}
       railName={railName}
       listName={title}
+      cost={cost?.(focused)}
       hide={cardHide}
       showChassisAbility={showChassisAbility}
       onAdd={() => focusedId && add(focusedId)}
@@ -475,8 +563,23 @@ const SUBTITLE_CAPS = capsLabel()
 const LIST_SCROLL_STYLE = {
   padding: `${space[12]} ${space[16]} ${space[16]}`,
 } satisfies CSSProperties
-const SUMMARY_STYLE = {
+const SUMMARY_ROW_STYLE = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: space[8],
   margin: `0 0 ${space[8]}`,
+} satisfies CSSProperties
+const SUMMARY_STYLE = {
+  margin: 0,
   color: color.wkMuted,
+} satisfies CSSProperties
+/** A row's "Above Tech N" tag: beside the Mini, never shrinking or taking its press. */
+const ROW_TAG_STYLE = {
+  alignSelf: 'center',
+  flex: 'none',
+  pointerEvents: 'none',
+  whiteSpace: 'nowrap',
 } satisfies CSSProperties
 const SUMMARY_CAPS = capsLabel({ size: 'badge' })

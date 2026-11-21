@@ -78,7 +78,7 @@ export function AddAMech({ pilot, spares, newHref }: AddAMechProps) {
             })),
           },
         ]}
-        empty={buildShelvesCopy('everyMechHasItsPilot')}
+        empty={buildShelvesCopy('noUnassignedMechs')}
         selected={selected}
         onSelect={setSelected}
         doors={

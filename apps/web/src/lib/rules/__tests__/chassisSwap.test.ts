@@ -1,0 +1,27 @@
+import { describe, expect, test } from 'bun:test'
+import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
+import { computeMechCapacity } from 'salvageunion-reference/rules'
+import { loadoutOnChassis } from '../chassisSwap'
+
+const one = nameToSlug(
+  (SalvageUnionReference.Systems.all().find((s) => s.slotsRequired === 1) ?? { name: '' }).name
+)
+
+describe('loadoutOnChassis', () => {
+  test('a loadout that fits the new chassis is kept whole, in order', () => {
+    const systems = [one, one]
+    expect(loadoutOnChassis('mule', { systems, modules: [] })).toEqual({
+      systems,
+      modules: [],
+      dropped: [],
+    })
+  })
+
+  test('what overfills the new chassis is left off and named; the rest stays', () => {
+    const max = computeMechCapacity({ chassisRef: 'mule', systems: [], modules: [] }).systemSlotsMax
+    const systems = new Array<string>(max + 2).fill(one)
+    const swap = loadoutOnChassis('mule', { systems, modules: [] })
+    expect(swap.systems.length).toBe(max)
+    expect(swap.dropped).toEqual([one, one])
+  })
+})

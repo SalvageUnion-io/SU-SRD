@@ -12,7 +12,7 @@ import { componentsCopy } from '../messages/components'
 import { usePatterns } from '../replica/collections'
 import { useUnits } from '../replica/units'
 import { failureMessage } from './connection/useServerAction'
-import { copyForShelf, copyName } from './copyEntity'
+import { copyForShelf, copyName, namesOn } from './copyEntity'
 import { patternCopy, savedPatternHref } from './patterns/patterns'
 
 /** Says a copy was made, until dismissed, with the way to it. */
@@ -44,7 +44,7 @@ export async function makeACopy(args: {
 
 type Go = (href: string) => void
 
-/** Copy one of your units onto the Training Bay, named "Copy of …". */
+/** Copy one of your units onto the Training Bay, named "Copy of …", numbered past the names taken. */
 export function copyUnit(
   type: EntityKind,
   name: string,
@@ -54,7 +54,11 @@ export function copyUnit(
   return makeACopy({
     name,
     make: async () => {
-      const created = await useUnits.getState().create(type, copyForShelf(body, name) as never)
+      const units = useUnits.getState()
+      const created = await units.create(
+        type,
+        copyForShelf(body, name, namesOn(units.list(type))) as never
+      )
       return { name: created.name, href: `/${type}s/${created.id}` }
     },
     go,
@@ -66,9 +70,11 @@ export function copyPattern(pattern: MechPattern, go: Go): Promise<void> {
   return makeACopy({
     name: pattern.name,
     make: async () => {
-      const created = await usePatterns
-        .getState()
-        .create({ ...patternCopy(pattern), name: copyName(pattern.name) })
+      const patterns = usePatterns.getState()
+      const created = await patterns.create({
+        ...patternCopy(pattern),
+        name: copyName(pattern.name, namesOn(patterns.mechPatterns)),
+      })
       return { name: created.name, href: savedPatternHref(created.id) }
     },
     go,

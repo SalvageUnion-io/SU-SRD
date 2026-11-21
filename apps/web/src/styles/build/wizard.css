@@ -197,15 +197,15 @@
 
 .su-wiz-pill {
   align-items: center;
-  flex-flow: row nowrap;
+  flex-flow: row wrap;
   gap: var(--space-8);
   padding: var(--space-8) var(--space-12);
   width: 100%;
 }
 
 .su-wiz-pill-start {
-  flex: none;
-  flex-wrap: nowrap;
+  flex: 1 0 100%;
+  flex-wrap: wrap;
 }
 
 /* A budget (`WizTracker`) stands as tall as the Full buttons beside it. */
@@ -214,11 +214,9 @@
   height: var(--size-full);
 }
 
-/* Back, Cancel and the escape are the ⋯ menu's rows on a phone; a budget the
-   step already shows (the slot counts on its tabs) stays off the phone's bar. */
-.su-wiz-pill-back,
+/* A phone's bar is its budgets, then Back, the ⋯ menu (Cancel, the escape)
+   and the Next; "Next:" before the step's name waits for sm. */
 .su-wiz-pill-cancel,
-.su-wiz-pill-wide,
 .su-wiz-pill-next {
   display: none;
 }
@@ -247,18 +245,18 @@
   .su-wiz-pill {
     border-radius: var(--radius-card);
     gap: var(--space-12);
+    flex-wrap: nowrap;
     max-width: 100%;
     padding: var(--space-12);
     padding-left: var(--space-16);
     width: auto;
   }
 
-  .su-wiz-pill-back,
-  .su-wiz-pill-cancel {
-    display: inline-flex;
+  .su-wiz-pill-start {
+    flex: none;
   }
 
-  .su-wiz-pill-wide {
+  .su-wiz-pill-cancel {
     display: inline-flex;
   }
 

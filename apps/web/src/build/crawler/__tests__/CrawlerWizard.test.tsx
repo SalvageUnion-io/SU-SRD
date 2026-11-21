@@ -101,7 +101,9 @@ describe('CrawlerWizard — create mode', () => {
 
     // No selection yet — Next is gated with a reason.
     expect(getNextButton().disabled).toBe(true)
-    expect(screen.getByText(/Choose your Crawler type/i)).toBeTruthy()
+    // Said on the step, and on the action bar where the Next is (U8).
+    expect(screen.getByRole('status').textContent).toMatch(/Choose your Crawler type/i)
+    expect(screen.getByRole('button', { name: /^First: Choose your Crawler type/ })).toBeTruthy()
 
     // Selecting Battle shows its full detail card: the unique Ability + NPC.
     await pickRadio('Battle')
@@ -156,7 +158,7 @@ describe('CrawlerWizard — create mode', () => {
 
     // Nothing mounted — Next is locked with the reason in the footer.
     expect(getNextButton().disabled).toBe(true)
-    expect(screen.getByText(/Mount at least one Weapons System/i)).toBeTruthy()
+    expect(screen.getByRole('status').textContent).toMatch(/Mount at least one Weapons System/i)
 
     const weapon = weaponSystemAtTL(1)
     await addOne(weapon.name)

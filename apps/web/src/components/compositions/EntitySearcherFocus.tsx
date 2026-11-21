@@ -17,7 +17,7 @@ import { ChapterBandTrail } from '../atoms/ChapterBandTrail'
 import { ReferenceEntityCard } from '../referenceEntity/card/ReferenceEntityCard'
 import type { ReferenceEntityCardHideConfig } from '../referenceEntity/card/referenceEntityCardTypes'
 import { EntityDetailPage } from '../referenceEntity/EntityDetailDialog'
-import type { PoolEntity } from './entitySearcherTypes'
+import type { PickCost, PoolEntity } from './entitySearcherTypes'
 
 /**
  * The action bar reads the focused entity's state: a stamp saying how many
@@ -32,6 +32,7 @@ export function FocusPane({
   chosenLabel,
   railName,
   listName,
+  cost,
   hide,
   showChassisAbility,
   onAdd,
@@ -46,6 +47,8 @@ export function FocusPane({
   railName?: string
   /** The list the back bar returns to (the picker's title); "List" when it has none. */
   listName?: string
+  /** What adding it costs, where the sheet can pay it as it adds. */
+  cost?: PickCost
   hide: ReferenceEntityCardHideConfig
   showChassisAbility?: boolean
   onAdd: () => void
@@ -96,10 +99,16 @@ export function FocusPane({
         {chosen && (
           <Badge shape="stamp">{mode === 'count' ? `${count} ${chosenLabel}` : chosenLabel}</Badge>
         )}
+        {canAdd && cost && <Badge shape="stamp">{cost.label}</Badge>}
         <span style={GROW_STYLE} />
         {canAdd && (
-          <Button variant="primary" size="compact" onClick={onAdd}>
+          <Button variant={cost?.canPay ? undefined : 'primary'} size="compact" onClick={onAdd}>
             {addLabel}
+          </Button>
+        )}
+        {canAdd && cost && (
+          <Button variant="primary" size="compact" disabled={!cost.canPay} onClick={cost.onPay}>
+            {cost.payLabel}
           </Button>
         )}
       </div>

@@ -19,6 +19,7 @@ import {
 } from 'salvageunion-reference/rules'
 import { Badge, ReferenceEntityCard } from '../../components/index'
 import { maxAddableCopies } from '../../lib/rules/creation'
+import { LOCOMOTION } from '../../lib/rules/locomotion'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import { choicesOf, chosenChips, loadoutColumns } from '../wizard/pickColumns'
@@ -41,6 +42,8 @@ type MechLoadoutStepProps = {
   onChoices: (slug: string, next: ChoiceSelections) => void
   /** Where the book prints each list's rule, on its foot. */
   cites: Record<Kind, BookCite>
+  /** The chassis moves by its own Chassis Ability: a Locomotion System is no suggestion for it. */
+  ownLocomotion?: boolean
 }
 
 const KINDS: readonly Kind[] = ['systems', 'modules']
@@ -52,8 +55,6 @@ const TITLES: Record<Kind, string> = {
 
 const byName = (a: Item, b: Item) => a.name.localeCompare(b.name)
 
-const isSuggested = (item: Item) => 'recommended' in item && item.recommended === true
-
 export function MechLoadoutStep({
   systems,
   modules,
@@ -63,7 +64,12 @@ export function MechLoadoutStep({
   choices,
   onChoices,
   cites,
+  ownLocomotion = false,
 }: MechLoadoutStepProps) {
+  const isSuggested = (item: Item) =>
+    'recommended' in item &&
+    item.recommended === true &&
+    !(ownLocomotion && LOCOMOTION.test(item.name))
   const pools = useMemo(
     () => ({
       systems: SalvageUnionReference.Systems.all()

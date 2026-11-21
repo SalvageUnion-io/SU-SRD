@@ -27,6 +27,7 @@ import {
   mechCreationStepGate,
   pilotCreationStepGate,
 } from '../creation'
+import { isStartingEquipment } from '../startingEquipment'
 
 function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => boolean) => unknown }) {
   const found = accessor.find((x) => x.name === name) as { id: string } | undefined
@@ -35,8 +36,8 @@ function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => bool
 }
 
 function tech1EquipmentSlug(): string {
-  const item = SalvageUnionReference.Equipment.find(
-    (e) => (e as { techLevel?: number }).techLevel === 1
+  const item = SalvageUnionReference.Equipment.find((e) =>
+    isStartingEquipment(e as { name: string; techLevel?: number })
   )
   if (!item) throw new Error('no Tech 1 equipment loaded')
   return getEntitySlug(item)
@@ -127,7 +128,15 @@ describe('pilotCreationStepGate', () => {
       equipment: [dup, higherTechEquipmentSlug()],
     })
     expect(illegal.ok).toBe(false)
-    expect(illegal.reason).toBe('Only Tech 1 equipment is legal at creation')
+    expect(illegal.reason).toBe('Only Tech 1 equipment from the list is legal at creation')
+
+    // Gear an Ability grants is Tech 1 in the data and still no starting pick (SB-03).
+    expect(
+      pilotCreationStepGate('equipment', {
+        ...legalForm(),
+        equipment: [dup, 'custom-sniper-rifle'],
+      }).ok
+    ).toBe(false)
   })
 
   it('callsign: both Name and Callsign must be non-empty', () => {
@@ -271,7 +280,7 @@ describe('mechCreationStepGate', () => {
   it('pattern: the name is required (a mech’s name IS its pattern)', () => {
     const blocked = mechCreationStepGate('pattern', { ...legalMechForm(), name: '  ' })
     expect(blocked.ok).toBe(false)
-    expect(blocked.reason).toBe('Name your Pattern to continue')
+    expect(blocked.reason).toBe('Name your Mech to continue')
     expect(mechCreationStepGate('pattern', legalMechForm()).ok).toBe(true)
   })
 

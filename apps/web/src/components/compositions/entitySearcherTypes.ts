@@ -36,6 +36,17 @@ export type BudgetConfig = {
   max: number
 }
 
+/** What adding an entry costs, and the act that adds it and pays (`EntitySearcher`'s `cost`). */
+export type PickCost = {
+  /** The cost and what is left to pay it: "Costs 1 TP · 0 left". */
+  label: string
+  /** The paying act: "Spend 1 TP and add". */
+  payLabel: string
+  /** There is enough to pay it. */
+  canPay: boolean
+  onPay: () => void
+}
+
 /** One facet row: its label and its chips, a Field over its Segmented. */
 export type FacetRowConfig = {
   label: string

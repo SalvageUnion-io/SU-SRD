@@ -115,8 +115,16 @@ export const stepNoteStyle = {
 
 /** Pinned to the viewport's foot; its ground, rule and bleed are `.su-wiz-footer`'s. */
 export const footerPillStyle = {
+  alignItems: 'flex-end',
   display: 'flex',
-  justifyContent: 'flex-end',
+  flexDirection: 'column',
   position: 'sticky',
   zIndex: tokens.layer.sticky,
+} satisfies CSSProperties
+
+/** The action bar's prompt: one line over the bar, the footer's width. */
+export const promptStyle = {
+  alignSelf: 'stretch',
+  borderBottom: `${tokens.borderWidth.hairline} solid ${tokens.color.ink15}`,
+  justifyContent: 'center',
 } satisfies CSSProperties

@@ -19,7 +19,7 @@
 
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { startTransition, useEffect, useState } from 'react'
+import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
@@ -29,6 +29,7 @@ import {
   writeWizardReached,
 } from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import { useSync } from '../../replica/syncContext'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
 
@@ -102,6 +103,8 @@ type WizardShellProps = {
   onNext: () => void
   nextDisabled: boolean
   busy: boolean
+  /** Saving signed out asks for an account; the draft is kept (`SaveSignInDialog`). */
+  signIn: { open: boolean; onClose: () => void }
 }
 
 export type WizardFlow<TStep extends string> = {
@@ -151,6 +154,10 @@ export function useWizardFlow<
   const [reached, setReached] = useState(() => Math.max(steps.indexOf(step), 0))
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
+  // A wizard runs signed out; Save is where an account is asked for. The form
+  // is already this tab's session draft, so signing in comes back to it.
+  const { status, canWrite } = useSync()
+  const [askSignIn, setAskSignIn] = useState(false)
 
   const currentIndex = steps.indexOf(step)
 
@@ -189,6 +196,10 @@ export function useWizardFlow<
 
   async function handleSubmit() {
     setInvalid(null)
+    if (status === 'signedOut' && !canWrite) {
+      setAskSignIn(true)
+      return
+    }
     const result = await save.run()
     if (!result.ok || result.value === null) return
     toast.success(buildWizardCopy('saved', { value: form.name.trim() || noun }))
@@ -200,8 +211,30 @@ export function useWizardFlow<
   // systems list) renders in slices behind the pressed button, so the press
   // paints at once rather than after one long render (INP).
   function goTo(next: TStep) {
+    // A step forward is a history entry of its own, so the browser's Back is
+    // one step back (below); a step back rewrites the entry it is on.
+    const to = steps.indexOf(next)
+    if (typeof window !== 'undefined' && to >= 0) {
+      const write = to > currentIndex ? 'pushState' : 'replaceState'
+      window.history[write](window.history.state, '', stepHash(to))
+    }
     startTransition(() => setStep(next))
   }
+
+  // The browser's Back and Forward land on an entry's step, where the draft
+  // has reached it; the entry the wizard opened on is its first step.
+  const reachedRef = useRef(reached)
+  reachedRef.current = reached
+  useEffect(() => {
+    const first = Math.max(steps.indexOf(initialStep), 0)
+    const onPop = () => {
+      const at = stepOfHash(window.location.hash) ?? first
+      const s = steps[Math.min(at, reachedRef.current)]
+      if (s) startTransition(() => setStep(s))
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [steps, initialStep])
 
   function goNext() {
     if (step === submitStep) {
@@ -249,8 +282,16 @@ export function useWizardFlow<
       onNext: goNext,
       nextDisabled: !gate.ok,
       busy: save.pending,
+      signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
     },
   }
+}
+
+/** A step's history entry: its number in the address's fragment (`#step-2`). */
+const stepHash = (index: number) => `#step-${index + 1}`
+const stepOfHash = (hash: string): number | undefined => {
+  const match = /^#step-(\d+)$/.exec(hash)
+  return match ? Number(match[1]) - 1 : undefined
 }
 
 /** A create input filed under a Game: its container decided, so the store keeps it. */

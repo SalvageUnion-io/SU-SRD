@@ -33,9 +33,14 @@ export const PILOT_COLUMNS = [
   fig(VITAL.ap, buildShelvesCopy('abilityPoints')),
 ]
 // A mech a pilot flies is on that pilot's line; this shelf holds the rest.
+// Its build figures tell two mechs on one chassis apart, before its live ones.
 export const MECH_COLUMNS = [
   word('chassis', buildShelvesCopy('chassis'), true),
   GAME,
+  fig(buildShelvesCopy('tl'), buildShelvesCopy('techLevel')),
+  fig(buildShelvesCopy('sys'), buildShelvesCopy('systemSlotsUsed')),
+  fig(buildShelvesCopy('mod'), buildShelvesCopy('moduleSlotsUsed')),
+  fig(buildShelvesCopy('scrap'), buildShelvesCopy('scrapChassisAndLoadout'), true),
   fig(VITAL.sp, buildShelvesCopy('structurePoints'), true),
   fig(VITAL.ep, buildShelvesCopy('energyPoints')),
   fig(VITAL.heat, buildShelvesCopy('heat')),

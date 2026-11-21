@@ -24,6 +24,8 @@ export const compositionsCopy = messages({
   searchByNameOrTrait: 'Search by name or trait…',
   search: 'Search',
   showingOf: 'Showing {count} of {count2}',
+  showAllTechLevels: 'Show all Tech Levels',
+  aboveTech: 'Above Tech {techLevel}',
   openAnyEntryInThe: 'Open any entry in the list to read it here, then add it from its page.',
   done: 'Done',
   close: 'Close',

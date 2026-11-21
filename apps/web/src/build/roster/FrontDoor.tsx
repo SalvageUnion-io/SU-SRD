@@ -108,12 +108,24 @@ const BUILD_STEPS = {
  */
 const BUILD_ANCHORS = { pilot: 'shelf-pilots', mech: 'shelf-mechs', crawler: 'shelf-crawlers' }
 
-/** Build's front door: Create a Pilot → Create a Mech → Join or make a Crawler. */
-export function BuildFrontDoor() {
+/**
+ * Build's steps as doors: Create a Pilot, Create a Mech, Join or make a
+ * Crawler. Unnumbered, since none needs the one before it. The front door
+ * shows them, and so does a Training Bay with nothing in it yet. Only the
+ * front door's wear the sub-nav's ids: the Training Bay's shelves have them.
+ */
+export function BuildStartHere({ id, anchored = false }: { id: string; anchored?: boolean }) {
   return (
-    <FrontDoor
-      area="build"
-      steps={<StartHere id="front-door-start" hrefs={BUILD_STEPS} anchors={BUILD_ANCHORS} />}
+    <StartHere
+      id={id}
+      hrefs={BUILD_STEPS}
+      numbered={false}
+      anchors={anchored ? BUILD_ANCHORS : undefined}
     />
   )
+}
+
+/** Build's front door: its pitch, its steps, the Starter crew. */
+export function BuildFrontDoor() {
+  return <FrontDoor area="build" steps={<BuildStartHere id="front-door-start" anchored />} />
 }

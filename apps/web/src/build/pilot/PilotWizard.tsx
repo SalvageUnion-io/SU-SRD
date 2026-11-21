@@ -404,7 +404,9 @@ export function PilotWizard({
           {brief('classAbility')}
           {/* Every pilot's starting stats (p.18) are fixed, so they lead the
               first step that asks for something instead of being a step. */}
-          <StatsStep />
+          <StatsStep
+            inventoryUsed={pilotInventoryUsed({ equipment: form.equipment, genericInventory: [] })}
+          />
           <ClassAbilityStep
             classId={form.classId}
             selectedAbilities={form.abilities}

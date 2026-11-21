@@ -5,9 +5,14 @@
  */
 
 import type { Mech } from 'game-domain/schemas/mech'
+import { useState } from 'react'
 import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
+import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import type { UnitsStore } from '../../replica/units'
+import { choicesOf } from '../wizard/pickColumns'
+import { MechItemChoiceDialog } from './MechItemDetails'
 import type { MechSheetModel } from './mechSheet.model'
 import type { ItemKind, MechSheetActions } from './mechSheetActions.model'
 import { overAsPrinted } from './mechSlots.model'
@@ -19,6 +24,7 @@ export function MechSheetPickers({
   mech,
   model,
   actions,
+  store,
 }: {
   /** Which collection's picker is open. */
   picker: ItemKind | null
@@ -26,14 +32,35 @@ export function MechSheetPickers({
   mech: Mech
   model: MechSheetModel
   actions: MechSheetActions
+  /** Where an added item's choice is saved (`Mech.itemChoices`). */
+  store: UnitsStore
 }) {
+  // An item that asks a choice asks it as it is added: its Page opens over the
+  // picker (hidden meanwhile, so two dialogs never share the focus trap), and
+  // closing it returns to the picker.
+  const [asking, setAsking] = useState<{ kind: ItemKind; slug: string } | null>(null)
+  const askingEntity = asking
+    ? asking.kind === 'system'
+      ? resolveSystem(asking.slug)
+      : resolveModule(asking.slug)
+    : null
+  function add(kind: ItemKind, slug: string) {
+    actions.addItem(kind, slug)
+    const entity = kind === 'system' ? resolveSystem(slug) : resolveModule(slug)
+    if (entity && choicesOf(entity).length > 0 && !mech.itemChoices?.[slug]) {
+      setAsking({ kind, slug })
+    }
+  }
   const { chassis, capacity, maxEP } = model
+  // The pickers open on the mech's Tech Level; a lettered one (Bio) shows all.
+  const chassisTl = model.chassisEntity?.techLevel
+  const techLevel = typeof chassisTl === 'number' ? chassisTl : undefined
   return (
     <>
       <SheetPickerModal
-        open={picker === 'system'}
+        open={picker === 'system' && !asking}
         onClose={onClose}
-        title={buildSheetCopy('addSystems')}
+        title={buildSheetCopy('manageSystems')}
         floating
       >
         <EntitySearcher
@@ -41,7 +68,8 @@ export function MechSheetPickers({
           mode="count"
           selected={mech.systems}
           idOf={(item) => nameToSlug(item.name)}
-          onAdd={(slug) => actions.addItem('system', slug)}
+          techLevel={techLevel}
+          onAdd={(slug) => add('system', slug)}
           onRemove={(index) => actions.removeItem('system', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel={buildSheetCopy('installed')}
@@ -63,9 +91,9 @@ export function MechSheetPickers({
         />
       </SheetPickerModal>
       <SheetPickerModal
-        open={picker === 'module'}
+        open={picker === 'module' && !asking}
         onClose={onClose}
-        title={buildSheetCopy('addModules')}
+        title={buildSheetCopy('manageModules')}
         floating
       >
         <EntitySearcher
@@ -73,7 +101,8 @@ export function MechSheetPickers({
           mode="count"
           selected={mech.modules}
           idOf={(item) => nameToSlug(item.name)}
-          onAdd={(slug) => actions.addItem('module', slug)}
+          techLevel={techLevel}
+          onAdd={(slug) => add('module', slug)}
           onRemove={(index) => actions.removeItem('module', index)}
           railName={mech.name || chassis?.name || mech.chassisRef || 'Mech'}
           chosenLabel={buildSheetCopy('installed')}
@@ -94,6 +123,19 @@ export function MechSheetPickers({
           ]}
         />
       </SheetPickerModal>
+      {asking && askingEntity && (
+        <MechItemChoiceDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setAsking(null)
+          }}
+          slug={asking.slug}
+          entity={askingEntity}
+          mechId={mech.id}
+          seed={mech.itemChoices?.[asking.slug]}
+          store={store}
+        />
+      )}
     </>
   )
 }

@@ -43,7 +43,6 @@ import {
   Field,
   Ledger,
   Mention,
-  Stat,
   TechLevel,
   tokens,
 } from '../../components/index'
@@ -54,6 +53,7 @@ import { cn } from '../../lib/cn'
 import { chassisArt } from '../../lib/photos/defaultArt'
 import { CHASSIS_MODDER } from '../../lib/rules/chassisModder'
 import { resolveModule, resolveSystem } from '../../lib/rules/mechItems'
+import { mechScrap } from '../../lib/rules/mechScrap'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -228,7 +228,7 @@ export function MechDash({
         max={capacity.systemSlotsMax}
         meter="pips"
         tint="ink"
-        over={capacity.systemSlotsUsed > capacity.systemSlotsMax}
+        over={!capacity.asPrinted && capacity.systemSlotsUsed > capacity.systemSlotsMax}
       />
       <StripFigure
         label={STAT_LABELS.moduleSlots.short}
@@ -237,7 +237,7 @@ export function MechDash({
         max={capacity.moduleSlotsMax}
         meter="pips"
         tint="ink"
-        over={capacity.moduleSlotsUsed > capacity.moduleSlotsMax}
+        over={!capacity.asPrinted && capacity.moduleSlotsUsed > capacity.moduleSlotsMax}
       />
       <StripFigure
         label={STAT_LABELS.cargoCapacity.short}
@@ -248,8 +248,17 @@ export function MechDash({
         tint="cargo"
         over={over}
       />
-      {/* Tech Level and Salvage Value are the chassis's
-          own facts, so they sit with the Chassis in the side column. */}
+      {/* What the build is worth, as the Scrap of each Tech Level it takes. */}
+      {mechScrap(mech).byTechLevel.map(({ techLevel, scrap }) => (
+        <StripFigure
+          key={techLevel}
+          label={buildSheetCopy('tScrapShort', { tl: techLevel })}
+          name={buildSheetCopy('scrapToBuild', { tl: techLevel })}
+          value={scrap}
+          meter="bar"
+          tint={{ tl: techLevel }}
+        />
+      ))}
     </>
   )
   const art = (
@@ -497,7 +506,6 @@ export function MechDash({
               {free > 0 && (
                 <span className="su-dash-quiet">{buildSheetCopy('free', { free })}</span>
               )}
-              {over && <Stat size="mini" label={buildSheetCopy('overCapacity')} state="critical" />}
             </div>
             {/* Said on the page, not only in a tooltip a touch screen never shows. */}
             {edit && cargo.crawlerLocked !== null && (

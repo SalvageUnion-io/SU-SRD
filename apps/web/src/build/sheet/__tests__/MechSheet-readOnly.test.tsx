@@ -188,7 +188,7 @@ describe('MechSheet — the hero and the Chassis card', () => {
     const ability = chassisAbility()
     expect(ability.textContent).toContain('Data Scanner')
     // Read leaves the pattern name out: it is the band's title.
-    expect(container.textContent).not.toContain('Pattern name')
+    expect(container.textContent).not.toContain('Mech name')
   })
 
   test('the chassis ability names its chassis, never the token', () => {

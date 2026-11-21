@@ -29,14 +29,6 @@ type MechItemDetailsProps = MechItemChoices & {
 
 export function MechItemDetails({ slug, entity, mechId, seed, store }: MechItemDetailsProps) {
   const [open, setOpen] = useState(false)
-  const { selections, setSelections } = useEntityChoices(
-    'mech',
-    mechId,
-    slug,
-    'itemChoices',
-    seed,
-    store
-  )
   return (
     <>
       <Button
@@ -49,19 +41,53 @@ export function MechItemDetails({ slug, entity, mechId, seed, store }: MechItemD
       >
         {buildSheetCopy('details')}
       </Button>
-      <EntityDetailDialog
+      <MechItemChoiceDialog
         open={open}
         onOpenChange={setOpen}
-        entity={entity as RefMetaEntity}
-        title={entity.name}
-      >
-        <ReferenceEntityCard
-          data={entity}
-          presentation="page"
-          selections={selections}
-          onSelectionChange={setSelections}
-        />
-      </EntityDetailDialog>
+        slug={slug}
+        entity={entity}
+        mechId={mechId}
+        seed={seed}
+        store={store}
+      />
     </>
+  )
+}
+
+/**
+ * The item's Page with its options to choose: what Details opens, and what
+ * the install picker opens as soon as an item that asks a choice is added.
+ */
+export function MechItemChoiceDialog({
+  open,
+  onOpenChange,
+  slug,
+  entity,
+  mechId,
+  seed,
+  store,
+}: MechItemDetailsProps & { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { selections, setSelections } = useEntityChoices(
+    'mech',
+    mechId,
+    slug,
+    'itemChoices',
+    seed,
+    store
+  )
+  return (
+    <EntityDetailDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      entity={entity as RefMetaEntity}
+      title={entity.name}
+    >
+      <ReferenceEntityCard
+        data={entity}
+        presentation="page"
+        selections={selections}
+        onSelectionChange={setSelections}
+      />
+    </EntityDetailDialog>
   )
 }

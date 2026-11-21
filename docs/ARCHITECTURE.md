@@ -144,7 +144,7 @@ Retired (text in git): ADR-001, ADR-002, ADR-003, ADR-004, ADR-012, ADR-015, ADR
 33. **ADR-033 Hosting on Cloudflare** · [full text](adr/033-hosting-on-cloudflare.md)
     Workers (Static Assets, R2) serve everything; Actions builds, `wrangler` deploys. Amended by ADR-048, ADR-050, ADR-064.
 34. **ADR-034 Persistence requires an account**
-    Signed out is read-only, every record is Convex-backed, the app is a PWA.
+    Signed out saves nothing, every record is Convex-backed, the app is a PWA.
     Amends ADR-022 and ADR-030; amended by ADR-058.
 36. **ADR-036 Retire snapshot shares**
     The public sheet is the only account-free share; no `/api/snapshots`. Amends ADR-032.

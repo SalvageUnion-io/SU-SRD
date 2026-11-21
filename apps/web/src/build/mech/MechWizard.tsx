@@ -5,11 +5,13 @@ import type { BookCite, ChoiceSelections } from 'salvageunion-reference'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { toast } from '../../components/index'
+import { useCrawlers } from '../../lib/entities'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
+import { hasIntegratedLocomotion } from '../../lib/rules/locomotion'
 import { withItemChoice } from '../../lib/wizard/itemChoices'
 import type { MechPattern, MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
@@ -27,6 +29,7 @@ import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizTracker } from '../wizard/WizBudget'
 import { WizShell } from '../wizard/WizShell'
+import { PATTERN_STRIP_ID } from './chassisColumns.model'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'
 import { MechLoadoutStep } from './MechLoadoutStep'
@@ -122,6 +125,12 @@ export function MechWizard({
     clamp: clampMechCreationDraft,
     reapply: (restored) => withMechPreselection(restored, preselectChassis, preselectPattern),
   })
+
+  // Where leftover Scrap banks: the crawler of the Game the mech is built
+  // for, else one on the player's own shelf; none, and the review says nothing.
+  const bank = useCrawlers().find((crawler) =>
+    gameId === undefined ? typeof crawler.gameId !== 'string' : crawler.gameId === gameId
+  )
 
   // The step machine + the create submit, shared with the pilot, crawler and
   // NPC wizards (`useWizardFlow`); the mech's create input is a plain projection
@@ -397,6 +406,12 @@ export function MechWizard({
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
+      // The pattern strip opens under the chassis gallery, out of sight on a phone.
+      prompt={
+        step === 'chassis' && form.chassisName !== '' && form.patternName === ''
+          ? { text: mechCopy('orStartFromAPattern'), targetId: PATTERN_STRIP_ID }
+          : undefined
+      }
       submitLabel={mechCopy('createMech')}
     >
       {step === 'chassis' && (
@@ -423,6 +438,7 @@ export function MechWizard({
             modules={form.modules}
             onCountChange={setInstallCount}
             scrapRemaining={budget.remaining}
+            ownLocomotion={hasIntegratedLocomotion(form.chassisName)}
             slots={{
               systems: { used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
               modules: { used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
@@ -465,6 +481,7 @@ export function MechWizard({
           form={form}
           submitError={submitError}
           bankedScrap={Math.max(0, budget.remaining)}
+          crawler={bank}
           capacity={capacity}
           namePart={part(
             'pattern',

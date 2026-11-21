@@ -9,6 +9,7 @@ export const componentsCopy = messages({
   openTheCopy: 'Open the copy',
   couldNotBeCopied: '{name} could not be copied. Try again.',
   changedTo: 'to',
+  ruleBreaking: 'Rule breaking',
   legendary: 'Legendary',
   advance: 'Advance',
   hybrid: 'Hybrid',

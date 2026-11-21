@@ -17,6 +17,7 @@ import { describe, expect, it, mock } from 'bun:test'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { must } from '../../../components/__tests__/must'
+import { isStartingEquipment } from '../../../lib/rules/startingEquipment'
 import { useUnits } from '../../../replica/units'
 import {
   clickButton,
@@ -37,8 +38,8 @@ function idOf(name: string, accessor: { find: (fn: (x: { name: string }) => bool
 }
 
 function firstTech1Equipment(): { id: string; name: string } {
-  const item = SalvageUnionReference.Equipment.find(
-    (e) => (e as { techLevel?: number }).techLevel === 1
+  const item = SalvageUnionReference.Equipment.find((e) =>
+    isStartingEquipment(e as { name: string; techLevel?: number })
   ) as { id: string; name: string } | undefined
   if (!item) throw new Error('no Tech 1 equipment loaded')
   return item
@@ -223,60 +224,21 @@ describe('PilotWizard — hard creation enforcement', () => {
 // A choice made at creation is the pilot's (`Pilot.equipmentChoices`)
 // ---------------------------------------------------------------------------
 
-describe('PilotWizard — an option chosen at creation', () => {
-  it('is saved on the pilot, by the item\u2019s slug and its choice\u2019s id', async () => {
+describe('PilotWizard — starting equipment is the Tech 1 list (SB-03)', () => {
+  it('never offers gear an Ability grants, though the data marks it Tech 1', async () => {
     const rifle = must(SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle'))
-    const choice = must(must(rifle.choices).find((c) => c.name === 'Weapon Type'))
+    expect(rifle.techLevel).toBe(1)
     render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
     await pickRadio('Engineer')
     await pickRadio('Engineering Expertise')
     await clickNext()
 
-    // The rifle's card asks its choice where it is picked.
-    await clickButton(`Increase ${rifle.name} count`)
-    await act(async () => {
-      fireEvent.click(must(screen.getAllByRole('button', { name: /Ballistic/, pressed: false })[0]))
-    })
-    await clickButton(`Increase ${firstTech1Equipment().name} count`)
-    await clickNext()
-    await fillCallsign('Mira Voss', 'Sparks')
-    await clickNext()
-    await clickButton(/Create Pilot/i)
-
-    await waitFor(() => {
-      const p = must(useUnits.getState().list('pilot')[0])
-      expect(p.equipment).toContain(nameToSlug(rifle.name))
-      expect(p.equipmentChoices).toEqual({
-        [nameToSlug(rifle.name)]: { [choice.id]: ['Ballistic'] },
-      })
-    })
-  })
-
-  it('goes with its item: an option on an item no longer held is not saved', async () => {
-    const rifle = must(SalvageUnionReference.Equipment.getByName('Custom Sniper Rifle'))
-    const other = firstTech1Equipment()
-    render(<PilotWizard onComplete={() => {}} onCancel={() => {}} />)
-    await pickRadio('Engineer')
-    await pickRadio('Engineering Expertise')
-    await clickNext()
-
-    await clickButton(`Increase ${rifle.name} count`)
-    await act(async () => {
-      fireEvent.click(must(screen.getAllByRole('button', { name: /Ballistic/, pressed: false })[0]))
-    })
-    await clickButton(`Decrease ${rifle.name} count`)
-    await clickButton(`Increase ${other.name} count`)
-    await clickButton(`Increase ${other.name} count`)
-    await clickNext()
-    await fillCallsign('Mira Voss', 'Sparks')
-    await clickNext()
-    await clickButton(/Create Pilot/i)
-
-    await waitFor(() => {
-      const p = must(useUnits.getState().list('pilot')[0])
-      expect(p.equipment).not.toContain(nameToSlug(rifle.name))
-      expect(p.equipmentChoices).toBeUndefined()
-    })
+    expect(
+      screen.getByRole('button', { name: `Increase ${firstTech1Equipment().name} count` })
+    ).toBeTruthy()
+    for (const granted of ['Custom Sniper Rifle', 'Holo Companion', 'Auto-Turret', 'Hacking Kit']) {
+      expect(screen.queryByRole('button', { name: `Increase ${granted} count` })).toBeNull()
+    }
   })
 })
 

@@ -1,5 +1,5 @@
 import type { SheetKind } from 'game-domain/entityKinds'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { ConfirmDialog, NextLabel, TrackStep } from '../../components/app'
@@ -12,6 +12,7 @@ import {
   HeaderMenu,
   tokens,
 } from '../../components/index'
+import { SaveSignInDialog } from './SaveSignInDialog'
 import { WizardGameChip } from './WizardGameChip'
 import {
   bodyStyle,
@@ -22,6 +23,7 @@ import {
   pillNavStyle,
   pillStyle,
   pillTrackersStyle,
+  promptStyle,
   shellStyle,
   shellUnderBandStyle,
   stepBodyStyle,
@@ -99,7 +101,17 @@ type WizShellProps = {
   busy?: boolean
   /** Final-step CTA label, e.g. 'Create Pilot ✦' / 'Save Pilot'. */
   submitLabel: string
+  /** Saving signed out: the sign-in ask over the kept draft (`useWizardFlow`). */
+  signIn?: { open: boolean; onClose: () => void }
+  /**
+   * Said on the action bar, above the Next: something the step offers out of
+   * sight (`Or start from a Pattern`), and the element a press scrolls to.
+   * Without it the bar says a locked Next's reason (`footerNote`).
+   */
+  prompt?: { text: string; targetId: string } | undefined
 }
+
+const STEP_NOTE_ID = 'wiz-step-note'
 
 /** Its vertical margin opens at lg, and a disabled tab ignores the pointer
  *  (`.su-wiz-rail-step`). */
@@ -337,6 +349,8 @@ export function WizShell({
   busy = false,
   submitLabel,
   confirmCancel = false,
+  signIn,
+  prompt,
 }: WizShellProps) {
   const [confirmingCancel, setConfirmingCancel] = useState(false)
   // A new step opens at the top with focus on its heading (WCAG 2.4.3): the
@@ -374,7 +388,7 @@ export function WizShell({
         </div>
       )}
       {/* Back and Cancel take the CTA's Full Size: one Size per line (§4.7).
-          On a phone they are the ⋯ menu's rows. */}
+          On a phone Cancel is the ⋯ menu's row. */}
       <div className="su-wiz-pill-nav" style={pillNavStyle}>
         {onBack && (
           <Button
@@ -396,8 +410,8 @@ export function WizShell({
         >
           {buildWizardCopy('cancel')}
         </Button>
-        {/* A phone's bar is one line (hard rule R44: nothing scrolls sideways):
-            Back, Cancel and the escape are the ⋯ menu's rows there. From sm
+        {/* On a phone (hard rule R44: nothing scrolls sideways) Back stays on
+            the bar and Cancel and the escape are the ⋯ menu's rows. From sm
             the menu shows only while it holds the escape. */}
         <span className={cn('su-wiz-pill-more', onEscape && 'su-wiz-pill-more--escape')}>
           <HeaderMenu
@@ -407,15 +421,6 @@ export function WizShell({
             label={buildWizardCopy('moreActions')}
             disabled={busy}
             sections={[
-              onBack
-                ? [
-                    {
-                      id: 'back',
-                      label: buildWizardCopy('back'),
-                      onSelect: onBack,
-                    },
-                  ]
-                : [],
               onEscape
                 ? [{ id: 'escape', label: buildWizardCopy('offRulesRow'), onSelect: onEscape }]
                 : [],
@@ -493,7 +498,7 @@ export function WizShell({
                 <div style={stepBodyStyle}>
                   {children}
                   {footerNote && (
-                    <p role="status" style={stepNoteStyle}>
+                    <p id={STEP_NOTE_ID} role="status" style={stepNoteStyle}>
                       {footerNote}
                     </p>
                   )}
@@ -507,8 +512,29 @@ export function WizShell({
               reach as the step scrolls. On a phone it is one line: one
               budget, the ⋯ menu and the Next filling the rest. */}
           <footer className="su-wiz-footer" style={footerPillStyle}>
+            {/* What the step still asks for, or offers further down, said
+                where the Next is: a press scrolls to it. */}
+            {(prompt ?? footerNote) && (
+              <Button
+                variant="ghost"
+                size="compact"
+                style={promptStyle}
+                onClick={() =>
+                  document
+                    .getElementById(prompt?.targetId ?? STEP_NOTE_ID)
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                }
+              >
+                {prompt?.text ??
+                  buildWizardCopy('nextReason', {
+                    reason: String(footerNote).replace(/ to continue$/, ''),
+                  })}
+                <ChevronDown aria-hidden="true" size={tokens.iconSize.mini} />
+              </Button>
+            )}
             {actionPill}
           </footer>
+          {signIn && <SaveSignInDialog open={signIn.open} onClose={signIn.onClose} />}
         </div>
       </div>
     </div>

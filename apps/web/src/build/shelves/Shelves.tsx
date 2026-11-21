@@ -90,23 +90,26 @@ import {
 import { VITAL } from '../../lib/units/readings'
 import { buildShelvesCopy } from '../../messages/build-shelves'
 import { usePatterns, useTray } from '../../replica/collections'
+import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
 import { useGamesQuery } from '../../replica/roomCalls'
 import { useSync } from '../../replica/syncContext'
 import { useUnits } from '../../replica/units'
 import { BackupMenu } from '../export/BackupMenu'
 import { SavePatternDialog } from '../mech/Pattern/SavePatternDialog'
+import { BuildStartHere } from '../roster/FrontDoor'
 import { RailActs } from '../sheet/RailActs'
 import { crawlerRailItems, crewReadings, rowStats } from '../sheet/railStats.model'
 import { AddAMech } from './AddAMech'
 import { EncounterShelf } from './EncounterShelf'
+import { MechShelf } from './MechShelf'
 import type { MoveSubject } from './MoveToGameDialog'
 import { MoveToGameDialog } from './MoveToGameDialog'
+import { RenameDialog } from './RenameDialog'
 import { ShelfLedger } from './ShelfLedger'
 import { StarterShelf } from './StarterShelf'
 import {
   CRAWLER_COLUMNS,
   inGame,
-  MECH_COLUMNS,
   NPC_COLUMNS,
   PATTERN_COLUMNS,
   PILOT_COLUMNS,
@@ -116,6 +119,8 @@ import {
   underWith,
   who,
 } from './shelfColumns'
+import type { RenameSubject } from './shelfMenu.model'
+import { deleteItem, renameItem } from './shelfMenu.model'
 import { ShelvesPart } from './shelvesPart.model'
 
 // ---------------------------------------------------------------------------
@@ -157,6 +162,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   const [moving, setMoving] = useState<MoveSubject | null>(null)
   // The mech being saved as a pattern, in its dialog over the Hangar.
   const [savingPattern, setSavingPattern] = useState<string | null>(null)
+  const [renaming, setRenaming] = useState<RenameSubject | null>(null)
   const [importResult, setImportResult] = useState<string | null>(null)
   // Menu items have no line of their own, so a failed export is a toast.
   const exportOne = useServerAction(
@@ -236,6 +242,15 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         },
         ...(type === 'mech'
           ? [
+              renameItem(
+                {
+                  name: unit.name,
+                  label: buildShelvesCopy('mechName'),
+                  save: (name) =>
+                    useUnits.getState().update('mech', unit.id, { name }, LIVE_SHEET_MANUAL),
+                },
+                canWrite ? setRenaming : undefined
+              ),
               {
                 id: 'pattern',
                 label: 'Save as pattern',
@@ -250,19 +265,16 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         },
       ],
       [
-        {
-          id: 'delete',
-          label: 'Delete…',
-          tone: 'danger',
-          onSelect: writable(() =>
+        deleteItem(
+          writable(() =>
             confirm({
               ...(inGame
                 ? ROW_ACTION_COPY.deleteFromGame(unit.name)
                 : ROW_ACTION_COPY.deleteBuild(unit.name)),
               onConfirm: () => useUnits.getState().delete(type, unit.id),
             })
-          ),
-        },
+          )
+        ),
       ],
     ]
   }
@@ -270,17 +282,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
   function trayMenu(npc: { id: string; name: string }): HeaderMenuItem[][] {
     return [
       [
-        {
-          id: 'delete',
-          label: 'Delete…',
-          tone: 'danger',
-          onSelect: writable(() =>
+        deleteItem(
+          writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(npc.name),
               onConfirm: () => useTray.getState().delete(npc.id),
             })
-          ),
-        },
+          )
+        ),
       ],
     ]
   }
@@ -289,6 +298,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
     return [
       [
         { id: 'open', label: 'Open', onSelect: () => go(savedPatternHref(pattern.id)) },
+        renameItem(
+          {
+            name: pattern.name,
+            label: buildShelvesCopy('patternName'),
+            save: (name) => usePatterns.getState().update(pattern.id, { name }),
+          },
+          canWrite ? setRenaming : undefined
+        ),
         {
           id: 'copy',
           label: 'Make a copy',
@@ -304,17 +321,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         },
       ],
       [
-        {
-          id: 'delete',
-          label: 'Delete…',
-          tone: 'danger',
-          onSelect: writable(() =>
+        deleteItem(
+          writable(() =>
             confirm({
               ...ROW_ACTION_COPY.deleteBuild(pattern.name),
               onConfirm: () => usePatterns.getState().delete(pattern.id),
             })
-          ),
-        },
+          )
+        ),
       ],
     ]
   }
@@ -422,6 +436,10 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
           {/* Every shelf is a Ledger, one framed list a kind. Your units on the
               left, pilots first (Play runs a pilot, its mech beside it); your
               plans and prep on the right, patterns first; one column on a phone. */}
+          {/* An empty Training Bay keeps the front door's way in. */}
+          {pilots.length + mechs.length + crawlers.length === 0 && (
+            <BuildStartHere id="shelf-start" />
+          )}
           <div className="su-shelf-ledgers">
             <div className="su-shelf-ledgers__col">
               <ShelfLedger
@@ -468,31 +486,17 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                   }
                 })}
               />
-              <ShelfLedger
-                id="shelf-mechs"
-                title="Mechs"
-                tone="mech"
-                columns={MECH_COLUMNS}
+              <MechShelf
+                mechs={spareMechs}
+                readings={mechReadings}
                 action={newLink('/mechs/new', '+ New mech')}
                 empty={
                   mechs.length === 0 ? 'No mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
                 }
-                rows={spareMechs.map((m) => {
-                  const r = mechReadings.get(m.id)
-                  return {
-                    id: m.id,
-                    name: m.name,
-                    href: `/mechs/${m.id}`,
-                    under: under(linkChip(sharedByLink, m.id)),
-                    cells: [
-                      chassisFact(m.chassisRef) ?? '',
-                      inGame(gameRelation(m, games)),
-                      read(r, VITAL.sp),
-                      read(r, VITAL.ep),
-                      read(r, VITAL.heat),
-                    ],
-                    menu: unitMenu('mech', m, m),
-                  }
+                line={(m) => ({
+                  under: under(linkChip(sharedByLink, m.id)),
+                  game: gameRelation(m, games),
+                  menu: unitMenu('mech', m, m),
                 })}
               />
               <ShelfLedger
@@ -575,6 +579,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
         confirm={confirm}
       />
       {dialog}
+      <RenameDialog subject={renaming} onClose={() => setRenaming(null)} />
       <SavePatternDialog
         source={patternSource ?? { name: '', chassisRef: '', systems: [], modules: [] }}
         open={patternSource !== undefined}

@@ -9,6 +9,7 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { RefAbility } from 'salvageunion-reference'
 import { nameToSlug } from 'salvageunion-reference'
 import { EntitySearcher } from '../../components/index'
+import { abilityTrainingCost } from '../../lib/rules/training'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import type { PilotSheetModel } from './pilotSheet.model'
 import type { PilotSheetActions } from './pilotSheetActions.model'
@@ -35,7 +36,7 @@ export function PilotSheetPickers({
       <SheetPickerModal
         open={picker === 'abilities'}
         onClose={onClose}
-        title={buildSheetCopy('addAbilities')}
+        title={buildSheetCopy('manageAbilities')}
         floating
       >
         <EntitySearcher
@@ -43,6 +44,18 @@ export function PilotSheetPickers({
           selected={pilot.abilities}
           onToggle={actions.toggleAbility}
           idOf={(item) => nameToSlug(item.name)}
+          cost={(item) => {
+            const slug = nameToSlug(item.name)
+            const price = abilityTrainingCost(slug)
+            if (price === null) return undefined
+            const left = pilot.trainingPoints ?? 0
+            return {
+              label: buildSheetCopy('costsTp', { cost: price, left }),
+              payLabel: buildSheetCopy('spendTpAndAdd', { cost: price }),
+              canPay: left >= price,
+              onPay: () => actions.trainAbility(slug),
+            }
+          }}
           filter={
             model.abilityTrees
               ? (item) => model.abilityTrees?.has((item as RefAbility).tree) ?? false
@@ -59,7 +72,7 @@ export function PilotSheetPickers({
       <SheetPickerModal
         open={picker === 'equipment'}
         onClose={onClose}
-        title={buildSheetCopy('addEquipment')}
+        title={buildSheetCopy('manageEquipment')}
         floating
       >
         <EntitySearcher

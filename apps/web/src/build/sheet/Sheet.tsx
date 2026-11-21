@@ -31,7 +31,7 @@ import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import { makeACopy } from '../../lib/copiedToast'
-import { copyForShelf } from '../../lib/copyEntity'
+import { copyForShelf, namesOn } from '../../lib/copyEntity'
 import { buildEntityExport } from '../../lib/export/buildExportBundle'
 import { downloadJson, exportFileName } from '../../lib/export/downloadJson'
 import type { MoveTargetGame } from '../../lib/games/gameRoster'
@@ -335,7 +335,7 @@ export function Sheet({
               make: async () => {
                 const created = await storeState.create(
                   kind,
-                  copyForShelf(entity, entity.name) as never
+                  copyForShelf(entity, entity.name, namesOn(storeState.list(kind))) as never
                 )
                 return { name: created.name, href: sheetPath(kind, created.id) }
               },
