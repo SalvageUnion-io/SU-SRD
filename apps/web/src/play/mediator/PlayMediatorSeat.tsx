@@ -99,6 +99,8 @@ export function PlayMediatorSeat({
         size="mini"
         context="roster"
         model={unitRowModel({ kind: pair.kind, name: pair.name })}
+        // A seat's name is never cut (R56): in a narrow column its chips wrap over it.
+        wholeName
         mode={{
           kind: 'select',
           role: 'toggle',

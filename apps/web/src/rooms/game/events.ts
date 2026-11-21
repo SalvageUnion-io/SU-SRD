@@ -26,9 +26,11 @@ import { unitName } from './units'
  *
  * - **Who:** an event names its actor by Discord id, so a screen never toasts
  *   its own act. The Stop Sign names nobody (`safety.ts`).
- * - **Rapid repeats merge:** a second change to the same vital of the same
- *   unit, or the same line again, inside `MERGE_MS` rewrites the line it
- *   follows ("HP 8 → 5", "×3") until the line is sealed (posted to Discord).
+ * - **Rapid repeats merge:** a second − / + nudge (a change of one) to the
+ *   same vital of the same unit, or the same line again, inside `MERGE_MS`
+ *   rewrites the line it follows ("HP 8 → 5", "×3") until the line is sealed
+ *   (posted to Discord). A hit, any larger change to a vital, is a line of its
+ *   own, so two hits are two lines (r2 I3).
  * - **Private:** a row marked `private` (the Mediator's private roll) is
  *   served to Mediators only and is never mirrored (`isMirrored`).
  * - **Veiled:** an Opposition roll is served to a player as its veiled line,
@@ -110,6 +112,8 @@ type Stored = {
   text: string
   /** What a repeat is matched on; absent once sealed, or for a line that never merges. */
   key?: string
+  /** The key whose open line this one ends: a hit on a vital, which no nudge folds across. */
+  ends?: string
   /** A vital's line, kept apart so a repeat can rewrite it. */
   vital?: { who: string; label: string; from: number | null; to: number }
   /** How many times the line repeated. */
@@ -361,11 +365,15 @@ export class GameEvents {
         const was = op.before?.[field]
         const from = typeof was === 'number' ? was : unsetVital(this.store, op.unitId, field)
         if (from === to) continue
+        // A − / + nudge folds into the line before it; a hit (any larger
+        // change) is its own line, and ends the nudged line it follows (r2 I3).
+        const key = `v:${op.unitId}:${field}`
+        const nudge = from === null || Math.abs(to - from) === 1
         out.push(
           this.note(actor, at, {
             kind: 'vitals',
             text: vitalLine({ who, label, from, to }),
-            key: `v:${op.unitId}:${field}`,
+            ...(nudge ? { key } : { ends: key }),
             vital: { who, label, from, to },
           })
         )
@@ -433,6 +441,7 @@ export class GameEvents {
     )
     for (const row of rows) {
       const stored = JSON.parse(String(row.after)) as Stored
+      if (stored.ends === key) return undefined
       if (stored.key !== key || (row.actor_id ?? null) !== actor) continue
       return { id: String(row.id), stored }
     }

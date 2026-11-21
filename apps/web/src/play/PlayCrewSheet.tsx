@@ -56,7 +56,10 @@ function CrewSheetBody({ gameId, pilotId }: { gameId: string; pilotId: string })
   return (
     <>
       <Callout>{playCopy('youAreReadingACrewmates')}</Callout>
-      <Sheet kind="pilot" id={pilotId} store={store} readOnly />
+      {/* Laid out for the dialog, not the window (`styles/play/sheet.css`). */}
+      <div className="su-play-sheet">
+        <Sheet kind="pilot" id={pilotId} store={store} readOnly />
+      </div>
     </>
   )
 }

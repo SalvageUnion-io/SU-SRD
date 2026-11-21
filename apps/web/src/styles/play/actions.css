@@ -94,6 +94,16 @@
   gap: var(--space-8);
 }
 
+/* Apply and Start over hold the pane's foot while the open action's table
+   runs past it: an open action keeps its ways forward on screen. */
+.su-play-resolve__forward {
+  background-color: var(--color-paper);
+  bottom: 0;
+  padding-block: var(--space-6);
+  position: sticky;
+  z-index: 1;
+}
+
 .su-play-resolve__note {
   color: var(--color-ink);
   font-family: var(--font-body);

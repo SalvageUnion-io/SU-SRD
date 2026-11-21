@@ -71,6 +71,34 @@ describe('the table’s events', () => {
     expect(texts()).toHaveLength(4)
   })
 
+  test('separate hits stay separate lines: only a − / + nudge folds into the line before it (r2 I3)', () => {
+    const { act, texts } = seated()
+    const hp = (to: number, baseSeq: number, at: number) =>
+      act(PLAYER, 'submit', { ops: [op('p1', { currentHP: to }, { baseSeq })] }, at)
+    hp(10, 0, AT)
+    // Two hits a second apart: 3, then a mistaken 7.
+    const first = hp(7, 1, AT + 60_000)
+    const second = hp(0, 2, AT + 61_000)
+    expect(second[0]?._id).not.toBe(first[0]?._id as string)
+    expect(texts().slice(0, 2)).toEqual(['p1 · Pilot p1 · HP 7 → 0', 'p1 · Pilot p1 · HP 10 → 7'])
+    // A nudge after a hit starts its own line, and the next nudge folds into that one.
+    hp(1, 3, AT + 62_000)
+    hp(2, 4, AT + 63_000)
+    expect(texts().slice(0, 3)).toEqual([
+      'p1 · Pilot p1 · HP 0 → 2',
+      'p1 · Pilot p1 · HP 7 → 0',
+      'p1 · Pilot p1 · HP 10 → 7',
+    ])
+    // A hit between nudges ends the nudged line: the nudge after it is a new one.
+    hp(6, 5, AT + 64_000)
+    hp(5, 6, AT + 65_000)
+    expect(texts().slice(0, 3)).toEqual([
+      'p1 · Pilot p1 · HP 6 → 5',
+      'p1 · Pilot p1 · HP 2 → 6',
+      'p1 · Pilot p1 · HP 0 → 2',
+    ])
+  })
+
   test('a vital never written reads its start: a pool its maximum, Heat 0 (L10)', () => {
     const { act, texts } = seated()
     act(PLAYER, 'submit', { ops: [op('m1', { currentHeat: 2 })] })
