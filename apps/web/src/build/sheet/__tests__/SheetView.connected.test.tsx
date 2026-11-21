@@ -385,7 +385,7 @@ describe("your own mech's hold, against the Game's crawler", () => {
 })
 
 describe('the tab title', () => {
-  test('names your entity and follows a rename', async () => {
+  test('names your entity and follows a rename; a pilot in a Game is titled with the Game (glossary §9)', async () => {
     useUnits.setState({ pilots: [MY_PILOT] })
     setQueryAnswers({
       'entities.locate': { id: MY_PILOT.id, gameId: GAME, mayEdit: true },
@@ -394,12 +394,23 @@ describe('the tab title', () => {
       'account.me': ME,
     })
     await view('pilot', MY_PILOT.id)
-    expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
+    expect(document.title).toBe('Roach-Boy · Tenacity · SalvageUnion.io')
 
     await act(async () => {
       useUnits.setState({ pilots: [{ ...MY_PILOT, name: 'Roach-Man' }] })
     })
-    expect(document.title).toBe('Roach-Man · Training Bay · SalvageUnion.io')
+    // Callsign first, then the name, as everywhere a pilot is named.
+    expect(document.title).toBe('Roach-Boy · Roach-Man · Tenacity · SalvageUnion.io')
+  })
+
+  test('a pilot in no Game is the Training Bay’s', async () => {
+    useUnits.setState({ pilots: [{ ...MY_PILOT, gameId: null }] })
+    setQueryAnswers({
+      'entities.locate': { id: MY_PILOT.id, gameId: null, mayEdit: true },
+      'account.me': ME,
+    })
+    await view('pilot', MY_PILOT.id)
+    expect(document.title).toBe('Roach-Boy · Training Bay · SalvageUnion.io')
   })
 
   test("a crewmate's sheet, not held here, keeps the generic title", async () => {
@@ -410,7 +421,7 @@ describe('the tab title', () => {
       'account.me': ME,
     })
     await view('pilot', THEIR_PILOT.id)
-    expect(document.title).toBe('Sheet · Training Bay · SalvageUnion.io')
+    expect(document.title).toBe('Sheet · Tenacity · SalvageUnion.io')
   })
 })
 
