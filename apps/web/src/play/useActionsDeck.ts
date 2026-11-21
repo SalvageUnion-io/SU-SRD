@@ -56,7 +56,7 @@ import {
   resolveChassisRef,
   resolveGauge,
 } from 'salvageunion-reference/rules'
-import { rollForTable } from '../components/index'
+import { rollForTable, toast } from '../components/index'
 import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionList'
 import {
   buildCompanionActions,
@@ -165,8 +165,6 @@ export type ResolveModel =
         roll: number | null
         /** The rolled row, as the screen reader says it. */
         rolled: { label: string; text: string } | null
-        /** What Apply carried, and what it left in the area. */
-        haul: string | null
       }
       /** A Push's Heat Check melted the reactor down; the player confirms it. */
       meltdown?: { onConfirm: () => void; onDismiss: () => void } | null
@@ -262,7 +260,6 @@ export function useActionsDeck({
   const [applyRouted, setApplyRouted] = useState(false)
   const [hotX, setHotX] = useState(1)
   const [currency, setCurrency] = useState<PlayActionCurrency>('EP')
-  const [haul, setHaul] = useState<string | null>(null)
   const [doneKey, setDoneKey] = useState<string | null>(null)
 
   const selected = resolving === null ? null : (deck.find((a) => a.key === resolving.ref) ?? null)
@@ -284,7 +281,6 @@ export function useActionsDeck({
     setMeltdown(false)
     setApplyRouted(false)
     setHotX(1)
-    setHaul(null)
   }
 
   function open(action: PlayAction) {
@@ -366,33 +362,39 @@ export function useActionsDeck({
     const spent = await salvageArea.spend(pilot.id)
     if (spent === null) return
     const die = (await rollFor(AREA_SALVAGE_TABLE))(20)
-    setHaul(null)
     step(current, { salvage: { roll: die, areaTl: spent.techLevel }, applied: false })
   }
 
   /**
    * Area Salvage's Apply: the Scrap into the Cargo Slots of the mech aboard, or
    * on foot into the pilot's inventory, as much as fits; the rest stays in the
-   * area. Nothing found, or a 20's item alone, writes nothing.
+   * area. Nothing found, or a 20's item alone, writes nothing. Then it closes.
    */
   function doSalvageApply(current: SeatResolving, result: AreaSalvageResult) {
+    let said: string | null = null
     if (!onFoot && mech) {
       const fresh = s.get('mech', mech.id) ?? mech
       const cap = mechMaxCargo(fresh, undefined, { abilities: pilot?.abilities })
       const carried = areaSalvageToMech(fresh, cap, result)
       const { patch } = carried
       if (patch) runWrite(() => s.update('mech', mech.id, patch, meta))
-      setHaul(haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name })))
+      said = haulText(result, carried, playCopy('salvageMechCargo', { name: fresh.name }))
     } else if (pilot) {
       const fresh = s.get('pilot', pilot.id) ?? pilot
       const carried = areaSalvageToPilot(fresh, pilotMaxInventorySlots(fresh), result)
       const { patch } = carried
       if (patch) runWrite(() => s.update('pilot', pilot.id, patch, meta))
-      setHaul(
-        haulText(result, carried, playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) }))
+      said = haulText(
+        result,
+        carried,
+        playCopy('salvagePilotInventory', { name: pilotCallsign(fresh) })
       )
     }
-    step(current, { applied: true })
+    // It finishes like any other action (LG-12): the row says Done, the seat
+    // stops saying it is being resolved, and a toast keeps what was loaded.
+    if (said !== null) toast(said, { id: `area-salvage-${current.ref}` })
+    setDoneKey(current.ref)
+    close()
   }
 
   /** The player's half of a meltdown: mark the mech Destroyed (ADR-007). */
@@ -545,7 +547,6 @@ export function useActionsDeck({
             rolled: salvaged
               ? { label: salvaged.label, text: areaSalvageRowText(salvaged.roll) }
               : null,
-            haul,
           }
         : undefined,
       meltdown: meltdown ? { onConfirm: meltDown, onDismiss: () => setMeltdown(false) } : null,
