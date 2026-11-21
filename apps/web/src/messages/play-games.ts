@@ -99,7 +99,7 @@ export const playGamesCopy = messages({
   yourPrep: 'Your prep',
   encounters: 'Encounters',
   npcs: 'NPCs',
-  prepInTheTrainingBay: 'Prep in the Training Bay',
+  openTheMediatorsKit: 'Open the Mediator’s Kit',
   // The Game page's crew manifest.
   mechsGroup: 'Mechs with no Pilot',
   crawlerGroup: 'Union Crawler',

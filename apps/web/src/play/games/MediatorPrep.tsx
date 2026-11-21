@@ -1,14 +1,16 @@
 /**
  * MediatorPrep — the Mediator's door to their prep, on a Game's page
- * (ADR-066). Prep is made and kept in the Training Bay (its Encounters and NPCs
- * shelves, ADR-059) and run on the Mediator screen, whose Mediate is the
- * band's door; this section counts what is ready and links to where it is
- * kept, so the Game's page is never a second place to make it.
+ * (ADR-066). Prep is the Mediator's own (their Encounters and NPCs, ADR-059),
+ * kept in the Mediator's Kit on the Games page and run on the Mediator
+ * screen, whose Mediate is the band's door; this section counts what is
+ * ready and opens the Kit, where the two lists are, so the Game's page is
+ * never a second place to make it.
  */
 
 import { Button, SlabSection } from '../../components/index'
 import { useHydrateEntities, useNpcs } from '../../lib/entities'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
+import { MEDIATORS_KIT_ANCHOR } from '../../lib/games/gameRoster'
 import { playGamesCopy } from '../../messages/play-games'
 import { useEncounters } from '../../replica/collections'
 
@@ -27,8 +29,8 @@ export function MediatorPrep() {
         { label: playGamesCopy('npcs'), value: npcs },
       ]}
       actions={
-        <Button href="/" variant="default" size="compact">
-          {playGamesCopy('prepInTheTrainingBay')}
+        <Button href={`/games#${MEDIATORS_KIT_ANCHOR}`} variant="default" size="compact">
+          {playGamesCopy('openTheMediatorsKit')}
         </Button>
       }
     />

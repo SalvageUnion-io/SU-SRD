@@ -168,6 +168,9 @@ export function tableCapabilities(args: {
 /** The Game page's crew add controls (+ New…, Add from Training Bay), which the Mediator's screen links to. */
 export const ADD_CREW_ANCHOR = 'add-crew'
 
+/** The Games page's Mediator's Kit (its Encounters and NPCs), which the sub-nav and a Game's prep door open. */
+export const MEDIATORS_KIT_ANCHOR = 'mediators-kit'
+
 /** A Game as `games.listMine` returns it, as far as moving goes. */
 export type MoveTargetGame = { _id: string; name: string; tableRunner: boolean }
 

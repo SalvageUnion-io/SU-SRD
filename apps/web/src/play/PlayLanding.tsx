@@ -64,6 +64,7 @@ import { Tagline } from '../components/Tagline'
 import { cn } from '../lib/cn'
 import { useOwnUnits } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
+import { MEDIATORS_KIT_ANCHOR } from '../lib/games/gameRoster'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
 import { playCopy } from '../messages/play'
@@ -181,7 +182,7 @@ function PlayFrontDoor() {
           numbered={false}
           // Where Play's sub-nav lands signed out (`AREA_NAV.play`): sharing a
           // table is how you join one, and Mediate is what the Kit is for.
-          anchors={{ table: 'join', mediate: 'mediators-kit' }}
+          anchors={{ table: 'join', mediate: MEDIATORS_KIT_ANCHOR }}
         />
       }
     />
@@ -265,7 +266,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
         {connected && (
           // A band with its title's cut-out, as Your Games wears.
           <SlabSection
-            id="mediators-kit"
+            id={MEDIATORS_KIT_ANCHOR}
             as="h2"
             title={playCopy('mediatorsKit')}
             className="su-mediator-kit-section"
