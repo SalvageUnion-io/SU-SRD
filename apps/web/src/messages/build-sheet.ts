@@ -39,7 +39,6 @@ export const buildSheetCopy = messages({
   upkeepInPlay:
     'A Downtime is running: pay its Upkeep in Play, where it is paid once for the whole crew.',
   done: 'Done',
-  heroMore: '{title}, continued',
   chosen: 'Chosen',
   adjust: 'Adjust',
   cancel: 'Cancel',

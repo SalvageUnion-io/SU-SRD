@@ -184,15 +184,3 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-/* SheetHero on a phone: the panel under the Vitals that the opening's longer
-   fields portal into (`HeroMore`); gone while nothing does. */
-.su-sheet-hero-more:has(.su-sheet-hero-more-body:empty) {
-  display: none;
-}
-
-.su-sheet-hero-more-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-}

@@ -4,12 +4,11 @@
  * current/max GAUGES. There is no name stamp here: the name is the chapter
  * band's notched `<h1>` above it (`LiveSheet`).
  *
- * Pure layout — all content arrives via slots so the four sheets (pilot, mech,
- * crawler, NPC) compose it without forking the frame (hard rule R11).
+ * The NPC sheet's opening (R11: the pilot, mech and crawler sheets are their
+ * dashboards). Pure layout: all content arrives via slots.
  */
 
 import type { CSSProperties, ReactNode } from 'react'
-import { createContext, useContext, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Box } from '../../components/index'
 import { space, widthAtLeast } from '../../design/tokens'
@@ -24,34 +23,8 @@ const GRID = { display: 'grid' } satisfies CSSProperties
 /** An opening panel's body: wider than a Box's, as the sheet's content asks. */
 const PANEL_BODY = { padding: `${space[16]} ${space[20]}` } satisfies CSSProperties
 
-/** A panel's action chips (a crawler's Pay / Fund / Trade), at its top right. */
-const PANEL_ACTIONS = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: space[8],
-  justifyContent: 'flex-end',
-} satisfies CSSProperties
-
 /** The vitals stack; the deep-tone rule between its rows is `.su-sheet-vitals`. */
 const VITALS = { display: 'flex', flexDirection: 'column', width: '100%' } satisfies CSSProperties
-
-/**
- * On a phone, the panel under the Vitals: where an opening's longer fields go
- * (`HeroMore`), so the name and the vitals share the first screen (ruleset
- * §1.10). Null from the 40rem rung, where they stay in the fields panel.
- */
-const HeroMoreSlot = createContext<HTMLElement | null>(null)
-
-/**
- * The opening's longer fields (a pilot's Motto, Keepsake, Background and
- * prose; a mech's chassis ability): in place in the fields panel from the
- * 40rem rung; on a phone, a panel under the Vitals (a portal, one render).
- */
-export function HeroMore({ children }: { children: ReactNode }) {
-  const slot = useContext(HeroMoreSlot)
-  return slot ? createPortal(children, slot) : children
-}
 
 type SheetHeroProps = {
   name: string
@@ -70,34 +43,18 @@ type SheetHeroProps = {
    * kind shares (`.su-sheet-vitals`), a rule between each row.
    */
   vitals?: ReactNode
-  /** The vitals card's action chips (a crawler's Pay / Fund / Trade), on its head. */
-  vitalsActions?: ReactNode
   /** Title of the fields card. */
   fieldsTitle?: string
-  /**
-   * A phone's About tab: the longer fields stay in the fields
-   * panel, beside and under the photo, so the photo's panel has no empty half.
-   */
-  flat?: boolean
 }
 
-export function SheetHero({
-  name,
-  fields,
-  vitals,
-  vitalsActions,
-  fieldsTitle = 'Identity',
-  flat = false,
-}: SheetHeroProps) {
+export function SheetHero({ name, fields, vitals, fieldsTitle = 'Identity' }: SheetHeroProps) {
   // From the 64rem rung, with a sidebar, the Vitals panel heads it (one
   // render, wherever it stands).
   const asideSlot = useAsideVitalsSlot()
   const wide = useMediaQuery(widthAtLeast('lg'), false)
   const inAside = wide && asideSlot !== null
-  const phone = !useMediaQuery(widthAtLeast('sm'), true) && !flat
-  const [moreSlot, setMoreSlot] = useState<HTMLElement | null>(null)
   const vitalsPanel = vitals && (
-    <SheetPanel title={buildSheetCopy('vitals')} actions={vitalsActions}>
+    <SheetPanel title={buildSheetCopy('vitals')}>
       <div className="su-sheet-vitals" style={VITALS}>
         {vitals}
       </div>
@@ -125,37 +82,26 @@ export function SheetHero({
         className="su-sheet-hero-fields"
         stackClassName="su-sheet-hero-fields-body"
       >
-        <HeroMoreSlot.Provider value={phone ? moreSlot : null}>{fields}</HeroMoreSlot.Provider>
+        {fields}
       </SheetPanel>
       {vitalsPanel && !inAside && vitalsPanel}
       {vitalsPanel && inAside && createPortal(vitalsPanel, asideSlot)}
-      {phone && (
-        <SheetPanel
-          title={buildSheetCopy('heroMore', { title: fieldsTitle })}
-          className="su-sheet-hero-more"
-        >
-          <div ref={setMoreSlot} className="su-sheet-hero-more-body" />
-        </SheetPanel>
-      )}
     </section>
   )
 }
 
 /**
  * An opening panel: a hairline `Box` named for assistive tech, printing no
- * title (the contents say what they are); its action chips, when it has
- * them, are the body's top row. `.su-sheet-section` is the print class for
- * the page-break rule.
+ * title (the contents say what they are). `.su-sheet-section` is the print
+ * class for the page-break rule.
  */
 function SheetPanel({
   title,
-  actions,
   className,
   stackClassName,
   children,
 }: {
   title: string
-  actions?: ReactNode
   className?: string
   stackClassName?: string
   children: ReactNode
@@ -168,7 +114,6 @@ function SheetPanel({
       className={cn('su-sheet-section', className)}
       bodyStyle={PANEL_BODY}
     >
-      {actions && <div style={PANEL_ACTIONS}>{actions}</div>}
       <div className={cn('su-sheet-section-stack', stackClassName)}>{children}</div>
     </Box>
   )
