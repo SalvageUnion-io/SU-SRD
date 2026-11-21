@@ -26,6 +26,10 @@
  * Rules text and game data are not UI strings: they arrive from
  * `salvageunion-reference`, never as literals here.
  *
+ * A string that reads as words and is not copy (a CSS value, a selector, an
+ * HTTP token, a key matched against data) is an `EXEMPTIONS` entry
+ * (`uiStringsExemptions.ts`): the one string, in the one file, with a reason.
+ *
  * ## The rules
  *
  *   - `hard-coded` (ratchet) — today's uncatalogued strings are the baseline;
@@ -43,6 +47,7 @@ import { isNode, parseTsx, walk } from '../lib/jsxTree'
 import type { Finding, Rule, RuleSet } from '../lib/ruleEngine'
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
+import { isExemptString } from './uiStringsExemptions'
 
 const UI_DIR = 'apps/web/src'
 export const CATALOGUE_DIR = 'apps/web/src/messages'
@@ -230,6 +235,7 @@ export function uiStringFindings(
   const hardCoded: Finding[] = []
   const computedKeys: Finding[] = []
   const push = (n: Node, text: string) => {
+    if (isExemptString(file, text)) return
     const shown = text.replace(/\s+/g, ' ').trim()
     hardCoded.push({
       file,
@@ -398,7 +404,7 @@ export const uiStrings: RuleSet = {
     assertScanFloor('ui-strings', uiFiles(root).length, FILE_FLOOR)
   },
   scan: (root) => lintUiStrings(readSources(root)),
-  exemptionsLive: 'packages/gates/rules/uiStrings.ts',
+  exemptionsLive: 'packages/gates/rules/uiStringsExemptions.ts',
   summary(root) {
     const files = uiFiles(root)
     const catalogued = files.filter(inCatalogue).length
