@@ -176,7 +176,11 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
     // Tables, so both side columns end with the centre one.
     units: (
       <>
-        <PlayUnitsColumn target={target} play={play} />
+        <PlayUnitsColumn
+          target={target}
+          play={play}
+          onClose={wide ? undefined : () => openTab('act')}
+        />
         {wide && <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />}
       </>
     ),

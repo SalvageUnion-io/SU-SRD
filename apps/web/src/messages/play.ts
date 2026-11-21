@@ -245,6 +245,7 @@ export const playCopy = messages({
   damaged2: '{name} · damaged',
   inHangar: 'In hangar',
   units: 'Units',
+  closeUnits: 'Close Units',
   thePilotIsOnIts: 'The Pilot is on its way.',
   hangar: 'Hangar',
   restoresTo: '{label} restores to {restoresTo}',

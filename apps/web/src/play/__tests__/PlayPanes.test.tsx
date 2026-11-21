@@ -287,6 +287,11 @@ describe('the tabs', () => {
     expect(within(openPanel()).getByRole('heading', { name: 'Units' })).toBeTruthy()
     await click(tab('Act'))
     expect(within(openPanel()).getByRole('group', { name: 'Filter actions by type' })).toBeTruthy()
+    // Tabless, the pane closes back to Act from its own ×.
+    await openMore()
+    await click(await screen.findByRole('menuitem', { name: 'Units' }))
+    await click(within(openPanel()).getByRole('button', { name: 'Close Units' }))
+    expect(tab('Act').getAttribute('aria-selected')).toBe('true')
   })
 
   test('solo: no Crew tab', async () => {
