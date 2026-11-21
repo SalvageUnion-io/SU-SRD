@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { ComponentProps, CSSProperties, ReactNode } from 'react'
 import type { Provenance } from 'salvageunion-reference'
 import { citeLine, provenancePrintings } from 'salvageunion-reference'
 import { color, fontSize, space, weight } from '../../../design/tokens'
@@ -7,6 +7,8 @@ import { cn } from '../../../lib/cn'
 import type { Size } from '../../../styles/sizing'
 import { CiteLine } from '../../atoms/CiteLine'
 import { capsLabel } from '../../atoms/capsLabel'
+import { EntitySurfaceProvider } from '../../entity/EntitySurface'
+import type { EntitySurfaceValue } from '../../entity/entitySurfaceContext'
 import { useEntitySurface } from '../../entity/entitySurfaceContext'
 import type { CardColors } from './cardChrome'
 import type { CardGrain } from './cardGrain'
@@ -104,6 +106,15 @@ const CUTOUT_SLOT = {
   marginTop: `calc(-1 * ${space[8]})`,
 } satisfies CSSProperties
 
+type RouterLink = NonNullable<EntitySurfaceValue['linkAs']>
+
+/** A plain anchor: a book's page is the Reference's, outside any router. */
+function DocumentAnchor({ children, ...rest }: ComponentProps<RouterLink>) {
+  return <a {...rest}>{children}</a>
+}
+
+const DOCUMENT_LINKS = { linkAs: DocumentAnchor } satisfies Partial<EntitySurfaceValue>
+
 export function EntityCardIdentityFooter({
   provenance,
   footMeta,
@@ -118,10 +129,21 @@ export function EntityCardIdentityFooter({
   const { hrefFor } = useEntitySurface()
   const printings = provenance ? provenancePrintings(provenance) : []
   const printed = citeLine(printings)
+  // The surface's routes link each book (the SRD's); the app, which has none
+  // but links out to the Reference (`externalLink`), links each to its
+  // Reference page, as a plain anchor (Source 2).
+  const routed = linkBooks ? bookHrefs(printings, hrefFor) : []
+  const outward = linkBooks && !routed.some(Boolean) && externalLink ? bookHrefs(printings) : []
   const citation =
     credit ??
     (printed ? (
-      <CiteLine text={printed} hrefs={linkBooks ? bookHrefs(printings, hrefFor) : []} />
+      outward.some(Boolean) ? (
+        <EntitySurfaceProvider value={DOCUMENT_LINKS}>
+          <CiteLine text={printed} hrefs={outward} />
+        </EntitySurfaceProvider>
+      ) : (
+        <CiteLine text={printed} hrefs={routed} />
+      )
     ) : undefined)
   // Foot extras force the footer even without source/page data — they are
   // affordances, not source chrome.
