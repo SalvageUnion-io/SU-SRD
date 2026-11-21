@@ -172,6 +172,8 @@ export const playGamesCopy = messages({
     'Only you see this. Your players never do, and it stays yours if the table is handed over.',
   sessions: 'Sessions',
   noSessionsYet: 'No sessions yet. Add one for each time the table meets.',
+  nextSession: 'Next session',
+  sessionNumber: 'Session {n}',
   sessionDay: 'Day',
   sessionTitle: 'Title',
   sessionPrivateNote: 'Private note',

@@ -30,10 +30,12 @@ import {
   Select,
   SlabSection,
   Stat,
+  Text,
   tokens,
 } from '../../components/index'
 import { cn } from '../../lib/cn'
 import { failureMessage } from '../../lib/connection/useServerAction'
+import { formatDay, todayDay } from '../../lib/formatDate'
 import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall } from '../../replica/roomCalls'
@@ -75,8 +77,8 @@ export function TheGame({
   onLeft,
 }: {
   gameId: string
-  /** The Game's name and description, for its settings. */
-  game: { name: string; description?: string | null }
+  /** The Game's name and description, for its settings, and the days its table next meets. */
+  game: { name: string; description?: string | null; sessionDays?: readonly string[] }
   /** After the viewer has left the Game. */
   onLeft: () => void
   viewerId: string | null
@@ -111,6 +113,9 @@ export function TheGame({
   const mediators = members?.filter((m) => m.mediator) ?? []
   const candidates = members?.filter((m) => !m.mediator) ?? []
   const appointing = mediators.length === 0
+  // The next day the table meets, by the viewer's own clock (the room answers from yesterday on).
+  const today = todayDay()
+  const nextSession = game.sessionDays?.find((day) => day >= today)
 
   return (
     <SlabSection
@@ -178,6 +183,16 @@ export function TheGame({
         )
       }
     >
+      {/* What the Game is and when it next meets, for every member (MD2-07). */}
+      {game.description != null && game.description !== '' && <Text>{game.description}</Text>}
+      {nextSession !== undefined && (
+        <Stat
+          label={playGamesCopy('nextSession')}
+          value={formatDay(nextSession)}
+          size="mini"
+          wrap
+        />
+      )}
       {appointing && (
         <Stat
           label={playGamesCopy('mediator')}

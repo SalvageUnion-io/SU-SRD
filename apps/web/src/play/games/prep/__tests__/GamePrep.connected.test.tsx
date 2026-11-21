@@ -359,6 +359,34 @@ describe('the plan', () => {
     expect(sessionDays()).toEqual(['2026-12-05', '2026-12-12'])
   })
 
+  // MD2-06: the list re-sorted under the cursor, so the next field belonged to another session.
+  test('a new day does not move a session until its form is left, and each form is numbered', async () => {
+    await renderPrep()
+    const items = () =>
+      within(screen.getByRole('list', { name: 'Sessions' })).getAllByRole('listitem')
+    expect(items().map((li) => within(li).getByRole('heading').textContent)).toEqual([
+      'Session 1',
+      'Session 2',
+    ])
+    const early = within(items()[0] as HTMLElement)
+    const day = early.getByLabelText('Day')
+    // To the title beside it: the same form.
+    await act(async () => {
+      fireEvent.focus(day)
+    })
+    await act(async () => {
+      fireEvent.change(day, { target: { value: '2026-12-12' } })
+      fireEvent.blur(day, { relatedTarget: early.getByLabelText('Title') })
+    })
+    await settle(() => saves.length === 1)
+    expect(sessionDays()).toEqual(['2026-12-12', '2026-12-05'])
+    // Out of the form: now it takes its place.
+    await act(async () => {
+      fireEvent.blur(early.getByLabelText('Title'), { relatedTarget: document.body })
+    })
+    expect(sessionDays()).toEqual(['2026-12-05', '2026-12-12'])
+  })
+
   test('+ Add a session saves a new one dated today, at once', async () => {
     await renderPrep()
     await click(screen.getByRole('button', { name: '+ Add a session' }))

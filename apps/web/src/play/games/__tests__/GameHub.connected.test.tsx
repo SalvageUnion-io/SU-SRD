@@ -167,6 +167,33 @@ const drawnText = (el: Element) => {
   return copy.textContent
 }
 describe('a Manage page in Play (ADR-052 §5, §7)', () => {
+  // MD2-07: the description and the next session's day reached nobody after the invite.
+  test('every member reads what the Game is and when the table next meets', async () => {
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const day = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const now = new Date()
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    const soon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3)
+    await renderHub({
+      'games.get': {
+        ...GAME,
+        description: 'Sundays, 7pm.',
+        sessionDays: [day(yesterday), day(soon)],
+      },
+    })
+    const sidebar = within(screen.getByRole('complementary', { name: 'The Game' }))
+    expect(sidebar.getByText('Sundays, 7pm.')).toBeTruthy()
+    const next = sidebar.getByText('Next session').closest('.su-stat-cell') as HTMLElement
+    expect(next.textContent).toContain(
+      soon.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+    )
+  })
+
+  test('a Game with no day set says nothing of a next session', async () => {
+    await renderHub()
+    expect(screen.queryByText('Next session')).toBeNull()
+  })
+
   test('the Game’s name on Play’s band, and none of Build’s controls', async () => {
     await renderHub()
     const title = screen.getByRole('heading', { level: 1, name: 'Union Crawler #430' })

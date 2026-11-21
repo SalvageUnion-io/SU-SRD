@@ -16,6 +16,22 @@ export function formatDateTime(ts: number): string {
   return new Date(ts).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' })
 }
 
+/** Today as a calendar day, `YYYY-MM-DD`, on the viewer's own clock. */
+export function todayDay(now: Date = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+/** "Sat 28 Nov" — a calendar day (`YYYY-MM-DD`), which is in nobody's time zone. */
+export function formatDay(day: string): string {
+  const [year = 0, month = 1, date = 1] = day.split('-').map(Number)
+  return new Date(year, month - 1, date).toLocaleDateString(LOCALE, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
 /** "just now", "2 min ago", "3 h ago", "2 days ago" — how long before `now`. */
 export function formatAgo(ts: number, now: number): string {
   const minutes = Math.floor((now - ts) / 60_000)
