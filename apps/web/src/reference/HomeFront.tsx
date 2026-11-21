@@ -2,10 +2,11 @@
 // an ink-deep cut-out under the header, over seven slides of the book's art, each
 // (but the first) a line and one action named for the slide on a cut-out over
 // the footer, then the tagline's slide.
+import { Pause, Play } from 'lucide-react'
 import type { CSSProperties } from 'react'
 import { assetUrl } from 'salvageunion-reference'
 import { assetDerivativeUrl } from 'salvageunion-reference/assetDerivatives'
-import { Button, capsLabel } from '../components/index'
+import { Button, capsLabel, Toggle } from '../components/index'
 import { Tagline } from '../components/Tagline'
 import { appPath } from '../lib/appBase'
 import { cn } from '../lib/cn'
@@ -104,7 +105,8 @@ function heroSlides(): Slide[] {
  * slide's words on one notched into the footer, in the same place every time.
  * The show is CSS (the page is served without React): a slide out of its turn
  * is hidden, so only the one in view is seen, pressed or focused (chrome K3).
- * It holds while an act is pointed at or focused. Under reduced motion it never
+ * It holds while an act is pointed at or focused, and its Pause (`watchSlideshow`, the
+ * page's script) stops it for good (WCAG 2.2.2). Under reduced motion it never
  * turns: the slides stand one under another, every action in view.
  */
 export function HomeHero() {
@@ -186,6 +188,19 @@ export function HomeHero() {
           </p>
         </div>
       </div>
+      {/* The show's Pause, a bare icon at its lower left (WCAG 2.2.2): Pause
+          at rest, Play once pressed. Hidden until the page's script can press
+          it. */}
+      <Toggle
+        pressed={false}
+        className="su-front__show-pause"
+        aria-label={referenceCopy('showPause')}
+        data-show-pause=""
+        hidden
+      >
+        <Pause aria-hidden="true" className="su-front__show-pause-icon" />
+        <Play aria-hidden="true" className="su-front__show-play-icon" />
+      </Toggle>
     </section>
   )
 }
