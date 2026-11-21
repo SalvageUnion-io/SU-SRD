@@ -260,7 +260,7 @@ export function PlayMediatorDowntime({
         )}
         <PlayDowntimeActionRow
           id="rumours"
-          name="Gather Cantina Rumours"
+          name={mediatorCopy('gatherCantinaRumours')}
           pilot={null}
           crawler={unit}
           rollFor={rollFor}

@@ -111,7 +111,7 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
       // generic line and an operator report instead. Either way the dialog
       // stays open with the reason on it; closing silently would look like the
       // game had been deleted.
-      describeError={(err) => failureMessage(err, 'That Game could not be deleted. Try again.')}
+      describeError={(err) => failureMessage(err, playGamesCopy('gameDeleteFailed'))}
       body={
         <>
           <Text>{playGamesCopy('thisEndsTheTableFor', { value: game?.memberCount ?? 0 })}</Text>
@@ -122,8 +122,10 @@ export function DeleteGameDialog({ game, onClose, onDeleted }: Props) {
               {surviving.length > 0 && (
                 <li>
                   <Text variant="hint">
-                    {surviving.join(' and ')} go back to whoever owns them, in their {PRODUCT.build}
-                    .
+                    {playGamesCopy('goBackToWhoeverOwnsThem', {
+                      who: surviving.join(' and '),
+                      bay: PRODUCT.build,
+                    })}
                   </Text>
                 </li>
               )}

@@ -83,6 +83,7 @@ import { companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
+import { CORE_MECHANIC_TABLE } from './tables.model'
 import type { SalvageAreaView } from './useSalvageArea'
 
 export type ResolveModel =
@@ -323,7 +324,7 @@ export function useActionsDeck({
   }
 
   async function doRoll(current: SeatResolving) {
-    const result = performCoreRoll(await rollFor('Core Mechanic'))
+    const result = performCoreRoll(await rollFor(CORE_MECHANIC_TABLE))
     setPushLog(null)
     setMeltdown(false)
     setApplyRouted(false)
@@ -337,7 +338,7 @@ export function useActionsDeck({
     // or a Bio-Chassis's own table (We Were Here First p.79).
     const overloadTable = overloadTableName(overloadTableOf(resolveChassisRef(mech.chassisRef)))
     const heatRoll = await rollFor(overloadTable, { plainD20s: 1 })
-    const coreRoll = await rollFor('Core Mechanic')
+    const coreRoll = await rollFor(CORE_MECHANIC_TABLE)
     // Core Book p.234: no Push that would take Heat past the cap. The control
     // is disabled for it; this holds the line against a stale render too.
     // The readout, a Meltdown and the reroll follow only a Push that landed.
@@ -412,7 +413,7 @@ export function useActionsDeck({
       // removed, or the deck changed under a reload. Say so, and let it go.
       return {
         kind: 'orphan',
-        text: `${resolving.name} is no longer in this deck.`,
+        text: playCopy('noLongerInThisDeck', { name: resolving.name }),
         onClear: close,
       }
     }
@@ -487,7 +488,10 @@ export function useActionsDeck({
         ? {
             hotX,
             activated,
-            projText: `Heat ${projectedHeat}/${actionHeat.heatCap}${heatOk ? '' : ' — over cap'}`,
+            projText: playCopy(heatOk ? 'heatProjected' : 'heatProjectedOverCap', {
+              heat: projectedHeat,
+              cap: actionHeat.heatCap,
+            }),
             over: !heatOk,
             onDec: () => setHotX((x) => Math.max(1, x - 1)),
             onInc: () => setHotX((x) => x + 1),
@@ -496,10 +500,10 @@ export function useActionsDeck({
       controls: {
         activateDisabled,
         activateTitle: apUnavailable
-          ? 'No Pilot to spend AP'
+          ? playCopy('noPilotToSpendAp')
           : heatOk
             ? undefined
-            : 'Activating would exceed the Heat Capacity',
+            : playCopy('activatingWouldExceed'),
         onActivate: () =>
           payActivation(units, selected, effCurrency, eco, () =>
             step(current, { activated: true })
@@ -514,7 +518,11 @@ export function useActionsDeck({
                 disabled: roll === null || pushed || pushLocked,
                 pushed,
                 lockedReason: pushLocked
-                  ? `No Push at Heat ${heatCtx.currentHeat}/${heatCtx.heatCap}: +${pushHeat} Heat would pass the Heat Capacity.`
+                  ? playCopy('noPushAtHeatWouldPass', {
+                      heat: heatCtx.currentHeat,
+                      cap: heatCtx.heatCap,
+                      gain: pushHeat,
+                    })
                   : undefined,
                 onPush: () => void doPush(current),
               },

@@ -130,7 +130,9 @@ function CrewLine({
         kind: 'link',
         onOpen,
         attrs: {
-          'aria-label': `${crewLineLabel(line)}${upNow ? `, ${playCopy('upNow')}` : ''}. Open their sheet`,
+          'aria-label': playCopy('openTheirSheet', {
+            label: `${crewLineLabel(line)}${upNow ? `, ${playCopy('upNow')}` : ''}`,
+          }),
         },
       }}
       {...(pair.relations ? { relations: [...pair.relations] } : {})}

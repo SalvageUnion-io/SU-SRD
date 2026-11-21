@@ -99,7 +99,7 @@ export function pausedBand() {
  */
 export function connectionLine(status: SyncStatus, solo: boolean): string | null {
   if (status !== 'live') return null
-  return solo ? 'Solo · nothing is shared' : 'Connected · changes reach the table live'
+  return solo ? playCopy('soloNothingIsShared') : playCopy('connectedChangesReachTheTable')
 }
 
 /**
@@ -161,7 +161,7 @@ export function playReadOnly(
   if (connection.outdated) {
     return {
       stamp: 'Read-only · outdated',
-      says: 'Read-only: this tab is updating to the new build. Reload to keep playing.',
+      says: playCopy('readOnlyOutdatedSays'),
     }
   }
   switch (connection.status) {
@@ -169,11 +169,11 @@ export function playReadOnly(
     case 'offline':
       return { stamp: sharedCopy('offlineReadOnly'), says: sharedCopy('notConnectedYourGamesAre') }
     case 'syncing':
-      return { stamp: 'Read-only · connecting', says: 'Read-only while the connection settles.' }
+      return { stamp: 'Read-only · connecting', says: playCopy('readOnlyConnectingSays') }
     case 'signedOut':
-      return { stamp: 'Read-only · signed out', says: 'Read-only: sign in to play.' }
+      return { stamp: playCopy('readOnlySignedOut'), says: playCopy('readOnlySignedOutSays') }
     case 'live':
-      return { stamp: 'Read-only', says: 'Read-only: the server is not taking changes right now.' }
+      return { stamp: 'Read-only', says: playCopy('readOnlyServerSays') }
   }
 }
 

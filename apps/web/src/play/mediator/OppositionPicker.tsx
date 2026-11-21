@@ -69,7 +69,7 @@ export type TrayWrites = {
 }
 
 /** Why Rename refuses a blank name; the server would refuse it too. */
-const EMPTY_NAME = 'A name cannot be blank.'
+const EMPTY_NAME = mediatorCopy('nameCannotBeBlank')
 
 /** The bare entity, in the pattern Select: no pattern picked. */
 const NO_PATTERN = ''
@@ -315,7 +315,7 @@ export function OppositionDialogs({
           if (!open) onClose()
         }}
         tone="danger"
-        title={`Delete ${removing?.name ?? 'this NPC'}?`}
+        title={mediatorCopy('deleteNpcTitle', { name: removing?.name ?? mediatorCopy('thisNpc') })}
         body={mediatorCopy('itLeavesTheOppositionFor')}
         confirmLabel={mediatorCopy('delete')}
         onConfirm={async () => {
@@ -345,7 +345,7 @@ function RenameDialog({
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
-      title={`Rename ${npc?.name ?? 'this NPC'}`}
+      title={mediatorCopy('renameNpcTitle', { name: npc?.name ?? mediatorCopy('thisNpc') })}
       body={
         <>
           <Eyebrow as="label" tone="muted" htmlFor={renameId}>
@@ -367,7 +367,7 @@ function RenameDialog({
       describeError={(err) =>
         err instanceof Error && err.message === EMPTY_NAME
           ? EMPTY_NAME
-          : 'That did not work. Try again.'
+          : mediatorCopy('thatDidNotWork')
       }
     />
   )

@@ -88,16 +88,19 @@ export function PlayDowntimeActionRow({
     id === 'train' ? (
       <>
         <Stat size="mini" label={playCopy('tp')} value={pilot?.trainingPoints ?? 0} />
-        {damagedBay(crawler, 'pilot-bay', 'Pilot Bay')}
+        {damagedBay(crawler, 'pilot-bay', playCopy('pilotBay'))}
       </>
     ) : id === 'craftTrade' ? (
-      damagedBay(crawler, 'trading-bay', 'Trading Bay')
+      damagedBay(crawler, 'trading-bay', playCopy('tradingBay'))
     ) : undefined
 
   const controls = away
     ? undefined
     : id === 'train'
-      ? open(pilot ? { kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) } : null, 'Spend TP')
+      ? open(
+          pilot ? { kind: 'pilot', id: pilot.id, name: pilotLabel(pilot) } : null,
+          playCopy('spendTp')
+        )
       : id === 'craftTrade'
         ? open(crawler ? { kind: 'crawler', id: crawler.id, name: crawler.name } : null, 'Open')
         : undefined

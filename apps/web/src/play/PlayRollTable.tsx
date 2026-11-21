@@ -124,7 +124,7 @@ export function PlayRollTable({
       title={name}
       size={size}
       tone={tone}
-      stamp={isColumns ? 'Roll the Dice:' : undefined}
+      stamp={isColumns ? playCopy('rollTheDiceStamp') : undefined}
       onRoll={roll}
       actions={
         landed ? (
@@ -135,7 +135,7 @@ export function PlayRollTable({
               onClick={() => copy(landed.text)}
               aria-label={playCopy('copyResultToClipboard')}
             >
-              Copy
+              {playCopy('copy')}
               <CopiedIcon
                 copied={copied}
                 size="compact"

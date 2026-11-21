@@ -177,7 +177,14 @@ export function TheGame({
         )
       }
     >
-      {appointing && <Stat label={playGamesCopy('mediator')} value="Nobody yet" size="mini" wrap />}
+      {appointing && (
+        <Stat
+          label={playGamesCopy('mediator')}
+          value={playGamesCopy('nobodyYet')}
+          size="mini"
+          wrap
+        />
+      )}
       {/* Why Hand over rests: there is nobody else at the table to take it. */}
       {organizer && members !== undefined && candidates.length === 0 && (
         <p style={REASON}>{playGamesCopy('nobodyToHandOverTo')}</p>
@@ -239,8 +246,7 @@ export function TheGame({
         body={
           <>
             <span>
-              The Mediator runs the table: the opposition, Downtime, the crawler, and proposals to
-              the crew.
+              {playGamesCopy('theMediatorRunsTheTable')}
               {appointing ? '' : playGamesCopy('whoeverMediatesNowStandsDown')}
             </span>
             <Field label={playGamesCopy('whoMediates')} htmlFor={`${id}-who`}>
@@ -255,9 +261,7 @@ export function TheGame({
           </>
         }
         confirmLabel={appointing ? playGamesCopy('appoint') : playGamesCopy('handOver')}
-        describeError={(err) =>
-          failureMessage(err, 'The table could not be handed over. Try again.')
-        }
+        describeError={(err) => failureMessage(err, playGamesCopy('tableHandOverFailed'))}
         onConfirm={async () => {
           if (chosen === '') return
           // Appoint first, so the table is never left without a Mediator.

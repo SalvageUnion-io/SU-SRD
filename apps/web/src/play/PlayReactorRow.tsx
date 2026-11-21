@@ -119,7 +119,7 @@ export function PlayReactorRow({
 
   async function doHeatCheck() {
     let said: string | undefined
-    const roll = await rollFor(overloadTableTitle, 'Heat Check', {
+    const roll = await rollFor(overloadTableTitle, playCopy('heatCheck'), {
       plainD20s: 1,
       outcome: () => said,
     })
@@ -162,7 +162,7 @@ export function PlayReactorRow({
     const shutting = !mechHasCondition(fresh(), 'Shutdown')
     runWrite(
       () => store.update('mech', mech.id, shutdownTogglePatch(fresh().conditions), PLAY_TXN),
-      () => recordPlayChange(`${shutting ? 'Shut down' : 'Restart'} · ${mech.name}`)
+      () => recordPlayChange(`${playCopy(shutting ? 'shutDown' : 'restart')} · ${mech.name}`)
     )
   }
 
@@ -225,7 +225,7 @@ export function PlayReactorRow({
                     <PlayRollInstrument
                       table={overloadTableTitle}
                       roll={log?.overloadRoll ?? null}
-                      stamp={pushing ? 'Push:' : 'Heat Check:'}
+                      stamp={playCopy(pushing ? 'pushStamp' : 'heatCheckStamp')}
                       onRoll={off ? undefined : () => void (pushing ? doPush() : doHeatCheck())}
                     />
                     {log ? (

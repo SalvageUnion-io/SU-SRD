@@ -11,6 +11,7 @@
  */
 
 import type { PairSide } from '../lib/units/crewPair'
+import { playCopy } from '../messages/play'
 import type { BoardSources } from './boardMenu.model'
 import type { CrewLine, CrewVitals } from './useGameFeed'
 import { crewLines, vitalCurrent, vitalText } from './useGameFeed'
@@ -87,7 +88,7 @@ function crewVital(pilot: CrewPilot, mech: CrewMech | undefined, attention: bool
       return flag({ label: 'SP', value: vitalCurrent('pool', mech.currentSP, mech.maxSP) })
     if (status.overheating)
       return flag({ label: 'Heat', value: vitalCurrent('gauge', mech.currentHeat, mech.maxHeat) })
-    if (status.shutdown) return flag({ label: 'Shut down', value: null })
+    if (status.shutdown) return flag({ label: playCopy('shutDown'), value: null })
     if (sp !== null) return flag(sp)
   }
   return flag(hp)
@@ -119,7 +120,7 @@ export function crewSeatLines(
       {
         ...line,
         present: isHere(pilot, here),
-        mount: boardedIn === null ? 'On foot' : `Boarded · ${boardedIn}`,
+        mount: boardedIn === null ? playCopy('onFoot') : `Boarded · ${boardedIn}`,
         boardedIn,
         vital: crewVital(pilot, mech, line.attention),
         vitals: [

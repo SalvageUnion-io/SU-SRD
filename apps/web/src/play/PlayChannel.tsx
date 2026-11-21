@@ -66,7 +66,8 @@ export function PlayChannelDialog({
   mayBind = true,
 }: PlayChannelDialogProps) {
   const { copied, flash } = useCopied()
-  const whose = owner.kind === 'solo' ? 'your solo play' : (owner.gameName ?? 'this Game')
+  const whose =
+    owner.kind === 'solo' ? playCopy('yourSoloPlay') : (owner.gameName ?? playCopy('thisGame'))
   return (
     <ModalShell
       open={open}
@@ -101,7 +102,8 @@ export function PlayChannelDialog({
             : playCopy('inTheDiscordChannelYou2')}{' '}
           {binding !== null && (
             <>
-              <code style={CODE}>{playCopy('suUnbind')}</code> stops posting.
+              <code style={CODE}>{playCopy('suUnbind')}</code>
+              {playCopy('stopsPosting')}
             </>
           )}
         </p>

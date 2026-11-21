@@ -36,7 +36,7 @@ const NPC_ACTION = 'NPC Action'
 /** The table an NPC's Morale check reads. */
 const MORALE = 'Morale'
 
-const MORALE_CHECK = playLineModel({ name: 'Morale check', key: 'morale' })
+const MORALE_CHECK = playLineModel({ name: mediatorCopy('moraleCheck'), key: 'morale' })
 
 /** The row a die lands on, by its label ("Success"). */
 function npcActionOutcome(die: number): string {

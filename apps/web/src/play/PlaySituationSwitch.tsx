@@ -47,8 +47,8 @@ const GLYPH = {
 } satisfies CSSProperties
 
 /** Where a press that leaves a running Downtime goes once it is ended. */
-const SET_BY_MEDIATOR = 'Set by the Mediator'
-const SET_BY_MEDIATOR_PHRASE = 'set by the Mediator'
+const SET_BY_MEDIATOR = playCopy('setByTheMediator')
+const SET_BY_MEDIATOR_PHRASE = playCopy('setByTheMediatorPhrase')
 
 export function PlaySituationSwitch({ play }: { play: Play }) {
   const { go, dialogs } = useSituationMoves(play)
@@ -93,7 +93,7 @@ export function PlaySituationSwitch({ play }: { play: Play }) {
             if (!running && canChangeDowntime) play.startDowntime()
           }}
         >
-          Downtime
+          {playCopy('downtimeWord')}
           {locked && !running && (
             <Lock size={tokens.iconSize.mini} aria-hidden="true" style={GLYPH} />
           )}

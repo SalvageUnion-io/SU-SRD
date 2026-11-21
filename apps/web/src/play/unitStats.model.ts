@@ -18,6 +18,7 @@ import {
   resolvePool,
 } from 'salvageunion-reference/rules'
 import { resolveCrawlerBay } from '../lib/crawlerRefs'
+import { playCopy } from '../messages/play'
 
 /** One vital: its current value and its derived maximum. */
 export type UnitGauge = { label: string; value: number; max: number }
@@ -42,7 +43,7 @@ export function pilotVitals(
 /** Each injury, as the Units box and the Crew read it ("Major injury: broken arm"). */
 export function injuryLines(pilot: Pilot): string[] {
   return (pilot.injuries ?? []).map((injury) => {
-    const kind = injury.severity === 'major' ? 'Major Injury' : 'Minor Injury'
+    const kind = playCopy(injury.severity === 'major' ? 'majorInjury' : 'minorInjury')
     return injury.note ? `${kind}: ${injury.note}` : kind
   })
 }

@@ -169,7 +169,11 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   return (
     <PlayFrame
       wide={wide}
-      labels={['The table', running ? 'Downtime' : 'Opposition', 'Rolls, Rules and Propose']}
+      labels={[
+        playCopy('theTable'),
+        running ? playCopy('downtimeWord') : playCopy('opposition'),
+        playCopy('rollsRulesAndPropose'),
+      ]}
       bar={
         <>
           <PlayBar

@@ -57,7 +57,7 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
   const apply = useTableAct('ops.accept', gameId)
   const decline = useTableAct('ops.decline', gameId)
   const reply = useServerAction((send: () => Promise<unknown>) => send(), {
-    failure: 'Your answer did not land. Try again.',
+    failure: playCopy('answerDidNotLand'),
     toastId: 'play-proposal-answer',
   })
 
@@ -158,7 +158,7 @@ function PostState({
     )
   }
   if (post.kind === 'posted') return <span style={STATE}>{playCopy('posted')}</span>
-  const label = 'Try again'
+  const label = playCopy('tryAgain')
   return (
     <Button
       variant="default"
