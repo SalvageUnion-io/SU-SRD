@@ -18,7 +18,7 @@ import { fieldLabel } from 'game-domain/games/proposals'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button, Callout, Text, toast, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
-import { usePilots } from '../lib/entities'
+import { useOwnUnits } from '../lib/entities'
 import { playCopy } from '../messages/play'
 import { playSafetyCopy } from '../messages/play-safety'
 import { useGamesQuery, useViewerId } from '../replica/roomCalls'
@@ -30,6 +30,7 @@ import type { Heard } from './tableNotices.model'
 import {
   endedSession,
   eventsToToast,
+  NOTICES_RESIZED,
   pausedTitle,
   pinnedAlert,
   resumedTitle,
@@ -56,10 +57,14 @@ function useNoticesHeight() {
     const root = document.documentElement
     if (node === null || typeof ResizeObserver === 'undefined') {
       root.style.removeProperty('--su-table-notices-h')
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
       return
     }
-    const publish = () =>
+    const publish = () => {
       root.style.setProperty('--su-table-notices-h', `${node.getBoundingClientRect().height}px`)
+      // Play's frame sits under the notices and fills the window below them.
+      window.dispatchEvent(new Event(NOTICES_RESIZED))
+    }
     observer.current = new ResizeObserver(publish)
     observer.current.observe(node)
     publish()
@@ -123,7 +128,8 @@ function GameNotices({
     failure: playCopy('answerDidNotLand'),
     toastId: 'table-proposal-answer',
   })
-  const pilots = gamePilots(usePilots(), gameId)
+  // The viewer's own: the replica holds every crewmate's pilot too (LG-02).
+  const pilots = gamePilots(useOwnUnits('pilot'), gameId)
   const [, redraw] = useState(0)
   const dismiss = (key: string) => {
     dismissed.add(key)

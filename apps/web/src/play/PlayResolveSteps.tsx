@@ -83,7 +83,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
             })}
           </p>
         )}
-        {salvage?.haul && <p>{salvage.haul}</p>}
         {view.pushLog && <p>{view.pushLog}</p>}
         {view.applied && <p>{playCopy('resultApplied')}</p>}
       </div>
@@ -163,7 +162,6 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
         </Button>
       )}
       {view.applied && <p style={NOTE}>{playCopy('resultApplied2')}</p>}
-      {salvage?.haul && <p style={NOTE}>{salvage.haul}</p>}
       {salvage?.onSetArea && (
         <SalvageAreaDialog
           key={settingArea ? 'open' : 'closed'}

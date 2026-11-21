@@ -40,6 +40,32 @@ export async function unitVitals(store: GameStore, unitId: string): Promise<Shee
     : { kind: 'mech', ...derive.deriveMech(crewUnit(unit)) }
 }
 
+/**
+ * What a vital reads before it was ever written (the table's events say
+ * "from"): a pool starts at its derived maximum, Heat at 0. Null for a unit
+ * that is no pilot or mech, or whose body does not derive. Sync: the room has
+ * loaded the reference (`loadCrewReference`).
+ */
+export function unsetVital(store: GameStore, unitId: string, field: string): number | null {
+  const unit = store.unit(unitId)
+  if (unit === null) return null
+  if (field === 'currentHeat') return unit.kind === 'mech' ? 0 : null
+  try {
+    const derive = deriverOf(store)
+    if (unit.kind === 'pilot') {
+      const { maxHP, maxAP } = derive.derivePilot(crewUnit(unit))
+      return field === 'currentHP' ? maxHP : field === 'currentAP' ? maxAP : null
+    }
+    if (unit.kind === 'mech') {
+      const { maxSP, maxEP } = derive.deriveMech(crewUnit(unit))
+      return field === 'currentSP' ? maxSP : field === 'currentEP' ? maxEP : null
+    }
+  } catch {
+    // A body the rules cannot read: the line says where it went, not from where.
+  }
+  return null
+}
+
 /** Who a crewmate is and whose: the ids a sheet is reached by, and its holder's name. */
 type CrewRow = {
   _id: string

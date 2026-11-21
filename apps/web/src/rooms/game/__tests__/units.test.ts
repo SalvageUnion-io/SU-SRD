@@ -97,6 +97,36 @@ describe('writing by ops', () => {
     expect(room.units.list(PLAYER).find((u) => u.id === 'm1')?.headSeq).toBe(0)
   })
 
+  // LG-03, the two-tab case: one player on two screens. The room waives
+  // nothing for the same author: an op made from a stale copy of a field would
+  // silently undo the press made on the other screen. It says whose change it
+  // met, so the refusal can say "you", and a field the other screen did not
+  // touch still merges.
+  test('the same player on a second screen: a stale write to the same field is still a conflict, and is marked their own', () => {
+    const { room } = withCrew()
+    // Screen A takes 1 HP.
+    room.units.submit(PLAYER, [op('p1', { currentHP: 9 })])
+    // Screen B, which has not heard of it yet, takes 1 HP from the 10 it shows.
+    const stale = room.units.submit(PLAYER, [op('p1', { currentHP: 9 }, { baseSeq: 0 })])
+    expect(stale).toMatchObject({ ok: false, reason: 'conflict', fields: ['currentHP'], own: true })
+    expect(room.units.list(PLAYER).find((u) => u.id === 'p1')?.headSeq).toBe(1)
+    // Another field from the same stale copy is no conflict.
+    expect(room.units.submit(PLAYER, [op('p1', { currentAP: 3 }, { baseSeq: 0 })]).ok).toBe(true)
+    // Once B has heard A's change, its press lands.
+    expect(room.units.submit(PLAYER, [op('p1', { currentHP: 8 }, { baseSeq: 2 })]).ok).toBe(true)
+  })
+
+  test('a conflict with somebody else’s change is not marked the sender’s own', () => {
+    const { room } = withCrew()
+    // Two Mediators run the table, so both write its crawler.
+    room.roster.setMediator(ORGANIZER, PLAYER, true)
+    room.units.create(MEDIATOR, { id: 'c1', kind: 'crawler', body: bodies.crawler('c1'), at: AT })
+    room.units.submit(PLAYER, [op('c1', { currentSP: 9 })])
+    const stale = room.units.submit(MEDIATOR, [op('c1', { currentSP: 8 }, { baseSeq: 0 })])
+    expect(stale).toMatchObject({ ok: false, reason: 'conflict' })
+    expect((stale as { own?: boolean }).own).toBeUndefined()
+  })
+
   test('an invalid op is refused with its reason', () => {
     const { room } = withCrew()
     expect(room.units.submit(PLAYER, [op('p1', { invalid: true })])).toMatchObject({

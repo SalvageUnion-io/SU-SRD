@@ -65,7 +65,8 @@ const PAIRED_ELSEWHERE =
 export type SubmitResult =
   /** `fresh`: the op ids this batch applied; the rest of `applied` had landed before. */
   | { ok: true; applied: { id: string; seq: number }[]; fresh: string[] }
-  | { ok: false; opId: string; reason: 'conflict'; fields: string[] }
+  /** `own`: every change the op ran into was the sender's own, made from another screen. */
+  | { ok: false; opId: string; reason: 'conflict'; fields: string[]; own?: true }
   | { ok: false; opId: string; reason: 'invalid'; message: string }
 
 type Refused = Extract<SubmitResult, { ok: false }>
@@ -195,7 +196,13 @@ export class GameUnits {
     if (!result.ok) {
       throw new BatchRefused(
         result.reason === 'conflict'
-          ? { ok: false, opId: input.id, reason: 'conflict', fields: result.fields }
+          ? {
+              ok: false,
+              opId: input.id,
+              reason: 'conflict',
+              fields: result.fields,
+              ...(this.metOwn(unit, input, result.fields, author) ? { own: true as const } : {}),
+            }
           : { ok: false, opId: input.id, reason: 'invalid', message: result.message }
       )
     }
@@ -216,6 +223,20 @@ export class GameUnits {
       updatedAt: input.at,
     })
     return result.seq
+  }
+
+  /**
+   * Whether every applied op `input` conflicts with is `author`'s own: the
+   * same player on a second screen. Still a conflict (a stale absolute value
+   * would undo the other screen's press), but the refusal can say whose.
+   */
+  private metOwn(unit: UnitRow, input: OpInput, fields: readonly string[], author: string) {
+    const base = input.baseSeq ?? 0
+    const met = this.store
+      .opsOf(unit.id)
+      .filter((op) => op.state === 'applied' && (op.seq ?? 0) > base)
+      .filter((op) => fields.some((f) => f in op.patch || (op.unset ?? []).includes(f)))
+    return met.length > 0 && met.every((op) => op.author === author)
   }
 
   /**

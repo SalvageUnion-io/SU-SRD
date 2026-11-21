@@ -90,6 +90,20 @@
   white-space: nowrap;
 }
 
+/* The value as a button (an amount is asked for): a 44px target, underlined
+   as the desktop gauge's pressable number is. */
+button.su-phone-vitals__value {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  min-height: var(--size-full);
+  min-width: var(--size-full);
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: var(--space-4);
+  touch-action: manipulation;
+}
+
 .su-phone-vitals__value > b {
   font-size: var(--text-title);
   font-weight: var(--font-weight-extrabold);

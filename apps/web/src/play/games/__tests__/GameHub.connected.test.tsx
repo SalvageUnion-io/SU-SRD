@@ -695,6 +695,28 @@ describe('Play from the Game page', () => {
     expect(radios.map((r) => r.getAttribute('aria-checked') === 'true')).toEqual([true, false])
   })
 
+  // The band's door pressed before the pilots answered opened a dialog that
+  // then needed a second press: with one pilot of yours it goes in once they do.
+  test('pressed before the pilots answer, one pilot of yours opens once they arrive', async () => {
+    answer(answers({ 'games.members': MEDIATED, 'games.listing': undefined }))
+    let view: ReturnType<typeof render> | undefined
+    await act(async () => {
+      view = render(<GameHub gameId="g1" />)
+    })
+    const dialog = await openPicker()
+    expect(within(dialog).getByText('Loading pilots…')).toBeTruthy()
+    expect(navigations).toEqual([])
+
+    answer(
+      answers({ 'games.members': MEDIATED, 'games.listing': listing([THEIRS, PILOTS[1], PREGEN]) })
+    )
+    await act(async () => {
+      view?.rerender(<GameHub gameId="g1" />)
+    })
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   // LG-24: one pilot of yours is no choice, so the button opens Play for it.
   test('with one pilot of yours it goes straight in, asking nothing', async () => {
     await renderHub({

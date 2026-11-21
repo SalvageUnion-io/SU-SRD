@@ -1,11 +1,11 @@
 # The Hard Rules
 
-Laws as machines check them, and the chrome. Every canon law ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
+Every canon law ([ruleset](ruleset.md), [EDL](entity-display-language.md), chips-and-actions, ledger, here) names the gate that fails when it breaks: `CANON` in `packages/gates/lib/canon.ts`, held by `bun run check canon`. A law lands with its gate.
 A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pendingRules.ts`): it reports under a ceiling till the screens hold it; at zero, delete it.
 
 ## Coverage
 
-- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `apps/web/e2e/_designTable.ts`): every surface in Read and Edit, phone and page widths, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the gates walk the reference corpus (`REFERENCE_CORPUS`).
+- **R0 Every layout gate sees every context** — one route list (`designRoutes`, `e2e/_designTable.ts`): every surface in Read and Edit, phone and page widths, signed in. `design-walk.e2e.ts` seeds and walks it once for every layout gate, a baseline per route family; signed out, the gates walk the reference corpus (`REFERENCE_CORPUS`).
 
 ## Primitives
 
@@ -36,7 +36,7 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 - **R58 Intact is quiet** (C8) — only Damaged and Destroyed wear a tone; Repair shows only while damaged.
 - **R59 A fact prints once** (C10) — no Uses trait beside a live Uses slot; granted gear's rules print under its ability only.
 - **R60 A made choice reads as made** (§1.2) — a pick is a `CHOSEN | <pick>` chip; in Read a filled choice is its pick's Mini; in a picker a chip line under its row (L7); on its action's row its changed values.
-- **R61 A box fits its content; a side column fills beneath** (§1.2, §1.7, §1.10) — opening panels are as tall as their content; from 64rem the Vitals head the sidebar; on a phone `HeroMore` follows them. A side column never ends in a void: what belongs with it sits under it, or the main column takes the full width below.
+- **R61 A box fits its content; a side column fills beneath** (§1.2, §1.7, §1.10) — opening panels are as tall as their content; from 64rem the Vitals head the sidebar; on a phone `HeroMore` follows them. A side column never ends in a void: what belongs with it sits under it, or the main column runs full width below.
 - **R62 A unit Mini's acts ride its ⋯** (C8) — Change and Unassign are its menu's rows.
 - **R65 An action says what it does, and all are there** (§1.4, R59) — Play's board lists them, never a sheet: every action of what the pilot and mech carry, the chassis ability and each companion's. A row's body is its effect alone: text the data tags `notInPlay` is left out, never reworded. Rows group by action type under Mini Slabs, Passive and untyped last.
 - **R67 A guided build asks four things** (N6, R16, L9) — a wizard has at most four steps, each a decision; what the book only tells you is its step's cited `Callout`, never a step. A step's options are a Ledger in select, the pick's card beside it. The bar is a reserved strip, never over content: the budget's count, Cancel, one rust Next.
@@ -45,27 +45,29 @@ A gate fails the build unless its rule is **pending** (`PENDING_RULES`, `e2e/_pe
 
 ## Measures
 
-- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — one height per Size, every button and chip; a line one Size. No hidden hit area but a linked chip's or strip Mini control's 24px (WCAG). No text under 11px as drawn. One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`.
+- **R12 One height per Size; 11px at render; one stepper** (§4.6, §4.7, §6.2, §6.3, C1a) — every button and chip; a line one Size. No hidden hit area but a linked chip's or strip Mini control's 24px (WCAG). One stepper (`StepButton`): a count steps through `Stat` in edit mode, a vital through `VitalGauge`'s `steppers`.
 - **R17 A Page has one rhythm** (§1.7, §7.1) — the first block ≤24px under the band; 12px between level-1 blocks; every stat value framed 1px, every stat label 14px (a short one 12).
 - **R35 The form fits the place** (E2, E3, E11, E19, §1.3, §6.6) — a list item is a Compact, index Compact, Mini or Ledger row; every Live Sheet list item is or holds one (`syntheticItemModel` for a carried thing the reference lacks); a Play list's line is a Mini.
 - **R68 A grid fills its rows** — a grid of items is the one fill grid (`.su-grid`): flex rows that wrap, a short last row growing to its width, to a cap (`--su-grid-max`); no empty track, no orphan cell. Masonry never has more columns than items. A pip track or table is no item grid.
 
 ## Chrome
 
-What frames the content (ruleset §4): one component per job (R16).
+What frames the content (ruleset §4; R16).
 
 - **K1 One ground signal** — a surface declares its ground once (`data-ground="paper" | "ink"` on its frame); components read it in CSS, never through a prop. Paper on ink is `--color-paper-NN` alone.
-- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, for media and container queries and the JS that mirrors them. Exceptions: the stat column's cell count, a Compact's art by room (E10).
-- **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (period `--dur-loop`, 2s) or the home's slideshow (a slide out of turn hidden; a Pause), only under `prefers-reduced-motion: no-preference`.
-- **K4 Lift and layers** — one lift, `--shadow-lift` in warm ink, for what floats (popup, Peek, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page, z-index is `layer`'s (`--z-*`); a literal above 3 fails.
-- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster` per document; a `Banner` holds a lasting condition; a `FieldError` states a consequence where it applies. Offline is one notice, the bar's `SyncBadge`. Copied is the copy control's `Check` swap, never a toast. No notice wears a roll-tier colour (§3.4).
+- **K2 The breakpoint ladder** — 40, 48, 64 and 80rem (`breakpoint` in `tokens.ts`), written `(width >= …)`, in media and container queries and their JS. Exceptions: the stat column's cell count, a Compact's art by room (E10).
+- **K3 Motion** — `--dur-fast` (120ms) for a state change, `--dur-base` (150ms) for a move, one easing, `--ease`. A loop is a loading mark (`--dur-loop`, 2s) or the home's slideshow (a slide out of turn hidden; a Pause), only under `prefers-reduced-motion: no-preference`.
+- **K4 Lift and layers** — one lift, `--shadow-lift`, for what floats (popup, Peek, toast, dialog); the focus ring is the other shadow. Popups are 3px (§4.4). Above the page, z-index is `layer`'s (`--z-*`); a literal above 3 fails.
+- **K5 A notice has one job** — a toast reports an act just done, from the one `Toaster`; a `Banner` holds a lasting condition; a `FieldError` states a consequence where it applies. Offline is one notice, the bar's `SyncBadge`. Copied is the copy control's `Check` swap, never a toast. No notice wears a roll-tier colour (§3.4).
 - **K6 One loading voice** — `Pending` inside a screen, `Skeleton` for a shape known ahead, `RoutePending` for a route; "Loading <thing>…", spelled by `loadingCopy` alone; only K3's loops are `@keyframes`.
 - **K7 Three dialog widths** — `ModalShell` is narrow (28rem), default (48rem) or page (72rem: the Page, the searcher); no per-dialog `max-width`. One pick dialog (§6.6): `PickDialog`, narrow, its Compacts in select in one radio group (toggles for several), Cancel and the act in `DialogActions`; `RadioCardGroup` only there and in the wizards' steps.
 - **K8 One empty state, one error per job** — `EmptyState` by place (a stamp on a Page or sheet section, quiet in app chrome, inline in a framed list), "No <things> yet."; a crash is `RecoveryPanel`, a missing record `NotFoundPanel`, a failed act `toast.error`; "Try again", never "Retry"; `role="alert"` only in `FieldError`, `RecoveryPanel` and `Banner`.
 - **K9 One focus ring** — every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in ink, 3:1 on every ground; no outline, underline, dashed, colour-only or `:focus` ring.
 - **K10 Tabs, Segmented, Toggle, Switch by job** — `Tabs` pick a view (`role="tab"` only there), `Segmented` sets a value and `Toggle` is one press (`aria-pressed` only in those two), `Switch` a setting; no tab or segment label clipped.
-- **K11 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize` (Mini, Compact, Full), stroke 2; ⋯ `Ellipsis`, close `X`, back `BackLabel` (`ChevronLeft` and the place's name), next `NextLabel` (the place's name and `ChevronRight`), a value's change `ArrowRight`; never an arrow or ellipsis character in copy.
+- **K11 Icons take their Size** (§5.11) — 12, 14 or 18px from `iconSize` (Mini, Compact, Full), stroke 2; ⋯ `Ellipsis`, close `X`, back `BackLabel` and next `NextLabel` (a chevron and the place's name), a value's change `ArrowRight`; never an arrow or ellipsis character in copy.
 - **K12 Link previews** — a page's 1200 × 630 card is its Page in small: band and name, chips beside it, cite and path at the foot; canon solid, homebrew dashed; no type under 34px; theme-color is the band.
 - **K13 Chrome matches** — header and footer: `--color-paper` on `--color-ink-deep`; the rail: its band, words `--su-on-kind`.
-- **K14 Every control in reach** — every control sits inside its frame at every width, and nothing invisible takes its press.
+- **K14 Every control in reach** — every control sits inside its frame at every width; nothing invisible takes its press.
+- **K15 Table notices pin** (K5) — a Stop Sign, a proposal for you, the alert and a live session sit above every screen; Play fills what one leaves.
+- **K16 Rules beside the board** — from `lg` Play's Rules are a pane, never a dialog.
 - **R52 One muted note** — a lede, hint or note is `Text variant="note"`; no style object pairs a muted ink with a font size.

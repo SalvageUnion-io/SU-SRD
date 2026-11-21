@@ -174,6 +174,34 @@ describe('the pinned notices', () => {
     expect(notice('session-ended')?.textContent).toContain('Session ended · Tenacity')
   })
 
+  // LG-02: the replica holds every crewmate's pilot too; the door is for the
+  // viewer's own pilot, never the one pilot of somebody else's it finds.
+  test('the session’s door opens the viewer’s own pilot, never a crewmate’s', async () => {
+    const { serve, gameScope, drop } = await import('../../replica/replica')
+    const { pilotFixture } = await import('../../components/__tests__/fixtures')
+    const theirs = {
+      table: 'pilot' as const,
+      row: pilotFixture({ id: 'tn-theirs', gameId: 'g1' }),
+      version: 1,
+      owner: 'u-crewmate',
+    }
+    act(() => serve(gameScope('g1'), [], [theirs]))
+    await renderNotices({ 'session.state': { live: true, startedAt: 7 } })
+    const door = () => screen.getByRole('link', { name: 'Join session' }).getAttribute('href')
+    // Nobody's pilot but a crewmate's: the Game's page, where one is assigned.
+    expect(door()).toBe('/games/g1')
+    // Mine, as this browser holds a unit of its own account.
+    const { useUnits } = await import('../../replica/units')
+    await act(async () => {
+      await useUnits.getState().adopt('pilot', pilotFixture({ id: 'tn-mine', gameId: 'g1' }))
+    })
+    expect(door()).toBe('/pilots/tn-mine/play')
+    act(() => {
+      drop('pilot', 'tn-theirs')
+      drop('pilot', 'tn-mine')
+    })
+  })
+
   test('on a Play screen the session needs no door', async () => {
     await renderNotices({ 'session.state': { live: true, startedAt: 7 } }, '/pilots/p1/play')
     expect(notice('session')).toBeNull()

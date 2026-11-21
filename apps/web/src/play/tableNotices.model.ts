@@ -9,6 +9,13 @@
 
 import type { TableEvent } from '../rooms/game/events'
 
+/**
+ * The window event the notices raise when their height changes: Play's frame
+ * fills the window below its own top, and a notice leaving moves that top
+ * without resizing anything the frame can watch.
+ */
+export const NOTICES_RESIZED = 'su-table-notices-resized'
+
 /** How long the Mediator's alert stays pinned unless dismissed. */
 const ALERT_PINNED_MS = 10 * 60_000
 
@@ -23,7 +30,8 @@ export type Heard = ReadonlyMap<string, string>
  * rewrote its line (the toast, keyed by the event's id, updates in place).
  * Never the viewer's own act, which their screen already showed them, nor a
  * Stop Sign event, which the pinned banner says to everyone, its shower
- * included.
+ * included, nor an assignment taken from the viewer, which their screen says
+ * in its own words (`assignmentNotices`, MD-23).
  */
 export function eventsToToast(
   events: readonly TableEvent[],
@@ -35,6 +43,8 @@ export function eventsToToast(
   const toast = events
     .filter((event) => heard.get(event._id) !== event.text)
     .filter((event) => event.kind !== 'stop' && event.actorId !== viewerId)
+    // An assignment taken from the viewer: `assignmentNotices` tells them, once.
+    .filter((event) => event.about === undefined || event.about !== viewerId)
     .sort((a, b) => a.ts - b.ts)
   // An id the stream no longer serves stays heard: a line that scrolled off never toasts again.
   return { toast, heard: new Map([...heard, ...next]) }

@@ -20,9 +20,9 @@ import type { CSSProperties } from 'react'
 import { useState } from 'react'
 import { VitalGauge } from '../components/app'
 import type { CSSVarStyle } from '../components/index'
-import { Button, CloseButton, capsLabel, Input, tokens } from '../components/index'
+import { tokens } from '../components/index'
 import { playCopy } from '../messages/play'
-import { amountOf, vitalAfter } from './unitStats.model'
+import { PlayVitalAmount } from './PlayVitalAmount'
 
 type VitalTone = 'pilot' | 'mech' | 'crawler' | 'adversary'
 
@@ -41,17 +41,6 @@ const ROW = {
   gap: tokens.space[6],
   minWidth: 0,
 } satisfies CSSProperties
-
-/** The amount form, in the gauge's place: the label, the amount, − N, + N, ×. */
-const AMOUNT = {
-  alignItems: 'center',
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: tokens.space[6],
-  minWidth: 0,
-} satisfies CSSProperties
-
-const AMOUNT_INPUT = { flex: '1 1 3rem', minWidth: '3rem', width: '3rem' } satisfies CSSProperties
 
 const GAUGE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 
@@ -93,57 +82,15 @@ export function PlayVital({
   const live = onChange !== undefined
   // "Take 3 damage" is one write: press the number, type the amount, − or +.
   const [asking, setAsking] = useState(false)
-  const [amount, setAmount] = useState('')
-  const n = amountOf(amount)
-  const change = (sign: 1 | -1) => {
-    if (n === null || onChange === undefined) return
-    onChange(vitalAfter(value, sign * n, max))
-    setAmount('')
-    setAsking(false)
-  }
   if (live && asking) {
     return (
-      <form
-        style={AMOUNT}
-        aria-label={playCopy('changeByAmount', { label })}
-        onSubmit={(event) => {
-          event.preventDefault()
-          change(-1)
-        }}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') setAsking(false)
-        }}
-      >
-        <span className={capsLabel({ size: 'badge' })}>{label}</span>
-        <Input
-          autoFocus
-          numeric
-          size="compact"
-          style={AMOUNT_INPUT}
-          value={amount}
-          aria-label={playCopy('amountOf', { label })}
-          onChange={(event) => setAmount(event.target.value)}
-        />
-        <Button
-          type="button"
-          size="compact"
-          disabled={n === null}
-          aria-label={playCopy('takeAmount', { label, amount: n ?? '' })}
-          onClick={() => change(-1)}
-        >
-          − {n ?? ''}
-        </Button>
-        <Button
-          type="button"
-          size="compact"
-          disabled={n === null}
-          aria-label={playCopy('addAmount', { label, amount: n ?? '' })}
-          onClick={() => change(1)}
-        >
-          + {n ?? ''}
-        </Button>
-        <CloseButton label={playCopy('cancel')} onClick={() => setAsking(false)} />
-      </form>
+      <PlayVitalAmount
+        label={label}
+        value={value}
+        max={max}
+        onChange={onChange}
+        onClose={() => setAsking(false)}
+      />
     )
   }
   return (
