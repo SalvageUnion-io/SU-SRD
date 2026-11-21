@@ -12,13 +12,15 @@
  * (`Head`'s), which names itself by `data-handback` (the entity forms' markup
  * is `components/entity/`'s own, hard rule R7). Its
  * print sizes are handed back in `print.css`. The ChapterBand's notched
- * title and a `Slab`'s label (`.su-rule-head__label`) are headings, set as on
- * the SRD. An `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug
+ * title, a `Slab`'s label (`.su-rule-head__label`) and a sheet's ability
+ * tree's stamp (an `h3` in `.su-pilot-trees`) are headings, set as on the
+ * SRD. An `Eyebrow` a caller renders as `h2`/`h3` keeps its own snug
  * tracking.
  */
 [data-handback],
 .su-chapter-band__title,
 .su-rule-head__label,
+.su-pilot-trees .su-poster-stamp,
 .su-eyebrow {
   font-family: revert-layer;
   font-weight: revert-layer;

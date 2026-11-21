@@ -326,6 +326,20 @@ describe('PilotSheet — the tree abilities, tree by tree', () => {
     expect(trees[1]).toBe('Mechanical Knowledge')
   })
 
+  test("each tree's name is an h3 under the Abilities group's h2", () => {
+    const pilot = makePilot({ abilities: ['mech-acquisition'] })
+    render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} readOnly />)
+
+    const group = screen.getByRole('heading', { level: 2, name: 'Abilities' })
+    const sections = treeSections()
+    expect(sections.length).toBeGreaterThan(0)
+    for (const section of sections) {
+      const title = within(section).getAllByRole('heading', { level: 3 })[0]
+      expect(title?.textContent).toBe(treeTitle(section))
+      expect(group.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+  })
+
   test("Edit puts each ability's controls in its Mini's chip group", async () => {
     const pilot = makePilot({ currentAP: 5 })
     const updateSpy = mock(async () => pilot)
