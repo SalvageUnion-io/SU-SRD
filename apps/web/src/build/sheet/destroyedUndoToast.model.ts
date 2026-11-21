@@ -8,10 +8,11 @@
  */
 
 import { toast } from '../../components/index'
+import { buildSheetCopy } from '../../messages/build-sheet'
 import { componentsCopy } from '../../messages/components'
 
 export function destroyedUndoToast(itemName: string, undo: () => void) {
-  toast(`${itemName} marked Destroyed`, {
+  toast(buildSheetCopy('markedDestroyed', { name: itemName }), {
     action: {
       label: componentsCopy('undo'),
       onClick: undo,

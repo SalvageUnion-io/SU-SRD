@@ -89,7 +89,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
       'templateId' in from
         ? createFromTemplate({ ...from, mediator: mediates })
         : create({ ...from, mediator: mediates }),
-    { failure: 'That Game could not be created. Try again.' }
+    { failure: buildGamesCopy('gameNotCreated') }
   )
   const { pending: busy, error } = start
 

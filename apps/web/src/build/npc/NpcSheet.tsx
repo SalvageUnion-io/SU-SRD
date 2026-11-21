@@ -161,12 +161,18 @@ export function NpcSheet({
     confirm?.({
       title: npcCopy('delete', { name: npc.name }),
       body: [
-        `This cannot be undone. ${npc.name} will be permanently removed${crewing ? `, and ${slotPhrase(crewing.slot)} on ${crewing.crawlerName} goes back to the book's crew line` : ''}.`,
+        crewing
+          ? npcCopy('deleteBodyCrewing', {
+              name: npc.name,
+              slot: slotPhrase(crewing.slot),
+              crawler: crewing.crawlerName,
+            })
+          : npcCopy('deleteBody', { name: npc.name }),
       ],
       confirmLabel: npcCopy('delete2'),
       pendingLabel: npcCopy('deleting'),
       tone: 'danger',
-      failure: `${npc.name} could not be deleted. Try again.`,
+      failure: npcCopy('notDeleted', { name: npc.name }),
       onConfirm: async () => {
         await useUnits.getState().delete('npc', npc.id)
         onDeleted?.()
@@ -312,11 +318,11 @@ export function NpcSheet({
                         {traits.length > 0 && <Tags tags={traits} linkable />}
                         {crewing && (
                           <p style={NOTE}>
-                            Crews {slotPhrase(crewing.slot)} on{' '}
+                            {npcCopy('crewsSlotOn', { slot: slotPhrase(crewing.slot) })}{' '}
                             <InlineRef href={`/crawlers/${crewing.crawlerId}`}>
                               {crewing.crawlerName}
                             </InlineRef>
-                            . Whoever runs that crawler assigns and unassigns its crew.
+                            {npcCopy('whoeverRunsThatCrawler')}
                           </p>
                         )}
                       </div>

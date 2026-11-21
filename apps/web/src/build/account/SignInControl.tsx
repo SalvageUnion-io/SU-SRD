@@ -38,7 +38,7 @@ type SignInControlProps = {
 export function SignInControl({
   inBar,
   redirectTo,
-  label = 'Sign in with Discord',
+  label = buildAccountCopy('signInWithDiscord'),
   size = 'compact',
   className,
 }: SignInControlProps) {

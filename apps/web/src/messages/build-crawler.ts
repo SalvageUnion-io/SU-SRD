@@ -68,4 +68,22 @@ export const crawlerCopy = messages({
   lead: 'Lead',
   hp: 'HP',
   fullBaseSetAllIntact: 'The full base set · all Intact',
+  everyPilotGains: 'Every Pilot gains',
+  augmentOnlyApplyItYourself:
+    '(Augment ability tree only). Apply it on each Pilot’s sheet yourself.',
+  typeNotChanged: 'The crawler type could not be changed. Try again.',
+  changedCrawlerTypeTo: 'Changed crawler type to {name}.',
+  newType: 'new type',
+  changeTo: 'Change to',
+  changeToResets:
+    "? This resets the crawler's special NPC to the new type's default (its name, description and HP are cleared) and drops the old type's Keepsake/Motto. Your bays and their crew are kept.",
+  typeChangedMountsOne:
+    'Type changed — this type mounts {slots} Weapons System; removed {removed}.',
+  typeChangedMountsMany:
+    'Type changed — this type mounts {slots} Weapons Systems; removed {removed}.',
+  youHaveSavedSoFar: '(You have {pilots} and {mechs} saved so far.)',
+  pilotCountOne: '{count} Pilot',
+  pilotCountMany: '{count} Pilots',
+  mechCountOne: '{count} Mech',
+  mechCountMany: '{count} Mechs',
 })

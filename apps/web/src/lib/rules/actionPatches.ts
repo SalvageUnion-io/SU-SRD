@@ -41,6 +41,7 @@ import {
   resolveGauge,
   resolvePoolStart,
 } from 'salvageunion-reference/rules'
+import { libRulesCopy } from '../../messages/lib-rules'
 import type { PlayAction, PlayActionCurrency } from './actionList'
 import type { MechItemEconomy } from './mechItems'
 import { actionEconomy } from './mechItems'
@@ -218,7 +219,7 @@ export function describeHeatCheck(
   table: OverloadTable = 'reactor'
 ): string {
   const r = effect.result
-  const head = `Heat Check ${r.heatCheckRoll} vs Heat ${r.heatAtCheck}`
+  const head = libRulesCopy('heatCheckVsHeat', { roll: r.heatCheckRoll, heat: r.heatAtCheck })
   return `${head} — ${describeOverloadOutcome(r, table)}`
 }
 

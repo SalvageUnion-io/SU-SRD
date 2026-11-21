@@ -68,13 +68,11 @@ import { ReferenceAdder } from './NpcReferenceAdder'
 import { CAPS, CAPS_LABEL, COLUMN, HINT, LIST, NOTE, PENCIL, ROW } from './npcStyles.model'
 
 const STEP_INTRO: Record<NpcStepId, string> = {
-  template:
-    'Start from anything in the reference’s denizens (an NPC, a Squad, a Creature, a Vehicle, a Drone, a Meld, a Bio-Titan): it fills the stats, actions and traits, and you change what you like. Or start blank.',
-  stats: 'Hit Points, whether they are HP or SP, and what the NPC is worth as bio-salvage.',
-  actions:
-    'Actions and traits come from the reference, so the rules text is always the book’s. You choose which ones this NPC carries.',
-  identity: 'Who they are. Only the name is required.',
-  review: 'Check the card, then save the NPC to your Mediator’s Kit.',
+  template: npcCopy('introTemplate'),
+  stats: npcCopy('introStats'),
+  actions: npcCopy('introActions'),
+  identity: npcCopy('introIdentity'),
+  review: npcCopy('introReview'),
 }
 
 /** The step beside its live preview, where there is room for both; stacked where not. */
@@ -251,10 +249,7 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
             </p>
             {preview}
             <p style={NOTE}>
-              <strong>{npcCopy('yoursNotTheBooks')}</strong> A designed NPC keeps its
-              template&rsquo;s link to the reference, but wears the user-made frame and your name.
-              It is kept in your Mediator&rsquo;s Kit, and can go into a Game or a crawler&rsquo;s
-              crew.
+              <strong>{npcCopy('yoursNotTheBooks')}</strong> {npcCopy('aDesignedNpcKeeps')}
             </p>
           </section>
         </Grid>
@@ -277,7 +272,9 @@ export function AnyNpcDesigner({ madeBy, onCreated, onCancel, startFrom }: AnyNp
         title={
           pendingStart === 'blank'
             ? npcCopy('startBlank')
-            : `Start again from ${pendingStart?.entity.name ?? 'this template'}?`
+            : npcCopy('startAgainFrom', {
+                name: pendingStart?.entity.name ?? npcCopy('thisTemplate'),
+              })
         }
         body={
           pendingStart === 'blank'

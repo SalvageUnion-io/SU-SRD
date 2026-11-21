@@ -183,7 +183,7 @@ export function useWizardFlow<
       })
       if (!validation.success) {
         const messages = (validation.error?.issues ?? []).map((e) => e.message).join('; ')
-        setInvalid(`Validation error: ${messages}`)
+        setInvalid(buildWizardCopy('validationError', { messages }))
         return null
       }
 

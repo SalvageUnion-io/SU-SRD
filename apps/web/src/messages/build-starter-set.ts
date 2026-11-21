@@ -67,4 +67,9 @@ export const buildStarterSetCopy = messages({
   theBookBody:
     '{adventure} is the Starter Set’s campaign: maps, NPCs, monsters and a Mediator’s advice for this crew.',
   readAboutTheBook: 'Read about the book',
+  staysAsPublished:
+    "The {roster}'s {name} stays as {publisher} published it. Don't want the copy later? Delete it like any other build.",
+  notCopied: '{name} could not be copied. Try again.',
+  thePreGeneratedCrewOwnedBy:
+    'The pre-generated crew of {adventure}, owned by {publisher}. Read-only reference: open any sheet to read it.',
 })

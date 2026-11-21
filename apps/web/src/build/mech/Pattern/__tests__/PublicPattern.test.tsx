@@ -117,7 +117,7 @@ describe('a shared pattern reads like the book and says a player made it', () =>
       'Rig first, rivet later.'
     )
     expect(usePageCredit.getState().credit).toBe('Homebrew // Made by alxjrvs')
-    expect(screen.getByText('3 mechs built from it')).toBeTruthy()
+    expect(screen.getByText('3 Mechs built from it')).toBeTruthy()
   })
 
   test('the foot forgets the credit once the page is gone', () => {

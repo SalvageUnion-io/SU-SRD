@@ -84,7 +84,7 @@ const QR_SIDE = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
 const QR_NOTE = { ...MUTED_CAPTION, margin: 0 } satisfies CSSProperties
 
 /** What a defect says; a refusal says the server's own words. */
-const SHARE_FAILURE = { failure: 'That could not be saved. Try again.' }
+const SHARE_FAILURE = { failure: buildSharingCopy('shareNotSaved') }
 
 export function ShareSettings(props: ShareSettingsProps) {
   return props.kind === 'pattern' ? (
@@ -267,7 +267,7 @@ function ShareLink({
       setError(null)
       flash()
     } catch {
-      setError('Could not copy. Select the link and copy it manually.')
+      setError(buildSharingCopy('couldNotCopy'))
     }
   }
 

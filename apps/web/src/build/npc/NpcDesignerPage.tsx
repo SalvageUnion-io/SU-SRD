@@ -66,10 +66,10 @@ export function NpcDesignerPage({
 
   const crew = view === 'crew'
   const eyebrow = crew
-    ? [crawler?.name ?? 'Union Crawler', typeName ? `${typeName} type` : null, 'Crew']
+    ? [crawler?.name ?? npcCopy('unionCrawler'), typeName ? `${typeName} type` : null, 'Crew']
         .filter(Boolean)
         .join(' · ')
-    : 'Denizens · New NPC'
+    : npcCopy('denizensNewNpc')
 
   return (
     <main style={PAGE}>

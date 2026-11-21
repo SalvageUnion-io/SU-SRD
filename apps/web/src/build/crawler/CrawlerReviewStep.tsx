@@ -125,8 +125,8 @@ export function CrawlerReviewStep({
         {isAugmented && (
           <Callout tone="crawler">
             <span style={REMINDER}>
-              Every Pilot gains <strong>{crawlerCopy('n1TrainingPoint')}</strong> (Augment ability
-              tree only). Apply it on each Pilot&rsquo;s sheet yourself.
+              {crawlerCopy('everyPilotGains')} <strong>{crawlerCopy('n1TrainingPoint')}</strong>{' '}
+              {crawlerCopy('augmentOnlyApplyItYourself')}
             </span>
           </Callout>
         )}

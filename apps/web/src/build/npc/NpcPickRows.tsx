@@ -43,7 +43,7 @@ function PickRow({
   const carry = (
     <Toggle size="mini" pressed={carried} aria-label={label} onClick={() => onToggle(!carried)}>
       {carried && <Check size={tokens.iconSize.mini} aria-hidden="true" />}
-      Carry
+      {npcCopy('carryToggle')}
     </Toggle>
   )
   return (

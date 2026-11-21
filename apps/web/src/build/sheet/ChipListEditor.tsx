@@ -83,7 +83,7 @@ export function ChipListEditor({
           conditions={[...items]}
           tone={tone}
           onRemove={readOnly ? undefined : (_item, index) => void removeAt(index)}
-          removeLabel={(item) => `Remove ${subject} ${item}`}
+          removeLabel={(item) => buildSheetCopy('removeSubjectItem', { subject, item })}
           onAdd={readOnly || draft.adding ? undefined : draft.startAdd}
           addLabel={buildSheetCopy('add', { subject })}
         />

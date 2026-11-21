@@ -160,7 +160,7 @@ export function usePilotSheetActions({
   const patchPilot: SheetPatch = (input) => {
     const fields = typeof input === 'function' ? input(freshPilot()) : input
     if ('classRef' in fields) {
-      saveBuildEdit(fields, 'Change class')
+      saveBuildEdit(fields, buildSheetCopy('changeClassEdit'))
       return
     }
     write(fields)

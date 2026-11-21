@@ -116,14 +116,14 @@ function SavePatternBody({
       usePatterns
         .getState()
         .create(patternFromMech(source, { name: patternName, notes: description })),
-    { failure: 'The pattern could not be saved. Try again.' }
+    { failure: mechCopy('patternNotSaved') }
   )
   const chassis = patternChassis(source)
   const error = invalid ?? save.error
 
   async function confirm() {
     if (!name.trim()) {
-      setInvalid('A pattern needs a name.')
+      setInvalid(mechCopy('patternNeedsName'))
       return
     }
     setInvalid(null)

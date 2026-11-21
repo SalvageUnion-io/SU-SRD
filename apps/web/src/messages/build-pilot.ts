@@ -47,4 +47,9 @@ export const pilotCopy = messages({
   reviewYourPilot: 'Review your Pilot',
   noAbilityChosen: 'No Ability chosen.',
   noEquipmentChosen: 'No Equipment chosen.',
+  reachedFrom:
+    'A {title} is reached from {origins}. This Pilot is neither, so the sheet needs to know which —',
+  youCanLeaveItUnanswered: 'You can leave it unanswered; nothing will be sealed.',
+  recordedAs: 'Recorded as',
+  derivedFromThisPilotsTrees: "— derived from this Pilot's trees, so nothing extra is stored.",
 })

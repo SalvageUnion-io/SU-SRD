@@ -51,15 +51,15 @@ const KIND_LABEL: Record<SheetKind, string> = {
 const GUIDED_COPY: Record<SheetKind, { body: string; cite: string }> = {
   pilot: {
     body: buildWizardCopy('stepThroughThePilotBay'),
-    cite: 'The Pilot Bay begins on p. 18.',
+    cite: buildWizardCopy('citePilotBay'),
   },
   mech: {
     body: buildWizardCopy('stepThroughTheMechBay'),
-    cite: 'The Mech Bay begins on p. 94.',
+    cite: buildWizardCopy('citeMechBay'),
   },
   crawler: {
     body: buildWizardCopy('stepThroughCrawlerCreationOne'),
-    cite: 'Union Crawlers begin on p. 212.',
+    cite: buildWizardCopy('citeUnionCrawlers'),
   },
 }
 

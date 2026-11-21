@@ -71,8 +71,10 @@ export function StarterSetRoster({ headingLevel = 'h2', copy }: StarterSetRoster
             <Slab as="h2" label={buildStarterSetCopy('starterSet2')} flush />
           )}
           <Text variant="body">
-            The pre-generated crew of {STARTER_SET_ADVENTURE}, owned by {STARTER_SET_PUBLISHER}.
-            Read-only reference: open any sheet to read it.{' '}
+            {buildStarterSetCopy('thePreGeneratedCrewOwnedBy', {
+              adventure: STARTER_SET_ADVENTURE,
+              publisher: STARTER_SET_PUBLISHER,
+            })}{' '}
             {status === 'live'
               ? buildStarterSetCopy('copyOneIntoYourTraining')
               : buildStarterSetCopy('signInToCopyOne')}
