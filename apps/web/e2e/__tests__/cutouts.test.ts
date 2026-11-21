@@ -62,6 +62,25 @@ describe('the cut-out reader', () => {
     expect(await details()).toEqual([`foot: band "Training" 6.0px off its strip's foot`])
   })
 
+  test("a band's cut-out wears its body's ground: paper over paper passes, paper over the page fails", async () => {
+    document.body.innerHTML = `
+      <section style="background-color: rgb(239, 236, 230)">
+        <div class="su-rule-head" data-box="0,0,600,34">
+          <h2 class="su-rule-head__label" style="background-color: rgb(251, 250, 247)" data-box="0,10,80,24">Crew</h2>
+        </div>
+        <div style="background-color: rgb(251, 250, 247)" data-box="0,34,600,100">rows</div>
+      </section>
+      <section style="background-color: rgb(239, 236, 230)">
+        <div class="su-rule-head" data-box="0,200,600,34">
+          <h2 class="su-rule-head__label" style="background-color: rgb(251, 250, 247)" data-box="0,210,80,24">Starter Set</h2>
+        </div>
+        <p data-box="0,246,600,20">On the page's ground.</p>
+      </section>`
+    expect(await details()).toEqual([
+      'ground: band "Starter Set" rgb(251, 250, 247) over a rgb(239, 236, 230) body',
+    ])
+  })
+
   test("the home: the name hangs from the show's top, the slide in view stands on its foot", async () => {
     document.body.innerHTML = `
       <section class="su-front__show" data-box="0,56,1440,600">

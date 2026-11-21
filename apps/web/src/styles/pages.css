@@ -837,6 +837,12 @@
   gap: var(--space-12);
 }
 
+/* The tiers as rows stand on paper, so the Training strip's cut-out is
+   paper (R45: a cut-out wears the ground of what it heads). */
+.su-class-brief:has(> .su-class-brief__cards[data-rows]) > .su-rule-head {
+  --su-head-cut: var(--color-paper);
+}
+
 /* A tier card: a `TitledBox`, its cut-out head in the tier's book hue (§3.8)
    opening into the body, no rule between them. */
 .su-class-brief__card {
