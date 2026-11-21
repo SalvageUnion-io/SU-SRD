@@ -333,6 +333,8 @@ export const buildSheetCopy = messages({
   damage: 'Damage',
   crewLeadColumn: 'Crew lead',
   inventorySlotsFilled: 'Inventory: {used} of {cap} slots filled',
+  oneSlot: '1 slot',
+  slotCount: '{count} slots',
   // The sheet dashboard's words.
   whatHas: 'What {name} has',
   stored: 'Stored',

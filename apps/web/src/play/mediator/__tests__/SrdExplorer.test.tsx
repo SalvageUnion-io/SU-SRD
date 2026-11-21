@@ -66,12 +66,12 @@ function close(container: HTMLElement): HTMLButtonElement {
 const chapters = () => buildChapters()
 
 /**
- * The listing the drill-in tests open: Crawlers, 5 entries. What these tests
+ * The listing the drill-in tests open: Crawler Types, 5 entries. What these tests
  * pin is the explorer's wiring (tile → searcher → card → back), which a short
  * pool exercises as fully as a long one; the searcher renders every pool Mini,
  * so a long listing would cost render time for no extra coverage.
  */
-const LISTING = 'Crawlers'
+const LISTING = 'Crawler Types'
 
 describe('SrdExplorer', () => {
   test('renders a search box + every Contents chapter and row', () => {

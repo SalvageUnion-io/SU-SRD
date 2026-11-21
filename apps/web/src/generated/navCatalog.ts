@@ -54,7 +54,7 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "tone": "crawler",
     "rows": [
       {
-        "label": "Crawlers",
+        "label": "Crawler Types",
         "href": "/crawlers/"
       },
       {
