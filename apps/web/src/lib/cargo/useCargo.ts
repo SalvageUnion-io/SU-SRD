@@ -139,7 +139,7 @@ export function useCargo({
     if (!mech)
       return {
         ok: false,
-        reason: 'No mech is assigned — nothing to transfer to or from.',
+        reason: 'No Mech is assigned — nothing to transfer to or from.',
       }
     if (!crawler) {
       return {
@@ -176,7 +176,7 @@ export function useCargo({
   async function dispatchMechLocal(action: CargoTransferAction): Promise<CargoTransferResult> {
     if (readOnly) return { ok: false, reason: 'This sheet is read-only.' }
     if (!mech) {
-      return { ok: false, reason: 'No mech is assigned — nothing to store cargo in.' }
+      return { ok: false, reason: 'No Mech is assigned — nothing to store cargo in.' }
     }
 
     // Reduce against a FRESH read, not the render-time `state` snapshot. These

@@ -159,8 +159,8 @@ export type GuideExits = {
 
 /** The creation guides, by `guideType`, in the order a new crew walks them. */
 const CREATION_GUIDES = [
-  { guideType: 'character-creation', build: { path: '/pilots/new', label: 'Build a pilot' } },
-  { guideType: 'mech-creation', build: { path: '/mechs/new', label: 'Build a mech' } },
+  { guideType: 'character-creation', build: { path: '/pilots/new', label: 'Build a Pilot' } },
+  { guideType: 'mech-creation', build: { path: '/mechs/new', label: 'Build a Mech' } },
   { guideType: 'crawler-creation', build: { path: '/crawlers/new', label: 'Build a crawler' } },
 ] as const
 

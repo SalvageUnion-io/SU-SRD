@@ -22,7 +22,7 @@ import type {
 } from './entitySearcherTypes'
 
 /** The Tech level row's label: the one row the toolbar may set inline. */
-export const TECH_LEVEL_ROW = 'Tech level'
+export const TECH_LEVEL_ROW = 'Tech Level'
 
 function tlLabel(tl: TechLevelLike): string {
   return typeof tl === 'number' ? `TL${tl}` : tl === 'B' ? 'Bio' : 'Nanite'

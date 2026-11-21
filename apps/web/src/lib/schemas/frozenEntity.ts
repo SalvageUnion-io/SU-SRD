@@ -47,14 +47,14 @@ export function parseFrozenEntity(kind: unknown, entity: unknown): FrozenParse {
     const parsed = parseUnit('pilot', entity)
     return parsed.success
       ? { ok: true, kind: 'pilot', entity: parsed.data }
-      : { ok: false, reason: `Invalid pilot data: ${parsed.error.message}` }
+      : { ok: false, reason: `Invalid Pilot data: ${parsed.error.message}` }
   }
 
   if (kind === 'mech') {
     const parsed = parseUnit('mech', entity)
     return parsed.success
       ? { ok: true, kind: 'mech', entity: parsed.data }
-      : { ok: false, reason: `Invalid mech data: ${parsed.error.message}` }
+      : { ok: false, reason: `Invalid Mech data: ${parsed.error.message}` }
   }
 
   if (kind === 'crawler') {

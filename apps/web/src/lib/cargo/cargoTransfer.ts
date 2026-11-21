@@ -190,7 +190,7 @@ function addCarrierLot(state: CargoBoundaryState, lot: CargoLot): CargoTransferR
 /** Remove (discard) a lot from the mech hold entirely — no crawler required. */
 function removeCarrierLot(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   if (!state.carrierLots.some((l) => l.id === lotId)) {
-    return { ok: false, reason: `Cargo lot "${lotId}" is not in the mech hold.` }
+    return { ok: false, reason: `Cargo lot "${lotId}" is not in the Mech hold.` }
   }
   return {
     ok: true,
@@ -228,7 +228,7 @@ function stow(state: CargoBoundaryState, lotId: string): CargoTransferResult {
   if (!lot)
     return {
       ok: false,
-      reason: `Cargo lot "${lotId}" is not in the mech hold.`,
+      reason: `Cargo lot "${lotId}" is not in the Mech hold.`,
     }
 
   const carrierLots = state.carrierLots.filter((l) => l.id !== lotId)
@@ -267,7 +267,7 @@ function load(
     }
 
   const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
-  if (free <= 0) return { ok: false, reason: 'The mech hold has no free cargo slots.' }
+  if (free <= 0) return { ok: false, reason: 'The Mech hold has no free cargo slots.' }
 
   const fits = loadableQty(lot, free)
 
@@ -325,7 +325,7 @@ function load(
 
 function withdrawScrap(state: CargoBoundaryState, tl: number, qty: number): CargoTransferResult {
   if (scrapTlKey(tl) === null) {
-    return { ok: false, reason: `"${tl}" is not a scrap tech level (1–6).` }
+    return { ok: false, reason: `"${tl}" is not a scrap Tech Level (1–6).` }
   }
   if (qty <= 0) return { ok: false, reason: 'Nothing to withdraw.' }
 
@@ -335,7 +335,7 @@ function withdrawScrap(state: CargoBoundaryState, tl: number, qty: number): Carg
   }
 
   const { free } = carrierCargoUsage(state.carrierLots, state.carrierCargoCap)
-  if (free <= 0) return { ok: false, reason: 'The mech hold has no free cargo slots.' }
+  if (free <= 0) return { ok: false, reason: 'The Mech hold has no free cargo slots.' }
 
   // 1 slot per scrap — partial-fill to whatever both the bucket and cap allow.
   const moveQty = Math.min(qty, available, free)

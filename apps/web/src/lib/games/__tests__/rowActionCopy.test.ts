@@ -26,9 +26,9 @@ describe('rowActionCopy', () => {
     const leave = (kind: 'pilot' | 'mech' | 'crawler') =>
       said(ROW_ACTION_COPY.leaveGame({ name: 'X', kind, from: 'Tenacity', to: { kind: 'shelf' } }))
     expect(leave('pilot')).toContain('Their crawler assignment in Tenacity is cleared')
-    expect(leave('pilot')).toContain('the mech they fly there')
+    expect(leave('pilot')).toContain('the Mech they fly there')
     expect(leave('mech')).toContain('Its crawler assignment in Tenacity is cleared')
-    expect(leave('mech')).toContain('the pilot flying it there')
+    expect(leave('mech')).toContain('the Pilot flying it there')
     expect(leave('crawler')).toContain('Everyone in Tenacity assigned to it is unassigned')
     // Game to Game clears what it leaves behind, too.
     expect(

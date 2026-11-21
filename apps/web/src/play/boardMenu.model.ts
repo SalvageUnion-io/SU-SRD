@@ -147,7 +147,7 @@ function stateOf(args: {
   if (args.destroyed) return { state: 'destroyed', note: 'Destroyed' }
   if (args.aboard !== null) return { state: 'aboard', note: `${args.aboard} is aboard` }
   if (args.owner === 'spare') return { state: 'spare', note: 'Unassigned spare' }
-  if (args.owner === 'others') return { state: 'others', note: 'Another player’s mech' }
+  if (args.owner === 'others') return { state: 'others', note: 'Another player’s Mech' }
   return { state: 'yours', note: null }
 }
 
@@ -165,12 +165,12 @@ export function boardMenu(args: {
   const pilotName = new Map<string, string>()
   for (const p of listing?.pilots ?? []) {
     const id = linkId(p)
-    if (id !== null) pilotName.set(id, pilotLabelOf(bodyOf(p.body)) ?? 'Another pilot')
+    if (id !== null) pilotName.set(id, pilotLabelOf(bodyOf(p.body)) ?? 'Another Pilot')
   }
   const aboard = new Map<string, string>()
   for (const seat of sources.seats) {
     if (seat.pilotId === pilotId || seat.mount.kind !== 'boarded') continue
-    aboard.set(seat.mount.mechId, pilotName.get(seat.pilotId) ?? 'Another pilot')
+    aboard.set(seat.mount.mechId, pilotName.get(seat.pilotId) ?? 'Another Pilot')
   }
 
   // The assigned mech as the local store has it, which holds only the viewer's

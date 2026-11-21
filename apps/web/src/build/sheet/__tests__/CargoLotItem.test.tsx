@@ -198,7 +198,7 @@ describe("the crawler's Storage Bay", () => {
     const tile = await renderLot({ lot: scrap, side: 'crawler', linked: false })
     const load = tile.getByRole('button', { name: 'Load T2 Scrap' }) as HTMLButtonElement
     expect(load.disabled).toBe(true)
-    expect(load.title).toBe('No mech assigned — nothing to load onto.')
+    expect(load.title).toBe('No Mech assigned — nothing to load onto.')
   })
 
   test("a crawler the viewer may not write closes Load with the lock's reason", async () => {

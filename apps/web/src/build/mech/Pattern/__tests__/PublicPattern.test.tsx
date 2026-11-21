@@ -199,7 +199,7 @@ describe('signed in', () => {
     renderAs(CONNECTED)
 
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a mech from / }))
+      fireEvent.click(screen.getByRole('button', { name: /^Build With This: a Mech from / }))
     })
     await settle(() => serverMocks.navigations.length > 0)
 

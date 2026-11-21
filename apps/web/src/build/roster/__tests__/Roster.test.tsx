@@ -168,7 +168,7 @@ describe('Roster — signed out, it is the front door', () => {
     // The intro band is gone: signing in is the header's.
     expect(screen.queryByRole('region', { name: 'Welcome' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Sign in to build' })).toBeNull()
-    expect(screen.queryByRole('link', { name: /Create Pilot|New pilot/ })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Create Pilot|New Pilot/ })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Backups: import and export' })).toBeNull()
     expect(screen.queryByRole('button', { name: '+ New Game' })).toBeNull()
   })
@@ -264,16 +264,16 @@ describe('Training Bay — one shelf per kind', () => {
     await renderShelves()
 
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
-    expect(hrefOf('+ New pilot')).toBe('/pilots/new')
-    expect(hrefOf('+ New mech')).toBe('/mechs/new')
+    expect(hrefOf('+ New Pilot')).toBe('/pilots/new')
+    expect(hrefOf('+ New Mech')).toBe('/mechs/new')
     expect(hrefOf('+ New crawler')).toBe('/crawlers/new')
-    expect(screen.getByRole('button', { name: '+ From a mech' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '+ From a Mech' })).toBeTruthy()
   })
 
   test('an empty shelf says so', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    expect(within(pilots).getByText('No pilots yet.')).toBeTruthy()
+    expect(within(pilots).getByText('No Pilots yet.')).toBeTruthy()
   })
 
   test('a signed-in bay with nothing in it keeps Start here; one unit and it is gone', async () => {

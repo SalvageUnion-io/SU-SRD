@@ -197,7 +197,7 @@ const STATS: StatConfig[] = [
     key: 'upgradeCost',
     getter: getUpgradeCost,
     group: 'capacity',
-    hint: 'Upgrade Cost is the Upgrade Pool total that unlocks the next Tech Level. The pool fills from the Upkeep you pay (and any extra Scrap you add during Downtime); the upgrade itself then takes one week. The maximum tech level has no upgrade cost, so it shows none.',
+    hint: 'Upgrade Cost is the Upgrade Pool total that unlocks the next Tech Level. The pool fills from the Upkeep you pay (and any extra Scrap you add during Downtime); the upgrade itself then takes one week. The maximum Tech Level has no upgrade cost, so it shows none.',
   },
 ]
 

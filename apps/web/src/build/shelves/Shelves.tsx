@@ -345,7 +345,7 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
 
   const fromAMech: HeaderMenuItem[] =
     mechs.length === 0
-      ? [{ id: 'none', label: 'Build a mech first' }]
+      ? [{ id: 'none', label: 'Build a Mech first' }]
       : mechs.map((m) => ({
           id: m.id,
           label: m.name,
@@ -453,8 +453,8 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                 title="Pilots"
                 tone="pilot"
                 columns={PILOT_COLUMNS}
-                action={newLink('/pilots/new', '+ New pilot')}
-                empty="No pilots yet."
+                action={newLink('/pilots/new', '+ New Pilot')}
+                empty="No Pilots yet."
                 rows={pilots.map((p) => {
                   const r = pilotReadings.get(p.id)
                   const flies = crewLinked({ kind: 'pilot', id: p.id, softLinks, names: mechNames })
@@ -495,9 +495,9 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
               <MechShelf
                 mechs={spareMechs}
                 readings={mechReadings}
-                action={newLink('/mechs/new', '+ New mech')}
+                action={newLink('/mechs/new', '+ New Mech')}
                 empty={
-                  mechs.length === 0 ? 'No mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
+                  mechs.length === 0 ? 'No Mechs yet.' : buildShelvesCopy('everyMechHasItsPilot')
                 }
                 line={(m) => ({
                   under: under(linkChip(sharedByLink, m.id)),
@@ -545,14 +545,14 @@ function ShelvesPage({ games, sharing, sharedByLink }: ServerFacts) {
                     <HeaderMenu
                       variant="button"
                       size="compact"
-                      trigger="+ From a mech"
-                      label="+ From a mech"
+                      trigger="+ From a Mech"
+                      label="+ From a Mech"
                       chevron={false}
                       sections={[fromAMech]}
                     />
                   ) : undefined
                 }
-                empty="No patterns yet. Save one from a mech."
+                empty="No patterns yet. Save one from a Mech."
                 rows={patterns.map((p) => ({
                   id: p.id,
                   name: p.name,

@@ -110,7 +110,7 @@ describe('a live pilot', () => {
     )
     expect(screen.getByText('TP')).toBeTruthy()
     expect(screen.getByText('2')).toBeTruthy()
-    expect(screen.getByText('Minor injury: cracked rib')).toBeTruthy()
+    expect(screen.getByText('Minor Injury: cracked rib')).toBeTruthy()
     expect(screen.queryByText('No injuries')).toBeNull()
   })
 })

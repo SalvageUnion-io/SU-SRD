@@ -53,7 +53,7 @@ export const compositionsCopy = messages({
   pickAClassAndYour:
     'Pick a class and your first ability, then add a keepsake, motto and background.',
   createAMech: 'Create a Mech',
-  chooseAChassisAndPattern: 'Choose a chassis and pattern, then fill its system and module slots.',
+  chooseAChassisAndPattern: 'Choose a chassis and pattern, then fill its System and Module slots.',
   joinOrMakeACrawler: 'Join or make a Crawler',
   yourCrewSharesOneUnion:
     'Your crew shares one Union Crawler. Make it, or open the invite link a crewmate sends you to join their Game.',

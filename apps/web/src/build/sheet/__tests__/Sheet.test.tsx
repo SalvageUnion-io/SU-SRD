@@ -70,7 +70,7 @@ describe('Sheet — one unit, no links', () => {
 
   test('a mech with no pilot offers its Assign control (C11), not a role stamp', () => {
     renderSheet('mech')
-    expect(screen.getByRole('button', { name: 'Assign pilot to mech' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Assign Pilot to Mech' })).toBeTruthy()
     expect(screen.queryByText(/Yara Voss/)).toBeNull()
   })
 
@@ -119,7 +119,7 @@ describe('Sheet — wired (mech WITH pilot link)', () => {
     expect(screen.getAllByText(/Yara Voss/).length).toBeGreaterThan(0)
     // Mech name — in the hero chip and condensed strip
     expect(screen.getAllByText('Iron Fist').length).toBeGreaterThan(0)
-    expect(screen.queryByRole('button', { name: 'Assign pilot to mech' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Assign Pilot to Mech' })).toBeNull()
   })
 })
 
@@ -140,7 +140,7 @@ describe('Sheet — mech RailEmpty on the pilot sheet', () => {
     ],
   ] as const)('with %s, Assign mech shows: %p', (_case, others, links, shown) => {
     renderSheet('pilot', { others: [...others], links: [...links] })
-    const assign = screen.queryByRole('button', { name: 'Assign mech to pilot' })
+    const assign = screen.queryByRole('button', { name: 'Assign Mech to Pilot' })
     expect(assign !== null).toBe(shown)
   })
 })

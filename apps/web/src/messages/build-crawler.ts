@@ -19,7 +19,7 @@ export const crawlerCopy = messages({
   whatTheCrawlerIsIts: 'What the crawler is, its build and history.',
   scrapPool: 'Scrap Pool',
   theGroupsBankedScrapBucketed:
-    'The group’s banked Scrap, bucketed by tech level: add the Tech 1 Scrap each Mech’s review said it banks here.',
+    'The group’s banked Scrap, bucketed by Tech Level: add the Tech 1 Scrap each Mech’s review said it banks here.',
   scrapT: 'Scrap T{value}',
   t: 'T{slice}',
   sp: 'SP',
@@ -36,7 +36,7 @@ export const crawlerCopy = messages({
   noWeaponsMounted: 'No weapons mounted.',
   editWeaponsSystems: 'Edit Weapons Systems',
   armed: 'Armed',
-  noWeaponsSystemsAtThis: "No weapons systems at this crawler's tech level.",
+  noWeaponsSystemsAtThis: "No Weapons Systems at this crawler's Tech Level.",
   weaponsSystems: 'Weapons Systems',
   editWeaponsSystemsTechAnd: 'Edit Weapons Systems · Tech {value} and below',
   changeCrawlerType: 'Change Crawler Type',

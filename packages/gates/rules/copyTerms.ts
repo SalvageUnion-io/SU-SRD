@@ -35,6 +35,8 @@
  *     `BANNED`, plus any other casing of the app's area names in
  *     `game-domain/src/product.ts` (read from that file, never retyped).
  *
+ * A file whose lower-case terms are right as written is an `EXEMPTIONS` entry (`copyExemptions.ts`).
+ *
  * Both are ratchets against `tools/baselines/rule-sets.json`: today's copy
  * is the baseline, a new finding fails, and a fixed one must be locked in.
  */
@@ -50,6 +52,7 @@ export { termPattern }
 import { listFiles } from '../lib/ruleEngine'
 import { assertScanFloor } from '../lib/scanFloor'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
+import { notExempt } from './copyExemptions'
 import { loneSignFindings } from './loneSign'
 import { CATALOGUE_DIR as CATALOGUE } from './uiStrings'
 
@@ -585,9 +588,11 @@ export const copyTerms: RuleSet = {
   scan(root) {
     const terms = capitalisedTerms(weighTerms(root))
     const bans = [...BANNED, ...productBans(productNames(root))]
-    return { ...lintCopy(collectCopy(root), terms, bans), glyph: collectGlyphs(root) }
+    const found = lintCopy(collectCopy(root), terms, bans)
+    const lowercase = notExempt(found['lowercase-term'] ?? [])
+    return { ...found, 'lowercase-term': lowercase, glyph: collectGlyphs(root) }
   },
-  exemptionsLive: 'packages/gates/rules/copyTerms.ts',
+  exemptionsLive: 'packages/gates/rules/copyExemptions.ts',
   summary(root) {
     const terms = capitalisedTerms(weighTerms(root))
     return `${collectCopy(root).length} copy strings in ${copyFiles(root).length} files, ${terms.length} terms from keywords.json`

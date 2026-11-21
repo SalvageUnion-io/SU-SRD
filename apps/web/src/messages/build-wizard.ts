@@ -4,7 +4,7 @@ import { messages } from './define'
 
 export const buildWizardCopy = messages({
   describeYourPilotsBackgroundRoll:
-    "Describe your pilot's background. Roll for a random prompt or write your own story.",
+    "Describe your Pilot's background. Roll for a random prompt or write your own story.",
   background: 'Background',
   rollBackground: 'Roll background',
   whereDidYouComeFrom: 'Where did you come from? What drives you?',
@@ -27,8 +27,8 @@ export const buildWizardCopy = messages({
   createBlank: 'Create blank {lowerCase}',
   creating: 'Creating…',
   create: 'Create {label}',
-  yourPilotsRealName: "Your pilot's real name",
-  yourPilotCallsign: 'Your pilot callsign',
+  yourPilotsRealName: "Your Pilot's real name",
+  yourPilotCallsign: 'Your Pilot callsign',
   pilotClass: 'Pilot Class',
   pickAClassToReveal: 'Pick a class to reveal its first-Ability choices.',
   firstAbility: 'First ability',
@@ -49,7 +49,7 @@ export const buildWizardCopy = messages({
   stepThroughThePilotBay:
     'Step through the Pilot Bay rules, one card at a time — class, abilities, equipment, identity.',
   stepThroughTheMechBay:
-    'Step through the Mech Bay rules, one card at a time — chassis, pattern, systems and modules.',
+    'Step through the Mech Bay rules, one card at a time — chassis, pattern, Systems and Modules.',
   stepThroughCrawlerCreationOne:
     'Step through crawler creation, one card at a time — type, armament, crew, identity.',
   newChooseHowToCreate: 'New {lowerCase} — choose how to create',
@@ -77,7 +77,7 @@ export const buildWizardCopy = messages({
   couldNotUndo: 'The assignment could not be undone. Unassign it from the Mech’s sheet.',
   qty: 'Qty',
   noEquipment: 'No Equipment',
-  noTechLevel1Equipment: 'No tech level 1 equipment found.',
+  noTechLevel1Equipment: 'No Tech Level 1 equipment found.',
   roll: 'Roll {lowerCase}',
   signInToSave: 'Sign in to save',
   yourBuildIsKeptAsADraft:
@@ -87,7 +87,7 @@ export const buildWizardCopy = messages({
   theRule: 'The rule',
   theRuleAt: 'The rule, {cite}',
   noSystems: 'No Systems',
-  noWeaponsSystemsAvailable: 'No weapons systems available.',
+  noWeaponsSystemsAvailable: 'No Weapons Systems available.',
   armamentBayFullMounted: 'Armament Bay full · {installedWeaponCount} mounted',
   back: 'Back',
   discardThisDraft: 'Discard this draft?',

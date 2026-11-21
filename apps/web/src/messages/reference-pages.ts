@@ -17,11 +17,11 @@ export const pagesCopy = messages({
   aboutSalvageunionIoAnOpen:
     'About salvageunion.io, an open-source System Reference Document for the Salvage Union TTRPG by Leyline Press.',
   aboutTheSalvageUnionSrd: 'About the Salvage Union SRD',
-  inspiredByThePilotsOf: 'Inspired by the pilots of',
+  inspiredByThePilotsOf: 'Inspired by the Pilots of',
   n812Haven: '#812 Haven',
   of: 'of',
   theEldridgeCoast: 'The Eldridge Coast',
-  andUnionCrawlersEverywhere: 'And union crawlers everywhere',
+  andUnionCrawlersEverywhere: 'And Union Crawlers everywhere',
   weGetByWithA: '"We get by with a little help from our friends"',
   whatIsThis: 'What is this?',
   salvageUnion: 'Salvage Union',
@@ -159,7 +159,7 @@ export const pagesCopy = messages({
   theBotsReplyToSu2: "The bot's reply to /su lookup",
   addToYourDiscordServer: 'Add to your Discord server',
   theSalvageunionIoBotBrings:
-    'The SalvageUnion.io bot brings this reference to your table’s Discord server: roll on every Salvage Union table and look up any game entity — chassis, systems, modules, equipment, keywords, and more — without leaving the conversation. Results link back to the full entry on this site.',
+    'The SalvageUnion.io bot brings this reference to your table’s Discord server: roll on every Salvage Union table and look up any game entity — chassis, Systems, Modules, equipment, keywords, and more — without leaving the conversation. Results link back to the full entry on this site.',
   itAsksForNoServer:
     'It asks for no server permissions — it only ever replies to slash commands. Free and with no configuration; rolling and lookups need no account.',
   commands: 'Commands',

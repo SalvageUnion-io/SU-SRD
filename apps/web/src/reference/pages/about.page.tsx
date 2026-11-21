@@ -353,7 +353,7 @@ function page({ builtAssets }: RouteContext<Record<string, string>, unknown>): P
               the Salvage Union OGL.
             </p>
             <p style={PARAGRAPH}>
-              Its app is the character builder and game manager: build pilots, mechs, and crawlers
+              Its app is the character builder and game manager: build Pilots, Mechs, and crawlers
               in the{' '}
               <InlineRef href={appPath('/')} style={BOLD}>
                 {PRODUCT.build}

@@ -374,8 +374,8 @@ describe('Disconnected', () => {
   test('shows what it holds, and offers nothing that writes', async () => {
     await renderShelves('offline')
     expect(screen.getByText('Nia Vale')).toBeTruthy()
-    expect(screen.queryByRole('link', { name: '+ New pilot' })).toBeNull()
-    expect(screen.queryByRole('button', { name: '+ From a mech' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '+ New Pilot' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '+ From a Mech' })).toBeNull()
 
     const menu = await openMenu('Nia Vale')
     for (const verb of ['Move to a Game…', 'Make a copy', 'Delete…']) {
@@ -426,7 +426,7 @@ describe('Patterns', () => {
   test('+ From a mech lists the mechs to start from', async () => {
     await renderShelves()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ From a Mech' }))
     })
     expect(screen.queryByRole('menuitem', { name: 'Spare Mech' })).toBeNull()
     await act(async () => {
@@ -441,10 +441,10 @@ describe('Patterns', () => {
     await useUnits.getState().forget('mech', 'm-jaw')
     await renderShelves()
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: '+ From a mech' }))
+      fireEvent.click(screen.getByRole('button', { name: '+ From a Mech' }))
     })
     expect(
-      screen.getByRole('menuitem', { name: 'Build a mech first' }).hasAttribute('data-disabled')
+      screen.getByRole('menuitem', { name: 'Build a Mech first' }).hasAttribute('data-disabled')
     ).toBe(true)
   })
 

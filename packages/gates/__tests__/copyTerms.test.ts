@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, test } from 'bun:test'
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { EXEMPTIONS } from '../rules/copyExemptions'
 import {
   BANNED,
   CAPITALISED_SHARE,
@@ -320,5 +321,25 @@ describe('the rule set', () => {
       // product.ts is shipped copy too
       '3 copy strings in 2 files, 1 terms from keywords.json'
     )
+  })
+
+  test('an exempt file keeps its lower-case terms; every exemption names a real file and says why', () => {
+    const [first] = EXEMPTIONS
+    if (!first) throw new Error('no exemption to test')
+    const root = fixture({
+      [`${DATA_DIR}/keywords.json`]: JSON.stringify([{ name: 'mech' }]),
+      [`${DATA_DIR}/chassis.json`]: JSON.stringify([{ text: 'The Mech '.repeat(MIN_USES) }]),
+      [PRODUCT_FILE]: "export const PRODUCT = { build: 'Training Bay', play: 'The Cantina' }",
+      [first.file]: "export const quoted = 'a merc mech pilot'",
+      'apps/web/src/routes/A.tsx': 'export const A = () => <p>Build a mech</p>',
+    })
+    expect(copyTerms.scan(root)['lowercase-term']?.map((f) => f.file)).toEqual([
+      'apps/web/src/routes/A.tsx',
+    ])
+    for (const e of EXEMPTIONS) {
+      expect(existsSync(join(import.meta.dir, '../../..', e.file))).toBe(true)
+      expect(e.rules).toEqual(['lowercase-term'])
+      expect(e.reason.length).toBeGreaterThan(40)
+    }
   })
 })

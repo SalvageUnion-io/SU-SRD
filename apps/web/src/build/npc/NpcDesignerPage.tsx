@@ -66,7 +66,7 @@ export function NpcDesignerPage({
 
   const crew = view === 'crew'
   const eyebrow = crew
-    ? [crawler?.name ?? 'Union crawler', typeName ? `${typeName} type` : null, 'Crew']
+    ? [crawler?.name ?? 'Union Crawler', typeName ? `${typeName} type` : null, 'Crew']
         .filter(Boolean)
         .join(' · ')
     : 'Denizens · New NPC'
