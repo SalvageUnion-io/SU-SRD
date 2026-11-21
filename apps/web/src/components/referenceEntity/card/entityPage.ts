@@ -56,7 +56,7 @@ export type EntityPageMeta = {
   cost?: { value: string; currency: string }
   /**
    * Where it is printed, for the foot's one citation line: the book and page,
-   * then each reprint ("Salvage Union Starter Set (PC)", p.26).
+   * then each reprint ("Starter Set (PC)", p.26).
    */
   printings: { book: string; page?: number; source?: string }[]
 }

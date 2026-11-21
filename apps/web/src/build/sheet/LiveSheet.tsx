@@ -491,10 +491,11 @@ export function LiveSheet({
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
                     {fromPattern &&
-                      (fromPattern.href ? (
+                      (fromPattern.href || fromPattern.page ? (
                         <Tag
                           tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
                             href: fromPattern.href,
+                            page: fromPattern.page,
                           })}
                           linkable
                           wrap

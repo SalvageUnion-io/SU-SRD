@@ -6,9 +6,8 @@ Code: `apps/web/src/components/entity/`.
 ## Pipeline
 
 1. **Entity** — a `salvageunion-reference` record plus an optional instance.
-2. **Model** — `toEntityModel(entity, instance?)` (`salvageunion-reference/lib/view/`): pure, shared by every surface and the bot, resolving all once.
+2. **Model** — `toEntityModel(entity, instance?)` (`salvageunion-reference/lib/view/`): pure, shared by every surface and the bot.
 3. **Form** — which parts to draw. **Mode** — what fills its slots. Only these two are React.
-4. **Surface context** — links, texture and user-made come once, never per call.
 
 ## Forms
 
@@ -31,7 +30,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 ## Hard rules
 
 - **E1** The form follows the job and room, never the app.
-- **E2** Every list of entities is Compacts, but one compared or picked from, a Ledger ([ledger.md](ledger.md)): an SRD index opens on its List, its Catalog second; abilities keep a Tree.
+- **E2** Every list of entities is Compacts, but one compared or picked from, a Ledger ([ledger.md](ledger.md)); abilities keep a Tree.
 - **E3** A Mini at level 2 (E6) or where a Compact will not fit: a long list, one a line (N4; a drone's parts two), a slot under 12rem.
 - **E4** An entity named in prose is a Mention, never a chip, Stat or raw markup.
 - **E5** The detail view is a Page, never a new tab.
@@ -44,7 +43,7 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E11** A lead appears only on an SRD index, or as a Ledger's quiet line (L5).
 - **E12** Fill follows kind: "have" entities wear their tone, "do" entities the ink banner contentful or on a Page, and as a Compact but for an ability.
   An ability's Compact, track and band wear its tier: Core `pilot`, Advanced and Hybrid `tier-hybrid`, Legendary `crawler`.
-- **E13** Texture and user-made come from the surface and instance. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page.
+- **E13** Links, texture and user-made come from the surface and instance, once, never per call. **E16** A Peek is terminal (ruleset §1.6): no button, link, input, tab stop or nested Peek on its plate; its one link is its name, to its Page, but the app's View in the Reference, never a tab stop.
 - **E23** A Peek is one form below its trigger's (contentful Compact down to Mini), never beside a native tooltip.
 - **E17** No "//" line: a head's chips are one group, as [chips-and-actions.md](chips-and-actions.md) lays it; on ink each chip has a paper rule.
 - **E19** A chassis ability shows only on its chassis and pattern pages, mech hero and Discord card; nested (wizard, Peek) a contentful Mini.
@@ -52,7 +51,8 @@ Each is a Size (ruleset §4.7) and an extent: **header-only** (overflow ends in 
 - **E22** A name and its cut-out start at their head's left; only the art or the tier stands before them.
 - **E24** A title's size is its form's: a Page band's the chapter rung (hero on a phone), a Compact's, Full's, index's or Peek's the title, a Page's own block display, a Mini's name caption; a Slab's stamp body, a Mini Slab's chip.
 - **E25** Headings follow the levels: h1 the band's title, h2 a level-0 section, h3 a level-1 title or sub-section, h4 level 2; none skipped, none at or above its section's.
+- **E26** A cross-reference goes both ways: a Page linking another (a part, a level, a book) is listed on it.
 
 ## Which form, where
 
-SRD index: List (Ledger) or Catalog, link. SRD page: Page, read. Search: Ledger, link. Wizard: Ledger, select; a pick dialog: Compact, select. Live sheet, Resolve, opposition tray: Compact. Dense slots, deck: Mini.
+SRD index: List (Ledger) or Catalog, link. SRD page: Page, read. A pick dialog: Compact, select. Live sheet, Resolve, opposition tray: Compact. Dense slots, deck: Mini.

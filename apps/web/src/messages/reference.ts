@@ -26,6 +26,15 @@ export const referenceCopy = messages({
   usedBy: 'Used by',
   usedByCount: '{count} uses',
   relatedRules: 'Related rules',
+  fittedIn: 'Fitted in',
+  atTechLevel: 'At {name}',
+  crawlerBays: 'Bays',
+  crawlerTypes: 'Crawler types',
+  keywords: 'Keywords',
+  rolledOn: 'Rolled on',
+  patternOf: '{pattern} Pattern {chassis}',
+  relationKind: 'Kind',
+  relationPage: 'Page',
   showReference: 'Know the rules',
   showReferenceHeading: 'A Full System Reference Document',
   showReferenceBody:
@@ -43,4 +52,5 @@ export const referenceCopy = messages({
   showDiscord: 'Roll in Discord',
   showDiscordBody: 'Look up any rule, reference, or roll without ever leaving your call.',
   buyThisBook: 'Buy this book',
+  opensInNewTab: '(opens in a new tab)',
 })

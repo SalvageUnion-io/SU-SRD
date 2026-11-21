@@ -21,15 +21,15 @@ const TAB_CAPS = capsLabel({ tracking: 'inherit' })
  * "One union, two tools"). Both render modes draw it through
  * one preset, `unionBar/UnionBar.tsx`.
  *
- * One lockup (the SU mark alone, no wordmark), then the **Reference | Training
- * Bay | Games** switcher (ADR-066), the search slot, "Buy the game" and the
- * app's account controls. There is no second nav: each tab is a place, and a
- * page's own modes (a pilot's Read | Edit | Play) live on that page. Crossing
- * is a tab on the same bar, never an off-site link. The tab you are on is an
- * inverse stamp — a paper plate on the ink bar — and never rust (§3.1). The
- * shell's bar is marked for the route it is served on (`markUnionRoute`), and
- * the app moves the current tab as it routes (`UnionBarSlots`, by each tab's
- * `data-tool`).
+ * One lockup (the SU mark alone, no wordmark), then the areas as plain
+ * header links, **Reference | Build | Play** (a phone reads REF for the
+ * first), "Buy the game" after them (off-site: a new tab, its arrow), the
+ * search slot and the app's account controls; under the bar, the open area's
+ * rail. A page's own modes (a pilot's Read | Edit | Play) live on that page.
+ * Crossing is a link on the same bar, never an off-site one. The area you are
+ * in is underlined, never rust (§3.1). The shell's bar is marked for the
+ * route it is served on (`markUnionRoute`), and the app moves the current
+ * link as it routes (`UnionBarSlots`, by each link's `data-tool`).
  *
  * ## One geometry
  *
@@ -80,9 +80,9 @@ type AppBarProps = {
   noCurrent?: boolean
   /** Where "Reference" goes — the SRD's home. */
   referenceHref: string
-  /** Where "Training Bay" goes — the app's home. */
+  /** Where "Build" goes — the app's home. */
   buildHref: string
-  /** Where "Games" goes — Your Games. */
+  /** Where "Play" goes — Your Games. */
   playHref: string
   /**
    * The SU mark's URL. The app's own copy: the app serves its files under
@@ -268,6 +268,7 @@ export function AppBar({
               >
                 {compositionsCopy('buyTheGame')}
                 <ArrowUpRight aria-hidden="true" size={iconSize.compact} />
+                <span className="su-sr-only"> {compositionsCopy('opensInNewTab')}</span>
               </a>
             )}
           </nav>

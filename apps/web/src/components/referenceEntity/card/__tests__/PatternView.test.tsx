@@ -405,7 +405,7 @@ describe('pattern footer provenance', () => {
     expect(survivor.booklet).toBe('PC')
 
     render(<ReferenceEntityCard data={mule()} pattern={survivor} />)
-    expect(screen.getByText(`Salvage Union Starter Set (PC) · p.${survivor.page}`)).toBeTruthy()
+    expect(screen.getByText(`Starter Set (PC) · p.${survivor.page}`)).toBeTruthy()
   })
 })
 

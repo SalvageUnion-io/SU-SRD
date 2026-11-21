@@ -70,9 +70,7 @@ describe('the one citation line', () => {
     render(<ReferenceEntityCard data={kit} />)
 
     // The PRIMARY source first, then the reprint, on ONE line, `//` between.
-    const line = citeLine(
-      `Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`
-    )
+    const line = citeLine(`Workshop Manual · p.${kit.page} // Starter Set (PH) · p.38`)
     // The `//` between two printings is bold, so the books read apart.
     const separators = Array.from(line.children).filter((el) => el.textContent === '//')
     expect(separators).toHaveLength(1)
@@ -93,7 +91,7 @@ describe('the one citation line', () => {
 
     expect(
       citeLine(
-        `Workshop Manual · p.${drone.page} // Salvage Union Starter Set (AP) · p.2 // Reclamation of the Wastes · p.103`
+        `Workshop Manual · p.${drone.page} // Starter Set (AP) · p.2 // Reclamation of the Wastes · p.103`
       )
     ).toBeTruthy()
   })
@@ -116,9 +114,7 @@ describe('reprint provenance across sizes', () => {
     const kit = equipmentNamed('First Aid Kit')
     const { container } = render(<ReferenceEntityCard data={kit} size="compact" />)
     const text = container.textContent ?? ''
-    expect(text).toContain(
-      `Workshop Manual · p.${kit.page} // Salvage Union Starter Set (PH) · p.38`
-    )
+    expect(text).toContain(`Workshop Manual · p.${kit.page} // Starter Set (PH) · p.38`)
     expect(text).not.toContain('Also in')
   })
 })
@@ -153,15 +149,13 @@ describe('a pattern reprints on its own provenance', () => {
     // Proves the previous test is a real probe rather than a card that never
     // renders reprints at all.
     render(<ReferenceEntityCard data={chassisNamed('Mule')} />)
-    expect(citeLine(/ \/\/ Salvage Union Starter Set \(PC\) · p\.12$/)).toBeTruthy()
+    expect(citeLine(/ \/\/ Starter Set \(PC\) · p\.12$/)).toBeTruthy()
   })
 })
 
 describe('provenance formatting', () => {
   test('a booklet only ever prints alongside its source', () => {
-    expect(formatProvenance('Salvage Union Starter Set', 'PH', 38)).toBe(
-      'Salvage Union Starter Set (PH) · p.38'
-    )
+    expect(formatProvenance('Salvage Union Starter Set', 'PH', 38)).toBe('Starter Set (PH) · p.38')
     expect(formatProvenance('Reclamation of the Wastes', undefined, 103)).toBe(
       'Reclamation of the Wastes · p.103'
     )

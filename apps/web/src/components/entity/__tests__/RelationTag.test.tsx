@@ -47,6 +47,39 @@ describe('a relation Tag', () => {
     expect(openPage).toHaveBeenCalledTimes(1)
   })
 
+  test('an app route goes through the router link; a Reference page never does', () => {
+    // The app's router link (`linkAs`) puts its path under /build: a stand-in marks it.
+    const AppRoute = ({ href, ...rest }: { href: string }) => (
+      <a data-routed="" href={`/build${href}`} {...rest} />
+    )
+    render(
+      <EntitySurfaceProvider value={{ linkAs: AppRoute }}>
+        <Tag tag={relation('saved', 'Pattern', 'Mine', { href: '/p/pattern/p1' })} linkable />
+        <Tag
+          tag={relation('book', 'Pattern', 'Pop', { page: '/chassis/mazona/pattern/pop/' })}
+          linkable
+        />
+      </EntitySurfaceProvider>
+    )
+    const saved = screen.getByRole('link', { name: 'Pattern: Mine' })
+    expect(saved.getAttribute('href')).toBe('/build/p/pattern/p1')
+    const book = screen.getByRole('link', { name: 'Pattern: Pop' })
+    expect(book.getAttribute('href')).toBe('/chassis/mazona/pattern/pop/')
+    expect(book.hasAttribute('data-routed')).toBe(false)
+  })
+
+  test('a fragment lands on its place in the entry’s page', () => {
+    render(
+      <EntitySurfaceProvider value={{ hrefFor: () => '/classes/engineer/' }}>
+        <Tag
+          tag={relation('tree', 'Tree', 'Engineering', { ref: engineer(), fragment: '#x' })}
+          linkable
+        />
+      </EntitySurfaceProvider>
+    )
+    expect(screen.getByRole('link').getAttribute('href')).toBe('/classes/engineer/#x')
+  })
+
   test('inside a Peek it neither links nor Peeks', () => {
     const { container } = render(
       <InsidePeekContext.Provider value={true}>
