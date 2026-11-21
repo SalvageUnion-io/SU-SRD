@@ -26,8 +26,19 @@ const FRAGMENT_LINK = /\shref=["']((?:\/(?!\/)[^"'#]*)?)#([^"']+)["']/g
 /** An element's `id`, or an anchor's `name`. */
 const TARGET = /\s(?:id|name)=(?:"([^"]*)"|'([^']*)')/g
 
-/** A script's body is data or code, never the page's elements. */
-const SCRIPT = /<script\b[\s\S]*?<\/script\s*>/gi
+/** A script's body is data or code, never the page's elements. Its end tag may carry anything before `>`. */
+const SCRIPT = /<script\b[\s\S]*?<\/script\b[^>]*>/gi
+
+/** The page without its scripts: cut until none is left, so no cut can join two halves into another. */
+function withoutScripts(html: string): string {
+  let rest = html
+  let before: string
+  do {
+    before = rest
+    rest = rest.replace(SCRIPT, '')
+  } while (rest !== before)
+  return rest
+}
 
 /** A text directive (`#:~:text=…`) names words, not an element. */
 const TEXT_DIRECTIVE = ':~:'
@@ -41,7 +52,7 @@ export type FragmentLink = {
 /** Every link on a page that names an element: its own, or another page of the site's. */
 export function fragmentLinks(html: string): FragmentLink[] {
   const links: FragmentLink[] = []
-  for (const [, target = '', fragment = ''] of html.replace(SCRIPT, '').matchAll(FRAGMENT_LINK)) {
+  for (const [, target = '', fragment = ''] of withoutScripts(html).matchAll(FRAGMENT_LINK)) {
     if (fragment.startsWith(TEXT_DIRECTIVE)) continue
     let id: string
     try {
@@ -57,7 +68,7 @@ export function fragmentLinks(html: string): FragmentLink[] {
 /** Every target a page offers a fragment: its elements' ids and named anchors. */
 export function pageIds(html: string): Set<string> {
   const ids = new Set<string>()
-  for (const [, double, single] of html.replace(SCRIPT, '').matchAll(TARGET)) {
+  for (const [, double, single] of withoutScripts(html).matchAll(TARGET)) {
     ids.add(double ?? single ?? '')
   }
   return ids

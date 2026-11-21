@@ -86,15 +86,22 @@ const FILLER_WORDS = new Set([
   'your',
 ])
 
+const SENTENCE_MARKS = '?!,;:'
+
+/** A word without the sentence marks it ends on. A loop, not a pattern: a pattern backtracks on a long run of marks. */
+function withoutSentenceMarks(word: string): string {
+  let end = word.length
+  while (end > 0 && SENTENCE_MARKS.includes(word[end - 1] as string)) end--
+  return word.slice(0, end)
+}
+
 /** Normalise a raw query, or `null` when it is blank (a blank query matches nothing). */
 export function tokenizeSearchQuery(query: string): SearchQuery | null {
   const rawQuery = query.trim().toLowerCase()
   if (!rawQuery) return null
   const words = rawQuery.split(/\s+/)
   // A question mark or a comma is the sentence's, not the word's.
-  const named = words
-    .map((word) => word.replace(/[?!,;:]+$/, ''))
-    .filter((word) => word && !FILLER_WORDS.has(word))
+  const named = words.map(withoutSentenceMarks).filter((word) => word && !FILLER_WORDS.has(word))
   if (named.length === 0 || named.join(' ') === words.join(' ')) {
     return { loweredQuery: rawQuery, tokens: words }
   }
