@@ -1,16 +1,15 @@
 /*
- * The package stylesheet, part 7 of 20: the stat column and the entity page.
+ * The package stylesheet: the stat column and the entity page.
  * `../index.css` imports the parts in cascade order.
  */
 
 /* ══ The stat column (`components/atoms/StatColumn.tsx`) ═══════════════════
  *
- * The book's framed numeral beside its ink stamp, two cells to a row at every
- * width, in pairs: each part of the stat order pairs off its own cells, so a
- * mech reads Structure | Energy, System | Module Slots, Heat | Cargo, and a
- * cell without a partner (`--lone`) spans its row. Every row fills the
- * column's width: there is never an empty cell or a ragged edge (ruleset,
- * "The source" 3).
+ * The book's framed numeral beside its ink stamp, on the item grid
+ * (`.su-grid`, R68), two cells to a row at every width, in pairs: each part of
+ * the stat order pairs off its own cells, so a mech reads Structure | Energy,
+ * System | Module Slots, Heat | Cargo, and a cell without a partner (`--lone`)
+ * takes its row. Every row fills the column's width.
  * Each cell is a `Stat` (ruleset §3.7: the column is a layout of Stats), its
  * plates set at the book's scale here: the label 14px (§1.3, R17), the
  * numeral in the title face, the 1px frame the Stat cell's own (§7.1).
@@ -20,20 +19,19 @@
  * is narrower than its label.
  */
 .su-stat-column {
-  display: grid;
-  gap: var(--space-6) var(--space-8);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  --su-grid-gap: var(--space-8);
+  --su-grid-max: 2;
+  --su-grid-row-gap: var(--space-6);
   margin: 0;
 }
 
 .su-stat-column__cell {
   display: flex;
   min-height: 40px;
-  min-width: 0;
 }
 
 .su-stat-column__cell--lone {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 /* Two classes: `.su-stat-cell` (atoms.css) comes later and sizes a Stat to its content. */
@@ -73,7 +71,7 @@
 
 @media (width >= 40rem) {
   .su-stat-column {
-    column-gap: var(--space-14);
+    --su-grid-gap: var(--space-14);
   }
 
   .su-stat-column__stat > .su-stat-plate--value {
@@ -83,13 +81,21 @@
   .su-stat-column__stat > .su-stat-plate--label {
     padding: 0 var(--space-12);
   }
+
+  /* Four a row, the longest stamp (STRUCTURE POINTS) runs its cell's width:
+     at 14px a stamp takes the label tracking (§4.2), which leaves it a margin
+     its neighbours' have. The compact cells' 11px caps stay snug (§3.12). */
+  .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat > .su-stat-plate--label {
+    letter-spacing: var(--tracking-caps-tight);
+  }
 }
 
 /* The compact column (`StatColumn compact`): the band's smaller cells, paired
    as the column's, for a narrow column beside other content (the app mech
    sheet's hero, beside the player's fields). */
 .su-stat-column.su-stat-column--compact {
-  gap: var(--space-4) var(--space-6);
+  --su-grid-gap: var(--space-6);
+  --su-grid-row-gap: var(--space-4);
 }
 
 .su-stat-column--compact .su-stat-column__cell {
@@ -167,6 +173,8 @@
   font-size: var(--text-readout);
   gap: var(--space-12);
   line-height: 1.6;
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }
 
 .su-entity-page__prose {
@@ -323,11 +331,92 @@
 /* An ability's Preceding and Next, siblings on one row, Next's label at the
    row's end; one under the other where they do not fit. */
 .su-entity-page__neighbour-row {
-  display: grid;
-  gap: var(--space-12) var(--space-32);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  --su-grid-gap: var(--space-32);
+  --su-grid-min: 20rem;
+  --su-grid-row-gap: var(--space-12);
 }
 
 .su-entity-page__section--end > .su-slab-section__head {
   flex-direction: row-reverse;
+}
+
+/* ── An entity page's stats, as a masthead ──────────────────────────────── */
+
+/* Each stat is its own tile, as the home
+   page's doors are: a paper card framed in the page's band paint, the
+   numeral large on top, and at its foot the band's strip with the label on
+   its paper cut-out, as a door's name sits under its art. No panel holds
+   them: they stand on the page's grid, a block apart, and wrap. */
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) {
+  --su-tile-label: calc(var(--text-body) + 2 * var(--space-4));
+  --su-grid-gap: var(--space-12);
+  background: none;
+  border: 0;
+  gap: var(--space-12);
+  padding: 0;
+}
+
+.su-entity-page .su-stat-column:not(.su-stat-column--compact) .su-stat-column__stat {
+  align-items: flex-start;
+  /* The head strip: a band of the kind's paint over the tile's paper. */
+  background: var(--color-paper);
+  box-shadow: inset 0 calc(var(--su-tile-label) + var(--space-6)) 0 0
+    var(--su-kind, var(--color-ink));
+  /* A stat value's frame is the hairline (page rhythm, ruleset §3.7). */
+  border: var(--bw-hairline) solid var(--su-kind, var(--color-ink-40));
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  justify-content: flex-start;
+  min-height: 0;
+  outline: 0;
+  padding: 0;
+}
+
+/* Top-down: the strip heads the tile; the label is a cut-out facing down,
+   flush with the strip's foot so it opens into the numeral's paper below it
+   (the cut-out law), the strip showing above. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--label {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-size: var(--su-tile-label-size, var(--text-body));
+  height: var(--su-tile-label);
+  justify-content: flex-start;
+  letter-spacing: var(--tracking-caps-snug);
+  line-height: 1;
+  margin: var(--space-6) 0 0 var(--space-8);
+  min-height: 0;
+  padding: var(--space-4) var(--space-8);
+}
+
+/* A phone reads the short labels at the chip rung (ruleset Source 3). */
+@media not (width >= 40rem) {
+  .su-entity-page
+    .su-stat-column:not(.su-stat-column--compact)
+    .su-stat-column__stat
+    > .su-stat-plate--label:has(.su-stat-label--short) {
+    --su-tile-label-size: var(--text-chip);
+  }
+}
+
+/* The numeral: large, on the tile's paper, no frame of its own. */
+.su-entity-page
+  .su-stat-column:not(.su-stat-column--compact)
+  .su-stat-column__stat
+  > .su-stat-plate--value {
+  background: none;
+  border: 0;
+  color: var(--color-ink);
+  flex: 1 1 auto;
+  font-size: var(--text-hero);
+  justify-content: flex-start;
+  line-height: 1;
+  min-height: 0;
+  min-width: 0;
+  outline: 0;
+  padding: var(--space-12) var(--space-12) var(--space-8);
+  width: auto;
 }

@@ -65,7 +65,7 @@ describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
   test('resolves only the named shortlist entities', () => {
     const resolved = resolveCatalogChoiceEntities(shortlistChoice)
     const names = resolved.map((e) => e.name).sort()
-    expect(names).toEqual(['ballistic', 'energy'])
+    expect(names).toEqual(['Ballistic', 'Energy'])
   })
 
   test('matches shortlist names without case, as the data writes traits in Title Case', () => {
@@ -76,7 +76,7 @@ describe('resolveCatalogChoiceEntities — shortlist catalog', () => {
     const names = resolveCatalogChoiceEntities(titleCase)
       .map((e) => e.name)
       .sort()
-    expect(names).toEqual(['ballistic', 'energy'])
+    expect(names).toEqual(['Ballistic', 'Energy'])
   })
 
   test('is NOT a schema-only catalog (renders as an option grid)', () => {

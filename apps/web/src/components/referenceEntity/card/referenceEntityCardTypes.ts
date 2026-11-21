@@ -166,6 +166,8 @@ export type ReferenceEntityCardProps = {
   statsOverride?: StatItem[]
   subtitleExtra?: ReactNode
   afterExtraContent?: ReactNode
+  /** On a Page, what stands in the side track under the art (a class's Advancement). */
+  asideExtraContent?: ReactNode
   /** ASIDE LEAD — opt in when this card's `afterExtraContent` is a SECTION of
    * its own (the class pages' ability trees) rather than trailing body content.
    * The artwork and flavour prose become a centred lead row and the trailing
@@ -209,6 +211,13 @@ export type ReferenceEntityCardHideConfig = {
   damagedEffect?: boolean
   choices?: boolean
   content?: boolean
+  /**
+   * Suppress the lead (the entity's one-line hint as the body's first
+   * paragraph): a picker's card beside its list, whose line has said it.
+   */
+  lead?: boolean
+  /** Suppress the flavour prose, where a card is read for its rules alone (a builder's pick). */
+  flavor?: boolean
   /** Suppress the entity's artwork (a preview that has none to show). */
   image?: boolean
   /**

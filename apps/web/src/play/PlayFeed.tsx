@@ -18,7 +18,8 @@
  */
 
 import type { CSSProperties } from 'react'
-import { Button, EmptyState, FeedLine, FeedList, FieldError, tokens } from '../components/index'
+import { FeedLine, FeedList, FieldError } from '../components/app'
+import { Button, tokens } from '../components/index'
 import { useServerAction } from '../lib/connection/useServerAction'
 import { playCopy } from '../messages/play'
 import { useTableAct } from '../replica/useTable'
@@ -60,9 +61,8 @@ export function PlayFeed({ gameId, entries, posts, postNow, canWrite }: PlayFeed
     toastId: 'play-proposal-answer',
   })
 
-  if (entries.length === 0) {
-    return <EmptyState variant="inline" body={playCopy('rollsAndChangesLandHere')} />
-  }
+  // An empty feed says nothing (no explainer line).
+  if (entries.length === 0) return null
 
   const accept = (entry: Extract<FeedEntry, { kind: 'proposal' }>) => {
     void reply

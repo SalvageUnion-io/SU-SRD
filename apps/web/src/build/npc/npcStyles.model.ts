@@ -14,15 +14,12 @@ export const PAGE = {
   paddingBottom: tokens.space[48],
 } satisfies CSSProperties
 
-/** Two columns where there is room for them; one, stacked, where there is not. */
+/** The board's `Grid` (26rem items, a 32px gap): two columns where there is room, one where not. */
 export const COLUMNS = {
   alignItems: 'start',
-  display: 'grid',
-  gap: tokens.space[32],
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 26rem), 1fr))',
   margin: '0 auto',
   maxWidth: '80rem',
-  padding: `${tokens.space[16]} ${tokens.space[16]} 0`,
+  padding: `${tokens.space[24]} ${tokens.space[16]} 0`,
 } satisfies CSSProperties
 
 export const COLUMN = {

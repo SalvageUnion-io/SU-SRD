@@ -1,9 +1,10 @@
 /**
  * PlayCockpit — the player's Play screen for one pilot, in a Game or solo
  * (Direction A, the Cockpit), on `PlayFrame`'s one layout: the Play bar,
- * then the panes, Act, Units, Tables and Crew as tabs on a phone and Units |
- * Actions | Crew, Tables and Feed from `lg`, then the foot. Who may open it
- * is `PlayGate`'s question, asked before this renders.
+ * then the panes: Act, Crew, Rolls and Rules as tabs on a phone (Units from
+ * the bar's ⋯), and Units over the Feed | Actions | Crew, Tables and the
+ * Rules from `lg`, then the foot. Who may open it is `PlayGate`'s question,
+ * asked before this renders.
  *
  * Each pane is its own component (`PlayUnitsColumn`, `PlayActionsColumn`,
  * `PlayCrewSection`, `PlayerTablesAndFeed`), so a pane's work happens in its
@@ -14,8 +15,9 @@
  * so every roll made in any pane is dispatched whichever pane is open.
  *
  * From `lg` the Situation switch (`PlaySituationSwitch`) fills the bar's
- * `situation` slot; below it, it is pinned under the live vitals for the
- * Situation (`pinnedUnits`), TABLE beside it. In table mode (`useTableMode`)
+ * `situation` slot; below it, the Situation and Table mode are rows of the
+ * bar's ⋯ (`situationRows`) and the live vitals for the Situation are pinned
+ * above every pane (`pinnedUnits`). In table mode (`useTableMode`)
  * the panes give way to `PlayTableMode`, which draws those vitals itself at
  * the Full Size, and the screen stays awake (`useWakeLock`).
  *
@@ -28,7 +30,7 @@
  * bar says the game is paused (`StopSign.tsx`).
  * The channel button shows where rolls post (`usePlayChannelControls`; unbound, the ⋯'s row,
  * §9). In a Game, ⋯ opens the Game's page, and so does "‹ Game" (ADR-052
- * §5–§6); solo, "‹ Play" goes back to the Play hub and there is no ⋯.
+ * §5–§6); "‹ Sheet" goes back to the pilot's own page (ADR-066); solo there is no ⋯.
  *
  * A sheet on the screen (`useSheetOnScreen`, play.md §18): any unit's Sheet,
  * a Crew line, or ⋯'s "Show a sheet" puts that sheet in the Actions column
@@ -37,13 +39,14 @@
  */
 
 import { useRouter } from '@tanstack/react-router'
-import { gamePath } from 'game-domain/entityKinds'
+import { gamePath, sheetPath } from 'game-domain/entityKinds'
 import { mayBindChannel } from 'game-domain/games/discord'
 import { PRODUCT } from 'game-domain/product'
 import type { CSSProperties, ReactNode } from 'react'
 import { useState } from 'react'
 import type { HeaderMenuItem } from '../components/index'
 import { HeaderMenu, tokens } from '../components/index'
+import { changeUndoToast } from '../lib/changeUndoToast'
 import { areaTitle } from '../lib/pageTitle'
 import { runWrite } from '../lib/runWrite'
 import { useTabTitle } from '../lib/useTabTitle'
@@ -54,20 +57,21 @@ import { useSync } from '../replica/syncContext'
 import { useUnits } from '../replica/units'
 import { useTableRead } from '../replica/useTable'
 import { hereCount } from './crew.model'
+import { SrdExplorer } from './mediator/SrdExplorer'
 import { PlayActionsColumn } from './PlayActionsColumn'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
 import { PlayPinnedVitals } from './PlayPinnedVitals'
 import { PlaySheetPane } from './PlaySheetPane'
-import { PlayCrewSection, PlayerTablesAndFeed } from './PlaySideColumn'
+import { PlayCrewSection, PlayerTablesAndFeed, PlayFeedSection } from './PlaySideColumn'
 import { PlaySituationSwitch } from './PlaySituationSwitch'
-import { PlayTableMode, TableModeToggle } from './PlayTableMode'
+import { PlayTableMode } from './PlayTableMode'
 import { PlayUnitsColumn } from './PlayUnitsColumn'
 import type { PlayTarget } from './play.model'
 import { PHASE_TONE, playStamp, playTitle } from './play.model'
 import type { PlayerPane } from './playPanes.model'
-import { PLAYER_TABS, pinnedUnits, playerPanes } from './playPanes.model'
+import { PLAYER_TABS, pinnedUnits, playerPanes, playerPhonePanes } from './playPanes.model'
 import { StopSignBanner, StopSignButton } from './StopSign'
 import { tableUnits } from './tableMode.model'
 import { useGamePresence } from './useGamePresence'
@@ -81,19 +85,23 @@ import { usePlayUnits } from './usePlayUnits'
 import { usePlayWide } from './usePlayWide'
 import type { SheetOnScreen } from './useSheetOnScreen'
 import { useSheetOnScreen } from './useSheetOnScreen'
+import { situationRows, useSituationMoves } from './useSituationMoves'
 import { useStopSign } from './useStopSign'
 import { useTableMode } from './useTableMode'
 import { useWakeLock } from './useWakeLock'
 
-/** The Situation switch and TABLE on one line, the switch taking the room. */
-const SWITCH_ROW = {
-  alignItems: 'center',
-  display: 'flex',
-  gap: tokens.space[8],
-  minWidth: 0,
-} satisfies CSSProperties
+/** The Rules pane holds the Reference's own frame, edge to edge. */
+const RULES = { margin: `calc(-1 * ${tokens.space[8]})` } satisfies CSSProperties
 
-const SWITCH = { flex: '1 1 0%', minWidth: 0 } satisfies CSSProperties
+/** From `lg` the Reference closes the end column, under the Tables. */
+const RULES_PANE = { value: 'rules', label: playCopy('rules'), column: 'end' } as const
+
+/** The phases as the phone's band says them. */
+const PHASE_WORDS = {
+  onFoot: playCopy('onFoot'),
+  boarded: playCopy('boarded'),
+  downtime: playCopy('downtimeWord'),
+} as const
 
 type PlayCockpitProps = {
   target: PlayTarget
@@ -105,7 +113,7 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   const { status } = useSync()
   const play = usePlaySituation(target)
   const pilotName = play.pilot?.name
-  useTabTitle(pilotName ? areaTitle(PRODUCT.play, `${pilotName} · ${routesCopy('play')}`) : null)
+  useTabTitle(pilotName ? areaTitle(PRODUCT.build, `${pilotName} · ${routesCopy('play')}`) : null)
   const binding = usePlayChannelBinding(target)
   const crew = useTableRead(
     'crew.vitals',
@@ -128,7 +136,8 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
       solo || mayBindChannel({ mediator: target.mediator, organizer: target.organizer === true }),
     compact: !wide,
   })
-  const [tableOn] = useTableMode()
+  const [tableOn, setTableOn] = useTableMode()
+  const moves = useSituationMoves(play)
   const table = tableOn && !wide
   useWakeLock(table)
   const pinned = pinnedUnits({
@@ -140,31 +149,81 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
   })
   const pilotId = play.pilot?.id ?? null
   const mechId = play.boardedMech?.id ?? null
-  const writeVital = (kind: 'pilot' | 'mech', field: string, next: number) => {
+  const writeVital = (kind: 'pilot' | 'mech', field: string, next: number, label?: string) => {
     const id = kind === 'pilot' ? pilotId : mechId
     if (id === null) return
+    // The change says itself, with Undo.
+    const from = pinned.find((u) => u.kind === kind)?.vitals.find((v) => v.label === label)?.value
     runWrite(() => useUnits.getState().update(kind, id, { [field]: next }, PLAY_TXN))
+    if (label !== undefined && from !== undefined)
+      changeUndoToast({
+        id: `${kind}:${id}:${field}`,
+        label,
+        from,
+        to: next,
+        undo: (value) =>
+          runWrite(() => useUnits.getState().update(kind, id, { [field]: value }, PLAY_TXN)),
+      })
+  }
+  const openTab = (next: PlayerPane) => {
+    onScreen.close()
+    setTab(next)
   }
   const nodes: Record<PlayerPane, ReactNode> = {
     act: <PlayActionsColumn target={target} play={play} {...actions} />,
-    units: <PlayUnitsColumn target={target} play={play} />,
+    // From `lg` the
+    // Feed, the table's log, runs under the Units, and the Reference under the
+    // Tables, so both side columns end with the centre one.
+    units: (
+      <>
+        <PlayUnitsColumn
+          target={target}
+          play={play}
+          onClose={wide ? undefined : () => openTab('act')}
+        />
+        {wide && <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />}
+      </>
+    ),
     crew: <PlayCrewSection target={target} play={play} side={side} />,
-    tables: <PlayerTablesAndFeed target={target} play={play} side={side} />,
+    tables: <PlayerTablesAndFeed target={target} play={play} side={side} feed={!wide} />,
+    // The Reference inside Play, a player's too (the Mediator's `SrdExplorer`).
+    rules: (
+      <div style={wide ? undefined : RULES}>
+        <SrdExplorer />
+      </div>
+    ),
   }
+  // Who is playing, on the band's cut-out.
+  const pilotWord = pilotName ?? playCopy('pilot2')
+  const who =
+    play.situation === 'boarded' && play.boardedMech !== null
+      ? playCopy('pilotInMech', { pilot: pilotWord, mech: play.boardedMech.name })
+      : pilotWord
+  // A proposal awaiting this player's answer sits in the Feed, the Rolls tab's on a phone.
+  const waiting = side.entries.some((entry) => entry.kind === 'proposal')
 
   return (
     <ShowSheetContext.Provider value={onScreen.show}>
       <PlayFrame
         wide={wide}
-        labels={['Units', 'Actions', 'Crew, Tables and Feed']}
+        labels={[playCopy('unitsAndFeed'), playCopy('actions'), playCopy('crewTablesAndRules')]}
         bar={
           <>
             <PlayBar
-              title={playTitle(target, play.pilot?.name ?? 'Pilot')}
+              title={wide ? playTitle(target, pilotWord) : who}
+              line={
+                wide
+                  ? undefined
+                  : {
+                      game: target.gameName,
+                      phase: PHASE_WORDS[play.situation],
+                    }
+              }
               stamp={playStamp(target)}
               tone={PHASE_TONE[play.situation]}
-              backHref={target.gameId === null ? '/play/' : gamePath(target.gameId)}
-              backLabel={solo ? playCopy('play') : playCopy('game')}
+              // Back to the pilot's own page (ADR-066); its Game is in ⋯.
+              backHref={sheetPath('pilot', target.pilotId)}
+              backLabel={playCopy('sheet')}
               live={status === 'live' && !solo}
               here={crew == null || here === null ? null : hereCount(crew.pilots, here)}
               // A phone's bar is one line: with no channel button on it, the
@@ -180,37 +239,34 @@ export function PlayCockpit({ target, actions }: PlayCockpitProps) {
                   gameName={target.gameName}
                   channel={channel.row}
                   onScreen={onScreen}
+                  // Below `lg`, On foot / Board / Table mode live here.
+                  situation={wide ? null : situationRows({ play, moves, tableOn, setTableOn })}
+                  // Units has no tab below `lg`: this row opens its pane.
+                  onUnits={wide ? null : () => openTab('units')}
                 />
               }
             />
             {channel.dialog}
+            {!wide && moves.dialogs}
             <StopSignBanner sign={sign} play={wide ? 'canvas' : 'phone'} />
           </>
         }
         pinned={
-          <>
-            {table ? null : (
-              <PlayPinnedVitals
-                units={pinned}
-                live={{ pilot: units.live.pilot, mech: units.live.mech }}
-                onWrite={writeVital}
-              />
-            )}
-            <div style={SWITCH_ROW}>
-              <div style={SWITCH}>
-                <PlaySituationSwitch play={play} fill />
-              </div>
-              <TableModeToggle />
-            </div>
-          </>
+          table ? null : (
+            <PlayPinnedVitals
+              units={pinned}
+              live={{ pilot: units.live.pilot, mech: units.live.mech }}
+              onWrite={writeVital}
+            />
+          )
         }
-        panes={playerPanes(solo).map((p) => ({ ...p, node: nodes[p.value] }))}
+        panes={(wide
+          ? [...playerPanes(solo), RULES_PANE]
+          : playerPhonePanes(solo, waiting ? 'tables' : null)
+        ).map((p) => ({ ...p, node: nodes[p.value] }))}
         tabs={PLAYER_TABS}
         tab={tab}
-        onTab={(next) => {
-          onScreen.close()
-          setTab(next)
-        }}
+        onTab={openTab}
         sheet={
           onScreen.shown ? (
             <PlaySheetPane
@@ -248,11 +304,17 @@ function CockpitMenu({
   gameName,
   channel,
   onScreen,
+  situation,
+  onUnits,
 }: {
   gameId: string | null
   gameName: string | null
   channel: HeaderMenuItem | null
   onScreen: SheetOnScreen
+  /** The phone's Situation and Table mode, as rows (`situationRows`). */
+  situation: HeaderMenuItem[] | null
+  /** Opens the Units pane, where it has no tab. */
+  onUnits: (() => void) | null
 }) {
   const first = onScreen.sections[0]?.[0]
   const router = useRouter({ warn: false })
@@ -263,6 +325,8 @@ function CockpitMenu({
       label={playCopy('more')}
       trigger={null}
       sections={[
+        situation ?? [],
+        onUnits === null ? [] : [{ id: 'units', label: playCopy('units'), onSelect: onUnits }],
         first === undefined
           ? []
           : [
@@ -280,8 +344,7 @@ function CockpitMenu({
                 label: playCopy('gamePage'),
                 hint: gameName ?? undefined,
                 onSelect: () => {
-                  if (router)
-                    void router.navigate({ to: '/play/games/$gameId', params: { gameId } })
+                  if (router) void router.navigate({ to: '/games/$gameId', params: { gameId } })
                   else window.location.assign(gamePath(gameId))
                 },
               },

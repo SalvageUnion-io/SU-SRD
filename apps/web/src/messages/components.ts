@@ -3,6 +3,8 @@
 import { messages } from './define'
 
 export const componentsCopy = messages({
+  undo: 'Undo',
+  changedTo: 'to',
   legendary: 'Legendary',
   advance: 'Advance',
   hybrid: 'Hybrid',

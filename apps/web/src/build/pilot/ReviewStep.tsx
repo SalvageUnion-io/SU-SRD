@@ -1,13 +1,13 @@
-import type { CSSProperties } from 'react'
 import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
-import { Box, EmptyState, FieldError, ReferenceEntityCard, tokens } from '../../components/index'
+import { FieldError } from '../../components/app'
+import { Box, ReferenceEntityCard } from '../../components/index'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { pilotCopy } from '../../messages/build-pilot'
-import { Recap, RecapEntity, RecapMinis, RecapStat } from '../wizard/ReviewRecap'
-
-/** Recap and cards; the column split is `.su-wiz-review-grid`. */
-const REVIEW_GRID = { display: 'grid', gap: tokens.space[24] } satisfies CSSProperties
+import { abilityColumns, equipmentColumns } from '../wizard/pickColumns'
+import { ReviewLedger } from '../wizard/ReviewLedger'
+import { Recap, RecapEntity, RecapStat } from '../wizard/ReviewRecap'
+import { StatsStep } from './StatsStep'
 
 /**
  * Typed lookup surfaces for the injectable SUR seam — declared against the
@@ -27,12 +27,16 @@ type ReviewStepProps = {
   }
 }
 
+const ABILITY_COLUMNS = abilityColumns<RefAbility>()
+
 /**
- * Review step: a recap of the build's fields on the
- * left, the chosen ability + equipment cards stacked on the right (equipment
- * carries an 'Intact' status badge — fresh gear).
+ * Step 4 · Review. The pilot as the sheet will read: who they are as Stats,
+ * their starting numbers, their ability and their equipment a Ledger each
+ * (the pickers' own columns, each made choice a chip under its line, hard
+ * rule R60), and their class beside it as its contentful card.
  */
 export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
+  const choices = form.equipmentChoices
   const surClasses = _sur?.Classes ?? SalvageUnionReference.Classes
   const surAbilities = _sur?.Abilities ?? SalvageUnionReference.Abilities
   const surEquipment = _sur?.Equipment ?? SalvageUnionReference.Equipment
@@ -44,52 +48,46 @@ export function ReviewStep({ form, submitError, _sur }: ReviewStepProps) {
   const chosenEquipment = form.equipment
     .map((slug) => surEquipment.findAll((e) => nameToSlug(e.name) === slug)[0])
     .filter((e) => e !== undefined)
+  const equipmentCols = equipmentColumns<RefEquipment>((item) => choices?.[nameToSlug(item.name)])
 
   return (
-    <div className="su-wiz-review-grid" style={REVIEW_GRID}>
-      {/* The recap: Stats, the class as its chip, the picks as Minis. */}
-      <Box className="su-wiz-review-panel--start" bodyClassName="su-wiz-review-panel">
-        <Recap>
-          <RecapStat label={pilotCopy('name')} value={form.name.trim()} required />
-          <RecapStat label={pilotCopy('callsign')} value={form.callsign.trim()} required />
-          <RecapEntity label={pilotCopy('class')} entity={selectedClass} required />
-          <RecapStat label={pilotCopy('motto')} value={form.motto} />
-          <RecapStat label={pilotCopy('keepsake')} value={form.keepsake} />
-          <RecapStat label={pilotCopy('appearance')} value={form.appearance} />
-          <RecapStat label={pilotCopy('background')} value={form.background} />
-          <RecapMinis label={pilotCopy('abilities')} entities={chosenAbilities} />
-          <RecapMinis label={pilotCopy('equipment')} entities={chosenEquipment} />
-        </Recap>
-        {submitError && <FieldError>{submitError}</FieldError>}
-      </Box>
-
-      {/* chosen cards */}
-      <div className="su-wiz-stack su-wiz-stack--12">
-        {chosenAbilities.map((ability) => (
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+      <div className="su-wiz-compare-main">
+        <Box bodyClassName="su-wiz-review-panel">
+          <Recap>
+            <RecapStat label={pilotCopy('name')} value={form.name.trim()} required />
+            <RecapStat label={pilotCopy('callsign')} value={form.callsign.trim()} required />
+            <RecapEntity label={pilotCopy('class')} entity={selectedClass} required />
+            <RecapStat label={pilotCopy('motto')} value={form.motto} />
+            <RecapStat label={pilotCopy('keepsake')} value={form.keepsake} />
+            <RecapStat label={pilotCopy('appearance')} value={form.appearance} />
+            <RecapStat label={pilotCopy('background')} value={form.background} />
+          </Recap>
+          {submitError && <FieldError>{submitError}</FieldError>}
+        </Box>
+        <StatsStep />
+        <div className="su-wiz-ledgers">
+          <ReviewLedger
+            title={pilotCopy('abilities')}
+            entities={chosenAbilities}
+            columns={ABILITY_COLUMNS}
+            empty={pilotCopy('noAbilityChosen')}
+          />
+          <ReviewLedger
+            title={pilotCopy('equipment')}
+            entities={chosenEquipment}
+            columns={equipmentCols}
+            choices={choices}
+            empty={pilotCopy('noEquipmentChosen')}
+          />
+        </div>
+      </div>
+      <div className="su-wiz-compare-detail">
+        {selectedClass && (
           <ReferenceEntityCard
-            key={ability.id}
-            data={ability}
+            data={selectedClass}
             size="compact"
             hide={{ actions: true, choices: true }}
-          />
-        ))}
-        {chosenEquipment.map((item, i) => (
-          <ReferenceEntityCard
-            // Duplicates are legal picks (2× the same Tech 1 item), so the id
-            // alone cannot key the list.
-            // biome-ignore lint/suspicious/noArrayIndexKey: id alone can't disambiguate duplicate picks; id+index is the stablest available key
-            key={`${item.id}-${i}`}
-            data={item}
-            size="compact"
-            status="intact"
-            hide={{ actions: true, choices: true }}
-          />
-        ))}
-        {chosenAbilities.length === 0 && chosenEquipment.length === 0 && (
-          <EmptyState
-            variant="quiet"
-            body={pilotCopy('noAbilitiesOrEquipmentChosen')}
-            bodyInk="inherit"
           />
         )}
       </div>

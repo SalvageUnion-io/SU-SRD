@@ -13,9 +13,10 @@ import type { PageRefIndex } from './pageRefs'
  * - `openPage(ref)`: the app's Page opener (the detail dialog).
  * - `texture`: whether bands wear the speckle; a surface that stays flat turns
  *   it off once.
- * - `linkAs`: the app's router link for a root-relative path (The app's
- *   `SiteLink`, since entity pages are site paths outside its base), so a
- *   link-mode form navigates client-side; an external href stays an `<a>`.
+ * - `linkAs`: the app's router link (`AppLink`), so a link-mode form
+ *   navigates client-side. It takes APP ROUTES only (`/mechs/<id>`), which
+ *   it puts under the base; a Reference page is a plain anchor (a Tag's
+ *   `page`, `DocumentLinks`), and an external href stays an `<a>`.
  * - `pageRefs`: the entities on each Workshop Manual page the prose cites, so a
  *   "p. 235" links to the page that covers it (`pageRefs.ts`). Absent, a
  *   reference stays text.
@@ -42,9 +43,13 @@ export type EntitySurfaceValue = {
 
 /**
  * Builds an entity's external cross-link node, or `undefined` for an entity
- * with no page to link out to.
+ * with no page to link out to. On a Peek's plate (`inPeek`) it is out of the
+ * tab order, as the plate's name is (E16).
  */
-export type EntityExternalLinkBuilder = (entity: RefEntity) => ReactNode | undefined
+export type EntityExternalLinkBuilder = (
+  entity: RefEntity,
+  options?: { inPeek?: boolean }
+) => ReactNode | undefined
 
 /** A router link: an anchor's attributes, a concrete `href`, its children. */
 export type EntityLinkComponent = ComponentType<

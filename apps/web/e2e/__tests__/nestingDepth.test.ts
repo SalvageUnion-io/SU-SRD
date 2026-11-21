@@ -166,10 +166,10 @@ describe('N3: a Mini nests nothing', () => {
     expect(scan(card('Mini Mortar', 'Weapon System', html))).toEqual([])
   })
 
-  test("a crawler bay's body holds its crew lead (R46)", () => {
+  test('a Mini in a MiniGroup nests nothing either: a bay is a Ledger row now (R46)', () => {
     const crew = token('Quartermaster', 'NPC')
     const html = `<div class="su-mini-group"><div class="su-entity-mini"><div class="su-entity-mini__head"><span class="su-entity-mini__pill"><span class="su-entity-mini__name">Storage Bay</span></span></div><div class="su-entity-mini__body">${crew}</div></div></div>`
-    expect(scan(html).filter((f) => f.rule === 'N3')).toEqual([])
+    expect(scan(html).filter((f) => f.rule === 'N3')).toHaveLength(1)
   })
 })
 

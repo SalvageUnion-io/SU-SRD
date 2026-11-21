@@ -34,7 +34,7 @@
 
   /* The one page measure (`lib/pageMeasure.ts`): the reference pages' band
      row, body and foot, and the app pages that share their column. */
-  --page-measure: 75rem;
+  --page-measure: 80rem;
 
   /* The type ladder (ruleset §4.8): every font size is one of these rungs
      (`fontSize` in design/tokens.ts says what each is for), in rem, so a
@@ -131,7 +131,7 @@
   /* Ink / paper / action */
   --color-ink: rgb(40, 32, 25); /* #282019 */
   --color-ink-2: rgb(70, 61, 49); /* #463d31 secondary ink */
-  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the dark header ground */
+  --color-ink-deep: rgb(27, 23, 18); /* #1b1712 — the chrome: header and footer (K13) */
 
   /* Ink-opacity ramp (ruleset.md, foundations) — hairlines,
      placeholders, ghosts, disabled fills. Not neutral greys, which fight the
@@ -196,10 +196,17 @@
      `--color-ink-2` (10.20:1 on paper), so the primary/secondary hierarchy
      holds. `contrast.test.ts` pins all three. */
   --color-wk-muted: rgb(107, 98, 87); /* #6b6257 */
+  /* Muted text on a banded row: wk-muted clears 4.5:1 on paper but not on a
+     26% tint of the pink or the brown, so there it is 78% ink (5.4:1 or
+     better on every kind's tint). */
+  --color-band-muted: rgb(40 32 25 / 0.78);
   /* NON-TEXT ONLY — 2.03:1 on paper. This is a hairline/divider tone (~18 border
      uses) and must never carry text; the placeholder and separator uses it once
      had now resolve to `wk-muted`. */
   --color-wk-faint: rgb(167, 180, 189); /* #a7b4bd */
+  /* The desk: the margin beside the page column from `lg`, warm ink over the
+     workshop ground, the same material in shadow (grounds by role). */
+  --color-desk: rgb(207, 203, 197); /* #cfcbc5, the page ground a sixth toward ink */
   --color-wk-line: rgb(143, 195, 216); /* #8fc3d8 — advisory/info rule */
   --color-wk-accent: rgb(125, 206, 235); /* #7dceeb — game-state accent */
 
@@ -207,9 +214,8 @@
   --color-caution: rgb(215, 195, 125); /* #d7c37d */
   --color-caution-25: rgb(215 195 125 / 0.25); /* Banner's caution wash */
 
-  /* Cargo (storage) accent pair */
+  /* Cargo (storage) accent */
   --color-cargo: rgb(156, 122, 62); /* #9c7a3e */
-  --color-cargo-pale: rgb(239, 230, 212); /* #efe6d4 */
 
   /* Sheet tones (live sheets) — base + deep pairs */
   --color-sheet-pilot: var(--color-pilot); /* #ef894f */
@@ -241,7 +247,7 @@
      makes the guarantee true, and it holds for a call site nobody remembered
      to mark. */
 
-  /* === Motion (chrome.md K3) === the only durations and the one easing:
+  /* === Motion (chrome K3) === the only durations and the one easing:
      `--dur-fast` for a state change (colour, opacity, a shadow), `--dur-base`
      for a move (transform, a slide, a float), `--dur-phase` a screen's phase
      changing (Play's bar and foot recolouring with the Situation), `--dur-loop`
@@ -272,18 +278,35 @@
  * say what the author meant. This is the floor under them, not a replacement.
  */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    /* biome-ignore lint/complexity/noImportantStyles: an accessibility backstop must out-rank every animation rule and inline style it covers, whatever their specificity or layer */
-    animation-duration: 0.01ms !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — a loop must not survive because one call site set iteration-count inline */
-    animation-iteration-count: 1 !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — transitions are motion too, and a per-site `reduce` guard covers only the components that remembered it */
-    transition-duration: 0.01ms !important;
-    /* biome-ignore lint/complexity/noImportantStyles: same — smooth scrolling is vestibular motion; nothing in the repo sets it today, and this keeps it that way */
-    scroll-behavior: auto !important;
+  /* An inline transition reads the duration tokens, so they go to nothing. */
+  :root {
+    --dur-fast: 0.01ms;
+    --dur-base: 0.01ms;
+    --dur-phase: 0.01ms;
+    --dur-loop: 0.01ms;
   }
+
+  /* Unlayered and an id's weight (`:not(#\#)` matches every element), so it
+     out-ranks every animation class without `!important` (ruleset §4.10). */
+  :not(#\#),
+  :not(#\#)::before,
+  :not(#\#)::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+}
+
+/* A toast's description reads in the toast's own paper: Sonner injects an
+   unlayered grey, which only an unlayered rule of more weight passes. */
+[data-sonner-toast] .su-toast__description:not(#\#) {
+  color: inherit;
+}
+
+/* The `hidden` attribute hides, whatever display a class gives the element. */
+[hidden]:not(#\#, [hidden='until-found']) {
+  display: none;
 }
 
 /*
@@ -397,6 +420,16 @@
   --on-tone-band: var(--color-ink);
 }
 
+/* AA on a tinted band: quiet text on a banded row (the muted ink and the
+   ink-60 alike) is `--color-band-muted`. */
+.su-open tbody > tr[data-band],
+.su-ledger__table tbody tr[data-band],
+.su-roll__row,
+.su-scrap__cell {
+  --color-wk-muted: var(--color-band-muted);
+  --color-ink-60: var(--color-band-muted);
+}
+
 .su-sheet--crawler {
   --tone-default: var(--color-sheet-crawler);
   --tone-deep: var(--color-sheet-crawler-deep);
@@ -422,4 +455,13 @@
   --ground: oklch(from var(--tone) 0.955 0.02 h);
   --tone-band: var(--tone);
   --on-tone-band: var(--color-paper);
+}
+
+/* Paper drops the chrome no page prints (`base.css` names the vocabulary):
+   unlayered and an id's weight, so it beats every display class. */
+@media print {
+  nav:not(#\#),
+  [data-print='hide']:not(#\#) {
+    display: none;
+  }
 }

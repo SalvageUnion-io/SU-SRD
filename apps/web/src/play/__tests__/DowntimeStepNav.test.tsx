@@ -4,7 +4,7 @@ import { DowntimeStepNav } from '../DowntimeStepNav'
 
 /**
  * The Downtime bar, drawn once for the player's step box and the Mediator's
- * (hard rule R23): Back is `BackLabel`, Next is `NextLabel` ("Next: Step 3"),
+ * (chrome K11): Back is `BackLabel`, Next is `NextLabel` ("Next: Step 3"),
  * and the last step's way on is End Downtime.
  */
 

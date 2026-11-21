@@ -1,20 +1,43 @@
 /*
- * The package stylesheet, part 17 of 20: choices, content and patterns.
+ * The package stylesheet: choices, content and patterns.
  * `../index.css` imports the parts in cascade order.
  */
 
 /* ── choices, content and patterns ── */
 
-/* `choiceCard/ChoiceGroups.tsx` — the option masonry. One column, two from `sm`
-   unless compact: the column count is responsive, so it lives here. */
+/* `choiceCard/ChoiceGroups.tsx`: the options on the item grid (`.su-grid`).
+   One a row, two from `sm` unless compact, an odd last one taking its row. */
 .su-choice-options {
-  columns: 1;
+  --su-grid-gap: var(--space-6);
+  --su-grid-max: 1;
 }
 
 @media (width >= 40rem) {
   .su-choice-options--split {
-    columns: 2;
+    --su-grid-max: 2;
   }
+}
+
+/* `choiceCard/ChoiceGroups.tsx` — an editable option: its toggle lies over
+   the whole box, and the box's own links and Peeks are raised above it, so
+   no link is ever nested in the button. */
+.su-choice-toggle {
+  position: relative;
+}
+
+.su-choice-toggle__hit {
+  background: none;
+  border: 0;
+  height: 100%;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.su-choice-toggle :is(a, [role='button'], [tabindex], [data-peek]) {
+  position: relative;
+  z-index: 1;
 }
 
 /* `card/ChoiceRegion.tsx` — a choice sits 12px above whatever follows it, and
@@ -23,20 +46,23 @@
   margin-bottom: var(--space-12);
 }
 
-/* `card/PatternLoadout.tsx` — Systems and Modules side by side from `sm`, with
-   a rule between the columns there and nowhere else. */
+/* `card/PatternLoadout.tsx`: Systems and Modules on the item grid (`.su-grid`),
+   side by side from `sm`, with a rule between the columns there and nowhere
+   else; a loadout of one group takes the row. */
 .su-pattern-loadout {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  --su-grid-gap: var(--space-12);
+  --su-grid-max: 1;
+  --su-grid-row-gap: var(--space-6);
 }
 
 /* A pattern's drones run under both loadout columns. */
 .su-pattern-loadout__drones {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
 }
 
 @media (width >= 40rem) {
   .su-pattern-loadout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --su-grid-max: 2;
   }
 
   .su-pattern-loadout__column + .su-pattern-loadout__column {

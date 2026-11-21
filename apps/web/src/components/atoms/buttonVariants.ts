@@ -49,7 +49,7 @@ const VARIANT = {
   default: 'su-btn--default',
   primary: 'su-btn--primary',
   ghost: 'su-btn--ghost',
-  // No `danger`: no state colour fills a button (ruleset §3.1, hard rule R9).
+  // No `danger`: no state colour fills a button (ruleset §3.1).
   // A destructive act is rust (`primary`) behind `ConfirmDialog`.
   /** Filled ink, paper text: a close stamp on a lifted plate. */
   ink: 'su-btn--ink',

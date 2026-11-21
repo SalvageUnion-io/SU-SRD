@@ -96,7 +96,7 @@ describe('ModalShell', () => {
     expect(screen.getAllByText('Delete Mira Cole?')).toHaveLength(2)
   })
 
-  // Chrome K7 / hard rule R24: three widths, and no other.
+  // Chrome K7: three widths, and no other.
   for (const [width, cap] of [
     ['narrow', '28rem'],
     ['default', '48rem'],
@@ -130,7 +130,7 @@ describe('ModalShell', () => {
     expect(screen.getByRole('dialog').className).toBe('')
   })
 
-  test('the danger band declares an ink ground for its ×; the pilot band does not (R19)', () => {
+  test('the danger band declares an ink ground for its ×; the pilot band does not (K1)', () => {
     const { unmount } = render(
       <ModalShell open={true} onOpenChange={() => {}} title="Delete" tone="danger">
         <p>Content</p>

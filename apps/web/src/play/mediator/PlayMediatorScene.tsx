@@ -26,15 +26,8 @@ import { SCENE_CONDITION_IDS } from 'game-domain/schemas/scene'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
 import { resultForTable, SalvageUnionReference } from 'salvageunion-reference'
-import {
-  Button,
-  Checkbox,
-  ConfirmDialog,
-  MiniGrid,
-  rollForTable,
-  Slab,
-  tokens,
-} from '../../components/index'
+import { ConfirmDialog } from '../../components/app'
+import { Button, Checkbox, MiniGrid, rollForTable, Slab, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { SceneConditionMini } from '../PlayScene'
 import { recordPlayRoll } from '../playRolls.model'
@@ -151,6 +144,7 @@ export function PlayMediatorScene({ mediator, rollFor = rollForTable }: PlayMedi
       <Slab
         as="h2"
         label={mediatorCopy('scene')}
+        flush
         {...(scene.hours > 0 ? { count: { label: mediatorCopy('hour'), value: scene.hours } } : {})}
         actions={
           <Button

@@ -1,4 +1,3 @@
-import { at } from './_base'
 import {
   addThroughPicker,
   advanceUntilVisible,
@@ -40,16 +39,17 @@ test('build a mech from scratch', async ({ page }) => {
   await advanceUntilVisible(page, addCargoPod)
   await installLoadoutItem(page, 'Cargo Pod')
 
-  // Name — a mech's name IS its pattern, behind a click-to-edit field.
-  const nameEditor = page.getByLabel(/^Edit name \/ pattern$/i)
+  // Name — the book's pattern name for it, a live field.
+  const nameEditor = page.getByLabel(/^mech name/i)
   await advanceUntilVisible(page, nameEditor)
-  await fillIdentity(page, 'name / pattern', 'Iron Fist')
+  await fillIdentity(page, 'mech name', 'Iron Fist')
 
   const createMech = page.getByRole('button', { name: /Create Mech/i })
   await advanceUntilVisible(page, createMech)
   await createMech.click()
 
-  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
+  // A finished build opens its new sheet.
+  await page.waitForURL(/\/build\/mechs\/(?!new)/, { timeout: 15_000 })
   await expect(page.getByText('Iron Fist').first()).toBeVisible({
     timeout: 15_000,
   })

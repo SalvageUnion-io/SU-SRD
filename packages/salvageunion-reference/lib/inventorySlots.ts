@@ -27,7 +27,7 @@ export function getInventorySlots(entity: RefMetaEntity): number {
   const traits = getTraits(entity)
   if (traits) {
     for (const t of traits) {
-      if (t.type === 'heavy' || t.type === 'portable') return 2
+      if (t.type === 'Heavy' || t.type === 'Portable') return 2
     }
   }
   return 1

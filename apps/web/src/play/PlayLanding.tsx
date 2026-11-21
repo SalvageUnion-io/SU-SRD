@@ -1,16 +1,16 @@
 /**
- * PlayLanding — the Play hub (`/play/`, ADR-052 §4): your Games, and one tap
+ * PlayLanding — the Games hub (`/games/`, ADR-066): your Games, and one tap
  * from each into play. Play only plays (ADR-052 §3): nothing here makes or
  * keeps a unit; each unit
  * opens its sheet in Build. A Manage page (ruleset §1.9): paper under the
  * `play` band, on the page measure every hub takes.
  *
- *  - **The band**: Play's name under `PRODUCT.playDescriptor`, with the
+ *  - **The band**: the Games' name with the
  *    legacy tagline quoted beside it, as Build's front door and the SRD's
  *    home wear theirs, so the three areas' homes open on the same band.
  *  - **Your Games** (`games.listMine`), the page: one contentful Compact per
  *    Game, the whole Compact opening the Game's page in Play
- *    (`/play/games/$gameId`). Its chips are your role, how many are here now
+ *    (`/games/$gameId`). Its chips are your role, how many are here now
  *    (the Game's room, `useGamePresence`, play.md §7), the Downtime state
  *    (`downtime.state`) and its Discord channel (`channelBindings.mine`); its
  *    body the crew as header-only Minis (`useGameListing`, `gameCrew`);
@@ -21,10 +21,13 @@
  *    Training Bay shelf ends on its "+ New…": **+ New Game**
  *    (`NewGameControl`, from a name or a template) and **Join with a link**
  *    (paste an invite link, or its token, to open the invite screen).
- *  - **Play solo**, under the Games: each pilot you own that is in no Game,
- *    with its mech or "No Mech", and Play solo.
  *
- * Signed out there is nothing to play, so it asks you to sign in. The store
+ * No solo list: a pilot in no Game plays from its own page's Play mode, and
+ * every Training Bay pilot line carries that door (ADR-066).
+ *
+ * Signed out there is nothing to play, so it is Play's front door
+ * (`PlayFrontDoor`): the pitch and its sign-in, what happens at the table,
+ * and the Starter Set's crew. The store
  * holds only your own pilots, so every pilot it lists is yours to play.
  * Disconnected, your pilots still list from the store; the Game list, New
  * Game and Join wait for the connection.
@@ -32,42 +35,37 @@
 
 import { PRODUCT } from 'game-domain/product'
 import '../styles/play/play.css'
-import { cockpitPath, gamePath, invitePath, sheetPath } from 'game-domain/entityKinds'
+import { gamePath, invitePath } from 'game-domain/entityKinds'
 import type { CSSProperties, FormEvent } from 'react'
 import { useState } from 'react'
+import { assetUrl } from 'salvageunion-reference'
 import { NewGameControl } from '../build/games/NewGameControl'
+import { FrontDoor } from '../build/roster/FrontDoor'
 import { Shelf } from '../build/shelves/Shelf'
+import { Shelves } from '../build/shelves/Shelves'
+import { ShelvesPart } from '../build/shelves/shelvesPart.model'
+import { FieldError, PageShell, StartHere } from '../components/app'
 import type { StartHereStep } from '../components/index'
 import {
-  Badge,
+  assetSrcSetFor,
   Button,
   ChapterBand,
-  capsLabel,
   Entity,
-  FieldError,
   Input,
   ModalShell,
-  PageShell,
   Pending,
-  StartHere,
+  SlabSection,
   Stat,
   tokens,
 } from '../components/index'
 import { RoutePending } from '../components/shared/RouteFallbacks'
-import { UnitRow } from '../components/shared/UnitRow'
 import { useGo } from '../components/shared/useGo'
 import { Tagline } from '../components/Tagline'
-import {
-  useCrawlers,
-  useHydrateEntities,
-  useMechs,
-  usePilots,
-  useSoftLinkList,
-} from '../lib/entities'
+import { cn } from '../lib/cn'
+import { useHydrateEntities, usePilots } from '../lib/entities'
 import { gameRowModel } from '../lib/games/containerRow.model'
 import { inviteTokenFrom } from '../lib/games/inviteLink'
 import { PAGE_MEASURE } from '../lib/pageMeasure'
-import { crewPair } from '../lib/units/crewPair'
 import { playCopy } from '../messages/play'
 import { useGameListing } from '../replica/gameListing'
 import type { GameCallResult } from '../replica/roomCalls'
@@ -77,9 +75,7 @@ import { useTableRead } from '../replica/useTable'
 import type { MyChannels } from './channels.model'
 import { channelTag } from './channels.model'
 import { hereCount } from './crew.model'
-import { PlayRefusal } from './PlayRefusal'
-import type { SoloPilot } from './play.model'
-import { gamePilots, soloPilots } from './play.model'
+import { gamePilots } from './play.model'
 import { gameChips, gameCrew, gameDoors } from './playHub.model'
 import { useGamePresence } from './useGamePresence'
 import { useGameSession } from './useGameSession'
@@ -93,9 +89,6 @@ const BODY = {
   flexDirection: 'column',
   gap: tokens.space[32],
 } satisfies CSSProperties
-
-/** The kicker: brand caps, the eyebrow's tracking. */
-const KICKER_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 
 /** The Your Games shelf's controls, at its rule's end. */
 const CONTROLS = {
@@ -157,19 +150,45 @@ const AT_THE_TABLE: readonly StartHereStep[] = [
   },
 ]
 
+/** A tile's art from R2, by its object key. */
+function tileArt(key: string, alt: string) {
+  const url = assetUrl(key)
+  const srcSet = assetSrcSetFor(url)
+  return srcSet ? { url, srcSet, alt } : { url, alt }
+}
+
+/** Each "At the table" tile's art, in the tiles' order. */
+const AT_THE_TABLE_ART = [
+  tileArt('classes/scout.webp', playCopy('artScout')),
+  tileArt('chassis/mazona.webp', playCopy('artMazona')),
+  tileArt('bio-titans/scylla.webp', playCopy('artScylla')),
+]
+
+/**
+ * Play signed out: its front door (`FrontDoor`), its steps "At the table",
+ * with art.
+ */
+function PlayFrontDoor() {
+  const steps = AT_THE_TABLE.map((step, index) => ({ ...step, art: AT_THE_TABLE_ART[index] }))
+  return (
+    <FrontDoor
+      area="play"
+      steps={
+        <StartHere
+          id="play-at-the-table"
+          title={playCopy('atTheTable')}
+          steps={steps}
+          numbered={false}
+        />
+      }
+    />
+  )
+}
+
 export function PlayLanding() {
   const { status } = useSync()
-  if (status === 'signedOut') {
-    return (
-      <PlayRefusal
-        title={playCopy('signInToPlay')}
-        body={playCopy('playRunsYourPilotsSolo2')}
-        signInTo="/play/"
-      >
-        <StartHere id="play-at-the-table" title={playCopy('atTheTable')} steps={AT_THE_TABLE} />
-      </PlayRefusal>
-    )
-  }
+  // Signed out, the hub is Play's front door, in the home's dress.
+  if (status === 'signedOut') return <PlayFrontDoor />
   if (status === 'syncing') return <RoutePending label={playCopy('yourSession')} />
   if (status === 'live') return <ConnectedPlayLanding />
   return <PlayLandingView games={undefined} channels={undefined} />
@@ -191,9 +210,8 @@ type PlayLandingViewProps = {
 }
 
 function PlayLandingView({ games, channels, connected = false }: PlayLandingViewProps) {
-  useHydrateEntities(['pilot', 'mech', 'crawler', 'softLink'])
+  useHydrateEntities(['pilot'])
   const pilots = usePilots()
-  const solo = soloPilots(pilots, useMechs(), useCrawlers(), useSoftLinkList())
   const channelOf = new Map(
     (channels?.games ?? []).map((g) => [g.gameId, channelTag(g.binding)] as const)
   )
@@ -202,13 +220,7 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
     <PageShell
       measure={PAGE_MEASURE}
       band={
-        <ChapterBand
-          tone="play"
-          measure={PAGE_MEASURE}
-          eyebrow={<span className={KICKER_CAPS}>{PRODUCT.playDescriptor}</span>}
-          asideAt="notch"
-          aside={<Tagline />}
-        >
+        <ChapterBand tone="play" measure={PAGE_MEASURE} asideAt="notch" aside={<Tagline />}>
           {PRODUCT.play}
         </ChapterBand>
       }
@@ -228,11 +240,11 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
           isEmpty={games === undefined || games.length === 0}
           empty={
             games !== undefined ? (
-              'You’re in no Games yet. Start one with + New Game, or join one with its invite link.'
+              playCopy('noGamesYet')
             ) : connected ? (
               <Pending as="span" label={playCopy('yourGames2')} />
             ) : (
-              'Your Games list once the connection returns.'
+              playCopy('gamesListOffline')
             )
           }
         >
@@ -245,67 +257,26 @@ function PlayLandingView({ games, channels, connected = false }: PlayLandingView
             />
           ))}
         </Shelf>
-        <Shelf
-          title={playCopy('playSolo')}
-          id="play-solo"
-          isEmpty={solo.length === 0}
-          empty={playCopy('everyPilotOfYoursIs')}
-        >
-          {solo.map((pilot) => (
-            <li key={pilot.pilotId} style={ITEM}>
-              <SoloPilotRow pilot={pilot} />
-            </li>
-          ))}
-        </Shelf>
+        {/* The Mediator's Kit lives with the tables
+            it is for. */}
+        {connected && (
+          // A band with its title's cut-out, as Your Games wears.
+          <SlabSection
+            id="mediators-kit"
+            as="h2"
+            title={playCopy('mediatorsKit')}
+            className="su-mediator-kit-section"
+            // The Kit's two lists, each under its own tab, side by side: the
+            // section names the pair, never one list alone (Ledger law).
+            bodyClassName={cn('su-shelf-ledgers', 'su-mediator-kit')}
+          >
+            <ShelvesPart.Provider value="kit">
+              <Shelves />
+            </ShelvesPart.Provider>
+          </SlabSection>
+        )}
       </div>
     </PageShell>
-  )
-}
-
-/**
- * A shelf pilot under Play solo, by the pair rule (`crewPair`): not aboard,
- * it is the pilot, its HP and AP, with a MECH chip naming its mech; with
- * none, the stamp says so.
- */
-function SoloPilotRow({ pilot }: { pilot: SoloPilot }) {
-  const pair = crewPair({
-    pilot: { id: pilot.pilotId, name: pilot.name, readings: pilot.readings },
-    mech:
-      pilot.mechName === null
-        ? null
-        : {
-            id: pilot.mechId ?? pilot.mechName,
-            name: pilot.mechName,
-            href: pilot.mechId === null ? undefined : sheetPath('mech', pilot.mechId),
-          },
-    boarded: false,
-  })
-  return (
-    <UnitRow
-      kind={pair.kind}
-      name={pair.name}
-      readings={pair.readings}
-      {...(pair.relations
-        ? { relations: [...pair.relations] }
-        : {
-            labels: (
-              <Badge shape="stamp" size="compact" surface="inverse">
-                {playCopy('noMech')}
-              </Badge>
-            ),
-          })}
-      controls={
-        <Button
-          href={cockpitPath(pilot.pilotId)}
-          aria-label={playCopy('playSolo2', { name: pilot.name })}
-          // A door, so never a stamp's ink block (ruleset §3.13): the paper plate.
-          variant="default"
-          size="mini"
-        >
-          {playCopy('playSolo')}
-        </Button>
-      }
-    />
   )
 }
 
@@ -414,16 +385,16 @@ function PlayGameItem({
         {...(crew.length > 0 ? { linked: crew } : {})}
         trailing={
           doors.length > 0
-            ? // A chip's height (C8), and a door's look, never a stamp's ink
-              // block (ruleset §3.13): Play is the paper plate, Start session
-              // the outline beside it, both ink on the Game's pink (R44).
-              doors.map((door) =>
+            ? // A chip's height (C8). The first is your role's door, so rust
+              // (ruleset §1.9, §3.13: Mediate where you mediate, else Play);
+              // any other is the paper plate beside it.
+              doors.map((door, index) =>
                 door.start ? (
                   // Start the session, then open the Mediator's screen.
                   <Button
                     key={door.href}
                     aria-label={door.ariaLabel}
-                    variant="ghost"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
                     disabled={session === null || !session.canWrite || session.pending}
                     onClick={() => {
@@ -439,7 +410,7 @@ function PlayGameItem({
                     key={door.href}
                     href={door.href}
                     aria-label={door.ariaLabel}
-                    variant="default"
+                    variant={index === 0 ? 'primary' : 'default'}
                     size="mini"
                   >
                     {door.label}

@@ -309,7 +309,7 @@ export function EntitySearcher({
         <p className={SUMMARY_CAPS} style={SUMMARY_STYLE}>
           {compositionsCopy('showingOf', { count: visible.length, count2: pool.length })}
         </p>
-        <div className="su-searcher__list">{tokens}</div>
+        <div className={cn('su-searcher__list', browse && 'su-grid')}>{tokens}</div>
         {visible.length === 0 && emptyMessage && (
           <EmptyState variant="inline" className="su-searcher__none" body={emptyMessage} />
         )}

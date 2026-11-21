@@ -34,7 +34,8 @@
 
 import { useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
-import { Button, PickDialog } from '../../components/index'
+import { PickDialog } from '../../components/app'
+import { Button } from '../../components/index'
 import { useHydrateEntities, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import { groupColumn, ownableRows } from '../../lib/games/gameRoster'
@@ -55,12 +56,15 @@ export function LaunchPlay({
   gameId,
   onlyWithPilots = false,
   live = false,
+  door = false,
 }: {
   gameId: string
   /** Show nothing until this browser holds one of the Game's pilots (the Mediator's Play). */
   onlyWithPilots?: boolean
   /** A group session is live: the chip reads Join session. */
   live?: boolean
+  /** Play is this viewer's door, the band's one rust button. */
+  door?: boolean
 }) {
   // Probed rather than required, as `GameRoster` and `AppLink` do: component
   // tests render the hub without a RouterProvider.
@@ -107,12 +111,19 @@ export function LaunchPlay({
     if (chosen?.localId == null) return
     setOpen(false)
     // The local id: the one `PlayGate` looks the pilot up by.
-    void router?.navigate({ to: '/play/pilots/$pilotId', params: { pilotId: chosen.localId } })
+    void router?.navigate({ to: '/pilots/$id/play', params: { id: chosen.localId } })
   }
 
   return (
     <>
-      <Button variant="default" size="compact" onClick={openPicker}>
+      {/* Play is rust only as its role's door (§1.9): the one act whose look
+          the viewer's role picks, so act-twin reads past it. */}
+      <Button
+        variant={door ? 'primary' : 'default'}
+        size="compact"
+        data-role-door=""
+        onClick={openPicker}
+      >
         {live ? playCopy('joinSession') : playGamesCopy('play')}
       </Button>
       <PickDialog

@@ -224,12 +224,3 @@ export function encounterNpcChips(): ShelfChip[] {
 export function encounterReading(encounter: Pick<Encounter, 'opposition'>): UnitReading {
   return { label: 'Opposition', value: encounter.opposition.length }
 }
-
-/** An encounter is only ever its maker's: the label every one wears. */
-export function encounterChips(encounter: Pick<Encounter, 'tables'>): ShelfChip[] {
-  const tables = encounter.tables.length
-  return [
-    { key: 'who', label: WHO.me },
-    ...(tables > 0 ? [{ key: 'tables', label: 'Tables', value: String(tables) }] : []),
-  ]
-}

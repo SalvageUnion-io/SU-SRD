@@ -107,7 +107,7 @@ describe('actions nest', () => {
 
   test("on a Page an action's chips are a Card head's, Mini (C1a)", () => {
     const { container } = render(<ReferenceEntityCard data={drill()} presentation="page" />)
-    // The drill's own chips ride the page's band; its two actions are cards.
+    // The drill's own chips ride the page's band; its two actions are Minis.
     const groups = [...container.querySelectorAll<HTMLElement>('[data-chip-group]')]
     expect(groups.length).toBe(2)
     for (const group of groups) {
@@ -116,10 +116,12 @@ describe('actions nest', () => {
     }
   })
 
-  test('on a Page they stay level-1 framed cards, never Minis', () => {
+  test('on a Page they are contentful Minis under the Actions h2, never framed cards', () => {
     const { container } = render(<ReferenceEntityCard data={drill()} presentation="page" />)
-    expect(container.querySelectorAll('.su-entity-mini[data-contentful]')).toHaveLength(0)
-    expect(fills(container)).toEqual(['ink', 'ink'])
+    const section = screen.getByRole('heading', { name: 'Actions', level: 2 }).closest('section')
+    expect(section?.querySelectorAll('.su-entity-mini[data-contentful]')).toHaveLength(2)
+    expect(container.querySelector('.su-ec-frame')).toBeNull()
+    expect(fills(container)).toEqual([])
   })
 
   test('deeper they are still contentful Minis, never folded behind a chip', () => {
@@ -262,6 +264,6 @@ describe('contexts', () => {
     )
     expect(container.querySelectorAll('[data-grain]').length).toBe(0)
     const textured = render(<ReferenceEntityCard data={sestra()} presentation="page" />)
-    expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(2)
+    expect(textured.container.querySelectorAll('[data-grain]').length).toBeGreaterThan(1)
   })
 })

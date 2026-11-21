@@ -32,6 +32,7 @@ const { SyncContext } = await import('../../../replica/syncContext')
 const { resetStores } = await import('../../../replica/__tests__/resetStores')
 const { withSignedInBackend } = await import('../../../replica/__tests__/signedInBackend')
 const { useUnits } = await import('../../../replica/units')
+const { usePatterns } = await import('../../../replica/collections')
 const { NewEntityScreen } = await import('../NewEntityScreen')
 
 // Building and editing need an account (ADR-034 as amended), so these writes run signed in.
@@ -94,8 +95,8 @@ describe('NewEntityScreen — signed out', () => {
 })
 
 describe('NewEntityScreen — the gate’s landmark', () => {
-  // The Union bar takes the colour of the page's leading band, a band first in
-  // `<main>` (`unionBarMatch.ts`). The screen draws the one its gate leads,
+  // A page's leading band, first in `<main>`, sets its kind
+  // (`unionBarMatch.ts`). The screen draws the one its gate leads,
   // for every kind: the routes draw none.
   test('every gate is its own <main>', () => {
     for (const kind of ['npc', 'mech'] as const) {
@@ -200,8 +201,20 @@ describe('NewEntityScreen — mode routing', () => {
   })
 })
 
-describe('CreateModeChooser — mech third door', () => {
-  test('mech chooser surfaces Instantiate from Pattern linking to /patterns/', () => {
+describe('CreateModeChooser — the mech’s From a pattern door', () => {
+  const order = () => {
+    const [pattern, guided, blank] = ['From a pattern', 'Guided', 'Blank'].map((t) =>
+      screen.getByRole('heading', { name: t })
+    )
+    const before = (a?: Node, b?: Node) =>
+      Boolean(a && b && a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    return {
+      patternFirst: before(pattern, guided),
+      guidedFirst: before(guided, blank),
+      patternLast: before(blank, pattern),
+    }
+  }
+  const chooser = () =>
     render(
       <NewEntityScreen
         kind="mech"
@@ -209,11 +222,34 @@ describe('CreateModeChooser — mech third door', () => {
         wizard={null}
         onModeChange={noop}
         onCreated={noop}
+        forPilot="Nia Vale"
       />
     )
-    const patternDoor = screen.getByRole('link', { name: /instantiate from pattern/i })
-    expect(patternDoor).toBeTruthy()
-    expect(patternDoor.getAttribute('href')).toBe('/patterns/')
+
+  test('with a pattern saved, a mech chooser opens on From a pattern, then Guided and Blank, and names the pilot', () => {
+    usePatterns.setState({
+      mechPatterns: [
+        {
+          id: 'pat-1',
+          schemaVersion: 1,
+          name: 'Brawler',
+          chassisRef: 'titan',
+          systems: [],
+          modules: [],
+          createdAt: 0,
+        },
+      ],
+      hydrated: true,
+    })
+    chooser()
+    expect(order()).toMatchObject({ patternFirst: true, guidedFirst: true })
+    expect(screen.getByText(/For Nia Vale/)).toBeTruthy()
+  })
+
+  test('with none saved, its empty pattern door waits under Guided and Blank', () => {
+    usePatterns.setState({ mechPatterns: [], hydrated: true })
+    chooser()
+    expect(order()).toMatchObject({ guidedFirst: true, patternLast: true })
   })
 
   test('pilot and crawler choosers do NOT show the pattern door', () => {
@@ -226,7 +262,7 @@ describe('CreateModeChooser — mech third door', () => {
         onCreated={noop}
       />
     )
-    expect(screen.queryByRole('link', { name: /instantiate from pattern/i })).toBeFalsy()
+    expect(screen.queryByText('From a pattern')).toBeNull()
     unmount()
 
     render(
@@ -238,7 +274,7 @@ describe('CreateModeChooser — mech third door', () => {
         onCreated={noop}
       />
     )
-    expect(screen.queryByRole('link', { name: /instantiate from pattern/i })).toBeFalsy()
+    expect(screen.queryByText('From a pattern')).toBeNull()
   })
 })
 

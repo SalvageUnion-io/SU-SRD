@@ -21,7 +21,7 @@ async function openMenu() {
 }
 
 describe('MobileNavIsland', () => {
-  test('opens on the chapter index, every schema a row with its count', async () => {
+  test('opens on your own areas (Build, Play), then the chapter index, every schema a row, no counts', async () => {
     render(<MobileNavIsland />)
     const menu = await openMenu()
     const chapters = within(menu)
@@ -29,12 +29,13 @@ describe('MobileNavIsland', () => {
       .map((h) => h.textContent)
       // The drawer's own (visually hidden) title heads the dialog.
       .filter((label) => label !== 'Navigation menu')
-    expect(chapters).toEqual(NAV_CATALOG.map((chapter) => `${chapter.title}${chapter.total}`))
+    // Your own things lead, named as the bar's links are; then the book's chapters.
+    expect(chapters).toEqual(['Build', 'Play', ...NAV_CATALOG.map((chapter) => chapter.title)])
     const first = NAV_CATALOG[0]?.rows[0]
     if (!first) throw new Error('empty NAV_CATALOG')
-    const row = within(menu).getByRole('link', { name: new RegExp(`^${first.label}`) })
+    const row = within(menu).getByRole('link', { name: first.label })
     expect(row.getAttribute('href')).toBe(first.href)
-    expect(row.textContent).toContain(String(first.count))
+    expect(row.textContent).toBe(first.label)
   })
 
   test('carries the search and the mark home', async () => {

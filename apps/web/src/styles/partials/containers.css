@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 14 of 20: the Containers group. `../index.css`
+ * The package stylesheet: the Containers group. `../index.css`
  * imports the parts in cascade order.
  */
 
@@ -165,6 +165,17 @@
   .su-masonry:not(.su-masonry--max-1, .su-masonry--max-2) {
     columns: 3;
   }
+
+  /* Never more columns than cards, and four balance two and two: no column
+     stands empty (R68). */
+  .su-masonry:has(> :nth-child(2):last-child),
+  .su-masonry:has(> :nth-child(4):last-child) {
+    columns: 2;
+  }
+}
+
+.su-masonry:has(> :only-child) {
+  columns: 1;
 }
 
 /* Each card whole in its column, a gap under it; a gap at a column's foot
@@ -193,6 +204,17 @@
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+/* Never more columns than Minis, and four balance two and two: no column
+   stands empty (R68). */
+.su-mini-grid:has(> li:nth-child(2):last-child),
+.su-mini-grid:has(> li:nth-child(4):last-child) {
+  columns: 18rem 2;
+}
+
+.su-mini-grid:has(> li:only-child) {
+  columns: auto 1;
 }
 
 .su-mini-grid > li {
@@ -228,13 +250,12 @@
   }
 }
 
-/* RosterSkeleton (`components/containers/RosterSkeleton.tsx`): one column on a
-   phone, the hydrated roster's three from `md`. */
+/* RosterSkeleton (`components/containers/RosterSkeleton.tsx`), on the item
+   grid (`.su-grid`): one column on a phone, three from `md`. */
 .su-roster-skeleton {
+  --su-grid-gap: var(--space-32);
+  --su-grid-max: 3;
   margin-top: var(--space-20);
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: var(--space-32);
 }
 
 .su-roster-skeleton-wide {
@@ -244,7 +265,6 @@
 @media (width >= 48rem) {
   .su-roster-skeleton {
     margin-top: var(--space-24);
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .su-roster-skeleton-wide {
@@ -284,6 +304,14 @@
    rather than overflowing a phone's column. */
 .su-slab-section__head {
   flex-wrap: wrap;
+}
+
+/* A Slab's actions that overfill a line wrap inside their own box, and each
+   line is filled (R68): three buttons and a fourth read as a block, never a
+   ragged right edge. Beside the title the box is its content's width, so
+   nothing grows. A square stays a square. */
+.su-slab__actions > .su-btn:not(.su-btn--icon-only) {
+  flex: 1 1 auto;
 }
 
 /* With controls (a fold, actions) its count chip is the head's Size, Compact,
@@ -376,4 +404,48 @@
 .su-header-menu-item--danger[data-highlighted]:not([data-disabled]) {
   background-color: var(--color-status-bad);
   color: var(--color-paper);
+}
+
+/* Rows sit on their strip, as a table's do; a row's text is on the row. A
+   mini strip (a divider: a tree's name over its cards) keeps its gap, so the
+   box below it never sits flush on the rule. Cards
+   on the page's ground (the doors) keep the Page's gap: they are no rows. */
+.su-slab-section:not(.su-slab-section--mini, .su-start-here):has(> [data-rows]) {
+  gap: 0;
+}
+
+/* A section whose body is a masonry of cards (an action grid, `MiniGrid`)
+   stands its cards a gap below its strip, and its name's cut-out is the
+   ground under it, not paper: the cards are what is paper. */
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid) {
+  gap: var(--space-12);
+}
+
+.su-slab-section--page:has(> .su-slab-section__body > .su-mini-grid)
+  > .su-rule-head
+  > .su-rule-head__label {
+  background-color: var(--su-ground, var(--color-wk-bg));
+}
+
+/* No box stands naked on the ground: a section whose body is words (a
+   Description, a chassis ability, a sheet's facts or prose, a guide step, a
+   pattern's own words) sits on a paper panel, as a Ledger's rows do, and its
+   tab is cut from the same paper (the cut-out law). */
+.su-slab-section:is(.su-manual__lore, .su-manual__ability),
+.su-slab-section:has(
+  > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+),
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child) {
+  --cutout-ground: var(--color-paper);
+}
+
+.su-slab-section:is(.su-manual__lore, .su-manual__ability) > .su-slab-section__body,
+.su-slab-section:has(
+    > .su-slab-section__body > :is(.su-chassis-ability, .su-dash-facts, .su-dash-prose)
+  )
+  > .su-slab-section__body,
+.su-slab-section:has(> .su-slab-section__body > :is(p, .su-entity-page__prose):first-child)
+  > .su-slab-section__body {
+  background-color: var(--color-paper);
+  padding: var(--space-12) var(--su-column-pad, var(--space-16));
 }

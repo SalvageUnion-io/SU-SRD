@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 3 of 20: the entity forms: Compact and Mini.
+ * The package stylesheet: the entity forms: Compact and Mini.
  * `../index.css` imports the parts in cascade order.
  */
 
@@ -114,7 +114,7 @@
 
 /* The title: one line, and short of room it ends in "…" rather than wrap
    (ruleset §4.7). Beside its labels it gives way first (a
-   high shrink); its chips are never cut (R3). The whole name is the Peek's. */
+   high shrink); its chips are never cut (C5). The whole name is the Peek's. */
 .su-entity-compact__title {
   display: block;
   flex: 0 100 auto;
@@ -149,7 +149,7 @@
 }
 
 /* A TitledBox's title names no entity, so it never gives way to its chips:
-   it wraps at spaces, as a Peek's does (C12). */
+   it wraps at spaces, as a Peek's does (C5). */
 .su-box .su-entity-compact__title:not(.su-entity-compact:not(.su-box) *) {
   min-width: min-content;
   overflow: visible;
@@ -302,7 +302,7 @@
 }
 
 /* CHIPS (`entity/parts/Chips.tsx`): every chip of an entity, one group, one
-   style, wrapping; never a chip cut to "…" (E18). */
+   style, wrapping; never a chip cut to "…" (C5). */
 .su-chips {
   align-items: center;
   display: flex;
@@ -340,7 +340,7 @@
   align-self: flex-start;
 }
 
-/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b, R37):
+/* THE BOTTOM-RIGHT FILL (ruleset §4.7, `chips-and-actions.md` C2b):
    every head whose name and chips share a line (a Compact's or
    Card's heading, a CompactIndex's band, a Page's chapter band: `[data-chip-fill]`).
    Chips sit only beside the name, on its line, the last chip (the cost) in
@@ -430,7 +430,7 @@
 }
 
 /* A chip wider than the head itself (a Game's long name) wraps its value on
-   a line of its own, never past the Compact's edge (R3, E18: it wraps, never
+   a line of its own, never past the Compact's edge (C5: it wraps, never
    clipped). */
 [data-chip-fill] .su-stat-cell {
   max-width: 100%;
@@ -452,7 +452,7 @@
   overflow-wrap: anywhere;
 }
 
-/* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2a). In a
+/* A CHIP LANE (`Chips`): one class's chips, `data-chip-class` (C2). In a
    strip it draws no box, so its chips are the strip's flex items. Its
    `--su-lane-end` counts the chips after it, so each chip knows its place
    from the strip's end (`--su-fill`, the cost's 1): a strip that fills from
@@ -1007,7 +1007,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 
 /* TOKEN (`entity/forms/Mini.tsx`): the pill, `[note] [tier] name [chips]`,
    its name on the cut-out (below), the Mini's full
-   width. Always one row (E18): short of room the name ends in "…", and the
+   width. Always one row (C5): short of room the name ends in "…", and the
    chips keep their whole width (below), held at its right end by the
    cut-out's margin. */
 .su-entity-mini__pill {
@@ -1099,7 +1099,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* The name gives way first: it takes the room the chips leave and ends in
-   "…" when that is too little (E18's Mini exception). */
+   "…" when that is too little (C5's Mini exception). */
 .su-entity-mini__name {
   flex: 1 1 auto;
   min-width: 0;
@@ -1363,20 +1363,15 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   flex: 1 1 auto;
 }
 
-/* Two Minis a line (`--two-up`: a pattern drone's systems and modules under
-   its Mini), in reading order; one a line on a phone, where two would each
-   be too narrow to hold a system name. */
+/* Two Minis a line (`--two-up` on the item grid, `.su-grid`: a pattern
+   drone's systems and modules under its Mini), in reading order, an odd last
+   one taking its line; one a line where two would each be too narrow to hold
+   a system name. */
 .su-entity-mini-list--two-up {
-  display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  column-gap: var(--space-6);
-  row-gap: var(--space-4);
-}
-
-@media (width >= 40rem) {
-  .su-entity-mini-list--two-up {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  --su-grid-gap: var(--space-6);
+  --su-grid-max: 2;
+  --su-grid-min: 14rem;
+  --su-grid-row-gap: var(--space-4);
 }
 
 @media (pointer: coarse) {
@@ -1450,7 +1445,7 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 }
 
 /* A card's name as the link to its own Page (`CardTitleLink`): a nested
-   card's, and the Peek's one link (R33). It reads as the name, and underlines
+   card's, and the Peek's one link (E16). It reads as the name, and underlines
    under the pointer; inline, as the opener's `div` sits in the name's line. */
 .su-card-title-link {
   color: inherit;
@@ -1575,6 +1570,20 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
   outline-offset: calc(-1 * (var(--su-mini-inset) + var(--bw-chrome)));
 }
 
+/* A rust button on a Compact's head band wears the ink keyline too (a Game's
+   door on the Play hub). */
+.su-entity-compact__head .su-btn--primary:not(:disabled) {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-chrome));
+}
+
+/* A rust button on a Mini's band wears its ink keyline (ruleset §3.13) as an
+   outline on its plate's edge, a strip's Mini control as the outlined one does. */
+.su-entity-mini__pill .su-btn--primary:not(:disabled) {
+  outline: var(--bw-chrome) solid var(--color-ink);
+  outline-offset: calc(-1 * (var(--su-mini-inset, 0px) + var(--bw-chrome)));
+}
+
 /* A list that keeps its Minis' names whole (`data-names-whole`: a Game's
    people, R50; R56). The pill wraps, so the role and pilot chips take the row beneath the name when
    the two do not share a line. */
@@ -1593,4 +1602,66 @@ ul:has(> li > .su-entity-index:not(.su-entity-index--bare))
 [data-names-whole] .su-entity-mini__chips {
   flex: 0 1 auto;
   flex-wrap: wrap;
+}
+
+/* ── A Ledger and a strip's rows (ledger.md L1, L-6) ─────────────────── */
+
+/* The frame goes: the head strip is the Ledger's only paint, a 2px ink rule
+   closes it, and the cite keeps its cut-out on the ground, bottom right. */
+.su-ledger > .su-entity-compact__frame {
+  background-color: transparent;
+  border-bottom-width: var(--bw-pill);
+  border-top: 0;
+  --su-compact-frame: var(--color-ink);
+  border-inline-width: 0;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-mini > *,
+[data-rows] .su-entity-compact__frame,
+[data-rows] .su-entity-mini__pill[data-row] {
+  border-color: transparent;
+  border-width: 0;
+  box-shadow: none;
+}
+
+/* A row's head keeps the one focus ring (K9) the rule above takes from it. */
+[data-rows] .su-entity-mini > :focus-visible {
+  box-shadow: var(--focus-ring-shadow);
+}
+
+[data-rows] :is(.su-entity-mini__notch, .su-entity-compact__notch),
+[data-rows]
+  .su-entity-compact__head[data-row]
+  :is(.su-entity-compact__name, .su-entity-compact__title) {
+  background: none;
+  color: var(--color-ink);
+}
+
+[data-rows] .su-entity-compact__head[data-row] {
+  background-image: none;
+}
+
+/* A list of rows: one column, no gaps, zebra in the page's colour. */
+[data-rows] .su-entity-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+[data-rows] .su-entity-mini,
+[data-rows] .su-entity-compact__frame {
+  background-color: var(--color-paper);
+}
+
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-mini,
+[data-rows] :is(li, .su-grid > *):nth-child(even) > .su-entity-compact > .su-entity-compact__frame,
+[data-rows]
+  :is(li, .su-grid > *):nth-child(even):is(.su-entity-compact)
+  > .su-entity-compact__frame {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+[data-rows] .su-entity-mini :is(.su-entity-mini__body, .su-entity-mini__head) {
+  background-color: transparent;
 }

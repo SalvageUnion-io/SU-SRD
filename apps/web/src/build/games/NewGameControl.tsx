@@ -20,10 +20,10 @@
 import { gamePath } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
+import { FieldError } from '../../components/app'
 import {
   Button,
   Field,
-  FieldError,
   Input,
   ModalShell,
   Pending,
@@ -64,8 +64,6 @@ const ROW = {
 } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', minWidth: 0 } satisfies CSSProperties
-
-const HINT = { textAlign: 'left' } satisfies CSSProperties
 
 type NewGameDialogProps = {
   open: boolean
@@ -143,9 +141,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           {templates === undefined && <Pending label="templates" />}
           {templates?.map((t) => (
             <SlabSection as="h4" title={t.name} key={t.id} bodyStyle={STACK}>
-              <Text variant="hint" style={HINT}>
-                {t.description}
-              </Text>
+              <Text variant="hint">{t.description}</Text>
               <div>
                 <Button
                   variant="default"
@@ -161,9 +157,7 @@ function ConnectedNewGameDialog({ open, onOpenChange }: NewGameDialogProps) {
           ))}
         </SlabSection>
 
-        <Text variant="hint" style={HINT}>
-          {buildGamesCopy('joiningAFriendsGameOpen')}
-        </Text>
+        <Text variant="hint">{buildGamesCopy('joiningAFriendsGameOpen')}</Text>
 
         <FieldError>{error}</FieldError>
       </div>
@@ -175,8 +169,8 @@ function ConnectedNewGameControl() {
   const [open, setOpen] = useState(false)
   return (
     <>
-      {/* A make, so rust (ruleset §1.9). */}
-      <Button variant="primary" size="compact" onClick={() => setOpen(true)}>
+      {/* A make (+ New) is outlined wherever it stands (ruleset §3.14). */}
+      <Button variant="default" size="compact" onClick={() => setOpen(true)}>
         {buildGamesCopy('newGame2')}
       </Button>
       <ConnectedNewGameDialog open={open} onOpenChange={setOpen} />

@@ -5,7 +5,7 @@
  * The Mini is the companion's stat block under its own name, scaled to its
  * Tech Level. Its "Details" control (both states: its SP, loadout and hold are
  * live sheet state the reference Peek cannot show) opens the whole
- * `PartnerCard` as the companion's Page (E5, R6), where every edit happens:
+ * `PartnerCard` as the companion's Page (E5, C8), where every edit happens:
  * nothing expands under the line.
  */
 

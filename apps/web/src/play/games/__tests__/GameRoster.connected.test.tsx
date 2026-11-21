@@ -28,7 +28,7 @@ import { RoomDeclined } from '../../../replica/roomSocket'
  * Mutations are recorded by name the same way.
  */
 
-import { crawlerFixture, pilotFixture } from '../../../components/__tests__/fixtures'
+import { crawlerFixture, mechFixture, pilotFixture } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { closeRooms, serve } from '../../../replica/__tests__/fakeRooms'
 
@@ -224,9 +224,10 @@ describe('what a row offers', () => {
     await renderAs(ME, listing({ pilots: [THEIR_PILOT] }))
 
     expect(screen.getByText('Ash')).toBeTruthy()
-    // Who plays it is The Game's to say (each person wears their pilots), so
-    // a held row carries no seal; only an unassigned one does.
-    expect(screen.queryByText('Mediator')).toBeNull()
+    // A held row names its holder in the Member column; it carries no seal
+    // (only an unassigned one does).
+    const line = screen.getByRole('link', { name: 'Ash' }).closest('tr')
+    expect(line?.querySelector('td')?.textContent).toBe('Mediator')
     // Readable: a shared table whose crew you cannot look at is not shared.
     // The same address as your own rows; `SheetView` renders it read-only.
     const row = screen.getByRole('link', { name: 'Ash' })
@@ -365,10 +366,11 @@ describe('yours first, then everyone else', () => {
     // crewmate's and the unassigned pre-gen, in the listing's order.
     const names = screen
       .getAllByRole('link', { name: /^(Roach-Boy|Ash|Pre-gen)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['Roach-Boy', 'Ash', 'Pre-gen'])
-    expect(screen.getByText('Mine')).toBeTruthy()
-    expect(screen.queryByText('Mediator')).toBeNull()
+    // Your row wears MINE (its stamp, and its Member cell).
+    const mine = screen.getByRole('link', { name: 'Roach-Boy' }).closest('tr')
+    expect(within(mine as HTMLElement).getAllByText('Mine').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: /Unassigned/i })).toBeTruthy()
   })
 
@@ -382,7 +384,7 @@ describe('yours first, then everyone else', () => {
     // The rows, in order — each Compact is a link named for its unit.
     const names = screen
       .getAllByRole('link', { name: /^(#430 Tenacity|Second Wind)$/ })
-      .map((link) => link.getAttribute('aria-label'))
+      .map((link) => link.getAttribute('aria-label') ?? link.textContent)
     expect(names).toEqual(['#430 Tenacity', 'Second Wind'])
   })
 })
@@ -620,18 +622,32 @@ describe('remove from game', () => {
 })
 
 describe('units in from Build (ADR-052 §3, §5)', () => {
-  test('the head links out to Build: its wizard for this Game, and the Training Bay', async () => {
+  test('the head links out to Build’s wizards for this Game, and nothing else', async () => {
     const mediator = { ...ME, _id: 'u-med', displayName: 'Mediator' }
     await renderAs(mediator, listing())
     const hrefOf = (name: string) => screen.getByRole('link', { name }).getAttribute('href')
     expect(hrefOf('+ New Pilot')).toBe('/pilots/new?game=g1')
     expect(hrefOf('+ New Mech')).toBe('/mechs/new?game=g1')
     expect(hrefOf('+ New Crawler')).toBe('/crawlers/new?game=g1')
-    expect(hrefOf('Manage in Build')).toBe('/')
+    expect(screen.queryByRole('link', { name: 'Manage in Build' })).toBeNull()
     // Nothing that builds lives here.
     expect(screen.queryByText('Create Mech')).toBeNull()
     expect(screen.queryByText('Patterns')).toBeNull()
     expect(screen.queryByText('Move in…')).toBeNull()
+  })
+
+  test('Add from Training Bay brings one of your own in: the same record moves', async () => {
+    setSyncStatus('live')
+    await useUnits.getState().adopt('mech', mechFixture({ id: 'm-bay', name: 'Rust Bucket' }))
+    await renderAs(ME, listing())
+    fireEvent.click(screen.getByRole('button', { name: 'Add from Training Bay' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Bring into this Game' })
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Rust Bucket' }))
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Move in' }))
+    })
+    await settle(() => useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId === 'g1')
+    expect(useUnits.getState().mechs.find((m) => m.id === 'm-bay')?.gameId).toBe('g1')
   })
 })
 

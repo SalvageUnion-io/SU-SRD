@@ -1,12 +1,13 @@
 /**
- * MechSheet — The Hold (StorageManifest side='mech').
+ * MechSheet — The Hold: the dashboard's Cargo Ledger, its moves on each row in
+ * Edit and its intake under it.
  *
  * The hold renders the mech's cargo lots over the useCargo boundary:
  *   - Stow moves a whole lot to the linked crawler's hold.
  *   - Stowing a SCRAP lot deposits the crawler's matching TL pool bucket
  *     instead of minting a crawler lot.
  *   - Unlinked crawler → Stow disabled with an honest title reason.
- *   - Over-capacity renders honest red SlotGrid cells (status-bad), never
+ *   - Over-capacity reads honestly in the head's count (critical), never
  *     clamped.
  *
  * Conventions: toBeTruthy() not toBeInTheDocument(), dep-injected store.
@@ -20,8 +21,6 @@ import type { Mech } from 'game-domain/schemas/mech'
 import { crawlerFixture, mechFixture } from '../../../components/__tests__/fixtures'
 import { makeEntityStoreMock } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
-import { slabChip } from '../../../components/__tests__/slabChip'
-import { color } from '../../../design/tokens'
 import { MechSheet } from '../MechSheet'
 
 function makeMech(overrides: Partial<Mech>): Mech {
@@ -159,77 +158,55 @@ describe('MechSheet — The Hold (Stow)', () => {
     expect(captured.map((u) => u.type)).toEqual(['mech'])
   })
 
-  test('over-capacity renders honest red SlotGrid cells (never clamped)', () => {
-    // Cap 6 (Scrapper) but 8 units held → 2 over-capacity cells.
+  test('over capacity reads in the head, never clamped', () => {
+    // Cap 6 (Scrapper) but 8 units held.
     const mech = makeMech({
       cargoLots: [makeUnitLot('Big Thing', { units: 8 })],
     })
-    render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
-
-    // The capacity strip is the canonical SlotGrid: filled = cargo-toned
-    // cells, over-capacity = status-bad cells, and the accessible label
-    // narrates the overflow.
-    const grid = screen.getByRole('img', {
-      name: /hold 8 of 6 slots used — over capacity/i,
-    })
-    const cells = Array.from(grid.querySelectorAll<HTMLElement>('[aria-hidden="true"]'))
-    expect(cells.filter((c) => c.style.backgroundColor === color.statusBad).length).toBe(2)
-    expect(cells.filter((c) => c.style.backgroundColor === color.cargo).length).toBe(6)
+    const { container } = render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
+    const tally = must(holdTally(container))
+    expect(tally.textContent).toBe('8/6Slots')
+    expect(tally.dataset.state).toBe('critical')
     expect(screen.getByText(/over capacity/i)).toBeTruthy()
   })
 
-  test("the slab reads the hold's slots truthfully, without tallying its lots", () => {
+  test("the head reads the hold's slots truthfully, without tallying its lots", () => {
     const mech = makeMech({
       cargoLots: [makeUnitLot('Sealed Crate', { units: 2 }), makeScrapLot(1, 1)],
     })
-    render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
+    const { container } = render(<MechSheet mech={mech} store={makeStore(mech, [])} />)
 
-    expect(must(slabChip('The Hold')).textContent).toBe('Slots3/6')
+    expect(must(holdTally(container)).textContent).toBe('3/6Slots')
     expect(screen.queryByText(/2 lots/i)).toBeNull()
   })
 })
 
+/** The Cargo Ledger's slot count, in its head. */
+const holdTally = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('[data-storage-side="mech"] .su-rule-head__tally')
+
 describe('MechSheet — The Hold panel', () => {
-  test('a flat panel under a Slab; capacity is a label-first chip; the stow target is a Mini', () => {
+  test('the Cargo Ledger: a row a lot, its moves at its end, nothing casting a shadow', () => {
     const mech = makeMech({ cargoLots: [makeUnitLot('Sealed Crate', { units: 2 })] })
     const crawler = makeCrawler()
     const { container } = render(
-      <MechSheet
-        mech={mech}
-        crawler={crawler}
-        crawlerHref="/crawlers/crawler-hold-1"
-        store={makeStore(mech, [], crawler)}
-      />
+      <MechSheet mech={mech} crawler={crawler} store={makeStore(mech, [], crawler)} />
     )
     const manifest = must(container.querySelector<HTMLElement>('[data-storage-side="mech"]'))
-    // The head is the sheet's Slab, not a hand-built ink bar, and nothing in
-    // the Hold casts a shadow (the Live Sheet is flat).
-    expect(within(manifest).getByText('Mech Hold')).toBeTruthy()
+    expect(manifest.querySelector('table.su-open')?.getAttribute('data-form')).toBe('ledger')
     for (const el of manifest.querySelectorAll<HTMLElement>('[style]')) {
       expect(el.style.boxShadow).toBe('')
     }
-    // `UNITS | 2/6`, label first.
-    const units = [...manifest.querySelectorAll('.su-stat-cell')].find((cell) =>
-      cell.textContent?.startsWith('Units')
-    )
-    expect(units?.textContent).toBe('Units2/6')
-    // The linked crawler is its relation chip (R5), opening its sheet.
-    const token = screen.getByRole('link', { name: /Hold Crawler$/ })
-    expect(token.getAttribute('href')).toBe('/crawlers/crawler-hold-1')
+    const stow = within(manifest).getByRole('button', { name: 'Stow Sealed Crate' })
+    expect(stow.closest('.su-open__controls')).toBeTruthy()
   })
 })
-
-/** An empty hold in Edit is one + Load cargo; its form opens on it. */
-function openEmptyHold() {
-  fireEvent.click(screen.getByRole('button', { name: '+ Load cargo' }))
-}
 
 describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => {
   test('Load adds a new lot to a standalone mech hold (no crawler linked)', async () => {
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
-    openEmptyHold()
 
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/new cargo name/i), {
@@ -254,7 +231,6 @@ describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => 
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
-    openEmptyHold()
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^scrap$/i }))
@@ -281,7 +257,6 @@ describe('MechSheet — The Hold (standalone Load / Unload, no crawler)', () => 
     const captured: CapturedUpdate[] = []
     const mech = makeMech({ cargoLots: [] })
     render(<MechSheet mech={mech} store={makeStore(mech, captured)} />)
-    openEmptyHold()
 
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/new cargo name/i), {

@@ -25,8 +25,9 @@ import {
 } from 'salvageunion-reference/rules'
 import { Stat } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
+import { usePatterns } from '../../replica/collections'
 import { assignedRail } from './assignedRail'
-import { mechStamp } from './bandStamps.model'
+import { mechPatternStamp, mechStamp } from './bandStamps.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
 import { MechSheet } from './MechSheet'
@@ -50,6 +51,7 @@ export function MechLiveSheet({
   band,
   editable,
   readOnly,
+  liveInRead = false,
   crawlerReadOnly,
   ownerOf,
   store,
@@ -88,11 +90,12 @@ export function MechLiveSheet({
     },
   ]
 
-  // Assigned units: the pilot it carries and the crawler it docks in, both
+  // Related units: the pilot it carries and the crawler it docks in, both
   // its OWN links (ADR-037), each assigned, changed and unassigned on its own.
+  const savedPatterns = usePatterns((s) => s.mechPatterns)
   const rail = assignedRail(
     { kind: 'mech', entity: mech },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
   return (
@@ -105,7 +108,10 @@ export function MechLiveSheet({
       band={band}
       source={mech.seedRef ? 'starter' : mech.sourcePattern ? 'homebrew' : undefined}
       kindDetail={mechStamp(mech.chassisRef)}
-      rank={<MechBandRank chassisRef={mech.chassisRef} />}
+      fromPattern={mechPatternStamp(mech, (id) => savedPatterns.find((p) => p.id === id)?.name)}
+      // Read's header strip carries TL and
+      // SV with the chassis's other figures, so the band leaves them out (R59).
+      rank={readOnly ? undefined : <MechBandRank chassisRef={mech.chassisRef} />}
       out={
         mechHasCondition(mech, 'Destroyed')
           ? {
@@ -120,9 +126,9 @@ export function MechLiveSheet({
           mech={mech}
           store={store}
           readOnly={readOnly}
+          live={liveInRead}
           crawler={composition.crawler}
           crawlerReadOnly={crawlerReadOnly}
-          crawlerHref={composition.crawler ? hrefFor('crawler', composition.crawler.id) : undefined}
           linkedUnits={rail}
           pilotAbilities={pilotAbilities}
         />

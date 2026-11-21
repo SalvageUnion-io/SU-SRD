@@ -261,7 +261,7 @@ describe('Action Property Getters', () => {
       expect(getActionType(bioRifle)).toBe('Turn')
       expect(getRange(bioRifle)).toEqual(['Medium'])
       expect(defined(getDamage(bioRifle)).amount).toBe(4)
-      expect(defined(getTraits(bioRifle)).map((t) => t.type)).toContain('pinning')
+      expect(defined(getTraits(bioRifle)).map((t) => t.type)).toContain('Pinning')
     })
   })
 })

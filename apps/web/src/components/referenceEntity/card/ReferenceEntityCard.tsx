@@ -6,7 +6,6 @@ import {
   extractVisibleActions,
   foldedActionOf,
   formatCost,
-  getAssetUrl,
   getChoices,
   getReferenceEntityName,
   getTechLevel,
@@ -18,6 +17,7 @@ import {
   resolveProvenance,
 } from 'salvageunion-reference'
 import { space } from '../../../design/tokens'
+import { artUrlFor, isBookCover } from '../../../lib/sourceCovers'
 import { Badge } from '../../atoms/Badge'
 import { assetSrcSetFor } from '../../compositions/assetSrcSet'
 import type { StatItem } from '../../containers/statsBarTypes'
@@ -177,6 +177,7 @@ function ReferenceEntityCardInner({
   statsOverride,
   subtitleExtra,
   afterExtraContent,
+  asideExtraContent,
   asideLead: asideLeadRequested = false,
   footMeta,
   className,
@@ -229,8 +230,9 @@ function ReferenceEntityCardInner({
     dataValueBonuses,
   } = resolveTechScaling(entity, techLevel, entityChoices, scalingParent)
   const entityName = getReferenceEntityName(entity) ?? ('name' in entity ? String(entity.name) : '')
-  const assetUrl = getAssetUrl(entity)
+  const assetUrl = artUrlFor(entity)
   const assetSrcSet = assetSrcSetFor(assetUrl)
+  const assetBare = isBookCover(entity)
 
   // PATTERN view — the pattern is the subject; the chassis supplies stats / tone / source.
   const isPattern = !!pattern
@@ -358,7 +360,7 @@ function ReferenceEntityCardInner({
   const hasSubLine = onPage && !!suggestedNode
 
   // The head's chip group carries the condition and every control, in its
-  // state and last slots (C8, hard rule R6), and the select seal on the
+  // state and last slots (C8), and the select seal on the
   // band's right (EDL Modes, R15): nothing rides the frame or sits under it.
   const slots = cardStripSlots({ controls, status, subject: entityName })
   // A selected Card always wears the "Selected" seal. A Mini (level 2) is ring only.
@@ -428,6 +430,7 @@ function ReferenceEntityCardInner({
     leadHint: hintText,
     assetUrl,
     assetSrcSet,
+    assetBare,
     effTechLevel,
     dataValueBonuses,
     entityChoices,
@@ -472,6 +475,8 @@ function ReferenceEntityCardInner({
           )
         }
         body={bodyHasContent ? bodyContent : null}
+        // A body that holds choices is rules, not a description.
+        bodyRules={entityChoices.length > 0 && !hide?.choices}
         opening={patternSection}
         loadout={<PatternLoadoutRows groups={pageLoadout} as={sectionAs} host={nestedHost} />}
         bodyLabel={
@@ -484,6 +489,7 @@ function ReferenceEntityCardInner({
         sections={nestedGroupsNode}
         patterns={hide?.patterns ? [] : patternList}
         after={afterExtraContent}
+        aside={asideExtraContent}
         sectionAs={sectionAs}
         action={{
           NestedCard: ReferenceEntityCardInner,
@@ -548,6 +554,7 @@ function ReferenceEntityCardInner({
               provenance={userMade ? undefined : provenance}
               footMeta={footMeta}
               externalLink={!insidePeek && !userMade ? externalLinkNode : undefined}
+              linkBooks={!insidePeek}
               size={size}
               credit={userMade ? `Made by ${madeBy ?? 'a player'}` : undefined}
               band={{ onBand, bandColor }}

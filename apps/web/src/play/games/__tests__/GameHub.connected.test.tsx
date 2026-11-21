@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } fr
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 
 /**
- * `GameHub` — a Game's own page in Play, `/play/games/$gameId` (ADR-052 §5):
+ * `GameHub` — a Game's own page in Play, `/games/$gameId` (ADR-052 §5):
  * the band, the roster, then two columns of sections. What this
  * file defends:
  *
@@ -240,6 +240,22 @@ describe('the sections under the roster', () => {
     expect(members.hasAttribute('data-names-whole')).toBe(true)
   })
 
+  test('alone at the table, Hand over rests and says why; a nameless viewer is You', async () => {
+    await renderHub({
+      'games.get': { ...GAME, organizer: true, mediator: true },
+      'games.members': [
+        { userId: 'u1', displayName: null, mediator: true, organizer: true, joinedAt: 1 },
+      ],
+    })
+    const members = screen.getByRole('list', { name: 'Members' })
+    expect(within(members).getByText('You')).toBeTruthy()
+    expect(screen.queryByText('Crewmate (you)')).toBeNull()
+    expect((screen.getByRole('button', { name: 'Hand over' }) as HTMLButtonElement).disabled).toBe(
+      true
+    )
+    expect(screen.getByText(/Hand over needs another member/)).toBeTruthy()
+  })
+
   test('Hand over appoints the chosen member first, then stands the old Mediator down', async () => {
     await renderHub({
       'games.get': { ...GAME, organizer: true, mediator: true },
@@ -281,7 +297,7 @@ describe('the sections under the roster', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Delete Game' }))
     })
     expect(mutations).toEqual([{ name: 'games.destroy', args: { gameId: 'g1' } }])
-    expect(navigations).toEqual([{ to: '/play' }])
+    expect(navigations).toEqual([{ to: '/games' }])
   })
 
   test('a game with no crawler does not promise one', async () => {
@@ -328,21 +344,21 @@ describe('the seats, on the Pilots rows', () => {
       },
     })
 
-    const pilots = screen.getByRole('region', { name: 'Crew' })
-    const text = drawnText(pilots)
-    // A pilot's row: its HP, then its mech as its header-only Mini, never a
-    // chip.
-    expect(text).toContain('HP4/10')
-    expect(text).not.toContain('MechSpectrum')
-    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('Spectrum')
-    // An assigned mech always shows its Tech Level.
-    expect(pilots.querySelector('[data-entity-linked]')?.textContent).toContain('TL2')
-    // A piloted mech rides its pilot's row only, never a row of its own.
-    expect(pilots.querySelectorAll('[data-entity-linked]')).toHaveLength(1)
-    expect(text.split('Spectrum')).toHaveLength(2)
-    expect(text).toContain('HP8/8')
-    // The count is the label-first chip, `SEATS | 1/2`.
-    expect(within(pilots).getByText('Seats').closest('.su-stat-cell')?.textContent).toBe('Seats1/2')
+    const crew = screen.getByRole('table', { name: 'Crew' })
+    const line = (name: string) =>
+      within(crew).getByRole('link', { name }).closest('tr') as HTMLElement
+    const cells = (row: HTMLElement) => [...row.querySelectorAll('td')].map((td) => td.textContent)
+    // A pilot's line: the mech they are in beside their name, its Tech Level
+    // in the TL column, their HP in the HP column.
+    const pickle = line('Pickle')
+    expect(pickle.querySelector('th')?.textContent).toContain('in Spectrum')
+    expect(cells(pickle).slice(1, 3)).toEqual(['2', '4/10'])
+    // A piloted mech rides its pilot's line only, never a line of its own.
+    expect(drawnText(crew).split('Spectrum')).toHaveLength(2)
+    // An absent current HP is full.
+    expect(cells(line('Hotdog'))[2]).toBe('8/8')
+    // The seats are the head's tally: `1/2 SEATS`.
+    expect(crew.querySelector('.su-rule-head__tally')?.textContent).toBe('1/2Seats')
     // No presence column: nothing writes it, and a false "Here" is worse than none.
     expect(screen.queryByText(/^(Here|Away)$/)).toBeNull()
   })
@@ -355,6 +371,15 @@ describe('the Mediator on the Game page', () => {
     // Their way in is the player's Play button, not the Mediator's link.
     expect(screen.queryByRole('link', { name: 'Mediate' })).toBeNull()
     expect(heading('Proposals you sent')).toBeNull()
+    expect(heading('Your prep')).toBeNull()
+  })
+
+  test('the Mediator gets a door to the prep the Training Bay keeps, counted', async () => {
+    await renderHub({ 'games.get': { ...GAME, mediator: true } })
+    expect(heading('Your prep')).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: 'Prep in the Training Bay' }).getAttribute('href')
+    ).toBe('/')
   })
 
   test('the Mediator gets the band’s door to Play and the proposals they sent', async () => {
@@ -377,9 +402,10 @@ describe('the Mediator on the Game page', () => {
       ],
     })
 
-    expect(screen.getByText('You mediate')).toBeTruthy()
+    // The Mediate door alone says who mediates: no stamp beside it.
+    expect(screen.queryByText('You mediate')).toBeNull()
     expect(screen.getByRole('link', { name: 'Mediate' }).getAttribute('href')).toBe(
-      '/play/games/g1/mediate'
+      '/games/g1/mediate'
     )
     expect(heading('Proposals you sent')).toBeTruthy()
     expect(screen.getByText('Judge · HP → 4 · “Ejection burn”')).toBeTruthy()
@@ -411,17 +437,18 @@ describe('who plays whom', () => {
       li.textContent?.includes('Beefcake')
     )
     expect(beefcake?.textContent).toContain('Pickle')
-    // The crew row wears its Class; who holds it is The Game's to say, so no seal.
-    const crew = screen.getByRole('region', { name: 'Crew' })
+    // The crew line wears its Class, and its Member column names who holds it.
+    const crew = screen.getByRole('table', { name: 'Crew' })
     expect(drawnText(crew)).toContain('Hacker')
-    expect(crew.textContent).not.toContain('Beefcake')
+    const pickle = within(crew).getByRole('link', { name: 'Pickle' }).closest('tr')
+    expect(pickle?.querySelector('td')?.textContent).toBe('Beefcake')
   })
 })
 
 describe('the Mediator before they have proposed anything', () => {
   test('has no empty Proposals you sent', async () => {
     await renderHub({ 'games.get': { ...GAME, mediator: true }, 'ops.sent': [] })
-    expect(screen.getByText('You mediate')).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Mediate' })).toBeTruthy()
     expect(heading('Proposals you sent')).toBeNull()
   })
 })
@@ -433,7 +460,7 @@ describe('a game the viewer is not in', () => {
     expect(screen.getByText(/not in this Game/i)).toBeTruthy()
     expect(screen.getByText(/invite link/i)).toBeTruthy()
     expect(heading('Crew & seats')).toBeNull()
-    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(screen.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/games/')
   })
 
   test('still loading is not the same as not a member', async () => {
@@ -550,7 +577,7 @@ describe('Play from the Game page', () => {
     })
     expect(launcher()).toBeNull()
     const links = screen.getAllByRole('link', { name: 'Mediate' })
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/play/games/g1/mediate'])
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['/games/g1/mediate'])
   })
 
   test('a Game with no Mediator plays too', async () => {
@@ -560,7 +587,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
   })
 
   test('nothing shows while the crew is still loading', async () => {
@@ -586,7 +613,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
     })
-    expect(navigations).toEqual([{ to: '/play/pilots/$pilotId', params: { pilotId: 'hub-mine' } }])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-mine' } }])
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
@@ -627,9 +654,7 @@ describe('Play from the Game page', () => {
     await act(async () => {
       fireEvent.click(launch)
     })
-    expect(navigations).toEqual([
-      { to: '/play/pilots/$pilotId', params: { pilotId: 'hub-pregen' } },
-    ])
+    expect(navigations).toEqual([{ to: '/pilots/$id/play', params: { id: 'hub-pregen' } }])
   })
 
   test('a viewer who holds none of the Game’s pilots is told so, and offered nothing', async () => {
@@ -641,7 +666,7 @@ describe('Play from the Game page', () => {
 
     expect(offered(dialog)).toEqual([])
     expect(
-      within(dialog).getByText(/None of this Game's pilots is saved in this browser/)
+      within(dialog).getByText(/None of this Game's Pilots is saved in this browser/)
     ).toBeTruthy()
     expect(within(dialog).getByRole('button', { name: 'Play' }).hasAttribute('disabled')).toBe(true)
   })
@@ -660,7 +685,7 @@ describe('Play from the Game page', () => {
       await act(async () => {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Play' }))
       })
-      ids.push((navigations[0] as { params: { pilotId: string } }).params.pilotId)
+      ids.push((navigations[0] as { params: { id: string } }).params.id)
       dialog = await openPicker()
     }
     expect(ids).toEqual(['hub-mine', 'hub-mine-2', 'hub-pregen'])

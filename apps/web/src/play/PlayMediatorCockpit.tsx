@@ -49,6 +49,7 @@ import { usePlayMediator } from './mediator/usePlayMediator'
 import { PlayBar } from './PlayBar'
 import { PlayFoot } from './PlayFoot'
 import { PlayFrame } from './PlayFrame'
+import { PlayFeedSection } from './PlaySideColumn'
 import { mediatorTarget, PHASE_TONE } from './play.model'
 import type { MediatorPane } from './playPanes.model'
 import { mediatorPanes } from './playPanes.model'
@@ -60,8 +61,6 @@ import { usePlayWide } from './usePlayWide'
 import { useStopSign } from './useStopSign'
 
 /** The foot's reminder: what the players can see of the Opposition. */
-const OPPOSITION_NOTE = 'Players see the Opposition only through what you post'
-
 type PlayMediatorCockpitProps = {
   gameId: string
   gameName: string
@@ -111,16 +110,22 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
   }, [focusTo, tab, wide])
 
   const nodes: Record<MediatorPane, ReactNode> = {
+    // The Feed under the Table, on a phone and a desk alike:
+    // the Mediator's landing pane reads who is here and what just happened,
+    // and the column under the seats is never empty.
     table: (
-      <PlayMediatorTable
-        mediator={mediator}
-        picked={picked}
-        onPick={(seat) => {
-          setPicked(seat.rowId)
-          setTab('propose')
-          setFocusTo(true)
-        }}
-      />
+      <>
+        <PlayMediatorTable
+          mediator={mediator}
+          picked={picked}
+          onPick={(seat) => {
+            setPicked(seat.rowId)
+            setTab('propose')
+            setFocusTo(true)
+          }}
+        />
+        <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+      </>
     ),
     opposition: running ? (
       <PlayMediatorDowntime mediator={mediator} rollFor={rollFor} />
@@ -176,13 +181,7 @@ export function PlayMediatorCockpit({ gameId, gameName, rollFor }: PlayMediatorC
       panes={mediatorPanes(running).map((p) => ({ ...p, node: nodes[p.value] }))}
       tab={tab}
       onTab={setTab}
-      foot={
-        <PlayFoot
-          solo={false}
-          note={OPPOSITION_NOTE}
-          tone={PHASE_TONE[running ? 'downtime' : 'scene']}
-        />
-      }
+      foot={<PlayFoot solo={false} tone={PHASE_TONE[running ? 'downtime' : 'scene']} />}
     />
   )
 }

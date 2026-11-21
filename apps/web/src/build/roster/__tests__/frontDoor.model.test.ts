@@ -17,8 +17,8 @@ function renderFrontDoor(schemas: 'subset' | 'all'): { markup: string; stderr: s
     const { SalvageUnionReference } = await import('salvageunion-reference')
     const { FRONT_DOOR_SCHEMAS } = await import('${import.meta.dir}/../frontDoor.model.ts')
     await SalvageUnionReference.preload(${schemas === 'all' ? "'all'" : 'FRONT_DOOR_SCHEMAS'})
-    const { FrontDoor } = await import('${import.meta.dir}/../FrontDoor.tsx')
-    process.stdout.write(renderToStaticMarkup(createElement(FrontDoor)))
+    const { BuildFrontDoor } = await import('${import.meta.dir}/../FrontDoor.tsx')
+    process.stdout.write(renderToStaticMarkup(createElement(BuildFrontDoor)))
   `
   const proc = Bun.spawnSync(['bun', '-e', script], {
     cwd: import.meta.dir,
@@ -34,7 +34,8 @@ describe('FRONT_DOOR_SCHEMAS', () => {
     const subset = renderFrontDoor('subset')
     const all = renderFrontDoor('all')
     expect(subset.stderr).toBe('')
-    expect(all.markup).toContain('data-peek="classes:')
+    // The full render reads the reference: each Pilot's class names its line.
+    expect(all.markup).toMatch(/su-open__meta[^>]*>Engineer</)
     expect(subset.markup).toBe(all.markup)
   })
 })

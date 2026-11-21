@@ -6,7 +6,9 @@ import { inviteTokenFrom, inviteUrl } from '../inviteLink'
 
 describe('inviteTokenFrom', () => {
   test('a whole link, from any origin, with or without a trailing slash or query', () => {
-    expect(inviteTokenFrom('https://salvageunion.io/play/invite/AB12CD34EF56')).toBe('AB12CD34EF56')
+    expect(inviteTokenFrom('https://salvageunion.io/games/invite/AB12CD34EF56')).toBe(
+      'AB12CD34EF56'
+    )
     expect(inviteTokenFrom('https://salvageunion.io/build/invite/AB12CD34EF56')).toBe(
       'AB12CD34EF56'
     )
@@ -28,9 +30,9 @@ describe('inviteTokenFrom', () => {
   })
 
   test('opens the invite screen', () => {
-    expect(invitePath('AB12CD34EF56')).toBe('/play/invite/AB12CD34EF56')
+    expect(invitePath('AB12CD34EF56')).toBe('/games/invite/AB12CD34EF56')
     expect(inviteUrl('AB12CD34EF56', 'https://salvageunion.io/')).toBe(
-      'https://salvageunion.io/play/invite/AB12CD34EF56'
+      'https://salvageunion.io/games/invite/AB12CD34EF56'
     )
   })
 })

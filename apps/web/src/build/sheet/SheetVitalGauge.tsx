@@ -6,7 +6,7 @@
  */
 
 import type { ComponentProps } from 'react'
-import { VitalGauge } from '../../components/index'
+import { VitalGauge } from '../../components/app'
 import type { SheetVital } from './sheetVitals.model'
 import { vitalWords } from './sheetVitals.model'
 

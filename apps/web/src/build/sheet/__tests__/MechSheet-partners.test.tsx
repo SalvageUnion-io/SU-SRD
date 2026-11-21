@@ -113,4 +113,22 @@ describe('MechSheet — Partners', () => {
     render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} />)
     expect(screen.queryByText(/^Partners$/i)).toBe(null)
   })
+
+  test('read, the mech’s About and lines print; its drones are no cells of their own', () => {
+    const mech = seededMech('big-brother', 'DronTek', {
+      name: 'Panopticon',
+      description: 'A patient watcher.',
+      quirk: 'Hums when idle.',
+      appearance: 'Rust-streaked.',
+      conditions: ['Vulnerable'],
+    })
+    render(<MechSheet mech={mech} store={makeSingleUnitStore('mech', mech)} readOnly />)
+
+    // Its drones are in Related units (`Sheet-related-units.test.tsx`), not cells of their own.
+    expect(document.querySelector('.su-companion-cell')).toBeNull()
+    expect(screen.getByText('A patient watcher.')).toBeTruthy()
+    expect(screen.getByText('Hums when idle.')).toBeTruthy()
+    expect(screen.getByText('Rust-streaked.')).toBeTruthy()
+    expect(screen.getAllByText(/Vulnerable/).length).toBeGreaterThan(0)
+  })
 })

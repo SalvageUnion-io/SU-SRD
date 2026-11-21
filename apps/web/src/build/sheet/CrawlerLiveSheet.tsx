@@ -1,17 +1,13 @@
 import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 /**
  * CrawlerLiveSheet — the crawler branch of the live sheet (`Sheet`
- * dispatches to it), in the poster layout.
+ * dispatches to it).
  *
- * The body owns the identity band (Workshop-Manual layout): `CrawlerSheet`
- * renders the `SheetHero` band as its first region.
- * This component's remaining job is composing the economy band (the poster
- * `.econ` frame — `CrawlerEconFrame` — wrapping the SP `VitalGauge` + the
- * Tech-LVL/Upkeep/Upgrade/Trade/Crew lozenges) and its action entry points
- * (`CrawlerEconActions`), handed to `CrawlerSheet` as `economy` and
- * `economyActions` and rendered as the identity band's vitals card and its head
- * chips, plus the Assigned units (`assignedUnitsFor`) handed down as
- * `linkedUnits`. Owns the economy-dialog state.
+ * Its job is the crawler's numbers as rows (SP, the Upgrade Pool, Upkeep: the
+ * dashboard's masthead), each live where the viewer may write and its max a
+ * field in Edit, the economy's dialogs (Pay Upkeep, Fund, Trade) and their
+ * state, the band's Tech Level stepper in Edit, and the Assigned units
+ * (`assignedRail`), handed to `CrawlerSheet`.
  */
 
 import type { Crawler } from 'game-domain/schemas/crawler'
@@ -22,24 +18,24 @@ import {
   pinFor,
   resolvePool,
 } from 'salvageunion-reference/rules'
-import { linesFromBreakdown, Stat } from '../../components/index'
-import { bayGate, tradingSourceTl } from '../../lib/rules/crawlerEconomy'
+import { linesFromBreakdown } from '../../components/app'
+import type { PhoneVital } from '../../components/index'
+import { Stat } from '../../components/index'
+import { changeUndoToast } from '../../lib/changeUndoToast'
+import { bayGate } from '../../lib/rules/crawlerEconomy'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_OVERRIDE } from '../../replica/provenance'
 import { assignedRail } from './assignedRail'
 import { crawlerStamp } from './bandStamps.model'
-import type { EconLozItem } from './CrawlerEcon'
-import { CrawlerEconActions, CrawlerEconFrame } from './CrawlerEcon'
 import type { CrawlerEconomyDialog } from './CrawlerEconomyControl'
 import { CrawlerEconomyControl } from './CrawlerEconomyControl'
 import { CrawlerSheet } from './CrawlerSheet'
 import { changedFields, freshEntity } from './freshEntity.model'
 import type { LiveSheetStripItem } from './LiveSheet'
 import { LiveSheet } from './LiveSheet'
-import { bayStates } from './railStats.model'
-import { SheetVitalGauge } from './SheetVitalGauge'
 import type { SheetViewCommonProps } from './sheetViewProps.model'
+import { SHEET_VITALS } from './sheetVitals.model'
 
 type CrawlerLiveSheetProps = SheetViewCommonProps & {
   crawler: Crawler
@@ -59,6 +55,7 @@ export function CrawlerLiveSheet({
   editable,
   readOnly,
   liveCondition = editable,
+  liveInRead = false,
   ownerOf,
   store,
   storeState,
@@ -75,7 +72,7 @@ export function CrawlerLiveSheet({
   const spLines = linesFromBreakdown(spParts, {
     base: `Tech ${crawler.techLevel} Crawler`,
     baseDetail: 'base',
-    installed: 'Crawler type bonus',
+    installed: buildSheetCopy('crawlerTypeBonus'),
   })
   const sp = resolvePool(crawler.currentSP, maxSP)
   // Cap override (ADR-022, Free Edit): pin Max SP as an absolute
@@ -87,8 +84,6 @@ export function CrawlerLiveSheet({
     if (!changed) return
     runWrite(() => storeState.update('crawler', crawler.id, changed, LIVE_SHEET_OVERRIDE))
   }
-  const states = bayStates(crawler)
-  const intactBays = states.filter((s) => s === 'intact').length
   const tl = crawler.techLevel
   // The Upgrade pool fills toward the next Tech Level's cost; at Tech 6 there
   // is none (crawler-tech-levels.json), so no gauge.
@@ -96,84 +91,11 @@ export function CrawlerLiveSheet({
 
   const strip: LiveSheetStripItem[] = [
     { key: 'sp', label: buildSheetCopy('sp'), value: sp, max: maxSP },
-    ...(states.length > 0
-      ? [
-          {
-            key: 'bays',
-            label: buildSheetCopy('bays'),
-
-            value: intactBays,
-            max: states.length,
-          },
-        ]
-      : []),
   ]
-
-  // Tech LVL / UPKEEP / UPGRADE-pool / TRADE / CREW lozenges (poster
-  // `.lozrow`): upkeep is 5 Scrap of crawler TL per Downtime;
-  // the Upgrade Pool fills toward 30× TL; the Trading Bay
-  // sources TL+1 wares (p.223); crew leads = one per installed bay.
-  // On editable sheets the actionable lozenges (Upkeep/Upgrade/Trade)
-  // are the economy action entry points (CrawlerEconomyControl); Tech LVL and
-  // Crew are read-only readouts.
+  // The Trading Bay sources TL+1 wares (p.223): its dialog is Trade.
   const trading = bayGate(crawler, 'trading-bay')
-  const econItems: EconLozItem[] = [
-    // Tech LVL is NOT here any more: it is the crawler's own rung, and it
-    // reads as the band's TL chip beside the crawler type. The economy rail keeps the
-    // things you SPEND (upkeep, upgrade pool, trade, crew).
-    {
-      label: buildSheetCopy('upkeep'),
-      value: 5,
-      caption: buildSheetCopy('tScrap', { tl }),
-      action: editable
-        ? {
-            label: buildSheetCopy('pay'),
-            ariaLabel: buildSheetCopy('payUpkeep'),
-            onClick: () => setEconDialog('upkeep'),
-          }
-        : undefined,
-    },
-    // Upgrade is a counter toward its cap (§2.1, as Training Points), its Fund
-    // action with the others on the Vitals card's head.
-    ...(upgradeCost === null
-      ? []
-      : [
-          {
-            label: buildSheetCopy('upgrade'),
-            value: crawler.upgradePool ?? 0,
-            max: upgradeCost,
-            ...(editable
-              ? {
-                  onChange: (v: number) => patch({ upgradePool: v }),
-                  action: {
-                    label: buildSheetCopy('fund'),
-                    ariaLabel: buildSheetCopy('upgradeCrawler'),
-                    onClick: () => setEconDialog('upgrade'),
-                  },
-                }
-              : {}),
-          },
-        ]),
-    ...(trading.present
-      ? [
-          {
-            // Its Trade action only: the rail reads no Trade.
-            label: buildSheetCopy('trade'),
-            value: tradingSourceTl(tl),
-            actionOnly: true,
-            action: editable
-              ? {
-                  label: buildSheetCopy('trade'),
-                  ariaLabel: buildSheetCopy('openTheTradingBay'),
-                  onClick: () => setEconDialog('trade'),
-                }
-              : undefined,
-          },
-        ]
-      : []),
-  ]
 
-  // Assigned units: a crawler is a home for a CREW, with no single lead
+  // Related units: a crawler is a home for a CREW, with no single lead
   // pilot or docked mech. Both places are lists — every mech docked by its OWN
   // `mech-to-crawler` link (ADR-037), then every pilot wired to it — and each
   // keeps its Assign after the first. A mech is assigned independently of its
@@ -181,41 +103,83 @@ export function CrawlerLiveSheet({
   // docked mech with no pilot still is.
   const rail = assignedRail(
     { kind: 'crawler', entity: crawler },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable }
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead }
   )
 
-  // Economy band (poster `.econ`: SP `VitalGauge` over the Tech-LVL/Upkeep/
-  // Upgrade/Trade/Crew lozenges) — built here because it needs `patch` +
-  // the econDialog state, which CrawlerSheet does not own; handed down as
-  // `economy` and rendered inside the body's Identity card.
-  const economy = (
-    <CrawlerEconFrame
-      gauge={
-        <SheetVitalGauge
-          vital="sp"
-          value={sp}
-          max={maxSP}
-          onChange={editable ? (v) => patch({ currentSP: v }) : undefined}
-          onMaxChange={
-            editable
-              ? (next) => overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) })
-              : undefined
+  // SP and the Upgrade pool are live wherever the viewer may write the sheet
+  // (Read too, R11), each change said with Undo (K5).
+  const writes = liveCondition || !readOnly
+  const liveNumber = (field: 'currentSP' | 'upgradePool', label: string, from: number) =>
+    writes
+      ? (next: number) => {
+          patch({ [field]: next })
+          changeUndoToast({
+            id: `crawler:${crawler.id}:${field}`,
+            label,
+            from,
+            to: next,
+            undo: (value) => patch({ [field]: value }),
+          })
+        }
+      : undefined
+  // Pay / Fund / Trade: the economy's dialogs, on the masthead's foot.
+  const economyActions: { label: string; dialog: CrawlerEconomyDialog }[] = writes
+    ? [
+        { label: buildSheetCopy('payUpkeep'), dialog: 'upkeep' },
+        ...(upgradeCost === null
+          ? []
+          : [{ label: buildSheetCopy('fund'), dialog: 'upgrade' as const }]),
+        ...(trading.present ? [{ label: buildSheetCopy('trade'), dialog: 'trade' as const }] : []),
+      ]
+    : []
+  const onSp = liveNumber('currentSP', SHEET_VITALS.sp.short, sp)
+  const onUpgrade = liveNumber('upgradePool', buildSheetCopy('upgrade'), crawler.upgradePool ?? 0)
+  // The crawler's numbers as rows (R11): the dashboard's masthead draws them.
+  const vitalRows: PhoneVital[] = [
+    {
+      key: 'sp',
+      label: SHEET_VITALS.sp.short,
+      name: SHEET_VITALS.sp.label,
+      value: sp,
+      max: maxSP,
+      ...(onSp ? { onChange: onSp } : {}),
+      ...(!readOnly && editable
+        ? {
+            maxEdit: {
+              onMaxChange: (next: number) =>
+                overrideCrawlerMax({ maxSpOverride: pinFor(next, spParts) }),
+              breakdown: spParts,
+              provenance: spLines,
+              onRevertOverride: () => overrideCrawlerMax({ maxSpOverride: undefined }),
+            },
           }
-          breakdown={editable ? spParts : undefined}
-          provenance={editable ? spLines : undefined}
-          onRevertOverride={
-            editable ? () => overrideCrawlerMax({ maxSpOverride: undefined }) : undefined
-          }
-          readOnly={!editable}
-        />
-      }
-      items={econItems}
-    />
-  )
-  // Pay / Fund / Trade: chips on the Vitals card's head, not a row in its body.
-  const economyActions = econItems.some((item) => item.action) ? (
-    <CrawlerEconActions items={econItems} />
-  ) : undefined
+        : {}),
+    },
+    ...(upgradeCost === null
+      ? []
+      : [
+          {
+            key: 'upgrade',
+            label: buildSheetCopy('upgrade'),
+            name: buildSheetCopy('upgradePool'),
+            value: crawler.upgradePool ?? 0,
+            max: upgradeCost,
+            ...(onUpgrade ? { onChange: onUpgrade } : {}),
+          },
+        ]),
+    {
+      key: 'upkeep',
+      label: buildSheetCopy('upkeep'),
+      name: buildSheetCopy('upkeep'),
+      note: buildSheetCopy('tScrapEachDowntime', { tl }),
+      value: 5,
+    },
+  ]
+  const vitalActions = economyActions.map((action) => ({
+    key: action.dialog,
+    label: action.label,
+    onClick: () => setEconDialog(action.dialog),
+  }))
 
   return (
     <>
@@ -230,16 +194,21 @@ export function CrawlerLiveSheet({
         // The crawler's rung is the band's TL chip, ahead of its type (C2's
         // rank before relation); Edit grows its stepper on the chip, a Free
         // Edit of the stored rung (the Upgrade dialog is the play path).
+        // Read's header strip carries the
+        // Tech Level with the crawler's other figures, so the band leaves it
+        // out (R59); Edit keeps its stepper here.
         rank={
-          <Stat
-            label={buildSheetCopy('tl')}
-            value={tl}
-            mode={readOnly ? 'read' : 'edit'}
-            onChange={readOnly ? undefined : (next) => patch({ techLevel: next })}
-            min={NUMERIC_TECH_LEVELS[0]}
-            ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
-            stepperLabel={buildSheetCopy('techLevel')}
-          />
+          readOnly ? undefined : (
+            <Stat
+              label={buildSheetCopy('tl')}
+              value={tl}
+              mode="edit"
+              onChange={(next) => patch({ techLevel: next })}
+              min={NUMERIC_TECH_LEVELS[0]}
+              ceiling={NUMERIC_TECH_LEVELS[NUMERIC_TECH_LEVELS.length - 1]}
+              stepperLabel={buildSheetCopy('techLevel')}
+            />
+          )
         }
         actions={actions}
         renderBody={() => (
@@ -250,8 +219,8 @@ export function CrawlerLiveSheet({
             store={store}
             readOnly={readOnly}
             liveCondition={liveCondition}
-            economy={economy}
-            economyActions={economyActions}
+            vitalRows={vitalRows}
+            vitalActions={vitalActions}
             linkedUnits={rail}
             crew={composition.crew}
             crewHref={
@@ -260,7 +229,7 @@ export function CrawlerLiveSheet({
           />
         )}
       />
-      {editable && (
+      {writes && (
         <CrawlerEconomyControl
           crawler={crawler}
           store={store}

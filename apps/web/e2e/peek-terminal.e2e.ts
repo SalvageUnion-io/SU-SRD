@@ -5,16 +5,18 @@ import { searchPeekTrigger } from './_helpers'
 import { expect, test } from './fixtures'
 
 /**
- * Hard rule R33, "A Peek is terminal" (ruleset §1.6; EDL E16), on the rendered
+ * EDL E16, "A Peek is terminal" (ruleset §1.6), on the rendered
  * page: open a Peek of every kind that has one and read its plate
  * (`[data-peek-popup]`). A finding's rule is one of:
  *
  * - `control`: a button, a link (`a[href]`), a field (`input`, `select`,
  *   `textarea`), a `role="button"` or `role="link"`, or anything else in the
  *   tab order: nothing on a Peek acts, but its name.
- * - `open`: the one exception (R33), the
+ * - `open`: the one exception (E16), the
  *   card's name as the link to its Page (`[data-peek-open]`, `CardTitleLink`):
  *   at most one, in the plate's first head's title, out of the tab order.
+ *   The app's plate adds View in the Reference (`[data-peek-out]`, also out of
+ *   the tab order); the SRD, read here, is the Reference and has none.
  * - `nested`: a Peek trigger (`[data-peek]`): a Peek never opens a Peek.
  * - `inert`: a chip (a trait or relation Tag, an action's chip, a Mini's
  *   head) that still draws the pointer: on the plate it reads, and only reads.
@@ -201,6 +203,10 @@ test('a Peek of every kind is terminal', { tag: '@pr' }, async ({ page }) => {
   // The SRD's pages: each kind their Mentions, Tags and roll Minis open.
   for (const path of PAGES) {
     await page.goto(path, { waitUntil: 'networkidle' })
+    // A sheet's dashboard keeps a row's rules (a bay's roll Mini) under its
+    // opener: open every row, as a reader reaching for them would.
+    const shut = page.locator('.su-open__toggle[aria-expanded="false"]')
+    for (let left = await shut.count(); left > 0; left--) await shut.first().click()
     const addresses = await page.evaluate(() =>
       [...document.querySelectorAll('[data-peek]')]
         .filter((el) => !el.closest('[data-peek-popup], [role="listbox"]'))

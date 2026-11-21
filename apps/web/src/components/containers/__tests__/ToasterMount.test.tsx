@@ -4,7 +4,7 @@ import { ToasterMount, toast } from '../Toaster'
 
 const regions = () => document.body.querySelectorAll('section[aria-label^="Notifications"]')
 
-describe('ToasterMount (chrome K5, hard rule R20)', () => {
+describe('ToasterMount (chrome K5)', () => {
   test('three mounts on a page draw one toast region', () => {
     render(
       <>

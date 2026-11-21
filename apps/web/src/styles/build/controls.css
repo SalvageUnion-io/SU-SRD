@@ -17,42 +17,6 @@
  * changes it (the per-property split rule).
  */
 
-/* ── RosterColumn ── */
-
-/* The Pilot/Mech/Crawler switch shows only below `md`. */
-.su-segment-switch {
-  display: flex;
-}
-@media (width >= 48rem) {
-  .su-segment-switch {
-    display: none;
-  }
-}
-
-/* One column on a phone, three from `md` up. */
-.su-roster-grid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  margin-top: var(--space-20);
-}
-@media (width >= 48rem) {
-  .su-roster-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin-top: var(--space-24);
-  }
-}
-
-/* A column that is not the active phone segment: hidden below `md`, shown from
-   it (all three columns stand side by side) as the slab section it is, a flex
-   column, so its rows start where the active column's do. */
-.su-roster-column--inactive {
-  display: none;
-}
-@media (width >= 48rem) {
-  .su-roster-column--inactive {
-    display: flex;
-  }
-}
-
 /* ── OwnerSeal ── */
 
 /* The claimable seal lifts a pixel on hover; disabled, it fades and stops

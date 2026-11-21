@@ -249,7 +249,7 @@ export const CHECKS: readonly CheckSpec[] = [
   {
     id: 'styling',
     guards:
-      'every rule set but copy: design and chrome tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5), chrome laws (R19, R28), select mode (R15), control laws (R23, R29)',
+      'every rule set but copy: design and chrome tokens, styling ownership, the stylesheet entry, the su- class prefix, no tech-level header ground, entity nesting (N2, N3, N5), chrome laws (K1, K9), select mode (R15), control laws (K11, K10)',
     fix: "follow the rule's printed fix; `bun tools/check-rule-sets.ts --only=<set> --report` lists every finding",
     cmd: ['bun', 'tools/check-rule-sets.ts', '--group=styling'],
     profiles: ALL,

@@ -17,21 +17,17 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "rows": [
       {
         "label": "Classes",
-        "href": "/classes/",
-        "count": 11
+        "href": "/classes/"
       },
       {
         "label": "Abilities",
-        "href": "/abilities/",
-        "count": 103
+        "href": "/abilities/"
       },
       {
         "label": "Equipment",
-        "href": "/equipment/",
-        "count": 82
+        "href": "/equipment/"
       }
-    ],
-    "total": 196
+    ]
   },
   {
     "id": "mech-workshop",
@@ -40,21 +36,17 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "rows": [
       {
         "label": "Chassis",
-        "href": "/chassis/",
-        "count": 51
+        "href": "/chassis/"
       },
       {
         "label": "Systems",
-        "href": "/systems/",
-        "count": 126
+        "href": "/systems/"
       },
       {
         "label": "Modules",
-        "href": "/modules/",
-        "count": 84
+        "href": "/modules/"
       }
-    ],
-    "total": 261
+    ]
   },
   {
     "id": "union-crawler",
@@ -62,22 +54,18 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "tone": "crawler",
     "rows": [
       {
-        "label": "Crawlers",
-        "href": "/crawlers/",
-        "count": 5
+        "label": "Crawler Types",
+        "href": "/crawlers/"
       },
       {
         "label": "Crawler Bays",
-        "href": "/crawler-bays/",
-        "count": 14
+        "href": "/crawler-bays/"
       },
       {
         "label": "Crawler Tech Levels",
-        "href": "/crawler-tech-levels/",
-        "count": 6
+        "href": "/crawler-tech-levels/"
       }
-    ],
-    "total": 25
+    ]
   },
   {
     "id": "denizens",
@@ -86,46 +74,37 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "rows": [
       {
         "label": "Bio-Titans",
-        "href": "/bio-titans/",
-        "count": 11
+        "href": "/bio-titans/"
       },
       {
         "label": "Creatures",
-        "href": "/creatures/",
-        "count": 13
+        "href": "/creatures/"
       },
       {
         "label": "Drones",
-        "href": "/drones/",
-        "count": 14
+        "href": "/drones/"
       },
       {
         "label": "Factions",
-        "href": "/factions/",
-        "count": 10
+        "href": "/factions/"
       },
       {
         "label": "Meld",
-        "href": "/meld/",
-        "count": 5
+        "href": "/meld/"
       },
       {
         "label": "NPCs",
-        "href": "/npcs/",
-        "count": 19
+        "href": "/npcs/"
       },
       {
         "label": "Squads",
-        "href": "/squads/",
-        "count": 23
+        "href": "/squads/"
       },
       {
         "label": "Vehicles",
-        "href": "/vehicles/",
-        "count": 11
+        "href": "/vehicles/"
       }
-    ],
-    "total": 106
+    ]
   },
   {
     "id": "rules-reference",
@@ -134,40 +113,32 @@ export const NAV_CATALOG: readonly NavDrawerCategory[] = [
     "rows": [
       {
         "label": "Guides",
-        "href": "/guides/",
-        "count": 16
+        "href": "/guides/"
       },
       {
         "label": "Roll Tables",
-        "href": "/roll-tables/",
-        "count": 64
+        "href": "/roll-tables/"
       },
       {
         "label": "Keywords",
-        "href": "/keywords/",
-        "count": 83
+        "href": "/keywords/"
       },
       {
         "label": "Traits",
-        "href": "/traits/",
-        "count": 48
+        "href": "/traits/"
       },
       {
         "label": "Distances",
-        "href": "/distances/",
-        "count": 4
+        "href": "/distances/"
       },
       {
         "label": "Sources",
-        "href": "/sources/",
-        "count": 9
+        "href": "/sources/"
       },
       {
         "label": "Tech Levels",
-        "href": "/tech-levels/",
-        "count": 6
+        "href": "/tech-levels/"
       }
-    ],
-    "total": 230
+    ]
   }
 ] as const

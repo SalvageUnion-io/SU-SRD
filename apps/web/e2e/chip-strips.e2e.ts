@@ -8,9 +8,9 @@ import { test } from './fixtures'
  * heads, their Minis. A failure names the page, the width and the fault
  * (`_chipStrips.ts`): a value off its label's size, a hole between chips,
  * lines on no common edge, a cost out of its corner, a chip clipped or past
- * its strip's edge (R3), too many lines, and R37's: a head its chips make
+ * its strip's edge (C5), too many lines, and C2b's: a head its chips make
  * taller, a chip above its name, an overflow row that is not its body's
- * first, +MORE on a contentful head, a name off its head's left (R40). There
+ * first, +MORE on a contentful head, a name off its head's left (E22). There
  * is no allowlist: every fault fails, bar a pending rule's
  * (`_pendingRules.ts`), which the report shows.
  *

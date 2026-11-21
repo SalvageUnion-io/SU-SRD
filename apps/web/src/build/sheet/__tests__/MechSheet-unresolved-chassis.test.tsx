@@ -51,10 +51,9 @@ describe('MechSheet — unresolved chassis (chassis=null)', () => {
     expect(screen.getAllByText('Structure Points').length).toBeGreaterThan(0)
     // The unresolvable system slug falls back to the one unknown-item line.
     expect(screen.getByText('mystery-system')).toBeTruthy()
-    // The Hold renders against a zero cargo cap.
-    expect(screen.getByText(/the hold/i)).toBeTruthy()
-    // Empty in Edit, it is one + Load cargo (its form opens on it).
-    expect(screen.getByRole('button', { name: '+ Load cargo' })).toBeTruthy()
+    // The Hold renders against a zero cargo cap, its intake open in Edit.
+    expect(document.querySelector('[data-storage-side="mech"]')?.textContent).toContain('Cargo')
+    expect(screen.getByLabelText(/new cargo name/i)).toBeTruthy()
   })
 
   test('no chassis-ability slab renders for an unknown chassis', () => {

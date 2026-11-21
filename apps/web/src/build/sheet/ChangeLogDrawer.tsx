@@ -13,18 +13,9 @@ import type { ChangeLogKind } from 'game-domain/schemas/changeLog'
 import type { EntityRef } from 'game-domain/schemas/entity'
 import { ArrowRight } from 'lucide-react'
 import type { CSSProperties } from 'react'
+import { FeedLine, FeedList, FeedTime } from '../../components/app'
 import type { BadgeTone } from '../../components/index'
-import {
-  Badge,
-  EmptyState,
-  FeedLine,
-  FeedList,
-  FeedTime,
-  ModalShell,
-  Pending,
-  Text,
-  tokens,
-} from '../../components/index'
+import { Badge, EmptyState, ModalShell, Pending, Text, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { useSync } from '../../replica/syncContext'
 import { useEntityLog } from '../../replica/useEntityLog'
@@ -113,7 +104,7 @@ function ChangeLogEntries({
             }
           >
             <span style={BEFORE}>{formatValue(entry.before)}</span>{' '}
-            {/* The value's change, a glyph at the line's Size (R23), never a text arrow. */}
+            {/* The value's change, a glyph at the line's Size (K11), never a text arrow. */}
             <ArrowRight size={tokens.iconSize.compact} aria-hidden="true" style={GLYPH} />{' '}
             <span style={AFTER}>{formatValue(entry.after)}</span>
           </FeedLine>

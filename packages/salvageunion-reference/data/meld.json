@@ -37,7 +37,7 @@
     "name": "Meld Nanoid",
     "traits": [
       {
-        "type": "fast"
+        "type": "Fast"
       }
     ],
     "actions": ["Nanoid Tendrils"],

@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 13 of 20: the remaining Atoms: Conditions to
+ * The package stylesheet: the remaining Atoms: Conditions to
  * Text. `../index.css` imports the parts in cascade order.
  */
 
@@ -73,6 +73,13 @@
 /* components/containers/Toaster.tsx — a success or error toast's status icon takes
  * the status colour. Sonner renders the icon, so only a descendant rule
  * reaches it; `classNames` puts the class on the toast. */
+/* A phone's toast stands 16px over the screen's foot, clear of the home
+ * indicator and of a tab row there: a surface that has one says how tall in
+ * `--su-foot-clear` (Play's frame, `styles/play/frame.css`). */
+:root {
+  --su-toast-bottom: calc(var(--su-foot-clear, 0px) + env(safe-area-inset-bottom, 0px) + 1rem);
+}
+
 .su-toast--ok > [data-icon] {
   color: var(--color-status-ok);
 }
@@ -81,11 +88,9 @@
   color: var(--color-status-bad);
 }
 
-/* A toast's description reads in the toast's own paper. Sonner injects an
-   unlayered grey for it, which outranks any class in this layer. */
+/* A toast's description reads in the toast's own paper (its colour is
+   `theme.css`'s, unlayered, past Sonner's own grey). */
 .su-toast__description {
-  /* biome-ignore lint/complexity/noImportantStyles: Sonner's unlayered description colour outranks this layer */
-  color: inherit !important;
   opacity: 0.85;
 }
 
@@ -125,10 +130,11 @@
   font-weight: var(--font-weight-medium);
 }
 
+/* A hint starts where its block does, as every line on the site: no caller
+   re-aligns it. */
 .su-text.su-text--hint {
   max-width: 100%;
   overflow: hidden;
-  text-align: center;
 }
 
 .su-text.su-text--flavor {

@@ -10,9 +10,7 @@ import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
 import type { SoftLink } from 'game-domain/schemas/softLink'
-import { CONDITION_LABELS } from 'salvageunion-reference'
 import { crawlerMaxSP, resolveGauge, resolvePool } from 'salvageunion-reference/rules'
-import type { StatState } from '../../components/index'
 import type { VitalReading } from '../../lib/units/readings'
 import { VITAL, vitalReading } from '../../lib/units/readings'
 
@@ -107,27 +105,17 @@ export function crewReadings(
   }
 }
 
-/** Crawler rail vitals: "SP 9/13 · Bays 4/5 Intact". */
+/**
+ * Crawler rail vitals: "SP 9/13". No crawler counts its bays (R46): a damaged
+ * bay is its own line's condition.
+ */
 export function crawlerRailItems(crawler: Crawler): RailStat[] {
   const maxSP = crawlerMaxSP(crawler)
-  const states = bayStates(crawler)
-  const intact = states.filter((s) => s === 'intact').length
-  return [
-    { label: SP, value: resolvePool(crawler.currentSP, maxSP), max: maxSP },
-    // Bays only appear once the crawler HAS bays: never an empty "Bays 0/0" line.
-    ...(states.length > 0
-      ? [{ label: 'Bays', value: intact, max: states.length, suffix: CONDITION_LABELS.intact }]
-      : []),
-  ]
-}
-
-/** Bay conditions as StatBlock pip states (Intact/Damaged only). */
-export function bayStates(crawler: Crawler): StatState[] {
-  return (crawler.crawlerBays ?? []).map((bay) => bay.condition ?? 'intact')
+  return [{ label: SP, value: resolvePool(crawler.currentSP, maxSP), max: maxSP }]
 }
 
 /**
- * Rail stats as a unit's readings: `SP 9/13`, `Bays 4/5 Intact` — the same
+ * Rail stats as a unit's readings: `SP 9/13` — the same
  * `current/max` reading every unit surface shows (`lib/units/readings.ts`).
  */
 export function rowStats(items: RailStat[]): VitalReading[] {

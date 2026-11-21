@@ -1,0 +1,253 @@
+/*
+ * `PhoneVitals` (`components/atoms/PhoneVitals.tsx`),
+ * a phone's vitals block. One paper card, a 52px row a number, hairline rules
+ * inset between rows: label · slim meter · value/max · − | +. It strays from
+ * the dress on purpose (no stamp, no framed numeral, no ink-block stepper);
+ * every value is a token, the fill the kind's `--tone`.
+ */
+.su-phone-vitals {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  column-gap: var(--space-12);
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) max-content;
+  padding-inline: var(--space-12);
+}
+
+.su-phone-vitals[data-steps] {
+  grid-template-columns: max-content minmax(0, 1fr) max-content max-content;
+  padding-inline-end: var(--space-4);
+}
+
+.su-phone-vitals__row {
+  align-items: center;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  min-height: calc(var(--size-full) + var(--space-8));
+}
+
+.su-phone-vitals__row + .su-phone-vitals__row,
+.su-phone-vitals__foot {
+  border-top: var(--bw-hairline) solid var(--color-ink-10);
+}
+
+/* The label's caps are `capsLabel`'s. */
+.su-phone-vitals__label {
+  color: var(--color-ink);
+  line-height: 1;
+}
+
+.su-phone-vitals__note {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  line-height: 1.2;
+}
+
+/* The meter: its segments in one row (two past twelve); the 44px height is
+   the tap target, the segments sit centred in it. */
+.su-phone-vitals__meter {
+  align-content: center;
+  display: grid;
+  gap: var(--space-2);
+  min-height: var(--size-full);
+}
+
+.su-phone-vitals__meter[data-live] {
+  cursor: pointer;
+}
+
+.su-phone-vitals__seg {
+  background-color: var(--color-ink-10);
+  border-radius: var(--radius-pip);
+  height: var(--space-12);
+}
+
+.su-phone-vitals__meter[data-rows='2'] .su-phone-vitals__seg {
+  height: var(--space-6);
+}
+
+.su-phone-vitals__seg[data-state='on'] {
+  background-color: var(--tone, var(--color-ink));
+}
+
+.su-phone-vitals__seg[data-state='danger'] {
+  background-color: var(--color-status-bad);
+}
+
+/* The redline reads before the value reaches it (ruleset §4.5). */
+.su-phone-vitals__seg[data-state='redline'] {
+  background-color: color-mix(in srgb, var(--color-status-bad) 28%, var(--color-paper));
+}
+
+.su-phone-vitals__value {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.su-phone-vitals__value > b {
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-phone-vitals__value > i {
+  color: var(--color-wk-muted);
+  font-size: var(--text-body);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  margin-left: var(--space-2);
+}
+
+.su-phone-vitals__value[data-over] > b {
+  color: var(--color-status-bad);
+}
+
+/* − | +: one joined control, each half a 44px target. */
+.su-phone-vitals__stepper {
+  display: inline-flex;
+}
+
+.su-phone-vitals__stepper > button {
+  align-items: center;
+  background-color: var(--color-ink-5);
+  border: 0;
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  height: var(--size-full);
+  justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  width: var(--size-full);
+}
+
+.su-phone-vitals__stepper > button:first-child {
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+
+.su-phone-vitals__stepper > button + button {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-phone-vitals__stepper > button:last-child {
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+
+.su-phone-vitals__stepper > button:active:not(:disabled) {
+  background-color: var(--color-ink-20);
+}
+
+.su-phone-vitals__stepper > button:disabled {
+  color: var(--color-ink-30);
+  cursor: default;
+}
+
+.su-phone-vitals__foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  grid-column: 1 / -1;
+  padding-block: var(--space-8);
+}
+
+/*
+ * `PhoneVitalsGlance`: one quiet card of cells on one row, hairlines between
+ * them, each a button in its unit's `--tone` that opens its rows.
+ */
+.su-phone-glance {
+  background-color: var(--color-paper);
+  border: var(--bw-hairline) solid var(--color-ink-20);
+  border-radius: var(--radius-card);
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.su-phone-glance > li + li {
+  border-left: var(--bw-hairline) solid var(--color-ink-10);
+}
+
+.su-phone-glance__cell {
+  align-items: baseline;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-card);
+  box-sizing: border-box;
+  color: var(--color-ink);
+  column-gap: var(--space-4);
+  cursor: pointer;
+  /* Label and value share a line where they fit; in a narrow cell (five
+     across a phone) the value wraps under its label rather than over it. */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  min-height: calc(var(--size-full) + var(--space-8));
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  row-gap: var(--space-6);
+  text-align: start;
+  touch-action: manipulation;
+  width: 100%;
+}
+
+.su-phone-glance__cell:disabled {
+  cursor: default;
+}
+
+.su-phone-glance__label {
+  line-height: 1;
+}
+
+.su-phone-glance__value {
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.su-phone-glance__value > b {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-phone-glance__value > i {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-phone-glance__meter {
+  background-color: var(--color-ink-10);
+  border-radius: var(--radius-pip);
+  flex-basis: 100%;
+  height: var(--space-4);
+  overflow: hidden;
+}
+
+.su-phone-glance__meter > span {
+  background-color: var(--tone);
+  display: block;
+  height: 100%;
+}
+
+.su-phone-glance__cell[data-hot] .su-phone-glance__meter > span {
+  background-color: var(--color-status-bad);
+}
+
+.su-phone-glance__cell[data-hot] .su-phone-glance__value > b {
+  color: var(--color-status-bad);
+}
+
+.su-phone-glance__cell[aria-expanded='true'] {
+  background-color: var(--color-ink-5);
+  box-shadow: inset 0 calc(-1 * var(--space-2)) 0 var(--color-ink);
+}

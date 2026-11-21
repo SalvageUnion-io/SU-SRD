@@ -151,9 +151,10 @@ export function PlayResolveSteps({ view, canWrite }: { view: Resolving; canWrite
           {controls.applyLabel}
         </Button>
         <Button variant="ghost" size="compact" onClick={controls.onClear} disabled={!canWrite}>
-          {playCopy('clear')}
+          {playCopy('startOver')}
         </Button>
       </div>
+      {!view.applied && <p style={NOTE}>{playCopy('resolveStepsHint')}</p>}
 
       {view.pushLog && <p style={NOTE}>{view.pushLog}</p>}
       {view.meltdown && (

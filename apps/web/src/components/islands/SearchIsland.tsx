@@ -221,7 +221,8 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
       aria-label={islandsCopy('searchTheReference')}
       role="combobox"
       aria-expanded={isOpen}
-      aria-controls={listboxId}
+      // Only while the list is there to point at.
+      aria-controls={isOpen ? listboxId : undefined}
     />
   )
 
@@ -238,7 +239,6 @@ export function SearchIsland({ navigate, variant = 'bar' }: SearchIslandProps = 
         selectedIndex={selectedIndex}
         optionId={optionId}
         modelOf={(result) => models.get(result.id)}
-        kinds
         target={{ href: resultUrl }}
         style={hero ? LISTBOX_HERO : LISTBOX_BAR}
       />

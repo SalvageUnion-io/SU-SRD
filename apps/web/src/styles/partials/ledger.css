@@ -1,0 +1,557 @@
+/* The Ledger (`components/entity/Ledger.tsx`, ledger.md L1 to L9).
+ * One framed block a list: the Compact's frame in the band's colour, one
+ * column-head strip on the band, its labels the site's stamps, then a
+ * Mini-height line an entity: its name the link, one stamp at most, and its
+ * values in fixed columns as plain condensed numerals. Rows band paper and
+ * cream, hairline-ruled, as the roll table's.
+ */
+.su-ledger__table {
+  background-color: var(--color-paper);
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: 1.3;
+  width: 100%;
+}
+
+.su-ledger__table :is(th, td) {
+  font-weight: var(--font-weight-normal);
+  padding: var(--space-4) var(--space-8);
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* The foot's cite cut-out wears the table's paper, as a card's does. */
+.su-ledger {
+  --su-foot-ground: var(--color-paper);
+}
+
+/* The head strip: the band, its labels stamps. */
+.su-ledger__head > th {
+  padding-block: var(--space-6);
+  white-space: nowrap;
+}
+
+/* The title's cell: the Compact head's notch (`.su-entity-compact__notch`),
+   its tab on the strip's foot, opening into the first paper row. */
+.su-ledger__head > th:first-child {
+  padding: var(--space-8) var(--space-8) 0;
+  vertical-align: bottom;
+}
+
+.su-ledger__title-line {
+  white-space: nowrap;
+  align-items: flex-end;
+  display: flex;
+}
+
+/* A mark beside the tab (HOMEBREW) rides the strip's stamp line: centred in
+   the band over the tab's foot, as the column stamps are. */
+.su-ledger__mark {
+  align-self: center;
+  display: inline-flex;
+  margin-bottom: var(--space-8);
+  margin-inline-start: var(--space-8);
+}
+
+.su-ledger__sort {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
+}
+
+.su-ledger__title-line .su-ledger__sort {
+  color: inherit;
+  font-family: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.su-ledger__count {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.su-ledger__arrow {
+  flex: none;
+  margin-left: var(--space-4);
+}
+
+/* An unsorted column's caret is muted: it says the column sorts. */
+.su-ledger__arrow[data-idle] {
+  color: var(--color-ink-40);
+}
+
+.su-ledger__table tbody tr[data-band] {
+  background-color: var(--color-band-cream);
+}
+
+.su-ledger__table tbody tr + tr > * {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-ledger__table tbody tr:hover {
+  background-color: var(--color-wk-bg);
+}
+
+/* The name's cell: the name, then its one stamp at the cell's end. */
+.su-ledger__name-line {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-ledger__name {
+  font-weight: var(--font-weight-extrabold);
+}
+
+/* A row's rank (`TL | 1`) is one width down the list: its numeral centred in
+   a frame as wide as it is tall, so a 1 and a 4 end on the same edge. */
+.su-ledger__name-line .su-stat-plate--value {
+  justify-content: center;
+  min-width: var(--space-16);
+}
+
+.su-ledger__table tbody th {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* A figure: a plain tabular numeral, condensed bold, centred under its stamp. */
+.su-ledger__table [data-kind='figure'] {
+  text-align: center;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='figure'] {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-ledger__table [data-kind='text'] {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='text'] {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Body copy that takes the room left and wraps (a pattern's loadout, a
+   class's trees). */
+.su-ledger__table tbody [data-kind='line'] {
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+}
+
+/* A quiet line of words: one line, muted, taking the room left. */
+.su-ledger__table tbody [data-kind='quiet'] {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  max-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.su-ledger__table tbody [data-empty] {
+  color: var(--color-ink-35);
+  font-weight: var(--font-weight-normal);
+}
+
+/* A made choice under the row's name (`CHOSEN | Energy`). */
+.su-ledger__under {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+}
+
+/* The trailing cell: the row's menu or its count, at the line's end. */
+.su-ledger__table [data-kind='trailing'] {
+  text-align: right;
+  white-space: nowrap;
+  width: 1%;
+}
+
+.su-ledger__table tbody [data-kind='trailing'] {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  padding-block: var(--space-2);
+}
+
+/* A count's label is its column's stamp: the row keeps the figure and its
+   steps, so the count stays inside the frame at every width. */
+.su-ledger__table tbody [data-kind='trailing'] .su-stat-stepper .su-stat-plate--label {
+  display: none;
+}
+
+/* A counted row's name wraps rather than push its count past the frame: the
+   longest name (and its SUGGESTED stamp) no longer sets the column. */
+.su-ledger__table tbody tr:has(.su-stat-stepper) > th {
+  white-space: normal;
+}
+
+/* The room no column takes goes to the line's end, so the fixed columns
+   stand beside the names: an empty last cell (a phone drops it with the
+   rest), or the trailing cell where the list has one (from `sm`: on a phone
+   the name takes the room). */
+.su-ledger__table [data-kind='fill'] {
+  padding: 0;
+}
+
+@media (width >= 40rem) {
+  .su-ledger__table[data-trailing-fills] [data-kind='trailing'] {
+    width: auto;
+  }
+}
+
+/* The list's one make, on a paper cut-out at the head strip's end, the title
+   tab's twin: notched into the strip's foot. */
+.su-ledger__head > th[data-kind='trailing']:has(.su-ledger__action) {
+  padding: var(--space-8) var(--space-8) 0;
+  vertical-align: bottom;
+}
+
+.su-ledger__action {
+  background-color: var(--color-paper);
+  display: inline-flex;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.su-ledger__empty > td {
+  color: var(--color-wk-muted);
+  padding-block: var(--space-12);
+}
+
+/* The sums: a last line set in ink, as a picked row is. */
+.su-ledger__table .su-ledger__total > * {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.1;
+}
+
+.su-ledger__table .su-ledger__total > th {
+  font-weight: var(--font-weight-extrabold);
+}
+
+/* The head strip's end: what a pick asks or its budget, then the trailing
+   column's stamp or the list's one make. */
+.su-ledger__trailing-line {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+/* The list's name keeps to one line from sm (in a Box a title wraps): it
+   stands over the name column, which its rows' names set. */
+@media (width >= 40rem) {
+  .su-box.su-ledger .su-ledger__head .su-ledger__title-line > span > :first-child {
+    min-width: auto;
+    white-space: nowrap;
+  }
+}
+
+/* ── A picker (L7): the same Ledger in select ───────────────────────────────
+ * Each row is a radio; the picked row is set in ink, as a rolled row is, its
+ * name on a paper cut-out, as a card's head carries its name. No ring, seal
+ * or left rail.
+ */
+.su-ledger__table tbody tr:has(.su-ledger__pick) {
+  cursor: pointer;
+}
+
+.su-ledger__pick {
+  cursor: pointer;
+  display: inline-flex;
+}
+
+.su-ledger__table tbody tr[data-picked],
+.su-ledger__table tbody tr[data-picked]:hover {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-ledger__name {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  margin-inline-start: calc(-1 * var(--space-4));
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.su-ledger__table tbody tr[data-picked] :is([data-empty], [data-kind='quiet']) {
+  color: var(--color-paper);
+}
+
+/* A count picker's selected row (the one the detail shows) is lined in ink;
+   set in ink already, the line is paper. */
+.su-ledger__table tbody tr[data-focused] {
+  outline: var(--bw-pill) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--bw-pill));
+}
+
+.su-ledger__table tbody tr[data-picked][data-focused] {
+  outline-color: var(--color-paper);
+  outline-offset: calc(-2 * var(--bw-pill));
+}
+
+/* Keyboard focus is the one ring (K9), on the frame: a row is clipped by it,
+   and the row the keys are on is the selected one. */
+.su-ledger:has(.su-ledger__pick :focus-visible, .su-ledger__sort:focus-visible) {
+  outline: 3px solid transparent;
+  box-shadow: var(--focus-ring-shadow);
+}
+
+/* A row that does not fit the budget now: the one select dim (`SELECT_DIM`). */
+.su-ledger__table tbody tr[data-blocked] > * {
+  opacity: 0.45;
+}
+
+/* A picked row is an ink ground: its count's stepper (`Stat` in edit) takes
+   the on-ink plate, as under `[data-ground='ink']` (chrome K1). */
+.su-ledger__table tbody tr[data-picked] .su-stat-cell {
+  border-color: var(--color-paper);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-step-btn {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-step-btn:hover {
+  background-color: var(--color-wk-bg);
+}
+
+.su-ledger__table tbody tr[data-picked] .su-step-btn:disabled {
+  background-color: var(--color-paper-15);
+  color: var(--color-paper-60);
+}
+
+/* The selected row's card under its line: where no column stands beside the
+   list, or always (a row's own fields). */
+.su-ledger__table tbody .su-ledger__detail > td {
+  background-color: var(--color-wk-bg);
+  padding: var(--space-8);
+}
+
+/* The card takes the list's width and never sets it. */
+.su-ledger__detail-body {
+  contain: inline-size;
+}
+
+@media (width >= 64rem) {
+  .su-ledger__table tbody .su-ledger__detail[data-at='narrow'] {
+    display: none;
+  }
+}
+
+/* On a phone a row keeps its name, its stamp and the columns marked for it;
+   a quiet line drops under the name when it is the row's only column. */
+@media not (width >= 40rem) {
+  .su-ledger__table :is(th, td):not(:first-child, [data-phone]) {
+    display: none;
+  }
+
+  .su-ledger__table tbody th {
+    white-space: normal;
+    width: auto;
+  }
+
+  /* A list with no phone column: its quiet line drops under the name. */
+  .su-ledger__table[data-phone-line] tr {
+    display: block;
+  }
+
+  .su-ledger__table[data-phone-line] tr > th:first-child {
+    border-bottom: 0;
+    display: block;
+  }
+
+  /* Two lines at most: the row stays a row, its Page has the rest. */
+  .su-ledger__table[data-phone-line] tbody td[data-line] {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    border-top: 0;
+    display: -webkit-box;
+    margin-bottom: var(--space-4);
+    max-width: none;
+    overflow: hidden;
+    padding-bottom: 0;
+    padding-top: 0;
+    white-space: normal;
+  }
+
+  .su-ledger__table[data-phone-line] tbody td[data-line][data-empty] {
+    display: none;
+  }
+
+  /* A name's stamp drops under it before the list runs wider than its frame. */
+  .su-ledger__name-line {
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-8);
+  }
+
+  /* A thumb's targets: the head's sort and a row's name link are each at
+     least 24px tall (WCAG 2.5.8), centred on their line. */
+  .su-ledger__table :is(thead .su-ledger__sort, tbody th .su-inline-ref) {
+    align-items: center;
+    display: inline-flex;
+    min-block-size: var(--space-24);
+  }
+
+  /* The head keeps the trailing column's stamp alone: the ask or the budget
+     beside it is the step's own line above the list. */
+  th .su-ledger__trailing-line > :not(:last-child) {
+    display: none;
+  }
+
+  /* On a phone a count's cells sit closer, so the list keeps to its frame. */
+  .su-ledger__table tbody tr:has(.su-stat-stepper) > * {
+    padding-inline: var(--space-4);
+  }
+
+  /* Touch takes a taller picker row (§4.6). */
+  .su-ledger__table tbody tr:has(.su-ledger__pick) > * {
+    height: var(--space-40);
+  }
+
+  /* A column of words (a bay's crew lead, an ability's tree) is caption
+     size, and wraps where the list would run wider than its frame. */
+  .su-ledger__table tbody [data-kind='text'] {
+    font-size: var(--text-caption);
+    white-space: normal;
+  }
+}
+
+/* The Training Bay's shelves as Ledgers. Units and Games in one column, what
+   you made in the other where both fit; the columns wrap and grow to fill. */
+.su-shelf-ledgers {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-24);
+}
+
+.su-shelf-ledgers__col {
+  flex: 1 1 24rem;
+}
+
+.su-shelf-ledgers__col:first-child {
+  flex: 1.35 1 30rem;
+}
+
+.su-shelf-ledgers__col,
+.su-shelf-ledger {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* A shelf's names and its link cells wrap, never cut (R56: a Game's name is
+   whole), so the list never runs wider than its frame and the make stays
+   whole: the link cells share the room left (`max-width: 0` lets each
+   shrink to fit, its words wrapping). */
+.su-shelf-ledger .su-ledger__table tbody th {
+  white-space: normal;
+  width: auto;
+}
+
+/* A shelf's names take the room left, so its line's end keeps to its content. */
+.su-shelf-ledger .su-ledger__table [data-kind='trailing'] {
+  width: 1%;
+}
+
+.su-shelf-ledger .su-ledger__table td[data-kind='text'] {
+  max-width: 0;
+  width: 18%;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* A pilot's mech under its name, where the Mech column is hidden: a phone. */
+.su-shelf-ledger__flown {
+  display: none;
+}
+
+/* On a phone the make's cut-out is the widest thing on the strip: the cells
+   after the name sit closer and a word column wraps, so a long name's menu
+   stays inside the frame. */
+@media not (width >= 40rem) {
+  .su-shelf-ledger .su-ledger__table tr > :is(th, td):not(:first-child) {
+    padding-inline: var(--space-4);
+  }
+
+  .su-shelf-ledger .su-ledger__table td[data-kind='text'] {
+    max-width: none;
+    white-space: normal;
+    width: auto;
+  }
+
+  .su-shelf-ledger__flown {
+    display: inline;
+  }
+}
+
+/* Search: the dropdown's results as a Ledger.
+ * The highlighted row is the picked row: filled with ink, its name on a
+ * small paper tab.
+ */
+.su-search-ledger {
+  padding: var(--space-8);
+}
+
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-search-ledger .su-ledger__table tbody tr:has([aria-selected='true']) [data-empty] {
+  color: var(--color-paper-60);
+}
+
+.su-search-ledger .su-ledger__name [aria-selected='true'] {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  padding: 0 var(--space-6);
+}
+
+/* A phone keeps every search column: the kind tells two Lasers apart. */
+@media not (width >= 40rem) {
+  .su-search-ledger .su-ledger__table :is(th, td)[data-kind='text']:not([data-phone]) {
+    display: none;
+  }
+}
+
+/* The dropdown is narrow: a name wraps, the columns keep their width. */
+.su-search-ledger .su-ledger__table tbody th {
+  white-space: normal;
+  width: auto;
+}
+
+.su-search-ledger .su-ledger__name {
+  font-size: var(--text-body);
+}
+
+/* The cost column's mark before its COST stamp (L2): inline on the label's line. */
+.su-ledger__cost-mark {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-inline-end: var(--space-2);
+  vertical-align: -0.125em;
+}

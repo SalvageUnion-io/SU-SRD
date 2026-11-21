@@ -8,18 +8,27 @@ import {
   resolveTable,
   SalvageUnionReference,
 } from 'salvageunion-reference'
-import { layer } from '../../design/tokens'
+import { borderWidth, color, layer, space } from '../../design/tokens'
 import { captureException } from '../../lib/observability'
 import { entityCopy } from '../../messages/components-entity'
 import { EmptyState } from '../containers/EmptyState'
 import { Skeleton } from '../containers/Skeleton'
 import type { Down } from '../referenceEntity/card/cardChrome'
+import { useEntitySurface } from './entitySurfaceContext'
 import type { PeekLoader } from './Peek'
 import { PeekCard, PeekMini } from './PeekCard'
 import { PeekTable } from './PeekTable'
 import type { PeekSize } from './peekContext'
 import { PEEK_POPUP_ATTRIBUTE } from './peekController'
 import { PEEK_PLATE } from './peekPlate'
+
+/** The Peek's way out, under its card: a paper strip in the card's frame. */
+const PEEK_OUT = {
+  background: color.paper,
+  border: `${borderWidth.entityCompact} solid ${color.ink}`,
+  borderTop: 'none',
+  padding: `${space[4]} ${space[8]}`,
+} satisfies CSSProperties
 
 /** A peek hangs at the overlay layer, over the page and its sticky bars. */
 const PEEK_LAYER = { zIndex: layer.overlay } satisfies CSSProperties
@@ -60,7 +69,7 @@ function subjectAt(schemaName: string, id: string): PeekSubject | undefined {
 
 /**
  * A card that cannot render (a schema it reads did not load) says so on the
- * plate, quietly (chrome.md K8): a Peek is terminal (no button, so no
+ * plate, quietly (chrome K8): a Peek is terminal (no button, so no
  * `RecoveryPanel`), and an error that closes the Peek says nothing at all.
  * Reported, since catching it is what keeps it from the window's reporter.
  */
@@ -123,6 +132,11 @@ export function PeekPopup({
   }, [load, schemaName, onDismiss])
 
   const subject = loaded ? subjectAt(schemaName, entityId) : undefined
+  // The app's "View in the Reference" (the surface's): the Peek's way to the
+  // entry's page, beside its name (E16). The SRD, which is the Reference, has none.
+  const { externalLink } = useEntitySurface()
+  const outLink =
+    subject?.kind === 'entity' ? externalLink?.(subject.entity, { inPeek: true }) : undefined
   useEffect(() => {
     if (loaded && !subject) onDismiss()
   }, [loaded, subject, onDismiss])
@@ -164,6 +178,7 @@ export function PeekPopup({
                 ) : (
                   <PeekCard entity={subject.entity} down={down} />
                 )}
+                {outLink && <div style={PEEK_OUT}>{outLink}</div>}
               </PeekBoundary>
             ) : (
               <Skeleton />

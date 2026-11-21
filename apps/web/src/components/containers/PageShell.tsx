@@ -3,7 +3,9 @@ import { color, space } from '../../design/tokens'
 import { cn } from '../../lib/cn'
 import type { LayoutGap } from './layoutGap'
 
-const GROUND = { minHeight: '100dvh', backgroundColor: color.wkBg } satisfies CSSProperties
+// The page is as tall as its content; `#root`'s
+// column keeps a short page's foot on the window's edge.
+const GROUND = { backgroundColor: color.wkBg } satisfies CSSProperties
 
 const COLUMN = { display: 'flex', flexDirection: 'column' } satisfies CSSProperties
 
@@ -41,7 +43,7 @@ export type PageShellProps = {
   stack?: boolean
   /** The space between stacked children: a step of `tokens.space`. */
   gap?: LayoutGap
-  /** The measured layout's body width (`'75rem'`, `PAGE_MEASURE`). */
+  /** The measured layout's body width (`PAGE_MEASURE`, or a length such as `'40rem'`). */
   measure?: string
   /** The measured layout's band (and anything else full-bleed above the body). */
   band?: ReactNode

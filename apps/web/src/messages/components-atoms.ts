@@ -4,6 +4,8 @@ import { messages } from './define'
 
 export const atomsCopy = messages({
   backTo: 'Back to',
+  more: 'More',
+  less: 'Less',
   breadcrumb: 'Breadcrumb',
   removeCondition: 'Remove condition {label}',
   add: '+ Add',
@@ -20,6 +22,9 @@ export const atomsCopy = messages({
   activateToMark: '{current}. Activate to mark {value}',
   decrease2: 'Decrease {label}',
   increase2: 'Increase {label}',
+  valueOfMax: '{name} {value} of {max}',
+  valueOf: '{name} {value}',
+  changeValueOfMax: '{name} {value} of {max}. Change',
   setMax: 'Set {label} max',
   overrideMaxCurrently: 'Override {label} max (currently {max})',
   max: 'Max {label}',

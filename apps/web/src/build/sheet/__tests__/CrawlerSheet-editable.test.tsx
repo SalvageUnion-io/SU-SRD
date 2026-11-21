@@ -22,6 +22,7 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { RefCrawlerBay } from 'salvageunion-reference'
 import { patchModelRows } from '../../../../test/patchModel'
+import { expandCards } from '../../../components/__tests__/expandCards'
 import { FIXTURE_NOW } from '../../../components/__tests__/fixtures'
 import { makeSingleUnitStore } from '../../../components/__tests__/mockEntityStore'
 import { must } from '../../../components/__tests__/must'
@@ -105,29 +106,15 @@ describe('CrawlerSheet — bay function/Repair actions', () => {
     restore?.()
   })
 
-  test('intact bay leads with its function action; Repair shows only on the damaged bay', async () => {
+  test('Repair shows only on the damaged bay, on its row', async () => {
     restore = await patchCrawlerBays()
     render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
 
-    // Mech Bay is intact: 'Dock' enabled, and nothing to repair, so no Repair.
-    const dock = screen.getByRole('button', { name: 'Dock' })
-    expect((dock as HTMLButtonElement).disabled).toBe(false)
+    // The Mech Bay is intact, the Command Bay damaged: one Repair, enabled.
     const repairs = screen.getAllByRole('button', { name: 'Repair' })
     expect(repairs.length).toBe(1)
-  })
-
-  test('damaged bay disables its function action and promotes Repair', async () => {
-    restore = await patchCrawlerBays()
-    render(<CrawlerSheet crawler={fakeCrawler} store={makeStubStore(fakeCrawler)} />)
-
-    // Command Bay is damaged: 'Scan' disabled…
-    const scan = screen.getByRole('button', { name: 'Scan' })
-    expect((scan as HTMLButtonElement).disabled).toBe(true)
-    // …and exactly one Repair (the damaged bay's) is enabled.
-    const enabledRepairs = screen
-      .getAllByRole('button', { name: 'Repair' })
-      .filter((b) => !(b as HTMLButtonElement).disabled)
-    expect(enabledRepairs.length).toBe(1)
+    expect((repairs[0] as HTMLButtonElement).disabled).toBe(false)
+    expect(repairs[0]?.closest('tr')?.textContent).toContain('Command Bay')
   })
 
   test('Repair decrements 5 Scrap from the crawler-TL bucket (spilling higher) and flips the bay Intact', async () => {
@@ -316,9 +303,9 @@ describe('CrawlerSheet — readOnly suppresses edits', () => {
         liveCondition
       />
     )
-    const steppers = screen.getAllByRole('button', {
-      name: /status: Intact\. Activate to mark Damaged/,
-    })
+    // Read is the crew manifest: a bay's line opens to its Mark damaged.
+    expandCards()
+    const steppers = screen.getAllByRole('button', { name: 'Mark damaged' })
     expect(steppers.length).toBeGreaterThan(0)
     // Only the condition steps: Read still draws no Repair.
     expect(screen.queryByRole('button', { name: 'Repair' })).toBeNull()

@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 8 of 20: guide steps, the entity hero and
+ * The package stylesheet: guide steps, the entity hero and
  * pattern rows. `../index.css` imports the parts in cascade order.
  */
 
@@ -72,8 +72,8 @@
    between two rules, apart from its steps' left-hand slabs. */
 .su-guide--page .su-guide__section > .su-slab-section__head::before {
   border-top: var(--bw-hairline) solid var(--color-ink-50);
-  content: '';
   flex: 1 1 0;
+  content: none;
 }
 
 .su-guide--page .su-guide__section > .su-slab-section__head > :last-child {
@@ -276,7 +276,6 @@
 .su-guide--page .su-guide__step > .su-guide__head {
   align-self: center;
   grid-row: 1;
-  min-height: var(--su-guide-tab);
 }
 
 @media (width >= 40rem) {
@@ -384,14 +383,12 @@
  * A guide's page reads like the book's prose pages (`.su-entity-page--guide`,
  * set by `CardPage` when it holds a guide): one column for the introduction
  * and the steps alike, so slabs, tables and option cards share one left
- * edge. Its prose is set to a book measure inside it (about 70 characters a
- * line at the reading size; the tables and cards take the column's width) at
- * a book leading, paragraphs parted by a breath rather than packed, and the
- * asides framed.
+ * edge. Its prose fills the column as its tables and cards do (no paragraph
+ * carries a cap of its own: the track is the measure) at a book leading,
+ * paragraphs parted by a breath rather than packed, and the asides framed.
  */
 .su-entity-page--guide {
   --su-guide-measure: 46rem;
-  --su-guide-prose: 56ch;
 }
 
 .su-entity-page--guide .su-entity-page__prose,
@@ -403,7 +400,13 @@
 .su-entity-page--guide .su-entity-page__prose .su-text.su-text--flavor,
 .su-entity-page--guide .su-guide__prose .su-text.su-text--body {
   line-height: 1.6;
-  max-width: var(--su-guide-prose);
+}
+
+.su-entity-page--guide :is(.su-entity-page__prose, .su-guide__prose) .su-text,
+.su-entity-page--guide .su-guide__prose .su-text + .su-text,
+.su-entity-page--guide .su-guide__note,
+.su-entity-page--guide .su-guide__aside {
+  max-width: none;
 }
 
 /* Paragraphs inside one run part like the runs do. */
@@ -412,12 +415,8 @@
   margin-top: var(--space-12);
 }
 
-.su-entity-page--guide .su-guide__note {
-  max-width: var(--su-guide-prose);
-}
-
 /* The aside (`GuideAside`): the unlabelled `Callout`, whose frame and paper
- * body are the Box's; its paragraph sets the guide's reading measure. */
+ * body are the Box's. */
 .su-guide__aside p {
   margin: 0;
   text-wrap: pretty;
@@ -442,28 +441,25 @@
   font-style: italic;
 }
 
-.su-entity-page--guide .su-guide__aside {
-  max-width: calc(var(--su-guide-prose) + 2 * var(--space-16));
-}
-
 /*
- * On a desktop (from 64rem: the 46rem column, the gap and the rail's 12rem
- * floor fit inside a 1024px screen's margins) the whole page is two columns:
- * the reading column, and the rail
+ * On a desktop (from 64rem) the whole page is two columns: the reading
+ * column, which takes the room the rail leaves, and the rail
  * beside it from the band down — beside the introduction too, not only the
  * steps. `GuideSteps`'s own box steps aside (`display: contents`) so its rail
  * is a cell of the page's grid; the rail spans both rows (the introduction,
  * then the steps) and sticks while they scroll by. It stands at the page's far
  * edge, under the band's stamps, as the column stands under its title.
  */
+/* A guide's Page is the same two tracks as every other: its steps fill the
+   main track (each strip ends where its words wrap), its On This Page rail
+   stands in the side track. No paragraph carries a cap of its own. */
 @media (width >= 64rem) {
   .su-entity-page--guide {
     align-items: start;
-    column-gap: var(--space-40);
+    column-gap: var(--space-24);
     display: grid;
-    grid-template-columns: minmax(0, var(--su-guide-measure)) minmax(12rem, 16rem);
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     grid-template-rows: auto 1fr;
-    justify-content: space-between;
     row-gap: 0;
   }
 
@@ -513,6 +509,13 @@
   padding: var(--su-hero-inset);
 }
 
+/* A book's cover stands bare: no paper plate, no hairline frame. */
+.su-entity-hero--bare {
+  --su-hero-inset: 0;
+  background-color: transparent;
+  border: 0;
+}
+
 .su-entity-hero__img {
   display: block;
   height: auto;
@@ -555,196 +558,23 @@
   position: absolute;
 }
 
-/* ── Pattern rows (`PatternLinkRows`) ───────────────────────────────────────
- * Each pattern is a card in the Compact's language: its host's tone in the head
- * (the link), a paper body with the pattern's opening as a
- * clamped lead and its loadout, Systems beside Modules, one full-width Mini
- * a line (links of their own, so outside the head's anchor). One card a line.
- * On a phone only two show until "Show all" targets the section's heading
- * (`:target`), which needs no script. The section is a `SlabSection` on the
- * Page (12px under its Slab); its body spaces the list and "Show all".
- */
-.su-pattern-rows [id='patterns'] {
-  scroll-margin-top: var(--space-64);
+/* A guide's phase (Post-Session) stands over steps that each wear their own
+   cut-out: the phase is a plain ruled label, never a second cut-out over
+   them (L-6). */
+.su-guide--page .su-guide__section > .su-slab-section__head {
+  background: none;
+  border-bottom: var(--bw-pill) solid var(--color-ink);
+  min-height: 0;
+  padding-block: var(--space-4);
 }
 
-.su-pattern-rows__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-12);
-}
-
-.su-pattern-rows__list {
-  display: grid;
-  gap: var(--space-12);
-  grid-template-columns: minmax(0, 1fr);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.su-pattern-rows__head {
-  color: inherit;
-  display: block;
-  text-decoration: none;
-}
-
-/* The pattern's opening paragraph, at the head of the box's body. */
-.su-pattern-rows__prose {
+.su-guide--page .su-guide__section > .su-slab-section__head > .su-rule-head__label {
+  background: none;
   color: var(--color-ink);
-  font-size: var(--text-body);
-  line-height: 1.45;
-  margin: 0;
-  max-width: 72ch;
+  flex: 0 0 auto;
+  padding-inline: 0;
 }
 
-/* What the pattern changes (`PatternUniques`): its loadout Minis, or the
-   actions a Bio-Titan pattern adds. */
-.su-pattern-rows__unique {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
-
-/* A chassis page's Homebrew (`HomebrewIsland`), a block of its own under the
-   card: the gap between blocks (R17). */
-.su-homebrew {
-  margin-top: var(--space-12);
-}
-
-.su-pattern-rows__more {
-  display: flex;
-  justify-content: center;
-  margin-top: var(--space-12);
-}
-
-@media not (width >= 40rem) {
-  .su-pattern-rows:not(:has(:target)) .su-pattern-rows__list > li:nth-child(n + 3) {
-    display: none;
-  }
-
-  .su-pattern-rows:has(:target) .su-pattern-rows__more {
-    display: none;
-  }
-
-  /* A chassis page's one "Show all" sits under its Homebrew, counting both, so
-     the book's own steps aside; the Homebrew rows past the first two wait for
-     it too (HomebrewIsland). */
-  :root:has([id='homebrew-patterns']) .su-pattern-rows .su-pattern-rows__more,
-  :root:has([id='patterns']:target, [id='homebrew-patterns']:target) .su-pattern-rows__more,
-  :root:not(:has([id='patterns']:target, [id='homebrew-patterns']:target)) .su-homebrew__more {
-    display: none;
-  }
-}
-
-@media (width >= 40rem) {
-  .su-pattern-rows__more {
-    display: none;
-  }
-}
-
-/* The link-preview scale (`scale="og"`, OgCard): a band drawn at
-   one fixed size inside a 1200 × 630 card, never responsive. The eyebrow (the
-   kicker and its stamps) sits at the top, the notch at the foot, and the band
-   fills the height the card gives it. The selectors outrank the responsive
-   rules above, so a 1200px viewport's `@media` padding never reaches it. */
-.su-chapter-band[data-scale='og'] {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
-}
-
-.su-chapter-band[data-scale='og'] .su-chapter-band__eyebrow {
-  max-width: none;
-  padding: var(--space-48) calc(var(--space-48) + var(--space-8)) 0;
-}
-
-.su-chapter-band[data-scale='og'] .su-chapter-band__row {
-  align-items: flex-end;
-  column-gap: var(--space-24);
-  flex-direction: row;
-  margin-inline: 0;
-  max-width: none;
-  padding: 0 calc(var(--space-48) + var(--space-8));
-}
-
-.su-chapter-band[data-scale='og'] .su-chapter-band__title {
-  font-size: 120px;
-  min-width: 0;
-  overflow: hidden;
-  padding: var(--space-12) var(--space-24) 0;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Without an eyebrow (an entity's card: nothing above its title, EDL E20)
-   the notch still sits on the band's foot. */
-.su-chapter-band[data-scale='og'] .su-chapter-band__row {
-  margin-top: auto;
-}
-
-/* An ability's tier numeral left of the notch, as on its page band; the
-   notch beside it gives way first. */
-.su-chapter-band[data-scale='og'] .su-chapter-band__heading {
-  gap: var(--space-24);
-  min-width: 0;
-}
-
-/* THE OG CHIPS (`OgCard`): the entity's one chip group (E17), the page's own
-   horizontal `Stat` cells drawn at the preview's scale, so nothing reads under
-   the 34px source floor at Discord's 400px draw (ruleset §4.6). */
-.su-og-chips {
-  line-height: 0;
-  margin: calc(-1 * var(--space-14)) 0 0 calc(-1 * var(--space-14));
-  text-align: end;
-  text-wrap: balance;
-}
-
-/* Inline boxes in a balanced block, as a show page's chips, so the rows come
-   out even; each chip's top and leading margin is the gap, cancelled at the
-   block's edges (`OgCard` widens the block by one gap). */
-.su-og-chips > * {
-  display: inline-flex;
-  margin: var(--space-14) 0 0 var(--space-14);
-  vertical-align: bottom;
-}
-
-/* The chips ride the band beside the title, as a show page's header chips
-   do: right-aligned, the last row centred on the notch's capitals
-   (`ogChipsLift`), extra rows stacking upward, even. Their width is set by
-   `ogCardLayout`, so the title never gives way to them. */
-.su-chapter-band[data-scale='og'] .su-chapter-band__aside {
-  flex: none;
-  margin-left: auto;
-  padding-bottom: 0;
-}
-
-.su-og-chips .su-stat-cell {
-  border-radius: calc(var(--radius-badge) * 2);
-  border-width: var(--bw-entity);
-}
-
-/* The HOMEBREW stamp (`HomebrewStamp`) at the preview's scale: the cells'
-   type, its dashed edge at the entity weight. */
-.su-og-chips .su-badge--dashed {
-  border-width: var(--bw-entity);
-  font-size: 36px;
-  font-weight: var(--font-weight-extrabold);
-  line-height: 1.1;
-  padding: var(--space-2) var(--space-16);
-}
-
-/* The cost box sits in its edge, which draws no box of its own
-   (`display: contents`), so the box takes the chip's gap itself. */
-.su-og-chips > .su-cost-edge > .su-cost {
-  margin: var(--space-14) 0 0 var(--space-14);
-  vertical-align: bottom;
-}
-
-.su-og-chips .su-stat-plate {
-  font-family: var(--font-cond);
-  font-size: 36px;
-  font-weight: var(--font-weight-bold);
-  padding: var(--space-8) var(--space-14);
+.su-guide__section {
+  --cutout-ground: var(--color-paper);
 }

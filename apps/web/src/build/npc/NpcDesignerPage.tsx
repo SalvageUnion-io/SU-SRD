@@ -17,7 +17,8 @@
  * the URL. Signed out, `NewEntityScreen` shows the sign-in panel instead.
  */
 
-import { ChapterBand, Tab, TabList, TabPanel, Tabs, tokens } from '../../components/index'
+import { Tab, TabList, TabPanel, Tabs } from '../../components/app'
+import { ChapterBand, tokens } from '../../components/index'
 import { useMe } from '../../lib/account/accountApi'
 import { resolveCrawlerType } from '../../lib/crawlerRefs'
 import { npcCopy } from '../../messages/build-npc'

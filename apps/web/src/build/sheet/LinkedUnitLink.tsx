@@ -1,7 +1,7 @@
 /**
  * LinkedUnitLink — a unit linked to what holds it, wherever a sheet names one
- * outside its Assigned units (the Hold's stow target, the Mech Bay's docked
- * mech): a header-only Mini of its kind, never a chip (R5), its name opening
+ * outside its Related units (the Hold's stow target, the Mech Bay's docked
+ * mech): a header-only Mini of its kind, never a chip (C11), its name opening
  * that unit's sheet. No readings: what it is
  * doing is its own sheet's.
  */

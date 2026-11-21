@@ -39,7 +39,7 @@ type NpcCardProps = {
   size?: CardProps['size']
   /** Overrides the derived kicker ("Crawler crew · Med Bay" for a slot draft). */
   kicker?: string
-  /** The host's controls, the card's control slot (C8, hard rule R6): Open, Unassign. */
+  /** The host's controls, the card's control slot (C8): Open, Unassign. */
   controls?: CardProps['controls']
 }
 

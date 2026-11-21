@@ -1,12 +1,10 @@
 import { PilotSchema } from 'game-domain/schemas/pilot'
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
-import type { RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
+import type { ChoiceSelections, RefAbility, RefClass, RefEquipment } from 'salvageunion-reference'
 import { bookQuote, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import {
   isLegalCreationAbility,
-  PILOT_BASE_AP,
-  PILOT_BASE_HP,
-  PILOT_BASE_INVENTORY_SLOTS,
   PILOT_CREATION_ABILITY_PICKS,
   PILOT_CREATION_EQUIPMENT_PICKS,
 } from 'salvageunion-reference/rules'
@@ -14,6 +12,7 @@ import { toast } from '../../components/index'
 import type { PilotWizardStepId } from '../../lib/rules/creation'
 import { clampPilotCreationDraft, pilotCreationStepGate } from '../../lib/rules/creation'
 import { pilotInventoryCapacity, pilotInventoryUsed } from '../../lib/rules/pilotInventory'
+import { withItemChoice } from '../../lib/wizard/itemChoices'
 import type { PilotWizardFormState } from '../../lib/wizard/pilotFormState'
 import { EMPTY_PILOT_FORM_STATE, pilotFormToCreateInput } from '../../lib/wizard/pilotFormState'
 import { withPreselection } from '../../lib/wizard/preselect'
@@ -29,45 +28,37 @@ import { RuleBrief } from '../wizard/RuleBrief'
 import type { RollTableDeps } from '../wizard/rollTableHelpers.model'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
-import { WizShell, WizTracker } from '../wizard/WizShell'
+import { WizTracker } from '../wizard/WizBudget'
+import { WizShell } from '../wizard/WizShell'
 import { ReviewStep } from './ReviewStep'
 import { StatsStep } from './StatsStep'
 
-/** Book-order steps (Pilot Bay pp.18–19 + Review). The book's first, the
- *  fixed starting stats, asks nothing: it leads the class step. */
-const STEPS: readonly PilotWizardStepId[] = [
-  'classAbility',
-  'equipment',
-  'callsign',
-  'background',
-  'motto',
-  'keepsake',
-  'appearance',
-  'review',
-]
+/**
+ * The book's eight steps (pp.18–19) as four, each one a decision (N6: a step
+ * asks for something). Class and first Ability share a step; Equipment is its
+ * own; Callsign, Background, Motto, Keepsake and Appearance, a field each in
+ * the book, are one step of parts, each field over the book's words for it;
+ * Review is the build as it will read on the sheet. The book's own words stay
+ * in the rule briefs.
+ */
+type PilotStep = 'classAbility' | 'equipment' | 'identity' | 'review'
 
-/** Stepper-rail labels. */
-const STEP_LABELS: Record<PilotWizardStepId, string> = {
-  classAbility: 'Class & Ability',
-  equipment: 'Equipment',
-  callsign: 'Callsign',
-  background: 'Background',
-  motto: 'Motto',
-  keepsake: 'Keepsake',
-  appearance: 'Appearance',
-  review: 'Review',
+const STEPS: readonly PilotStep[] = ['classAbility', 'equipment', 'identity', 'review']
+
+/** Stepper-rail labels (also the Next button's: it names the step it opens). */
+const STEP_LABELS: Record<PilotStep, string> = {
+  classAbility: pilotCopy('classAbility'),
+  equipment: pilotCopy('equipment'),
+  identity: pilotCopy('whoTheyAre'),
+  review: pilotCopy('review'),
 }
 
-/** Step headings — the book's own step names (pp.18–19). */
-const STEP_TITLES: Record<PilotWizardStepId, string> = {
-  classAbility: 'Choose your Pilot and your first Ability',
-  equipment: 'Choose your Equipment',
-  callsign: 'Choose your Callsign',
-  background: 'Choose your Background',
-  motto: 'Choose your Motto',
-  keepsake: 'Choose your Keepsake',
-  appearance: 'Choose your Appearance',
-  review: 'Review',
+/** Step headings. */
+const STEP_TITLES: Record<PilotStep, string> = {
+  classAbility: pilotCopy('chooseYourPilotAnd'),
+  equipment: pilotCopy('chooseYourEquipment'),
+  identity: pilotCopy('sayWhoYourPilot'),
+  review: pilotCopy('reviewYourPilot'),
 }
 
 /**
@@ -107,14 +98,14 @@ type PilotWizardProps = {
 }
 
 /**
- * Multi-step pilot wizard on the shared WizShell skeleton, restructured to
- * the Pilot Bay's book steps + Review with HARD creation enforcement (§5):
+ * The pilot wizard on the shared WizShell skeleton: the Pilot Bay's book
+ * steps as four (above), with HARD creation enforcement (§5):
  *
  *   - illegal options are FILTERED OUT (core classes only, legal Level-1
  *     abilities only, Tech 1 equipment only) — never rendered;
  *   - exactly 1 ability (radio) and exactly 2 equipment picks (Qty stepper,
  *     duplicates allowed) — Next is gated by `pilotCreationStepGate` and the
- *     unmet requirement renders in the footerNote;
+ *     unmet requirement shows on the step (`footerNote`);
  *   - cross-step invalidation (class change clears a now-illegal ability) and
  *     draft-restore clamping are deterministic and always announced by toast;
  *   - there is no warnings Banner — nothing can be in violation.
@@ -156,7 +147,8 @@ export function PilotWizard({
     noun: 'pilot',
     steps: STEPS,
     stepLabels: STEP_LABELS,
-    gateFor: (s) => pilotCreationStepGate(s, form),
+    // The merged step answers to the book step that gates it (name and callsign).
+    gateFor: (s) => pilotCreationStepGate(s === 'identity' ? 'callsign' : s, form),
     initialStep: 'classAbility',
     submitStep: 'review',
     form,
@@ -170,6 +162,13 @@ export function PilotWizard({
     onOffRules,
     gameId,
   })
+
+  /** An option chosen on a piece of equipment (`Pilot.equipmentChoices`), saved with the pilot. */
+  const setEquipmentChoice = (slug: string, next: ChoiceSelections) =>
+    setForm((prev) => ({
+      ...prev,
+      equipmentChoices: withItemChoice(prev.equipmentChoices, slug, next),
+    }))
 
   function updateForm(patch: Partial<PilotWizardFormState>) {
     setForm((prev) => ({ ...prev, ...patch }))
@@ -241,8 +240,10 @@ export function PilotWizard({
 
   // Per-step RuleBrief: the Core Book's own creation copy, pp.18–19,
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
-  const stepRule: StepRule = (() => {
-    switch (step) {
+  // Kept by the book step each part of a step answers to.
+  type BookStep = Exclude<PilotWizardStepId, 'review'>
+  const ruleFor = (bookStep: BookStep): StepRule => {
+    switch (bookStep) {
       case 'classAbility':
         return {
           rule: bookQuote(
@@ -327,17 +328,25 @@ export function PilotWizard({
             see: [{ label: pilotCopy('appearanceTable'), page: 91 }],
           },
         }
-      case 'review':
-        return {
-          rule: `Recap: 1 class · 1 ability · 2 Tech 1 items · ${PILOT_BASE_HP} HP · ${PILOT_BASE_AP} AP · ${PILOT_BASE_INVENTORY_SLOTS} slots. Check the build, then create.`,
-          cite: { source: 'Salvage Union Workshop Manual', page: [18, 19] },
-        }
     }
-  })()
+  }
+  const brief = (bookStep: BookStep) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
+  }
+  /** A part of a step: its field in the brief's frame, over the book's words for it. */
+  const part = (bookStep: BookStep, field: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {field}
+      </RuleBrief>
+    )
+  }
 
-  // Tracker tabs in the action pill: live pick counts, and on the equipment
-  // step the slot preview via the sheets' pilotInventory math (Heavy/Portable
-  // = 2 slots — the tracker is the live truth, never the pick count).
+  // The action bar's budgets: live pick counts, and on the equipment step the
+  // slot preview via the sheets' pilotInventory math (Heavy/Portable = 2
+  // slots — the tracker is the live truth, never the pick count).
   const trackers = (() => {
     switch (step) {
       case 'classAbility':
@@ -362,12 +371,15 @@ export function PilotWizard({
         return (
           <>
             {picks}
-            <WizTracker
-              label={pilotCopy('slots')}
-              value={slotsUsed}
-              max={pilotInventoryCapacity()}
-              testId="slot-preview"
-            />
+            {/* One budget on a phone's bar; the step's own meters show both. */}
+            <span className="su-wiz-pill-wide">
+              <WizTracker
+                label={pilotCopy('slots')}
+                value={slotsUsed}
+                max={pilotInventoryCapacity()}
+                testId="slot-preview"
+              />
+            </span>
           </>
         )
       }
@@ -387,76 +399,98 @@ export function PilotWizard({
       footerNote={gate.ok ? undefined : gate.reason}
       submitLabel={pilotCopy('createPilot')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
       {step === 'classAbility' && (
-        // Every pilot's starting stats (p.18) are fixed, so they lead the
-        // first step that asks for something instead of being a step.
-        <StatsStep />
-      )}
-      {step === 'classAbility' && (
-        <ClassAbilityStep
-          classId={form.classId}
-          selectedAbilities={form.abilities}
-          onSelectClass={handleSelectClass}
-          onSelectAbility={handleSelectAbility}
-          _sur={_sur ? { Classes: sur.Classes, Abilities: sur.Abilities } : undefined}
-        />
+        <>
+          {brief('classAbility')}
+          {/* Every pilot's starting stats (p.18) are fixed, so they lead the
+              first step that asks for something instead of being a step. */}
+          <StatsStep />
+          <ClassAbilityStep
+            classId={form.classId}
+            selectedAbilities={form.abilities}
+            onSelectClass={handleSelectClass}
+            onSelectAbility={handleSelectAbility}
+            cite={ruleFor('classAbility').cite}
+            _sur={_sur ? { Classes: sur.Classes, Abilities: sur.Abilities } : undefined}
+          />
+        </>
       )}
       {step === 'equipment' && (
-        <EquipmentStep
-          selectedEquipment={form.equipment}
-          onCountChange={handleEquipmentCount}
-          budget={PILOT_CREATION_EQUIPMENT_PICKS}
-          _sur={{ Equipment: sur.Equipment }}
-        />
+        <>
+          {brief('equipment')}
+          <EquipmentStep
+            selectedEquipment={form.equipment}
+            onCountChange={handleEquipmentCount}
+            budget={PILOT_CREATION_EQUIPMENT_PICKS}
+            choices={form.equipmentChoices}
+            onChoices={setEquipmentChoice}
+            cite={ruleFor('equipment').cite}
+            _sur={{ Equipment: sur.Equipment }}
+          />
+        </>
       )}
-      {step === 'callsign' && (
-        <CallsignStep
-          name={form.name}
-          callsign={form.callsign}
-          onChange={(field, value) => updateForm({ [field]: value })}
-          _rollDeps={_rollDeps}
-        />
-      )}
-      {step === 'background' && (
-        <BackgroundStep
-          background={form.background}
-          onChange={(v) => updateForm({ background: v })}
-          description={form.description}
-          onDescriptionChange={(v) => updateForm({ description: v })}
-          _rollDeps={_rollDeps}
-        />
-      )}
-      {step === 'motto' && (
-        <FlavorStep
-          field="motto"
-          label={pilotCopy('motto')}
-          value={form.motto}
-          onChange={(v) => updateForm({ motto: v })}
-          placeholder={pilotCopy('aPhraseYourPilotLives')}
-          _rollDeps={_rollDeps}
-        />
-      )}
-      {step === 'keepsake' && (
-        <FlavorStep
-          field="keepsake"
-          label={pilotCopy('keepsake')}
-          value={form.keepsake}
-          onChange={(v) => updateForm({ keepsake: v })}
-          placeholder={pilotCopy('somethingPreciousFromYourPast')}
-          _rollDeps={_rollDeps}
-        />
-      )}
-      {step === 'appearance' && (
-        <FlavorStep
-          field="appearance"
-          label={pilotCopy('appearance')}
-          value={form.appearance}
-          onChange={(v) => updateForm({ appearance: v })}
-          placeholder={pilotCopy('howDoesYourPilotLook')}
-          multiline
-          _rollDeps={_rollDeps}
-        />
+      {step === 'identity' && (
+        // Five book steps, a part each: the field over the book's words for
+        // it, in two columns where there is room. Only the first is required.
+        <div className="su-wiz-parts">
+          <div className="su-wiz-parts__col">
+            {part(
+              'callsign',
+              <CallsignStep
+                name={form.name}
+                callsign={form.callsign}
+                onChange={(field, value) => updateForm({ [field]: value })}
+                _rollDeps={_rollDeps}
+              />
+            )}
+            {part(
+              'motto',
+              <FlavorStep
+                field="motto"
+                label={pilotCopy('motto')}
+                value={form.motto}
+                onChange={(v) => updateForm({ motto: v })}
+                placeholder={pilotCopy('aPhraseYourPilotLives')}
+                _rollDeps={_rollDeps}
+              />
+            )}
+            {part(
+              'keepsake',
+              <FlavorStep
+                field="keepsake"
+                label={pilotCopy('keepsake')}
+                value={form.keepsake}
+                onChange={(v) => updateForm({ keepsake: v })}
+                placeholder={pilotCopy('somethingPreciousFromYourPast')}
+                _rollDeps={_rollDeps}
+              />
+            )}
+          </div>
+          <div className="su-wiz-parts__col">
+            {part(
+              'background',
+              <BackgroundStep
+                background={form.background}
+                onChange={(v) => updateForm({ background: v })}
+                description={form.description}
+                onDescriptionChange={(v) => updateForm({ description: v })}
+                _rollDeps={_rollDeps}
+              />
+            )}
+            {part(
+              'appearance',
+              <FlavorStep
+                field="appearance"
+                label={pilotCopy('appearance')}
+                value={form.appearance}
+                onChange={(v) => updateForm({ appearance: v })}
+                placeholder={pilotCopy('howDoesYourPilotLook')}
+                multiline
+                _rollDeps={_rollDeps}
+              />
+            )}
+          </div>
+        </div>
       )}
       {step === 'review' && (
         <ReviewStep

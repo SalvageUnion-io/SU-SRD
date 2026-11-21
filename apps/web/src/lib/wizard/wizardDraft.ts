@@ -50,8 +50,31 @@ export function readWizardDraft<T>(key: string): T | null {
 export function clearWizardDraft(key: string): void {
   try {
     sessionStorage.removeItem(key)
+    sessionStorage.removeItem(`${key}:reached`)
   } catch {
     /* storage unavailable — nothing to clear */
+  }
+}
+
+/**
+ * The furthest step a draft's wizard reached (its index), so a reload
+ * reopens there, not at step 1; 0 when none is stored.
+ */
+export function readWizardReached(key: string): number {
+  try {
+    const n = Number.parseInt(sessionStorage.getItem(`${key}:reached`) ?? '', 10)
+    return Number.isFinite(n) && n > 0 ? n : 0
+  } catch {
+    return 0
+  }
+}
+
+/** Store the furthest step reached, beside the draft. */
+export function writeWizardReached(key: string, index: number): void {
+  try {
+    sessionStorage.setItem(`${key}:reached`, String(index))
+  } catch {
+    /* quota/unavailable — a reload starts at step 1 */
   }
 }
 

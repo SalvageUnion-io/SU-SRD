@@ -15,7 +15,7 @@ const FAILED = {
 /**
  * Gate component — renders children only after game data is preloaded.
  * Use this to wrap island content that depends on ORM calls.
- * On preload failure it renders the crash panel (`RecoveryPanel`, chrome.md
+ * On preload failure it renders the crash panel (`RecoveryPanel`, chrome
  * K8) with "Try again" instead of the fallback, so a network error never
  * leaves a permanent skeleton.
  */

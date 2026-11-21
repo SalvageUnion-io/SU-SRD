@@ -38,7 +38,6 @@ import { buildSheetCopy } from '../../messages/build-sheet'
 import { ClassPathPicker } from '../pilot/ClassPathPicker'
 import { selectableClasses } from '../wizard/classOptions.model'
 import { PhotoBeside } from './PhotoBeside'
-import { HeroMore } from './SheetHero'
 import { SheetPickerModal } from './SheetPickerModal'
 import type { SheetPatch } from './sheetViewProps.model'
 import { UsedPip } from './UsedPip'
@@ -62,7 +61,7 @@ const FIELD_GRID = {
   rowGap: tokens.space[12],
 } satisfies CSSProperties
 
-const ONE_COLUMN = { gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' } satisfies CSSProperties
+const ONE_COLUMN = { gridTemplateColumns: 'minmax(0, 1fr)' } satisfies CSSProperties
 
 const FIELD_COLUMN = {
   display: 'flex',
@@ -71,10 +70,11 @@ const FIELD_COLUMN = {
   minWidth: 0,
 } satisfies CSSProperties
 
-/** The traits' row; its columns are `.su-sheet-pilot-traits`. */
+/** The traits' row; each trait's share of it is `.su-sheet-pilot-traits`. */
 const TRAITS_ROW = {
   columnGap: tokens.space[16],
-  display: 'grid',
+  display: 'flex',
+  flexWrap: 'wrap',
   minWidth: 0,
   rowGap: tokens.space[12],
 } satisfies CSSProperties
@@ -125,7 +125,7 @@ const PICKER_ACTIONS = {
  * and pip carry the state, and its name says the act. Read-only, a static "Used" stamp shows only when set (an
  * unset one would be a control that isn't).
  */
-function UsedChip({
+export function UsedChip({
   label,
   used,
   onToggle,
@@ -139,7 +139,7 @@ function UsedChip({
     return (
       <Badge shape="chip" style={USED_CHIP}>
         <UsedPip used />
-        Used
+        {buildSheetCopy('used')}
       </Badge>
     )
   }
@@ -175,9 +175,17 @@ type PilotIdentityPanelProps = {
   patch?: SheetPatch
   /** The pilot's picture (`EntityPhoto`), beside the field grid; the prose runs under both. */
   photo?: ReactNode
+  /** A phone's About tab runs the Bio under the photo, the card's width. */
+  proseUnder?: boolean
 }
 
-export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotIdentityPanelProps) {
+export function PilotIdentityPanel({
+  pilot,
+  onToggleUsed,
+  patch,
+  photo,
+  proseUnder = false,
+}: PilotIdentityPanelProps) {
   const [classPickerOpen, setClassPickerOpen] = useState(false)
   // Class picker holds a pending selection until confirmed (destructive-ish:
   // it re-homes the pilot's class; abilities are intentionally kept).
@@ -267,9 +275,9 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
           short lines, so the prose stays beside the photo. */}
       <PhotoBeside
         photo={photo}
-        belowBeside={!canEdit}
+        belowBeside={!canEdit && !proseUnder}
         below={
-          <HeroMore>
+          <>
             {/* Appearance spans the card: it is prose, and a half-width column
                 wrapped it into a narrow ribbon beside the single-line fields. */}
             <Field
@@ -291,7 +299,7 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
                 className="su-sheet-pilot-fill"
               />
             </div>
-          </HeroMore>
+          </>
         }
       >
         {/* Poster field grid — left / right columns; single column on mobile in
@@ -339,36 +347,33 @@ export function PilotIdentityPanel({ pilot, onToggleUsed, patch, photo }: PilotI
           )}
           {/* With nothing beside them (Read, most often), the three short
               traits share one row, so the card spends no height on their gaps;
-              the Bio runs under. On a phone they follow the Vitals (HeroMore,
-              §1.10). */}
-          <HeroMore>
-            <div
-              className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
-              style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
-            >
-              <Field
-                label={buildSheetCopy('motto')}
-                value={pilot.motto}
-                multiline
-                onSave={canEdit ? saveText('motto') : undefined}
-                labelAction={usedChip('motto', 'motto')}
-              />
-              <Field
-                label={buildSheetCopy('keepsake')}
-                value={pilot.keepsake}
-                multiline
-                onSave={canEdit ? saveText('keepsake') : undefined}
-                labelAction={usedChip('keepsake', 'keepsake')}
-              />
-              <Field
-                label={buildSheetCopy('background')}
-                value={pilot.background}
-                multiline
-                onSave={canEdit ? saveText('background') : undefined}
-                labelAction={usedChip('background', 'background')}
-              />
-            </div>
-          </HeroMore>
+              the Bio runs under. */}
+          <div
+            className={leftColumn ? undefined : 'su-sheet-pilot-traits'}
+            style={leftColumn ? FIELD_COLUMN : TRAITS_ROW}
+          >
+            <Field
+              label={buildSheetCopy('motto')}
+              value={pilot.motto}
+              multiline
+              onSave={canEdit ? saveText('motto') : undefined}
+              labelAction={usedChip('motto', 'motto')}
+            />
+            <Field
+              label={buildSheetCopy('keepsake')}
+              value={pilot.keepsake}
+              multiline
+              onSave={canEdit ? saveText('keepsake') : undefined}
+              labelAction={usedChip('keepsake', 'keepsake')}
+            />
+            <Field
+              label={buildSheetCopy('background')}
+              value={pilot.background}
+              multiline
+              onSave={canEdit ? saveText('background') : undefined}
+              labelAction={usedChip('background', 'background')}
+            />
+          </div>
         </div>
       </PhotoBeside>
 

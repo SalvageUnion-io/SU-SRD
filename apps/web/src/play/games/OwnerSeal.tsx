@@ -10,7 +10,7 @@ import { playGamesCopy } from '../../messages/play-games'
  * `.su-owner-seal__assign`'s (styles/controls.css).
  */
 const ASSIGN = {
-  transitionDuration: tokens.duration.base,
+  transitionDuration: 'var(--dur-base)',
   transitionProperty: 'transform, translate, scale, rotate',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties

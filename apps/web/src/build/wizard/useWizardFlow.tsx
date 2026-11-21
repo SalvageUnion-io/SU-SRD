@@ -19,16 +19,18 @@
 
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import type { ReactNode } from 'react'
-import { startTransition, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
-import { clearWizardDraft } from '../../lib/wizard/wizardDraft'
+import {
+  clearWizardDraft,
+  readWizardReached,
+  writeWizardReached,
+} from '../../lib/wizard/wizardDraft'
 import { buildWizardCopy } from '../../messages/build-wizard'
 import type { CreateInput } from '../../replica/types'
 import { useUnits } from '../../replica/units'
-import { OffRulesEscape } from './OffRulesEscape'
 
 /**
  * The slice of a Zod object schema this hook uses.
@@ -89,8 +91,9 @@ export type WizardFlowOptions<
 type WizardShellProps = {
   steps: readonly string[]
   active: number
+  /** The furthest step reached: every step up to it is a way there. */
+  reached: number
   onStepClick: (index: number) => void
-  escapeAction: ReactNode
   onEscape: (() => void) | undefined
   onBack: (() => void) | undefined
   onCancel: () => void
@@ -133,11 +136,30 @@ export function useWizardFlow<
   onOffRules,
   gameId,
 }: WizardFlowOptions<TStep, TForm, T>): WizardFlow<TStep> {
-  const [step, setStep] = useState<TStep>(initialStep)
+  // A reload reopens at the furthest step the draft reached, short of the
+  // first step whose gate its picks no longer pass.
+  const [step, setStep] = useState<TStep>(() => {
+    const start = Math.max(steps.indexOf(initialStep), 0)
+    const stored = Math.min(readWizardReached(draftKey), steps.length - 1)
+    let at = Math.max(start, stored)
+    for (let i = start; i < at; i++) {
+      const s = steps[i]
+      if (s && !gateFor(s).ok) at = i
+    }
+    return steps[at] ?? initialStep
+  })
+  const [reached, setReached] = useState(() => Math.max(steps.indexOf(step), 0))
   // The form's own words for what it is missing; a failed write is `save.error`.
   const [invalid, setInvalid] = useState<string | null>(null)
 
   const currentIndex = steps.indexOf(step)
+
+  useEffect(() => {
+    if (currentIndex > reached) setReached(currentIndex)
+  }, [currentIndex, reached])
+  useEffect(() => {
+    if (reached > 0) writeWizardReached(draftKey, reached)
+  }, [draftKey, reached])
 
   const save = useServerAction(
     async () => {
@@ -198,6 +220,12 @@ export function useWizardFlow<
   }
 
   const gate = gateFor(step)
+  // A step ahead is open only while every gate before it passes.
+  let open = Math.max(reached, currentIndex)
+  for (let i = currentIndex; i < open; i++) {
+    const s = steps[i]
+    if (s && !gateFor(s).ok) open = i
+  }
 
   return {
     step,
@@ -206,11 +234,11 @@ export function useWizardFlow<
     shell: {
       steps: steps.map((s) => stepLabels[s]),
       active: currentIndex,
+      reached: open,
       onStepClick: (i) => {
         const s = steps[i]
-        if (s) goTo(s)
+        if (s && i <= open) goTo(s)
       },
-      escapeAction: !gate.ok && onOffRules ? <OffRulesEscape onEscape={onOffRules} /> : undefined,
       onEscape: !gate.ok && onOffRules ? onOffRules : undefined,
       onBack: currentIndex > 0 ? goBack : undefined,
       onCancel: () => {

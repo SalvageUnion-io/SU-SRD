@@ -10,7 +10,7 @@ import type {
 
 /**
  * A worded control's Button: `primary` and `danger` fill ink (no state colour
- * fills a button, ruleset §3.1, hard rule R9; rust is the icon Remove's,
+ * fills a button, ruleset §3.1; rust is the icon Remove's,
  * below), `ghost` is the paper button.
  */
 const WORDED = {
@@ -54,7 +54,7 @@ function controlChip(control: ReferenceEntityControl): ReactNode {
     )
   }
   // Every control is the Mini Button, drawn a chip's height in the head's
-  // chip group: one line carries one Size (ruleset §4.7, hard rule R6).
+  // chip group: one line carries one Size (ruleset §4.7, C8).
   if (control.href !== undefined) {
     return (
       <Button
@@ -89,12 +89,12 @@ function controlChip(control: ReferenceEntityControl): ReactNode {
   // A `danger` icon (the ✕ remove) is Button's rust `primary` — filled, not
   // outlined — because it is the one control in the strip that destroys
   // something, and as neutral paper chrome it read like the fold chevron
-  // beside it. Rust, never a state colour (ruleset §3.1, hard rule R9).
+  // beside it. Rust, never a state colour (ruleset §3.1).
   const Icon = control.icon
   if (Icon && !control.label) {
     return (
       <Button key={key} variant={variant === 'danger' ? 'primary' : 'default'} {...shared}>
-        {/* A Mini control, so a Mini glyph (hard rule R23). */}
+        {/* A Mini control, so a Mini glyph (chrome K11). */}
         <Icon size={iconSize.mini} />
       </Button>
     )
@@ -108,7 +108,7 @@ function controlChip(control: ReferenceEntityControl): ReactNode {
 }
 
 /**
- * A card's controls as chips (`chips-and-actions.md` C8, hard rule R6): one
+ * A card's controls as chips (`chips-and-actions.md` C8): one
  * node per visible control, each its own chip in the head's chip group, so
  * the strip keeps one even gap and counts each one (`Chips`).
  */

@@ -14,7 +14,7 @@ import { Mention } from '../forms/Mention'
 import { InsidePeekContext } from '../peekContext'
 
 const burn = (): EntityRef => {
-  const trait = SalvageUnionReference.Traits.getByName('burn')
+  const trait = SalvageUnionReference.Traits.getByName('Burn')
   if (!trait) throw new Error('Burn fixture missing')
   return toEntityModel(trait).ref
 }

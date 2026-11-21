@@ -80,14 +80,16 @@ async function renderCockpit(
 }
 
 describe('the Cockpit frame', () => {
-  test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to Play', async () => {
+  test('a solo pilot: the bar reads <pilot> with a Solo chip, no LIVE stamp, the way back to its sheet', async () => {
     await renderCockpit({ gameId: null, gameName: null })
     const bar = within(screen.getByRole('banner'))
     expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
     expect(bar.getByText('Solo')).toBeTruthy()
     // A solo screen shares nothing: no LIVE stamp.
     expect(bar.queryByText(/● Online/)).toBeNull()
-    expect(bar.getByRole('link', { name: 'Back to Play' }).getAttribute('href')).toBe('/play/')
+    expect(bar.getByRole('link', { name: 'Back to Sheet' }).getAttribute('href')).toMatch(
+      /^\/pilots\/[^/]+$/
+    )
     // Nothing bound: no channel button; the way to bind one is the ⋯'s row.
     expect(bar.queryByRole('button', { name: /Discord channel/ })).toBeNull()
     fireEvent.click(bar.getByRole('button', { name: 'More' }))
@@ -131,11 +133,11 @@ describe('the Cockpit frame', () => {
     expect(within(screen.getByRole('banner')).getByText(/● Online/)).toBeTruthy()
   })
 
-  test('in a Game, “‹ Game” and ⋯ › Game page open the Game’s page (ADR-052 §5–§6)', async () => {
+  test('in a Game, “‹ Sheet” goes back to the pilot’s page and ⋯ › Game page opens the Game’s (ADR-066)', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
     const bar = within(screen.getByRole('banner'))
-    expect(bar.getByRole('link', { name: 'Back to Game' }).getAttribute('href')).toBe(
-      '/play/games/g1'
+    expect(bar.getByRole('link', { name: 'Back to Sheet' }).getAttribute('href')).toMatch(
+      /^\/pilots\/[^/]+$/
     )
     const more = bar.getByRole('button', { name: 'More' })
     expect(more.hasAttribute('disabled')).toBe(false)
@@ -187,18 +189,19 @@ describe('the Cockpit frame', () => {
     }
   })
 
-  test('three columns, each a region headed by its Slab (the Crew is a Game’s)', async () => {
+  test('three columns, each a region: Units over the Feed, Actions, then Crew, Tables and the Rules', async () => {
     await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
-    const regions = ['Units', 'Actions', 'Crew, Tables and Feed'].map((name) =>
-      screen.getByRole('region', { name })
-    )
-    expect(within(regions[0] as HTMLElement).getByRole('heading', { name: 'Units' })).toBeTruthy()
-    expect(within(regions[1] as HTMLElement).getByRole('heading', { name: 'Actions' })).toBeTruthy()
-    expect(
-      within(regions[2] as HTMLElement)
+    const headings = (name: string) =>
+      within(screen.getByRole('region', { name }))
         .getAllByRole('heading')
         .map((h) => h.textContent)
-    ).toEqual(['Crew', 'Tables', 'Feed'])
+    expect(headings('Units and Feed')).toEqual(expect.arrayContaining(['Units', 'Feed']))
+    expect(headings('Actions')).toContain('Actions')
+    const end = headings('Crew, Tables and Rules')
+    expect(end.slice(0, 2)).toEqual(['Crew', 'Rolls'])
+    // The Reference closes the column, under the Tables.
+    expect(end.length).toBeGreaterThan(2)
+    expect(end).not.toContain('Feed')
   })
 
   test('the foot says who play reaches; no tabs from `lg`', async () => {
@@ -217,29 +220,39 @@ describe('the Cockpit frame', () => {
     expect(within(screen.getByRole('contentinfo')).queryByRole('status')).toBeNull()
   })
 
-  test('solo has no Crew section: Tables and Feed only', async () => {
+  test('solo has no Crew section: the Tables lead the end column', async () => {
     await renderCockpit({ gameId: null, gameName: null })
-    const side = within(screen.getByRole('region', { name: 'Crew, Tables and Feed' }))
-    expect(side.getAllByRole('heading').map((h) => h.textContent)).toEqual(['Tables', 'Feed'])
+    const side = within(screen.getByRole('region', { name: 'Crew, Tables and Rules' }))
+    const headings = side.getAllByRole('heading').map((h) => h.textContent)
+    expect(headings[0]).toBe('Rolls')
+    expect(headings).not.toContain('Crew')
   })
 })
 
 describe('below `lg`: the same panes as tabs (play.md §11)', () => {
-  test('a 390px phone gets the tabs, not the columns; the bar on top, the switch pinned', async () => {
+  test('a 390px phone gets the tabs, not the columns; the Situation is in the bar’s ⋯', async () => {
     const restore = narrowViewport()
     try {
       await renderCockpit({ gameId: 'g1', gameName: 'Tenacity' })
-      expect(screen.queryByRole('region', { name: 'Units' })).toBeNull()
+      expect(screen.queryByRole('region', { name: 'Units and Feed' })).toBeNull()
       // No foot: the tabs take the screen's foot.
       expect(screen.queryByRole('contentinfo')).toBeNull()
       const tabs = within(screen.getByRole('tablist', { name: 'Play' })).getAllByRole('tab')
-      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Units', 'Tables', 'Crew'])
+      expect(tabs.map((t) => t.textContent)).toEqual(['Act', 'Crew', 'Rolls', 'Rules'])
       const bar = within(screen.getByRole('banner'))
-      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Tenacity')
-      // Back names its place on a phone too; the Situation is pinned, not in the bar.
-      expect(bar.getByRole('link', { name: 'Back to Game' }).textContent).toBe('Back to Game')
-      expect(bar.queryByRole('group', { name: 'Situation' })).toBeNull()
-      expect(screen.getByRole('group', { name: 'Situation' })).toBeTruthy()
+      // The band's crumb names the Game and the phase; the title says who is playing.
+      expect(bar.getByText('Tenacity')).toBeTruthy()
+      expect(bar.getByText(/On foot/)).toBeTruthy()
+      expect(bar.getByRole('heading', { level: 1 }).textContent).toBe('Wren')
+      expect(bar.getByRole('link', { name: 'Back to Sheet' }).textContent).toBe('Back to Sheet')
+      // No Situation switch on a phone: On foot, Board and Downtime are ⋯ rows.
+      expect(screen.queryByRole('group', { name: 'Situation' })).toBeNull()
+      await act(async () => {
+        fireEvent.click(bar.getByRole('button', { name: 'More' }))
+      })
+      expect(await screen.findByRole('menuitem', { name: /On foot/ })).toBeTruthy()
+      expect(screen.getByRole('menuitem', { name: /Downtime/ })).toBeTruthy()
+      expect(screen.getByRole('menuitem', { name: /Table mode/ })).toBeTruthy()
     } finally {
       restore()
     }

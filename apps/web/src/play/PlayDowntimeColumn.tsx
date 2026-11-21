@@ -27,7 +27,7 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
 
   return (
     <>
-      <Slab as="h2" label={playCopy('downtimeStepOf', { value: idx + 1, count })} />
+      <Slab as="h2" label={playCopy('downtimeStepOf', { value: idx + 1, count })} flush />
       <PlayDowntimeTrack steps={steps} current={idx} onStep={setStep} canWrite={play.canWrite} />
       {step && (
         <PlayDowntimeStep
@@ -40,7 +40,7 @@ export function PlayDowntimeColumn({ play, actions }: { play: Play; actions: Pla
         />
       )}
       <PlayOrphanResolve actions={actions} />
-      <Slab label={playCopy('downtimeActions')} />
+      <Slab label={playCopy('downtimeActions')} flush />
       <PlayEntryList
         entries={onHand}
         play={play}

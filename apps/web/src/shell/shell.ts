@@ -36,17 +36,17 @@ import { renderUnionBar } from './unionBar'
 
 /** Build's name (`PRODUCT.build`; `lib/__tests__/productName.test.ts` holds them equal). */
 const BUILD_NAME = 'Training Bay'
-/** Play's name (`PRODUCT.play`; held equal by the same test). */
-const PLAY_NAME = 'The Cantina'
+/** The Games' name (`PRODUCT.play`; held equal by the same test). */
+const PLAY_NAME = 'Games'
 
 /** Build's title, which every route starts from: the shell opens on Build's front door. */
 const SHELL_TITLE = areaTitle(BUILD_NAME)
 
 /** The app's meta description: the site's character manager, by its two areas. */
-const SHELL_DESCRIPTION = `SalvageUnion.io's character manager for the Salvage Union TTRPG: build Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in ${PLAY_NAME}, with character sheets, rosters and shareable live sheets.`
+const SHELL_DESCRIPTION = `SalvageUnion.io's character manager for the Salvage Union TTRPG: build Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in your ${PLAY_NAME}, with character sheets, rosters and shareable live sheets.`
 
 /** The link preview's description: the meta description without its last clause. */
-const PREVIEW_DESCRIPTION = `SalvageUnion.io's character manager for the Salvage Union TTRPG: build Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in ${PLAY_NAME}.`
+const PREVIEW_DESCRIPTION = `SalvageUnion.io's character manager for the Salvage Union TTRPG: build Pilots, Mechs and Union Crawlers in the ${BUILD_NAME} and play them in your ${PLAY_NAME}.`
 
 /** The app's front door on production's origin; a Preview's build names its own (`shellOrigin`). */
 const siteUrl = appUrl('/', originOf())

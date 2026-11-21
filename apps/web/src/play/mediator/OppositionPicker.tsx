@@ -20,9 +20,9 @@ import { useId, useState } from 'react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
 import { resolveChassisRef } from 'salvageunion-reference/rules'
+import { ConfirmDialog } from '../../components/app'
 import {
   Button,
-  ConfirmDialog,
   EntitySearcher,
   Eyebrow,
   Input,

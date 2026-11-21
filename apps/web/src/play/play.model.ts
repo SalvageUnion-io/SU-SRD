@@ -3,17 +3,13 @@
  * from the store and the connection, with no React and no I/O.
  *
  * Play is the third mode beside Reference and Build: one screen per pilot,
- * in a Game or solo (`/play/pilots/$pilotId`), one per Game for its Mediator
- * (`/play/games/$gameId/mediate`), and the landing that leads to both (`/play/`).
+ * in a Game or solo (`/pilots/$id/play`), one per Game for its Mediator
+ * (`/games/$gameId/mediate`), and the landing that leads to both (`/games/`).
  */
 
 import { containerOf } from 'game-domain/container'
-import type { Crawler } from 'game-domain/schemas/crawler'
-import type { Mech } from 'game-domain/schemas/mech'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { SoftLink } from 'game-domain/schemas/softLink'
 import type { CSSProperties } from 'react'
-import { pilotRailItems, rowStats } from '../build/sheet/railStats.model'
 import type { ChapterTone } from '../components/index'
 import { CHAPTER_BAND_COLOR } from '../components/index'
 import { foregroundOn } from '../design/contrast'
@@ -137,47 +133,6 @@ export function liveLabel(here: number | null, of: number | null = null, short =
   if (here === null) return '● Online'
   const count = of === null ? `${here} here` : `${here} of ${of} here`
   return short ? `● ${count}` : `● Online · ${count}`
-}
-
-/** One shelf pilot the landing's Solo section offers, with the mech assigned to it. */
-export type SoloPilot = {
-  pilotId: string
-  name: string
-  mechName: string | null
-  /** The mech's id: its chip opens its sheet. */
-  mechId: string | null
-  /** The pilot's own chips: `HP 10/10`, `AP 5/5`. */
-  readings: { label: string; value: string }[]
-}
-
-/**
- * The shelf's pilots, each with its assigned mech (`mech-to-pilot`), in the
- * store's order. The store holds only the viewer's own pilots (a crewmate's
- * never reaches this browser), so every shelf pilot is one the viewer may play.
- */
-export function soloPilots(
-  pilots: readonly Pilot[],
-  mechs: readonly Mech[],
-  crawlers: readonly Crawler[],
-  softLinks: readonly SoftLink[]
-): SoloPilot[] {
-  const mechNames = new Map(mechs.map((m) => [m.id, m.name]))
-  const crawlerOf = (pilot: Pilot) => {
-    const link = softLinks.find((l) => l.type === 'pilot-to-crawler' && l.from.id === pilot.id)
-    return crawlers.find((c) => c.id === link?.to.id) ?? null
-  }
-  return pilots
-    .filter((pilot) => containerOf(pilot).kind === 'shelf')
-    .map((pilot) => {
-      const link = softLinks.find((l) => l.type === 'mech-to-pilot' && l.to.id === pilot.id)
-      return {
-        pilotId: pilot.id,
-        name: pilot.name,
-        mechName: (link && mechNames.get(link.from.id)) ?? null,
-        mechId: link && mechNames.has(link.from.id) ? link.from.id : null,
-        readings: rowStats(pilotRailItems(pilot, crawlerOf(pilot))),
-      }
-    })
 }
 
 /** The viewer's own pilots in one Game: what its Play buttons open. */

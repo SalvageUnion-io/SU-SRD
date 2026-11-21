@@ -28,12 +28,8 @@ import {
 import { mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
 import { hydrateStores } from '../../components/__tests__/hydrateStores'
 import { makeEntityStoreMock } from '../../components/__tests__/mockEntityStore'
-import {
-  buildMechActions,
-  buildPilotActions,
-  hasCurrencyChoice,
-  hasVariableHot,
-} from '../../lib/rules/actionPatches'
+import { buildMechActions, buildPilotActions } from '../../lib/rules/actionList'
+import { hasCurrencyChoice, hasVariableHot } from '../../lib/rules/actionPatches'
 import { actionEconomy, itemEconomy, resolveModule, resolveSystem } from '../../lib/rules/mechItems'
 import { PlayResolveSteps } from '../PlayResolveSteps'
 import type { PlayStore } from '../play.model'
@@ -258,20 +254,20 @@ describe('the resolve', () => {
     expect(live?.textContent).toMatch(/Result applied$/)
   })
 
-  test('the resolve offers Cancel / Clear and an Apply gated on a roll', async () => {
+  test('the resolve offers Cancel / Start over and an Apply gated on a roll', async () => {
     const mech = makeMech()
     const { store } = stubStore(mech)
     const { container } = renderDeck(mech, store)
     clickPrimaryAction(container)
     expect(screen.getByText('Cancel')).toBeTruthy()
-    expect(screen.getByText('Clear')).toBeTruthy()
+    expect(screen.getByText('Start over')).toBeTruthy()
     // Apply is disabled until there is a roll to commit.
     const apply = screen.getByText<HTMLButtonElement>('Apply')
     expect(apply.disabled).toBe(true)
     await clickRolling('Roll the Die')
     expect(screen.getByText<HTMLButtonElement>('Apply').disabled).toBe(false)
-    // Clear resets the resolve state (the roll readout disappears).
-    fireEvent.click(screen.getByText('Clear'))
+    // Start over resets the resolve state (the roll readout disappears).
+    fireEvent.click(screen.getByText('Start over'))
     expect(container.querySelector('.su-roll [aria-current="true"]')).toBeNull()
   })
 

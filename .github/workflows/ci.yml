@@ -244,7 +244,7 @@ jobs:
       # `design-walk.e2e.ts` is the layout gates over R0's routes, signed in on
       # one seeded account: here only those `E2E_DESIGN_GATES` names, to fit the
       # job's time; nightly, every gate. `sibling-heights`, `chip-strips`, `nesting-depth`,
-      # `token-cutout` and `search-width` walk the signed-out reference corpus.
+      # `fill-grid`, `token-cutout` and `search-width` walk the signed-out reference corpus.
       # The build carries the seam, so the signed-in tests in these specs run
       # signed in (`play-*`, `design-walk.e2e.ts`, the Play lines of
       # `sibling-heights.e2e.ts`, `nesting-depth.e2e.ts`'s wizards and sheet), and
@@ -254,7 +254,7 @@ jobs:
         working-directory: apps/web
         env:
           E2E_EXPECT_AUTH_SEAM: '1'
-          E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights
+          E2E_DESIGN_GATES: chip-strips,nesting-depth,sibling-heights,ledger,fill-grid,act-twin
         run: bunx playwright test --grep @pr
 
       - name: Upload Playwright reports on failure

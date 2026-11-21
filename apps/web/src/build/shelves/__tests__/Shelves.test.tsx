@@ -11,7 +11,7 @@
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test'
-import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EncounterNpc } from 'game-domain/schemas/encounterNpc'
 import type { MechPattern } from 'game-domain/schemas/pattern'
 import {
@@ -19,6 +19,7 @@ import {
   FIXTURE_NOW,
   mechFixture,
   pilotFixture,
+  softLinkFixture,
 } from '../../../components/__tests__/fixtures'
 import { installServerMocks, setQueryAnswers } from '../../../components/__tests__/serverMock'
 import { withSignedInBackend } from '../../../replica/__tests__/signedInBackend'
@@ -38,6 +39,7 @@ const { useTray } = await import('../../../replica/collections')
 const { useUnits } = await import('../../../replica/units')
 const { usePatterns } = await import('../../../replica/collections')
 const { Shelves } = await import('../Shelves')
+const { ShelvesPart } = await import('../shelvesPart.model')
 
 withSignedInBackend()
 
@@ -160,16 +162,23 @@ async function settle(done: () => boolean): Promise<void> {
   }
 }
 
-async function renderShelves(status: SyncState['status'] = 'live') {
+/**
+ * The Training Bay's shelves (`bay`), or the Mediator's Kit the Games front
+ * draws from the same page (`kit`: NPCs and Encounters, ADR-066).
+ */
+async function renderShelves(status: SyncState['status'] = 'live', part: 'bay' | 'kit' = 'bay') {
   await act(async () => {
     render(
       <SyncContext.Provider value={connection(status)}>
         <ToasterMount />
-        <Shelves />
+        <ShelvesPart.Provider value={part}>
+          <Shelves />
+        </ShelvesPart.Provider>
       </SyncContext.Provider>
     )
   })
-  await settle(() => screen.queryByRole('heading', { name: 'Pilots' }) !== null)
+  const first = part === 'kit' ? 'NPCs' : 'Pilots'
+  await settle(() => screen.queryByRole('region', { name: first }) !== null)
 }
 
 async function openMenu(name: string): Promise<HTMLElement> {
@@ -209,7 +218,8 @@ describe('only what is yours', () => {
     expect(within(pilots).queryByText('Crewmate Pilot')).toBeNull()
     const mechs = screen.getByRole('region', { name: 'Mechs' })
     expect(within(mechs).queryByText('Spare Mech')).toBeNull()
-    expect(screen.getByText(/Tray Grunt/)).toBeTruthy()
+    // The encounter tray is the Mediator's Kit, on the Games front.
+    expect(screen.queryByText(/Tray Grunt/)).toBeNull()
   })
 
   test('has no Showing filter: a unit’s Game is its tag', async () => {
@@ -219,14 +229,34 @@ describe('only what is yours', () => {
 })
 
 describe('a unit’s Game', () => {
-  test('is a GAME relation chip opening the Game’s page in Play; in no Game, none', async () => {
+  test('is a link in its Game column, opening the Game’s page in Play; in no Game, none', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const chips = [...pilots.querySelectorAll('[data-chip-class="relation"] a[data-tag]')]
-    expect(chips.map((c) => [c.textContent, c.getAttribute('href')])).toEqual([
-      ['GameTenacity', '/play/games/g1'],
+    const games = [...pilots.querySelectorAll('a[href^="/games/"]')]
+    expect(games.map((a) => [a.textContent, a.getAttribute('href')])).toEqual([
+      ['Tenacity', '/games/g1'],
     ])
+    expect(within(pilots).getByText('Tenacity').closest('tr')?.textContent).toContain('Rook')
     expect(within(pilots).queryByText('Unassigned')).toBeNull()
+  })
+})
+
+describe('Play, one press from the shelf', () => {
+  test('each pilot line carries its Play door, to that pilot’s Play mode', async () => {
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    expect(within(pilots).getByRole('link', { name: 'Play Nia Vale' }).getAttribute('href')).toBe(
+      '/pilots/p-nia/play'
+    )
+    expect(within(pilots).getByRole('link', { name: 'Play Rook' })).toBeTruthy()
+    // Mechs play through their pilot: no door of their own.
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByRole('link', { name: /^Play / })).toBeNull()
+  })
+
+  test('the Training Bay lists no Games: they are the Games tab’s (ADR-066)', async () => {
+    await renderShelves()
+    expect(screen.queryByRole('region', { name: 'Games' })).toBeNull()
   })
 })
 
@@ -253,13 +283,52 @@ describe('Crawlers', () => {
   })
 })
 
-describe('What a shelf says of a unit (C4)', () => {
-  test('a pilot is named by its class; its vital is its sheet’s to show', async () => {
+describe('What a shelf says of a unit (L9)', () => {
+  test('a pilot’s line reads its class and its live HP and AP, a column each', async () => {
     await renderShelves()
     const pilots = screen.getByRole('region', { name: 'Pilots' })
-    const line = within(pilots).getByText('Nia Vale').closest('.su-entity-compact')
-    expect(line?.textContent).toContain('Class')
-    expect(line?.textContent).not.toContain('HP')
+    const columns = within(pilots)
+      .getAllByRole('columnheader')
+      .map((th) => th.textContent)
+    // No pilot here has a mech: each line offers "+ Add a mech" (ADR-066 §4).
+    expect(columns.slice(1, 6)).toEqual(['Class', 'Mech', 'Game', 'HP', 'AP'])
+    const cells = within(within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement)
+      .getAllByRole('cell')
+      .map((td) => td.textContent)
+    // Its class, its mech (none: the door to add one), no Game, then HP and AP.
+    expect(cells.slice(0, 5)).toEqual(['scavenger', '+ Add a Mech', '—', '10/10', '5/5'])
+    const add = within(pilots).getAllByRole('link', { name: '+ Add a Mech' })[0]
+    expect(add?.getAttribute('href')).toMatch(/\/mechs\/new\?pilot=/)
+  })
+})
+
+describe('a mech a pilot of yours flies', () => {
+  test('rides its pilot’s line: the Mech column, and under the name for a phone', async () => {
+    await useUnits.getState().adopt('softLink', softLinkFixture('mech-to-pilot', 'm-jaw', 'p-nia'))
+    await renderShelves()
+    const pilots = screen.getByRole('region', { name: 'Pilots' })
+    const row = within(pilots).getByText('Nia Vale').closest('tr') as HTMLElement
+    // The column (hidden on a phone) and the line under the name (shown only there).
+    const links = within(row).getAllByRole('link', { name: 'Iron Jaw' })
+    expect(links).toHaveLength(2)
+    expect(row.querySelector('.su-shelf-ledger__flown')?.textContent).toBe('Mech Iron Jaw')
+    // The Mechs shelf holds the rest.
+    const mechs = screen.getByRole('region', { name: 'Mechs' })
+    expect(within(mechs).queryByText('Iron Jaw')).toBeNull()
+  })
+})
+
+describe('Homebrew on a shelf (ruleset §3.9, L9)', () => {
+  test('the pattern and NPC shelves wear the one HOMEBREW stamp; a shelf of your units wears none', async () => {
+    const stamped = (id: string) =>
+      /homebrew/i.test(document.querySelector(`#${id} thead`)?.textContent ?? '')
+    await renderShelves()
+    expect(stamped('shelf-patterns')).toBe(true)
+    expect(stamped('shelf-pilots')).toBe(false)
+    expect(stamped('shelf-mechs')).toBe(false)
+    cleanup()
+    await renderShelves('live', 'kit')
+    expect(stamped('shelf-npcs')).toBe(true)
   })
 })
 
@@ -381,7 +450,7 @@ describe('Patterns', () => {
 
 describe('the encounter tray on the NPC shelf', () => {
   test('a tray NPC is listed as such, and Delete… removes it from the tray', async () => {
-    await renderShelves()
+    await renderShelves('live', 'kit')
     const npcs = screen.getByRole('region', { name: 'NPCs' })
     expect(within(npcs).getByText(/Tray Grunt/)).toBeTruthy()
     expect(within(npcs).getByText('Tray')).toBeTruthy()

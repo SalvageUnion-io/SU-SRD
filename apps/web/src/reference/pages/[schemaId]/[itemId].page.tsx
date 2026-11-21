@@ -9,9 +9,19 @@
  * band. A roll table gets its own page to roll on.
  */
 
-import type { EnhancedSchemaMetadata, RefEntity } from 'salvageunion-reference'
-import { getPatterns, truncate } from 'salvageunion-reference'
-import { CHAPTER_BAND_COLOR, resolveEntityPageMeta } from '../../../components/index'
+import type {
+  EnhancedSchemaMetadata,
+  RefEntity,
+  RefEnumSchemaName,
+  RefMetaEntity,
+} from 'salvageunion-reference'
+import { truncate } from 'salvageunion-reference'
+import {
+  abilityTreeNeighbours,
+  CHAPTER_BAND_COLOR,
+  NeighbourRow,
+  resolveEntityPageMeta,
+} from '../../../components/index'
 import { HomebrewIsland } from '../../../components/islands/HomebrewIsland'
 import { buildLinkFor, guideExitsFor } from '../../../lib/buildLink'
 import { bandFillFor, chapterForSchema } from '../../../lib/chapters'
@@ -21,14 +31,18 @@ import { itemHref, schemaHref } from '../../../lib/entityHref'
 import { entityPageHead } from '../../../lib/entityPageHead'
 import { extractStaticEntitySummary, getReferenceEntityData } from '../../../lib/gameData'
 import { ogCardFor, ogMetaFor } from '../../../lib/ogCard'
+import { relationsFor } from '../../../lib/pageRelations'
 import { pageTitle } from '../../../lib/pageTitle'
 import { columnsTablePageData, rollTablePageData } from '../../../lib/rollTablePageData'
+import { isSparse, sparseRailFor } from '../../../lib/sparseRail'
 import { getItemStaticPaths } from '../../../lib/staticPaths'
 import { Island } from '../../../runtime/Island'
 import { CrawlerTechLevelPage } from '../../CrawlerTechLevelPage'
 import { EntityPageFrame } from '../../EntityPageFrame'
 import { EntityView } from '../../EntityView'
+import { PageRelations } from '../../PageRelations'
 import { ColumnsTablePage, RollTablePage } from '../../RollTablePage'
+import { SparseRail } from '../../SparseRail'
 import type { PageModule, PageResult, RouteContext } from '../../types'
 
 /** The stats a crawler tech level's band keeps; the rest are its body's text. */
@@ -74,6 +88,17 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
   ) : columnsTable ? (
     <ColumnsTablePage data={columnsTable} tone={pageTone} />
   ) : null
+  // A sparse Page's side column.
+  const sparse =
+    !rollPage && !techLevelPage && isSparse(item)
+      ? sparseRailFor(schemaId as RefEnumSchemaName, item)
+      : null
+  // An ability's Preceding and Next in its tree, at the Page's foot.
+  const neighbours = abilityTreeNeighbours(item as RefMetaEntity).map(({ label, abilities }) => ({
+    label,
+    entities: abilities,
+    end: label === 'Next',
+  }))
   const canonicalUrl = `${SITE_URL}${itemHref(schemaId, itemId)}`
 
   const displayData = item ? getReferenceEntityData(item) : null
@@ -136,7 +161,13 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
         fill={fill}
         meta={pageMeta}
         build={buildLinkFor(schemaId, item)}
+        buy={'purchaseLink' in item ? item.purchaseLink : undefined}
         exits={guideExitsFor(schemaId, item)}
+        rail={sparse ? <SparseRail rail={sparse} tone={chapter.tone} /> : undefined}
+        foot={
+          // An ability's neighbours in its tree, under the body.
+          <NeighbourRow as="h2" neighbours={neighbours} />
+        }
       >
         {/* The Entity renders as one unit — interactive island card + its static
             SEO / no-JS sub-content (EntityView). */}
@@ -146,18 +177,12 @@ function page({ params, props }: RouteContext<Params, Props>): PageResult {
           ) : (
             <EntityView item={item} schemaId={schemaId} />
           ))}
+        {/* What links here, listed back (E26). */}
+        <PageRelations relations={relationsFor(schemaId, item)} />
         {/* A chassis's players' patterns, under the book's (ADR-061). */}
         {schemaId === 'chassis' && (
-          <Island
-            name="HomebrewIsland"
-            client="visible"
-            ssr
-            props={{
-              chassisRef: itemId,
-              bookPatterns: getPatterns(item)?.length ?? 0,
-            }}
-          >
-            <HomebrewIsland chassisRef={itemId} bookPatterns={getPatterns(item)?.length ?? 0} />
+          <Island name="HomebrewIsland" client="visible" ssr props={{ chassisRef: itemId }}>
+            <HomebrewIsland chassisRef={itemId} />
           </Island>
         )}
       </EntityPageFrame>

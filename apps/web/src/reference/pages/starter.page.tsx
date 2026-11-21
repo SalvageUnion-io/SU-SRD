@@ -23,8 +23,9 @@
 
 import type { RefEnumSchemaName } from 'salvageunion-reference'
 import { findEntityBySlug } from 'salvageunion-reference'
+import { StartHere } from '../../components/app'
 import type { ContentsRow, StartHereStep } from '../../components/index'
-import { ChapterBand, ContentsChapter, StartHere } from '../../components/index'
+import { ChapterBand, ContentsChapter } from '../../components/index'
 import { appPath } from '../../lib/appBase'
 import { itemHref, schemaHref } from '../../lib/entityHref'
 import { PARAM_SOURCE } from '../../lib/listingParams'

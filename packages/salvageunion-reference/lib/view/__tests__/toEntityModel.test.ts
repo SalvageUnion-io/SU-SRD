@@ -199,9 +199,14 @@ describe('entityTone', () => {
   })
 
   test('gear rides the tech-level ramp, Bio and Nanite included', () => {
-    expect(entityTone('equipment', as({ ...base, techLevel: 3 }))).toBe('tl-3')
+    expect(entityTone('drones', as({ ...base, techLevel: 3 }))).toBe('tl-3')
     expect(entityTone('equipment', as({ ...base, techLevel: 'B' }))).toBe('tl-b')
     expect(entityTone('drones', as({ ...base, techLevel: 'N' }))).toBe('tl-n')
+  })
+
+  test('pilot equipment wears the pilot orange, never TL blue (ruleset §3.8)', () => {
+    expect(entityTone('equipment', as({ ...base, techLevel: 1 }))).toBe('pilot')
+    expect(entityTone('equipment', as({ ...base, techLevel: 6 }))).toBe('pilot')
   })
 
   test('systems and modules wear their tech level, as the book heads them (pp. 162–164, 188–190)', () => {

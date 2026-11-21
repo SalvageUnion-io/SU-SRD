@@ -103,8 +103,8 @@ export function resolveCatalogChoiceEntities(
 
   let entities: RefMetaEntity[]
   if (shortlist && shortlist.length > 0) {
-    // Without case: a trait shortlist names traits as the rules text does
-    // ("Ballistic"), while traits.json names them lower-case ("ballistic").
+    // Without case: a trait shortlist may name traits in the rules text's
+    // Title Case ("Heat Spike"), traits.json in sentence case ("Heat spike").
     const names = new Set(shortlist.map((n) => n.toLowerCase()))
     entities = all.filter((e) => typeof e.name === 'string' && names.has(e.name.toLowerCase()))
   } else if (filter) {

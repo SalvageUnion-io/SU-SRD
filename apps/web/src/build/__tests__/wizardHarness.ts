@@ -48,38 +48,48 @@ export async function clickNext(): Promise<void> {
   })
 }
 
-/** Exactly-one picks (class, ability, chassis, pattern, crawler type) are radios. */
+/** Exactly-one picks (class, ability, chassis, pattern, crawler type) are radios, a row each. */
 export async function pickRadio(name: string): Promise<void> {
   await act(async () => {
     fireEvent.click(screen.getByRole('radio', { name }))
   })
 }
 
-/**
- * A pick by its entity name: a radio card, or a toggle SelCard (div[role="button"]).
- * An exact aria-label wins over a card whose text holds the name.
- */
-export function getPickByName(name: string): HTMLElement {
-  const candidates = [...screen.queryAllByRole('radio'), ...screen.getAllByRole('button')]
-  const exact = candidates.find((b) => b.getAttribute('aria-label') === name)
-  if (exact) return exact
-  const row = candidates.find((b) => (b.textContent ?? '').includes(name))
-  if (!row) throw new Error(`No radio or button pick for "${name}"`)
-  return row
+/** Whether a picker's row is the picked one: a `PickList` input or a `PictureRadio` plate. */
+export function isPicked(name: string): boolean {
+  const pick = screen.getByRole('radio', { name })
+  return pick instanceof HTMLInputElement
+    ? pick.checked
+    : pick.getAttribute('aria-checked') === 'true'
 }
 
-export async function pickByName(name: string): Promise<void> {
+/** A count pick's stepper (`Stat` in edit): the `+` and `−` of the row named `name`. */
+export function getStep(name: string, way: 'Increase' | 'Decrease'): HTMLButtonElement {
+  return screen.getByRole<HTMLButtonElement>('button', { name: `${way} ${name} count` })
+}
+
+/** One more copy of a count pick. */
+export async function addOne(name: string): Promise<void> {
   await act(async () => {
-    fireEvent.click(getPickByName(name))
+    fireEvent.click(getStep(name, 'Increase'))
   })
 }
 
-/** Fill a click-to-edit IdentityField: open, type, and blur to commit. */
-export async function fillIdentity(editLabel: string, value: string): Promise<void> {
-  await clickButton(editLabel)
-  const input = screen.getByRole<HTMLInputElement>('textbox', { name: editLabel })
+/** One copy fewer of a count pick. */
+export async function removeOne(name: string): Promise<void> {
+  await act(async () => {
+    fireEvent.click(getStep(name, 'Decrease'))
+  })
+}
+
+/**
+ * Type into a wizard's text field, named by its label (any case). No blur:
+ * the field is live, so the draft has the value as it is typed.
+ */
+export async function fillIdentity(label: string, value: string): Promise<void> {
+  const name = new RegExp(`^${label.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')}\\s*\\*?$`, 'i')
+  const input = screen.getByRole<HTMLInputElement>('textbox', { name })
   await act(async () => {
     fireEvent.change(input, { target: { value } })
-    fireEvent.blur(input, { target: { value } })
   })
 }

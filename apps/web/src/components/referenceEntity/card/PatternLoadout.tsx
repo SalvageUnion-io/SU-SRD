@@ -1,25 +1,20 @@
 import type { CSSProperties, ElementType } from 'react'
 import type { RefMetaEntity } from 'salvageunion-reference'
-import { getReferenceEntityName } from 'salvageunion-reference'
+import { getReferenceEntityName, toEntityModel } from 'salvageunion-reference'
+import { ITEM_COLUMNS, itemRows } from '../../../build/dash/itemRows'
 import { space } from '../../../design/tokens'
+import { resolveModule } from '../../../lib/rules/mechItems'
 import { referenceEntityCopy } from '../../../messages/components-reference-entity'
 import { Slab } from '../../atoms/Slab'
 import { MiniGrid } from '../../containers/MiniGrid'
-import { SlabSection } from '../../containers/SlabSection'
 import { Entity } from '../../entity/Entity'
+import { Ledger } from '../../entity/Ledger'
 import type { Down } from './cardChrome'
 import { conditionOf } from './cardChrome'
 import { cardKey } from './cardHelpers'
 import type { NestedCardHost } from './NestedCards'
 import type { ReferenceCardEntity } from './referenceEntityCardTypes'
 import type { DroneLoadout, NestedGroup } from './resolveNestedEntities'
-
-/** The loadout grid's static half; its column count is `.su-pattern-loadout`. */
-const gridStyle = {
-  display: 'grid',
-  columnGap: space[12],
-  rowGap: space[6],
-} satisfies CSSProperties
 
 /**
  * `minWidth: 0` is load-bearing: a grid item defaults to `min-width: auto`, so
@@ -80,7 +75,7 @@ export function PatternLoadout({
   owner?: string
 }) {
   return (
-    <div className="su-pattern-loadout" style={gridStyle}>
+    <div className="su-grid su-pattern-loadout">
       {groups.map((group) => (
         <div
           key={group.label}
@@ -149,7 +144,7 @@ function PatternDrones({
               {parts.length > 0 && (
                 <ul
                   aria-label={`${name} loadout`}
-                  className="su-entity-mini-list su-entity-mini-list--two-up"
+                  className="su-grid su-entity-mini-list su-entity-mini-list--two-up"
                 >
                   {parts.map((part, partIndex) => (
                     <li key={cardKey(part, partIndex)}>
@@ -218,15 +213,13 @@ const LOADOUT_PAGE = {
 } satisfies CSSProperties
 
 /**
- * A pattern PAGE's loadout, under its chassis ability: each group (Systems,
- * Modules) a solid Slab over its parts, each a contentful Mini in a masonry
- * grid (`LoadoutMini`), as a mech's sheet draws
- * them. Multiples repeat, as on the card's loadout.
+ * A pattern PAGE's loadout, under its chassis ability. * each group (Systems, Modules) is the mech sheet's own list (`Ledger`
+ * over `itemRows`): a zebra line a part, its figures in the sheet's columns,
+ * its rules opening in place under it. Multiples repeat, as on the sheet.
  */
 export function PatternLoadoutRows({
   groups,
   as: sectionAs,
-  host,
 }: {
   groups: NestedGroup[]
   /** The groups' heading element on a page (`sectionHeadingLevel`). */
@@ -237,17 +230,24 @@ export function PatternLoadoutRows({
   if (groups.length === 0) return null
   return (
     <div className="su-entity-page__loadout" style={LOADOUT_PAGE}>
-      {groups.map((group) => (
-        <SlabSection as={sectionAs} title={group.label} page key={group.label}>
-          <MiniGrid label={`${group.label} installed`}>
-            {group.entities.map((item, index) => (
-              <li key={cardKey(item, index)}>
-                <LoadoutMini data={item} hostDown={host.isDown} />
-              </li>
-            ))}
-          </MiniGrid>
-        </SlabSection>
-      ))}
+      {groups.map((group) => {
+        const slugs = group.entities.map((item) => toEntityModel(item as RefMetaEntity).ref.slug)
+        const modules = slugs.every((slug) => resolveModule(slug) !== null)
+        const fitted = { systems: modules ? [] : slugs, modules: modules ? slugs : [] }
+        return (
+          <Ledger
+            open
+            key={group.label}
+            className="su-open--loadout"
+            // A reference Page shows its whole self: every row's rules open (R43).
+            whole
+            title={group.label}
+            as={sectionAs ?? 'h2'}
+            columns={ITEM_COLUMNS}
+            groups={[{ key: group.label, rows: itemRows(fitted, modules ? 'module' : 'system') }]}
+          />
+        )
+      })}
     </div>
   )
 }

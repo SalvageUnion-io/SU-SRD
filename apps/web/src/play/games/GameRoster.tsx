@@ -9,8 +9,8 @@
  * no copy: each row opens its unit's sheet in Build, and the head
  * links out to Build for the rest — **+ New Pilot** (Build's own wizard,
  * started for this Game, `/pilots/new?game=<id>`, ADR-052 §3), the table
- * runner's **+ New Crawler** while the Game has none, and **Manage in Build**
- * (the Training Bay, which moves units in and out of Games).
+ * runner's **+ New Crawler** while the Game has none. Moving a unit in or out
+ * is its ⋯ menu's, in the Training Bay, one tab away (ADR-066).
  *
  * ## One list, the crawler first
  *
@@ -33,21 +33,19 @@
 import { PRODUCT } from 'game-domain/product'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
-import type { Photo } from 'game-domain/schemas/photo'
 import type { Pilot } from 'game-domain/schemas/pilot'
-import type { CSSProperties, ReactNode } from 'react'
-import { artOf, photoArt, sourceRelation } from '../../build/starterSet/starterShelves.model'
-import type { EntityFormModel, HeaderMenuItem, TagItem } from '../../components/index'
+import { FieldError, RosterSkeleton } from '../../components/app'
+import type { HeaderMenuItem, LedgerColumn, LedgerRow } from '../../components/index'
 import {
   Button,
-  FieldError,
   HeaderMenu,
-  RosterSkeleton,
+  Ledger,
   SlabSection,
+  Stat,
+  TechLevel,
   Text,
-  tokens,
 } from '../../components/index'
-import { UnitRow } from '../../components/shared/UnitRow'
+import type { UnitRow } from '../../components/shared/UnitRow'
 import { useConfirm } from '../../components/shared/useConfirm'
 import { useGo } from '../../components/shared/useGo'
 import { resolveClass } from '../../lib/classRef'
@@ -55,6 +53,7 @@ import { useServerAction } from '../../lib/connection/useServerAction'
 import { useCrawlers, useHydrateEntities, useMechs, usePilots } from '../../lib/entities'
 import type { RosterRow } from '../../lib/games/gameRoster'
 import {
+  ADD_CREW_ANCHOR,
   bodyIdOf,
   crawlerRows,
   groupColumn,
@@ -69,6 +68,7 @@ import { playGamesCopy } from '../../messages/play-games'
 import { useGameListing } from '../../replica/gameListing'
 import { useGamesCall, useViewerId } from '../../replica/roomCalls'
 import { useTableRead } from '../../replica/useTable'
+import { AddFromTrainingBay } from './AddFromTrainingBay'
 import { crawlerVitals, readCrawler } from './crawlerReading.model'
 import { OwnerSeal } from './OwnerSeal'
 import type { SeatRow } from './seatRows.model'
@@ -79,50 +79,11 @@ import { useRowActions } from './useRowActions'
  * A pilot's face on the roster (E10, C11): their photo, else their Class's
  * art, and their Class as a relation chip. Other rows draw as they were.
  */
-function pilotLook(row: RosterRow): { art?: EntityFormModel['art']; relations?: TagItem[] } {
-  if (row.kind !== 'pilot') return {}
-  const classRef = typeof row.body.classRef === 'string' ? row.body.classRef : null
-  const pilotClass = classRef === null ? null : () => resolveClass(classRef)
-  const art =
-    photoArt(row.body.photo as Photo | undefined) ??
-    (pilotClass === null ? undefined : artOf('class', pilotClass))
-  const relations = pilotClass === null ? undefined : sourceRelation('Class', 'class', pilotClass)
-  return { ...(art ? { art } : {}), ...(relations ? { relations } : {}) }
-}
-
 type GameRosterProps = {
   gameId: string
   /** The Game's name, for the confirms that name it; null while unknown. */
   gameName: string | null
 }
-
-const HINT = { textAlign: 'left' } satisfies CSSProperties
-
-/* Masonry on desktop (two columns of at least 24rem, one on a phone): each
-   card sits right under the one above it in its column, so a short card
-   leaves no gap beside a tall one. The crawler spans both columns. */
-const LIST = {
-  columns: '2 24rem',
-  columnGap: tokens.space[12],
-  listStyle: 'none',
-  margin: 0,
-  padding: 0,
-} satisfies CSSProperties
-
-const ITEM = {
-  listStyle: 'none',
-  minWidth: 0,
-  breakInside: 'avoid',
-  marginBlockEnd: tokens.space[12],
-} satisfies CSSProperties
-
-const CRAWLER_ITEM = { ...ITEM, columnSpan: 'all' } satisfies CSSProperties
-
-const BODY = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: tokens.space[12],
-} satisfies CSSProperties
 
 export function GameRoster({ gameId, gameName }: GameRosterProps) {
   // One confirm for every row verb; see `useRowActions`.
@@ -136,7 +97,7 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
   const vitals = useTableRead('crew.vitals', { gameId })
 
   const makePrimary = useServerAction(useGamesCall('games.setPrimaryCrawler'), {
-    failure: 'That crawler could not be made primary. Try again.',
+    failure: playGamesCopy('primaryCrawlerFailed'),
   })
   const busy = makePrimary.pending
   const error = makePrimary.error
@@ -203,8 +164,19 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
       return reading ? { readings: crawlerVitals(reading) } : {}
     }
     if (row.kind === 'mech') {
-      const tl = vitals?.mechs.find((m) => m._id === row.serverId)?.techLevel
-      return tl == null ? {} : { readings: techLevelReading(tl) }
+      // A mech on its own row reads its vitals as one
+      // riding its pilot's row does, in the same order: TL, SP, EP, Heat.
+      const live = vitals?.mechs.find((m) => m._id === row.serverId)
+      return live == null
+        ? {}
+        : {
+            readings: [
+              ...techLevelReading(live.techLevel),
+              ...pool(VITAL.sp, live.currentSP, live.maxSP),
+              ...pool(VITAL.ep, live.currentEP, live.maxEP),
+              ...gauge(VITAL.heat, live.currentHeat, live.maxHeat),
+            ],
+          }
     }
     if (row.kind !== 'pilot') return {}
     const seat = seatOf.get(row.serverId)
@@ -310,43 +282,73 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     return [verbs, assign, danger]
   }
 
-  function renderRow(row: RosterRow): ReactNode {
-    return (
-      <li key={row.serverId} style={row.kind === 'crawler' ? CRAWLER_ITEM : ITEM}>
-        <UnitRow
-          {...pilotLook(row)}
-          kind={row.kind}
-          name={row.name}
-          /* The primary crawler is where new crew is assigned (ADR-037), so
-             the list says which one it is. */
-          note={row.primary ? playGamesCopy('primary') : undefined}
-          /* The Compact is the door to the live sheet in Build: editable when
-             the row is yours to edit, read-only when it is a crewmate's. */
-          mode={{ kind: 'link', href: rosterSheetHref(row) }}
-          {...rowChips(row)}
-          /* MINE or UNASSIGNED sits right of the name, a label (ruleset §7.2):
-             never a stamp riding the frame. A crewmate's is The Game's to name. */
-          labels={
-            row.owner === null || !(row.owner.unassigned || row.owner.mine) ? undefined : (
-              <OwnerSeal
-                owner={row.owner}
-                assignable={row.can.assignSelf}
-                disabled={busy}
-                onAssign={() => rowActions.assignSelf(row)}
-              />
-            )
-          }
-          trailing={
-            <HeaderMenu
-              variant="overflow"
-              trigger={null}
-              label={playGamesCopy('moreFor', { name: row.name })}
-              sections={rowMenu(row)}
+  // The crew as ONE manifest, a line a
+  // unit under the columns the table reads — who holds it, and the numbers
+  // Play spends. Its ⋯ menu rides the row, as a Compact's does.
+  const MANIFEST: readonly LedgerColumn[] = [
+    // A phone drops Member so HP and SP never clip.
+    { key: 'who', label: playGamesCopy('member'), kind: 'text' },
+    { key: 'tl', label: playGamesCopy('tl'), title: playGamesCopy('techLevel') },
+    { key: 'hp', label: 'HP', phone: true },
+    { key: 'sp', label: 'SP', phone: true },
+    { key: 'ep', label: 'EP' },
+    { key: 'heat', label: 'Heat' },
+  ]
+  const readingOf = (
+    chips: Pick<Parameters<typeof UnitRow>[0], 'readings' | 'linked'>,
+    label: string
+  ) => chips.readings?.find((reading) => reading.label === label)?.value ?? ''
+  const callsignOf = (row: RosterRow) =>
+    row.kind === 'pilot' && typeof row.body.callsign === 'string' ? row.body.callsign.trim() : ''
+  const classNameOf = (row: RosterRow) =>
+    row.kind === 'pilot' && typeof row.body.classRef === 'string'
+      ? (resolveClass(row.body.classRef)?.name ?? '')
+      : ''
+  function manifestRow(row: RosterRow): LedgerRow {
+    const chips = rowChips(row)
+    const linked = chips.linked?.[0]
+    const mech = linked?.readings ?? []
+    const mechOf = (label: string) => mech.find((reading) => reading.label === label)?.value ?? ''
+    const tl = readingOf(chips, 'TL') || mechOf('TL')
+    return {
+      id: row.serverId,
+      // A pilot goes by their callsign, else their name.
+      name: callsignOf(row) || row.name,
+      href: rosterSheetHref(row),
+      // A pilot's line wears their Class, then the mech they are in.
+      meta:
+        [classNameOf(row), linked?.name ? `in ${linked.name}` : ''].filter(Boolean).join(' · ') ||
+        undefined,
+      stamp: (
+        <>
+          {row.primary && <Stat size="mini" label={playGamesCopy('primary')} />}
+          {/* The seal is the assign control: a row of yours says Mine in its
+              Member column, once (R59). */}
+          {row.owner?.unassigned && (
+            <OwnerSeal
+              owner={row.owner}
+              assignable={row.can.assignSelf}
+              disabled={busy}
+              onAssign={() => rowActions.assignSelf(row)}
             />
-          }
-        />
-      </li>
-    )
+          )}
+          <HeaderMenu
+            variant="overflow"
+            trigger={null}
+            label={playGamesCopy('moreFor', { name: row.name })}
+            sections={rowMenu(row)}
+          />
+        </>
+      ),
+      cells: [
+        row.kind === 'crawler' ? playGamesCopy('crawlerGroup') : (row.owner?.label ?? ''),
+        tl === '' ? '' : <TechLevel key="tl" level={tl} />,
+        readingOf(chips, 'HP'),
+        readingOf(chips, 'SP') || mechOf('SP'),
+        readingOf(chips, 'EP') || mechOf('EP'),
+        readingOf(chips, 'Heat') || mechOf('Heat'),
+      ],
+    }
   }
 
   /** Each kind's rows, yours first, then everyone else's. */
@@ -354,64 +356,90 @@ export function GameRoster({ gameId, gameName }: GameRosterProps) {
     const { yours, others } = groupColumn(rows)
     return [...yours, ...others]
   }
-  const rows = [...ordered(crawlers), ...ordered(pilots), ...ordered(mechs)]
   const loading = listing === undefined || members === undefined
+
+  const newButtons = (
+    <>
+      {caps.canAddCrew && (
+        <Button href={newInGameHref('/pilots/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newPilot')}
+        </Button>
+      )}
+      {caps.canAddCrew && (
+        <Button href={newInGameHref('/mechs/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newMech')}
+        </Button>
+      )}
+      {caps.canRaiseCrawler && !caps.hasCrawler && (
+        <Button href={newInGameHref('/crawlers/new', gameId)} variant="default" size="compact">
+          {playGamesCopy('newCrawler')}
+        </Button>
+      )}
+      {caps.canAddCrew && (
+        <AddFromTrainingBay
+          gameId={gameId}
+          gameName={gameName}
+          crawler={caps.canRaiseCrawler && !caps.hasCrawler}
+          confirm={confirm}
+        />
+      )}
+    </>
+  )
+  const note =
+    error !== null ? (
+      <FieldError>{error}</FieldError>
+    ) : !caps.canAddCrew && caps.addCrewBlocked !== null && !loading ? (
+      <Text variant="hint">{caps.addCrewBlocked}</Text>
+    ) : undefined
 
   return (
     <>
-      <SlabSection
-        as="h2"
-        id="crew-heading"
-        title={playGamesCopy('crew')}
-        {...(seats !== null && seats.total > 0
-          ? { count: { label: playGamesCopy('seats'), value: seats.claimed, max: seats.total } }
-          : {})}
-        actions={
-          <>
-            {caps.canAddCrew && (
-              <Button href={newInGameHref('/pilots/new', gameId)} variant="primary" size="compact">
-                {playGamesCopy('newPilot')}
-              </Button>
-            )}
-            {caps.canAddCrew && (
-              <Button href={newInGameHref('/mechs/new', gameId)} variant="primary" size="compact">
-                {playGamesCopy('newMech')}
-              </Button>
-            )}
-            {caps.canRaiseCrawler && !caps.hasCrawler && (
-              <Button
-                href={newInGameHref('/crawlers/new', gameId)}
-                variant="primary"
-                size="compact"
-              >
-                {playGamesCopy('newCrawler')}
-              </Button>
-            )}
-            <Button href="/" variant="default" size="compact">
-              {playGamesCopy('manageInBuild')}
-            </Button>
-          </>
-        }
-        bodyStyle={BODY}
-      >
-        {error !== null && <FieldError>{error}</FieldError>}
-        {!caps.canAddCrew && caps.addCrewBlocked !== null && !loading && (
-          <Text variant="hint" style={HINT}>
-            {caps.addCrewBlocked}
-          </Text>
-        )}
-        {loading ? (
+      {loading ? (
+        <SlabSection as="h2" id="crew-heading" title={playGamesCopy('crew')} actions={newButtons}>
           <RosterSkeleton label={playGamesCopy('theCrew')} />
-        ) : rows.length === 0 ? (
-          <Text variant="hint" style={HINT}>
-            {playGamesCopy('nobodyHasBroughtAUnit')}
-          </Text>
-        ) : (
-          <ul aria-labelledby="crew-heading" style={LIST}>
-            {rows.map(renderRow)}
-          </ul>
-        )}
-      </SlabSection>
+        </SlabSection>
+      ) : (
+        // The crew manifest IS the section
+        // — its head is the label on the rule, with the seats on it and the
+        // column labels at its end, so the "+ New…" buttons sit on their own
+        // line under the rule rather than between the two (the page's one rust
+        // button stays the band's).
+        <Ledger
+          open
+          as="h2"
+          title={playGamesCopy('crew')}
+          {...(seats !== null && seats.total > 0
+            ? {
+                tally: {
+                  label: playGamesCopy('seats'),
+                  value: seats.claimed,
+                  max: seats.total,
+                },
+              }
+            : {})}
+          lead={
+            <div className="su-open__controls" id={ADD_CREW_ANCHOR}>
+              {newButtons}
+              {note}
+            </div>
+          }
+          columns={MANIFEST}
+          groups={[
+            { key: 'pilots', rows: [...ordered(pilots).map(manifestRow)] },
+            {
+              key: 'mechs',
+              label: playGamesCopy('mechsGroup'),
+              rows: ordered(mechs).map(manifestRow),
+            },
+            {
+              key: 'crawlers',
+              label: playGamesCopy('crawlerGroup'),
+              rows: [...ordered(crawlers).map(manifestRow)],
+            },
+          ]}
+          empty={playGamesCopy('nobodyHasBroughtAUnit')}
+        />
+      )}
 
       {confirmDialog}
     </>

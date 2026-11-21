@@ -127,7 +127,7 @@ export const registry: RegistryEntry[] = [
     typeName: 'RefCrawler',
     zodExportName: 'CrawlerSchema',
     singular: 'Crawler',
-    plural: 'Crawlers',
+    plural: 'Crawler Types',
   },
   {
     id: 'creatures',

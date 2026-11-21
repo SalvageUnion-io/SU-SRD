@@ -84,7 +84,7 @@ type SkeletonFrameProps = {
  * The loading status every skeleton is: the announced name and the pulse
  * (`.su-pulse`, which a reduced-motion reader never sees). A composed skeleton
  * (`RosterSkeleton`, `SheetSkeleton`, a QR tile's) lays its ghosts inside it,
- * so the pulse and the words stay here (chrome.md K6).
+ * so the pulse and the words stay here (chrome K6).
  */
 export function SkeletonFrame({ label, as: As = 'div', style, children }: SkeletonFrameProps) {
   return (
@@ -122,7 +122,7 @@ function CardGhost() {
 }
 
 /**
- * Skeleton — the loading placeholder for a shape known ahead (chrome.md K6).
+ * Skeleton — the loading placeholder for a shape known ahead (chrome K6).
  *
  * Mirrors the anatomy of the form it stands in for with **ink-alpha ghosts on
  * off-white**, so the loaded content drops in with **zero layout shift**: the

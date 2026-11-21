@@ -1,15 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { FIXTURE_NOW, mechFixture, pilotFixture } from '../../components/__tests__/fixtures'
+import { pilotFixture } from '../../components/__tests__/fixtures'
 import { CHAPTER_BAND_COLOR } from '../../components/atoms/chapterBandColor'
 import { foregroundOn } from '../../design/contrast'
-import {
-  connectionLine,
-  gamePilots,
-  PHASE_TONE,
-  playStamp,
-  playTitle,
-  soloPilots,
-} from '../play.model'
+import { connectionLine, gamePilots, PHASE_TONE, playStamp, playTitle } from '../play.model'
 
 describe('playTitle', () => {
   test('the Game’s name in a Game, the pilot’s from the shelf', () => {
@@ -61,24 +54,6 @@ describe('the landing’s pilots', () => {
   const rook = pilotFixture({ id: 'p-rook', name: 'Rook', gameId: 'g1' })
   const wren = pilotFixture({ id: 'p-wren', name: 'Wren', gameId: null })
   const kite = pilotFixture({ id: 'p-kite', name: 'Kite', gameId: null })
-  const scrapper = mechFixture({ id: 'm-scrapper', name: 'Scrapper', gameId: null })
-  const link = {
-    id: 'l1',
-    type: 'mech-to-pilot' as const,
-    from: { type: 'mech' as const, id: 'm-scrapper' },
-    to: { type: 'pilot' as const, id: 'p-wren' },
-    createdAt: FIXTURE_NOW,
-  }
-
-  test('Solo lists the shelf’s pilots, each with its assigned mech or none, and its HP and AP', () => {
-    const solo = soloPilots([rook, wren, kite], [scrapper], [], [link])
-    expect(solo.map(({ readings: _, ...p }) => p)).toEqual([
-      { pilotId: 'p-wren', name: 'Wren', mechName: 'Scrapper', mechId: 'm-scrapper' },
-      { pilotId: 'p-kite', name: 'Kite', mechName: null, mechId: null },
-    ])
-    expect(solo[0]?.readings.map((r) => r.label)).toEqual(['HP', 'AP'])
-  })
-
   test('a Game’s Play doors are your pilots in that Game alone', () => {
     expect(gamePilots([rook, wren, kite], 'g1').map((p) => p.id)).toEqual(['p-rook'])
     expect(gamePilots([rook, wren, kite], 'g2')).toEqual([])

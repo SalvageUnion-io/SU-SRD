@@ -1,7 +1,7 @@
 /**
  * StarterShelf — the book crews at the foot of the Training Bay, the Starter
  * Set's then the Quickstart's, each the
- * same grid of cards the signed-out front door shows (`StarterSetGrid`),
+ * same Ledger the signed-out front door shows (`StarterCrewLedger`),
  * folded under its Slab until its fold opens it. Your own
  * builds come first; the book's are reference, read-only, and kept by making a
  * copy from a build's sheet (`/starter/:kind/:id`), never by editing the
@@ -19,12 +19,12 @@ import {
   STARTER_SET_PUBLISHER,
 } from '../../lib/starterSet/starterTemplates'
 import { buildShelvesCopy } from '../../messages/build-shelves'
-import { StarterSetGrid } from '../starterSet/StarterSetGrid'
+import { StarterCrewLedger } from '../starterSet/StarterCrewLedger'
 
 const PANEL = {
   display: 'flex',
   flexDirection: 'column',
-  gap: tokens.space[16],
+  gap: tokens.space[12],
 } satisfies CSSProperties
 
 const CREDIT = {
@@ -50,7 +50,7 @@ export function StarterShelf() {
           The pre-generated crew of <em>{STARTER_SET_ADVENTURE}</em>, by {STARTER_SET_PUBLISHER}.
           Open any sheet to read it, then make a copy to play it.
         </p>
-        <StarterSetGrid />
+        <StarterCrewLedger />
       </SlabSection>
       <SlabSection
         as="h2"
@@ -67,7 +67,7 @@ export function StarterShelf() {
             publisher: STARTER_SET_PUBLISHER,
           })}
         </p>
-        <StarterSetGrid roster="quickstart" />
+        <StarterCrewLedger roster="quickstart" />
       </SlabSection>
     </>
   )

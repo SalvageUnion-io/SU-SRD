@@ -9,7 +9,7 @@ import { describe, expect, test } from 'bun:test'
 import { render, screen } from '@testing-library/react'
 import type { RefClass } from 'salvageunion-reference'
 import { SalvageUnionReference } from 'salvageunion-reference'
-import { ClassAbilityTree } from '../ClassAbilityTree'
+import { ClassAbilityTree, ClassAdvancement } from '../ClassAbilityTree'
 
 const classNamed = (name: string): RefClass => {
   const found = SalvageUnionReference.Classes.getByName(name)
@@ -17,13 +17,29 @@ const classNamed = (name: string): RefClass => {
   return found
 }
 
-/** A brief card's head band: the colour its cut-out head is painted. */
+/** A brief card's tier hue: its frame's paint (a row's head is no band, L-6). */
 const headBand = (card: Element) =>
-  card.querySelector<HTMLElement>('.su-entity-compact__head')?.style.backgroundColor
+  card
+    .querySelector<HTMLElement>('.su-entity-compact__frame')
+    ?.style.getPropertyValue('--su-compact-frame')
+
+/** A class Page's trees: the Core trees, then its Advancement (the side track). */
+function ClassPage({
+  classEntity,
+}: {
+  classEntity: Parameters<typeof ClassAbilityTree>[0]['classEntity']
+}) {
+  return (
+    <>
+      <ClassAbilityTree classEntity={classEntity} />
+      <ClassAdvancement classEntity={classEntity} />
+    </>
+  )
+}
 
 describe('ClassAbilityTree headings', () => {
   test('each tree is an h2 and each Ability under it an h3', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const trees = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
     expect(trees).toContain('Mech-Tech')
     expect(trees).toContain('Legendary Engineer')
@@ -36,7 +52,7 @@ describe('ClassAbilityTree headings', () => {
   })
 
   test("a path card's tracks are contentful Minis: a link head, then the ability's text", () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const tiers = [...document.querySelectorAll('.su-class-path .su-ability-track__tier')]
     expect(tiers.length).toBeGreaterThan(0)
     for (const tier of tiers) {
@@ -51,7 +67,7 @@ describe('ClassAbilityTree headings', () => {
   })
 
   test('a Hybrid Class: its own trees and its required trees are h2s', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
+    render(<ClassPage classEntity={classNamed('Fabricator')} />)
     const trees = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)
     expect(trees).toContain('Fabricator')
     expect(trees).toContain('Legendary Fabricator')
@@ -61,28 +77,28 @@ describe('ClassAbilityTree headings', () => {
 
 describe('ClassAbilityTree banners and track', () => {
   test('every ability banner wears its tier; a tracked tier sets its numeral in its band', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const heads = [
       ...document.querySelectorAll<HTMLElement>('.su-ability-track__tier .su-entity-compact__head'),
     ]
     expect(heads.length).toBeGreaterThan(0)
     for (const head of heads) expect(head.dataset.fill).toBe('tone')
-    // A Compact's band, or a path card's Mini's pill (N3), wears the tier.
+    // A Compact's band paint (`--su-band`), on its frame, wears the tier.
     const bandsOf = (tree: string) =>
       screen
         .getAllByRole('heading', { level: 2, name: tree })
         .flatMap((h) => [
           ...(h
             .closest('section')
-            ?.querySelectorAll<HTMLElement>('.su-entity-compact__head, .su-entity-mini__pill') ??
-            []),
+            ?.querySelectorAll<HTMLElement>('.su-entity-compact__frame, .su-entity-mini') ?? []),
         ])
-        .map((head) => head.style.backgroundColor)
-    // Core orange, Advanced and Hybrid rust, Legendary pink (its deeper band).
+        .map((frame) => frame.style.getPropertyValue('--su-band'))
+    // The Core track's Compacts wear the Core orange.
     expect(new Set(bandsOf('Forging'))).toEqual(new Set(['var(--color-pilot)']))
-    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['var(--color-tier-hybrid)']))
-    expect(new Set(bandsOf('Fabricator'))).toEqual(new Set(['var(--color-tier-hybrid)']))
-    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['var(--color-crawler-band)']))
+    // A path card's Mini under its strip is a plain row (L-6): no band of its own.
+    expect(new Set(bandsOf('Advanced Engineer'))).toEqual(new Set(['transparent']))
+    expect(new Set(bandsOf('Fabricator'))).toEqual(new Set(['transparent']))
+    expect(new Set(bandsOf('Legendary Engineer'))).toEqual(new Set(['transparent']))
 
     const forging = screen.getByRole('heading', { level: 2, name: 'Forging' }).closest('section')
     if (!forging) throw new Error('no Forging tree')
@@ -98,7 +114,7 @@ describe('ClassAbilityTree banners and track', () => {
   })
 
   test('a Legendary tree (pick one) runs on a track with an "or" between picks, no numerals', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const legendary = screen
       .getAllByRole('heading', { level: 2, name: 'Legendary Engineer' })
       .map((h) => h.closest('section'))
@@ -119,7 +135,7 @@ describe('ClassAbilityTree banners and track', () => {
   })
 
   test('every Ability on a track Peeks its ability', () => {
-    const { container } = render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    const { container } = render(<ClassPage classEntity={classNamed('Engineer')} />)
     const tiers = [...container.querySelectorAll('.su-ability-track > .su-ability-track__tier')]
     expect(tiers.length).toBeGreaterThan(0)
     for (const tier of tiers) {
@@ -130,7 +146,7 @@ describe('ClassAbilityTree banners and track', () => {
 
 describe('ClassAbilityTree advancement paths', () => {
   test('a path head carries its name on the cut-out, its requirement right of it; its text opens the body', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const paths = [...document.querySelectorAll('.su-class-path')]
     expect(paths.length).toBeGreaterThan(1)
     for (const path of paths) {
@@ -155,7 +171,7 @@ describe('ClassAbilityTree advancement paths', () => {
   })
 
   test('the class’s own path says it is that class’s only, as a chip like its neighbours', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Hacker')} />)
+    render(<ClassPage classEntity={classNamed('Hacker')} />)
     const own = document.querySelector('.su-class-path[data-kind="legendary"]')
     const group = own?.querySelector('.su-entity-compact__heading--cut > .su-chips')
     const chips = [...(group?.querySelectorAll(':scope > .su-chip-lane > *') ?? [])]
@@ -169,7 +185,7 @@ describe('ClassAbilityTree advancement paths', () => {
   })
 
   test('a Hybrid Class’s requirement is one chip naming its trees, no owning class', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const hybrids = [...document.querySelectorAll('.su-class-path[data-kind="hybrid"]')]
     expect(hybrids.length).toBeGreaterThan(0)
     for (const hybrid of hybrids) {
@@ -188,7 +204,7 @@ describe('ClassAbilityTree advancement paths', () => {
   })
 
   test('a Hybrid Class’s whole cut-out head opens its page; the own path’s links nowhere', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const own = document.querySelector('.su-class-path[data-kind="legendary"]')
     expect(own?.querySelector(':scope > a')).toBeNull()
     const hybrid = document.querySelector('.su-class-path[data-kind="hybrid"]')
@@ -198,7 +214,7 @@ describe('ClassAbilityTree advancement paths', () => {
   })
 
   test('the Core trees run two across; the class’s own path leads the Hybrid Classes', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const core = document.querySelector('.su-class-path__trees--pair')
     expect(core?.querySelectorAll(':scope > .su-ability-tree__group').length).toBeGreaterThan(1)
     expect(core?.querySelector('.su-class-path')).toBeNull()
@@ -214,7 +230,7 @@ describe('ClassAbilityTree advancement paths', () => {
 
 describe('ClassAbilityTree training brief', () => {
   test("a Hybrid Class's brief says what it takes to advance, in the book's verb (p.23)", () => {
-    render(<ClassAbilityTree classEntity={classNamed('Fabricator')} />)
+    render(<ClassPage classEntity={classNamed('Fabricator')} />)
     const labels = [
       ...document.querySelectorAll('.su-class-brief__card .su-entity-compact__notch'),
     ].map((tab) => tab.textContent)
@@ -225,7 +241,7 @@ describe('ClassAbilityTree training brief', () => {
   })
 
   test('a Core class gets a tier card per tier, each costed in the pointy box', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Engineer')} />)
+    render(<ClassPage classEntity={classNamed('Engineer')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.su-class-brief__card')]
     // Each head wears its tier's book hue (§3.8), the trees' own.
@@ -243,7 +259,7 @@ describe('ClassAbilityTree training brief', () => {
   })
 
   test('a Core class that never advances (Salvager) gets one Core card, from any of its trees', () => {
-    render(<ClassAbilityTree classEntity={classNamed('Salvager')} />)
+    render(<ClassPage classEntity={classNamed('Salvager')} />)
     const brief = screen.getByRole('complementary', { name: 'Training' })
     const cards = [...brief.querySelectorAll<HTMLElement>('.su-class-brief__card')]
     expect(cards.map((card) => headBand(card))).toEqual(['var(--color-pilot)'])
@@ -251,5 +267,26 @@ describe('ClassAbilityTree training brief', () => {
     expect(cards[0]?.textContent).toContain(
       'You must have the preceding skill in a Core Ability Tree to train the next Ability.'
     )
+  })
+})
+
+describe('ClassAdvancement under the art', () => {
+  test('a class with no path (Salvager) hands its later Core trees, a pair at a time, to the side track', () => {
+    const salvager = classNamed('Salvager')
+    const main = render(<ClassAbilityTree classEntity={salvager} />).container
+    const mainTrees = main.querySelectorAll('.su-class-path__trees > *').length
+    main.remove()
+    const side = render(<ClassAdvancement classEntity={salvager} />).container
+    const sideTrees = side.querySelectorAll('.su-class-path__trees > *').length
+    expect(mainTrees % 2).toBe(0)
+    expect(sideTrees).toBeGreaterThan(0)
+    expect(mainTrees).toBeGreaterThanOrEqual(sideTrees)
+  })
+
+  test('a class with paths keeps every Core tree in the main track', () => {
+    const hacker = classNamed('Hacker')
+    const side = render(<ClassAdvancement classEntity={hacker} />).container
+    expect(side.querySelector('.su-class-path__trees--pair')).toBeNull()
+    expect(side.querySelector('.su-class-paths')).not.toBeNull()
   })
 })

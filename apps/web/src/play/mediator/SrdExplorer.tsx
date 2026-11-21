@@ -49,6 +49,7 @@ import {
 } from '../../components/index'
 import { buildChapters } from '../../lib/chapters'
 import { useGameData } from '../../lib/useGameData'
+import { playCopy } from '../../messages/play'
 import { mediatorCopy } from '../../messages/play-mediator'
 
 const HIDE_CHOICES = { choices: true } as const
@@ -173,7 +174,6 @@ function SrdHome({
                 id={`srd-explorer-${chapter.id}`}
                 title={chapter.title}
                 tone={chapter.tone}
-                total={chapter.total}
                 rows={chapter.rows.map((row) => ({
                   ...row,
                   onOpen: () => onPickSchema(row.schemaId, row.label),
@@ -228,7 +228,7 @@ export function SrdExplorer({ onClose }: { onClose?: () => void }) {
 
   const frame: SrdFrame = (body, top) => (
     <TitledBox
-      title={mediatorCopy('reference')}
+      title={playCopy('rules')}
       tone="pilot"
       className="su-modal-panel"
       body="flush"

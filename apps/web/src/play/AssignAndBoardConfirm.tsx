@@ -4,7 +4,7 @@
  * offered: the Mount row and the Situation switch.
  */
 
-import { ConfirmDialog } from '../components/index'
+import { ConfirmDialog } from '../components/app'
 import { playCopy } from '../messages/play'
 import type { BoardOption } from './boardMenu.model'
 import type { Play } from './situation.model'

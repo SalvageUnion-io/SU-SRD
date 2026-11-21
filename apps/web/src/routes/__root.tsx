@@ -5,7 +5,6 @@ import { AccountHintSync } from '../build/account/AccountHintSync'
 import {
   HeaderActions,
   HeaderDrawerAccount,
-  HeaderGames,
   HeaderMobileActions,
 } from '../build/account/HeaderAccount'
 import { firstPaintSchemas, routeSchemas } from '../build/account/signedOutView.model'
@@ -19,6 +18,7 @@ import { EntityPageHost } from '../components/shared/EntityPageHost'
 import { GameDataReady } from '../components/shared/GameDataReady'
 import { RootErrorComponent } from '../components/shared/RouteErrors'
 import { SiteFooter } from '../components/shared/SiteFooter'
+import { srdEntityExternalLink } from '../components/shared/srdEntityExternalLink'
 import { UnionBarSlots } from '../components/shared/UnionBarSlots'
 import { areaTitle } from '../lib/pageTitle'
 import { preloadGameData } from '../lib/useGameData'
@@ -52,7 +52,13 @@ import '../styles/app.css'
  */
 void preloadGameData(firstPaintSchemas(window.location.pathname), 'full')
 
-const ENTITY_SURFACE: Partial<EntitySurfaceValue> = { linkAs: AppLink, appliesRules: true }
+// "View in the Reference" (E13) is here, above `EntityPageHost`: the detail
+// dialog it mounts sits outside every route's own providers.
+const ENTITY_SURFACE: Partial<EntitySurfaceValue> = {
+  linkAs: AppLink,
+  appliesRules: true,
+  externalLink: srdEntityExternalLink,
+}
 
 export const Route = createRootRoute({
   // The default tab title, the front door's; a page with its own sets it in its route's `head`.
@@ -71,13 +77,12 @@ function RootHeader({ pathname, barHidden }: { pathname: string; barHidden: bool
     <UnionBarSlots
       pathname={pathname}
       barHidden={barHidden}
-      games={<HeaderGames pathname={pathname} />}
       search={<SearchIsland />}
       mobileSearch={<MobileSearchIsland />}
       drawerSearch={<SearchIsland />}
       actions={<HeaderActions />}
       mobileActions={<HeaderMobileActions />}
-      drawerExtra={(close) => <HeaderDrawerAccount close={close} pathname={pathname} />}
+      drawerExtra={() => <HeaderDrawerAccount />}
     />
   )
 }

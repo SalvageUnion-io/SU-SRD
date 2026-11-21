@@ -31,12 +31,12 @@ describe('TitledBox', () => {
     const head = container.querySelector<HTMLElement>('.su-entity-compact__head')
     expect(head?.style.backgroundColor).toBe('var(--color-mech)')
     expect(head?.textContent).toContain('SLOTS | 3')
-    // The controls are the chip group's last slot (C8, R6), after its chips.
+    // The controls are the chip group's last slot (C8), after its chips.
     const close = head?.querySelector('[data-chip-group] [data-chip-class="menu"] button')
     expect(close?.textContent).toBe('Close')
   })
 
-  test("frames its body in its band's colour, a head alone in none (R51)", () => {
+  test("frames its body in its band's colour, a head alone in none (R38)", () => {
     const { container } = render(
       <TitledBox title="Hold" tone="mech">
         Body

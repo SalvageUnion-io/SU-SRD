@@ -9,7 +9,8 @@
  * A folded card's one control is a disclosure button with
  * `aria-expanded="false"`, the same affordance a keyboard or screen-reader
  * user activates: "<entity> details", or a pilot's equipment row's
- * "Expand <item>", so both names count.
+ * "Expand <item>", so both names count. A sheet dashboard's Ledger row opens
+ * its rules the same way ("<name> rules", "<bay> rules and crew").
  */
 
 import { act, fireEvent, screen } from '@testing-library/react'
@@ -20,7 +21,7 @@ const MAX_PASSES = 5
 export function expandCards(): void {
   for (let pass = 0; pass < MAX_PASSES; pass += 1) {
     const folded = screen.queryAllByRole('button', {
-      name: /^Expand | details$/,
+      name: /^Expand | details$| rules$| rules and crew$/,
       expanded: false,
     })
     if (folded.length === 0) return

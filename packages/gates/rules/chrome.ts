@@ -1,8 +1,8 @@
 /**
  * Chrome laws — the `chrome` rule set of `tools/check-rule-sets.ts`, the
- * machine-checkable laws of `docs/design-system/chrome.md`.
+ * machine-checkable laws of `docs/design-system/hard-rules.md`'s chrome.
  *
- * ## One ground signal (hard rule R19, chrome K1)
+ * ## One ground signal (chrome K1)
  *
  * A surface declares its ground once, `data-ground="paper" | "ink"` on its
  * frame, as `data-grain` declares its texture, and every component inside
@@ -20,7 +20,7 @@
  * - `paper-mix`: paper on ink is `--color-paper-NN` alone, never a
  *   `color-mix()` fading paper into transparent (a second, unlisted palette).
  *
- * ## One focus ring (hard rule R28, chrome K9)
+ * ## One focus ring (chrome K9)
  *
  * Every focusable thing shows `--focus-ring-shadow` on `:focus-visible`, in
  * ink, Play included. Six variants grew beside it (an offset outline, a
@@ -34,7 +34,7 @@
  *   link, a search field's width) but paints no indicator of its own. A
  *   focused element's sibling (`:focus ~ label`) is not its indicator.
  *
- * ## Three dialog widths (hard rule R24, chrome K7)
+ * ## Three dialog widths (chrome K7)
  *
  * `ModalShell` is narrow (28rem), default (48rem) or page (72rem), chosen by
  * its `width` prop, which takes only those three (the type system holds
@@ -44,7 +44,7 @@
  *   naming a `dialog`, `modal` or `popup`, or `[role=dialog]`) sets a
  *   `max-width` / `max-inline-size`.
  *
- * ## A notice has one job (hard rule R20, chrome K5)
+ * ## A notice has one job (chrome K5)
  *
  * A toast reports an act, from the one toaster per document; a `Banner` holds
  * a lasting condition, and offline is one notice in one wording (the bar's
@@ -67,13 +67,15 @@
  *
  * - `raw-field`: a JSX `<input>` or `<textarea>` only in an atom
  *   (`components/atoms/`); a hidden file picker (`type="file"`) is no field.
+ *   The Ledger (`ROLE_HOMES.ledger`) holds its own row pick, a radio in its
+ *   label (ledger.md L7), and an SRD index's sorting head stamp (L2).
  * - `raw-label`: a JSX `<label>` only in an atom (`Field`, `Eyebrow`,
  *   `Checkbox`'s hit area, `Radio`'s row).
  * - `breadcrumb-nav`: `aria-label="Breadcrumb"` only in `BreadcrumbTrail`,
  *   which owns its nav.
  * - `step-current`: `aria-current="step"` only in `WizShell`.
  *
- * ## Stats render through Stat (hard rule R36, ruleset §3.7)
+ * ## Stats render through Stat (ruleset §3.7)
  *
  * Every `label | value` is a `Stat`, never hand-assembled text.
  *
@@ -97,7 +99,7 @@
  * ## One section, the SlabSection (hard rule R1, ruleset §6.4)
  *
  * `slab-section` and `slab-style`, read off the JSX's shape: `chromeMarkup.ts`,
- * as is `raw-dl` (hard rule R36): a JSX `<dl>`, `<dt>` or `<dd>` outside the
+ * as is `raw-dl` (ruleset §3.7): a JSX `<dl>`, `<dt>` or `<dd>` outside the
  * Stat atoms.
  *
  * Every rule is `zero`. Comments are stripped, so prose may name what it bans.
@@ -354,6 +356,10 @@ const ATOMS = 'apps/web/src/components/atoms/'
 const ROLE_HOMES = {
   breadcrumb: 'apps/web/src/components/atoms/BreadcrumbTrail.tsx',
   step: 'apps/web/src/build/wizard/WizShell.tsx',
+  // Its row's pick (a radio whose label is the row's name, L7) and an index's sorting head stamp (L2).
+  ledger: 'apps/web/src/components/entity/Ledger.tsx',
+  // The open form's row opener and a folding sub-group's head (L1, L3).
+  ledgerOpen: 'apps/web/src/components/entity/LedgerOpen.tsx',
 } as const
 
 /** A JSX field element, to its self-closing end (`=>` in a handler holds no `/>`). */
@@ -378,7 +384,7 @@ function jsxSources(root: string): [string, string][] {
 function scanRawFields(root: string): Finding[] {
   const out: Finding[] = []
   for (const [rel, text] of jsxSources(root)) {
-    if (rel.startsWith(ATOMS)) continue
+    if (rel.startsWith(ATOMS) || rel === ROLE_HOMES.ledger) continue
     for (const m of text.matchAll(RAW_FIELD)) {
       if (/\btype=["']file["']/.test(m[0])) continue
       const line = lineAt(text, m.index ?? 0)
@@ -392,11 +398,11 @@ function scanRawFields(root: string): Finding[] {
   return out
 }
 
-/** Lines matching `pattern` in `.tsx` sources, but in `home` (or under it). */
-function scanOutside(root: string, pattern: RegExp, home: string): Finding[] {
+/** Lines matching `pattern` in `.tsx` sources, but in a `home` (or under one). */
+function scanOutside(root: string, pattern: RegExp, ...homes: string[]): Finding[] {
   const out: Finding[] = []
   for (const [rel, text] of jsxSources(root)) {
-    if (rel.startsWith(home)) continue
+    if (homes.some((home) => rel.startsWith(home))) continue
     text.split('\n').forEach((line, i) => {
       if (pattern.test(line)) out.push({ file: rel, line: i + 1, detail: line.trim() })
     })
@@ -460,65 +466,65 @@ const RULES: ChromeRule[] = [
   {
     id: 'ground-signal',
     mode: 'zero',
-    rule: 'hard rule R19 (chrome K1) — a surface declares its ground once, `data-ground` on its frame; components read it in CSS, never through a prop',
+    rule: 'chrome K1 — a surface declares its ground once, `data-ground` on its frame; components read it in CSS, never through a prop',
     fix: "Drop the prop: style the component for paper, and add its ink look as `[data-ground='ink'] .su-…` in its stylesheet. A new frame (a band, plate or pill that IS a ground) sets `data-ground` and joins FRAMES in packages/gates/rules/chrome.ts.",
     scan: scanGroundSignal,
   },
   {
     id: 'paper-mix',
     mode: 'zero',
-    rule: 'hard rule R19 (chrome K1) — paper on ink is `--color-paper-NN` alone, never a `color-mix()` of paper',
+    rule: 'chrome K1 — paper on ink is `--color-paper-NN` alone, never a `color-mix()` of paper',
     fix: 'Use the paper step: `var(--color-paper-85|70|60|30|15)` in CSS, `color.paper85|70|60|30|15` in a style object.',
     scan: scanPaperMix,
   },
   {
     id: 'focus-ring',
     mode: 'zero',
-    rule: 'hard rule R28 (chrome K9) — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
+    rule: 'chrome K9 — one focus ring: a focused rule sets only `--focus-ring-shadow` (and the forced-colors transparent outline)',
     fix: 'Give the element `FOCUS_RING` (`su-focus-ring`), or make the rule `outline: 3px solid transparent; box-shadow: var(--focus-ring-shadow)` and nothing else; move a hover colour, underline or border to a `:hover` rule of its own. A clipped element draws the ring on its frame with `:has(… :focus-visible)`.',
     scan: scanFocusRing,
   },
   {
     id: 'dialog-width',
     mode: 'zero',
-    rule: "hard rule R24 (chrome K7) — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
+    rule: "chrome K7 — a dialog is narrow, default or page, from `ModalShell`'s `width`; no stylesheet caps a dialog",
     fix: 'Delete the cap and pass `ModalShell` `width="narrow"` (a confirm, a short prompt, a picker of one thing), `"default"` (the rest) or `"page"` (the detail Page, or a searcher that shows one).',
     scan: scanDialogWidth,
   },
   {
     id: 'one-toaster',
     mode: 'zero',
-    rule: 'hard rule R20 (chrome K5) — one toaster per document: the one `<Toaster` is the one `ToasterMount` draws',
+    rule: 'chrome K5 — one toaster per document: the one `<Toaster` is the one `ToasterMount` draws',
     fix: "Render `<ToasterMount />` where a surface needs toasts (the app root, an SRD island that toasts); it shares the document's one toaster. Never render `<Toaster` outside components/containers/Toaster.tsx.",
     scan: scanOneToaster,
   },
   {
     id: 'offline-copy',
     mode: 'zero',
-    rule: 'hard rule R20 (chrome K5) — offline is one notice in one wording, `SyncBadge` in the bar',
+    rule: 'chrome K5 — offline is one notice in one wording, `SyncBadge` in the bar',
     fix: 'Withdraw the control or say the consequence here ("That change was not saved") and leave the condition to `SyncBadge`, which is in the bar whenever the app is offline.',
     scan: scanOfflineCopy,
   },
   {
     id: 'roll-tier',
     mode: 'zero',
-    rule: "hard rule R20 (ruleset §3.4, chrome K5) — the roll tiers are the Discord bot's; no web surface or notice wears one",
+    rule: "chrome K5 (ruleset §3.4) — the roll tiers are the Discord bot's; no web surface or notice wears one",
     fix: 'A state is `statusOk` / `statusWarn` / `statusBad` (`--color-status-*`); a roll result is the readout and the row mark, the same for every outcome; a notice is in ink. The bot reads `DISCORD_ROLL_ACCENT`.',
     scan: scanRollTier,
   },
   {
     id: 'raw-field',
     mode: 'zero',
-    rule: 'hard rule R16 (chrome Roles) — a field is `Input` or `Textarea` (16px, so an iPhone never zooms), never a raw <input> or <textarea> outside the atoms',
+    rule: 'hard rule R16 (chrome Roles) — a field is `Input` or `Textarea` (16px, so an iPhone never zooms), never a raw <input> or <textarea> outside the atoms and the Ledger’s row pick (L7)',
     fix: 'Render `Input` (`size="compact"` beside Compact buttons) or `Textarea` from components/index, labelled by `Field` or an `aria-label`; a check is `Checkbox`, a choice `Radio`, a search `SearchField`.',
     scan: scanRawFields,
   },
   {
     id: 'raw-label',
     mode: 'zero',
-    rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label>",
+    rule: "hard rule R16 (chrome Roles) — a field's label is `Field`'s one treatment, never a hand-rolled <label> (the Ledger's row pick aside, L7)",
     fix: 'Wrap the control in `Field label="…" htmlFor={id}`; a lone check takes `Checkbox hitArea` for its 44px square.',
-    scan: (root) => scanOutside(root, RAW_LABEL, ATOMS),
+    scan: (root) => scanOutside(root, RAW_LABEL, ATOMS, ROLE_HOMES.ledger),
   },
   {
     id: 'breadcrumb-nav',
@@ -550,14 +556,14 @@ const RULES: ChromeRule[] = [
   {
     id: 'raw-button',
     mode: 'zero',
-    rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms',
+    rule: 'hard rule R16 (ruleset §6.5) — a button is `Button` (its variant, Size and `href`), never a raw <button> outside the atoms and an index Ledger’s sorting head (L2)',
     fix: 'Render `<Button variant=… size=… onClick=…>` (`href` for a link, `back` for a way back) from components/index; a look no variant draws is an atom in components/atoms/ (`ChipButton`, `TrackStep`, `ToggleCard`, or a new one named in its law).',
-    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS),
+    scan: (root) => scanOutside(root, RAW_BUTTON, ATOMS, ROLE_HOMES.ledger, ROLE_HOMES.ledgerOpen),
   },
   {
     id: 'stat-text',
     mode: 'zero',
-    rule: 'hard rule R36 (ruleset §3.7) — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
+    rule: 'ruleset §3.7 — every `label | value` is a `Stat`, never JSX text such as `SP {n}`',
     fix: 'Render `<Stat label="SP" value={n} />` (with `max` for a reading out of a maximum, `size` for the line); in a sentence, say it in words around the number ("4 Hit Points"), never as a label and a value.',
     scan: (root) => jsxSources(root).flatMap(([rel, text]) => statTextFindings(rel, text)),
   },

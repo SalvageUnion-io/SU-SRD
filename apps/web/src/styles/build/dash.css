@@ -1,0 +1,1154 @@
+/*
+ * The sheet dashboard: the app's half of the sheet's grammar, over the UI
+ * library's strip and Ledger (`partials/rule-head.css`,
+ * `partials/open-ledger.css`).
+ *
+ *   - The header strip (`.su-strip`): art, live vitals, then the fixed
+ *     figures, every cell a small label, a big numeral and a slim meter.
+ *   - The dashboard grid (`.su-dash`): three columns from 80rem, two from
+ *     48rem, one below; a phone stacks them under the strip, whose vitals step.
+ *   - The masthead (`.su-mast`): art, chapter-rung numerals over chunky
+ *     segments, the fixed figures and the view switch on one rail, identity
+ *     beside; the unit's short lines on the figures' rail.
+ *   - The chassis pick's plates and the Storage Bay's Scrap board.
+ *
+ * Unlayered and app-only: `app.css` imports it.
+ */
+
+.su-open-cite {
+  background-color: var(--color-paper);
+  display: inline-block;
+  padding: var(--space-4) var(--space-8);
+}
+
+.su-strip__vitals {
+  display: flex;
+  flex: 3 1 24rem;
+  min-width: 0;
+}
+
+.su-strip__figures {
+  display: flex;
+  flex: 0 1 auto;
+  margin: 0;
+  min-width: 0;
+}
+
+/* A counter (Training Points) takes a figure's room, not a gauge's. */
+.su-strip__cell[data-counter] {
+  flex: 0 1 12rem;
+}
+
+/* A cell: a small label, a big numeral, a slim meter. */
+.su-strip__cell {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--space-6);
+  justify-content: space-between;
+  min-width: 0;
+  padding: var(--space-12) var(--space-16);
+}
+
+.su-strip__cell + .su-strip__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+}
+
+.su-strip__label {
+  align-items: baseline;
+  color: var(--color-ink);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-extrabold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1;
+  margin-block: 0 auto;
+  margin-inline: 0;
+  white-space: nowrap;
+}
+
+.su-strip__label > small {
+  color: var(--color-ink-75);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-caps-snug);
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.su-strip__read {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: space-between;
+}
+
+.su-strip__num {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.su-strip__num > b {
+  font-size: var(--text-display-lg);
+  font-weight: var(--font-weight-extrabold);
+}
+
+.su-strip__num > i {
+  color: var(--color-ink-75);
+  font-size: var(--text-readout);
+  font-style: normal;
+  font-weight: var(--font-weight-semibold);
+  margin-left: var(--space-2);
+}
+
+.su-strip__value {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin: 0;
+}
+
+.su-strip__value > .su-strip__num,
+.su-strip__bar,
+.su-strip__meter {
+  display: block;
+}
+
+.su-strip__value > .su-strip__meter {
+  display: grid;
+}
+
+.su-strip__num[data-over] > b {
+  color: var(--color-status-bad);
+}
+
+.su-strip__num > small {
+  color: var(--color-ink-75);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-caps-tight);
+  margin-left: var(--space-6);
+}
+
+/* The meter: segments in one row (two past twelve), in the kind's tone. */
+.su-strip__meter {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.su-strip__meter[data-live] {
+  cursor: pointer;
+}
+
+.su-strip__seg {
+  background-color: var(--color-ink-10);
+  border-radius: var(--radius-pip);
+  height: var(--space-6);
+}
+
+.su-strip__meter[data-rows='2'] .su-strip__seg {
+  height: var(--space-2);
+}
+
+.su-strip__seg[data-state='on'] {
+  background-color: var(--tone, var(--color-ink));
+}
+
+.su-strip__seg[data-state='danger'] {
+  background-color: var(--color-status-bad);
+}
+
+.su-strip__seg[data-state='redline'] {
+  background-color: color-mix(in srgb, var(--color-status-bad) 28%, var(--color-paper));
+}
+
+.su-strip__meter[data-ink] .su-strip__seg[data-state='on'] {
+  background-color: var(--color-ink);
+}
+
+.su-strip__meter[data-cargo] .su-strip__seg[data-state='on'] {
+  background-color: var(--color-cargo);
+}
+
+/* A meter that is one bar: a Tech Level's colour, an upgrade's progress. */
+.su-strip__bar {
+  background-color: var(--color-ink-10);
+  border-radius: var(--radius-pip);
+  height: var(--space-6);
+  overflow: hidden;
+}
+
+.su-strip__bar > span {
+  background-color: var(--bar, var(--color-ink));
+  display: block;
+  height: 100%;
+}
+
+/* − | +: one joined control beside the numeral. */
+.su-strip__stepper {
+  display: inline-flex;
+  flex: none;
+}
+
+.su-strip__stepper > button {
+  align-items: center;
+  background-color: var(--color-ink);
+  border: 0;
+  color: var(--color-paper);
+  cursor: pointer;
+  display: inline-flex;
+  height: var(--size-compact);
+  justify-content: center;
+  touch-action: manipulation;
+  user-select: none;
+  width: var(--size-compact);
+}
+
+.su-strip__stepper > button:first-child {
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+
+.su-strip__stepper > button + button {
+  border-left: var(--bw-hairline) solid var(--color-paper);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+
+.su-strip__stepper > button:hover:not(:disabled) {
+  background-color: var(--color-ink-75);
+}
+
+.su-strip__stepper > button:disabled {
+  background-color: var(--color-ink-10);
+  color: var(--color-ink-40);
+  cursor: default;
+}
+
+/* On a phone the joined − | + is the Full Size, a thumb's target (§2.1). */
+@media not (width >= 40rem) {
+  .su-strip__stepper > button {
+    height: var(--size-full);
+    width: var(--size-full);
+  }
+}
+
+/* Edit's max: a button on the max's own type, underlined dotted; the field
+   it opens is as wide as three figures. An override reads in the deep tone. */
+.su-vital-max {
+  align-items: baseline;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.su-vital-max__button,
+.su-vital-max__revert {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  min-block-size: var(--space-24);
+  min-inline-size: var(--space-24);
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.su-vital-max[data-overridden] .su-vital-max__button {
+  color: var(--tone-deep, var(--color-ink));
+}
+
+.su-vital-max__input {
+  font: inherit;
+  inline-size: 3.5ch;
+}
+
+/* Its ⓘ stands the max's 24px beside it (§4.7). */
+.su-vital-max__why {
+  align-items: center;
+  align-self: center;
+  border-bottom: 0;
+  display: inline-flex;
+  font-size: var(--text-chip);
+  min-block-size: var(--space-24);
+  justify-content: center;
+  min-inline-size: var(--space-24);
+}
+
+/* A condition alone on a Ledger row's line (an intact bay's) stands the
+   line's 24px (the opener's, the name's), its badge centred in it (§4.7);
+   beside its row's other Mini controls it keeps their chip height. */
+.su-open__controls > .su-sheet-item__condition:only-child > button {
+  height: var(--space-24);
+}
+
+.su-strip__cell--figure {
+  flex: 1 0 5.25rem;
+  padding-inline: var(--space-12);
+}
+
+.su-strip__cell--figure .su-strip__num > b {
+  font-size: var(--text-title);
+}
+
+.su-strip__cell--figure .su-strip__num > i {
+  font-size: var(--text-body);
+}
+
+.su-strip__foot {
+  align-items: center;
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+  padding: var(--space-8) var(--space-16);
+}
+
+.su-strip__foot-label {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+}
+
+@media (width >= 40rem) {
+  .su-strip__vitals {
+    border-left: 0;
+  }
+}
+
+/* The figures wrap under the vitals before a cell is squeezed: their first
+   cell then has no rule to its left, and a rule over the row. */
+@media not (width >= 64rem) {
+  .su-strip__figures {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+  }
+}
+
+/* ── The dashboard ──────────────────────────────────────────────────────── */
+
+/* The strip sits on the band: the body's top padding is the grid's. */
+.su-sheet-live-body:has(> .su-sheet-section > .su-dash-top) {
+  padding-top: 0;
+}
+
+.su-dash-top {
+  margin-inline: calc(-1 * var(--su-page-gutter-inline));
+}
+
+.su-dash {
+  align-items: start;
+  display: grid;
+  gap: var(--space-32) var(--space-32);
+  grid-template-columns: minmax(
+      0,
+      1fr
+    ); /* design-tokens-ignore(item-grid): the page's columns, a layout */
+}
+
+.su-dash__col {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-28);
+  min-width: 0;
+}
+
+@media (width >= 48rem) {
+  .su-dash {
+    grid-template-columns: /* design-tokens-ignore(item-grid): the page's columns, a layout */ repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+  /* Two columns: what it does keeps the first, the rest stack in the second. */
+  .su-dash[data-cols='3'] > .su-dash__col:first-child {
+    grid-row: span 2;
+  }
+
+  /* A wide column takes the row; a lone column after it takes the next one
+     whole, never half a row with the other half empty. */
+  .su-dash__col--wide,
+  .su-dash__col--wide + .su-dash__col:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (width >= 80rem) {
+  .su-dash[data-cols='3'] {
+    gap: var(--space-40);
+    grid-template-columns: /* design-tokens-ignore(item-grid): the page's columns, a layout */ repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+
+  .su-dash[data-cols='3'] > .su-dash__col:first-child {
+    grid-row: auto;
+  }
+
+  .su-dash[data-cols='3'] > .su-dash__col--wide {
+    grid-column: span 2;
+  }
+
+  /* Three across, the column after a wide one stands beside it again. */
+  .su-dash[data-cols='3'] > .su-dash__col--wide + .su-dash__col:last-child {
+    grid-column: auto;
+  }
+}
+
+/* A group: its head, then its body. */
+.su-dash-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+.su-dash-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  min-width: 0;
+}
+
+/* A list of facts: a small label over what was written. */
+.su-dash-facts {
+  --su-grid-gap: var(--space-24);
+  --su-grid-min: 9rem;
+  --su-grid-row-gap: var(--space-12);
+  margin: 0;
+}
+
+.su-dash-fact {
+  min-width: 0;
+}
+
+.su-dash-fact--wide {
+  flex-basis: 100%;
+}
+
+.su-dash-fact > dt {
+  align-items: center;
+  color: var(--color-ink-75);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1.3;
+}
+
+.su-dash-fact > dd {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  margin: var(--space-2) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.su-dash-fact > dd p {
+  margin: 0;
+}
+
+.su-dash-fact > dd p + p {
+  margin-top: var(--space-8);
+}
+
+.su-dash-prose {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.su-dash-prose[data-clamp] {
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--lines, 4);
+  line-clamp: var(--lines, 4);
+  overflow: hidden;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: the prose's paragraphs, never a fact's (`> dd p`) */
+.su-dash-prose p {
+  margin: 0;
+}
+
+.su-dash-prose p + p {
+  margin-top: var(--space-8);
+}
+
+.su-dash-more {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  border-bottom: var(--bw-chrome) solid var(--color-rust); /* design-tokens-ignore(rust-allowlist): a disclosure is an action */
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  padding: 0;
+}
+
+.su-dash-more:hover {
+  text-decoration: underline;
+}
+
+.su-dash-entity__name {
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Scrap by Tech Level: six cells, each its level's colour over its count. */
+.su-scrap {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: /* design-tokens-ignore(item-grid): the six Tech Levels, a fixed matrix */ repeat(
+      6,
+      minmax(0, 1fr)
+    );
+  margin: 0;
+}
+
+.su-scrap__cell {
+  border-top: var(--space-4) solid var(--tl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-4);
+}
+
+.su-scrap__cell > dt {
+  color: var(--color-ink-75);
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1;
+}
+
+.su-scrap__cell > dd {
+  color: var(--color-ink);
+  font-family: var(--font-cond);
+  font-size: var(--text-title);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1;
+  margin: 0;
+}
+
+.su-scrap__cell[data-empty] > dd {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-ink-75);
+}
+
+/* A hold's slots as one line of cells. */
+.su-dash-slots {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8) var(--space-12);
+}
+
+.su-dash-quiet {
+  color: var(--color-wk-muted);
+  font-size: var(--text-caption);
+  line-height: 1.3;
+}
+
+.su-dash-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.su-bay-lead__name {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+.su-bay-lead__post {
+  color: var(--color-ink-75);
+  white-space: nowrap;
+}
+
+/* A bay's line opened: its rules beside what a Damaged bay does and its crew. */
+.su-bay-detail {
+  display: grid;
+  gap: var(--space-16) var(--space-32);
+  grid-template-columns: minmax(
+      0,
+      1fr
+    ); /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */
+  padding-top: var(--space-4);
+  white-space: normal;
+}
+
+.su-bay-detail__part {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+
+@container (width >= 40rem) {
+  .su-bay-detail {
+    grid-template-columns: /* design-tokens-ignore(item-grid): a bay's rules beside its crew, a layout */ repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+/* The Game's people: a line each, their marks after the name, the pilot
+   they hold under it. */
+.su-game-member {
+  border-bottom: var(--bw-hairline) solid var(--color-ink-10);
+  column-gap: var(--space-8);
+  display: flex;
+  flex-wrap: wrap;
+  padding-bottom: var(--space-6);
+  row-gap: var(--space-2);
+}
+
+.su-game-member__name {
+  color: var(--color-ink);
+  flex: 1 1 auto;
+  font-size: var(--text-lede);
+  font-weight: var(--font-weight-bold);
+  min-width: 0;
+}
+
+.su-game-member__marks {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  gap: var(--space-4);
+}
+
+.su-game-member__pilots {
+  color: var(--color-ink-75);
+  flex-basis: 100%;
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-caps-tight);
+}
+
+@media not (width >= 40rem) {
+  .su-dash {
+    gap: var(--space-24);
+  }
+
+  .su-dash__col {
+    gap: var(--space-24);
+  }
+
+  .su-strip__cell {
+    padding: var(--space-8) var(--space-12);
+  }
+
+  .su-strip__figures {
+    border-top: 0;
+  }
+}
+
+/* ── The masthead ───────────────────────────────────────────────────────── */
+/* Three borders, by role, nothing louder than its peers: a frame
+   (`--bw-chrome`/`--bw-entity-compact` in ink or the unit's paint) round a
+   thing that is one object (a tile, a card, a tracker); a divider, one
+   hairline in ink-20, between parts of one surface; the 2px ink rule is the
+   band's and a Ledger's strip foot only. The masthead's foot is a divider. */
+.su-mast {
+  background-color: var(--color-paper);
+  border-bottom: var(--bw-hairline) solid var(--color-ink-20);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-inline: var(--su-page-gutter-inline);
+}
+
+.su-mast__art {
+  align-self: center;
+  display: none;
+  padding-block: var(--space-12);
+}
+
+/* Edit keeps the photo at every width: it is where the photo is changed. */
+.su-mast[data-edit] .su-mast__art {
+  display: block;
+}
+
+@media not (width >= 40rem) {
+  .su-mast[data-edit] .su-mast__art {
+    justify-self: start;
+    max-width: 9rem;
+  }
+}
+
+.su-mast__art figure {
+  height: 100%;
+}
+
+.su-mast__art img {
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+.su-mast__board {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.su-mast .su-strip__vitals {
+  flex: 1 1 auto;
+}
+
+.su-mast .su-strip__cell {
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-20);
+}
+
+.su-mast .su-strip__vitals > .su-strip__cell:first-child {
+  padding-inline-start: 0;
+}
+
+/* On a phone the vitals stack, one a row at the page's width, so the Full
+   Size − | + sits beside its numeral, never over the next vital (§2.1). */
+@media not (width >= 40rem) {
+  .su-mast .su-strip__vitals {
+    flex-direction: column;
+  }
+
+  .su-mast .su-strip__vitals > .su-strip__cell {
+    flex: none;
+    padding-inline: 0;
+  }
+
+  .su-mast .su-strip__vitals > .su-strip__cell + .su-strip__cell {
+    border-left: 0;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+  }
+}
+
+.su-mast .su-strip__label {
+  font-size: var(--text-lede);
+  margin-block: 0;
+}
+
+/* The numerals: the chapter rung, already on the ladder (§4.8). */
+.su-mast .su-strip__vitals .su-strip__num > b {
+  font-size: var(--text-chapter);
+  letter-spacing: normal;
+  line-height: 0.82;
+}
+
+.su-mast .su-strip__vitals .su-strip__num > i {
+  font-size: var(--text-title);
+}
+
+.su-mast .su-strip__read {
+  align-items: flex-end;
+}
+
+/* The segments: chunky, in the kind's tone, the sheet's own pips. */
+.su-mast .su-strip__vitals .su-strip__meter {
+  gap: var(--space-4);
+}
+
+.su-mast .su-strip__vitals .su-strip__seg {
+  border-radius: var(--radius-badge);
+  height: var(--space-14);
+}
+
+.su-mast .su-strip__vitals .su-strip__meter[data-rows='2'] .su-strip__seg {
+  height: var(--space-6);
+}
+
+.su-mast .su-strip__vitals .su-strip__seg[data-state='off'] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-ink-30);
+}
+
+.su-mast .su-strip__vitals .su-strip__seg[data-state='redline'] {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--bw-chrome) var(--color-status-bad);
+}
+
+/* The rail: the fixed figures, then the view switch at its end. */
+.su-mast__rail {
+  align-items: stretch;
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.su-mast .su-strip__figures {
+  border-top: 0;
+  flex: 0 1 auto;
+}
+
+.su-mast .su-strip__cell--figure {
+  flex: 0 0 auto;
+  gap: var(--space-4);
+  min-width: 5.5rem;
+  padding: var(--space-8) var(--space-20) var(--space-12) 0;
+  border-left: 0;
+}
+
+.su-mast .su-strip__cell--figure + .su-strip__cell--figure {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+  padding-inline-start: var(--space-20);
+}
+
+.su-mast .su-strip__cell--figure .su-strip__label {
+  color: var(--color-ink-75);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+}
+
+.su-mast .su-strip__foot {
+  padding-inline: 0;
+}
+
+.su-mast__identity {
+  border-top: var(--bw-hairline) solid var(--color-ink-20);
+  min-width: 0;
+  padding-block: var(--space-16);
+}
+
+.su-mast-id {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.su-mast-id__label {
+  align-items: center;
+  color: var(--color-ink-75);
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-chip);
+  font-weight: var(--font-weight-bold);
+  gap: var(--space-6);
+  letter-spacing: var(--tracking-caps);
+  line-height: 1.3;
+  margin: 0;
+}
+
+@media (width >= 40rem) {
+  .su-mast {
+    column-gap: var(--space-24);
+    grid-template-columns: 9rem minmax(0, 1fr);
+  }
+
+  .su-mast__art {
+    display: block;
+    grid-row: span 2;
+  }
+
+  .su-mast__identity {
+    grid-column: 2;
+  }
+}
+
+@media (width >= 80rem) {
+  .su-mast {
+    column-gap: var(--space-32);
+    grid-template-columns: 12.5rem minmax(0, 1fr) minmax(0, 20rem);
+  }
+
+  .su-mast__art {
+    grid-row: auto;
+    height: 12.5rem;
+  }
+
+  .su-mast__board + .su-mast__identity {
+    border-left: var(--bw-hairline) solid var(--color-ink-20);
+  }
+
+  .su-mast__identity {
+    align-self: stretch;
+    border-top: 0;
+    grid-column: auto;
+    padding-inline-start: var(--space-32);
+  }
+
+  /* Edit's identity is its fields: under the board, at the board's and the
+     column's width, so the board keeps its height. */
+  .su-mast[data-edit] .su-mast__art {
+    grid-row: span 2;
+  }
+
+  .su-mast[data-edit] .su-mast__identity {
+    border-left: 0;
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    grid-column: 2 / -1;
+    padding-inline-start: 0;
+  }
+}
+
+/* ── A phone ────────────────────────────────────────────────────────────── */
+@media not (width >= 40rem) {
+  .su-mast .su-strip__cell--figure {
+    min-width: 0;
+    padding-block: var(--space-8);
+  }
+}
+
+/* A group's body starts clear of its strip; a body of words is a paper
+   panel with its own padding (`containers.css`). */
+.su-dash-group__body:not(
+  :has(
+    > :is(
+        .su-chassis-ability,
+        .su-dash-facts,
+        .su-dash-prose,
+        p:first-child,
+        .su-entity-page__prose:first-child
+      )
+  )
+) {
+  padding-top: var(--space-4);
+}
+
+/* ── The chassis pick as a gallery of plates ───── */
+.su-chassis-gallery__grid {
+  --su-grid-gap: var(--space-12);
+  --su-grid-min: 11rem;
+  padding-top: var(--space-12);
+}
+
+.su-chassis-plate {
+  background-color: var(--color-paper);
+  border: var(--bw-pill) solid var(--color-ink-20);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  text-align: left;
+}
+
+.su-chassis-plate:hover {
+  border-color: var(--color-ink-60);
+}
+
+.su-chassis-plate[data-picked] {
+  border-color: var(--color-ink);
+  box-shadow: 0 0 0 var(--bw-pill) var(--color-ink);
+}
+
+.su-chassis-plate__art {
+  aspect-ratio: 4 / 3;
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 14%, var(--color-paper));
+  display: block;
+  overflow: hidden;
+}
+
+.su-chassis-plate__art > img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--space-8);
+  width: 100%;
+}
+
+.su-chassis-plate__name {
+  align-items: baseline;
+  background-color: var(--su-kind, var(--color-ink));
+  color: var(--su-on-kind, var(--color-paper));
+  display: flex;
+  font-family: var(--font-cond);
+  font-size: var(--text-body);
+  gap: var(--space-8);
+  justify-content: space-between;
+  letter-spacing: var(--tracking-caps-tight);
+  padding: var(--space-6) var(--space-8);
+}
+
+.su-chassis-plate[data-picked] .su-chassis-plate__name {
+  background-color: var(--color-ink);
+  color: var(--color-paper);
+}
+
+.su-chassis-plate__cost {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-extrabold);
+  white-space: nowrap;
+}
+
+.su-chassis-plate small {
+  font-family: var(--font-cond);
+  font-size: var(--text-badge);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-caps-snug);
+}
+
+.su-chassis-plate__figures {
+  display: grid;
+  grid-template-columns: /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */ repeat(
+      6,
+      1fr
+    );
+  padding: var(--space-6) var(--space-4);
+}
+
+.su-chassis-plate__figures > span {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-variant-numeric: tabular-nums;
+}
+
+.su-chassis-plate__figures b {
+  font-family: var(--font-cond);
+  font-size: var(--text-readout);
+  line-height: 1.1;
+}
+
+@media not (width >= 40rem) {
+  .su-chassis-gallery__grid {
+    --su-grid-gap: var(--space-8);
+    --su-grid-max: 2;
+    --su-grid-min: 0px;
+  }
+
+  .su-chassis-plate__figures {
+    grid-template-columns: /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */ repeat(
+        3,
+        1fr
+      );
+    row-gap: var(--space-4);
+  }
+}
+
+/* ── The Storage Bay's Scrap board ─────────────── */
+.su-scrap {
+  background-color: var(--color-paper);
+
+  gap: 0;
+  border-bottom: 0;
+  border-top: 0;
+}
+
+.su-scrap .su-scrap__cell {
+  align-items: center;
+  border-top: 0;
+  flex-direction: row;
+  gap: var(--space-6);
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.su-scrap .su-scrap__cell + .su-scrap__cell {
+  border-left: var(--bw-hairline) solid var(--color-ink-20);
+  border: 0;
+}
+
+.su-scrap .su-scrap__cell:nth-child(even) {
+  background-color: color-mix(in srgb, var(--su-kind, var(--color-ink)) 26%, var(--color-paper));
+}
+
+/* On the measure a chassis plate is narrower: its six figures sit three a
+   line, as on a phone, so no two labels touch. */
+.su-chassis-gallery .su-chassis-plate__figures {
+  grid-template-columns: /* design-tokens-ignore(item-grid): a plate's six figures, a fixed matrix */ repeat(
+      3,
+      1fr
+    );
+  row-gap: var(--space-4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * THE MASTHEAD'S WORDS.
+ * The right column is About (clamped, More). The unit's short lines (a
+ * pilot's Motto, Keepsake, Background; a mech's Quirk, Appearance) sit on
+ * the figures' rail, beside the tallies: label and value on one line.
+ * ══════════════════════════════════════════════════════════════════════ */
+.su-mast__traits {
+  flex: 1 1 16rem;
+  min-width: 0;
+  padding: var(--space-12) 0 var(--space-12) var(--space-24);
+}
+
+/* The traits (Motto, Keepsake, Background; a
+   mech's Quirk, Appearance) stand side by side, a column each: its label and
+   Used mark on one line, its words under them. A phone stacks them. */
+.su-mast-traits {
+  display: grid;
+  gap: var(--space-8) var(--space-16);
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0;
+}
+
+.su-mast-trait {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+@media not (width >= 40rem) {
+  .su-mast-traits {
+    grid-auto-flow: row;
+  }
+}
+
+.su-mast-trait > dt {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-6);
+  white-space: nowrap;
+}
+
+.su-mast-trait > dd {
+  font-size: var(--text-body);
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+}
+
+.su-mast-id__about > .su-mast-id__label {
+  margin-bottom: var(--space-4);
+}
+
+/* A phone: the lines take the rail's whole width under the tallies. */
+@media not (width >= 40rem) {
+  .su-mast__traits {
+    border-top: var(--bw-hairline) solid var(--color-ink-20);
+    flex-basis: 100%;
+    padding-inline: 0;
+  }
+}
+
+/* A CHASSIS ABILITY IS TEXT. The name, then every
+   word of it, in the Chassis group of the side column; never a row. */
+.su-chassis-ability > .su-dash-entity__name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.su-mast-trait > dt .su-btn {
+  color: var(--color-ink);
+}

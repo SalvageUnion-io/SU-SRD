@@ -46,9 +46,9 @@ describe('Crawler sheet — TL in the head', () => {
       render(<Sheet kind="crawler" id={crawler.id} readOnly />)
     })
 
-    const tl = within(bandOf()).getByText('TL')
-    expect(tl.closest('.su-stat-cell')?.textContent).toContain('2')
-    expect(within(screen.getByLabelText('Crawler identity')).queryByText('TL')).toBeNull()
+    // Read is the sheet dashboard: TL is the masthead's figure, read-only.
+    const tl = screen.getByText('TL', { selector: '.su-strip__label' })
+    expect(tl.closest('.su-strip__cell')?.textContent).toContain('2')
     expect(screen.queryByRole('button', { name: /tech level/i })).toBeNull()
   })
 

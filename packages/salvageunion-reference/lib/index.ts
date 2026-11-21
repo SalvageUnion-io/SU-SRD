@@ -59,6 +59,7 @@ export {
   getSources,
   getStructurePoints,
   getTechLevel,
+  getTechLevelNumber,
   getTree,
 } from './entityFields'
 export {
@@ -250,6 +251,7 @@ export type {
   EntityDomain,
   EntityInstance,
   EntityModel,
+  EntityPrinting,
   EntityRef,
   Fact,
   StatGroup,

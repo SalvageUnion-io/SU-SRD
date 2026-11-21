@@ -55,6 +55,8 @@ export type EntityProps = EntitySource &
     priority?: boolean
     /** Index Compact only: the catalog has art; this art-less entity's place among its art-less ones (a censor mark). */
     missingArt?: number
+    /** Index Compact only: art the site holds for an entity whose data names none (a book's cover). */
+    artUrl?: string
     /**
      * Mini only: the Peek address for a record with none of its own (a crawler
      * bay's crew NPC, through its bay: `embeddedPeekAddress`).
@@ -71,7 +73,7 @@ export type EntityProps = EntitySource &
     /**
      * Compact and Mini: the host's controls (Use, Assign, Unassign, View), the chip
      * group's last slot after the cost, ahead of a Compact's `trailing` "⋯" (C8,
-     * hard rule R6).
+     * C8).
      * They never nest in a link or select surface.
      */
     controls?: ReactNode
@@ -138,6 +140,7 @@ function EntityForm(props: EntityProps) {
     titleAs,
     wholeName,
     missingArt,
+    artUrl,
     controls,
     labels,
     relations,
@@ -181,6 +184,7 @@ function EntityForm(props: EntityProps) {
         lead={lead}
         priority={priority}
         missingArt={missingArt}
+        artUrl={artUrl}
       />
     )
   }

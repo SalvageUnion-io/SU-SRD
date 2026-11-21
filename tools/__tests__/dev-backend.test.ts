@@ -86,7 +86,7 @@ function fakeSys(over: Partial<World> = {}): { sys: Sys; world: World } {
     seed: async (_page, base, account) => {
       world.calls.push(`seed ${base} ${account?.email}`)
       if (world.seedFails) throw new Error('no chrome\nstack')
-      return { pilot: '/build/pilots/p', game: '/play/games/g' }
+      return { pilot: '/build/pilots/p', game: '/games/g' }
     },
     log: (line) => world.logs.push(line),
     error: (line) => world.errors.push(line),
@@ -118,7 +118,7 @@ describe('main', () => {
     expect(JSON.parse(readFileSync(join(state, 'seed.json'), 'utf8'))).toEqual({
       ...SEED_ACCOUNT,
       pilot: '/build/pilots/p',
-      game: '/play/games/g',
+      game: '/games/g',
     })
     expect(world.logs.at(-1)).toContain('ready:')
     expect(world.calls.at(-1)).toBe('stop')

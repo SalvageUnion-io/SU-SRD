@@ -42,6 +42,8 @@ export type CompactIndexProps = {
    * marks so neighbours differ. Unset, an art-less index Compact opens on its band.
    */
   missingArt?: number
+  /** Art the site holds for an entity whose data names none (a book's cover). */
+  artUrl?: string
 }
 
 type CompactIndexMode = Extract<EntityMode, { kind: 'read' | 'link' }>
@@ -100,6 +102,7 @@ export function CompactIndex({
   lead = false,
   priority = false,
   missingArt,
+  artUrl,
 }: CompactIndexProps) {
   const surface = useEntitySurface()
   const target = useLinkTarget(mode, model.ref)
@@ -129,7 +132,8 @@ export function CompactIndex({
       )
     : []
   const contentful = !!leadText || spare.length > 0
-  const { art } = model
+  const art =
+    model.art.kind === 'none' && artUrl ? { kind: 'image' as const, url: artUrl } : model.art
   const artWindow = art.kind === 'image' ? tileArtWindow(art.url) : undefined
   const mark =
     art.kind === 'none' && missingArt !== undefined

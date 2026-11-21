@@ -33,13 +33,13 @@ import type { RangeBand } from 'game-domain/schemas/seat'
 import { RANGE_BANDS } from 'game-domain/schemas/seat'
 import type { CSSProperties, ReactNode } from 'react'
 import { toEntityModel } from 'salvageunion-reference'
+import { heatDangerFrom } from '../components/app'
 import type { TagItem } from '../components/index'
 import {
   Badge,
   Button,
   Chips,
   Entity,
-  heatDangerFrom,
   relation,
   Segmented,
   SegmentedOption,
@@ -92,7 +92,7 @@ function stamp(text: string) {
 }
 
 /**
- * A box's relation chips (chips-and-actions C11, R5): what the unit is built
+ * A box's relation chips (chips-and-actions C11): what the unit is built
  * on or linked to, label first (`CHASSIS | Scrapper`), drawn by `Chips` in
  * the relation lane, never a loose stamp.
  */

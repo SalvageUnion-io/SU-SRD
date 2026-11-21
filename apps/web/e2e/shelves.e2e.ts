@@ -33,7 +33,7 @@ test('move a unit into a Game and back: it never leaves the Training Bay', async
     hasText: 'Dustbowl Run',
   })
   await expect(chip).toBeAttached({ timeout: 15_000 })
-  await expect(chip).toHaveAttribute('href', new RegExp(`/play/games/${gameId}$`))
+  await expect(chip).toHaveAttribute('href', new RegExp(`/games/${gameId}$`))
 
   // Still in the Training Bay, its Game its tag: there is no Showing filter (C13).
   await expect(pilots.getByText('Shelf Runner')).toBeVisible()

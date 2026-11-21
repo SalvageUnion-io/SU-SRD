@@ -30,7 +30,7 @@ import { useState } from 'react'
 import { Button, ModalShell, SlabSection, Stat, tokens } from '../../components/index'
 import { flagOn } from '../../lib/flags'
 import { mediatorCopy } from '../../messages/play-mediator'
-import { PlayFeedSection, PlayTablesSection } from '../PlaySideColumn'
+import { PlayTablesSection } from '../PlaySideColumn'
 import type { SideFeed } from '../usePlaySide'
 import { ProposalsList } from './ProposalsList'
 import { ProposeDock } from './ProposeDock'
@@ -92,7 +92,8 @@ export function MediatorTablesAndFeed({
         prepared={running?.tables}
         onField={mediator.canWrite ? mediator.tray.field : undefined}
       />
-      <PlayFeedSection side={side} idPrefix="mediate" canWrite={mediator.canWrite} />
+      {/* The Feed sits under the Table (`PlayMediatorCockpit`), where the
+          column was empty, so Tables runs straight into Propose. */}
     </>
   )
 }
@@ -120,7 +121,7 @@ export function PlayMediatorProposeSection({ mediator, targetId, onTarget, toRef
         canWrite={mediator.canWrite}
         onPropose={mediator.propose}
         toRef={toRef}
-        // The dock's last chip (C8, hard rule R6), never a line under it.
+        // The dock's last chip (C8), never a line under it.
         controls={
           <Button size="mini" onClick={() => setAllOpen(true)}>
             {mediatorCopy('allProposals')}

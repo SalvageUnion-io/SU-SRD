@@ -2,7 +2,7 @@
  * SheetItemLine — one installed or carried item on a sheet: its Mini (which
  * Peeks the whole card), its state, uses and actions in the Mini's own chip
  * group, after the cost, in the fixed slots (`chips-and-actions.md` C8, hard
- * rules R6 and R11): state · uses · the actions and ✕, at the Mini's Size
+ * rules C8 and R11): state · uses · the actions and ✕, at the Mini's Size
  * (Mini; on a Compact, Compact). Nothing sits beside the strip or under it.
  *
  *   - the condition: the tri-state `StatusBadge`, which steps it on
@@ -12,6 +12,9 @@
  *   - `actions`: the caller's own (a mech item's Repair, an ability's Spend
  *     AP and Used, an equipment's Details, which opens its Page);
  *   - Remove: a square ✕ (`SheetRemoveButton`, the sheet's one remove control).
+ *
+ * The controls themselves are `rowControls`', which the dashboard's Ledger
+ * rows draw too.
  *
  * A mech's Systems and Modules (`MechItemMini`), a pilot's equipment
  * (`PilotEquipmentItem`), a pilot's abilities (`PilotAbilityItem`, which has
@@ -23,12 +26,11 @@
  */
 
 import type { ItemCondition } from 'game-domain/schemas/itemCondition'
-import { X } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
 import { cloneElement } from 'react'
 import type { EntityProps } from '../../components/entity/Entity'
-import { Badge, Button, Stat, StatusBadge, tokens } from '../../components/index'
-import { buildSheetCopy } from '../../messages/build-sheet'
+import { Badge, StatusBadge } from '../../components/index'
+import { ConditionStep, SheetRemoveButton, UsesStep } from './rowControls'
 
 type SheetItemLineProps = {
   /** The item's Mini, or a Compact (an ability on its tree's track): an `<Entity>` element. */
@@ -83,14 +85,12 @@ export function SheetItemLine({
   const own = token.props.state
   // The condition's stepper, its next one named on it.
   const stepper = condition && (
-    <span className="su-sheet-item__condition">
-      <StatusBadge
-        status={condition}
-        subject={name}
-        onClick={onConditionCycle}
-        {...(nextCondition ? { next: nextCondition } : {})}
-      />
-    </span>
+    <ConditionStep
+      name={name}
+      condition={condition}
+      onCycle={onConditionCycle}
+      next={nextCondition}
+    />
   )
   if (readOnly && liveCondition && onConditionCycle && condition) {
     return cloneElement(token, {
@@ -136,15 +136,11 @@ export function SheetItemLine({
     ...(hasUses
       ? {
           uses: (
-            <Stat
-              label={buildSheetCopy('uses')}
-              value={uses.remaining}
+            <UsesStep
+              name={name}
+              remaining={uses.remaining}
               max={uses.max}
-              size={size}
-              mode="edit"
               onChange={uses.onChange}
-              stepperLabel={`${name} uses`}
-              className="su-sheet-item__uses"
             />
           ),
         }
@@ -158,33 +154,5 @@ export function SheetItemLine({
       </>
     ),
   })
-  if (!hasUses) return item
-  return (
-    <>
-      {item}
-      <span role="status" aria-live="polite" className="su-sr-only">
-        {buildSheetCopy('uses2', { name, remaining: uses.remaining })}
-      </span>
-    </>
-  )
-}
-
-/**
- * The Live Sheet's one remove control (hard rule R11): a square ✕ in its
- * item's chip group, at the strip's Size, named "Remove <name>". Every sheet
- * item, unknown item, inventory entry and mounted weapon removes through it,
- * Edit only.
- */
-function SheetRemoveButton({ name, onRemove }: { name: string; onRemove: () => void }) {
-  return (
-    <Button
-      variant="pencil"
-      size="mini"
-      className="su-sheet-item__remove"
-      aria-label={buildSheetCopy('remove', { name })}
-      onClick={onRemove}
-    >
-      <X aria-hidden="true" size={tokens.iconSize.mini} />
-    </Button>
-  )
+  return item
 }

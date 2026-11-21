@@ -84,7 +84,7 @@ const ENTITY_ANCHORS = [
   'a.su-entity-mini__head',
   'a.su-entity-mini__link',
   'a.su-card-title-link',
-  'a.su-pattern-rows__head',
+  '.su-ledger__name a',
   'a.su-class-path__link',
 ].join(',')
 

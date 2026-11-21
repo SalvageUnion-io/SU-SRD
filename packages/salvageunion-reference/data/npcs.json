@@ -179,7 +179,7 @@
     "page": 1,
     "hitPoints": 15,
     "damageType": "SP",
-    "traits": [{ "type": "fast" }],
+    "traits": [{ "type": "Fast" }],
     "actions": [
       "Hooves and Clubs (Super Android Strikebreaker)",
       "Comms Module",
@@ -214,7 +214,7 @@
     "page": 1,
     "hitPoints": 12,
     "damageType": "SP",
-    "traits": [{ "type": "fast" }],
+    "traits": [{ "type": "Fast" }],
     "actions": ["Barbed Bite (Churchill)", "Puff Smoke (Churchill)"],
     "content": [
       {
@@ -230,7 +230,7 @@
     "page": 1,
     "hitPoints": 15,
     "damageType": "SP",
-    "traits": [{ "type": "immobile" }],
+    "traits": [{ "type": "Immobile" }],
     "actions": [
       "30mm Autocannon",
       "Long Barrelled Green Laser",

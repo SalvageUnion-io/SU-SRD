@@ -29,7 +29,7 @@ export type ChipSet = {
  * The chip classes in their one order (C2): the read chips, mark through
  * cost, then the slots (C8) that follow the cost: a state (a live reading, a
  * condition, a quantity), uses, and the "⋯" menu or ✕. Every chip sits in
- * its class's lane, `data-chip-class` (C2a).
+ * its class's lane, `data-chip-class` (C2).
  */
 export const CHIP_CLASSES = [
   'mark',

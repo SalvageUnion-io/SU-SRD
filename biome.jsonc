@@ -90,7 +90,7 @@
       ]
     },
     {
-      // The detail view is a Page, never a new tab (hard rule R34).
+      // The detail view is a Page, never a new tab (EDL E5).
       "path": "./packages/gates/biome/noWindowOpen.grit",
       "includes": ["**/apps/web/src/**"]
     },
@@ -484,7 +484,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -537,7 +537,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -598,7 +598,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -661,7 +661,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -744,7 +744,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -811,7 +811,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -874,7 +874,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   },
                   {
                     "group": ["**/SmallButtons"],
@@ -889,7 +889,7 @@
       }
     },
     {
-      // R24 (hard-rules.md, ruleset §6.6): the files that may take
+      // K7 (hard-rules.md, ruleset §6.6): the files that may take
       // `RadioCardGroup`, which the overrides above refuse everywhere
       // else in apps/web/src. A pick dialog is `PickDialog`; the wizards keep
       // their own steps' radio groups (a class, a crawler type, an NPC's
@@ -956,7 +956,7 @@
       }
     },
     {
-      // R24's display-layer half: `PickDialog` and the wizards' grid.
+      // K7's display-layer half: `PickDialog` and the wizards' grid.
       "includes": [
         "apps/web/src/components/compositions/PickDialog.tsx",
         "apps/web/src/components/containers/MasonryColumns.tsx"
@@ -1057,7 +1057,7 @@
                   {
                     "group": ["**"],
                     "importNamePattern": "RadioCardGroup",
-                    "message": "R24 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
+                    "message": "K7 (ruleset §6.6): a pick dialog is `PickDialog`, the one radio group of Compacts; `RadioCardGroup` is its own and the wizards' (the override after the display layer's names them)."
                   }
                 ]
               }

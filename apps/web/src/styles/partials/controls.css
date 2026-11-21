@@ -1,5 +1,5 @@
 /*
- * The package stylesheet, part 5 of 20: Tabs, the condensed-caps label,
+ * The package stylesheet: Tabs, the condensed-caps label,
  * overlays, the entity-searcher picker and Segmented. `../index.css` imports the parts
  * in cascade order.
  */
@@ -303,9 +303,11 @@
   gap: var(--space-6);
 }
 
+/* Browsing, the list is the item grid (`.su-grid`): 16rem lines, the last row filled. */
 .su-searcher--browse .su-searcher__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  --su-grid-gap: var(--space-6);
+  --su-grid-min: 16rem;
+  flex-direction: row;
 }
 
 /* One line per entity: the Mini filling it, and once chosen its label.
@@ -492,7 +494,7 @@
 }
 
 /* A row of many options (a filter's chips, Play's effects) wraps onto more
-   lines inside its frame rather than scrolling them out of sight (EDL E18). */
+   lines inside its frame rather than scrolling them out of sight (C5). */
 .su-seg[data-wrap] {
   flex-wrap: wrap;
   overflow-x: visible;

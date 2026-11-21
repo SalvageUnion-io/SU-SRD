@@ -15,14 +15,13 @@ import { useGo } from '../../components/shared/useGo'
 import { useHydrateOnMount } from '../../lib/entities/useHydrateEntities'
 import { ROW_ACTION_COPY } from '../../lib/games/rowActionCopy'
 import { runWrite } from '../../lib/runWrite'
-import { encounterChips, encounterReading } from '../../lib/shelves/shelfItems'
+import { encounterReading } from '../../lib/shelves/shelfItems'
 import { buildPrepCopy } from '../../messages/build-prep'
 import { useEncounters } from '../../replica/collections'
 import { useSync } from '../../replica/syncContext'
 import { blankEncounter, encounterCopy, encounterHref } from '../prep/encounter.model'
 import { useSheetModeStore } from '../sheet/sheetMode.model'
-import { Shelf } from './Shelf'
-import { ShelfItem } from './ShelfItem'
+import { ShelfLedger } from './ShelfLedger'
 
 export function EncounterShelf({ confirm }: { confirm: Confirm }) {
   const { canWrite } = useSync()
@@ -75,33 +74,29 @@ export function EncounterShelf({ confirm }: { confirm: Confirm }) {
   }
 
   return (
-    <Shelf
+    <ShelfLedger
       id="shelf-encounters"
       title={buildPrepCopy('encounters')}
-      aside="Yours"
-      note={buildPrepCopy('shelfNote')}
+      tone="adversary"
+      columns={[
+        { key: 'opp', label: 'Opposition', kind: 'figure' },
+        { key: 'tables', label: 'Tables', kind: 'figure' },
+      ]}
       action={
         canWrite ? (
-          <Button variant="primary" size="compact" onClick={() => runWrite(newEncounter)}>
+          <Button variant="default" size="compact" onClick={() => runWrite(newEncounter)}>
             {buildPrepCopy('addEncounter')}
           </Button>
         ) : undefined
       }
-      isEmpty={hydrated && encounters.length === 0}
-      empty={buildPrepCopy('noEncounters')}
-    >
-      {encounters.map((e) => (
-        <ShelfItem
-          key={e.id}
-          kind="encounter"
-          name={e.name}
-          reading={encounterReading(e)}
-          href={encounterHref(e.id)}
-          userMade
-          chips={encounterChips(e)}
-          menu={menu(e)}
-        />
-      ))}
-    </Shelf>
+      empty={hydrated ? buildPrepCopy('noEncounters') : ''}
+      rows={encounters.map((e) => ({
+        id: e.id,
+        name: e.name,
+        href: encounterHref(e.id),
+        cells: [String(encounterReading(e).value), String(e.tables.length || '')],
+        menu: menu(e),
+      }))}
+    />
   )
 }

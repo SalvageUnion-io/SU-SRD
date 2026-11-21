@@ -11,29 +11,34 @@ const CREDIT_CAPS = capsLabel({ size: 'caption', tracking: 'eyebrow' })
 const QUOTE = {
   fontFamily: SCRIPT_FONT,
   fontSize: tokens.fontSize.hero,
-  fontWeight: tokens.weight.semibold,
+  fontWeight: tokens.weight.bold,
   lineHeight: 1,
   margin: 0,
 } satisfies CSSProperties
 
 const QUOTE_BY = {
-  color: tokens.color.ink,
   fontStyle: 'italic',
-  margin: `${tokens.space[4]} 0 0`,
+  fontWeight: tokens.weight.bold,
+  // Flush under the quote: no gap, only each line's own leading between them.
+  margin: 0,
 } satisfies CSSProperties
 
 /**
  * Tagline — the legacy tagline (`PRODUCT.tagline`) quoted in a hand and
- * credited to `PRODUCT.taglineBy`, as a chapter band's aside: the app's front
- * door and the SRD's home page. Its colour and alignment are `.su-tagline`'s
- * (`shared.css`): ink, set right on the band and left under it on a phone.
+ * credited to `PRODUCT.taglineBy`: every landing page says it, beside its
+ * title (a chapter band's aside, the home's paper plate beside its name).
+ * Its colour and alignment are `.su-tagline`'s (`shared.css`).
  */
 export function Tagline() {
   return (
     <figure className="su-tagline">
-      <blockquote style={QUOTE}>“{PRODUCT.tagline}”</blockquote>
+      {/* Each line's words are an inline span, so a ground can hug them line
+          by line where the page gives one (the home's art, `front.css`). */}
+      <blockquote style={QUOTE}>
+        <span className="su-tagline__line">“{PRODUCT.tagline}”</span>
+      </blockquote>
       <figcaption className={CREDIT_CAPS} style={QUOTE_BY}>
-        — {PRODUCT.taglineBy}
+        <span className="su-tagline__line">— {PRODUCT.taglineBy}</span>
       </figcaption>
     </figure>
   )

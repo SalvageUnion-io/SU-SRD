@@ -98,6 +98,7 @@ export function PlayMediatorOpposition({ mediator, rollFor }: PlayMediatorOpposi
       <Slab
         as="h2"
         label={mediatorCopy('opposition')}
+        flush
         actions={
           <>
             <Button

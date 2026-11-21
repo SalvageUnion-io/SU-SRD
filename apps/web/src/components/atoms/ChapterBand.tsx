@@ -11,9 +11,18 @@ import { CHAPTER_BAND_COLOR } from './chapterBandColor'
 import { ChipOverflowRow } from './chipOverflow'
 import type { SpeckleGrain } from './Speckle'
 import { Speckle } from './Speckle'
-import { BAND_KEY_ATTRIBUTE, footerMatchCss, unionBarMatchCss } from './unionBarMatch'
+import { BAND_KEY_ATTRIBUTE, kindMatchCss } from './unionBarMatch'
 import { useChipFill } from './useChipFill'
 import { USER_MADE_HATCH } from './userMadeHatch'
+
+/**
+ * The paint a head strip wears on this
+ * band. The book's crawler pink carries neither ink nor paper text at 4.5:1,
+ * so a head on it wears the deeper crawler band with paper text.
+ */
+function kindPaint(band: string): string {
+  return band === color.crawler ? color.crawlerBand : band
+}
 
 /**
  * ChapterBand — the page title as the Workshop Manual sets it (ruleset, "The
@@ -58,10 +67,9 @@ import { USER_MADE_HATCH } from './userMadeHatch'
  * `action` is a show page's one button ("Build With This"), the cluster's
  * last item: the band's bottom-right corner.
  *
- * A band that leads the page (a `PageShell`'s first child) also colours the
- * Union bar above it and the site footer below: both take its colour, foreground and grain
- * (`unionBarMatch.ts`), so the site header and the band are one colour, in
- * every mode and on every page, front pages included.
+ * A band that leads the page (a `PageShell`'s first child) sets the page's
+ * kind colour (`unionBarMatch.ts`); the site header and footer stay ink-deep
+ * (K13).
  *
  * The page's breadcrumb trail (`ChapterBandTrail`, which a site's layout
  * provides) is the notch's kicker on a page band, at every width: a line of
@@ -164,11 +172,6 @@ export type ChapterBandProps = {
   scale?: 'page' | 'og'
   /** The notched title's font size, when the scale's own does not fit the name. */
   titleSize?: string
-  /**
-   * Whether a page band colours the Union bar while it leads the page.
-   * Defaults to `true`; only a band that never leads a page (a dialog's) passes `false`.
-   */
-  matchBar?: boolean
 }
 
 const ROOT = {
@@ -203,9 +206,9 @@ const userMadeTitle = (dash: string) =>
   }) satisfies CSSProperties
 
 // Its padding is the stylesheet's (`.su-chapter-band__corner`): it changes at `sm`.
+// Its `display` is the stylesheet's (`.su-chapter-band__corner`): an empty corner takes none.
 const CORNER = {
   alignItems: 'center',
-  display: 'flex',
   flexWrap: 'wrap',
   gap: space[8],
   justifyContent: 'flex-end',
@@ -231,11 +234,12 @@ const ASIDE = {
 // The notch: the page ground, ink condensed caps, flush with the band's foot.
 // Size and padding change at `sm`, so they are `.su-chapter-band__title`'s.
 const TITLE = {
-  backgroundColor: color.wkBg,
+  // A cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   fontWeight: weight.extrabold,
   lineHeight: 0.92,
-  margin: 0,
   maxWidth: '100%',
   overflowWrap: 'anywhere',
 } satisfies CSSProperties
@@ -244,12 +248,13 @@ const TITLE_CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 // The title of a band whose aside is controls: its line's free room is on its
 // right, so the controls beside it sit at the band's right edge.
-const BESIDE_CONTROLS = { margin: '0 auto 0 0' } satisfies CSSProperties
 
 // The plate: the notch's cut-out around the trail and the title, so the two
 // read as one label at the wider one's width. Its padding is the parts'.
 const PLATE = {
-  backgroundColor: color.wkBg,
+  // A cut-out takes the ground of the body it opens
+  // into (`--cutout-ground`, set by that body); the page ground by default.
+  backgroundColor: `var(--cutout-ground, ${color.wkBg})`,
   color: color.ink,
   display: 'flex',
   flexDirection: 'column',
@@ -282,7 +287,6 @@ export function ChapterBand({
   grain,
   scale = 'page',
   titleSize,
-  matchBar = true,
 }: ChapterBandProps) {
   // A link preview is a picture at one size: it never bleeds.
   const bleed = scale === 'page'
@@ -294,10 +298,10 @@ export function ChapterBand({
   const titleStyle = {
     ...TITLE,
     ...(dashes && !trail ? dashes : {}),
-    // Beside controls the title holds the left of its line; they keep the right.
-    ...(aside && asideAt === 'controls' ? BESIDE_CONTROLS : {}),
   }
-  const band = fill ?? CHAPTER_BAND_COLOR[tone]
+  // The book's crawler pink carries neither ink nor paper at 4.5:1: a band on
+  // it wears the deeper crawler band, so rail, band and tables are one paint.
+  const band = kindPaint(fill ?? CHAPTER_BAND_COLOR[tone])
   const speckle = grain ?? (tone === 'ink' ? 'paper' : 'ink')
   // The key the Union bar's rule matches this band by (`unionBarMatch.ts`),
   // in the characters an attribute selector takes unescaped.
@@ -312,14 +316,18 @@ export function ChapterBand({
   const lone = !lead
   // The title that is the fill's name holds its line's left, its free room on
   // its right (the fill's `margin-inline-end: auto`, which an inline `margin:
-  // 0` beat would set a sheet's name at the right; R40: a name sits at the
+  // 0` beat would set a sheet's name at the right; E22: a name sits at the
   // left).
   const fillName = fills && lone && !trail
-  const placed = fillName ? { ...titleStyle, ...BESIDE_CONTROLS } : titleStyle
+  // Beside controls, or as the fill's name, the title holds the left of its
+  // line and they keep the right (`.su-chapter-band__title[data-beside]`).
+  const beside = fillName || (aside && asideAt === 'controls')
+  const placed = titleStyle
   const title = (
     <Tag
       id={id}
       data-fill-name={fillName ? '' : undefined}
+      data-beside={beside ? '' : undefined}
       className={cn('su-chapter-band__title', TITLE_CAPS)}
       style={titleSize ? { ...placed, fontSize: titleSize } : placed}
     >
@@ -351,26 +359,24 @@ export function ChapterBand({
       // The band is the frame: one that prints paper is an ink ground, and the
       // controls in its aside and eyebrow read it in CSS (chrome K1).
       data-ground={foregroundOn(band, 'ink') === 'paper' ? 'ink' : 'paper'}
+      // The deep crawler pink's kicker and tagline carry paper (`shared.css`).
+      data-paint={band === color.crawlerBand ? 'crawler' : undefined}
       {...(bleed ? { [BAND_KEY_ATTRIBUTE]: key } : {})}
       style={{
         ...ROOT,
         ...(bleed ? {} : INSET),
         backgroundColor: band,
         ...(userMade ? { backgroundImage: USER_MADE_HATCH } : {}),
+        // The measure its row, eyebrow and corner keep (`shell.css`).
+        ...(measure ? ({ '--su-band-measure': measure } as CSSProperties) : {}),
       }}
     >
-      {bleed && matchBar && (
-        <style>
-          {unionBarMatchCss(key, band, foregroundOn(band, 'ink'), speckle) +
-            footerMatchCss(key, band, foregroundOn(band, 'ink'), speckle)}
-        </style>
+      {bleed && (
+        <style>{kindMatchCss(key, kindPaint(band), foregroundOn(kindPaint(band), 'ink'))}</style>
       )}
       <Speckle grain={speckle} />
       {corner && (
-        <div
-          className="su-chapter-band__corner"
-          style={measure ? { ...CORNER, maxWidth: measure } : CORNER}
-        >
+        <div className="su-chapter-band__corner" style={CORNER}>
           {corner}
         </div>
       )}
@@ -379,7 +385,6 @@ export function ChapterBand({
           className="su-chapter-band__eyebrow"
           style={{
             ...EYEBROW,
-            ...(measure ? { maxWidth: measure } : {}),
             // In the og band's column flexbox an auto margin would shrink the
             // eyebrow to its content and centre it.
             ...(scale === 'og' ? { marginInline: 0 } : {}),
@@ -388,12 +393,7 @@ export function ChapterBand({
           {eyebrow}
         </div>
       )}
-      <div
-        ref={rowRef}
-        className="su-chapter-band__row"
-        data-chip-fill={fills ? '' : undefined}
-        style={measure ? { maxWidth: measure } : undefined}
-      >
+      <div ref={rowRef} className="su-chapter-band__row" data-chip-fill={fills ? '' : undefined}>
         {lead ? (
           <div className="su-chapter-band__heading" data-fill-name={fills ? '' : undefined}>
             <span

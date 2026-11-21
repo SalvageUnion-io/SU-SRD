@@ -1,10 +1,9 @@
 /**
- * A HEAD-ONLY card closes on its head. A nested action with nothing but its
- * name and chips (a creature's Stinger) draws no paper strip under its cut-out:
- * the lead gap (`CardLead`) opens only when nested content follows the head,
- * so a card with no nested groups must not count an empty fragment as some.
- * What its head cannot hold opens a body: its overflow
- * row, hidden while every chip fits.
+ * A HEAD-ONLY action closes on its head. A nested action with nothing but its
+ * name and chips (a creature's Stinger) is a Mini whose body holds only what
+ * its head cannot: its overflow row, hidden while every chip fits, so the
+ * body draws no paper strip under the tab (`.su-entity-mini__body:has(>
+ * .su-chip-overflow[hidden]:only-child)`).
  */
 import { describe, expect, test } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -18,16 +17,14 @@ const scorpion = () => {
 }
 
 describe('a head-only card', () => {
-  test("a creature's bodiless action ends on its head, with no gap under it", () => {
+  test("a creature's bodiless action ends on its head, with nothing under it but its hidden overflow row", () => {
     const { container } = render(<ReferenceEntityCard data={scorpion()} presentation="page" />)
-    const title = [...container.querySelectorAll('h3')].find((h) =>
-      h.textContent?.startsWith('Stinger')
+    const mini = [...container.querySelectorAll('.su-entity-mini')].find((el) =>
+      el.querySelector('.su-entity-mini__name')?.textContent?.startsWith('Stinger')
     )
-    const frame = title?.closest('.su-ec-frame')
-    expect(frame).toBeTruthy()
-    const [, ...under] = [...(frame?.children ?? [])]
+    expect(mini).toBeTruthy()
+    const under = [...(mini?.querySelector('.su-entity-mini__body')?.children ?? [])]
     expect(under.map((el) => el.hasAttribute('data-chip-overflow'))).toEqual([true])
     expect((under[0] as HTMLElement).hidden).toBe(true)
-    expect(frame?.querySelector('[aria-hidden="true"][style*="height"]')).toBeNull()
   })
 })

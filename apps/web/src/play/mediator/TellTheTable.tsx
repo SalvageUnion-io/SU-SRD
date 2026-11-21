@@ -9,17 +9,8 @@
 
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import {
-  Button,
-  EmptyState,
-  Eyebrow,
-  FeedLine,
-  FeedList,
-  FeedTime,
-  Field,
-  Input,
-  tokens,
-} from '../../components/index'
+import { FeedLine, FeedList, FeedTime } from '../../components/app'
+import { Button, EmptyState, Eyebrow, Field, Input, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import type { AlertLine } from '../useGameFeed'
 

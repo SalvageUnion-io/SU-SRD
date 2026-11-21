@@ -58,6 +58,7 @@ import { useCitePageCredit } from '../../../stores/pageCredit'
 import { SignInControl } from '../../account/SignInControl'
 import { HomebrewControls } from '../../homebrew/HomebrewControls'
 import { ShareStatusDialog } from '../../sharing/ShareStatusDialog'
+import { RailActs } from '../../sheet/RailActs'
 
 /** `publicSheet.pattern`'s answer, its body parsed. */
 export type PublicPatternAnswer = {
@@ -206,7 +207,8 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
           }
           corner={
             writable ? (
-              <>
+              // The acts ride the area rail.
+              <RailActs>
                 <Button
                   className="su-page-action"
                   onClick={() => void copy()}
@@ -224,7 +226,7 @@ export function PublicPattern({ answer }: { answer: PublicPatternAnswer }) {
                   </Button>
                 )}
                 <HomebrewControls appId={pattern.id} name={pattern.name} />
-              </>
+              </RailActs>
             ) : undefined
           }
         >

@@ -3,7 +3,7 @@
  *
  * Each pattern is a user-made Compact (`<Entity size="compact">` (dashed, stamped,
  * credited: ruleset §3.9) linking to its page, its "Build With This" the
- * Compact's last chip (C8, hard rule R6), also where its chassis is missing.
+ * Compact's last chip (C8), also where its chassis is missing.
  *
  * Data fetching: subscribes to usePatterns — patterns get
  * the same lazy hydration as every other collection.
@@ -31,16 +31,15 @@ import {
 import { mechCopy } from '../../../messages/build-mech'
 import { usePatterns } from '../../../replica/collections'
 import { useSync } from '../../../replica/syncContext'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 import { InstantiateFromPattern } from './InstantiateFromPattern'
 
 const LIST = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
+  '--su-grid-min': '18rem',
   listStyle: 'none',
   margin: 0,
   padding: 0,
-} satisfies CSSProperties
+} satisfies CSSVarStyle
 
 const ROW = {
   display: 'flex',
@@ -51,9 +50,11 @@ const ROW = {
 type PatternListProps = {
   /** Called with the new mech id when a pattern is instantiated. */
   onInstantiated: (mechId: string) => void
+  /** The Game each build lands in (the New Mech screen's `?game=`). */
+  gameId?: string | undefined
 }
 
-export function PatternList({ onInstantiated }: PatternListProps) {
+export function PatternList({ onInstantiated, gameId }: PatternListProps) {
   // Subscribing keeps the list live — saves from this tab, and those
   // `RoomFeed` adopts from elsewhere, appear without a refetch. list()
   // lazily hydrates.
@@ -79,7 +80,7 @@ export function PatternList({ onInstantiated }: PatternListProps) {
   }
 
   return (
-    <ul style={LIST} aria-label={mechCopy('savedMechPatterns')}>
+    <ul className="su-grid" style={LIST} aria-label={mechCopy('savedMechPatterns')}>
       {patterns.map((pattern) => {
         const chassis = patternChassis(pattern)
         return (
@@ -100,7 +101,11 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   }}
                   lead
                   controls={
-                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                    <InstantiateFromPattern
+                      pattern={pattern}
+                      onSuccess={handleInstantiated}
+                      gameId={gameId}
+                    />
                   }
                 />
                 {/* A header-only row has no footer, so the credit sits beneath it. */}
@@ -115,7 +120,11 @@ export function PatternList({ onInstantiated }: PatternListProps) {
                   name={pattern.name}
                   userMade
                   controls={
-                    <InstantiateFromPattern pattern={pattern} onSuccess={handleInstantiated} />
+                    <InstantiateFromPattern
+                      pattern={pattern}
+                      onSuccess={handleInstantiated}
+                      gameId={gameId}
+                    />
                   }
                 />
                 <Text variant="hint">{mechCopy('itsChassisIsNotIn')}</Text>

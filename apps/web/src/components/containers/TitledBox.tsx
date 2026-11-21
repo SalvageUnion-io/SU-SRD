@@ -39,7 +39,7 @@ type TitledBoxProps = Omit<BoxProps, 'head' | 'frameColor'> & {
  * tone, the title notched into its foot on a square paper tab in ink (ruleset,
  * "Chapter band"), chips beside it on the band and controls at its end. The
  * tab opens into the paper body with no rule between them. The frame round a
- * body wears the band's colour (R51); a head alone keeps its clear edge (R42).
+ * body wears the band's colour (R38); a head alone keeps its clear edge (R42).
  *
  * Every titled container that is not an entity wears it: dialogs
  * (`ModalShell`), a sheet's panels (a mech's Chassis and Hold), wizard briefs,

@@ -1,20 +1,13 @@
 /**
- * HoldAdder — a Hold container's own intake form (`StorageManifest`).
+ * HoldAdder — a hold's own intake form.
  */
 
 import type { CargoLot } from 'game-domain/schemas/cargoLot'
 import { makeScrapLot, makeUnitLot } from 'game-domain/schemas/cargoLot'
 import type { CSSProperties } from 'react'
 import { useId, useState } from 'react'
-import {
-  AdderBox,
-  AdderField,
-  Button,
-  Input,
-  Segmented,
-  SegmentedOption,
-  tokens,
-} from '../../components/index'
+import { AdderBox, AdderField } from '../../components/app'
+import { Button, Input, Segmented, SegmentedOption, tokens } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
 
 /** A slot cost is a non-negative INTEGER (`CargoLotSchema.units` is `.int()`). */
@@ -149,6 +142,7 @@ export function HoldAdder({
         />
       </AdderField>
       <Button
+        variant="pencil"
         size="compact"
         disabled={!canCommit}
         aria-label={buildSheetCopy('intoThe', { verb, kind, containerLabel })}

@@ -1,10 +1,14 @@
 /**
- * PlayActionsList — the Actions column outside Downtime (play.md §5): what is on hand ("On hand · In <mech>" or "On foot"),
- * then the collapsed Not on hand group, each line saying what it needs. Every
- * line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the Mini grid
- * (`MiniGrid`), its list marked `data-play-list` for the form gate (R35). The type filter and Find (`PlayActionsTools`) ride
- * the column's "Actions" heading line (pin 5). Every heading here is a Slab,
- * so each line stays level 1 (play.md §12).
+ * PlayActionsList — the Actions column outside Downtime (play.md §5, R65):
+ * what is on hand, grouped by action type under Mini Slabs (Turn, Short,
+ * Long, Reaction, Free, Passive last), the Reactor and Mount closing the
+ * list; then the collapsed Not on hand group, each line saying what it
+ * needs. Every line is a contentful Mini (ruleset §1.3, ADR-051 §6) in the
+ * Mini grid (`MiniGrid`), its list marked `data-play-list` for the form gate
+ * (R35). Under its type's heading a row leaves its type chip out (C10). The
+ * type filter and, from `lg`, Find (`PlayActionsTools`) ride the column's
+ * "Actions" heading line (pin 5). Every heading here is a Slab, so each line
+ * stays level 1 (play.md §12).
  *
  * `PlayAwayGroup` (the collapsed group) and `PlayEntryList` are shared with
  * the Downtime column, where the group is the Field actions.
@@ -19,13 +23,12 @@ import {
   SearchField,
   Segmented,
   SegmentedOption,
-  Slab,
   SlabSection,
 } from '../components/index'
 import { playCopy } from '../messages/play'
 import { PlayActionEntry } from './PlayActionEntry'
-import type { ListEntry } from './playActions.model'
-import { TYPE_FILTERS } from './playActions.model'
+import type { ActionTypeKey, ListEntry } from './playActions.model'
+import { ACTION_TYPE_ORDER, TYPE_FILTERS } from './playActions.model'
 import type { Play } from './situation.model'
 import type { PlayActions } from './usePlayActions'
 
@@ -35,16 +38,25 @@ export function PlayEntryList({
   play,
   actions,
   label,
+  grouped = false,
 }: {
   entries: readonly ListEntry[]
   play: Play
   actions: PlayActions
   label: string
+  /** The list sits under an action type's heading (C10). */
+  grouped?: boolean
 }) {
   return (
     <MiniGrid label={label} play>
       {entries.map((entry) => (
-        <PlayActionEntry key={entry.key} entry={entry} play={play} actions={actions} />
+        <PlayActionEntry
+          key={entry.key}
+          entry={entry}
+          play={play}
+          actions={actions}
+          grouped={grouped}
+        />
       ))}
     </MiniGrid>
   )
@@ -109,11 +121,11 @@ function OrphanNote({ text, onClear }: { text: string; onClear: () => void }) {
 }
 
 /**
- * The type filter and Find, for the "Actions" Slab's heading line: they wrap
- * under the heading, and onto two lines, when the column is too narrow for
- * one (`.su-play-act-head`).
+ * The type filter and, from `lg`, Find, for the "Actions" Slab's heading
+ * line: they wrap under the heading when the column is too narrow for one
+ * line (`.su-play-act-head`). Below `lg` the filter leads the pane alone.
  */
-export function PlayActionsTools({ actions }: { actions: PlayActions }) {
+export function PlayActionsTools({ actions, find }: { actions: PlayActions; find: boolean }) {
   return (
     <div className="su-play-act-tools">
       <Segmented label={playCopy('filterActionsByType')} size="compact">
@@ -127,33 +139,79 @@ export function PlayActionsTools({ actions }: { actions: PlayActions }) {
           </SegmentedOption>
         ))}
       </Segmented>
-      <SearchField
-        aria-label={playCopy('findAnAction')}
-        placeholder={playCopy('find')}
-        value={actions.find}
-        onChange={(event) => actions.setFind(event.target.value)}
-        containerClassName="su-play-act-find"
-      />
+      {find && (
+        <SearchField
+          aria-label={playCopy('findAnAction')}
+          placeholder={playCopy('find')}
+          value={actions.find}
+          onChange={(event) => actions.setFind(event.target.value)}
+          containerClassName="su-play-act-find"
+        />
+      )}
     </div>
   )
 }
 
-export function PlayActionsList({ play, actions }: { play: Play; actions: PlayActions }) {
-  const where =
-    play.situation === 'boarded' && actions.mech !== null ? `In ${actions.mech.name}` : 'On foot'
+/** A group of what is on hand: an action type's rows, or the controls that close the list. */
+type Group = { key: ActionTypeKey | 'controls'; label: string; entries: ListEntry[] }
+
+/**
+ * What is on hand, grouped by when it can be used, in the list's own order
+ * (`ACTION_TYPE_ORDER`); the Reactor and Mount, which are controls, close it.
+ * Empty groups are left out.
+ */
+function onHandGroups(onHand: readonly ListEntry[]): Group[] {
+  const groups: Group[] = [
+    ...ACTION_TYPE_ORDER.map((type) => ({
+      key: type,
+      label: type,
+      entries: onHand.filter((entry) => entry.kind === 'action' && entry.type === type),
+    })),
+    {
+      key: 'controls',
+      label: playCopy('reactorAndMount'),
+      entries: onHand.filter((entry) => entry.kind !== 'action'),
+    },
+  ]
+  return groups.filter((group) => group.entries.length > 0)
+}
+
+export function PlayActionsList({
+  play,
+  actions,
+  head,
+}: {
+  play: Play
+  actions: PlayActions
+  /** A group's heading: under the column's "Actions" from `lg`, under the page's below it. */
+  head: 'h2' | 'h3'
+}) {
+  const groups = onHandGroups(actions.onHand)
   return (
     <>
       <PlayOrphanResolve actions={actions} />
-      <Slab label={playCopy('onHand', { where })} />
-      {actions.onHand.length === 0 ? (
+      {groups.length === 0 ? (
         <EmptyState variant="inline" body={playCopy('nothingOnHandMatches')} />
       ) : (
-        <PlayEntryList
-          entries={actions.onHand}
-          play={play}
-          actions={actions}
-          label={playCopy('onHand2')}
-        />
+        <div className="su-play-timings">
+          {groups.map((group) => (
+            <SlabSection
+              key={group.key}
+              as={head}
+              size="mini"
+              title={group.label}
+              count={group.entries.length}
+            >
+              <PlayEntryList
+                entries={group.entries}
+                play={play}
+                actions={actions}
+                label={group.label}
+                grouped={group.key !== 'controls'}
+              />
+            </SlabSection>
+          ))}
+        </div>
       )}
       <PlayAwayGroup
         title={playCopy('notOnHand')}

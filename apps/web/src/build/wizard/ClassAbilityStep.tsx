@@ -1,16 +1,13 @@
-import type { RefAbility, RefClass } from 'salvageunion-reference'
+import type { BookCite, RefAbility, RefClass } from 'salvageunion-reference'
 import { getEntitySlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isLegalCreationClass, legalCreationAbilities } from 'salvageunion-reference/rules'
-import {
-  EmptyState,
-  Entity,
-  MasonryColumns,
-  ReferenceEntityCard,
-  Slab,
-} from '../../components/index'
+import { EmptyState, ReferenceEntityCard } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
+import type { SelectableBaseClass } from './classOptions.model'
 import { selectableClasses } from './classOptions.model'
-import { fullWidthStyle } from './wizardStyles.model'
+import { PickList } from './PickList'
+import { abilityColumns } from './pickColumns'
+import type { PickColumn } from './pickLedger.model'
 
 type SURClassesAccessor = {
   all: () => unknown[]
@@ -20,6 +17,25 @@ type SURAbilitiesAccessor = {
   findAll: (fn: (x: unknown) => boolean) => unknown[]
 }
 
+/**
+ * What tells the six classes apart is their trees, so that is the picker's
+ * column, as plain text in the book's order. The Salvager's says what the
+ * book says of it (p.18).
+ */
+const CLASS_COLUMNS: readonly PickColumn<SelectableBaseClass>[] = [
+  {
+    key: 'core',
+    label: buildWizardCopy('coreTrees'),
+    kind: 'line',
+    phone: true,
+    value: (c) =>
+      c.coreTrees.length > 3 ? buildWizardCopy('anyCoreTree') : c.coreTrees.join(' · '),
+  },
+]
+
+/** What tells the Level-1 abilities apart, a line each. */
+const ABILITY_COLUMNS = abilityColumns<RefAbility>()
+
 type ClassAbilityStepProps = {
   classId: string
   selectedAbilities: string[]
@@ -27,23 +43,30 @@ type ClassAbilityStepProps = {
   onSelectClass: (classId: string) => void
   /** Radio semantics — the pick REPLACES the current ability. Emits its slug. */
   onSelectAbility: (slug: string) => void
+  /** Where the book prints the step's rule, on the lists' feet. */
+  cite: BookCite | undefined
   /** Injectable SUR for testing. */
   _sur?: { Classes: SURClassesAccessor; Abilities: SURAbilitiesAccessor }
 }
 
 /**
- * Step 2 · Choose your Pilot and your first Ability (Pilot Bay p.18, merged)
- * — master-detail in one pane: pick 1 of the
- * six CORE classes (SelCard entity cards, radio semantics), which reveals the
- * Level-1 ability picker for that class's trees. Only LEGAL abilities render
- * (package `legalCreationAbilities`: level 1 ∧ tree ∈ coreTrees — the
- * Salvager sees all 15 core-tree Level-1s); the pick is a radio, exactly 1.
+ * Step 1 · Class and first Ability (Workshop Manual p.18), both pickers in the
+ * Ledger form (`PickList`, ledger.md L7). The six core classes are one list,
+ * their trees the column that tells them apart; the pick's Level-1 abilities
+ * are the second, a line each: its tree, its timing, its range, what it does
+ * and its AP, exactly one picked (radio). The picked class stands beside the
+ * lists as its contentful card, and the picked ability under its list (under
+ * its line on a phone) as its own: its rules only, no lead and no flavour. An
+ * option an ability asks (Bionic Senses' optics) is made on the pilot's
+ * sheet: a pilot keeps no choice of an ability's yet, so the step asks none.
+ * Only LEGAL abilities render (`legalCreationAbilities`).
  */
 export function ClassAbilityStep({
   classId,
   selectedAbilities,
   onSelectClass,
   onSelectAbility,
+  cite,
   _sur,
 }: ClassAbilityStepProps) {
   const surClasses: SURClassesAccessor = _sur?.Classes ?? SalvageUnionReference.Classes
@@ -55,88 +78,96 @@ export function ClassAbilityStep({
 
   // The injectable accessor is `unknown`-typed for test seams (the app's
   // PilotWizard passes the same shape), so the ONE cast lives here at the
-  // seam: the production accessor really returns `RefAbility[]`, and a
-  // properly-typed ability then flows into the card with no further forcing.
+  // seam: the production accessor really returns `RefAbility[]`.
   const allAbilities = surAbilities.findAll(() => true) as RefAbility[]
 
-  // Only the pick is contentful: the other five are header-only Compacts, so
-  // six class cards do not run nine phone screens before the abilities.
-  const renderClassCard = (cls: RefClass) =>
-    cls.id !== classId ? (
-      <Entity
-        key={cls.id}
-        size="compact"
-        entity={cls}
-        mode={{
-          kind: 'select',
-          role: 'radio',
-          selected: false,
-          onSelect: () => onSelectClass(cls.id),
-          label: cls.name,
-        }}
-      />
-    ) : (
-      <ReferenceEntityCard
-        key={cls.id}
-        data={cls}
-        size="compact"
-        selected={cls.id === classId}
-        selectionRole="radio"
-        cardClickLabel={cls.name}
-        onCardClick={() => onSelectClass(cls.id)}
-        hide={{ actions: true, choices: true }}
-      />
-    )
-
-  const renderAbilityCard = (ability: RefAbility) => (
-    <ReferenceEntityCard
-      key={ability.id}
-      data={ability}
-      size="compact"
-      selected={selectedAbilities.includes(getEntitySlug(ability))}
-      selectionRole="radio"
-      cardClickLabel={ability.name}
-      onCardClick={() => onSelectAbility(getEntitySlug(ability))}
-      hide={{ actions: true, choices: true }}
-    />
-  )
-
-  // The class's legal Level-1 pool, flat. The card names its own tree in the
-  // label pill (`[Forging | 1]`), so the pool needs no extra label.
+  // The class's legal Level-1 pool, by tree.
   const legalPool = legalCreationAbilities(allAbilities, selectedClass?.coreTrees).sort((a, b) =>
     a.tree.localeCompare(b.tree)
   )
+  const pickedAbility = legalPool.find((a) => selectedAbilities.includes(getEntitySlug(a)))
+
+  const abilityCard = (ability: RefAbility) => (
+    <ReferenceEntityCard
+      data={ability}
+      size="compact"
+      selected
+      hide={{ lead: true, flavor: true, choices: true }}
+    />
+  )
 
   return (
-    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label={buildWizardCopy('pilotClass')} count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('pilotClass2')}>
-        {legalClasses.map(renderClassCard)}
-      </MasonryColumns>
-
-      {selectedClass === undefined ? (
-        <EmptyState
-          headline={buildWizardCopy('noClassSelected')}
-          body={buildWizardCopy('pickAClassToReveal')}
-        />
-      ) : (
-        <>
-          <Slab
-            label={buildWizardCopy('firstAbilityTreesLevel1', { name: selectedClass.name })}
-            count="Choose 1"
-            countInk="inherit"
+    <div className="su-wiz-compare-layout su-wiz-compare-layout--wide">
+      <div className="su-wiz-compare-main">
+        <div>
+          <PickList
+            title={buildWizardCopy('pilotClass')}
+            note={buildWizardCopy('choose1')}
+            rows={legalClasses}
+            rowKey={(c) => c.id}
+            rowName={(c) => c.name}
+            columns={CLASS_COLUMNS}
+            selected={classId || undefined}
+            onSelect={onSelectClass}
+            {...(cite ? { foot: { cite } } : {})}
           />
-          <MasonryColumns maxColumns={2} radio ariaLabel={buildWizardCopy('firstAbility')}>
-            {legalPool.map(renderAbilityCard)}
-          </MasonryColumns>
-          {legalPool.length === 0 && (
-            <EmptyState
-              headline={buildWizardCopy('noAbilities')}
-              body={buildWizardCopy('noLevel1AbilitiesFound')}
+        </div>
+        {selectedClass !== undefined && (
+          <div>
+            <PickList
+              title={buildWizardCopy('firstAbility')}
+              note={buildWizardCopy('choose1')}
+              rows={legalPool}
+              rowKey={getEntitySlug}
+              rowName={(a) => a.name}
+              columns={ABILITY_COLUMNS}
+              selected={pickedAbility ? getEntitySlug(pickedAbility) : undefined}
+              onSelect={onSelectAbility}
+              detail={abilityCard}
+              {...(cite
+                ? {
+                    foot: {
+                      cite: { source: cite.source, page: cite.page },
+                      meta: {
+                        label: selectedClass.name,
+                        value: buildWizardCopy('level1OfItsCore'),
+                      },
+                    },
+                  }
+                : {})}
             />
-          )}
-        </>
-      )}
+            {/* The picked ability's own rules under its list from lg (under
+                its line on a phone, `detail`), so the class's card beside the
+                lists has no bare column under them. */}
+            {pickedAbility && (
+              <div className="su-wiz-compare-detail--desk su-wiz-pick-under">
+                {abilityCard(pickedAbility)}
+              </div>
+            )}
+            {legalPool.length === 0 && (
+              <EmptyState
+                headline={buildWizardCopy('noAbilities')}
+                body={buildWizardCopy('noLevel1AbilitiesFound')}
+              />
+            )}
+          </div>
+        )}
+      </div>
+      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky su-wiz-compare-detail--scroll">
+        {selectedClass === undefined ? (
+          <EmptyState
+            variant="quiet"
+            body={buildWizardCopy('pickAClassToReveal')}
+            bodyInk="inherit"
+          />
+        ) : (
+          <ReferenceEntityCard
+            data={selectedClass as RefClass}
+            size="compact"
+            hide={{ actions: true, choices: true }}
+          />
+        )}
+      </div>
     </div>
   )
 }

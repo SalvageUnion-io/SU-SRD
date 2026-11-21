@@ -29,6 +29,30 @@ export const ContentBlockSchema = z
         label: z.string().optional(),
         level: z.number().int().min(1).max(6).optional(),
         lead: z.boolean().optional(),
+        notInPlay: z
+          .array(
+            z
+              .object({
+                role: z
+                  .enum(['setup', 'upkeep', 'example', 'flavor'])
+                  .describe(
+                    'Why Play leaves it out: setup (what you do when you take, craft or build it), upkeep (replacing it, scaling it, only one at a time), example, or flavor (no rule)'
+                  ),
+                text: z
+                  .string()
+                  .min(1)
+                  .describe(
+                    "The exact words of this block's value to leave out, found once in it; absent means the whole block"
+                  )
+                  .optional(),
+              })
+              .strict()
+          )
+          .min(1)
+          .describe(
+            "Book text that a Play surface leaves out of an action's row. Display only: the value keeps every word, and Reference shows them all"
+          )
+          .optional(),
         choiceId: z
           .string()
           .describe(

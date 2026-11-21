@@ -102,6 +102,13 @@ type ListingRailProps = {
    * search and the menus where it fits, its own line beneath on a phone.
    */
   status?: ReactNode
+  /**
+   * Which of the rail this draws (ledger L10): `view`, the List | Catalog
+   * toggle alone, the one control a listing's chapter band holds; `filters`,
+   * the rest (search, facets, what is filtered), the bar at the top of the
+   * list; `all` (a listing with no band), both on one rail.
+   */
+  part?: 'all' | 'view' | 'filters'
 }
 
 /**
@@ -117,6 +124,7 @@ export function ListingRail({
   actions,
   awaitsIsland = false,
   status,
+  part = 'all',
 }: ListingRailProps) {
   const on = actions ?? IDLE
   // One count rule: the toolbar (the name filter and every facet the listing
@@ -127,15 +135,20 @@ export function ListingRail({
   const hasTrees = hasToolbar && trees.length > 1
   const hasFacets = hasTechLevels || hasSources || hasTrees
   const hasNameFilter = hasToolbar
+  const showView = part !== 'filters' && views.length > 1
+  const showFilters = part !== 'view'
+  if (part === 'view' && !showView) return null
+  if (part === 'filters' && !hasNameFilter && !hasFacets && !status) return null
   const activeFacets = filters.techLevels.size + (filters.source ? 1 : 0) + (filters.tree ? 1 : 0)
 
   return (
     <div
       className="su-rail"
+      data-part={part === 'all' ? undefined : part}
       data-open={facetsOpen || undefined}
       inert={(!actions && !awaitsIsland) || undefined}
     >
-      {hasNameFilter && (
+      {showFilters && hasNameFilter && (
         <SearchField
           type="search"
           name="name-filter"
@@ -147,7 +160,7 @@ export function ListingRail({
           glyph="full"
         />
       )}
-      {hasFacets && (
+      {showFilters && hasFacets && (
         <Button
           size="full"
           className="su-rail__filters"
@@ -165,9 +178,9 @@ export function ListingRail({
           )}
         </Button>
       )}
-      {status}
-      <span className="su-rail__spring" />
-      {views.length > 1 && (
+      {showFilters && status}
+      {part === 'all' && <span className="su-rail__spring" />}
+      {showView && (
         <Segmented label={islandsCopy('view')} className="su-rail__view">
           {views.map((option) => (
             <SegmentedOption
@@ -180,7 +193,7 @@ export function ListingRail({
           ))}
         </Segmented>
       )}
-      {hasFacets && (
+      {showFilters && hasFacets && (
         <div className="su-rail__facets" id="srd-rail-facets">
           {hasTechLevels && (
             <Segmented label={islandsCopy('techLevel')}>

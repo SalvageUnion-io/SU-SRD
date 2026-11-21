@@ -98,7 +98,8 @@ export type EntityCite = {
 }
 
 /** One printing of an entity: "Workshop Manual" on p.174. */
-export type EntityPrinting = { book: string; page?: number }
+/** One printing: the name a cite prints, its page, and the `source` record it names (a Sources entity). */
+export type EntityPrinting = { book: string; page?: number; source?: string }
 
 /** A player's copy of an entity. No form draws one. */
 export type EntityInstance = {

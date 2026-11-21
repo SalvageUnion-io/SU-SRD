@@ -40,7 +40,7 @@ describe('controlChips', () => {
     expect(button.textContent).toBe('Test')
   })
 
-  test('a danger worded control fills ink, never a state colour (R9)', () => {
+  test('a danger worded control fills ink, never a state colour (§3.1)', () => {
     render(controlChips([makeControl({ variant: 'danger' })]))
     expect(screen.getByRole('button').className).toContain(variantClass('ink'))
   })
@@ -177,7 +177,7 @@ describe('controlChips', () => {
     // Remove is the one control in the strip that DESTROYS something; in
     // paper-and-ink it read like the fold chevron beside it.
     const button = screen.getByLabelText('Remove Charge')
-    // Rust, the action colour, never a state colour (R9).
+    // Rust, the action colour, never a state colour (§3.1).
     expect(button.classList.contains('su-btn--primary')).toBe(true)
     // Not the paper button, which would paint it paper-and-ink.
     expect(button.classList.contains('su-btn--default')).toBe(false)

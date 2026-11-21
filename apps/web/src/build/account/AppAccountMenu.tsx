@@ -41,6 +41,8 @@ function SignedInAccountMenu({ compact = false }: AppAccountMenuProps) {
         name={me?.displayName ?? null}
         avatarUrl={me?.avatarUrl ?? null}
         compact={compact}
+        onGames={() => void navigate({ to: '/games' })}
+        onTrainingBay={() => void navigate({ to: '/' })}
         onSettings={() => void navigate({ to: '/settings' })}
         onSignOut={signOut}
         aboutHref={DOC_PAGES.about.href}

@@ -210,9 +210,10 @@ const serverMocks = await installServerMocks({
     '../../play/PlaySideColumn': () => ({
       PlayCrewSection: probe('crew'),
       PlayerTablesAndFeed: probe('side'),
+      PlayFeedSection: () => null,
     }),
     // The side's reads are `PlaySide.connected.test.tsx`'s.
-    '../../play/usePlaySide': () => ({ usePlaySide: () => ({}) }),
+    '../../play/usePlaySide': () => ({ usePlaySide: () => ({ entries: [] }) }),
   },
 })
 

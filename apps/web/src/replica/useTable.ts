@@ -105,7 +105,8 @@ function memberRead({ displayName, avatarUrl, ...member }: Member): GameMemberRe
   }
 }
 
-const CREWMATE = 'Crewmate'
+/** The name of a member whose account has none. */
+export const CREWMATE = 'Crewmate'
 
 /** The roster with each member's account name over the one the Game holds. */
 export function namedMembers(

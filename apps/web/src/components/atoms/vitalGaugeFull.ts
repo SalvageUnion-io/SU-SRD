@@ -100,6 +100,22 @@ export const STEP_FULL = {
   height: 'var(--size-full)',
   width: 'auto',
 } satisfies CSSProperties
+/**
+ * The Full rung's − / + on a Live Sheet (`steppers="end"`): a pair of Compact
+ * squares at the track's end, so the poster gauge keeps its height.
+ */
+export const STEPPERS_END = {
+  display: 'flex',
+  gap: space[4],
+  justifyContent: 'flex-end',
+  marginTop: space[8],
+} satisfies CSSProperties
+export const STEP_END = {
+  flex: '0 0 auto',
+  fontSize: fontSize.readout,
+  height: 'var(--size-compact)',
+  width: 'var(--size-compact)',
+} satisfies CSSProperties
 /** The full rung's track and caption. */
 export const ROOT = { width: '100%', paddingBlock: space[4] } satisfies CSSProperties
 export const PIP = {

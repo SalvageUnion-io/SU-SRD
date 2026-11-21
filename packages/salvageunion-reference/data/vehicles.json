@@ -23,11 +23,11 @@
     "actions": ["Locomotion System"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 4
       },
       {
-        "type": "wheeled"
+        "type": "Wheeled"
       }
     ],
     "techLevel": 1,
@@ -50,11 +50,11 @@
     "actions": ["Locomotion System", ".50 Cal Machine Gun"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 6
       },
       {
-        "type": "wheeled"
+        "type": "Wheeled"
       }
     ],
     "techLevel": 1,
@@ -75,11 +75,11 @@
     "actions": ["Locomotion System", "30mm Autocannon"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 18
       },
       {
-        "type": "wheeled"
+        "type": "Wheeled"
       }
     ],
     "techLevel": 2,
@@ -119,11 +119,11 @@
     "actions": ["Hover Locomotion System", "Rotary Minigun"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 6
       },
       {
-        "type": "hover"
+        "type": "Hover"
       }
     ],
     "techLevel": 4,
@@ -146,7 +146,7 @@
     "actions": ["Integrated Amphibious Locomotion System"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 12
       }
     ],
@@ -168,7 +168,7 @@
     "actions": ["Locomotion System", "Shanty Home"],
     "traits": [
       {
-        "type": "personnel capacity",
+        "type": "Personnel capacity",
         "amount": 12
       }
     ],
@@ -189,7 +189,7 @@
     "actions": [".50 Cal Machine Gun"],
     "traits": [
       {
-        "type": "immobile"
+        "type": "Immobile"
       }
     ],
     "techLevel": 1,
@@ -212,7 +212,7 @@
     "actions": ["Green Laser"],
     "traits": [
       {
-        "type": "immobile"
+        "type": "Immobile"
       }
     ],
     "techLevel": 2,
@@ -227,7 +227,7 @@
     "actions": ["Missile Pod"],
     "traits": [
       {
-        "type": "immobile"
+        "type": "Immobile"
       }
     ],
     "techLevel": 3,

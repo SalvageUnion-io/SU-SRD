@@ -10,9 +10,9 @@
 import type { EncounterGroup, EncounterOpponent } from 'game-domain/schemas/encounter'
 import type { CSSProperties, ReactNode } from 'react'
 import { useId, useState } from 'react'
+import { ConfirmDialog } from '../../components/app'
 import type { HeaderMenuItem } from '../../components/index'
 import {
-  ConfirmDialog,
   EmptyState,
   Eyebrow,
   HeaderMenu,

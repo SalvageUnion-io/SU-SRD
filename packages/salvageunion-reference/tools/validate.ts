@@ -4,7 +4,7 @@
  * Unified validation runner.
  *
  * One shared data-load pass over the ~1.3MB `data/*.json` corpus, fed to all
- * 11 checks:
+ * 13 checks:
  *
  *   - ids              (checkUniqueIdsLogic.ts)
  *   - duplicate-keys   (validateDuplicateKeysLogic.ts — reads the raw text)
@@ -15,6 +15,8 @@
  *   - action-backrefs  (validateActionBackrefsLogic.ts)
  *   - orphans          (validateOrphansLogic.ts)
  *   - content-dupes    (validateContentDupesLogic.ts)
+ *   - play-tags        (validatePlayTagsLogic.ts)
+ *   - sources          (validateSourcesLogic.ts)
  *   - traits           (validateTraitsLogic.ts)
  *   - parity           (validateParityLogic.ts)
  *
@@ -32,6 +34,7 @@
 
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { SourceSchema } from '../lib/schemas/enums'
 import { checkAllFiles } from './checkUniqueIdsLogic'
 import type { DataBag } from './loadData'
 import { dataDir, listDataFiles, loadAllDataFiles } from './loadData'
@@ -43,8 +46,10 @@ import { runContentDupeCheck } from './validateContentDupesLogic'
 import { findDuplicateKeys, findSelfCitations } from './validateDuplicateKeysLogic'
 import { runOrphanCheck } from './validateOrphansLogic'
 import { auditParity, KNOWN_UNRESOLVED, unresolvedFindings } from './validateParityLogic'
+import { runPlayTagCheck } from './validatePlayTagsLogic'
 import { findReferenceErrors } from './validateReferencesLogic'
 import { findSlugCollisions } from './validateSlugsLogic'
+import { findSourceIssues } from './validateSourcesLogic'
 import { findTraitIssues } from './validateTraitsLogic'
 import type { Diagnostic } from './validationTypes'
 import { groupByCheck } from './validationTypes'
@@ -203,6 +208,26 @@ function contentDupesCheck(data: DataBag): Diagnostic[] {
   }))
 }
 
+/** A Play tag whose words are not in its block once, or that overlaps another (R65). */
+function playTagsCheck(data: DataBag): Diagnostic[] {
+  return runPlayTagCheck(data).map((issue) => ({
+    check: 'play-tags',
+    file: issue.file,
+    path: `"${issue.record}" content[${issue.block}].notInPlay`,
+    message: `${issue.detail}. Copy the words exactly from the block's value, or drop the tag`,
+  }))
+}
+
+/** Every cited source is one book record with a store link, and every book is a cited source. */
+function sourcesCheck(data: DataBag): Diagnostic[] {
+  return findSourceIssues(SourceSchema.options, data['sources.json'] ?? []).map((issue) => ({
+    check: 'sources',
+    file: 'sources.json',
+    path: `"${issue.book}"`,
+    message: `${issue.detail}. Keep SourceSchema (lib/schemas/enums.ts) and sources.json one list`,
+  }))
+}
+
 function traitsCheck(data: DataBag): Diagnostic[] {
   return findTraitIssues(data).map((issue) => ({
     check: 'traits',
@@ -259,6 +284,8 @@ const CHECK_TABLE: Record<CheckId, Omit<CheckDefinition, 'id'>> = {
   'action-backrefs': { label: 'Namesake action back-references', run: actionBackrefsCheck },
   orphans: { label: 'Orphan detection', run: orphansCheck },
   'content-dupes': { label: 'Duplicated record content', run: contentDupesCheck },
+  'play-tags': { label: 'Play tags', run: playTagsCheck },
+  sources: { label: 'Source books', run: sourcesCheck },
   traits: { label: 'Trait data', run: traitsCheck },
   parity: { label: 'Rules parity', run: parityCheck },
 }

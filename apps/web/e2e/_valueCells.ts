@@ -4,13 +4,13 @@ import { fromFaults } from './_findings'
 
 /**
  * The two inviolable laws (ruleset §7), read off the rendered page (hard rule
- * R31). Each finding is `<rule>: <what>`, its rule one of:
+ * §7.1). Each finding is `<rule>: <what>`, its rule one of:
  *
  * - `fill` (§7.1): a `Stat` cell's value plate (`.su-stat-plate--value`) is
  *   paper, or transparent over a paper ground; never cream, white, a tint or
  *   any other fill.
  * - `frame` (§7.1): the cell around it (`.su-stat-cell`) has a solid 1px frame
- *   on every side, in ink; on an ink ground (chrome K1) the frame is a paper
+ *   on every side, in ink (a Page's stat tile may wear its band's paint); on an ink ground (chrome K1) the frame is a paper
  *   rule (`data-ground="ink"` on its frame, unless what is actually under the
  *   cell is light: a chip that drops off an ink band onto a paper strip, a
  *   phone's Compact head, is held to ink again), and a state (`good`, `caution`,
@@ -18,7 +18,8 @@ import { fromFaults } from './_findings'
  * - `seam` (§7.2): a border-riding stamp (`STAMP_SEAM`, `.su-stamp-seam`)
  *   centres on its frame's top border line within 1px. Its frame is the box it
  *   is placed in, or, where that box draws no border (a `Field`, whose control
- *   owns it), the first bordered box inside it.
+ *   owns it), the first bordered box inside it. An unframed guide step's aside
+ *   (`.su-guide__aside`) has none, and its Note rides nothing.
  *
  * A finding names the thing at fault by its text, never its pixel measures
  * alone, so a baseline can match it on any machine's fonts.
@@ -87,12 +88,18 @@ function scan(tolerance: number): { faults: string[]; cells: number; seams: numb
     const onInk = declared === 'ink' && !light(groundOf(cell))
     const state = Object.keys(states).find((c) => cell.classList.contains(c))
     const want = state ? states[state] : onInk ? paper : ink
+    // A Page's stat tile may wear its band's paint as its frame (§7.1): the
+    // masthead's tiles are cards framed in the page's colour.
+    const band = cell.matches('.su-entity-page .su-stat-column__stat')
+      ? getComputedStyle(document.querySelector('.su-chapter-band') ?? document.body)
+          .backgroundColor
+      : undefined
     const sides = ['Top', 'Right', 'Bottom', 'Left'] as const
     const off = sides.filter((side) => {
       const width = Number.parseFloat(s.getPropertyValue(`border-${side.toLowerCase()}-width`))
       const style = s.getPropertyValue(`border-${side.toLowerCase()}-style`)
       const colour = s.getPropertyValue(`border-${side.toLowerCase()}-color`)
-      return Math.abs(width - 1) > 0.01 || style !== 'solid' || colour !== want
+      return Math.abs(width - 1) > 0.01 || style !== 'solid' || (colour !== want && colour !== band)
     })
     if (off.length > 0) {
       const side = off[0]?.toLowerCase() ?? 'top'
@@ -123,6 +130,9 @@ function scan(tolerance: number): { faults: string[]; cells: number; seams: numb
       }
     }
     const what = `"${text(stamp)}"`
+    // An unframed guide step's aside draws no line for its Note to ride
+    // (§7.2): the stamp stands at its head. Anywhere else a seam needs one.
+    if (!frame && stamp.closest('.su-guide__aside')) continue
     if (!frame) {
       out.push(`seam: ${what} rides no bordered frame`)
       continue

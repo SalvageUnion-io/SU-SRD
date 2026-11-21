@@ -11,8 +11,10 @@
  */
 
 import type { Pilot } from 'game-domain/schemas/pilot'
+import type { ChoiceSelections } from 'salvageunion-reference'
 import { pilotMaxAP, pilotMaxHP } from 'salvageunion-reference/rules'
 import { pilotPartnerSeeds, syncPartners } from '../rules/partnerGrants'
+import { madeChoices } from './itemChoices'
 
 /** Shape of form state carried through the pilot wizard. */
 export type PilotWizardFormState = {
@@ -26,6 +28,11 @@ export type PilotWizardFormState = {
   appearance: string
   background: string
   description: string
+  /**
+   * The options chosen on a piece of equipment that asks a choice, by its slug
+   * (maps to Pilot.equipmentChoices). Unset until one is made, as on the pilot.
+   */
+  equipmentChoices?: Record<string, ChoiceSelections>
 }
 
 export const EMPTY_PILOT_FORM_STATE: PilotWizardFormState = {
@@ -54,9 +61,12 @@ type PilotWizardPatch = Pick<
   | 'appearance'
   | 'background'
   | 'description'
+  | 'equipmentChoices'
 >
 
 export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardPatch {
+  // A dropped item's choices go with it: only what is carried keeps its own.
+  const equipmentChoices = madeChoices(form.equipmentChoices, form.equipment)
   return {
     name: form.name.trim(),
     callsign: form.callsign.trim(),
@@ -68,6 +78,7 @@ export function pilotFormToUpdatePatch(form: PilotWizardFormState): PilotWizardP
     appearance: form.appearance.trim(),
     background: form.background.trim(),
     description: form.description.trim(),
+    ...(equipmentChoices ? { equipmentChoices } : {}),
   }
 }
 

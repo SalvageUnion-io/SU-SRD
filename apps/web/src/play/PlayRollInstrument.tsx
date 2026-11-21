@@ -2,7 +2,7 @@
  * PlayRollInstrument — a roll Play makes in a row (play.md §5, §10): the
  * resolve's Core Mechanic, the Reactor's Heat Check, a Cantina rumour, an
  * NPC's action and its Morale. It is the shared `RollTableInstrument` (EDL
- * E14, R8), open, as the Tables column's `PlayRollTable` draws it: the stamp
+ * R8), open, as the Tables column's `PlayRollTable` draws it: the stamp
  * is the one roll control, and a result is its marked row, the same mark
  * whatever the outcome (ruleset §3.4).
  *

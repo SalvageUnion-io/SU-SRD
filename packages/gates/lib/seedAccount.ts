@@ -18,15 +18,7 @@
 import type { Page } from '@playwright/test'
 import { appPath } from 'game-domain/appAddress'
 import { cockpitPath, invitePath } from '../../game-domain/src/entityKinds'
-import {
-  copyStarter,
-  editSheet,
-  openApp,
-  playDoor,
-  sheetHref,
-  sheetLink,
-  waitForReady,
-} from './appPage'
+import { copyStarter, editSheet, openApp, sheetHref, sheetLink, waitForReady } from './appPage'
 
 /** The pages the seed makes, as a route or a gallery page names them: `:pilot`, … */
 export const SEED_KEYS = [
@@ -48,7 +40,7 @@ export type Seed = Record<SeedKey, string>
 
 /**
  * The seeded Game's name, made long: its Training Bay chip is wider than a
- * Compact's room beside the name at a page's three columns (R3), so the
+ * Compact's room beside the name at a page's three columns (C5), so the
  * chip-strip gate holds it inside the Compact.
  */
 const SEED_GAME = 'The Long Haul Across the Glass Wastes'
@@ -76,7 +68,7 @@ async function sheetPath(page: Page, kind: string, name?: string): Promise<strin
 
 /**
  * The carried things the reference does not hold, so a sheet's lists show
- * them (hard rule R35: a sheet list's item is a Mini or Compact): a generic
+ * them (an open Ledger's rows, L9): a generic
  * entry in Bonesaw's inventory, a lot in the Mazona's hold and one in
  * Tenacity's Storage Bay, each through its sheet's own intake in Edit.
  */
@@ -86,24 +78,21 @@ async function seedCarried(
   sheets: { pilot: string; mech: string; crawler: string }
 ): Promise<void> {
   const carried = (name: string) =>
-    page.locator('.su-sheet-live-body .su-entity-mini__name').filter({ hasText: name }).first()
+    page.locator('.su-sheet-live-body .su-open__name').filter({ hasText: name }).first()
   await page.goto(`${base}${sheets.pilot}`, { waitUntil: 'networkidle' })
   await waitForReady(page)
   await editSheet(page)
   await page.getByRole('button', { name: 'Add Scrap (3 slots)' }).click()
   await carried('Scrap').waitFor(LONG)
-  for (const [path, open, into, lot] of [
-    [sheets.mech, '+ Load cargo', 'Load cargo into the mech hold', 'Salvaged Plating'],
-    [sheets.crawler, '+ Stow cargo', 'Stow cargo into the Storage Bay', 'Sealed Crate'],
+  for (const [path, into, lot] of [
+    [sheets.mech, 'Load cargo into the Mech hold', 'Salvaged Plating'],
+    [sheets.crawler, 'Stow cargo into the Storage Bay', 'Sealed Crate'],
   ] as const) {
     await page.goto(`${base}${path}`, { waitUntil: 'networkidle' })
     await waitForReady(page)
     await editSheet(page)
-    // An empty hold in Edit is one button until it is opened.
-    const opener = page.getByRole('button', { name: open, exact: true })
     const adder = page.getByRole('button', { name: into })
-    await opener.or(adder).first().waitFor(LONG)
-    if (await opener.isVisible()) await opener.click()
+    await adder.waitFor(LONG)
     await adder.scrollIntoViewIfNeeded()
     await adder
       .locator('xpath=ancestor::*[.//input[@aria-label="New cargo name"]][1]')
@@ -114,13 +103,13 @@ async function seedCarried(
   }
 }
 
-/** "+ New Game" from the Play hub, named; resolves to the new Game's id, its page open. */
+/** "+ New Game" from Your Games, named; resolves to the new Game's id, its page open. */
 export async function createGame(page: Page, name: string, base = ''): Promise<string> {
-  await openApp(page, '/play/', base)
+  await openApp(page, '/games/', base)
   await page.getByRole('button', { name: '+ New Game' }).click()
   await page.getByLabel('New Game name').fill(name)
   await page.getByRole('button', { name: 'Create', exact: true }).click()
-  await page.waitForURL(/\/play\/games\/[^/]+$/, LONG)
+  await page.waitForURL(/\/games\/[^/]+$/, LONG)
   const id = new URL(page.url()).pathname.split('/').pop()
   if (!id) throw new Error(`No Game id in ${page.url()}`)
   // The Game's own page is up: its band names it, as the page's h1.
@@ -135,7 +124,7 @@ export async function createGame(page: Page, name: string, base = ''): Promise<s
 export async function makeInviteLink(page: Page): Promise<string> {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
   await page.getByRole('button', { name: 'Copy invite link' }).click()
-  // The copy control's own swap and its polite status (chrome.md K5), never a toast.
+  // The copy control's own swap and its polite status (chrome K5), never a toast.
   await page
     .getByRole('status')
     .filter({ hasText: /^Copied$/ })
@@ -159,6 +148,7 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
 
   await openApp(page, '/', base)
   const pilot = await sheetPath(page, 'pilot', SEED_IN_GAME)
+  const solo = await sheetPath(page, 'pilot', SEED_SOLO)
   const mech = await sheetPath(page, 'mech')
   const crawler = await sheetPath(page, 'crawler')
   await seedCarried(page, base, { pilot, mech, crawler })
@@ -168,7 +158,8 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   const game = new URL(page.url()).pathname
   await page.getByRole('button', { name: 'Appoint' }).click()
   await page.getByRole('alertdialog').getByRole('button', { name: 'Appoint' }).click()
-  await page.getByText('You mediate').waitFor(LONG)
+  // The hub's band offers Mediate once the Organizer is appointed.
+  await page.getByRole('link', { name: 'Mediate', exact: true }).waitFor(LONG)
   const token = await makeInviteLink(page)
 
   // Bonesaw moves in from the Training Bay's ⋯ menu.
@@ -192,12 +183,14 @@ export async function seedAccount(page: Page, base = ''): Promise<Seed> {
   await page.waitForURL(/\/build\/npcs\/(?!new)/, LONG)
   const npc = new URL(page.url()).pathname
 
-  // Play's screens: the player's is the pilot's own, `/play/<id>`; the
+  // Play's screens: each pilot's own page's Play mode, `/pilots/<id>/play`; the
   // Mediator's is the Game's own, which its Compact offers only once a group
   // session is live (Start group session until then), so it is the Game's path.
   const pilotId = pilot.match(/\/pilots\/([^/?#]+)/)?.[1]
   if (!pilotId) throw new Error(`no pilot id in ${pilot}`)
-  const playSolo = await playDoor(page, `Play ${SEED_SOLO} solo`, base)
+  const soloId = solo.match(/\/pilots\/([^/?#]+)/)?.[1]
+  if (!soloId) throw new Error(`no pilot id in ${solo}`)
+  const playSolo = appPath(cockpitPath(soloId))
   const playMediator = `${game}/mediate`
 
   return {

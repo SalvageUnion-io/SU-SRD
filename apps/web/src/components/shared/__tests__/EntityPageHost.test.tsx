@@ -8,11 +8,13 @@ import { describe, expect, test } from 'bun:test'
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import type { RefEntity, RefObjectAnyPattern } from 'salvageunion-reference'
 import { SalvageUnionReference, toEntityModel } from 'salvageunion-reference'
-import { Mention, useDetailModal } from '../../index'
+import { useDetailModal } from '../../app'
+import { EntitySurfaceProvider, Mention } from '../../index'
 import { EntityPageHost } from '../EntityPageHost'
+import { srdEntityExternalLink } from '../srdEntityExternalLink'
 
 const vulnerable = () => {
-  const trait = SalvageUnionReference.Traits.getByName('vulnerable')
+  const trait = SalvageUnionReference.Traits.getByName('Vulnerable')
   if (!trait) throw new Error('vulnerable fixture missing')
   return toEntityModel(trait).ref
 }
@@ -46,6 +48,42 @@ describe('EntityPageHost', () => {
     })
     const dialog = await screen.findByRole('dialog')
     expect(dialog.textContent?.toLowerCase()).toContain('vulnerable')
+  })
+
+  test('its prose links the names the Reference links (Pilot Equipment, Tech Level)', async () => {
+    const ability = SalvageUnionReference.Abilities.getByName('Jury Rig')
+    if (!ability) throw new Error('jury rig fixture missing')
+    render(
+      <EntityPageHost>
+        <Mention entityRef={toEntityModel(ability).ref}>Jury Rig</Mention>
+      </EntityPageHost>
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Jury Rig' }))
+    })
+    const dialog = await screen.findByRole('dialog')
+    for (const name of ['Pilot Equipment', 'Tech Level']) {
+      expect(within(dialog).getAllByRole('button', { name }).length).toBeGreaterThan(0)
+    }
+  })
+
+  test("the dialog's cite links each book to its Reference page, a plain anchor", async () => {
+    const ability = SalvageUnionReference.Abilities.getByName('Jury Rig')
+    if (!ability) throw new Error('jury rig fixture missing')
+    const AppRoute = ({ href, ...rest }: { href: string }) => <a href={`/build${href}`} {...rest} />
+    render(
+      <EntitySurfaceProvider value={{ linkAs: AppRoute, externalLink: srdEntityExternalLink }}>
+        <EntityPageHost>
+          <Mention entityRef={toEntityModel(ability).ref}>Jury Rig</Mention>
+        </EntityPageHost>
+      </EntitySurfaceProvider>
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Jury Rig' }))
+    })
+    const dialog = await screen.findByRole('dialog')
+    const book = within(dialog).getByRole('link', { name: /^Workshop Manual/ })
+    expect(book.getAttribute('href')).toBe('/sources/salvage-union-workshop-manual/')
   })
 
   test("a pattern's PATTERN OF chip opens its chassis's Page in the dialog", async () => {

@@ -14,18 +14,21 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { getEntitySlug, nameToSlug, SalvageUnionReference } from 'salvageunion-reference'
 import { isWeaponSystem } from 'salvageunion-reference/rules'
 import { must } from '../../../components/__tests__/must'
 import { useUnits } from '../../../replica/units'
 import {
+  addOne,
   clickButton,
   clickNext,
   fillIdentity,
   getNextButton,
-  pickByName,
+  getStep,
+  isPicked,
   pickRadio,
+  removeOne,
   withWizardStore,
 } from '../../__tests__/wizardHarness'
 import { CrawlerWizard } from '../CrawlerWizard'
@@ -40,23 +43,16 @@ function renderWizard() {
   return render(<CrawlerWizard onComplete={() => {}} onCancel={() => {}} />)
 }
 
-/** Choose `type` (radio cards), then on past Statistics to the Armament Bay. */
+/** Choose `type` (a row's radio), then on to the Armament Bay. */
 async function walkToArmament(type: string): Promise<void> {
   await waitFor(() => screen.getByRole('radio', { name: type }))
   await pickRadio(type)
-  await clickNext() // Statistics
   await clickNext() // -> Armament Bay
 }
 
-/** Expand a crew roster row by pressing its shut Mini, a button named for the entity. */
+/** Open a crew row's fields: the row's radio, named for its Bay or type. */
 async function expandRow(name: string): Promise<void> {
-  const card = screen
-    .getAllByRole('button')
-    .find((b) => (b.getAttribute('aria-label') ?? '').startsWith(name))
-  if (!card) throw new Error(`No clickable roster card for "${name}"`)
-  await act(async () => {
-    fireEvent.click(card)
-  })
+  await pickRadio(name)
 }
 
 /**
@@ -126,11 +122,10 @@ describe('CrawlerWizard — create mode', () => {
     })
   })
 
-  it('step 2 displays fixed TL1 statistics with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
+  it('step 1 shows the fixed TL1 statistics under the pick, with the derived SP breakdown (Battle 20 + 5 = 25)', async () => {
     renderWizard()
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickRadio('Battle')
-    await clickNext() // -> Statistics
 
     const breakdown = screen.getByTestId('sp-breakdown')
     expect(breakdown.textContent).toContain('20 + 5 type bonus')
@@ -148,11 +143,11 @@ describe('CrawlerWizard — create mode', () => {
     const tl2 = weaponSystemAtTL(2)
     const nonWeapon = nonWeaponSystemAtTL(1)
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: tl1.name })).toBeTruthy()
+      expect(screen.getByRole('radio', { name: tl1.name })).toBeTruthy()
     })
     // Higher-TL weapons are FILTERED OUT (never rendered), as are non-weapons.
-    expect(screen.queryByRole('button', { name: tl2.name })).toBeNull()
-    expect(screen.queryByRole('button', { name: nonWeapon.name })).toBeNull()
+    expect(screen.queryByRole('radio', { name: tl2.name })).toBeNull()
+    expect(screen.queryByRole('radio', { name: nonWeapon.name })).toBeNull()
   })
 
   it('gates the Armament step on the minimum-1 weapon mount', async () => {
@@ -164,7 +159,7 @@ describe('CrawlerWizard — create mode', () => {
     expect(screen.getByText(/Mount at least one Weapons System/i)).toBeTruthy()
 
     const weapon = weaponSystemAtTL(1)
-    await pickByName(weapon.name)
+    await addOne(weapon.name)
     expect(getNextButton().disabled).toBe(false)
   })
 
@@ -177,23 +172,22 @@ describe('CrawlerWizard — create mode', () => {
     const [first, second] = weapons
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
+      expect(getStep(must(first).name, 'Increase').disabled).toBe(false)
     })
-    expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
+    expect(getStep(must(second).name, 'Increase').disabled).toBe(false)
 
-    // Install one — the count hits the cap and the other cards disable
-    // (a disabled card drops its role=button, so it is no longer pickable).
-    await pickByName(must(first).name)
+    // Mount one — the count hits the cap and every other row's + is off.
+    await addOne(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
-    expect(screen.queryByRole('button', { name: must(second).name })).toBeNull()
-    // The installed card stays interactive so it can be swapped out.
-    expect(screen.getByRole('button', { name: must(first).name })).toBeTruthy()
+    expect(getStep(must(second).name, 'Increase').disabled).toBe(true)
+    // The mounted row's − stays live so it can be swapped out.
+    expect(getStep(must(first).name, 'Decrease').disabled).toBe(false)
 
-    // Removing it frees the slot — the other weapon becomes selectable again.
-    await pickByName(must(first).name)
+    // Removing it frees the slot — the other weapon can be mounted again.
+    await removeOne(must(first).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('0/1')
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: must(second).name })).toBeTruthy()
+      expect(getStep(must(second).name, 'Increase').disabled).toBe(false)
     })
   })
 
@@ -203,21 +197,20 @@ describe('CrawlerWizard — create mode', () => {
 
     const weapons = weaponSystemsUpToTL(1)
     const [first, second] = weapons
-    await waitFor(() => screen.getByRole('button', { name: must(first).name }))
-    await pickByName(must(first).name)
-    await pickByName(must(second).name)
+    await waitFor(() => screen.getByRole('radio', { name: must(first).name }))
+    await addOne(must(first).name)
+    await addOne(must(second).name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('2/2')
 
     // Back to step 1: switching Battle → Engineering re-clamps to 1 slot,
     // dropping the NEWEST mount.
     await clickButton(/Crawler Type/i)
     await pickRadio('Engineering')
-    await clickNext() // Statistics
     await clickNext() // -> Armament Bay
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/1')
   })
 
-  it('walks every book step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
+  it('walks every step and creates a TL1 Battle crawler seeded at the DERIVED full SP', async () => {
     const onComplete = mock(() => {})
     render(<CrawlerWizard onComplete={onComplete} onCancel={() => {}} />)
 
@@ -227,30 +220,27 @@ describe('CrawlerWizard — create mode', () => {
     // --- Step 1: Choose a Crawler Type ---
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
     await pickRadio('Battle')
-    await clickNext()
-
-    // --- Step 2: Note your Crawler Statistics (display-only) ---
+    // The book's Statistics step (display-only) stands under the pick.
     expect(screen.getByTestId('sp-breakdown')).toBeTruthy()
     await clickNext()
 
-    // --- Step 3: Arm the Armament Bay (min 1, Tech 1 weapons) ---
+    // --- Step 2: Arm the Armament Bay (min 1, Tech 1 weapons) ---
     const tl1 = weaponSystemAtTL(1)
-    await pickByName(tl1.name)
+    await addOne(tl1.name)
     expect(screen.getByTestId('weapon-system-count').textContent).toContain('1/')
     await clickNext()
 
-    // --- Step 4: Name your Crew (roster rows → IdentityFields) ---
+    // --- Step 3: Name your Crawler and its crew leads (crew rows → fields) ---
     await expandRow('Battle')
-    await fillIdentity('Edit grizzled veteran name', 'Vex')
-    await fillIdentity('Edit grizzled veteran motto', 'No retreat')
+    await fillIdentity('grizzled veteran name', 'Vex')
+    await fillIdentity('grizzled veteran motto', 'No retreat')
     await expandRow('Command Bay')
-    await fillIdentity('Edit princeps name', 'Maddox')
-    await fillIdentity('Edit princeps keepsake', 'A medal')
-    await clickNext()
+    await fillIdentity('princeps name', 'Maddox')
+    await fillIdentity('princeps keepsake', 'A medal')
 
-    // --- Step 5: Name your Crawler (+ scrap pool; NO upgrade pool input) ---
+    // The Crawler's name (+ scrap pool; NO upgrade pool input), in the same step.
     expect(screen.queryByLabelText(/Upgrade Pool/i)).toBeNull()
-    await fillIdentity('Edit crawler name', 'Bay Wagon')
+    await fillIdentity('crawler name', 'Bay Wagon')
     fireEvent.change(screen.getByLabelText(/Scrap T2/i), { target: { value: '3' } })
     await clickNext()
 
@@ -303,9 +293,8 @@ describe('CrawlerWizard — create mode', () => {
   it('name gate: cannot reach Create with an empty name', async () => {
     renderWizard()
     await walkToArmament('Battle')
-    await pickByName(weaponSystemAtTL(1).name) // satisfy the min-1 mount
-    await clickNext() // Crew
-    await clickNext() // Name
+    await addOne(weaponSystemAtTL(1).name) // satisfy the min-1 mount
+    await clickNext() // Name & Crew Leads
 
     // Name left empty — Next stays disabled, Review/Create is unreachable.
     expect(getNextButton().disabled).toBe(true)
@@ -343,7 +332,7 @@ describe('CrawlerWizard — preselected type', () => {
       />
     )
     await waitFor(() => screen.getByRole('radio', { name: 'Battle' }))
-    expect(screen.getByRole('radio', { name: 'Battle' }).getAttribute('aria-checked')).toBe('true')
+    expect(isPicked('Battle')).toBe(true)
     expect(getNextButton().disabled).toBe(false)
   }, 30000)
 })

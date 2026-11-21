@@ -17,11 +17,15 @@
  * - `slab-style`: a `style` prop on a `<Slab`: its spacing is its
  *   container's (`SlabSection`'s gap, or `flush` in a spaced column).
  *
- * ## Stats render through Stat (hard rule R36, ruleset §3.7, §6.2)
+ * ## Stats render through Stat (ruleset §3.7, §6.2)
  *
  * - `raw-dl`: a JSX `<dl>`, `<dt>` or `<dd>` outside the Stat atoms
  *   (`STAT_ATOMS`): a labelled value is a `Stat`, a text value too, and the
  *   stat column is a layout of them.
+ *
+ * ## A compared or picked list is one Ledger (ledger.md L9)
+ *
+ * - `raw-table`: a JSX `<table>` outside its homes (`TABLE_HOMES`).
  */
 
 import { readFileSync } from 'node:fs'
@@ -37,16 +41,35 @@ const isTest = (rel: string) => rel.includes('/__tests__/') || /\.test\.tsx?$/.t
 /** The one home of a Slab-headed section (ruleset §6.4). */
 const SLAB_SECTION_HOME = 'apps/web/src/components/containers/SlabSection.tsx'
 
-/** The Stat atoms: the only place a description list's markup may appear (R36). */
+/** The Stat atoms: the only place a description list's markup may appear (§3.7). */
 const STAT_ATOMS = [
   'apps/web/src/components/atoms/Stat.tsx',
   'apps/web/src/components/atoms/StatColumn.tsx',
+  // A sheet's written fields, a masthead's traits, the Scrap board (§3.7, its list form).
+  'apps/web/src/components/atoms/Facts.tsx',
+  // A sheet masthead's fixed figures, label over figure (§3.7, the strip form).
+  'apps/web/src/components/atoms/Strip.tsx',
 ]
 
 /** The description list's elements. */
 const DL_ELEMENTS = new Set(['dl', 'dt', 'dd'])
 
-export type MarkupFindings = { section: Finding[]; style: Finding[]; dl: Finding[] }
+/** Where a `<table>` may be drawn (ledger.md L9): a list compared or picked from is a Ledger. */
+const TABLE_HOMES: Record<string, string> = {
+  'apps/web/src/components/entity/Ledger.tsx': 'the Ledger',
+  'apps/web/src/components/entity/LedgerOpen.tsx': "the Ledger's open form, a sheet's lists (L1)",
+  'apps/web/src/components/compositions/RollTableInstrument.tsx': 'the roll instrument (R8)',
+  'apps/web/src/reference/pages/api.page.tsx':
+    "a document page's schema table: prose, no entity list",
+  'apps/web/src/build/account/MetricsScreen.tsx': "the site's own metrics read-out: no entity list",
+}
+
+export type MarkupFindings = {
+  section: Finding[]
+  style: Finding[]
+  dl: Finding[]
+  table: Finding[]
+}
 
 /**
  * Each hand-built Slab section, styled Slab and description-list element in
@@ -55,8 +78,8 @@ export type MarkupFindings = { section: Finding[]; style: Finding[]; dl: Finding
  * `dl`, a `<dl>`, `<dt>` or `<dd>` outside the Stat atoms.
  */
 export function markupFindings(rel: string, source: string): MarkupFindings {
-  const out: MarkupFindings = { section: [], style: [], dl: [] }
-  if (!/<(?:Slab|dl|dt|dd)\b/.test(source)) return out
+  const out: MarkupFindings = { section: [], style: [], dl: [], table: [] }
+  if (!/<(?:Slab|dl|dt|dd|table)\b/.test(source)) return out
   const file = parseTsx(rel, source)
   const lines = source.split('\n')
   walk(file.program, (node, ancestors) => {
@@ -66,6 +89,9 @@ export function markupFindings(rel: string, source: string): MarkupFindings {
     const text = lines[line - 1]?.trim() ?? ''
     if (DL_ELEMENTS.has(name) && !STAT_ATOMS.includes(rel)) {
       out.dl.push({ file: rel, line, detail: `a raw <${name}>: ${text}` })
+    }
+    if (name === 'table' && !(rel in TABLE_HOMES)) {
+      out.table.push({ file: rel, line, detail: `a raw <table>: ${text}` })
     }
     if (name !== 'Slab') return undefined
     const parent = ancestors.at(-1)
@@ -100,9 +126,16 @@ export const MARKUP_RULES: (Rule & { scan: (root: string) => Finding[] })[] = [
   {
     id: 'raw-dl',
     mode: 'zero',
-    rule: 'hard rule R36 (ruleset §3.7, §6.2) — every labelled value is a `Stat`, a text value too; no hand-built <dl>, <dt> or <dd>',
+    rule: 'ruleset §3.7 (§6.2) — every labelled value is a `Stat`, a text value too; no hand-built <dl>, <dt> or <dd>',
     fix: 'Render `<Stat label="Mediator" value="Crewmate (you)" size="compact" wrap />` (Compact beside Compact controls); a column of them is `StatColumn`. A field to write keeps its label (`Field`, its edit state included).',
     scan: (root) => scanMarkup(root, 'dl'),
+  },
+  {
+    id: 'raw-table',
+    mode: 'zero',
+    rule: 'ledger.md L9 — a list compared or picked from is one `Ledger`: no raw <table> outside `Ledger`, the roll instrument and a document page',
+    fix: 'Render `<Ledger tone=… nameLabel=… label=… columns={…} rows={…} />` (components/index): its columns in the stat order (§2.6), its sources on `foot`, a picker through `select`. A roll table is `RollTableInstrument`. The homes are TABLE_HOMES (packages/gates/rules/chromeMarkup.ts).',
+    scan: (root) => scanMarkup(root, 'table'),
   },
   {
     id: 'slab-section',

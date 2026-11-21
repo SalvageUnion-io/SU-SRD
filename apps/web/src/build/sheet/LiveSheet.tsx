@@ -25,7 +25,6 @@ import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import type { EntitySurfaceValue } from '../../components/index'
 import {
-  Badge,
   Button,
   ChapterBand,
   Chips,
@@ -40,7 +39,9 @@ import {
   tokens,
 } from '../../components/index'
 import { buildSheetCopy } from '../../messages/build-sheet'
-import type { BandStamp } from './bandStamps.model'
+import type { BandStamp, PatternStamp } from './bandStamps.model'
+import { RailActs } from './RailActs'
+import { SheetBarStrip } from './SheetBarStrip'
 import type { SheetBand } from './sheetViewProps.model'
 
 /** The band's strip draws only the host's stamps: the unit's own chips are its body's. */
@@ -57,11 +58,11 @@ type SheetUnitOut = { stamp: string; note: string }
 
 /** Each sheet's kind, for its h1's screen-reader text (never a stamp, EDL E9). */
 const KIND_LABEL: Record<SheetVariant, string> = {
-  pilot: 'Pilot',
-  mech: 'Mech',
-  crawler: 'Union Crawler',
-  npc: 'NPC',
-  encounter: 'Encounter',
+  pilot: buildSheetCopy('kindPilotLabel'),
+  mech: buildSheetCopy('kindMechLabel'),
+  crawler: buildSheetCopy('kindCrawlerLabel'),
+  npc: buildSheetCopy('kindNpcLabel'),
+  encounter: buildSheetCopy('kindEncounterLabel'),
 }
 
 /** The chapter band each sheet wears: its own tone, and Denizens navy for an NPC and an encounter. */
@@ -100,6 +101,8 @@ export type LiveSheetStripItem = {
 type LiveSheetProps = {
   variant: SheetVariant
   name: string
+  /** A pilot's real name after the callsign, plain words on the title's baseline. */
+  nameAside?: string
   /** Condensed-bar MiniStat readouts (values live, from the entity record). */
   strip?: LiveSheetStripItem[]
   /**
@@ -121,10 +124,12 @@ type LiveSheetProps = {
   band?: SheetBand
   /**
    * What it is built as: a pilot's class, a mech's chassis, a crawler's type —
-   * a `CLASS | Engineer` chip that opens and Peeks the entity it names. Not
-   * shown when it only repeats the name (the Starter Set's Scrapper).
+   * a `CLASS | Engineer` chip that opens and Peeks the entity it names, always
+   * (ADR-066: a mech names its chassis even when its name is the chassis's).
    */
   kindDetail?: BandStamp
+  /** A mech's pattern (`PATTERN | Nimble Hauler`), linked to its page. */
+  fromPattern?: PatternStamp | undefined
   /**
    * Where it came from, when not a blank build (R49): the
    * Starter Set (`seedRef`) is a STARTER KIT chip, a saved pattern
@@ -158,10 +163,11 @@ type LiveSheetProps = {
   quoted?: boolean
 }
 
-/** Sticky bar height (design: 58/66px). */
-const BAR_HEIGHT_PX = 58
+/** Sticky bar height: one compact row. */
+const BAR_HEIGHT_PX = 48
 
-const ROOT = { background: 'var(--color-wk-bg)', minHeight: '100dvh' } satisfies CSSProperties
+/** As tall as its content; `#root`'s column keeps the foot on the window's edge. */
+const ROOT = { background: 'var(--color-wk-bg)' } satisfies CSSProperties
 
 /**
  * The sticky bar's anchor: sticky at the top, but no height, so at rest the
@@ -177,42 +183,49 @@ const BAR_ANCHOR = {
 /** The bar, over the page from its anchor. Its gutter (`.su-sheet-gutter`) widens at sm. */
 const BAR = {
   alignItems: 'center',
-  background: 'var(--color-wk-bg)',
+  // The band in brief, in the unit's own paint.
+  background: 'var(--su-kind, var(--color-wk-bg))',
   // No black rule under the app's nav: the lift alone
   // sets it off the page it floats over.
   boxShadow: tokens.shadow.lift,
   columnGap: tokens.space[16],
-  display: 'flex',
+  // `display` is `.su-sheet-bar`'s, so paper's `data-print="hide"` passes it.
   flexWrap: 'wrap',
   insetInline: 0,
   minHeight: `${BAR_HEIGHT_PX}px`,
-  paddingBlock: tokens.space[8],
+  paddingBlock: tokens.space[4],
   position: 'absolute',
   rowGap: tokens.space[4],
   top: 0,
-  transitionDuration: tokens.duration.fast,
-  transitionProperty: 'opacity, visibility',
+  transitionDuration: 'var(--dur-fast)',
+  transitionProperty: 'opacity, visibility, translate',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
 
 /** Scrolled past the sentinel: the bar fades in. */
-const BAR_SHOWN = { ...BAR, opacity: 1, visibility: 'visible' } satisfies CSSProperties
+const BAR_SHOWN = {
+  ...BAR,
+  opacity: 1,
+  translate: '0 0',
+  visibility: 'visible',
+} satisfies CSSProperties
 
 /** At rest it is not there to see, click or read. */
 const BAR_HIDDEN = {
   ...BAR,
   opacity: 0,
   pointerEvents: 'none',
+  translate: '0 -100%',
   visibility: 'hidden',
 } satisfies CSSProperties
 
 const STRIP = {
-  alignItems: 'center',
+  alignItems: 'stretch',
   display: 'flex',
-  flexWrap: 'wrap',
+  flexWrap: 'nowrap',
   gap: tokens.space[8],
   minWidth: 0,
-  transitionDuration: tokens.duration.base,
+  transitionDuration: 'var(--dur-base)',
   transitionProperty: 'opacity, transform',
   transitionTimingFunction: tokens.ease,
 } satisfies CSSProperties
@@ -220,8 +233,7 @@ const STRIP = {
 const STRIP_SHOWN = { ...STRIP, opacity: 1, translate: '0 0' } satisfies CSSProperties
 
 // At rest it is out of the flow as well as invisible: an invisible strip
-// still took the bar's first row on a phone and pushed Share and ⋯ onto a
-// row of their own.
+// still took the bar's first row on a phone, pushing Share and ⋯ down.
 const STRIP_HIDDEN = {
   ...STRIP,
   opacity: 0,
@@ -229,14 +241,6 @@ const STRIP_HIDDEN = {
   position: 'absolute',
   translate: '0 5px',
   visibility: 'hidden',
-} satisfies CSSProperties
-
-/** The condensed name wraps rather than cutting to "…" (EDL E18). */
-const NAME_STAMP = {
-  display: 'block',
-  maxWidth: '100%',
-  overflowWrap: 'anywhere',
-  whiteSpace: 'normal',
 } satisfies CSSProperties
 
 const BAR_END = {
@@ -307,31 +311,28 @@ function useCondensed(target: RefObject<HTMLElement | null>): boolean {
 export function LiveSheet({
   variant,
   name,
+  nameAside,
   strip = [],
   segments,
   renderBody,
   actions,
   band,
-  kindDetail,
+  kindDetail: stamp,
+  fromPattern,
   source,
   rank,
   out,
   userMade,
   quoted = false,
 }: LiveSheetProps) {
-  // A 1px sentinel directly beneath the bar, NOT the identity block: the bar
-  // should seam and fill the moment you scroll past IT, rather than waiting for
-  // a whole region to clear the viewport.
+  // A 1px sentinel beneath the bar, NOT the identity block: the bar seams and
+  // fills the moment you scroll past IT, not once a whole region clears.
   const topRef = useRef<HTMLDivElement | null>(null)
+  // The one sticky bar, at every width: the name and the vitals in brief.
   const condensed = useCondensed(topRef)
 
-  // A chip that only repeats the name says nothing (the Starter Set's Scrapper).
-  const stamp =
-    kindDetail && kindDetail.name.toLowerCase() !== name.trim().toLowerCase()
-      ? kindDetail
-      : undefined
-
   const title = quoted ? `“${name}”` : name
+  const game = band?.game
 
   return (
     // The page's one `<main>` landmark, on every surface that draws a sheet
@@ -365,7 +366,7 @@ export function LiveSheet({
           aria-label={buildSheetCopy('sheetControls')}
           aria-hidden={!condensed}
           data-print="hide"
-          className="su-sheet-gutter"
+          className="su-sheet-gutter su-sheet-bar"
           style={condensed ? BAR_SHOWN : BAR_HIDDEN}
         >
           {/* Condensed identity + live MiniStat strip. At rest this is hidden —
@@ -381,27 +382,16 @@ export function LiveSheet({
               the name ahead of the hero h1 was the first match for a text
               query, and a hidden duplicate is noise to every reader. */}
             {condensed && (
-              <>
-                <Badge shape="stamp" size="full" style={NAME_STAMP}>
-                  {title}
-                </Badge>
-                {strip.map((item) => (
-                  <Stat
-                    key={item.key}
-                    label={item.label}
-                    value={item.max !== undefined ? `${item.value}/${item.max}` : item.value}
-                    // Non-priority readouts fold below sm so the condensed
-                    // bar leads with Heat + SP on phones.
-                    className={
-                      item.mobilePriority === false ? 'su-sheet-live-stat-fold' : undefined
-                    }
-                  />
-                ))}
-              </>
+              <SheetBarStrip
+                title={title}
+                nameAside={nameAside}
+                kind={stamp ? `${KIND_LABEL[variant]} · ${stamp.name}` : KIND_LABEL[variant]}
+                items={strip}
+              />
             )}
           </div>
 
-          {/* Each LINKED UNIT as its header-only Mini, never a chip (R5), on
+          {/* Each LINKED UNIT as its header-only Mini, never a chip (C11), on
             the right beside the sheet actions: a
             hop straight to that pilot / mech / crawler, not a jump link to a
             section at the foot of the page. They ride the condensed state with
@@ -412,6 +402,13 @@ export function LiveSheet({
             `segments` already carries the wired set (it drives the mobile
             switcher below); the active one is this sheet, so it is skipped. */}
           <div style={BAR_END}>
+            {/* The band's acts, compact, at the end. */}
+            {condensed && (band?.actions || actions) && (
+              <div className="su-sheet-bar__acts">
+                {band?.actions}
+                {actions}
+              </div>
+            )}
             {condensed && segments?.some((segment) => !segment.active) && (
               <LinkedUnits
                 linked={segments
@@ -444,15 +441,16 @@ export function LiveSheet({
         asideAt="notch"
         corner={
           band?.actions || actions ? (
-            <>
+            // The acts ride the area rail.
+            <RailActs>
               {band?.actions}
               {actions}
-            </>
+            </RailActs>
           ) : undefined
         }
         aside={
           <>
-            {/* One `Chips` strip (C2a), each stamp in its class's lane: the
+            {/* One `Chips` strip (C2), each stamp in its class's lane: the
                 marks, the rank, what it is built as and who made it (the
                 relations), then the unit-out state. Nothing to stamp, none. */}
             <Chips
@@ -463,8 +461,9 @@ export function LiveSheet({
                 <>
                   {(userMade || source === 'homebrew') && <HomebrewStamp size="full" />}
                   {source === 'starter' && <Stat label={buildSheetCopy('starterKit')} />}
-                  {/* Its name is a pattern's: it says so. */}
-                  {quoted && <Stat label={buildSheetCopy('pattern')} />}
+                  {/* Its name is a pattern's: it says so, unless the PATTERN
+                      relation names the pattern. */}
+                  {quoted && !fromPattern && <Stat label={buildSheetCopy('pattern')} />}
                 </>
               }
               nodes={{
@@ -483,8 +482,28 @@ export function LiveSheet({
                       ) : (
                         <Stat label={stamp.label} value={stamp.name} wrap />
                       ))}
+                    {fromPattern &&
+                      (fromPattern.href || fromPattern.page ? (
+                        <Tag
+                          tag={relation('pattern', buildSheetCopy('pattern'), fromPattern.name, {
+                            href: fromPattern.href,
+                            page: fromPattern.page,
+                          })}
+                          linkable
+                          wrap
+                        />
+                      ) : (
+                        <Stat label={buildSheetCopy('pattern')} value={fromPattern.name} wrap />
+                      ))}
                     {userMade && (
                       <Stat label={buildSheetCopy('madeBy')} value={userMade.madeBy} wrap />
+                    )}
+                    {game && (
+                      <Tag
+                        tag={relation('game', buildSheetCopy('game'), game.name, game)}
+                        linkable
+                        wrap
+                      />
                     )}
                   </>
                 ),
@@ -538,6 +557,7 @@ export function LiveSheet({
         }
       >
         {title}
+        {nameAside && <span className="su-title-aka">{nameAside}</span>}
         {/* The kind is never stamped (EDL E9): the h1 says it to screen readers. */}
         <KindLabel kind={KIND_LABEL[variant]} />
       </ChapterBand>

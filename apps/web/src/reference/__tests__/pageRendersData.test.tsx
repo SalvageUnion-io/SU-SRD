@@ -12,8 +12,9 @@
  * static card for an entity whose card is an island (`EntityView`: the island
  * is not server-rendered, and it draws this same card).
  *
- * What a page deliberately does not print is named in `NOT_PRINTED` with its
- * reason; a stale entry fails too, so the list cannot outlive the gap.
+ * What a page deliberately does not print is named in `NOT_PRINTED` (a field)
+ * or `REWORDED_BY_THE_ACTION` (one paragraph) with its reason; a stale entry
+ * fails too, so neither list can outlive the gap.
  */
 
 import { describe, expect, test } from 'bun:test'
@@ -59,6 +60,8 @@ const NOT_TEXT = new Set([
   'entityLayout',
   // A pattern prints on its own page, walked there.
   'patterns',
+  // Play tags quote their block's own words, which the page prints in full.
+  'notInPlay',
 ])
 
 /**
@@ -91,8 +94,22 @@ const NOT_PRINTED: Record<string, string> = {
   // Blade") is read by nothing yet, and a source's edition and store link have
   // no place on its page.
   'chassis .systems[].preselectedChoices.*': 'known gap: not read by any surface',
-  'sources .purchaseLink': 'known gap: no store link on a source page',
+  'sources .purchaseLink': "a link: the band's Buy this book",
   'sources .version': 'known gap: no edition on a source page',
+}
+
+/**
+ * Single paragraphs a page does not print, by `<page> <record path>`, each
+ * named by its opening words. A custom weapon states a rule on the equipment
+ * and again, reworded, on its self-action; the page prints the action's
+ * (`resolveBodyBlocks`).
+ */
+const REWORDED_BY_THE_ACTION: Record<string, readonly string[]> = {
+  '/equipment/custom-sniper-rifle/ .content[].value': [
+    'Choose if your Custom Sniper Rifle is',
+    'At each Tech Level, you may select',
+  ],
+  '/equipment/custom-missile-launcher/ .content[].value': ['At each Tech Level, you may select'],
 }
 
 type Found = { path: string; text: string }
@@ -170,9 +187,14 @@ type RouteModule = {
   page: (ctx: never) => { children: ReactNode }
 }
 
-/** Every string a page drops, as `<schema> <path>` → the pages and text. */
-function drops(): Map<string, string[]> {
+/**
+ * Every string a page drops, as `<schema> <path>` → the pages and text, less
+ * the paragraphs `REWORDED_BY_THE_ACTION` names: those are `reworded`, each
+ * `<page> <record path> <opening>`.
+ */
+function drops(): { missing: Map<string, string[]>; reworded: Set<string> } {
   const missing = new Map<string, string[]>()
+  const reworded = new Set<string>()
   const run = (module: RouteModule, isPattern: boolean) => {
     for (const route of module.getStaticPaths?.() ?? []) {
       const { schemaId, itemId, patternId } = route.params
@@ -194,6 +216,12 @@ function drops(): Map<string, string[]> {
         // each run of text around it must print.
         const runs = value.split('[(CHASSIS)]').map(fold)
         if (runs.every((run) => text.includes(run)) || text.includes(fold(bare(value)))) continue
+        const page = `${pathname} ${path}`
+        const opening = REWORDED_BY_THE_ACTION[page]?.find((words) => value.startsWith(words))
+        if (opening) {
+          reworded.add(`${page} ${opening}`)
+          continue
+        }
         const key = `${schemaId} ${path}`
         missing.set(key, [...(missing.get(key) ?? []), `${pathname}: ${value.slice(0, 80)}`])
       }
@@ -201,11 +229,11 @@ function drops(): Map<string, string[]> {
   }
   run(itemPage as unknown as RouteModule, false)
   run(patternPage as unknown as RouteModule, true)
-  return missing
+  return { missing, reworded }
 }
 
 describe('every entity page prints its record', () => {
-  const missing = drops()
+  const { missing, reworded } = drops()
 
   test('no field is dropped but those NOT_PRINTED names', () => {
     const unexplained = [...missing.entries()]
@@ -216,6 +244,13 @@ describe('every entity page prints its record', () => {
 
   test('every NOT_PRINTED entry still names a real gap', () => {
     const stale = Object.keys(NOT_PRINTED).filter((key) => !missing.has(key))
+    expect(stale).toEqual([])
+  })
+
+  test('every reworded paragraph is still one the page leaves to its action', () => {
+    const stale = Object.entries(REWORDED_BY_THE_ACTION).flatMap(([page, openings]) =>
+      openings.map((opening) => `${page} ${opening}`).filter((key) => !reworded.has(key))
+    )
     expect(stale).toEqual([])
   })
 })

@@ -1,14 +1,16 @@
 import { MechSchema } from 'game-domain/schemas/mech'
+import type { ReactNode } from 'react'
 import { useMemo } from 'react'
+import type { BookCite, ChoiceSelections } from 'salvageunion-reference'
 import { bookQuote, nameToSlug } from 'salvageunion-reference'
 import { computeMechCapacity, MECH_CREATION_SCRAP_CAP } from 'salvageunion-reference/rules'
 import { toast } from '../../components/index'
-import type { MechWizardStepId } from '../../lib/rules/creation'
 import {
   clampMechCreationDraft,
   mechCreationBudgetFor,
   mechCreationStepGate,
 } from '../../lib/rules/creation'
+import { withItemChoice } from '../../lib/wizard/itemChoices'
 import type { MechPattern, MechWizardFormState } from '../../lib/wizard/mechFormState'
 import {
   EMPTY_MECH_FORM_STATE,
@@ -18,56 +20,43 @@ import {
 import { withMechPreselection } from '../../lib/wizard/preselect'
 import { mechCopy } from '../../messages/build-mech'
 import { routesCopy } from '../../messages/routes'
-import { GainScrapStep } from '../wizard/GainScrapStep'
 import { MechFlavorStep } from '../wizard/MechFlavorStep'
 import type { StepRule } from '../wizard/RuleBrief'
 import { RuleBrief } from '../wizard/RuleBrief'
 import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
-import { WizShell, WizTracker } from '../wizard/WizShell'
-import { CraftItemsStep } from './CraftItemsStep'
+import { WizTracker } from '../wizard/WizBudget'
+import { WizShell } from '../wizard/WizShell'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'
+import { MechLoadoutStep } from './MechLoadoutStep'
 import { MechReviewStep } from './MechReviewStep'
-import { MechStatsStep } from './MechStatsStep'
 
-/** Book-order steps (Mech Workshop pp.94–95 + Review). */
-const STEPS: readonly MechWizardStepId[] = [
-  'scrap',
-  'chassis',
-  'stats',
-  'systems',
-  'modules',
-  'quirk',
-  'appearance',
-  'pattern',
-  'review',
-]
+/**
+ * The book's nine steps (pp.94–95) as four, each one a decision (N6: a step
+ * asks for something). "Gain Scrap" is step 1's cited rule; "Note down your
+ * Statistics" is the picked chassis's card; Systems and Modules share a step;
+ * Quirk and Appearance share one; the name leads the review. The book's own
+ * words stay in the rule briefs.
+ */
+type MechStep = 'chassis' | 'loadout' | 'look' | 'review'
 
-/** Stepper-rail labels. */
-const STEP_LABELS: Record<MechWizardStepId, string> = {
-  scrap: 'Gain Scrap',
-  chassis: 'Craft your Chassis',
-  stats: 'Mech Statistics',
-  systems: 'Craft your Systems',
-  modules: 'Craft your Modules',
-  quirk: 'Quirk',
-  appearance: 'Appearance',
-  pattern: 'Pattern name',
-  review: 'Review',
+const STEPS: readonly MechStep[] = ['chassis', 'loadout', 'look', 'review']
+
+/** Stepper-rail labels (also the Next button's: it names the step it opens). */
+const STEP_LABELS: Record<MechStep, string> = {
+  chassis: mechCopy('chassis'),
+  loadout: mechCopy('systemsModules'),
+  look: mechCopy('quirkLook'),
+  review: mechCopy('nameReview'),
 }
 
-/** Step headings — the book's own step names (pp.94–95). */
-const STEP_TITLES: Record<MechWizardStepId, string> = {
-  scrap: 'Gain Scrap',
-  chassis: 'Craft your Mech Chassis',
-  stats: 'Note down your Mech’s Statistics',
-  systems: 'Craft your Systems',
-  modules: 'Craft your Modules',
-  quirk: 'Choose your Quirk',
-  appearance: 'Describe your Mech’s Appearance',
-  pattern: 'Give your Mech a Name',
-  review: 'Review',
+/** Step headings. */
+const STEP_TITLES: Record<MechStep, string> = {
+  chassis: mechCopy('chooseAChassis'),
+  loadout: mechCopy('craftYourSystemsAnd'),
+  look: mechCopy('giveItAQuirk'),
+  review: mechCopy('nameYourMechAnd'),
 }
 
 type MechWizardProps = {
@@ -85,20 +74,26 @@ type MechWizardProps = {
   preselectPattern?: MechPattern
 }
 
+/** Where the book prints each list's rule (the lists' feet). */
+const BOOK = 'Salvage Union Workshop Manual'
+const LIST_CITES = {
+  systems: { source: BOOK, page: 95, see: [{ label: mechCopy('systems'), page: [162, 187] }] },
+  modules: { source: BOOK, page: 95, see: [{ label: mechCopy('modules'), page: [188, 207] }] },
+} satisfies Record<string, BookCite>
+
 /**
- * Multi-step mech wizard on the shared WizShell skeleton, restructured to
- * the Mech Workshop's 8 book steps + Review with the
- * 20-Scrap economy enforced HARD (§5):
+ * The mech wizard on the shared WizShell skeleton: the Mech Workshop's book
+ * steps as four (above), with the 20-Scrap economy enforced HARD (§5):
  *
  *   - illegal options are FILTERED OUT (Tech 1 chassis/systems/modules only;
  *     only `legalStarting` patterns in the prefill strip) — never rendered;
  *   - every purchase debits one shared 20-Scrap pool (`mechCreationBudget`
  *     on scrapCostFor) and the per-step slot budgets (computeMechCapacity);
- *     a `+` that would overspend disables, an unaffordable card dims with a
- *     reason chip — visible, never hidden;
+ *     a `+` that would overspend disables, an unaffordable line dims and
+ *     says why — visible, never hidden;
  *   - exactly 1 chassis (radio); systems/modules are OPTIONAL;
  *     the pattern name is required — Next is gated by `mechCreationStepGate`
- *     and the unmet requirement renders in the footerNote;
+ *     and the unmet requirement shows on the step (`footerNote`);
  *   - chassis change refunds + wipes the loadout with a toast; draft-restore
  *     clamping is a deterministic knapsack (newest copies dropped first),
  *     always announced by toast;
@@ -136,8 +131,14 @@ export function MechWizard({
     noun: 'mech',
     steps: STEPS,
     stepLabels: STEP_LABELS,
-    gateFor: (s) => mechCreationStepGate(s, form),
-    initialStep: 'scrap',
+    // A merged step answers to its book steps' own gates.
+    gateFor: (s) =>
+      s === 'chassis'
+        ? mechCreationStepGate('chassis', form)
+        : s === 'review'
+          ? mechCreationStepGate('review', form)
+          : mechCreationStepGate('systems', form),
+    initialStep: 'chassis',
     submitStep: 'review',
     form,
     draftKey,
@@ -157,7 +158,7 @@ export function MechWizard({
 
   // ---------------------------------------------------------------------------
   // Budgets — the single source of truth (§5): the same numbers drive the
-  // trackers, every SelCard's `+`/reason chip, and the Review gate.
+  // trackers, every line's `+` and reason, and the Review gate.
   // ---------------------------------------------------------------------------
   const budget = useMemo(() => mechCreationBudgetFor(form), [form])
 
@@ -170,8 +171,6 @@ export function MechWizard({
       }),
     [form.chassisName, form.systems, form.modules]
   )
-  const systemSlotsRemaining = Math.max(0, capacity.systemSlotsMax - capacity.systemSlotsUsed)
-  const moduleSlotsRemaining = Math.max(0, capacity.moduleSlotsMax - capacity.moduleSlotsUsed)
 
   /**
    * Chassis pick (radio). Changing the chassis REFUNDS its scrap and wipes
@@ -238,15 +237,22 @@ export function MechWizard({
     })
   }
 
-  /** Step 8 names the mech, and so its pattern; the book pattern it started from stays as provenance. */
+  /** The name is the mech's, and so its pattern's; the book pattern it started from stays as provenance. */
   function setMechName(value: string) {
     updateForm({ name: value })
   }
 
+  /** An option chosen on an installed item (`Mech.itemChoices`), saved with the mech. */
+  function setItemChoice(slug: string, next: ChoiceSelections) {
+    setForm((prev) => ({ ...prev, itemChoices: withItemChoice(prev.itemChoices, slug, next) }))
+  }
+
   // Per-step RuleBrief: the Core Book's own Mech Workshop copy, pp.94–95,
   // each quote a `bookQuote` so the rules-fidelity lock holds it to the book.
-  const stepRule: StepRule = (() => {
-    switch (step) {
+  // Kept by the book step each part of a step answers to.
+  type BookStep = 'scrap' | 'systems' | 'modules' | 'quirk' | 'appearance' | 'pattern'
+  const ruleFor = (bookStep: BookStep): StepRule => {
+    switch (bookStep) {
       case 'scrap':
         return {
           rule: bookQuote(
@@ -254,33 +260,9 @@ export function MechWizard({
             'You start with 20 Tech 1 Scrap. You will use this Scrap to craft your first Mech. This is built out of a Tech 1 Mech Chassis and any number of Tech 1 Systems and Modules installed on the Mech Chassis. Any spare Scrap you have after this can be stored in your Union Crawler and be used later on in the game.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 94,
             see: [{ label: mechCopy('theUnionCrawler'), page: 212 }],
-          },
-        }
-      case 'chassis':
-        return {
-          rule: bookQuote(
-            { source: 'Salvage Union Workshop Manual', page: 94 },
-            'Craft a Tech 1 Mech Chassis of your choice from the Mech Chassis Blueprints list. This costs an amount of Tech 1 Scrap equal to its Salvage Value as per the normal crafting rules. For example, a Mule Mech has a Salvage Value of 7 so would cost 7 Tech 1 Scrap to craft.'
-          ),
-          cite: {
-            source: 'Salvage Union Workshop Manual',
-            page: 94,
-            see: [{ label: mechCopy('mechChassis'), page: [100, 159] }],
-          },
-        }
-      case 'stats':
-        return {
-          rule: bookQuote(
-            { source: 'Salvage Union Workshop Manual', page: 95 },
-            'Your Mech has a set of statistics unique to its Chassis. This includes its Structure Points, Heat Capacity, Energy Points, System Slots, Module Slots, Salvage Value, Type, and Chassis Ability. Note these down on your Mech Sheet.'
-          ),
-          cite: {
-            source: 'Salvage Union Workshop Manual',
-            page: 95,
-            see: [{ label: mechCopy('mechStatistics'), page: 96 }],
           },
         }
       case 'systems':
@@ -290,7 +272,7 @@ export function MechWizard({
             'You now craft Tech 1 Systems from the System Blueprints list to install on your Mech. Each System costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Locomotion System has a Salvage Value of 2, so costs 2 Tech 1 Scrap to craft. A Mech can only install as many Systems as it has System slots.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 95,
             see: [{ label: mechCopy('theSystemList'), page: 162 }],
           },
@@ -302,7 +284,7 @@ export function MechWizard({
             'Next, you may craft Tech 1 Modules from the Module Blueprints list to install on your Mech. Each Module costs its Salvage Value in Tech 1 Scrap to craft, as per the normal crafting rules. For example, a Comms Module has a Salvage Value of 1, so costs 1 Tech 1 Scrap to craft. A Mech can only install as many Modules as it has Module Slots.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 95,
             see: [{ label: mechCopy('theModulesList'), page: 188 }],
           },
@@ -314,7 +296,7 @@ export function MechWizard({
             'In addition to the Systems and Modules you have installed in your Mech, you can also give it a unique Quirk that will make it stand out from other Mechs. For example, their comms and sensor array could look like rabbit ears or they might make beeping noises when being operated. Either roll on the Quirks Table or create one yourself.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 95,
             see: [{ label: mechCopy('quirksTable'), page: 208 }],
           },
@@ -326,7 +308,7 @@ export function MechWizard({
             'Describe the appearance of your Mech. The Mech Chassis is simply an example of the Mech in its stock form before a salvager gets their hands on it. Your Mech can take on any appearance that you can imagine.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 94,
             see: [{ label: mechCopy('mechAppearanceTable'), page: 208 }],
           },
@@ -338,76 +320,73 @@ export function MechWizard({
             'Finally give your Mech a unique pattern name that marks it as your own creation. This could be something like ‘Butcher’, ‘Slinky’, ‘Bullseye’, or ‘Roach’. For example: if you built a Mule with Zoom Optics and a Red Laser, you might want to call it a ‘Bullseye Pattern Mule’.'
           ),
           cite: {
-            source: 'Salvage Union Workshop Manual',
+            source: BOOK,
             page: 94,
             see: [{ label: mechCopy('patternNameTable'), page: 209 }],
           },
         }
-      case 'review':
-        return {
-          rule: 'Check the build, then create your Mech. Whatever Scrap you did not spend banks to your Union Crawler.',
-          cite: { source: 'Salvage Union Workshop Manual', page: [94, 95] },
-        }
     }
-  })()
+  }
+  const brief = (bookStep: BookStep) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold />
+  }
 
-  // Tracker tabs in the action pill: the SCRAP tab debuts on step 1 and rides
-  // along wherever scrap can move; the slot pip chips join on their own
-  // crafting steps.
+  /** A part of a step: its field in the brief's frame, over the book's words for it. */
+  const part = (bookStep: BookStep, field: ReactNode) => {
+    const { rule, cite } = ruleFor(bookStep)
+    return (
+      <RuleBrief rule={rule} cite={cite} className="su-wiz-rule-brief" fold>
+        {field}
+      </RuleBrief>
+    )
+  }
+
+  // The action bar's budgets. Scrap rides every step that can spend it; the
+  // slot counts join it on step 2 from sm (a phone's bar is one budget, and
+  // the step's own meters show all three).
   const trackers = (() => {
     const scrap = (
+      // Spent, as the slots read filled: every budget counts up to its cap.
       <WizTracker
-        label={mechCopy('scrap')}
-        value={budget.remaining}
+        label={mechCopy('scrapSpent')}
+        value={MECH_CREATION_SCRAP_CAP - budget.remaining}
         max={MECH_CREATION_SCRAP_CAP}
-        testId="scrap-remaining"
+        testId="scrap-spent"
       />
     )
     switch (step) {
-      case 'systems':
+      case 'loadout':
         return (
           <>
             {scrap}
-            <WizTracker
-              label={mechCopy('systemSlots')}
-              value={capacity.systemSlotsUsed}
-              max={capacity.systemSlotsMax}
-              pips
-              testId="system-slot-count"
-            />
+            <span className="su-wiz-pill-wide">
+              <WizTracker
+                label={mechCopy('systemSlots')}
+                value={capacity.systemSlotsUsed}
+                max={capacity.systemSlotsMax}
+                testId="system-slot-count"
+              />
+            </span>
+            <span className="su-wiz-pill-wide">
+              <WizTracker
+                label={mechCopy('moduleSlots')}
+                value={capacity.moduleSlotsUsed}
+                max={capacity.moduleSlotsMax}
+                testId="module-slot-count"
+              />
+            </span>
           </>
         )
-      case 'modules':
-        return (
-          <>
-            {scrap}
-            <WizTracker
-              label={mechCopy('moduleSlots')}
-              value={capacity.moduleSlotsUsed}
-              max={capacity.moduleSlotsMax}
-              pips
-              testId="module-slot-count"
-            />
-          </>
-        )
-      case 'quirk':
-      case 'appearance':
-      case 'pattern':
-        return undefined // flavor steps: nothing debits — keep the pill quiet
+      case 'look':
+        return undefined // flavor step: nothing debits — keep the bar quiet
       default:
         return scrap
     }
   })()
 
-  // Systems/modules are OPTIONAL — say so where a player might
-  // expect a block; otherwise surface the gate reason on a locked Next.
-  const footerNote = !gate.ok
-    ? gate.reason
-    : step === 'systems'
-      ? 'Systems are optional · spare slots are fine'
-      : step === 'modules'
-        ? 'Modules are optional · spare slots are fine'
-        : undefined
+  // A locked Next's reason, on the step it locks.
+  const footerNote = !gate.ok ? gate.reason : undefined
 
   return (
     <WizShell
@@ -420,70 +399,83 @@ export function MechWizard({
       footerNote={footerNote}
       submitLabel={mechCopy('createMech')}
     >
-      <RuleBrief rule={stepRule.rule} cite={stepRule.cite} className="su-wiz-rule-brief" fold />
-      {step === 'scrap' && <GainScrapStep />}
       {step === 'chassis' && (
-        <MechChassisStep
-          chassisName={form.chassisName}
-          patternName={form.patternName}
-          onSelectChassis={selectChassis}
-          onSelectPattern={selectPattern}
-          onSelectCustom={selectCustom}
-        />
+        <>
+          {/* The book's "Gain Scrap" step asks nothing: it is step 1's cited rule. */}
+          {brief('scrap')}
+          <MechChassisStep
+            chassisName={form.chassisName}
+            patternName={form.patternName}
+            onSelectChassis={selectChassis}
+            onSelectPattern={selectPattern}
+            onSelectCustom={selectCustom}
+          />
+        </>
       )}
-      {step === 'stats' && <MechStatsStep chassisName={form.chassisName} />}
-      {step === 'systems' && (
-        <CraftItemsStep
-          kind="systems"
-          selected={form.systems}
-          onCountChange={(name, next) => setInstallCount('systems', name, next)}
-          scrapRemaining={budget.remaining}
-          slotsRemaining={systemSlotsRemaining}
-        />
+      {step === 'loadout' && (
+        <>
+          <div className="su-wiz-parts">
+            {brief('systems')}
+            {brief('modules')}
+          </div>
+          <MechLoadoutStep
+            systems={form.systems}
+            modules={form.modules}
+            onCountChange={setInstallCount}
+            scrapRemaining={budget.remaining}
+            slots={{
+              systems: { used: capacity.systemSlotsUsed, max: capacity.systemSlotsMax },
+              modules: { used: capacity.moduleSlotsUsed, max: capacity.moduleSlotsMax },
+            }}
+            choices={form.itemChoices}
+            onChoices={setItemChoice}
+            cites={LIST_CITES}
+          />
+        </>
       )}
-      {step === 'modules' && (
-        <CraftItemsStep
-          kind="modules"
-          selected={form.modules}
-          onCountChange={(name, next) => setInstallCount('modules', name, next)}
-          scrapRemaining={budget.remaining}
-          slotsRemaining={moduleSlotsRemaining}
-        />
-      )}
-      {step === 'quirk' && (
-        <MechFlavorStep
-          field="quirk"
-          label={mechCopy('quirk')}
-          value={form.quirk}
-          onChange={(quirk) => updateForm({ quirk })}
-          placeholder={mechCopy('eGRattletrapSoundsLike')}
-        />
-      )}
-      {step === 'appearance' && (
-        <MechFlavorStep
-          field="appearance"
-          label={mechCopy('appearance')}
-          value={form.appearance}
-          onChange={(appearance) => updateForm({ appearance })}
-          placeholder={mechCopy('howItLooksPlatingPaint')}
-          multiline
-        />
-      )}
-      {step === 'pattern' && (
-        <MechFlavorStep
-          field="patternName"
-          label={mechCopy('namePattern')}
-          value={form.name}
-          onChange={setMechName}
-          placeholder={mechCopy('eGBullseyePatternMule')}
-          note={mechCopy('aMechsNameIsIts')}
-        />
+      {step === 'look' && (
+        // Each part is one box, the field over the book's words for it, the
+        // two side by side where there is room.
+        <div className="su-wiz-parts">
+          {part(
+            'quirk',
+            <MechFlavorStep
+              field="quirk"
+              label={mechCopy('quirk')}
+              value={form.quirk}
+              onChange={(quirk) => updateForm({ quirk })}
+              placeholder={mechCopy('eGRattletrapSoundsLike')}
+            />
+          )}
+          {part(
+            'appearance',
+            <MechFlavorStep
+              field="appearance"
+              label={mechCopy('appearance')}
+              value={form.appearance}
+              onChange={(appearance) => updateForm({ appearance })}
+              placeholder={mechCopy('howItLooksPlatingPaint')}
+              multiline
+            />
+          )}
+        </div>
       )}
       {step === 'review' && (
         <MechReviewStep
           form={form}
           submitError={submitError}
           bankedScrap={Math.max(0, budget.remaining)}
+          capacity={capacity}
+          namePart={part(
+            'pattern',
+            <MechFlavorStep
+              field="patternName"
+              label={mechCopy('mechName')}
+              value={form.name}
+              onChange={setMechName}
+              placeholder={mechCopy('eGBullseyePatternMule')}
+            />
+          )}
         />
       )}
     </WizShell>

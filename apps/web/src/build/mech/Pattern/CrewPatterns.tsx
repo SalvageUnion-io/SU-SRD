@@ -9,7 +9,7 @@
 
 import { parseMechPattern } from 'game-domain/schemas/pattern'
 import type { CSSProperties } from 'react'
-import { Entity, quotePatternName, SlabSection, tokens } from '../../../components/index'
+import { Entity, quotePatternName, SlabSection } from '../../../components/index'
 import { AppLink } from '../../../components/shared/AppLink'
 import {
   asReferencePattern,
@@ -19,15 +19,14 @@ import {
 import { useCrewPatterns } from '../../../lib/sharing/reads'
 import { mechCopy } from '../../../messages/build-mech'
 import { useSync } from '../../../replica/syncContext'
+import type { CSSVarStyle } from '../../../styles/cssVars'
 
 const LIST = {
-  display: 'grid',
-  gap: tokens.space[12],
-  gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 18rem), 1fr))',
+  '--su-grid-min': '18rem',
   listStyle: 'none',
   margin: 0,
   padding: 0,
-} satisfies CSSProperties
+} satisfies CSSVarStyle
 
 const LINK = { color: 'inherit', display: 'block', textDecoration: 'none' } satisfies CSSProperties
 
@@ -45,7 +44,7 @@ export function CrewPatterns() {
 
   return (
     <SlabSection id="crew-patterns" title={mechCopy('sharedByYourCrew')}>
-      <ul style={LIST}>
+      <ul className="su-grid" style={LIST}>
         {rows.map(({ appId, pattern, chassis, madeBy, gameName }) => (
           <li key={appId}>
             <AppLink

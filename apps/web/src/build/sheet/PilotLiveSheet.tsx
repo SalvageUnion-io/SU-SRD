@@ -4,7 +4,7 @@
  *
  * The body owns the identity band (Workshop-Manual layout): `PilotSheet`
  * renders the `SheetHero` band as its first region. This
- * component's remaining job is the condensed strip and the Assigned units
+ * component's remaining job is the condensed strip and the Related units
  * (`assignedUnitsFor`), handed to `PilotSheet` as `linkedUnits`.
  */
 
@@ -38,6 +38,7 @@ export function PilotLiveSheet({
   hrefFor,
   withheld,
   patch,
+  liveInRead = false,
 }: PilotLiveSheetProps) {
   // Stat Training follows the pilot's crawler tier (linked crawler, else the
   // manual `crawlerLevel`) — the same level the body sheet derives from.
@@ -55,11 +56,11 @@ export function PilotLiveSheet({
     { key: 'ap', label: buildSheetCopy('ap'), value: ap, max: maxAP },
   ]
 
-  // Assigned units: the mech it flies and the crawler it crews; an empty
+  // Related units: the mech it flies and the crawler it crews; an empty
   // crawler place stands in the hand-set crawler level until one is assigned.
   const rail = assignedRail(
     { kind: 'pilot', entity: pilot },
-    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable },
+    { composition, withheld, storeState, holds, hrefFor, ownerOf, editable, liveInRead },
     {
       crawler: (
         <Stat
@@ -73,10 +74,18 @@ export function PilotLiveSheet({
     }
   )
 
+  // The band's title is the callsign; a real name that differs follows it as
+  // plain words.
+  const callsign = pilot.callsign.trim() || pilot.name
+  const givenName = pilot.name.trim()
+  const realName =
+    givenName !== '' && givenName.toLowerCase() !== callsign.toLowerCase() ? givenName : undefined
+
   return (
     <LiveSheet
       variant="pilot"
-      name={pilot.name}
+      name={callsign}
+      nameAside={realName}
       strip={strip}
       segments={segments}
       band={band}
@@ -85,7 +94,7 @@ export function PilotLiveSheet({
       out={
         isPilotDead(statInput)
           ? {
-              stamp: 'Killed in Action',
+              stamp: buildSheetCopy('killedInAction'),
               note: buildSheetCopy('injuriesHaveReducedThisPilots'),
             }
           : undefined
@@ -96,6 +105,8 @@ export function PilotLiveSheet({
           pilot={pilot}
           store={store}
           readOnly={readOnly}
+          // Read keeps HP, AP and TP live for whoever may write the sheet (R11).
+          live={liveInRead}
           crawlerReadOnly={crawlerReadOnly}
           linkedUnits={rail}
         />

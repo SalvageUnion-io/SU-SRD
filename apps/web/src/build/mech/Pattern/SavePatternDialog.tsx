@@ -15,10 +15,9 @@
 import type { Mech } from 'game-domain/schemas/mech'
 import type { CSSProperties } from 'react'
 import { useState } from 'react'
+import { DialogActions, FieldError } from '../../../components/app'
 import {
   Button,
-  DialogActions,
-  FieldError,
   Input,
   ModalShell,
   PatternListing,

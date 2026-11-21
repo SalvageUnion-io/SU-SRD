@@ -4,22 +4,23 @@
  * - **On a chassis page** (`chassisRef`): a "Show Homebrew" switch under the
  *   book's patterns. On, it lists the patterns players built on this chassis
  *   and share with everyone on the Reference. The switch is the reader's, held
- *   in this browser, so it stays as set from one chassis to the next. Under it,
- *   a phone's one "Show all N patterns" counts the book's and these; until it
- *   is pressed a phone shows the first two of them all.
+ *   in this browser, so it stays as set from one chassis to the next.
  * - **On `/homebrew/`** (no `chassisRef`): every one, newest share first.
  *
- * Each is listed as the book's patterns are (`PatternListing`): its
- * description and loadout under a head with the HOMEBREW stamp and its
- * maker beside it (`BY | Rosa`), opening its own page in the app (where it
- * can be copied, reported or hidden).
+ * They are listed as a chassis page lists the book's patterns: one Ledger
+ * (ledger.md L1), a line a pattern, its name opening its own page in the app
+ * (where it can be copied, reported or hidden), then its chassis, its maker
+ * and its loadout. Homebrew reads as ruleset §3.9 has it: a solid frame, the
+ * dashed HOMEBREW stamp beside the title tab, the makers credited, the foot
+ * saying whose it is.
  * The players' rows come from the Worker (`lib/homebrew/homebrew.ts`); nothing
  * is fetched until the switch is on.
  */
 
 import { useEffect, useState } from 'react'
+import type { RefMetaEntity } from 'salvageunion-reference'
+import { toEntityModel } from 'salvageunion-reference'
 import type { HomebrewRow } from '../../lib/homebrew/endpoint'
-import type { HomebrewEntry } from '../../lib/homebrew/homebrew'
 import {
   fetchHomebrewPatterns,
   homebrewItems,
@@ -30,14 +31,19 @@ import {
 import { getSchemaPreloadList } from '../../lib/schemaPreloadDeps'
 import { islandsCopy } from '../../messages/components-islands'
 import { clientSwap } from '../../runtime/clientSwap'
+import { CiteLine } from '../atoms/CiteLine'
 import { Toggle } from '../atoms/Toggle'
 import { loadingCopy } from '../containers/loadingCopy'
 import { SlabSection } from '../containers/SlabSection'
+import { paintFor } from '../entity'
+import { useEntitySurface } from '../entity/entitySurfaceContext'
+import type { LedgerColumn } from '../entity/Ledger'
+import { Ledger } from '../entity/Ledger'
 import { GameDataGate } from '../GameDataGate'
-import { Stat, Text } from '../index'
+import { Text } from '../index'
 import { ReferenceSurface } from '../ReferenceSurface'
-import { PatternListing, ShowAllPatterns } from '../referenceEntity/card/PatternListRow'
-import { PATTERNS_ON_A_PHONE } from '../referenceEntity/card/patternsOnAPhone'
+import { HomebrewStamp } from '../referenceEntity/card/HomebrewStamp'
+import { quotePatternName } from '../referenceEntity/pattern/quotePatternName'
 import { IslandErrorBoundary } from './IslandErrorBoundary'
 
 /** What a pattern's listing needs from the reference: a chassis page's own bundle (its parts' actions and traits too). */
@@ -67,48 +73,16 @@ function useHomebrew(on: boolean, chassisRef: string | undefined): Load {
   return load
 }
 
-/** No pattern of a chassis page's Homebrew is drawn under a down host. */
-const HOST = { hostDown: false, chassisName: undefined } as const
-
-/**
- * One homebrew pattern, listed as the book's are above it (`PatternListing`):
- * its head opening its page, the HOMEBREW stamp with its maker beside it, then
- * its description and loadout.
- */
-function HomebrewListing({ entry }: { entry: HomebrewEntry }) {
-  return (
-    <PatternListing
-      chassis={entry.chassis}
-      chassisName={entry.chassis.name}
-      pattern={entry.pattern}
-      host={HOST}
-      homebrew
-      href={entry.href}
-      credit={<Stat key="by" label={islandsCopy('homebrewBy')} value={entry.madeBy} size="mini" />}
-    />
-  )
-}
-
-function HomebrewList({
-  load,
-  empty,
-  shown = Number.POSITIVE_INFINITY,
-}: {
-  load: Load
-  empty: string
-  /** How many a phone shows before "Show all"; the rest wait for it. */
-  shown?: number
-}) {
+function HomebrewList({ load, empty }: { load: Load; empty: string }) {
   if (load.state === 'idle') return null
   return (
     <>
       <GameDataGate schemas={SCHEMAS} fallback={null}>
-        {/* The SRD's surface: a listing's loadout links to each part's page, as the book's do. */}
+        {/* The SRD's surface: the Ledger's band takes the page's texture. */}
         <ReferenceSurface>
-          <HomebrewGrid
+          <HomebrewLedger
             rows={load.state === 'ready' ? load.rows : []}
             empty={load.state === 'ready' ? empty : null}
-            shown={shown}
           />
         </ReferenceSurface>
       </GameDataGate>
@@ -123,96 +97,97 @@ function HomebrewList({
   )
 }
 
+const HOMEBREW_COLUMNS: readonly LedgerColumn[] = [
+  { key: 'chassis', label: islandsCopy('chassis'), kind: 'text', phone: true },
+  { key: 'by', label: islandsCopy('madeBy'), kind: 'text' },
+  { key: 'loadout', label: islandsCopy('loadout'), kind: 'line' },
+]
+
+/** A loadout's names as running text. */
+const names = (list: readonly { name: string }[] | undefined) =>
+  (list ?? []).map((entry) => entry.name)
+
 /** The rows that draw, once the reference data they resolve against is loaded. */
-function HomebrewGrid({
+function HomebrewLedger({
   rows,
   empty,
-  shown,
 }: {
   rows: HomebrewRow[]
   /** Said when there are none; null while the players' are still coming. */
   empty: string | null
-  shown: number
 }) {
   const entries = homebrewItems(rows).map(playerHomebrewEntry)
-  if (entries.length === 0) return empty === null ? null : <Text variant="hint">{empty}</Text>
+  const surface = useEntitySurface()
+  const first = entries[0]
+  if (!first) return empty === null ? null : <Text variant="hint">{empty}</Text>
   return (
-    <ul className="su-pattern-rows__list">
-      {entries.map((entry, i) => (
-        <li key={entry.key} className={i < shown ? undefined : 'su-homebrew__more'}>
-          <HomebrewListing entry={entry} />
-        </li>
-      ))}
-    </ul>
+    <Ledger
+      label={islandsCopy('homebrewPatterns')}
+      // The band is the chassis's (a mech's tone), as the book's patterns' is.
+      paint={paintFor(toEntityModel(first.chassis as RefMetaEntity).tone, {
+        texture: surface.texture,
+      })}
+      nameLabel={islandsCopy('patterns')}
+      count={entries.length}
+      mark={<HomebrewStamp size="mini" />}
+      columns={HOMEBREW_COLUMNS}
+      rows={entries.map((entry) => ({
+        id: entry.key,
+        name: quotePatternName(entry.pattern.name),
+        entityRef: undefined,
+        href: entry.href,
+        cells: [
+          entry.chassis.name,
+          entry.madeBy,
+          [...names(entry.pattern.systems), ...names(entry.pattern.modules)].join(', '),
+        ],
+      }))}
+      foot={<CiteLine text={islandsCopy('homebrewCite')} />}
+    />
   )
 }
 
 /** A chassis page's switch and, while it is on, that chassis's homebrew. */
-function ChassisHomebrew({
-  chassisRef,
-  bookPatterns,
-}: {
-  chassisRef: string
-  bookPatterns: number
-}) {
+function ChassisHomebrew({ chassisRef }: { chassisRef: string }) {
   const [on, setOn] = useState(false)
   // After mount: the server's render has no storage to read.
   useEffect(() => setOn(readShowHomebrew()), [])
   const load = useHomebrew(on, chassisRef)
-  // Counted as served: resolving them waits on the reference data (the gate below).
-  const homebrew = on && load.state === 'ready' ? load.rows.length : 0
   return (
-    <>
-      <SlabSection
-        id="homebrew-patterns"
-        title={islandsCopy('homebrewPatterns')}
-        page
-        className="su-homebrew"
-        actions={
-          <Toggle
-            pressed={on}
-            onClick={() => {
-              writeShowHomebrew(!on)
-              setOn(!on)
-            }}
-          >
-            {islandsCopy('showHomebrew')}
-          </Toggle>
-        }
-      >
-        {on ? (
-          <HomebrewList
-            load={load}
-            empty={islandsCopy('homebrewNoneOnChassis')}
-            shown={Math.max(0, PATTERNS_ON_A_PHONE - bookPatterns)}
-          />
-        ) : (
-          <Text variant="hint">{islandsCopy('homebrewOff')}</Text>
-        )}
-      </SlabSection>
-      <ShowAllPatterns
-        count={bookPatterns + homebrew}
-        target={bookPatterns > 0 ? 'patterns' : 'homebrew-patterns'}
-      />
-    </>
+    <SlabSection
+      id="homebrew-patterns"
+      title={islandsCopy('homebrewPatterns')}
+      page
+      className="su-homebrew"
+      actions={
+        <Toggle
+          pressed={on}
+          onClick={() => {
+            writeShowHomebrew(!on)
+            setOn(!on)
+          }}
+        >
+          {islandsCopy('showHomebrew')}
+        </Toggle>
+      }
+    >
+      {on ? (
+        <HomebrewList load={load} empty={islandsCopy('homebrewNoneOnChassis')} />
+      ) : (
+        <Text variant="hint">{islandsCopy('homebrewOff')}</Text>
+      )}
+    </SlabSection>
   )
 }
 
-export function HomebrewIsland({
-  chassisRef,
-  bookPatterns = 0,
-}: {
-  chassisRef?: string
-  /** How many patterns the book prints for the chassis, listed above. */
-  bookPatterns?: number
-}) {
+export function HomebrewIsland({ chassisRef }: { chassisRef?: string }) {
   const all = useHomebrew(chassisRef === undefined, undefined)
   return (
     <IslandErrorBoundary>
       {chassisRef === undefined ? (
         <HomebrewList load={all} empty={islandsCopy('homebrewNone')} />
       ) : (
-        <ChassisHomebrew chassisRef={chassisRef} bookPatterns={bookPatterns} />
+        <ChassisHomebrew chassisRef={chassisRef} />
       )}
     </IslandErrorBoundary>
   )

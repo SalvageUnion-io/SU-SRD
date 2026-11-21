@@ -92,3 +92,48 @@
     background-color var(--dur-phase) var(--ease),
     color var(--dur-phase) var(--ease);
 }
+
+/*
+ * A phone's band is one controls line, the title on
+ * its cut-out notched into the band's foot, under one crumb line on the band
+ * (the Game · the phase). Sentence case: capitals are the
+ * title's (principle 7).
+ */
+.su-play-bar--line {
+  padding-top: var(--space-6);
+  row-gap: var(--space-2);
+}
+.su-play-bar--line > .su-play-bar__crumb {
+  display: flex;
+  flex-basis: 100%;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  margin: 0;
+  min-width: 0;
+  white-space: pre;
+}
+.su-play-bar__crumb-game {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.su-play-bar--line > .su-play-bar__notch {
+  flex: 0 1 auto;
+  line-height: calc(var(--size-compact) + var(--space-4));
+  order: 0;
+  padding: 0 var(--space-12);
+}
+
+/* The dot on a tab with something waiting, in the tab's own ink: it marks, it
+   is no action (ruleset §3.1). */
+.su-play-tab-dot {
+  background: currentColor;
+  border-radius: 50%;
+  display: inline-block;
+  height: var(--space-8);
+  margin-left: var(--space-6);
+  vertical-align: 1px;
+  width: var(--space-8);
+}

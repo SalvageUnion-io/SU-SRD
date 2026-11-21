@@ -71,10 +71,10 @@ describe('ogMetaFor', () => {
     expect(meta.themeColor).toBe(tokens.color.mech)
   })
 
-  it('titles a lower-case glossary name as the book prints it', () => {
-    const bioTitan = SalvageUnionReference.Keywords.getByName('bio-titan')
+  it('titles a glossary name as the glossary spells it', () => {
+    const bioTitan = SalvageUnionReference.Keywords.getByName('Bio-titan')
     if (!bioTitan) throw new Error('no bio-titan keyword')
-    expect(ogMetaFor(ogCardFor('keywords', 'bio-titan', bioTitan)).ogTitle).toBe('Bio-Titan')
+    expect(ogMetaFor(ogCardFor('keywords', 'bio-titan', bioTitan)).ogTitle).toBe('Bio-titan')
   })
 })
 

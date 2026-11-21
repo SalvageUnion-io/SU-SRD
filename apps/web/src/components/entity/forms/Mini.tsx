@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useLayoutEffect, useRef } from 'react'
+import { useContext, useLayoutEffect, useRef } from 'react'
 import type { ChipContext, EntityInstance } from 'salvageunion-reference'
 import { tokenChips } from 'salvageunion-reference'
 import { cn } from '../../../lib/cn'
@@ -26,6 +26,7 @@ import type { TagItem } from '../parts/tagItems'
 import { tokenChipSet } from '../parts/tokenChipSet'
 import type { PeekAttrs } from '../peekContext'
 import { useInsidePeek, usePeekAttrs } from '../peekContext'
+import { RowDress, rowPaint } from '../rowDress'
 import type { EntityFormModel, EntityMode, EntityOmit } from '../types'
 
 /** The pill sets its name and chips in the caps recipe. */
@@ -43,7 +44,7 @@ export type MiniSlots = {
   tint?: string
   /**
    * What it is linked to, as relation chips before the cost (C11): a crewmate's
-   * `MECH | Scrapper`. Where its host names it (Play's Crew, R5), never a stamp.
+   * `MECH | Scrapper`. Where its host names it (Play's Crew, C11), never a stamp.
    */
   relations?: TagItem[]
   /** The host's state chip, after the cost box (C8): a damaged thing's condition, a reading. */
@@ -132,7 +133,7 @@ function ToggleSurface({
  * MINI — the shortform (§3): `name [chips]`, one size, at level 2 (E6) or in
  * a slot under 12rem (E3). Its chips are the budget its container's context
  * names (`tokenChips`, C3 and C4), then the cost box; an ability's tier numeral sits before
- * its name, as on its band. Its head is always one row (E18): every chip of
+ * its name, as on its band. Its head is always one row (C5): every chip of
  * its static budget whole (C3), never dropped or clipped, and the name takes
  * the rest, ending in "…" when that is too little (C5). Its kind is never
  * stamped (E9): screen readers hear it after the name (`KindLabel`); a player
@@ -194,9 +195,12 @@ export function Mini({
   const target = useLinkTarget(headMode, model.ref)
   const down = downOf(instance?.condition)
   const peek = usePeekAttrs(model.ref, slots.peekAt, down)
-  const paint = slots.tint
+  // Under a titled strip a Mini is a row.
+  const row = useContext(RowDress)
+  const tonePaint = slots.tint
     ? paintFor(slots.tint, { down: down === 'destroyed' ? down : true, texture: false })
     : paintFor(model.tone, { down, texture: false })
+  const paint = row ? rowPaint(tonePaint) : tonePaint
   const userMade = !!(model.userMade || instance?.userMade)
   const title = instance?.title ?? model.title
   const chips = tokenChips(model, context, {
@@ -244,6 +248,7 @@ export function Mini({
       // The pill is the frame: on an ink pill (a thing you do) its cells,
       // stamp and cost box read the ground in CSS (chrome K1).
       data-ground={paint.ink ? 'ink' : undefined}
+      data-row={row ? '' : undefined}
       data-user-made={userMade || undefined}
       title={userMade ? USER_MADE_TITLE : undefined}
       className={PILL}
@@ -266,7 +271,7 @@ export function Mini({
           from a thin strip of paint to its foot (a Compact's head, at Mini size). */}
       <span className="su-entity-mini__notch">
         {acts ? (
-          // The name is the link and the Peek trigger (C8, R6): the controls
+          // The name is the link and the Peek trigger (C8): the controls
           // sit beside it in the chip group, never inside a link.
           surface(
             'su-entity-mini__name su-entity-mini__link',

@@ -35,6 +35,7 @@ import {
 import type { CSSProperties } from 'react'
 import { useRef, useState } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
+import { Grid } from '../../components/app'
 import { RollMini } from '../../components/entity/forms/RollMini'
 import type { HeaderMenuItem } from '../../components/index'
 import {
@@ -42,7 +43,6 @@ import {
   CHAPTER_BAND_COLOR,
   EmptyState,
   Field,
-  Grid,
   HeaderMenu,
   MiniGrid,
   SearchField,

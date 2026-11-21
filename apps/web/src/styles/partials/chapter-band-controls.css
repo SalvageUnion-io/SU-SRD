@@ -1,0 +1,509 @@
+/*
+ * The package stylesheet: the chapter band's controls, aside and trail.
+ * `../index.css` imports the parts in cascade order.
+ */
+
+/* ON A PHONE, A PAGE'S CONTROLS ABOVE THE TITLE (ruleset §4.7, C2b): a band's
+   controls (the Training Bay's and a Game's buttons,
+   an index's search) are laid by CSS alone, never by the fill's measure, so
+   nothing moves when the script lands. They read in source order on lines
+   over the title, flush right; the title takes the bottom line, all of it.
+   A show page's stamps are chips, and fill beside the title as every head's
+   do, what does not fit the page's first row (C2b). */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* The break after the controls: the title starts the bottom line, its
+     cut-out its own width there. */
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill]::after {
+    flex: 0 0 100%;
+    height: 0;
+    order: 1;
+  }
+
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+    flex: 0 1 auto;
+    margin-inline-end: auto;
+    order: 2;
+  }
+
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    :is(
+      [data-fill-item],
+      .su-chip-lane > *,
+      .su-cost,
+      .su-chapter-band__aside > *,
+      .su-rail > *,
+      .su-rail__facets > *
+    ) {
+    margin-block: 0 var(--space-12);
+    order: 1;
+  }
+
+  .su-chapter-band[data-aside='controls'] .su-chapter-band__row[data-chip-fill] [data-fill-corner] {
+    max-width: 100%;
+  }
+
+  /* An index's controls are the exception: its
+     search and filters follow the title, under the band on a strip of the
+     page ground the band's width, as a notch aside's cluster does (below). */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside {
+    background-color: var(--color-wk-bg);
+    display: block;
+    /* The row's width and both its gutters: the strip spans the band. */
+    flex: 0 0 calc(100% + 2 * var(--space-16));
+    margin: 0 calc(-1 * var(--space-16));
+    /* It is the fill's corner, which a phone caps at the row's width. */
+    max-width: none;
+    order: 3;
+    padding: var(--space-12) var(--space-16) 0;
+  }
+
+  /* A lone button there is the line's width (the Discord page's install
+     button). */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > .su-btn:only-child {
+    width: 100%;
+  }
+
+  /* A select there is the line's width too, as the buttons over it are, its
+     chevron's wrapper (`Select`) with it. */
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > :is(select, span:has(> select)),
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    > span
+    > select {
+    display: block;
+    width: 100%;
+  }
+
+  .su-chapter-band[data-aside='controls']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__aside
+    :is(.su-rail, [data-fill-item], .su-rail > *, .su-rail__facets > *) {
+    margin-block: 0;
+  }
+}
+
+/* `asideAt="notch"` with an aside that is no chips (the front door's quote,
+   `ChapterBand`): never above the title. From `sm` they are one cluster at the row's far end, its
+   last line centred on the title's capitals, so a cluster that wraps grows up
+   the band, never down past the name; each child of the aside is a line of
+   it, right-aligned and wrapping. A phone has no room
+   beside the name, so the cluster follows it: below the band, on a strip of
+   the page ground the width of the band. */
+.su-chapter-band[data-aside='notch'] .su-chapter-band__row:not([data-chip-fill]) {
+  align-items: stretch;
+  gap: 0;
+  flex-direction: column;
+}
+
+.su-chapter-band[data-aside='notch']
+  .su-chapter-band__row:not([data-chip-fill])
+  > .su-chapter-band__title,
+.su-chapter-band[data-aside='notch']
+  .su-chapter-band__row:not([data-chip-fill])
+  > .su-chapter-band__plate,
+.su-chapter-band[data-aside='notch']
+  .su-chapter-band__row:not([data-chip-fill])
+  > .su-chapter-band__heading {
+  align-self: flex-start;
+}
+
+.su-chapter-band[data-aside='notch']
+  .su-chapter-band__row:not([data-chip-fill])
+  > .su-chapter-band__aside {
+  align-items: flex-start;
+  background-color: var(--color-wk-bg);
+  flex-direction: column;
+  margin-inline: calc(-1 * var(--space-16));
+  padding: var(--space-12) var(--space-16) 0;
+}
+
+.su-chapter-band[data-aside='notch']
+  .su-chapter-band__row:not([data-chip-fill])
+  > .su-chapter-band__aside
+  > * {
+  justify-content: flex-start;
+}
+
+/* Under the band on a phone the aside sits on the page ground, so an ink
+   band's chips and outlined controls there are the paper ground's again
+   (chrome K1, ruleset §7.1): an ink rule and an ink outline, never the
+   band's paper rule on paper. */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-ground='ink'][data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    .su-stat-cell {
+    border-color: var(--color-ink);
+  }
+
+  .su-chapter-band[data-ground='ink']:is([data-aside='notch'], [data-aside='controls'])
+    .su-chapter-band__aside
+    :is(.su-btn--default, .su-btn--ghost) {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+}
+
+@media (width >= 40rem) {
+  .su-chapter-band[data-aside='notch'] .su-chapter-band__row:not([data-chip-fill]) {
+    align-items: flex-end;
+    column-gap: var(--space-24);
+    flex-direction: row;
+  }
+
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__title,
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__plate,
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__heading {
+    align-self: flex-end;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  /* The aside takes all the room the name leaves, never under 40%, so a
+     busy cluster fills the line beside the name before it rises above it. */
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside {
+    align-items: flex-end;
+    background-color: transparent;
+    flex: 1 1 0;
+    margin-inline: auto 0;
+    min-width: 40%;
+    /* Its last line (Compact chips and buttons) centred on the middle of the
+       notch's capitals: the notch's baseline sits 0.076em above the band's
+       foot (Barlow Semi Condensed's descent less the half-leading of its 0.92
+       line) and its capitals' middle 0.352em above that. More lines stack up
+       the band. */
+    padding: 0 0 calc(var(--text-chapter) * 0.428 - var(--size-compact) / 2);
+  }
+
+  /* A quote (The app's front door) is not a line of chips: its foot sits on the
+     notch's baseline. */
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside:has(> figure) {
+    padding-bottom: calc(var(--text-chapter) * 0.076);
+  }
+
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row:not([data-chip-fill])
+    > .su-chapter-band__aside
+    > * {
+    justify-content: flex-end;
+  }
+}
+
+/* `action`, a show page's Share and "Build With This": the Union bar's
+   buttons, their height (the Compact Size, as the chips beside them) and
+   type, a chip's gap apart: one height on the line (R12). */
+.su-chapter-band__action {
+  --su-band-action: var(--size-compact);
+  column-gap: var(--space-8);
+  display: flex;
+  flex: none;
+}
+
+/* Share's Check stands in for its glyph while a copy has just landed
+   (`data-copied`, `lib/sharePage.ts`). */
+.su-share-page:not([data-copied]) .su-share-page__done,
+.su-share-page[data-copied] .su-share-page__rest {
+  display: none;
+}
+
+.su-chapter-band__action .su-page-action {
+  font-size: var(--text-caption);
+  height: var(--su-band-action);
+  letter-spacing: var(--tracking-caps-snug);
+  min-height: 0;
+  padding-inline: var(--space-14);
+}
+
+/* On a phone a show page's action keeps the Compact Size (§4.6: touch takes a
+   bigger Size) and stands above the title, flush right, by CSS alone (C2b):
+   the last item of the fill, a line of its own, which `wrap-reverse` lays
+   over the title's. Share is its glyph alone there, a square at that height
+   (its name stays its `aria-label`). */
+@media not (width >= 40rem) {
+  .su-chapter-band[data-aside='notch']
+    .su-chapter-band__row[data-chip-fill]
+    > .su-chapter-band__action {
+    flex: 0 0 100%;
+    justify-content: flex-end;
+    margin-block: 0 var(--space-8);
+    order: 1000;
+  }
+
+  .su-chapter-band__action {
+    column-gap: var(--space-8);
+  }
+
+  .su-chapter-band__action .su-share-page {
+    justify-content: center;
+    padding-inline: 0;
+    width: var(--su-band-action);
+  }
+
+  .su-chapter-band__action .su-share-page__label {
+    display: none;
+  }
+}
+
+/* The page's trail on its band (`ChapterBandTrail`): the notch's kicker, at
+   every width, on the cut-out above the name (`.su-chapter-band__plate`). The
+   ancestors in small ink caps, each followed by `//` (`SRD//CHASSIS//`); the
+   title under it names the page. The bar's trail and its row step aside. */
+.su-chapter-band__trail {
+  display: flex;
+  padding: var(--space-8) var(--space-12) 0;
+}
+
+/* biome-ignore lint/style/noDescendingSpecificity: a plate's title, never a notch row's own */
+.su-chapter-band__plate > .su-chapter-band__title {
+  padding-top: var(--space-4);
+}
+
+/* The trail no longer needs the band's room above the notch, so a band that
+   carries it closes up under the Union bar: a tighter header, more page. */
+.su-chapter-band__row:has(.su-chapter-band__plate) {
+  padding-top: var(--space-16);
+}
+
+@media (width >= 40rem) {
+  .su-chapter-band__trail {
+    padding: var(--space-12) var(--space-20) 0;
+  }
+
+  /* biome-ignore lint/style/noDescendingSpecificity: a plate's title, never a notch row's own */
+  .su-chapter-band__plate > .su-chapter-band__title {
+    padding-top: var(--space-6);
+  }
+
+  .su-chapter-band__row:has(.su-chapter-band__plate) {
+    padding-top: var(--space-24);
+  }
+}
+
+.su-crumbs--band {
+  display: flex;
+  font-size: var(--text-badge);
+  line-height: 1;
+}
+
+.su-crumbs--band .su-crumbs__list {
+  column-gap: var(--space-2);
+  flex-wrap: wrap;
+  row-gap: var(--space-4);
+}
+
+.su-crumbs--band .su-crumbs__link {
+  color: var(--color-ink-75);
+  text-decoration: none;
+}
+
+.su-crumbs--band .su-crumbs__link:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.su-crumbs--band .su-crumbs__separator {
+  color: var(--color-wk-muted);
+}
+
+@media (width >= 40rem) {
+  .su-crumbs--band {
+    font-size: var(--text-caption);
+  }
+}
+
+:root:has(.su-crumbs--band) :is(.su-crumbs--bar, .su-crumbs--row) {
+  display: none;
+}
+
+/* L-1: at the measure, a sheet band's corner controls and the foot keep the
+   page's edges too. */
+@media (width >= 80rem) {
+  .su-chapter-band:not([data-measured]) .su-chapter-band__corner {
+    padding-inline: var(--su-shell-edge);
+  }
+
+  .su-chapter-band[data-measured]
+    :is(.su-chapter-band__row, .su-chapter-band__eyebrow, .su-chapter-band__corner) {
+    padding-inline: 0;
+  }
+
+  /* A wizard too: its title, step rail and step keep the measure. */
+  .su-chapter-band:has(+ .su-wiz-body) .su-chapter-band__row {
+    padding-inline: var(--su-shell-edge);
+  }
+}
+
+/* With its acts on the rail the band's corner is empty: the band is the
+   title and its chips. */
+.su-chapter-band .su-chapter-band__corner:empty {
+  display: none;
+}
+
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: var(--space-32);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * RAIL AND BAND ARE ONE PAINT.
+ * The rail has no paint of its own: the band runs up behind it, so the
+ * colour and the speckle are the band's, unbroken, from the header's ink to
+ * the band's foot. The band is as tall as its title cut-out: nothing above
+ * the title now that the acts ride the rail.
+ * ══════════════════════════════════════════════════════════════════════ */
+
+/* With its acts on the rail the corner holds nothing: it takes no room. */
+.su-chapter-band .su-chapter-band__corner:not(:has(*)) {
+  display: none;
+}
+
+/* Nothing above the title: the cut-out stands from the band's top (under
+   the acts on a phone) to its foot. A front's eyebrow keeps a step of air. */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row,
+.su-chapter-band .su-chapter-band__corner:empty + .su-chapter-band__row {
+  padding-top: 0;
+}
+
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
+  padding-top: var(--space-8);
+}
+
+/* The band starts under the header's row, behind the rail (2.75rem). */
+@media (width >= 64rem) {
+  .su-chapter-band:not([role='dialog'] *) {
+    margin-top: -2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+    padding-top: 2.75rem; /* design-tokens-ignore(raw-spacing): the rail's height */
+  }
+
+  /* An app page's scroll sentinel (1px, pulled back by its own -1px margin)
+     stands before the band; the two negative margins collapse to the larger,
+     so the band takes the sentinel's pixel too. */
+  div:not([class]) + .su-chapter-band:not([role='dialog'] *) {
+    margin-top: calc(
+      -2.75rem -
+      1px
+    ); /* design-tokens-ignore(raw-spacing): the rail's height and the sentinel */
+  }
+}
+
+/* The row is as tall as the title cut-out, no taller. */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__row {
+  min-height: 0;
+}
+
+/* An eyebrow with nothing to say (the Bay's status line when all is saved)
+   takes no room above the title. */
+.su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow:has(> :only-child:empty) {
+  padding-top: 0;
+}
+
+/* A breath between the area rail and the page's
+   head (its crumbs and title plate). An eyebrow with nothing in it (the
+   Training Bay's status line, waiting) is no eyebrow: Games, Reference and
+   Build stand at one height. */
+@media (width >= 64rem) {
+  .su-chapter-band:not([role='dialog'] *):not(:has(> .su-chapter-band__eyebrow :not(:empty)))
+    > .su-chapter-band__row {
+    padding-top: var(--space-12);
+  }
+
+  .su-chapter-band:not([role='dialog'] *) > .su-chapter-band__eyebrow {
+    padding-top: var(--space-16);
+  }
+
+  /* The kicker's words stand where the title's do: the plate's padding in. */
+  :root .su-chapter-band > .su-chapter-band__eyebrow {
+    padding-inline: var(--su-column-pad);
+  }
+}
+
+/* ── A cut-out shares its body (R45) ──────────────
+   A cut-out (a band's title plate, a strip's tab) takes the ground and the
+   border of the body it opens into: that body sets `--cutout-ground` and
+   `--cutout-border`, the cut-out reads them, and the side that opens into the
+   body never wears the border. No border on the body, none on the cut-out. */
+/* biome-ignore lint/style/noDescendingSpecificity: the plate and a heading's title, never a notch row's own */
+.su-chapter-band__plate,
+/* biome-ignore lint/style/noDescendingSpecificity: a heading's title, never a notch row's own */
+.su-chapter-band__heading > .su-chapter-band__title {
+  border: var(--cutout-border, 0 none);
+  border-bottom: 0;
+}
+
+/* ── A band's chips beside its title ──────────────
+   What the entity is (Pattern of, Class, Chassis, Starter Kit, its type and
+   facts) stands on the band immediately right of the title's cut-out, never
+   inside it, on the band's foot; the band's one act keeps the far end. A
+   phone keeps the fill (the chips under the title). */
+@media (width >= 40rem) {
+  /* biome-ignore lint/style/noDescendingSpecificity: the controls rules above are a phone's, this is from `sm` */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] {
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  /* The name wraps to the room its chips leave (`--su-name-basis`, chipFill)
+     so they, and the acts at the corner, stay on its line. Not `!important`:
+     the fit measures the name's one line with an inline `flex: none`. */
+  /* biome-ignore lint/style/noDescendingSpecificity: the controls rules above are a phone's, this is from `sm` */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > [data-fill-name] {
+    align-self: flex-end;
+    flex: 0 1 var(--su-name-basis, auto);
+    margin-inline-end: 0;
+    max-width: 75%;
+    order: -1000;
+  }
+
+  /* On the band's foot, as a strip's chips sit on its cut-out's line: a
+     little room under them, none taken from the title. */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] [data-fill-item] {
+    align-self: flex-end;
+    margin-block: var(--space-8) var(--space-8);
+    order: calc(-3 * var(--su-fill, 0));
+  }
+
+  /* The acts stay in the chips' flow (`chipFill` orders them last, the
+     name's auto margin pushing them to the far end): the bottom-right corner
+     on the name's line, on the chips' foot (§4.7). */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill] > .su-chapter-band__action {
+    align-self: flex-end;
+    margin-block: var(--space-8);
+  }
+
+  /* The spring before the acts (the fill's last item, `--su-fill: 1`, order
+     -3; the chip before them -6): no width of its own, so the fill never counts it; it takes the
+     line's free room so the acts end at the far edge. Its margin gives back
+     the one gap it adds to the line. */
+  .su-chapter-band .su-chapter-band__row[data-chip-fill]:has(> .su-chapter-band__action)::after {
+    content: '';
+    flex: 1 0 0;
+    margin-inline-start: calc(-1 * var(--space-8));
+    order: -4;
+  }
+}

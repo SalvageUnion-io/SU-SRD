@@ -1,33 +1,23 @@
-import type { CSSProperties } from 'react'
-import type { RefCrawler } from 'salvageunion-reference'
+import type { CSSProperties, ReactNode } from 'react'
+import type { BookCite, RefCrawler } from 'salvageunion-reference'
 import { getEntitySlug } from 'salvageunion-reference'
 import { crawlerMaxSpBonus, crawlerWeaponSlots } from 'salvageunion-reference/rules'
-import {
-  Callout,
-  EmptyState,
-  Grid,
-  RadioCardGroup,
-  ReferenceEntityCard,
-  Slab,
-  tokens,
-} from '../../components/index'
+import { Callout, EmptyState, ReferenceEntityCard, tokens } from '../../components/index'
 import { buildWizardCopy } from '../../messages/build-wizard'
-import { fullWidthStyle, stepColumnStyle } from './wizardStyles.model'
+import { PickList } from './PickList'
+import type { PickColumn } from './pickLedger.model'
 
 const bonusStyle = { display: 'block', fontFamily: tokens.font.body } satisfies CSSProperties
-
-/**
- * The types stand in a grid, not a masonry: a row of two radio cards shares one
- * height (§4.7), as a masonry's independent columns cannot. Two columns at most,
- * one below 20rem each.
- */
-const TYPE_COLUMN = 'max(20rem, calc(50% - var(--space-8)))'
 
 type CrawlerTypeSelectStepProps = {
   types: RefCrawler[]
   /** The chosen type's slug. */
   selectedType: string | null
   onSelect: (slug: string) => void
+  /** The crawler's fixed numbers, a part under the picker. */
+  stats?: ReactNode
+  /** Where the book prints the step's rule, on the list's foot. */
+  cite: BookCite | undefined
 }
 
 /** The Augmented crawler type's stable id (data/crawlers.json) — the one type
@@ -36,81 +26,101 @@ type CrawlerTypeSelectStepProps = {
 const AUGMENTED_CRAWLER_ID = '8bffb508-8c8f-418d-b6ce-f24f7266e41b'
 
 /**
- * Step 1 · Choose a Crawler Type (Union Crawler p.212) — exactly one of the
- * five types, radio semantics, each rendered as the SRD entity card inside a
- * SelCard (the universal entity-card rule). A type's
- * stored `mutations` surface as footMeta badges (Battle: 2 weapon slots ·
- * +5 max SP — read from the data, never string-matched). The selected type's
- * FULL card renders below the grid — its unique Ability, its special NPC, and
- * (Augmented) the A.I. Personality roll — plus the Augmented type's
- * instructional +1 Training Point note (TEXT ONLY: the wizard never writes
- * to other characters — ADR-007 automation boundary). Every card here is
- * level 1, so its NPC is a Mini (N1); the note is an unlabelled Callout (N5).
+ * What tells the five types apart, read from the data: the
+ * Ability only that type has, the special NPC it brings, and what its stored
+ * `mutations` change (its Armament Bay's weapons, its Max SP).
+ */
+const TYPE_COLUMNS: readonly PickColumn<RefCrawler>[] = [
+  {
+    key: 'npc',
+    label: buildWizardCopy('specialNpc'),
+    kind: 'text',
+    value: (type) => type.npc?.position ?? '',
+  },
+  {
+    key: 'sp',
+    label: buildWizardCopy('maxSp'),
+    title: buildWizardCopy('itsBonusToMax'),
+    value: (type) => {
+      const bonus = crawlerMaxSpBonus(type.mutations)
+      return bonus > 0 ? `+${bonus}` : ''
+    },
+  },
+  {
+    key: 'weapons',
+    label: buildWizardCopy('weapons'),
+    title: buildWizardCopy('weaponsSystemsItsArmament'),
+    phone: true,
+    value: (type) => crawlerWeaponSlots(type.mutations),
+  },
+  {
+    key: 'ability',
+    label: buildWizardCopy('ability'),
+    kind: 'quiet',
+    phone: true,
+    value: (type) => (Array.isArray(type.actions) ? type.actions.join(', ') : ''),
+  },
+]
+
+/**
+ * Step 1 · Choose a Crawler Type, as a picker in the Ledger form
+ * (`PickList`): the five types a line each, the Ability only that type has in
+ * the open, exactly one picked (radio). The pick stands beside the list as its
+ * contentful card (its Ability, its special NPC), with the Augmented type's +1
+ * Training Point note (text only: creation writes to no other character,
+ * ADR-007). The crawler's fixed numbers, a step of their own in the book, are
+ * the part under the list.
  */
 export function CrawlerTypeSelectStep({
   types,
   selectedType,
   onSelect,
+  stats,
+  cite,
 }: CrawlerTypeSelectStepProps) {
   const selected = types.find((t) => getEntitySlug(t) === selectedType)
   const isAugmented = selected?.id === AUGMENTED_CRAWLER_ID
 
   return (
-    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label={buildWizardCopy('crawlerTypes')} count="Choose 1" countInk="inherit" />
-      <RadioCardGroup label={buildWizardCopy('crawlerType')}>
-        <Grid min={TYPE_COLUMN} gap={16}>
-          {types.map((type) => {
-            const slots = crawlerWeaponSlots(type.mutations)
-            const spBonus = crawlerMaxSpBonus(type.mutations)
-            return (
-              <ReferenceEntityCard
-                key={type.id}
-                data={type}
-                size="compact"
-                selected={getEntitySlug(type) === selectedType}
-                selectionRole="radio"
-                cardClickLabel={type.name}
-                onCardClick={() => onSelect(getEntitySlug(type))}
-                hide={{ actions: true, choices: true }}
-                footMeta={[
-                  { label: buildWizardCopy('weaponSlots'), value: String(slots) },
-                  ...(spBonus > 0
-                    ? [{ label: buildWizardCopy('maxSp'), value: `+${spBonus}` }]
-                    : []),
-                ]}
-              />
-            )
-          })}
-        </Grid>
-      </RadioCardGroup>
-
-      {selected ? (
-        <>
-          <Slab
-            label={buildWizardCopy('yourCrawlerType')}
-            count={selected.name}
-            countInk="inherit"
+    <div className="su-wiz-compare-layout">
+      <div className="su-wiz-compare-main">
+        <div>
+          <PickList
+            title={buildWizardCopy('crawlerTypes')}
+            note={buildWizardCopy('choose1')}
+            rows={types}
+            rowKey={getEntitySlug}
+            rowName={(type) => type.name}
+            columns={TYPE_COLUMNS}
+            selected={selectedType ?? undefined}
+            onSelect={onSelect}
+            {...(cite ? { foot: { cite } } : {})}
           />
-          <div className="su-wiz-stack su-wiz-stack--12" style={stepColumnStyle}>
-            <ReferenceEntityCard data={selected} />
+        </div>
+        {selected && stats}
+      </div>
+      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky">
+        {selected ? (
+          <>
+            <ReferenceEntityCard data={selected} size="compact" />
             {isAugmented && (
               <Callout tone="crawler">
                 <span style={bonusStyle}>
                   Every Pilot gains <strong>{buildWizardCopy('n1TrainingPoint')}</strong>, spendable
                   on the <strong>{buildWizardCopy('augmentAbilityTreeOnly')}</strong>. Apply it on
-                  each Pilot&rsquo;s sheet yourself — the wizard never writes to other characters.
+                  each Pilot&rsquo;s sheet yourself.
                 </span>
               </Callout>
             )}
-          </div>
-        </>
-      ) : (
-        <EmptyState
-          headline={buildWizardCopy('noTypeSelected')}
-          body={buildWizardCopy('pickATypeToPreview')}
-        />
-      )}
+          </>
+        ) : (
+          <EmptyState
+            variant="quiet"
+            body={buildWizardCopy('pickATypeToPreview')}
+            bodyInk="inherit"
+          />
+        )}
+      </div>
     </div>
   )
 }

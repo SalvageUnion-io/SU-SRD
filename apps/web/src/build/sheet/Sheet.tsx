@@ -128,12 +128,12 @@ type SheetProps = {
    *
    * The public-sheet query resolves the refs server-side, and this passes them
    * in explicitly rather than fabricating a pilot record — a synthetic pilot
-   * would surface in the Assigned Units rail as a unit that was never shared.
+   * would surface in the Related units rail as a unit that was never shared.
    */
   pilotAbilities?: string[]
   /**
    * Entities the viewer may read but not edit — a Game's crewmates, from
-   * `useGameListing` (`readOnlySheetStore.model.ts`). Assigned units the store does not
+   * `useGameListing` (`readOnlySheetStore.model.ts`). Related units the store does not
    * hold resolve through it, so your crawler lists its whole crew and your
    * pilot shows the crewmate's mech flying them. Nothing on the sheet writes to
    * what only this holds (`holds` in `sheetViewProps.model.ts`).
@@ -141,11 +141,13 @@ type SheetProps = {
   others?: EntityLookup
   /** Where a linked unit's View goes; the live sheet route when omitted. */
   hrefFor?: (kind: EntityRef['type'], id: string) => string | undefined
-  /** Assigned units to name without reading — a public sheet's private assignments. */
+  /** Related units to name without reading — a public sheet's private assignments. */
   withheld?: readonly WithheldUnit[]
   /** Controls on the band (the Starter Set's "Make a copy"). */
   bandActions?: ReactNode
-  /** Who holds each unit in the Game: the owner chips on its Assigned units. */
+  /** The Game the unit is in, named and linked on its band. */
+  game?: SheetBand['game']
+  /** Who holds each unit in the Game: the owner chips on its Related units. */
   ownerOf?: OwnerOf
 }
 
@@ -191,6 +193,7 @@ export function Sheet({
   withheld = NONE_WITHHELD,
   ownerOf,
   bandActions,
+  game,
 }: SheetProps) {
   const storeState = store()
   const [changeLogOpen, setChangeLogOpen] = useState(false)
@@ -366,27 +369,20 @@ export function Sheet({
       },
     ],
   ]
-  // The sheet's door into Play (ruleset §1.9: rust is the door into play): a
-  // pilot's own Play screen, in its Game or solo, the address the Play hub
-  // opens; a mech's goes through the pilot assigned to it, when this session
-  // holds that pilot. Signed out there is no Play.
+  // The sheet's Play mode (ADR-066): a pilot's own Play, in its Game or solo;
+  // a mech's goes through the pilot assigned to it, when this session holds
+  // that pilot (Play runs a pilot, the mech optional). Signed out there is no
+  // Play.
   const playPilot =
     resolved.kind === 'pilot'
       ? resolved.entity
       : resolved.kind === 'mech' && composition.pilot && holds('pilot', composition.pilot.id)
         ? composition.pilot
         : null
-  const playDoor =
-    playPilot && status !== 'signedOut' ? (
-      <Button
-        href={cockpitPath(playPilot.id)}
-        variant="primary"
-        aria-label={buildSheetCopy('playAs', { name: playPilot.name })}
-        className="su-page-action"
-      >
-        {buildSheetCopy('play')}
-      </Button>
-    ) : null
+  const play =
+    playPilot && status !== 'signedOut'
+      ? { name: playPilot.name, onPlay: () => go(cockpitPath(playPilot.id)) }
+      : undefined
   // Gated on the PROP, not the resolved `readOnly`: Print, Export and the Change
   // Log are reads, and a disconnected player has more reason to want a local
   // export, not less. Only Share goes — switching the public sheet on or off is
@@ -400,7 +396,6 @@ export function Sheet({
   // See ShareStatusDialog's header.
   const actions = !readOnlyProp ? (
     <div style={ACTIONS}>
-      {playDoor}
       {!writesBlocked && (
         <Button
           aria-label={buildSheetCopy('shareThis', { kind })}
@@ -426,7 +421,7 @@ export function Sheet({
   // A counterpart with nowhere to go (`hrefFor` → undefined) gets no segment.
   // A crawler has none: it homes a whole crew, many pilots and mechs, so one
   // Pilot and one Mech segment (and the sticky bar's linked Minis, which read
-  // the same set) misname it; its Assigned units list them all.
+  // the same set) misname it; its Related units list them all.
   let segments: LiveSheetSegment[] | undefined
   if (wired && kind !== 'crawler') {
     segments = []
@@ -456,15 +451,22 @@ export function Sheet({
     runWrite(() => storeState.update(kind, id, fields, LIVE_SHEET_MANUAL))
   }
 
-  // The band: the type stamps' provenance, and Read | Edit only where the
-  // viewer may write. A read-only sheet (`readOnlyProp`: the Starter Set's, a
-  // crewmate's, a public one) has nothing to switch to, so it prints no toggle
-  // at all — a disabled Edit was a control that could only say no.
+  // The band: the type stamps' provenance, and Read | Edit | Play. Read | Edit
+  // only where the viewer may write: a read-only sheet (`readOnlyProp`: the
+  // Starter Set's, a crewmate's, a public one) has nothing to switch to — a
+  // disabled Edit was a control that could only say no. Play wherever there is
+  // a pilot of yours to play.
+  const editable = sheetMode !== null && !readOnlyProp && !writesBlocked
   const modeToggle =
-    sheetMode !== null && !readOnlyProp && !writesBlocked ? (
-      <SheetModeToggle mode={sheetMode} kind={kind} />
+    editable || (play && !readOnlyProp) ? (
+      <SheetModeToggle
+        mode={editable ? sheetMode : null}
+        kind={kind}
+        play={readOnlyProp ? undefined : play}
+      />
     ) : null
   const band: SheetBand = {
+    game,
     actions:
       modeToggle === null && bandActions === undefined ? undefined : (
         <>
@@ -481,6 +483,8 @@ export function Sheet({
     segments,
     editable: !readOnly,
     readOnly,
+    // Read still writes session state.
+    liveInRead: !readOnlyProp && !writesBlocked,
     ownerOf,
     crawlerReadOnly,
     store,

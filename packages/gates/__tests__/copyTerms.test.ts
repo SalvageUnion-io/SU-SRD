@@ -144,6 +144,15 @@ describe('lintCopy', () => {
     ])
   })
 
+  test('leaves the genre\'s name alone, and only that: "mech TTRPG", "mech tabletop RPG"', () => {
+    const r = lintCopy(
+      at('the best post-apocalyptic mech TTRPG, a mech tabletop RPG; scrap the mech'),
+      ['mech'],
+      []
+    )
+    expect(r['lowercase-term']?.map((f) => f.detail)).toEqual(['"mech": say Mech'])
+  })
+
   test('bans TL in prose and Heat Cap anywhere, a bare label included', () => {
     const r = lintCopy(
       [...at('Not enough TL 3 scrap'), ...at('exceeds its Heat Cap'), ...at('Heat Cap')],
@@ -282,6 +291,12 @@ describe('lintCopy', () => {
 })
 
 describe('the rule set', () => {
+  test('a one-word area name is a common noun too: its casing is not policed', () => {
+    expect(productBans({ build: 'Training Bay', play: 'Games' }).map((b) => b.say)).toEqual([
+      'Training Bay',
+    ])
+  })
+
   test('reads the area names from game-domain, not a copy of them', () => {
     const root = fixture({
       [PRODUCT_FILE]: "export const PRODUCT = { build: 'Some Bay', play: 'The Hall' } as const",

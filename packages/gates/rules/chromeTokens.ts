@@ -1,7 +1,7 @@
 /**
  * Chrome-token laws — the `chrome-tokens` rule set of
  * `tools/check-rule-sets.ts`, beside `designTokens.ts`'s `tokens`
- * (docs/design-system/chrome.md, hard-rules.md).
+ * (docs/design-system/hard-rules.md).
  *
  * `designTokens.ts` matches a literal on a line. These laws need to know
  * where a declaration sits: which selector a `dashed` is under, whether a left
@@ -38,6 +38,8 @@ import {
 import { ignoredRules } from '../lib/tokenIgnore'
 import { assertCoversWorkspaces } from '../lib/workspaceCoverage'
 import { ENTITY_FRAME_STYLE_FILES, entityFrameInkCss, entityFrameInkScript } from './entityFrames'
+import { itemGridRule } from './itemGrid'
+import { isSlideshow, slideTurnRule } from './slideshow'
 
 const SCAN_DIRS = [
   'packages/salvageunion-reference/lib',
@@ -157,7 +159,7 @@ const dashedCss = (decls: CssDecl[]) =>
     .filter((d) => DASHED_PROP.test(d.prop) && /\bdashed\b/.test(d.value))
     .filter((d) => {
       const selector = d.context[d.context.length - 1] ?? ''
-      // Focus is the ring's (chrome.md K9): never a dashed focus variant.
+      // Focus is the ring's (chrome K9): never a dashed focus variant.
       if (/:focus/.test(selector)) return true
       return !d.context.some((header) => DASHED_SELECTORS.some(([re]) => re.test(header)))
     })
@@ -248,7 +250,7 @@ const motionLoopScript = (text: string) =>
   matchesIn(text, /\banimation(?:IterationCount)?\s*:[^\n]*\binfinite\b/g)
 
 /**
- * The loading atoms (chrome.md K6): the one pulse, `@keyframes su-pulse` and
+ * The loading atoms (chrome K6): the one pulse, `@keyframes su-pulse` and
  * `.su-pulse`, is defined in the stylesheet and worn by `SkeletonFrame`, which
  * every skeleton (`Skeleton`, `RosterSkeleton`, `SheetSkeleton`, a QR tile's)
  * is drawn in.
@@ -266,10 +268,11 @@ const loadingMarkCss = (_decls: CssDecl[], blocks: CssBlock[], rel: string) =>
     ? []
     : blocks
         .filter((b) => KEYFRAMES.test(b.header) || PULSE.test(b.header))
+        .filter((b) => !isSlideshow(b.header, rel))
         .map((b) => ({ line: b.line, detail: b.header }))
 
 /**
- * The error atoms (chrome.md K8): an alert is a crash (`RecoveryPanel`), a
+ * The error atoms (chrome K8): an alert is a crash (`RecoveryPanel`), a
  * failure line (`FieldError`) or a lasting condition
  * (`Banner`). A failed act is `toast.error`, whose region is the Toaster's.
  */
@@ -335,7 +338,7 @@ const rawBreakpointScript = (text: string) =>
 // ── Caps (§3.12, §4.2) ────────────────────────────────────────────────────────
 
 /**
- * Who may set caps (R14): the stamp (`Badge shape="stamp"`) and the chip draw
+ * Who may set caps (§3.12): the stamp (`Badge shape="stamp"`) and the chip draw
  * through `capsLabel`, whose `.su-caps` sets the transform; `Button` sets it
  * on `.su-btn`. Every other label asks `capsLabel` for its caps.
  */
@@ -414,22 +417,22 @@ const CHROME_RULES: ChromeRule[] = [
     id: 'dashed',
     mode: 'zero',
     rule: 'ruleset §3.9 — dashed means user-made, a Play reference unit, an edit field or an empty slot; a Slab is solid',
-    fix: 'Draw it solid. Dashed is only a thing a player made (`[data-user-made]`, the HOMEBREW stamp), a Play reference unit, an edit field or an empty slot: if this is one, add its selector to DASHED_SELECTORS (a stylesheet) or its file to DASHED_FILES (a style object) in packages/gates/rules/chromeTokens.ts, with which of the four it is. Focus is the ring, never dashed (chrome.md K9).',
+    fix: 'Draw it solid. Dashed is only a thing a player made (`[data-user-made]`, the HOMEBREW stamp), a Play reference unit, an edit field or an empty slot: if this is one, add its selector to DASHED_SELECTORS (a stylesheet) or its file to DASHED_FILES (a style object) in packages/gates/rules/chromeTokens.ts, with which of the four it is. Focus is the ring, never dashed (chrome K9).',
     css: dashedCss,
     script: dashedScript,
   },
   {
     id: 'raw-duration',
     mode: 'zero',
-    rule: 'chrome.md K3 — motion is tokens: `--dur-fast` for a state change, `--dur-base` for a move',
-    fix: 'Use `var(--dur-fast)` (colour, opacity, a shadow) or `var(--dur-base)` (transform, a slide); a loading loop runs `var(--dur-loop)`. In a style object, `duration.fast` / `duration.base` from design/tokens.ts.',
+    rule: 'chrome K3 — motion is tokens: `--dur-fast` for a state change, `--dur-base` for a move',
+    fix: "Use `var(--dur-fast)` (colour, opacity, a shadow) or `var(--dur-base)` (transform, a slide); a loading loop runs `var(--dur-loop)`. In a style object too, as `transitionDuration: 'var(--dur-fast)'`, so reduced motion reaches it.",
     css: rawDurationCss,
     script: rawDurationScript,
   },
   {
     id: 'raw-easing',
     mode: 'zero',
-    rule: 'chrome.md K3 — one easing, `--ease`',
+    rule: 'chrome K3 — one easing, `--ease`',
     fix: 'Name `var(--ease)` in every transition and animation (a shorthand, or `*-timing-function` beside a duration longhand): never a keyword, a `cubic-bezier()`, or the browser default. In a style object, `ease` from design/tokens.ts.',
     css: rawEasingCss,
     script: rawEasingScript,
@@ -437,7 +440,7 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'motion-loop',
     mode: 'zero',
-    rule: 'chrome.md K3 — a loop is only a loading mark, and only under `prefers-reduced-motion: no-preference`',
+    rule: 'chrome K3 — a loop is only a loading mark, and only under `prefers-reduced-motion: no-preference`',
     fix: 'Put the looping `animation` in a stylesheet rule inside `@media (prefers-reduced-motion: no-preference) { … }`, never a style object; anything else runs once.',
     css: motionLoopCss,
     script: motionLoopScript,
@@ -445,22 +448,23 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'loading-mark',
     mode: 'zero',
-    rule: 'chrome.md K6 — one loading voice: `@keyframes` and the `su-pulse` loop only in the loading atoms',
-    fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS (packages/gates/rules/chromeTokens.ts).',
+    rule: 'chrome K6 — one loading voice: `@keyframes` and the `su-pulse` loop only in the loading atoms (and the home slideshow’s, K3)',
+    fix: 'Wait with `Pending` (inside a screen), `Skeleton` (a shape known ahead; compose ghosts inside `SkeletonFrame`) or `RoutePending` (a route), never a loop, logo or bar of its own. The pulse is defined only in LOADING_ATOMS, the slideshow only as SLIDESHOW (packages/gates/rules/slideshow.ts).',
     css: loadingMarkCss,
     script: loadingMarkScript,
   },
+  slideTurnRule,
   {
     id: 'raw-alert',
     mode: 'zero',
-    rule: 'chrome.md K8 — one error per job: a raw `role="alert"` only in the error atoms',
+    rule: 'chrome K8 — one error per job: a raw `role="alert"` only in the error atoms',
     fix: 'A crash is `RecoveryPanel`, a failure line `FieldError`, a lasting condition `Banner`, a failed act `toast.error`; a status that is not urgent is `role="status"`. The atoms are ALERT_ATOMS (packages/gates/rules/chromeTokens.ts).',
     script: rawAlertScript,
   },
   {
     id: 'hand-caps',
     mode: 'zero',
-    rule: 'ruleset §3.12 — caps only through the stamp, `Button` and `capsLabel` (R14)',
+    rule: 'ruleset §3.12 — caps only through the stamp, `Button` and `capsLabel`',
     fix: 'Drop the hand-set `uppercase`. A label in caps takes `className={capsLabel({ size, weight, tracking })}` (components/atoms/capsLabel.ts), which sets the condensed face and the transform, and leaves its own rule only what the recipe does not; a stamp is `Badge shape="stamp"`, an action `Button`. Sentence copy is set in sentence case, never forced to caps. The two places that set the transform are CAPS_RULES (packages/gates/rules/chromeTokens.ts).',
     css: handCapsCss,
     script: handCapsScript,
@@ -468,7 +472,7 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'badge-caps-snug',
     mode: 'zero',
-    rule: 'ruleset §4.2 — 11px caps are snug: `fontSize.badge` letterspaces at `capsSnug` (R14)',
+    rule: 'ruleset §4.2 — 11px caps are snug: `fontSize.badge` letterspaces at `capsSnug` (§3.12)',
     fix: 'At the floor (`fontSize.badge`, `var(--text-badge)`, `capsLabel({ size: "badge" })`) the tracking is `tracking.capsSnug` / `var(--tracking-caps-snug)` / `tracking: "snug"` (the recipe’s default at that size): drop the other rung.',
     css: badgeSnugCss,
     script: badgeSnugScript,
@@ -483,7 +487,7 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'raw-breakpoint',
     mode: 'zero',
-    rule: 'chrome.md K2 — one breakpoint ladder: 40, 48, 64, 80rem, written (width >= …), media, container and script alike',
+    rule: 'chrome K2 — one breakpoint ladder: 40, 48, 64, 80rem, written (width >= …), media, container and script alike',
     fix: "Write `(width >= 40rem|48rem|64rem|80rem)`, phone-first; what applies below a rung is the base rule, or `not (width >= …)`. No max-width, no px, no rung between. A script builds its query from `breakpoint` (design/tokens.ts): `widthAtLeast('lg')`.",
     css: rawBreakpointCss,
     script: rawBreakpointScript,
@@ -491,11 +495,12 @@ const CHROME_RULES: ChromeRule[] = [
   {
     id: 'entity-frame-ink',
     mode: 'zero',
-    rule: 'ruleset §4.3, EDL E21 (hard rule R38) — an entity frame wears its band paint through `--su-band` (ink-40 with none), never a literal solid ink or tone; `--su-compact-frame` overrides (an ability tree, a pattern)',
+    rule: 'ruleset §4.3, hard rule R38 — an entity frame wears its band paint through `--su-band` (ink-40 with none), never a literal solid ink or tone; `--su-compact-frame` overrides (an ability tree, a pattern)',
     fix: "Paint the frame `var(--su-compact-frame, var(--su-band, var(--color-ink-40)))` and hand it its band through `bandFrame` (`entity/parts/paint.ts`), keeping its weight (§4.3). An ability tree's Compacts and a pattern's frame override through `--su-compact-frame`.",
     css: entityFrameInkCss,
     script: entityFrameInkScript,
   },
+  itemGridRule,
 ]
 
 /** Every rule id here, for the `design-tokens-ignore` names the tokens set checks. */
@@ -510,7 +515,7 @@ const EXEMPTIONS: Exemption[] = [
     file: 'apps/web/src/styles/theme.css',
     rules: ['raw-duration', 'raw-easing'],
     reason:
-      'The token definitions, and the reduced-motion backstop: `0.01ms !important` on every element is the guarantee that a reduce user sees no motion, not a duration anything animates at.',
+      "The token definitions, and the reduced-motion backstop: `0.01ms` on every element (an id's weight) is the guarantee that a reduce user sees no motion, not a duration anything animates at.",
   },
 ]
 

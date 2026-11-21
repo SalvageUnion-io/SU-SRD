@@ -16,7 +16,7 @@
 
 import type { RangeBand } from 'game-domain/schemas/seat'
 import type { RefMetaAction } from 'salvageunion-reference'
-import type { PlayAction } from '../lib/rules/actionPatches'
+import type { PlayAction } from '../lib/rules/actionList'
 import { actionInRange, actionReachable, economyUnderScene } from '../lib/rules/actionPatches'
 import { playCopy } from '../messages/play'
 import type { Situation } from './situation.model'
@@ -32,8 +32,8 @@ export type ActionTypeKey =
   | 'Passive'
   | 'Other'
 
-/** The list's order: Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
-const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
+/** The list's order, and its groups': Turn, Short, Long, Reaction, Free, Downtime, then the rest. */
+export const ACTION_TYPE_ORDER: readonly ActionTypeKey[] = [
   'Turn',
   'Short',
   'Long',
@@ -74,6 +74,9 @@ const DOWNTIME_ACTIONS: readonly { id: DowntimeActionId; name: string }[] = [
   { id: 'rumours', name: 'Gather Cantina Rumours' },
 ]
 
+/** Whose action a row is. A companion's waits on what its host's would. */
+export type ActionSource = 'pilot' | 'mech' | 'companion'
+
 /** One line of the list. */
 export type ListEntry =
   | {
@@ -81,7 +84,7 @@ export type ListEntry =
       key: string
       name: string
       type: ActionTypeKey
-      source: 'pilot' | 'mech'
+      source: ActionSource
       action: PlayAction
       need: Need | null
     }
@@ -97,7 +100,7 @@ export type ListEntry =
 
 /** What a unit's action needs in this Situation; null when it is on hand. */
 export function needFor(
-  source: 'pilot' | 'mech',
+  source: ActionSource,
   type: ActionTypeKey,
   situation: Situation
 ): Need | null {
@@ -115,6 +118,13 @@ export type ActionListInput = {
   mechActions: readonly PlayAction[]
   /** Whether there is a mech whose Reactor the list offers. */
   hasMech: boolean
+  /**
+   * The companions' actions (`buildCompanionActions`), the pilot's
+   * companions' then the mech's drones'. A companion acts on its own
+   * turn, so a pilot's is on hand on foot and Boarded; a mech's drone waits
+   * on Boarded with its mech.
+   */
+  companionActions?: readonly PlayAction[]
 }
 
 /** Where a type sorts in the list (Turn first); the Mediator's NPC actions sort the same. */
@@ -132,10 +142,12 @@ export function buildActionList({
   pilotActions,
   mechActions,
   hasMech,
+  companionActions = [],
 }: ActionListInput): ListEntry[] {
   const units: ListEntry[] = [
     ...mechActions.map((action) => unitEntry(action, 'mech', situation)),
     ...pilotActions.map((action) => unitEntry(action, 'pilot', situation)),
+    ...companionActions.map((action) => unitEntry(action, 'companion', situation)),
   ]
   const sorted = units
     .map((entry, i) => ({ entry, i }))
@@ -157,8 +169,10 @@ export function buildActionList({
   return [...sorted, ...controls, ...downtime]
 }
 
-function unitEntry(action: PlayAction, source: 'pilot' | 'mech', situation: Situation): ListEntry {
+function unitEntry(action: PlayAction, source: ActionSource, situation: Situation): ListEntry {
   const type = actionTypeOf(action.action)
+  // A mech's drone is reached from its mech; a pilot's companion from the pilot.
+  const reach = source === 'companion' ? (action.companion?.host.kind ?? 'pilot') : source
   return {
     kind: 'action',
     key: action.key,
@@ -166,7 +180,7 @@ function unitEntry(action: PlayAction, source: 'pilot' | 'mech', situation: Situ
     type,
     source,
     action,
-    need: needFor(source, type, situation),
+    need: needFor(reach, type, situation),
   }
 }
 
@@ -196,7 +210,7 @@ export function filterEntries(
     if (query === '') return true
     const words =
       entry.kind === 'action'
-        ? `${entry.name} ${entry.action.ownerName}`
+        ? `${entry.name} ${entry.action.ownerName} ${entry.action.companion?.name ?? ''} ${entry.action.variantOf ?? ''}`
         : entry.kind === 'downtime'
           ? entry.name
           : `${entry.name} ${CONTROL_WORDS[entry.kind]}`

@@ -11,7 +11,7 @@ paths:
 Architecture: `docs/ARCHITECTURE.md#display`; laws: the ruleset and the
 [EDL](../../docs/design-system/entity-display-language.md), whose words win.
 
-- **Forms (EDL E1–E5, E15):** Mention `<Mention>`; Mini `<Entity
+- **Forms (EDL E1–E5, R7):** Mention `<Mention>`; Mini `<Entity
   size="mini">`; Compact `<Entity size="compact">` (header-only unless a lead,
   stamp or linked units give it a body), index `layout="index"`; Compact or
   Full contentful `ReferenceEntityCard` (`size`), a Page with

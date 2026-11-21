@@ -1,14 +1,11 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { useRef, useState } from 'react'
+import { Cluster, ConfirmDialog, FieldError, PageShell } from '../../components/app'
 import {
   Button,
   ChapterBand,
-  Cluster,
-  ConfirmDialog,
   EmptyState,
-  FieldError,
   Input,
-  PageShell,
   Pending,
   SlabSection,
   Stack,
@@ -28,9 +25,8 @@ import { useSignOut } from './useSignOut'
  * The settings screen (ADR-030 §6), at `/settings`: profile, export, delete.
  *
  * `/account` redirects here (`routes/account.tsx`), so old links and the
- * Discord bot's still land. Your Games are listed in Play: its hub and its
- * Games menu (`build/entityContainer/GamesMenu.tsx`), each opening a Game's
- * page (ADR-052 §4).
+ * Discord bot's still land. Your Games are their own tab, `/games/`, each
+ * opening a Game's page (ADR-066).
  *
  * It wears the Training Bay's clothes (`build/shelves/Shelves.tsx`): the ink
  * band on the workshop ground, the 75rem column, and each concern a section
@@ -50,7 +46,7 @@ const BODY = {
   gap: tokens.space[12],
 } satisfies CSSProperties
 
-const NOTE = { margin: 0, textAlign: 'left' } satisfies CSSProperties
+const NOTE = { margin: 0 } satisfies CSSProperties
 
 const GROW = { flex: '1 1 12rem', maxWidth: '24rem', minWidth: 0 } satisfies CSSProperties
 

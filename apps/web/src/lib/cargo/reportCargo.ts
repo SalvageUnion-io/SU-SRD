@@ -7,7 +7,7 @@
  * connection mode blocked. `void`-ing the promise therefore leaves the player
  * staring at a button that silently did nothing — which is exactly what the
  * partner hold did while the mech/crawler Hold routed through a copy of this
- * helper that was private to `StorageManifest`.
+ * private helper.
  *
  * Disabled buttons pre-empt the *predictable* refusals (no crawler, hold full);
  * this exists for the ones that cannot be predicted at render time — a save

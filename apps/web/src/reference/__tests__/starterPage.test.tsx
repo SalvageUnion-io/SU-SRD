@@ -20,7 +20,7 @@ function rowsOf(container: HTMLElement, id: string) {
   return [...container.querySelectorAll(`#${id} .su-contents__row`)].map((row) => ({
     label: row.querySelector('span')?.textContent,
     href: row.getAttribute('href'),
-    page: row.querySelector('.su-contents__count')?.textContent,
+    page: row.querySelector('.su-contents__page')?.textContent,
   }))
 }
 

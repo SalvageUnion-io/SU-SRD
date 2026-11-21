@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { getEntitySchemas, getModel, SalvageUnionReference } from 'salvageunion-reference'
+import { SalvageUnionReference } from 'salvageunion-reference'
 import {
   bandFillFor,
   buildChapters,
@@ -7,7 +7,6 @@ import {
   chapterForSchema,
   listingBandFillFor,
 } from '../chapters'
-import { listingEntries } from '../listingEntries'
 
 /**
  * The SRD's chapters: the index the home page prints, the nav
@@ -33,32 +32,14 @@ describe('buildChapters', () => {
     expect(new Set(indexed).size).toBe(indexed.length)
   })
 
-  test('counts are what each listing lists, and a chapter’s total is its rows’ sum', () => {
-    const counts = new Map(
-      getEntitySchemas().map((s) => [
-        s.id,
-        listingEntries(s.id, getModel(s.id)?.all() ?? []).length,
-      ])
-    )
-    // The roll tables count only their top-level tables; every other listing
-    // counts every entry of its schema.
-    expect(counts.get('roll-tables')).toBeLessThan(SalvageUnionReference.RollTables.all().length)
-    for (const schema of getEntitySchemas())
-      if (schema.id !== 'roll-tables') expect(counts.get(schema.id)).toBe(schema.itemCount)
-    for (const chapter of chapters) {
-      for (const row of chapter.rows) expect(row.count).toBe(counts.get(row.schemaId) ?? -1)
-      expect(chapter.total).toBe(chapter.rows.reduce((sum, row) => sum + row.count, 0))
-    }
-  })
-
   test('Rules & Reference leads with what a table reaches for: guides, then roll tables', () => {
     const rules = chapters.find((c) => c.id === 'rules-reference')
     expect(rules?.rows.slice(0, 2).map((row) => row.schemaId)).toEqual(['guides', 'roll-tables'])
   })
 
-  test('rows link to their listing; chapters to their anchor on Contents', () => {
+  test('rows link to their listing; chapters to their anchor on the Reference’s home', () => {
     const mech = chapters.find((c) => c.id === 'mech-workshop')
-    expect(mech?.href).toBe('/#mech-workshop')
+    expect(mech?.href).toBe('/mechs/')
     expect(mech?.rows[0]?.href).toBe('/chassis/')
   })
 })
@@ -83,7 +64,7 @@ describe('listingBandFillFor', () => {
     expect(listingBandFillFor('modules')).toBe('var(--color-tl-1)')
     expect(listingBandFillFor('drones')).toBe('var(--color-tl-1)')
     expect(listingBandFillFor('chassis')).toBeUndefined()
-    expect(listingBandFillFor('equipment')).toBe('var(--color-tl-1)')
+    expect(listingBandFillFor('equipment')).toBeUndefined()
   })
 })
 
@@ -103,12 +84,12 @@ describe('bandFillFor', () => {
     expect(bandFillFor('modules', module)).toBe('var(--color-tl-2)')
   })
 
-  test('equipment, drones and vehicles wear their tech level’s band, as their cards do', () => {
+  test('drones and vehicles wear their tech level’s band, equipment its chapter’s, as their cards do', () => {
     const equipment = SalvageUnionReference.Equipment.all().find((e) => e.techLevel === 1)
     const drone = SalvageUnionReference.Drones.all().find((e) => e.techLevel === 5)
     const vehicle = SalvageUnionReference.Vehicles.all()[0]
     if (!equipment || !drone || !vehicle) throw new Error('fixtures missing')
-    expect(bandFillFor('equipment', equipment)).toBe('var(--color-tl-1)')
+    expect(bandFillFor('equipment', equipment)).toBeUndefined()
     expect(bandFillFor('drones', drone)).toBe('var(--color-tl-5)')
     expect(bandFillFor('vehicles', vehicle)).toMatch(/^var\(--color-tl-/)
   })

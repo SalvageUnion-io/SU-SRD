@@ -18,7 +18,7 @@
  * To and Reason for the target, to send as it is or change first.
  *
  * A `TitledBox` filling its panel and scrolling its own body there (`fill`);
- * its head's last slot holds the host's controls (All proposals, hard rule R6).
+ * its head's last slot holds the host's controls (All proposals, C8).
  *
  * Presentational: the Mediator's screen owns the target (a seat sets it) and
  * the write.
@@ -35,7 +35,8 @@ import {
 } from 'game-domain/games/proposals'
 import type { CSSProperties, ReactNode, RefObject } from 'react'
 import { useId, useState } from 'react'
-import { Button, FeedList, Field, Input, Select, TitledBox, tokens } from '../../components/index'
+import { FeedList } from '../../components/app'
+import { Button, Field, Input, Select, TitledBox, tokens } from '../../components/index'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { MUTED, NUMBERS } from './mediatorStyles.model'
 import { ProposalRow } from './ProposalRow'

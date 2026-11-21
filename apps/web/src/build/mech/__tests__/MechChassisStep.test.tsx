@@ -1,7 +1,9 @@
 /**
- * The mech builder's pick cards show the chassis ability (E19): choosing a
- * chassis or a starting pattern needs it, though every other card leaves it
- * to the page. Nested in the pick it is a contentful Mini (N3), never a card.
+ * The mech builder's chassis step shows the chassis ability (E19): choosing a
+ * chassis needs it, though every other card leaves it to the page. It stands
+ * once, on the picked chassis's card beside the list, nested there as a
+ * contentful Mini (N3), never a card; the legal starting patterns are rows of
+ * their own list, which do not repeat it.
  */
 import { describe, expect, it } from 'bun:test'
 import { render } from '@testing-library/react'
@@ -21,18 +23,20 @@ const step = (chassisName: string) => (
   />
 )
 
-describe('MechChassisStep pick cards', () => {
-  it('the chassis pick card shows its ability once', () => {
-    const { container } = render(step(''))
-    expect(cargoBays(container)).toBe(1)
+describe('MechChassisStep', () => {
+  it('with no chassis picked, the list stands alone', () => {
+    const { container, queryByRole } = render(step(''))
+    expect(cargoBays(container)).toBe(0)
+    expect(queryByRole('table', { name: 'Or start from a Pattern' })).toBeNull()
   })
 
-  it('the starting-pattern pick card shows the chassis ability once too', () => {
-    // The Mule's chassis card, then its one legal starting pattern (Hauler).
+  it('the picked chassis shows its ability once, and its patterns do not repeat it', () => {
+    // The Mule's card, then its one legal starting pattern (Hauler) as a row.
     const { container, getByRole } = render(step('mule'))
-    expect(cargoBays(container)).toBe(2)
-    const patterns = getByRole('radiogroup', { name: 'Starting pattern' })
-    expect(cargoBays(patterns)).toBe(1)
+    expect(cargoBays(container)).toBe(1)
+    const patterns = getByRole('table', { name: 'Or start from a Pattern' })
+    expect(patterns.textContent).toContain('Hauler')
+    expect(cargoBays(patterns)).toBe(0)
   })
 
   it('nests the chassis ability as a contentful Mini, never a card', () => {
@@ -41,8 +45,7 @@ describe('MechChassisStep pick cards', () => {
     const abilities = tokens.filter((token) =>
       token.querySelector('.su-entity-mini__head')?.textContent?.includes('Integrated Cargo Bay')
     )
-    // The chassis pick and the Hauler pattern pick, one each.
-    expect(abilities).toHaveLength(2)
+    expect(abilities).toHaveLength(1)
     for (const token of abilities) {
       expect(token.querySelector('.su-entity-mini__body')?.textContent).toContain('The Mule')
       expect(token.textContent).not.toContain('[(CHASSIS)]')

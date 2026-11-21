@@ -67,7 +67,7 @@ export function PlayTablesSection({
   onField?: ((lines: readonly RosterLine[]) => Promise<number>) | undefined
 }) {
   return (
-    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('tables')}>
+    <SlabSection as="h2" id={`${idPrefix}-tables`} title={playCopy('rolls')}>
       <PlayTables
         downtime={downtime}
         mechTables={mechTables}
@@ -100,7 +100,16 @@ export function PlayFeedSection({
 }
 
 /** The player's Tables and Feed sections: the Tables pane. */
-export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { side: SideFeed }) {
+export function PlayerTablesAndFeed({
+  target,
+  play,
+  side,
+  feed = true,
+}: PlayColumnProps & {
+  side: SideFeed
+  /** False from `lg`, where the Feed sits under the Units so both side columns end together. */
+  feed?: boolean
+}) {
   return (
     <>
       <PlayTablesSection
@@ -114,7 +123,7 @@ export function PlayerTablesAndFeed({ target, play, side }: PlayColumnProps & { 
         }
         solo={target.gameId === null}
       />
-      <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />
+      {feed && <PlayFeedSection side={side} idPrefix="play" canWrite={play.canWrite} />}
     </>
   )
 }

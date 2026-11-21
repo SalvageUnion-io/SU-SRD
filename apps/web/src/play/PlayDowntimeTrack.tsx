@@ -8,7 +8,7 @@
  */
 
 import type { RefObjectGuideStep } from 'salvageunion-reference'
-import { TrackStep } from '../components/index'
+import { TrackStep } from '../components/app'
 import { playCopy } from '../messages/play'
 
 type PlayDowntimeTrackProps = {

@@ -36,11 +36,32 @@ export function cardImageSizes(compact?: boolean): string {
   return `(width >= ${width}) ${width}, 100vw`
 }
 
+/** A `sizes` of `width` from `lg`, the viewport's width below it. */
+const fromLg = (width: string) => [`${widthAtLeast('lg')} ${width}`, '100vw'].join(', ')
+
 /**
  * The `sizes` of the entity page's HERO art (`CardImage hero`): half
  * of the page's 1200px measure beside the stat column from `lg`, the full
  * width of the column under it. The reference site's item pages preload with it.
  */
 export function heroImageSizes(): string {
-  return `${widthAtLeast('lg')} 560px, 100vw`
+  return fromLg('560px')
+}
+
+/**
+ * The `sizes` of the front door's art plate (`.su-front__plate`): its height
+ * is capped (15rem, 20rem from `lg`) and its art is about square, so it is
+ * about that wide. On a phone that is the 440w candidate, not the 880w one
+ * `heroImageSizes` would pick for the full column.
+ */
+export function plateImageSizes(): string {
+  return [`${widthAtLeast('lg')} 20rem`, '15rem'].join(', ')
+}
+
+/**
+ * The `sizes` of a door tile's art (`StartHere`): a third of the page's
+ * measure from `lg`, the column's width below.
+ */
+export function tileImageSizes(): string {
+  return fromLg('24rem')
 }

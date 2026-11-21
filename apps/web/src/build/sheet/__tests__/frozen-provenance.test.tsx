@@ -47,7 +47,9 @@ describe('Frozen surface — overrides render as plain values (P5.2)', () => {
     render(<Sheet kind="pilot" id={pilot.id} readOnly />)
 
     // The gauge renders as a non-interactive read-out (role="img").
-    await waitFor(() => expect(screen.getByRole('img', { name: /HP \d+ of \d+/ })).toBeTruthy())
+    await waitFor(() =>
+      expect(screen.getByRole('img', { name: /(HP|Hit Points) \d+ of \d+/ })).toBeTruthy()
+    )
     // No "overridden from" note, no edit-max button, no revert — frozen is plain.
     expect(screen.queryByText(/overridden from/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /override hp max/i })).toBeNull()

@@ -1671,10 +1671,10 @@
     "page": 57,
     "traits": [
       {
-        "type": "dependable"
+        "type": "Dependable"
       },
       {
-        "type": "salvaging"
+        "type": "Salvaging"
       }
     ],
     "actions": ["Auger", "Drill"],

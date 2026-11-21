@@ -20,7 +20,7 @@
  * client entry reveals both on one page load in a hundred.
  */
 
-import { Button, cn, FOCUS_RING } from '../components/index'
+import { Button, capsLabel, cn, FOCUS_RING } from '../components/index'
 import { MobileNavIsland } from '../components/islands/MobileNavIsland'
 import { MobileSearchIsland } from '../components/islands/MobileSearchIsland'
 import { SearchIsland } from '../components/islands/SearchIsland'
@@ -38,8 +38,8 @@ import { Island } from '../runtime/Island'
 function WikiLink() {
   return (
     <a
-      href="/greembeem"
-      className={cn('su-union-bar__quiet', FOCUS_RING)}
+      href="/greembeem/"
+      className={cn('su-union-bar__quiet', capsLabel({ tracking: 'inherit' }), FOCUS_RING)}
       hidden
       {...{ [WIKI_LINK_ATTRIBUTE]: '' }}
     >
@@ -80,19 +80,28 @@ type TopNavigationProps = {
    * trigger stays: below `lg` the band's field sits under the fold of the bar.
    */
   pageHasSearch?: boolean
+  /** The site's front door: no area link is current. */
+  home?: boolean
 }
 
-export function TopNavigation({ breadcrumbs, pageHasSearch = false }: TopNavigationProps) {
+export function TopNavigation({
+  breadcrumbs,
+  pageHasSearch = false,
+  home = false,
+}: TopNavigationProps) {
   return (
     <UnionBar
       product="reference"
+      noCurrent={home}
       breadcrumbs={breadcrumbs}
       // The WIKI link sits left of the search, so it rides the search slot; it
       // stays when the page carries its own search.
       search={
         <>
           <WikiLink />
-          {pageHasSearch ? null : (
+          {/* The 404 carries its own; the home needs none (search is the
+              Reference's). */}
+          {pageHasSearch || home ? null : (
             <Island name="SearchIsland" client="interaction" ssr>
               <SearchIsland />
             </Island>
@@ -108,9 +117,11 @@ export function TopNavigation({ breadcrumbs, pageHasSearch = false }: TopNavigat
       mobile={
         <>
           <WikiLink />
-          <Island name="MobileSearchIsland" client="interaction" ssr>
-            <MobileSearchIsland />
-          </Island>
+          {home ? null : (
+            <Island name="MobileSearchIsland" client="interaction" ssr>
+              <MobileSearchIsland />
+            </Island>
+          )}
           <Island name="AccountAvatarIsland" client="idle" when="signed-in" />
           <Island name="MobileNavIsland" client="interaction" ssr>
             <MobileNavIsland />

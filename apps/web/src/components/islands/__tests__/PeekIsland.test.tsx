@@ -23,7 +23,7 @@ describe('PeekIsland', () => {
   test("focusing a Mention Peeks its entity, loading the schema's preload list", async () => {
     // The data is already loaded by the test preload; record the request only.
     preloadSpy = spyOn(SalvageUnionReference, 'preload').mockResolvedValue(undefined)
-    const burn = SalvageUnionReference.getByNameIn('traits', 'burn')
+    const burn = SalvageUnionReference.getByNameIn('traits', 'Burn')
     if (!burn) throw new Error('fixture missing: burn')
     render(
       <EntitySurfaceProvider value={{ hrefFor: (ref) => itemHref(ref.schemaName, ref.slug) }}>

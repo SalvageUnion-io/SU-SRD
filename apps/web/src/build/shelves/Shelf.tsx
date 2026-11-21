@@ -18,8 +18,6 @@ const BODY = {
   gap: tokens.space[4],
 } satisfies CSSProperties
 
-const NOTE = { textAlign: 'left' } satisfies CSSProperties
-
 const LIST = {
   display: 'flex',
   flexDirection: 'column',
@@ -42,7 +40,7 @@ type ShelfProps = {
   note?: ReactNode
   /** Shown when there are no items. */
   empty: ReactNode
-  /** The items, as `ShelfItem`s. */
+  /** The items, each an `li`. */
   children?: ReactNode
   /** Whether there are none to list. */
   isEmpty: boolean
@@ -58,12 +56,10 @@ export function Shelf({ title, id, aside, action, note, empty, children, isEmpty
       countAt="label"
       actions={action}
       bodyStyle={BODY}
+      // A shelf's cards are rows under its strip.
+      rows
     >
-      {note && (
-        <Text variant="hint" style={NOTE}>
-          {note}
-        </Text>
-      )}
+      {note && <Text variant="hint">{note}</Text>}
       {isEmpty ? <EmptyState variant="quiet" body={empty} /> : <ul style={LIST}>{children}</ul>}
     </SlabSection>
   )

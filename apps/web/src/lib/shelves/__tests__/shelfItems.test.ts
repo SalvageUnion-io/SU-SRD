@@ -42,7 +42,7 @@ describe('its Game', () => {
         key: 'game',
         label: 'Game',
         value: 'Reclamation of the Wastes',
-        href: '/play/games/g1',
+        href: '/games/g1',
       },
     ])
   })
@@ -56,7 +56,7 @@ describe('its Game', () => {
     expect(gameRelation({ gameId: 'gone' }, GAMES)[0]?.value).toBe('A Game')
     expect(gameRelation({ gameId: 'g1' }, undefined)[0]).toMatchObject({
       value: 'A Game',
-      href: '/play/games/g1',
+      href: '/games/g1',
     })
   })
 })

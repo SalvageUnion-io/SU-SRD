@@ -39,6 +39,7 @@
  *   - `traits` / `keywords`: `[[trait]]` bracket refs in free text
  *     (`traits`), and structured `DataValue` entries of type `'trait'` /
  *     `'keyword'` (`DataValueDisplayView.tsx`, via `TraitKeywordDisplayView`).
+ *   - `sources`: the foot links each printing to its book's page (`bookHrefs`).
  * - CONTENT_BUNDLE — every schema with its own `actions` field renders
  *   `ActionCard`, which needs `actions` (+ ALWAYS_CORE's `roll-tables`,
  *   already covered) resolved. `classes` entities additionally resolve
@@ -77,6 +78,7 @@ const ALWAYS_CORE: readonly string[] = [
   'ability-tree-requirements',
   'traits',
   'keywords',
+  'sources',
 ]
 
 /** Schemas with their own `actions` field, `classes` (ability-tree lookup),

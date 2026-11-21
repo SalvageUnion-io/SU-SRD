@@ -14,6 +14,7 @@ import { gamePath } from 'game-domain/entityKinds'
 import { currentDowntimeStep } from 'game-domain/rules/downtime'
 import { useState } from 'react'
 import { Button, EmptyState, Slab } from '../../components/index'
+import { ADD_CREW_ANCHOR } from '../../lib/games/gameRoster'
 import { mediatorCopy } from '../../messages/play-mediator'
 import { PlayCrewSheet } from '../PlayCrewSheet'
 import { PlayCrawlerUnit } from '../PlayUnits'
@@ -39,7 +40,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
 
   return (
     <>
-      <Slab as="h2" label={mediatorCopy('theTable')} />
+      <Slab as="h2" label={mediatorCopy('theTable')} flush />
       {mediator.crew === null ? (
         <EmptyState variant="inline" body={mediatorCopy('theTableAppearsOnceThe')} />
       ) : seats.length === 0 ? (
@@ -74,7 +75,7 @@ export function PlayMediatorTable({ mediator, picked, onPick }: PlayMediatorTabl
       {crawler === null ? (
         <>
           <EmptyState variant="inline" body={mediatorCopy('thisGameHasNoUnion')} />
-          <Button href={gamePath(mediator.gameId)} size="compact">
+          <Button href={`${gamePath(mediator.gameId)}#${ADD_CREW_ANCHOR}`} size="compact">
             {mediatorCopy('raiseOneFromTheGame')}
           </Button>
         </>

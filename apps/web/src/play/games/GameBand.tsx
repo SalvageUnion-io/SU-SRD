@@ -1,7 +1,7 @@
 /**
  * GameBand — the head of a Game's own page (ADR-052 §5): Play's
  * chapter band (the Manage context's band, ruleset §1.9) whose row keeps the
- * page's 75rem measure, the Game's name notched into its foot as the page's
+ * page's measure (`--page-measure`), the Game's name notched into its foot as the page's
  * `h1`, and the ways into the Cockpit beside it on the band's foot, wrapping up
  * over the name when they do not fit (`asideAt="controls"`).
  *
@@ -11,16 +11,16 @@
  * the hub's `actions`, a **Play** chip that asks which pilot to play
  * (`LaunchPlay`), beside Mediate when the Mediator plays one too.
  *
- * The group session (`useGameSession`, play.md §10): until one is live the
- * Mediator's chip is **Start group session**, which starts it and opens the
- * Mediator's screen; while it is live, Mediate and **End group session**, and
- * everyone else reads a **SESSION LIVE** stamp before Play.
+ * The group session (`useGameSession`, play.md §10): Mediate is the Mediator's
+ * door whether or not one is live (ruleset §3.13); the session starts from
+ * the Mediator's screen. While it is live the band also holds **End group
+ * session**, and everyone else reads a **SESSION LIVE** stamp before Play.
  */
 
 import { mediatePath } from 'game-domain/entityKinds'
 import type { CSSProperties, ReactNode } from 'react'
-import { Badge, Button, ChapterBand, Cluster } from '../../components/index'
-import { useGo } from '../../components/shared/useGo'
+import { Cluster } from '../../components/app'
+import { Badge, Button, ChapterBand } from '../../components/index'
 import { PAGE_MEASURE } from '../../lib/pageMeasure'
 import { playCopy } from '../../messages/play'
 import { playGamesCopy } from '../../messages/play-games'
@@ -54,7 +54,6 @@ export function GameBand({
   /** The Game's group session (`useGameSession`); null while it loads. */
   session?: GameSession | null
 }) {
-  const go = useGo()
   const mediates = mediator && gameId !== null
   const live = session?.live === true
   return (
@@ -65,34 +64,18 @@ export function GameBand({
       asideAt="controls"
       aside={
         mediates || actions || live ? (
-          <>
+          // One cluster, so a phone's strip under the band keeps the doors on a line.
+          <Cluster gap={12}>
             {mediates && (
-              // The stamp and its link wrap as one piece, centred on each other.
+              // The Mediator's door says who mediates: no stamp beside it.
               <Cluster gap={8}>
-                <Badge shape="stamp" size="compact" style={STAMP_AT_COMPACT}>
-                  {playGamesCopy('youMediate')}
-                </Badge>
-                {live || !session ? (
-                  <Button href={mediatePath(gameId)} variant="default" size="compact">
-                    {playGamesCopy('mediate')}
-                  </Button>
-                ) : (
-                  // Start the session, then open the Mediator's screen.
-                  <Button
-                    variant="default"
-                    size="compact"
-                    disabled={!session.canWrite || session.pending}
-                    onClick={() => {
-                      void session.start().then((started) => {
-                        if (started) go(mediatePath(gameId))
-                      })
-                    }}
-                  >
-                    {playCopy('startGroupSession')}
-                  </Button>
-                )}
+                {/* The Mediator's door is the band's one rust button, there
+                    before a session starts (ruleset §3.13). */}
+                <Button href={mediatePath(gameId)} variant="primary" size="compact">
+                  {playGamesCopy('mediate')}
+                </Button>
                 {live && session && (
-                  // R44: a control on a pink band is ink.
+                  // Any other control on a pink band is ink (R44).
                   <Button
                     variant="ink"
                     size="compact"
@@ -110,7 +93,7 @@ export function GameBand({
               </Badge>
             )}
             {actions}
-          </>
+          </Cluster>
         ) : undefined
       }
     >

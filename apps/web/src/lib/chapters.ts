@@ -19,18 +19,18 @@
 import type { RefEntity } from 'salvageunion-reference'
 import {
   entityTone,
-  getModel,
   getSchemaCatalog,
   isSchemaName,
   SalvageUnionReference,
 } from 'salvageunion-reference'
 import type { ChapterTone } from '../components/index'
 import { schemaHref } from './entityHref'
-import { listingEntries } from './listingEntries'
 
 type ChapterDefinition = {
-  /** The home page's anchor for the chapter (`/#mech-workshop`). */
+  /** The chapter's anchor on the Reference's Contents (`/reference/#mech-workshop`). */
   id: string
+  /** The chapter's own page (`/mechs/`): its band, then its every listing. */
+  path: string
   /** The book's chapter name. */
   title: string
   /** The chapter band's colour (ruleset, "The book's colour map"). */
@@ -45,11 +45,24 @@ type ChapterDefinition = {
 }
 
 const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
-  { id: 'pilot-bay', title: 'Pilot Bay', tone: 'pilot', categories: ['pilot'] },
-  { id: 'mech-workshop', title: 'Mech Workshop', tone: 'mech', categories: ['mech'] },
-  { id: 'union-crawler', title: 'Union Crawler', tone: 'crawler', categories: ['crawler'] },
+  { id: 'pilot-bay', path: 'pilots', title: 'Pilot Bay', tone: 'pilot', categories: ['pilot'] },
+  {
+    id: 'mech-workshop',
+    path: 'mechs',
+    title: 'Mech Workshop',
+    tone: 'mech',
+    categories: ['mech'],
+  },
+  {
+    id: 'union-crawler',
+    path: 'union-crawler',
+    title: 'Union Crawler',
+    tone: 'crawler',
+    categories: ['crawler'],
+  },
   {
     id: 'denizens',
+    path: 'wasteland',
     title: 'Denizens of the Wasteland',
     // The adversary brown its entities' cards wear.
     tone: 'adversary',
@@ -57,6 +70,7 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   },
   {
     id: 'rules-reference',
+    path: 'rules',
     title: 'Rules & Reference',
     tone: 'rules',
     categories: ['guides', 'reference'],
@@ -64,26 +78,23 @@ const CHAPTER_DEFINITIONS: readonly ChapterDefinition[] = [
   },
 ]
 
-/** One row of a chapter: a schema's listing and how many entries it holds. */
+/** One row of a chapter: a schema's listing. */
 type ChapterRow = {
   schemaId: string
   label: string
   href: string
-  count: number
 }
 
 export type SrdChapter = {
   id: string
   title: string
   tone: ChapterTone
-  /** The chapter's anchor on the home page. */
+  /** The chapter's own page (`/mechs/`). */
   href: string
   rows: ChapterRow[]
-  /** Every entry in the chapter. */
-  total: number
 }
 
-/** The chapters, each with its schemas' real entry counts. */
+/** The chapters, each with its schemas' listings. */
 export function buildChapters(): SrdChapter[] {
   const categories = SalvageUnionReference.CatalogCategories.all()
   const schemas = new Map(getSchemaCatalog().schemas.map((schema) => [schema.id, schema]))
@@ -105,43 +116,32 @@ export function buildChapters(): SrdChapter[] {
     const rows = ordered.flatMap((schemaId): ChapterRow[] => {
       const schema = schemas.get(schemaId)
       if (!schema) return []
-      // The listing's count: the roll tables count only the ones they list.
-      const model = getModel(schemaId)
-      const count = model ? listingEntries(schemaId, model.all()).length : schema.itemCount
-      return [
-        {
-          schemaId,
-          label: schema.displayNamePlural,
-          href: schemaHref(schemaId),
-          count,
-        },
-      ]
+      return [{ schemaId, label: schema.displayNamePlural, href: schemaHref(schemaId) }]
     })
 
     return {
       id: definition.id,
       title: definition.title,
       tone: definition.tone,
-      href: chapterHref(definition.id),
+      href: chapterHref(definition.path),
       rows,
-      total: rows.reduce((sum, row) => sum + row.count, 0),
     }
   })
 }
 
-/** A chapter's anchor on the home page. */
-const chapterHref = (id: string): string => `/#${id}`
+/** A chapter's own page. */
+const chapterHref = (path: string): string => `/${path}/`
 
 /** What a page needs to know about the chapter it sits in. */
 export type ChapterRef = Pick<SrdChapter, 'id' | 'title' | 'tone' | 'href'>
 
-/** The five chapters by name, colour and anchor: no entry counts, so no ORM read. */
+/** The five chapters by name, colour and anchor: no catalog, so no ORM read. */
 export const CHAPTER_REFS: readonly ChapterRef[] = CHAPTER_DEFINITIONS.map(
-  ({ id, title, tone }) => ({
+  ({ id, path, title, tone }) => ({
     id,
     title,
     tone,
-    href: chapterHref(id),
+    href: chapterHref(path),
   })
 )
 
@@ -184,16 +184,11 @@ function abilityBandFill(entity: RefEntity): string | undefined {
 
 /**
  * The listings that wear TL1's blue: systems and modules, the one place the
- * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones, whose cards' heads are tech-level blue
- * (R44), and pilot equipment, whose cards' heads are too, never pilot
- * orange.
+ * book sets TL blue as a ground (ruleset §3.8, book pp. 162, 188), and drones,
+ * whose cards' heads are tech-level blue (R44). Pilot equipment wears its
+ * chapter's orange, as its cards do.
  */
-const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set([
-  'systems',
-  'modules',
-  'drones',
-  'equipment',
-])
+const TECH_LEVEL_LISTING_SCHEMAS: ReadonlySet<string> = new Set(['systems', 'modules', 'drones'])
 
 /**
  * A listing's band when not its chapter's: TL1's blue on the tech-level
@@ -208,7 +203,7 @@ export function listingBandFillFor(schemaId: string): string | undefined {
  * The bands a show page wears when not its chapter's: the entity's own tone
  * (`entityTone`), the colour its card's header and Compact wear, head and foot
  * (R44: a Page's band wears its entity). Gear
- * (systems, modules, drones, equipment, vehicles) wears its tech level's
+ * (systems, modules, drones, vehicles) wears its tech level's
  * colour; a Hybrid Class the tier rust; an ability its tier's colour (E12);
  * a creation guide its entity's colour, Heat its red (`guideTone`).
  * Every other page wears its chapter's band from the colour map

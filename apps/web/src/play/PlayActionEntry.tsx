@@ -23,10 +23,13 @@ export function PlayActionEntry({
   entry,
   play,
   actions,
+  grouped = false,
 }: {
   entry: ListEntry
   play: Play
   actions: PlayActions
+  /** The list sits under an action type's heading: a unit's action leaves its type out (C10). */
+  grouped?: boolean
 }) {
   const need = entry.need === null ? null : NEED_TEXT[entry.need]
   switch (entry.kind) {
@@ -54,6 +57,7 @@ export function PlayActionEntry({
           onUse={() => actions.open(entry.key)}
           canWrite={play.canWrite}
           techLevel={actions.crawlerTechLevel}
+          grouped={grouped}
           locked={
             entry.need === null
               ? lockReason(entry.action, play.seat.seat.range, heat, actions.closeOnly)

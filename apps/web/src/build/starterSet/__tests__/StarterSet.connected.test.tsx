@@ -99,11 +99,12 @@ describe('Copy to… on the Starter Set page', () => {
     return screen.getByRole('menu')
   }
 
-  test('“Copy to…” is a chip in the Compact’s chip group, outside the sheet’s link', () => {
+  test('“Copy to…” ends the build’s line, outside the sheet’s link', () => {
     renderPage()
-    const trigger = screen.getByRole('button', { name: 'Copy Bonesaw to…' })
-    expect(trigger.closest('[data-chip-group]')).not.toBeNull()
-    const sheet = screen.getByRole('link', { name: 'Read Bonesaw' })
+    const trigger = screen.getAllByRole('button', { name: 'Copy Bonesaw to…' })[0] as HTMLElement
+    const line = trigger.closest('tr') as HTMLElement
+    const sheet = within(line).getByRole('link', { name: 'Bonesaw' })
+    expect(sheet.getAttribute('href')).toBe('/starter/pilot/starter-pilot-bonesaw')
     expect(sheet.contains(trigger)).toBe(false)
   })
 

@@ -1,43 +1,96 @@
-import type { CSSProperties } from 'react'
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import type { RefChassis } from 'salvageunion-reference'
 import {
+  getAssetUrl,
   nameToSlug,
   normalizePatternName,
   SalvageUnionReference,
   visiblePatterns,
 } from 'salvageunion-reference'
-import {
-  isLegalCreationChassis,
-  legalStartingPatterns,
-  MECH_CREATION_SCRAP_CAP,
-} from 'salvageunion-reference/rules'
-import {
-  MasonryColumns,
-  ReferenceEntityCard,
-  Slab,
-  TitledBox,
-  tokens,
-} from '../../components/index'
+import { isLegalCreationChassis, legalStartingPatterns } from 'salvageunion-reference/rules'
+import { PictureRadio } from '../../components/app'
+import { assetSrcSetFor, capsLabel, EmptyState, ReferenceEntityCard } from '../../components/index'
+import { cn } from '../../lib/cn'
 import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
-import { fullWidthStyle, textSmStyle } from '../wizard/wizardStyles.model'
+import { PickList } from '../wizard/PickList'
+import type { PickColumn } from '../wizard/pickLedger.model'
 
-const HINT = {
-  ...textSmStyle,
-  color: 'currentcolor',
-  fontFamily: tokens.font.body,
-} satisfies CSSProperties
-
-const CUSTOM_BODY = {
-  color: tokens.color.ink,
-  fontFamily: tokens.font.body,
-  fontSize: tokens.fontSize.caption,
-  margin: 0,
-} satisfies CSSProperties
+/** A caps label: the condensed face in capitals (ruleset §3.12). */
+const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
 
 /** A canonical chassis pattern as stored on the reference chassis record. */
 export type ChassisPattern = RefChassis['patterns'][number]
+
+/**
+ * A chassis's stats in the one column order (ruleset §2.6): its Salvage Value
+ * in place, then its points and slots. What it costs is said once, on the foot.
+ * A phone keeps two figures (L8); the pick's card under its list has the rest.
+ */
+const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
+  {
+    key: 'sv',
+    label: mechCopy('sv'),
+    title: mechCopy('salvageValueItsCost'),
+    phone: true,
+    value: (c) => c.salvageValue,
+  },
+  {
+    key: 'sp',
+    label: mechCopy('sp'),
+    title: mechCopy('structurePoints'),
+    phone: true,
+    value: (c) => c.structurePoints,
+  },
+  {
+    key: 'ep',
+    label: mechCopy('ep'),
+    title: mechCopy('energyPoints'),
+    value: (c) => c.energyPoints,
+  },
+  {
+    key: 'sys',
+    label: mechCopy('sys'),
+    title: mechCopy('systemSlots'),
+    value: (c) => c.systemSlots,
+  },
+  {
+    key: 'mod',
+    label: mechCopy('mod'),
+    title: mechCopy('moduleSlots'),
+    value: (c) => c.moduleSlots,
+  },
+  {
+    key: 'heat',
+    label: mechCopy('heat'),
+    title: mechCopy('heatCapacity'),
+    value: (c) => c.heatCapacity,
+  },
+  {
+    key: 'cargo',
+    label: mechCopy('cargo'),
+    title: mechCopy('cargoCapacity'),
+    value: (c) => c.cargoCapacity,
+  },
+]
+
+/** A starting-pattern row: a book pattern, or the custom build. */
+type PatternRow = { key: string; name: string; line: string; pattern?: ChassisPattern }
+
+const PATTERN_COLUMNS: readonly PickColumn<PatternRow>[] = [
+  { key: 'loadout', label: mechCopy('loadout'), kind: 'line', value: (row) => row.line },
+]
+
+const CUSTOM_KEY = 'custom-build'
+
+/** A pattern's loadout as one line, its systems then its modules. */
+function loadoutLine(pattern: ChassisPattern): string {
+  const names = (list: readonly { name: string; count?: number | undefined }[]) =>
+    list.map((entry) =>
+      entry.count && entry.count > 1 ? `${entry.name} ×${entry.count}` : entry.name
+    )
+  return [...names(pattern.systems ?? []), ...names(pattern.modules ?? [])].join(', ')
+}
 
 type MechChassisStepProps = {
   /** Chassis slug ref ('' while unchosen). */
@@ -46,54 +99,21 @@ type MechChassisStepProps = {
   patternName: string
   /** Radio semantics — a new chassis replaces the old (refund + wipe). */
   onSelectChassis: (chassisSlug: string) => void
-  /** Prefill steps 4–5 from a canonical pattern (debits the budget). */
+  /** Prefill step 2 from a canonical pattern (debits the budget). */
   onSelectPattern: (pattern: ChassisPattern) => void
-  /** Custom build — no prefill; craft manually in steps 4–5. */
+  /** Custom build — no prefill; craft manually in step 2. */
   onSelectCustom: () => void
 }
 
 /**
- * One pattern option as the pattern reference card (the universal entity-card
- * rule): the chassis rendered in its PATTERN view, as everywhere else a
- * pattern is drawn — the quoted pattern title, the `Legal Starting Pattern`
- * label, the chassis ability as a contentful Mini and the loadout as Minis.
- */
-function PatternSelCard({
-  chassis,
-  pattern,
-  selected,
-  onToggle,
-}: {
-  chassis: RefChassis
-  pattern: ChassisPattern
-  selected: boolean
-  onToggle: () => void
-}) {
-  return (
-    <ReferenceEntityCard
-      data={chassis}
-      pattern={pattern}
-      size="compact"
-      selected={selected}
-      selectionRole="radio"
-      cardClickLabel={`${pattern.name} pattern`}
-      onCardClick={onToggle}
-      hide={{ actions: true, choices: true }}
-      // Choosing a pattern needs its chassis ability: nested in the pick, a
-      // contentful Mini (N3, E19).
-      showChassisAbility
-    />
-  )
-}
-
-/**
- * Step 2 · Craft your Mech Chassis (Mech Workshop p.94) — exactly one, radio
- * semantics, enforced HARD: only Tech 1 chassis render
- * (package `isLegalCreationChassis` — higher TLs are never shown), each card
- * foot shows its crafting cost (`COSTS n SCRAP`), and picking one debits the
- * 20-Scrap budget. Below the pick, a "Start from a pattern?" strip offers
- * ONLY the stored-flag `legalStarting` patterns (or Custom build); picking a
- * pattern prefills steps 4–5 and debits accordingly.
+ * Step 1 · Chassis (Workshop Manual p.94). The Tech 1 chassis are the rows of
+ * one picker (`PickList`, ledger.md L7): a line a chassis with its seven
+ * figures in fixed columns, exactly one picked (radio). The pick stands beside
+ * the lists as its contentful card (its art, its ability as a contentful
+ * Mini: N3, E19). "Or start from a pattern" is the same picker: the chassis's
+ * `legalStarting` patterns and Custom build, a name and a loadout line each.
+ * Only Tech 1 chassis the 20 Scrap can buy render, a chassis costs its Salvage
+ * Value, and a pattern prefills step 2 and debits the same pool.
  */
 export function MechChassisStep({
   chassisName,
@@ -125,70 +145,140 @@ export function MechChassisStep({
     (p) => normalizePatternName(p.name) === normalizePatternName(patternName)
   )
 
+  const patternRows: PatternRow[] = [
+    ...patternPool.map((pattern) => ({
+      key: pattern.name,
+      name: pattern.name,
+      line: loadoutLine(pattern),
+      pattern,
+    })),
+    {
+      key: CUSTOM_KEY,
+      name: mechCopy('customBuild'),
+      line: mechCopy('noPrefillCraftYourSystems'),
+    },
+  ]
+  const selectedPatternKey = isCustom
+    ? CUSTOM_KEY
+    : patternPool.find((p) => normalizePatternName(p.name) === normalizePatternName(patternName))
+        ?.name
+
   return (
-    <div className="su-wiz-stack su-wiz-stack--20" style={fullWidthStyle}>
-      <Slab label={mechCopy('tech1Chassis')} count="Choose 1" countInk="inherit" />
-      <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('chassis')}>
-        {chassisPool.map((chassis) => {
-          const cost = chassis.salvageValue
-          const reason = chassisFitsCreationBudget(cost)
-            ? undefined
-            : `Costs ${cost} scrap · ${MECH_CREATION_SCRAP_CAP} cap`
-          return (
-            <ReferenceEntityCard
-              key={chassis.id}
-              data={chassis}
-              size="compact"
-              selected={nameToSlug(chassis.name) === chassisName}
-              selectionRole="radio"
-              cardClickLabel={chassis.name}
-              selectable={!reason}
-              onCardClick={reason ? undefined : () => onSelectChassis(nameToSlug(chassis.name))}
-              hide={{ actions: true, choices: true, patterns: true }}
-              // Choosing a chassis needs its ability: nested in the pick, a
-              // contentful Mini (N3, E19).
-              showChassisAbility
-              footMeta={[
-                { label: mechCopy('costs'), value: `${cost} scrap` },
-                ...(reason ? [{ label: reason, value: '' }] : []),
-              ]}
+    <div className="su-wiz-compare-layout">
+      <div className="su-wiz-compare-main">
+        <div>
+          <ChassisGallery
+            title={mechCopy('tech1Chassis')}
+            note={mechCopy('choose1')}
+            pool={chassisPool.filter((c) => chassisFitsCreationBudget(c.salvageValue))}
+            selected={chassisName || undefined}
+            onSelect={onSelectChassis}
+          />
+        </div>
+        {selectedChassis !== undefined && (
+          <div>
+            <PickList
+              title={mechCopy('orStartFromAPattern')}
+              note={mechCopy('optional')}
+              rows={patternRows}
+              rowKey={(row) => row.key}
+              rowName={(row) => row.name}
+              columns={PATTERN_COLUMNS}
+              selected={selectedPatternKey}
+              onSelect={(key) => {
+                const row = patternRows.find((r) => r.key === key)
+                if (row?.pattern) onSelectPattern(row.pattern)
+                else onSelectCustom()
+              }}
             />
+          </div>
+        )}
+      </div>
+
+      <div className="su-wiz-compare-detail su-wiz-compare-detail--sticky">
+        {selectedChassis === undefined ? (
+          <EmptyState variant="quiet" body={mechCopy('pickAChassisToReveal')} bodyInk="inherit" />
+        ) : (
+          <ReferenceEntityCard
+            data={selectedChassis}
+            size="compact"
+            hide={{ actions: true, choices: true, patterns: true }}
+            // Choosing a chassis needs its ability: nested in the pick, a
+            // contentful Mini (N3, E19).
+            showChassisAbility
+          />
+        )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The chassis pick as a gallery.
+ * A chassis is chosen by its picture first (the owner: "huge draw"), so each
+ * is a plate: its art, its name, its cost (Salvage Value), and the same six
+ * figures the pick list printed, under their labels. One radio group; the
+ * picked plate takes the ink frame. The step's rule is its cited brief.
+ */
+function ChassisGallery({
+  title,
+  note,
+  pool,
+  selected,
+  onSelect,
+}: {
+  title: string
+  note: string
+  pool: readonly RefChassis[]
+  selected: string | undefined
+  onSelect: (slug: string) => void
+}) {
+  const figures = CHASSIS_COLUMNS.filter((column) => column.key !== 'sv')
+  const plateId = useId()
+  return (
+    <section className="su-chassis-gallery">
+      <header className="su-rule-head" data-slab="">
+        <h2 className={cn('su-rule-head__label', CAPS)}>{title}</h2>
+        <span className={cn('su-rule-head__note', CAPS)}>{note}</span>
+      </header>
+      <div className="su-grid su-chassis-gallery__grid" role="radiogroup" aria-label={title}>
+        {pool.map((chassis) => {
+          const slug = nameToSlug(chassis.name)
+          const art = getAssetUrl(chassis)
+          const picked = slug === selected
+          return (
+            <PictureRadio
+              key={slug}
+              checked={picked}
+              className="su-chassis-plate"
+              data-picked={picked || undefined}
+              aria-labelledby={`${plateId}-${slug}`}
+              aria-describedby={`${plateId}-${slug}-figures`}
+              onClick={() => onSelect(slug)}
+            >
+              <span className="su-chassis-plate__art">
+                {art && (
+                  <img src={art} srcSet={assetSrcSetFor(art)} sizes="240px" alt="" loading="lazy" />
+                )}
+              </span>
+              <span className={cn('su-chassis-plate__name', CAPS)}>
+                <b id={`${plateId}-${slug}`}>{chassis.name}</b>
+                <span className="su-chassis-plate__cost">
+                  <small>{mechCopy('sv')}</small> {chassis.salvageValue}
+                </span>
+              </span>
+              <span id={`${plateId}-${slug}-figures`} className="su-chassis-plate__figures">
+                {figures.map((column) => (
+                  <span key={column.key} title={column.title}>
+                    <small>{column.label}</small>
+                    <b>{column.value(chassis)}</b>
+                  </span>
+                ))}
+              </span>
+            </PictureRadio>
           )
         })}
-      </MasonryColumns>
-
-      {selectedChassis === undefined ? (
-        <p style={HINT}>{mechCopy('pickAChassisToReveal')}</p>
-      ) : (
-        <>
-          <Slab label={mechCopy('startFromAPattern')} count="Optional" countInk="inherit" />
-          <MasonryColumns maxColumns={2} radio ariaLabel={mechCopy('startingPattern')}>
-            {patternPool.map((pattern) => (
-              <PatternSelCard
-                key={pattern.name}
-                chassis={selectedChassis}
-                pattern={pattern}
-                selected={normalizePatternName(pattern.name) === normalizePatternName(patternName)}
-                onToggle={() => onSelectPattern(pattern)}
-              />
-            ))}
-            {/* No entity, so no Card: the Compact's frame in select mode, solid, since a
-                custom build is not user-made (ruleset §3.9). */}
-            <TitledBox
-              title={mechCopy('customBuild')}
-              select={{
-                kind: 'select',
-                role: 'radio',
-                selected: isCustom,
-                onSelect: onSelectCustom,
-                label: mechCopy('customBuild'),
-              }}
-            >
-              <p style={CUSTOM_BODY}>{mechCopy('noPrefillCraftYourSystems')}</p>
-            </TitledBox>
-          </MasonryColumns>
-        </>
-      )}
-    </div>
+      </div>
+    </section>
   )
 }

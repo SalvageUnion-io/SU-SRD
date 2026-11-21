@@ -56,7 +56,7 @@ test.describe('wired sheet segment switch', () => {
     await page.setViewportSize({ width: 1280, height: 800 })
 
     await expect(page.getByRole('navigation', { name: /assigned sheets/i })).toBeHidden()
-    // The relation chip in Assigned units remains the desktop navigation affordance.
+    // The relation chip in Related units remains the desktop navigation affordance.
     await expect(assignedUnit(page, 'Mara Vex')).toBeVisible()
   })
 

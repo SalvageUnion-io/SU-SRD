@@ -25,7 +25,7 @@ import { CHECKS } from './check'
 
 const ROOT = join(import.meta.dir, '..')
 
-/** About 80% of today's 179 laws: a canon that parses to fewer lost its numbering. */
+/** About 80% of the canon (173 laws today): a canon that parses to fewer lost its numbering. */
 const LAW_FLOOR = 140
 
 export const CONTEXT: CanonContext = {

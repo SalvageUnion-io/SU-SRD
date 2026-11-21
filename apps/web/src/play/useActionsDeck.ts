@@ -32,7 +32,6 @@
  * Situation) decides what an activation spends and whether it touches Heat.
  */
 
-import { resolveEffectiveCrawlerLevel } from 'game-domain/crawlerLevel'
 import { pushHeatAt } from 'game-domain/rules/sceneConditions'
 import type { Crawler } from 'game-domain/schemas/crawler'
 import type { Mech } from 'game-domain/schemas/mech'
@@ -48,40 +47,38 @@ import {
   canPush,
   coreRollBandLabel,
   mechMaxCargo,
-  mechMaxEP,
   mechMaxHeat,
   overloadTableName,
   overloadTableOf,
   performCoreRoll,
-  pilotMaxAP,
   pilotMaxInventorySlots,
   resolveChassisRef,
   resolveGauge,
-  resolvePoolStart,
 } from 'salvageunion-reference/rules'
 import { rollForTable } from '../components/index'
-import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionPatches'
+import type { PlayAction, PlayActionCurrency } from '../lib/rules/actionList'
 import {
-  activationHeatGate,
-  activationPatch,
+  buildCompanionActions,
   buildMechActions,
   buildPilotActions,
+  isAreaSalvage,
+} from '../lib/rules/actionList'
+import {
+  activationHeatGate,
   coreMechanicRowText,
   economyForActivation,
   economyUnderScene,
   hasCurrencyChoice,
   hasVariableHot,
-  isAreaSalvage,
   isDestructiveOutcome,
-  pilotActivationPatch,
 } from '../lib/rules/actionPatches'
 import { areaSalvageToMech, areaSalvageToPilot } from '../lib/rules/downtimeEconomy'
-import type { MechItemEconomy } from '../lib/rules/mechItems'
 import { runWrite } from '../lib/runWrite'
 import { playCopy } from '../messages/play'
 import { PLAY_TXN } from '../replica/provenance'
 import { useUnits } from '../replica/units'
 import { areaSalvageRowText, haulText, isExpertSalvager } from './areaSalvage.model'
+import { companionNow, payActivation } from './deckActivation.model'
 import type { PlayStore } from './play.model'
 import { confirmMeltdown, pushMech } from './reactorWrites.model'
 import type { Situation } from './situation.model'
@@ -230,7 +227,19 @@ export function useActionsDeck({
   // equipment in the cockpit).
   const onFoot = situation === 'onFoot'
   const pilotDeck = pilot ? buildPilotActions(pilot) : []
-  const deck = onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]
+  // The companions' actions are in the deck too (R65). A pilot's companion
+  // acts on its own turn, on foot or Boarded; a mech's drone is reached from
+  // its mech.
+  const companionDeck = [
+    ...(pilot ? buildCompanionActions({ kind: 'pilot', id: pilot.id }, pilot.partners) : []),
+    ...(!onFoot && mech ? buildCompanionActions({ kind: 'mech', id: mech.id }, mech.partners) : []),
+  ]
+  const deck = [
+    ...(onFoot || !mech ? pilotDeck : [...buildMechActions(mech), ...pilotDeck]),
+    ...companionDeck,
+  ]
+
+  const units = { store: s, pilot, mech, crawler }
 
   // Heat context for the heat-lock (pilots carry no heat).
   const heatCtx = (() => {
@@ -292,67 +301,6 @@ export function useActionsDeck({
   /** Replace the seat's resolve with a new step of the same action. */
   function step(current: SeatResolving, next: Partial<SeatResolving>) {
     onResolving({ ...current, ...next })
-  }
-
-  /**
-   * Pay one activation in `effCurrency`, spending the (possibly Hot-X-adjusted)
-   * `economy`. EP writes the mech patch (EP + Hot Heat + uses); AP writes the
-   * pilot's AP spend. This is the single non-destructive ADR-007 bookkeeping
-   * write; the Apply step never adds a destructive one.
-   */
-  function activate(
-    current: SeatResolving,
-    action: PlayAction,
-    effCurrency: PlayActionCurrency,
-    economy: MechItemEconomy
-  ) {
-    if (effCurrency === 'AP') {
-      if (!pilot) return
-      const fresh = s.get('pilot', pilot.id) ?? pilot
-      // An unrecorded live stat means UNSPENT, not empty — a pilot who has never
-      // spent AP is at full AP. Defaulting to 0 here banked the spend against an
-      // empty pool and wrote AP 0 on the first activation. The stored value stays
-      // authoritative when present: never clamp it here, since an unresolved ref
-      // makes the max 0.
-      const patch = pilotActivationPatch({
-        apCost: economy.epCost,
-        currentAP: resolvePoolStart(
-          fresh.currentAP,
-          pilotMaxAP({
-            ...fresh,
-            crawlerTechLevel: resolveEffectiveCrawlerLevel(fresh, crawler),
-          })
-        ),
-      })
-      // The resolve moves on to Roll only once the spend has landed.
-      if (Object.keys(patch).length > 0) {
-        runWrite(
-          () => s.update('pilot', pilot.id, patch, meta),
-          () => step(current, { activated: true })
-        )
-      } else step(current, { activated: true })
-      return
-    }
-    // EP is the mech's: only a boarded deck offers it.
-    if (!mech) return
-    const chassis = resolveChassisRef(mech.chassisRef)
-    const fresh = s.get('mech', mech.id) ?? mech
-    const heatCap = mechMaxHeat(fresh, chassis)
-    const patch = activationPatch({
-      slug: action.slug,
-      economy,
-      // Unrecorded EP means a mech that has never spent any — full, not empty.
-      currentEP: resolvePoolStart(fresh.currentEP, mechMaxEP(fresh, chassis)),
-      currentHeat: resolveGauge(fresh.currentHeat),
-      heatCap,
-      prevUses: fresh.itemUses,
-    })
-    if (Object.keys(patch).length > 0) {
-      runWrite(
-        () => s.update('mech', mech.id, patch, meta),
-        () => step(current, { activated: true })
-      )
-    } else step(current, { activated: true })
   }
 
   /**
@@ -482,13 +430,18 @@ export function useActionsDeck({
         : selected.currency
 
     // Heat projection + cap gate (EP activations only; pilots carry no Heat).
+    // A companion's Heat is its own, on foot or Boarded.
+    const companion = selected.companion ? companionNow(units, selected.companion) : null
+    const actionHeat = companion
+      ? { currentHeat: companion.currentHeat, heatCap: companion.heatCap }
+      : heatCtx
     const { applies: heatApplies, ok: heatOk } = activationHeatGate({
       currency: effCurrency,
-      onFoot,
+      onFoot: selected.companion ? false : onFoot,
       heat: eco.heat,
-      ...heatCtx,
+      ...actionHeat,
     })
-    const projectedHeat = heatCtx.currentHeat + eco.heat
+    const projectedHeat = actionHeat.currentHeat + eco.heat
     const apUnavailable = effCurrency === 'AP' && !pilot
     const activateDisabled = activated || !heatOk || apUnavailable
 
@@ -522,7 +475,7 @@ export function useActionsDeck({
         ? {
             hotX,
             activated,
-            projText: `Heat ${projectedHeat}/${heatCtx.heatCap}${heatOk ? '' : ' — over cap'}`,
+            projText: `Heat ${projectedHeat}/${actionHeat.heatCap}${heatOk ? '' : ' — over cap'}`,
             over: !heatOk,
             onDec: () => setHotX((x) => Math.max(1, x - 1)),
             onInc: () => setHotX((x) => x + 1),
@@ -535,11 +488,15 @@ export function useActionsDeck({
           : heatOk
             ? undefined
             : 'Activating would exceed the Heat Capacity',
-        onActivate: () => activate(current, selected, effCurrency, eco),
+        onActivate: () =>
+          payActivation(units, selected, effCurrency, eco, () =>
+            step(current, { activated: true })
+          ),
         activated,
         onRoll: () => void (salvaging ? doSalvageRoll(current) : doRoll(current)),
         push:
-          isPilotAction || salvaging
+          // A companion cannot Push (Core Book p.68).
+          isPilotAction || salvaging || selected.companion
             ? undefined
             : {
                 disabled: roll === null || pushed || pushLocked,

@@ -3,16 +3,20 @@ import type { Seed } from 'gates/lib/seedAccount'
 import { seedAccount } from 'gates/lib/seedAccount'
 import { at } from './_base'
 import { findChipStrips } from './_chipStrips'
+import { findCutouts } from './_cutouts'
 import type { DesignView } from './_designRoutes'
 import { expectWithinBaseline, visitDesignViews, walkDesignRoutes } from './_designRoutes'
 import type { DesignDebt, DesignFamily, DesignFinding } from './_designTable'
 import { corpusRoutes, DESIGN_FAMILIES, designRoutes } from './_designTable'
 import { findFrames } from './_entityFrames'
+import { findFillGrid } from './_fillGrid'
 import type { Placed } from './_findings'
 import { place } from './_findings'
 import { chassisAbilityNames, findFormFits } from './_formFits'
 import { waitForReady } from './_helpers'
-import { findHierarchy } from './_hierarchy'
+import type { Act } from './_hierarchy'
+import { actTwins, findHierarchy, readActs } from './_hierarchy'
+import { findLedgers } from './_ledger'
 import { findNesting } from './_nestingDepth'
 import { findRelationChips } from './_relationChips'
 import { findSheetGrammar } from './_sheetGrammar'
@@ -71,6 +75,7 @@ function designGates(page: Page): Gate[] {
     cells.seams += seams
     return place(where, findings)
   }
+  const acts: Act<DesignFamily>[] = []
   const cockpits = new Set<DesignFamily>()
   const overlaysRead: string[] = []
 
@@ -80,7 +85,7 @@ function designGates(page: Page): Gate[] {
        * The chip-strip law (ruleset §4.7, `_chipStrips.ts`). A fault's rule is
        * its kind: `size`, `gap`, `flush`, `cost`, `clip` or `lines`. The seeded
        * Game's long name holds a Training Bay Compact's Game chip inside its
-       * Compact at a page's three columns (R3).
+       * Compact at a page's three columns (C5).
        */
       gate: 'chip-strips',
       scan: async ({ where }) => place(where, await findChipStrips(page)),
@@ -127,10 +132,10 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R55, hierarchy at render (`_hierarchy.ts`): the type ladder
+       * Ruleset §4.8, hierarchy at render (`_hierarchy.ts`): the type ladder
        * (§4.8), each form's title and Slab rung (E24, §4.9), the heading
        * outline (E25), one sub-section rung (R53), the emphasis ladder
-       * (§3.13), a TitledBox's whole title (C12) and the two measures (§1.10).
+       * (§3.13), a TitledBox's whole title (C5) and the two measures (§1.10).
        */
       gate: 'hierarchy',
       scan: async ({ family, width, where }) =>
@@ -142,7 +147,58 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R5, a linked unit is a relation chip (C11,
+       * Ruleset §3.14, one act, one emphasis (`_hierarchy.ts`, `actTwins`):
+       * each act's words, every `+ New…` as one, wear one Button variant over
+       * the whole walk. Its own gate, so the PR tier holds it.
+       */
+      gate: 'act-twin',
+      scan: async ({ family, where }) => {
+        acts.push(...(await readActs(page, { family, where })))
+        return []
+      },
+      baseline: [],
+      finish: async () => actTwins(acts),
+    },
+    {
+      /**
+       * Ledger L9, a compared or picked list is one Ledger (ledger.md L1
+       * to L9, `_ledger.ts`): one frame, the title on its tab with no Slab
+       * over it, head stamps in the stat order (§2.6), `—` for none, a picked
+       * row inked; a head stamp sorts only on an SRD index.
+       */
+      gate: 'ledger',
+      scan: async ({ family, where }) =>
+        // A Peek opens over an index (`designRoutes`), whose head stamps sort.
+        place(
+          where,
+          await findLedgers(page, { index: family === 'reference-index' || family === 'peek' })
+        ),
+      baseline: [],
+    },
+    {
+      /**
+       * The cut-out law (`_cutouts.ts`): every paper cut-out stands flush on
+       * its strip's foot, notched into the body (a Ledger's and a sheet
+       * table's title tab and column labels, a band's label, the home's
+       * name and plates), never floated over the strip's paint.
+       */
+      gate: 'cutouts',
+      scan: async ({ where }) => place(where, await findCutouts(page)),
+      baseline: [],
+    },
+    {
+      /**
+       * Hard rule R68, a grid of items fills its rows (`_fillGrid.ts`): the
+       * item grid (`.su-grid`) runs every row edge to edge, no hand-built
+       * grid leaves an orphan cell, no masonry an empty column.
+       */
+      gate: 'fill-grid',
+      scan: async ({ where }) => place(where, await findFillGrid(page)),
+      baseline: [],
+    },
+    {
+      /**
+       * C11, a linked unit is a relation chip (C11,
        * `_relationChips.ts`): no entity in a Compact's body and no Mini hung
        * under a Compact. Its copy half is the `copy` gate's banned role stamps
        * ("Assigned Mech", "Assigned Pilot").
@@ -183,7 +239,7 @@ function designGates(page: Page): Gate[] {
        *   computed size times every scale above it. Play is swept again in a
        *   mid-size window (`MID`, 1024 × 700), on the `lg` rung, where its
        *   three columns are at their narrowest.
-       * - `tab-size`: a Button beside Tabs is the Tabs' Size (R41).
+       * - `tab-size`: a Button beside Tabs is the Tabs' Size (§4.7).
        * Then, under a coarse pointer (a touch phone), every menu item a seeded
        * page opens is on the 44px floor (§4.6): the Training Bay's ⋯ and the
        * Play bar's.
@@ -205,8 +261,8 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R6, nothing beside or under a strip (`chips-and-actions.md`
-       * C1, C8; EDL E8, `_stripControls.ts`): every control in an entity list
+       * C8, nothing beside or under a strip (`chips-and-actions.md`
+       * C8; ruleset §1.5, `_stripControls.ts`): every control in an entity list
        * item is inside its entity's chip group, its state, uses and actions
        * inlined last after the cost; none sits beside the strip (`beside`) or
        * in the body under it (`under`). A sheet item's state, uses, actions and
@@ -217,7 +273,7 @@ function designGates(page: Page): Gate[] {
       baseline: [],
     },
     {
-      /** Hard rule R29: no tab or segment label overflows (`_tabLabels.ts`). */
+      /** Chrome K10: no tab or segment label overflows (`_tabLabels.ts`). */
       gate: 'tab-labels',
       scan: async ({ where }) => {
         labels += await countTabLabels(page)
@@ -231,7 +287,7 @@ function designGates(page: Page): Gate[] {
     },
     {
       /**
-       * Hard rule R31, "Value cells and seams" (ruleset §7.1, §7.2,
+       * Ruleset §7.1 and §7.2, value cells and seams (
        * `_valueCells.ts`): every `Stat` value cell is paper with a 1px ink
        * frame (`fill`, `frame`), and every border-riding stamp centres on its
        * frame's border line (`seam`). The one seam stamp lives outside

@@ -289,7 +289,7 @@ function page(): PageResult {
                 without one.
               */}
             , the character builder, and{' '}
-            <InlineRef href={appPath('/play/')} style={BOLD}>
+            <InlineRef href={appPath('/games/')} style={BOLD}>
               {PRODUCT.play}
             </InlineRef>
             , the Game table: read the Starter Set with no account, and sign in with Discord to

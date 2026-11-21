@@ -11,7 +11,8 @@ import { NUMERIC_TECH_LEVELS } from 'salvageunion-reference/rules'
 import type { SalvageArea } from 'game-domain/schemas/salvageArea'
 import { DEFAULT_AREA_SUPPLY, MAX_AREA_SUPPLY } from 'game-domain/schemas/salvageArea'
 import { useId, useState } from 'react'
-import { ConfirmDialog, Eyebrow, Input, Select, Stack } from '../components/index'
+import { ConfirmDialog } from '../components/app'
+import { Eyebrow, Input, Select, Stack } from '../components/index'
 import { playCopy } from '../messages/play'
 
 type SalvageAreaDialogProps = {

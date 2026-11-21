@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn'
 import { buttonVariants } from './buttonVariants'
 
 /**
- * Toggle — one on/off (chrome K10, hard rule R29): a `Button` at its line's
+ * Toggle — one on/off (chrome K10): a `Button` at its line's
  * Size that stays pressed, `aria-pressed` carrying the state, pressed the ink
  * plate (a state, never rust: ruleset §3.1). An NPC's Actions, a reactor's
  * Shut down.

@@ -40,6 +40,7 @@ export function resolveBodyBlocks({
   alwaysShow,
   isGrantingAbility,
   grantedText = '',
+  entityName = '',
 }: {
   /** The entity's own content (or the titanic meta-action's remainder). */
   content: RefObjectContentBlock[] | undefined
@@ -53,6 +54,8 @@ export function resolveBodyBlocks({
   isGrantingAbility: boolean
   /** The granted cards' prose: a granting ability keeps only what they do not print. */
   grantedText?: string
+  /** The entity's name: its words do not count when a paragraph is matched to its self-action's. */
+  entityName?: string
 }): { bodyBlocks: RefObjectContentBlock[]; showBody: boolean } {
   const bodyContent = content?.filter((block) => {
     if (
@@ -67,11 +70,11 @@ export function resolveBodyBlocks({
   })
   const entityBodyBlocks = withoutDataValues(bodyContent ?? [])
   const selfActionBlocks = selfActionContent ? withoutDataValues(selfActionContent) : []
-  const selfActionText = selfActionBlocks.map(blockPlainText).join('\n')
+  const selfActionTexts = selfActionBlocks.map(blockPlainText)
   const dedupedEntityBlocks = selfActionBlocks.length
     ? entityBodyBlocks.filter((b) => {
         const t = blockPlainText(b).trim()
-        return t.length === 0 || !selfActionText.includes(t.slice(0, 40))
+        return t.length === 0 || !repeatsAny(t, selfActionTexts, entityName)
       })
     : entityBodyBlocks
   const allBlocks: RefObjectContentBlock[] = [...dedupedEntityBlocks, ...selfActionBlocks]
@@ -87,6 +90,37 @@ export function resolveBodyBlocks({
       : allBlocks
   const showBody = bodyBlocks.length > 0
   return { bodyBlocks, showBody }
+}
+
+/** The share of a paragraph's words one other paragraph must hold to be the same rule reworded. */
+const REWORDED = 0.8
+
+/** A paragraph's distinct words (`proseKey`'s), less the entity's own name. */
+function wordsOf(text: string, entityName: string): Set<string> {
+  const name = new Set(proseKey(entityName, undefined).split(' '))
+  return new Set(
+    proseKey(text, undefined)
+      .split(' ')
+      .filter((word) => word.length > 0 && !name.has(word))
+  )
+}
+
+/**
+ * Whether a paragraph of the entity repeats one its self-action prints: the
+ * action's text holds its opening, or one of the action's paragraphs holds
+ * nearly all its words. The book states a rule on the equipment and again on
+ * its action in other words ("Choose if your Custom Sniper Rifle is a
+ * Ballistic or Energy weapon. It gains…" / "Choose if it is a Ballistic or
+ * Energy weapon and it gains…"); the action's is the one printed.
+ */
+function repeatsAny(text: string, others: readonly string[], entityName: string): boolean {
+  if (others.some((other) => other.includes(text.slice(0, 40)))) return true
+  const words = [...wordsOf(text, entityName)]
+  if (words.length === 0) return false
+  return others.some((other) => {
+    const theirs = wordsOf(other, entityName)
+    return words.filter((word) => theirs.has(word)).length >= words.length * REWORDED
+  })
 }
 
 /**

@@ -101,14 +101,20 @@
   margin: 0;
 }
 
-/* The Downtime track: ten numbered steps, the one the table is on in ink. */
+/* The Downtime track: ten numbered steps sharing one line, the one the
+   table is on in ink. */
 .su-play-dt-track {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
-  grid-template-columns: repeat(10, minmax(0, 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.su-play-dt-track > * {
+  flex: 1 1 0%;
+  min-width: 0;
 }
 
 .su-play-dt-track__step {
@@ -193,4 +199,77 @@ button.su-play-dt-track__step:disabled {
    (WCAG 1.4.3): the select dim's saturation, a lighter fade. */
 .su-play-act .su-select-dim {
   opacity: 0.75;
+}
+
+/*
+ * What is on hand, grouped by action type (`PlayActionsList`): a group is its
+ * Mini Slab over its rows.
+ */
+.su-play-timings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/*
+ * A closed row says its effect in at most two short lines under its head, at
+ * the caption size, a cut one with a More that opens it in place; the whole
+ * effect is the opened row's too. Its picks sit as
+ * chips over its steps.
+ */
+.su-play-act__effect {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-ink);
+  display: -webkit-box;
+  flex: 1 1 0%;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  line-height: 1.35;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.su-play-act__effect-box {
+  align-items: flex-start;
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.su-play-act__effect-box[data-full] > .su-play-act__effect {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.su-play-act__picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+/*
+ * Below `lg` Use ends the body's line, beside the effect, so the head is the
+ * name's and the chips' alone (`PlayActionRow`). The button is the Compact
+ * Size, pressed through a Full Size (44px) target centred on it.
+ */
+.su-play-act__line {
+  align-items: center;
+  display: flex;
+  gap: var(--space-8);
+  justify-content: flex-end;
+}
+
+.su-play-act__line > .su-play-act__use {
+  flex: none;
+  position: relative;
+}
+
+.su-play-act__line > .su-play-act__use::after {
+  content: '';
+  inset: calc((var(--size-compact) - var(--size-full)) / 2);
+  position: absolute;
 }

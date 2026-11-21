@@ -68,7 +68,7 @@ describe('Copy invite link', () => {
     })
 
     expect(mutations).toEqual([{ name: 'invites.link', args: { gameId: 'g1' } }])
-    expect(copied).toEqual([`${pageOrigin()}/play/invite/TOKEN0123456789A`])
+    expect(copied).toEqual([`${pageOrigin()}/games/invite/TOKEN0123456789A`])
   })
 
   test('is not offered to somebody who is not signed in', async () => {

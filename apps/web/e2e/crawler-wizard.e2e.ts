@@ -1,4 +1,3 @@
-import { at } from './_base'
 import {
   addThroughPicker,
   advanceUntilVisible,
@@ -7,7 +6,6 @@ import {
   openSheetFor,
   openWizard,
   pickByName,
-  unselectedOptions,
   waitForReady,
 } from './_helpers'
 import { expect, test } from './fixtures'
@@ -23,8 +21,7 @@ import { expect, test } from './fixtures'
  * created crawler from its live sheet.
  *
  * The wizard is Crawler Type → Statistics → Armament Bay → Crew → Name →
- * Review. Its name is a click-to-edit control ("Edit crawler name"), not a
- * labelled `Crawler Name` input.
+ * Review. Its name is a live, labelled `Crawler Name` input.
  *
  * Tech level is fixed at TL1 on create; bays are not chosen — every crawler
  * seeds the full SRD bay set on creation.
@@ -41,19 +38,21 @@ test('build a crawler from scratch', async ({ page }) => {
   // depend on the crawler's tech level, so take the first on offer instead of
   // naming one.
   await advanceUntilVisible(page, page.getByRole('heading', { name: /Arm the Armament Bay/i }))
-  const weapon = unselectedOptions(page).first()
+  // A line's tap only shows its card: its count's + mounts it.
+  const weapon = page.getByRole('button', { name: /^Increase .+ count$/ }).first()
   await expect(weapon).toBeVisible()
   await weapon.click()
 
   // Name.
-  const nameEditor = page.getByLabel(/^Edit crawler name$/i)
+  const nameEditor = page.getByLabel(/^crawler name/i)
   await advanceUntilVisible(page, nameEditor)
   await fillIdentity(page, 'crawler name', 'Iron Wagon')
 
   const createCrawler = page.getByRole('button', { name: /Create Crawler/i })
   await advanceUntilVisible(page, createCrawler)
   await createCrawler.click()
-  await page.waitForURL((url) => url.pathname === at('/'), { timeout: 15_000 })
+  // A finished build opens its new sheet.
+  await page.waitForURL(/\/build\/crawlers\/(?!new)/, { timeout: 15_000 })
   await waitForReady(page)
   await expect(page.getByText('Iron Wagon').first()).toBeVisible({
     timeout: 15_000,
