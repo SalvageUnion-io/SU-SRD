@@ -47,6 +47,8 @@ export type PreviewAnswer = {
 export type InvitePreviewAnswer = {
   gameName: string
   mediatedBy: string | null
+  /** What the Game says of itself (ADR-067 §3); absent when it says nothing. */
+  description?: string
 }
 
 /** Names a reference slug: a class, a chassis, a crawler type. */

@@ -24,6 +24,8 @@ import type { EntityKind } from 'game-domain/entityKinds'
 import { ENTITY_KINDS } from 'game-domain/entityKinds'
 import type { PostRollResult } from 'game-domain/games/discord'
 import { mayBindChannel } from 'game-domain/games/discord'
+import type { GamePlan } from 'game-domain/schemas/gamePlan'
+import { GamePlanSchema } from 'game-domain/schemas/gamePlan'
 import { z } from 'salvageunion-reference/zod'
 import type { GameActAnswer, GameActArgs, GameActName, GameActResult } from '../../rooms/game/acts'
 import type { GameRead, Profile } from '../../rooms/game/roster'
@@ -246,6 +248,35 @@ const CALLS = {
     const room = deps.game(a.gameId)
     await act(room, who.discordId, 'setMediator', { userId: a.userId, mediator: a.mediator })
     return republished(room, null)
+  },
+  /** The Game's name or description (ADR-067 §3), the Organiser's to change. */
+  'games.update': async (
+    who: Caller,
+    a: { gameId: string; name?: string; description?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const { gameId: _gameId, ...patch } = a
+    await act(room, who.discordId, 'updateSettings', patch)
+    return republished(room, null)
+  },
+  /** Leave (`userId` absent) or, as the Organiser, remove a member; their units go home first. */
+  'games.removeMember': async (
+    who: Caller,
+    a: { gameId: string; userId?: string },
+    deps: CallDeps
+  ) => {
+    const room = deps.game(a.gameId)
+    const answer = await room.dismiss(who.discordId, a.userId ?? who.discordId)
+    if (!answer.ok) throw new RoomRefusal(answer.refusal)
+    return republished(room, null)
+  },
+  /** The Game's plan (ADR-067 §4): its table runner's alone. */
+  'plan.get': async (who: Caller, a: { gameId: string }, deps: CallDeps) =>
+    act(deps.game(a.gameId), who.discordId, 'plan.get', undefined as never),
+  'plan.set': async (who: Caller, a: { gameId: string; plan: GamePlan }, deps: CallDeps) => {
+    await act(deps.game(a.gameId), who.discordId, 'plan.set', { plan: a.plan })
+    return null
   },
   'games.setPrimaryCrawler': async (
     who: Caller,
@@ -473,6 +504,10 @@ const CALL_ARGS = {
   'games.create': z.object({ name: z.string(), templateOrigin: z.string().optional() }),
   'games.destroy': GAME,
   'games.setMediator': GAME.extend({ userId: z.string(), mediator: z.boolean() }),
+  'games.update': GAME.extend({ name: z.string().optional(), description: z.string().optional() }),
+  'games.removeMember': GAME.extend({ userId: z.string().optional() }),
+  'plan.get': GAME,
+  'plan.set': GAME.extend({ plan: GamePlanSchema }),
   'games.setPrimaryCrawler': GAME.extend({ crawlerId: z.string() }),
   'invites.link': GAME,
   'invites.reset': GAME,

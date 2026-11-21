@@ -128,7 +128,11 @@ function GameSections({ game }: { game: Game }) {
             gameId={gameId}
             viewerId={viewerId}
             organizer={game.organizer}
+            game={game}
             onDelete={() => setConfirmingDelete(true)}
+            onLeft={() => {
+              if (router) void router.navigate({ to: '/games' })
+            }}
           />
           {/* The Mediator's door to the prep the Training Bay keeps (ADR-066). */}
           {game.mediator && <MediatorPrep />}

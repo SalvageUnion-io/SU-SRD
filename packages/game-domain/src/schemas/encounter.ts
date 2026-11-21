@@ -95,6 +95,10 @@ export const EncounterSchema = z
     groups: z.array(EncounterGroupSchema).max(ENCOUNTER_MAX_GROUPS).optional(),
     /** Absent on encounters built before briefings; read as blank. */
     briefing: BriefingSchema.optional(),
+    /** The Game it is prepared for (ADR-067 §3); absent, it is for any. */
+    gameId: z.string().min(1).optional(),
+    /** Its place among that Game's encounters, lowest first; absent, last. */
+    order: z.number().finite().optional(),
     createdAt: z.string().datetime(),
     updatedAt: z.string().datetime(),
   })

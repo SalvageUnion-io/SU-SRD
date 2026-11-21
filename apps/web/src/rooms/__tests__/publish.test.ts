@@ -113,6 +113,7 @@ describe('what a Game room publishes', () => {
       gameId: 'g1',
       game: {
         name: 'Tenacity',
+        description: null,
         mediatedBy: 'Med',
         members: [
           { discordId: ORGANIZER, mediator: false, organizer: true },

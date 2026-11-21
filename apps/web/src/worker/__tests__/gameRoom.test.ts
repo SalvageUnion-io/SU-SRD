@@ -175,6 +175,42 @@ describe('the Game room Durable Object', () => {
     expect(game.act(ORGANIZER, 'read', undefined as never)).toEqual({ ok: true, value: null })
   })
 
+  test('a member leaves, or the Organiser removes them: their units go home, never deleted (MD-11)', async () => {
+    shelves.clear()
+    const { game } = await seeded('g-leave')
+    // The Organiser stays: the Game is theirs to delete.
+    expect(await game.dismiss(ORGANIZER, ORGANIZER)).toEqual({
+      ok: false,
+      refusal: 'The Organiser cannot leave their own Game: delete it instead',
+    })
+    // Nobody but the Organiser removes someone else.
+    expect(await game.dismiss(PLAYER, ORGANIZER)).toMatchObject({ ok: false })
+    expect(await game.dismiss('d-stranger', PLAYER)).toEqual({
+      ok: false,
+      refusal: 'Not a member of this Game',
+    })
+    expect(await game.dismiss(PLAYER, PLAYER)).toEqual({ ok: true, value: null })
+    expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p1'])
+    expect(shelves.get(PLAYER)?.left).toEqual(['g-leave'])
+    expect(await game.unit(ORGANIZER, 'p1')).toBeNull()
+    expect(game.act(PLAYER, 'read', undefined as never)).toEqual({ ok: true, value: null })
+    expect(game.act(ORGANIZER, 'read', undefined as never)).toMatchObject({
+      ok: true,
+      value: { memberCount: 1 },
+    })
+  })
+
+  test('the Organiser removes a member the same way', async () => {
+    shelves.clear()
+    const { game } = await seeded('g-remove')
+    expect(await game.dismiss(ORGANIZER, PLAYER)).toEqual({ ok: true, value: null })
+    expect(shelves.get(PLAYER)?.parcels.map((p) => p.unit.id)).toEqual(['p1'])
+    expect(game.act(ORGANIZER, 'members', undefined as never)).toMatchObject({
+      ok: true,
+      value: [{ userId: ORGANIZER }],
+    })
+  })
+
   test('a Game whose last member leaves is wiped', async () => {
     const { game } = await seeded('g-forget')
     await game.forget(PLAYER)

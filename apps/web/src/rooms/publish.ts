@@ -62,6 +62,8 @@ export type PublishedRoster = {
   gameId: string
   game: {
     name: string
+    /** What the Game says of itself on its invite (ADR-067 §3). */
+    description?: string | null
     mediatedBy: string | null
     members: { discordId: string; mediator: boolean; organizer: boolean }[]
     invite: string | null
@@ -151,6 +153,7 @@ export function gamePublished(store: GameStore, gameId: string): Published {
       gameId,
       game: {
         name: game.name,
+        description: game.description,
         mediatedBy: mediator === undefined ? null : (mediator.displayName ?? 'the Mediator'),
         members: members.map((m) => ({
           discordId: m.userId,
