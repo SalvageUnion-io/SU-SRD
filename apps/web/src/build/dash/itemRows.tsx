@@ -17,6 +17,7 @@ import {
 } from '../../lib/rules/mechItems'
 import { buildDashCopy } from '../../messages/build-dash'
 import type { ItemKind } from '../sheet/mechSheetActions.model'
+import { chosenChips } from '../wizard/pickColumns'
 import { Cost } from './Cost'
 import { RowRules } from './RowRules'
 
@@ -48,7 +49,7 @@ const typeWord = (type: string | undefined) => (type === 'DownTime' ? 'Downtime'
 /** What a row reads: a mech, or a companion (a mech in all but Push). */
 export type Fitted = Pick<
   Mech,
-  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses'
+  'systems' | 'modules' | 'systemConditions' | 'moduleConditions' | 'itemUses' | 'itemChoices'
 >
 
 export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
@@ -67,6 +68,8 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
     // Traits stay out of the collapsed row; the row's
     // open view (`RowRules`) lists them.
     const action = typeWord(model?.actionType)
+    // A made choice reads as made on the row, Read too (R60): `CHOICE | Bobcat`.
+    const chosen = entity ? chosenChips(entity, mech.itemChoices?.[slug]) : undefined
     return {
       id: keys[index] ?? slug,
       // An item the data no longer holds keeps its slug.
@@ -81,8 +84,9 @@ export function itemRows(mech: Fitted, kind: ItemKind): OpenRow[] {
           </span>
         ) : undefined,
       state:
-        condition !== 'intact' || maxUses > 0 ? (
+        condition !== 'intact' || maxUses > 0 || chosen ? (
           <>
+            {chosen}
             {condition !== 'intact' && (
               <Stat size="mini" label={CONDITION_LABELS[condition]} state="critical" />
             )}
