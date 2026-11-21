@@ -13,17 +13,21 @@
 /** The §4.5 law: at most 6 pips per row, on every pip surface — not a knob. */
 const PER_ROW = 6
 
-export function statBlockRows(n: number): number[] {
+/** `perRow` narrows a surface's rows (an inventory's 3 × 2), never past the law's 6. */
+export function statBlockRows(n: number, perRow = PER_ROW): number[] {
   if (n <= 0) return []
-  const rows = Math.max(1, Math.ceil(n / PER_ROW))
+  const rows = Math.max(1, Math.ceil(n / Math.min(Math.max(1, perRow), PER_ROW)))
   const base = Math.floor(n / rows)
   const extra = n % rows
   return Array.from({ length: rows }, (_, i) => base + (i >= rows - extra ? 1 : 0))
 }
 
 /** statBlockRows with each row's starting pip index precomputed (render-pure). */
-export function statBlockRowStarts(n: number): { count: number; start: number }[] {
-  const rows = statBlockRows(n)
+export function statBlockRowStarts(
+  n: number,
+  perRow = PER_ROW
+): { count: number; start: number }[] {
+  const rows = statBlockRows(n, perRow)
   return rows.map((count, r) => ({
     count,
     start: rows.slice(0, r).reduce((sum, c) => sum + c, 0),

@@ -8,7 +8,13 @@
  */
 
 import type { RefEntity, RefEnumSchemaName } from 'salvageunion-reference'
-import { getEntitySlug, getTechLevel, getTree, SalvageUnionReference } from 'salvageunion-reference'
+import {
+  getEntitySlug,
+  getTechLevel,
+  getTechLevelNumber,
+  getTree,
+  SalvageUnionReference,
+} from 'salvageunion-reference'
 import type { ContentsGroup, ContentsRow } from '../../components/index'
 import {
   BreadcrumbTrail,
@@ -54,7 +60,20 @@ function listingGroups(schemaId: string): ContentsGroup[] {
   })
   const byName = (list: RefEntity[]) =>
     [...list].sort((a, b) => a.name.localeCompare(b.name)).map(row)
-  if (items.length <= GROUP_FROM) return [{ label: '', rows: byName(items) }]
+  // A short list whose every entry has a tech level (the crawler's own) runs
+  // in tech-level order, as the book sets it.
+  const byLevel = (list: RefEntity[]) =>
+    [...list]
+      .sort(
+        (a, b) =>
+          (getTechLevelNumber(a) ?? 0) - (getTechLevelNumber(b) ?? 0) ||
+          a.name.localeCompare(b.name)
+      )
+      .map(row)
+  if (items.length <= GROUP_FROM) {
+    const levelled = items.every((entity) => getTechLevelNumber(entity) != null)
+    return [{ label: '', rows: levelled ? byLevel(items) : byName(items) }]
+  }
   const trees = [...new Set(items.map(getTree).filter((t): t is string => typeof t === 'string'))]
   const levels = [...new Set(items.map(getTechLevel).filter((tl) => tl != null))] as TechLevel[]
   const groupBy = resolveGroupBy(items, trees, levels, schemaId)

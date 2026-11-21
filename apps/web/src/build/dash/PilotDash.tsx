@@ -21,7 +21,15 @@ import type { Pilot } from 'game-domain/schemas/pilot'
 import type { ReactNode } from 'react'
 import type { RefAbility, RefMetaEntity } from 'salvageunion-reference'
 import { CONDITION_LABELS, toEntityModel } from 'salvageunion-reference'
-import { Conditions, Facts, Prose, STRIP_ART, Strip, StripFigure } from '../../components/app'
+import {
+  Conditions,
+  Facts,
+  Prose,
+  SlotGrid,
+  STRIP_ART,
+  Strip,
+  StripFigure,
+} from '../../components/app'
 import type { LedgerColumn, LedgerRow } from '../../components/index'
 import {
   AbilityTrack,
@@ -36,7 +44,12 @@ import { EntityPhoto } from '../../components/shared/EntityPhoto'
 import { cn } from '../../lib/cn'
 import { classArt } from '../../lib/photos/defaultArt'
 import { cycleCondition } from '../../lib/rules/mechItems'
-import { equipmentMaxUses, resolveEquipment } from '../../lib/rules/pilotInventory'
+import {
+  equipmentMaxUses,
+  equipmentSlotCost,
+  genericEntrySlots,
+  resolveEquipment,
+} from '../../lib/rules/pilotInventory'
 import { runWrite } from '../../lib/runWrite'
 import { buildSheetCopy } from '../../messages/build-sheet'
 import { LIVE_SHEET_MANUAL } from '../../replica/provenance'
@@ -68,6 +81,16 @@ const ABILITY_COLUMNS: readonly LedgerColumn[] = [
     phone: true,
   },
 ]
+
+/** An item's slots as cargo chips, one a slot (a Heavy item's two). */
+const slotChips = (slots: number) => (
+  <SlotGrid
+    size="mini"
+    used={slots}
+    cap={slots}
+    label={slots === 1 ? buildSheetCopy('oneSlot') : buildSheetCopy('slotCount', { count: slots })}
+  />
+)
 
 const GEAR_COLUMNS: readonly LedgerColumn[] = [
   { key: 'tl', label: buildSheetCopy('tl'), title: buildSheetCopy('techLevel'), phone: true },
@@ -314,7 +337,7 @@ export function PilotDash({
         ) : undefined,
         cells: [
           entity ? <TechLevel key="tl" level={level ?? entity.techLevel} /> : '',
-          1,
+          slotChips(equipmentSlotCost(entity)),
           !edit && maxUses !== null ? `${usesLeft ?? maxUses}/${maxUses}` : '',
         ],
         dim: condition === 'destroyed',
@@ -326,7 +349,7 @@ export function PilotDash({
         id: entry.id,
         name: entry.qty && entry.qty > 1 ? `${entry.name} ×${entry.qty}` : entry.name,
         meta: entry.note,
-        cells: ['', entry.slotCost, ''],
+        cells: ['', slotChips(genericEntrySlots(entry)), ''],
         controls: edit ? (
           <SheetRemoveButton
             name={entry.name}
@@ -482,12 +505,19 @@ export function PilotDash({
                 open
                 as="h2"
                 title={buildSheetCopy('inventory')}
-                tally={{
-                  label: buildSheetCopy('slots'),
-                  value: model.slotsUsed,
-                  max: model.slotsCap,
-                  ...(model.overCapacity ? { state: 'critical' as const } : {}),
-                }}
+                note={
+                  <SlotGrid
+                    size="mini"
+                    perRow={3}
+                    used={model.slotsUsed}
+                    cap={model.slotsCap}
+                    readOnly={!edit}
+                    label={buildSheetCopy('inventorySlotsFilled', {
+                      used: model.slotsUsed,
+                      cap: model.slotsCap,
+                    })}
+                  />
+                }
                 actions={manage('equipment', buildSheetCopy('manageEquipment'))}
                 columns={GEAR_COLUMNS}
                 groups={[{ key: 'gear', rows: gear }]}

@@ -59,6 +59,7 @@ export {
   getSources,
   getStructurePoints,
   getTechLevel,
+  getTechLevelNumber,
   getTree,
 } from './entityFields'
 export {

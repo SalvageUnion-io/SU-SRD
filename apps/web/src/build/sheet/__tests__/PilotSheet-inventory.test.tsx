@@ -21,8 +21,6 @@ import {
   makeEntityStoreMock,
   makeSingleUnitStore,
 } from '../../../components/__tests__/mockEntityStore'
-import { must } from '../../../components/__tests__/must'
-import { slabChip, slabCountCritical } from '../../../components/__tests__/slabChip'
 import { LIVE_SHEET_MANUAL } from '../../../replica/provenance'
 import { PilotSheet } from '../PilotSheet'
 
@@ -66,7 +64,7 @@ describe('PilotSheet — inventory slot math', () => {
     })
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('6/6Slots')
+    expect(screen.getByRole('img', { name: 'Inventory: 6 of 6 slots filled' })).toBeTruthy()
   })
 
   test('over-capacity totals render honestly (no clamp)', () => {
@@ -80,8 +78,9 @@ describe('PilotSheet — inventory slot math', () => {
     // 1 + 6 + 3 = 10
     render(<PilotSheet pilot={pilot} store={makeStubStore(pilot)} />)
     expandCards()
-    expect(must(slabChip('Inventory')).textContent).toBe('10/6Slots')
-    expect(slabCountCritical(must(slabChip('Inventory')))).toBe(true)
+    expect(
+      screen.getByRole('img', { name: 'Inventory: 10 of 6 slots filled — over capacity' })
+    ).toBeTruthy()
   })
 })
 
@@ -283,7 +282,7 @@ describe('PilotSheet — inventory readOnly', () => {
     expect(screen.queryByRole('button', { name: /add scrap/i })).toBeNull()
     expect(screen.queryByRole('button', { name: /add inventory item/i })).toBeNull()
     // The slot math still renders
-    expect(must(slabChip('Inventory')).textContent).toBe('4/6Slots')
+    expect(screen.getByRole('img', { name: 'Inventory: 4 of 6 slots filled' })).toBeTruthy()
   })
 })
 
