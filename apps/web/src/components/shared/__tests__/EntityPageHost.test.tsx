@@ -48,6 +48,23 @@ describe('EntityPageHost', () => {
     expect(dialog.textContent?.toLowerCase()).toContain('vulnerable')
   })
 
+  test('its prose links the names the Reference links (Pilot Equipment, Tech Level)', async () => {
+    const ability = SalvageUnionReference.Abilities.getByName('Jury Rig')
+    if (!ability) throw new Error('jury rig fixture missing')
+    render(
+      <EntityPageHost>
+        <Mention entityRef={toEntityModel(ability).ref}>Jury Rig</Mention>
+      </EntityPageHost>
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Jury Rig' }))
+    })
+    const dialog = await screen.findByRole('dialog')
+    for (const name of ['Pilot Equipment', 'Tech Level']) {
+      expect(within(dialog).getAllByRole('button', { name }).length).toBeGreaterThan(0)
+    }
+  })
+
   test("a pattern's PATTERN OF chip opens its chassis's Page in the dialog", async () => {
     const chassis = SalvageUnionReference.Chassis.getByName('Mule') as RefEntity | undefined
     const pattern =
