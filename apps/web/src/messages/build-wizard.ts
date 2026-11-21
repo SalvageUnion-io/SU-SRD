@@ -56,6 +56,8 @@ export const buildWizardCopy = messages({
   new: 'New {label}',
   guided: 'Guided',
   startGuided: 'Start guided',
+  resumeYourDraft: 'Resume your draft',
+  startOver: 'Start over',
   blank2: 'Blank',
   anEmptySheetNoSteps2: 'An empty sheet. No steps, no limits. Fill it in on the live sheet.',
   forVeteransImportsAndHomebrew: 'For veterans, imports, and homebrew.',
@@ -64,6 +66,7 @@ export const buildWizardCopy = messages({
   aPatternIsYourPlan:
     'A pattern is a plan for a mech: one the book prints, at any Tech Level, or one of your own. Build With This makes the mech.',
   yourPatterns: 'Your Patterns',
+  nextReason: 'First: {reason}',
   forPilot: 'For {name}: the Mech is assigned to them once it is made.',
   mechNotGivenTo: 'The Mech could not be given to {name}.',
   qty: 'Qty',

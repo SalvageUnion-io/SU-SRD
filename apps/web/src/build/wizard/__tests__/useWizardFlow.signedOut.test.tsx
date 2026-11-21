@@ -71,4 +71,45 @@ describe('useWizardFlow — signed out', () => {
     })
     expect(result.current.shell.signIn.open).toBe(false)
   })
+
+  test('a step forward is a history entry: the browser’s Back is one step, not the way out', async () => {
+    const steps = ['a', 'b', 'c'] as const
+    const { result } = renderHook(
+      () =>
+        useWizardFlow({
+          entityType: 'mech',
+          noun: 'Mech',
+          steps,
+          stepLabels: { a: 'A', b: 'B', c: 'C' },
+          gateFor: () => ({ ok: true }),
+          initialStep: 'a',
+          submitStep: 'c',
+          form: { name: 'x' },
+          draftKey: DRAFT_KEY,
+          formDirty: false,
+          schema: { safeParse: () => ({ success: true }) },
+          toCreateInput: () => ({}) as never,
+          failureMessage: 'no',
+          onComplete: () => {},
+          onCancel: () => {},
+        }),
+      { wrapper }
+    )
+    await act(async () => result.current.shell.onNext())
+    await act(async () => result.current.shell.onNext())
+    expect(result.current.step).toBe('c')
+    expect(window.location.hash).toBe('#step-3')
+    // The browser's Back: the entry before, and its step.
+    await act(async () => {
+      window.history.replaceState(null, '', '#step-2')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(result.current.step).toBe('b')
+    // Back to the entry the wizard opened on: its first step.
+    await act(async () => {
+      window.history.replaceState(null, '', window.location.pathname)
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    expect(result.current.step).toBe('a')
+  })
 })

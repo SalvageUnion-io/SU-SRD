@@ -23,7 +23,7 @@ import { chassisFitsCreationBudget } from '../../lib/rules/creation'
 import { mechCopy } from '../../messages/build-mech'
 import { PickList } from '../wizard/PickList'
 import type { PickColumn } from '../wizard/pickLedger.model'
-import { CHASSIS_COLUMNS } from './chassisColumns.model'
+import { CHASSIS_COLUMNS, PATTERN_STRIP_ID } from './chassisColumns.model'
 
 /** A caps label: the condensed face in capitals (ruleset §3.12). */
 const CAPS = capsLabel({ weight: 'inherit', tracking: 'inherit' })
@@ -149,7 +149,7 @@ export function MechChassisStep({
           />
         </div>
         {selectedChassis !== undefined && (
-          <div>
+          <div id={PATTERN_STRIP_ID}>
             <PickList
               title={mechCopy('orStartFromAPattern')}
               note={mechCopy('optional')}

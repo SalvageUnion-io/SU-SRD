@@ -15,6 +15,7 @@
 import type { SheetKind } from 'game-domain/entityKinds'
 import type { CSSProperties } from 'react'
 import { Button, ChapterBand, Eyebrow, Text, TitledBox, tokens } from '../../components/index'
+import { clearWizardDraft, readWizardDraft, wizardDraftKey } from '../../lib/wizard/wizardDraft'
 import { usePatterns } from '../../replica/collections'
 import { BookPatternBuild } from '../mech/Pattern/BookPatternBuild'
 import { PatternList } from '../mech/Pattern/PatternList'
@@ -67,6 +68,7 @@ const doorText = { margin: 0 } satisfies CSSProperties
 const doorCite = { fontWeight: tokens.weight.bold, margin: 0 } satisfies CSSProperties
 /** A door's act, at its own width under the copy. */
 const doorAct = { alignSelf: 'flex-start' } satisfies CSSProperties
+const doorActs = { display: 'flex', flexWrap: 'wrap', gap: tokens.space[8] } satisfies CSSProperties
 
 /** Its padding grows at `sm` (`.su-wiz-chooser-body`). */
 const MEASURE = '56rem'
@@ -89,6 +91,8 @@ export function CreateModeChooser({
   const guided = GUIDED_COPY[kind]
   // With no pattern saved yet, the pattern door's empty state waits under the
   // other two rather than push Guided below the fold.
+  // Read as the chooser draws: the draft is this tab's session's.
+  const hasDraft = readWizardDraft(wizardDraftKey(kind)) !== null
   const hasPatterns = usePatterns((s) => s.hydrated && s.mechPatterns.length > 0)
   const patterns = kind === 'mech' && (
     <div style={patternDoor}>
@@ -137,9 +141,23 @@ export function CreateModeChooser({
           <TitledBox title={buildWizardCopy('guided')} titleAs="h2" tone={kind}>
             <p style={doorText}>{guided.body}</p>
             <p style={doorCite}>{guided.cite}</p>
-            <Button variant="primary" style={doorAct} onClick={onGuided}>
-              {buildWizardCopy('startGuided')}
-            </Button>
+            {/* A draft left mid-build is said here: resume it, or start again. */}
+            <div style={doorActs}>
+              <Button variant="primary" onClick={onGuided}>
+                {hasDraft ? buildWizardCopy('resumeYourDraft') : buildWizardCopy('startGuided')}
+              </Button>
+              {hasDraft && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    clearWizardDraft(wizardDraftKey(kind))
+                    onGuided()
+                  }}
+                >
+                  {buildWizardCopy('startOver')}
+                </Button>
+              )}
+            </div>
           </TitledBox>
 
           <TitledBox title={buildWizardCopy('blank2')} titleAs="h2">

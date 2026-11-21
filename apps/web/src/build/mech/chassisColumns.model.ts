@@ -53,3 +53,6 @@ export const CHASSIS_COLUMNS: readonly PickColumn<RefChassis>[] = [
     value: (c) => c.cargoCapacity,
   },
 ]
+
+/** The chassis step's pattern strip, for the action bar's prompt to scroll to. */
+export const PATTERN_STRIP_ID = 'wiz-patterns'

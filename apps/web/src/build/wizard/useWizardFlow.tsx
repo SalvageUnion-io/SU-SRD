@@ -19,7 +19,7 @@
 
 import { moveTo } from 'game-domain/container'
 import type { EntityKind } from 'game-domain/entityKinds'
-import { startTransition, useEffect, useState } from 'react'
+import { startTransition, useEffect, useRef, useState } from 'react'
 import { toast } from '../../components/index'
 import { useServerAction } from '../../lib/connection/useServerAction'
 import type { StepGateResult } from '../../lib/rules/creation'
@@ -211,8 +211,30 @@ export function useWizardFlow<
   // systems list) renders in slices behind the pressed button, so the press
   // paints at once rather than after one long render (INP).
   function goTo(next: TStep) {
+    // A step forward is a history entry of its own, so the browser's Back is
+    // one step back (below); a step back rewrites the entry it is on.
+    const to = steps.indexOf(next)
+    if (typeof window !== 'undefined' && to >= 0) {
+      const write = to > currentIndex ? 'pushState' : 'replaceState'
+      window.history[write](window.history.state, '', stepHash(to))
+    }
     startTransition(() => setStep(next))
   }
+
+  // The browser's Back and Forward land on an entry's step, where the draft
+  // has reached it; the entry the wizard opened on is its first step.
+  const reachedRef = useRef(reached)
+  reachedRef.current = reached
+  useEffect(() => {
+    const first = Math.max(steps.indexOf(initialStep), 0)
+    const onPop = () => {
+      const at = stepOfHash(window.location.hash) ?? first
+      const s = steps[Math.min(at, reachedRef.current)]
+      if (s) startTransition(() => setStep(s))
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [steps, initialStep])
 
   function goNext() {
     if (step === submitStep) {
@@ -263,6 +285,13 @@ export function useWizardFlow<
       signIn: { open: askSignIn, onClose: () => setAskSignIn(false) },
     },
   }
+}
+
+/** A step's history entry: its number in the address's fragment (`#step-2`). */
+const stepHash = (index: number) => `#step-${index + 1}`
+const stepOfHash = (hash: string): number | undefined => {
+  const match = /^#step-(\d+)$/.exec(hash)
+  return match ? Number(match[1]) - 1 : undefined
 }
 
 /** A create input filed under a Game: its container decided, so the store keeps it. */

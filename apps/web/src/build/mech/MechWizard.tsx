@@ -27,6 +27,7 @@ import { useWizardDraft } from '../wizard/useWizardDraft'
 import { useWizardFlow } from '../wizard/useWizardFlow'
 import { WizTracker } from '../wizard/WizBudget'
 import { WizShell } from '../wizard/WizShell'
+import { PATTERN_STRIP_ID } from './chassisColumns.model'
 import type { ChassisPattern } from './MechChassisStep'
 import { MechChassisStep } from './MechChassisStep'
 import { MechLoadoutStep } from './MechLoadoutStep'
@@ -397,6 +398,12 @@ export function MechWizard({
       title={STEP_TITLES[step]}
       trackers={trackers}
       footerNote={footerNote}
+      // The pattern strip opens under the chassis gallery, out of sight on a phone.
+      prompt={
+        step === 'chassis' && form.chassisName !== '' && form.patternName === ''
+          ? { text: mechCopy('orStartFromAPattern'), targetId: PATTERN_STRIP_ID }
+          : undefined
+      }
       submitLabel={mechCopy('createMech')}
     >
       {step === 'chassis' && (

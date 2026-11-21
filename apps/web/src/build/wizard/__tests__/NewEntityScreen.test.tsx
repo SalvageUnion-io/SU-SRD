@@ -22,6 +22,7 @@ import type { ReactNode } from 'react'
 import { SalvageUnionReference } from 'salvageunion-reference'
 import { installServerMocks } from '../../../components/__tests__/serverMock'
 import { parseCreateMode } from '../../../lib/wizard/createMode'
+import { wizardDraftKey } from '../../../lib/wizard/wizardDraft'
 import type { SyncState } from '../../../replica/syncContext'
 
 // Module scope, before the imports below — see `serverMock.ts`. The signed-out
@@ -364,6 +365,25 @@ describe('BlankCreateDialog — blank pilot create', () => {
     expect(mech?.chassisRef).toBe('mule')
     expect(mech?.name).toBe('Mule')
     expect(useSheetModeStore.getState().editing).toBe(true)
+  })
+
+  test('a draft left mid-build is offered: Resume your draft, or Start over (which clears it)', () => {
+    sessionStorage.setItem(wizardDraftKey('mech'), JSON.stringify({ name: 'Half built' }))
+    const modes: unknown[] = []
+    render(
+      <NewEntityScreen
+        kind="mech"
+        mode={undefined}
+        wizard={null}
+        onModeChange={(mode) => modes.push(mode)}
+        onCreated={noop}
+      />
+    )
+    expect(screen.queryByRole('button', { name: 'Start guided' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Resume your draft' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Start over' }))
+    expect(sessionStorage.getItem(wizardDraftKey('mech'))).toBeNull()
+    expect(modes).toEqual(['guided'])
   })
 
   test('a book pattern above Tech 1 builds from the chooser, as printed, after it asks', async () => {
